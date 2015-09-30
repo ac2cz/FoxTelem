@@ -36,8 +36,8 @@ public class PassMeasurement extends Measurement {
 
 	public String[] fieldValue = null;
 
-	public int endReset = 0;
-	public long endUptime = 0;
+	int endReset = 0;
+	long endUptime = 0;
 	
 	public static final String AOS = "AOS";
 	public static final String LOS = "LOS";
@@ -88,6 +88,9 @@ public class PassMeasurement extends Measurement {
 		setRawValue(AOS, captureDate);
 
 	}
+
+	public int getEndReset() { return endReset; }
+	public long getEndUptime() { return endUptime; }
 
 	public void setStartResetUptime(int reset, long uptime) {
 		this.reset = reset;

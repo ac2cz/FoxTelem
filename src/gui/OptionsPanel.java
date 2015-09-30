@@ -56,6 +56,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JCheckBox debugBits;
 	JCheckBox debugClock;
 	JCheckBox debugGlitches;
+	JCheckBox debugSignalFinder;
 	JCheckBox filterData;
 	JCheckBox useRSfec;
 	JCheckBox useRSerasures;
@@ -106,6 +107,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 //		highSpeed = addCheckBox("Decode 9k6", Config.highSpeed );
 	//	useAGC = addCheckBox("Use AGC", Config.useAGC );
 		debugGlitches = addCheckBox("Debug missed audio", "Write to debug log when significant audio is being missed from the soundcard", Config.debugAudioGlitches );
+		debugSignalFinder = addCheckBox("Debug Find Signal", "Write debug to show the workings of the signal finder and the pass measurements", Config.debugSignalFinder );
 		useNativeFileChooser = addCheckBox("Use Native File Chooser", "Use the OS native file chooser", Config.useNativeFileChooser );
 		//squelchAudio = addCheckBox("Squelch Decoder", Config.squelchAudio );
 		//realTimePlayback = addCheckBox("Slow Down Playback", Config.realTimePlaybackOfFile );
@@ -227,6 +229,13 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				Config.debugAudioGlitches = false;
 			} else {
 				Config.debugAudioGlitches = true;
+			}
+		}
+		if (source == debugSignalFinder) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugSignalFinder = false;
+			} else {
+				Config.debugSignalFinder = true;
 			}
 		}
 		if (source == useNativeFileChooser) { 

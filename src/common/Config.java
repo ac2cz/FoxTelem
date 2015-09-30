@@ -50,7 +50,7 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 	
-	public static String VERSION = "1.00a - 22 September 2015";
+	public static String VERSION = "1.01 - 29 September 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -434,7 +434,7 @@ public class Config {
 		properties.setProperty("graphAxisFontSize", Integer.toString(graphAxisFontSize));
 
 		properties.setProperty("useNativeFileChooser", Boolean.toString(useNativeFileChooser));
-		
+		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
 		store();
 	}
 	
@@ -564,6 +564,7 @@ public class Config {
 		graphAxisFontSize = Integer.parseInt(getProperty("graphAxisFontSize"));
 		
 		useNativeFileChooser = Boolean.parseBoolean(getProperty("useNativeFileChooser"));
+		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -585,7 +586,7 @@ public class Config {
         "Exit"};
 		int n = JOptionPane.showOptionDialog(
 				MainWindow.frame,
-				"Could not read properties file. Likely Corrupt.  Create new properties file and delete your existing one?",
+				"Could not read properties file. Format has changed or the file is corrupt.  Create new properties file after reading as much as possible from the existing one?",
 				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
 			    JOptionPane.YES_NO_OPTION,
 			    JOptionPane.ERROR_MESSAGE,

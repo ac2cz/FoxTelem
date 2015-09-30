@@ -569,11 +569,7 @@ public abstract class Decoder implements Runnable {
 					FramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-					if (Config.passManager.isNewPass()) {
-						Log.println("Setting reset/uptime for new pass");
-						Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
-					}
-
+					
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
 				} else {
@@ -590,10 +586,6 @@ public abstract class Decoder implements Runnable {
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
 						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
-					}
-					if (Config.passManager.isNewPass()) {
-						Log.println("Setting reset/uptime for new pass");
-						Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
 					}
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
@@ -618,6 +610,15 @@ public abstract class Decoder implements Runnable {
 	
 
 	private void addMeasurements(Header header, Frame frame) {
+		// Pass Measurements
+		if (Config.passManager.isNewPass()) {
+			Log.println("Setting reset/uptime for new pass");
+			Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+		} else {
+			Config.passManager.setLastResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+		}
+
+		// Real time measurements
 		RtMeasurement rtMeasurement = new RtMeasurement(header.getFoxId(), header.getResets(), header.getUptime(), SatMeasurementStore.RT_MEASUREMENT_TYPE);
 		rtMeasurement.setBitSNR(eyeData.bitSNR);
 		rtMeasurement.setErrors(bitStream.lastErrorsNumber);
