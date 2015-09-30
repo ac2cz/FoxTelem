@@ -56,21 +56,25 @@ public class SatPayloadStore {
 	public static String MAX_LOG = "maxtelemetry.log";
 	public static String MIN_LOG = "mintelemetry.log";
 	public static String RAD_LOG = "radtelemetry.log";
+	public static String HERCI_LOG = "herciHSdata.log";
 	
 	public String rtFileName;
 	public String maxFileName;
 	public String minFileName;
 	public String radFileName;
+	public String herciFileName;
 	
 	SortedFramePartArrayList rtRecords;
 	SortedFramePartArrayList maxRecords;
 	SortedFramePartArrayList minRecords;
 	SortedFramePartArrayList radRecords;
+	SortedFramePartArrayList herciRecords;
 	
 	boolean updatedRt = false;
 	boolean updatedMax = false;
 	boolean updatedMin = false;
 	boolean updatedRad = false;
+	boolean updatedHerci = false;
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
 	
@@ -90,6 +94,11 @@ public class SatPayloadStore {
 			load(maxFileName);
 			load(minFileName);
 			load(radFileName);
+			if (Config.satManager.hasHerci(foxId)) {
+				herciFileName = "Fox"+id+HERCI_LOG;
+				load(herciFileName);
+			}
+
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
@@ -104,7 +113,8 @@ public class SatPayloadStore {
 		maxRecords = new SortedFramePartArrayList(INIT_SIZE);
 		minRecords = new SortedFramePartArrayList(INIT_SIZE);
 		radRecords = new SortedFramePartArrayList(INIT_SIZE);
-
+		if (Config.satManager.hasHerci(foxId))
+			herciRecords = new SortedFramePartArrayList(INIT_SIZE);
 	}
 	
 	public void setUpdatedAll() {
@@ -112,6 +122,7 @@ public class SatPayloadStore {
 		updatedMax = true;
 		updatedMin = true;
 		updatedRad = true;
+		updatedHerci = true;
 		
 	}
 	
@@ -132,10 +143,20 @@ public class SatPayloadStore {
 	public void setUpdatedRad(boolean u) {
 		updatedRad = u;
 	}
+	public boolean getUpdatedHerci() { return updatedHerci; }
+	public void setUpdatedHerci(boolean u) {
+		updatedHerci = u;
+	}
 	
-	public int getNumberOfFrames() { return rtRecords.size() + maxRecords.size() + minRecords.size() + radRecords.size(); }
+	public int getNumberOfFrames() {
+		int herci = 0;
+		if (Config.satManager.hasHerci(foxId))
+			herci = herciRecords.size();
+		return herci + rtRecords.size() + maxRecords.size() + minRecords.size() + radRecords.size(); 
+	}
 	public int getNumberOfTelemFrames() { return rtRecords.size() + maxRecords.size() + minRecords.size(); }
 	public int getNumberOfRadFrames() { return radRecords.size(); }
+	public int getNumberOfHerciFrames() { return herciRecords.size(); }
 		
 	public boolean add(int id, long uptime, int resets, FramePart f) throws IOException {
 		f.captureHeaderInfo(id, uptime, resets);
@@ -215,10 +236,14 @@ public class SatPayloadStore {
 			//} else {
 			//	if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
 			//}
+		} else if (f instanceof PayloadHERCIhighSpeed ) {
+			updatedHerci = true;
+			save(f, herciFileName);				
+			return herciRecords.add(f);
 		}
 		return false;
 	}
-
+		
 	public PayloadRtValues getLatestRt() {
 		if (rtRecords.size() == 0) return null;
 		return (PayloadRtValues) rtRecords.get(rtRecords.size()-1);
@@ -237,6 +262,11 @@ public class SatPayloadStore {
 	public PayloadRadExpData getLatestRad() {
 		if (radRecords.size() == 0) return null;
 		return (PayloadRadExpData) radRecords.get(radRecords.size()-1);
+	}
+
+	public PayloadHERCIhighSpeed getLatestHerci() {
+		if (herciRecords.size() == 0) return null;
+		return (PayloadHERCIhighSpeed) herciRecords.get(herciRecords.size()-1);
 	}
 
 	/**
@@ -320,7 +350,6 @@ public class SatPayloadStore {
 		return null;
 		
 	}
-	
 	private double[][] getGraphData(SortedFramePartArrayList records, String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 
 		int start = 0;
@@ -424,6 +453,11 @@ public class SatPayloadStore {
         				radRecords.add(rt);
         				updatedRad = true;
         			}
+        			if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
+        				PayloadHERCIhighSpeed rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
+        				herciRecords.add(rt);
+        				updatedHerci = true;
+        			}
         		}
         	}
         	dis.close();
@@ -479,6 +513,7 @@ public class SatPayloadStore {
 				remove(dir+maxFileName);
 				remove(dir+minFileName);
 				remove(dir+radFileName);
+				remove(dir+herciFileName);
 				initPayloadFiles();
 				setUpdatedAll();
 			} catch (IOException ex) {

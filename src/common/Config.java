@@ -186,6 +186,9 @@ public class Config {
 	static public int graphAxisFontSize = 12;
 	static public boolean useNativeFileChooser = true;
 	
+	// Post V1.00
+	static public boolean debugHerciFrames = false;
+	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -434,7 +437,10 @@ public class Config {
 		properties.setProperty("graphAxisFontSize", Integer.toString(graphAxisFontSize));
 
 		properties.setProperty("useNativeFileChooser", Boolean.toString(useNativeFileChooser));
+		
+		// Version 1.01 settings
 		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
+		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
 		store();
 	}
 	
@@ -564,7 +570,10 @@ public class Config {
 		graphAxisFontSize = Integer.parseInt(getProperty("graphAxisFontSize"));
 		
 		useNativeFileChooser = Boolean.parseBoolean(getProperty("useNativeFileChooser"));
+		
+		// Version 1.01 settings
 		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
+		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

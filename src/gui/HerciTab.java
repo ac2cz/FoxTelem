@@ -21,9 +21,11 @@ import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
 
 import telemetry.PayloadHERCIhighSpeed;
+import telemetry.PayloadRadExpData;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.Decoder;
 
 /**
  * 
@@ -162,13 +164,12 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 
 	}
 	
-	@SuppressWarnings("unused")
 	private void showHighSpeed() {
 		lblHSpayload.setText("Last HERCI EXPERIMENT HIGH SPEED PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + hsPayload.getResets() + " Uptime:" + hsPayload.getUptime() );
 		String s = "";
 		int row = 0;
 		for (int i =0; i < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; i++) {
-////////			s = s + Decoder.plainhex(hsPayload.fieldValue[i]) + " ";
+			s = s + Decoder.plainhex(hsPayload.fieldValue[i]) + " ";
 			// Print 32 bytes in a row
 			if ((i+1)%32 == 0) {
 				lblBytes[row++].setText(s);
@@ -184,7 +185,6 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 	}
 	
 	
-	@SuppressWarnings("unused")
 	private void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
@@ -206,6 +206,17 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 					radPayload = Config.payloadStore.getLatestRad(foxId);
 					Config.payloadStore.setUpdatedRad(foxId, false);
 					parseRadiationFrames();
+					MainWindow.setTotalDecodes();
+				}
+				if (Config.payloadStore.getUpdatedHerci(foxId)) {
+					
+					hsPayload = Config.payloadStore.getLatestHerci(foxId);
+					Config.payloadStore.setUpdatedHerci(foxId, false);
+
+					if (hsPayload != null)
+						showHighSpeed();
+					
+					displayFramesDecoded(Config.payloadStore.getNumberOfHerciFrames(foxId));
 					MainWindow.setTotalDecodes();
 				}
 			

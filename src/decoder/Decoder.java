@@ -20,6 +20,7 @@ import telemetry.FramePart;
 import telemetry.Header;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;
+import telemetry.PayloadHERCIhighSpeed;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRadExpData;
@@ -585,7 +586,13 @@ public abstract class Decoder implements Runnable {
 					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
-						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+						if (cameraData != null)
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+					}
+					if (Config.satManager.hasHerci(header.getFoxId())) {
+						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
+						if (herciDataSet != null)
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
 					}
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
@@ -1173,7 +1180,10 @@ public abstract class Decoder implements Runnable {
 		//return String.valueOf(n);
 	}
 	
-	
+	public static String plainhex(int n) {
+		return String.format("%2s", Integer.toHexString(n)).replace(' ', '0');
+		//return String.valueOf(n);
+	}
 
 	public static long getTimeNano() {
 		long l = System.nanoTime();

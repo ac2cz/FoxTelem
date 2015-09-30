@@ -38,19 +38,26 @@ public class HighSpeedFrame extends Frame {
 	// FIXME - we never have 76 rad payloads.  I think there is a maximum in the IHU that is not exceeded?  Do we really
 	// need to hold this much space?
 	public static final int DEFAULT_RAD_EXP_PAYLOADS = 76; // Default number to fill up frame if there is no camera data
+	public static final int MAX_HERCI_PAYLOADS = 5;
 	
 	//HighSpeedHeader header = null;
 	FramePart rtPayload = null;
 	FramePart maxPayload = null;
 	FramePart minPayload = null;
 	PayloadRadExpData[] radExpPayload = new PayloadRadExpData[DEFAULT_RAD_EXP_PAYLOADS];
+	PayloadCameraScanLineCount cameraScanLineCount = null;
 	PayloadCameraData cameraPayload = null;
+	PayloadHerciLineCount herciLineCount = null;
+	PayloadHERCIhighSpeed[] herciPayload = null;
+	
 	HighSpeedTrailer trailer = null;
 
 	int numberBytesAdded = 0;
-	int radiationBytesAdded = 0;
-	int radFrame = 0;
+	int radiationBytesAdded = 0;  // count of the number of vulcan or HERCI bytes that we have added
+	int radFrame = 0;  // the number of Vulcan or HERCI experiment payloads added to this frame so far
 	private boolean firstNonHeaderByte = true;
+	private boolean firstCameraByte = true;
+	private boolean firstHERCIByte = true;
 	
 	public HighSpeedFrame() {
 		super();
@@ -68,6 +75,7 @@ public class HighSpeedFrame extends Frame {
 	public PayloadMaxValues getMaxPayload() { return (PayloadMaxValues) maxPayload; }
 	public PayloadMinValues getMinPayload() { return (PayloadMinValues) minPayload; }
 	public PayloadCameraData getCameraPayload() { return cameraPayload; }
+	public PayloadHERCIhighSpeed[] getHerciPayloads() { return herciPayload; }
 	public PayloadRadExpData[] getRadPayloads() { return radExpPayload; }
 	
 	/**
@@ -92,7 +100,9 @@ public class HighSpeedFrame extends Frame {
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					if (fox.hasCamera())
-						cameraPayload = new PayloadCameraData();
+						cameraScanLineCount = new PayloadCameraScanLineCount();
+					if (fox.hasHerci())
+						herciLineCount = new PayloadHerciLineCount(); 
 				} else {
 					Log.errorDialog("Missing or Invalid Fox Id", "FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
 				}
@@ -103,22 +113,55 @@ public class HighSpeedFrame extends Frame {
 			maxPayload.addNext8Bits(b);
 		else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*3)
 			minPayload.addNext8Bits(b);
-		else if (fox.hasCamera() && !cameraPayload.foundEndOfJpegData() && numberBytesAdded < MAX_HEADER_SIZE + MAX_CAMERA_PAYLOAD_SIZE) {
-			cameraPayload.addNext8Bits(b);
-			if (cameraPayload.foundEndOfJpegData() && Config.debugFrames && fox.hasCamera())
-				Log.println(cameraPayload.toString());
-		} else if (numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE && radFrame < DEFAULT_RAD_EXP_PAYLOADS) {
-			
-			/*
-			if (radExpPayload == null) {
-				// This is the first byte of the radiation data, so we know the size left
-				radiationFrameMax = getMaxDataBytes() - numberBytesAdded;
-				radiationFrames = radiationFrameMax / PayloadRadExpData.MAX_PAYLOAD_RAD_SIZE;
-				Log.println("Expecting " + radiationFrames + " radiation frames in high speed data");
-				//////////////// Init one frame for now
-				radExpPayload = new PayloadRadExpData(PayloadRadExpData.MAX_PAYLOAD_RAD_SIZE);
+		else if (fox.hasCamera() && !cameraScanLineCount.foundEndOfJpegData() && numberBytesAdded < MAX_HEADER_SIZE + MAX_CAMERA_PAYLOAD_SIZE) {
+			if (firstCameraByte) {
+				cameraScanLineCount.addNext8Bits(b);
+				if (!cameraScanLineCount.foundEndOfJpegData()) {
+					cameraPayload = new PayloadCameraData(cameraScanLineCount.getScanLineCount());
+				} 
+				if(Config.debugHerciFrames) Log.println("CAMERA Lines to Decode: " + cameraScanLineCount.getScanLineCount());
+				firstCameraByte = false;
+			} else {
+				cameraPayload.addNext8Bits(b);
+				if (cameraPayload.foundEndOfJpegData()) {
+					cameraScanLineCount.setFoundEndOfJpegData();
+					if(Config.debugFrames && fox.hasCamera())
+						Log.println(cameraPayload.toString());
+				}
 			}
-			*/
+		} else if (fox.hasHerci() && herciLineCount.hasData() && cameraScanLineCount.getScanLineCount() == 0 
+				&& numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE && radFrame < MAX_HERCI_PAYLOADS) {
+			if (firstHERCIByte) {
+				herciLineCount.addNext8Bits(b);
+				if(Config.debugHerciFrames) Log.println("HERCI HS Frames to Decode: " + herciLineCount.getLineCount());
+				if (herciLineCount.getLineCount() <= MAX_HERCI_PAYLOADS) {
+					if (herciLineCount.hasData()) {
+						herciPayload = new PayloadHERCIhighSpeed[herciLineCount.getLineCount()];
+						for (int i=0; i < herciLineCount.getLineCount(); i++)
+							herciPayload[i] = new PayloadHERCIhighSpeed(Config.satManager.getHerciHSLayout(header.id));	
+					}
+				} else {
+					// This looks like a corrupt frame, set the linecount to zero so that we do not process it
+					herciLineCount.zeroLineCount();
+				}
+				firstHERCIByte = false;
+			} else {
+				//Log.print(b + " ");
+				herciPayload[radFrame].addNext8Bits(b);	
+				radiationBytesAdded++;
+				if (radiationBytesAdded == PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE) {
+					radiationBytesAdded = 0;
+					if(Config.debugHerciFrames) 
+						Log.println(herciPayload[radFrame].toString());
+					radFrame++;
+				}
+				if (radFrame == herciLineCount.getLineCount()) {
+					radFrame = MAX_HERCI_PAYLOADS; // we have added all of the data, so terminate the loop
+					if(Config.debugFrames && fox.hasHerci())
+						Log.println("HERCI HIGH SPEED PAYLOADS DECODED [" +herciLineCount.getLineCount()+ "]");
+				}
+			}
+		} else if (!fox.hasHerci() && numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE && radFrame < DEFAULT_RAD_EXP_PAYLOADS) {
 			radExpPayload[radFrame].addNext8Bits(b);	
 			radiationBytesAdded++;
 			if (radiationBytesAdded == PayloadRadExpData.MAX_PAYLOAD_RAD_SIZE) {
@@ -133,7 +176,6 @@ public class HighSpeedFrame extends Frame {
 
 		bytes[numberBytesAdded] = b;
 		numberBytesAdded++;
-
 	}
 	
 	public static int getMaxDataBytes() {
@@ -159,6 +201,8 @@ public class HighSpeedFrame extends Frame {
 				s = s + "\nRadation Payload [" + i + "]\n"+ radExpPayload[i].toString() +
 				"\n"; 
 			}
+		if(fox.hasHerci())
+			s = s + "\n\n" + herciPayload.toString();
 		
 		return s;
 	}
