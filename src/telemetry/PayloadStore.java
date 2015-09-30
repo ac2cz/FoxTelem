@@ -462,6 +462,15 @@ public class PayloadStore implements Runnable {
 		return null;
 	}
 
+	
+	public String getRtUTCFromUptime(int id, int reset, long uptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getRtUTCFromUptime(reset, uptime);
+		return null;
+	}
+	
+	
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
 	 */

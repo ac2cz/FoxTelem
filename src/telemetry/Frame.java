@@ -5,12 +5,14 @@ import java.io.BufferedWriter;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
 import common.Log;
@@ -52,6 +54,7 @@ import common.TlmServer;
  */
 public abstract class Frame implements Comparable<Frame>  {
 
+	public static final DateFormat stpDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss");
 	
 	protected Header header = null;
 	Spacecraft fox; // the satellite that we are decoding a frame for, populated once the header is filled
@@ -87,7 +90,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	
 	// Store a reference to any measurements that were made at the same time as the Frame was downloaded, so we can pass them on to the server
 	private RtMeasurement rtMeasurement;
-	//private PassMeasurement passMeasurement;
+	private PassMeasurement passMeasurement;
 	
 	/**
 	 * This creates a new frame, freshly decoded from the satellite, and snapshots all of the STP header paramaters
@@ -143,7 +146,30 @@ public abstract class Frame implements Comparable<Frame>  {
 		if (m.getRawValue(RtMeasurement.CARRIER_FREQ) != 0)
 			frequency = Long.toString(Math.round(m.getRawValue(RtMeasurement.CARRIER_FREQ))) + " Hz";
 	}
-	
+
+	public void setPassMeasurement(PassMeasurement m) {
+		passMeasurement = m;
+		String strDate = null;
+		if (m.getRawValue(PassMeasurement.TCA) != null)
+			strDate = m.getRawValue(PassMeasurement.TCA);
+
+		Log.println("Got TCA: " + strDate);
+		Date date = null;
+		try {
+			date = FramePart.fileDateFormat.parse(strDate);
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		measuredTCA = stpDateFormat.format(date);
+		Log.println("STP TCA set as: " + measuredTCA);
+
+		if (m.getRawValue(PassMeasurement.TCA_FREQ) != null)
+			measuredTCAfrequency = m.getRawValue(PassMeasurement.TCA_FREQ) + " Hz";
+	}
+
 	/**
 	 * Load a new frame from disk
 	 * @param input
@@ -200,7 +226,6 @@ public abstract class Frame implements Comparable<Frame>  {
 		return -1;
 	}
 	
-	public static final DateFormat stpDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss");
 	
 	private String getSTPCoreHeader() {
 		String header;
@@ -240,7 +265,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		String header = "";
 
 		if (notNone(measuredTCA)) {
-			header = "MeasuredTCA: " + measuredTCA + "\r\n";
+			header = "MeasuredTCA: " + measuredTCA + " UTC\r\n";;
 			header = header + "MeasuredTCAFrequency: " + measuredTCAfrequency + "\r\n";
 		}
 		return header;
@@ -326,6 +351,7 @@ public abstract class Frame implements Comparable<Frame>  {
 			buffer[j++] = b;
 		
 		tlmServer.sendToServer(buffer);
+		Log.println(header);
 	}
 
 }

@@ -15,6 +15,7 @@ import java.net.UnknownHostException;
 
 import javax.swing.JOptionPane;
 
+import measure.PassMeasurement;
 import common.Config;
 import common.Log;
 import common.TlmServer;
@@ -40,8 +41,12 @@ import common.TlmServer;
  *
  *
  * Class to hold a queue of frames after they are received by the ground station and before they have been sent to the 
- * amsat server.
+ * amsat server.  This class runs as a back ground thread.  When frames are added to it they are stored.  They are then 
+ * sent in the background to the server.
  * 
+ * If the passManager is active (findSignal is true) then we are attempting to monitor the satellites and measure TCA.
+ * In that case, we check if a pass is active and hold on to the last record until the pass is done.  We then append
+ * TCA is measured.
  *
  */
 public class RawFrameQueue implements Runnable {
@@ -233,6 +238,7 @@ public class RawFrameQueue implements Runnable {
 		boolean success = true;
 		int retryStep = 0;
 		while(running) {
+			MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
 			try {
 				Thread.sleep(1000 * Config.serverTxPeriod); // refresh data periodically
 			} catch (InterruptedException e) {
@@ -240,7 +246,6 @@ public class RawFrameQueue implements Runnable {
 				e.printStackTrace(Log.getWriter());
 			} 			
 
-			MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
 			if (Config.uploadToServer) {
 				if (!success) {
 					// We failed the last time we tried to connect, so wait until we retry
@@ -254,7 +259,8 @@ public class RawFrameQueue implements Runnable {
 				// We attempt to send the first one, if unsuccessful, we try the backup server.  If still unsuccessful we drop out
 				// and try next time
 				while (rawSlowSpeedFrames.size() > 0 && success) {
-					success = sendFrame(rawSlowSpeedFrames, RAW_SLOW_SPEED_FRAMES_FILE);
+					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawSlowSpeedFrames.size() > 1))
+						success = sendFrame(rawSlowSpeedFrames, RAW_SLOW_SPEED_FRAMES_FILE);
 					try {
 						Thread.sleep(100); // pause so that the server can keep up
 					} catch (InterruptedException e) {
@@ -263,7 +269,8 @@ public class RawFrameQueue implements Runnable {
 					} 	
 				}
 				while (rawHighSpeedFrames.size() > 0 && success) {
-					success = sendFrame(rawHighSpeedFrames, RAW_HIGH_SPEED_FRAMES_FILE);
+					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawSlowSpeedFrames.size() > 1))
+						success = sendFrame(rawHighSpeedFrames, RAW_HIGH_SPEED_FRAMES_FILE);
 					try {
 						Thread.sleep(100); // pause so that the server can keep up
 					} catch (InterruptedException e) {
@@ -277,48 +284,50 @@ public class RawFrameQueue implements Runnable {
 	}
 
 	private boolean sendFrame(SortedFrameArrayList frames, String file) {
-		boolean failed = false;
+		boolean failed = true;
+		if (Config.passManager.hasTCA()) {
+			PassMeasurement passMeasurement = Config.passManager.getPassMeasurement(); 
+			frames.get(0).setPassMeasurement(passMeasurement);
+			Config.passManager.sentTCA();
+		}
+		
 		Log.println("Trying Primary Server: " + Config.primaryServer + ":" + Config.serverPort);
 		try {
 			frames.get(0).sendToServer(primaryServer);
-			
+			failed = false;
 		} catch (UnknownHostException e) {
 			Log.println("Could not connect to primary server");
 			//e.printStackTrace(Log.getWriter());
-			failed = true;
 		} catch (IOException e) {
 			Log.println("IO Exception with primary server");
 			//e.printStackTrace(Log.getWriter());
-			failed = true;
 		}
-		if (running && failed)
+		if (running)
 			try {
 				Log.println("Trying Secondary Server: " + Config.secondaryServer + ":" + Config.serverPort);
 				frames.get(0).sendToServer(secondaryServer);
-				// Swap the servers for next time
-				String primary = Config.primaryServer;
-				Config.primaryServer = Config.secondaryServer;
-				Config.secondaryServer = primary;
-				primaryServer.setHostName(Config.primaryServer);
-				secondaryServer.setHostName(Config.secondaryServer);
-				
+				//String primary = Config.primaryServer;
+				//Config.primaryServer = Config.secondaryServer;
+				//Config.secondaryServer = primary;
+				//primaryServer.setHostName(Config.primaryServer);
+				//secondaryServer.setHostName(Config.secondaryServer);
+				failed = false;
 			} catch (UnknownHostException e) {
 				Log.println("Could not connect to secondary server");
 				//e.printStackTrace(Log.getWriter());
-				return false;
 			} catch (IOException e) {
 				Log.println("IO Exception with secondary server");
 				//e.printStackTrace(Log.getWriter());
-				return false;
 			}
-		try {
-			//Log.println("Sent frame " + frames.get(0).header.toString());
-			deleteAndSave(frames, file);
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "Could not remove raw frames from the queue file:\n" + file + "\n, you may"
-					+ " need to delete it manually or they will be sent again");
-			e.printStackTrace(Log.getWriter());
-		}
+		if (!failed) // then at least one of the transmissions was successful
+			try {
+				//Log.println("Sent frame " + frames.get(0).header.toString());
+				deleteAndSave(frames, file);
+			} catch (IOException e) {
+				Log.errorDialog("ERROR", "Could not remove raw frames from the queue file:\n" + file + "\n, you may"
+						+ " need to delete it manually or they will be sent again");
+				e.printStackTrace(Log.getWriter());
+			}
 		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
 		return true;
 	}
