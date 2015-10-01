@@ -108,6 +108,7 @@ public class RawFrameQueue implements Runnable {
 				Log.println("DUPLICATE FRAME, not loaded");
 			}
 		}
+		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
 		return false;
 	}
 
@@ -150,6 +151,7 @@ public class RawFrameQueue implements Runnable {
 		}
 
 		dis.close();
+		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
 
 	}
 

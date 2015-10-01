@@ -351,7 +351,7 @@ public abstract class Frame implements Comparable<Frame>  {
 			buffer[j++] = b;
 		
 		tlmServer.sendToServer(buffer);
-		Log.println(header);
+		if (Config.debugFrames) Log.println(header);
 	}
 
 }
