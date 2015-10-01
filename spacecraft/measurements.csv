@@ -1,0 +1,10 @@
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,MEASURE,BIT_SNR,0,dB,0,Measurement,1,1,0,Signal to Noise (bit),Signal to Noise of the bits measured on the Eye Diagram
+1,MEASURE,RF_SNR,8,dB,0,Measurement,1,2,0,Signal to Noise (RF),Signal to Noise of the RF signal measured by the FFT
+2,MEASURE,RF_POWER,20,dBm,0,Measurement,1,3,0,RF Power,Received Signal Strength measured by the FFT
+3,MEASURE,CARRIER_FREQ,4,Hz,26,Measurement,1,4,0,Frequency,Carrier Frequency when this measuement taken
+4,MEASURE,AZ,4,deg,0,Measurement,1,5,0,Azimuth,Azimuth of the ground stations antenna at the time of measurement
+5,MEASURE,EL,4,deg,0,Measurement,1,6,0,Elevation,Elevation of the ground stations antenna at the time of measurement
+6,MEASURE,STATION_CONFIG,8,NONE,0,Measurement,1,7,0,Station Setup,The configuration of the ground station when this measurement was taken
+7,MEASURE,ERRORS,8,NONE,0,Measurement,1,8,0,RS Errors,The number of RS Decode errors that needed to be corrected in the last frame
+8,MEASURE,ERASURES,8,NONE,0,Measurement,1,9,0,10b Erasures,The number of 10 bit words that did not decode to valid 8 bit values
