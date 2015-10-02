@@ -430,6 +430,7 @@ import decoder.Decoder;
  * Version 1.01
  * Show the number of queued frames at the start (without a delay)
  * Send the frames to both primary and secondary server
+ * Set the default fcd frequency to 145930 so that Fox-1A, Fox-1Cliff and Fox-1D will be in the passband
  * 
  * 
  */

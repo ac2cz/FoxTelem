@@ -161,7 +161,7 @@ public class Config {
 	public static int windowY = 100;
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
-	public static int fcdFrequency = 145980;
+	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
 	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
