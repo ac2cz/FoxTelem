@@ -434,6 +434,8 @@ public class Config {
 		properties.setProperty("graphAxisFontSize", Integer.toString(graphAxisFontSize));
 
 		properties.setProperty("useNativeFileChooser", Boolean.toString(useNativeFileChooser));
+
+		// Version 1.01 settings
 		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
 		store();
 	}
@@ -564,6 +566,8 @@ public class Config {
 		graphAxisFontSize = Integer.parseInt(getProperty("graphAxisFontSize"));
 		
 		useNativeFileChooser = Boolean.parseBoolean(getProperty("useNativeFileChooser"));
+		
+		// Version 1.01 settings
 		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
 		
 		} catch (NumberFormatException nf) {
