@@ -312,6 +312,15 @@ public class SatPayloadStore {
 		return resultSet;
 	}
 
+	protected String getRtUTCFromUptime(int reset, long uptime) {
+		int idx = rtRecords.getFrameIndex(foxId, uptime, reset);
+		if (idx != -1) {
+			return rtRecords.get(idx).getCaptureDate();
+		}
+		return null;
+		
+	}
+	
 	private double[][] getGraphData(SortedFramePartArrayList records, String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 
 		int start = 0;

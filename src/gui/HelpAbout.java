@@ -117,7 +117,7 @@ public class HelpAbout extends JDialog implements ActionListener {
 				"http://www.gnu.org/licenses/gpl-3.0.en.html", "<b>GNU General Public License</b>", " for more details. ", northApanel);
 		addLine(" ", northApanel);
 		addLine("This software also includes:", northApanel);
-		addUrl("- Phil Karn (KA9Q) RS Decoder, ported to Java by ", "https://github.com/phlash/java-sdr", "<b>Phil Ashby</b>", ", released under the CC Non-Commercial Share Alike license", northApanel);
+		addUrl("- Phil Karn (KA9Q) RS Decoder, ported to Java by ", "https://github.com/phlash/java-sdr", "<b>Phil Ashby M6IPX</b>", ", (part of the FUNcube team) released under the CC Non-Commercial Share Alike license", northApanel);
 		addUrl("- Purejavahid library developed by ", "https://github.com/nyholku/purejavahidapi", "<b>Kustaa Nyholm / SpareTimeLabs</b>", ", released under the BSD license", northApanel);
 		addUrl("- JTransforms FFT library developed by ", "https://sites.google.com/site/piotrwendykier/software/jtransforms", "<b>Piotr Wendykier</b>", ", released under the BSD license", northApanel);
 		addUrl("- Java DDE developed by ", "http://jdde.pretty-tools.com/", "<b>Pretty Tools</b>", ", released as free and opensource", northApanel);

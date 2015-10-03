@@ -79,6 +79,9 @@ public class PassManager implements Runnable {
 
 	static final String[] stateName = {"Scanning", "Scanning", "Analyze", "Scanning", "Decode", "Faded", "Scanning", "Scanning"}; 
 
+	// The reset and uptime fromm the last frame that was received
+	int lastReset;
+	long lastUptime;
 	
 	final int SCAN_PERIOD = 250; //ms - we always do this
 	final int ANALYZE_PERIOD = 500; //ms - we pause for this if strongest signal > scan signal threshold 
@@ -89,6 +92,7 @@ public class PassManager implements Runnable {
 	private int state = INIT;
 	private boolean newPass = false; // true if we are starting a new pass and need to be give the reset/uptime
 	private boolean faded = false;
+	private boolean pendingTCA = false; // True if we have a TCA measurement that needs to be sent to the server
 	
 	static final double SCAN_SIGNAL_THRESHOLD = 20d; // This is peak signal to average noise.  Strongest signal needs to be above this
 	static final double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
@@ -110,8 +114,18 @@ public class PassManager implements Runnable {
 	public boolean isDone() { return done; }
 	public boolean isNewPass() { return newPass; }
 	public boolean isFaded() { return faded; }
+	public boolean hasTCA() { return pendingTCA; }
+	public void sentTCA() { pendingTCA = false; }
+	public PassMeasurement getPassMeasurement() { return passMeasurement; }
 	public String getStateName() { return stateName[state];}
 	public int getState() { return state; }
+	public boolean inPass() {
+		if (state == DECODE) return true;
+		if (state == FADED) return true;		
+		return false;
+	}
+	
+	
 	
 	/**
 	 * This initializes the pass measurement
@@ -121,6 +135,11 @@ public class PassManager implements Runnable {
 	public void setStartResetUptime(int id, int reset,long uptime) {
 		passMeasurement.setStartResetUptime(reset, uptime);
 		newPass = false;
+	}
+
+	public void setLastResetUptime(int id, int reset, long uptime) {
+		lastReset = reset;
+		lastUptime = uptime;
 	}
 	
 	private void stateMachine(Spacecraft sat) {
@@ -388,7 +407,8 @@ public class PassManager implements Runnable {
 	private void calculateTCA(Spacecraft sat) {
 		// Get the frequency data for this pass
 		double[][] graphData = null;
-		graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, 999, sat, passMeasurement.getReset(), passMeasurement.getUptime());
+		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
+		graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
 
 		// if we have enough readings, calculate the first derivative
 		if (graphData[0].length > MIN_FREQ_READINGS_FOR_TCA) {
@@ -411,27 +431,32 @@ public class PassManager implements Runnable {
 				}
 			}
 			
+			// We need to make sure that the minimum was not the first or last point, which would indicate that we did not find an inflection
 			if (max != 0 && max != graphData[0].length) {
 				// we found a maximum at an inflection point, rather than it being at one end or the other
 				long tca = (long) graphData[PayloadStore.DATA_COL][max];
 				long up = (long) graphData[PayloadStore.UPTIME_COL][max];
 				long date = (long) graphData[PayloadStore.UTC_COL][max];
 				
-				
 				// FIXME
 				// We could interpolate here to get a more accurate time than we have from the uptime.
 				// We store the actual dateTime in the file, we should be pulling that.
 				
+				// FIXME
+				// We should check that the maxDeriv is large enough to indicate it was actually the inflection point and not just
+				// noise or random perturbations
+				
+				pendingTCA = true;
 				passMeasurement.setTCA(date);
 				passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, Long.toString(tca));
 				if (Config.debugSignalFinder) Log.println("TCA calculated as " + passMeasurement.getRawValue(PassMeasurement.TCA) + " with Uptime " + up + " and frequency: " + Long.toString(tca));
 				passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
-				
+				passMeasurement.setEndResetUptime(lastReset, lastUptime);
+	
 				//FIXME
 				// Store the start and end azimuith
 				// store the max elevation
-				// store end reset and uptime - this requires ability to get the "latest reset uptime"  which works if we grab the latest RT record from the store for this sat
-				
+				// the END RESET and UPTIME is captured but not written to disk or used in any way
 			}
 			
 		} else {
