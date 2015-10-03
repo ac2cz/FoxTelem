@@ -293,7 +293,10 @@ public class RawFrameQueue implements Runnable {
 			Config.passManager.sentTCA();
 		}
 		
-		Log.println("Trying Primary Server: " + Config.primaryServer + ":" + Config.serverPort);
+		String protocol = "udp";
+		if (Config.serverProtocol == TlmServer.TCP)
+			protocol = "tcp";
+		Log.println("Trying Primary Server: " + protocol + "://" + Config.primaryServer + ":" + Config.serverPort);
 		try {
 			frames.get(0).sendToServer(primaryServer);
 			failed = false;
@@ -306,7 +309,7 @@ public class RawFrameQueue implements Runnable {
 		}
 		if (running)
 			try {
-				Log.println("Trying Secondary Server: " + Config.secondaryServer + ":" + Config.serverPort);
+				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
 				frames.get(0).sendToServer(secondaryServer);
 				//String primary = Config.primaryServer;
 				//Config.primaryServer = Config.secondaryServer;

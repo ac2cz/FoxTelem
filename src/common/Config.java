@@ -405,8 +405,7 @@ public class Config {
 		properties.setProperty("uploadToServer", Boolean.toString(uploadToServer));
 		properties.setProperty("primaryServer", primaryServer);
 		properties.setProperty("secondaryServer", secondaryServer);
-		//properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
-		//properties.setProperty("serverPort", Integer.toString(serverPort));
+
 
 		// GUI
 		properties.setProperty("windowHeight", Integer.toString(windowHeight));
@@ -437,6 +436,8 @@ public class Config {
 
 		// Version 1.01 settings
 		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
+		properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
+		properties.setProperty("serverPort", Integer.toString(serverPort));
 		store();
 	}
 	
@@ -533,8 +534,7 @@ public class Config {
 		uploadToServer = Boolean.parseBoolean(getProperty("uploadToServer"));
 		primaryServer = getProperty("primaryServer");
 		secondaryServer = getProperty("secondaryServer");
-		//serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
-		//serverPort = Integer.parseInt(getProperty("serverPort"));
+
 
 		// GUI
 		windowHeight = Integer.parseInt(getProperty("windowHeight"));
@@ -569,6 +569,8 @@ public class Config {
 		
 		// Version 1.01 settings
 		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
+		serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
+		serverPort = Integer.parseInt(getProperty("serverPort"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
