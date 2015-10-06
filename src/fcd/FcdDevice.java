@@ -37,17 +37,32 @@ public class FcdDevice  {
 	byte[] lastReport;
 	
 	HidDevice dev = null;
-	
 	// FCD Pro+
 	public static final int MIN_FREQ = 150000;
 	public static final int MAX_FREQ = 2050000000;
 	public int SAMPLE_RATE = 192000;
 	
 	// Commands that we need
-	public static final byte APP_SET_RF_FILTER = (byte)0x71;
-	public static final byte APP_SET_MIXER_GAIN = (byte)0x72;
-	public static final byte APP_SET_LNA_GAIN = (byte)0x6e;
-	public static final byte APP_SET_FREQUENCY_HZ = (byte)0x65;
+	public static final byte APP_SET_RF_FILTER = 113;
+	public static final byte APP_SET_MIXER_GAIN = 114;
+	public static final byte APP_SET_LNA_GAIN = 110;
+	public static final byte APP_SET_FREQUENCY_HZ = 101;
+	
+	public static final byte APP_GET_LNA_GAIN = (byte)0x96;
+	public static final byte APP_GET_LNA_ENHANCE = (byte)0x97;
+	public static final byte APP_GET_BAND = (byte)0x98;
+	public static final byte APP_GET_RF_FILTER = (byte)0x99;
+	public static final byte APP_GET_MIXER_GAIN = (byte)0x9A;
+	public static final byte APP_GET_MIXER_FILTER = (byte)0x9C;
+	public static final byte APP_GET_GAIN1 = (byte)0x9D;
+	public static final byte APP_GET_GAIN_MODE = (byte)0x9E;
+	public static final byte APP_GET_RC_FILTER = (byte)0x9F;
+	public static final byte APP_GET_GAIN2 = (byte)0xA0;
+	public static final byte APP_GET_GAIN3 = (byte)0xA1;
+	public static final byte APP_GET_IF_FILTER = (byte)0xA2;
+	public static final byte APP_GET_GAIN4 = (byte)0xA3;
+	public static final byte APP_GET_GAIN5 = (byte)0xA4;
+	public static final byte APP_GET_GAIN6 = (byte)0xA5;
 	
 	//RF Filter Numbers
 	int TRFE_0_4 = 0,
@@ -61,7 +76,7 @@ public class FcdDevice  {
 			TRFE_410_875 = 8,
 			TRFE_435 = 9,
 			TRFE_875_2000 = 10;
-
+	
 	//IF Filter numbers
 	int TIFE_200KHZ=0,
 			TIFE_300KHZ=1,
@@ -165,6 +180,8 @@ public class FcdDevice  {
 		}
 	}
 	
+	
+	
 	public void getFcdVersion() throws IOException, FcdException {
 	
 		int FCD_CMD_LEN = 1;
@@ -223,6 +240,36 @@ public class FcdDevice  {
     	}
     }
     
+    public int getParam(byte cmd) throws IOException, FcdException {
+		
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)cmd;
+		sendFcdCommand(report,FCD_CMD_LEN);
+		
+		if (report[0] == cmd) {
+			Log.println("PARAM:"+cmd+" " + report[2]);
+			return report[2];
+		}
+		return -1;
+	}
+    
+    public int getRfFilter() throws IOException, FcdException {
+		
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)APP_GET_RF_FILTER;
+		sendFcdCommand(report,FCD_CMD_LEN);
+		
+		if (report[0] == APP_GET_RF_FILTER) {
+			Log.println("RF FILTER: " + report[2]);
+			return report[2];
+		}
+		return -1;
+	}
+    
     public int setMixerGain(boolean on) throws FcdException {
     	
     	try {
@@ -245,6 +292,20 @@ public class FcdDevice  {
     	}
     }
 
+    public int getMixerGain() throws IOException, FcdException {
+		
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)APP_GET_MIXER_GAIN;
+		sendFcdCommand(report,FCD_CMD_LEN);
+		
+		if (report[0] == APP_GET_MIXER_GAIN) {
+			Log.println("MIXER GAIN: " + report[2]);
+			return report[2];
+		}
+		return -1;
+	}
     public int setLnaGain(boolean on) throws FcdException {
     	
     	try {
@@ -267,6 +328,20 @@ public class FcdDevice  {
     	}
     }
 
+    public int getLnaGain() throws IOException, FcdException {
+		
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)APP_GET_LNA_GAIN;
+		sendFcdCommand(report,FCD_CMD_LEN);
+		
+		if (report[0] == APP_GET_LNA_GAIN) {
+			Log.println("LNA GAIN: " + report[2]);
+			return report[2];
+		}
+		return -1;
+	}
     private void open() throws FcdException {
 		try {
 			dev = PureJavaHidApi.openDevice(fcdInfo.getPath());
@@ -278,31 +353,18 @@ public class FcdDevice  {
     }
     private void sendFcdCommand(byte[] command, int len) throws IOException, FcdException {
     	//HidDevice dev = null;
+    	lastReport = null;
     	if (dev == null) open();
     		dev.setInputReportListener(new InputReportListener() {
     			@Override
     			public void onInputReport(HidDevice source, byte Id, byte[] data, int len) {
     				lastReport = data;
-   // 				Log.print(String.format("onInputReport: id %d len %d data ", Id, len));
-    				for (int i = 0; i < len; i++)
-    					Log.print(String.format("%02X ", data[i]));
-    				Log.println("");
-    				String s = new String();
-    				for (int i=0; i< data.length; i++) {
-    					s = s + (char)data[i];
-    				}
-    				Log.println(s);
-    				try {
-						Thread.sleep(10);
-					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
-						//e.printStackTrace();
-					}
     			}
     		});
     		@SuppressWarnings("unused")
 			int result = dev.setOutputReport((byte)0, command, len);
-    //		Log.println("Command: " + (int)command[0] + " Output Report: " + result);
+    		Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
+    		
     		try {
 				Thread.sleep(10);
 			} catch (InterruptedException e) {
@@ -310,13 +372,24 @@ public class FcdDevice  {
 				e.printStackTrace();
 			}
     		result = dev.getFeatureReport(command, len);
-    		
-	}
+    		if (lastReport != null) {
+    			for (int i = 0; i < len; i++)
+    				Log.print(String.format("%02X ", lastReport[i]));
+    			Log.println("");
+    			String s = new String();
+    			for (int i=0; i< len; i++) {
+    				s = s + (char)lastReport[i];
+    				command[i] = lastReport[i];
+    			}
+    			//Log.println(s);
+    		}
+    }
     
     public void cleanup() throws IOException, FcdException {
     	if (dev != null) {
     			dev.close();
     			Log.println("Closed FCD device");
     	}
+    	dev = null;
     }
 }

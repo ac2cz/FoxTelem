@@ -85,7 +85,8 @@ import javax.swing.event.PopupMenuEvent;
 public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
-
+	Thread fcdPanelThread;
+	
 	Thread fftPanelThread;
 	Thread decoderThread;
 	AudioGraphPanel audioGraph;
@@ -112,6 +113,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JLabel lblFile;
 	JComboBox<String> cbSoundCardRate;
 	JPanel panelFile;
+	FcdPanel panelFcd;
 	JRadioButton highSpeed;
 	JRadioButton lowSpeed;
 	JRadioButton iqAudio;
@@ -457,9 +459,18 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			afAudio.doClick();
 		}
 
+		panelFcd = new FcdPanel();
+		//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
+		panel_c.add(panelFcd, BorderLayout.CENTER);
+		panelFcd.setVisible(false);
+		
+	//	fcdPanelThread = new Thread(panelFcd);
+	//	fcdPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+	//	fcdPanelThread.start();
+		
 		panelFile = new JPanel();
 	//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
-		panel_c.add(panelFile);
+		panel_c.add(panelFile, BorderLayout.CENTER);
 		panelFile.setLayout(new BoxLayout(panelFile, BoxLayout.Y_AXIS));
 		
 		lblFile = new JLabel("File: ");
@@ -691,8 +702,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				} else {
 					try {
 						fcd.setFcdFreq(freq*1000);
+						panelFcd.getSettings();
 					} catch (FcdException e1) {
 						Log.errorDialog("ERROR", e1.getMessage());
+						e1.printStackTrace(Log.getWriter());
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
 						e1.printStackTrace(Log.getWriter());
 					}
 				}
@@ -864,8 +879,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			fcdSelected = true;
 			try {
 				if (fcd == null) {
-					fcd = new FcdDevice();
+					fcd = new FcdDevice();			
 				}
+				panelFcd.setVisible(true);
+				panelFcd.setFcd(fcd);
 			} catch (IOException e) {
 				Log.errorDialog("ERROR", e.getMessage());
 				e.printStackTrace(Log.getWriter());
@@ -876,7 +893,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			Config.iq = true;
 			iqAudio.setSelected(true);
 			setIQVisible(true);
-		} 			
+		} else {
+			panelFcd.setVisible(false);
+		}
 
 		return fcdSelected;
 	}
