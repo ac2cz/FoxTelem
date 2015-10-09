@@ -27,6 +27,7 @@ import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -700,9 +701,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
 							}
 						}
-					} catch (LayoutLoadException e) {
+					
+					} catch (IOException e) {
 						// TODO Auto-generated catch block
-						e.printStackTrace();
+						e.printStackTrace(Log.getWriter());
 					}
 				}
 			}

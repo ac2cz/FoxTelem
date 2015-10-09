@@ -4,9 +4,11 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -308,41 +310,73 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * Static factory method that creates a frame from a file
 	 * @param fileName
 	 * @return
+	 * @throws IOException 
 	 * @throws LayoutLoadException
 	 */
-	public static Frame loadStp(String fileName) throws LayoutLoadException {
-		try {
-			BufferedReader dis = new BufferedReader(new FileReader(Config.currentDir + File.separator + "stp" + File.separator +fileName));
-			String line;
-			boolean inHeader = true;
-			while ((inHeader && (line = dis.readLine()) != null)) {
-        		if (line != null) {
-        			StringTokenizer st = new StringTokenizer(line, ":");
-        			if (st.hasMoreTokens()) {
-        			String field = st.nextToken();
-        			String value = st.nextToken();
-        			Log.println(field + ": " + value);
-        			} else {
-        				inHeader=false;
-        			}
-
-        		}
+	public static Frame loadStp(String fileName) throws IOException {
+		
+		FileInputStream in = new FileInputStream(Config.currentDir + File.separator + "stp" + File.separator +fileName);
+		int c;
+		int lineLen = 0;
+		
+		boolean done = false;
+		boolean readingKey = true;
+		String key = null;
+		String value = null;
+		byte[] rawFrame = null;
+		int length = 0;
+		
+		// Read the file
+		while (!done && (c = in.read()) != -1) {
+			Character ch = (char) c;
+			//System.out.print(ch);
+			
+			if (ch == ':') {
+				c = in.read(); // consume the space
+				readingKey = false;
 			}
+            if (ch == '\n' || ch == '\r') {
+            	c = in.read(); // consume the lf
+            	if (lineLen == 1) {
+            		rawFrame = new byte[length/8];
+            		for (int i=0; i<96; i++) {
+            			rawFrame[i] = (byte) in.read();
+            		}
+            		done = true;
+            	} else {
+            		System.out.println(key + " " + value);
+            		readingKey = true;
+            		if (key.startsWith("Length")) {
+            			length = Integer.parseInt(value.substring(1, value.length()));
+            			System.out.println("Got Length: " + length);
+            		}
+            		key = "";
+            		value = "";
+            		lineLen = 0;
+            	}
+            } else {
+            	if (readingKey) 
+    				key = key + ch;
+    			else
+    				value = value + ch;
+            }
+            lineLen++;
+            
+        }
+		
+		
 			
-			line = dis.readLine();
-			byte[] bytes = new byte[96];
-			for (int i=0; i < line.length()-2; i++)
-			 bytes[i ]= (byte) line.charAt(i);
-			
-			RsCodeWord rs = new RsCodeWord(bytes, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE /*159*/);
-			byte[] rawFrame = rs.decode();
+			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+			byte[] frame = rawFrame; //rs.decode();
 			if (!rs.validDecode()) {
 				Log.println("RS Decode Failed");
 				return null;
 			}
 			
+			
+		
 			SlowSpeedFrame frm = new SlowSpeedFrame();
-			frm.addRawFrame(rawFrame);
+			frm.addRawFrame(frame);
 		
 			if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
 					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||
@@ -350,13 +384,10 @@ public abstract class Frame implements Comparable<Frame>  {
 					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 393) ||
 				
 					(frm !=null && frm.getHeader().resets > 10000 ))return null;
-					
+				
 			if (frm != null) Log.println(frm.getHeader().toString());
 			return frm;
-		} catch (IOException e) {
-			throw new LayoutLoadException("Could not load STP files: " + Config.currentDir + File.separator + "stp" + File.separator +fileName);
-		}
-		
+	
 	}
 	
 	public void load(BufferedReader input) throws IOException {
