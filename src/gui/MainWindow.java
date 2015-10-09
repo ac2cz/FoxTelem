@@ -26,6 +26,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
+import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
@@ -39,6 +40,18 @@ import common.Spacecraft;
 import javax.swing.border.EmptyBorder;
 import javax.swing.JCheckBoxMenuItem;
 
+import telemetry.Frame;
+import telemetry.FramePart;
+import telemetry.HighSpeedFrame;
+import telemetry.HighSpeedHeader;
+import telemetry.LayoutLoadException;
+import telemetry.PayloadCameraData;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRadExpData;
+import telemetry.PayloadRtValues;
+import telemetry.SlowSpeedFrame;
+import telemetry.SlowSpeedHeader;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
@@ -92,6 +105,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	//Menu Buttons
 	JMenuItem mntmExit;
 	static JMenuItem mntmLoadWavFile;
+	static JMenuItem mntmImportStp;
 	static JMenuItem mntmLoadIQWavFile;
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
@@ -217,6 +231,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	public static void enableSourceSelection(boolean t) {
 		mntmLoadWavFile.setEnabled(t);
+		mntmImportStp.setEnabled(t);
 		//mntmLoadIQWavFile.setEnabled(t);
 		mntmDelete.setEnabled(t);
 	}
@@ -424,6 +439,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnFile.add(mntmLoadWavFile);
 		mntmLoadWavFile.addActionListener(this);
 
+		mntmImportStp = new JMenuItem("Import STP");
+		mnFile.add(mntmImportStp);
+		mntmImportStp.addActionListener(this);
+		
 //		mntmLoadIQWavFile = new JMenuItem("Load IQ Wav File");
 //		mnFile.add(mntmLoadIQWavFile);
 //		mntmLoadIQWavFile.addActionListener(this);
@@ -577,6 +596,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == mntmLoadWavFile) {
 			inputTab.chooseFile();
 		}
+		if (e.getSource() == mntmImportStp) {
+			importStp();
+		}
 		if (e.getSource() == mntmLoadIQWavFile) {
 			inputTab.chooseIQFile();
 		}
@@ -640,7 +662,52 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
-	
+	/**
+	 * Get a list of all the files in the STP dir and import them
+	 */
+	private void importStp() {
+		Log.println("IMPORT STP from " + Config.currentDir + File.separator + "stp");
+		File folder = new File(Config.currentDir + File.separator + "stp");
+		File[] listOfFiles = folder.listFiles();
+
+		if (listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].isFile() ) {
+					Log.println("Loading STP data from: " + listOfFiles[i].getName());
+					
+					try {
+						Frame decodedFrame = Frame.loadStp(listOfFiles[i].getName());
+						if (decodedFrame != null && !decodedFrame.corrupt)
+						if (decodedFrame instanceof SlowSpeedFrame) {
+							SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
+							FramePart payload = ssf.getPayload();
+							SlowSpeedHeader header = ssf.getHeader();
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+							
+						} else {
+							HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
+							HighSpeedHeader header = hsf.getHeader();
+							PayloadRtValues payload = hsf.getRtPayload();
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+							PayloadMaxValues maxPayload = hsf.getMaxPayload();
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
+							PayloadMinValues minPayload = hsf.getMinPayload();
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
+							PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
+							if (Config.satManager.hasCamera(header.getFoxId())) {
+								PayloadCameraData cameraData = hsf.getCameraPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+							}
+						}
+					} catch (LayoutLoadException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+			}
+		}
+	}
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
 	 * window that are not tied to a control that we have added.

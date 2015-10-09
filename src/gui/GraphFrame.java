@@ -93,7 +93,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public static int DEFAULT_AVG_PERIOD = 12;
 	public int AVG_PERIOD = DEFAULT_AVG_PERIOD;
 	//private JLabel lblActual;
-	public static final int DEFAULT_UPTIME_THRESHOLD = 60*60*3;// plot continuous uptime unless more than 3 hour gap
+	public static final int DEFAULT_UPTIME_THRESHOLD = 60*60*1;// plot continuous uptime unless more than 1 hour gap
 	public static final int CONTINUOUS_UPTIME_THRESHOLD = -1;
 	public double UPTIME_THRESHOLD =DEFAULT_UPTIME_THRESHOLD; 
 	private JCheckBox chckbxPlotAllUptime;

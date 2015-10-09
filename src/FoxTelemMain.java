@@ -430,7 +430,10 @@ import decoder.Decoder;
  * Version 1.01
  * Send the frames to both primary and secondary server
  * Set the default fcd frequency to 145930 so that Fox-1A, Fox-1Cliff and Fox-1D will be in the passband
- * Allow use to select UDP or TCP for upload to the server and save in settings
+ * Allow user to select UDP or TCP for upload to the server and save in settings
+ * Import STP files from a directory
+ * Shorten the period between passes so that graphs look continuous
+ * 
  * 
  */
 

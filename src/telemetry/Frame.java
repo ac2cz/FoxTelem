@@ -2,6 +2,9 @@ package telemetry;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.UnknownHostException;
 import java.text.DateFormat;
@@ -19,6 +22,7 @@ import common.Log;
 import common.Sequence;
 import common.Spacecraft;
 import common.TlmServer;
+import fec.RsCodeWord;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -70,7 +74,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
 	public static final String NONE = "NONE";
-	
+	public boolean corrupt = false;;
 	private int foxId = 0;
 	private String receiver = NONE; // unique name (usually callsign) chosen by the user.  May vary over life of program usage, so stored
 	private String frequency = NONE; // frequency when this frame received
@@ -300,6 +304,60 @@ public abstract class Frame implements Comparable<Frame>  {
 		output.write(Integer.toString(bytes[bytes.length-1])+"\n");
 	}
 
+	/**
+	 * Static factory method that creates a frame from a file
+	 * @param fileName
+	 * @return
+	 * @throws LayoutLoadException
+	 */
+	public static Frame loadStp(String fileName) throws LayoutLoadException {
+		try {
+			BufferedReader dis = new BufferedReader(new FileReader(Config.currentDir + File.separator + "stp" + File.separator +fileName));
+			String line;
+			boolean inHeader = true;
+			while ((inHeader && (line = dis.readLine()) != null)) {
+        		if (line != null) {
+        			StringTokenizer st = new StringTokenizer(line, ":");
+        			if (st.hasMoreTokens()) {
+        			String field = st.nextToken();
+        			String value = st.nextToken();
+        			Log.println(field + ": " + value);
+        			} else {
+        				inHeader=false;
+        			}
+
+        		}
+			}
+			
+			line = dis.readLine();
+			byte[] bytes = new byte[96];
+			for (int i=0; i < line.length()-2; i++)
+			 bytes[i ]= (byte) line.charAt(i);
+			
+			RsCodeWord rs = new RsCodeWord(bytes, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE /*159*/);
+			byte[] rawFrame = rs.decode();
+			if (!rs.validDecode()) {
+				Log.println("RS Decode Failed");
+				return null;
+			}
+			
+			SlowSpeedFrame frm = new SlowSpeedFrame();
+			frm.addRawFrame(rawFrame);
+		
+			if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
+					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||
+					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 390) ||
+					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 393) ||
+				
+					(frm !=null && frm.getHeader().resets > 10000 ))return null;
+					
+			if (frm != null) Log.println(frm.getHeader().toString());
+			return frm;
+		} catch (IOException e) {
+			throw new LayoutLoadException("Could not load STP files: " + Config.currentDir + File.separator + "stp" + File.separator +fileName);
+		}
+		
+	}
 	
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame) 
