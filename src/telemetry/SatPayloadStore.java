@@ -408,18 +408,18 @@ public class SatPayloadStore {
         				PayloadRtValues rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
         				rtRecords.add(rt);
         				updatedRt = true;
-        			}
+        			} else
         			if (type == FramePart.TYPE_MAX_VALUES) {
         				PayloadMaxValues rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
         				maxRecords.add(rt);
         				updatedMax = true;
-        			}
+        			} else
         			if (type == FramePart.TYPE_MIN_VALUES) {
         				PayloadMinValues rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
         				minRecords.add(rt);
         				updatedMin = true;
         			}
-        			if (type == FramePart.TYPE_RAD_EXP_DATA) {
+        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400) {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;

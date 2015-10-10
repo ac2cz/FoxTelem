@@ -433,7 +433,7 @@ import decoder.Decoder;
  * Allow user to select UDP or TCP for upload to the server and save in settings
  * Import STP files from a directory, if its there
  * Shorten the period between passes so that graphs look continuous
- * 
+ * Ignore duplicate high speed radiation frames - needed for processing data from the server
  * 
  */
 

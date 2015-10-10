@@ -286,7 +286,7 @@ public class PayloadStore implements Runnable {
 		for (int i=0; i< f.length; i++) {
 			if (f[i].hasData()) {
 				f[i].captureHeaderInfo(id, uptime, resets);
-				//f[i].type = 100 + i; // store the index in the type field so it is unique
+				f[i].type = 400 + i; // store the index in the type field so it is unique for high speed, but duplicates rejected if same frame processed again
 				payloadQueue.addToEnd(f[i]);
 			}
 		}
