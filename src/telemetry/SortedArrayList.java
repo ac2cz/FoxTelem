@@ -35,7 +35,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 	}
 
 	public boolean addToEnd(T img) {
-		return this.add(img);
+		return super.add(img);
 	}
 	
 	/**

@@ -126,6 +126,7 @@ public abstract class Frame implements Comparable<Frame>  {
 
 	}
 	
+	public abstract Header getHeader();
 	private String formatLatitude(String lat) {
 		String s = "";
 		float f = Float.parseFloat(lat);
@@ -325,7 +326,6 @@ public abstract class Frame implements Comparable<Frame>  {
 		String value = null;
 		byte[] rawFrame = null;
 		int length = 0;
-		
 		// Read the file
 		while (!done && (c = in.read()) != -1) {
 			Character ch = (char) c;
@@ -335,20 +335,21 @@ public abstract class Frame implements Comparable<Frame>  {
 				c = in.read(); // consume the space
 				readingKey = false;
 			}
-            if (ch == '\n' || ch == '\r') {
+            if ( (ch == '\n' || ch == '\r')) {
             	c = in.read(); // consume the lf
-            	if (lineLen == 1) {
+            	if ((length == 768 || length == 42176) && lineLen == 1) {
+            		// then we are ready to process
             		rawFrame = new byte[length/8];
             		for (int i=0; i<96; i++) {
             			rawFrame[i] = (byte) in.read();
             		}
             		done = true;
             	} else {
-            		System.out.println(key + " " + value);
+            		//System.out.println(key + " " + value);
             		readingKey = true;
             		if (key.startsWith("Length")) {
             			length = Integer.parseInt(value.substring(1, value.length()));
-            			System.out.println("Got Length: " + length);
+            			//System.out.println("Got Length: " + length);
             		}
             		key = "";
             		value = "";
@@ -363,31 +364,34 @@ public abstract class Frame implements Comparable<Frame>  {
             lineLen++;
             
         }
+
+		// Let's really check it is OK by running the RS decode!
+		RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+		byte[] frame = rawFrame; //rs.decode();
+		if (!rs.validDecode()) {
+			Log.println("RS Decode Failed");
+			return null;
+		}
+
+		Frame frm;
+		if (length == 768) {
+			frm = new SlowSpeedFrame();
+		} else {
+			frm = new HighSpeedFrame();
+		}
+		frm.addRawFrame(frame);
 		
-		
-			
-			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
-			byte[] frame = rawFrame; //rs.decode();
-			if (!rs.validDecode()) {
-				Log.println("RS Decode Failed");
-				return null;
-			}
-			
-			
-		
-			SlowSpeedFrame frm = new SlowSpeedFrame();
-			frm.addRawFrame(frame);
-		
-			if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
-					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||
-					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 390) ||
-					(frm.getHeader().resets == 44 && frm.getHeader().uptime == 393) ||
-				
-					(frm !=null && frm.getHeader().resets > 10000 ))return null;
-				
-			if (frm != null) Log.println(frm.getHeader().toString());
-			return frm;
-	
+
+		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
+				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||
+				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 390) ||
+				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 393) ||
+
+				(frm !=null && frm.getHeader().resets > 10000 ))return null;
+
+		//if (frm != null) Log.println(frm.getHeader().toString());
+		return frm;
+
 	}
 	
 	public void load(BufferedReader input) throws IOException {

@@ -208,13 +208,13 @@ public class SatPayloadStore {
 				if (Config.debugFrames) Log.println("DUPLICATE MIN RECORD, not loaded");
 			}
 		} else if (f instanceof PayloadRadExpData ) {
-			//if (!radRecords.hasFrame(f.id, f.uptime, f.resets)) {
+			if (!radRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
 				updatedRad = true;
 					save(f, radFileName);				
 				return radRecords.add(f);
-			//} else {
-			//	if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
-			//}
+			} else {
+				if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
+			}
 		}
 		return false;
 	}

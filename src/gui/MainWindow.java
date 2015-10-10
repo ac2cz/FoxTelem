@@ -440,10 +440,23 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnFile.add(mntmLoadWavFile);
 		mntmLoadWavFile.addActionListener(this);
 
+		String dir = "stp";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+			
+		}
+	
 		mntmImportStp = new JMenuItem("Import STP");
 		mnFile.add(mntmImportStp);
-		mntmImportStp.addActionListener(this);
 		
+		File aFile = new File(dir);
+		if(aFile.isDirectory()){
+			mntmImportStp.setVisible(true);
+			mntmImportStp.addActionListener(this);
+		} else {
+			mntmImportStp.setVisible(false);
+
+		}
 //		mntmLoadIQWavFile = new JMenuItem("Load IQ Wav File");
 //		mnFile.add(mntmLoadIQWavFile);
 //		mntmLoadIQWavFile.addActionListener(this);
@@ -667,14 +680,20 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	 * Get a list of all the files in the STP dir and import them
 	 */
 	private void importStp() {
-		Log.println("IMPORT STP from " + Config.currentDir + File.separator + "stp");
-		File folder = new File(Config.currentDir + File.separator + "stp");
+		String dir = "stp";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+			
+		}
+		Log.println("IMPORT STP from " + dir);
+		File folder = new File(dir);
 		File[] listOfFiles = folder.listFiles();
-
+		int duvFrames = 0;
+		int hsFrames = 0;
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
-					Log.println("Loading STP data from: " + listOfFiles[i].getName());
+					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
 					
 					try {
 						Frame decodedFrame = Frame.loadStp(listOfFiles[i].getName());
@@ -684,7 +703,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 							FramePart payload = ssf.getPayload();
 							SlowSpeedHeader header = ssf.getHeader();
 							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-							
+							duvFrames++;
 						} else {
 							HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 							HighSpeedHeader header = hsf.getHeader();
@@ -700,14 +719,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 								PayloadCameraData cameraData = hsf.getCameraPayload();
 								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
 							}
+							hsFrames++;
 						}
-					
+						
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
 						e.printStackTrace(Log.getWriter());
 					}
 				}
 			}
+			Log.println("Files Processed: " + listOfFiles.length);
+			Log.println("DUV Frames: " + duvFrames);
+			Log.println("HS Frames: " + hsFrames);
 		}
 	}
 	/**
