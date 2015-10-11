@@ -435,6 +435,8 @@ import decoder.Decoder;
  * Shorten the period between passes so that graphs look continuous
  * Ignore duplicate high speed radiation frames - needed for processing data from the server
  * Do not change the FCD LNA or Mixer Gain.  Leave unchanged.
+ * Fetch data from the server 
+ * Allow graphs to be hidden so that average or deriv is easier to see
  * 
  */
 
