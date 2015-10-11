@@ -27,9 +27,15 @@ import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 
 import common.Config;
@@ -40,6 +46,9 @@ import common.Spacecraft;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.JCheckBoxMenuItem;
+
+import org.rauschig.jarchivelib.Archiver;
+import org.rauschig.jarchivelib.ArchiverFactory;
 
 import telemetry.Frame;
 import telemetry.FramePart;
@@ -107,6 +116,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmExit;
 	static JMenuItem mntmLoadWavFile;
 	static JMenuItem mntmImportStp;
+	static JMenuItem mntmGetServerData;
 	static JMenuItem mntmLoadIQWavFile;
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
@@ -137,6 +147,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
 	private static int totalMissed;
+	ProgressPanel importProgress;
 	
 	/**
 	 * Create the application.
@@ -235,6 +246,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmImportStp.setEnabled(t);
 		//mntmLoadIQWavFile.setEnabled(t);
 		mntmDelete.setEnabled(t);
+		mntmGetServerData.setEnabled(t);
 	}
 	
 	public static void showGraphs() {
@@ -449,14 +461,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmImportStp = new JMenuItem("Import STP");
 		mnFile.add(mntmImportStp);
 		
+		mntmGetServerData = new JMenuItem("Fetch Server Data");
+		mnFile.add(mntmGetServerData);
+
 		File aFile = new File(dir);
 		if(aFile.isDirectory()){
 			mntmImportStp.setVisible(true);
 			mntmImportStp.addActionListener(this);
+			mntmGetServerData.setVisible(true);
+			mntmGetServerData.addActionListener(this);
 		} else {
 			mntmImportStp.setVisible(false);
+			mntmGetServerData.setVisible(false);
 
 		}
+
 //		mntmLoadIQWavFile = new JMenuItem("Load IQ Wav File");
 //		mnFile.add(mntmLoadIQWavFile);
 //		mntmLoadIQWavFile.addActionListener(this);
@@ -611,7 +630,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			inputTab.chooseFile();
 		}
 		if (e.getSource() == mntmImportStp) {
-			importStp();
+			importStp("stp", false);
+		}
+		if (e.getSource() == mntmGetServerData) {
+			importServerData();
 		}
 		if (e.getSource() == mntmLoadIQWavFile) {
 			inputTab.chooseIQFile();
@@ -676,11 +698,109 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
+	private void importServerData() {
+
+		String message = "Do you want to merge the downloaded server data with your existing data?\n"
+				+ "To import into into a different set of log files select NO, then choose a new log file directory";
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"Do you want to continue?",
+				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.ERROR_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.NO_OPTION) {
+			return;
+		}
+
+		// Make sure we have an STP directory
+		String serverData = "serverData";
+		String dir = serverData;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + serverData;
+			
+		}
+	
+		File aFile = new File(dir);
+		if(aFile.isDirectory()){
+			mntmImportStp.setVisible(true);
+			mntmImportStp.addActionListener(this);
+		} else {
+			aFile.mkdir();
+		}
+		if(!aFile.isDirectory()){
+			Log.errorDialog("ERROR", "ERROR can't create the import directory: " + aFile.getAbsolutePath() +  
+					"\nFoxTelem needs to download the stp files to your logfiles dir.  It is either not accessible or not writable\n"
+					+ "Try changing the log files directory");
+			return;
+		}
+		
+		// We have the dir, so pull down the file
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
+		fileProgress.setVisible(true);
+		
+		String urlString = "http://www.amsat.org/tlm/ao85/stp.tar.gz";
+		try {
+		URL website = new URL(urlString);
+		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+		FileOutputStream fos;
+			fos = new FileOutputStream(dir + File.separator + "stp.tar.gz");
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+		} catch (FileNotFoundException e) {
+			Log.errorDialog("ERROR", "ERROR write the server data to: " + dir + File.separator + "stp.tar.gz\n" +
+					e.getMessage());
+			e.printStackTrace(Log.getWriter());
+		} catch (MalformedURLException e) {
+			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
+			e.printStackTrace(Log.getWriter());
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR write the server data to: " + dir + File.separator + "stp.tar.gz\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+		}
+		
+		fileProgress.updateProgress(100);
+
+		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
+		decompressProgress.setVisible(true);
+
+		// Now decompress it and expand
+		File archive = new File(dir + File.separator + "stp.tar.gz");
+		File destination = new File(dir + File.separator);
+
+		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
+		try {
+			archiver.extract(archive, destination);
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+		}
+
+		decompressProgress.updateProgress(100);
+
+		// import the data
+		importProgress = new ProgressPanel(this, "importing and merging into log files ...", false);
+		importProgress.setVisible(true);
+
+		importStp(serverData, true);
+		
+		// now cleanup the files
+		importProgress.updateProgress(100);
+
+		
+	}
+	
 	/**
 	 * Get a list of all the files in the STP dir and import them
 	 */
-	private void importStp() {
-		String dir = "stp";
+	private void importStp(String stpDir, boolean delete) {
+		String dir = stpDir;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator + dir;
 			
@@ -696,7 +816,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
 					
 					try {
-						Frame decodedFrame = Frame.loadStp(listOfFiles[i].getName());
+						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
 						if (decodedFrame != null && !decodedFrame.corrupt)
 						if (decodedFrame instanceof SlowSpeedFrame) {
 							SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
@@ -721,7 +841,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 							}
 							hsFrames++;
 						}
-						
+						if (delete) {
+							listOfFiles[i].delete();
+						}
+						if (importProgress != null)
+							importProgress.updateProgress((100 * i)/listOfFiles.length);
 					} catch (IOException e) {
 						Log.println(e.getMessage());
 						e.printStackTrace(Log.getWriter());

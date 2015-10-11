@@ -314,13 +314,13 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * @throws IOException 
 	 * @throws LayoutLoadException
 	 */
-	public static Frame loadStp(String fileName) throws IOException {
-		String dir = "stp";
+	public static Frame loadStp(String dir, String fileName) throws IOException {
+		String stpDir = "stp";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + dir;
+			stpDir = Config.logFileDirectory + File.separator + dir;
 			
 		}
-		FileInputStream in = new FileInputStream(dir +File.separator + fileName);
+		FileInputStream in = new FileInputStream(stpDir +File.separator + fileName);
 		int c;
 		int lineLen = 0;
 		
@@ -369,20 +369,24 @@ public abstract class Frame implements Comparable<Frame>  {
             
         }
 
+		in.close();
+		
 		if (rawFrame == null) {
 			// We failed to process the file
 			Log.println("Failed to Process STP file");
+			
 			return null;
 		}
 		
 		// Let's really check it is OK by running the RS decode!
+		
 		RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
 		byte[] frame = rawFrame; //rs.decode();
 		if (!rs.validDecode()) {
 			Log.println("RS Decode Failed");
 			return null;
 		}
-
+	
 		Frame frm;
 		if (length == 768) {
 			frm = new SlowSpeedFrame();

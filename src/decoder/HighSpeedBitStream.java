@@ -102,7 +102,7 @@ public class HighSpeedBitStream extends BitStream {
 			}
 			bytesInFrame++;
 
-			if (bytesInFrame == 4601) {
+			if (bytesInFrame == 4601) {  //FIXME - hard coded value
 				// first parity byte
 				//Log.println("parity");
 				// Reset to the first code word
