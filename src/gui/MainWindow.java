@@ -723,7 +723,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 						}
 						
 					} catch (IOException e) {
-						// TODO Auto-generated catch block
+						Log.println(e.getMessage());
 						e.printStackTrace(Log.getWriter());
 					}
 				}

@@ -434,6 +434,7 @@ import decoder.Decoder;
  * Import STP files from a directory, if its there
  * Shorten the period between passes so that graphs look continuous
  * Ignore duplicate high speed radiation frames - needed for processing data from the server
+ * Do not change the FCD LNA or Mixer Gain.  Leave unchanged.
  * 
  */
 

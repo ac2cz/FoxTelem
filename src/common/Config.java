@@ -50,7 +50,7 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 	
-	public static String VERSION = "1.01 - 10 October 2015";
+	public static String VERSION = "1.01a - 10 October 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -145,8 +145,8 @@ public class Config {
     public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
     public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
-    public static String primaryServer = "tlm.amsat.org";
-    public static String secondaryServer = "tlm.amsat.us";
+    public static String primaryServer = "tlm.amsat.us";
+    public static String secondaryServer = "tlm.amsat.org";
     // These are not saved to the file
     public static int udpPort = 41041;
     public static int tcpPort = 41042;
