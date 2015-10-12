@@ -68,8 +68,8 @@ public class RawFrameQueue implements Runnable {
 	}
 	
 	private void init() {
-		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort, Config.serverProtocol);
-		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort, Config.serverProtocol);
+		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort);
+		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort);
 		rawSlowSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
 		rawHighSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
 		try {
@@ -300,7 +300,7 @@ public class RawFrameQueue implements Runnable {
 			protocol = "tcp";
 		Log.println("Trying Primary Server: " + protocol + "://" + Config.primaryServer + ":" + Config.serverPort);
 		try {
-			frames.get(0).sendToServer(primaryServer);
+			frames.get(0).sendToServer(primaryServer, Config.serverProtocol);
 			success = true;
 		} catch (UnknownHostException e) {
 			Log.println("Could not connect to primary server");
@@ -312,7 +312,7 @@ public class RawFrameQueue implements Runnable {
 		if (running)
 			try {
 				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
-				frames.get(0).sendToServer(secondaryServer);
+				frames.get(0).sendToServer(secondaryServer, Config.serverProtocol);
 				//String primary = Config.primaryServer;
 				//Config.primaryServer = Config.secondaryServer;
 				//Config.secondaryServer = primary;

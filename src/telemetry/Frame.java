@@ -444,7 +444,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer(TlmServer tlmServer) throws UnknownHostException, IOException {
+	public void sendToServer(TlmServer tlmServer, int protocol) throws UnknownHostException, IOException {
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();
 		header = header + "\r\n";
@@ -457,7 +457,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		for (byte b : bytes)
 			buffer[j++] = b;
 		
-		tlmServer.sendToServer(buffer);
+		tlmServer.sendToServer(buffer, protocol);
 		if (Config.debugFrames) Log.println(header);
 	}
 

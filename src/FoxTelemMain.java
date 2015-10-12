@@ -437,7 +437,7 @@ import decoder.Decoder;
  * Do not change the FCD LNA or Mixer Gain.  Leave unchanged.
  * Fetch data from the server 
  * Allow graphs to be hidden so that average or deriv is easier to see
- * 
+ * Switch the server protocol instantly when it is saved from settings screen (rather than requiring a restart)
  */
 
 public class FoxTelemMain {
