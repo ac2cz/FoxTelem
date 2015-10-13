@@ -359,7 +359,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 		for (int i=0; i<data.length; i++) {
 			RadiationTelemetry radTelem = null;
 			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.rad2Layout);
-			for (int k=2; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) {
+			for (int k=2; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES+2; k++) {  // Add 2 to skip past reset uptime
 				try {
 					radTelem.addNext8Bits(Integer.valueOf(data[i][k]));
 				} catch (NumberFormatException e) {
