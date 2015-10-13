@@ -161,8 +161,9 @@ public class SatPayloadStore {
 	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
 	 * @param f
 	 * @return
+	 * @throws IOException 
 	 */
-	public boolean add(int id, long uptime, int resets, PayloadRadExpData[] f) {
+	public boolean add(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		if (!radRecords.hasFrame(id, uptime, resets)) {
 			for (int i=0; i< f.length; i++) {
 				if (f[i].hasData()) {
@@ -174,8 +175,7 @@ public class SatPayloadStore {
 						// NEED TO SET A FLAG HERE THAT IS THEN SEEN BY THE GUI WHEN IT POLLS FOR RESULTS
 						e.printStackTrace(Log.getWriter());
 					}
-					radRecords.add(f[i]);
-
+					addRadRecord(f[i]);
 				}
 			}
 		} else {
@@ -185,6 +185,18 @@ public class SatPayloadStore {
 		return true;
 	}
 
+	private boolean addRadRecord(PayloadRadExpData f) throws IOException {
+		radRecords.add(f);
+		
+		// Capture and store any secondary payloads
+		if (f.isTelemetry()) {
+			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			add(radiationTelemetry);
+		}
+		return true;
+	}
+	
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -226,7 +238,7 @@ public class SatPayloadStore {
 			if (!radRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
 				updatedRad = true;
 					save(f, radFileName);				
-				return radRecords.add(f);
+				return addRadRecord((PayloadRadExpData)f);
 			} else {
 				if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
 			}
@@ -295,6 +307,16 @@ public class SatPayloadStore {
 		
 	}
 
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+		return getRadData(radRecords, period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
+
+	}
+	
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
+		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, 20);
+
+	}
+	
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -304,23 +326,23 @@ public class SatPayloadStore {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadData(SortedFramePartArrayList records, int period, int id, int fromReset, long fromUptime, int length) {
 		int start = 0;
 		int end = 0;
 		
 		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
-			start = radRecords.size()-period;
-			end = radRecords.size();
+			start = records.size()-period;
+			end = records.size();
 		} else {
 			// we need to find the start point
-			start = radRecords.getNearestFrameIndex(id, fromUptime, fromReset);
-			if (start == -1 ) start = radRecords.size()-period;
+			start = records.getNearestFrameIndex(id, fromUptime, fromReset);
+			if (start == -1 ) start = records.size()-period;
 			end = start + period;
 		}
-		if (end > radRecords.size()) end = radRecords.size();
+		if (end > records.size()) end = records.size();
 		if (end < start) end = start;
 		if (start < 0) start = 0;
-		if (start > radRecords.size()) start = radRecords.size();
+		if (start > records.size()) start = records.size();
 		
 		int[][] results = new int[end-start][];
 		String[] upTime = new String[end-start];
@@ -329,12 +351,12 @@ public class SatPayloadStore {
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
-			results[j] = radRecords.get(i).getFieldValues();
-			upTime[j] = ""+radRecords.get(i).getUptime();
-			resets[j--] = ""+radRecords.get(i).getResets();
+			results[j] = records.get(i).getFieldValues();
+			upTime[j] = ""+records.get(i).getUptime();
+			resets[j--] = ""+records.get(i).getResets();
 		}
 		
-		String[][] resultSet = new String[end-start][MAX_RAD_DATA_LENGTH];
+		String[][] resultSet = new String[end-start][length];
 		for (int r=0; r< end-start; r++) {
 			resultSet[r][0] = resets[r];
 			resultSet[r][1] = upTime[r];
@@ -458,7 +480,7 @@ public class SatPayloadStore {
         				updatedRad = true;
         			}
         			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st);
+        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
         				radTelemRecords.add(rt);
         				updatedRadTelem = true;
         			}
@@ -517,6 +539,7 @@ public class SatPayloadStore {
 				remove(dir+maxFileName);
 				remove(dir+minFileName);
 				remove(dir+radFileName);
+				remove(dir+radTelemFileName);
 				initPayloadFiles();
 				setUpdatedAll();
 			} catch (IOException ex) {

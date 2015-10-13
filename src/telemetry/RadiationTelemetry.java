@@ -47,6 +47,7 @@ public class RadiationTelemetry extends FramePart {
 
 	@Override
 	protected void init() {
+		type = TYPE_RAD_TELEM_DATA;
 		rawBits = new boolean[MAX_RAD_TELEM_BYTES*8];
 		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}

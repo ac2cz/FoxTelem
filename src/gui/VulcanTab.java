@@ -386,7 +386,8 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 		if (packetData.length > 0) {
 			radPacketTableModel.setData(packetData);
 		}
-		updateTab(packets.get(packets.size()-1));
+		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+		//updateTab(packets.get(packets.size()-1));
 	}
 	
 	private void parsePackets(String data[][]) {
@@ -548,14 +549,15 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	public void updateTab(BitArray rad) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
-	
-		for (DisplayModule mod : topModules) {
-			if (mod != null)
-			mod.updateRtValues(rad);
-		}
-		for (DisplayModule mod : bottomModules) {
-			if (mod != null)
-			mod.updateRtValues(rad);
+		if (rad != null) {
+			for (DisplayModule mod : topModules) {
+				if (mod != null)
+					mod.updateRtValues(rad);
+			}
+			for (DisplayModule mod : bottomModules) {
+				if (mod != null)
+					mod.updateRtValues(rad);
+			}
 		}
 //		displayId(rad.getFoxId());
 //		displayUptime(rad.getUptime());
@@ -583,7 +585,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 
 			if (foxId != 0)
 				if (Config.payloadStore.getUpdatedRad(foxId)) {
-					radPayload = Config.payloadStore.getLatestRad(foxId);
+					//radPayload = Config.payloadStore.getLatestRad(foxId);
 					Config.payloadStore.setUpdatedRad(foxId, false);
 
 					parseRadiationFrames();

@@ -105,6 +105,13 @@ public class SatelliteManager {
 		return null;
 	}
 
+	public BitArrayLayout getRadTelemLayout(int sat) {
+		Spacecraft sc = getSpacecraft(sat);
+		if (sc != null) return sc.rad2Layout;
+		return null;
+	}
+
+	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.measurementLayout;

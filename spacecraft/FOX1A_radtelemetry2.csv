@@ -6,7 +6,7 @@
 4,RAD,State2,4,NONE,17,Vulcan Experiment 2,11,1,5,State,Vulcan Experiment 2 State
 5,RAD,State3,4,NONE,17,Vulcan Experiment 3,12,1,5,State,Vulcan Experiment 3 State
 6,RAD,State4,4,NONE,17,Vulcan Experiment 4,13,1,5,State,Vulcan Experiment 4 State
-7,RAD,Power1,8,mW,8,Vulcan Experiment 1,10,2,5,Power,Vulcan Experiment 1 Power
+7,RAD,Power1,8,mW,0,Vulcan Experiment 1,10,2,5,Power,Vulcan Experiment 1 Power
 8,RAD,Power2,8,mW,0,Vulcan Experiment 2,11,2,5,Power,Vulcan Experiment 2 Power
 9,RAD,Power3,8,mW,0,Vulcan Experiment 3,12,2,5,Power,Vulcan Experiment 3 Power
 10,RAD,Power4,8,mW,0,Vulcan Experiment 4,13,2,5,Power,Vulcan Experiment 4 Power
