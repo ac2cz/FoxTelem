@@ -438,6 +438,8 @@ import decoder.Decoder;
  * Fetch data from the server 
  * Allow graphs to be hidden so that average or deriv is easier to see
  * Switch the server protocol instantly when it is saved from settings screen (rather than requiring a restart)
+ * Fixed a bug where the last 2 bytes of the radiation telemetry were not decoded correctly
+ * 
  */
 
 public class FoxTelemMain {
