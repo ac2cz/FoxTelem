@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.util.StringTokenizer;
+
 import common.Spacecraft;
 import decoder.BitStream;
 
@@ -24,7 +26,7 @@ import decoder.BitStream;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class RadiationTelemetry extends BitArray {
+public class RadiationTelemetry extends FramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 20;
 	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
@@ -36,6 +38,15 @@ public class RadiationTelemetry extends BitArray {
 		reset = r;
 		uptime = u;
 		
+		
+	}
+
+	public RadiationTelemetry(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, date, st, lay);	
+	}
+
+	@Override
+	protected void init() {
 		rawBits = new boolean[MAX_RAD_TELEM_BYTES*8];
 		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
@@ -141,6 +152,12 @@ public class RadiationTelemetry extends BitArray {
 		
 		}
 		return s;
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

@@ -52,25 +52,32 @@ public class SatPayloadStore {
 	
 	private static final int INIT_SIZE = 1000;
 	
+	// Primary Payloads
 	public static String RT_LOG = "rttelemetry.log";
 	public static String MAX_LOG = "maxtelemetry.log";
 	public static String MIN_LOG = "mintelemetry.log";
 	public static String RAD_LOG = "radtelemetry.log";
-	
+
+	// Secondary payloads - decoded from the primary payloads
+	public static String RAD_TELEM_LOG = "radtelemetry2.log";
+
 	public String rtFileName;
 	public String maxFileName;
 	public String minFileName;
 	public String radFileName;
+	public String radTelemFileName;
 	
 	SortedFramePartArrayList rtRecords;
 	SortedFramePartArrayList maxRecords;
 	SortedFramePartArrayList minRecords;
 	SortedFramePartArrayList radRecords;
+	SortedFramePartArrayList radTelemRecords;
 	
 	boolean updatedRt = false;
 	boolean updatedMax = false;
 	boolean updatedMin = false;
 	boolean updatedRad = false;
+	boolean updatedRadTelem = false;
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
 	
@@ -86,10 +93,12 @@ public class SatPayloadStore {
 			maxFileName = "Fox"+id+MAX_LOG;
 			minFileName = "Fox"+id+MIN_LOG;
 			radFileName = "Fox"+id+RAD_LOG;
+			radTelemFileName = "Fox"+id+RAD_TELEM_LOG;
 			load(rtFileName);
 			load(maxFileName);
 			load(minFileName);
 			load(radFileName);
+			load(radTelemFileName);
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
@@ -104,7 +113,7 @@ public class SatPayloadStore {
 		maxRecords = new SortedFramePartArrayList(INIT_SIZE);
 		minRecords = new SortedFramePartArrayList(INIT_SIZE);
 		radRecords = new SortedFramePartArrayList(INIT_SIZE);
-
+		radTelemRecords = new SortedFramePartArrayList(INIT_SIZE);
 	}
 	
 	public void setUpdatedAll() {
@@ -112,6 +121,7 @@ public class SatPayloadStore {
 		updatedMax = true;
 		updatedMin = true;
 		updatedRad = true;
+		updatedRadTelem = true;
 		
 	}
 	
@@ -132,7 +142,12 @@ public class SatPayloadStore {
 	public void setUpdatedRad(boolean u) {
 		updatedRad = u;
 	}
-	
+
+	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
+	public void setUpdatedRadTelem(boolean u) {
+		updatedRadTelem = u;
+	}
+
 	public int getNumberOfFrames() { return rtRecords.size() + maxRecords.size() + minRecords.size() + radRecords.size(); }
 	public int getNumberOfTelemFrames() { return rtRecords.size() + maxRecords.size() + minRecords.size(); }
 	public int getNumberOfRadFrames() { return radRecords.size(); }
@@ -215,6 +230,14 @@ public class SatPayloadStore {
 			} else {
 				if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
 			}
+		} else if (f instanceof RadiationTelemetry ) {
+			if (!radTelemRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
+				updatedRadTelem = true;
+					save(f, radTelemFileName);				
+				return radTelemRecords.add(f);
+			} else {
+				if (Config.debugFrames) Log.println("DUPLICATE RAD TELEM RECORD, not loaded");
+			}
 		}
 		return false;
 	}
@@ -239,6 +262,11 @@ public class SatPayloadStore {
 		return (PayloadRadExpData) radRecords.get(radRecords.size()-1);
 	}
 
+	public RadiationTelemetry getLatestRadTelem() {
+		if (radTelemRecords.size() == 0) return null;
+		return (RadiationTelemetry) radTelemRecords.get(radTelemRecords.size()-1);
+	}
+
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -259,6 +287,11 @@ public class SatPayloadStore {
 
 	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
 		return getGraphData(minRecords, name, period, id, fromReset, fromUptime);
+		
+	}
+
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+		return getGraphData(radTelemRecords, name, period, id, fromReset, fromUptime);
 		
 	}
 
@@ -419,10 +452,15 @@ public class SatPayloadStore {
         				minRecords.add(rt);
         				updatedMin = true;
         			}
-        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400) {
+        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;
+        			}
+        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st);
+        				radTelemRecords.add(rt);
+        				updatedRadTelem = true;
         			}
         		}
         	}

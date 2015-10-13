@@ -51,11 +51,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_CAMERA_DATA = 5;
 	public static final int TYPE_RAD_EXP_DATA = 4; // This is both Vulcan and HERCI
 	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
+	public static final int TYPE_RAD_TELEM_DATA = 7;
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
 	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
-
+	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
+	// Correspondingly TYPE 700+ are reserved for Rad Telemetry payloads
+	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	
