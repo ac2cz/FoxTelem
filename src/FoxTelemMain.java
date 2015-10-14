@@ -441,6 +441,7 @@ import decoder.Decoder;
  * Fixed a bug where the last 2 bytes of the radiation telemetry were not decoded correctly
  * Allow Vanderbilt radiation experiment to be graphed
  * Allow the gain to be set on the FCD (rather than hard coded)
+ * Notify the user when a new release is available
  * 
  */
 

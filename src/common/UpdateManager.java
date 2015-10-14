@@ -24,6 +24,11 @@ public class UpdateManager implements Runnable {
 
         String availableVersion;
         availableVersion = in.readLine(); // read the first line
+        String line;
+        String notes = "";
+        while ((line = in.readLine()) != null) {
+        	notes = notes + line + "\n";
+        }
         Log.println("LATEST VERSION: "+availableVersion);
         int maj = Config.parseVersionMajor(availableVersion);
         int min = Config.parseVersionMinor(availableVersion);
@@ -32,14 +37,15 @@ public class UpdateManager implements Runnable {
         //System.out.println("MIN: "+min);
         //System.out.println("POINT: "+point);
         
-        if (Config.getVersionMajor() < maj) recommendUpgrade(availableVersion);
-        if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion);
+        if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
+        if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
         
         in.close();
 	}
 	
-	private void recommendUpgrade(String ver) {
-		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to amsat.us/FoxTelem/ to download it?";
+	private void recommendUpgrade(String ver, String notes) {
+		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
+				+ "Release information:\n" + notes;
 		Object[] options = {"Yes",
 		"No"};
 		int n = JOptionPane.showOptionDialog(
@@ -47,14 +53,39 @@ public class UpdateManager implements Runnable {
 				message,
 				"New FoxTelem Version Available",
 				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.INFORMATION_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.YES_OPTION) {
+			gotoSite();			
+		}
+	}
+	
+	private void requireUpgrade(String ver, String notes) {
+		String message = "You must upgrade to FoxTelem Version " +ver + "  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
+				+ "Release information:\n" + notes;
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"REQUIRED UPGRADE",
+				JOptionPane.YES_NO_OPTION, 
 				JOptionPane.ERROR_MESSAGE,
 				null,
 				options,
 				options[1]);
 
 		if (n == JOptionPane.NO_OPTION) {
-			return;
+			System.exit(0);
 		}
+		gotoSite();
+		System.exit(0);
+	}
+	
+	private void gotoSite() {
 		String url = "http://amsat.us/FoxTelem/windows";
 		if (Config.isMacOs())
 			url = "http://amsat.us/FoxTelem/mac";
