@@ -430,8 +430,16 @@ import decoder.Decoder;
  * Version 1.01
  * Send the frames to both primary and secondary server
  * Set the default fcd frequency to 145930 so that Fox-1A, Fox-1Cliff and Fox-1D will be in the passband
- * Allow use to select UDP or TCP for upload to the server and save in settings
- * 
+ * Allow user to select UDP or TCP for upload to the server and save in settings
+ * Import STP files from a directory, if its there
+ * Shorten the period between passes so that graphs look continuous
+ * Ignore duplicate high speed radiation frames - needed for processing data from the server
+ * Do not change the FCD LNA or Mixer Gain.  Leave unchanged.
+ * Fetch data from the server 
+ * Allow graphs to be hidden so that average or deriv is easier to see
+ * Switch the server protocol instantly when it is saved from settings screen (rather than requiring a restart)
+ * Fixed a bug where the last 2 bytes of the radiation telemetry were not decoded correctly
+ * Allow Vanderbilt radiation experiment to be graphed
  */
 
 public class FoxTelemMain {

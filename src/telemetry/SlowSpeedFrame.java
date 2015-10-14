@@ -37,6 +37,7 @@ public class SlowSpeedFrame extends Frame {
 	FramePart payload = null;
 	FramePart fecTrailer = null;
 	
+	
 	public SlowSpeedFrame() {
 		super();
 		header = new SlowSpeedHeader();
@@ -62,6 +63,7 @@ public class SlowSpeedFrame extends Frame {
 
 	
 	public void addNext8Bits(byte b) {
+		if (corrupt) return;
 		if (numberBytesAdded < MAX_HEADER_SIZE)
 			header.addNext8Bits(b);
 		else if (numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE)
@@ -91,7 +93,9 @@ public class SlowSpeedFrame extends Frame {
 					payload = new PayloadRtValues(Config.satManager.getRtLayout(header.id));
 				}
 			} else {
-				Log.errorDialog("Missing or Invalid Fox Id", "FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+				//Log.errorDialog("Missing or Invalid Fox Id", 
+				Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+				corrupt = true;
 			}
 		}
 		

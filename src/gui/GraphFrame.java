@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Graphics;
@@ -32,7 +33,9 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.SoftBevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBox;
 
@@ -79,6 +82,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnCSV;
 	private JButton btnCopy;
 	private JButton btnDerivative;
+	private JButton btnMain;
 	private JButton btnAvg;
 	
 	public Spacecraft fox;
@@ -93,7 +97,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public static int DEFAULT_AVG_PERIOD = 12;
 	public int AVG_PERIOD = DEFAULT_AVG_PERIOD;
 	//private JLabel lblActual;
-	public static final int DEFAULT_UPTIME_THRESHOLD = 60*60*3;// plot continuous uptime unless more than 3 hour gap
+	public static final int DEFAULT_UPTIME_THRESHOLD = 60*60*1;// plot continuous uptime unless more than 1 hour gap
 	public static final int CONTINUOUS_UPTIME_THRESHOLD = -1;
 	public double UPTIME_THRESHOLD =DEFAULT_UPTIME_THRESHOLD; 
 	private JCheckBox chckbxPlotAllUptime;
@@ -112,6 +116,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	public boolean plotDerivative;
 	public boolean dspAvg;
+	public boolean displayMain = true;
 	
 	boolean textDisplay = false;
 	
@@ -169,13 +174,21 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		
 		// Toolbar buttons
+		
+		btnMain = new JButton("Hide");
+		btnMain.setMargin(new Insets(0,0,0,0));
+		btnMain.setToolTipText("Hide the unprocessed telemetry data");
+		btnMain.addActionListener(this);
+		titlePanelLeft.add(btnMain);
+		if (this.textDisplay) btnMain.setVisible(false);
+
 		btnDerivative = createIconButton("/images/derivSmall.png","Deriv","Plot 1st Derivative (1st difference)");
 		titlePanelLeft.add(btnDerivative);
 		if (this.textDisplay) btnDerivative.setVisible(false);
 
 		btnAvg = new JButton("AVG");
 		btnAvg.setMargin(new Insets(0,0,0,0));
-		btnAvg.setToolTipText("12 sample Running Average / Low Pass Filter");
+		btnAvg.setToolTipText("Running Average / Low Pass Filter");
 		btnAvg.addActionListener(this);
 		
 		titlePanelLeft.add(btnAvg);
@@ -187,7 +200,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			btnAvg.setVisible(false);
 		}
 
-		
+		btnMain.setBackground(Color.GRAY);
+		btnDerivative.setBackground(Color.GRAY);
+		btnAvg.setBackground(Color.GRAY);
+
 		btnLatest = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
 		titlePanelLeft.add(btnLatest);
 		//if (this.textDisplay) btnLatest.setEnabled(false);
@@ -541,11 +557,27 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}  else if (e.getSource() == btnDerivative) {
 			plotDerivative = !plotDerivative;
 			//Log.println("Plot Derivative " + plotDerivative);
+			if (plotDerivative) {	
+				btnDerivative.setBackground(Color.RED);
+			} else
+				btnDerivative.setBackground(Color.GRAY);
 			panel.updateGraphData();
 		}  else if (e.getSource() == btnAvg) {
 			dspAvg = !dspAvg;
+			if (dspAvg) {	
+				btnAvg.setBackground(Color.RED);
+			} else
+				btnAvg.setBackground(Color.GRAY);
 			setAvgVisible(dspAvg);
 			//Log.println("Calc Average " + dspAvg);
+			panel.updateGraphData();
+		} else if (e.getSource() == btnMain) {
+			displayMain = !displayMain;
+			if (!displayMain) {	
+				btnMain.setBackground(Color.RED);
+			} else
+				btnMain.setBackground(Color.GRAY);
+
 			panel.updateGraphData();
 		}
 	}

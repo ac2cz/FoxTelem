@@ -445,6 +445,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				
+				if (cbUseUDP.isSelected()) {
+					Config.serverPort = Config.udpPort;
+					Config.serverProtocol = TlmServer.UDP;
+				} else {
+					Config.serverPort = Config.tcpPort;
+					Config.serverProtocol = TlmServer.TCP;
+				}
 
 				if (Config.displayModuleFontSize != parseIntTextField(txtDisplayModuleFontSize)) {
 					Config.displayModuleFontSize = parseIntTextField(txtDisplayModuleFontSize);
@@ -605,13 +612,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		
 		
 		if (source == cbUseUDP) { 
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.serverPort = Config.tcpPort;
-				Config.serverProtocol = TlmServer.TCP;
-			} else {
-				Config.serverPort = Config.udpPort;
-				Config.serverProtocol = TlmServer.UDP;
-			}
+
 		}
 	}
 

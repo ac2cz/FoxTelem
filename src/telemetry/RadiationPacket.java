@@ -44,6 +44,15 @@ public class RadiationPacket extends BitArray{
 			"5-???"
 		};
 
+		public static final String[] radPacketStateShort = {
+			"0",
+			"STDBY",
+			"2",
+			"ACT",
+			"DIS",
+			"5"
+		};
+		
 		public static final String[] packetType = {
 			"0-ASCII",
 			"1-TIME",

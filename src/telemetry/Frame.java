@@ -2,8 +2,13 @@ package telemetry;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -19,6 +24,7 @@ import common.Log;
 import common.Sequence;
 import common.Spacecraft;
 import common.TlmServer;
+import fec.RsCodeWord;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -70,7 +76,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
 	public static final String NONE = "NONE";
-	
+	public boolean corrupt = false;;
 	private int foxId = 0;
 	private String receiver = NONE; // unique name (usually callsign) chosen by the user.  May vary over life of program usage, so stored
 	private String frequency = NONE; // frequency when this frame received
@@ -120,6 +126,7 @@ public abstract class Frame implements Comparable<Frame>  {
 
 	}
 	
+	public abstract Header getHeader();
 	private String formatLatitude(String lat) {
 		String s = "";
 		float f = Float.parseFloat(lat);
@@ -300,6 +307,106 @@ public abstract class Frame implements Comparable<Frame>  {
 		output.write(Integer.toString(bytes[bytes.length-1])+"\n");
 	}
 
+	/**
+	 * Static factory method that creates a frame from a file
+	 * @param fileName
+	 * @return
+	 * @throws IOException 
+	 * @throws LayoutLoadException
+	 */
+	public static Frame loadStp(String dir, String fileName) throws IOException {
+		String stpDir = "stp";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			stpDir = Config.logFileDirectory + File.separator + dir;
+			
+		}
+		FileInputStream in = new FileInputStream(stpDir +File.separator + fileName);
+		int c;
+		int lineLen = 0;
+		
+		boolean done = false;
+		boolean readingKey = true;
+		String key = null;
+		String value = null;
+		byte[] rawFrame = null;
+		int length = 0;
+		// Read the file
+		while (!done && (c = in.read()) != -1) {
+			Character ch = (char) c;
+			//System.out.print(ch);
+			
+			if (ch == ':') {
+				c = in.read(); // consume the space
+				readingKey = false;
+			}
+            if ( (c == 13 || c == 10)) { // CR or LF
+            	c = in.read(); // consume the lf
+            	if ((length == 768 || length == 42176) && lineLen == 1) {
+            		// then we are ready to process
+            		rawFrame = new byte[length/8];
+            		for (int i=0; i<96; i++) {
+            			rawFrame[i] = (byte) in.read();
+            		}
+            		done = true;
+            	} else {
+            		//System.out.println(key + " " + value);
+            		readingKey = true;
+            		if (key.startsWith("Length")) {
+            			length = Integer.parseInt(value.substring(1, value.length()));
+            			//System.out.println("Got Length: " + length);
+            		}
+            		key = "";
+            		value = "";
+            		lineLen = 0;
+            	}
+            } else {
+            	if (readingKey) 
+    				key = key + ch;
+    			else
+    				value = value + ch;
+            }
+            lineLen++;
+            
+        }
+
+		in.close();
+		
+		if (rawFrame == null) {
+			// We failed to process the file
+			Log.println("Failed to Process STP file");
+			
+			return null;
+		}
+		
+		// Let's really check it is OK by running the RS decode!
+		
+		RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+		byte[] frame = rawFrame; //rs.decode();
+		if (!rs.validDecode()) {
+			Log.println("RS Decode Failed");
+			return null;
+		}
+	
+		Frame frm;
+		if (length == 768) {
+			frm = new SlowSpeedFrame();
+		} else {
+			frm = new HighSpeedFrame();
+		}
+		frm.addRawFrame(frame);
+		
+
+		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
+				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||
+				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 390) ||
+				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 393) ||
+
+				(frm !=null && frm.getHeader().resets > 10000 ))return null;
+
+		//if (frm != null) Log.println(frm.getHeader().toString());
+		return frm;
+
+	}
 	
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame) 
@@ -337,7 +444,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer(TlmServer tlmServer) throws UnknownHostException, IOException {
+	public void sendToServer(TlmServer tlmServer, int protocol) throws UnknownHostException, IOException {
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();
 		header = header + "\r\n";
@@ -350,7 +457,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		for (byte b : bytes)
 			buffer[j++] = b;
 		
-		tlmServer.sendToServer(buffer);
+		tlmServer.sendToServer(buffer, protocol);
 		if (Config.debugFrames) Log.println(header);
 	}
 

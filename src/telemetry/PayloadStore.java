@@ -286,14 +286,14 @@ public class PayloadStore implements Runnable {
 		for (int i=0; i< f.length; i++) {
 			if (f[i].hasData()) {
 				f[i].captureHeaderInfo(id, uptime, resets);
-				//f[i].type = 100 + i; // store the index in the type field so it is unique
+				f[i].type = 400 + i; // store the index in the type field so it is unique for high speed, but duplicates rejected if same frame processed again
 				payloadQueue.addToEnd(f[i]);
 			}
 		}
 		return true;
 	}
 	
-	public boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) {
+	public boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.add(id, uptime, resets, f);
@@ -410,6 +410,15 @@ public class PayloadStore implements Runnable {
 
 	}
 
+	public RadiationTelemetry getLatestRadTelem(int id) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLatestRadTelem();
+		return null;
+
+	}
+
+	
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -452,6 +461,19 @@ public class PayloadStore implements Runnable {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getRadData(period, id, fromReset, fromUptime);
+		return null;
+	}
+
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getRadTelemData(period, id, fromReset, fromUptime);
+		return null;
+	}
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(fox.foxId);
+		if (store != null)
+			return store.getRadTelemGraphData(name, period, fox, fromReset, fromUptime);
 		return null;
 	}
 

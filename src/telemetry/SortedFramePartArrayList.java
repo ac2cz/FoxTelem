@@ -37,13 +37,13 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
         return false;
     }
 
-	/*
+	
 	public boolean hasFrame(int id, long uptime, int resets, int type) {
     	if (getFrameIndex(id, uptime, resets, type) != -1)
             	return true;
         return false;
     }
-    */
+    
     public int getFrameIndex(int id, long uptime, int resets) {
     	for (int i=0; i<this.size(); i++) { 
     		FramePart f = this.get(i);
@@ -52,7 +52,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     	}
         return -1;
     }
-/*
+
     public int getFrameIndex(int id, long uptime, int resets, int type) {
     	for (int i=0; i<this.size(); i++) { 
     		FramePart f = this.get(i);
@@ -61,7 +61,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     	}
         return -1;
     }
-*/
+
     public int getNearestFrameIndex(int id, long uptime, int resets) {
     	// start searching from the beginning where reset and uptime should be the lowest
     	for (int i=0; i<this.size(); i++) { 

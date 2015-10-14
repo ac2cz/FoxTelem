@@ -105,6 +105,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
+	JCheckBox rdbtnFcdLnaGain;
+	JCheckBox rdbtnFcdMixerGain;
 	//JCheckBox rdbtnUseNco;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
@@ -237,6 +239,18 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnUseNco.setSelected(SourceIQ.useNCO);
 		optionsPanel.add(rdbtnUseNco);
 		*/
+
+		rdbtnFcdLnaGain = new JCheckBox("LNA Gain");
+		rdbtnFcdLnaGain.addItemListener(this);
+		rdbtnFcdLnaGain.setSelected(false);
+		optionsPanel.add(rdbtnFcdLnaGain);
+		rdbtnFcdLnaGain.setVisible(false);
+
+		rdbtnFcdMixerGain = new JCheckBox("Mixer Gain");
+		rdbtnFcdMixerGain.addItemListener(this);
+		rdbtnFcdMixerGain.setSelected(false);
+		optionsPanel.add(rdbtnFcdMixerGain);
+		rdbtnFcdMixerGain.setVisible(false);
 
 	}
 	

@@ -15,6 +15,7 @@ import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
+import telemetry.RadiationPacket;
 
 /**
  * 
@@ -92,6 +93,8 @@ public class GraphPanel extends JPanel {
 			graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		else if (payloadType == FramePart.TYPE_MIN_VALUES)
 			graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
+			graphData = Config.payloadStore.getRadTelemGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		else if  (payloadType == 0) // measurement
 			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		
@@ -151,6 +154,13 @@ public class GraphPanel extends JPanel {
 			minValue = -8;
 					
 		}
+
+		if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
+			maxValue = 5;
+			minValue = 0;
+					
+		}
+
 		
 		if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
 			maxValue = 2;
@@ -233,6 +243,28 @@ public class GraphPanel extends JPanel {
 					}
 					
 				} 
+
+				if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
+					drawLabel = false;
+					if (labels[v] == 1) {
+						s = RadiationPacket.radPacketStateShort[1];
+						drawLabel = true;
+					}
+					if (labels[v] == 2) {
+						s = RadiationPacket.radPacketStateShort[2];
+						drawLabel = true;
+					}
+					if (labels[v] == 3) {
+						s = RadiationPacket.radPacketStateShort[3];
+						drawLabel = true;
+					}
+					if (labels[v] == 4) {
+						s = RadiationPacket.radPacketStateShort[4];
+						drawLabel = true;
+					}
+					
+				} 
+
 				
 				if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
 					drawLabel = false;
@@ -475,15 +507,18 @@ public class GraphPanel extends JPanel {
 								
 				// Calculate the ratio from min to max
 				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN ) 
-					y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]+1, graphHeight);
+					//if (graphFrame.displayMain)
+						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]+1, graphHeight);
 				else if (graphType == BitArrayLayout.CONVERT_FREQ) {
-					y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]-freqOffset, graphHeight);
+					//if (graphFrame.displayMain)
+						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]-freqOffset, graphHeight);
 					if (graphFrame.plotDerivative)
 						y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
 					if (graphFrame.dspAvg)
 						y3 = getRatioPosition(minValue, maxValue, dspData[i]-freqOffset, graphHeight);
 				} else {
-					y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i], graphHeight);
+					//if (graphFrame.displayMain)
+						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i], graphHeight);
 					if (graphFrame.plotDerivative)
 						y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
 					if (graphFrame.dspAvg)
@@ -500,7 +535,8 @@ public class GraphPanel extends JPanel {
 					lasty2=y2;
 					lasty3=y3;
 				}
-				g2.drawLine(lastx, lasty, x, y);
+				if (graphFrame.displayMain)
+					g2.drawLine(lastx, lasty, x, y);
 				
 				if (graphFrame.plotDerivative) {
 					g2.setColor(Config.AMSAT_RED);

@@ -129,10 +129,10 @@ public class FcdDevice  {
 			else {
 				Log.println("Get Version");
 				getFcdVersion();
-				Log.println("Set Mixer Gain");
-				setMixerGain(true);
-				Log.println("Set LNA Gain");
-				setLnaGain(true);
+				//Log.println("Set Mixer Gain");
+				//setMixerGain(true);
+				//Log.println("Set LNA Gain");
+				//setLnaGain(true);
 				Log.println("Set Freq to: " + Config.fcdFrequency*1000);
 				setFcdFreq(Config.fcdFrequency*1000);
 			}

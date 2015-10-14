@@ -385,7 +385,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		try {
 			if (graph[i] == null) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
-				if (rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
+				
+				if (moduleType == this.DISPLAY_ALL && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_REAL_TIME, fox);
 				}
@@ -399,7 +400,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], BitArrayLayout.CONVERT_NONE,  0, fox);
+					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
@@ -426,7 +428,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void mouseClicked(MouseEvent e) {
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
-				if (moduleType == DISPLAY_PASS_MEASURES || moduleType == DISPLAY_VULCAN || rtValue[i].getText().equalsIgnoreCase(noValue)) {
+				if (moduleType == DISPLAY_PASS_MEASURES || rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
 				} else
 					displayGraph(i);
