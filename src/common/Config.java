@@ -9,6 +9,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+import java.util.regex.Pattern;
 
 import javax.swing.JOptionPane;
 
@@ -49,8 +50,9 @@ import telemetry.RawFrameQueue;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
-	
-	public static String VERSION = "1.01e - 13 October 2015";
+
+	public static String VERSION_NUM = "1.01e";
+	public static String VERSION = VERSION_NUM + " - 13 October 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -228,6 +230,37 @@ public class Config {
 		initServerQueue();
 	}
 
+	public static int getVersionMajor() {
+		return parseVersionMajor(VERSION_NUM);
+	}
+	
+	public static int parseVersionMajor(String ver) {
+		String version[] = ver.split("\\.");
+		return Integer.parseInt(version[0]);
+	}
+	
+	public static int getVersionMinor() {
+		return parseVersionMinor(VERSION_NUM);
+	}
+
+	public static int parseVersionMinor(String ver) {
+		String version[] = ver.split("\\.");
+		String min = version[1].replaceAll("\\D", "");
+		return Integer.parseInt(min);
+	}
+
+	public static String getVersionPoint() {
+		return parseVersionPoint(VERSION_NUM);
+	}
+
+	public static String parseVersionPoint(String ver) {
+		String version = ver.substring(ver.length()-1, ver.length());
+		if (version.matches("[0-9]+"))
+			return null; // we have no point release
+		return version;		
+	}
+
+	
 	public static void initPassManager() {	
 		passManager = new PassManager(satManager);
 		passManagerThread = new Thread(passManager);

@@ -26,10 +26,12 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -238,9 +240,40 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		initialize();
 		//pack(); // pack all in as tight as possible
 
+		// Once the main window is up we check the version info
+		try {
+			checkVersion();
+		} catch (IOException e1) {
+			Log.println("Can not read the latest version, skipping");
+			e1.printStackTrace(Log.getWriter());
+		}
 		
 	}
 
+	private void checkVersion() throws IOException {
+		URL oracle = new URL("http://amsat.us/FoxTelem/version.txt");
+        BufferedReader in = new BufferedReader(
+        new InputStreamReader(oracle.openStream()));
+
+        String availableVersion;
+        availableVersion = in.readLine(); // read the first line
+        System.out.println("LATEST VERSION: "+availableVersion);
+        int maj = Config.parseVersionMajor(availableVersion);
+        int min = Config.parseVersionMinor(availableVersion);
+        String point = Config.parseVersionPoint(availableVersion);
+        System.out.println("MAJ: "+maj);
+        System.out.println("MIN: "+min);
+        System.out.println("POINT: "+point);
+        
+        if (Config.getVersionMajor() < maj) recommendUpgrade();
+        if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade();
+        
+        in.close();
+	}
+	
+	private void recommendUpgrade() {
+		Log.errorDialog("New Version Available", "There is a new version of FoxTelem available!  Go to amsat.us/FoxTelem/ to download the latest features");
+	}
 	public static void enableSourceSelection(boolean t) {
 		mntmLoadWavFile.setEnabled(t);
 		mntmImportStp.setEnabled(t);
@@ -752,7 +785,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos = new FileOutputStream(dir + File.separator + "stp.tar.gz");
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 		} catch (FileNotFoundException e) {
-			Log.errorDialog("ERROR", "ERROR write the server data to: " + dir + File.separator + "stp.tar.gz\n" +
+			Log.errorDialog("ERROR", "ERROR writing the server data to: " + dir + File.separator + "stp.tar.gz\n" +
 					e.getMessage());
 			e.printStackTrace(Log.getWriter());
 		} catch (MalformedURLException e) {
