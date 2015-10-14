@@ -35,6 +35,7 @@ import purejavahidapi.PureJavaHidApi;
  */
 public class FcdDevice  {
 	byte[] lastReport;
+	static boolean commandMUX = false;
 	
 	HidDevice dev = null;
 	// FCD Pro+
@@ -77,6 +78,10 @@ public class FcdDevice  {
 			TRFE_435 = 9,
 			TRFE_875_2000 = 10;
 	
+	String[] rfFilterName = {"0-4MHz", "4-8MHz", "8-18MHz", "16-32MHz", "32-75MHz", "75-125MHz",
+			"125-250MHz", "144-148MHz", "410-875MHz", "430-440MHz", "875-2GHz"
+	};
+	
 	//IF Filter numbers
 	int TIFE_200KHZ=0,
 			TIFE_300KHZ=1,
@@ -86,6 +91,10 @@ public class FcdDevice  {
 			TIFE_6MHZ=5,
 			TIFE_7MHZ=6,
 			TIFE_8MHZ=7;
+
+	String[] ifFilterName = {"200kHz", "300kHz", "600kHz", "1536kHz", "5MHz", "6MHz",
+			"7MHz", "8MHz"
+	};
 
         
 	public final static byte FCD_INTERFACE = (byte)0x2;
@@ -231,7 +240,10 @@ public class FcdDevice  {
     		report[1] = (byte)filter;
 
     		sendFcdCommand(report, FCD_CMD_LEN);
-    		return 0;
+    		if (report[0] == APP_SET_RF_FILTER)
+    			return 0;
+    		else
+    			throw new FcdException("Set RF Filter Command not executed: ");
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
@@ -251,11 +263,12 @@ public class FcdDevice  {
 		if (report[0] == cmd) {
 			Log.println("PARAM:"+cmd+" " + report[2]);
 			return report[2];
-		}
-		return -1;
+		} else 
+			throw new FcdException("Command not executed: " + cmd);
+		
 	}
     
-    public int getRfFilter() throws IOException, FcdException {
+    public String getRfFilter() throws IOException, FcdException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -265,11 +278,30 @@ public class FcdDevice  {
 		
 		if (report[0] == APP_GET_RF_FILTER) {
 			Log.println("RF FILTER: " + report[2]);
-			return report[2];
-		}
-		return -1;
+			if (report[2] > -1 && report[2] < rfFilterName.length)
+			return rfFilterName[report[2]];
+		} else
+			throw new FcdException("Get RF Filter Command not executed: ");
+		return "";
 	}
-    
+
+    public String getIfFilter() throws IOException, FcdException {
+		
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)APP_GET_IF_FILTER;
+		sendFcdCommand(report,FCD_CMD_LEN);
+		
+		if (report[0] == APP_GET_IF_FILTER) {
+			Log.println("IF FILTER: " + report[2]);
+			if (report[2] > -1 && report[2] < ifFilterName.length)
+			return ifFilterName[report[2]];
+		} else
+			throw new FcdException("Get IF Filter Command not executed: ");
+		return "";
+	}
+
     public int setMixerGain(boolean on) throws FcdException {
     	
     	try {
@@ -283,7 +315,10 @@ public class FcdDevice  {
     			report[1] = (byte)0x00;
 
     		sendFcdCommand(report, FCD_CMD_LEN);
-    		return 0;
+    		if (report[0] == APP_SET_MIXER_GAIN)
+    			return 0;
+    		else
+    			throw new FcdException("Set Mixer Gain Command not executed: ");
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
@@ -292,7 +327,7 @@ public class FcdDevice  {
     	}
     }
 
-    public int getMixerGain() throws IOException, FcdException {
+    public boolean getMixerGain() throws IOException, FcdException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -302,9 +337,11 @@ public class FcdDevice  {
 		
 		if (report[0] == APP_GET_MIXER_GAIN) {
 			Log.println("MIXER GAIN: " + report[2]);
-			return report[2];
-		}
-		return -1;
+			if (report[2] == 1)
+				return true;
+		} else
+			throw new FcdException("Get Mixer Gain Command not executed: ");
+		return false;
 	}
     public int setLnaGain(boolean on) throws FcdException {
     	
@@ -319,7 +356,10 @@ public class FcdDevice  {
     			report[1] = (byte)0x00;
 
     		sendFcdCommand(report, FCD_CMD_LEN);
-    		return 0;
+    		if (report[0] == APP_SET_LNA_GAIN)
+    			return 0;
+    		else
+    			throw new FcdException("Set LNA Command not executed: ");
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
@@ -328,7 +368,7 @@ public class FcdDevice  {
     	}
     }
 
-    public int getLnaGain() throws IOException, FcdException {
+    public boolean getLnaGain() throws IOException, FcdException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -338,9 +378,11 @@ public class FcdDevice  {
 		
 		if (report[0] == APP_GET_LNA_GAIN) {
 			Log.println("LNA GAIN: " + report[2]);
-			return report[2];
-		}
-		return -1;
+			if (report[2] == 1)
+				return true;
+		} else
+			throw new FcdException("Get LNA Command not executed: ");
+		return false;
 	}
     private void open() throws FcdException {
 		try {
@@ -352,6 +394,10 @@ public class FcdDevice  {
 		if (dev == null) throw new FcdException("Cant Open the FCD.  Is Fox Telem already running?");    	
     }
     private void sendFcdCommand(byte[] command, int len) throws IOException, FcdException {
+    	while (commandMUX) {
+    		
+    	}
+    	commandMUX = true;
     	//HidDevice dev = null;
     	lastReport = null;
     	if (dev == null) open();
@@ -383,6 +429,7 @@ public class FcdDevice  {
     			}
     			//Log.println(s);
     		}
+    		commandMUX = false;
     }
     
     public void cleanup() throws IOException, FcdException {

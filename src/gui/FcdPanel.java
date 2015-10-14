@@ -4,12 +4,16 @@ import java.awt.BorderLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.io.IOException;
 
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import common.Config;
@@ -17,48 +21,48 @@ import common.Log;
 import fcd.FcdDevice;
 import fcd.FcdException;
 
-public class FcdPanel extends JPanel implements ActionListener, Runnable {
+public class FcdPanel extends JPanel implements ItemListener, ActionListener, Runnable {
 	JLabel title;
-	JLabel[] param;
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
 	FcdDevice fcd;
-	JButton refresh;
+	JCheckBox cbMixerGain;
+	JCheckBox cbLnaGain;
+	JTextField rfFilterValue;
+	JTextField ifFilterValue;
 	
-	FcdPanel() {
+	FcdPanel() throws IOException, FcdException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle", TitledBorder.LEADING, TitledBorder.TOP, null, null);
-		title.setTitleFont(new Font("SansSerif", Font.BOLD, 14));
+		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
 		initializeGui();
 	}
 	
-	public void initializeGui() {
+	public void initializeGui() throws IOException, FcdException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();
-		add(center, BorderLayout.CENTER);
+		add(center, BorderLayout.NORTH);
 		center.setLayout(new BoxLayout(center, BoxLayout.X_AXIS));
-		JPanel left = new JPanel();
-		JPanel right = new JPanel();
-		center.add(left);
-		center.add(right);
-		left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS));
-		right.setLayout(new BoxLayout(right, BoxLayout.Y_AXIS));
-		param = new JLabel[NUM_OF_PARAMS];
-		for (int i=0; i < NUM_OF_PARAMS/2; i++) {
-			param[i] = new JLabel();
-			left.add(param[i]);
-		}
-		for (int i=NUM_OF_PARAMS/2; i < NUM_OF_PARAMS; i++) {
-			param[i] = new JLabel();
-			right.add(param[i]);
-		}
+		cbMixerGain = new JCheckBox("Mixer Gain");
+		center.add(cbMixerGain);
+		cbMixerGain.addItemListener(this);
+		cbLnaGain = new JCheckBox("LNA Gain    ");
+		center.add(cbLnaGain);
+		cbLnaGain.addItemListener(this);
 		
-		JPanel south = new JPanel();
-		refresh = new JButton("Refresh");
-		add(south, BorderLayout.SOUTH);
-		south.add(refresh);
-		refresh.addActionListener(this);
+		JLabel rfFilter = new JLabel("    RF Filter");
+		center.add(rfFilter);
+		rfFilterValue = new JTextField();
+		rfFilterValue.setEnabled(false);
+		center.add(rfFilterValue);
+		
+		JLabel ifFilter = new JLabel("    IF Filter");
+		center.add(ifFilter);
+		ifFilterValue = new JTextField();
+		ifFilterValue.setEnabled(false);
+		center.add(ifFilterValue);
+		
 	}
 	
 	public void setFcd(FcdDevice f) throws IOException, FcdException { 
@@ -66,10 +70,21 @@ public class FcdPanel extends JPanel implements ActionListener, Runnable {
 		getSettings();
 	}
 	
-	public void getSettings() throws IOException, FcdException {
-		updateParam(0, "RF FILTER", fcd.getRfFilter());
-		updateParam(1, "MIXER GAIN", fcd.getMixerGain());
-		updateParam(2, "LNA  GAIN", fcd.getParam(FcdDevice.APP_GET_LNA_GAIN));
+	public void getSettings()  throws IOException, FcdException {
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  // Allow startup to settle down first
+		cbMixerGain.setSelected(fcd.getMixerGain());
+		cbLnaGain.setSelected(fcd.getLnaGain());	
+		rfFilterValue.setText(fcd.getRfFilter());
+		ifFilterValue.setText(fcd.getIfFilter());
+	}
+	
+	public void getSettingsOLD() throws IOException, FcdException {
+		
 		updateParam(3, "LNA  ENHANCE", fcd.getParam(FcdDevice.APP_GET_LNA_ENHANCE));
 		updateParam(4, "BAND", fcd.getParam(FcdDevice.APP_GET_BAND));
 		updateParam(5, "MIXER FILTER", fcd.getParam(FcdDevice.APP_GET_MIXER_FILTER));
@@ -85,7 +100,6 @@ public class FcdPanel extends JPanel implements ActionListener, Runnable {
 	}
 	
 	private void updateParam(int i, String name, int cmd) {
-		param[i].setText(name + ": " + cmd + "     ");
 	}
 
 	@Override
@@ -121,13 +135,41 @@ public class FcdPanel extends JPanel implements ActionListener, Runnable {
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.refresh) {
+		
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		if (e.getSource() == cbMixerGain) {
 			try {
+				if (e.getStateChange() == ItemEvent.DESELECTED) {
+					fcd.setMixerGain(false);
+				} else {
+					fcd.setMixerGain(true);
+				}
 				getSettings();
-			} catch (IOException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			} catch (FcdException e1) {
+				Log.println("Error setting Mixer Gain on FCD");
+				e1.printStackTrace(Log.getWriter());
+			} catch (IOException e1) {
+				Log.println("Error reading Mixer Gain on FCD");
+				e1.printStackTrace(Log.getWriter());
+			}
+		}
+		if (e.getSource() == cbLnaGain) {
+			try {
+				if (e.getStateChange() == ItemEvent.DESELECTED) {
+					fcd.setLnaGain(false);
+				} else {
+					fcd.setLnaGain(true);
+				}
+				getSettings();
+			} catch (FcdException e1) {
+				Log.println("Error setting LNA Gain on FCD");
+				e1.printStackTrace(Log.getWriter());
+			} catch (IOException e1) {
+				Log.println("Error reading LNA Gain on FCD");
+				e1.printStackTrace(Log.getWriter());
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}

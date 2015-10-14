@@ -473,7 +473,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			afAudio.doClick();
 		}
 
-		panelFcd = new FcdPanel();
+		try {
+			panelFcd = new FcdPanel();
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+		} catch (FcdException e) {
+			e.printStackTrace(Log.getWriter());
+		}
 		//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
 		panel_c.add(panelFcd, BorderLayout.CENTER);
 		panelFcd.setVisible(false);
@@ -835,7 +841,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	/**
 	 * Process the action from the sound card combo box when an item is selected.  The user has not pressed start, but they have selected
 	 * the audio source that we are going to use.  We do nothing at this point other than changes the visibility of GUI components
-	 * and setup the FCD if it is selected
 	 */
 	private void processSoundCardComboBox() {
 		String source = (String)soundCardComboBox.getSelectedItem();
@@ -850,9 +855,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 //				releaseFcd();
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
-			boolean fcdSelected = usingFcd();
+			boolean fcdSelected = fcdSelected();
 			if (fcdSelected) {
-				setFcdSampleRate();
+
 			} else {
 				Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
 			}
@@ -867,7 +872,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				setIQVisible(false);
 			}
 		}
-
 
 	}
 
@@ -884,26 +888,27 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		}
 	}
 	
-	private boolean usingFcd() {
-		boolean fcdSelected = false;
+	private boolean fcdSelected() {
+		
 		String source = (String)soundCardComboBox.getSelectedItem();
 		Pattern pattern = Pattern.compile(FUNCUBE);
 		Matcher matcher = pattern.matcher(source);
 		if (matcher.find()) {
-			fcdSelected = true;
-			try {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean usingFcd() throws IOException, FcdException {
+		boolean fcdSelected = fcdSelected();
+		if (fcdSelected) {
+			
 				if (fcd == null) {
 					fcd = new FcdDevice();			
 				}
 				panelFcd.setVisible(true);
 				panelFcd.setFcd(fcd);
-			} catch (IOException e) {
-				Log.errorDialog("ERROR", e.getMessage());
-				e.printStackTrace(Log.getWriter());
-			} catch (FcdException e) {
-				Log.errorDialog("ERROR", e.getMessage());
-				e.printStackTrace(Log.getWriter());
-			}
+		
 			Config.iq = true;
 			iqAudio.setSelected(true);
 			setIQVisible(true);
@@ -1017,11 +1022,20 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					}
 				} else { // soundcard - fcd or normal
 					SourceAudio audioSource;
-					boolean fcdSelected = usingFcd();
-					if (fcdSelected) {
-						setFcdSampleRate();
-					} else {
-						Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
+					boolean fcdSelected = false;
+					try {
+						fcdSelected = usingFcd();
+						if (fcdSelected) {
+							setFcdSampleRate();
+						} else {
+							Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
+						}
+					} catch (IOException e) {
+						Log.errorDialog("FCD Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					} catch (FcdException e) {
+						Log.errorDialog("FCD Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
 					}
 					
 					Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
