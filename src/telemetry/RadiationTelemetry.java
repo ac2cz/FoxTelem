@@ -62,7 +62,7 @@ public class RadiationTelemetry extends FramePart {
 		// Special Formatting
 		if (pos == -1) 
 			;//System.err.println("ERROR: No Index for Field:" + name);
-		else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
+		else if (layout.conversion[pos] == BitArrayLayout.CONVERT_VULCAN_STATUS) {
 			int value = getRawValue(name);
 			try {
 				s = RadiationPacket.radPacketState[value];
@@ -85,7 +85,7 @@ public class RadiationTelemetry extends FramePart {
 				return rawValue;
 			case BitArrayLayout.CONVERT_INTEGER:
 				return rawValue;
-			case BitArrayLayout.CONVERT_STATUS_BIT:
+			case BitArrayLayout.CONVERT_VULCAN_STATUS:
 				return rawValue;
 			case BitArrayLayout.CONVERT_16_SEC_UPTIME:
 				return rawValue*16;
