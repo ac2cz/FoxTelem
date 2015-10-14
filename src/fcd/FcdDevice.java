@@ -137,7 +137,7 @@ public class FcdDevice  {
 				Log.errorDialog("ERROR", "FCD device not found");
 			else {
 				Log.println("Get Version");
-				getFcdVersion();
+				//getFcdVersion();
 				//Log.println("Set Mixer Gain");
 				//setMixerGain(true);
 				//Log.println("Set LNA Gain");
@@ -214,12 +214,7 @@ public class FcdDevice  {
     		report[4] = (byte)(freq>>24); 
 
     		sendFcdCommand(report, FCD_CMD_LEN);
-    		try {
-				Thread.sleep(100); // give it time to process last command
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} 
+    		Log.println("Freq causes RF Filter to be set"); 
     		setRfFilter(freq);
     		return 0;
     	} catch (IOException e) {
@@ -394,10 +389,7 @@ public class FcdDevice  {
 		if (dev == null) throw new FcdException("Cant Open the FCD.  Is Fox Telem already running?");    	
     }
     private void sendFcdCommand(byte[] command, int len) throws IOException, FcdException {
-    	while (commandMUX) {
-    		
-    	}
-    	commandMUX = true;
+
     	//HidDevice dev = null;
     	lastReport = null;
     	if (dev == null) open();
@@ -412,7 +404,7 @@ public class FcdDevice  {
     		Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
     		
     		try {
-				Thread.sleep(10);
+				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -429,7 +421,6 @@ public class FcdDevice  {
     			}
     			//Log.println(s);
     		}
-    		commandMUX = false;
     }
     
     public void cleanup() throws IOException, FcdException {

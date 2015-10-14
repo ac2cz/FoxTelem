@@ -240,18 +240,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		optionsPanel.add(rdbtnUseNco);
 		*/
 
-		rdbtnFcdLnaGain = new JCheckBox("LNA Gain");
-		rdbtnFcdLnaGain.addItemListener(this);
-		rdbtnFcdLnaGain.setSelected(false);
-		optionsPanel.add(rdbtnFcdLnaGain);
-		rdbtnFcdLnaGain.setVisible(false);
-
-		rdbtnFcdMixerGain = new JCheckBox("Mixer Gain");
-		rdbtnFcdMixerGain.addItemListener(this);
-		rdbtnFcdMixerGain.setSelected(false);
-		optionsPanel.add(rdbtnFcdMixerGain);
-		rdbtnFcdMixerGain.setVisible(false);
-
 	}
 	
 	private void buildBottomPanel(JPanel parent, String layout, JPanel bottomPanel) {
@@ -722,7 +710,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				} else {
 					try {
 						fcd.setFcdFreq(freq*1000);
-						panelFcd.getSettings();
+						panelFcd.updateFilter();
 					} catch (FcdException e1) {
 						Log.errorDialog("ERROR", e1.getMessage());
 						e1.printStackTrace(Log.getWriter());
@@ -1030,28 +1018,30 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						} else {
 							Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
 						}
+
+						Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
+
+						audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
+						if (audioSource != null)
+							if (fcdSelected || Config.iq) {
+								Log.println("IQ Source Selected");
+								iqSource = new SourceIQ(Config.scSampleRate * 4);
+								iqSource.setAudioSource(audioSource);
+								setupDecoder(highSpeed.isSelected(), iqSource);
+								Config.passManager.setDecoder(decoder, iqSource);
+								setCenterFreq();
+							} else {
+								setupDecoder(highSpeed.isSelected(), audioSource);
+							}	
 					} catch (IOException e) {
-						Log.errorDialog("FCD Error", e.getMessage());
+						Log.errorDialog("FCD Start Error", e.getMessage());
 						e.printStackTrace(Log.getWriter());
+						stopButton();
 					} catch (FcdException e) {
-						Log.errorDialog("FCD Error", e.getMessage());
+						Log.errorDialog("FCD Start Error", e.getMessage());
 						e.printStackTrace(Log.getWriter());
+						stopButton();
 					}
-					
-					Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
-					
-					audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
-					if (audioSource != null)
-					if (fcdSelected || Config.iq) {
-						Log.println("IQ Source Selected");
-						iqSource = new SourceIQ(Config.scSampleRate * 4);
-						iqSource.setAudioSource(audioSource);
-						setupDecoder(highSpeed.isSelected(), iqSource);
-						Config.passManager.setDecoder(decoder, iqSource);
-						setCenterFreq();
-					} else {
-						setupDecoder(highSpeed.isSelected(), audioSource);
-					}	
 				}
 				
 				if (decoder != null) {
@@ -1118,8 +1108,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			decoder = null;
 			iqSource = null;
 			decoderThread = null;
-			Config.passManager.setDecoder(decoder, iqSource);
+			Config.passManager.setDecoder(decoder, iqSource);			
 		}
+		panelFcd.setVisible(false);
+
 	}
 	
 	private void stopButton() {

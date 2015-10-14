@@ -70,6 +70,10 @@ public class FcdPanel extends JPanel implements ItemListener, ActionListener, Ru
 		getSettings();
 	}
 	
+	public void updateFilter() throws IOException, FcdException {
+		rfFilterValue.setText(fcd.getRfFilter());
+	}
+	
 	public void getSettings()  throws IOException, FcdException {
 		try {
 			Thread.sleep(100);
@@ -147,7 +151,7 @@ public class FcdPanel extends JPanel implements ItemListener, ActionListener, Ru
 				} else {
 					fcd.setMixerGain(true);
 				}
-				getSettings();
+				cbMixerGain.setSelected(fcd.getMixerGain());
 			} catch (FcdException e1) {
 				Log.println("Error setting Mixer Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
@@ -163,7 +167,7 @@ public class FcdPanel extends JPanel implements ItemListener, ActionListener, Ru
 				} else {
 					fcd.setLnaGain(true);
 				}
-				getSettings();
+				cbLnaGain.setSelected(fcd.getLnaGain());
 			} catch (FcdException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
