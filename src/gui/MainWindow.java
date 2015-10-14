@@ -45,6 +45,7 @@ import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.JCheckBoxMenuItem;
@@ -105,6 +106,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// We have one FTP Thread for the whole application
 //	Thread ftpThread;
 //	FtpLogs ftpLogs;
+
+	UpdateManager updateManager;
+	Thread updateManagerThread;
 	
 	// This is the JFrame for the main window.  We make it static so that we can reach it from other parts of the program.
 	// We only need one for the whole application
@@ -241,39 +245,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//pack(); // pack all in as tight as possible
 
 		// Once the main window is up we check the version info
-		try {
-			checkVersion();
-		} catch (IOException e1) {
-			Log.println("Can not read the latest version, skipping");
-			e1.printStackTrace(Log.getWriter());
-		}
+		updateManager = new UpdateManager();
+		updateManagerThread = new Thread(updateManager);
+		updateManagerThread.start();
 		
 	}
 
-	private void checkVersion() throws IOException {
-		URL oracle = new URL("http://amsat.us/FoxTelem/version.txt");
-        BufferedReader in = new BufferedReader(
-        new InputStreamReader(oracle.openStream()));
-
-        String availableVersion;
-        availableVersion = in.readLine(); // read the first line
-        System.out.println("LATEST VERSION: "+availableVersion);
-        int maj = Config.parseVersionMajor(availableVersion);
-        int min = Config.parseVersionMinor(availableVersion);
-        String point = Config.parseVersionPoint(availableVersion);
-        System.out.println("MAJ: "+maj);
-        System.out.println("MIN: "+min);
-        System.out.println("POINT: "+point);
-        
-        if (Config.getVersionMajor() < maj) recommendUpgrade();
-        if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade();
-        
-        in.close();
-	}
-	
-	private void recommendUpgrade() {
-		Log.errorDialog("New Version Available", "There is a new version of FoxTelem available!  Go to amsat.us/FoxTelem/ to download the latest features");
-	}
 	public static void enableSourceSelection(boolean t) {
 		mntmLoadWavFile.setEnabled(t);
 		mntmImportStp.setEnabled(t);
