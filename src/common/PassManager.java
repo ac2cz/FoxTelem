@@ -96,7 +96,7 @@ public class PassManager implements Runnable {
 	
 	static final double SCAN_SIGNAL_THRESHOLD = 20d; // This is peak signal to average noise.  Strongest signal needs to be above this
 	static final double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
-	static final double BIT_SNR_THRESHOLD = 2d; 
+	static final double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static final int MIN_FREQ_READINGS_FOR_TCA = 10;
 	
@@ -491,7 +491,8 @@ public class PassManager implements Runnable {
 			if (decoder != null && Config.findSignal)
 				for (int s=0; s < spacecraft.size(); s++) {
 					//Log.println("Looking for: " + spacecraft.get(s).name);
-					stateMachine(spacecraft.get(s));
+					if (spacecraft.get(s).track)
+						stateMachine(spacecraft.get(s));
 				}
 			else {
 				//Log.println("Waiting for decoder");

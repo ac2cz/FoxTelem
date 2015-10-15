@@ -442,6 +442,7 @@ import decoder.Decoder;
  * Allow Vanderbilt radiation experiment to be graphed
  * Allow the gain to be set on the FCD (rather than hard coded)
  * Notify the user when a new release is available
+ * Allow the user to view and edit the "track" attribute for each spacecraft (and other paramaters)
  * 
  */
 

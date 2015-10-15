@@ -126,6 +126,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmLoadIQWavFile;
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
+	static JMenuItem[] mntmSat;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
@@ -515,14 +516,24 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //		mnDecoder.add(mntmStopDecoder);
 //		mntmStopDecoder.addActionListener(this);
 		
+		JMenu mnSats = new JMenu("Spacecraft");
+		menuBar.add(mnSats);
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+		mntmSat = new JMenuItem[sats.size()];
+		for (int i=0; i<sats.size(); i++) {
+			mntmSat[i] = new JMenuItem("Fox-" + sats.get(i).getIdString());
+			mnSats.add(mntmSat[i]);
+			mntmSat[i].addActionListener(this);
+		}
+		
 		JMenu mnOptions = new JMenu("Options");
-//		menuBar.add(mnOptions);
+		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
 		mnOptions.add(chckbxmntmShowFilterOptions);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
-		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Decoder Options");
+		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
 		chckbxmntmShowDecoderOptions.addActionListener(this);
 		mnOptions.add(chckbxmntmShowDecoderOptions);
 		
@@ -683,7 +694,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			}
 		}
 		
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		
+		for (int i=0; i<sats.size(); i++) {
+			if (e.getSource() == mntmSat[i]) {
+				SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
+				f.setVisible(true);
+			}
+		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
 				inputTab.showFilters(chckbxmntmShowFilterOptions.getState());
 		}

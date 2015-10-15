@@ -50,7 +50,7 @@ public class Spacecraft {
 	
 	// Flattened ENUM for spacecraft name
 	public static final String[] modelNames = {
-		"Eng Model",
+		"Engineering Model",
 		"Flight Model",
 		"Flight Spare"
 	};
@@ -66,6 +66,14 @@ public class Spacecraft {
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
+	
+	public static final String[] expNames = {
+		"Empty",
+		"Vanderbilt LEP",
+		"Virgina Tech Camera",
+		"IOWA HERCI",
+		"Rad FX Sat"
+	};
 	
 	public int foxId = 1;
 	public int catalogNumber = 0;
@@ -110,6 +118,9 @@ public class Spacecraft {
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 		
+	// User Config
+	public boolean track = true; // default is we track a satellite
+	
 	public Spacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
 		propertiesFileName = fileName;
@@ -161,6 +172,7 @@ public class Spacecraft {
 		properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
+		properties.setProperty("track", Boolean.toString(track));
 		store();
 	
 	}
@@ -209,6 +221,12 @@ public class Spacecraft {
 			rad2LayoutFileName = getProperty("rad2LayoutFileName");
 			measurementsFileName = getProperty("measurementsFileName");
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
+			String t = getOptionalProperty("track");
+			if (t == null) 
+				track = true;
+			else 
+				track = Boolean.parseBoolean(t);
+			
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );

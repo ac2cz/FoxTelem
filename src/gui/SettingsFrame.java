@@ -116,6 +116,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		btnSave = new JButton("Save");
 		btnSave.addActionListener(this);
 		southpanel.add(btnSave);
+		getRootPane().setDefaultButton(btnSave);
 		
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
