@@ -442,7 +442,9 @@ import decoder.Decoder;
  * Allow Vanderbilt radiation experiment to be graphed
  * Allow the gain to be set on the FCD (rather than hard coded)
  * Notify the user when a new release is available
- * Allow the user to view and edit the "track" attribute for each spacecraft (and other paramaters)
+ * Allow the user to view and edit the "track" attribute for each spacecraft (and other parameters)
+ * Cleaned up the FFT trace with some averaging
+ * Better doppler tracking in IQ mode and more stable estimate of the received frequency
  * 
  */
 

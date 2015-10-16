@@ -15,6 +15,7 @@ import javax.swing.KeyStroke;
 
 import common.Config;
 import common.Log;
+import common.PassManager;
 import common.Spacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
@@ -65,7 +66,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	Spacecraft fox;
 	
 	int fftSamples = SourceIQ.FFT_SAMPLES;
-	double[] fftData = new double[fftSamples*2];
+	//double[] fftData = new double[fftSamples*2];
 	
 	private double[] psd = null;
 	
@@ -91,7 +92,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 	RfData rfData;
 	boolean liveData = false; // true if we have not received a NULL buffer from the decoder.
-
+	int tuneDelay = 0;
+	final int TUNE_THRESHOLD = 100;
 	JLabel title;
 	
 	FFTPanel() {
@@ -319,7 +321,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				//String pk = Double.toString(r) + "";
 				//String noise = Double.toString(n) + "";
 				String s = Double.toString(snr) + "";
-				long f = rfData.getPeakFrequency();
+				long f = iqSource.getFrequencyFromBin(Config.selectedBin);  //rfData.getPeakFrequency();
 				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , peakBin, peak  );
 
 				g2.drawLine(peakBin-5 , (int)peak-3, peakBin+5, (int)peak-3);
@@ -348,35 +350,46 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				}
 				// auto tune
 				if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK) > TRACK_SIGNAL_THRESHOLD) {
-					// move half the distance to the bin
-					int targetBin = 0;
-					if (Config.findSignal)
-						targetBin = rfData.getBinOfStrongestSignal();
-					else
-						targetBin = rfData.getBinOfPeakSignal();
-					int move = targetBin - selectedBin;
-					if (targetBin < selectedBin) {
-						if (move > 100)
-							selectedBin -= 50;
-						else
-						if (move > 10)
-							selectedBin -= 5;
-						else
-						selectedBin--;
+					if (Config.passManager.getState() == PassManager.DECODE  ||
+							Config.passManager.getState() == PassManager.ANALYZE) {
+						tuneDelay++;
+					} else if (Config.passManager.getState() == PassManager.FADED) {
+						// don't tune, just wait
+					} else {
+						tuneDelay = TUNE_THRESHOLD;
 					}
-					if (targetBin > selectedBin) {
-						if (move < -100)
-							selectedBin += 50;
-						else if (move < -10)
-							selectedBin += 5;
+					if (tuneDelay == TUNE_THRESHOLD) {
+						tuneDelay = 0;
+						// move half the distance to the bin
+						int targetBin = 0;
+						if (Config.findSignal)
+							targetBin = rfData.getBinOfStrongestSignal();
 						else
-						selectedBin++;
-					}
-					if (Config.findSignal) {
-						if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
+							targetBin = rfData.getBinOfPeakSignal();
+						int move = targetBin - selectedBin;
+						if (targetBin < selectedBin) {
+								if (move > 100)
+									selectedBin -= 50;
+								else
+								if (move > 10)
+									selectedBin -= 5;
+								else
+							selectedBin--;
+						}
+						if (targetBin > selectedBin) {
+								if (move < -100)
+									selectedBin += 50;
+								else if (move < -10)
+									selectedBin += 5;
+								else
+							selectedBin++;
+						}
+						if (Config.findSignal) {
+							if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
+								Config.selectedBin = selectedBin;
+						} else
 							Config.selectedBin = selectedBin;
-					} else
-						Config.selectedBin = selectedBin;
+					}
 				}
 			} else {
 				Log.println("RF DATA NULL");

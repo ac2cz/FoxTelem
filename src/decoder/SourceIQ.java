@@ -37,6 +37,10 @@ public class SourceIQ extends SourceAudio {
 //	double[] rawAudioQ = new double[samplesToRead/2]; // NCO
 //	double[] rawAudio = new double[FFT_SAMPLES*2]; // NCO
 	private double[] psd = new double[FFT_SAMPLES*2+1];;
+	private double[] psdSum = new double[FFT_SAMPLES*2+1];;
+	private double[] psdAvg = new double[FFT_SAMPLES*2+1];;
+	int psdAvgCount = 0;
+	int PSD_AVG_LEN = 5;
 	double[] overlap = new double[2*FFT_SAMPLES - (samplesToRead/2)];
 	
 	byte[] outputData = new byte[samplesToRead/4];
@@ -164,8 +168,9 @@ public class SourceIQ extends SourceAudio {
 		if (fftDataFresh==false) {
 			return null;
 		} else {
+			
 			fftDataFresh=false;
-			return psd;
+			return psdAvg;
 		}
 	}	
 
@@ -217,7 +222,7 @@ public class SourceIQ extends SourceAudio {
 		iDcFilter = new DcRemoval(0.9999d);
 		qDcFilter = new DcRemoval(0.9999d);
 		rfData = new RfData(this);
-		
+		zeroPsdAvg();
 	}
 	
 	
@@ -365,6 +370,15 @@ public class SourceIQ extends SourceAudio {
 		return audioData; 
 	}
 
+	private void zeroPsdAvg() {
+		Log.println("ZERO PSD!!!!!!");
+		for (int s=0; s<fftData.length-1; s+=2) {
+			psdAvg[s/2] = 0;
+			psdSum[s/2] = 0;
+			psd[s/2] = 0;
+		}
+		psdAvgCount = 0;
+	}
 	private void zeroFFT() {
 		for (int i=0; i< FFT_SAMPLES*2; i++) {
 			fftData[i] = 0.0;
@@ -384,11 +398,24 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	private void calcPsd() {
+		if (Config.monitorFilteredAudio)
+			Log.println("STOP");
 		// Calculate power spectral density (PSD) so that we can display it
 		// This is the magnitude of the complex signal, so it is sqrt(i^2 + q^2)
 		// divided by the bin bandwidth  THIS IS NOT DONE CURRENTLY  - SO WHAT DOES IT MEAN?
 		for (int s=0; s<fftData.length-1; s+=2) {
 			psd[s/2] = psd(fftData[s], fftData[s+1]);
+			
+			if (psdAvgCount >= PSD_AVG_LEN) {
+				psdSum[s/2] = psdSum[s/2]/(double)PSD_AVG_LEN;
+				psdAvg[s/2] = psdSum[s/2];
+				psdAvgCount = 0;
+			} else {
+				if (Double.isInfinite(psdSum[s/2]))
+					psdSum[s/2] = psd[s/2]*psdAvgCount;
+				psdSum[s/2] += psd[s/2];
+			}
+			psdAvgCount++;
 		}
 
 	}

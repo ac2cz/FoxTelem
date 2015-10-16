@@ -1115,7 +1115,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	}
 	
 	private void stopButton() {
-		if (Config.passManager.getState() == PassManager.FADED) {
+		if (Config.passManager.getState() == PassManager.FADED || Config.passManager.getState() == PassManager.DECODE) {
 			Object[] options = {"Yes",
 	        "No"};
 			int n = JOptionPane.showOptionDialog(
