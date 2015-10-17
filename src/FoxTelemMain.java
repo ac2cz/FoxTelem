@@ -445,6 +445,7 @@ import decoder.Decoder;
  * Allow the user to view and edit the "track" attribute for each spacecraft (and other parameters)
  * Cleaned up the FFT trace with some averaging
  * Better doppler tracking in IQ mode and more stable estimate of the received frequency
+ * Better Find Signal algorithm with tuning paramaters for experts
  * 
  */
 

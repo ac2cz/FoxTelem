@@ -9,6 +9,8 @@ import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
@@ -82,7 +84,7 @@ import javax.swing.event.PopupMenuEvent;
  *
  */
 @SuppressWarnings("serial")
-public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener {
+public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener, FocusListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
 	Thread fcdPanelThread;
@@ -107,6 +109,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
 	JCheckBox rdbtnFcdMixerGain;
+	JTextField peakLevel;
+	JTextField avgLevel;
+	JTextField bitLevel;
+	
 	//JCheckBox rdbtnUseNco;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
@@ -120,6 +126,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JRadioButton lowSpeed;
 	JRadioButton iqAudio;
 	JRadioButton afAudio;
+	JRadioButton showSNR;
+	JRadioButton showLevel;
+	JPanel findSignalPanel;
+	
 	JTextArea log;
 	JScrollPane logScrollPane;
 	
@@ -201,13 +211,28 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		parent.add(optionsPanel, layout);
 
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS));
-
+//		optionsPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JPanel options1 = new JPanel();
+		options1.setLayout(new FlowLayout(FlowLayout.LEFT));
+		optionsPanel.add(options1);
 		rdbtnShowFFT = new JCheckBox("Show FFT");
 		rdbtnShowFFT.addItemListener(this);
 		rdbtnShowFFT.setSelected(true);
-		optionsPanel.add(rdbtnShowFFT);
+		options1.add(rdbtnShowFFT);
 		rdbtnShowFFT.setVisible(false);
-		
+
+		showSNR = addRadioButton("Show Avg SNR", options1 );
+		showLevel = addRadioButton("Peak SNR", options1 );
+		ButtonGroup group = new ButtonGroup();
+		group.add(showLevel);
+		group.add(showSNR);
+		if (Config.showSNR) {
+			showSNR.setSelected(true);
+		} else {
+			showLevel.setSelected(true);
+		}
+
+
 		/*
 		rdbtnApplyBlackmanWindow = new JCheckBox("Blackman IF (vs Tukey)");
 		optionsPanel.add(rdbtnApplyBlackmanWindow);
@@ -222,17 +247,46 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnShowIF.setVisible(false);
 		 */
 		rdbtnTrackSignal = new JCheckBox("Track Doppler");
-		optionsPanel.add(rdbtnTrackSignal);
+		options1.add(rdbtnTrackSignal);
 		rdbtnTrackSignal.addItemListener(this);
 		rdbtnTrackSignal.setSelected(Config.trackSignal);
 		rdbtnTrackSignal.setVisible(true);
 
+		findSignalPanel = new JPanel();
+		findSignalPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
+
 		rdbtnFindSignal = new JCheckBox("Find Signal");
-		optionsPanel.add(rdbtnFindSignal);
+		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
 		rdbtnFindSignal.setSelected(Config.findSignal);
 		rdbtnFindSignal.setVisible(true);
 
+		optionsPanel.add(findSignalPanel);
+		JLabel when = new JLabel ("when peak over ");
+		findSignalPanel.add(when);
+		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
+		//peakLevel.setColumns(3);
+		peakLevel.addActionListener(this);
+		peakLevel.addFocusListener(this);
+		findSignalPanel.add(peakLevel);
+		JLabel rf = new JLabel ("dB, avg over ");
+		findSignalPanel.add(rf);
+		avgLevel = new JTextField(Double.toString(Config.ANALYZE_SNR_THRESHOLD));
+		avgLevel.addActionListener(this);
+		avgLevel.addFocusListener(this);
+		findSignalPanel.add(avgLevel);
+		JLabel bit = new JLabel ("dB and bit SNR over ");
+		findSignalPanel.add(bit);
+		bitLevel = new JTextField(Double.toString(Config.BIT_SNR_THRESHOLD));
+		bitLevel.addActionListener(this);
+		bitLevel.addFocusListener(this);
+		findSignalPanel.add(bitLevel);
+		JLabel bitdb = new JLabel ("dB");
+		findSignalPanel.add(bitdb);
+	
+		findSignalPanel.setVisible(Config.findSignal);
+	
 		/*
 		rdbtnUseNco = new JCheckBox("Use NCO carrier");
 		rdbtnUseNco.addItemListener(this);
@@ -694,6 +748,38 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == afAudio) { 
 			Config.iq = false;
 			setIQVisible(false);
+		}
+		if (e.getSource() == showSNR) { 
+			Config.showSNR = true;
+			
+		}
+		if (e.getSource() == showLevel) { 
+			Config.showSNR = false;
+			
+		}
+
+		if (e.getSource() == this.peakLevel) {
+			try {
+			Config.SCAN_SIGNAL_THRESHOLD = Double.parseDouble(peakLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.avgLevel) {
+			try {
+			Config.ANALYZE_SNR_THRESHOLD = Double.parseDouble(avgLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.bitLevel) {
+			try {
+			Config.BIT_SNR_THRESHOLD = Double.parseDouble(bitLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
 		}
 
 		// Frequency Text Field
@@ -1294,6 +1380,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	        	
 	        	//Config.save();
 	        }
+			findSignalPanel.setVisible(Config.findSignal);
+
 		}
 		if (e.getSource() == rdbtnShowLog) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -1418,6 +1506,41 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
             //System.out.println("WORKER IS DONE");
         }
     }
+
+	@Override
+	public void focusGained(FocusEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void focusLost(FocusEvent e) {
+		if (e.getSource() == this.peakLevel) {
+			try {
+			Config.SCAN_SIGNAL_THRESHOLD = Double.parseDouble(peakLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.avgLevel) {
+			try {
+			Config.ANALYZE_SNR_THRESHOLD = Double.parseDouble(avgLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.bitLevel) {
+			try {
+			Config.BIT_SNR_THRESHOLD = Double.parseDouble(bitLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		
+	}
 
 
 }

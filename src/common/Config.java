@@ -51,8 +51,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.01f";
-	public static String VERSION = VERSION_NUM + " - 15 October 2015";
+	public static String VERSION_NUM = "1.01g";
+	public static String VERSION = VERSION_NUM + " - 16 October 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -187,6 +187,11 @@ public class Config {
 	static public int displayModuleFontSize = 12;
 	static public int graphAxisFontSize = 12;
 	static public boolean useNativeFileChooser = true;
+	
+	static public boolean showSNR = true;
+	static public double SCAN_SIGNAL_THRESHOLD = 15d; // This is peak signal to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
+	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -471,6 +476,10 @@ public class Config {
 		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
 		properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
 		properties.setProperty("serverPort", Integer.toString(serverPort));
+		properties.setProperty("showSNR", Boolean.toString(showSNR));
+		properties.setProperty("SCAN_SIGNAL_THRESHOLD", Double.toString(SCAN_SIGNAL_THRESHOLD));
+		properties.setProperty("ANALYZE_SNR_THRESHOLD", Double.toString(ANALYZE_SNR_THRESHOLD));
+		properties.setProperty("BIT_SNR_THRESHOLD", Double.toString(BIT_SNR_THRESHOLD));
 		store();
 	}
 	
@@ -604,6 +613,10 @@ public class Config {
 		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
 		serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
 		serverPort = Integer.parseInt(getProperty("serverPort"));
+		showSNR = Boolean.parseBoolean(getProperty("showSNR"));
+		SCAN_SIGNAL_THRESHOLD = Double.parseDouble(getProperty("SCAN_SIGNAL_THRESHOLD"));
+		ANALYZE_SNR_THRESHOLD = Double.parseDouble(getProperty("ANALYZE_SNR_THRESHOLD"));
+		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -625,7 +638,8 @@ public class Config {
         "Exit"};
 		int n = JOptionPane.showOptionDialog(
 				MainWindow.frame,
-				"Could not read properties file. Format has changed or the file is corrupt.  Create new properties file after reading as much as possible from the existing one?",
+				"Could not read properties file. Format has probablly changed or the file is corrupt.  "
+				+ "Should I create a new properties file after reading as much as possible from the existing one?",
 				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
 			    JOptionPane.YES_NO_OPTION,
 			    JOptionPane.ERROR_MESSAGE,

@@ -398,8 +398,6 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	private void calcPsd() {
-		if (Config.monitorFilteredAudio)
-			Log.println("STOP");
 		// Calculate power spectral density (PSD) so that we can display it
 		// This is the magnitude of the complex signal, so it is sqrt(i^2 + q^2)
 		// divided by the bin bandwidth  THIS IS NOT DONE CURRENTLY  - SO WHAT DOES IT MEAN?

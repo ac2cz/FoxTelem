@@ -315,17 +315,21 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 //				g2.drawLine(graphWidth/2-width , (int)peak, graphWidth/2+width, (int)peak);
 				//g2.drawLine(peakBin , (int)peak, peakBin, (int)peak);
 
-				//double r = GraphPanel.roundToSignificantFigures(rfData.getAvg(RfData.PEAK),3);
+				double r = GraphPanel.roundToSignificantFigures(rfData.strongestSigRfSNR,3);
 				//double n = GraphPanel.roundToSignificantFigures(rfData.getAvg(RfData.NOISE),3);
 				double snr = GraphPanel.roundToSignificantFigures(rfData.rfSNR,3);
 				//String pk = Double.toString(r) + "";
 				//String noise = Double.toString(n) + "";
 				String s = Double.toString(snr) + "";
+				String ss = Double.toString(r) + "";
 				long f = iqSource.getFrequencyFromBin(Config.selectedBin);  //rfData.getPeakFrequency();
 				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , peakBin, peak  );
 
 				g2.drawLine(peakBin-5 , (int)peak-3, peakBin+5, (int)peak-3);
-				g.drawString("snr: " + s + "dB", peakBin+10, peak  );
+				if (Config.showSNR) 
+					g.drawString("snr: " + s + "dB", peakBin+10, peak  );
+				else
+					g.drawString("" + ss + "dB", peakBin+10, peak  );
 				g.drawString("Freq:"+f, graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
 
 				if (Config.findSignal) {
@@ -354,7 +358,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 							Config.passManager.getState() == PassManager.ANALYZE) {
 						tuneDelay++;
 					} else if (Config.passManager.getState() == PassManager.FADED) {
-						// don't tune, just wait
+						// don't tune, just wait, it does not move far enough in the fade period
 					} else {
 						tuneDelay = TUNE_THRESHOLD;
 					}

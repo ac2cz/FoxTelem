@@ -565,7 +565,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	public void shutdownWindow() {
 		
-		if (Config.passManager.getState() == PassManager.FADED) {
+		if (Config.passManager.getState() == PassManager.FADED ||
+				Config.passManager.getState() == PassManager.DECODE) {
 			Object[] options = {"Yes",
 	        "No"};
 			int n = JOptionPane.showOptionDialog(
@@ -750,8 +751,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		String serverData = "serverData";
 		String dir = serverData;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + serverData;
-			
+			dir = Config.logFileDirectory + File.separator + serverData;			
 		}
 	
 		File aFile = new File(dir);
@@ -783,13 +783,19 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			Log.errorDialog("ERROR", "ERROR writing the server data to: " + dir + File.separator + "stp.tar.gz\n" +
 					e.getMessage());
 			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
 		} catch (MalformedURLException e) {
 			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
 			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
 		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR write the server data to: " + dir + File.separator + "stp.tar.gz\n+"
+			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + dir + File.separator + "stp.tar.gz\n+"
 					+ e.getMessage() );
 			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
 		}
 		
 		fileProgress.updateProgress(100);
@@ -808,6 +814,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
 					+ e.getMessage() );
 			e.printStackTrace(Log.getWriter());
+			decompressProgress.updateProgress(100);
+			return;
 		}
 
 		decompressProgress.updateProgress(100);

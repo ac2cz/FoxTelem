@@ -94,9 +94,7 @@ public class PassManager implements Runnable {
 	private boolean faded = false;
 	private boolean pendingTCA = false; // True if we have a TCA measurement that needs to be sent to the server
 	
-	static final double SCAN_SIGNAL_THRESHOLD = 20d; // This is peak signal to average noise.  Strongest signal needs to be above this
-	static final double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
-	static final double BIT_SNR_THRESHOLD = 1.8d; 
+	
 	
 	static final int MIN_FREQ_READINGS_FOR_TCA = 10;
 	
@@ -234,11 +232,7 @@ public class PassManager implements Runnable {
 			if (rfData!= null && Config.fromBin < rfData.getBinOfStrongestSignal() && Config.toBin > rfData.getBinOfStrongestSignal()) {
 				//double strongestSignal = rfData.getAvg(RfData.STRONGEST_SIG);
 				//System.out.println(sat.getIdString() + " STRONG SIG:" + rfData.strongestSigRfSNR);
-				if (rfData != null && rfData.strongestSigRfSNR > SCAN_SIGNAL_THRESHOLD) {
-					MainWindow.inputTab.fftPanel.setFox(sat);
-					if (Config.debugSignalFinder) Log.println(sat.foxId + " Setting Bin to: " + rfData.getBinOfStrongestSignal());
-					Config.selectedBin = rfData.getBinOfStrongestSignal();
-					rfData.reset(); // because we changed frequency
+				if (rfData != null && rfData.strongestSigRfSNR > Config.SCAN_SIGNAL_THRESHOLD) {
 					return ANALYZE;
 				}
 			}
@@ -254,6 +248,10 @@ public class PassManager implements Runnable {
 	private int analyzeSNR(Spacecraft sat) {
 		if (!Config.findSignal) return EXIT;
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering ANALYZE state");
+		MainWindow.inputTab.fftPanel.setFox(sat);
+		if (Config.debugSignalFinder) Log.println(sat.foxId + " Setting Bin to: " + rfData.getBinOfStrongestSignal());
+		Config.selectedBin = rfData.getBinOfStrongestSignal();
+		rfData.reset(); // because we changed frequency
 
 		if (rfData != null) {
 			try {
@@ -274,7 +272,7 @@ public class PassManager implements Runnable {
 
 	private boolean foundRfSignal(Spacecraft sat) {
 		//System.out.println(sat.getIdString() + " RF SIG:" + rfData.rfSNR);
-		if (rfData != null && rfData.rfSNR > ANALYZE_SNR_THRESHOLD) {
+		if (rfData != null && rfData.rfSNR > Config.ANALYZE_SNR_THRESHOLD) {
 			// We have a signal
 			if (Config.debugSignalFinder) Log.println("Found Candiate Signal from " + sat.getIdString());
 			Config.selectedBin = rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
@@ -339,7 +337,7 @@ public class PassManager implements Runnable {
 			//Log.println("Getting eye data");
 			eyeData = decoder.eyeData;
 			//System.out.println(sat.getIdString() + " BIT SNR:" + eyeData.bitSNR);
-			if (eyeData != null && eyeData.bitSNR > BIT_SNR_THRESHOLD) {
+			if (eyeData != null && eyeData.bitSNR > Config.BIT_SNR_THRESHOLD) {
 				// We have a signal
 				return true;
 			}
@@ -371,14 +369,14 @@ public class PassManager implements Runnable {
 			
 			if (Config.trackSignal && rfData != null && decoder != null && eyeData != null) {
 				//Log.println("Getting eye data");
-				if (foundRfSignal(sat))
+				//if (foundRfSignal(sat))
 					if (foundFoxSignal(sat)) {
 						// We have a signal
-						Config.selectedBin = rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
+						Config.selectedBin = rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly, in case we were slightly off
 						rfData.reset();
 						faded = false;
 						return DECODE;
-					}
+					} 
 			} else {
 				return END_PASS;
 			}
