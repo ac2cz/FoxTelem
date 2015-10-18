@@ -401,7 +401,10 @@ public class SatPayloadStore {
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
-			results[j] = records.get(i).getDoubleValue(name, fox);
+			if (Config.displayRawValues)
+				results[j] = records.get(i).getRawValue(name);
+			else
+				results[j] = records.get(i).getDoubleValue(name, fox);
 			upTime[j] = records.get(i).getUptime();
 			resets[j--] = records.get(i).getResets();
 		}
