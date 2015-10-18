@@ -8,8 +8,36 @@ import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.util.Properties;
 
 import javax.swing.JOptionPane;
+
+/**
+ * FOX 1 Telemetry Decoder
+ * @author chris.e.thompson g0kla/ac2cz
+ *
+ * Copyright (C) 2015 amsat.org
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ *
+ * This class reads configuration from the amsat server to determine if an upgrade is
+ * available or required.
+ * 
+ * It also reads configuration values from the server that overwrite local values if they are different.
+ * 
+ */
 
 public class UpdateManager implements Runnable {
 
@@ -17,8 +45,36 @@ public class UpdateManager implements Runnable {
 		
 	}
 	
+	private void updateServerParams() throws IOException {
+		if (Config.serverParamsUrl != null) {
+			URL server = new URL(Config.serverParamsUrl);
+			BufferedReader in = new BufferedReader(
+					new InputStreamReader(server.openStream()));
+
+			String availableVersion;
+			//availableVersion = in.readLine(); // read the first line
+			Properties serverProperties = new Properties();
+			serverProperties.load(in);
+			in.close();
+			
+			try {
+				Config.primaryServer = serverProperties.getProperty("primaryServer");
+				Config.secondaryServer = serverProperties.getProperty("secondaryServer");
+				Config.sendToBothServers = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
+				Config.serverProtocol = Integer.parseInt(serverProperties.getProperty("serverProtocol"));
+			} catch (NumberFormatException nf) {
+				Log.println("Could not load the server paramaters: " + nf.getMessage());
+			} catch (NullPointerException nf) {
+				Log.println("Could not load the server paramaters: " + nf.getMessage());
+			}
+
+		}
+		
+		
+	}
+	
 	private void checkVersion() throws IOException {
-		URL oracle = new URL("http://amsat.us/FoxTelem/version.txt");
+		URL oracle = new URL(Config.newVersionUrl);
         BufferedReader in = new BufferedReader(
         new InputStreamReader(oracle.openStream()));
 
@@ -102,12 +158,21 @@ public class UpdateManager implements Runnable {
 	
 	@Override
 	public void run() {
+		// Check the server paramaters first so that the config is quickly updated
+		try {
+			updateServerParams();
+		} catch (IOException e1) {
+			Log.println("Can not read the server paramaters, skipping");
+			e1.printStackTrace(Log.getWriter());
+		}
+
 		try {
 			checkVersion();
 		} catch (IOException e1) {
 			Log.println("Can not read the latest version, skipping");
 			e1.printStackTrace(Log.getWriter());
 		}
+		
 	}
 
 }

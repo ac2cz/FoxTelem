@@ -149,6 +149,8 @@ public class Config {
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.us";
     public static String secondaryServer = "tlm.amsat.org";
+    public static boolean sendToBothServers = false;
+    
     // These are not saved to the file
     public static int udpPort = 41041;
     public static int tcpPort = 41042;
@@ -192,6 +194,9 @@ public class Config {
 	static public double SCAN_SIGNAL_THRESHOLD = 15d; // This is peak signal to average noise.  Strongest signal needs to be above this
 	static public double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
+	
+	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
+	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.properties";
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -480,6 +485,8 @@ public class Config {
 		properties.setProperty("SCAN_SIGNAL_THRESHOLD", Double.toString(SCAN_SIGNAL_THRESHOLD));
 		properties.setProperty("ANALYZE_SNR_THRESHOLD", Double.toString(ANALYZE_SNR_THRESHOLD));
 		properties.setProperty("BIT_SNR_THRESHOLD", Double.toString(BIT_SNR_THRESHOLD));
+		properties.setProperty("serverParamsUrl", serverParamsUrl);
+		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		store();
 	}
 	
@@ -617,6 +624,9 @@ public class Config {
 		SCAN_SIGNAL_THRESHOLD = Double.parseDouble(getProperty("SCAN_SIGNAL_THRESHOLD"));
 		ANALYZE_SNR_THRESHOLD = Double.parseDouble(getProperty("ANALYZE_SNR_THRESHOLD"));
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
+		
+		serverParamsUrl = getProperty("serverParamsUrl");
+		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
