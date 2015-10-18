@@ -196,7 +196,7 @@ public class Config {
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
-	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.properties";
+	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";

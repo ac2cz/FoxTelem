@@ -41,12 +41,15 @@ import javax.swing.JOptionPane;
 
 public class UpdateManager implements Runnable {
 
+	private final long SERVER_UPDATE_PERIOD = 4*60*60*1000; //1*24*60*60*1000; // check every 4 hours for server changes
+	
 	public UpdateManager() {
 		
 	}
 	
 	private void updateServerParams() throws IOException {
 		if (Config.serverParamsUrl != null) {
+			Log.println("Reading server params from: "+ Config.serverParamsUrl);
 			URL server = new URL(Config.serverParamsUrl);
 			BufferedReader in = new BufferedReader(
 					new InputStreamReader(server.openStream()));
@@ -58,9 +61,13 @@ public class UpdateManager implements Runnable {
 			in.close();
 			
 			try {
+				Log.println("Setting server params to: ");
 				Config.primaryServer = serverProperties.getProperty("primaryServer");
+				Log.println(Config.primaryServer);
 				Config.secondaryServer = serverProperties.getProperty("secondaryServer");
+				Log.println(Config.secondaryServer);
 				Config.sendToBothServers = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
+				Log.println(""+Config.sendToBothServers);
 			} catch (NumberFormatException nf) {
 				Log.println("Could not load the server paramaters: " + nf.getMessage());
 			} catch (NullPointerException nf) {
@@ -154,9 +161,11 @@ public class UpdateManager implements Runnable {
 		}
 	}
 
+	boolean worldHasNotEnded = true;
 	
 	@Override
 	public void run() {
+	
 		// Check the server paramaters first so that the config is quickly updated
 		try {
 			updateServerParams();
@@ -171,7 +180,21 @@ public class UpdateManager implements Runnable {
 			Log.println("Can not read the latest version, skipping");
 			e1.printStackTrace(Log.getWriter());
 		}
-		
+	
+		while (worldHasNotEnded) {
+			try {
+				Thread.sleep(SERVER_UPDATE_PERIOD);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			try {
+				updateServerParams();
+			} catch (IOException e1) {
+				Log.println("Can not read the server paramaters, skipping");
+				e1.printStackTrace(Log.getWriter());
+			}
+		}
 	}
 
 }

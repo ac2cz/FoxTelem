@@ -295,6 +295,10 @@ public class RawFrameQueue implements Runnable {
 			Config.passManager.sentTCA();
 		}
 		
+		// Make sure these are up to date
+		primaryServer.setHostName(Config.primaryServer);
+		secondaryServer.setHostName(Config.secondaryServer);
+		
 		String protocol = "udp";
 		if (Config.serverProtocol == TlmServer.TCP)
 			protocol = "tcp";
