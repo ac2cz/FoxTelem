@@ -261,7 +261,7 @@ public class RawFrameQueue implements Runnable {
 				}
 				// try to send these frames to the server
 				// We attempt to send the first one, if unsuccessful, we try the backup server.  If still unsuccessful we drop out
-				// and try next time
+				// and try next time, unless sendToBoth is set, in which case we just send to both servers
 				while (rawSlowSpeedFrames.size() > 0 && success) {
 					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawSlowSpeedFrames.size() > 1))
 						success = sendFrame(rawSlowSpeedFrames, RAW_SLOW_SPEED_FRAMES_FILE);
@@ -310,6 +310,7 @@ public class RawFrameQueue implements Runnable {
 			//e.printStackTrace(Log.getWriter());
 		}
 		if (running)
+			if (Config.sendToBothServers || !success) // We send to the secondary if we failed or if we are sending to both servers
 			try {
 				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
 				frames.get(0).sendToServer(secondaryServer, Config.serverProtocol);

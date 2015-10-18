@@ -626,7 +626,7 @@ public class Config {
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		
 		serverParamsUrl = getProperty("serverParamsUrl");
-		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
+		sendToBothServers = Boolean.parseBoolean(getProperty("debugSignalFinder"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
