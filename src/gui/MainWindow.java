@@ -39,6 +39,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Date;
 
 import common.Config;
 import common.DesktopApi;
@@ -839,7 +840,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		String dir = stpDir;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator + dir;
-			
+
 		}
 		Log.println("IMPORT STP from " + dir);
 		File folder = new File(dir);
@@ -850,32 +851,39 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-					
+
 					try {
 						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
-						if (decodedFrame != null && !decodedFrame.corrupt)
-						if (decodedFrame instanceof SlowSpeedFrame) {
-							SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-							FramePart payload = ssf.getPayload();
-							SlowSpeedHeader header = ssf.getHeader();
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-							duvFrames++;
-						} else {
-							HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
-							HighSpeedHeader header = hsf.getHeader();
-							PayloadRtValues payload = hsf.getRtPayload();
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-							PayloadMaxValues maxPayload = hsf.getMaxPayload();
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
-							PayloadMinValues minPayload = hsf.getMinPayload();
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
-							PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
-							if (Config.satManager.hasCamera(header.getFoxId())) {
-								PayloadCameraData cameraData = hsf.getCameraPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+						if (decodedFrame != null && !decodedFrame.corrupt) {
+							long t0 = decodedFrame.getExtimateOfT0();
+							if (t0 != 0) {
+								Date d0 = new Date(t0);
+								Log.println(decodedFrame.receiver + " Reset: " + decodedFrame.getHeader().getResets() + " Uptime: " +
+										decodedFrame.getHeader().getUptime() + " T0: " + d0);
 							}
-							hsFrames++;
+							if (decodedFrame instanceof SlowSpeedFrame) {
+								SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
+								FramePart payload = ssf.getPayload();
+								SlowSpeedHeader header = ssf.getHeader();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+								duvFrames++;
+							} else {
+								HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
+								HighSpeedHeader header = hsf.getHeader();
+								PayloadRtValues payload = hsf.getRtPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+								PayloadMaxValues maxPayload = hsf.getMaxPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
+								PayloadMinValues minPayload = hsf.getMinPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
+								PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
+								if (Config.satManager.hasCamera(header.getFoxId())) {
+									PayloadCameraData cameraData = hsf.getCameraPayload();
+									Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+								}
+								hsFrames++;
+							}
 						}
 						if (delete) {
 							listOfFiles[i].delete();

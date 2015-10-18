@@ -78,7 +78,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	public static final String NONE = "NONE";
 	public boolean corrupt = false;;
 	private int foxId = 0;
-	private String receiver = NONE; // unique name (usually callsign) chosen by the user.  May vary over life of program usage, so stored
+	public String receiver = NONE; // unique name (usually callsign) chosen by the user.  May vary over life of program usage, so stored
 	private String frequency = NONE; // frequency when this frame received
 	private String source; // The frame source subsystem
 	private String length; // The frame length in bytes
@@ -137,6 +137,17 @@ public abstract class Frame implements Comparable<Frame>  {
 		return s;
 	}
 
+	/**
+	 * Calculate the time in milliseconds since the epoch in java date format
+	 * @return
+	 */
+	public long getExtimateOfT0() {
+		if (stpDate == null) return 0;
+		long stp = stpDate.getTime()/1000; // calculate the number of seconds in out stp data since epoch
+		long T0 = stp - header.uptime;
+		return T0 * 1000;
+	}
+	
 	private String formatLongitude(String lon) {
 		String s = "";
 		float f = Float.parseFloat(lon);
@@ -330,6 +341,9 @@ public abstract class Frame implements Comparable<Frame>  {
 		String value = null;
 		byte[] rawFrame = null;
 		int length = 0;
+		String receiver = null;
+		Date stpDate = null;
+		
 		// Read the file
 		while (!done && (c = in.read()) != -1) {
 			Character ch = (char) c;
@@ -349,11 +363,26 @@ public abstract class Frame implements Comparable<Frame>  {
             		}
             		done = true;
             	} else {
-            		//System.out.println(key + " " + value);
+            		// It was a header line
             		readingKey = true;
             		if (key.startsWith("Length")) {
-            			length = Integer.parseInt(value.substring(1, value.length()));
-            			//System.out.println("Got Length: " + length);
+            			length = Integer.parseInt(value);
+            		}
+            		if (key.equalsIgnoreCase("Receiver")) {
+            			receiver = value;
+                		System.out.println(key + " " + value);
+            		}
+            		if (key.startsWith("Date")) {
+                		System.out.println(key + " " + value);
+            			String dt = value.replace(" UTC", "");
+            			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            			try {
+							stpDate = stpDateFormat.parse(dt);
+						} catch (ParseException e) {
+							stpDate = null;
+							e.printStackTrace(Log.getWriter());
+						}
+            			
             		}
             		key = "";
             		value = "";
@@ -362,7 +391,7 @@ public abstract class Frame implements Comparable<Frame>  {
             } else {
             	if (readingKey) 
     				key = key + ch;
-    			else
+    			else if (ch != ':')
     				value = value + ch;
             }
             lineLen++;
@@ -394,7 +423,8 @@ public abstract class Frame implements Comparable<Frame>  {
 			frm = new HighSpeedFrame();
 		}
 		frm.addRawFrame(frame);
-		
+		frm.receiver = receiver;
+		frm.stpDate = stpDate;
 
 		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
 				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||

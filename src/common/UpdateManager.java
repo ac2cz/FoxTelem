@@ -30,6 +30,7 @@ public class UpdateManager implements Runnable {
         	notes = notes + line + "\n";
         }
         Log.println("LATEST VERSION: "+availableVersion);
+        try {
         int maj = Config.parseVersionMajor(availableVersion);
         int min = Config.parseVersionMinor(availableVersion);
         String point = Config.parseVersionPoint(availableVersion);
@@ -39,7 +40,10 @@ public class UpdateManager implements Runnable {
         
         if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
         if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
-        
+        } catch (NumberFormatException e) {
+        	e.printStackTrace(Log.getWriter());
+        	Log.println("Error parsing the latest version information.  Abandoning the check");
+        }
         in.close();
 	}
 	
