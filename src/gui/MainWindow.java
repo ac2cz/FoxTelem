@@ -855,11 +855,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					try {
 						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
 						if (decodedFrame != null && !decodedFrame.corrupt) {
-							long t0 = decodedFrame.getExtimateOfT0();
-							if (t0 != 0) {
-								Date d0 = new Date(t0);
-								Log.println(decodedFrame.receiver + " Reset: " + decodedFrame.getHeader().getResets() + " Uptime: " +
-										decodedFrame.getHeader().getUptime() + " T0: " + d0);
+							if (decodedFrame.receiver.equalsIgnoreCase("W2BFJ-Win1")) {
+								long t0 = decodedFrame.getExtimateOfT0();
+								if (t0 != 0) {
+									Date d0 = new Date(t0);
+									Log.println(decodedFrame.receiver + ", Reset, " + decodedFrame.getHeader().getResets() + ", Uptime, " +
+											decodedFrame.getHeader().getUptime() + ", STP Date, " + decodedFrame.getStpDate() + ", T0, " + Frame.stpDateFormat.format(d0));
+								}
 							}
 							if (decodedFrame instanceof SlowSpeedFrame) {
 								SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;

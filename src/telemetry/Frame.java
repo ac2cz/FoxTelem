@@ -137,6 +137,10 @@ public abstract class Frame implements Comparable<Frame>  {
 		return s;
 	}
 
+	public String getStpDate() {
+		return Frame.stpDateFormat.format(stpDate);
+	}
+	
 	/**
 	 * Calculate the time in milliseconds since the epoch in java date format
 	 * @return
@@ -343,14 +347,18 @@ public abstract class Frame implements Comparable<Frame>  {
 		int length = 0;
 		String receiver = null;
 		Date stpDate = null;
+		boolean firstColon = true;
 		
 		// Read the file
 		while (!done && (c = in.read()) != -1) {
 			Character ch = (char) c;
 			//System.out.print(ch);
 			
-			if (ch == ':') {
+			if (ch == ':' && firstColon) {
+				firstColon = false;
 				c = in.read(); // consume the space
+				c = in.read();
+				ch = (char) c; // set ch to the first character
 				readingKey = false;
 			}
             if ( (c == 13 || c == 10)) { // CR or LF
@@ -365,15 +373,16 @@ public abstract class Frame implements Comparable<Frame>  {
             	} else {
             		// It was a header line
             		readingKey = true;
+            		firstColon = true;
             		if (key.startsWith("Length")) {
             			length = Integer.parseInt(value);
             		}
             		if (key.equalsIgnoreCase("Receiver")) {
             			receiver = value;
-                		System.out.println(key + " " + value);
+//                		System.out.println(key + " " + value);
             		}
             		if (key.startsWith("Date")) {
-                		System.out.println(key + " " + value);
+//                		System.out.println(key + " " + value);
             			String dt = value.replace(" UTC", "");
             			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             			try {
@@ -391,7 +400,7 @@ public abstract class Frame implements Comparable<Frame>  {
             } else {
             	if (readingKey) 
     				key = key + ch;
-    			else if (ch != ':')
+    			else
     				value = value + ch;
             }
             lineLen++;
