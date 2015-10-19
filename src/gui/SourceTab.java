@@ -22,6 +22,7 @@ import java.util.regex.Pattern;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -253,9 +254,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnTrackSignal.setVisible(true);
 
 		findSignalPanel = new JPanel();
-		findSignalPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		findSignalPanel.setLayout(new BoxLayout(findSignalPanel, BoxLayout.X_AXIS));
 		
-
 		rdbtnFindSignal = new JCheckBox("Find Signal");
 		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
@@ -266,25 +266,29 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		JLabel when = new JLabel ("when peak over ");
 		findSignalPanel.add(when);
 		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
-		//peakLevel.setColumns(3);
+		peakLevel.setMinimumSize(new Dimension(30,1));
 		peakLevel.addActionListener(this);
 		peakLevel.addFocusListener(this);
 		findSignalPanel.add(peakLevel);
 		JLabel rf = new JLabel ("dB, avg over ");
 		findSignalPanel.add(rf);
 		avgLevel = new JTextField(Double.toString(Config.ANALYZE_SNR_THRESHOLD));
+		avgLevel.setMinimumSize(new Dimension(30,1));
 		avgLevel.addActionListener(this);
 		avgLevel.addFocusListener(this);
 		findSignalPanel.add(avgLevel);
 		JLabel bit = new JLabel ("dB and bit SNR over ");
 		findSignalPanel.add(bit);
 		bitLevel = new JTextField(Double.toString(Config.BIT_SNR_THRESHOLD));
+		bitLevel.setMinimumSize(new Dimension(30,1));
 		bitLevel.addActionListener(this);
 		bitLevel.addFocusListener(this);
 		findSignalPanel.add(bitLevel);
 		JLabel bitdb = new JLabel ("dB");
 		findSignalPanel.add(bitdb);
 	
+		findSignalPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(1500,1), new Dimension(1500,1)));
+		
 		findSignalPanel.setVisible(Config.findSignal);
 	
 		/*
@@ -716,7 +720,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
-//		rdbtnApplyBlackmanWindow.setVisible(b);
+		findSignalPanel.setVisible(b);
+		showSNR.setVisible(b);
+		showLevel.setVisible(b);
+		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
 	}
 	
