@@ -44,6 +44,7 @@ import telemetry.RadiationPacket;
  */
 @SuppressWarnings("serial")
 public class GraphPanel extends JPanel {
+	Spacecraft fox;
 	double[][] graphData = null;
 	double[] firstDifference = null;
 	double[] dspData = null;
@@ -83,6 +84,7 @@ public class GraphPanel extends JPanel {
 		this.fieldName = fieldName;
 		graphFrame = gf;
 		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
+		fox = sat;
 		updateGraphData();
 	}
 
@@ -111,7 +113,12 @@ public class GraphPanel extends JPanel {
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		if (graphData[0].length == 0) return;
-		
+		if (graphFrame.showUTCtime && graphFrame.showUptime) {
+			bottomBorder = (int)(Config.graphAxisFontSize*3.5);
+		} else {
+			bottomBorder = (int)(Config.graphAxisFontSize*2.5);
+		}
+			
 		g2 = ( Graphics2D ) gr; // cast g to Graphics2D  
 		g = gr;
 		
@@ -342,9 +349,16 @@ public class GraphPanel extends JPanel {
 		// Draw baseline at the zero point, but not the labels, which are drawn for each reset
 		g2.drawLine(sideLabelOffset, zeroPoint, graphWidth+sideBorder, zeroPoint);
 		g2.setColor(graphTextColor);
-		g2.drawString("Uptime", sideLabelOffset, zeroPoint+Config.graphAxisFontSize );
+		int offset = 0;
+		if (graphFrame.showUptime) {
+			g2.drawString("Uptime", sideLabelOffset, zeroPoint+Config.graphAxisFontSize );
+			offset = Config.graphAxisFontSize;
+		}
 		//g2.setColor(graphColor);
-		g2.drawString("Resets", sideLabelOffset, zeroPoint+2*Config.graphAxisFontSize );
+		if (!graphFrame.showUTCtime)
+			g2.drawString("Resets", sideLabelOffset, zeroPoint+1*Config.graphAxisFontSize + offset );
+		else
+			g2.drawString("UTC", sideLabelOffset, zeroPoint+(int)(1.5*Config.graphAxisFontSize)+offset );
 		
 
 //		System.out.println("Found " + resetPosition.size() + " resets at: ");
@@ -457,18 +471,34 @@ public class GraphPanel extends JPanel {
 			if (timepos > 0 && (graphWidth - timepos) > labelWidth/2) {
 				String s = d.format(timelabels[v]);
 
+				int offset = 0;
+				if (graphFrame.showUptime) {
+					offset = Config.graphAxisFontSize;	
+				}
 				if ( firstLabel) {
 					g2.setColor(graphTextColor);
-					g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+2*Config.graphAxisFontSize );
-					firstLabel = false;
+					if (!graphFrame.showUTCtime)
+						g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset );
+					//else
+					//	g2.drawString(""+fox.getUtcDateforReset(resets, timepos), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize );	
+					
 				}
 				
 				g2.setColor(graphTextColor);
-				g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
-
-
+				
+				if (graphFrame.showUptime) {
+					g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
+				
+				}
+				if (graphFrame.showUTCtime) {
+					if (fox.hasTimeZero(resets)) {
+						g2.drawString(fox.getUtcTimeforReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+						g2.drawString(""+fox.getUtcDateforReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+					}
+				}
 				g2.setColor(graphAxisColor);
 				g.drawLine(timepos+sideBorder, zeroPoint-5, timepos+sideBorder, zeroPoint+5);
+				firstLabel = false;
 			}
 		}
 
@@ -582,15 +612,18 @@ public class GraphPanel extends JPanel {
 		else if (range/t <= 10) step = 10.00d;
 		else if (range/t <= 25) step = 25.00d;
 		else if (range/t <= 50) step = 50.00d;
-		else if (range/t <= 200) step = 100.00d;
-		else if (range/t <= 100) step = 200.00d;
+		else if (range/t <= 100) step = 100.00d;
+		else if (range/t <= 200) step = 200.00d;
 		else if (range/t <= 500) step = 500.00d;
 		else if (range/t <= 1000) step = 1000.00d;
 		else if (range/t <= 2000) step = 2000.00d;
 		else if (range/t <= 5000) step = 5000.00d;
 		else if (range/t <= 10000) step = 10000.00d;
+		else if (range/t <= 50000) step = 50000.00d;
 		else if (range/t <= 100000) step = 100000.00d;
-		else if (range/t <= 1000000) step = 100000.00d;
+		else if (range/t <= 500000) step = 500000.00d;
+		else if (range/t <= 1000000) step = 1000000.00d;
+		else if (range/t <= 5000000) step = 5000000.00d;
 
 		// Now find the first value before the minimum.
 		double startValue = roundToSignificantFigures(Math.round(min/step) * step, 6);

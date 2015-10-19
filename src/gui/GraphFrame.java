@@ -84,6 +84,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnDerivative;
 	private JButton btnMain;
 	private JButton btnAvg;
+	private JCheckBox cbUTC;
+	private JCheckBox cbUptime;
 	
 	public Spacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
@@ -117,6 +119,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean plotDerivative;
 	public boolean dspAvg;
 	public boolean displayMain = true;
+	public boolean showUTCtime = false;
+	public boolean showUptime = true;
 	
 	boolean textDisplay = false;
 	
@@ -226,6 +230,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		JPanel footerPanelRight = new JPanel();
 		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
+
+		cbUptime = new JCheckBox("Show Uptime");
+		cbUptime.setSelected(showUptime);
+		cbUptime.addItemListener(this);
+		footerPanelLeft.add(cbUptime);
+
+		cbUTC = new JCheckBox("UTC Time   |");
+		cbUTC.setSelected(showUTCtime);
+		cbUTC.addItemListener(this);
+		footerPanelLeft.add(cbUTC);
 		
 		lblAvg = new JLabel("Avg");
 		txtAvgPeriod = new JTextField();
@@ -579,7 +593,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				btnMain.setBackground(Color.GRAY);
 
 			panel.updateGraphData();
-		}
+		} 
 	}
 
 	@Override
@@ -589,6 +603,29 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 			} else {
 				UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD;
+			}
+			if (textDisplay)
+				textArea.updateData();
+			else
+				panel.updateGraphData();
+		}
+		
+		if (e.getSource() == cbUTC) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				showUTCtime = false;
+			} else {
+				showUTCtime = true;
+			}
+			if (textDisplay)
+				textArea.updateData();
+			else
+				panel.updateGraphData();
+		}
+		if (e.getSource() == cbUptime) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				showUptime = false;
+			} else {
+				showUptime = true;
 			}
 			if (textDisplay)
 				textArea.updateData();

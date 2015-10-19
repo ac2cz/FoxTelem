@@ -87,20 +87,48 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		contentPanel.add(leftPanel, BorderLayout.WEST);
 		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
 		
+		JPanel leftFixedPanel = new JPanel();
+		leftFixedPanel.setLayout(new BoxLayout(leftFixedPanel, BoxLayout.Y_AXIS));
+		leftPanel.add(leftFixedPanel);
+		
 		TitledBorder heading = title("Fixed Paramaters");
-		leftPanel.setBorder(heading);
+		leftFixedPanel.setBorder(heading);
 		
 		JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
-		leftPanel.add(lModel);
+		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
-		leftPanel.add(lIhusn);
+		leftFixedPanel.add(lIhusn);
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
 			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
-			leftPanel.add(lExp[i]);
+			leftFixedPanel.add(lExp[i]);
+		}
+
+
+		JPanel t0Panel = new JPanel();
+		leftPanel.add(t0Panel);
+		
+		TitledBorder headingT0 = title("Time Zero");
+		t0Panel.setBorder(headingT0);
+		t0Panel.setLayout(new BoxLayout(t0Panel, BoxLayout.Y_AXIS));
+		
+		if (sat.hasTimeZero(0)) {
+			JLabel T0 = new JLabel("Reset 0: " + sat.getUtcDateforReset(0, 0) + " " + sat.getUtcTimeforReset(0, 0));
+			t0Panel.add(T0);
+		} else {
+			JLabel T1 = new JLabel("Reset 0: Time Origin missing");
+			t0Panel.add(T1);
+		}
+		if (sat.hasTimeZero(1)) {
+			JLabel T1 = new JLabel("Reset 1: " + sat.getUtcDateforReset(1, 0) + " " + sat.getUtcTimeforReset(1, 0));
+			t0Panel.add(T1);
+		} else {
+			JLabel T1 = new JLabel("Reset 1: Time Origin missing");
+			t0Panel.add(T1);
 		}
 		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		
 
 		
 		// Right Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc

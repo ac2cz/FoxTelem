@@ -1,11 +1,19 @@
 package common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
@@ -120,12 +128,20 @@ public class Spacecraft {
 		
 	// User Config
 	public boolean track = true; // default is we track a satellite
+	ArrayList<Long> timeZero = new ArrayList<Long>(100);
+	String timeZeroFilename = "T0.dat";
 	
 	public Spacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
 		propertiesFileName = fileName;
 		load();
-
+		try {
+		loadTimeZeroSeries();
+		} catch (FileNotFoundException e) {
+			timeZero = null;
+		} catch (IndexOutOfBoundsException e) {
+			timeZero = null;
+		}
 		rtLayout = new BitArrayLayout(rtLayoutFileName);
 		maxLayout = new BitArrayLayout(maxLayoutFileName);
 		minLayout = new BitArrayLayout(minLayoutFileName);
@@ -144,6 +160,38 @@ public class Spacecraft {
 		if (ihuVBattLookUpTableFileName.equalsIgnoreCase("") && useIHUVBatt == true)
 			throw new LayoutLoadException("File: "+fileName + "\nCan't load a satellite that uses IHU VBatt if the ihuVBatt look-up table is missing");
 		
+	}
+
+	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
+	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yyyy");
+	
+	public boolean hasTimeZero() { 
+		if (timeZero == null) return false;
+		return true;
+	}
+	
+	public boolean hasTimeZero(int reset) { 
+		if (timeZero == null) return false;
+		if (reset >= timeZero.size()) return false;
+		return true;
+	}
+	
+	public String getUtcTimeforReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime*1000);
+		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String time = timeDateFormat.format(dt);
+		return time;
+	}
+
+	public String getUtcDateforReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime *1000);
+		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String time = dateDateFormat.format(dt);
+		return time;
 	}
 
 	
@@ -189,7 +237,41 @@ public class Spacecraft {
 		}
 	}
 	
-	public void load() throws LayoutLoadException {
+	private void loadTimeZeroSeries() throws FileNotFoundException {
+        String line;
+        String log = "FOX"+ foxId + timeZeroFilename;
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			log = Config.logFileDirectory + File.separator + log;
+			Log.println("Loading: " + log);
+		}
+        File aFile = new File(log );
+
+        
+        BufferedReader dis = new BufferedReader(new FileReader(log));
+
+        try {
+        	while ((line = dis.readLine()) != null) {
+        		if (line != null) {
+        			StringTokenizer st = new StringTokenizer(line, ",");
+        			int reset = Integer.valueOf(st.nextToken()).intValue();
+        			long uptime = Long.valueOf(st.nextToken()).longValue();
+        			Log.println("Loaded T0: " + reset + ": " + uptime);
+        			if (reset == timeZero.size())
+        				timeZero.add(uptime);
+        			else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);
+        		}
+        	}
+			dis.close();
+        } catch (IOException e) {
+        	e.printStackTrace(Log.getWriter());
+        	
+        } catch (NumberFormatException n) {
+        	n.printStackTrace(Log.getWriter());
+        }
+		
+	}
+	
+	private void load() throws LayoutLoadException {
 		// try to load the properties from a file
 		try {
 			FileInputStream f=new FileInputStream(Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName);
