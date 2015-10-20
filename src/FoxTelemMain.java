@@ -449,6 +449,8 @@ import decoder.Decoder;
  * Read T0 from the server and use to plot graphs in UTC
  * If showRawValues is checked then save CSV files as raw values
  * 
+ * Version 1.02
+ * 
  */
 
 public class FoxTelemMain {
