@@ -357,9 +357,13 @@ public class GraphPanel extends JPanel {
 		//g2.setColor(graphColor);
 		if (!graphFrame.showUTCtime)
 			g2.drawString("Resets", sideLabelOffset, zeroPoint+1*Config.graphAxisFontSize + offset );
-		else
+		else {
 			g2.drawString("UTC", sideLabelOffset, zeroPoint+(int)(1.5*Config.graphAxisFontSize)+offset );
+			g.setFont(new Font("SansSerif", Font.PLAIN, (int)(Config.graphAxisFontSize*0.9)));
+			g2.drawString("(Spacecraft UTC is approximate)", graphWidth-Config.graphAxisFontSize*5, titleHeight );
+			g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
+		}
 
 //		System.out.println("Found " + resetPosition.size() + " resets at: ");
 		for (int q=0; q < resetPosition.size(); q++ )
