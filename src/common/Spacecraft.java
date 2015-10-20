@@ -150,6 +150,10 @@ public class Spacecraft {
 		rad2Layout = new BitArrayLayout(rad2LayoutFileName);
 		if (herciHSLayoutFileName != null)
 			herciHSLayout = new BitArrayLayout(herciHSLayoutFileName);
+		else
+			if (this.hasHerci()) {
+				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI experiment if herciHSLayoutFileName is not specified");
+			}
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
