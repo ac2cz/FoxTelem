@@ -3,11 +3,17 @@ package common;
 import gui.MainWindow;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -54,7 +60,7 @@ public class UpdateManager implements Runnable {
 			BufferedReader in = new BufferedReader(
 					new InputStreamReader(server.openStream()));
 
-			String availableVersion;
+			//String availableVersion;
 			//availableVersion = in.readLine(); // read the first line
 			Properties serverProperties = new Properties();
 			serverProperties.load(in);
@@ -79,6 +85,31 @@ public class UpdateManager implements Runnable {
 		
 	}
 	
+	public void updateT0(Spacecraft sat) {
+		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
+		String file = Config.t0UrlFile;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + "FOX" + sat.foxId + Config.t0UrlFile;			
+		}
+		URL website;
+		try {
+			website = new URL(urlString);
+		
+		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+		FileOutputStream fos;
+			fos = new FileOutputStream(file);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+			sat.loadTimeZeroSeries();
+		} catch (MalformedURLException e) {
+			Log.println("Invalid location for T0 file: " + file);
+			//e.printStackTrace(Log.getWriter());
+		} catch (IOException e) {
+			Log.println("Could not write T0 file: " + file);
+			//e.printStackTrace(Log.getWriter());
+		}
+	}
+	
 	private void checkVersion() throws IOException {
 		URL oracle = new URL(Config.newVersionUrl);
         BufferedReader in = new BufferedReader(
@@ -95,7 +126,7 @@ public class UpdateManager implements Runnable {
         try {
         int maj = Config.parseVersionMajor(availableVersion);
         int min = Config.parseVersionMinor(availableVersion);
-        String point = Config.parseVersionPoint(availableVersion);
+        //String point = Config.parseVersionPoint(availableVersion);
         //System.out.println("MAJ: "+maj);
         //System.out.println("MIN: "+min);
         //System.out.println("POINT: "+point);
@@ -178,6 +209,13 @@ public class UpdateManager implements Runnable {
 			e1.printStackTrace(Log.getWriter());
 		}
 
+		if (Config.downloadT0FromServer) {
+			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+			for (int i=0; i<sats.size(); i++) {
+				updateT0(sats.get(i));
+			}
+		}
+
 		try {
 			checkVersion();
 		} catch (IOException e1) {
@@ -190,7 +228,7 @@ public class UpdateManager implements Runnable {
 				Thread.sleep(SERVER_UPDATE_PERIOD);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace(Log.getWriter());
 			}
 			try {
 				updateServerParams();

@@ -108,7 +108,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //	Thread ftpThread;
 //	FtpLogs ftpLogs;
 
-	UpdateManager updateManager;
+	static UpdateManager updateManager;
 	Thread updateManagerThread;
 	
 	// This is the JFrame for the main window.  We make it static so that we can reach it from other parts of the program.
@@ -780,6 +780,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		FileOutputStream fos;
 			fos = new FileOutputStream(dir + File.separator + "stp.tar.gz");
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
 		} catch (FileNotFoundException e) {
 			Log.errorDialog("ERROR", "ERROR writing the server data to: " + dir + File.separator + "stp.tar.gz\n" +
 					e.getMessage());

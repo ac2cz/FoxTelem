@@ -492,8 +492,8 @@ public class GraphPanel extends JPanel {
 				}
 				if (graphFrame.showUTCtime) {
 					if (fox.hasTimeZero(resets)) {
-						g2.drawString(fox.getUtcTimeforReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
-						g2.drawString(""+fox.getUtcDateforReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+						g2.drawString(fox.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+						g2.drawString(""+fox.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
 					}
 				}
 				g2.setColor(graphAxisColor);

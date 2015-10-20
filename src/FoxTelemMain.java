@@ -446,6 +446,7 @@ import decoder.Decoder;
  * Cleaned up the FFT trace with some averaging
  * Better doppler tracking in IQ mode and more stable estimate of the received frequency
  * Better Find Signal algorithm with tuning paramaters for experts
+ * Read T0 from the server and use to plot graphs in UTC
  * 
  */
 

@@ -128,15 +128,14 @@ public class Spacecraft {
 		
 	// User Config
 	public boolean track = true; // default is we track a satellite
-	ArrayList<Long> timeZero = new ArrayList<Long>(100);
-	String timeZeroFilename = "T0.dat";
+	ArrayList<Long> timeZero = null;
 	
 	public Spacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
 		propertiesFileName = fileName;
 		load();
 		try {
-		loadTimeZeroSeries();
+			loadTimeZeroSeries();
 		} catch (FileNotFoundException e) {
 			timeZero = null;
 		} catch (IndexOutOfBoundsException e) {
@@ -176,7 +175,18 @@ public class Spacecraft {
 		return true;
 	}
 	
-	public String getUtcTimeforReset(int reset, long uptime) {
+	public String[][] getT0TableData() {
+		if (timeZero == null) return null;
+		String[][] data = new String[timeZero.size()][];
+		for (int i=0; i< timeZero.size(); i++) {
+			data[i] = new String[2];
+			data[i][0] = ""+i;
+			data[i][1] = getUtcDateForReset(i,0) + " " + getUtcTimeForReset(i,0);
+		}
+		return data;
+	}
+	
+	public String getUtcTimeForReset(int reset, long uptime) {
 		if (timeZero == null) return null;
 		if (reset >= timeZero.size()) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime*1000);
@@ -185,7 +195,7 @@ public class Spacecraft {
 		return time;
 	}
 
-	public String getUtcDateforReset(int reset, long uptime) {
+	public String getUtcDateForReset(int reset, long uptime) {
 		if (timeZero == null) return null;
 		if (reset >= timeZero.size()) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime *1000);
@@ -237,17 +247,19 @@ public class Spacecraft {
 		}
 	}
 	
-	private void loadTimeZeroSeries() throws FileNotFoundException {
+	public void loadTimeZeroSeries() throws FileNotFoundException {
+		timeZero = new ArrayList<Long>(100);
         String line;
-        String log = "FOX"+ foxId + timeZeroFilename;
+        String log = "FOX"+ foxId + Config.t0UrlFile;
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 			Log.println("Loading: " + log);
 		}
-        File aFile = new File(log );
+        //File aFile = new File(log );
 
         
-        BufferedReader dis = new BufferedReader(new FileReader(log));
+        @SuppressWarnings("resource")
+		BufferedReader dis = new BufferedReader(new FileReader(log));
 
         try {
         	while ((line = dis.readLine()) != null) {
@@ -320,8 +332,6 @@ public class Spacecraft {
 	}
 	
 	
-
-	@SuppressWarnings("unused")
 	private String getOptionalProperty(String key) throws LayoutLoadException {
 		String value = properties.getProperty(key);
 		if (value == null) {

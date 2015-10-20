@@ -19,10 +19,13 @@ import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.TableColumn;
 import javax.swing.JLabel;
 
 import common.Config;
@@ -39,12 +42,15 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField ihuTempLookUpTableFileName;
 	JTextField ihuVBattLookUpTableFileName;
 	JTextField BATTERY_CURRENT_ZERO;
+	JTextField[] T0;
 	
 	JCheckBox useIHUVBatt;
 	JCheckBox track;
 
 	JButton btnCancel;
 	JButton btnSave;
+	JButton btnGetT0;
+	T0SeriesTableModel t0TableModel;
 	
 	Spacecraft sat;
 
@@ -57,7 +63,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
-		setBounds(100, 100, 550, 550);
+		setBounds(100, 100, 600, 550);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -88,8 +94,11 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
 		
 		JPanel leftFixedPanel = new JPanel();
+		JPanel leftFixedPanelf = new JPanel();
+		leftFixedPanelf.setLayout(new BorderLayout());
 		leftFixedPanel.setLayout(new BoxLayout(leftFixedPanel, BoxLayout.Y_AXIS));
-		leftPanel.add(leftFixedPanel);
+		leftPanel.add(leftFixedPanelf);
+		leftFixedPanelf.add(leftFixedPanel, BorderLayout.NORTH);
 		
 		TitledBorder heading = title("Fixed Paramaters");
 		leftFixedPanel.setBorder(heading);
@@ -112,25 +121,32 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder headingT0 = title("Time Zero");
 		t0Panel.setBorder(headingT0);
 		t0Panel.setLayout(new BoxLayout(t0Panel, BoxLayout.Y_AXIS));
+		//t0Panel.setLayout(new BorderLayout());
+		t0TableModel = new T0SeriesTableModel();
 		
-		if (sat.hasTimeZero(0)) {
-			JLabel T0 = new JLabel("Reset 0: " + sat.getUtcDateforReset(0, 0) + " " + sat.getUtcTimeforReset(0, 0));
-			t0Panel.add(T0);
-		} else {
-			JLabel T1 = new JLabel("Reset 0: Time Origin missing");
-			t0Panel.add(T1);
-		}
-		if (sat.hasTimeZero(1)) {
-			JLabel T1 = new JLabel("Reset 1: " + sat.getUtcDateforReset(1, 0) + " " + sat.getUtcTimeforReset(1, 0));
-			t0Panel.add(T1);
-		} else {
-			JLabel T1 = new JLabel("Reset 1: Time Origin missing");
-			t0Panel.add(T1);
-		}
+		JTable table = new JTable(t0TableModel);
+		table.setAutoCreateRowSorter(true);
+		JScrollPane scrollPane = new JScrollPane (table, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setPreferredSize(new Dimension(100,400));
+		table.setFillsViewportHeight(true);
+	//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		
+		t0Panel.add(scrollPane);//, BorderLayout.WEST);
+		TableColumn column = null;
+		column = table.getColumnModel().getColumn(0);
+		column.setPreferredWidth(20);
+		column = table.getColumnModel().getColumn(1);
+		column.setPreferredWidth(60);
+
+		updateTimeSeries();
+		
+		btnGetT0 = new JButton("Update T0 from Server");
+		btnGetT0.addActionListener(this);
+		t0Panel.add(btnGetT0);//, BorderLayout.WEST);
+		
 		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 		
 
-		
 		// Right Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
 		JPanel rightPanel = new JPanel();
 		contentPanel.add(rightPanel, BorderLayout.CENTER);
@@ -188,6 +204,21 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		taDesc.setFont(new Font("SansSerif", Font.PLAIN, 12));
 		footerPanel.add(taDesc);
 		contentPanel.add(footerPanel, BorderLayout.SOUTH);
+	}
+	
+	private void updateTimeSeries() {
+		String[][] data = null;
+		if (sat.hasTimeZero()) {
+			data = sat.getT0TableData();
+		}			
+		if (data == null) {
+			data = new String[1][2];
+			data[0][0] = "0";
+			data[0][1] = "Time origin missing";
+		}
+		t0TableModel.setData(data);
+		
+		
 	}
 	
 	private TitledBorder title(String s) {
@@ -252,6 +283,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		boolean refreshTabs = false;
+		if (e.getSource() == btnGetT0) {
+			MainWindow.updateManager.updateT0(sat);
+			updateTimeSeries();
+		}
 		if (e.getSource() == btnCancel) {
 			this.dispose();
 		}

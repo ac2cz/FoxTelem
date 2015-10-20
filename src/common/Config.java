@@ -9,8 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
-import java.util.regex.Pattern;
-
 import javax.swing.JOptionPane;
 
 import decoder.HighSpeedBitStream;
@@ -197,6 +195,9 @@ public class Config {
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
+	static public String t0UrlPath = "http://amsat.us/FoxTelem/";
+	static public String t0UrlFile = "T0.txt";
+	static public boolean downloadT0FromServer = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -487,6 +488,7 @@ public class Config {
 		properties.setProperty("BIT_SNR_THRESHOLD", Double.toString(BIT_SNR_THRESHOLD));
 		properties.setProperty("serverParamsUrl", serverParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
+		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
 		store();
 	}
 	
@@ -626,7 +628,8 @@ public class Config {
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		
 		serverParamsUrl = getProperty("serverParamsUrl");
-		sendToBothServers = Boolean.parseBoolean(getProperty("debugSignalFinder"));
+		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
+		downloadT0FromServer = Boolean.parseBoolean(getProperty("downloadT0FromServer"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
