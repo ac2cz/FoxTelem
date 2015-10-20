@@ -9,7 +9,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
-
 import javax.swing.JOptionPane;
 
 import decoder.HighSpeedBitStream;
@@ -49,8 +48,9 @@ import telemetry.RawFrameQueue;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
-	
-	public static String VERSION = "1.01 (Herci) - 29 September 2015";
+
+	public static String VERSION_NUM = "1.01i";
+	public static String VERSION = VERSION_NUM + " - 20 October 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -145,8 +145,10 @@ public class Config {
     public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
     public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
-    public static String primaryServer = "tlm.amsat.org";
-    public static String secondaryServer = "tlm.amsat.us";
+    public static String primaryServer = "tlm.amsat.us";
+    public static String secondaryServer = "tlm.amsat.org";
+    public static boolean sendToBothServers = false;
+    
     // These are not saved to the file
     public static int udpPort = 41041;
     public static int tcpPort = 41042;
@@ -161,7 +163,7 @@ public class Config {
 	public static int windowY = 100;
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
-	public static int fcdFrequency = 145980;
+	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
 	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
@@ -185,6 +187,17 @@ public class Config {
 	static public int displayModuleFontSize = 12;
 	static public int graphAxisFontSize = 12;
 	static public boolean useNativeFileChooser = true;
+	
+	static public boolean showSNR = true;
+	static public double SCAN_SIGNAL_THRESHOLD = 15d; // This is peak signal to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
+	static public double BIT_SNR_THRESHOLD = 1.8d; 
+	
+	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
+	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
+	static public String t0UrlPath = "http://amsat.us/FoxTelem/";
+	static public String t0UrlFile = "T0.txt";
+	static public boolean downloadT0FromServer = true;
 	
 	// Post V1.00
 	static public boolean debugHerciFrames = false;
@@ -231,6 +244,37 @@ public class Config {
 		initServerQueue();
 	}
 
+	public static int getVersionMajor() {
+		return parseVersionMajor(VERSION_NUM);
+	}
+	
+	public static int parseVersionMajor(String ver) {
+		String version[] = ver.split("\\.");
+		return Integer.parseInt(version[0]);
+	}
+	
+	public static int getVersionMinor() {
+		return parseVersionMinor(VERSION_NUM);
+	}
+
+	public static int parseVersionMinor(String ver) {
+		String version[] = ver.split("\\.");
+		String min = version[1].replaceAll("\\D", "");
+		return Integer.parseInt(min);
+	}
+
+	public static String getVersionPoint() {
+		return parseVersionPoint(VERSION_NUM);
+	}
+
+	public static String parseVersionPoint(String ver) {
+		String version = ver.substring(ver.length()-1, ver.length());
+		if (version.matches("[0-9]+"))
+			return null; // we have no point release
+		return version;		
+	}
+
+	
 	public static void initPassManager() {	
 		passManager = new PassManager(satManager);
 		passManagerThread = new Thread(passManager);
@@ -408,8 +452,7 @@ public class Config {
 		properties.setProperty("uploadToServer", Boolean.toString(uploadToServer));
 		properties.setProperty("primaryServer", primaryServer);
 		properties.setProperty("secondaryServer", secondaryServer);
-		//properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
-		//properties.setProperty("serverPort", Integer.toString(serverPort));
+
 
 		// GUI
 		properties.setProperty("windowHeight", Integer.toString(windowHeight));
@@ -437,9 +480,18 @@ public class Config {
 		properties.setProperty("graphAxisFontSize", Integer.toString(graphAxisFontSize));
 
 		properties.setProperty("useNativeFileChooser", Boolean.toString(useNativeFileChooser));
-		
+
 		// Version 1.01 settings
 		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
+		properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
+		properties.setProperty("serverPort", Integer.toString(serverPort));
+		properties.setProperty("showSNR", Boolean.toString(showSNR));
+		properties.setProperty("SCAN_SIGNAL_THRESHOLD", Double.toString(SCAN_SIGNAL_THRESHOLD));
+		properties.setProperty("ANALYZE_SNR_THRESHOLD", Double.toString(ANALYZE_SNR_THRESHOLD));
+		properties.setProperty("BIT_SNR_THRESHOLD", Double.toString(BIT_SNR_THRESHOLD));
+		properties.setProperty("serverParamsUrl", serverParamsUrl);
+		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
+		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
 		store();
 	}
@@ -537,8 +589,7 @@ public class Config {
 		uploadToServer = Boolean.parseBoolean(getProperty("uploadToServer"));
 		primaryServer = getProperty("primaryServer");
 		secondaryServer = getProperty("secondaryServer");
-		//serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
-		//serverPort = Integer.parseInt(getProperty("serverPort"));
+
 
 		// GUI
 		windowHeight = Integer.parseInt(getProperty("windowHeight"));
@@ -573,7 +624,17 @@ public class Config {
 		
 		// Version 1.01 settings
 		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
+		serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
+		serverPort = Integer.parseInt(getProperty("serverPort"));
+		showSNR = Boolean.parseBoolean(getProperty("showSNR"));
+		SCAN_SIGNAL_THRESHOLD = Double.parseDouble(getProperty("SCAN_SIGNAL_THRESHOLD"));
+		ANALYZE_SNR_THRESHOLD = Double.parseDouble(getProperty("ANALYZE_SNR_THRESHOLD"));
+		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
+		
+		serverParamsUrl = getProperty("serverParamsUrl");
+		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
+		downloadT0FromServer = Boolean.parseBoolean(getProperty("downloadT0FromServer"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -595,7 +656,8 @@ public class Config {
         "Exit"};
 		int n = JOptionPane.showOptionDialog(
 				MainWindow.frame,
-				"Could not read properties file. Format has changed or the file is corrupt.  Create new properties file after reading as much as possible from the existing one?",
+				"Could not read properties file. Format has probablly changed or the file is corrupt.  "
+				+ "Should I create a new properties file after reading as much as possible from the existing one?",
 				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
 			    JOptionPane.YES_NO_OPTION,
 			    JOptionPane.ERROR_MESSAGE,

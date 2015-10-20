@@ -84,6 +84,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_MPPT_SOLAR_PANEL_TEMP = 24;
 	public static final int CONVERT_16_SEC_UPTIME = 25;
 	public static final int CONVERT_FREQ = 26;
+	public static final int CONVERT_VULCAN_STATUS = 27;
 
 	/**
 	 * Create an empty layout for manual init

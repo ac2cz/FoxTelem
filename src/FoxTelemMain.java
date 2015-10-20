@@ -428,9 +428,26 @@ import decoder.Decoder;
  * Changed Fox-1C to Fox-1Cliff
  * 
  * Version 1.01
- * Show the number of queued frames at the start (without a delay)
  * Send the frames to both primary and secondary server
- * 
+ * Set the default fcd frequency to 145930 so that Fox-1A, Fox-1Cliff and Fox-1D will be in the passband
+ * Allow user to select UDP or TCP for upload to the server and save in settings
+ * Import STP files from a directory, if its there
+ * Shorten the period between passes so that graphs look continuous
+ * Ignore duplicate high speed radiation frames - needed for processing data from the server
+ * Do not change the FCD LNA or Mixer Gain.  Leave unchanged.
+ * Fetch data from the server 
+ * Allow graphs to be hidden so that average or deriv is easier to see
+ * Switch the server protocol instantly when it is saved from settings screen (rather than requiring a restart)
+ * Fixed a bug where the last 2 bytes of the radiation telemetry were not decoded correctly
+ * Allow Vanderbilt radiation experiment to be graphed
+ * Allow the gain to be set on the FCD (rather than hard coded)
+ * Notify the user when a new release is available
+ * Allow the user to view and edit the "track" attribute for each spacecraft (and other parameters)
+ * Cleaned up the FFT trace with some averaging
+ * Better doppler tracking in IQ mode and more stable estimate of the received frequency
+ * Better Find Signal algorithm with tuning paramaters for experts
+ * Read T0 from the server and use to plot graphs in UTC
+ * If showRawValues is checked then save CSV files as raw values
  * 
  */
 

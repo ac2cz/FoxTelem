@@ -52,28 +52,36 @@ public class SatPayloadStore {
 	
 	private static final int INIT_SIZE = 1000;
 	
+	// Primary Payloads
 	public static String RT_LOG = "rttelemetry.log";
 	public static String MAX_LOG = "maxtelemetry.log";
 	public static String MIN_LOG = "mintelemetry.log";
 	public static String RAD_LOG = "radtelemetry.log";
+
+	// Secondary payloads - decoded from the primary payloads
+	public static String RAD_TELEM_LOG = "radtelemetry2.log";
+
 	public static String HERCI_LOG = "herciHSdata.log";
 	
 	public String rtFileName;
 	public String maxFileName;
 	public String minFileName;
 	public String radFileName;
+	public String radTelemFileName;
 	public String herciFileName;
 	
 	SortedFramePartArrayList rtRecords;
 	SortedFramePartArrayList maxRecords;
 	SortedFramePartArrayList minRecords;
 	SortedFramePartArrayList radRecords;
+	SortedFramePartArrayList radTelemRecords;
 	SortedFramePartArrayList herciRecords;
 	
 	boolean updatedRt = false;
 	boolean updatedMax = false;
 	boolean updatedMin = false;
 	boolean updatedRad = false;
+	boolean updatedRadTelem = false;
 	boolean updatedHerci = false;
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
@@ -90,10 +98,12 @@ public class SatPayloadStore {
 			maxFileName = "Fox"+id+MAX_LOG;
 			minFileName = "Fox"+id+MIN_LOG;
 			radFileName = "Fox"+id+RAD_LOG;
+			radTelemFileName = "Fox"+id+RAD_TELEM_LOG;
 			load(rtFileName);
 			load(maxFileName);
 			load(minFileName);
 			load(radFileName);
+			load(radTelemFileName);
 			if (Config.satManager.hasHerci(foxId)) {
 				herciFileName = "Fox"+id+HERCI_LOG;
 				load(herciFileName);
@@ -113,6 +123,7 @@ public class SatPayloadStore {
 		maxRecords = new SortedFramePartArrayList(INIT_SIZE);
 		minRecords = new SortedFramePartArrayList(INIT_SIZE);
 		radRecords = new SortedFramePartArrayList(INIT_SIZE);
+		radTelemRecords = new SortedFramePartArrayList(INIT_SIZE);
 		if (Config.satManager.hasHerci(foxId))
 			herciRecords = new SortedFramePartArrayList(INIT_SIZE);
 	}
@@ -122,6 +133,7 @@ public class SatPayloadStore {
 		updatedMax = true;
 		updatedMin = true;
 		updatedRad = true;
+		updatedRadTelem = true;
 		updatedHerci = true;
 		
 	}
@@ -143,6 +155,12 @@ public class SatPayloadStore {
 	public void setUpdatedRad(boolean u) {
 		updatedRad = u;
 	}
+
+	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
+	public void setUpdatedRadTelem(boolean u) {
+		updatedRadTelem = u;
+	}
+
 	public boolean getUpdatedHerci() { return updatedHerci; }
 	public void setUpdatedHerci(boolean u) {
 		updatedHerci = u;
@@ -167,8 +185,9 @@ public class SatPayloadStore {
 	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
 	 * @param f
 	 * @return
+	 * @throws IOException 
 	 */
-	public boolean add(int id, long uptime, int resets, PayloadRadExpData[] f) {
+	public boolean add(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		if (!radRecords.hasFrame(id, uptime, resets)) {
 			for (int i=0; i< f.length; i++) {
 				if (f[i].hasData()) {
@@ -180,8 +199,7 @@ public class SatPayloadStore {
 						// NEED TO SET A FLAG HERE THAT IS THEN SEEN BY THE GUI WHEN IT POLLS FOR RESULTS
 						e.printStackTrace(Log.getWriter());
 					}
-					radRecords.add(f[i]);
-
+					addRadRecord(f[i]);
 				}
 			}
 		} else {
@@ -191,6 +209,18 @@ public class SatPayloadStore {
 		return true;
 	}
 
+	private boolean addRadRecord(PayloadRadExpData f) throws IOException {
+		radRecords.add(f);
+		
+		// Capture and store any secondary payloads
+		if (f.isTelemetry()) {
+			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			add(radiationTelemetry);
+		}
+		return true;
+	}
+	
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -229,13 +259,21 @@ public class SatPayloadStore {
 				if (Config.debugFrames) Log.println("DUPLICATE MIN RECORD, not loaded");
 			}
 		} else if (f instanceof PayloadRadExpData ) {
-			//if (!radRecords.hasFrame(f.id, f.uptime, f.resets)) {
+			if (!radRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
 				updatedRad = true;
 					save(f, radFileName);				
-				return radRecords.add(f);
-			//} else {
-			//	if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
-			//}
+				return addRadRecord((PayloadRadExpData)f);
+			} else {
+				if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
+			}
+		} else if (f instanceof RadiationTelemetry ) {
+			if (!radTelemRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
+				updatedRadTelem = true;
+					save(f, radTelemFileName);				
+				return radTelemRecords.add(f);
+			} else {
+				if (Config.debugFrames) Log.println("DUPLICATE RAD TELEM RECORD, not loaded");
+			}
 		} else if (f instanceof PayloadHERCIhighSpeed ) {
 			updatedHerci = true;
 			save(f, herciFileName);				
@@ -262,6 +300,11 @@ public class SatPayloadStore {
 	public PayloadRadExpData getLatestRad() {
 		if (radRecords.size() == 0) return null;
 		return (PayloadRadExpData) radRecords.get(radRecords.size()-1);
+	}
+
+	public RadiationTelemetry getLatestRadTelem() {
+		if (radTelemRecords.size() == 0) return null;
+		return (RadiationTelemetry) radTelemRecords.get(radTelemRecords.size()-1);
 	}
 
 	public PayloadHERCIhighSpeed getLatestHerci() {
@@ -292,6 +335,21 @@ public class SatPayloadStore {
 		
 	}
 
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+		return getGraphData(radTelemRecords, name, period, id, fromReset, fromUptime);
+		
+	}
+
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+		return getRadData(radRecords, period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
+
+	}
+	
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
+		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, 20);
+
+	}
+	
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -301,23 +359,23 @@ public class SatPayloadStore {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadData(SortedFramePartArrayList records, int period, int id, int fromReset, long fromUptime, int length) {
 		int start = 0;
 		int end = 0;
 		
 		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
-			start = radRecords.size()-period;
-			end = radRecords.size();
+			start = records.size()-period;
+			end = records.size();
 		} else {
 			// we need to find the start point
-			start = radRecords.getNearestFrameIndex(id, fromUptime, fromReset);
-			if (start == -1 ) start = radRecords.size()-period;
+			start = records.getNearestFrameIndex(id, fromUptime, fromReset);
+			if (start == -1 ) start = records.size()-period;
 			end = start + period;
 		}
-		if (end > radRecords.size()) end = radRecords.size();
+		if (end > records.size()) end = records.size();
 		if (end < start) end = start;
 		if (start < 0) start = 0;
-		if (start > radRecords.size()) start = radRecords.size();
+		if (start > records.size()) start = records.size();
 		
 		int[][] results = new int[end-start][];
 		String[] upTime = new String[end-start];
@@ -326,12 +384,12 @@ public class SatPayloadStore {
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
-			results[j] = radRecords.get(i).getFieldValues();
-			upTime[j] = ""+radRecords.get(i).getUptime();
-			resets[j--] = ""+radRecords.get(i).getResets();
+			results[j] = records.get(i).getFieldValues();
+			upTime[j] = ""+records.get(i).getUptime();
+			resets[j--] = ""+records.get(i).getResets();
 		}
 		
-		String[][] resultSet = new String[end-start][MAX_RAD_DATA_LENGTH];
+		String[][] resultSet = new String[end-start][length];
 		for (int r=0; r< end-start; r++) {
 			resultSet[r][0] = resets[r];
 			resultSet[r][1] = upTime[r];
@@ -375,7 +433,10 @@ public class SatPayloadStore {
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
-			results[j] = records.get(i).getDoubleValue(name, fox);
+			if (Config.displayRawValues)
+				results[j] = records.get(i).getRawValue(name);
+			else
+				results[j] = records.get(i).getDoubleValue(name, fox);
 			upTime[j] = records.get(i).getUptime();
 			resets[j--] = records.get(i).getResets();
 		}
@@ -437,21 +498,26 @@ public class SatPayloadStore {
         				PayloadRtValues rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
         				rtRecords.add(rt);
         				updatedRt = true;
-        			}
+        			} else
         			if (type == FramePart.TYPE_MAX_VALUES) {
         				PayloadMaxValues rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
         				maxRecords.add(rt);
         				updatedMax = true;
-        			}
+        			} else
         			if (type == FramePart.TYPE_MIN_VALUES) {
         				PayloadMinValues rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
         				minRecords.add(rt);
         				updatedMin = true;
         			}
-        			if (type == FramePart.TYPE_RAD_EXP_DATA) {
+        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;
+        			}
+        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+        				radTelemRecords.add(rt);
+        				updatedRadTelem = true;
         			}
         			if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
         				PayloadHERCIhighSpeed rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
@@ -513,6 +579,7 @@ public class SatPayloadStore {
 				remove(dir+maxFileName);
 				remove(dir+minFileName);
 				remove(dir+radFileName);
+				remove(dir+radTelemFileName);
 				remove(dir+herciFileName);
 				initPayloadFiles();
 				setUpdatedAll();

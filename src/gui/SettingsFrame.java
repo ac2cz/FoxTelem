@@ -25,6 +25,7 @@ import javax.swing.JTextField;
 import common.Config;
 import common.Location;
 import common.Log;
+import common.TlmServer;
 
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
@@ -78,8 +79,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JTextField txtSecondaryServer;
 	
 	private JCheckBox cbUploadToServer;
+	private JCheckBox cbUseUDP;
 	private JCheckBox storePayloads;
 	private JCheckBox useLeftStereoChannel;
+	
+	boolean useUDP;
 	
 	private JPanel serverPanel;
 	
@@ -112,6 +116,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		btnSave = new JButton("Save");
 		btnSave.addActionListener(this);
 		southpanel.add(btnSave);
+		getRootPane().setDefaultButton(btnSave);
 		
 		btnCancel = new JButton("Cancel");
 		btnCancel.addActionListener(this);
@@ -178,8 +183,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 
 		txtCallsign = addSettingsRow(serverPanel, 15, "Groundstation Name", 
 				"Ground station name is the unique identifier that you will use to store data on the AMSAT telemetry server", Config.callsign);
-		txtPrimaryServer = addSettingsRow(serverPanel, 15, "Primary Server", "The address of the Amsat Telemetry server. Should not need to be changed", Config.primaryServer);
-		txtSecondaryServer = addSettingsRow(serverPanel, 15, "Secondary Server", "The backup address of the Amsat Telemetry server. Should not need to be changed", Config.secondaryServer);
+		
+		txtPrimaryServer = addSettingsRow(serverPanel, 15, "Primary Server", "The address of the Amsat Telemetry server. "
+				+ "Should not need to be changed", Config.primaryServer);
+		txtSecondaryServer = addSettingsRow(serverPanel, 15, "Secondary Server", "The backup address of the Amsat Telemetry server. "
+				+ "Should not need to be changed",Config.secondaryServer);
 		txtLatitude = addSettingsRow(serverPanel, 10, "Lat (S is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.latitude); // South is negative
 		txtLongitude = addSettingsRow(serverPanel, 10, "Long (W is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.longitude); // West is negative
 		JPanel locatorPanel = new JPanel();
@@ -198,7 +206,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		
 		serverPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 		
-		setServerPanelEnabled(false);
+
 		
 		JPanel leftcolumnpanel2 = addColumn(leftcolumnpanel,6);
 		TitledBorder eastTitle3 = title("Formatting");
@@ -227,6 +235,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel0.setBorder(eastTitle4);
 		cbUploadToServer = addCheckBoxRow("Upload to Server", "Select this if you want to send your collected data to the AMSAT telemetry server",
 				Config.uploadToServer, rightcolumnpanel0 );
+		useUDP = true;
+		if (Config.serverProtocol == TlmServer.TCP)
+			useUDP = false;
+		cbUseUDP = addCheckBoxRow("Use UDP", "Use UDP (vs TCP) to send data to the AMSAT telemetry server",
+				useUDP, rightcolumnpanel0 );
 		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
 		useLeftStereoChannel = addCheckBoxRow("Use Left Stereo Channel", "The default is for FoxTelem to read audio from the left stereo channel of your soundcard.  "
 				+ "If you uncheck this it will read from the right",
@@ -239,7 +252,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel.add(optionsPanel);
 		rightcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
+		setServerPanelEnabled(Config.uploadToServer);
+		txtPrimaryServer.setEnabled(false);
+		txtSecondaryServer.setEnabled(false);
 	}
+
 
 	private TitledBorder title(String s) {
 		TitledBorder title = new TitledBorder(null, s, TitledBorder.LEADING, TitledBorder.TOP, null, null);
@@ -250,8 +267,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private void setServerPanelEnabled(boolean en) {
 		//serverPanel.setEnabled(en);
 		//txtCallsign.setEnabled(en);
-		txtPrimaryServer.setEnabled(en);
-		txtSecondaryServer.setEnabled(en);
+	//	txtPrimaryServer.setEnabled(en);
+	//	txtSecondaryServer.setEnabled(en);
+		cbUseUDP.setEnabled(en);
 		//txtLatitude.setEnabled(en);
 		//txtLongitude.setEnabled(en);
 	}
@@ -428,6 +446,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				
+				if (cbUseUDP.isSelected()) {
+					Config.serverPort = Config.udpPort;
+					Config.serverProtocol = TlmServer.UDP;
+				} else {
+					Config.serverPort = Config.tcpPort;
+					Config.serverProtocol = TlmServer.TCP;
+				}
 
 				if (Config.displayModuleFontSize != parseIntTextField(txtDisplayModuleFontSize)) {
 					Config.displayModuleFontSize = parseIntTextField(txtDisplayModuleFontSize);
@@ -582,11 +607,14 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				setServerPanelEnabled(false);
 			} else {
-				//setServerPanelEnabled(true);
+				setServerPanelEnabled(true);
 			}
 		}
 		
+		
+		if (source == cbUseUDP) { 
 
+		}
 	}
 
 	@Override

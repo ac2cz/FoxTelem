@@ -9,6 +9,8 @@ import java.awt.FlowLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.beans.PropertyChangeEvent;
@@ -20,6 +22,7 @@ import java.util.regex.Pattern;
 
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
@@ -82,10 +85,11 @@ import javax.swing.event.PopupMenuEvent;
  *
  */
 @SuppressWarnings("serial")
-public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener {
+public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener, FocusListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
-
+	Thread fcdPanelThread;
+	
 	Thread fftPanelThread;
 	Thread decoderThread;
 	AudioGraphPanel audioGraph;
@@ -104,6 +108,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
+	JCheckBox rdbtnFcdLnaGain;
+	JCheckBox rdbtnFcdMixerGain;
+	JTextField peakLevel;
+	JTextField avgLevel;
+	JTextField bitLevel;
+	
 	//JCheckBox rdbtnUseNco;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
@@ -112,10 +122,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JLabel lblFile;
 	JComboBox<String> cbSoundCardRate;
 	JPanel panelFile;
+	FcdPanel panelFcd;
 	JRadioButton highSpeed;
 	JRadioButton lowSpeed;
 	JRadioButton iqAudio;
 	JRadioButton afAudio;
+	JRadioButton showSNR;
+	JRadioButton showLevel;
+	JPanel findSignalPanel;
+	
 	JTextArea log;
 	JScrollPane logScrollPane;
 	
@@ -197,13 +212,28 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		parent.add(optionsPanel, layout);
 
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS));
-
+//		optionsPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JPanel options1 = new JPanel();
+		options1.setLayout(new FlowLayout(FlowLayout.LEFT));
+		optionsPanel.add(options1);
 		rdbtnShowFFT = new JCheckBox("Show FFT");
 		rdbtnShowFFT.addItemListener(this);
 		rdbtnShowFFT.setSelected(true);
-		optionsPanel.add(rdbtnShowFFT);
+		options1.add(rdbtnShowFFT);
 		rdbtnShowFFT.setVisible(false);
-		
+
+		showSNR = addRadioButton("Show Avg SNR", options1 );
+		showLevel = addRadioButton("Peak SNR", options1 );
+		ButtonGroup group = new ButtonGroup();
+		group.add(showLevel);
+		group.add(showSNR);
+		if (Config.showSNR) {
+			showSNR.setSelected(true);
+		} else {
+			showLevel.setSelected(true);
+		}
+
+
 		/*
 		rdbtnApplyBlackmanWindow = new JCheckBox("Blackman IF (vs Tukey)");
 		optionsPanel.add(rdbtnApplyBlackmanWindow);
@@ -218,17 +248,49 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnShowIF.setVisible(false);
 		 */
 		rdbtnTrackSignal = new JCheckBox("Track Doppler");
-		optionsPanel.add(rdbtnTrackSignal);
+		options1.add(rdbtnTrackSignal);
 		rdbtnTrackSignal.addItemListener(this);
 		rdbtnTrackSignal.setSelected(Config.trackSignal);
 		rdbtnTrackSignal.setVisible(true);
 
+		findSignalPanel = new JPanel();
+		findSignalPanel.setLayout(new BoxLayout(findSignalPanel, BoxLayout.X_AXIS));
+		
 		rdbtnFindSignal = new JCheckBox("Find Signal");
-		optionsPanel.add(rdbtnFindSignal);
+		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
 		rdbtnFindSignal.setSelected(Config.findSignal);
 		rdbtnFindSignal.setVisible(true);
 
+		optionsPanel.add(findSignalPanel);
+		JLabel when = new JLabel ("when peak over ");
+		findSignalPanel.add(when);
+		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
+		peakLevel.setMinimumSize(new Dimension(30,1));
+		peakLevel.addActionListener(this);
+		peakLevel.addFocusListener(this);
+		findSignalPanel.add(peakLevel);
+		JLabel rf = new JLabel ("dB, avg over ");
+		findSignalPanel.add(rf);
+		avgLevel = new JTextField(Double.toString(Config.ANALYZE_SNR_THRESHOLD));
+		avgLevel.setMinimumSize(new Dimension(30,1));
+		avgLevel.addActionListener(this);
+		avgLevel.addFocusListener(this);
+		findSignalPanel.add(avgLevel);
+		JLabel bit = new JLabel ("dB and bit SNR over ");
+		findSignalPanel.add(bit);
+		bitLevel = new JTextField(Double.toString(Config.BIT_SNR_THRESHOLD));
+		bitLevel.setMinimumSize(new Dimension(30,1));
+		bitLevel.addActionListener(this);
+		bitLevel.addFocusListener(this);
+		findSignalPanel.add(bitLevel);
+		JLabel bitdb = new JLabel ("dB");
+		findSignalPanel.add(bitdb);
+	
+		findSignalPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(1500,1), new Dimension(1500,1)));
+		
+		findSignalPanel.setVisible(Config.findSignal);
+	
 		/*
 		rdbtnUseNco = new JCheckBox("Use NCO carrier");
 		rdbtnUseNco.addItemListener(this);
@@ -457,9 +519,24 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			afAudio.doClick();
 		}
 
+		try {
+			panelFcd = new FcdPanel();
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+		} catch (FcdException e) {
+			e.printStackTrace(Log.getWriter());
+		}
+		//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
+		panel_c.add(panelFcd, BorderLayout.CENTER);
+		panelFcd.setVisible(false);
+		
+	//	fcdPanelThread = new Thread(panelFcd);
+	//	fcdPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+	//	fcdPanelThread.start();
+		
 		panelFile = new JPanel();
 	//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
-		panel_c.add(panelFile);
+		panel_c.add(panelFile, BorderLayout.CENTER);
 		panelFile.setLayout(new BoxLayout(panelFile, BoxLayout.Y_AXIS));
 		
 		lblFile = new JLabel("File: ");
@@ -643,7 +720,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
-//		rdbtnApplyBlackmanWindow.setVisible(b);
+		findSignalPanel.setVisible(b);
+		showSNR.setVisible(b);
+		showLevel.setVisible(b);
+		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
 	}
 	
@@ -676,6 +756,38 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			Config.iq = false;
 			setIQVisible(false);
 		}
+		if (e.getSource() == showSNR) { 
+			Config.showSNR = true;
+			
+		}
+		if (e.getSource() == showLevel) { 
+			Config.showSNR = false;
+			
+		}
+
+		if (e.getSource() == this.peakLevel) {
+			try {
+			Config.SCAN_SIGNAL_THRESHOLD = Double.parseDouble(peakLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.avgLevel) {
+			try {
+			Config.ANALYZE_SNR_THRESHOLD = Double.parseDouble(avgLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.bitLevel) {
+			try {
+			Config.BIT_SNR_THRESHOLD = Double.parseDouble(bitLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
 
 		// Frequency Text Field
 		if (e.getSource() == this.txtFreq) {
@@ -691,8 +803,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				} else {
 					try {
 						fcd.setFcdFreq(freq*1000);
+						panelFcd.updateFilter();
 					} catch (FcdException e1) {
 						Log.errorDialog("ERROR", e1.getMessage());
+						e1.printStackTrace(Log.getWriter());
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
 						e1.printStackTrace(Log.getWriter());
 					}
 				}
@@ -806,7 +922,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	/**
 	 * Process the action from the sound card combo box when an item is selected.  The user has not pressed start, but they have selected
 	 * the audio source that we are going to use.  We do nothing at this point other than changes the visibility of GUI components
-	 * and setup the FCD if it is selected
 	 */
 	private void processSoundCardComboBox() {
 		String source = (String)soundCardComboBox.getSelectedItem();
@@ -821,9 +936,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 //				releaseFcd();
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
-			boolean fcdSelected = usingFcd();
+			boolean fcdSelected = fcdSelected();
 			if (fcdSelected) {
-				setFcdSampleRate();
+
 			} else {
 				Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
 			}
@@ -838,7 +953,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				setIQVisible(false);
 			}
 		}
-
 
 	}
 
@@ -855,28 +969,33 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		}
 	}
 	
-	private boolean usingFcd() {
-		boolean fcdSelected = false;
+	private boolean fcdSelected() {
+		
 		String source = (String)soundCardComboBox.getSelectedItem();
 		Pattern pattern = Pattern.compile(FUNCUBE);
 		Matcher matcher = pattern.matcher(source);
 		if (matcher.find()) {
-			fcdSelected = true;
-			try {
+			return true;
+		}
+		return false;
+	}
+	
+	private boolean usingFcd() throws IOException, FcdException {
+		boolean fcdSelected = fcdSelected();
+		if (fcdSelected) {
+			
 				if (fcd == null) {
-					fcd = new FcdDevice();
+					fcd = new FcdDevice();			
 				}
-			} catch (IOException e) {
-				Log.errorDialog("ERROR", e.getMessage());
-				e.printStackTrace(Log.getWriter());
-			} catch (FcdException e) {
-				Log.errorDialog("ERROR", e.getMessage());
-				e.printStackTrace(Log.getWriter());
-			}
+				panelFcd.setVisible(true);
+				panelFcd.setFcd(fcd);
+		
 			Config.iq = true;
 			iqAudio.setSelected(true);
 			setIQVisible(true);
-		} 			
+		} else {
+			panelFcd.setVisible(false);
+		}
 
 		return fcdSelected;
 	}
@@ -984,27 +1103,38 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					}
 				} else { // soundcard - fcd or normal
 					SourceAudio audioSource;
-					boolean fcdSelected = usingFcd();
-					if (fcdSelected) {
-						setFcdSampleRate();
-					} else {
-						Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
+					boolean fcdSelected = false;
+					try {
+						fcdSelected = usingFcd();
+						if (fcdSelected) {
+							setFcdSampleRate();
+						} else {
+							Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
+						}
+
+						Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
+
+						audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
+						if (audioSource != null)
+							if (fcdSelected || Config.iq) {
+								Log.println("IQ Source Selected");
+								iqSource = new SourceIQ(Config.scSampleRate * 4);
+								iqSource.setAudioSource(audioSource);
+								setupDecoder(highSpeed.isSelected(), iqSource);
+								Config.passManager.setDecoder(decoder, iqSource);
+								setCenterFreq();
+							} else {
+								setupDecoder(highSpeed.isSelected(), audioSource);
+							}	
+					} catch (IOException e) {
+						Log.errorDialog("FCD Start Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
+					} catch (FcdException e) {
+						Log.errorDialog("FCD Start Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
 					}
-					
-					Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
-					
-					audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
-					if (audioSource != null)
-					if (fcdSelected || Config.iq) {
-						Log.println("IQ Source Selected");
-						iqSource = new SourceIQ(Config.scSampleRate * 4);
-						iqSource.setAudioSource(audioSource);
-						setupDecoder(highSpeed.isSelected(), iqSource);
-						Config.passManager.setDecoder(decoder, iqSource);
-						setCenterFreq();
-					} else {
-						setupDecoder(highSpeed.isSelected(), audioSource);
-					}	
 				}
 				
 				if (decoder != null) {
@@ -1071,12 +1201,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			decoder = null;
 			iqSource = null;
 			decoderThread = null;
-			Config.passManager.setDecoder(decoder, iqSource);
+			Config.passManager.setDecoder(decoder, iqSource);			
 		}
+		panelFcd.setVisible(false);
+
 	}
 	
 	private void stopButton() {
-		if (Config.passManager.getState() == PassManager.FADED) {
+		if (Config.passManager.getState() == PassManager.FADED || Config.passManager.getState() == PassManager.DECODE) {
 			Object[] options = {"Yes",
 	        "No"};
 			int n = JOptionPane.showOptionDialog(
@@ -1255,6 +1387,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	        	
 	        	//Config.save();
 	        }
+			findSignalPanel.setVisible(Config.findSignal);
+
 		}
 		if (e.getSource() == rdbtnShowLog) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -1379,6 +1513,41 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
             //System.out.println("WORKER IS DONE");
         }
     }
+
+	@Override
+	public void focusGained(FocusEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void focusLost(FocusEvent e) {
+		if (e.getSource() == this.peakLevel) {
+			try {
+			Config.SCAN_SIGNAL_THRESHOLD = Double.parseDouble(peakLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.avgLevel) {
+			try {
+			Config.ANALYZE_SNR_THRESHOLD = Double.parseDouble(avgLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		if (e.getSource() == this.bitLevel) {
+			try {
+			Config.BIT_SNR_THRESHOLD = Double.parseDouble(bitLevel.getText());
+			} catch (NumberFormatException n) {
+				Log.errorDialog("Invalid Value", n.getMessage());
+			}
+		}
+
+		
+	}
 
 
 }

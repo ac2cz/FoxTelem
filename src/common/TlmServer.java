@@ -40,19 +40,16 @@ public class TlmServer {
 
 	String hostName;
 	int portNumber;
-	int protocol;
 	
-	public TlmServer(String hostName, int portNumber, int protocol) {
+	public TlmServer(String hostName, int portNumber) {
 		this.hostName = hostName;
 		this.portNumber = portNumber;
-		this.protocol = protocol;
 	}
 
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
 	}
-	
-	
+		
 	/**
 	 * Use TCP, even if we are in UDP mode, to check that the server is there
 	 * @return
@@ -83,7 +80,7 @@ public class TlmServer {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer(byte[] buffer) throws UnknownHostException, IOException {
+	public void sendToServer(byte[] buffer, int protocol) throws UnknownHostException, IOException {
 		
 		if (protocol == TCP) {
 			Socket socket = new Socket(hostName, portNumber);

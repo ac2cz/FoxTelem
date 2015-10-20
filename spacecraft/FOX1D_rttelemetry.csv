@@ -32,7 +32,11 @@
 30,RT,EXP4Temperature,12,C,7,Radio,1,8,3,LBand Uplink Temp,LBand Uplink card temperature
 31,RT,PSUCurrent,12,mA,22,MPPT,4,1,3,Current,Maximum Power Point Tracker DC Current
 32,RT,IHUDiagnosticData,32,-,18,Computer,2,7,0,Diagnostic Info,Diagnostic Data on IHU Performance
+<<<<<<< HEAD
 33,RT,Experiment1FailureIndication,1,-,17,Experiments,5,1,0,Vulcan,Vanderbilt University Vulcan Experiment Indicator
+=======
+33,RT,Experiment1FailureIndication,1,-,17,Experiments,5,1,0,HERCI,University of Iowa HERCI Experiment Indicator
+>>>>>>> master
 34,RT,Experiment2FailureIndication,1,-,17,NONE,5,0,0,Not installed,Not used
 35,RT,Experiment3FailureIndication,1,-,21,Radio,1,7,0,LBand Uplink Enabled,True when the L Band (23cm) Uplink has been enabled
 36,RT,Experiment4FailureIndication,1,-,17,Experiments,5,2,0,Camera,Virginia Tech: JPEG Camera.  OmniVision OV7670 camera chip

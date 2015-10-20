@@ -26,19 +26,46 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.channels.Channels;
+import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Date;
 
 import common.Config;
 import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.JCheckBoxMenuItem;
 
+import org.rauschig.jarchivelib.Archiver;
+import org.rauschig.jarchivelib.ArchiverFactory;
+
+import telemetry.Frame;
+import telemetry.FramePart;
+import telemetry.HighSpeedFrame;
+import telemetry.HighSpeedHeader;
+import telemetry.LayoutLoadException;
+import telemetry.PayloadCameraData;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRadExpData;
+import telemetry.PayloadRtValues;
+import telemetry.SlowSpeedFrame;
+import telemetry.SlowSpeedHeader;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
@@ -80,6 +107,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// We have one FTP Thread for the whole application
 //	Thread ftpThread;
 //	FtpLogs ftpLogs;
+
+	static UpdateManager updateManager;
+	Thread updateManagerThread;
 	
 	// This is the JFrame for the main window.  We make it static so that we can reach it from other parts of the program.
 	// We only need one for the whole application
@@ -92,9 +122,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	//Menu Buttons
 	JMenuItem mntmExit;
 	static JMenuItem mntmLoadWavFile;
+	static JMenuItem mntmImportStp;
+	static JMenuItem mntmGetServerData;
 	static JMenuItem mntmLoadIQWavFile;
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
+	static JMenuItem[] mntmSat;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
@@ -122,6 +155,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
 	private static int totalMissed;
+	ProgressPanel importProgress;
 	
 	/**
 	 * Create the application.
@@ -212,13 +246,19 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		initialize();
 		//pack(); // pack all in as tight as possible
 
+		// Once the main window is up we check the version info
+		updateManager = new UpdateManager();
+		updateManagerThread = new Thread(updateManager);
+		updateManagerThread.start();
 		
 	}
 
 	public static void enableSourceSelection(boolean t) {
 		mntmLoadWavFile.setEnabled(t);
+		mntmImportStp.setEnabled(t);
 		//mntmLoadIQWavFile.setEnabled(t);
 		mntmDelete.setEnabled(t);
+		mntmGetServerData.setEnabled(t);
 	}
 	
 	public static void showGraphs() {
@@ -424,6 +464,30 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnFile.add(mntmLoadWavFile);
 		mntmLoadWavFile.addActionListener(this);
 
+		String dir = "stp";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+			
+		}
+	
+		mntmImportStp = new JMenuItem("Import STP");
+		mnFile.add(mntmImportStp);
+		
+		mntmGetServerData = new JMenuItem("Fetch Server Data");
+		mnFile.add(mntmGetServerData);
+
+		File aFile = new File(dir);
+		if(aFile.isDirectory()){
+			mntmImportStp.setVisible(true);
+			mntmImportStp.addActionListener(this);
+			mntmGetServerData.setVisible(true);
+			mntmGetServerData.addActionListener(this);
+		} else {
+			mntmImportStp.setVisible(false);
+			mntmGetServerData.setVisible(false);
+
+		}
+
 //		mntmLoadIQWavFile = new JMenuItem("Load IQ Wav File");
 //		mnFile.add(mntmLoadIQWavFile);
 //		mntmLoadIQWavFile.addActionListener(this);
@@ -453,14 +517,24 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //		mnDecoder.add(mntmStopDecoder);
 //		mntmStopDecoder.addActionListener(this);
 		
+		JMenu mnSats = new JMenu("Spacecraft");
+		menuBar.add(mnSats);
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+		mntmSat = new JMenuItem[sats.size()];
+		for (int i=0; i<sats.size(); i++) {
+			mntmSat[i] = new JMenuItem("Fox-" + sats.get(i).getIdString());
+			mnSats.add(mntmSat[i]);
+			mntmSat[i].addActionListener(this);
+		}
+		
 		JMenu mnOptions = new JMenu("Options");
-//		menuBar.add(mnOptions);
+		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
 		mnOptions.add(chckbxmntmShowFilterOptions);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
-		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Decoder Options");
+		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
 		chckbxmntmShowDecoderOptions.addActionListener(this);
 		mnOptions.add(chckbxmntmShowDecoderOptions);
 		
@@ -492,7 +566,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	public void shutdownWindow() {
 		
-		if (Config.passManager.getState() == PassManager.FADED) {
+		if (Config.passManager.getState() == PassManager.FADED ||
+				Config.passManager.getState() == PassManager.DECODE) {
 			Object[] options = {"Yes",
 	        "No"};
 			int n = JOptionPane.showOptionDialog(
@@ -577,6 +652,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == mntmLoadWavFile) {
 			inputTab.chooseFile();
 		}
+		if (e.getSource() == mntmImportStp) {
+			importStp("stp", false);
+		}
+		if (e.getSource() == mntmGetServerData) {
+			importServerData();
+		}
 		if (e.getSource() == mntmLoadIQWavFile) {
 			inputTab.chooseIQFile();
 		}
@@ -615,7 +696,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			}
 		}
 		
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		
+		for (int i=0; i<sats.size(); i++) {
+			if (e.getSource() == mntmSat[i]) {
+				SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
+				f.setVisible(true);
+			}
+		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
 				inputTab.showFilters(chckbxmntmShowFilterOptions.getState());
 		}
@@ -640,7 +728,186 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
+	private void importServerData() {
+
+		String message = "Do you want to merge the downloaded server data with your existing data?\n"
+				+ "To import into into a different set of log files select NO, then choose a new log file directory";
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"Do you want to continue?",
+				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.ERROR_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.NO_OPTION) {
+			return;
+		}
+
+		// Make sure we have an STP directory
+		String serverData = "serverData";
+		String dir = serverData;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + serverData;			
+		}
 	
+		File aFile = new File(dir);
+		if(aFile.isDirectory()){
+			mntmImportStp.setVisible(true);
+			mntmImportStp.addActionListener(this);
+		} else {
+			aFile.mkdir();
+		}
+		if(!aFile.isDirectory()){
+			Log.errorDialog("ERROR", "ERROR can't create the import directory: " + aFile.getAbsolutePath() +  
+					"\nFoxTelem needs to download the stp files to your logfiles dir.  It is either not accessible or not writable\n"
+					+ "Try changing the log files directory");
+			return;
+		}
+		
+		// We have the dir, so pull down the file
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
+		fileProgress.setVisible(true);
+		
+		String urlString = "http://www.amsat.org/tlm/ao85/stp.tar.gz";
+		try {
+		URL website = new URL(urlString);
+		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+		FileOutputStream fos;
+			fos = new FileOutputStream(dir + File.separator + "stp.tar.gz");
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.errorDialog("ERROR", "ERROR writing the server data to: " + dir + File.separator + "stp.tar.gz\n" +
+					e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (MalformedURLException e) {
+			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + dir + File.separator + "stp.tar.gz\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		}
+		
+		fileProgress.updateProgress(100);
+
+		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
+		decompressProgress.setVisible(true);
+
+		// Now decompress it and expand
+		File archive = new File(dir + File.separator + "stp.tar.gz");
+		File destination = new File(dir + File.separator);
+
+		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
+		try {
+			archiver.extract(archive, destination);
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			decompressProgress.updateProgress(100);
+			return;
+		}
+
+		decompressProgress.updateProgress(100);
+
+		// import the data
+		importProgress = new ProgressPanel(this, "importing and merging into log files ...", false);
+		importProgress.setVisible(true);
+
+		importStp(serverData, true);
+		
+		// now cleanup the files
+		importProgress.updateProgress(100);
+
+		
+	}
+	
+	/**
+	 * Get a list of all the files in the STP dir and import them
+	 */
+	private void importStp(String stpDir, boolean delete) {
+		String dir = stpDir;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+
+		}
+		Log.println("IMPORT STP from " + dir);
+		File folder = new File(dir);
+		File[] listOfFiles = folder.listFiles();
+		int duvFrames = 0;
+		int hsFrames = 0;
+		if (listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].isFile() ) {
+					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
+
+					try {
+						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
+						if (decodedFrame != null && !decodedFrame.corrupt) {
+
+							/*
+							if (decodedFrame.receiver.equalsIgnoreCase("DK3WN")) {
+								long t0 = decodedFrame.getExtimateOfT0();
+								if (t0 != 0) {
+									Date d0 = new Date(t0);
+									Log.println(decodedFrame.receiver + ", Reset, " + decodedFrame.getHeader().getResets() + ", Uptime, " +
+											decodedFrame.getHeader().getUptime() + ", STP Date, " + decodedFrame.getStpDate() + ", T0, " + Frame.stpDateFormat.format(d0) + " "
+											+ d0.getTime());
+								}
+							}
+							*/
+							if (decodedFrame instanceof SlowSpeedFrame) {
+								SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
+								FramePart payload = ssf.getPayload();
+								SlowSpeedHeader header = ssf.getHeader();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+								duvFrames++;
+							} else {
+								HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
+								HighSpeedHeader header = hsf.getHeader();
+								PayloadRtValues payload = hsf.getRtPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+								PayloadMaxValues maxPayload = hsf.getMaxPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
+								PayloadMinValues minPayload = hsf.getMinPayload();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
+								PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
+								if (Config.satManager.hasCamera(header.getFoxId())) {
+									PayloadCameraData cameraData = hsf.getCameraPayload();
+									Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+								}
+								hsFrames++;
+							}
+						}
+						if (delete) {
+							listOfFiles[i].delete();
+						}
+						if (importProgress != null)
+							importProgress.updateProgress((100 * i)/listOfFiles.length);
+					} catch (IOException e) {
+						Log.println(e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+			}
+			Log.println("Files Processed: " + listOfFiles.length);
+			Log.println("DUV Frames: " + duvFrames);
+			Log.println("HS Frames: " + hsFrames);
+		}
+	}
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
 	 * window that are not tied to a control that we have added.

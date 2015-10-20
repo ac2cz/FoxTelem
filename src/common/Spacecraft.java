@@ -1,11 +1,19 @@
 package common;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.Properties;
+import java.util.StringTokenizer;
+import java.util.TimeZone;
 
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
@@ -50,7 +58,7 @@ public class Spacecraft {
 	
 	// Flattened ENUM for spacecraft name
 	public static final String[] modelNames = {
-		"Eng Model",
+		"Engineering Model",
 		"Flight Model",
 		"Flight Spare"
 	};
@@ -66,6 +74,14 @@ public class Spacecraft {
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
+	
+	public static final String[] expNames = {
+		"Empty",
+		"Vanderbilt LEP",
+		"Virgina Tech Camera",
+		"IOWA HERCI",
+		"Rad FX Sat"
+	};
 	
 	public int foxId = 1;
 	public int catalogNumber = 0;
@@ -112,11 +128,21 @@ public class Spacecraft {
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 		
+	// User Config
+	public boolean track = true; // default is we track a satellite
+	ArrayList<Long> timeZero = null;
+	
 	public Spacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
 		propertiesFileName = fileName;
 		load();
-
+		try {
+			loadTimeZeroSeries();
+		} catch (FileNotFoundException e) {
+			timeZero = null;
+		} catch (IndexOutOfBoundsException e) {
+			timeZero = null;
+		}
 		rtLayout = new BitArrayLayout(rtLayoutFileName);
 		maxLayout = new BitArrayLayout(maxLayoutFileName);
 		minLayout = new BitArrayLayout(minLayoutFileName);
@@ -137,6 +163,49 @@ public class Spacecraft {
 		if (ihuVBattLookUpTableFileName.equalsIgnoreCase("") && useIHUVBatt == true)
 			throw new LayoutLoadException("File: "+fileName + "\nCan't load a satellite that uses IHU VBatt if the ihuVBatt look-up table is missing");
 		
+	}
+
+	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
+	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yyyy");
+	
+	public boolean hasTimeZero() { 
+		if (timeZero == null) return false;
+		return true;
+	}
+	
+	public boolean hasTimeZero(int reset) { 
+		if (timeZero == null) return false;
+		if (reset >= timeZero.size()) return false;
+		return true;
+	}
+	
+	public String[][] getT0TableData() {
+		if (timeZero == null) return null;
+		String[][] data = new String[timeZero.size()][];
+		for (int i=0; i< timeZero.size(); i++) {
+			data[i] = new String[2];
+			data[i][0] = ""+i;
+			data[i][1] = getUtcDateForReset(i,0) + " " + getUtcTimeForReset(i,0);
+		}
+		return data;
+	}
+	
+	public String getUtcTimeForReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime*1000);
+		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String time = timeDateFormat.format(dt);
+		return time;
+	}
+
+	public String getUtcDateForReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime *1000);
+		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String time = dateDateFormat.format(dt);
+		return time;
 	}
 
 	
@@ -165,6 +234,7 @@ public class Spacecraft {
 		properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
+		properties.setProperty("track", Boolean.toString(track));
 		store();
 	
 	}
@@ -181,7 +251,43 @@ public class Spacecraft {
 		}
 	}
 	
-	public void load() throws LayoutLoadException {
+	public void loadTimeZeroSeries() throws FileNotFoundException {
+		timeZero = new ArrayList<Long>(100);
+        String line;
+        String log = "FOX"+ foxId + Config.t0UrlFile;
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			log = Config.logFileDirectory + File.separator + log;
+			Log.println("Loading: " + log);
+		}
+        //File aFile = new File(log );
+
+        
+        @SuppressWarnings("resource")
+		BufferedReader dis = new BufferedReader(new FileReader(log));
+
+        try {
+        	while ((line = dis.readLine()) != null) {
+        		if (line != null) {
+        			StringTokenizer st = new StringTokenizer(line, ",");
+        			int reset = Integer.valueOf(st.nextToken()).intValue();
+        			long uptime = Long.valueOf(st.nextToken()).longValue();
+        			Log.println("Loaded T0: " + reset + ": " + uptime);
+        			if (reset == timeZero.size())
+        				timeZero.add(uptime);
+        			else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);
+        		}
+        	}
+			dis.close();
+        } catch (IOException e) {
+        	e.printStackTrace(Log.getWriter());
+        	
+        } catch (NumberFormatException n) {
+        	n.printStackTrace(Log.getWriter());
+        }
+		
+	}
+	
+	private void load() throws LayoutLoadException {
 		// try to load the properties from a file
 		try {
 			FileInputStream f=new FileInputStream(Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName);
@@ -213,6 +319,12 @@ public class Spacecraft {
 			rad2LayoutFileName = getProperty("rad2LayoutFileName");
 			measurementsFileName = getProperty("measurementsFileName");
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
+			String t = getOptionalProperty("track");
+			if (t == null) 
+				track = true;
+			else 
+				track = Boolean.parseBoolean(t);
+			
 			herciHSLayoutFileName = getOptionalProperty("herciHSLayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
@@ -225,8 +337,6 @@ public class Spacecraft {
 	}
 	
 	
-
-	@SuppressWarnings("unused")
 	private String getOptionalProperty(String key) throws LayoutLoadException {
 		String value = properties.getProperty(key);
 		if (value == null) {

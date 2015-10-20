@@ -2,6 +2,8 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
+import common.Config;
+
 import decoder.BitStream;
 import decoder.Decoder;
 
@@ -30,7 +32,6 @@ public class PayloadRadExpData extends FramePart {
 	
 	public static final int MAX_PAYLOAD_RAD_SIZE = 58;
 	
-	
 	PayloadRadExpData(BitArrayLayout lay) {
 		super(lay);
 		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
@@ -48,12 +49,41 @@ public class PayloadRadExpData extends FramePart {
 		type = TYPE_RAD_EXP_DATA;
 	}
 	
+	/*
 	public void copyBitsTo58Fields() {
 		resetBitPosition();
 		for (int i =0; i< MAX_PAYLOAD_RAD_SIZE; i++)
 			fieldValue[i] = nextbits(8);	
 	}
-
+*/
+	
+	
+	/**
+	 * If byte 21 onwards is zero then this is telemetry.  Zeros are not allowed in the packet format because of the
+	 * COBS routine.  So if we find zeros, this is telemetry
+	 * To be sure we check for 3 zeros in a row
+	 * @return
+	 */
+	public boolean isTelemetry() {
+		for (int i=21; i < 25; i++)
+			if (fieldValue[i] != 0) return false;
+		return true;
+	}
+	
+	/**
+	 * Calculate the telemetry and return it
+	 * @return
+	 */
+	public RadiationTelemetry calculateTelemetryPalyoad() {
+		if (isTelemetry()) {
+			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getRadTelemLayout(id));
+			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+				radTelem.addNext8Bits(fieldValue[k]);
+			}
+			return radTelem;
+		}
+		return null;
+	}
 	
 	/**
 	 * We have bytes in big endian order, so we need to add the bits in a way
