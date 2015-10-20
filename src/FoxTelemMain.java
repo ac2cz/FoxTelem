@@ -447,6 +447,7 @@ import decoder.Decoder;
  * Better doppler tracking in IQ mode and more stable estimate of the received frequency
  * Better Find Signal algorithm with tuning paramaters for experts
  * Read T0 from the server and use to plot graphs in UTC
+ * If showRawValues is checked then save CSV files as raw values
  * 
  */
 
