@@ -84,7 +84,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	private String length; // The frame length in bytes
 	private String rx_location = NONE; // the lat, long and altitude
 	private String receiver_rf = NONE; // human description of the receiver
-	private String demodulator; // will contain Config.VERSION
+	public String demodulator; // will contain Config.VERSION
 	private Date stpDate;
 	private long sequenceNumber = Sequence.ERROR_NUMBER;
 	
@@ -138,6 +138,7 @@ public abstract class Frame implements Comparable<Frame>  {
 	}
 
 	public String getStpDate() {
+		if (stpDate == null) return null;
 		return Frame.stpDateFormat.format(stpDate);
 	}
 	
@@ -346,6 +347,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		byte[] rawFrame = null;
 		int length = 0;
 		String receiver = null;
+		String demodulator = null;
 		Date stpDate = null;
 		boolean firstColon = true;
 		
@@ -379,6 +381,10 @@ public abstract class Frame implements Comparable<Frame>  {
             		}
             		if (key.equalsIgnoreCase("Receiver")) {
             			receiver = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("Demodulator")) {
+            			demodulator = value;
 //                		System.out.println(key + " " + value);
             		}
             		if (key.startsWith("Date")) {
@@ -433,6 +439,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		}
 		frm.addRawFrame(frame);
 		frm.receiver = receiver;
+		frm.demodulator = demodulator;
 		frm.stpDate = stpDate;
 
 		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||

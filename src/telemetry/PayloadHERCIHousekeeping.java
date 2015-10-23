@@ -26,14 +26,14 @@ import decoder.BitStream;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class RadiationTelemetry extends FramePart {
+public class PayloadHERCIHousekeeping extends FramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 58;
 	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
 	public int reset;
 	public long uptime;
 
-	public RadiationTelemetry(int r, long u, BitArrayLayout l) {
+	public PayloadHERCIHousekeeping(int r, long u, BitArrayLayout l) {
 		super(l);
 		reset = r;
 		uptime = u;
@@ -41,7 +41,7 @@ public class RadiationTelemetry extends FramePart {
 		
 	}
 
-	public RadiationTelemetry(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+	public PayloadHERCIHousekeeping(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);	
 	}
 

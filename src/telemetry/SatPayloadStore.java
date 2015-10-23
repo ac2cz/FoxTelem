@@ -49,6 +49,7 @@ import common.Spacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
+	private Spacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
 	
@@ -92,6 +93,7 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
+		fox = Config.satManager.getSpacecraft(foxId);
 		initPayloadFiles();
 		try {
 			rtFileName = "Fox"+id+RT_LOG;
@@ -213,7 +215,7 @@ public class SatPayloadStore {
 		radRecords.add(f);
 		
 		// Capture and store any secondary payloads
-		if (f.isTelemetry()) {
+		if (fox.hasHerci() || f.isTelemetry()) {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
 			add(radiationTelemetry);
@@ -513,6 +515,13 @@ public class SatPayloadStore {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;
+        				// One off Capture and store any secondary payloads
+//        				if (fox.hasHerci() || rt.isTelemetry()) {
+ //       					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
+  //      					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+   //     					add(radiationTelemetry);
+    //    				}
+
         			}
         			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
         				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));

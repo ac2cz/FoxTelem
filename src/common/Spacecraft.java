@@ -185,6 +185,7 @@ public class Spacecraft {
 	
 	public String[][] getT0TableData() {
 		if (timeZero == null) return null;
+		if (timeZero.size() == 0) return null;
 		String[][] data = new String[timeZero.size()][];
 		for (int i=0; i< timeZero.size(); i++) {
 			data[i] = new String[2];

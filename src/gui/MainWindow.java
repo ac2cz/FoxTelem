@@ -40,6 +40,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import common.Config;
 import common.DesktopApi;
@@ -330,8 +333,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					addExperimentTab(sats.get(s), s);
 				if (exp == Spacecraft.EXP_VT_CAMERA)
 					addCameraTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_IOWA_HERCI)
+				if (exp == Spacecraft.EXP_IOWA_HERCI) {
+
 					addHerciTab(sats.get(s), s);
+				}
+					
 			}
 			
 		}
@@ -385,9 +391,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	private static void addHerciTab(Spacecraft fox, int num) {
+
+		radiationTab[num] = new HerciLSTab(fox);
+		radiationThread[num] = new Thread((HerciLSTab)radiationTab[num]);
+		radiationThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		radiationThread[num].start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+		" HERCI HK ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
+
 		
-		radiationTab[num] = new HerciTab(fox);
-		radiationThread[num] = new Thread((HerciTab)radiationTab[num]);
+		radiationTab[num] = new HerciHSTab(fox);
+		radiationThread[num] = new Thread((HerciHSTab)radiationTab[num]);
 //		radiationTab[num] = new RadiationTab(fox);
 //		radiationThread[num] = new Thread((RadiationTab)radiationTab[num]);
 			
@@ -848,6 +863,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		File[] listOfFiles = folder.listFiles();
 		int duvFrames = 0;
 		int hsFrames = 0;
+		int version1 = 0;
+		int version101 = 0;
+		HashMap<String, Integer> callsigns = new HashMap<String, Integer>();
+		HashMap<String, String> versions = new HashMap<String, String>();
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
@@ -856,7 +875,17 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					try {
 						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
 						if (decodedFrame != null && !decodedFrame.corrupt) {
-
+							String dt = decodedFrame.getStpDate(); 
+							if (dt != null && dt.contains("22 Oct 2015")) { // today
+								//Log.println(decodedFrame.receiver + ", STP Date, " + decodedFrame.getStpDate() + " " + decodedFrame.demodulator );
+								if (decodedFrame.demodulator.contains("1.01i")) version101++; else version1++;
+								Integer c = callsigns.get(decodedFrame.receiver);
+								if (c != null)
+									callsigns.put(decodedFrame.receiver, c+1);
+								else
+									callsigns.put(decodedFrame.receiver, 1);
+								versions.put(decodedFrame.receiver, decodedFrame.demodulator);
+							}
 							/*
 							if (decodedFrame.receiver.equalsIgnoreCase("DK3WN")) {
 								long t0 = decodedFrame.getExtimateOfT0();
@@ -906,6 +935,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			Log.println("Files Processed: " + listOfFiles.length);
 			Log.println("DUV Frames: " + duvFrames);
 			Log.println("HS Frames: " + hsFrames);
+			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
+			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
+			
+			Iterator it = callsigns.entrySet().iterator();
+		    while (it.hasNext()) {
+		        Map.Entry pair = (Map.Entry)it.next();
+		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
+		    }
 		}
 	}
 	/**

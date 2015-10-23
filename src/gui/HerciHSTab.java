@@ -49,7 +49,7 @@ import decoder.Decoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciTab extends RadiationTab implements Runnable, ItemListener {
+public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 410;
@@ -67,7 +67,7 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
-	public HerciTab(Spacecraft sat) {
+	public HerciHSTab(Spacecraft sat) {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
