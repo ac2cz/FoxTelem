@@ -79,6 +79,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JPanel footerPanel;
 	
 	private JButton btnLatest;
+	private JButton btnVerticalLines;
+	private JButton btnHorizontalLines;
 	private JButton btnCSV;
 	private JButton btnCopy;
 	private JButton btnDerivative;
@@ -118,6 +120,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	public boolean plotDerivative;
 	public boolean dspAvg;
+	public boolean showVerticalLines;
+	public boolean showHorizontalLines;
 	public boolean displayMain = true;
 	public boolean showUTCtime = false;
 	public boolean showUptime = true;
@@ -178,7 +182,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		
 		// Toolbar buttons
-		
+		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
+		titlePanelLeft.add(btnHorizontalLines);
+		if (this.textDisplay) btnHorizontalLines.setVisible(false);
+
+		btnVerticalLines = createIconButton("/images/verticalLines.png","Verrtical","Show Vertical Lines");
+		titlePanelLeft.add(btnVerticalLines);
+		if (this.textDisplay) btnVerticalLines.setVisible(false);
+
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
 		btnMain.setToolTipText("Hide the unprocessed telemetry data");
@@ -568,7 +579,23 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}  else if (e.getSource() == btnCopy) {
 			copyToClipboard();
 			Log.println("Graph copied to clipboard");
-		}  else if (e.getSource() == btnDerivative) {
+		}  else if (e.getSource() == btnHorizontalLines) {
+			showHorizontalLines = !showHorizontalLines;
+			//Log.println("Plot Derivative " + plotDerivative);
+			if (showHorizontalLines) {	
+				btnHorizontalLines.setBackground(Color.RED);
+			} else
+				btnHorizontalLines.setBackground(Color.GRAY);
+			panel.updateGraphData();
+		} else if (e.getSource() == btnVerticalLines) {
+			showVerticalLines = !showVerticalLines;
+			//Log.println("Plot Derivative " + plotDerivative);
+			if (showVerticalLines) {	
+				btnVerticalLines.setBackground(Color.RED);
+			} else
+				btnVerticalLines.setBackground(Color.GRAY);
+			panel.updateGraphData();
+		} else if (e.getSource() == btnDerivative) {
 			plotDerivative = !plotDerivative;
 			//Log.println("Plot Derivative " + plotDerivative);
 			if (plotDerivative) {	
