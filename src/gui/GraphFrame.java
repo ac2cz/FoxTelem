@@ -115,7 +115,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JTextField txtAvgPeriod;
 	private JLabel lblFromReset;
 	private JTextField textFromReset;
-	private DiagnosticTextArea textArea;
+	//private DiagnosticTextArea textArea;
 	private DiagnosticTable diagnosticTable;
 	
 	public boolean plotDerivative;
@@ -170,7 +170,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
 				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR ) {   // Should not hard code this - need to update
 			//textArea = new DiagnosticTextArea(title, fieldName, this);
-			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this);
+			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
 			//JScrollPane scroll = new JScrollPane (diagnosticTable, 
 			//		   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
@@ -313,7 +313,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanelLeft.add(chckbxPlotAllUptime);
 	
 		chckbxPlotAllUptime.addItemListener(this);
-	
+		if (this.textDisplay) chckbxPlotAllUptime.setVisible(false);
 	}
 
 	private void setAvgVisible(boolean f) {
@@ -632,7 +632,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD;
 			}
 			if (textDisplay)
-				textArea.updateData();
+				diagnosticTable.updateData();
 			else
 				panel.updateGraphData();
 		}
@@ -644,7 +644,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				showUTCtime = true;
 			}
 			if (textDisplay)
-				textArea.updateData();
+				diagnosticTable.updateData();
 			else
 				panel.updateGraphData();
 		}
@@ -655,7 +655,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				showUptime = true;
 			}
 			if (textDisplay)
-				textArea.updateData();
+				diagnosticTable.updateData();
 			else
 				panel.updateGraphData();
 		}
