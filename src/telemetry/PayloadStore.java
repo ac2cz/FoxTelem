@@ -184,6 +184,17 @@ public class PayloadStore implements Runnable {
 		if (store != null)
 			store.setUpdatedHerci(u);
 	}
+	public boolean getUpdatedHerciHeader(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdatedHerciHeader();
+		return false;
+	}
+	public void setUpdatedHerciHeader(int id, boolean u) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdatedHerciHeader(u);
+	}
 	public boolean getUpdatedCamera(int id) { 
 		SatPictureStore store = getPictureStoreById(id);
 		if (store != null)
@@ -457,6 +468,14 @@ public class PayloadStore implements Runnable {
 
 	}
 
+	public HerciHighspeedHeader getLatestHerciHeader(int id) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLatestHerciHeader();
+		return null;
+
+	}
+
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -508,6 +527,12 @@ public class PayloadStore implements Runnable {
 			return store.getRadTelemData(period, id, fromReset, fromUptime);
 		return null;
 	}
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getHerciPacketData(period, id, fromReset, fromUptime);
+		return null;
+	}
 	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
@@ -519,13 +544,6 @@ public class PayloadStore implements Runnable {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
 			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime);
-		return null;
-	}
-
-	public String getRtUTCFromUptime(int id, int reset, long uptime) {
-		SatPayloadStore store = getPayloadStoreById(id);
-		if (store != null)
-			return store.getRtUTCFromUptime(reset, uptime);
 		return null;
 	}
 	

@@ -183,8 +183,8 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 //		else
 //			decodePacket.setSelected(true);
 		
-//		decodeTelem.setMinimumSize(new Dimension(1600, 14));
-//		decodeTelem.setMaximumSize(new Dimension(1600, 14));
+		showRawValues.setMinimumSize(new Dimension(1600, 14));
+		showRawValues.setMaximumSize(new Dimension(1600, 14));
 
 		addBottomFilter();
 		
@@ -271,17 +271,20 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 	}
 	
 	protected void parseRadiationFrames() {
-		String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 		
-		if (data.length > 0)
 			if (Config.displayRawRadData) {
-				radTableModel.setData(parseRawBytes(data));
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				if (data.length > 0)
+					radTableModel.setData(parseRawBytes(data));
 			} else {
+				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				if (data.length > 0) {
 					parseTelemetry(data);
-					topHalfPackets.setVisible(false);
-					bottomHalfPackets.setVisible(false);
-					topHalf.setVisible(true);
-					bottomHalf.setVisible(true);
+				}
+			//		topHalfPackets.setVisible(false);
+			//		bottomHalfPackets.setVisible(false);
+			//		topHalf.setVisible(true);
+			//		bottomHalf.setVisible(true);
 
 			}
 	
@@ -299,41 +302,27 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 	
 	private void parseTelemetry(String data[][]) {
 		
-		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
-		
-		// try to decode any telemetry packets
-		for (int i=0; i<data.length; i++) {
-			RadiationTelemetry radTelem = null;
-			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.rad2Layout);
-			for (int k=2; k<PayloadHERCIHousekeeping.MAX_RAD_TELEM_BYTES+2; k++) {  // Add 2 to skip past reset uptime
-				try {
-					radTelem.addNext8Bits(Integer.valueOf(data[i][k]));
-				} catch (NumberFormatException e) {
-
-				}
+		// Now put the telemetry data into the table data structure
+		int len = data.length;
+		String[][] packetData = new String[len][5];
+		for (int i=0; i < len; i++) { 
+			packetData[len-i-1][0] = ""+data[i][0];
+			packetData[len-i-1][1] = ""+data[i][1];
+			packetData[len-i-1][2] = "TELEMETRY";
+			packetData[len-i-1][3] = ""+data[i][2];
+			String telem = "";
+			for (int j=2; j< 25+2; j++) {  // 25 is the number of fieleds in the HERCI LS Telem Data
+				telem = telem + data[i][j] + " ";
+				
 			}
-			if (radTelem != null) {
-				packets.add(radTelem);
-			}
-			
-		}
-		
-		// Now put the telemetry packets into the table data structure
-		String[][] packetData = new String[packets.size()][5];
-		for (int i=0; i < packets.size(); i++) { 
-			packetData[packets.size()-i-1][0] = ""+packets.get(i).reset;
-			packetData[packets.size()-i-1][1] = ""+packets.get(i).uptime;
-			packetData[packets.size()-i-1][2] = "TELEMETRY";
-			packetData[packets.size()-i-1][3] = ""+packets.get(i).fieldValue[3]; // UPTIME
-			String telem = packets.get(i).toDataString(fox);
-			packetData[packets.size()-i-1][4] = telem; 
+			packetData[len-i-1][4] = telem;
 		}
 
 		if (packetData.length > 0) {
 			radPacketTableModel.setData(packetData);
 		}
-		//updateTab(Config.payloadStore.getLatestRadTelem(foxId));
-		updateTab(packets.get(packets.size()-1));
+		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+		//updateTab(data.get(packets.size()-1));
 	}
 	
 	
@@ -350,10 +339,6 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 					mod.updateRtValues(rad);
 			}
 		}
-//		displayId(rad.getFoxId());
-//		displayUptime(rad.getUptime());
-//		displayResets(rad.getResets());
-//		displayCaptureDate(rad.getCaptureDate());
 	}
 
 	
@@ -400,6 +385,14 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 				Config.displayRawRadData = true;
 			}
 	//		Config.save();
+			if (showRawValues.isSelected()) {
+				packetScrollPane.setVisible(false); 
+				scrollPane.setVisible(true);
+			} else { 
+				packetScrollPane.setVisible(true);
+				scrollPane.setVisible(false);
+			}
+
 			parseRadiationFrames();
 			
 		}

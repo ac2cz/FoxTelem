@@ -1,7 +1,10 @@
 package telemetry;
 
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import common.Config;
+import common.Spacecraft;
 import decoder.Decoder;
 
 /**
@@ -128,76 +131,6 @@ Transfer Frame:
       of data.
 
 
-Minipacket:
-  In spite of living in the Z80 world of LSB first,
-the HEADERS in the science minipacket are stored
-MSB first when size exceeds 8 bits.  The comment
-about Big-Endian above allpies here as well.
-
-         +0              +1
-        +-------+-------+-------+-------+
-     +0 | Type  |         Length        |
-        +-------+-------+-------+-------+
-     +2 |    Truncated Time (ticks)     |
-        +-------+-------+-------+-------+
-     +4 | Segmentation  |     Status    |
-        +-------+-------+-------+-------+
-     +6 |             Status            |
-        +-------+-------+-------+-------+
-     +8 |   Data
-        .    
-        .    
-        .    
-        +-------+-------+-------+-------+
-
-  Type:
-      Type field indicating where the data was generated.
-      HERCI will produce a limited set of types:
-
-      0000    Fill Data, length will be zero.  No more
-              minipacket data appears in the transfer frame
-              after the fill data. 
-
-  Length:
-      Number of bytes that FOLLOW the STATUS bytes minuz one.
-      A minipacket with 4096 bytes if data will have a length 
-      of 4095 (0x0FFF),
-
-  Truncated Time:
-      The timetag is placed at the begining of a data collection
-      cycle or buffer of data.  The value is calcualted by masking
-      the system time seconds field, shifting it to the left and 
-      adding in the sub-seconds.  Assuming a 25mS tick rate, the
-      following calculation would be used:
-          TRUNC_TIME = (SYSTEM_TIME_32 & 0x000003FF)*40 + RTI
-              TRUNC_TIME is the field in the minipacket
-              SYSTEM_TIME_32 is the 32 bit seconds field
-              RTI is the current sub-seconds, which increments 
-                  every 25mSec, counting from 0 to 39.
-
-  Segmentation:
-      D7      Data Quality bit.
-              Set to indicate data is of questionable quality.
-      D6..D5  MSF; More Status Follows.
-              These bits indicate the length of the status
-              field.  These bits are combined with the length
-              field to determine total minipacket length.
-              00    Header is  8 octets.  Overall length is 'Length' + 7
-              01    Header is 10 octets.  Overall length is 'Length' + 9
-              10    Header is 12 octets.  Overall length is 'Length' + 11
-              11    Header is 16 octets.  Overall length is 'Length' + 15
-      D4      EOF indicator.  This bit is set in the last
-                  segment of data packet.  Unsegmented data
-                  packets will have this bit set. 
-      D3..D0  Segment Number.  Allows for up to 16 4K segments
-                  in a unique data packet.  Note that the
-                  Truncated Time field will be identical in
-                  all segments of a data packet.
-
-  Status:
-              3, 5, 7 or 11 'Type'-specific status octets.
-              Each subsystem within the FLEXI system will produce
-              a unique 'Type' and status bit assignment.
 
  */
 public class PayloadHERCIhighSpeed extends FramePart {
@@ -228,18 +161,47 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		type = FramePart.TYPE_HERCI_HIGH_SPEED_DATA;
 	}
 
-	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	/**
+	 * Calculate the telemetry and return it
+	 * @return
+	 */
+	public HerciHighspeedHeader calculateTelemetryPalyoad() {
+		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getHerciHSHeaderLayout(id));
+		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
+			radTelem.addNext8Bits(fieldValue[k]);
+		}
+		return radTelem;
 	}
 
-//	public void copyBitsToFields() {
-//		resetBitPosition();
-//		for (int i =0; i< MAX_PAYLOAD_SIZE; i++)
-//			fieldValue[i] = nextbits(8);	
-//	}
+	public ArrayList<HerciHighSpeedPacket> calculateTelemetryPackets() {
+		ArrayList<HerciHighSpeedPacket> packets = new ArrayList<HerciHighSpeedPacket>();
+		
+		boolean morePackets = true;
+		int packetDataStart = 8;;
+		while (morePackets) {
+			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime);
+			for (int k=0; k<HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES; k++) { 
+				radTelem.addNext8Bits(fieldValue[k+16]);
+			}
+			radTelem.initPacket();
+			if (radTelem.getLength() > 0) {
+				if (packetDataStart + radTelem.getLength() <= HerciHighSpeedPacket.MAX_PACKET_BYTES) {
+					for (int k=0; k<radTelem.getLength(); k++) {
+						radTelem.addNext8Bits(fieldValue[k+16+packetDataStart]);
+					}
+					packetDataStart = 16 + radTelem.getLength() + packetDataStart;  // FIXME - 16 is the length  of the science header in BYTES
+					packets.add(radTelem);
+				} else {
+					morePackets = false;
+				}
+			} else {
+				morePackets = false;
+			}
+		}
+		return packets;
+	}
 
+	
 	@Override
 	public String toString() {
 		copyBitsToFields();
@@ -265,6 +227,12 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		//s = s + Decoder.dec(fieldValue[fieldValue.length-1]);
 		s = s + fieldValue[fieldValue.length-1];
 		return s;
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

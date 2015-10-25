@@ -120,6 +120,16 @@ public class SatelliteManager {
 		}
 		return null;
 	}
+
+	public BitArrayLayout getHerciHSHeaderLayout(int sat) {
+		Spacecraft sc = getSpacecraft(sat);
+		if (sc != null) {
+			if (sc.hasHerci())
+				return sc.herciHS2Layout;
+		}
+		return null;
+	}
+
 	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		Spacecraft sc = getSpacecraft(sat);

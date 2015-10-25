@@ -11,6 +11,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
@@ -63,6 +64,8 @@ public class SatPayloadStore {
 	public static String RAD_TELEM_LOG = "radtelemetry2.log";
 
 	public static String HERCI_LOG = "herciHSdata.log";
+	public static String HERCI_HEADER_LOG = "herciHSheader.log";
+	public static String HERCI_PACKET_LOG = "herciHSpackets.log";
 	
 	public String rtFileName;
 	public String maxFileName;
@@ -70,6 +73,8 @@ public class SatPayloadStore {
 	public String radFileName;
 	public String radTelemFileName;
 	public String herciFileName;
+	public String herciHeaderFileName;
+	public String herciPacketFileName;
 	
 	SortedFramePartArrayList rtRecords;
 	SortedFramePartArrayList maxRecords;
@@ -77,6 +82,8 @@ public class SatPayloadStore {
 	SortedFramePartArrayList radRecords;
 	SortedFramePartArrayList radTelemRecords;
 	SortedFramePartArrayList herciRecords;
+	SortedFramePartArrayList herciHeaderRecords;
+	SortedFramePartArrayList herciPacketRecords;
 	
 	boolean updatedRt = false;
 	boolean updatedMax = false;
@@ -84,8 +91,12 @@ public class SatPayloadStore {
 	boolean updatedRad = false;
 	boolean updatedRadTelem = false;
 	boolean updatedHerci = false;
+	boolean updatedHerciHeader = false;
+	boolean updatedHerciPacket = false;
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
+	public static final int MAX_HERCI_PACKET_DATA_LENGTH = 128;
+	public static final int MAX_HERCI_HK_DATA_LENGTH = 27; // 25 fields plus the 2 fields needed for Reset and Uptime
 	
 	/**
 	 * Create the payload store this this fox id
@@ -104,9 +115,13 @@ public class SatPayloadStore {
 			load(rtFileName);
 			load(maxFileName);
 			load(minFileName);
-			load(radFileName);
 			load(radTelemFileName);
+			load(radFileName);
 			if (Config.satManager.hasHerci(foxId)) {
+				herciHeaderFileName = "Fox"+id+HERCI_HEADER_LOG;
+				load(herciHeaderFileName);
+				herciPacketFileName = "Fox"+id+HERCI_PACKET_LOG;
+				load(herciPacketFileName);
 				herciFileName = "Fox"+id+HERCI_LOG;
 				load(herciFileName);
 			}
@@ -126,8 +141,11 @@ public class SatPayloadStore {
 		minRecords = new SortedFramePartArrayList(INIT_SIZE);
 		radRecords = new SortedFramePartArrayList(INIT_SIZE);
 		radTelemRecords = new SortedFramePartArrayList(INIT_SIZE);
-		if (Config.satManager.hasHerci(foxId))
+		if (Config.satManager.hasHerci(foxId)) {
 			herciRecords = new SortedFramePartArrayList(INIT_SIZE);
+			herciHeaderRecords = new SortedFramePartArrayList(INIT_SIZE);
+			herciPacketRecords = new SortedFramePartArrayList(INIT_SIZE);
+		}
 	}
 	
 	public void setUpdatedAll() {
@@ -137,7 +155,8 @@ public class SatPayloadStore {
 		updatedRad = true;
 		updatedRadTelem = true;
 		updatedHerci = true;
-		
+		updatedHerciHeader = true;
+		updatedHerciPacket = true;
 	}
 	
 	public boolean getUpdatedRt() { return updatedRt; }
@@ -166,6 +185,16 @@ public class SatPayloadStore {
 	public boolean getUpdatedHerci() { return updatedHerci; }
 	public void setUpdatedHerci(boolean u) {
 		updatedHerci = u;
+	}
+
+	public boolean getUpdatedHerciHeader() { return updatedHerciHeader; }
+	public void setUpdatedHerciHeader(boolean u) {
+		updatedHerciHeader = u;
+	}
+
+	public boolean getUpdatedHerciPacket() { return updatedHerciPacket; }
+	public void setUpdatedHerciPacket(boolean u) {
+		updatedHerciPacket = u;
 	}
 	
 	public int getNumberOfFrames() {
@@ -219,10 +248,32 @@ public class SatPayloadStore {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
 			add(radiationTelemetry);
+			updatedRadTelem = true;
 		}
 		return true;
 	}
-	
+
+	private boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
+		herciRecords.add(f);
+		
+		// Capture and store any secondary payloads
+		
+		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+		add(radiationTelemetry);
+		updatedHerciHeader = true;
+
+		ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+		for(int i=0; i< pkts.size(); i++) {
+			HerciHighSpeedPacket pk = pkts.get(i);
+			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			add(pk);
+			updatedHerciPacket = true;
+
+		}
+		return true;
+	}
+
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -277,9 +328,30 @@ public class SatPayloadStore {
 				if (Config.debugFrames) Log.println("DUPLICATE RAD TELEM RECORD, not loaded");
 			}
 		} else if (f instanceof PayloadHERCIhighSpeed ) {
-			updatedHerci = true;
-			save(f, herciFileName);				
-			return herciRecords.add(f);
+			if (!herciRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
+				updatedHerci = true;
+				save(f, herciFileName);				
+				return addHerciRecord((PayloadHERCIhighSpeed)f);
+			} else {
+				if (Config.debugFrames) Log.println("DUPLICATE HERCI RECORD, not loaded");
+			}
+		} else if (f instanceof HerciHighspeedHeader ) {
+			if (!herciHeaderRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
+				updatedHerciHeader = true;
+					save(f, herciHeaderFileName);				
+				return herciHeaderRecords.add(f);
+			} else {
+				if (Config.debugFrames) Log.println("DUPLICATE HERCI HS HEADER RECORD, not loaded");
+			}
+		} else if (f instanceof HerciHighSpeedPacket ) {
+			//if (!herciPacketRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
+			// FIXME - Duplicate check needs to be based on packet sequence and not Fox Timebase
+				updatedHerciPacket = true;
+					save(f, herciPacketFileName);				
+				return herciPacketRecords.add(f);
+			//} else {
+			//	if (Config.debugFrames) Log.println("DUPLICATE HERCI HS PACKET RECORD, not loaded");
+			//}
 		}
 		return false;
 	}
@@ -313,6 +385,12 @@ public class SatPayloadStore {
 		if (herciRecords.size() == 0) return null;
 		return (PayloadHERCIhighSpeed) herciRecords.get(herciRecords.size()-1);
 	}
+
+	public HerciHighspeedHeader getLatestHerciHeader() {
+		if (herciHeaderRecords.size() == 0) return null;
+		return (HerciHighspeedHeader) herciHeaderRecords.get(herciHeaderRecords.size()-1);
+	}
+
 
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
@@ -348,10 +426,15 @@ public class SatPayloadStore {
 	}
 	
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
-		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, 20);
+		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, MAX_HERCI_HK_DATA_LENGTH); 
 
 	}
-	
+
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+		return getRadData(herciPacketRecords, period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
+
+	}
+
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -515,13 +598,12 @@ public class SatPayloadStore {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;
-        				// One off Capture and store any secondary payloads
-//        				if (fox.hasHerci() || rt.isTelemetry()) {
- //       					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
-  //      					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
-   //     					add(radiationTelemetry);
-    //    				}
-
+        				// Capture and store any secondary payloads, this is duplicative but thorough
+        				if (fox.hasHerci() || rt.isTelemetry()) {
+        					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
+        					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+        					add(radiationTelemetry);
+        				}
         			}
         			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
         				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
@@ -532,6 +614,17 @@ public class SatPayloadStore {
         				PayloadHERCIhighSpeed rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
         				herciRecords.add(rt);
         				updatedHerci = true;
+    					HerciHighspeedHeader headerRec = rt.calculateTelemetryPalyoad();
+    					headerRec.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+    					add(headerRec);
+    					updatedHerciHeader = true;
+    		    		ArrayList<HerciHighSpeedPacket> pkts = rt.calculateTelemetryPackets();
+      					for(int i=0; i< pkts.size(); i++) {
+      						HerciHighSpeedPacket pk = pkts.get(i);
+      						pk.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+      						add(pk);
+      					}
+    					updatedHerciPacket = true;
         			}
         		}
         	}
@@ -590,6 +683,8 @@ public class SatPayloadStore {
 				remove(dir+radFileName);
 				remove(dir+radTelemFileName);
 				remove(dir+herciFileName);
+				remove(dir+herciHeaderFileName);
+				remove(dir+herciPacketFileName);
 				initPayloadFiles();
 				setUpdatedAll();
 			} catch (IOException ex) {

@@ -110,6 +110,7 @@ public class Spacecraft {
 	public String radLayoutFileName;
 	public String rad2LayoutFileName;
 	public String herciHSLayoutFileName;
+	public String herciHS2LayoutFileName;
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
 
@@ -125,6 +126,7 @@ public class Spacecraft {
 	public BitArrayLayout radLayout;
 	public BitArrayLayout rad2Layout;
 	public BitArrayLayout herciHSLayout;
+	public BitArrayLayout herciHS2Layout;
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 		
@@ -153,6 +155,12 @@ public class Spacecraft {
 		else
 			if (this.hasHerci()) {
 				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI experiment if herciHSLayoutFileName is not specified");
+			}
+		if (herciHS2LayoutFileName != null)
+			herciHS2Layout = new BitArrayLayout(herciHS2LayoutFileName);
+		else
+			if (this.hasHerci()) {
+				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI science header file - herciHS2LayoutFileName is not specified");
 			}
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
@@ -237,6 +245,8 @@ public class Spacecraft {
 		properties.setProperty("minLayoutFileName", minLayoutFileName);
 		properties.setProperty("radLayoutFileName", radLayoutFileName);
 		properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
+		properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
+		properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		properties.setProperty("track", Boolean.toString(track));
@@ -331,6 +341,7 @@ public class Spacecraft {
 				track = Boolean.parseBoolean(t);
 			
 			herciHSLayoutFileName = getOptionalProperty("herciHSLayoutFileName");
+			herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );

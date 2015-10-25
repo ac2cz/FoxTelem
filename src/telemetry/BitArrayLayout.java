@@ -85,6 +85,8 @@ public class BitArrayLayout {
 	public static final int CONVERT_16_SEC_UPTIME = 25;
 	public static final int CONVERT_FREQ = 26;
 	public static final int CONVERT_VULCAN_STATUS = 27;
+	public static final int CONVERT_HERCI_HEX = 28;
+	public static final int CONVERT_HERCI_SOURCE = 29;
 
 	/**
 	 * Create an empty layout for manual init
