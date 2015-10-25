@@ -182,6 +182,7 @@ public class Spacecraft {
 	
 	public boolean hasTimeZero() { 
 		if (timeZero == null) return false;
+		if (timeZero.size() == 0) return false;
 		return true;
 	}
 	

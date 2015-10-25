@@ -449,6 +449,12 @@ import decoder.Decoder;
  * Read T0 from the server and use to plot graphs in UTC
  * If showRawValues is checked then save CSV files as raw values
  * 
+ * Version 1.02
+ * Fixed bug where opening the Fox-1A spacecraft menu would cause a crash
+ * Added horizontal and vertical lines to the graphs if button clicked
+ * Fixed Typo on measurements tab
+ * Fixed a bug where UTC was not displayed for the Diagnostic tables
+ * 
  */
 
 public class FoxTelemMain {

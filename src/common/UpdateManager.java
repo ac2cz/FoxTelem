@@ -87,7 +87,7 @@ public class UpdateManager implements Runnable {
 	
 	public void updateT0(Spacecraft sat) {
 		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
-		String file = Config.t0UrlFile;
+		String file = "FOX" + sat.foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + "FOX" + sat.foxId + Config.t0UrlFile;			
 		}

@@ -290,7 +290,12 @@ public class GraphPanel extends JPanel {
 					g2.setColor(graphTextColor);
 					g2.drawString(s, sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); // add 4 to line up with tick line
 					g2.setColor(graphAxisColor);
-					g.drawLine(sideBorder-5, pos+topBorder, sideBorder+5, pos+topBorder);
+					if (graphFrame.showHorizontalLines) {
+						g2.setColor(Color.GRAY);
+						g2.drawLine(sideBorder-5, pos+topBorder, graphWidth+sideBorder, pos+topBorder);
+						g2.setColor(graphTextColor);
+					} else
+						g.drawLine(sideBorder-5, pos+topBorder, sideBorder+5, pos+topBorder);
 				}
 			}
 			if (!foundZeroPoint) {
@@ -501,7 +506,11 @@ public class GraphPanel extends JPanel {
 					}
 				}
 				g2.setColor(graphAxisColor);
-				g.drawLine(timepos+sideBorder, zeroPoint-5, timepos+sideBorder, zeroPoint+5);
+				if (graphFrame.showVerticalLines) {
+					g2.setColor(Color.GRAY);
+					g.drawLine(timepos+sideBorder, graphHeight + topBorder+5, timepos+sideBorder, topBorder-5);
+				} else
+					g.drawLine(timepos+sideBorder, zeroPoint-5, timepos+sideBorder, zeroPoint+5);
 				firstLabel = false;
 			}
 		}
