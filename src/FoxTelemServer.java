@@ -4,6 +4,7 @@ import java.net.ServerSocket;
 import telemServer.ServerConfig;
 import telemServer.ServerProcess;
 import common.Config;
+import common.Log;
 
 
 
@@ -17,7 +18,8 @@ public class FoxTelemServer {
 	public static void main(String[] args) {
 		
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
-		
+		Log.init("FoxServer.log");
+		Log.showGuiDialogs = false;
 		System.out.println("Starting FoxServer: " + version);
 		System.out.println("Listening on port: " + 41042);
 

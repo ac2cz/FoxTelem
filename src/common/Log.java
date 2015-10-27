@@ -49,12 +49,14 @@ public class Log {
 	public static SourceTab logPanel;
 	public static String logFile = "FoxTelemDecoder.log";
 	public static Thread.UncaughtExceptionHandler uncaughtExHandler;
+	public static boolean showGuiDialogs = true;
 	/**
 	 * Initialise the logger and create a logfile with the passed name
 	 * @param file
 	 * @throws IOException 
 	 */
-	public static void init() {
+	public static void init(String logFile) {
+		Log.logFile = logFile;
 		if (Config.logging) {
 			try {
 				if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -101,7 +103,7 @@ public class Log {
 	
 	public static void print(String s) {
 		if (Config.logging) {
-			if (output == null) init();
+			if (output == null) init(logFile);
 			output.write(s);
 			if (logPanel != null) logPanel.log(s);
 			flush();
@@ -114,7 +116,7 @@ public class Log {
 	
 	public static void println(String s) {
 		if (Config.logging) {
-			if (output == null) init();
+			if (output == null) init(logFile);
 			output.write(fileDateStamp() + s + System.getProperty("line.separator") );
 			if (logPanel != null) logPanel.log(s);
 			flush();
@@ -126,6 +128,7 @@ public class Log {
 	}
 	
 	public static void errorDialog(String title, String message) {
+		if (showGuiDialogs)
 		JOptionPane.showMessageDialog(MainWindow.frame,
 				message.toString(),
 				title,

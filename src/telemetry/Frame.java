@@ -351,7 +351,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		String source; // The frame source subsystem
 		String rx_location = NONE; // the lat, long and altitude
 		String receiver_rf = NONE; // human description of the receiver
-		String demodulator; // will contain Config.VERSION
+		String demodulator = null; // will contain Config.VERSION
 		long sequenceNumber = Sequence.ERROR_NUMBER;
 		
 		String measuredTCA = NONE; // time of TCA
@@ -472,6 +472,13 @@ public abstract class Frame implements Comparable<Frame>  {
 		frm.addRawFrame(frame);
 		frm.receiver = receiver;
 		frm.stpDate = stpDate;
+		frm.frequency = frequency;
+		frm.rx_location = rx_location;
+		frm.receiver_rf = receiver_rf;
+		frm.demodulator = demodulator;
+		frm.sequenceNumber = sequenceNumber;
+		frm.measuredTCA = measuredTCA;
+		frm.measuredTCAfrequency = measuredTCAfrequency;
 
 		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260) ||
 				(frm.getHeader().resets == 44 && frm.getHeader().uptime == 263) ||
@@ -501,6 +508,7 @@ public abstract class Frame implements Comparable<Frame>  {
 					}
 				}
 				*/
+////////////////////  ADD HERE A CALL TO SAVE THE STP HEADER				Config.payloadStore.add(decodedFrame);
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
 					FramePart payload = ssf.getPayload();
