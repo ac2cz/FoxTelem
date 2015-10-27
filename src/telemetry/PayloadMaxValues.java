@@ -1,4 +1,6 @@
 package telemetry;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import decoder.Decoder;
@@ -33,6 +35,10 @@ public class PayloadMaxValues extends FramePart {
 	
 	public PayloadMaxValues(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);
+	}
+	
+	public PayloadMaxValues(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, lay);
 	}
 
 	protected void init() {

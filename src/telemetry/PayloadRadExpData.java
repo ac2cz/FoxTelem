@@ -1,9 +1,10 @@
 package telemetry;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
-
 import decoder.BitStream;
 import decoder.Decoder;
 
@@ -44,6 +45,10 @@ public class PayloadRadExpData extends FramePart {
 		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 
+	public PayloadRadExpData(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, lay);
+	}
+	
 	protected void init() {
 		fieldValue = new int[MAX_PAYLOAD_RAD_SIZE];
 		type = TYPE_RAD_EXP_DATA;

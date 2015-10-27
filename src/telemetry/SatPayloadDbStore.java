@@ -44,8 +44,8 @@ import common.Spacecraft;
  */
 public class SatPayloadDbStore {
 
-	public static final String ERR_TABLE_DOES_NOT_EXIST = "42X05";
-	public static final String ERR_DUPLICATE = "23505";
+	public static final String ERR_TABLE_DOES_NOT_EXIST = "42S02";
+	public static final String ERR_DUPLICATE = "23000";
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
 	
 	public int foxId;
@@ -323,13 +323,13 @@ public class SatPayloadDbStore {
 		
 	}
 
-	public double[][] getMaxGraphData(String name, int conversion, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(maxTableName, name, conversion, period, id, fromReset, fromUptime);
+	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
+		return getGraphData(maxTableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int conversion, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(minTableName, name, conversion, period, id, fromReset, fromUptime);
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
+		return getGraphData(minTableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
@@ -410,7 +410,7 @@ public class SatPayloadDbStore {
 	}
 
     
-	private double[][] getGraphData(String table, String name, int conversion, int period, Spacecraft fox, int fromReset, long fromUptime) throws SQLException {
+	private double[][] getGraphData(String table, String name, int period, Spacecraft fox, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs;
 		String where = "";
 		
@@ -435,15 +435,15 @@ public class SatPayloadDbStore {
 		int i=0;
 
 		if (Config.displayRawValues)
-			conversion = 0;
+			//FIXME conversion = 0;
 		if (size > 0) {
 			resets[i] = rs.getInt("resets");
 			upTime[i] = rs.getLong("uptime");
-			results[i++] = FramePart.convertRawValue(name, rs.getInt(name), conversion, fox);
+			results[i++] = FramePart.convertRawValue(name, rs.getInt(name), fox.rtLayout.getConversionByName(name), fox);
 			while (rs.previous()) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
-				results[i++] = FramePart.convertRawValue(name, rs.getInt(name), conversion, fox);
+				results[i++] = FramePart.convertRawValue(name, rs.getInt(name), fox.rtLayout.getConversionByName(name), fox);
 			}
 		} else {
 			results = new double[1];

@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import decoder.Decoder;
@@ -31,6 +33,10 @@ public class PayloadRtValues extends FramePart {
 	
 	public PayloadRtValues(BitArrayLayout lay) {
 		super(lay);
+	}
+	
+	public PayloadRtValues(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, lay);
 	}
 	
 	public PayloadRtValues(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {

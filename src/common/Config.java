@@ -9,10 +9,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+
 import javax.swing.JOptionPane;
 
 import decoder.HighSpeedBitStream;
 import decoder.SourceIQ;
+import telemetry.FoxPayloadStore;
+import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
 import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
@@ -66,7 +69,7 @@ public class Config {
 	public static PassManager passManager;
 	static Thread passManagerThread;
 	
-	public static PayloadStore payloadStore;
+	public static FoxPayloadStore payloadStore;
 	static Thread payloadStoreThread;
 	public static RawFrameQueue rawFrameQueue;
 	// We have one queue for the whole application
@@ -225,6 +228,18 @@ public class Config {
 		System.out.println("Set Home to: " + homeDirectory);
 	}
 	
+	public static void serverInit() {
+		initSequence();
+		
+		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
+		osName = System.getProperty("os.name").toLowerCase();
+		setOs();
+		
+		satManager = new SatelliteManager();
+		initPayloadDB();
+		
+	}
+	
 	public static void init() {
 		properties = new Properties();
 		load();
@@ -278,9 +293,15 @@ public class Config {
 		passManagerThread.start();
 	}
 
-	
+
 	public static void initPayloadStore() {	
 		payloadStore = new PayloadStore();
+		payloadStoreThread = new Thread(payloadStore);
+		payloadStoreThread.start();
+	}
+
+	public static void initPayloadDB() {	
+		payloadStore = new PayloadDbStore();
 		payloadStoreThread = new Thread(payloadStore);
 		payloadStoreThread.start();
 	}

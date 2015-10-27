@@ -3,9 +3,14 @@ package telemetry;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 
+import measure.Measurement;
+import measure.PassMeasurement;
+import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -36,7 +41,7 @@ import common.Spacecraft;
  * 
  *
  */
-public class PayloadDbStore implements Runnable {
+public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public static final int DATA_COL = 0;
 	public static final int UPTIME_COL = 1;
 	public static final int RESETS_COL = 2;
@@ -54,6 +59,7 @@ public class PayloadDbStore implements Runnable {
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		// Connect to the database and create it if it does not exist
+		/*
 		String driver = "org.apache.derby.jdbc.EmbeddedDriver";
 		try {
 			Class.forName(driver);
@@ -71,6 +77,41 @@ public class PayloadDbStore implements Runnable {
 			errorPrint(e);
 			Log.errorDialog("FATAL", "Can not connect to the Payload Store.  Maybe another version of FoxTelem is running. Exiting..");
 		}
+		*/
+		
+	    Statement st = null;
+	    ResultSet rs = null;
+	        
+		String url = "jdbc:mysql://localhost:3306/FOXDB";
+        String user = "g0kla";
+        String password = "amsatfox";
+        
+        try {
+            derby = DriverManager.getConnection(url, user, password);
+            st = derby.createStatement();
+            rs = st.executeQuery("SELECT VERSION()");
+
+            if (rs.next()) {
+                System.out.println("Connectted to MYSQL FOXDB Version: " + rs.getString(1));
+            }
+
+        } catch (SQLException ex) {
+           System.out.println(ex.getMessage());
+
+        } finally {
+            try {
+                if (rs != null) {
+                    rs.close();
+                }
+                if (st != null) {
+                    st.close();
+                }
+
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+            }
+        }
+        
 		payloadStore = new SatPayloadDbStore[sats.size()];
 		pictureStore = new SatPictureStore[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
@@ -350,6 +391,7 @@ public class PayloadDbStore implements Runnable {
 			try {
 				return store.getLatestRad();
 			} catch (SQLException e) {
+				errorPrint(e);
 				e.printStackTrace(Log.getWriter());
 				return null;
 			}
@@ -369,21 +411,36 @@ public class PayloadDbStore implements Runnable {
 	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getRtGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getRtGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (SQLException e) {
+				Log.println("SQL ERROR!" + e.getMessage());
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
 	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getMaxGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getMaxGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (SQLException e) {
+				errorPrint(e);
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;		
 	}
 
 	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getMinGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getMinGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (SQLException e) {
+				errorPrint(e);
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;		
 	}
 
@@ -400,7 +457,12 @@ public class PayloadDbStore implements Runnable {
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getRadData(period, id, fromReset, fromUptime);
+			try {
+				return store.getRadData(period, id, fromReset, fromUptime);
+			} catch (SQLException e) {
+				Log.println("SQL ERROR!" + e.getMessage());
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
@@ -466,6 +528,125 @@ public class PayloadDbStore implements Runnable {
 		}
 
 		done = true;
+	}
+
+	@Override
+	public boolean hasQueuedMeasurements() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean getUpdatedMeasurement(int id) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setUpdatedMeasurement(int id, boolean u) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean getUpdatedPassMeasurement(int id) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setUpdatedPassMeasurement(int id, boolean u) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean addToFile(int id, long uptime, int resets, FramePart f) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean addToFile(int id, long uptime, int resets,
+			PayloadRadExpData[] f) throws IOException {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean addToPictureFile(int id, long uptime, int resets,
+			PayloadCameraData f) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean add(int id, RtMeasurement m) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean addToFile(int id, Measurement m) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public RtMeasurement getLatestMeasurement(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean add(int id, PassMeasurement m) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public PassMeasurement getLatestPassMeasurement(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public RadiationTelemetry getLatestRadTelem(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getRadTelemData(int period, int id, int fromReset,
+			long fromUptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public double[][] getRadTelemGraphData(String name, int period,
+			Spacecraft fox, int fromReset, long fromUptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public double[][] getMeasurementGraphData(String name, int period,
+			Spacecraft fox, int fromReset, long fromUptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String getRtUTCFromUptime(int id, int reset, long uptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean addStp(int id, Frame f) {
+		
+		return false;
 	}
 
 

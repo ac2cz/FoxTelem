@@ -321,7 +321,7 @@ public abstract class Frame implements Comparable<Frame>  {
 			output.write(Integer.toString(bytes[i]) + ",");
 		output.write(Integer.toString(bytes[bytes.length-1])+"\n");
 	}
-
+	
 	/**
 	 * Static factory method that creates a frame from a file
 	 * @param fileName
@@ -330,12 +330,12 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * @throws LayoutLoadException
 	 */
 	public static Frame loadStp(String dir, String fileName) throws IOException {
-		String stpDir = "stp";
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			stpDir = Config.logFileDirectory + File.separator + dir;
+		String stpDir = fileName;
+		if (!dir.equalsIgnoreCase("")) {
+			stpDir = dir + File.separator + fileName;
 			
 		}
-		FileInputStream in = new FileInputStream(stpDir +File.separator + fileName);
+		FileInputStream in = new FileInputStream(stpDir);
 		int c;
 		int lineLen = 0;
 		
@@ -347,8 +347,18 @@ public abstract class Frame implements Comparable<Frame>  {
 		int length = 0;
 		String receiver = null;
 		Date stpDate = null;
-		boolean firstColon = true;
+		String frequency = NONE; // frequency when this frame received
+		String source; // The frame source subsystem
+		String rx_location = NONE; // the lat, long and altitude
+		String receiver_rf = NONE; // human description of the receiver
+		String demodulator; // will contain Config.VERSION
+		long sequenceNumber = Sequence.ERROR_NUMBER;
 		
+		String measuredTCA = NONE; // time of TCA
+		String measuredTCAfrequency = NONE;
+		
+		boolean firstColon = true;
+		//c = in.read();
 		// Read the file
 		while (!done && (c = in.read()) != -1) {
 			Character ch = (char) c;
@@ -379,6 +389,34 @@ public abstract class Frame implements Comparable<Frame>  {
             		}
             		if (key.equalsIgnoreCase("Receiver")) {
             			receiver = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("Frequency")) {
+            			frequency = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("Rx_location")) {
+            			rx_location = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("Receiver_rf")) {
+            			receiver_rf = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("Demodulator")) {
+            			demodulator = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("SequenceNumber")) {
+            			sequenceNumber = Integer.parseInt(value);
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("MeasuredTCA")) {
+            			measuredTCA = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("MeasuredTCAfrequency")) {
+            			measuredTCAfrequency = value;
 //                		System.out.println(key + " " + value);
             		}
             		if (key.startsWith("Date")) {
@@ -447,6 +485,54 @@ public abstract class Frame implements Comparable<Frame>  {
 
 	}
 	
+	public static void importStpFile(String stpDir, File f, boolean delete) {
+		try {
+			Frame decodedFrame = Frame.loadStp(stpDir, f.getName());
+			if (decodedFrame != null && !decodedFrame.corrupt) {
+
+				/*
+				if (decodedFrame.receiver.equalsIgnoreCase("DK3WN")) {
+					long t0 = decodedFrame.getExtimateOfT0();
+					if (t0 != 0) {
+						Date d0 = new Date(t0);
+						Log.println(decodedFrame.receiver + ", Reset, " + decodedFrame.getHeader().getResets() + ", Uptime, " +
+								decodedFrame.getHeader().getUptime() + ", STP Date, " + decodedFrame.getStpDate() + ", T0, " + Frame.stpDateFormat.format(d0) + " "
+								+ d0.getTime());
+					}
+				}
+				*/
+				if (decodedFrame instanceof SlowSpeedFrame) {
+					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
+					FramePart payload = ssf.getPayload();
+					SlowSpeedHeader header = ssf.getHeader();
+					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+					//duvFrames++;
+				} else {
+					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
+					HighSpeedHeader header = hsf.getHeader();
+					PayloadRtValues payload = hsf.getRtPayload();
+					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+					PayloadMaxValues maxPayload = hsf.getMaxPayload();
+					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
+					PayloadMinValues minPayload = hsf.getMinPayload();
+					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
+					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
+					if (Config.satManager.hasCamera(header.getFoxId())) {
+						PayloadCameraData cameraData = hsf.getCameraPayload();
+						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+					}
+					//hsFrames++;
+				}
+			}
+			if (delete) {
+				f.delete();
+			}
+		} catch (IOException e) {
+			Log.println(e.getMessage());
+			e.printStackTrace(Log.getWriter());
+		}
+	}
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame) 
 			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE + SlowSpeedFrame.MAX_PAYLOAD_SIZE + SlowSpeedFrame.MAX_TRAILER_SIZE];

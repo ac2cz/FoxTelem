@@ -39,7 +39,7 @@ import common.Spacecraft;
  * 
  *
  */
-public class PayloadStore implements Runnable {
+public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public static final int DATA_COL = 0;
 	public static final int UPTIME_COL = 1;
 	public static final int RESETS_COL = 2;
@@ -557,5 +557,11 @@ public class PayloadStore implements Runnable {
 			}
 		}
 		done = true;
+	}
+
+	@Override
+	public boolean addStp(int id, Frame f) {
+		// TODO Auto-generated method stub
+		return false;
 	}
 }

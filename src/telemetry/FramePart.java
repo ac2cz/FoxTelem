@@ -1,4 +1,6 @@
 package telemetry;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -228,6 +230,24 @@ longer send telemetry.
 		rawBits = new boolean[MAX_BYTES*8];
 	}
 	
+	/**
+	 * Create a new payload based on the result set from the db
+	 * @param results
+	 * @throws SQLException 
+	 */
+	public FramePart(ResultSet results, BitArrayLayout lay) throws SQLException {
+		super(lay);
+		this.id = results.getInt("id");
+		this.resets = results.getInt("resets");
+		this.uptime = results.getLong("uptime");
+		this.captureDate = results.getString("captureDate");
+		init();
+		
+		for (int i=0; i < fieldValue.length; i++) {
+			fieldValue[i] = results.getInt(layout.fieldName[i]);
+		}
+		results.close();
+	}
 	abstract protected void init();
 		
 	public void captureHeaderInfo(int id, long uptime, int resets) {
@@ -369,7 +389,7 @@ longer send telemetry.
 	 * @param conversion
 	 * @return
 	 */
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public static double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
 		
 	//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 		switch (conversion) {
@@ -734,6 +754,21 @@ longer send telemetry.
 			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
 		s = s + Decoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		return s;
+	}
+	
+	public String getInsertStmt() {
+		String s = new String();
+		s = s + " (captureDate,  id, resets, uptime, type, \n";
+		for (int i=0; i < layout.fieldName.length-1; i++) {
+			s = s + layout.fieldName[i] + ",\n";
+		}
+		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
+		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
+		for (int i=0; i < fieldValue.length-1; i++) {
+			s = s + fieldValue[i] + ",\n";
+		}
+		s = s + fieldValue[fieldValue.length-1] + ")\n";
 		return s;
 	}
 }

@@ -846,68 +846,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Log.println("IMPORT STP from " + dir);
 		File folder = new File(dir);
 		File[] listOfFiles = folder.listFiles();
-		int duvFrames = 0;
-		int hsFrames = 0;
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-
-					try {
-						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
-						if (decodedFrame != null && !decodedFrame.corrupt) {
-
-							/*
-							if (decodedFrame.receiver.equalsIgnoreCase("DK3WN")) {
-								long t0 = decodedFrame.getExtimateOfT0();
-								if (t0 != 0) {
-									Date d0 = new Date(t0);
-									Log.println(decodedFrame.receiver + ", Reset, " + decodedFrame.getHeader().getResets() + ", Uptime, " +
-											decodedFrame.getHeader().getUptime() + ", STP Date, " + decodedFrame.getStpDate() + ", T0, " + Frame.stpDateFormat.format(d0) + " "
-											+ d0.getTime());
-								}
-							}
-							*/
-							if (decodedFrame instanceof SlowSpeedFrame) {
-								SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-								FramePart payload = ssf.getPayload();
-								SlowSpeedHeader header = ssf.getHeader();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-								duvFrames++;
-							} else {
-								HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
-								HighSpeedHeader header = hsf.getHeader();
-								PayloadRtValues payload = hsf.getRtPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-								PayloadMaxValues maxPayload = hsf.getMaxPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
-								PayloadMinValues minPayload = hsf.getMinPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
-								PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
-								if (Config.satManager.hasCamera(header.getFoxId())) {
-									PayloadCameraData cameraData = hsf.getCameraPayload();
-									Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
-								}
-								hsFrames++;
-							}
-						}
-						if (delete) {
-							listOfFiles[i].delete();
-						}
-						if (importProgress != null)
-							importProgress.updateProgress((100 * i)/listOfFiles.length);
-					} catch (IOException e) {
-						Log.println(e.getMessage());
-						e.printStackTrace(Log.getWriter());
-					}
+					Frame.importStpFile(dir, listOfFiles[i], true);
+					if (importProgress != null)
+						importProgress.updateProgress((100 * i)/listOfFiles.length);
 				}
 			}
 			Log.println("Files Processed: " + listOfFiles.length);
-			Log.println("DUV Frames: " + duvFrames);
-			Log.println("HS Frames: " + hsFrames);
 		}
 	}
+	
+	
+	
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
 	 * window that are not tied to a control that we have added.

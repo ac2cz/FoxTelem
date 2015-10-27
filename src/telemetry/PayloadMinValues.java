@@ -1,4 +1,6 @@
 package telemetry;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import decoder.Decoder;
@@ -36,6 +38,10 @@ public class PayloadMinValues extends FramePart {
 		super(id, resets, uptime, date, st, lay);
 	}
 
+	public PayloadMinValues(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, lay);
+	}
+	
 	protected void init() {
 		type = TYPE_MIN_VALUES;
 					
