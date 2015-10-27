@@ -95,6 +95,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
                 System.out.println("Connectted to MYSQL FOXDB Version: " + rs.getString(1));
             }
 
+            initStpHeaderTable();
+            
         } catch (SQLException ex) {
            System.out.println(ex.getMessage());
 
@@ -313,6 +315,55 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		
 	}
 
+	private void initStpHeaderTable() {
+		String table = "STP_HEADER";
+		Statement stmt = null;
+		ResultSet select = null;
+		try {
+			stmt = PayloadDbStore.derby.createStatement();
+			select = stmt.executeQuery("select * from " + table);
+			select.close();
+		} catch (SQLException e) {
+			
+			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
+				String createString = "CREATE TABLE " + table + " ";
+				createString = createString + Frame.getTableCreateStmt();
+				
+				System.out.println ("Creating new DB table " + table);
+				try {
+					stmt.execute(createString);
+				} catch (SQLException ex) {
+					PayloadDbStore.errorPrint(ex);
+				}
+			} else {
+				PayloadDbStore.errorPrint(e);
+			}
+		} 
+	}
+
+	@Override
+	public boolean addStpHeader(Frame f) {
+
+		Statement stmt = null;
+		String update = "insert into STP_HEADER";
+		update = update + f.getInsertStmt();
+		//Log.println("SQL:" + update);
+		try {
+			stmt = PayloadDbStore.derby.createStatement();
+			@SuppressWarnings("unused")
+			int r = stmt.executeUpdate(update);
+		} catch (SQLException e) {
+			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
+				Log.println("DUPLICATE RECORD, not stored");
+
+			} else {
+				PayloadDbStore.errorPrint(e);
+			}
+			return false;
+		}
+		return true;
+	}
+
 	/**
 	 * Add a camera payload.  This is added to the picture line store one line at a time.  We do not store the actual
 	 * camera payloads as there is no additional information that we need beyond the lines.  The raw frame are sent to the server
@@ -348,6 +399,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return true;
 	}
 
+	
+	
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -643,11 +696,6 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	@Override
-	public boolean addStp(int id, Frame f) {
-		
-		return false;
-	}
 
 
 }

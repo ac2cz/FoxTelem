@@ -80,7 +80,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract RtMeasurement getLatestMeasurement(int id);
 
 	public abstract boolean add(int id, PassMeasurement m);
-	public abstract boolean addStp(int id, Frame f); // add the stp header records to the db
+	public abstract boolean addStpHeader(Frame f); // add the stp header records to the db
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 

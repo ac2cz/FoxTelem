@@ -124,6 +124,8 @@ public class SatPayloadDbStore {
 			}
 		} 
 	}
+
+
 	
 	public void setUpdatedAll() {
 		updatedRt = true;

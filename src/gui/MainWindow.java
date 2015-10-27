@@ -850,7 +850,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-					Frame.importStpFile(dir, listOfFiles[i], true);
+					Frame.importStpFile(listOfFiles[i], true);
 					if (importProgress != null)
 						importProgress.updateProgress((100 * i)/listOfFiles.length);
 				}

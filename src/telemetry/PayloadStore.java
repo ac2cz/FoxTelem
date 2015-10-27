@@ -560,7 +560,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public boolean addStp(int id, Frame f) {
+	public boolean addStpHeader(int id, Frame f) {
 		// TODO Auto-generated method stub
 		return false;
 	}

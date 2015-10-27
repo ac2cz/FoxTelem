@@ -329,20 +329,20 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * @throws IOException 
 	 * @throws LayoutLoadException
 	 */
-	public static Frame loadStp(String dir, String fileName) throws IOException {
-		String stpDir = fileName;
-		if (!dir.equalsIgnoreCase("")) {
-			stpDir = dir + File.separator + fileName;
-			
-		}
-		FileInputStream in = new FileInputStream(stpDir);
+	public static Frame loadStp(String fileName) throws IOException {
+		//String stpDir = fileName;
+		//if (!dir.equalsIgnoreCase("")) {
+		//	stpDir = dir + File.separator + fileName;
+		//	
+		//}
+		FileInputStream in = new FileInputStream(fileName);
 		int c;
 		int lineLen = 0;
 		
 		boolean done = false;
 		boolean readingKey = true;
-		String key = null;
-		String value = null;
+		String key = "";
+		String value = "";
 		byte[] rawFrame = null;
 		int length = 0;
 		String receiver = null;
@@ -407,9 +407,9 @@ public abstract class Frame implements Comparable<Frame>  {
             			demodulator = value;
 //                		System.out.println(key + " " + value);
             		}
-            		if (key.equalsIgnoreCase("SequenceNumber")) {
-            			sequenceNumber = Integer.parseInt(value);
-//                		System.out.println(key + " " + value);
+            		if (key.endsWith("Sequence")) {
+            			sequenceNumber = Long.parseLong(value);
+                		//System.out.println(key + " *** " + value);
             		}
             		if (key.equalsIgnoreCase("MeasuredTCA")) {
             			measuredTCA = value;
@@ -492,9 +492,9 @@ public abstract class Frame implements Comparable<Frame>  {
 
 	}
 	
-	public static void importStpFile(String stpDir, File f, boolean delete) {
+	public static Frame importStpFile(File f, boolean delete) {
 		try {
-			Frame decodedFrame = Frame.loadStp(stpDir, f.getName());
+			Frame decodedFrame = Frame.loadStp(f.getPath());
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 
 				/*
@@ -508,7 +508,7 @@ public abstract class Frame implements Comparable<Frame>  {
 					}
 				}
 				*/
-////////////////////  ADD HERE A CALL TO SAVE THE STP HEADER				Config.payloadStore.add(decodedFrame);
+				Config.payloadStore.addStpHeader(decodedFrame);
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
 					FramePart payload = ssf.getPayload();
@@ -536,11 +536,63 @@ public abstract class Frame implements Comparable<Frame>  {
 			if (delete) {
 				f.delete();
 			}
+			return decodedFrame;
 		} catch (IOException e) {
 			Log.println(e.getMessage());
 			e.printStackTrace(Log.getWriter());
 		}
+		return null;
 	}
+	
+	public static String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(stpDate varchar(32), id int, resets int, uptime bigint, type int, "
+		 + "sequenceNumber bigint, "
+		 + "length int, "
+		 + "source varchar(32)," 
+		 + "receiver varchar(32),"		
+		 + "frequency varchar(32),"
+		 + "rx_location varchar(32),"	
+		 + "receiver_rf varchar(32),"		
+		 + "demodulator varchar(50),"
+		+ "measuredTCA varchar(32),"
+		+ "measuredTCAfrequency varchar(32),";
+		s = s + "PRIMARY KEY (id, resets, uptime, type, receiver))";
+		return s;
+	}
+	
+	public String getInsertStmt() {
+	//	java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
+		//FIXME - need to omake this a proper date in the DB
+		String dt = stpDateFormat.format(stpDate);
+		String s = new String();
+		s = s + " (stpDate,  id, resets, uptime, type, \n";
+		s = s + "sequenceNumber,\n";
+		s = s + "length,\n";
+		s = s + "source,\n";
+		s = s + "receiver,\n";
+		s = s + "frequency,\n";
+		s = s + "rx_location,\n";
+		s = s + "receiver_rf,\n";
+		s = s + "demodulator,\n";
+		s = s + "measuredTCA,\n";
+		s = s + "measuredTCAfrequency)\n";
+		
+		s = s + "values ('" + dt + "', " + this.foxId + ", " + header.resets + ", " + header.uptime + ", " + header.type + ",\n";
+		s = s + sequenceNumber+",\n";
+		s = s + length+",\n";
+		s = s + "'" + source+"',\n";
+		s = s + "'" + receiver+"',\n";
+		s = s + "'" + frequency+"',\n";
+		s = s + "'" + rx_location+"',\n";
+		s = s + "'" + receiver_rf+"',\n";
+		s = s + "'" + demodulator+"',\n";
+		s = s + "'" + measuredTCA+"',\n";
+		s = s + "'" + measuredTCAfrequency+"')\n";
+		return s;
+	}
+
+	
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame) 
 			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE + SlowSpeedFrame.MAX_PAYLOAD_SIZE + SlowSpeedFrame.MAX_TRAILER_SIZE];
