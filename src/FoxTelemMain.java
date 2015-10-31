@@ -454,7 +454,7 @@ import decoder.Decoder;
  * Added horizontal and vertical lines to the graphs if button clicked
  * Fixed Typo on measurements tab
  * Fixed a bug where UTC was not displayed for the Diagnostic tables
- * 
+ * Capture the string version of the STP date in ENGLISH for all users, but leave other string dates in local language
  */
 
 public class FoxTelemMain {

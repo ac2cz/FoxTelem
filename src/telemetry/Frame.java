@@ -14,6 +14,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -60,7 +61,7 @@ import fec.RsCodeWord;
  */
 public abstract class Frame implements Comparable<Frame>  {
 
-	public static final DateFormat stpDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss");
+	public static final DateFormat stpDateFormat = new SimpleDateFormat("E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
 	
 	protected Header header = null;
 	Spacecraft fox; // the satellite that we are decoding a frame for, populated once the header is filled
