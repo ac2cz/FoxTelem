@@ -376,7 +376,7 @@ public abstract class Frame implements Comparable<Frame>  {
             	if ((length == 768 || length == 42176) && lineLen == 1) {
             		// then we are ready to process
             		rawFrame = new byte[length/8];
-            		for (int i=0; i<96; i++) {
+            		for (int i=0; i<length/8; i++) {
             			rawFrame[i] = (byte) in.read();
             		}
             		done = true;
@@ -455,14 +455,17 @@ public abstract class Frame implements Comparable<Frame>  {
 		}
 		
 		// Let's really check it is OK by running the RS decode!
-		
-		RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
-		byte[] frame = rawFrame; //rs.decode();
-		if (!rs.validDecode()) {
-			Log.println("RS Decode Failed");
-			return null;
+
+		byte[] frame = null;
+		if (length == 768) {
+			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+			if (!rs.validDecode()) {
+				Log.println("RS Decode Failed");
+				return null;
+			}
 		}
-	
+		frame = rawFrame; //rs.decode();
+		
 		Frame frm;
 		if (length == 768) {
 			frm = new SlowSpeedFrame();
@@ -508,27 +511,29 @@ public abstract class Frame implements Comparable<Frame>  {
 					}
 				}
 				*/
-				Config.payloadStore.addStpHeader(decodedFrame);
+				if (!Config.payloadStore.addStpHeader(decodedFrame))
+					return null; // because we failed to add the header record
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
 					FramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
+						return null;
 					//duvFrames++;
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
 					PayloadRtValues payload = hsf.getRtPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload)) return null;
 					PayloadMaxValues maxPayload = hsf.getMaxPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload)) return null;
 					PayloadMinValues minPayload = hsf.getMinPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) return null;
 					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads)) return null;
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
-						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+						if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData)) return null;
 					}
 					//hsFrames++;
 				}
@@ -544,19 +549,21 @@ public abstract class Frame implements Comparable<Frame>  {
 		return null;
 	}
 	
+
+
 	public static String getTableCreateStmt() {
 		String s = new String();
-		s = s + "(stpDate varchar(32), id int, resets int, uptime bigint, type int, "
+		s = s + "(stpDate varchar(35), id int, resets int, uptime bigint, type int, "
 		 + "sequenceNumber bigint, "
 		 + "length int, "
-		 + "source varchar(32)," 
-		 + "receiver varchar(32),"		
-		 + "frequency varchar(32),"
-		 + "rx_location varchar(32),"	
-		 + "receiver_rf varchar(32),"		
-		 + "demodulator varchar(50),"
-		+ "measuredTCA varchar(32),"
-		+ "measuredTCAfrequency varchar(32),";
+		 + "source varchar(35)," 
+		 + "receiver varchar(35),"		
+		 + "frequency varchar(35),"
+		 + "rx_location varchar(35),"	
+		 + "receiver_rf varchar(52),"		
+		 + "demodulator varchar(100),"
+		+ "measuredTCA varchar(35),"
+		+ "measuredTCAfrequency varchar(35),";
 		s = s + "PRIMARY KEY (id, resets, uptime, type, receiver))";
 		return s;
 	}
@@ -564,8 +571,18 @@ public abstract class Frame implements Comparable<Frame>  {
 	public String getInsertStmt() {
 	//	java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
 		//FIXME - need to omake this a proper date in the DB
-		String dt = stpDateFormat.format(stpDate);
+		String dt = "";
+		if (stpDate != null)
+			dt = stpDateFormat.format(stpDate);
 		String s = new String();
+		if (demodulator.length() > 99) demodulator = demodulator.substring(0, 99);
+		if (source.length() > 32) source = source.substring(0, 32);
+		if (receiver.length() > 32) receiver = receiver.substring(0, 32);
+		if (frequency.length() > 32) frequency = frequency.substring(0, 32);
+		if (rx_location.length() > 32) rx_location = rx_location.substring(0, 32);
+		if (receiver_rf.length() > 50) receiver_rf = receiver_rf.substring(0, 50);
+		if (measuredTCA.length() > 32) measuredTCA = measuredTCA.substring(0, 32);
+		if (measuredTCAfrequency.length() > 32) measuredTCAfrequency = measuredTCAfrequency.substring(0, 32);
 		s = s + " (stpDate,  id, resets, uptime, type, \n";
 		s = s + "sequenceNumber,\n";
 		s = s + "length,\n";

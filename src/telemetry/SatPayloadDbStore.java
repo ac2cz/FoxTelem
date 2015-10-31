@@ -5,6 +5,7 @@ import gui.MainWindow;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -104,7 +105,8 @@ public class SatPayloadDbStore {
 		Statement stmt = null;
 		ResultSet select = null;
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			select = stmt.executeQuery("select * from " + table);
 			select.close();
 		} catch (SQLException e) {
@@ -159,7 +161,8 @@ public class SatPayloadDbStore {
 		String update = "select count(*) from " + table;
 		//Log.println("SQL:" + update);
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			rs = stmt.executeQuery(update);
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
@@ -221,7 +224,8 @@ public class SatPayloadDbStore {
 		update = update + f.getInsertStmt();
 		//Log.println("SQL:" + update);
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
 		} catch (SQLException e) {
@@ -264,10 +268,11 @@ public class SatPayloadDbStore {
 
 	private ResultSet selectLatest(String table) {
 		Statement stmt = null;
-		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC FETCH FIRST ROW ONLY";
+		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC LIMIT 1"; // Derby Syntax FETCH FIRST ROW ONLY";
 
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			//Log.println(update);
 			ResultSet r = stmt.executeQuery(update);
 			if (r.next()) {
@@ -400,8 +405,8 @@ public class SatPayloadDbStore {
 		update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
 		try {
 			//Log.println("SQL:" + update);
-			stmt = PayloadDbStore.derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
-                    ResultSet.CONCUR_READ_ONLY);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			ResultSet r = stmt.executeQuery(update);
 			return r;
 		} catch (SQLException e) {
@@ -478,7 +483,8 @@ public class SatPayloadDbStore {
 	private void drop(String table) {
 		Statement stmt = null;
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			boolean res = stmt.execute("drop table " + table);
 		} catch (SQLException e) {

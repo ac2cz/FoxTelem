@@ -50,7 +50,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	private SortedFramePartArrayList payloadQueue;
 	
-	public static Connection derby;
+	private static Connection derby;
+
+	static String url = "jdbc:mysql://localhost:3306/FOXDB?autoReconnect=true";
+    static String user = "g0kla";
+    static String password = "amsatfox";
+
 	private final int INITIAL_QUEUE_SIZE = 1000;
 	SatPayloadDbStore[] payloadStore;
 	SatPictureStore[] pictureStore;
@@ -82,9 +87,6 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	    Statement st = null;
 	    ResultSet rs = null;
 	        
-		String url = "jdbc:mysql://localhost:3306/FOXDB";
-        String user = "g0kla";
-        String password = "amsatfox";
         
         try {
             derby = DriverManager.getConnection(url, user, password);
@@ -121,6 +123,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			
 		}
+	}
+	
+	public static Connection getConnection() throws SQLException {
+		if (derby.isClosed())
+            derby = DriverManager.getConnection(url, user, password);
+		return derby;
+
 	}
 	
 	public boolean hasQueuedFrames() {
@@ -355,7 +364,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
-
+				return true; // we consider this data added
 			} else {
 				PayloadDbStore.errorPrint(e);
 			}

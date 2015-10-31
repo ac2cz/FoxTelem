@@ -93,7 +93,7 @@ public class ServerProcess implements Runnable {
 		try {
 			//out = new PrintWriter(socket.getOutputStream(), true);
 			//f = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sequence + ".stp"), "utf-8"));
-			
+			int b=0;
 			String fileName = nextSTPFile();
 			f = new FileOutputStream(fileName);
 			//in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
@@ -102,9 +102,10 @@ public class ServerProcess implements Runnable {
 			while ((c = in.read()) != -1) {
 				f.write(c);
 				Character ch = (char) c;
-				System.out.print(ch);
+			//	System.out.print(ch);
+				b++;
 			}
-			System.out.println();
+			//System.out.println();
 			in.close();
 			socket.close();
 
@@ -113,7 +114,7 @@ public class ServerProcess implements Runnable {
 			// Import it into the database
 			Frame frm = Frame.importStpFile(stp, false);
 			if (frm != null)
-				Log.println("Processed: " + frm.receiver + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() + " " + frm.getHeader().getType());
+				Log.println("Processed: " + b + " bytes from " + frm.receiver + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() + " " + frm.getHeader().getType());
 		} catch (IOException e) {
 			e.printStackTrace();
 		} finally {
