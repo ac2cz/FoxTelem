@@ -94,13 +94,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
             rs = st.executeQuery("SELECT VERSION()");
 
             if (rs.next()) {
-                System.out.println("Connectted to MYSQL FOXDB Version: " + rs.getString(1));
+                Log.println("Connectted to MYSQL FOXDB Version: " + rs.getString(1));
             }
 
             initStpHeaderTable();
             
         } catch (SQLException ex) {
-           System.out.println(ex.getMessage());
+           Log.println(ex.getMessage());
 
         } finally {
             try {
@@ -112,7 +112,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
                 }
 
             } catch (SQLException ex) {
-                System.out.println(ex.getMessage());
+                Log.println(ex.getMessage());
             }
         }
         
@@ -321,7 +321,6 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		if (store != null)
 			return store.add(id, uptime, resets, f);
 		return false;
-		
 	}
 
 	private void initStpHeaderTable() {
@@ -338,7 +337,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				String createString = "CREATE TABLE " + table + " ";
 				createString = createString + Frame.getTableCreateStmt();
 				
-				System.out.println ("Creating new DB table " + table);
+				Log.println ("Creating new DB table " + table);
 				try {
 					stmt.execute(createString);
 				} catch (SQLException ex) {
@@ -383,7 +382,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 */
 	public boolean addToDb(int id, long uptime, int resets, PayloadCameraData f) {
-		SatPictureStore store = getPictureStoreById(id);
+		SatPictureStore store = getPictureStoreById(id);   ////FIXME - THIS IS NOT A DATBASE, BUT REFERS TO A FILE. IS THAT WHAT WE WANT??
 		if (store != null) {
 			ArrayList<PictureScanLine> lines = f.pictureLines;
 			for (PictureScanLine line : lines) {
@@ -546,19 +545,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		if (e instanceof SQLException)
 			SQLExceptionPrint((SQLException)e);
 		else {
-			System.out.println("A non SQL error occured.");
-			e.printStackTrace();
+			Log.println("ERROR: A NON SQLException error occured while accessing the DB");
+			e.printStackTrace(Log.getWriter());
 		}
 	} // END errorPrint
 
 	// Iterates through a stack of SQLExceptions
 	static void SQLExceptionPrint(SQLException sqle) {
 		while (sqle != null) {
-			System.out.println("\n---SQLException Caught---\n");
-			System.out.println("SQLState: " + (sqle).getSQLState());
-			System.out.println("Severity: " + (sqle).getErrorCode());
-			System.out.println("Message: " + (sqle).getMessage());
-			sqle.printStackTrace();
+			Log.println("\n---SQLException Caught---\n");
+			Log.println("SQLState: " + (sqle).getSQLState());
+			Log.println("Severity: " + (sqle).getErrorCode());
+			Log.println("Message: " + (sqle).getMessage());
+			//sqle.printStackTrace(Log.getWriter());
 			sqle = sqle.getNextException();
 		}
 	} // END SQLExceptionPrint
@@ -583,7 +582,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					FramePart f = payloadQueue.get(i);
 					if (Config.debugFieldValues)
 						Log.println(f.toString());
-					addToDb(f.id, f.uptime, f.resets, f);
+					if (addToDb(f.id, f.uptime, f.resets, f))
+						;
+					else {
+						// Serious error where we could not add data to the database
+						//// ALERT
+						Log.println("ERROR: Could not add record to the database: " + f.id + " " + f.uptime+ " " + f.resets+ " " + f);
+					}
 					payloadQueue.remove(i);
 				}
 			}

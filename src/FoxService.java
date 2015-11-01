@@ -4,6 +4,8 @@ import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+import telemServer.WebHealthTab;
+import telemetry.LayoutLoadException;
 import telemetry.PayloadRtValues;
 import common.Config;
 import common.Log;
@@ -20,28 +22,36 @@ public class FoxService {
 
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
-		Log.init("FoxServer.log");
+		Log.init("FoxWebService");
 		Log.showGuiDialogs = false;
-
+		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
+		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
-		System.out.println("Fox Webservice starting up on port 8080");
-		System.out.println("(press ctrl-c to exit)");
+		Log.println("Fox Webservice starting up on port 8080");
+		Log.println("(press ctrl-c to exit)");
 		try {
 			// create the main server socket
 			s = new ServerSocket(8080);
 		} catch (Exception e) {
-			System.out.println("Error: " + e);
+			Log.println("Error: " + e);
 			return;
 		}
 
+		WebHealthTab fox1Atab = null;
+		try {
+			fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(1));
+		} catch (LayoutLoadException e1) {
+			e1.printStackTrace(Log.getWriter());
+			System.exit(1);
+		}
 		for (;;) {
 			try {
 				// wait for a connection
 				Socket remote = s.accept();
 				// remote is now the connected socket
-				System.out.println("Connection, sending data.");
+				Log.println("Connection, sending data to: " + remote.getInetAddress());
 				BufferedReader in = new BufferedReader(new InputStreamReader(
 						remote.getInputStream()));
 				PrintWriter out = new PrintWriter(remote.getOutputStream());
@@ -52,7 +62,7 @@ public class FoxService {
 				// headers.
 				String str = ".";
 				String GET = in.readLine();
-				System.out.println(GET);
+				Log.println(GET);
 				String[] requestLine = GET.split(" "); // GET <path> HTTP/1.1
 				String request = new String(requestLine[1]);
 				while (!str.equals("")) {
@@ -71,16 +81,29 @@ public class FoxService {
 				if (path.equalsIgnoreCase("1A")) {
 					// Send the HTML page
 					PayloadRtValues rt = Config.payloadStore.getLatestRt(1);
-					out.println("<H2>Fox-1A Telemetry</H2>" + rt.toWebString());
+					if (rt != null)
+						fox1Atab.setRtPayload(rt);
+						out.println(fox1Atab.toString());
+				} else if (path.equalsIgnoreCase("1C")) {
+					// Send the HTML page
+					PayloadRtValues rt = Config.payloadStore.getLatestRt(3);
+					if (rt != null)
+						out.println("<H2>Fox-1C Telemetry</H2>" + rt.toWebString());
+				} else if (path.equalsIgnoreCase("1D")) {
+					// Send the HTML page
+					PayloadRtValues rt = Config.payloadStore.getLatestRt(4);
+					if (rt != null)
+						out.println("<H2>Fox-1D Telemetry</H2>" + rt.toWebString());
 				} else {
-				// Send the HTML page
-				out.println("<H2>AMSAT!</H2>");
+				// Send the DEFAULT HTML page
+					out.println("<H2>AMSAT FOX WEB SERVICE - TEST POINT</H2>");
 				}
 				
 				out.flush();
 				remote.close();
 			} catch (Exception e) {
-				System.out.println("Error: " + e);
+				Log.println("Error: " + e);
+				e.printStackTrace(Log.getWriter());
 			}
 		}
 	}

@@ -360,100 +360,104 @@ public abstract class Frame implements Comparable<Frame>  {
 		boolean firstColon = true;
 		//c = in.read();
 		// Read the file
-		while (!done && (c = in.read()) != -1) {
-			Character ch = (char) c;
-			//System.out.print(ch);
-			
-			if (ch == ':' && firstColon) {
-				firstColon = false;
-				c = in.read(); // consume the space
-				c = in.read();
-				ch = (char) c; // set ch to the first character
-				readingKey = false;
-			}
-            if ( (c == 13 || c == 10)) { // CR or LF
-            	c = in.read(); // consume the lf
-            	if ((length == 768 || length == 42176) && lineLen == 1) {
-            		// then we are ready to process
-            		rawFrame = new byte[length/8];
-            		for (int i=0; i<length/8; i++) {
-            			rawFrame[i] = (byte) in.read();
-            		}
-            		done = true;
-            	} else {
-            		// It was a header line
-            		readingKey = true;
-            		firstColon = true;
-            		if (key.startsWith("Length")) {
-            			length = Integer.parseInt(value);
-            		}
-            		if (key.equalsIgnoreCase("Receiver")) {
-            			receiver = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.equalsIgnoreCase("Frequency")) {
-            			frequency = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.equalsIgnoreCase("Rx_location")) {
-            			rx_location = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.equalsIgnoreCase("Receiver_rf")) {
-            			receiver_rf = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.equalsIgnoreCase("Demodulator")) {
-            			demodulator = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.endsWith("Sequence")) {
-            			sequenceNumber = Long.parseLong(value);
-                		//System.out.println(key + " *** " + value);
-            		}
-            		if (key.equalsIgnoreCase("MeasuredTCA")) {
-            			measuredTCA = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.equalsIgnoreCase("MeasuredTCAfrequency")) {
-            			measuredTCAfrequency = value;
-//                		System.out.println(key + " " + value);
-            		}
-            		if (key.startsWith("Date")) {
-//                		System.out.println(key + " " + value);
-            			String dt = value.replace(" UTC", "");
-            			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-            			try {
-							stpDate = stpDateFormat.parse(dt);
-						} catch (ParseException e) {
-							stpDate = null;
-							e.printStackTrace(Log.getWriter());
-						}
-            			
-            		}
-            		key = "";
-            		value = "";
-            		lineLen = 0;
-            	}
-            } else {
-            	if (readingKey) 
-    				key = key + ch;
-    			else
-    				value = value + ch;
-            }
-            lineLen++;
-            
-        }
+		try {
+			while (!done && (c = in.read()) != -1) {
+				Character ch = (char) c;
+				//System.out.print(ch);
 
+				if (ch == ':' && firstColon) {
+					firstColon = false;
+					c = in.read(); // consume the space
+					c = in.read();
+					ch = (char) c; // set ch to the first character
+					readingKey = false;
+				}
+				if ( (c == 13 || c == 10)) { // CR or LF
+					c = in.read(); // consume the lf
+					if ((length == 768 || length == 42176) && lineLen == 1) {
+						// then we are ready to process
+						rawFrame = new byte[length/8];
+						for (int i=0; i<length/8; i++) {
+							rawFrame[i] = (byte) in.read();
+						}
+						done = true;
+					} else {
+						// It was a header line
+						readingKey = true;
+						firstColon = true;
+						if (key.startsWith("Length")) {
+							length = Integer.parseInt(value);
+						}
+						if (key.equalsIgnoreCase("Receiver")) {
+							receiver = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Frequency")) {
+							frequency = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Rx_location")) {
+							rx_location = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Receiver_rf")) {
+							receiver_rf = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Demodulator")) {
+							demodulator = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.endsWith("Sequence")) {
+							sequenceNumber = Long.parseLong(value);
+							//System.out.println(key + " *** " + value);
+						}
+						if (key.equalsIgnoreCase("MeasuredTCA")) {
+							measuredTCA = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("MeasuredTCAfrequency")) {
+							measuredTCAfrequency = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.startsWith("Date")) {
+							//                		System.out.println(key + " " + value);
+							String dt = value.replace(" UTC", "");
+							stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+							try {
+								stpDate = stpDateFormat.parse(dt);
+							} catch (ParseException e) {
+								stpDate = null;
+								e.printStackTrace(Log.getWriter());
+							}
+
+						}
+						key = "";
+						value = "";
+						lineLen = 0;
+					}
+				} else {
+					if (readingKey) 
+						key = key + ch;
+					else
+						value = value + ch;
+				}
+				lineLen++;
+
+			}
+
+		} finally {
+			in.close();
+		}
 		in.close();
 		
 		if (rawFrame == null) {
 			// We failed to process the file
 			Log.println("Failed to Process STP file");
-			
+
 			return null;
 		}
-		
+
 		// Let's really check it is OK by running the RS decode!
 
 		byte[] frame = null;
@@ -465,7 +469,7 @@ public abstract class Frame implements Comparable<Frame>  {
 			}
 		}
 		frame = rawFrame; //rs.decode();
-		
+
 		Frame frm;
 		if (length == 768) {
 			frm = new SlowSpeedFrame();

@@ -46,6 +46,7 @@ public class Log {
 	static private boolean echoToStdout = true; // true for debugging through eclipse because its handy.  This will never be true in production version.
 	static PrintWriter output = null;
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+	public static final DateFormat logDateName = new SimpleDateFormat("yyyyMMdd");
 	public static SourceTab logPanel;
 	public static String logFile = "FoxTelemDecoder.log";
 	public static Thread.UncaughtExceptionHandler uncaughtExHandler;
@@ -56,13 +57,14 @@ public class Log {
 	 * @throws IOException 
 	 */
 	public static void init(String logFile) {
-		Log.logFile = logFile;
+		
+		Log.logFile = rollLog(logFile);
 		if (Config.logging) {
 			try {
 				if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-					logFile = Config.logFileDirectory + File.separator + logFile;
+					Log.logFile = Config.logFileDirectory + File.separator + Log.logFile;
 				} 
-				File aFile = new File(logFile);
+				File aFile = new File(Log.logFile);
 				if(!aFile.exists()){
 					aFile.createNewFile();
 				}
@@ -85,6 +87,13 @@ public class Log {
 		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
 		    }
 		};
+	}
+	
+	public static String rollLog(String logFile) {
+		Date today = Calendar.getInstance().getTime();
+		logDateName.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String reportDate = logDateName.format(today);
+		return logFile + reportDate + ".log";
 	}
 	
 	public static boolean getLogging() { return Config.logging; }

@@ -1,0 +1,29 @@
+FoxTelem
+~~~~~~~~
+Release 1.02
+Bug where T0 not downloaded into currentDir
+Crash where T0 not displayed on the diagnostic tables
+Added horizontal and vertical lines to the tables
+
+Merge HERCI into 1.03 perhaps after extensive regression testing
+
+
+FoxServer
+~~~~~~~~~
+We still get timeouts on the server.  The log suggests that we should set autoRetry on the java connection
+
+The FoxService crashes or stops working. Unclear why. Needs better error handing.  
+It is probablly the same timeout issue though....
+
+Add number of files processed today and number of exceptions to the leaderboard page.
+Add a BANNER if ALERT raised to indicate that the admins have been paged!
+
+The start scripts needs to restart the server if it crashes
+I need to send email (or better text) alerts if there is an error - write a java function for
+cricital errors or dectect when crash or hung..
+
+Send email to text using
+T-Mobile: phonenumber@tmomail.net
+where number is 10 digits
+
+Use javaMail api - download:

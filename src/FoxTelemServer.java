@@ -2,7 +2,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-import telemServer.ServerConfig;
 import telemServer.ServerProcess;
 import telemetry.Frame;
 import common.Config;
@@ -16,16 +15,26 @@ public class FoxTelemServer {
 	public static String version = "Version 0.1";
 	public static int port = 41042;
 	static int sequence = 0;
+	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
 	
 	public static void main(String[] args) {
 		
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
-		Log.init("FoxServer.log");
+		Log.init("FoxServer");
 		Log.showGuiDialogs = false;
-		
-		System.out.println("Starting FoxServer: " + version);
-		System.out.println("Listening on port: " + 41042);
+		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
+
+		try {
+			makeExceptionDir();
+		} catch (IOException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace(Log.getWriter());
+			System.exit(1);
+		}
+
+		Log.println("Starting FoxServer: " + version);
+		Log.println("Listening on port: " + 41042);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
@@ -43,7 +52,7 @@ public class FoxTelemServer {
 			if ((args[0].equalsIgnoreCase("-s")) ) {
 				String dir = args[1]; 
 			
-				System.out.println("AMSAT Fox Server. \nSTP FILE LOAD FROM DIR: " + dir);
+				Log.println("AMSAT Fox Server. \nSTP FILE LOAD FROM DIR: " + dir);
 				importStp(dir, false);
 				System.exit(0);
 			}
@@ -56,7 +65,7 @@ public class FoxTelemServer {
         try {
             serverSocket = new ServerSocket(Config.tcpPort);
         } catch (IOException e) {
-            System.err.println("Could not listen on port: " + Config.tcpPort);
+            Log.println("Could not listen on port: " + Config.tcpPort);
             System.exit(-1);
         }
 
@@ -70,20 +79,35 @@ public class FoxTelemServer {
 				e.printStackTrace();
 			}
         	if (process != null) {
-        		System.out.println("Started Thread to handle connection");
+        		Log.println("Started Thread to handle connection from: " + serverSocket.getInetAddress());
         		processThread = new Thread(process);
         		processThread.start();
         	}
         }
 
+        if (sequence == MAX_SEQUENCE)
+        	sequence=0;
         try {
 			serverSocket.close();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(Log.getWriter());
 		}
     }
 	
+	public static void makeExceptionDir() throws IOException {
+		File aFile = new File("exception");
+		if(aFile.isDirectory()){
+			// already exists
+			return;
+		} else {
+			aFile.mkdir();
+		}
+		if(!aFile.isDirectory()){
+			throw new IOException("Can not make the exception dir");
+		}
+	}
+
 	/**
 	 * Get a list of all the files in the STP dir and import them
 	 */

@@ -231,10 +231,9 @@ public class SatPayloadDbStore {
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
-
+				return true; // We have the data
 			} else {
 				PayloadDbStore.errorPrint(e);
-
 			}
 			return false;
 		}
