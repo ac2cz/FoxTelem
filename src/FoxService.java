@@ -76,20 +76,28 @@ public class FoxService {
 				out.println("Server: Bot");
 				// this blank line signals the end of the headers
 				out.println("");
-				
-				String path = request.substring(1, request.length());
-				if (path.equalsIgnoreCase("1A")) {
+
+//				String path = request.substring(1, request.length());
+
+				String[] path = request.split("/");
+				if (path[1].equalsIgnoreCase("1A")) {
 					// Send the HTML page
 					PayloadRtValues rt = Config.payloadStore.getLatestRt(1);
-					if (rt != null)
-						fox1Atab.setRtPayload(rt);
-						out.println(fox1Atab.toString());
-				} else if (path.equalsIgnoreCase("1C")) {
+					if (rt != null) {
+						if (path.length == 2) {
+							fox1Atab.setRtPayload(rt);
+							out.println(fox1Atab.toString());
+						} else if (path.length == 3) {
+							fox1Atab.setRtPayload(rt);
+							out.println(fox1Atab.toGraphString(path[2]));
+						}
+					}
+				} else if (path[1].equalsIgnoreCase("1C")) {
 					// Send the HTML page
 					PayloadRtValues rt = Config.payloadStore.getLatestRt(3);
 					if (rt != null)
 						out.println("<H2>Fox-1C Telemetry</H2>" + rt.toWebString());
-				} else if (path.equalsIgnoreCase("1D")) {
+				} else if (path[1].equalsIgnoreCase("1D")) {
 					// Send the HTML page
 					PayloadRtValues rt = Config.payloadStore.getLatestRt(4);
 					if (rt != null)

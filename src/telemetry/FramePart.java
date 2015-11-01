@@ -389,7 +389,7 @@ longer send telemetry.
 	 * @param conversion
 	 * @return
 	 */
-	public static double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
 		
 	//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 		switch (conversion) {

@@ -401,7 +401,8 @@ public class SatPayloadDbStore {
 		} else {
 			update = " SELECT resets, uptime, " + name + " FROM ";
 		}
-		update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		//DERBY SYNTAX - update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		update = update + table + where + " LIMIT " + numberOfRows;
 		try {
 			//Log.println("SQL:" + update);
 			Connection derby = PayloadDbStore.getConnection();
@@ -426,6 +427,7 @@ public class SatPayloadDbStore {
 			where = " where uptime >= "+ fromUptime + " and resets >= " + fromReset +
 					" ORDER BY resets DESC, uptime DESC ";
 		}
+		//FIXME - we get all of the columns so that we can populate at Payload record - see below
 		rs = selectRows(table,name, where,period);
 		
 		int size =0;
@@ -441,15 +443,18 @@ public class SatPayloadDbStore {
 		int i=0;
 
 		if (Config.displayRawValues)
-			//FIXME conversion = 0;
+			;//FIXME conversion = 0;
 		if (size > 0) {
 			resets[i] = rs.getInt("resets");
 			upTime[i] = rs.getLong("uptime");
-			results[i++] = FramePart.convertRawValue(name, rs.getInt(name), fox.rtLayout.getConversionByName(name), fox);
+			//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
+			//PayloadRtValues rt = new PayloadRtValues(rs, fox.rtLayout);
+			results[i++] = rs.getDouble(name);
 			while (rs.previous()) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
-				results[i++] = FramePart.convertRawValue(name, rs.getInt(name), fox.rtLayout.getConversionByName(name), fox);
+				//rt = new PayloadRtValues(rs, fox.rtLayout);
+				results[i++] = rs.getDouble(name);
 			}
 		} else {
 			results = new double[1];

@@ -152,7 +152,5 @@ public abstract class BitArray {
 		return ERROR_VALUE;
 	}
 
-	public static double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
-		return rawValue;	
-	}
+	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
 }

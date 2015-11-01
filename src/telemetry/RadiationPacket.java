@@ -463,7 +463,7 @@ public class RadiationPacket extends BitArray{
 			return bytes;
 		}
 
-		public static double convertRawValue(String name, int rawValue,
+		public double convertRawValue(String name, int rawValue,
 				int conversion, Spacecraft fox) {
 			// TODO Auto-generated method stub
 			return 0;

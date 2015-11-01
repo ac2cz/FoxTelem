@@ -1,6 +1,7 @@
 package telemServer;
 
 import gui.DisplayModule;
+import common.Config;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
@@ -8,6 +9,7 @@ import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
+import telemetry.PayloadStore;
 
 public class WebHealthTab {
 	Spacecraft fox;
@@ -38,6 +40,24 @@ public class WebHealthTab {
 	public void setMaxPayload(PayloadMaxValues max) {payloadMax = max;}
 	public void setMinPayload(PayloadMinValues min) {payloadMin = min;}
 	
+	public String toGraphString(String fieldName) {
+		String s = "";
+		s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
+				+ "<table><tr><td>Reset</td> <td>Uptime </td> <td>" + fieldName + "</td> </tr>";
+		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, 100, fox, 0, 0);
+		if (graphData != null) {
+			for (int i=0; i< graphData[0].length; i++) {
+				s = s + "<tr>";
+				s = s + "<td>"+graphData[PayloadStore.RESETS_COL][i] + "</td>" +
+						"<td>"+graphData[PayloadStore.UPTIME_COL][i] + "</td>" +
+						"<td>"+graphData[PayloadStore.DATA_COL][i] + "</td>";
+				s = s + "</tr>";
+			}
+		}
+		s = s + "</table>";
+		return s;
+	}
+	
 	public String toString() {
 		String s = "";
 		if (payloadRt != null) {
@@ -46,6 +66,7 @@ public class WebHealthTab {
 		
 		s = s + "<tr bgcolor=silver>";
 
+		// FIXME - These headers span the name, rt, max and min
 		for (int i=1; i < numOfTopModules; i++) {
 			s = s + "<td><h3>" + topModuleNames[i] + "</h3>"
 			+ "</td>";
@@ -54,6 +75,7 @@ public class WebHealthTab {
 		s = s + "</tr><tr>";
 		for (int i=1; i < numOfTopModules; i++) {
 			s = s + "<td>";
+			// FIXME - FORMAT TO TOP.
 			try {
 				s = s + addModuleLines(topModuleNames[i], topModuleLines[i], rtlayout);
 			} catch (LayoutLoadException e) {
@@ -65,6 +87,7 @@ public class WebHealthTab {
 
 		s = s + "<tr bgcolor=silver>";
 
+		// FIXME - These headers span the name, rt, max and min
 		for (int i=1; i < numOfBottomModules; i++) {
 			s = s + "<td><h3>" + bottomModuleNames[i] + "</h3>"
 			+ "</td>";
@@ -97,8 +120,11 @@ public class WebHealthTab {
 				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName +
 				".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
-				s = s + rt.shortName[j] + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue("TXPACurrent", fox)  + "<br>"; 
-				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], rt.moduleDisplayType[j]);					
+				//FIXME - PUT NAME, RT, MIN, MAX in seperate columns
+				//FIXME use rt.moduleDisplayType[j] to determine if it is one values that spans across them - like antenna
+				//FIXME - make each value clickable - underline the name is best.  That will open the table for diagnostics
+				s = s + "<a href=http://localhost:8080/1A/" + rt.fieldName[j] + ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
+				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], );					
 			}
 		}
 		return s;
