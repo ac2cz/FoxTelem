@@ -12,13 +12,15 @@ import common.Log;
 
 public class FoxService {
 
+	public static String version = "Version 0.2";
+	
 	public static void main(String args[]) {
 		FoxService ws = new FoxService();
 		ws.start();
 	}
 
 	protected void start() {
-		ServerSocket s;
+		ServerSocket s = null;
 
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
@@ -29,14 +31,14 @@ public class FoxService {
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
-		Log.println("Fox Webservice starting up on port 8080");
+		Log.println("Fox Webservice starting up on port 8080: " + version);
 		Log.println("(press ctrl-c to exit)");
 		try {
 			// create the main server socket
 			s = new ServerSocket(8080);
 		} catch (Exception e) {
-			Log.println("Error: " + e);
-			return;
+			Log.println("ERROR: " + e);
+			System.exit(1);
 		}
 
 		WebHealthTab fox1Atab = null;
@@ -112,7 +114,7 @@ public class FoxService {
 				out.flush();
 				remote.close();
 			} catch (Exception e) {
-				Log.println("Error: " + e);
+				Log.println("ERROR: " + e.getMessage());
 				e.printStackTrace(Log.getWriter());
 			}
 		}

@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
 
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
@@ -75,19 +76,21 @@ public class FoxTelemServer {
         while (listening) {
         	try {
 				process = new ServerProcess(serverSocket.accept(), sequence++);
+			}  catch (SocketTimeoutException s) {
+		        Log.println("Socket timed out! - trying to continue	");
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
-				e.printStackTrace();
+				e.printStackTrace(Log.getWriter());
 			}
         	if (process != null) {
         		Log.println("Started Thread to handle connection from: " + serverSocket.getInetAddress());
         		processThread = new Thread(process);
         		processThread.start();
         	}
+            if (sequence == MAX_SEQUENCE)
+            	sequence=0;
         }
 
-        if (sequence == MAX_SEQUENCE)
-        	sequence=0;
         try {
 			serverSocket.close();
 		} catch (IOException e) {

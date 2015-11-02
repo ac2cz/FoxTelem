@@ -137,20 +137,24 @@ public class ServerProcess implements Runnable {
 			}
 			
 		} catch (IOException e) {
+			Log.println("ERROR ALERT:" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
 		} catch (StpFileProcessException e) {
-			Log.println(e.getMessage());
+			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			// We could not process the file so try to store it as an exception, something wrong with the data
 			storeException(stp);
-			
 		} finally {
-			try { f.close(); } catch (Exception ex) { /*ignore*/} 
+			try { 
+				in.close();
+				socket.close();
+				f.close();
+			} catch (Exception ex) { /*ignore*/} 
 		}
 	}
-	
+
 	private void storeException(File f) {
 		File toFile = new File("exceptions" + File.separator + f.getName()+".ex");
 		if (f != null) {
