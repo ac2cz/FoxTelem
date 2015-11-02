@@ -116,6 +116,7 @@ public class ServerProcess implements Runnable {
 			// At this point the file is on disk, so we can process it
 			stp = new File(fileName);
 			// Import it into the database
+			// null return means the files is te
 			Frame frm = Frame.importStpFile(stp, false);
 			if (frm != null) {
 				Log.println("Processed: " + b + " bytes from " + frm.receiver + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
@@ -126,7 +127,14 @@ public class ServerProcess implements Runnable {
 				else
 					Log.println("ERROR: Could not mark file as processed: " + stp.getAbsolutePath());
 			}
-			else throw new StpFileProcessException(fileName, "Failed to process file: " + fileName + " containing " + b + " bytes");
+			else {
+				// This was the test data and we do not care if it is processed
+				File toFile = new File(stp.getPath()+".null");
+				if (stp.renameTo(toFile))
+					;
+				else
+					Log.println("ERROR: Could not mark file as null data: " + stp.getAbsolutePath());
+			}
 			
 		} catch (IOException e) {
 			e.printStackTrace(Log.getWriter());
@@ -168,26 +176,4 @@ public class ServerProcess implements Runnable {
 			Log.println("Don't know which file to store as an exception");
 	}
 
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
-
-	    FileChannel source = null;
-	    FileChannel destination = null;
-
-	    try {
-	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
-	    }
-	    finally {
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
-	}
 }

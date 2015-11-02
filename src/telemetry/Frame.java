@@ -17,6 +17,7 @@ import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import telemServer.StpFileProcessException;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
@@ -327,9 +328,10 @@ public abstract class Frame implements Comparable<Frame>  {
 	 * @param fileName
 	 * @return
 	 * @throws IOException 
+	 * @throws StpFileProcessException 
 	 * @throws LayoutLoadException
 	 */
-	public static Frame loadStp(String fileName) throws IOException {
+	public static Frame loadStp(String fileName) throws IOException, StpFileProcessException {
 		//String stpDir = fileName;
 		//if (!dir.equalsIgnoreCase("")) {
 		//	stpDir = dir + File.separator + fileName;
@@ -454,8 +456,8 @@ public abstract class Frame implements Comparable<Frame>  {
 		if (rawFrame == null) {
 			// We failed to process the file
 			Log.println("Failed to Process STP file");
-
-			return null;
+			throw new StpFileProcessException(fileName, "Failed to process file: rawFrame is null " + fileName);
+			
 		}
 
 		// Let's really check it is OK by running the RS decode!
@@ -465,7 +467,7 @@ public abstract class Frame implements Comparable<Frame>  {
 			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
 			if (!rs.validDecode()) {
 				Log.println("RS Decode Failed");
-				return null;
+				throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
 			}
 		}
 		frame = rawFrame; //rs.decode();
@@ -499,7 +501,7 @@ public abstract class Frame implements Comparable<Frame>  {
 
 	}
 	
-	public static Frame importStpFile(File f, boolean delete) {
+	public static Frame importStpFile(File f, boolean delete) throws StpFileProcessException {
 		try {
 			Frame decodedFrame = Frame.loadStp(f.getPath());
 			if (decodedFrame != null && !decodedFrame.corrupt) {
@@ -516,28 +518,34 @@ public abstract class Frame implements Comparable<Frame>  {
 				}
 				*/
 				if (!Config.payloadStore.addStpHeader(decodedFrame))
-					return null; // because we failed to add the header record
+					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
 					FramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
-						return null;
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
 					//duvFrames++;
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
 					PayloadRtValues payload = hsf.getRtPayload();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload)) return null;
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RT to database");
 					PayloadMaxValues maxPayload = hsf.getMaxPayload();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload)) return null;
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS MAX to database");
 					PayloadMinValues minPayload = hsf.getMinPayload();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) return null;
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) 
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not HS MIN add to database");
 					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads)) return null;
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RAD to database");
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
-						if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData)) return null;
+						if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
+							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
+
 					}
 					//hsFrames++;
 				}
@@ -549,8 +557,8 @@ public abstract class Frame implements Comparable<Frame>  {
 		} catch (IOException e) {
 			Log.println(e.getMessage());
 			e.printStackTrace(Log.getWriter());
+			throw new StpFileProcessException(f.getName(), "IO Exception processing file");
 		}
-		return null;
 	}
 	
 

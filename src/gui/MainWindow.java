@@ -54,6 +54,7 @@ import javax.swing.JCheckBoxMenuItem;
 import org.rauschig.jarchivelib.Archiver;
 import org.rauschig.jarchivelib.ArchiverFactory;
 
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
 import telemetry.FramePart;
 import telemetry.HighSpeedFrame;
@@ -850,7 +851,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-					Frame.importStpFile(listOfFiles[i], true);
+					try {
+						Frame.importStpFile(listOfFiles[i], true);
+					} catch (StpFileProcessException e) {
+						Log.println("Could not process STP file: " + listOfFiles[i]);
+						e.printStackTrace(Log.getWriter());
+					}
 					if (importProgress != null)
 						importProgress.updateProgress((100 * i)/listOfFiles.length);
 				}

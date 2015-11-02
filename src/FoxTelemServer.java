@@ -3,6 +3,7 @@ import java.io.IOException;
 import java.net.ServerSocket;
 
 import telemServer.ServerProcess;
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
 import common.Config;
 import common.Log;
@@ -124,7 +125,16 @@ public class FoxTelemServer {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
 					//Log.print("Loading STP data from: " + listOfFiles[i].getName());
-					Frame f = Frame.importStpFile(listOfFiles[i], true);
+					try {
+						Frame f = Frame.importStpFile(listOfFiles[i], true);
+						if (f == null) {
+							// null data - try to delete it but do nothing if we can not (so don't check the return code
+							listOfFiles[i].delete();
+						}
+					} catch (StpFileProcessException e) {
+						Log.println("STP IMPORT ERROR: " + e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
 					//if (f != null)
 					//	Log.println(" ... " + f.getHeader().getResets() + " " + f.getHeader().getUptime());
 					if (i%100 == 0)

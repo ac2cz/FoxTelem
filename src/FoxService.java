@@ -91,6 +91,8 @@ public class FoxService {
 							fox1Atab.setRtPayload(rt);
 							out.println(fox1Atab.toGraphString(path[2]));
 						}
+					} else {
+						out.println("FOX SERVER Currently not returning data....\n");
 					}
 				} else if (path[1].equalsIgnoreCase("1C")) {
 					// Send the HTML page
