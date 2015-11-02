@@ -176,19 +176,20 @@ public abstract class Frame implements Comparable<Frame>  {
 		if (m.getRawValue(PassMeasurement.TCA) != null)
 			strDate = m.getRawValue(PassMeasurement.TCA);
 
-		Log.println("Got TCA: " + strDate);
-		Date date = null;
-		try {
-			date = FramePart.fileDateFormat.parse(strDate);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		measuredTCA = stpDateFormat.format(date);
-		Log.println("STP TCA set as: " + measuredTCA);
+		if (strDate != null) {
+			Log.println("Got TCA: " + strDate);
+			Date date = null;
+			try {
+				date = FramePart.fileDateFormat.parse(strDate);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 
+			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			measuredTCA = stpDateFormat.format(date);
+			Log.println("STP TCA set as: " + measuredTCA);
+		}
 		if (m.getRawValue(PassMeasurement.TCA_FREQ) != null)
 			measuredTCAfrequency = m.getRawValue(PassMeasurement.TCA_FREQ) + " Hz";
 	}
