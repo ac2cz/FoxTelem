@@ -123,7 +123,7 @@ public class WebHealthTab {
 				//FIXME - PUT NAME, RT, MIN, MAX in seperate columns
 				//FIXME use rt.moduleDisplayType[j] to determine if it is one values that spans across them - like antenna
 				//FIXME - make each value clickable - underline the name is best.  That will open the table for diagnostics
-				s = s + "<a href=http://localhost:8080/1A/" + rt.fieldName[j] + ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
+				s = s + "<a href=/1A/" + rt.fieldName[j] + ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
 				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], );					
 			}
 		}
