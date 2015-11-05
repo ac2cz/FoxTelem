@@ -86,6 +86,7 @@ public class ServerProcess implements Runnable {
 	 * This could be one or more STP files.
 	 */
 	public void run() {
+		Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
 
 		//Writer f = null;
 		FileOutputStream f = null;
@@ -144,7 +145,7 @@ public class ServerProcess implements Runnable {
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
-			// We could not process the file so try to store it as an exception, something wrong with the data
+			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
 			storeException(stp);
 		} finally {
 			try { 
@@ -161,7 +162,7 @@ public class ServerProcess implements Runnable {
 			if (f.renameTo(toFile)) {
 				;
 			} else {
-				Log.println("ERROR: Could rename the file into the exeption dir: " + f.getPath());
+				Log.println("ERROR: Could not rename the file into the exeption dir: " + f.getPath());
 			}
 			//try {
 				/*

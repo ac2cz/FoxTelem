@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
@@ -9,15 +11,34 @@ import telemetry.Frame;
 import common.Config;
 import common.Log;
 
-
-
+/**
+ * FOX 1 Telemetry Server
+ * @author chris.e.thompson g0kla/ac2cz
+ *
+ * Copyright (C) 2015 amsat.org
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ */
 
 public class FoxTelemServer {
 
 	public static String version = "Version 0.2";
-	public static int port = 41042;
+	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
+	static int poolSize = 100; // max number of threads
 	
 	public static void main(String[] args) {
 		
@@ -63,29 +84,30 @@ public class FoxTelemServer {
 		
 		ServerSocket serverSocket = null;
         boolean listening = true;
+        ExecutorService pool = null;
 
         try {
-            serverSocket = new ServerSocket(Config.tcpPort);
-        } catch (IOException e) {
-            Log.println("Could not listen on port: " + Config.tcpPort);
+            serverSocket = new ServerSocket(port);
+            pool = Executors.newFixedThreadPool(poolSize);
+            } catch (IOException e) {
+            Log.println("Could not listen on port: " + port);
             System.exit(-1);
         }
 
-        ServerProcess process = null;
-        Thread processThread;
+        //ServerProcess process = null;
+        //Thread processThread;
+
+        
         while (listening) {
         	try {
-				process = new ServerProcess(serverSocket.accept(), sequence++);
-			}  catch (SocketTimeoutException s) {
-		        Log.println("Socket timed out! - trying to continue	");
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace(Log.getWriter());
-			}
-        	if (process != null) {
-        		Log.println("Started Thread to handle connection from: " + serverSocket.getInetAddress());
-        		processThread = new Thread(process);
-        		processThread.start();
+        		//process = new ServerProcess(serverSocket.accept(), sequence++);
+        		Log.println("Waiting for connection ...");
+        		pool.execute(new ServerProcess(serverSocket.accept(), sequence++));
+        	}  catch (SocketTimeoutException s) {
+        		Log.println("Socket timed out! - trying to continue	");
+        	} catch (IOException e) {
+        		// TODO Auto-generated catch block
+        		e.printStackTrace(Log.getWriter());
         	}
             if (sequence == MAX_SEQUENCE)
             	sequence=0;
@@ -93,6 +115,7 @@ public class FoxTelemServer {
 
         try {
 			serverSocket.close();
+			pool.shutdown();
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace(Log.getWriter());

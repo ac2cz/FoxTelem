@@ -576,7 +576,7 @@ public abstract class Frame implements Comparable<Frame>  {
 		 + "demodulator varchar(100),"
 		+ "measuredTCA varchar(35),"
 		+ "measuredTCAfrequency varchar(35),"
-		+ "date_time datetime NOT NULL DEFAULT CURRENT_TIMESTAMP";
+		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
 		s = s + "PRIMARY KEY (id, resets, uptime, type, receiver))";
 		return s;
 	}
