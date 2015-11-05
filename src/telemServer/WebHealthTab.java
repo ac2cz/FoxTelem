@@ -1,6 +1,5 @@
 package telemServer;
 
-import gui.DisplayModule;
 import common.Config;
 import common.Log;
 import common.Spacecraft;

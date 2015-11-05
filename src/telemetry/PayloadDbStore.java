@@ -89,7 +89,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	        
         
         try {
-            derby = DriverManager.getConnection(url, user, password);
+            derby = getConnection();
             st = derby.createStatement();
             rs = st.executeQuery("SELECT VERSION()");
 
@@ -126,7 +126,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 	
 	public static Connection getConnection() throws SQLException {
-		if (derby.isClosed())
+		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
             derby = DriverManager.getConnection(url, user, password);
 		return derby;
 
@@ -328,6 +328,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		Statement stmt = null;
 		ResultSet select = null;
 		try {
+			derby = getConnection();
 			stmt = PayloadDbStore.derby.createStatement();
 			select = stmt.executeQuery("select * from " + table);
 			select.close();
@@ -357,6 +358,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		update = update + f.getInsertStmt();
 		//Log.println("SQL:" + update);
 		try {
+			derby = getConnection();
 			stmt = PayloadDbStore.derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);

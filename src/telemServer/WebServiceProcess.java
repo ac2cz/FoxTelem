@@ -60,35 +60,39 @@ public class WebServiceProcess implements Runnable {
 				}
 
 				String[] path = request.split("/");
-				if (path[1].equalsIgnoreCase("version")) {
-					out.println("Fox Web Service - 0.02");
-				} else if (path[1].equalsIgnoreCase("1A")) {
-					// Send the HTML page
-					PayloadRtValues rt = Config.payloadStore.getLatestRt(1);
-					if (rt != null) {
-						if (path.length == 2) {
-							fox1Atab.setRtPayload(rt);
-							out.println(fox1Atab.toString());
-						} else if (path.length == 3) {
-							fox1Atab.setRtPayload(rt);
-							out.println(fox1Atab.toGraphString(path[2]));
+				if (path.length > 0) {
+					if (path[1].equalsIgnoreCase("version")) {
+						out.println("Fox Web Service - 0.02");
+					} else if (path[1].equalsIgnoreCase("1A")) {
+						// Send the HTML page
+						PayloadRtValues rt = Config.payloadStore.getLatestRt(1);
+						if (rt != null) {
+							if (path.length == 2) {
+								fox1Atab.setRtPayload(rt);
+								out.println(fox1Atab.toString());
+							} else if (path.length == 3) {
+								fox1Atab.setRtPayload(rt);
+								out.println(fox1Atab.toGraphString(path[2]));
+							}
+						} else {
+							out.println("FOX SERVER Currently not returning data....\n");
 						}
+					} else if (path[1].equalsIgnoreCase("1C")) {
+						// Send the HTML page
+						PayloadRtValues rt = Config.payloadStore.getLatestRt(3);
+						if (rt != null)
+							out.println("<H2>Fox-1C Telemetry</H2>" + rt.toWebString());
+					} else if (path[1].equalsIgnoreCase("1D")) {
+						// Send the HTML page
+						PayloadRtValues rt = Config.payloadStore.getLatestRt(4);
+						if (rt != null)
+							out.println("<H2>Fox-1D Telemetry</H2>" + rt.toWebString());
 					} else {
-						out.println("FOX SERVER Currently not returning data....\n");
+						// Send the DEFAULT HTML page
+						out.println("<H2>AMSAT FOX WEB SERVICE - TEST POINT</H2>");
 					}
-				} else if (path[1].equalsIgnoreCase("1C")) {
-					// Send the HTML page
-					PayloadRtValues rt = Config.payloadStore.getLatestRt(3);
-					if (rt != null)
-						out.println("<H2>Fox-1C Telemetry</H2>" + rt.toWebString());
-				} else if (path[1].equalsIgnoreCase("1D")) {
-					// Send the HTML page
-					PayloadRtValues rt = Config.payloadStore.getLatestRt(4);
-					if (rt != null)
-						out.println("<H2>Fox-1D Telemetry</H2>" + rt.toWebString());
 				} else {
-					// Send the DEFAULT HTML page
-					out.println("<H2>AMSAT FOX WEB SERVICE - TEST POINT</H2>");
+					out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
 				}
 			}
 			out.flush();
