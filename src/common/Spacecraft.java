@@ -166,6 +166,7 @@ public class Spacecraft {
 	
 	public boolean hasTimeZero() { 
 		if (timeZero == null) return false;
+		if (timeZero.size() == 0) return false;
 		return true;
 	}
 	
@@ -177,6 +178,7 @@ public class Spacecraft {
 	
 	public String[][] getT0TableData() {
 		if (timeZero == null) return null;
+		if (timeZero.size() == 0) return null;
 		String[][] data = new String[timeZero.size()][];
 		for (int i=0; i< timeZero.size(); i++) {
 			data[i] = new String[2];

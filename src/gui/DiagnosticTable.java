@@ -11,6 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import common.Config;
+import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
@@ -39,6 +40,7 @@ import telemetry.PayloadStore;
  */
 @SuppressWarnings("serial")
 public class DiagnosticTable extends JPanel {
+	Spacecraft fox;
 	double[][] graphData = null;
 	String title = "Test Graph";
 	String fieldName = null;
@@ -49,11 +51,12 @@ public class DiagnosticTable extends JPanel {
 	JScrollPane scrollPane;
 	
 	
-	DiagnosticTable(String t, String fieldName, int conversionType, GraphFrame gf) {
+	DiagnosticTable(String t, String fieldName, int conversionType, GraphFrame gf, Spacecraft sat) {
 		this.conversionType = conversionType;
 		title = t;
 		this.fieldName = fieldName;
 		graphFrame = gf;
+		fox = sat;
 		this.setLayout(new BorderLayout());
 		table = addErrorTable();
 		updateData();
@@ -117,6 +120,13 @@ public class DiagnosticTable extends JPanel {
 
 	}
 
+	private void setColumnName(int col, String name) {
+		int viewColumn = table.convertColumnIndexToView(col);
+		TableColumn column = table.getColumnModel().getColumn(viewColumn);
+		column.setHeaderValue(name);
+		table.getTableHeader().repaint();
+
+	}
 	public void updateDiagnosticData() {
 		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		String[][] tableData = new String[graphData[0].length][7];
@@ -128,8 +138,25 @@ public class DiagnosticTable extends JPanel {
 				
 				display = FramePart.ihuDiagnosticString(value, false);
 				if (display != null) { 	
-					tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-					tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
+					if (graphFrame.showUTCtime) {
+						setColumnName(0, "Date");
+						setColumnName(1, "Time (UTC)");
+						
+						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
+						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
+						if (fox.hasTimeZero(resets)) {
+							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
+							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
+						} else {
+							tableData[i][1] = "";
+							tableData[i][0] = "";
+						}
+					} else {
+						setColumnName(0, "Reset");
+						setColumnName(1, "Uptime");
+						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
+						tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);
+					}
 					tableData[i][2] = display;
 				}
 			}
@@ -151,8 +178,24 @@ public class DiagnosticTable extends JPanel {
 				display = FramePart.hardErrorStringArray(value, false);
 				
 				if (display != null) { 	
-					tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-					tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
+					if (graphFrame.showUTCtime) {
+						setColumnName(0, "Date");
+						setColumnName(1, "Time (UTC)");
+						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
+						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
+						if (fox.hasTimeZero(resets)) {
+							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
+							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
+						} else {
+							tableData[i][1] = "";
+							tableData[i][0] = "";
+						}
+					} else {
+						setColumnName(0, "Reset");
+						setColumnName(1, "Uptime");
+						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
+						tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
+					}
 					for (int j=2; j<8; j++)
 						tableData[i][j] = display[j-2];
 				}
@@ -174,8 +217,24 @@ public class DiagnosticTable extends JPanel {
 				display = FramePart.softErrorStringArray(value, false);
 				
 				if (display != null) { 	
-					tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-					tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
+					if (graphFrame.showUTCtime) {
+						setColumnName(0, "Date");
+						setColumnName(1, "Time (UTC)");
+						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
+						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
+						if (fox.hasTimeZero(resets)) {
+							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
+							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
+						} else {
+							tableData[i][1] = "";
+							tableData[i][0] = "";
+						}
+					} else {
+						setColumnName(0, "Reset");
+						setColumnName(1, "Uptime");
+						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
+						tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
+					}
 					for (int j=2; j<6; j++)
 						tableData[i][j] = display[j-2];
 				}

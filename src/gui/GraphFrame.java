@@ -79,6 +79,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JPanel footerPanel;
 	
 	private JButton btnLatest;
+	private JButton btnVerticalLines;
+	private JButton btnHorizontalLines;
 	private JButton btnCSV;
 	private JButton btnCopy;
 	private JButton btnDerivative;
@@ -113,11 +115,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JTextField txtAvgPeriod;
 	private JLabel lblFromReset;
 	private JTextField textFromReset;
-	private DiagnosticTextArea textArea;
+	//private DiagnosticTextArea textArea;
 	private DiagnosticTable diagnosticTable;
 	
 	public boolean plotDerivative;
 	public boolean dspAvg;
+	public boolean showVerticalLines;
+	public boolean showHorizontalLines;
 	public boolean displayMain = true;
 	public boolean showUTCtime = false;
 	public boolean showUptime = true;
@@ -166,7 +170,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
 				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR ) {   // Should not hard code this - need to update
 			//textArea = new DiagnosticTextArea(title, fieldName, this);
-			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this);
+			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
 			//JScrollPane scroll = new JScrollPane (diagnosticTable, 
 			//		   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
@@ -178,7 +182,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		
 		// Toolbar buttons
-		
+		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
+		titlePanelLeft.add(btnHorizontalLines);
+		if (this.textDisplay) btnHorizontalLines.setVisible(false);
+
+		btnVerticalLines = createIconButton("/images/verticalLines.png","Verrtical","Show Vertical Lines");
+		titlePanelLeft.add(btnVerticalLines);
+		if (this.textDisplay) btnVerticalLines.setVisible(false);
+
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
 		btnMain.setToolTipText("Hide the unprocessed telemetry data");
@@ -302,7 +313,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanelLeft.add(chckbxPlotAllUptime);
 	
 		chckbxPlotAllUptime.addItemListener(this);
-	
+		if (this.textDisplay) chckbxPlotAllUptime.setVisible(false);
 	}
 
 	private void setAvgVisible(boolean f) {
@@ -568,7 +579,23 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}  else if (e.getSource() == btnCopy) {
 			copyToClipboard();
 			Log.println("Graph copied to clipboard");
-		}  else if (e.getSource() == btnDerivative) {
+		}  else if (e.getSource() == btnHorizontalLines) {
+			showHorizontalLines = !showHorizontalLines;
+			//Log.println("Plot Derivative " + plotDerivative);
+			if (showHorizontalLines) {	
+				btnHorizontalLines.setBackground(Color.RED);
+			} else
+				btnHorizontalLines.setBackground(Color.GRAY);
+			panel.updateGraphData();
+		} else if (e.getSource() == btnVerticalLines) {
+			showVerticalLines = !showVerticalLines;
+			//Log.println("Plot Derivative " + plotDerivative);
+			if (showVerticalLines) {	
+				btnVerticalLines.setBackground(Color.RED);
+			} else
+				btnVerticalLines.setBackground(Color.GRAY);
+			panel.updateGraphData();
+		} else if (e.getSource() == btnDerivative) {
 			plotDerivative = !plotDerivative;
 			//Log.println("Plot Derivative " + plotDerivative);
 			if (plotDerivative) {	
@@ -605,7 +632,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD;
 			}
 			if (textDisplay)
-				textArea.updateData();
+				diagnosticTable.updateData();
 			else
 				panel.updateGraphData();
 		}
@@ -617,7 +644,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				showUTCtime = true;
 			}
 			if (textDisplay)
-				textArea.updateData();
+				diagnosticTable.updateData();
 			else
 				panel.updateGraphData();
 		}
@@ -628,7 +655,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				showUptime = true;
 			}
 			if (textDisplay)
-				textArea.updateData();
+				diagnosticTable.updateData();
 			else
 				panel.updateGraphData();
 		}
