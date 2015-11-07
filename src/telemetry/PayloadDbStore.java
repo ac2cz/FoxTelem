@@ -282,8 +282,30 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	public boolean add(int id, long uptime, int resets, FramePart f) {
+		boolean rc = false;
+		int retries = 0;
+		int MAX_RETRIES = 5;
 		f.captureHeaderInfo(id, uptime, resets);
-		return payloadQueue.add(f);
+		while (retries++ < MAX_RETRIES)
+		try {
+			rc = payloadQueue.add(f);
+		} catch (NullPointerException e) {
+			Log.println("NULL POINTER adding to DB Queue, pause then retry");
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				
+			}
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("INDEX OUT OF BOUNDS adding to DB Queue, pause then retry");
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e1) {
+				
+			}
+		}
+
+		return rc;
 	}
 
 	public boolean addToDb(int id, long uptime, int resets, FramePart f) {
@@ -310,7 +332,17 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			if (f[i].hasData()) {
 				f[i].captureHeaderInfo(id, uptime, resets);
 				f[i].type = 100 + i; // store the index in the type field so it is unique
-				payloadQueue.add(f[i]);
+				try {
+					payloadQueue.add(f[i]);
+				} catch (NullPointerException e) {
+					try {
+						Thread.sleep(100);
+					} catch (InterruptedException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+					payloadQueue.add(f[i]);
+				}
 			}
 		}
 		return true;

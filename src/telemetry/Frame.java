@@ -429,8 +429,9 @@ public abstract class Frame implements Comparable<Frame>  {
 							try {
 								stpDate = stpDateFormat.parse(dt);
 							} catch (ParseException e) {
+								Log.println("ERROR - Date was not parsable. Setting to null");
 								stpDate = null;
-								e.printStackTrace(Log.getWriter());
+								//e.printStackTrace(Log.getWriter());
 							}
 
 						}
