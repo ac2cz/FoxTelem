@@ -125,6 +125,14 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		}
 	}
 	
+	public void initRad2() {
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+		for (int s=0; s<sats.size(); s++) {
+			payloadStore[s] = new SatPayloadDbStore(sats.get(s));
+			payloadStore[s].initRad2();
+		}
+	}
+	
 	public static Connection getConnection() throws SQLException {
 		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
             derby = DriverManager.getConnection(url, user, password);

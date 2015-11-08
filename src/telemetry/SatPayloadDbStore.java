@@ -56,11 +56,13 @@ public class SatPayloadDbStore {
 	public static String MAX_LOG = "MAXTELEMETRY";
 	public static String MIN_LOG = "MINTELEMETRY";
 	public static String RAD_LOG = "RADTELEMETRY";
+	public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
 	
 	public String rtTableName;
 	public String maxTableName;
 	public String minTableName;
 	public String radTableName;
+	public String radTelemTableName;
 	
 	private boolean multiUpdate = false;
 	
@@ -73,7 +75,7 @@ public class SatPayloadDbStore {
 	boolean updatedMax = true;
 	boolean updatedMin = true;
 	boolean updatedRad = true;
-	
+	boolean updatedRadTelem = true;
 	
 	/**
 	 * Create the payload store this this fox id
@@ -86,7 +88,8 @@ public class SatPayloadDbStore {
 		maxTableName = "Fox"+foxId+MAX_LOG;
 		minTableName = "Fox"+foxId+MIN_LOG;
 		radTableName = "Fox"+foxId+RAD_LOG;
-
+		radTelemTableName = "Fox"+foxId+RAD_TELEM_LOG;
+		
 		initPayloadFiles();
 	}
 	
@@ -95,7 +98,7 @@ public class SatPayloadDbStore {
 		initPayloadTable(maxTableName, fox.maxLayout);
 		initPayloadTable(minTableName, fox.minLayout);
 		initPayloadTable(radTableName, fox.radLayout);
-		
+		initPayloadTable(radTelemTableName, fox.rad2Layout);
 	}
 
 	/** 
@@ -134,7 +137,7 @@ public class SatPayloadDbStore {
 		updatedMax = true;
 		updatedMin = true;
 		updatedRad = true;
-		
+		updatedRadTelem = true;
 	}
 	
 	public boolean getUpdatedRt() { return updatedRt; }
@@ -153,6 +156,10 @@ public class SatPayloadDbStore {
 	public boolean getUpdatedRad() { return updatedRad; }
 	public void setUpdatedRad(boolean u) {
 		updatedRad = u;
+	}
+	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
+	public void setUpdatedRadTelem(boolean u) {
+		updatedRadTelem = u;
 	}
 
 	private int count(String table) {
@@ -193,6 +200,17 @@ public class SatPayloadDbStore {
 		return add(f);
 	}
 
+	private boolean addRadRecord(PayloadRadExpData f)  {
+		insert(radTableName,f);
+		
+		// Capture and store any secondary payloads
+		if (f.isTelemetry()) {
+			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			add(radiationTelemetry);
+		}
+		return true;
+	}
 	/**
 	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
 	 * @param f
@@ -204,7 +222,7 @@ public class SatPayloadDbStore {
 				if (f[i].hasData()) {
 					f[i].captureHeaderInfo(id, uptime, resets);
 					f[i].type = i+100;  // use type as the serial number for high speed type 4s, starting at 100 to distinguish from a Low Speed type 4
-					add(f[i]);
+					addRadRecord(f[i]);
 				}
 			}
 
@@ -259,7 +277,10 @@ public class SatPayloadDbStore {
 			return insert(minTableName,f);
 		} else if (f instanceof PayloadRadExpData ) {
 			setUpdatedRad(true);
-			return insert(radTableName,f);
+			return addRadRecord((PayloadRadExpData)f);
+		} else if (f instanceof RadiationTelemetry ) {
+			setUpdatedRadTelem(true);
+			return insert(radTelemTableName, f);
 		}
 		return false;
 	}
@@ -288,30 +309,38 @@ public class SatPayloadDbStore {
 	
 	public PayloadRtValues getLatestRt() throws SQLException {
 		ResultSet r = selectLatest(rtTableName);
-		if (r != null)
-			return new PayloadRtValues(r, fox.rtLayout);
-		else return null;
+		if (r != null) {
+			PayloadRtValues rt = new PayloadRtValues(r, fox.rtLayout);
+			r.close();
+			return rt;
+		} else return null;
 	}
 
 	public PayloadMaxValues getLatestMax() throws SQLException {
 		ResultSet r = selectLatest(maxTableName);
-		if (r != null)
-			return new PayloadMaxValues(r, fox.maxLayout);
-		else return null;
+		if (r != null) {
+			PayloadMaxValues max = new PayloadMaxValues(r, fox.maxLayout);
+			r.close();
+			return max;
+		} else return null;
 	}
 
 	public PayloadMinValues getLatestMin() throws SQLException {
 		ResultSet r = selectLatest(minTableName);
-		if (r != null)
-			return new PayloadMinValues(r, fox.minLayout);
-		else return null;
+		if (r != null) {
+			PayloadMinValues min = new PayloadMinValues(r, fox.minLayout);
+			r.close();
+			return min;
+		} else return null;
 	}
 
 	public PayloadRadExpData getLatestRad() throws SQLException {
 		ResultSet r = selectLatest(radTableName);
-		if (r != null)
-			return new PayloadRadExpData(r, fox.radLayout);
-		else return null;
+		if (r != null) {
+			PayloadRadExpData rad = new PayloadRadExpData(r, fox.radLayout);
+			r.close();
+			return rad;
+		} else return null;
 	}
 
 
@@ -339,6 +368,33 @@ public class SatPayloadDbStore {
 		
 	}
 
+	public void initRad2() {
+		ResultSet rs;
+		String where = "select * from " + this.radTableName;
+		Statement stmt = null;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(where);
+			
+			while (rs.next()) {
+				PayloadRadExpData f = new PayloadRadExpData(rs, fox.radLayout);
+				// Capture and store any secondary payloads
+				if (f.isTelemetry()) {
+					RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+					radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+					add(radiationTelemetry);
+				}
+				
+			}
+			rs.close();
+
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
+		}
+	}
+	
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.

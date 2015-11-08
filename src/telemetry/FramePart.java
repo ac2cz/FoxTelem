@@ -246,7 +246,7 @@ longer send telemetry.
 		for (int i=0; i < fieldValue.length; i++) {
 			fieldValue[i] = results.getInt(layout.fieldName[i]);
 		}
-		results.close();
+//		results.close();
 	}
 	abstract protected void init();
 		

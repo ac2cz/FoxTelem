@@ -559,9 +559,14 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		done = true;
 	}
 
+	public void initRad2() {
+		
+	}
+	
 	@Override
 	public boolean addStpHeader(Frame f) {
 		// TODO Auto-generated method stub
 		return false;
 	}
+
 }

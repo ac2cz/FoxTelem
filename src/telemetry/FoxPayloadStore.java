@@ -131,5 +131,5 @@ public abstract class FoxPayloadStore implements Runnable {
 	 */
 	public abstract void deleteAll();	
 	
-	
+	public abstract void initRad2();
 }

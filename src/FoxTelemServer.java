@@ -30,11 +30,14 @@ import common.Log;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
+ * Version 0.6
+ * Added -r option to init the secondary radiation payloads
+ * 
  */
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.5";
+	public static String version = "Version 0.6";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -64,7 +67,9 @@ public class FoxTelemServer {
 
 		if (args.length > 0) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
-				System.out.println("FoxServer [-v] [-s dir]\n-v - Version Information\n-s <dir> - Process all of the stp files in the specified directory and load them into the db\n");
+				System.out.println("FoxServer [-v] [-s dir]\n-v - Version Information\n"
+						+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
+						+ "-r - Reprocess the radiation data and generate the sescondary payloads\n");
 				System.exit(0);
 			}
 			if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
@@ -77,6 +82,13 @@ public class FoxTelemServer {
 			
 				Log.println("AMSAT Fox Server. \nSTP FILE LOAD FROM DIR: " + dir);
 				importStp(dir, false);
+				System.exit(0);
+			}
+
+			if ((args[0].equalsIgnoreCase("-r")) ) {
+			
+				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");
+				processRadData();
 				System.exit(0);
 			}
 
@@ -135,6 +147,10 @@ public class FoxTelemServer {
 		}
 	}
 
+	private static void processRadData() {
+		Config.payloadStore.initRad2();
+	}
+	
 	/**
 	 * Get a list of all the files in the STP dir and import them
 	 */
