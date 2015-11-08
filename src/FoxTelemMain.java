@@ -474,6 +474,7 @@ public class FoxTelemMain {
 		
 	public static void main(String[] args) {
 		
+		/*
 		DateFormat form = new SimpleDateFormat("yyyyMMddHHmmss");
 		form.setTimeZone(TimeZone.getTimeZone("UTC"));
 		try {
@@ -483,7 +484,7 @@ public class FoxTelemMain {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		*/
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
 			// Then this is the first time we have run FoxTelem on this computer

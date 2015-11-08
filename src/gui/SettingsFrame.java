@@ -253,6 +253,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		setServerPanelEnabled(Config.uploadToServer);
+		cbUseUDP.setEnabled(false);
 		txtPrimaryServer.setEnabled(false);
 		txtSecondaryServer.setEnabled(false);
 	}
@@ -269,7 +270,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//txtCallsign.setEnabled(en);
 	//	txtPrimaryServer.setEnabled(en);
 	//	txtSecondaryServer.setEnabled(en);
-		cbUseUDP.setEnabled(en);
+	//	cbUseUDP.setEnabled(en);
 		//txtLatitude.setEnabled(en);
 		//txtLongitude.setEnabled(en);
 	}
