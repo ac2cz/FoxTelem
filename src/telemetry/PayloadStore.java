@@ -61,7 +61,7 @@ public class PayloadStore implements Runnable {
 	SatMeasurementStore[] measurementStore;
 	
 	public PayloadStore() {
-		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, "Loading logged data, please wait ...", false);
+		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, "FoxTelem: Loading logged data, please wait ...", false);
 		fileProgress.setVisible(true);
 
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);

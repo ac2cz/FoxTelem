@@ -201,7 +201,7 @@ public class Spacecraft {
 		if (timeZero == null) return null;
 		if (reset >= timeZero.size()) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime *1000);
-		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		dateDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		String time = dateDateFormat.format(dt);
 		return time;
 	}

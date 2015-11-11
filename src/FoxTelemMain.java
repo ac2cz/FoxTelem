@@ -478,13 +478,15 @@ public class FoxTelemMain {
 		DateFormat form = new SimpleDateFormat("yyyyMMddHHmmss");
 		form.setTimeZone(TimeZone.getTimeZone("UTC"));
 		try {
-			Date dt = form.parse("20151026203224");
+			Date dt = form.parse("20151110004114");
+			
 			System.err.println(dt.getTime());
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		*/
+		
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
 			// Then this is the first time we have run FoxTelem on this computer
