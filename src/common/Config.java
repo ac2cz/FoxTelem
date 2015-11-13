@@ -50,7 +50,7 @@ public class Config {
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
 	public static String VERSION_NUM = "1.02b";
-	public static String VERSION = VERSION_NUM + " - 10 November 2015";
+	public static String VERSION = VERSION_NUM + " - 13 November 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -151,8 +151,8 @@ public class Config {
     
     // These are not saved to the file
     public static int udpPort = 41041;
-    public static int 	Port = 41042;
-    public static int serverPort = udpPort;
+    public static int tcpPort = 41042;
+    public static int serverPort = tcpPort;
     public static int serverProtocol = TlmServer.TCP; 
   //  public static int serverProtocol = TlmServer.UDP;
     

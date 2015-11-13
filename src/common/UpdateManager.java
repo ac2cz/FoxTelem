@@ -68,14 +68,31 @@ public class UpdateManager implements Runnable {
 			
 			try {
 				Log.println("Setting server params to: ");
-				Config.primaryServer = serverProperties.getProperty("primaryServer");
-				Log.println(Config.primaryServer);
-				Config.secondaryServer = serverProperties.getProperty("secondaryServer");
-				Log.println(Config.secondaryServer);
-				Config.sendToBothServers = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
-				Log.println(""+Config.sendToBothServers);
-				Config.serverProtocol = Integer.parseInt(serverProperties.getProperty("serverProtocol"));
-				Log.println(""+Config.serverProtocol);
+				String primary = serverProperties.getProperty("primaryServer");
+				if (primary != null) {
+					Config.primaryServer = primary;
+					Log.println("Primary set to: " + Config.primaryServer);
+				}
+				String secondary = serverProperties.getProperty("secondaryServer");
+				if (secondary != null) {
+					Config.secondaryServer = secondary;
+					Log.println("Secondary set to: " + Config.secondaryServer);
+				}
+				Boolean both = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
+				if (both != null) {
+					Config.sendToBothServers = both;
+					Log.println("Sent to both set to: "+Config.sendToBothServers);
+				}
+				String port = serverProperties.getProperty("serverPort");
+				if (port != null) {
+					Config.serverPort = Integer.parseInt(port);
+					Log.println("Port set to: "+Config.serverPort);
+				}
+				String protocol = serverProperties.getProperty("serverProtocol");
+				if (protocol != null) {
+					Config.serverProtocol = Integer.parseInt(protocol);
+					Log.println("Protocol set to: "+Config.serverProtocol);
+				}
 			} catch (NumberFormatException nf) {
 				Log.println("Could not load the server paramaters: " + nf.getMessage());
 			} catch (NullPointerException nf) {
@@ -86,7 +103,7 @@ public class UpdateManager implements Runnable {
 		
 		
 	}
-	
+		
 	public void updateT0(Spacecraft sat) {
 		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
 		String file = "FOX" + sat.foxId + Config.t0UrlFile;
