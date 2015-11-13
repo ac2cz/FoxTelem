@@ -42,7 +42,7 @@ public class WebHealthTab {
 	public String toGraphString(String fieldName) {
 		String s = "";
 		s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
-				+ "<table><tr><td>Reset</td> <td>Uptime </td> <td>" + fieldName + "</td> </tr>";
+				+ "<table><tr bgcolor=silver><td>Reset</td> <td>Uptime </td> <td>" + fieldName + "</td> </tr>";
 		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, 100, fox, 0, 0);
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
@@ -122,7 +122,7 @@ public class WebHealthTab {
 				//FIXME - PUT NAME, RT, MIN, MAX in seperate columns
 				//FIXME use rt.moduleDisplayType[j] to determine if it is one values that spans across them - like antenna
 				//FIXME - make each value clickable - underline the name is best.  That will open the table for diagnostics
-				s = s + "<a href=/1A/" + rt.fieldName[j] + ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
+				s = s + "<a href=/tlm/graph.php?sat=1A&field=" + rt.fieldName[j] + ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
 				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], );					
 			}
 		}
