@@ -145,8 +145,9 @@ public class Config {
     public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
     public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
-    public static String primaryServer = "tlm.amsat.us";
-    public static String secondaryServer = "tlm.amsat.org";
+    public static String primaryServer = "tlm.amsat.org";
+    public static String secondaryServer = "tlm.amsat.us";
+    public static String webSiteUrl = "http://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
     // These are not saved to the file
@@ -493,6 +494,7 @@ public class Config {
 		
 		// Version 1.02 settings
 		properties.setProperty("serverFileDirectory", serverFileDirectory);
+		properties.setProperty("webSiteUrl", webSiteUrl);
 		store();
 	}
 	
@@ -638,7 +640,8 @@ public class Config {
 		// Version 1.02 settings
 		serverFileDirectory = getProperty("serverFileDirectory");
 		if (serverFileDirectory == null) serverFileDirectory = "";
-	
+		webSiteUrl = getProperty("webSiteUrl");
+		if (webSiteUrl == null) webSiteUrl = "";
 		
 		} catch (NumberFormatException nf) {
 			catchException();

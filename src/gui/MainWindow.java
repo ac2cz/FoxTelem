@@ -762,8 +762,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
 		fileProgress.setVisible(true);
 
-//		String urlString = "http://www.amsat.org/tlm/ao85/serverlogs.tar.gz";
-		String urlString = "http://tlm.amsatfox.org/tlm/2015/serverlogs.tar.gz";
+		String urlString = Config.webSiteUrl + "/ao85/serverlogs.tar.gz";
 		try {
 			URL website = new URL(urlString);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
