@@ -758,6 +758,7 @@ longer send telemetry.
 	}
 	
 	public String getInsertStmt() {
+		copyBitsToFields();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, \n";
 		for (int i=0; i < layout.fieldName.length-1; i++) {

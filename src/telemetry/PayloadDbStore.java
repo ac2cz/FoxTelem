@@ -297,6 +297,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		while (retries++ < MAX_RETRIES)
 		try {
 			rc = payloadQueue.add(f);
+			retries = MAX_RETRIES;
 		} catch (NullPointerException e) {
 			Log.println("NULL POINTER adding to DB Queue, pause then retry");
 			try {
