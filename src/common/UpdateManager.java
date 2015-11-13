@@ -74,6 +74,8 @@ public class UpdateManager implements Runnable {
 				Log.println(Config.secondaryServer);
 				Config.sendToBothServers = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
 				Log.println(""+Config.sendToBothServers);
+				Config.serverProtocol = Integer.parseInt(serverProperties.getProperty("serverProtocol"));
+				Log.println(""+Config.serverProtocol);
 			} catch (NumberFormatException nf) {
 				Log.println("Could not load the server paramaters: " + nf.getMessage());
 			} catch (NullPointerException nf) {

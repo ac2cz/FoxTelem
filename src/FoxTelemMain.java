@@ -463,6 +463,8 @@ import decoder.Decoder;
  * Capture the string version of the STP date in ENGLISH for all users, but leave other string dates in local language
  * Fixed bug where TCA date could be null and a SERIOUS error was reported
  * Fixed issue where the tabs were always refreshed when the spacecraft menu closed
+ * Fixed bug where UTC date was sometimes wrong on the spacecraft T0 panel
+ * Default sending server data to TCP
  * 
  */
 

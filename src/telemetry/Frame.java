@@ -395,7 +395,7 @@ public abstract class Frame implements Comparable<Frame> {
 				if ((length == 768 || length == 42176) && lineLen == 1) {
 					// then we are ready to process
 					rawFrame = new byte[length / 8];
-					for (int i = 0; i < 96; i++) {
+					for (int i = 0; i < rawFrame.length; i++) {
 						rawFrame[i] = (byte) in.read();
 					}
 					done = true;

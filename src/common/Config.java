@@ -49,8 +49,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.02a";
-	public static String VERSION = VERSION_NUM + " - 21 October 2015";
+	public static String VERSION_NUM = "1.02b";
+	public static String VERSION = VERSION_NUM + " - 10 November 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -151,7 +151,7 @@ public class Config {
     
     // These are not saved to the file
     public static int udpPort = 41041;
-    public static int tcpPort = 41042;
+    public static int 	Port = 41042;
     public static int serverPort = udpPort;
     public static int serverProtocol = TlmServer.TCP; 
   //  public static int serverProtocol = TlmServer.UDP;
@@ -481,7 +481,7 @@ public class Config {
 
 		// Version 1.01 settings
 		properties.setProperty("debugSignalFinder", Boolean.toString(debugSignalFinder));
-//		properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
+		properties.setProperty("serverProtocol", Integer.toString(serverProtocol));
 		properties.setProperty("serverPort", Integer.toString(serverPort));
 		properties.setProperty("showSNR", Boolean.toString(showSNR));
 		properties.setProperty("SCAN_SIGNAL_THRESHOLD", Double.toString(SCAN_SIGNAL_THRESHOLD));
@@ -624,7 +624,7 @@ public class Config {
 		
 		// Version 1.01 settings
 		debugSignalFinder = Boolean.parseBoolean(getProperty("debugSignalFinder"));
-//		serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
+		serverProtocol = Integer.parseInt(getProperty("serverProtocol"));
 		serverPort = Integer.parseInt(getProperty("serverPort"));
 		showSNR = Boolean.parseBoolean(getProperty("showSNR"));
 		SCAN_SIGNAL_THRESHOLD = Double.parseDouble(getProperty("SCAN_SIGNAL_THRESHOLD"));
