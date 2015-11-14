@@ -37,7 +37,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.7";
+	public static String version = "Version 0.7 - 11 November 2015";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -60,7 +60,7 @@ public class FoxTelemServer {
 		}
 
 		Log.println("Starting FoxServer: " + version);
-		Log.println("Listening on port: " + 41042);
+		Log.println("Listening on port: " + port);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
@@ -69,11 +69,11 @@ public class FoxTelemServer {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
 				System.out.println("FoxServer [-v] [-s dir]\n-v - Version Information\n"
 						+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
-						+ "-r - Reprocess the radiation data and generate the sescondary payloads\n");
+						+ "-r - Reprocess the radiation data and generate the secondary payloads\n");
 				System.exit(0);
 			}
 			if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
-				System.out.println("AMSAT Fox Server. Version " + Config.VERSION);
+				System.out.println("AMSAT Fox Server. Version " + version);
 				System.exit(0);
 			}
 
