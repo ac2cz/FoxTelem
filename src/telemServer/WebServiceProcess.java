@@ -5,8 +5,17 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
+import java.text.ParseException;
+import java.util.Date;
+import java.util.TimeZone;
 
+import telemetry.Frame;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadDbStore;
 import telemetry.PayloadRtValues;
 import common.Config;
 import common.Log;
@@ -63,6 +72,17 @@ public class WebServiceProcess implements Runnable {
 				if (path.length > 0) {
 					if (path[1].equalsIgnoreCase("version")) {
 						out.println("Fox Web Service - 0.02");
+					} else if (path[1].equalsIgnoreCase("T0")) {
+						if (path.length == 4) {
+							try {
+							String t0 = calculateT0(out, Integer.parseInt(path[2]), path[3], 10);
+							out.println(t0 + "\n");
+							} catch (NumberFormatException e) {
+								out.println("FOX T0 Request has invalid reset + " + path[2] + "\n");								
+							}
+						} else {
+							out.println("FOX T0 Request invalid\n");
+						}
 					} else if (path[1].equalsIgnoreCase("1A")) {
 						// Send the HTML page
 						PayloadRtValues rt = Config.payloadStore.getLatestRt(1);
@@ -113,4 +133,64 @@ public class WebServiceProcess implements Runnable {
 		
 	}
 
+	String calculateT0(PrintWriter out, int reset, String receiver, int num) {
+		Statement stmt = null;
+		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+		String update = "  SELECT stpDate, uptime FROM STP_HEADER "
+				+ "where type = 4 and resets = "+reset+" and receiver = '"+receiver+"' "
+				+ "ORDER BY resets DESC, uptime DESC LIMIT " + num; // Derby Syntax FETCH FIRST ROW ONLY";
+		String stpDate[];
+		long uptime[];
+		long t0Sum = 0L;
+		String s = "";
+		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
+		s = s + "<table><tr><th>STP Date</th><th>Uptime</th><th>Estimated T0</th></tr>";
+		
+		try {
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
+			//Log.println(update);
+			ResultSet r = stmt.executeQuery(update);
+			int size = 0;
+			int i=0;
+			if (r.last()) {
+				size = r.getRow();
+				r.beforeFirst(); // not rs.first() because the rs.next() below will move on, missing the first element
+			}
+			stpDate = new String[size];
+			uptime = new long[size];
+			if (size == 0) return "No Frames from reset " + reset +" for receiver " + receiver;
+			while (r.next()) {
+				uptime[i] = r.getLong("uptime");
+				stpDate[i] = r.getString("stpDate");
+				
+				Date stpDT;
+				try {
+					stpDT = Frame.stpDateFormat.parse(stpDate[i]);
+					
+				long stp = stpDT.getTime()/1000; // calculate the number of seconds in out stp data since epoch
+				long T0 = stp - uptime[i];
+				t0Sum += T0;
+				Date T0DT = new Date(T0*1000);
+				s = s + "<tr><td>" + stpDate[i] + "</td><td>" + uptime[i] + "</td><td>" + T0DT +"</td></tr>";
+				i++;
+				} catch (ParseException e) {
+					// ignore this row.  Don't increment i so that we overwrite it
+				}
+			}
+			s = s + "</table>";
+			long avgT0 = t0Sum/i;
+			Date T0DT = new Date(avgT0*1000);
+			s = s + "<br>";
+			s = s + "T0 Est: " + T0DT + "<br>";
+			s = s + "T0: " + avgT0 * 1000 + "<br>";
+			
+			return s;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
+			return e.toString();
+		}
+		
+	}
 }

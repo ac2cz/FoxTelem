@@ -1,24 +1,25 @@
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
-import telemServer.ServerProcess;
-import telemServer.WebHealthTab;
 import telemServer.WebServiceProcess;
-import telemetry.LayoutLoadException;
-import telemetry.PayloadRtValues;
 import common.Config;
 import common.Log;
 
+/**
+ * 
+ * @author chris.e.thompson
+ *
+ *
+ * Verion 0.9
+ * T0 Analysis added as a service
+ * 
+ */
 public class FoxService {
 
-	public static String version = "Version 0.8";
+	public static String version = "Version 0.9";
 	public static int port = 8080;
 	int poolSize = 100;
 	

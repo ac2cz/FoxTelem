@@ -584,7 +584,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	}
 	
-	static void errorPrint(Throwable e) {
+	public static void errorPrint(Throwable e) {
 		if (e instanceof SQLException)
 			SQLExceptionPrint((SQLException)e);
 		else {
