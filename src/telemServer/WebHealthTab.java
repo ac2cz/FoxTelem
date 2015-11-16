@@ -41,15 +41,16 @@ public class WebHealthTab {
 	
 	public String toGraphString(String fieldName) {
 		String s = "";
+		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
-				+ "<table><tr bgcolor=silver><td>Reset</td> <td>Uptime </td> <td>" + fieldName + "</td> </tr>";
+				+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
 		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, 100, fox, 0, 0);
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
 				s = s + "<tr>";
-				s = s + "<td>"+graphData[PayloadStore.RESETS_COL][i] + "</td>" +
-						"<td>"+graphData[PayloadStore.UPTIME_COL][i] + "</td>" +
-						"<td>"+graphData[PayloadStore.DATA_COL][i] + "</td>";
+				s = s + "<td>"+(int)graphData[PayloadStore.RESETS_COL][i] + "</td>" +
+						"<td>"+(int)graphData[PayloadStore.UPTIME_COL][i] + "</td>" +
+						"<td>"+(int)graphData[PayloadStore.DATA_COL][i] + "</td>";
 				s = s + "</tr>";
 			}
 		}
@@ -60,19 +61,20 @@ public class WebHealthTab {
 	public String toString() {
 		String s = "";
 		if (payloadRt != null) {
+		s = s + "<style> td { border: 5px solid lightgray; } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<h3>Fox "+ fox.getIdString()+"  REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime() + "</h3>"
 				+ "<table>";
 		
 		s = s + "<tr bgcolor=silver>";
 
 		// FIXME - These headers span the name, rt, max and min
-		for (int i=1; i < numOfTopModules; i++) {
-			s = s + "<td><h3>" + topModuleNames[i] + "</h3>"
-			+ "</td>";
+		for (int i=1; i < 4; i++) {
+			s = s + "<th><strong>" + topModuleNames[i] + "<strong>"
+			+ "</th>";
 		}
 		
 		s = s + "</tr><tr>";
-		for (int i=1; i < numOfTopModules; i++) {
+		for (int i=1; i < 4; i++) {
 			s = s + "<td>";
 			// FIXME - FORMAT TO TOP.
 			try {
@@ -87,13 +89,51 @@ public class WebHealthTab {
 		s = s + "<tr bgcolor=silver>";
 
 		// FIXME - These headers span the name, rt, max and min
-		for (int i=1; i < numOfBottomModules; i++) {
-			s = s + "<td><h3>" + bottomModuleNames[i] + "</h3>"
-			+ "</td>";
+		for (int i=4; i < 6; i++) {
+			s = s + "<th><strong>" + topModuleNames[i] + "</strong>"
+			+ "</th>";
 		}
 		
 		s = s + "</tr><tr>";
-		for (int i=1; i < numOfBottomModules; i++) {
+		for (int i=4; i < 6; i++) {
+			s = s + "<td>";
+			// FIXME - FORMAT TO TOP.
+			try {
+				s = s + addModuleLines(topModuleNames[i], topModuleLines[i], rtlayout);
+			} catch (LayoutLoadException e) {
+				e.printStackTrace(Log.getWriter());
+			}
+			s = s + "</td>";
+		}
+		s = s + "</tr>";
+
+		s = s + "<tr bgcolor=silver>";
+
+		// FIXME - These headers span the name, rt, max and min
+		for (int i=1; i < 4; i++) {
+			s = s + "<th><strong>" + bottomModuleNames[i] + "</strong>"
+			+ "</th>";
+		}
+		
+		s = s + "</tr><tr>";
+		for (int i=1; i < 4; i++) {
+			s = s + "<td>";
+			try {
+				s = s + addModuleLines(bottomModuleNames[i], bottomModuleLines[i], rtlayout);
+			} catch (LayoutLoadException e) {
+				e.printStackTrace(Log.getWriter());
+			}
+			s = s + "</td>";
+		}
+		s = s + "</tr>";
+		s = s + "<tr bgcolor=silver>";
+
+		for (int i=4; i < 7; i++) {
+			s = s + "<th><strong>" + bottomModuleNames[i] + "</strong>"
+			+ "</th>";
+		}
+		s = s + "</tr><tr>";
+		for (int i=4; i < 7; i++) {
 			s = s + "<td>";
 			try {
 				s = s + addModuleLines(bottomModuleNames[i], bottomModuleLines[i], rtlayout);
