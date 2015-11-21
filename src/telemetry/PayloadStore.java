@@ -181,6 +181,28 @@ public class PayloadStore implements Runnable {
 		if (store != null)
 			store.setUpdatedRad(u);
 	}
+	public boolean getUpdatedHerci(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdatedHerci();
+		return false;
+	}
+	public void setUpdatedHerci(int id, boolean u) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdatedHerci(u);
+	}
+	public boolean getUpdatedHerciHeader(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdatedHerciHeader();
+		return false;
+	}
+	public void setUpdatedHerciHeader(int id, boolean u) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdatedHerciHeader(u);
+	}
 	public boolean getUpdatedCamera(int id) { 
 		SatPictureStore store = getPictureStoreById(id);
 		if (store != null)
@@ -252,6 +274,12 @@ public class PayloadStore implements Runnable {
 			return store.getNumberOfRadFrames();
 		return 0;
 	}
+	public int getNumberOfHerciFrames(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getNumberOfHerciFrames();
+		return 0;
+	}
 	
 	
 	public int getNumberOfPictureCounters(int id) { 
@@ -300,7 +328,20 @@ public class PayloadStore implements Runnable {
 		}
 		return true;
 	}
-	
+
+	/**
+	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
+	 * @param f
+	 * @return
+	 */
+	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
+		for (int i=0; i< herci.length; i++) {
+			herci[i].captureHeaderInfo(id, uptime, resets);
+			payloadQueue.addToEnd(herci[i]);
+		}
+		return true;
+	}
+
 	public boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -427,6 +468,22 @@ public class PayloadStore implements Runnable {
 	}
 
 	
+	public PayloadHERCIhighSpeed getLatestHerci(int id) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLatestHerci();
+		return null;
+
+	}
+
+	public HerciHighspeedHeader getLatestHerciHeader(int id) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLatestHerciHeader();
+		return null;
+
+	}
+
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -478,6 +535,12 @@ public class PayloadStore implements Runnable {
 			return store.getRadTelemData(period, id, fromReset, fromUptime);
 		return null;
 	}
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getHerciPacketData(period, id, fromReset, fromUptime);
+		return null;
+	}
 	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
@@ -489,14 +552,6 @@ public class PayloadStore implements Runnable {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
 			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime);
-		return null;
-	}
-
-	
-	public String getRtUTCFromUptime(int id, int reset, long uptime) {
-		SatPayloadStore store = getPayloadStoreById(id);
-		if (store != null)
-			return store.getRtUTCFromUptime(reset, uptime);
 		return null;
 	}
 	

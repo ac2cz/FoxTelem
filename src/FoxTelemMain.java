@@ -468,6 +468,10 @@ import decoder.Decoder;
  * Support downloading data from the server
  * Fixed bug where T0 date was sometimes wrong
  * 
+ * Version 1.03
+ * Display HERCI High Speed frames on the Herci Tab
+ * Display HERCI Housekeeping frames
+ * 
  */
 
 public class FoxTelemMain {

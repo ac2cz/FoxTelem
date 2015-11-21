@@ -49,8 +49,13 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.03";
-	public static String VERSION = VERSION_NUM + " - 20 November 2015";
+<<<<<<< HEAD
+	public static String VERSION_NUM = "1.02b";
+	public static String VERSION = VERSION_NUM + " - 13 November 2015";
+=======
+	public static String VERSION_NUM = "1.02 (Herci)";
+	public static String VERSION = VERSION_NUM + " - 25 October 2015";
+>>>>>>> Herci
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -494,11 +499,14 @@ public class Config {
 		properties.setProperty("serverParamsUrl", serverParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
+<<<<<<< HEAD
 		
 		// Version 1.02 settings
 		properties.setProperty("serverFileDirectory", serverFileDirectory);
 		properties.setProperty("webSiteUrl", webSiteUrl);
+=======
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
+>>>>>>> Herci
 		store();
 	}
 	

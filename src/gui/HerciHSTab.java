@@ -10,6 +10,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
 import javax.swing.BoxLayout;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -20,10 +21,16 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
 
+import telemetry.BitArray;
+import telemetry.BitArrayLayout;
+import telemetry.LayoutLoadException;
 import telemetry.PayloadHERCIhighSpeed;
+import telemetry.PayloadRadExpData;
+import telemetry.SatPayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.Decoder;
 
 /**
  * 
@@ -47,7 +54,7 @@ import common.Spacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class HerciTab extends RadiationTab implements Runnable, ItemListener {
+public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 410;
@@ -58,14 +65,18 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 	int displayRows = PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE/32+1;
 	JLabel[] lblBytes = new JLabel[displayRows];
 	
-	RadiationTableModel radTableModel;
+	HerciHSTableModel radTableModel;
 	JTable table;
+	HerciHsPacketTableModel radPacketTableModel;
+	JTable packetTable;
 	JScrollPane scrollPane;
+	JScrollPane packetScrollPane;
+	JCheckBox showRawValues;
 	
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
-	public HerciTab(Spacecraft sat) {
+	public HerciHSTab(Spacecraft sat) {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
@@ -88,18 +99,29 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 		JPanel healthPanel = new JPanel();
 		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.Y_AXIS));
 		
-
 		lblHSpayload = new JLabel();
 		//lblHSpayload.setFont(new Font("SansSerif", Font.BOLD, 14));
 		lblHSpayload.setBorder(new EmptyBorder(5, 2, 5, 5) );
-		healthPanel.add(lblHSpayload);
 		
+		healthPanel.add(lblHSpayload);		
 		for (int r=0; r<displayRows; r++) {
 			lblBytes[r] = new JLabel();
-			healthPanel.add(lblBytes[r]);
+		//	healthPanel.add(lblBytes[r]);
 		}
 		
-		//initDisplayHalves(centerPanel);
+
+		initDisplayHalves(healthPanel);
+
+		BitArrayLayout rad = fox.herciHS2Layout;
+		BitArrayLayout none = null;
+		try {
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			System.exit(1);
+		}
+
 
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
@@ -129,6 +151,13 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 		
+		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawRadData);
+		bottomPanel.add(showRawValues );
+		showRawValues.addItemListener(this);
+
+		showRawValues.setMinimumSize(new Dimension(1600, 14));
+		showRawValues.setMaximumSize(new Dimension(1600, 14));
+
 		addBottomFilter();
 
 		addTables();
@@ -136,10 +165,14 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 	}
 
 	private void addTables() {
-		radTableModel = new RadiationTableModel();
+		radTableModel = new HerciHSTableModel();
 		
 		table = new JTable(radTableModel);
 		table.setAutoCreateRowSorter(true);
+		
+		radPacketTableModel = new HerciHsPacketTableModel();
+		packetTable = new JTable(radPacketTableModel);
+		packetTable.setAutoCreateRowSorter(true);
 		
 		scrollPane = new JScrollPane (table, 
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
@@ -148,6 +181,15 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 		//table.setMinimumSize(new Dimension(6200, 6000));
 		centerPanel.add(scrollPane);
 
+		packetScrollPane = new JScrollPane (packetTable, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		
+		packetTable.setFillsViewportHeight(true);
+		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(packetScrollPane);
+
 		TableColumn column = null;
 		column = table.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);
@@ -155,36 +197,123 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		
-		for (int i=0; i<58; i++) {
+		for (int i=0; i<PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; i++) {
 			column = table.getColumnModel().getColumn(i+2);
-			column.setPreferredWidth(25);
+			if (i <100)
+				column.setPreferredWidth(25);
+			else
+				column.setPreferredWidth(30);
+		}
+
+		column = packetTable.getColumnModel().getColumn(0);
+		column.setPreferredWidth(45);
+		
+		column = packetTable.getColumnModel().getColumn(1);
+		column.setPreferredWidth(55);
+
+		column = packetTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(45);
+		column = packetTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(70);
+
+		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(90);
+
+		column = packetTable.getColumnModel().getColumn(5);
+		column.setPreferredWidth(90);
+		
+		column = packetTable.getColumnModel().getColumn(6);
+		column.setPreferredWidth(70);
+
+		column = packetTable.getColumnModel().getColumn(7);
+		column.setPreferredWidth(600);
+
+		if (showRawValues.isSelected()) {
+			packetScrollPane.setVisible(false); 
+			scrollPane.setVisible(true);
+		} else { 
+			packetScrollPane.setVisible(true);
+			scrollPane.setVisible(false);
 		}
 
 	}
-	
-	@SuppressWarnings("unused")
-	private void showHighSpeed() {
-		lblHSpayload.setText("Last HERCI EXPERIMENT HIGH SPEED PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + hsPayload.getResets() + " Uptime:" + hsPayload.getUptime() );
-		String s = "";
-		int row = 0;
-		for (int i =0; i < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; i++) {
-////////			s = s + Decoder.plainhex(hsPayload.fieldValue[i]) + " ";
-			// Print 32 bytes in a row
-			if ((i+1)%32 == 0) {
-				lblBytes[row++].setText(s);
-				s = "";
+
+	private String[][] parsePackets() {
+		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0);
+		
+		for (int k =0; k < rawData.length; k++) {
+			for (int j=0; j<7; j++)
+				rawData[k][j] = rawData[k][j];
+				
+			rawData[k][7] = "";
+			for (int j=7; j<rawData[k].length; j++) {
+				if (rawData[k][j] != null)
+					rawData[k][7] = rawData[k][7] + rawData[k][j] +" ";
 			}
 		}
+		
+		return rawData;
+	}
+
+	private String[][] parseRawBytes() {
+		String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE+2];
+		int i = 0;
+		rawData[i][0] = Integer.toString(hsPayload.getResets());
+		rawData[i][1] = Long.toString(hsPayload.getUptime());
+		
+		for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
+			rawData[i][k+2] = Decoder.plainhex(hsPayload.fieldValue[k] & 0xff);
+			
+			// Print 32 bytes in a row
+			if ((k+1)%32 == 0) {
+				//lblBytes[row++].setText(s);
+				//s = "";
+				//i=i+1;
+			}
+		}
+		
+		return rawData;
 	}
 	
 	protected void parseRadiationFrames() {
-		String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-		if (data.length > 0)
-			radTableModel.setData(parseRawBytes(data));
+		lblHSpayload.setText("Last HERCI EXPERIMENT HIGH SPEED PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + hsPayload.getResets() + " Uptime:" + hsPayload.getUptime() );
+		if (Config.displayRawRadData) {
+			String[][] data = parseRawBytes();
+			if (data.length > 0) {
+				radTableModel.setData(data);
+			}
+			packetScrollPane.setVisible(false); 
+			scrollPane.setVisible(true);
+		} else {
+			String[][] data = parsePackets();
+			if (data.length > 0) {
+				radPacketTableModel.setData(data);
+			}
+			packetScrollPane.setVisible(true);
+			scrollPane.setVisible(false);
+		}
+		
+
+		updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
+		MainWindow.frame.repaint();
+
 	}
 	
 	
-	@SuppressWarnings("unused")
+	public void updateTab(BitArray rad) {
+		
+	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
+		if (rad != null) {
+			for (DisplayModule mod : topModules) {
+				if (mod != null)
+					mod.updateRtValues(rad);
+			}
+			for (DisplayModule mod : bottomModules) {
+				if (mod != null)
+					mod.updateRtValues(rad);
+			}
+		}
+	}
 	private void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
@@ -202,35 +331,45 @@ public class HerciTab extends RadiationTab implements Runnable, ItemListener {
 				e.printStackTrace(Log.getWriter());
 			}
 			if (foxId != 0)
-				if (Config.payloadStore.getUpdatedRad(foxId)) {
-					radPayload = Config.payloadStore.getLatestRad(foxId);
-					Config.payloadStore.setUpdatedRad(foxId, false);
-					parseRadiationFrames();
-					MainWindow.setTotalDecodes();
-				}
-			
-			/*
 				if (Config.payloadStore.getUpdatedHerci(foxId)) {
-					
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
 					Config.payloadStore.setUpdatedHerci(foxId, false);
 
 					if (hsPayload != null)
-						showHighSpeed();
+						parseRadiationFrames();
 					
 					displayFramesDecoded(Config.payloadStore.getNumberOfHerciFrames(foxId));
 					MainWindow.setTotalDecodes();
 				}
-			*/
-			
+						
 		}
 		done = true;
 	}
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		//Object source = e.getItemSelectable();
-	
+		Object source = e.getItemSelectable();
+		
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawRadData = false;
+			} else {
+				Config.displayRawRadData = true;
+			}
+	//		Config.save();
+			if (showRawValues.isSelected()) {
+				packetScrollPane.setVisible(false); 
+				scrollPane.setVisible(true);
+			} else { 
+				packetScrollPane.setVisible(true);
+				scrollPane.setVisible(false);
+			}
+
+			if (hsPayload != null)
+				parseRadiationFrames();
+			
+		}
 	}
 	
 	@Override

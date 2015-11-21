@@ -327,7 +327,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
 					bottomHalf.setVisible(true);
-
 				}
 				else {
 					parsePackets(data);
@@ -609,6 +608,14 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 				Config.displayRawRadData = true;
 			}
 	//		Config.save();
+			if (showRawValues.isSelected()) {
+				packetScrollPane.setVisible(false); 
+				scrollPane.setVisible(true);
+			} else { 
+				packetScrollPane.setVisible(true);
+				scrollPane.setVisible(false);
+			}
+
 			parseRadiationFrames();
 			
 		}

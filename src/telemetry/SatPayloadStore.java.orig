@@ -595,24 +595,40 @@ public class SatPayloadStore {
         				minRecords.add(rt);
         				updatedMin = true;
         			}
-        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
-        				radTelemRecords.add(rt);
-        				updatedRadTelem = true;
-        			}
+<<<<<<< HEAD
+=======
         			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;
         				// Capture and store any secondary payloads, this is duplicative but thorough
-        				if (initRad2) // this step really slows things down, so only enable if needed
-            			if (fox.hasHerci() || rt.isTelemetry()) {
+        				if (fox.hasHerci() || rt.isTelemetry()) {
+        					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
+        					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+        					add(radiationTelemetry);
+        				}
+        			}
+>>>>>>> Herci
+        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+        				radTelemRecords.add(rt);
+        				updatedRadTelem = true;
+        			}
+<<<<<<< HEAD
+        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
+        				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
+        				radRecords.add(rt);
+        				updatedRad = true;
+        				// Capture and store any secondary payloads, this is duplicative but thorough
+        				if (initRad2)
+        				if (rt.isTelemetry()) {
         					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
         					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
         					add(radiationTelemetry);
         				}
         			}
         			
+=======
         			if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
         				PayloadHERCIhighSpeed rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
         				herciRecords.add(rt);
@@ -629,6 +645,7 @@ public class SatPayloadStore {
       					}
     					updatedHerciPacket = true;
         			}
+>>>>>>> Herci
         		}
         	}
         	dis.close();

@@ -392,6 +392,7 @@ public abstract class Frame implements Comparable<Frame> {
 				ch = (char) c; // set ch to the first character
 				readingKey = false;
 			}
+<<<<<<< HEAD
 			if ((c == 13 || c == 10)) { // CR or LF
 				c = in.read(); // consume the lf
 				if ((length == 768 || length == 42176) && lineLen == 1) {
@@ -417,6 +418,37 @@ public abstract class Frame implements Comparable<Frame> {
 						String dt = value.replace(" UTC", "");
 						stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 						try {
+=======
+            if ( (c == 13 || c == 10)) { // CR or LF
+            	c = in.read(); // consume the lf
+            	if ((length == 768 || length == 42176) && lineLen == 1) {
+            		// then we are ready to process
+            		rawFrame = new byte[length/8];
+            		for (int i=0; i<96; i++) {
+            			rawFrame[i] = (byte) in.read();
+            		}
+            		done = true;
+            	} else {
+            		// It was a header line
+            		readingKey = true;
+            		firstColon = true;
+            		if (key.startsWith("Length")) {
+            			length = Integer.parseInt(value);
+            		}
+            		if (key.equalsIgnoreCase("Receiver")) {
+            			receiver = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.equalsIgnoreCase("Demodulator")) {
+            			demodulator = value;
+//                		System.out.println(key + " " + value);
+            		}
+            		if (key.startsWith("Date")) {
+//                		System.out.println(key + " " + value);
+            			String dt = value.replace(" UTC", "");
+            			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+            			try {
+>>>>>>> Herci
 							stpDate = stpDateFormat.parse(dt);
 						} catch (ParseException e) {
 							stpDate = null;

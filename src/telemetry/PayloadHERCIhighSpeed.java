@@ -1,36 +1,144 @@
 package telemetry;
 
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
+import common.Config;
+import common.Spacecraft;
 import decoder.Decoder;
 
 /**
  * 
- * FOX 1 Telemetry Decoder
- * @author chris.e.thompson g0kla/ac2cz
+ * @author chris.e.thompson
  *
- * Copyright (C) 2015 amsat.org
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
+ opt/project/flexi/devel/doc/flexi_telementry.txt
+
+Updates to the telemetry formats
+used with the FLEXI processor system
+for the "HERCI" instrument.
+
+Assumtions:
+    Use the JUNO/WAVES software with
+minimal changes.  Replace the JUNO/WAVES
+IP/UDP/CIP headers with the FOX1/IHU headers.  
+The low speed telemtry handler has the capability to 
+impose a programmable delay (n*25mSec)
+between successive transfer frames.
+    The low speed communications channel, 
+being asynchronous, is expected to shift 
+out low bit first.  In other words, it 
+emulates the function of a commercial UART.
+
+    The high speed communications channel,
+being synchronous, is expected to shift
+out high bit first.  This interface is
+intended for use in a legacy spacecraft 
+environment.  HERCI does NOT make use of
+a high speed telemetry channel.
+
+    The transfer frame format is identical
+for either channel type to allow ground 
+software to conveniently deal with either
+data type.
+
+Changes:
+    Change in header fields, eliminate
+IP/UDP/CIP headers add in the FOX1/IHU
+headers.
+
+
+Data Formats
+------------
+
+This describes the instrument-specific byte
+seend by IHU, that is the 868 byte instrument 
+payload.  
+Note that the header area looks awfully 
+"Big-Endian".  This is historical holdover 
+from the CASSINI/RPWS(8085) and JUNO/WAVES
+(Y180/Z80) instruments. FLEXI (Y90/Z80)
+continues this ugly tradition simply
+because we see no reason to change it.
+
+Transfer Frame:
+         +0      +1      +2      +3
+        +-------+-------+-------+-------+
+     +0 |    Synchronization Pattern    |
+        |   FA  |   F3  |   34  |   03  |
+        +-------+-------+-------+-------+
+     +4 |  CRC CCITT-16 |    Sequence   |
+        |    Seed = 0   |   monotonic   |
+        +-------+-------+-------+-------+
+     +8 |         System Time           |
+        | D31..D1 seconds, D0 qual Flag |
+        +-------+-------+-------+-------+
+    +12 |  Epoch Number | Record Length |
+        |    1..32767   | from begining |
+        +-------+-------+-------+-------+
+    +16 |   Science minipackets
+        .    see minipacket document
+        .    for individual record
+        .    formats
+        |  
+        +-------+-------+-------+-------+
+
+  Synchronization Pattern:
+      Standard 32bit synchronizatioin pattern.
+      Always has FAF33403.
+      This allows the HERCI/FLEXI telemetry to
+      be treated as a simply byte-stream.  No
+      additional byte-level framing is required
+      to process the data.
+
+  CRC CCITT-16:
+                                      16    12    5
+      The CCITT CRC 16 polynomial is X   + X   + X  + 1.
+      Seed value is ZERO for the WAVES/FLEXI/HERCI implementation.
+      (Sequence field is always non-zero so the CRC is
+      effective for our purposes).
+
+  Sequence: (D15..D8 are in column +2, D7..D0 are in column +3)
+      Two fields in this 16 bit area.
+      D15..D14 is a source field
+          00        PANIC/FAILED (FSW didn't load)
+          01        HRS	(HERCI soes not make use of HRS telemetry)
+          10        LRS   (Science Telemetry)
+          11        HSK   (Housekeeping)
+      D13..D0 is a monotonically increasing frame count.
+
+  System Time: (D31..D24 is at offset 0 and D7..D0 are at offset 3)
+      Seconds from some arbritrary Epoch as a 32 bit integer.
+      Bit 0 of time is relaced with a "time quality flag" that
+      is set to a value of '1' to indicate that time may be
+      suspect (in other words, there hasn't been a recent
+      time update message from the host spacecraft).
+
+  Epoch Number: (D15..D8 is at offset 0 and D7..D0 are at offset 1)
+      This field identifies the epoch for the associated
+      time field.  In the FOX1 environment, this is the
+      number of times the host system has been reset.
+
+  Record Length: (D15..D8 is at offset 2 and D7..D0 are at offset 3)
+      This is the number of octets in the transfer frame.
+      Length includes from the synch pattern through to 
+      the last data in the buffer including any fill bytes.
+
+  Science minipackets:
+      Individual science packets are concatenated in this
+      area.  Header fields are all identical to allow 
+      consistent packet extraction but the format of each
+      type is unique.  Lengths also vary with each type
+      of data.
+
+
+
  */
 public class PayloadHERCIhighSpeed extends FramePart {
 
 	public static final int MAX_PAYLOAD_SIZE = 868;
 	
-	public PayloadHERCIhighSpeed() {
-		super(new BitArrayLayout());
+	public PayloadHERCIhighSpeed(BitArrayLayout lay) {
+		super(lay);
 	}
 
 	/**
@@ -41,30 +149,59 @@ public class PayloadHERCIhighSpeed extends FramePart {
 	 * @param date
 	 * @param st
 	 */
-	public PayloadHERCIhighSpeed(int id, int resets, long uptime, String date, StringTokenizer st) {
-		super(id, resets, uptime, date, st, new BitArrayLayout());
+	public PayloadHERCIhighSpeed(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, date, st, lay);
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
 	}
 
 	@Override
 	protected void init() {
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
-		fieldValue = new int[MAX_PAYLOAD_SIZE];
+		fieldValue = new int[MAX_PAYLOAD_SIZE];  // we declare this as the max payload size rather than the size of the layout so that we include all of the minipackets
 		type = FramePart.TYPE_HERCI_HIGH_SPEED_DATA;
 	}
 
-	@Override
-	public boolean isValid() {
-		// TODO Auto-generated method stub
-		return false;
+	/**
+	 * Calculate the telemetry and return it
+	 * @return
+	 */
+	public HerciHighspeedHeader calculateTelemetryPalyoad() {
+		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getHerciHSHeaderLayout(id));
+		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
+			radTelem.addNext8Bits(fieldValue[k]);
+		}
+		return radTelem;
 	}
 
-	public void copyBitsToFields() {
-		resetBitPosition();
-		for (int i =0; i< MAX_PAYLOAD_SIZE; i++)
-			fieldValue[i] = nextbits(8);	
+	public ArrayList<HerciHighSpeedPacket> calculateTelemetryPackets() {
+		ArrayList<HerciHighSpeedPacket> packets = new ArrayList<HerciHighSpeedPacket>();
+		
+		boolean morePackets = true;
+		int packetDataStart = 8;;
+		while (morePackets) {
+			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime);
+			for (int k=0; k<HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES; k++) { 
+				radTelem.addNext8Bits(fieldValue[k+16]);
+			}
+			radTelem.initPacket();
+			if (radTelem.getLength() > 0) {
+				if (packetDataStart + radTelem.getLength() <= HerciHighSpeedPacket.MAX_PACKET_BYTES) {
+					for (int k=0; k<radTelem.getLength(); k++) {
+						radTelem.addNext8Bits(fieldValue[k+16+packetDataStart]);
+					}
+					packetDataStart = 16 + radTelem.getLength() + packetDataStart;  // FIXME - 16 is the length  of the science header in BYTES
+					packets.add(radTelem);
+				} else {
+					morePackets = false;
+				}
+			} else {
+				morePackets = false;
+			}
+		}
+		return packets;
 	}
 
+	
 	@Override
 	public String toString() {
 		copyBitsToFields();
@@ -90,6 +227,12 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		//s = s + Decoder.dec(fieldValue[fieldValue.length-1]);
 		s = s + fieldValue[fieldValue.length-1];
 		return s;
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

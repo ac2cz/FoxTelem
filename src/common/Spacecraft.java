@@ -109,6 +109,8 @@ public class Spacecraft {
 	public String minLayoutFileName;
 	public String radLayoutFileName;
 	public String rad2LayoutFileName;
+	public String herciHSLayoutFileName;
+	public String herciHS2LayoutFileName;
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
 
@@ -123,6 +125,8 @@ public class Spacecraft {
 	public BitArrayLayout minLayout;
 	public BitArrayLayout radLayout;
 	public BitArrayLayout rad2Layout;
+	public BitArrayLayout herciHSLayout;
+	public BitArrayLayout herciHS2Layout;
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 		
@@ -146,6 +150,18 @@ public class Spacecraft {
 		minLayout = new BitArrayLayout(minLayoutFileName);
 		radLayout = new BitArrayLayout(radLayoutFileName);
 		rad2Layout = new BitArrayLayout(rad2LayoutFileName);
+		if (herciHSLayoutFileName != null)
+			herciHSLayout = new BitArrayLayout(herciHSLayoutFileName);
+		else
+			if (this.hasHerci()) {
+				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI experiment if herciHSLayoutFileName is not specified");
+			}
+		if (herciHS2LayoutFileName != null)
+			herciHS2Layout = new BitArrayLayout(herciHS2LayoutFileName);
+		else
+			if (this.hasHerci()) {
+				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI science header file - herciHS2LayoutFileName is not specified");
+			}
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
@@ -230,6 +246,8 @@ public class Spacecraft {
 		properties.setProperty("minLayoutFileName", minLayoutFileName);
 		properties.setProperty("radLayoutFileName", radLayoutFileName);
 		properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
+		properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
+		properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		properties.setProperty("track", Boolean.toString(track));
@@ -323,6 +341,8 @@ public class Spacecraft {
 			else 
 				track = Boolean.parseBoolean(t);
 			
+			herciHSLayoutFileName = getOptionalProperty("herciHSLayoutFileName");
+			herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
@@ -358,6 +378,16 @@ public class Spacecraft {
 	public boolean hasCamera() {
 		for (int i=0; i< experiments.length; i++)
 			if (experiments[i] == EXP_VT_CAMERA) return true;
+		return false;
+	}
+	
+	/**
+	 * Return true if one of the experiment slots contains the HERCI experiment
+	 * @return
+	 */
+	public boolean hasHerci() {
+		for (int i=0; i< experiments.length; i++)
+			if (experiments[i] == EXP_IOWA_HERCI) return true;
 		return false;
 	}
 	
