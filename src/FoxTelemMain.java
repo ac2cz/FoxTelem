@@ -471,6 +471,9 @@ import decoder.Decoder;
  * Version 1.03
  * Display HERCI High Speed frames on the Herci Tab
  * Display HERCI Housekeeping frames
+ * Swapped min/max values for solar panel temp on 1A
+ * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
+ * Fixed bug where HighSpeed Frames were unecessarily held in the queue until the pass was finished
  * 
  */
 

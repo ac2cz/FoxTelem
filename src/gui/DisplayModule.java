@@ -113,6 +113,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_MAX_ONLY = 1;
 	public static final int DISPLAY_MIN_ONLY = 2;
 	public static final int DISPLAY_ALL = 3;
+	public static final int DISPLAY_ALL_SWAP_MINMAX = 4;
 	public static final int DISPLAY_VULCAN = 5;
 	public static final int DISPLAY_LEP = 6;
 	public static final int DISPLAY_LEP_EXPOSURE = 7;
@@ -185,7 +186,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		int w = 0;
 		if (display == DISPLAY_RT_ONLY) {
 			w = SINGLE_VAL_WIDTH;
-		} else if (display == DISPLAY_ALL ) {
+		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX ) {
 			w= VAL_WIDTH;
 		} else if ( display >= DISPLAY_VULCAN) {
 			w = VULCAN_WIDTH;
@@ -196,7 +197,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		w = 0;
 		if (display == DISPLAY_MIN_ONLY) {
 			w = SINGLE_VAL_WIDTH;
-		} else if (display == DISPLAY_ALL) {
+		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
 			w= VAL_WIDTH;
 		}
 		if (display < DISPLAY_VULCAN && minValue != null && maxValue != null) {
@@ -206,7 +207,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			w = 0;
 			if (display == DISPLAY_MAX_ONLY) {
 				w = SINGLE_VAL_WIDTH;
-			} else if (display == DISPLAY_ALL) {
+			} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
 				w= VAL_WIDTH;
 			}
 			maxValue[i].setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
@@ -241,10 +242,14 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					if (Config.displayRawValues) {
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 							rtValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
+						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+							minValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
 						else
 							maxValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 						rtValue[i].setText(max.getStringValue(fieldName[i],fox));
+					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+						minValue[i].setText(max.getStringValue(fieldName[i],fox));
 					else
 						maxValue[i].setText(max.getStringValue(fieldName[i],fox));
 					if (graph[i] != null) graph[i].updateGraphData();
@@ -262,10 +267,14 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					if (Config.displayRawValues) {
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 							rtValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
+						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+							maxValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
 						else
 							minValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 						rtValue[i].setText(min.getStringValue(fieldName[i],fox));
+					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+						maxValue[i].setText(min.getStringValue(fieldName[i],fox));
 					else
 						minValue[i].setText(min.getStringValue(fieldName[i],fox));
 					if (graph[i] != null) graph[i].updateGraphData();
@@ -386,7 +395,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			if (graph[i] == null) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				
-				if (moduleType == this.DISPLAY_ALL && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
+				if ((moduleType == this.DISPLAY_ALL || moduleType == this.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_REAL_TIME, fox);
 				}
