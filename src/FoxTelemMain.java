@@ -477,6 +477,9 @@ import decoder.Decoder;
  * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
  * Interpolate the middle of two samples for first difference calcuation, for more accurate TCA calculation
  * Add SAFE mode bit to the Computer panel so that it can be graphed
+ * Implemented MPPT panel temperature conversion using Cubic fit
+ * Sort camera images by reset and uptime not picture counter
+ * 
  * 
  */
 

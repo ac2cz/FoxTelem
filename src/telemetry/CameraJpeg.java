@@ -154,24 +154,24 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		return false;
 	}
 
+	/**
+	 * These are sorted by reset, uptime as picture Counter is not unique
+	 */
 	@Override
 	public int compareTo(CameraJpeg p) {
-		if (pictureCounter == p.pictureCounter && resets == p.resets && fromUptime == p.fromUptime) 
+		if (resets == p.resets && fromUptime == p.fromUptime) 
 			return 0;
-		else if (pictureCounter < p.pictureCounter)
-			return +1;
-		else if (pictureCounter > p.pictureCounter)
-			return -1;
 		else if (resets < p.resets)
 			return +1;
 		else if (resets > p.resets)
 			return -1;
-		else if (fromUptime < p.fromUptime)
+		else if (resets == p.resets)	
+			if (fromUptime < p.fromUptime)
 				return +1;
 		
 		return -1;
-
 	}
+
 	
 	public boolean fileExists() {
 		File toFile = new File(fileName);

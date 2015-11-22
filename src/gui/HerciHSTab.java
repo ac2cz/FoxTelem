@@ -57,7 +57,7 @@ import decoder.Decoder;
 public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	public static final String HERCITAB = "HERCITAB";
-	public final int DEFAULT_DIVIDER_LOCATION = 410;
+	public final int DEFAULT_DIVIDER_LOCATION = 226;
 	PayloadHERCIhighSpeed hsPayload;
 
 	JLabel lblFramesDecoded;
@@ -81,6 +81,8 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		fox = sat;
 		foxId = fox.foxId;
 
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HERCITAB, "splitPaneHeight");
+		
 		JLabel lblId = new JLabel("University of Iowa High Energy Radiation CubeSat Instrument (HERCI)");
 		lblId.setFont(new Font("SansSerif", Font.BOLD, 14));
 		lblId.setForeground(textLblColor);
@@ -122,8 +124,6 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 			System.exit(1);
 		}
 
-
-		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
 		splitPane.setOneTouchExpandable(true);

@@ -223,6 +223,10 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		lab.setBorder(new EmptyBorder(1, 20, 1, 25) ); // top left bottom right
 		return lab;
 	}
+	
+	/**
+	 * Load the thumbnails from disk based on the entries in the Jpeg Index
+	 */
 	private void loadThumbs() {
 		for (int j=0; j<numberOfFiles; j++)
 			if (thumbnails[j] != null)
