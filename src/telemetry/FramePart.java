@@ -193,6 +193,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	private static final double MPPT_SOLAR_PANEL_SCALING_FACTOR = 6.54/2.42; // per Burns, then multiply.  Note that Bryce gave: 0.37069; // 30.1/(30.1+51.1).  Multiply the solar panel reading by the 2V5 Sensor step and then divide by this factor
 	private static final double PSU_CURRENT_SCALING_FACTOR = 0.003; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor
 	private static final double MPPT_CURRENT_SCALING_FACTOR = 2.5; //100.0/0.025; // Multiply the MPPT current reading by the 2V5 Sensor step and then divide by this factor
+	private static final double MPPT_RTD_CONSTANT_CURERNT = 0.001; // Constant current driver for the MPPT RTD is 1mA
+	private static final double MPPT_RTD_AMP_GAIN = -8.14228; // RTD conditioning amplifier Vout = -8.14228 * Vin +2.0523 
+	private static final double MPPT_RTD_AMP_FACTOR = 2.0523; // 
 	private static final double PA_CURRENT_INA194_FACTOR = 50; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor and the shunt value
 	private static final double PA_CURRENT_SHUNT_RESISTOR_FACTOR = 0.2; // Multiply the PSU current reading by the 3V Sensor step and then divide by the IN914 factor and this factor
 	private static final double MEMS_ZERO_VALUE_VOLTS = 1.5; // This value is from the data sheet.  Jerry to provide a value for FM
@@ -414,7 +417,15 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
 			return solarPanelTempTable.lookupValue(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
-			return solarPanelTempTable.lookupValue(rawValue) ;
+			double v = (double)rawValue;
+			v = v * VOLTAGE_STEP_FOR_2V5_SENSORS;
+			v =  (v - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
+			double r = v / this.MPPT_RTD_CONSTANT_CURERNT;
+			
+			// Cubic fir using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
+			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);
+			
+			return t;
 		case BitArrayLayout.CONVERT_TEMP:
 			return temperatureTable.lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_PA_CURRENT:
