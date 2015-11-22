@@ -474,6 +474,7 @@ import decoder.Decoder;
  * Swapped min/max values for solar panel temp on 1A
  * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
  * Fixed bug where HighSpeed Frames were unecessarily held in the queue until the pass was finished
+ * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
  * 
  */
 

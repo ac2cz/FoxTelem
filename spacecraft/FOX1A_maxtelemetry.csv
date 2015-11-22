@@ -34,6 +34,6 @@
 32,MAX,IHUHardErrorData,32,-,19,Computer,2,8,0,Hard Error,Diagnostic Data on IHU Hard Errors
 33,MAX,MaxTimestampResetCount,16,-,1,NONE,0,0,0,NONE,Total number of times IHU has reset since initial on-orbit startup
 34,MAX,MaxTimestampUptime,25,-,1,NONE,0,0,0,NONE,This is the IHU uptime in seconds since the last reset
-35,MAX,SafeModeIndication,1,-,17,NONE,0,0,0,Safe Mode,State: 1 = Safe Mode Active
+35,MAX,SafeModeIndication,1,-,21,Computer,2,10,0,Safe Mode,State: 1 = Safe Mode Active
 36,MAX,AutoSafeModeActive,1,-,17,NONE,0,0,0,Auto Safe Mode,State: 1 = Auto Safe Mode Active
 37,MAX,AutoSafeModeAllowed,1,-,17,NONE,0,0,0,Auto Safe Allowed,State: 1 = Auto Safe Mode Allowed

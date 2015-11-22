@@ -432,13 +432,12 @@ public class PassManager implements Runnable {
 			// We need to make sure that the minimum was not the first or last point, which would indicate that we did not find an inflection
 			if (max != 0 && max != graphData[0].length) {
 				// we found a maximum at an inflection point, rather than it being at one end or the other
-				long tca = (long) graphData[PayloadStore.DATA_COL][max];
-				long up = (long) graphData[PayloadStore.UPTIME_COL][max];
-				long date = (long) graphData[PayloadStore.UTC_COL][max];
+				// Interpolate between the two frequencies to find the actual frequency at the max slope
+				long up = (long) (graphData[PayloadStore.UPTIME_COL][max] + graphData[PayloadStore.UPTIME_COL][max-1])/2;
+				long date = (long) (graphData[PayloadStore.UTC_COL][max] + graphData[PayloadStore.UTC_COL][max-1])/2;
 				
-				// FIXME
-				// We could interpolate here to get a more accurate time than we have from the uptime.
-				// We store the actual dateTime in the file, we should be pulling that.
+				long tca = (long) linearInterpolation(up, graphData[PayloadStore.UPTIME_COL][max], graphData[PayloadStore.UPTIME_COL][max-1],
+						graphData[PayloadStore.DATA_COL][max], graphData[PayloadStore.DATA_COL][max-1]);
 				
 				// FIXME
 				// We should check that the maxDeriv is large enough to indicate it was actually the inflection point and not just
@@ -460,6 +459,11 @@ public class PassManager implements Runnable {
 		} else {
 			if (Config.debugSignalFinder) Log.println("Can't calculate TCA, not enough readings");
 		}
+	}
+
+	private double linearInterpolation(double x, double x0, double x1, double y0, double y1) {
+		double y = y0 + (y1 - y0) * ((x - x0)/(x1 - x0));
+		return y;
 	}
 
 	private int exit(Spacecraft sat) {

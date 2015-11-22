@@ -530,10 +530,12 @@ public class GraphPanel extends JPanel {
 		}
 
 		int lastx = sideBorder+1; 
+		int lastx2 = sideBorder+1;
 		int lasty = graphHeight/2;
 		int lasty2 = graphHeight/2;
 		int lasty3 = graphHeight/2;
 		int x = 0;
+		int x2 = 0;
 		int y = 0;
 		int y2=0;
 		int y3=0;
@@ -546,6 +548,7 @@ public class GraphPanel extends JPanel {
 				// calculate the horizontal position of this point based on the number of points and the width
 				x = getRatioPosition(minTimeValue, maxTimeValue, graphData[PayloadStore.UPTIME_COL][i], graphWidth);
 				x = x + sideBorder;
+				x2 = (x + lastx)/2; // position for the first deriv
 //				System.out.println(x + " graphData " + graphData[i]);
 								
 				// Calculate the ratio from min to max
@@ -574,6 +577,7 @@ public class GraphPanel extends JPanel {
 //				System.out.println(x + " value " + value);
 				if (i == start) {
 					lastx=x;
+					lastx2=x2;
 					lasty=y;
 					lasty2=y2;
 					lasty3=y3;
@@ -583,7 +587,7 @@ public class GraphPanel extends JPanel {
 				
 				if (graphFrame.plotDerivative) {
 					g2.setColor(Config.AMSAT_RED);
-					g2.drawLine(lastx, lasty2, x, y2);
+					g2.drawLine(lastx2, lasty2, x2, y2);
 				}
 				if (graphFrame.dspAvg) {
 					g2.setColor(Config.AMSAT_GREEN);
@@ -592,6 +596,7 @@ public class GraphPanel extends JPanel {
 				
 				g2.setColor(graphColor);
 				lastx = x;
+				lastx2 = x2;
 				lasty = y;
 				lasty2 = y2;
 				lasty3 = y3;
