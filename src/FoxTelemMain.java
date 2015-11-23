@@ -482,6 +482,7 @@ import decoder.Decoder;
  * Save position of the HERCI HS tab horizontal divider
  * Support the Fox-1D low res camera format
  * Allow the user to specify the number of thumbnails to display on the camera tab
+ * Fixed bug where Radiation Graphs did not open at start up
  * 
  * 
  */

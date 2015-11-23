@@ -569,6 +569,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	public void run() {
 		running = true;
 		done = false;
+		boolean justStarted = true;
 		while(running) {
 			
 			try {
@@ -590,6 +591,10 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 					parseRadiationFrames();
 					displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
 					MainWindow.setTotalDecodes();
+					if (justStarted) {
+						openGraphs();
+						justStarted = false;
+					}
 				}
 			
 		}
