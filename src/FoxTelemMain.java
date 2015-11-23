@@ -481,6 +481,7 @@ import decoder.Decoder;
  * Sort camera images by reset and uptime not picture counter
  * Save position of the HERCI HS tab horizontal divider
  * Support the Fox-1D low res camera format
+ * Allow the user to specify the number of thumbnails to display on the camera tab
  * 
  * 
  */
