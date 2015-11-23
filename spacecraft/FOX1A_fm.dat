@@ -1,0 +1,28 @@
+#Fox 1 Telemetry Decoder Properties
+#Mon Nov 02 19:03:14 EST 2015
+EXP4=0
+maxFreqBoundkHz=145990
+EXP3=0
+EXP2=1
+ihuTempLookUpTableFileName=FOX1A_ihutempSN7.tab
+EXP1=6
+model=1
+minLayoutFileName=FOX1A_mintelemetry.csv
+measurementsFileName=measurements.csv
+minFreqBoundkHz=145970
+radLayoutFileName=FOX1A_radtelemetry.csv
+telemetryDownlinkFreqkHz=145980
+BATTERY_CURRENT_ZERO=-1.839
+passMeasurementsFileName=passmeasurements.csv
+foxId=1
+track=true
+rad2LayoutFileName=FOX1A_radtelemetry2.csv
+rtLayoutFileName=FOX1A_rttelemetryFM.csv
+useIHUVBatt=true
+description=Fox-1A is a 1U CubeSat with a U/v FM voice transponder and onboard experiments from Penn State University and Vanderbilt University
+ihuVBattLookUpTableFileName=FOX1A_ihuVBattSN7.tab
+rssiLookUpTableFileName=FOX1A_rssiFM.tab
+maxLayoutFileName=FOX1A_maxtelemetry.csv
+catalogNumber=0
+name=Fox-1A
+IHU_SN=7
