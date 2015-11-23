@@ -142,6 +142,7 @@ public class Log {
 				message.toString(),
 				title,
 			    JOptionPane.ERROR_MESSAGE) ;
+		else Log.println(title + " " + message.toString());
 	}
 	
 	public static String fileDateStamp() {	

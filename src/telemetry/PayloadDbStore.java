@@ -7,6 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import measure.Measurement;
 import measure.PassMeasurement;
@@ -48,7 +50,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	private boolean running = true;
 	private boolean done = false;
 	
-	private SortedFramePartArrayList payloadQueue;
+	private List<FramePart> payloadQueue;
 	
 	private static Connection derby;
 
@@ -61,7 +63,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	SatPictureStore[] pictureStore;
 	
 	public PayloadDbStore() {
-		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
+		
+		payloadQueue = Collections.synchronizedList(new SortedFramePartArrayList(INITIAL_QUEUE_SIZE));
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		// Connect to the database and create it if it does not exist
 		/*
@@ -620,9 +623,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				Log.println("ERROR: PayloadStore thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 	
-			if (payloadQueue.size() > 0) {
-				for (int i=0; i< payloadQueue.size(); i++) {
-					FramePart f = payloadQueue.get(i);
+			while (payloadQueue.size() > 0) {
+				//for (int i=0; i< payloadQueue.size(); i++) {
+					FramePart f = (FramePart) payloadQueue.get(0);
 					if (Config.debugFieldValues)
 						Log.println(f.toString());
 					if (addToDb(f.id, f.uptime, f.resets, f))
@@ -632,8 +635,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 						//// ALERT
 						Log.println("ERROR: Could not add record to the database: " + f.id + " " + f.uptime+ " " + f.resets+ " " + f);
 					}
-					payloadQueue.remove(i);
-				}
+					payloadQueue.remove(0);
+				//}
 			}
 		}
 
