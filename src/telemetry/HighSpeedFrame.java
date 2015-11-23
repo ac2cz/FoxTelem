@@ -95,6 +95,7 @@ public class HighSpeedFrame extends Frame {
 						cameraPayload = new PayloadCameraData();
 				} else {
 					Log.errorDialog("Missing or Invalid Fox Id", "FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+					return;
 				}
 				firstNonHeaderByte = false;
 			}
