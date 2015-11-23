@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -26,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -61,9 +64,11 @@ import common.Spacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener {
+public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener, ActionListener {
+	public static final int MAX_THUMBNAILS_LIMIT = 100;
+	public static final int MIN_SAMPLES = 1;
 	public static final String CAMERATAB = "CAMERATAB";
-	public static final int MAX_THUMBNAILS = 100;
+	public int MAX_THUMBNAILS = 30;
 	public static final int THUMB_X = 100; //640/5
 	//public static final int THUMB_Y = 96; //480/5
 	
@@ -89,6 +94,8 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	JPanel picturePanel;
 	JPanel leftHalf;
 	JPanel rightHalf;
+
+	JTextField displayNumber2;
 	
 //	JLabel picture;
 	ImagePanel picture;
@@ -208,6 +215,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
 
+		addBottomFilter();
 	}
 	
 	private JLabel addPicParam(String text) {
@@ -226,6 +234,25 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		return lab;
 	}
 	
+	protected void addBottomFilter() {
+		JLabel displayNumber1 = new JLabel("Displaying last");
+		displayNumber2 = new JTextField();
+		JLabel displayNumber3 = new JLabel("payloads decoded");
+		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
+		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
+		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
+		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
+		displayNumber2.setMinimumSize(new Dimension(50, 14));
+		displayNumber2.setMaximumSize(new Dimension(50, 14));
+		displayNumber2.setText(Integer.toString(MAX_THUMBNAILS));
+		displayNumber2.addActionListener(this);
+		bottomPanel.add(displayNumber1);
+		bottomPanel.add(displayNumber2);
+		bottomPanel.add(displayNumber3);
+		
+	}
+
+	
 	/**
 	 * Load the thumbnails from disk based on the entries in the Jpeg Index
 	 */
@@ -234,10 +261,13 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			if (thumbnails[j] != null)
 				thumbnailsPanel.remove(thumbnails[j]);
 		
+		int lastPic = 0;
 		numberOfFiles = jpegIndex.size();
-		if (numberOfFiles > MAX_THUMBNAILS) numberOfFiles = MAX_THUMBNAILS;
+		if (numberOfFiles > MAX_THUMBNAILS)
+			lastPic = numberOfFiles - MAX_THUMBNAILS;
+//			numberOfFiles = MAX_THUMBNAILS;
 		
-		for (int i=0; i<numberOfFiles; i++) {
+		for (int i=numberOfFiles-1; i >=lastPic; i--) {
 			
 			if (jpegIndex.get(i).fileExists()) {
 				//Log.println("Picture from: " + jpegIndex.get(i).fileName);
@@ -423,6 +453,34 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			
 		}
 
+		
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == this.displayNumber2) {
+			String text = displayNumber2.getText();
+			try {
+				MAX_THUMBNAILS = Integer.parseInt(text);
+				if (MAX_THUMBNAILS > MAX_THUMBNAILS_LIMIT) {
+					MAX_THUMBNAILS = MAX_THUMBNAILS_LIMIT;
+					text = Integer.toString(MAX_THUMBNAILS_LIMIT);
+				}
+				if (MAX_THUMBNAILS < MIN_SAMPLES) {
+					MAX_THUMBNAILS = MIN_SAMPLES;
+					text = Integer.toString(MIN_SAMPLES);
+				}
+				//System.out.println(SAMPLES);
+				
+				//lblActual.setText("("+text+")");
+				//txtPeriod.setText("");
+			} catch (NumberFormatException ex) {
+				
+			}
+			displayNumber2.setText(text);
+			loadThumbs();
+			repaint();
+		}
 		
 	}
 
