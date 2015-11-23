@@ -55,7 +55,7 @@ public class CameraThumb extends JPanel {
 	}
 
 	private void setTimestamp(int pc, int reset, long uptime) {
-		timestamp.setText(pc + " / " + reset + " / " + uptime);
+		timestamp.setText( reset + " / " + uptime + " / " + pc);
 	}
 	
 	public void setThumb(BufferedImage thumb, int pc, int reset, long uptime) {

@@ -479,6 +479,8 @@ import decoder.Decoder;
  * Add SAFE mode bit to the Computer panel so that it can be graphed
  * Implemented MPPT panel temperature conversion using Cubic fit
  * Sort camera images by reset and uptime not picture counter
+ * Save position of the HERCI HS tab horizontal divider
+ * Support the Fox-1D low res camera format
  * 
  * 
  */

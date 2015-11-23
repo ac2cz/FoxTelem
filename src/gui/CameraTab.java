@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -214,13 +215,14 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		title.setFont(new Font("SansSerif", Font.BOLD, 12));
 		JLabel lab = new JLabel();
 		JPanel panel = new JPanel();
-		panel.setLayout(new FlowLayout(FlowLayout.LEADING));
+		//panel.setLayout(new FlowLayout(FlowLayout.LEADING));
+		panel.setLayout(new GridLayout(1,2,5,5));
 		panel.add(title);
 		panel.add(lab);
 		
 		leftHalf.add(panel);
-		
-		lab.setBorder(new EmptyBorder(1, 20, 1, 25) ); // top left bottom right
+		title.setBorder(new EmptyBorder(3, 5, 3, 0) ); // top left bottom right
+		lab.setBorder(new EmptyBorder(3, 0, 3, 25) ); // top left bottom right
 		return lab;
 	}
 	

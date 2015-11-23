@@ -344,7 +344,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			for (int exp : sats.get(s).experiments) {
 				if (exp == Spacecraft.EXP_VULCAN)
 					addExperimentTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_VT_CAMERA)
+				if (exp == Spacecraft.EXP_VT_CAMERA || exp == Spacecraft.EXP_VT_CAMERA_LOW_RES)
 					addCameraTab(sats.get(s), s);
 				if (exp == Spacecraft.EXP_IOWA_HERCI) {
 					addHerciHSTab(sats.get(s), s);

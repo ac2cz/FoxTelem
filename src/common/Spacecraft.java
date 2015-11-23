@@ -70,17 +70,21 @@ public class Spacecraft {
 	};
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1;
+	public static final int EXP_VULCAN = 1; // This is the LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
+	public static final int EXP_VT_CAMERA_LOW_RES = 5;
+	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
 	
 	public static final String[] expNames = {
 		"Empty",
 		"Vanderbilt LEP",
 		"Virgina Tech Camera",
 		"IOWA HERCI",
-		"Rad FX Sat"
+		"Rad FX Sat",
+		"Virginia Tech Low-res Camera",
+		"Vanderbilt VUC"
 	};
 	
 	public int foxId = 1;
@@ -376,11 +380,20 @@ public class Spacecraft {
 	 * @return
 	 */
 	public boolean hasCamera() {
-		for (int i=0; i< experiments.length; i++)
+		for (int i=0; i< experiments.length; i++) {
 			if (experiments[i] == EXP_VT_CAMERA) return true;
+			if (experiments[i] == EXP_VT_CAMERA_LOW_RES) return true;
+		}
 		return false;
 	}
-	
+
+	public boolean hasLowResCamera() {
+		for (int i=0; i< experiments.length; i++) {
+			if (experiments[i] == EXP_VT_CAMERA_LOW_RES) return true;
+		}
+		return false;
+	}
+
 	/**
 	 * Return true if one of the experiment slots contains the HERCI experiment
 	 * @return
