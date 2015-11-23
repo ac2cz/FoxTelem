@@ -204,6 +204,9 @@ public class Config {
 	// Post V1.00
 	static public boolean debugHerciFrames = false;
 	
+	// V1.03
+	static public boolean autoDecodeSpeed = true;
+	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -498,7 +501,10 @@ public class Config {
 		// Version 1.02 settings
 		properties.setProperty("serverFileDirectory", serverFileDirectory);
 		properties.setProperty("webSiteUrl", webSiteUrl);
+		
+		// Version 1.03 settings
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
+		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		store();
 	}
 	
@@ -636,7 +642,7 @@ public class Config {
 		SCAN_SIGNAL_THRESHOLD = Double.parseDouble(getProperty("SCAN_SIGNAL_THRESHOLD"));
 		ANALYZE_SNR_THRESHOLD = Double.parseDouble(getProperty("ANALYZE_SNR_THRESHOLD"));
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
-		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
+		
 		
 		serverParamsUrl = getProperty("serverParamsUrl");
 		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
@@ -647,6 +653,10 @@ public class Config {
 		if (serverFileDirectory == null) serverFileDirectory = "";
 		webSiteUrl = getProperty("webSiteUrl");
 		if (webSiteUrl == null) webSiteUrl = "";
+		
+		//Version 1.03
+		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
+		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
