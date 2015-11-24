@@ -558,7 +558,7 @@ public abstract class Decoder implements Runnable {
 		//Performance.startTimer("findFrames");
 		decodedFrame = bitStream.findFrames();
 		//Performance.endTimer("findFrames");
-		if (decodedFrame != null) {
+		if (decodedFrame != null && !decodedFrame.corrupt) {
 			Performance.startTimer("Store");
 			// Successful frame
 			eyeData.lastErasureCount = bitStream.lastErasureNumber;

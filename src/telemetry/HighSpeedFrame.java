@@ -85,6 +85,7 @@ public class HighSpeedFrame extends Frame {
 	 *  to tell us when the END word is found, then we start allocating to the rad data frames
 	 */
 	public void addNext8Bits(byte b) {
+		if (corrupt) return;
 		if (numberBytesAdded < MAX_HEADER_SIZE)
 			header.addNext8Bits(b);
 		else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
@@ -104,7 +105,9 @@ public class HighSpeedFrame extends Frame {
 					if (fox.hasHerci())
 						herciLineCount = new PayloadHerciLineCount(); 
 				} else {
-					Log.errorDialog("Missing or Invalid Fox Id", "FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+					Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+					corrupt = true;
+					return;
 				}
 				firstNonHeaderByte = false;
 			}
