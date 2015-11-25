@@ -49,10 +49,6 @@ public class SourceWav extends SourceAudio implements Runnable {
 		super("WavFile", 67200*3);
 		fileName = f;;
 		initWav();
-//        
- //       
- //       if (sink != null)
-  //      	sink.initializeOutput(); // make sure we have the same channels in the output
 
 	}
 
@@ -88,7 +84,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 			e.printStackTrace(Log.getWriter());
 		}
 		// Give the decoder time to finish - not sure this makes any difference though??
-		if (circularBuffer.size() > 0) {
+		if (circularBuffer[0].size() > 0) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -120,7 +116,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 //			Log.println("wav running");
 			if (audioStream != null) {
 					int nBytesRead = 0;
-					if (circularBuffer.getCapacity() > readBuffer.length) {
+					if (circularBuffer[0].getCapacity() > readBuffer.length) {
 						try {
 							nBytesRead = audioStream.read(readBuffer, 0, readBuffer.length);
 							bytesRead = bytesRead + nBytesRead;
@@ -142,7 +138,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 					}
 					for(int i=0; i< nBytesRead; i+=2) {
 						//circularBuffer.add(readBuffer[i]);
-						circularBuffer.add(readBuffer[i],readBuffer[i+1]);
+						circularBuffer[0].add(readBuffer[i],readBuffer[i+1]);
 					}
 
 			}

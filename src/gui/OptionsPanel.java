@@ -162,9 +162,9 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		if (source == cbFlipBits) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.flipReceivedBits = false;
+				//Config.flipReceivedBits = false;
 			} else {
-				Config.flipReceivedBits = true;
+				//Config.flipReceivedBits = true;
 			}
 		}
 

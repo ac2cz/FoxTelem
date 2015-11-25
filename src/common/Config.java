@@ -92,7 +92,8 @@ public class Config {
 	public static String soundCard = NO_SOUND_CARD_SELECTED;
 	public static String audioSink = NO_SOUND_CARD_SELECTED;
 	public static int playbackSampleRate = 48000; //44100; //192000;
-	static public boolean flipReceivedBits = false;
+	static public boolean flipReceivedBits1 = false;  // FIXME - Quick Hack to see if this is an issue.  If this stays MUST go at end of config
+	static public boolean flipReceivedBits2 = false;
 	static public boolean recoverClock = true;
 	static public boolean writeDebugWavFile = false;
 	static public boolean debugValues = false;
@@ -397,7 +398,8 @@ public class Config {
 		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
 		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
 		properties.setProperty("recoverClock", Boolean.toString(recoverClock));
-		properties.setProperty("flipReceivedBits", Boolean.toString(flipReceivedBits));
+		properties.setProperty("flipReceivedBits1", Boolean.toString(flipReceivedBits1));
+		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
 		properties.setProperty("filterData", Boolean.toString(filterData));
 		properties.setProperty("filterIterations", Integer.toString(filterIterations));
 		properties.setProperty("filterLength", Integer.toString(filterLength));
@@ -538,7 +540,8 @@ public class Config {
 		recoverClock = Boolean.parseBoolean(getProperty("recoverClock"));
 		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
 		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
-		flipReceivedBits = Boolean.parseBoolean(getProperty("flipReceivedBits"));
+		flipReceivedBits1 = Boolean.parseBoolean(getProperty("flipReceivedBits1"));
+		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
 		filterData = Boolean.parseBoolean(getProperty("filterData"));
 		filterIterations = Integer.parseInt(getProperty("filterIterations"));
 		filterLength = Integer.parseInt(getProperty("filterLength"));

@@ -91,7 +91,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	Thread fcdPanelThread;
 	
 	Thread fftPanelThread;
-	Thread decoderThread;
+	Thread decoder1Thread;
+	Thread decoder2Thread;
 	AudioGraphPanel audioGraph;
 	EyePanel eyePanel;
 	public FFTPanel fftPanel;
@@ -125,11 +126,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	FcdPanel panelFcd;
 	JRadioButton highSpeed;
 	JRadioButton lowSpeed;
+	JRadioButton auto;
 	JRadioButton iqAudio;
 	JRadioButton afAudio;
 	JRadioButton showSNR;
 	JRadioButton showLevel;
+	JRadioButton viewHighSpeed;
+	JRadioButton viewLowSpeed;
 	JPanel findSignalPanel;
+	JPanel autoViewpanel;
 	
 	JTextArea log;
 	JScrollPane logScrollPane;
@@ -152,8 +157,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	// Variables
 	public static final String FUNCUBE = "FUNcube";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
-	Decoder decoder;
-	SourceIQ iqSource;
+	Decoder decoder1;
+	Decoder decoder2;
+	SourceIQ iqSource1;
+	SourceIQ iqSource2;
 	//SourceAudio audioSource = null; // this is the source of the audio for the decoder.  We select it in the GUI and pass it to the decoder to use
 	SinkAudio sink = null;
 	private boolean monitorFiltered;
@@ -430,9 +437,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		
 		lowSpeed = addRadioButton("Low Speed", panel_2 );
 		highSpeed = addRadioButton("High Speed", panel_2 );
+		auto = addRadioButton("Auto", panel_2 );
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
+		group.add(auto);
+		
+		// Note that later in the code, Config.autoDecodeSpeed will override this
 		if (Config.highSpeed) {
 			highSpeed.setSelected(true);
 			enableFilters(false);
@@ -632,6 +643,17 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (Config.audioSink != null && !Config.audioSink.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
 			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
 		}
+		autoViewpanel = new JPanel();
+		JLabel view = new JLabel("View ");
+		panelCombo.add(autoViewpanel);
+		autoViewpanel.add(view);
+		viewLowSpeed = addRadioButton("DUV", autoViewpanel );
+		viewHighSpeed = addRadioButton("HS Audio", autoViewpanel );
+		ButtonGroup group3 = new ButtonGroup();
+		group3.add(viewLowSpeed);
+		group3.add(viewHighSpeed);
+		viewLowSpeed.setSelected(true);
+		autoViewpanel.setVisible(false);
 		
 	}
 
@@ -739,13 +761,57 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		
 		if (e.getSource() == highSpeed) { 
 				Config.highSpeed = true;
+				Config.autoDecodeSpeed = false;
 				enableFilters(false);
+				autoViewpanel.setVisible(false);
 				//Config.save();
 		}
 		if (e.getSource() == lowSpeed) { 
 			Config.highSpeed = false;
+			Config.autoDecodeSpeed = false;
 			enableFilters(true);
+			autoViewpanel.setVisible(false);
 			//Config.save();
+		}
+		if (e.getSource() == auto) { 
+			Config.autoDecodeSpeed = true;
+			enableFilters(true);
+			autoViewpanel.setVisible(true);
+			//Config.save();
+		}
+		if (e.getSource() == viewHighSpeed) { 
+			if (decoder2 != null) {
+				try {
+					decoder1.stopAudioMonitor(sink);
+					decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+				} catch (IllegalArgumentException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (LineUnavailableException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+
+				audioGraph.startProcessing(decoder2);
+				eyePanel.startProcessing(decoder2);
+				fftPanel.startProcessing(iqSource2);
+			}
+		}
+		if (e.getSource() == viewLowSpeed) { 
+			try {
+				if (decoder2 != null)
+				decoder2.stopAudioMonitor(sink);
+				decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+			} catch (IllegalArgumentException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (LineUnavailableException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+			audioGraph.startProcessing(decoder1);
+			eyePanel.startProcessing(decoder1);
+			fftPanel.startProcessing(iqSource1);
 		}
 
 		if (e.getSource() == iqAudio) { 
@@ -794,8 +860,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			//String text = txtFreq.getText();
 			txtFreq.selectAll();
 			int freq = Integer.parseInt(txtFreq.getText());
-			if (iqSource != null)
-				(iqSource).setCenterFreqkHz(freq);
+			if (iqSource1 != null)
+				(iqSource1).setCenterFreqkHz(freq);
+			if (iqSource2 != null)
+				(iqSource2).setCenterFreqkHz(freq);
 			Config.fcdFrequency = freq;
 			if (fcd != null) {
 				if (freq < 100 || freq > 2500000) {
@@ -838,11 +906,18 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		// MONITOR AUDIO BUTTON
 		if (e.getSource() == btnMonitorAudio) {
 			try {
-			if (decoder != null) { // then we want to toggle the live audio	
-				Config.monitorAudio = decoder.toggleAudioMonitor(sink, monitorFiltered, speakerComboBox.getSelectedIndex());
-			} else {
-				Config.monitorAudio = !Config.monitorAudio; // otherwise just note that we want to change it for the next decoder run
-			}
+				if (viewLowSpeed.isSelected())
+					if (decoder1 != null) { // then we want to toggle the live audio	
+						Config.monitorAudio = decoder1.toggleAudioMonitor(sink, monitorFiltered, speakerComboBox.getSelectedIndex());
+					} else {
+						Config.monitorAudio = !Config.monitorAudio; // otherwise just note that we want to change it for the next decoder run
+					}
+				else
+					if (decoder2 != null) { // then we want to toggle the live audio	
+						Config.monitorAudio = decoder2.toggleAudioMonitor(sink, monitorFiltered, speakerComboBox.getSelectedIndex());
+					} else {
+						Config.monitorAudio = !Config.monitorAudio; // otherwise just note that we want to change it for the next decoder run
+					}
 			} catch (IllegalArgumentException e1) {
 				JOptionPane.showMessageDialog(this,
 						e1.toString(),
@@ -872,11 +947,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		
 	}
 
-	private void setupAudioSink() {
+	
+	private void setupAudioSink(Decoder d) {
 		int position = speakerComboBox.getSelectedIndex();
 		
 		try {
-			sink = new SinkAudio(decoder.getAudioFormat());
+			sink = new SinkAudio(d.getAudioFormat());
 			sink.setDevice(position);
 		if (position != -1) {
 			Config.audioSink = SinkAudio.getDeviceName(position);
@@ -1012,12 +1088,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private SourceSoundCardAudio setupSoundCard(boolean highSpeed, int sampleRate) {
 		int position = soundCardComboBox.getSelectedIndex();
 		int circularBufferSize = sampleRate * 4;
-		if (highSpeed) {
+		if (highSpeed || Config.autoDecodeSpeed) {
 			circularBufferSize = sampleRate * 4;
 		} else {
 		}		SourceSoundCardAudio audioSource = null;
 		try {
-			audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position);
+			if (Config.autoDecodeSpeed)
+				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2); // split the audio source
+			else
+				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0);
 		} catch (LineUnavailableException e1) {
 			JOptionPane.showMessageDialog(this,
 					e1.toString(),
@@ -1042,14 +1121,23 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	 * Start a new thread with this decoder and run it.
 	 * @param highSpeed
 	 */
-	private void setupDecoder(boolean highSpeed, SourceAudio audioSource) {
+	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
 		
+		if (Config.autoDecodeSpeed) {
+			if (Config.iq) {
+				decoder1 = new Fox200bpsDecoder(audioSource, 0);
+				decoder2 = new Fox9600bpsDecoder(audioSource2, 0);
+			} else {
+				decoder1 = new Fox200bpsDecoder(audioSource, 0);
+				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
+			}
+		} else
 		if (highSpeed) {
-			decoder = new Fox9600bpsDecoder(audioSource);
+			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
-			decoder = new Fox200bpsDecoder(audioSource);
+			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}
-		setupAudioSink();
+		setupAudioSink(decoder1);
 	}
 	
 
@@ -1088,14 +1176,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						progressThread = new Thread(task);
 						progressThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 						if (Config.iq) { //position == SourceAudio.IQ_FILE_SOURCE) {
-							if (iqSource != null) iqSource.stop();
-							iqSource = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4);
-							iqSource.setAudioSource(wav);
-							setupDecoder(highSpeed.isSelected(), iqSource);
+							if (iqSource1 != null) iqSource1.stop();
+							iqSource1 = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4,0,false);
+							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
+							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							setCenterFreq();
-							Config.passManager.setDecoder(decoder, iqSource);
+							Config.passManager.setDecoder(decoder1, iqSource1);
 						} else {
-							setupDecoder(highSpeed.isSelected(), wav);
+							setupDecoder(highSpeed.isSelected(), wav, wav);
 						}
 						progressThread.start(); // need to start after the audio source wav is created
 					} else {
@@ -1118,13 +1206,17 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						if (audioSource != null)
 							if (fcdSelected || Config.iq) {
 								Log.println("IQ Source Selected");
-								iqSource = new SourceIQ(Config.scSampleRate * 4);
-								iqSource.setAudioSource(audioSource);
-								setupDecoder(highSpeed.isSelected(), iqSource);
-								Config.passManager.setDecoder(decoder, iqSource);
+								iqSource1 = new SourceIQ(Config.scSampleRate * 4, 0,false);
+								iqSource1.setAudioSource(audioSource,0); 
+								if (Config.autoDecodeSpeed) {
+									iqSource2 = new SourceIQ(Config.scSampleRate * 4, 0,true);
+									iqSource2.setAudioSource(audioSource,1); 
+								}
+								setupDecoder(highSpeed.isSelected(), iqSource1, iqSource2);
+								Config.passManager.setDecoder(decoder1, iqSource1);
 								setCenterFreq();
 							} else {
-								setupDecoder(highSpeed.isSelected(), audioSource);
+								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
 							}	
 					} catch (IOException e) {
 						Log.errorDialog("FCD Start Error", e.getMessage());
@@ -1137,12 +1229,16 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					}
 				}
 				
-				if (decoder != null) {
-					decoderThread = new Thread(decoder);
-					decoderThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);				
+				if (decoder1 != null) {
+					decoder1Thread = new Thread(decoder1);
+					decoder1Thread.setUncaughtExceptionHandler(Log.uncaughtExHandler);				
 
+					if (decoder2 != null) {
+						decoder2Thread = new Thread(decoder2);
+						decoder2Thread.setUncaughtExceptionHandler(Log.uncaughtExHandler);				
+					}
 					try {
-						decoder.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+						decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 					} catch (IllegalArgumentException e) {
 						Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
 						e.printStackTrace(Log.getWriter());
@@ -1150,34 +1246,46 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
 						e.printStackTrace(Log.getWriter());
 					}
+					
 				}
 
-				if (decoderThread != null) {
+				if (decoder1Thread != null) {
 					try {
-						decoderThread.start();
+						decoder1Thread.start();
 						//if (audioGraphThread != null) audioGraph.stopProcessing();
-						audioGraph.startProcessing(decoder);
+						audioGraph.startProcessing(decoder1);
 						if (eyePanelThread == null) {	
 							eyePanelThread = new Thread(eyePanel);
 							eyePanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 							eyePanelThread.start();
 						}
-						eyePanel.startProcessing(decoder);
+						eyePanel.startProcessing(decoder1);
 						enableSourceSelectionComponents(false);
 						
-						if (iqSource != null) {
+						if (iqSource1 != null) {
 							if (fftPanelThread == null) { 		
 								fftPanelThread = new Thread(fftPanel);
 								fftPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 								fftPanelThread.start();
 							}
-							fftPanel.startProcessing(iqSource);
-						}
+							fftPanel.startProcessing(iqSource1);
+						}	
 					} catch (IllegalThreadStateException e2) {
 						JOptionPane.showMessageDialog(this,
 								e2.toString(),
 								"THREAD LAUNCH ERROR",
 								JOptionPane.ERROR_MESSAGE) ;
+					}
+					if (decoder2Thread != null) {
+						try {
+							decoder2Thread.start();
+					
+						} catch (IllegalThreadStateException e2) {
+							JOptionPane.showMessageDialog(this,
+									e2.toString(),
+									"THREAD2 LAUNCH ERROR",
+									JOptionPane.ERROR_MESSAGE) ;
+						}
 					}
 				}
 			}
@@ -1188,7 +1296,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private void setCenterFreq() {
 		try {
 			int freq = Integer.parseInt(txtFreq.getText());
-			iqSource.setCenterFreqkHz(freq);
+			iqSource1.setCenterFreqkHz(freq);
+			if (iqSource2 != null) iqSource2.setCenterFreqkHz(freq);
 		} catch (NumberFormatException n) {
 			// not much to say here, just catch the error
 		}
@@ -1196,12 +1305,19 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 	private void stopDecoder() {
 //		releaseFcd();
-		if (decoder != null) {
-			decoder.stopProcessing(); // This blocks and waits for the audiosource to be done
-			decoder = null;
-			iqSource = null;
-			decoderThread = null;
-			Config.passManager.setDecoder(decoder, iqSource);			
+		if (decoder1 != null) {
+			decoder1.stopProcessing(); // This blocks and waits for the audiosource to be done
+			decoder1 = null;
+			iqSource1 = null;
+			decoder1Thread = null;
+			Config.passManager.setDecoder(decoder1, iqSource1);			
+		}
+		if (decoder2 != null) {
+			decoder2.stopProcessing(); // This blocks and waits for the audiosource to be done
+			decoder2 = null;
+			iqSource2 = null;
+			decoder2Thread = null;
+			//Config.passManager.setDecoder(decoder1, iqSource);			
 		}
 		panelFcd.setVisible(false);
 
@@ -1247,6 +1363,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		cbSoundCardRate.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
+		auto.setEnabled(t);
 		iqAudio.setEnabled(t);
 		afAudio.setEnabled(t);
 		MainWindow.enableSourceSelection(t);
@@ -1425,8 +1542,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				e.printStackTrace(Log.getWriter());
 			}
 
-		if (decoder != null)
-			decoder.stopProcessing(); 
+		if (decoder1 != null)
+			decoder1.stopProcessing(); 
+		if (decoder2 != null)
+			decoder2.stopProcessing(); 
 	}
 	
 	/**

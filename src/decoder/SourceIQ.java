@@ -21,6 +21,9 @@ public class SourceIQ extends SourceAudio {
 	SourceAudio upstreamAudioSource;
 	Thread upstreamAudioReadThread;
 	
+	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
+	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
+	private boolean highSpeed = false;
 	public static final int AF_SAMPLE_RATE = 48000;
 	public AudioFormat upstreamAudioFormat;
 //	public static final int READ_BUFFER_SIZE = 512 * 4; // about 5 ms at 48k sample rate;
@@ -63,7 +66,7 @@ public class SourceIQ extends SourceAudio {
 	// decimation filter params
 	private static final int NZEROS = 5;
 	private static final int NPOLES = 5;
-	private static double GAIN = 9.197583870e+02;
+	private double GAIN = 9.197583870e+02;
 	private double[] xvi = new double[NZEROS+1];
 	private double[] yvi = new double[NPOLES+1];
 	private double[] xvq = new double[NZEROS+1];
@@ -97,8 +100,10 @@ public class SourceIQ extends SourceAudio {
 
 	RfData rfData;
 	
-	public SourceIQ(int circularBufferSize) {
-		super("IQ Source", circularBufferSize);
+	public SourceIQ(int circularBufferSize, int chan, boolean hs) {
+		super("IQ Source", circularBufferSize, chan);
+		highSpeed = hs;
+		channel = chan;
 		audioFormat = makeAudioFormat();
 		fft = new DoubleFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
@@ -111,7 +116,8 @@ public class SourceIQ extends SourceAudio {
 //		}
 	}
 
-	public void setAudioSource(SourceAudio as) {
+	public void setAudioSource(SourceAudio as, int chan) {
+		upstreamChannel = chan;
 		upstreamAudioSource = as;
 		upstreamAudioFormat = as.getAudioFormat();	
 	}
@@ -125,7 +131,7 @@ public class SourceIQ extends SourceAudio {
 		return null;
 	}
 	
-	public int getAudioBufferCapacity() { return upstreamAudioSource.circularBuffer.getCapacity(); }
+	public int getAudioBufferCapacity() { return upstreamAudioSource.circularBuffer[upstreamChannel].getCapacity(); }
 	
 	public int getFilterWidth() { return filterWidth; }
 	public int getCenterFreqkHz() { return centerFreq; }
@@ -176,7 +182,7 @@ public class SourceIQ extends SourceAudio {
 
 	protected int readUpstreamBytes(byte[] abData) {
 		int nBytesRead = 0;
-		nBytesRead = upstreamAudioSource.readBytes(abData);	
+		nBytesRead = upstreamAudioSource.readBytes(abData, upstreamChannel);	
 		return nBytesRead;
 	}
 
@@ -184,13 +190,14 @@ public class SourceIQ extends SourceAudio {
 	 * Called when the IQ Source is started.  This tells the audio source to begin reading data
 	 */
 	protected void startAudioThread() {
-		if (upstreamAudioReadThread != null) { 
-			upstreamAudioSource.stop(); 
-		}	
-		
-		upstreamAudioReadThread = new Thread(upstreamAudioSource);
-		upstreamAudioReadThread.start();
-		
+		if (upstreamChannel == 0) {
+			if (upstreamAudioReadThread != null) { 
+				upstreamAudioSource.stop(); 
+			}	
+
+			upstreamAudioReadThread = new Thread(upstreamAudioSource);
+			upstreamAudioReadThread.start();
+		}
 	}
 
 	private void init() {
@@ -200,7 +207,7 @@ public class SourceIQ extends SourceAudio {
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
-		if (Config.highSpeed)
+		if (highSpeed)
 			filterWidth = (int) (9600*2/binBandwidth) ;
 		else
 			filterWidth = (int) (5000/binBandwidth) ;
@@ -238,8 +245,8 @@ public class SourceIQ extends SourceAudio {
 		init();
 		while (running) {
 			int nBytesRead = 0;
-			if (circularBuffer.getCapacity() > fcdData.length) {
-				nBytesRead = upstreamAudioSource.readBytes(fcdData);	
+			if (circularBuffer[channel].getCapacity() > fcdData.length) {
+				nBytesRead = upstreamAudioSource.readBytes(fcdData, upstreamChannel);	
 				if (nBytesRead != fcdData.length)
 					Log.println("ERROR: IQ Source could not read sufficient bytes from audio source");
 				outputData = processBytes(fcdData, false);
@@ -256,7 +263,7 @@ public class SourceIQ extends SourceAudio {
 				*/
 				fftDataFresh = true;
 				for(int i=0; i < outputData.length; i+=4) {					
-					circularBuffer.add(outputData[i],outputData[i+1],outputData[i+2],outputData[i+3]);
+					circularBuffer[channel].add(outputData[i],outputData[i+1],outputData[i+2],outputData[i+3]);
 				}
 			} else {
 				try {
@@ -348,7 +355,7 @@ public class SourceIQ extends SourceAudio {
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
 		for (int t=0; t < 1; t++)
-			if (Config.highSpeed)
+			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
 			else
 				antiAlias16kHzIIRFilter(demodAudio);
