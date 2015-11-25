@@ -257,18 +257,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	private String[][] parseRawBytes() {
 		String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE+2];
-		int i = 0;
-		rawData[i][0] = Integer.toString(hsPayload.getResets());
-		rawData[i][1] = Long.toString(hsPayload.getUptime());
-		
-		for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-			rawData[i][k+2] = Decoder.plainhex(hsPayload.fieldValue[k] & 0xff);
-			
-			// Print 32 bytes in a row
-			if ((k+1)%32 == 0) {
-				//lblBytes[row++].setText(s);
-				//s = "";
-				//i=i+1;
+		for (int i = 0; i < rawData.length; i ++) {
+			rawData[i][0] = Integer.toString(hsPayload.getResets());
+			rawData[i][1] = Long.toString(hsPayload.getUptime());
+
+			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
+				rawData[i][k+2] = Decoder.plainhex(hsPayload.fieldValue[k] & 0xff);
 			}
 		}
 		

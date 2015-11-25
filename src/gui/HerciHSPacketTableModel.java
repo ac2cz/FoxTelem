@@ -36,6 +36,6 @@ class HerciHsPacketTableModel extends FoxTelemTableModel {
 		columnNames[4] = "TRUNC TIME";
 		columnNames[5] = "SEGMENTATION";
 		columnNames[6] = "STATUS";
-		columnNames[7] = "DATA";
+		columnNames[7] = "MINI PACKET DATA";
 	}
 }
