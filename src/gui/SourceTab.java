@@ -656,8 +656,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		group3.add(viewLowSpeed);
 		group3.add(viewHighSpeed);
 		viewLowSpeed.setSelected(true);
-		autoViewpanel.setVisible(false);
-		
+		if (Config.autoDecodeSpeed)
+			autoViewpanel.setVisible(true);
+		else
+			autoViewpanel.setVisible(false);
 	}
 
 	private JRadioButton addRadioButton(String name, JPanel panel) {
@@ -758,7 +760,51 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		txtFreq.setVisible(b);
 	}
 	
-	
+	public void setViewDecoder1() {
+		try {
+			if (decoder2 != null)
+				decoder2.stopAudioMonitor(sink);
+			if (decoder1 != null)
+				decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (LineUnavailableException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+		audioGraph.startProcessing(decoder1);
+		eyePanel.startProcessing(decoder1);
+		fftPanel.startProcessing(iqSource1);
+		
+		viewLowSpeed.setSelected(true);
+
+	}
+
+	public void setViewDecoder2() {
+		if (decoder2 != null) {
+			try {
+				if (decoder1 != null)
+					decoder1.stopAudioMonitor(sink);
+				if (decoder2 != null)
+					decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+			} catch (IllegalArgumentException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (LineUnavailableException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+
+			audioGraph.startProcessing(decoder2);
+			eyePanel.startProcessing(decoder2);
+			fftPanel.startProcessing(iqSource2);
+			
+			viewHighSpeed.setSelected(true);
+		}
+		
+	}
+
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -782,42 +828,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			autoViewpanel.setVisible(true);
 			//Config.save();
 		}
-		if (e.getSource() == viewHighSpeed) { 
-			if (decoder2 != null) {
-				try {
-					if (decoder1 != null)
-						decoder1.stopAudioMonitor(sink);
-					if (decoder2 != null)
-						decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
-				} catch (IllegalArgumentException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (LineUnavailableException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-
-				audioGraph.startProcessing(decoder2);
-				eyePanel.startProcessing(decoder2);
-				fftPanel.startProcessing(iqSource2);
-			}
+		if (e.getSource() == viewHighSpeed) {
+			setViewDecoder2();
 		}
-		if (e.getSource() == viewLowSpeed) { 
-			try {
-				if (decoder2 != null)
-					decoder2.stopAudioMonitor(sink);
-				if (decoder1 != null)
-					decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
-			} catch (IllegalArgumentException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (LineUnavailableException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-			audioGraph.startProcessing(decoder1);
-			eyePanel.startProcessing(decoder1);
-			fftPanel.startProcessing(iqSource1);
+		if (e.getSource() == viewLowSpeed) {
+			setViewDecoder1();
 		}
 
 		if (e.getSource() == iqAudio) { 
@@ -1159,6 +1174,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			// we stop everything
 			stopButton();
 		} else {
+			viewLowSpeed.setSelected(true);
 			STARTED = true;
 			btnStartButton.setText("Stop");
 			stopDecoder(); // make sure everything is stopped
@@ -1187,7 +1203,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							setCenterFreq();
-							Config.passManager.setDecoder(decoder1, iqSource1);
+							Config.passManager.setDecoder1(decoder1, iqSource1, this);
+							if (Config.autoDecodeSpeed)
+								Config.passManager.setDecoder2(decoder2, iqSource2, this);
 						} else {
 							setupDecoder(highSpeed.isSelected(), wav, wav);
 						}
@@ -1212,14 +1230,19 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						if (audioSource != null)
 							if (fcdSelected || Config.iq) {
 								Log.println("IQ Source Selected");
-								iqSource1 = new SourceIQ(Config.scSampleRate * 4, 0,false);
-								iqSource1.setAudioSource(audioSource,0); 
+								boolean decoder1HS = highSpeed.isSelected();
 								if (Config.autoDecodeSpeed) {
 									iqSource2 = new SourceIQ(Config.scSampleRate * 4, 0,true);
 									iqSource2.setAudioSource(audioSource,1); 
+									decoder1HS = false;
 								}
+								iqSource1 = new SourceIQ(Config.scSampleRate * 4, 0,decoder1HS); 
+								iqSource1.setAudioSource(audioSource,0); 
+								
 								setupDecoder(highSpeed.isSelected(), iqSource1, iqSource2);
-								Config.passManager.setDecoder(decoder1, iqSource1);
+								Config.passManager.setDecoder1(decoder1, iqSource1, this);
+								if (Config.autoDecodeSpeed)
+									Config.passManager.setDecoder2(decoder2, iqSource2, this);
 								setCenterFreq();
 							} else {
 								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
@@ -1316,14 +1339,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			decoder1 = null;
 			iqSource1 = null;
 			decoder1Thread = null;
-			Config.passManager.setDecoder(decoder1, iqSource1);			
+			Config.passManager.setDecoder1(decoder1, iqSource1, this);			
 		}
 		if (decoder2 != null) {
 			decoder2.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder2 = null;
 			iqSource2 = null;
 			decoder2Thread = null;
-			//Config.passManager.setDecoder(decoder1, iqSource);			
+			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
 		panelFcd.setVisible(false);
 

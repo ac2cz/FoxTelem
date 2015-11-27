@@ -469,6 +469,7 @@ import decoder.Decoder;
  * Fixed bug where T0 date was sometimes wrong
  * 
  * Version 1.03
+ * Auto detect high speed vs low speed telemetry
  * Display HERCI High Speed frames on the Herci Tab
  * Display HERCI Housekeeping frames
  * Swapped min/max values for solar panel temp on 1A

@@ -153,6 +153,9 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 	
 	public void startProcessing(Decoder d) {
+		if (decoder != null) {
+			// we were already live and we are swapping to a new decoder
+		}
 		decoder = d;
 		running = true;
 	}

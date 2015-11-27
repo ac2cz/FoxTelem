@@ -31,7 +31,7 @@ public class Fox9600bpsDecoder extends Decoder {
 	public static final int HIGH_SPEED_BITS_PER_SECOND = 9600;
 	
 	public Fox9600bpsDecoder(SourceAudio as, int chan) {
-		super(as, chan);
+		super("High Speed", as, chan);
 	}
 
 	public void init() {

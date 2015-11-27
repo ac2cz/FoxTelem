@@ -68,7 +68,7 @@ import telemetry.SlowSpeedHeader;
  *
  */
 public abstract class Decoder implements Runnable {
-
+	public String name = "";
 	// This is the audio source that holds incoming audio.  It contains a circularByte buffer and the decoder reads from it.  The decoder does
 	// not care where the audio comes from or how it gets into the buffer
 	protected SourceAudio audioSource;
@@ -164,7 +164,8 @@ public abstract class Decoder implements Runnable {
     /**
      * Given an audio source, decode the data in it,
      */
-	public Decoder(SourceAudio as, int chan) {
+	public Decoder(String n, SourceAudio as, int chan) {
+		name = n;
 		audioSource = as;
 		audioChannel = chan;
 		AudioFormat audioFormat = as.getAudioFormat();

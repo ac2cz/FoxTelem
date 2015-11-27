@@ -35,7 +35,7 @@ public class Fox200bpsDecoder extends Decoder {
 	private int useFilterNumber;
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
-		super(as, chan);
+		super("DUV", as, chan);
 	}
 	
 	public void init() {
