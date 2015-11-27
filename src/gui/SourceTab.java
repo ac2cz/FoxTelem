@@ -443,7 +443,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		group.add(highSpeed);
 		group.add(auto);
 		
-		// Note that later in the code, Config.autoDecodeSpeed will override this
+		if (Config.autoDecodeSpeed) {
+			auto.setSelected(true);
+			enableFilters(true);
+		} else
 		if (Config.highSpeed) {
 			highSpeed.setSelected(true);
 			enableFilters(false);
@@ -782,8 +785,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == viewHighSpeed) { 
 			if (decoder2 != null) {
 				try {
-					decoder1.stopAudioMonitor(sink);
-					decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+					if (decoder1 != null)
+						decoder1.stopAudioMonitor(sink);
+					if (decoder2 != null)
+						decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 				} catch (IllegalArgumentException e1) {
 					// TODO Auto-generated catch block
 					e1.printStackTrace();
@@ -800,8 +805,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == viewLowSpeed) { 
 			try {
 				if (decoder2 != null)
-				decoder2.stopAudioMonitor(sink);
-				decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+					decoder2.stopAudioMonitor(sink);
+				if (decoder1 != null)
+					decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 			} catch (IllegalArgumentException e1) {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
