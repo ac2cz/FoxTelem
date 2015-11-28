@@ -233,7 +233,7 @@ public class PassManager implements Runnable {
 		
 		if (pp1.iqSource != null) {
 			// Wait for a while to gather data
-			if (Config.debugSignalFinder) System.out.println("Scanning..");
+			if (Config.debugSignalFinder) Log.println("Scanning..");
 			try {
 				Thread.sleep(SCAN_PERIOD);
 			} catch (InterruptedException e) {
@@ -243,7 +243,7 @@ public class PassManager implements Runnable {
 			// Make sure we are looking at the right frequency range, then measure the signal (we should not have to check this, but sometimes
 			// the average has not completed.  If we line all of the timings up, this should not happen.
 			if (pp1.rfData != null) {
-				System.out.println("..Checking RF Data");
+				//System.out.println("..Checking RF Data");
 				if (Config.fromBin < pp1.rfData.getBinOfStrongestSignal() && Config.toBin > pp1.rfData.getBinOfStrongestSignal()) {
 					//double strongestSignal = pp1.rfData.getAvg(RfData.STRONGEST_SIG);
 					if (Config.debugSignalFinder) Log.println(sat.getIdString() + " STRONG SIG:" + pp1.rfData.strongestSigRfSNR);
@@ -332,10 +332,10 @@ public class PassManager implements Runnable {
 	}
 
 	private void lockSignal(Spacecraft sat, PassParams pp) {
-		Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
+//		Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
 		passMeasurement = new PassMeasurement(sat.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + sat.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
-				+ " with " + pp.decoder.name + " decoder");
+				+ " with " + pp.decoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
 	}
 	
@@ -357,11 +357,13 @@ public class PassManager implements Runnable {
 		setFreqRangeBins(sat, pp2);
 
 		if (foundFoxSignal(sat, pp1)) {
+//			lockSignal(sat, pp1);
 			inputTab.setViewDecoder1();
 			return DECODE;
 		}
 		if (pp2 != null)
 		if (foundFoxSignal(sat, pp2)) {
+//			lockSignal(sat, pp2);
 			inputTab.setViewDecoder2();
 			return DECODE;
 		}

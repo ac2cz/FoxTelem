@@ -484,7 +484,7 @@ import decoder.Decoder;
  * Support the Fox-1D low res camera format
  * Allow the user to specify the number of thumbnails to display on the camera tab
  * Fixed bug where Radiation Graphs did not open at start up
- * Fixed bug where FoxTelem would crash if the log file directory was renamed or removed
+ * 
  * 
  * 
  */

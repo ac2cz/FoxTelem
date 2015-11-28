@@ -220,7 +220,7 @@ public class EyePanel extends JPanel implements Runnable {
 			}
 			} catch (NullPointerException e) {
 				// this means the buffer was changed while we were drawing it
-				Log.println("Eye Data buffer changed while drawing it");
+				//Log.println("Eye Data buffer changed while drawing it");
 			}
 			
 		} else {
