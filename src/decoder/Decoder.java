@@ -593,6 +593,8 @@ public abstract class Decoder implements Runnable {
 					
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
+					if (Config.autoDecodeSpeed)
+						MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
@@ -616,6 +618,8 @@ public abstract class Decoder implements Runnable {
 					}
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
+					if (Config.autoDecodeSpeed)
+						MainWindow.inputTab.setViewDecoder2();
 				}
 
 			}

@@ -194,7 +194,8 @@ public class PassManager implements Runnable {
 	}
 	
 	private void initParams(PassParams pp) {
-		if (pp.decoder != null && pp.rfData != null && pp.eyeData != null) {
+		if (pp.decoder != null && pp.iqSource != null) {
+			if (Config.debugSignalFinder) Log.println("Initialized Pass Params for: " + pp.decoder.name);
 			pp.rfData = pp.iqSource.getRfData();
 			if (pp.rfData != null)
 				pp.rfData.reset(); // new satellite to scan so reset the data
@@ -208,10 +209,10 @@ public class PassManager implements Runnable {
 		if (!Config.findSignal) return EXIT;
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering INIT state");
 		faded = false;
-		if (pp1.decoder != null && pp1.iqSource != null) {  // if the start button is pressed then Decoder1 must be none null
+		if (pp1.decoder != null) {  // if the start button is pressed then Decoder1 must be none null
 			setFreqRangeBins(sat, pp1);
 			initParams(pp1);
-			if (pp2 != null) {
+			if (pp2.decoder != null) {
 				setFreqRangeBins(sat, pp2);
 				initParams(pp2);
 			}
@@ -232,6 +233,7 @@ public class PassManager implements Runnable {
 		
 		if (pp1.iqSource != null) {
 			// Wait for a while to gather data
+			if (Config.debugSignalFinder) System.out.println("Scanning..");
 			try {
 				Thread.sleep(SCAN_PERIOD);
 			} catch (InterruptedException e) {
@@ -240,11 +242,14 @@ public class PassManager implements Runnable {
 			}
 			// Make sure we are looking at the right frequency range, then measure the signal (we should not have to check this, but sometimes
 			// the average has not completed.  If we line all of the timings up, this should not happen.
-			if (pp1.rfData!= null && Config.fromBin < pp1.rfData.getBinOfStrongestSignal() && Config.toBin > pp1.rfData.getBinOfStrongestSignal()) {
-				//double strongestSignal = rfData.getAvg(RfData.STRONGEST_SIG);
-				//System.out.println(sat.getIdString() + " STRONG SIG:" + rfData.strongestSigRfSNR);
-				if (pp1.rfData != null && pp1.rfData.strongestSigRfSNR > Config.SCAN_SIGNAL_THRESHOLD) {
-					return ANALYZE;
+			if (pp1.rfData != null) {
+				System.out.println("..Checking RF Data");
+				if (Config.fromBin < pp1.rfData.getBinOfStrongestSignal() && Config.toBin > pp1.rfData.getBinOfStrongestSignal()) {
+					//double strongestSignal = pp1.rfData.getAvg(RfData.STRONGEST_SIG);
+					if (Config.debugSignalFinder) Log.println(sat.getIdString() + " STRONG SIG:" + pp1.rfData.strongestSigRfSNR);
+					if (pp1.rfData != null && pp1.rfData.strongestSigRfSNR > Config.SCAN_SIGNAL_THRESHOLD) {
+						return ANALYZE;
+					}
 				}
 			}
 		}

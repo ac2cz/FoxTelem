@@ -656,9 +656,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		group3.add(viewLowSpeed);
 		group3.add(viewHighSpeed);
 		viewLowSpeed.setSelected(true);
-		if (Config.autoDecodeSpeed)
-			autoViewpanel.setVisible(true);
-		else
+//		if (Config.autoDecodeSpeed)
+//			autoViewpanel.setVisible(true);
+//		else
 			autoViewpanel.setVisible(false);
 	}
 
@@ -825,7 +825,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == auto) { 
 			Config.autoDecodeSpeed = true;
 			enableFilters(true);
-			autoViewpanel.setVisible(true);
+	//		autoViewpanel.setVisible(true);
 			//Config.save();
 		}
 		if (e.getSource() == viewHighSpeed) {
