@@ -474,9 +474,9 @@ import decoder.Decoder;
  * Display HERCI Housekeeping frames
  * Swapped min/max values for solar panel temp on 1A
  * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
- * Fixed bug where HighSpeed Frames were unecessarily held in the queue until the pass was finished
+ * Fixed bug where HighSpeed Frames were unnecessarily held in the queue until the pass was finished
  * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
- * Interpolate the middle of two samples for first difference calcuation, for more accurate TCA calculation
+ * Interpolate the middle of two samples for first difference calculation, for more accurate TCA calculation
  * Add SAFE mode bit to the Computer panel so that it can be graphed
  * Implemented MPPT panel temperature conversion using Cubic fit
  * Sort camera images by reset and uptime not picture counter

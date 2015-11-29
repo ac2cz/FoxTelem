@@ -234,7 +234,7 @@ public class Spacecraft {
 		properties.setProperty("description", description);
 		properties.setProperty("model", Integer.toString(model));
 		properties.setProperty("IHU_SN", Integer.toString(IHU_SN));
-		for (int i : experiments)
+		for (int i=0; i< experiments.length; i++)
 			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
 		properties.setProperty("telemetryDownlinkFreqkHz", Integer.toString(telemetryDownlinkFreqkHz));
 		properties.setProperty("minFreqBoundkHz", Integer.toString(minFreqBoundkHz));
@@ -250,11 +250,16 @@ public class Spacecraft {
 		properties.setProperty("minLayoutFileName", minLayoutFileName);
 		properties.setProperty("radLayoutFileName", radLayoutFileName);
 		properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
-		properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
-		properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		properties.setProperty("track", Boolean.toString(track));
+		
+		// Optional params
+		if (herciHSLayoutFileName != null)
+			properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
+			if (herciHS2LayoutFileName != null)
+			properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
+			
 		store();
 	
 	}
