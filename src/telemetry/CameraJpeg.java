@@ -205,7 +205,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		File toFile = new File(name);
 		if(!toFile.exists()){
 			File headerFile = new File(header);
-			copyFile(headerFile, toFile);
+			SatPayloadStore.copyFile(headerFile, toFile);
 			return name;
 		}
 		
@@ -213,34 +213,6 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		
 	}
 
-	/**
-	 * Utility function to copy a file
-	 * @param sourceFile
-	 * @param destFile
-	 * @throws IOException
-	 */
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
-
-	    FileChannel source = null;
-	    FileChannel destination = null;
-
-	    try {
-	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
-	    }
-	    finally {
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
-	}
 
 	/**
 	 * Load the JPEG file from disk and create a Thumbnail.

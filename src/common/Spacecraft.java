@@ -143,7 +143,7 @@ public class Spacecraft {
 		propertiesFileName = fileName;
 		load();
 		try {
-			loadTimeZeroSeries();
+			loadTimeZeroSeries(null);
 		} catch (FileNotFoundException e) {
 			timeZero = null;
 		} catch (IndexOutOfBoundsException e) {
@@ -271,14 +271,16 @@ public class Spacecraft {
 		}
 	}
 	
-	public void loadTimeZeroSeries() throws FileNotFoundException {
+	public boolean loadTimeZeroSeries(String log) throws FileNotFoundException {
 		timeZero = new ArrayList<Long>(100);
         String line;
-        String log = "FOX"+ foxId + Config.t0UrlFile;
-        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-			Log.println("Loading: " + log);
-		}
+        if (log == null) { // then use the default
+        	log = "FOX"+ foxId + Config.t0UrlFile;
+        	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+        		log = Config.logFileDirectory + File.separator + log;
+        		Log.println("Loading: " + log);
+        	}
+        }
         //File aFile = new File(log );
 
         
@@ -300,11 +302,18 @@ public class Spacecraft {
 			dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-        	
+        	return false;
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        	return false;
+        } finally {
+        	try {
+				dis.close();
+			} catch (IOException e) {
+				// ignore error
+			}
         }
-		
+		return true;
 	}
 	
 	private void load() throws LayoutLoadException {
