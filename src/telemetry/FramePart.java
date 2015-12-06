@@ -198,7 +198,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	private static final double MPPT_RTD_AMP_FACTOR = 2.0523; // 
 	private static final double PA_CURRENT_INA194_FACTOR = 50; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor and the shunt value
 	private static final double PA_CURRENT_SHUNT_RESISTOR_FACTOR = 0.2; // Multiply the PSU current reading by the 3V Sensor step and then divide by the IN914 factor and this factor
-	private static final double MEMS_ZERO_VALUE_VOLTS = 1.5; // This value is from the data sheet.  Jerry to provide a value for FM
+	private static final double MEMS_ZERO_VALUE_VOLTS = 1.51; // Updated from datasheet value of 1.51 following observation of Vref in the diagnostics
 	private static final double MEMS_VOLT_PER_DPS = 0.0333; // This value is from the data sheet.  Jerry to provide a value for FM
 	
 	/*
