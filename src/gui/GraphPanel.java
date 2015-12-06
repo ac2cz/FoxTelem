@@ -5,6 +5,7 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
+import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 
@@ -113,7 +114,7 @@ public class GraphPanel extends JPanel {
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		if (graphData[0].length == 0) return;
-		if (graphFrame.showUTCtime && graphFrame.showUptime) {
+		if (graphFrame.showUTCtime && !graphFrame.hideUptime) {
 			bottomBorder = (int)(Config.graphAxisFontSize*3.5);
 		} else {
 			bottomBorder = (int)(Config.graphAxisFontSize*2.5);
@@ -355,7 +356,7 @@ public class GraphPanel extends JPanel {
 		g2.drawLine(sideLabelOffset, zeroPoint, graphWidth+sideBorder, zeroPoint);
 		g2.setColor(graphTextColor);
 		int offset = 0;
-		if (graphFrame.showUptime) {
+		if (!graphFrame.hideUptime) {
 			g2.drawString("Uptime", sideLabelOffset, zeroPoint+Config.graphAxisFontSize );
 			offset = Config.graphAxisFontSize;
 		}
@@ -481,7 +482,7 @@ public class GraphPanel extends JPanel {
 				String s = d.format(timelabels[v]);
 
 				int offset = 0;
-				if (graphFrame.showUptime) {
+				if (!graphFrame.hideUptime) {
 					offset = Config.graphAxisFontSize;	
 				}
 				if ( firstLabel) {
@@ -495,7 +496,7 @@ public class GraphPanel extends JPanel {
 				
 				g2.setColor(graphTextColor);
 				
-				if (graphFrame.showUptime) {
+				if (!graphFrame.hideUptime) {
 					g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
 				
 				}
@@ -582,16 +583,20 @@ public class GraphPanel extends JPanel {
 					lasty2=y2;
 					lasty3=y3;
 				}
-				if (graphFrame.displayMain)
-					g2.drawLine(lastx, lasty, x, y);
+				if (!graphFrame.hideMain) {
+					if (!graphFrame.hideLines) g2.drawLine(lastx, lasty, x, y);
+					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x, y, 2,2));
+				}
 				
 				if (graphFrame.plotDerivative) {
 					g2.setColor(Config.AMSAT_RED);
-					g2.drawLine(lastx2, lasty2, x2, y2);
+					if (!graphFrame.hideLines) g2.drawLine(lastx2, lasty2, x2, y2);
+					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x2, y2,2,2));
 				}
 				if (graphFrame.dspAvg) {
 					g2.setColor(Config.AMSAT_GREEN);
-					g2.drawLine(lastx, lasty3, x, y3);
+					if (!graphFrame.hideLines) g2.drawLine(lastx, lasty3, x, y3);
+					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x, y3,2,2));
 				}
 				
 				g2.setColor(graphColor);

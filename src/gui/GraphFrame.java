@@ -13,6 +13,8 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.WindowEvent;
@@ -68,7 +70,7 @@ import common.Spacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener {
+public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener, FocusListener {
 
 	private String fieldName;
 	String displayTitle;
@@ -86,6 +88,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnDerivative;
 	private JButton btnMain;
 	private JButton btnAvg;
+	private JButton btnLines;
+	private JButton btnPoints;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
 	
@@ -122,9 +126,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean dspAvg;
 	public boolean showVerticalLines;
 	public boolean showHorizontalLines;
-	public boolean displayMain = true;
+	public boolean hideMain = true;
 	public boolean showUTCtime = false;
-	public boolean showUptime = true;
+	public boolean hideUptime = true;
+	public boolean hidePoints = true;
+	public boolean hideLines = true;
+	public boolean showContinuous = false;
 	
 	boolean textDisplay = false;
 	
@@ -182,6 +189,21 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		
 		// Toolbar buttons
+		btnLines = new JButton("Lines");
+		btnLines.setMargin(new Insets(0,0,0,0));
+		btnLines.setToolTipText("Draw lines between data points");
+		btnLines.addActionListener(this);
+		titlePanelLeft.add(btnLines);
+		if (this.textDisplay) btnLines.setVisible(false);
+
+		btnPoints = new JButton("Points");
+		btnPoints.setMargin(new Insets(0,0,0,0));
+		btnPoints.setToolTipText("Show data points");
+		btnPoints.addActionListener(this);
+		titlePanelLeft.add(btnPoints);
+		if (this.textDisplay) btnPoints.setVisible(false);
+
+		
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
 		titlePanelLeft.add(btnHorizontalLines);
 		if (this.textDisplay) btnHorizontalLines.setVisible(false);
@@ -215,9 +237,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			btnAvg.setVisible(false);
 		}
 
-		btnMain.setBackground(Color.GRAY);
-		btnDerivative.setBackground(Color.GRAY);
-		btnAvg.setBackground(Color.GRAY);
+		setRedOutline(btnMain, hideMain);
+		setRedOutline(btnLines, hideLines);
+		setRedOutline(btnPoints, hidePoints);
+		setRedOutline(btnDerivative, plotDerivative);
+		setRedOutline(btnAvg, dspAvg);
+		setRedOutline(btnHorizontalLines, showHorizontalLines);
+		setRedOutline(btnVerticalLines, showVerticalLines);
 
 		btnLatest = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
 		titlePanelLeft.add(btnLatest);
@@ -230,9 +256,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnCopy = createIconButton("/images/copySmall.png","Copy","Copy graph to clipboard");
 		titlePanelLeft.add(btnCopy);
 		if (this.textDisplay) btnCopy.setEnabled(false);
-
-		
-		
 		
 		footerPanel = new JPanel();
 		contentPane.add(footerPanel, BorderLayout.SOUTH);
@@ -243,7 +266,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
 
 		cbUptime = new JCheckBox("Show Uptime");
-		cbUptime.setSelected(showUptime);
+		cbUptime.setSelected(!hideUptime);
 		cbUptime.addItemListener(this);
 		footerPanelLeft.add(cbUptime);
 
@@ -256,9 +279,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		txtAvgPeriod = new JTextField();
 //		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtAvgPeriod.addActionListener(this);
+		txtAvgPeriod.addFocusListener(this);
 		lblAvgPeriod = new JLabel("samples  ");
 		
-		setAvgVisible(false);
+		setAvgVisible(dspAvg);
 		
 		footerPanelLeft.add(lblAvg);
 		footerPanelLeft.add(txtAvgPeriod);
@@ -270,6 +294,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		txtSamplePeriod = new JTextField();
 //		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtSamplePeriod.addActionListener(this);
+		txtSamplePeriod.addFocusListener(this);
 
 		
 		footerPanelLeft.add(lblPlot);
@@ -294,6 +319,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromReset.setColumns(8);
 //		textFromReset.setPreferredSize(new Dimension(50,14));
 		textFromReset.addActionListener(this);
+		textFromReset.addFocusListener(this);
 		
 		lblFromUptime = new JLabel(" from Uptime");
 		footerPanelLeft.add(lblFromUptime);
@@ -307,13 +333,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUptime.setColumns(8);
 //		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textFromUptime.addActionListener(this);
+		textFromUptime.addFocusListener(this);
 		
 		chckbxPlotAllUptime = new JCheckBox("Continuous");
 		chckbxPlotAllUptime.setToolTipText("");
 		footerPanelLeft.add(chckbxPlotAllUptime);
-	
+		chckbxPlotAllUptime.setSelected(showContinuous);
+		
 		chckbxPlotAllUptime.addItemListener(this);
 		if (this.textDisplay) chckbxPlotAllUptime.setVisible(false);
+		
 	}
 
 	private void setAvgVisible(boolean f) {
@@ -366,6 +395,19 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Config.saveGraphIntParam(fox.getIdString(), fieldName, "fromReset", this.START_RESET);
 		Config.saveGraphLongParam(fox.getIdString(), fieldName, "fromUptime", this.START_UPTIME);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "open", open);
+		
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideMain", hideMain);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideLines", hideLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hidePoints", hidePoints);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "plotDerivative", plotDerivative);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "dspAvg", dspAvg);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showVerticalLines", showVerticalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showHorizontalLines", showHorizontalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showUTCtime", showUTCtime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideUptime", hideUptime);
+		
+		Config.saveGraphIntParam(fox.getIdString(), fieldName, "AVG_PERIOD", AVG_PERIOD);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showContinuous", showContinuous);
 	}
 
 	public boolean loadProperties() {
@@ -387,6 +429,20 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), fieldName, "fromReset");
 		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), fieldName, "fromUptime");
 		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "open");
+		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideMain");
+		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideLines");
+		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hidePoints");
+		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "plotDerivative");
+		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "dspAvg");
+		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showVerticalLines");
+		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showHorizontalLines");
+		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showUTCtime");
+		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideUptime");
+		
+		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName, "AVG_PERIOD");
+		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
+		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showContinuous");
+		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 		return open;
 	}
 
@@ -495,6 +551,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			diagnosticTable.updateData();
 		else
 			panel.updateGraphData();
+	}
+	
+	private void setRedOutline(JButton but, boolean red) {
+		if (red) {	
+			but.setBackground(Color.RED);
+		} else
+			but.setBackground(Color.GRAY);
 	}
 	
 	@Override
@@ -613,22 +676,41 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			//Log.println("Calc Average " + dspAvg);
 			panel.updateGraphData();
 		} else if (e.getSource() == btnMain) {
-			displayMain = !displayMain;
-			if (!displayMain) {	
+			hideMain = !hideMain;
+			if (!hideMain) {	
 				btnMain.setBackground(Color.RED);
 			} else
 				btnMain.setBackground(Color.GRAY);
 
 			panel.updateGraphData();
+		}  else if (e.getSource() == btnLines) {
+			hideLines = !hideLines;
+			if (hideLines) {	
+				btnLines.setBackground(Color.RED);
+			} else
+				btnLines.setBackground(Color.GRAY);
+
+			panel.updateGraphData();
+		} else if (e.getSource() == btnPoints) {
+			hidePoints = !hidePoints;
+			if (hidePoints) {	
+				btnPoints.setBackground(Color.RED);
+			} else
+				btnPoints.setBackground(Color.GRAY);
+
+			panel.updateGraphData();
 		} 
+
 	}
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() == chckbxPlotAllUptime) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				showContinuous = false;
 				UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 			} else {
+				showContinuous = true;
 				UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD;
 			}
 			if (textDisplay)
@@ -650,9 +732,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}
 		if (e.getSource() == cbUptime) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				showUptime = false;
+				hideUptime = true;
 			} else {
-				showUptime = true;
+				hideUptime = false;
 			}
 			if (textDisplay)
 				diagnosticTable.updateData();
@@ -751,5 +833,28 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
             return new DataFlavor[] { DataFlavor.imageFlavor };
         }
     }
+
+	@Override
+	public void focusGained(FocusEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void focusLost(FocusEvent e) {
+		if (e.getSource() == this.txtSamplePeriod) {
+			parseTextFields();
+			
+		} else if (e.getSource() == this.textFromReset) {
+			parseTextFields();
+			
+		} else if (e.getSource() == this.textFromUptime) {
+			parseTextFields();
+			
+		} else if (e.getSource() == this.txtAvgPeriod) {
+				parseAvgPeriod();
+		}
+		
+	}
 
 }

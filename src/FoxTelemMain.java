@@ -488,6 +488,8 @@ import decoder.Decoder;
  * Fixed #49 bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
  * Fixed #91 where audio continued after squelch in auto mode and memory was leaked
  * Fixes #84 - Allow the user to swap IQ channels in IQ mode
+ * Allow graphs to be plotted as points (without lines)
+ * Graph formatting parameters are not saved to config and reloaded when FoxTelem is restarted
  * 
  */
 
