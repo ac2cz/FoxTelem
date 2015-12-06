@@ -132,10 +132,12 @@ public class SatPayloadStore {
 
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
-					e.toString(),
-					"ERROR Loading Stored Payload data",
+					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
+								+ "Was the data directory moved?\n" + e.toString(),
+					"FATAL! Cannot Load the Stored Payload data",
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
+			System.exit(1);
 		}
 	}
 	
