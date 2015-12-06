@@ -298,20 +298,21 @@ public abstract class Decoder implements Runnable {
 		sink = s;
 		if (monitorAudio == true) {
 			monitorAudio = false;
-			sink.closeOutput();
+			
 		}
-		
+		if (sink != null)
+			sink.closeOutput();
 	}
 
 	public void setMonitorAudio(SinkAudio s, boolean m, int position) throws IllegalArgumentException, LineUnavailableException { 
 		sink = s;
 		if (sink != null) {
-		monitorAudio = m; 
-		if (!monitorAudio)
-			sink.closeOutput();
-		else {
-			sink.setDevice(position);
-		}
+			monitorAudio = m; 
+			if (!monitorAudio)
+				sink.closeOutput();
+			else {
+				sink.setDevice(position);
+			}
 		}
 }
 	

@@ -485,6 +485,7 @@ import decoder.Decoder;
  * Allow the user to specify the number of thumbnails to display on the camera tab
  * Fixed bug where Radiation Graphs did not open at start up
  * Fixed bug where T0 file could be corrupted if URL returned bogus data
+ * Fixed #49 bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
  * 
  * 
  */
