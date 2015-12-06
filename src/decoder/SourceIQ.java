@@ -330,8 +330,13 @@ public class SourceIQ extends SourceAudio {
 			qd = qDcFilter.filter(qd);
 
 			// i and q go into consecutive spaces in the complex FFT data input
-			fftData[i+dist*2] = id;
-			fftData[i+1+dist*2] = qd;
+			if (Config.swapIQ) {
+				fftData[i+dist*2] = qd;
+				fftData[i+1+dist*2] = id;
+			} else {
+				fftData[i+dist*2] = id;
+				fftData[i+1+dist*2] = qd;
+			}
 			i+=2;
 		}
 		

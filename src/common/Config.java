@@ -207,6 +207,7 @@ public class Config {
 	
 	// V1.03
 	static public boolean autoDecodeSpeed = true;
+	static public boolean swapIQ = false;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -507,6 +508,7 @@ public class Config {
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
 		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
+		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
 		store();
 	}
 	
@@ -660,6 +662,7 @@ public class Config {
 		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
 		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
+		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
