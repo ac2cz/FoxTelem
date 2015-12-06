@@ -763,7 +763,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	public void setViewDecoder1() {
 		try {
 			if (decoder2 != null)
-				decoder2.stopAudioMonitor(sink);
+				decoder2.stopAudioMonitor();
 			if (decoder1 != null)
 				decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 		} catch (IllegalArgumentException e1) {
@@ -785,7 +785,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (decoder2 != null) {
 			try {
 				if (decoder1 != null)
-					decoder1.stopAudioMonitor(sink);
+					decoder1.stopAudioMonitor();
 				if (decoder2 != null)
 					decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 			} catch (IllegalArgumentException e1) {

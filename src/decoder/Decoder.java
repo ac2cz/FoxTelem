@@ -285,33 +285,41 @@ public abstract class Decoder implements Runnable {
 		sink = s;
 		Config.monitorFilteredAudio = monitorFiltered;
 		monitorAudio = !monitorAudio;
-		if (!monitorAudio)
+		if (!monitorAudio) {
 			sink.closeOutput();
-		else {
+			sink = null;
+		} else {
 			sink.setDevice(position);
 		}
 		return monitorAudio;
 	}
 	
 
-	public void stopAudioMonitor(SinkAudio s) throws LineUnavailableException {
-		sink = s;
-		if (monitorAudio == true) {
-			monitorAudio = false;
-			
-		}
-		if (sink != null)
+	public void stopAudioMonitor() throws LineUnavailableException {
+		if (sink != null) { // then we have something to stop
+			if (monitorAudio == true) {
+				monitorAudio = false;
+
+			}
 			sink.closeOutput();
+		}
+		sink = null;
+		
 	}
 
 	public void setMonitorAudio(SinkAudio s, boolean m, int position) throws IllegalArgumentException, LineUnavailableException { 
-		sink = s;
-		if (sink != null) {
+		if (sink == null) { // then we are setting this for the first time
+			sink = s;
 			monitorAudio = m; 
-			if (!monitorAudio)
-				sink.closeOutput();
-			else {
+			if (monitorAudio) {
 				sink.setDevice(position);
+			}
+		} else { // we might be changing it or closing it
+			sink = s;
+			monitorAudio = m; 
+			if (!monitorAudio) {
+				sink.closeOutput();
+				sink = null;
 			}
 		}
 }
