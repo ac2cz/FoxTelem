@@ -472,21 +472,22 @@ import decoder.Decoder;
  * Auto detect high speed vs low speed telemetry
  * Display HERCI High Speed frames on the Herci Tab
  * Display HERCI Housekeeping frames
+ * Support the Fox-1D low res camera format
  * Swapped min/max values for solar panel temp on 1A
  * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
- * Fixed bug where HighSpeed Frames were unecessarily held in the queue until the pass was finished
+ * Fixed bug where HighSpeed Frames were unnecessarily held in the queue until the pass was finished
  * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
- * Interpolate the middle of two samples for first difference calcuation, for more accurate TCA calculation
+ * Interpolate the middle of two samples for first difference calculation, for more accurate TCA calculation
  * Add SAFE mode bit to the Computer panel so that it can be graphed
  * Implemented MPPT panel temperature conversion using Cubic fit
  * Sort camera images by reset and uptime not picture counter
  * Save position of the HERCI HS tab horizontal divider
- * Support the Fox-1D low res camera format
- * Allow the user to specify the number of thumbnails to display on the camera tab
+ * Allow the user to specify the number of thumb nails to display on the camera tab
  * Fixed bug where Radiation Graphs did not open at start up
  * Fixed bug where T0 file could be corrupted if URL returned bogus data
  * Fixed #49 bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
  * Fixed #91 where audio continued after squelch in auto mode and memory was leaked
+ * Fixes #84 - Allow the user to swap IQ channels in IQ mode
  * 
  */
 

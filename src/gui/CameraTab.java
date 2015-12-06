@@ -214,6 +214,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
+		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(400,10), new Dimension(1500,10)));
 
 		addBottomFilter();
 	}
@@ -237,7 +238,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	protected void addBottomFilter() {
 		JLabel displayNumber1 = new JLabel("Displaying last");
 		displayNumber2 = new JTextField();
-		JLabel displayNumber3 = new JLabel("payloads decoded");
+		JLabel displayNumber3 = new JLabel("images decoded");
 		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
 		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
 		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
