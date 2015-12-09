@@ -228,7 +228,7 @@ public class Config {
 		System.out.println("Set Home to: " + homeDirectory);
 	}
 	
-	public static void serverInit() {
+	public static void basicInit() {
 		initSequence();
 		
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
@@ -236,6 +236,9 @@ public class Config {
 		setOs();
 		
 		satManager = new SatelliteManager();
+	}		
+	public static void serverInit() {
+		basicInit();
 		initPayloadDB();
 		
 	}

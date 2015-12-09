@@ -116,24 +116,24 @@ public class Log {
 			output.write(s);
 			if (logPanel != null) logPanel.log(s);
 			flush();
-		
-			if (echoToStdout) {
-				System.out.print(s);
-			}
 		}
+		if (echoToStdout) {
+			System.out.print(s);
+		}
+
 	}
-	
+
 	public static void println(String s) {
 		if (Config.logging) {
 			if (output == null) init(logFile);
 			output.write(fileDateStamp() + s + System.getProperty("line.separator") );
 			if (logPanel != null) logPanel.log(s);
 			flush();
-		
-			if (echoToStdout) {
-				System.out.println(s);
-			}
 		}
+		if (echoToStdout) {
+			System.out.println(s);
+		}
+
 	}
 	
 	public static void errorDialog(String title, String message) {
