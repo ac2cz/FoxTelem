@@ -8,6 +8,7 @@ import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import javax.swing.JPanel;
 
@@ -57,19 +58,21 @@ public class GraphPanel extends JPanel {
 	String title = "Test Graph";
 	String fieldName = null;
 	
+	HashMap<Integer, Long> maxPlottedUptimeForReset;
+	
 	int sideLabel = 0;
 	int bottomLabelOffset = 5;
 	
 	int freqOffset = 0;
 	
-	int topBorder = 0; //Config.graphAxisFontSize; // The distance from the top of the drawing surface to the graph.  The title goes in this space
+	int topBorder = (int)(Config.graphAxisFontSize*2); //Config.graphAxisFontSize; // The distance from the top of the drawing surface to the graph.  The title goes in this space
 	int bottomBorder = (int)(Config.graphAxisFontSize*2.5); // The distance from the bottom of the drawing surface to the graph
 	int sideBorder = (int)(Config.graphAxisFontSize *4); // left side border.  The position that the axis is drawn and the graph starts
 	int sideLabelOffset = (int)(Config.graphAxisFontSize *0.5); // offset before we draw a label on the vertical axis
-	static int labelWidth = 6 * Config.graphAxisFontSize;;  // 40 was a bit too tight for 6 digit uptime
+	static int labelWidth = (int)(6 * Config.graphAxisFontSize);  // 40 was a bit too tight for 6 digit uptime
 	static int labelHeight = (int)(Config.graphAxisFontSize * 1.4);
 
-	private static final int MAX_TICKS = 4096/labelWidth;
+	private static int MAX_TICKS = 4096/labelWidth;
 
 	Graphics2D g2;
 	Graphics g;
@@ -113,6 +116,7 @@ public class GraphPanel extends JPanel {
 	 */
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
+		maxPlottedUptimeForReset = new HashMap();
 		if (graphData[0].length == 0) return;
 		if (graphFrame.showUTCtime && !graphFrame.hideUptime) {
 			bottomBorder = (int)(Config.graphAxisFontSize*3.5);
@@ -372,9 +376,12 @@ public class GraphPanel extends JPanel {
 		}
 
 //		System.out.println("Found " + resetPosition.size() + " resets at: ");
-		for (int q=0; q < resetPosition.size(); q++ )
+//		for (int q=0; q < resetPosition.size(); q++ )
 //		System.out.println(" -" + graphData[PayloadStore.UPTIME_COL][resetPosition.get(q)] + " and ");
-		
+		int maxLabels = (int)(graphWidth/(labelWidth*2));
+		int resetLabelFreq = (int) Math.ceil(resetPosition.size() / (double)maxLabels); // reduce the number of labels if we have too many resets
+		int resetLabelCount = 0;
+		boolean drawLabels = false;
 		for (int r=0; r < resetPosition.size(); r++) {
 //			int resets = (int) graphData[PayloadStore.RESETS_COL][resetPosition.get(r)];
 //			System.out.println("Processing reset " + resets);
@@ -389,11 +396,19 @@ public class GraphPanel extends JPanel {
 			else
 				end = resetPosition.get(r+1); // Data will be One data position before the next reset, but we calculate width up to same point
 			width = (graphWidth * (end - start )/len);
-			drawGraphForSingleReset(start, end, width, graphHeight, startScreenPos, zeroPoint, minValue, maxValue);
+			resetLabelCount++;
+			if (graphFrame.showContinuous || resetLabelCount == resetLabelFreq) {
+				drawLabels = true;
+				resetLabelCount = 0;
+			} else {
+				drawLabels = false;
+			}
+			drawGraphForSingleReset(start, end, width, graphHeight, startScreenPos, zeroPoint, minValue, maxValue, drawLabels);
 		}
 				
 	}
 	
+	private Integer labelPlottedKey(int reset, double uptime) { return (int)(reset * uptime); }
 	
 	/**
 	 * Draw a graph from sideBorder to graphWidth.  This is for a single reset.  If the graph has more than one reset
@@ -410,7 +425,8 @@ public class GraphPanel extends JPanel {
 	 * @param minValue
 	 * @param maxValue
 	 */
-	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, int sideBorder, int zeroPoint, double minValue, double maxValue) {
+	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, 
+			int sideBorder, int zeroPoint, double minValue, double maxValue, boolean drawLabels) {
 		
 		/**
 		 * Calculate a running average if the user selected it.  We can only do this if we have enough data
@@ -452,7 +468,7 @@ public class GraphPanel extends JPanel {
 				}
 				firstDifference[i] = 5 * ((value - value2) / (graphData[PayloadStore.UPTIME_COL][i]-graphData[PayloadStore.UPTIME_COL][i-1]));
 			//	if (firstDifference[i] < minValue) minValue = firstDifference[i];
-			//	if (firstDifference[i] > maxValue) maxValue = firstDifference[i];
+				//	if (firstDifference[i] > maxValue) maxValue = firstDifference[i];
 			}
 		}
 		/* Second Deriv
@@ -463,60 +479,68 @@ public class GraphPanel extends JPanel {
 		}
 		 */
 		int numberOfTimeLabels = graphWidth/labelWidth;
-		
-		// calculate the label step size
-		double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels);
-		numberOfTimeLabels = timelabels.length;
-		int resets = (int) graphData[PayloadStore.RESETS_COL][start];
-	
-		boolean firstLabel = true;
-		DecimalFormat d = new DecimalFormat("0");
-		for (int v=0; v < numberOfTimeLabels; v++) {
-			int timepos = getRatioPosition(minTimeValue, maxTimeValue, timelabels[v], graphWidth);
-			if (timepos == graphWidth) {
-				// We only have 1 piece of data to plot
-			}
-			
-			// dont draw the label if we are too near the start or end
-			if (timepos > 0 && (graphWidth - timepos) > labelWidth/2) {
-				String s = d.format(timelabels[v]);
 
-				int offset = 0;
-				if (!graphFrame.hideUptime) {
-					offset = Config.graphAxisFontSize;	
-				}
-				if ( firstLabel) {
-					g2.setColor(graphTextColor);
-					if (!graphFrame.showUTCtime)
-						g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset );
-					//else
-					//	g2.drawString(""+fox.getUtcDateforReset(resets, timepos), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize );	
-					
-				}
-				
-				g2.setColor(graphTextColor);
-				
-				if (!graphFrame.hideUptime) {
-					g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
-				
-				}
-				if (graphFrame.showUTCtime) {
-					if (fox.hasTimeZero(resets)) {
-						g2.drawString(fox.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
-						g2.drawString(""+fox.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+		// draw the labels if that was passed in.  Only draw the labels for continuous graphs if we have room for one
+		// for non continuous graphs the calling function makes sure there is room, so we will always draw one,
+		// except if this is the last reset, because we dont want to draw a label of the right end of the graph
+		if (drawLabels && (numberOfTimeLabels > 0 || !graphFrame.showContinuous) 
+				&& (numberOfTimeLabels > 0 || start < graphData[PayloadStore.RESETS_COL].length-1)) {  
+			// calculate the label step size
+			double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels);
+			numberOfTimeLabels = timelabels.length;
+			int resets = (int) graphData[PayloadStore.RESETS_COL][start];
+
+			boolean firstLabel = true;
+			DecimalFormat d = new DecimalFormat("0");
+			for (int v=0; v < numberOfTimeLabels; v++) {
+				if ( ! (maxPlottedUptimeForReset.containsKey(resets) && maxPlottedUptimeForReset.get(resets) > timelabels[v]) ) {
+					maxPlottedUptimeForReset.put(resets, (long) timelabels[v]); // otherwise store this uptime as the maximum value
+					int timepos = getRatioPosition(minTimeValue, maxTimeValue, timelabels[v], graphWidth) + 2;
+
+					if (!graphFrame.showContinuous && numberOfTimeLabels == 1) timepos = 1; // We are just plotting the first label
+					// dont draw the label if we are too near the start or end
+					if ((graphFrame.showContinuous && timepos > 0 && (graphWidth - timepos) > labelWidth/2) || (!graphFrame.showContinuous && timepos > 0) || numberOfTimeLabels == 1){
+				//	if ((timepos > 0) || numberOfTimeLabels == 1){
+						String s = d.format(timelabels[v]);
+
+						int offset = 0;
+						if (!graphFrame.hideUptime) {
+							offset = Config.graphAxisFontSize;	
+						}
+						if ( firstLabel) {
+							g2.setColor(graphTextColor);
+							if (!graphFrame.showUTCtime)
+								g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset );
+							//else
+							//	g2.drawString(""+fox.getUtcDateforReset(resets, timepos), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize );	
+
+						}
+
+						g2.setColor(graphTextColor);
+
+						if (!graphFrame.hideUptime) {
+							g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
+
+						}
+						if (graphFrame.showUTCtime) {
+							if (fox.hasTimeZero(resets)) {
+								g2.drawString(fox.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+								g2.drawString(""+fox.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+							}
+						}
+						g2.setColor(graphAxisColor);
+						if (graphFrame.showVerticalLines) {
+							g2.setColor(Color.GRAY);
+							g.drawLine(timepos+sideBorder, graphHeight + topBorder+5, timepos+sideBorder, topBorder);
+						} else
+							g.drawLine(timepos+sideBorder, zeroPoint-5, timepos+sideBorder, zeroPoint+5);
+						firstLabel = false;
 					}
 				}
-				g2.setColor(graphAxisColor);
-				if (graphFrame.showVerticalLines) {
-					g2.setColor(Color.GRAY);
-					g.drawLine(timepos+sideBorder, graphHeight + topBorder+5, timepos+sideBorder, topBorder-5);
-				} else
-					g.drawLine(timepos+sideBorder, zeroPoint-5, timepos+sideBorder, zeroPoint+5);
-				firstLabel = false;
 			}
+
 		}
 
-		
 		//
 		// Either the data is too long for the window, then we skip some of it
 		// Or the window is too long for the data, so we space it out
@@ -607,7 +631,8 @@ public class GraphPanel extends JPanel {
 				lasty3 = y3;
 			}
 	}
-	
+
+
 	/**
 	 * Given a number of ticks across a window and the range, calculate the tick size
 	 * and return an array of tick values to use on an axis.  It will have one of the following step sizes:
@@ -623,44 +648,40 @@ public class GraphPanel extends JPanel {
 	 */
 	static double[] calcAxisInterval(double min, double max, int ticks) {
 		double range = max - min;
-		double t = ticks;
+		if (ticks ==0) ticks = 1;
 		double step = 0.0;
 		
 		// From the range and the number of ticks, work out a suitable tick size
-		if (range/t <= 0.01) step = 0.01d;
-		else if (range/t <= 0.1) step = 0.10d;
-		else if (range/t <= 0.5) step = 0.50d;
-		else if (range/t <= 1) step = 1.00d;
-		else if (range/t <= 5) step = 5.00d;
-		else if (range/t <= 10) step = 10.00d;
-		else if (range/t <= 25) step = 25.00d;
-		else if (range/t <= 50) step = 50.00d;
-		else if (range/t <= 100) step = 100.00d;
-		else if (range/t <= 200) step = 200.00d;
-		else if (range/t <= 500) step = 500.00d;
-		else if (range/t <= 1000) step = 1000.00d;
-		else if (range/t <= 2000) step = 2000.00d;
-		else if (range/t <= 5000) step = 5000.00d;
-		else if (range/t <= 10000) step = 10000.00d;
-		else if (range/t <= 50000) step = 50000.00d;
-		else if (range/t <= 100000) step = 100000.00d;
-		else if (range/t <= 500000) step = 500000.00d;
-		else if (range/t <= 1000000) step = 1000000.00d;
-		else if (range/t <= 5000000) step = 5000000.00d;
-
+		step = getStep(range, ticks);
 		// Now find the first value before the minimum.
 		double startValue = roundToSignificantFigures(Math.round(min/step) * step, 6);
 
 		// We want ticks that go all the way to the end, so resize the tick list if needed
 
-		int newticks = (int)((max - startValue) / step + 1);
-		if (newticks < ticks * 3 && newticks > ticks)
-			ticks = newticks;
-		if (ticks > MAX_TICKS) ticks = MAX_TICKS;  // safety check
-		if (ticks < 0) ticks = 2;
+//		int newticks = (int)((max - startValue) / step + 1);
+//		if (newticks < ticks * 3 && newticks > ticks) {
+//			ticks = newticks;
+//			step = getStep(range, ticks);
+//		}
+		if (ticks > MAX_TICKS) {
+			ticks = MAX_TICKS;  // safety check
+			step = getStep(range, ticks);
+		}
+		if (ticks < 0) {
+			ticks = 1;
+			step = getStep(range, ticks);
+		}
 		
 		double[] tickList = new double[ticks];
 
+		if (ticks == 1) { // special case where we do not have room for a label so only some labels are plotted
+			//double midValue = roundToSignificantFigures(Math.round(range/2/step) * step, 6);
+			tickList[0] = startValue;
+		} else 	if (ticks == 2) {
+			double midValue = roundToSignificantFigures(startValue + step, 6);
+			tickList[0] = startValue;
+			tickList[1] = midValue;
+		} else
 		if (ticks > 0)
 			tickList[0] = startValue;
 		for (int i=1; i< ticks; i++) {
@@ -670,6 +691,51 @@ public class GraphPanel extends JPanel {
 		}
 		
 		return tickList;
+	}
+
+	private static double getStep(double range, int ticks) {
+		double step = 0;
+		if (range/ticks <= 0.01) step = 0.01d;
+		else if (range/ticks <= 0.1) step = 0.10d;
+		else if (range/ticks <= 0.2) step = 0.20d;
+		else if (range/ticks <= 0.25) step = 0.25d;
+		else if (range/ticks <= 0.33) step = 0.33d;
+		else if (range/ticks <= 0.5) step = 0.50d;
+		else if (range/ticks <= 1) step = 1.00d;
+		else if (range/ticks <= 2) step = 2.00d;
+		else if (range/ticks <= 2.5) step = 2.50d;
+		else if (range/ticks <= 3.3) step = 3.33d;
+		else if (range/ticks <= 5) step = 5.00d;
+		else if (range/ticks <= 10) step = 10.00d;
+		else if (range/ticks <= 25) step = 25.00d;
+		else if (range/ticks <= 33) step = 33.33d;
+		else if (range/ticks <= 50) step = 50.00d;
+		else if (range/ticks <= 100) step = 100.00d;
+		else if (range/ticks <= 200) step = 200.00d;
+		else if (range/ticks <= 250) step = 250.00d;
+		else if (range/ticks <= 333) step = 333.33d;
+		else if (range/ticks <= 500) step = 500.00d;
+		else if (range/ticks <= 1000) step = 1000.00d;
+		else if (range/ticks <= 2000) step = 2000.00d;
+		else if (range/ticks <= 2500) step = 2500.00d;
+		else if (range/ticks <= 3333) step = 3333.33d;
+		else if (range/ticks <= 5000) step = 5000.00d;
+		else if (range/ticks <= 10000) step = 10000.00d;
+		else if (range/ticks <= 20000) step = 20000.00d;
+		else if (range/ticks <= 25000) step = 25000.00d;
+		else if (range/ticks <= 33333) step = 33333.33d;
+		else if (range/ticks <= 50000) step = 50000.00d;
+		else if (range/ticks <= 100000) step = 100000.00d;
+		else if (range/ticks <= 250000) step = 250000.00d;
+		else if (range/ticks <= 333333) step = 333333.33d;
+		else if (range/ticks <= 500000) step = 500000.00d;
+		else if (range/ticks <= 1000000) step = 1000000.00d;
+		else if (range/ticks <= 2000000) step = 2000000.00d;
+		else if (range/ticks <= 2500000) step = 2500000.00d;
+		else if (range/ticks <= 3333333) step = 3333333.33d;
+		else if (range/ticks <= 5000000) step = 5000000.00d;
+		else if (range/ticks <= 10000000) step = 10000000.00d;
+		return step;
 	}
 	
 	public static double roundToSignificantFigures(double num, int n) {

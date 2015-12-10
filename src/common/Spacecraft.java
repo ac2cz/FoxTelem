@@ -182,7 +182,7 @@ public class Spacecraft {
 	}
 
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
-	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yyyy");
+	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yy");
 	
 	public boolean hasTimeZero() { 
 		if (timeZero == null) return false;
