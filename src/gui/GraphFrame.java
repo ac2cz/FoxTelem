@@ -573,12 +573,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 		} else if (e.getSource() == this.txtAvgPeriod) {
 				parseAvgPeriod();
-		} else if (e.getSource() == btnLatest) {
+		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
 			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
 			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
-
+			txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
 			parseTextFields();
+			parseAvgPeriod();
 		} else if (e.getSource() == btnCSV) {
 			File file = null;
 			File dir = null;
