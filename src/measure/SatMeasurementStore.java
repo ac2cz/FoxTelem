@@ -167,20 +167,28 @@ public class SatMeasurementStore {
 		double[] resets = new double[end-start];
 		double[] dates = new double[end-start];
 		
+		int validRecords = 0;
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtrtRecords.size());
-			results[j] = ((RtMeasurement)rtRecords.get(i)).getRawValue(name);
+			double result = ((RtMeasurement)rtRecords.get(i)).getRawValue(name);
+//			if (Double.compare(result, 0.0d) != 0) {  // screening out zero values because they corrupt the freq graph but breaks FEC plots
+			results[j] = result;
 			upTime[j] = rtRecords.get(i).uptime;
 			resets[j] = rtRecords.get(i).reset;
 			dates[j--] = rtRecords.get(i).date.getTime();
+			validRecords++;
+//			}
 		}
 		
-		double[][] resultSet = new double[4][end-start];
-		resultSet[PayloadStore.DATA_COL] = results;
-		resultSet[PayloadStore.UPTIME_COL] = upTime;
-		resultSet[PayloadStore.RESETS_COL] = resets;
-		resultSet[PayloadStore.UTC_COL] = dates;
+//		double[][] resultSet = new double[4][end-start];
+		double[][] resultSet = new double[4][validRecords];
+		for (int i=0; i< validRecords; i++) {
+		resultSet[PayloadStore.DATA_COL][i] = results[i];
+		resultSet[PayloadStore.UPTIME_COL][i] = upTime[i];
+		resultSet[PayloadStore.RESETS_COL][i] = resets[i];
+		resultSet[PayloadStore.UTC_COL][i] = dates[i];
+		}
 		return resultSet;
 	}
 
