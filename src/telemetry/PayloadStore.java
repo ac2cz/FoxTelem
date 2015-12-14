@@ -529,6 +529,7 @@ public class PayloadStore implements Runnable {
 		return null;
 	}
 
+	
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -547,7 +548,12 @@ public class PayloadStore implements Runnable {
 			return store.getRadTelemGraphData(name, period, fox, fromReset, fromUptime);
 		return null;
 	}
-
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(fox.foxId);
+		if (store != null)
+			return store.getHerciScienceHeaderGraphData(name, period, fox, fromReset, fromUptime);
+		return null;
+	}
 	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)

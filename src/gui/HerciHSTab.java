@@ -117,7 +117,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		BitArrayLayout rad = fox.herciHS2Layout;
 		BitArrayLayout none = null;
 		try {
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());

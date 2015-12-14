@@ -101,6 +101,8 @@ public class GraphPanel extends JPanel {
 			graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
 			graphData = Config.payloadStore.getRadTelemGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+			graphData = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
 			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		

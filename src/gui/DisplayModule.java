@@ -120,8 +120,10 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_VULCAN_EXP = 8;
 	public static final int DISPLAY_MEASURES = 9;
 	public static final int DISPLAY_PASS_MEASURES = 10;
+	public static final int DISPLAY_HERCI = 20;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
+	public static Color herciFontColor = new Color(153,0,0);
 	
 	int moduleType = DISPLAY_ALL; // default this to a module that displays normal RT MAX MIN telem
 
@@ -143,7 +145,10 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		setDefaultSizes();
 		moduleType = modType;
 		
-		if (moduleType >= DISPLAY_VULCAN) {
+		if (moduleType >= DISPLAY_HERCI) {
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, 10));
+			border.setTitleColor(herciFontColor);
+		} else if (moduleType >= DISPLAY_VULCAN) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, 10));
 			border.setTitleColor(vulcanFontColor);
 		} else {
@@ -411,6 +416,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
+				}
+				else if (moduleType == DISPLAY_HERCI) {
+					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
+					conversion = fox.herciHS2Layout.getConversionByName(fieldName[i]);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);

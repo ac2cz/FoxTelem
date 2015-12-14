@@ -76,9 +76,9 @@ public class SatPayloadStore {
 	public String minFileName;
 	public String radFileName;
 	public String radTelemFileName;
-	public String herciFileName;
-	public String herciHeaderFileName;
-	public String herciPacketFileName;
+	public String herciFileName;  // The High Speed HERCI records
+	public String herciHeaderFileName; // Secondary Payload for HERCI Science Headers
+	public String herciPacketFileName; // Secondary Payload for HERCI Mini Packets
 	
 	SortedFramePartArrayList rtRecords;
 	SortedFramePartArrayList maxRecords;
@@ -259,6 +259,12 @@ public class SatPayloadStore {
 		return true;
 	}
 
+	/**
+	 * Add a HERCI High Speed payload record
+	 * @param f
+	 * @return
+	 * @throws IOException
+	 */
 	private boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
 		herciRecords.add(f);
 		
@@ -421,6 +427,15 @@ public class SatPayloadStore {
 		
 	}
 
+	/**
+	 * Get data for a single named field from the Radiation Telemetry file for the period given
+	 * @param name
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 */
 	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
 		return getGraphData(radTelemRecords, name, period, id, fromReset, fromUptime);
 		
@@ -431,11 +446,41 @@ public class SatPayloadStore {
 
 	}
 	
+	/**
+	 * Get a set of Radiation Telemetry records for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 */
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
 		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, MAX_HERCI_HK_DATA_LENGTH); 
 
 	}
 
+	/**
+	 * Get data for a single named field from the HERCI Science Header for the period given
+	 * @param name
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 */
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+		return getGraphData(herciHeaderRecords, name, period, id, fromReset, fromUptime);
+		
+	}
+
+	/**
+	 * Get a set of HERCI Mini Packets for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 */
 	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
 		return getRadData(herciPacketRecords, period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
 

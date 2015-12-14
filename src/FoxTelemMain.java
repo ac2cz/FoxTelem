@@ -485,9 +485,9 @@ import decoder.Decoder;
  * Allow the user to specify the number of thumb nails to display on the camera tab
  * Fixed bug where Radiation Graphs did not open at start up
  * Fixed bug where T0 file could be corrupted if URL returned bogus data
- * Fixed #49 bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
- * Fixed #91 where audio continued after squelch in auto mode and memory was leaked
- * Fixes #84 - Allow the user to swap IQ channels in IQ mode
+ * Fixed bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
+ * Fixed issue where audio continued after squelch in auto mode and memory was leaked
+ * Allow the user to swap IQ channels in IQ mode
  * Allow graphs to be plotted as points (without lines)
  * Graph formatting parameters are not saved to config and reloaded when FoxTelem is restarted
  * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
