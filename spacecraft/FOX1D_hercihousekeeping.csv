@@ -6,9 +6,9 @@
 4,HERCI_HK,SYSTEM_TIME_SUSPECT,1,NONE,0,Control,1,5,5,Time Suspect,"Time is suspect if true, because no recent updates received"
 5,HERCI_HK,EPOCH_NUM,16,NONE,0,Control,1,6,5,Resets,Number of times the host system has been reset
 6,HERCI_HK,LENGTH,4,NONE,0,Control,1,7,5,Length,Overall record length - always 58
-7,HERCI_HK,SHK_AVG_COUNT_RATE,16,count/s,0,Detector,2,1,5,Average Count Rate,The average count rate
+7,HERCI_HK,SHK_AVG_COUNT_RATE,16,count/s,0,Detector,2,1,5,Avg Count Rate,The average count rate
 8,HERCI_HK,SHK_PEAK_COUNT_RATE,16,count/s,0,Detector,2,2,5,Peak Count Rate,The peak count rate
-9,HERCI_HK,SHK_SCIENCE_PKT_COUNT,16,NONE,0,Control,1,7,5,Packet Count,The number of science packets
+9,HERCI_HK,SHK_SCIENCE_PKT_COUNT,16,NONE,0,Control,1,8,5,Packet Count,The number of science packets
 10,HERCI_HK,SHK_CMD_COUNT1,16,NONE,0,DPU,3,1,5,IHU Commands,The number of commands received from the IHU
 11,HERCI_HK,SHK_CMD_COUNT2,16,NONE,0,DPU,3,2,5,Total Comands,The total number of commands
 12,HERCI_HK,SHK_CMD_COUNT3,16,NONE,0,DPU,3,3,5,Validation Errors,Command errors
