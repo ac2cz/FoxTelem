@@ -1,5 +1,8 @@
 package telemetry;
 
+import gui.MainWindow;
+import gui.ProgressPanel;
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -58,6 +61,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	SatMeasurementStore[] measurementStore;
 	
 	public PayloadStore() {
+		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, "FoxTelem: Loading logged data, please wait ...", false);
+		fileProgress.setVisible(true);
+
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
 		measurementQueue = new SortedMeasurementArrayList(INITIAL_QUEUE_SIZE);
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
@@ -69,7 +75,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);
 			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
+			fileProgress.updateProgress(100 * s / sats.size());
 		}
+		fileProgress.updateProgress(100);
 	}
 	
 	public boolean hasQueuedFrames() {

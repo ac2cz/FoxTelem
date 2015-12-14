@@ -474,20 +474,19 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmImportStp = new JMenuItem("Import STP");
 		mnFile.add(mntmImportStp);
 		
-		mntmGetServerData = new JMenuItem("Fetch Server Data");
-		mnFile.add(mntmGetServerData);
-
 		File aFile = new File(dir);
 		if(aFile.isDirectory()){
 			mntmImportStp.setVisible(true);
 			mntmImportStp.addActionListener(this);
-			mntmGetServerData.setVisible(true);
-			mntmGetServerData.addActionListener(this);
 		} else {
 			mntmImportStp.setVisible(false);
-			mntmGetServerData.setVisible(false);
+			//mntmGetServerData.setVisible(false);
 
 		}
+
+		mntmGetServerData = new JMenuItem("Fetch Server Data");
+		mnFile.add(mntmGetServerData);
+		mntmGetServerData.addActionListener(this);
 
 //		mntmLoadIQWavFile = new JMenuItem("Load IQ Wav File");
 //		mnFile.add(mntmLoadIQWavFile);
@@ -657,7 +656,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			importStp("stp", false);
 		}
 		if (e.getSource() == mntmGetServerData) {
-			importServerData();
+			replaceServerData();
 		}
 		if (e.getSource() == mntmLoadIQWavFile) {
 			inputTab.chooseIQFile();
@@ -729,6 +728,103 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
+	private void replaceServerData() {
+
+		if (Config.logFileDirectory.equalsIgnoreCase("")) {
+			Log.errorDialog("CAN'T EXTRACT SERVER DATA INTO CURRENT DIRECTORY", "You can not replace the log files in the current directory.  "
+					+ "Pick another directory from the settings menu\n");
+			return;
+					
+		}
+		String message = "Do you want to download server data to REPLACE your existing data?\n"
+				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
+				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"Do you want to continue?",
+				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.ERROR_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.NO_OPTION) {
+			return;
+		}
+
+		String file = "serverlogs.tar.gz";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + "serverlogs.tar.gz";
+		}
+		// We have the dir, so pull down the file
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
+		fileProgress.setVisible(true);
+
+		String urlString = Config.webSiteUrl + "/ao85/serverlogs.tar.gz";
+		try {
+			URL website = new URL(urlString);
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			FileOutputStream fos;
+			fos = new FileOutputStream(file);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.errorDialog("ERROR", "ERROR writing the server data to: " + file + "\n" +
+					e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (MalformedURLException e) {
+			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + file  + "\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		}
+
+		fileProgress.updateProgress(100);
+
+		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
+		decompressProgress.setVisible(true);
+
+		// Now decompress it and expand
+		File archive = new File(file);
+		File destination = new File(Config.logFileDirectory);
+
+		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
+		try {
+			archiver.extract(archive, destination);
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			decompressProgress.updateProgress(100);
+			return;
+		} catch (IllegalArgumentException e) {
+			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			decompressProgress.updateProgress(100);
+			return;
+		}
+
+		decompressProgress.updateProgress(100);
+		Config.save(); // make sure any changed settings saved
+		Config.initPayloadStore();
+		Config.initSequence();
+		Config.initServerQueue();
+		refreshTabs(true);
+	}
+
+	
 	private void importServerData() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"

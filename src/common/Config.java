@@ -52,8 +52,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.02";
-	public static String VERSION = VERSION_NUM + " - 21 October 2015";
+	public static String VERSION_NUM = "1.02b";
+	public static String VERSION = VERSION_NUM + " - 13 November 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -148,16 +148,17 @@ public class Config {
     public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
     public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
-    public static String primaryServer = "tlm.amsat.us";
-    public static String secondaryServer = "tlm.amsat.org";
+    public static String primaryServer = "tlm.amsat.org";
+    public static String secondaryServer = "tlm.amsat.us";
+    public static String webSiteUrl = "http://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
     // These are not saved to the file
     public static int udpPort = 41041;
     public static int tcpPort = 41042;
-    public static int serverPort = udpPort;
-  //  public static int serverProtocol = TlmServer.TCP; 
-    public static int serverProtocol = TlmServer.UDP;
+    public static int serverPort = tcpPort;
+    public static int serverProtocol = TlmServer.TCP; 
+  //  public static int serverProtocol = TlmServer.UDP;
     
 	// GUI properties
 	public static int windowHeight = 750;
@@ -176,6 +177,7 @@ public class Config {
 	public static String csvCurrentDirectory = "";
 	public static String logFileDirectory = ""; // This is the directory that we write the decoded data into and any other log files
 	public static String homeDirectory = ""; // This is the directory we write the properties in.  This allows us to find the other directories.
+	public static String serverFileDirectory = ""; 
 	static public boolean displayRawValues = false;
 	static public boolean showLatestImage = false;
 	static public boolean displayRawRadData = false;
@@ -513,6 +515,10 @@ public class Config {
 		properties.setProperty("serverParamsUrl", serverParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
+		
+		// Version 1.02 settings
+		properties.setProperty("serverFileDirectory", serverFileDirectory);
+		properties.setProperty("webSiteUrl", webSiteUrl);
 		store();
 	}
 	
@@ -654,6 +660,12 @@ public class Config {
 		serverParamsUrl = getProperty("serverParamsUrl");
 		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
 		downloadT0FromServer = Boolean.parseBoolean(getProperty("downloadT0FromServer"));
+	
+		// Version 1.02 settings
+		serverFileDirectory = getProperty("serverFileDirectory");
+		if (serverFileDirectory == null) serverFileDirectory = "";
+		webSiteUrl = getProperty("webSiteUrl");
+		if (webSiteUrl == null) webSiteUrl = "";
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -675,7 +687,7 @@ public class Config {
         "Exit"};
 		int n = JOptionPane.showOptionDialog(
 				MainWindow.frame,
-				"Could not read properties file. Format has probablly changed or the file is corrupt.  "
+				"Could not read properties file. If this is a new release then the format has probablly been extended.\n"
 				+ "Should I create a new properties file after reading as much as possible from the existing one?",
 				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
 			    JOptionPane.YES_NO_OPTION,

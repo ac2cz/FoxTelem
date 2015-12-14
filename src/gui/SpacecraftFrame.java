@@ -299,15 +299,15 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				} catch (NumberFormatException ex) {
 					throw new Exception("The Frequency fields must contain a valid number");
 				}
-				if (sat.rssiLookUpTableFileName != rssiLookUpTableFileName.getText()) {
+				if (!sat.rssiLookUpTableFileName.equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
 					sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
 					refreshTabs = true;
 				}
-				if (sat.ihuTempLookUpTableFileName != ihuTempLookUpTableFileName.getText()) {
+				if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
 					sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
 					refreshTabs = true;
 				}
-				if (sat.ihuVBattLookUpTableFileName != ihuVBattLookUpTableFileName.getText()) {
+				if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
 					sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
 					refreshTabs = true;
 				}

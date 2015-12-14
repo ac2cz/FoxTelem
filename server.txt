@@ -1,0 +1,4 @@
+secondaryServer=tlm.amsat.org
+primaryServer=tlm.amsat.us
+sendToBothServers=false
+serverProtocol=0

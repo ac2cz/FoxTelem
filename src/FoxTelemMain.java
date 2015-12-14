@@ -8,6 +8,12 @@ import java.io.File;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.swing.JFrame;
 import javax.swing.UIManager;
@@ -454,6 +460,13 @@ import decoder.Decoder;
  * Added horizontal and vertical lines to the graphs if button clicked
  * Fixed Typo on measurements tab
  * Fixed a bug where UTC was not displayed for the Diagnostic tables
+ * Capture the string version of the STP date in ENGLISH for all users, but leave other string dates in local language
+ * Fixed bug where TCA date could be null and a SERIOUS error was reported
+ * Fixed issue where the tabs were always refreshed when the spacecraft menu closed
+ * Fixed bug where UTC date was sometimes wrong on the spacecraft T0 panel
+ * Ready FoxTelem for sending server data via TCP
+ * Support downloading data from the server
+ * Fixed bug where T0 date was sometimes wrong
  * 
  */
 
@@ -464,6 +477,19 @@ public class FoxTelemMain {
 			+ "Usage: FoxTelem [-version] [fileName.wav]\n\n";
 		
 	public static void main(String[] args) {
+		
+		/*
+		DateFormat form = new SimpleDateFormat("yyyyMMddHHmmss");
+		form.setTimeZone(TimeZone.getTimeZone("UTC"));
+		try {
+			Date dt = form.parse("20151110004114");
+			
+			System.err.println(dt.getTime());
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		*/
 		
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {

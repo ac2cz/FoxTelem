@@ -51,6 +51,7 @@ public class SatPayloadStore {
 	public int foxId;
 	
 	private static final int INIT_SIZE = 1000;
+	private boolean initRad2 = false;
 	
 	// Primary Payloads
 	public static String RT_LOG = "rttelemetry.log";
@@ -477,16 +478,24 @@ public class SatPayloadStore {
         				minRecords.add(rt);
         				updatedMin = true;
         			}
-        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-        				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
-        				radRecords.add(rt);
-        				updatedRad = true;
-        			}
         			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
         				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
         				radTelemRecords.add(rt);
         				updatedRadTelem = true;
         			}
+        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
+        				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
+        				radRecords.add(rt);
+        				updatedRad = true;
+        				// Capture and store any secondary payloads, this is duplicative but thorough
+        				if (initRad2)
+        				if (rt.isTelemetry()) {
+        					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
+        					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+        					add(radiationTelemetry);
+        				}
+        			}
+        			
         		}
         	}
         	dis.close();
