@@ -223,9 +223,13 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		column.setPreferredWidth(90);
 		
 		column = packetTable.getColumnModel().getColumn(6);
-		column.setPreferredWidth(70);
-
+		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(7);
+		column.setPreferredWidth(45);
+		column = packetTable.getColumnModel().getColumn(8);
+		column.setPreferredWidth(45);
+
+		column = packetTable.getColumnModel().getColumn(9);
 		column.setPreferredWidth(600);
 
 		if (showRawValues.isSelected()) {
@@ -240,17 +244,17 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	private String[][] parseMiniPackets() {
 		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0);
-		String[][] data = new String[rawData.length][8];
+		String[][] data = new String[rawData.length][10];
 		
 		//for (int k =0; k < rawData.length; k++) {
 		for (int k =rawData.length-1; k >= 0; k--) {
-			for (int j=0; j<7; j++)
+			for (int j=0; j<9; j++)
 				data[rawData.length-k-1][j] = rawData[k][j];
 				
-			rawData[k][7] = "";
-			for (int j=7; j<rawData[k].length; j++) {
+			data[rawData.length-k-1][9] = "";
+			for (int j=9; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					data[rawData.length-k-1][7] = rawData[k][7] + rawData[k][j] +" ";
+					data[rawData.length-k-1][9] = data[rawData.length-k-1][9] + rawData[k][j] +" ";
 			}
 		}
 		

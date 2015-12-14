@@ -100,8 +100,8 @@ about Big-Endian above all applies here as well.
  */
 public class HerciHighSpeedPacket extends FramePart {
 	public static int MAX_PACKET_BYTES = 128; // FIXME-not sure what the max value is
-	public static int MAX_PACKET_HEADER_BYTES = 8;
-	public int NUMBER_OF_FIELDS = 5; // This is the initial value as it is the header size
+	public static int MAX_PACKET_HEADER_BYTES = 7;
+	public int NUMBER_OF_FIELDS = 7; // This is the initial value as it is the header size
 	public int reset;
 	public long uptime;
 	public int id;
@@ -113,7 +113,9 @@ public class HerciHighSpeedPacket extends FramePart {
 	public static final int LENGTH_FIELD = 1;
 	public static final int TIME_FIELD = 2;
 	public static final int SEG_FIELD = 3;
-	public static final int STATUS_FIELD = 4;
+	public static final int STATUS_FIELD1 = 4;
+	public static final int STATUS_FIELD2 = 5;
+	public static final int STATUS_FIELD3 = 6;
 	
 	HerciHighSpeedPacket(int sat, int r, long u) {
 		super(new BitArrayLayout());
@@ -142,45 +144,56 @@ public class HerciHighSpeedPacket extends FramePart {
 		layout.fieldName[LENGTH_FIELD] = "LENGTH";
 		layout.fieldName[TIME_FIELD] = 	"TIME";
 		layout.fieldName[SEG_FIELD] = "SEG";
-		layout.fieldName[STATUS_FIELD] = "STATUS";
+		layout.fieldName[STATUS_FIELD1] = "STATUS1";
+		layout.fieldName[STATUS_FIELD2] = "STATUS2";
+		layout.fieldName[STATUS_FIELD3] = "STATUS3";
 		layout.fieldBitLength[TYPE_FIELD] = 4;	
 		layout.fieldBitLength[LENGTH_FIELD] = 12; 
 		layout.fieldBitLength[TIME_FIELD] = 16;
 		layout.fieldBitLength[SEG_FIELD] = 8;
-		layout.fieldBitLength[STATUS_FIELD] = 24;
+		layout.fieldBitLength[STATUS_FIELD1] = 8;
+		layout.fieldBitLength[STATUS_FIELD2] = 8;
+		layout.fieldBitLength[STATUS_FIELD3] = 8;
 
 	}
 	public int getType() { return fieldValue[TYPE_FIELD]; }
 	public int getLength() { return fieldValue[LENGTH_FIELD]; }
 	public int getTime() { return fieldValue[TIME_FIELD]; }
 	public int getSeg() { return fieldValue[SEG_FIELD]; }
-	public int getStatus() { return fieldValue[STATUS_FIELD]; }
+	public int getStatus1() { return fieldValue[STATUS_FIELD1]; }
+	public int getStatus2() { return fieldValue[STATUS_FIELD2]; }
+	public int getStatus3() { return fieldValue[STATUS_FIELD3]; }
 
 	/**
 	 * Call this once the header is populated and before getting the length
 	 */
 	public void initPacket() {
 		copyBitsToFields();
-		// Need to get the length correct
+		// Need to get the length correct, so we cache the values, read the length, then re-init with the correct sixe
 		int len = getLength();
 		int type = getType();
 		int time = getTime();
 		int seg = getSeg();
-		int status = getStatus();
+		int status1 = getStatus1();
+		int status2 = getStatus2();
+		int status3 = getStatus3();
 		
-		NUMBER_OF_FIELDS = 5 + getLength();
+		NUMBER_OF_FIELDS = 7 + getLength()+1;
 		initFields();
-		
+	
 		fieldValue[TYPE_FIELD] = type;
 		fieldValue[LENGTH_FIELD] = len;
 		fieldValue[TIME_FIELD] = time;
 		fieldValue[SEG_FIELD] = seg;
-		fieldValue[STATUS_FIELD] = status;
+		fieldValue[STATUS_FIELD1] = status1;
+		fieldValue[STATUS_FIELD2] = status2;
+		fieldValue[STATUS_FIELD3] = status3;
 		
-		for (int i=5; i< layout.fieldName.length; i++) {
+		for (int i=7; i< layout.fieldName.length; i++) {
 			layout.fieldName[i] = "Byte"+i+"";
 			layout.fieldBitLength[i] = 8;
 		}
+		copyBitsToFields();
 	}
 	
 	/**
