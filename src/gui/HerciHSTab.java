@@ -238,21 +238,23 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	}
 
-	private String[][] parsePackets() {
+	private String[][] parseMiniPackets() {
 		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0);
+		String[][] data = new String[rawData.length][8];
 		
-		for (int k =0; k < rawData.length; k++) {
+		//for (int k =0; k < rawData.length; k++) {
+		for (int k =rawData.length-1; k >= 0; k--) {
 			for (int j=0; j<7; j++)
-				rawData[k][j] = rawData[k][j];
+				data[rawData.length-k-1][j] = rawData[k][j];
 				
 			rawData[k][7] = "";
 			for (int j=7; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					rawData[k][7] = rawData[k][7] + rawData[k][j] +" ";
+					data[rawData.length-k-1][7] = rawData[k][7] + rawData[k][j] +" ";
 			}
 		}
 		
-		return rawData;
+		return data;
 	}
 
 	private String[][] parseRawBytes() {
@@ -279,7 +281,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 			packetScrollPane.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else {
-			String[][] data = parsePackets();
+			String[][] data = parseMiniPackets();
 			if (data.length > 0) {
 				radPacketTableModel.setData(data);
 			}

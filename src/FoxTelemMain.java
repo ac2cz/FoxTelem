@@ -490,7 +490,9 @@ import decoder.Decoder;
  * Fixes #84 - Allow the user to swap IQ channels in IQ mode
  * Allow graphs to be plotted as points (without lines)
  * Graph formatting parameters are not saved to config and reloaded when FoxTelem is restarted
+ * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
  * MEMS Gyro 0dps set to 1.51 following measurement of VRef in the diagnostics
+ * When reset button pressed on graphs the average period is reset too
  * 
  */
 
