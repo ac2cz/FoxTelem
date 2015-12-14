@@ -70,17 +70,21 @@ public class Spacecraft {
 	};
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1;
+	public static final int EXP_VULCAN = 1; // This is the LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
+	public static final int EXP_VT_CAMERA_LOW_RES = 5;
+	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
 	
 	public static final String[] expNames = {
 		"Empty",
 		"Vanderbilt LEP",
 		"Virgina Tech Camera",
 		"IOWA HERCI",
-		"Rad FX Sat"
+		"Rad FX Sat",
+		"Virginia Tech Low-res Camera",
+		"Vanderbilt VUC"
 	};
 	
 	public int foxId = 1;
@@ -109,6 +113,8 @@ public class Spacecraft {
 	public String minLayoutFileName;
 	public String radLayoutFileName;
 	public String rad2LayoutFileName;
+	public String herciHSLayoutFileName;
+	public String herciHS2LayoutFileName;
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
 
@@ -123,6 +129,8 @@ public class Spacecraft {
 	public BitArrayLayout minLayout;
 	public BitArrayLayout radLayout;
 	public BitArrayLayout rad2Layout;
+	public BitArrayLayout herciHSLayout;
+	public BitArrayLayout herciHS2Layout;
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 		
@@ -135,7 +143,7 @@ public class Spacecraft {
 		propertiesFileName = fileName;
 		load();
 		try {
-			loadTimeZeroSeries();
+			loadTimeZeroSeries(null);
 		} catch (FileNotFoundException e) {
 			timeZero = null;
 		} catch (IndexOutOfBoundsException e) {
@@ -146,6 +154,18 @@ public class Spacecraft {
 		minLayout = new BitArrayLayout(minLayoutFileName);
 		radLayout = new BitArrayLayout(radLayoutFileName);
 		rad2Layout = new BitArrayLayout(rad2LayoutFileName);
+		if (herciHSLayoutFileName != null)
+			herciHSLayout = new BitArrayLayout(herciHSLayoutFileName);
+		else
+			if (this.hasHerci()) {
+				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI experiment if herciHSLayoutFileName is not specified");
+			}
+		if (herciHS2LayoutFileName != null)
+			herciHS2Layout = new BitArrayLayout(herciHS2LayoutFileName);
+		else
+			if (this.hasHerci()) {
+				throw new LayoutLoadException(name + ": Cannot load satellite with HERCI science header file - herciHS2LayoutFileName is not specified");
+			}
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
@@ -162,7 +182,7 @@ public class Spacecraft {
 	}
 
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
-	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yyyy");
+	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yy");
 	
 	public boolean hasTimeZero() { 
 		if (timeZero == null) return false;
@@ -214,7 +234,7 @@ public class Spacecraft {
 		properties.setProperty("description", description);
 		properties.setProperty("model", Integer.toString(model));
 		properties.setProperty("IHU_SN", Integer.toString(IHU_SN));
-		for (int i : experiments)
+		for (int i=0; i< experiments.length; i++)
 			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
 		properties.setProperty("telemetryDownlinkFreqkHz", Integer.toString(telemetryDownlinkFreqkHz));
 		properties.setProperty("minFreqBoundkHz", Integer.toString(minFreqBoundkHz));
@@ -233,6 +253,13 @@ public class Spacecraft {
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		properties.setProperty("track", Boolean.toString(track));
+		
+		// Optional params
+		if (herciHSLayoutFileName != null)
+			properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
+			if (herciHS2LayoutFileName != null)
+			properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
+			
 		store();
 	
 	}
@@ -249,14 +276,16 @@ public class Spacecraft {
 		}
 	}
 	
-	public void loadTimeZeroSeries() throws FileNotFoundException {
+	public boolean loadTimeZeroSeries(String log) throws FileNotFoundException {
 		timeZero = new ArrayList<Long>(100);
         String line;
-        String log = "FOX"+ foxId + Config.t0UrlFile;
-        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-			Log.println("Loading: " + log);
-		}
+        if (log == null) { // then use the default
+        	log = "FOX"+ foxId + Config.t0UrlFile;
+        	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+        		log = Config.logFileDirectory + File.separator + log;
+        		Log.println("Loading: " + log);
+        	}
+        }
         //File aFile = new File(log );
 
         
@@ -278,11 +307,18 @@ public class Spacecraft {
 			dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-        	
+        	return false;
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        	return false;
+        } finally {
+        	try {
+				dis.close();
+			} catch (IOException e) {
+				// ignore error
+			}
         }
-		
+		return true;
 	}
 	
 	private void load() throws LayoutLoadException {
@@ -323,6 +359,8 @@ public class Spacecraft {
 			else 
 				track = Boolean.parseBoolean(t);
 			
+			herciHSLayoutFileName = getOptionalProperty("herciHSLayoutFileName");
+			herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
@@ -356,8 +394,27 @@ public class Spacecraft {
 	 * @return
 	 */
 	public boolean hasCamera() {
-		for (int i=0; i< experiments.length; i++)
+		for (int i=0; i< experiments.length; i++) {
 			if (experiments[i] == EXP_VT_CAMERA) return true;
+			if (experiments[i] == EXP_VT_CAMERA_LOW_RES) return true;
+		}
+		return false;
+	}
+
+	public boolean hasLowResCamera() {
+		for (int i=0; i< experiments.length; i++) {
+			if (experiments[i] == EXP_VT_CAMERA_LOW_RES) return true;
+		}
+		return false;
+	}
+
+	/**
+	 * Return true if one of the experiment slots contains the HERCI experiment
+	 * @return
+	 */
+	public boolean hasHerci() {
+		for (int i=0; i< experiments.length; i++)
+			if (experiments[i] == EXP_IOWA_HERCI) return true;
 		return false;
 	}
 	

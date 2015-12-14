@@ -34,8 +34,8 @@ public class Fox200bpsDecoder extends Decoder {
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
 	private int useFilterNumber;
 	
-	public Fox200bpsDecoder(SourceAudio as) {
-		super(as);
+	public Fox200bpsDecoder(SourceAudio as, int chan) {
+		super("DUV", as, chan);
 	}
 	
 	public void init() {
@@ -64,7 +64,7 @@ public class Fox200bpsDecoder extends Decoder {
 	
 	private void setSlowSpeedParameters() {
 		//decodedFrame = new SlowSpeedFrame();
-		bitStream = new SlowSpeedBitStream();
+		bitStream = new SlowSpeedBitStream(this);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
 		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;

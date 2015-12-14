@@ -5,6 +5,9 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
+import java.awt.GridLayout;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -25,6 +28,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTextField;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -60,9 +64,11 @@ import common.Spacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener {
+public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener, ActionListener {
+	public static final int MAX_THUMBNAILS_LIMIT = 100;
+	public static final int MIN_SAMPLES = 1;
 	public static final String CAMERATAB = "CAMERATAB";
-	public static final int MAX_THUMBNAILS = 100;
+	public int MAX_THUMBNAILS = 30;
 	public static final int THUMB_X = 100; //640/5
 	//public static final int THUMB_Y = 96; //480/5
 	
@@ -88,6 +94,8 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	JPanel picturePanel;
 	JPanel leftHalf;
 	JPanel rightHalf;
+
+	JTextField displayNumber2;
 	
 //	JLabel picture;
 	ImagePanel picture;
@@ -206,7 +214,9 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
+		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(400,10), new Dimension(1500,10)));
 
+		addBottomFilter();
 	}
 	
 	private JLabel addPicParam(String text) {
@@ -214,24 +224,51 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		title.setFont(new Font("SansSerif", Font.BOLD, 12));
 		JLabel lab = new JLabel();
 		JPanel panel = new JPanel();
-		panel.setLayout(new FlowLayout(FlowLayout.LEADING));
+		//panel.setLayout(new FlowLayout(FlowLayout.LEADING));
+		panel.setLayout(new GridLayout(1,2,5,5));
 		panel.add(title);
 		panel.add(lab);
 		
 		leftHalf.add(panel);
-		
-		lab.setBorder(new EmptyBorder(1, 20, 1, 25) ); // top left bottom right
+		title.setBorder(new EmptyBorder(3, 5, 3, 0) ); // top left bottom right
+		lab.setBorder(new EmptyBorder(3, 0, 3, 25) ); // top left bottom right
 		return lab;
 	}
+	
+	protected void addBottomFilter() {
+		JLabel displayNumber1 = new JLabel("Displaying last");
+		displayNumber2 = new JTextField();
+		JLabel displayNumber3 = new JLabel("images decoded");
+		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
+		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
+		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
+		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
+		displayNumber2.setMinimumSize(new Dimension(50, 14));
+		displayNumber2.setMaximumSize(new Dimension(50, 14));
+		displayNumber2.setText(Integer.toString(MAX_THUMBNAILS));
+		displayNumber2.addActionListener(this);
+		bottomPanel.add(displayNumber1);
+		bottomPanel.add(displayNumber2);
+		bottomPanel.add(displayNumber3);
+		
+	}
+
+	
+	/**
+	 * Load the thumbnails from disk based on the entries in the Jpeg Index
+	 */
 	private void loadThumbs() {
 		for (int j=0; j<numberOfFiles; j++)
 			if (thumbnails[j] != null)
 				thumbnailsPanel.remove(thumbnails[j]);
 		
+		int lastPic = 0;
 		numberOfFiles = jpegIndex.size();
-		if (numberOfFiles > MAX_THUMBNAILS) numberOfFiles = MAX_THUMBNAILS;
+		if (numberOfFiles > MAX_THUMBNAILS)
+			lastPic = numberOfFiles - MAX_THUMBNAILS;
+//			numberOfFiles = MAX_THUMBNAILS;
 		
-		for (int i=0; i<numberOfFiles; i++) {
+		for (int i=numberOfFiles-1; i >=lastPic; i--) {
 			
 			if (jpegIndex.get(i).fileExists()) {
 				//Log.println("Picture from: " + jpegIndex.get(i).fileName);
@@ -417,6 +454,34 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			
 		}
 
+		
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == this.displayNumber2) {
+			String text = displayNumber2.getText();
+			try {
+				MAX_THUMBNAILS = Integer.parseInt(text);
+				if (MAX_THUMBNAILS > MAX_THUMBNAILS_LIMIT) {
+					MAX_THUMBNAILS = MAX_THUMBNAILS_LIMIT;
+					text = Integer.toString(MAX_THUMBNAILS_LIMIT);
+				}
+				if (MAX_THUMBNAILS < MIN_SAMPLES) {
+					MAX_THUMBNAILS = MIN_SAMPLES;
+					text = Integer.toString(MIN_SAMPLES);
+				}
+				//System.out.println(SAMPLES);
+				
+				//lblActual.setText("("+text+")");
+				//txtPeriod.setText("");
+			} catch (NumberFormatException ex) {
+				
+			}
+			displayNumber2.setText(text);
+			loadThumbs();
+			repaint();
+		}
 		
 	}
 

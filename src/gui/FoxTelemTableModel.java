@@ -1,6 +1,8 @@
 package gui;
 import javax.swing.table.AbstractTableModel;
 
+import telemetry.PayloadHERCIhighSpeed;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -23,17 +25,10 @@ import javax.swing.table.AbstractTableModel;
  *
  */
 @SuppressWarnings("serial")
-class RadiationTableModel extends AbstractTableModel {
+abstract class FoxTelemTableModel extends AbstractTableModel {
 	String[] columnNames = null;
     private String[][] data = null;
 
-	RadiationTableModel() {
-		columnNames = new String[60];
-		columnNames[0] = "RESET";
-		columnNames[1] = "UPTIME";
-		for (int k=0; k<58; k++) 
-			columnNames[k+2] = ""+k;
-	}
 	
     public void setData(String[][] d) { 
     	data = d;

@@ -1,6 +1,7 @@
 package common;
 
 import gui.MainWindow;
+import telemetry.SatPayloadStore;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -111,24 +112,41 @@ public class UpdateManager implements Runnable {
 			file = Config.logFileDirectory + File.separator + "FOX" + sat.foxId + Config.t0UrlFile;			
 		}
 		URL website;
+		FileOutputStream fos = null;
 		try {
 			website = new URL(urlString);
-		
-		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-		FileOutputStream fos;
-			fos = new FileOutputStream(file);
+
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			
+			fos = new FileOutputStream(file + ".tmp");
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
-			sat.loadTimeZeroSeries();
+			if (sat.loadTimeZeroSeries(file + ".tmp")) {
+				// this is a good file so we can now use it as the default
+				SatPayloadStore.remove(file);
+				File f1 = new File(file + ".tmp");
+				File f2 = new File(file);
+				SatPayloadStore.copyFile(f1, f2);
+				return;
+			} else {
+				SatPayloadStore.remove(file + ".tmp");
+				sat.loadTimeZeroSeries(null); // load the default
+			}
 		} catch (MalformedURLException e) {
 			Log.println("Invalid location for T0 file: " + file);
 			//e.printStackTrace(Log.getWriter());
 		} catch (IOException e) {
 			Log.println("Could not write T0 file: " + file);
 			//e.printStackTrace(Log.getWriter());
+		} finally {
+			try {
+				if (fos != null) fos.close();
+			} catch (IOException e) {
+				// ignore
+			}
 		}
 	}
-	
+
 	private void checkVersion() throws IOException {
 		URL oracle = new URL(Config.newVersionUrl);
         BufferedReader in = new BufferedReader(

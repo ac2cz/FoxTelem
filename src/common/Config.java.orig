@@ -9,13 +9,10 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
-
 import javax.swing.JOptionPane;
 
 import decoder.HighSpeedBitStream;
 import decoder.SourceIQ;
-import telemetry.FoxPayloadStore;
-import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
 import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
@@ -52,8 +49,13 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.03a";
-	public static String VERSION = VERSION_NUM + " - 14	 December 2015";
+<<<<<<< HEAD
+	public static String VERSION_NUM = "1.02b";
+	public static String VERSION = VERSION_NUM + " - 13 November 2015";
+=======
+	public static String VERSION_NUM = "1.02 (Herci)";
+	public static String VERSION = VERSION_NUM + " - 25 October 2015";
+>>>>>>> Herci
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -69,7 +71,7 @@ public class Config {
 	public static PassManager passManager;
 	static Thread passManagerThread;
 	
-	public static FoxPayloadStore payloadStore;
+	public static PayloadStore payloadStore;
 	static Thread payloadStoreThread;
 	public static RawFrameQueue rawFrameQueue;
 	// We have one queue for the whole application
@@ -95,8 +97,7 @@ public class Config {
 	public static String soundCard = NO_SOUND_CARD_SELECTED;
 	public static String audioSink = NO_SOUND_CARD_SELECTED;
 	public static int playbackSampleRate = 48000; //44100; //192000;
-	static public boolean flipReceivedBits = false;  
-	static public boolean flipReceivedBits2 = false; // FIXME - Quick Hack to see if this is an issue.  If this stays MUST go at end of config
+	static public boolean flipReceivedBits = false;
 	static public boolean recoverClock = true;
 	static public boolean writeDebugWavFile = false;
 	static public boolean debugValues = false;
@@ -208,10 +209,6 @@ public class Config {
 	// Post V1.00
 	static public boolean debugHerciFrames = false;
 	
-	// V1.03
-	static public boolean autoDecodeSpeed = true;
-	static public boolean swapIQ = false;
-	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -236,21 +233,6 @@ public class Config {
 		}
 		
 		System.out.println("Set Home to: " + homeDirectory);
-	}
-	
-	public static void basicInit() {
-		initSequence();
-		
-		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
-		osName = System.getProperty("os.name").toLowerCase();
-		setOs();
-		
-		satManager = new SatelliteManager();
-	}		
-	public static void serverInit() {
-		basicInit();
-		initPayloadDB();
-		
 	}
 	
 	public static void init() {
@@ -306,15 +288,9 @@ public class Config {
 		passManagerThread.start();
 	}
 
-
+	
 	public static void initPayloadStore() {	
 		payloadStore = new PayloadStore();
-		payloadStoreThread = new Thread(payloadStore);
-		payloadStoreThread.start();
-	}
-
-	public static void initPayloadDB() {	
-		payloadStore = new PayloadDbStore();
 		payloadStoreThread = new Thread(payloadStore);
 		payloadStoreThread.start();
 	}
@@ -523,16 +499,14 @@ public class Config {
 		properties.setProperty("serverParamsUrl", serverParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
+<<<<<<< HEAD
 		
 		// Version 1.02 settings
 		properties.setProperty("serverFileDirectory", serverFileDirectory);
 		properties.setProperty("webSiteUrl", webSiteUrl);
-		
-		// Version 1.03 settings
+=======
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
-		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
-		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
-		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
+>>>>>>> Herci
 		store();
 	}
 	
@@ -670,7 +644,7 @@ public class Config {
 		SCAN_SIGNAL_THRESHOLD = Double.parseDouble(getProperty("SCAN_SIGNAL_THRESHOLD"));
 		ANALYZE_SNR_THRESHOLD = Double.parseDouble(getProperty("ANALYZE_SNR_THRESHOLD"));
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
-		
+		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
 		
 		serverParamsUrl = getProperty("serverParamsUrl");
 		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
@@ -681,12 +655,6 @@ public class Config {
 		if (serverFileDirectory == null) serverFileDirectory = "";
 		webSiteUrl = getProperty("webSiteUrl");
 		if (webSiteUrl == null) webSiteUrl = "";
-		
-		//Version 1.03
-		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
-		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
-		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
-		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

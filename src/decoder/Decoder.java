@@ -20,6 +20,7 @@ import telemetry.FramePart;
 import telemetry.Header;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;
+import telemetry.PayloadHERCIhighSpeed;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRadExpData;
@@ -67,14 +68,15 @@ import telemetry.SlowSpeedHeader;
  *
  */
 public abstract class Decoder implements Runnable {
-
+	public String name = "";
 	// This is the audio source that holds incoming audio.  It contains a circularByte buffer and the decoder reads from it.  The decoder does
 	// not care where the audio comes from or how it gets into the buffer
 	protected SourceAudio audioSource;
 	protected Thread audioReadThread;
+	int audioChannel = 0; // this is the audio channel that we read from the upstream audioSource
 	
-	protected static int BITS_PER_SECOND = 0;
-		
+	protected int BITS_PER_SECOND = 0;
+	public boolean flipReceivedBits;	
 	private boolean bigEndian = false;
 	private int bitsPerSample = 16;
 	protected int bytesPerSample = 4; // 4 bytes for stereo.  Updated by the program if file is mono
@@ -152,7 +154,7 @@ public abstract class Decoder implements Runnable {
     private Frame decodedFrame = null;
     
     protected Filter filter = null;
-    public static Filter monitorFilter = null;
+    public Filter monitorFilter = null;
 //    private AGCFilter agcFilter = null;
     
     private SinkAudio sink = null; // The audio output device that we copy bytes to if we are monitoring the audio
@@ -162,8 +164,10 @@ public abstract class Decoder implements Runnable {
     /**
      * Given an audio source, decode the data in it,
      */
-	public Decoder(SourceAudio as) {
+	public Decoder(String n, SourceAudio as, int chan) {
+		name = n;
 		audioSource = as;
+		audioChannel = chan;
 		AudioFormat audioFormat = as.getAudioFormat();
 		currentSampleRate = (int) audioFormat.getSampleRate();
 		bitsPerSample = audioFormat.getSampleSizeInBits();
@@ -225,8 +229,6 @@ public abstract class Decoder implements Runnable {
 			dataValues[i] = new int[bucketSize];
 		}
 		eyeData = new EyeData(SAMPLE_WINDOW_LENGTH,bucketSize);
-		
-
 	}
 
 	/**
@@ -235,6 +237,7 @@ public abstract class Decoder implements Runnable {
 	 */
 	protected void resetWindowData() {
 
+		//Log.println("Reset data");
 		for (int j=0; j< SAMPLE_WINDOW_LENGTH; j++) {
 
 			for (int i=0; i < bucketSize; i++) {
@@ -258,15 +261,19 @@ public abstract class Decoder implements Runnable {
 	public boolean isDone() { return done; }
 
 	/**
-	 * Called when the decoder is started.  This tells the audio source to begin reading data
+	 * Called when the decoder is started.  This tells the audio source to begin reading data.
+	 * We only do this if it is decoder 0, because the other deoder reads from the same source, unless
+	 * this is an IQDecoder, in which case it needs to be started in all cases
 	 */
 	protected void startAudioThread() {
-		if (audioReadThread != null) { 
-			audioSource.stop(); 
-		}	
-		
-		audioReadThread = new Thread(audioSource);
-		audioReadThread.start();
+		if (audioChannel == 0 || audioSource instanceof SourceIQ) {
+			if (audioReadThread != null) { 
+				audioSource.stop(); 
+			}	
+
+			audioReadThread = new Thread(audioSource);
+			audioReadThread.start();
+		}
 		
 	}
 
@@ -278,28 +285,48 @@ public abstract class Decoder implements Runnable {
 		sink = s;
 		Config.monitorFilteredAudio = monitorFiltered;
 		monitorAudio = !monitorAudio;
-		if (!monitorAudio)
+		if (!monitorAudio) {
 			sink.closeOutput();
-		else {
+			sink = null;
+		} else {
 			sink.setDevice(position);
 		}
 		return monitorAudio;
 	}
 	
-	
-	public void setMonitorAudio(SinkAudio s, boolean m, int position) throws IllegalArgumentException, LineUnavailableException { 
-		sink = s;
-		monitorAudio = m; 
-		if (!monitorAudio)
+
+	public void stopAudioMonitor() throws LineUnavailableException {
+		if (sink != null) { // then we have something to stop
+			if (monitorAudio == true) {
+				monitorAudio = false;
+
+			}
 			sink.closeOutput();
-		else {
-			sink.setDevice(position);
+		}
+		sink = null;
+		
+	}
+
+	public void setMonitorAudio(SinkAudio s, boolean m, int position) throws IllegalArgumentException, LineUnavailableException { 
+		if (sink == null) { // then we are setting this for the first time
+			sink = s;
+			monitorAudio = m; 
+			if (monitorAudio) {
+				sink.setDevice(position);
+			}
+		} else { // we might be changing it or closing it
+			sink = s;
+			monitorAudio = m; 
+			if (!monitorAudio) {
+				sink.closeOutput();
+				sink = null;
+			}
 		}
 }
 	
 //	public void setMonitorFiltered(boolean m) { monitorFiltered = m; }
 
-	public int getAudioBufferSize() { return audioSource.circularBuffer.bufferSize; }
+	public int getAudioBufferSize() { return audioSource.getAudioBufferSize(); }
 	public int getAudioBufferCapacity() { return audioSource.getAudioBufferCapacity(); }
 	
 	public byte[] getAudioData() {
@@ -368,7 +395,8 @@ public abstract class Decoder implements Runnable {
 	
 	protected int readBytes(byte[] abData) {
 		int nBytesRead = 0;
-		nBytesRead = audioSource.readBytes(abData);	
+		//Log.println("Reading bytes from channel: " + audioChannel);
+		nBytesRead = audioSource.readBytes(abData, audioChannel);	
 		return nBytesRead;
 	}
 
@@ -388,7 +416,7 @@ public abstract class Decoder implements Runnable {
         }
  */
         if (Config.filterData)
-        	if (Config.highSpeed) 
+        	if (this instanceof Fox9600bpsDecoder) 
         		Log.println("FILTER: none");
         	else
         		Log.println("FILTER: " + filter.toString()); //filters[Config.useFilterNumber].toString());
@@ -406,7 +434,8 @@ public abstract class Decoder implements Runnable {
         		Performance.startTimer("Read");
                 nBytesRead = readBytes(abData);
                 if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
-                	sink.write(abData, abData.length);
+                	if (sink != null)
+                		sink.write(abData, abData.length);
                 }
                 if (Config.debugBytes) 
                 	if (nBytesRead != abData.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
@@ -425,8 +454,8 @@ public abstract class Decoder implements Runnable {
                 } else
                 	filteredData = abData;
                 if (Config.filterOutputAudio) {
-                	monitorFilter.filter(abBufferDouble, abBufferDouble);
-                	SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, abData);
+//                	monitorFilter.filter(abBufferDouble, abBufferDouble);
+ //               	SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, abData);
                 }
                 Performance.endTimer("Filter");
                 Performance.startTimer("Monitor");
@@ -529,7 +558,8 @@ public abstract class Decoder implements Runnable {
         	
     		Performance.endTimer("Yield");
         }
-        sink.closeOutput();
+        if (sink != null)
+        	sink.closeOutput();
         
   //      if (Config.writeDebugWavFile) WavDecoder.writeBytes(allabData);
         Log.println("Frames Decoded: " + framesDecoded);
@@ -557,7 +587,7 @@ public abstract class Decoder implements Runnable {
 		//Performance.startTimer("findFrames");
 		decodedFrame = bitStream.findFrames();
 		//Performance.endTimer("findFrames");
-		if (decodedFrame != null) {
+		if (decodedFrame != null && !decodedFrame.corrupt) {
 			Performance.startTimer("Store");
 			// Successful frame
 			eyeData.lastErasureCount = bitStream.lastErasureNumber;
@@ -572,6 +602,8 @@ public abstract class Decoder implements Runnable {
 					
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
+					if (Config.autoDecodeSpeed)
+						MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
@@ -585,10 +617,18 @@ public abstract class Decoder implements Runnable {
 					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
-						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+						if (cameraData != null)
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+					}
+					if (Config.satManager.hasHerci(header.getFoxId())) {
+						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
+						if (herciDataSet != null)
+							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
 					}
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame);
+					if (Config.autoDecodeSpeed)
+						MainWindow.inputTab.setViewDecoder2();
 				}
 
 			}
@@ -796,7 +836,7 @@ public abstract class Decoder implements Runnable {
 	}
 	
 	protected void sampleBuckets() {
-		if (Config.highSpeed) 
+		if (this instanceof Fox9600bpsDecoder) 
 			sampleBucketsAgainstZeroCrossover();
 		else
 			sampleBucketsVsDistanceToLastBit();
@@ -924,13 +964,13 @@ public abstract class Decoder implements Runnable {
 				b[k] = middleSample[i+k];
 			
 			int word = BitStream.binToInt(b);
-			rd = Code8b10b.getRdSense10b(word, Config.flipReceivedBits);
+			rd = Code8b10b.getRdSense10b(word, flipReceivedBits);
 			BitStream.printBitArray(b);
 			System.out.println("Expected: " + nextRd + " rd: " + rd);
-			nextRd = Code8b10b.getNextRd(word, Config.flipReceivedBits);
+			nextRd = Code8b10b.getNextRd(word, flipReceivedBits);
 			byte word8b;
 			try {
-				word8b = Code8b10b.decode(word, Config.flipReceivedBits);
+				word8b = Code8b10b.decode(word, flipReceivedBits);
 				Log.print(i+ ": 10b:" + Decoder.hex(word));	
 				
 				Log.print(" 8b:" + Decoder.hex(word8b));
@@ -1028,7 +1068,7 @@ public abstract class Decoder implements Runnable {
 	//			System.out.println(40000); // start of bucket marker
 			int step = 10;
 			int middle = 120;
-			if (Config.highSpeed) {
+			if (this instanceof Fox9600bpsDecoder) {
 				step = 1;
 				middle = 3;
 			}
@@ -1067,7 +1107,7 @@ public abstract class Decoder implements Runnable {
 //			for (int m=0; m<4; m++)
 	//			System.out.println(40000); // start of bucket marker
 			int step = 10;
-			if (Config.highSpeed) {
+			if (this instanceof Fox9600bpsDecoder) {
 				step = 1;
 			}
 			
@@ -1173,7 +1213,10 @@ public abstract class Decoder implements Runnable {
 		//return String.valueOf(n);
 	}
 	
-	
+	public static String plainhex(int n) {
+		return String.format("%2s", Integer.toHexString(n)).replace(' ', '0');
+		//return String.valueOf(n);
+	}
 
 	public static long getTimeNano() {
 		long l = System.nanoTime();

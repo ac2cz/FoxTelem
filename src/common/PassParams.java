@@ -1,6 +1,12 @@
+package common;
 
+import java.util.ArrayList;
 
-package telemetry;
+import measure.PassMeasurement;
+import decoder.Decoder;
+import decoder.EyeData;
+import decoder.RfData;
+import decoder.SourceIQ;
 
 /**
  * 
@@ -22,35 +28,22 @@ package telemetry;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *
- * Sorted Array List to store Jpeg telemetry records.   
  * 
+ * A class that holds the details for a pass and stored in the pass manager.  We package these paramaters together
+ * because we need one set for each decoder that is running.
+ *
  */
-@SuppressWarnings("serial")
-public class SortedJpegList extends SortedArrayList<CameraJpeg> {
-
-
-	public SortedJpegList(int i) {
-		super(i);
-	}
-
-	public boolean hasFrame(int id, long uptime, int resets, int pictureCounter) {
-		if (getPictureIndex(id, uptime, resets, pictureCounter) != -1)
-			return true;
-		return false;
-	}
-
-	public int getPictureIndex(int id, long uptime, int resets, int pictureCounter) {
-		for (int i=0; i<this.size(); i++) { 
-			CameraJpeg f = this.get(i);
-			if (f.id == id && f.resets == resets && f.pictureCounter == pictureCounter) {
-				if (f.fromUptime - uptime < 200)
-					return i;
-			}
-		}
-		return -1;
+public class PassParams {
+	public SourceIQ iqSource;
+	public Decoder decoder;
+	public RfData rfData;
+	public EyeData eyeData;
+	
+	public void resetEyeData() {
+		eyeData = decoder.eyeData;
+		if (eyeData != null)
+			eyeData.reset();
+//	
 	}
 
 }
-
-

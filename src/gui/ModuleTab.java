@@ -130,19 +130,6 @@ public class ModuleTab extends FoxTelemTab {
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], rt);
 			if (max != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], max);
 			if (min != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], min);
-			/*
-			for (int j=0; j<max.NUMBER_OF_FIELDS; j++) {
-				if (max.module[j].equals(topModuleNames[i])) {
-					topModules[i].addName(max.moduleLinePosition[j], max.shortName[j] + formatUnits(max.fieldUnits[j]), max.fieldName[j], max.description[j], max.moduleDisplayType[j]);					
-				}
-			}
-			for (int j=0; j<min.NUMBER_OF_FIELDS; j++) {
-				if (min.module[j].equals(topModuleNames[i])) {
-					topModules[i].addName(min.moduleLinePosition[j], min.shortName[j] + formatUnits(min.fieldUnits[j]), min.fieldName[j], min.description[j], min.moduleDisplayType[j]);					
-				}
-
-			}
-			*/
 			topHalf.add(topModules[i]);
 		}
 

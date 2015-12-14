@@ -297,7 +297,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.minFreqBoundkHz = Integer.parseInt(minFreqBoundkHz.getText());
 					sat.maxFreqBoundkHz = Integer.parseInt(maxFreqBoundkHz.getText());
 				} catch (NumberFormatException ex) {
-					throw new Exception("The Frequency fields must contain a valid number");
+					throw new NumberFormatException("The Frequency fields must contain a valid number");
 				}
 				if (!sat.rssiLookUpTableFileName.equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
 					sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
@@ -327,7 +327,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					MainWindow.refreshTabs(false);
 				sat.save();
 				this.dispose();
-			} catch (Exception Ex) {
+			} catch (NumberFormatException Ex) {
 				Log.errorDialog("Invalid Paramaters", Ex.getMessage());
 			}
 		}

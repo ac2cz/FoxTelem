@@ -6,14 +6,11 @@ import gui.MainWindow;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -76,9 +73,9 @@ public class SatPayloadStore {
 	public String minFileName;
 	public String radFileName;
 	public String radTelemFileName;
-	public String herciFileName;  // The High Speed HERCI records
-	public String herciHeaderFileName; // Secondary Payload for HERCI Science Headers
-	public String herciPacketFileName; // Secondary Payload for HERCI Mini Packets
+	public String herciFileName;
+	public String herciHeaderFileName;
+	public String herciPacketFileName;
 	
 	SortedFramePartArrayList rtRecords;
 	SortedFramePartArrayList maxRecords;
@@ -132,12 +129,10 @@ public class SatPayloadStore {
 
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
-					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
-								+ "Was the data directory moved?\n" + e.toString(),
-					"FATAL! Cannot Load the Stored Payload data",
+					e.toString(),
+					"ERROR Loading Stored Payload data",
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
-			System.exit(1);
 		}
 	}
 	
@@ -259,12 +254,6 @@ public class SatPayloadStore {
 		return true;
 	}
 
-	/**
-	 * Add a HERCI High Speed payload record
-	 * @param f
-	 * @return
-	 * @throws IOException
-	 */
 	private boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
 		herciRecords.add(f);
 		
@@ -427,15 +416,6 @@ public class SatPayloadStore {
 		
 	}
 
-	/**
-	 * Get data for a single named field from the Radiation Telemetry file for the period given
-	 * @param name
-	 * @param period
-	 * @param id
-	 * @param fromReset
-	 * @param fromUptime
-	 * @return
-	 */
 	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
 		return getGraphData(radTelemRecords, name, period, id, fromReset, fromUptime);
 		
@@ -446,41 +426,11 @@ public class SatPayloadStore {
 
 	}
 	
-	/**
-	 * Get a set of Radiation Telemetry records for the range given
-	 * @param period
-	 * @param id
-	 * @param fromReset
-	 * @param fromUptime
-	 * @return
-	 */
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
 		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, MAX_HERCI_HK_DATA_LENGTH); 
 
 	}
 
-	/**
-	 * Get data for a single named field from the HERCI Science Header for the period given
-	 * @param name
-	 * @param period
-	 * @param id
-	 * @param fromReset
-	 * @param fromUptime
-	 * @return
-	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
-		return getGraphData(herciHeaderRecords, name, period, id, fromReset, fromUptime);
-		
-	}
-
-	/**
-	 * Get a set of HERCI Mini Packets for the range given
-	 * @param period
-	 * @param id
-	 * @param fromReset
-	 * @param fromUptime
-	 * @return
-	 */
 	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
 		return getRadData(herciPacketRecords, period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
 
@@ -645,24 +595,40 @@ public class SatPayloadStore {
         				minRecords.add(rt);
         				updatedMin = true;
         			}
-        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
-        				radTelemRecords.add(rt);
-        				updatedRadTelem = true;
-        			}
+<<<<<<< HEAD
+=======
         			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
         				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
         				radRecords.add(rt);
         				updatedRad = true;
         				// Capture and store any secondary payloads, this is duplicative but thorough
-        				if (initRad2) // this step really slows things down, so only enable if needed
-            			if (fox.hasHerci() || rt.isTelemetry()) {
+        				if (fox.hasHerci() || rt.isTelemetry()) {
+        					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
+        					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
+        					add(radiationTelemetry);
+        				}
+        			}
+>>>>>>> Herci
+        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+        				radTelemRecords.add(rt);
+        				updatedRadTelem = true;
+        			}
+<<<<<<< HEAD
+        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
+        				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
+        				radRecords.add(rt);
+        				updatedRad = true;
+        				// Capture and store any secondary payloads, this is duplicative but thorough
+        				if (initRad2)
+        				if (rt.isTelemetry()) {
         					RadiationTelemetry radiationTelemetry = rt.calculateTelemetryPalyoad();
         					radiationTelemetry.captureHeaderInfo(rt.id, rt.uptime, rt.resets);
         					add(radiationTelemetry);
         				}
         			}
         			
+=======
         			if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
         				PayloadHERCIhighSpeed rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
         				herciRecords.add(rt);
@@ -679,6 +645,7 @@ public class SatPayloadStore {
       					}
     					updatedHerciPacket = true;
         			}
+>>>>>>> Herci
         		}
         	}
         	dis.close();
@@ -747,35 +714,6 @@ public class SatPayloadStore {
 						JOptionPane.ERROR_MESSAGE) ;
 			}
 
-	}
-	
-	/**
-	 * Utility function to copy a file
-	 * @param sourceFile
-	 * @param destFile
-	 * @throws IOException
-	 */
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
-
-	    FileChannel source = null;
-	    FileChannel destination = null;
-
-	    try {
-	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
-	    }
-	    finally {
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
 	}
 	
 	/**

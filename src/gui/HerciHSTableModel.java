@@ -1,6 +1,7 @@
+package gui;
+import javax.swing.table.AbstractTableModel;
 
-
-package telemetry;
+import telemetry.PayloadHERCIhighSpeed;
 
 /**
  * 
@@ -22,35 +23,15 @@ package telemetry;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *
- * Sorted Array List to store Jpeg telemetry records.   
- * 
  */
-@SuppressWarnings("serial")
-public class SortedJpegList extends SortedArrayList<CameraJpeg> {
-
-
-	public SortedJpegList(int i) {
-		super(i);
+@SuppressWarnings({ "serial", "unchecked" })
+class HerciHSTableModel extends FoxTelemTableModel {
+	
+    HerciHSTableModel() {
+		columnNames = new String[PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE+2];
+		columnNames[0] = "RESET";
+		columnNames[1] = "UPTIME";
+		for (int k=0; k<868; k++) 
+			columnNames[k+2] = ""+k;
 	}
-
-	public boolean hasFrame(int id, long uptime, int resets, int pictureCounter) {
-		if (getPictureIndex(id, uptime, resets, pictureCounter) != -1)
-			return true;
-		return false;
-	}
-
-	public int getPictureIndex(int id, long uptime, int resets, int pictureCounter) {
-		for (int i=0; i<this.size(); i++) { 
-			CameraJpeg f = this.get(i);
-			if (f.id == id && f.resets == resets && f.pictureCounter == pictureCounter) {
-				if (f.fromUptime - uptime < 200)
-					return i;
-			}
-		}
-		return -1;
-	}
-
 }
-
-

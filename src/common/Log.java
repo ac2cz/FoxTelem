@@ -73,9 +73,14 @@ public class Log {
 				output = new PrintWriter(new FileWriter(aFile, true));
 			} catch (IOException e) {
 				System.err.println("FATAL ERROR: Cannot write log file: FoxTelemDecoder.log\n"
-						+ "Perhaps the disk is full or the directory is not writable");
+						+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory);
+
 				e.printStackTrace();
-				System.exit(1);
+		        Log.errorDialog("FATAL ERROR", "Cannot write log file: FoxTelemDecoder.log\n"
+		        		+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory + "\n\n"
+		        				+ "You can reset FoxTelem by deleting the settings file (might want to back it up first):\n"
+		        				+ Config.homeDirectory+ File.separator+"FoxTelem.properties");
+		        System.exit(1);
 			}
 		}
 		uncaughtExHandler = new Thread.UncaughtExceptionHandler() {

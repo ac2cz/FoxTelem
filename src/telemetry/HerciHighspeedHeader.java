@@ -4,6 +4,7 @@ import java.util.StringTokenizer;
 
 import common.Spacecraft;
 import decoder.BitStream;
+import decoder.Decoder;
 
 /**
  * 
@@ -24,70 +25,39 @@ import decoder.BitStream;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * This is a SECONDARY payload that is decoded from the primary PayloadHERCIhighSpeed
  *
  */
-public class RadiationTelemetry extends FramePart {
+public class HerciHighspeedHeader extends FramePart {
 
-	public static final int MAX_RAD_TELEM_BYTES = 58;
-	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
+	public static final int MAX_RAD_TELEM_BYTES = 16;
+	public int NUMBER_OF_FIELDS = 8;
 	public int reset;
 	public long uptime;
 
-	public RadiationTelemetry(int r, long u, BitArrayLayout l) {
+	public static final String[] herciSource = {
+		"PANIC",
+		"HRS",
+		"LRS",
+		"HSK"
+	};
+
+	public HerciHighspeedHeader(int r, long u, BitArrayLayout l) {
 		super(l);
 		reset = r;
 		uptime = u;
-		
-		
 	}
 
-	public RadiationTelemetry(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+	public HerciHighspeedHeader(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);	
 	}
 
 	@Override
 	protected void init() {
-		type = TYPE_RAD_TELEM_DATA;
-		rawBits = new boolean[MAX_RAD_TELEM_BYTES*8];
-		fieldValue = new int[layout.NUMBER_OF_FIELDS];
-	}
-
-	public String getStringValue(String name, Spacecraft fox) {
-		int pos = -1;
-		for (int i=0; i < layout.fieldName.length; i++) {
-			if (name.equalsIgnoreCase(layout.fieldName[i]))
-				pos = i;
-		}
-		String s = "-----";
-		// Special Formatting
-		if (pos == -1) 
-			;//System.err.println("ERROR: No Index for Field:" + name);
-		else if (layout.conversion[pos] == BitArrayLayout.CONVERT_VULCAN_STATUS) {
-			int value = getRawValue(name);
-			try {
-				s = RadiationPacket.radPacketState[value];
-			} catch (ArrayIndexOutOfBoundsException e) {
-				s = "???";
-			}
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_16_SEC_UPTIME) {
-				int value = getRawValue(name);
-				s = Integer.toString(value * 16);
-		} else s =  Integer.toString(getRawValue(name));
-
-		return s;
-	}
-
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+		type = TYPE_HERCI_SCIENCE_HEADER;
 		
-		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
-			switch (conversion) {
-			case BitArrayLayout.CONVERT_VULCAN_STATUS:
-				return rawValue;
-			case BitArrayLayout.CONVERT_16_SEC_UPTIME:
-				return rawValue*16;
-			}
-			return super.convertRawValue(name, rawValue, conversion, fox);
-
+		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 
 	/**
@@ -132,6 +102,47 @@ public class RadiationTelemetry extends FramePart {
 		
 	}
 
+	public String getStringValue(String name, Spacecraft fox) {
+		int pos = -1;
+		for (int i=0; i < layout.fieldName.length; i++) {
+			if (name.equalsIgnoreCase(layout.fieldName[i]))
+				pos = i;
+		}
+		String s = "-----";
+		// Special Formatting
+		if (pos == -1) 
+			;//System.err.println("ERROR: No Index for Field:" + name);
+		else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_SOURCE) {
+			int value = getRawValue(name);
+			try {
+				s = herciSource[value];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				s = "???";
+			}
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_HEX) {
+			s="";
+			int value = getRawValue(name);
+			for (int i=0; i<4; i++) {
+				s = " " + Decoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 8 ;
+			}
+		} else s =  super.getStringValue(name, fox);
+
+		return s;
+	}
+
+	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+		
+		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
+			switch (conversion) {
+			case BitArrayLayout.CONVERT_HERCI_HEX:
+				return rawValue;
+			}
+			return super.convertRawValue(name, rawValue, conversion, fox);
+
+	}
+
+
 	public String toDataString(Spacecraft fox) {
 		copyBitsToFields();
 		String s = new String();
@@ -144,7 +155,7 @@ public class RadiationTelemetry extends FramePart {
 	public String toString() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + "RADIATION TELEMETRY:\n";
+		s = s + "HERCI HS SCIENCE HEADER:\n";
 		for (int i=0; i < layout.fieldName.length; i++) {
 			s = s + layout.fieldName[i] + ": " + fieldValue[i]+"\n";
 		

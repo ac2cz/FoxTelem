@@ -468,6 +468,32 @@ import decoder.Decoder;
  * Support downloading data from the server
  * Fixed bug where T0 date was sometimes wrong
  * 
+ * Version 1.03
+ * Auto detect high speed vs low speed telemetry
+ * Display HERCI High Speed frames on the Herci Tab
+ * Display HERCI Housekeeping frames
+ * Support the Fox-1D low res camera format
+ * Swapped min/max values for solar panel temp on 1A
+ * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
+ * Fixed bug where HighSpeed Frames were unnecessarily held in the queue until the pass was finished
+ * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
+ * Interpolate the middle of two samples for first difference calculation, for more accurate TCA calculation
+ * Add SAFE mode bit to the Computer panel so that it can be graphed
+ * Implemented MPPT panel temperature conversion using Cubic fit
+ * Sort camera images by reset and uptime not picture counter
+ * Save position of the HERCI HS tab horizontal divider
+ * Allow the user to specify the number of thumb nails to display on the camera tab
+ * Fixed bug where Radiation Graphs did not open at start up
+ * Fixed bug where T0 file could be corrupted if URL returned bogus data
+ * Fixed bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
+ * Fixed issue where audio continued after squelch in auto mode and memory was leaked
+ * Allow the user to swap IQ channels in IQ mode
+ * Allow graphs to be plotted as points (without lines)
+ * Graph formatting parameters are not saved to config and reloaded when FoxTelem is restarted
+ * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
+ * MEMS Gyro 0dps set to 1.51 following measurement of VRef in the diagnostics
+ * When reset button pressed on graphs the average period is reset too
+ * 
  */
 
 public class FoxTelemMain {

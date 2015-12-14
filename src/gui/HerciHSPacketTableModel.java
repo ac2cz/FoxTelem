@@ -1,6 +1,7 @@
+package gui;
+import javax.swing.table.AbstractTableModel;
 
-
-package telemetry;
+import telemetry.PayloadHERCIhighSpeed;
 
 /**
  * 
@@ -22,35 +23,21 @@ package telemetry;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
- *
- * Sorted Array List to store Jpeg telemetry records.   
- * 
  */
-@SuppressWarnings("serial")
-public class SortedJpegList extends SortedArrayList<CameraJpeg> {
-
-
-	public SortedJpegList(int i) {
-		super(i);
+@SuppressWarnings({ "serial", "unchecked" })
+class HerciHsPacketTableModel extends FoxTelemTableModel {
+	
+	HerciHsPacketTableModel() {
+		columnNames = new String[10];
+		columnNames[0] = "RESET";
+		columnNames[1] = "UPTIME";
+		columnNames[2] = "TYPE";
+		columnNames[3] = "LENGTH";
+		columnNames[4] = "TRUNC TIME";
+		columnNames[5] = "SEGMENTATION";
+		columnNames[6] = "ST1";
+		columnNames[7] = "ST2";
+		columnNames[8] = "ST3";
+		columnNames[9] = "MINI PACKET DATA";
 	}
-
-	public boolean hasFrame(int id, long uptime, int resets, int pictureCounter) {
-		if (getPictureIndex(id, uptime, resets, pictureCounter) != -1)
-			return true;
-		return false;
-	}
-
-	public int getPictureIndex(int id, long uptime, int resets, int pictureCounter) {
-		for (int i=0; i<this.size(); i++) { 
-			CameraJpeg f = this.get(i);
-			if (f.id == id && f.resets == resets && f.pictureCounter == pictureCounter) {
-				if (f.fromUptime - uptime < 200)
-					return i;
-			}
-		}
-		return -1;
-	}
-
 }
-
-

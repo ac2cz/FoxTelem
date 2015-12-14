@@ -80,14 +80,14 @@ public class PayloadRadExpData extends FramePart {
 	 * @return
 	 */
 	public RadiationTelemetry calculateTelemetryPalyoad() {
-		if (isTelemetry()) {
+		//if (isTelemetry()) {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getRadTelemLayout(id));
 			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;
-		}
-		return null;
+		//}
+		//return null;
 	}
 	
 	/**

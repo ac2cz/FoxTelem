@@ -23,6 +23,8 @@ import decoder.BitStream;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ *
+ *
  */
 public class RadiationPacket extends BitArray{
 
@@ -103,7 +105,7 @@ public class RadiationPacket extends BitArray{
 			layout = new BitArrayLayout(); // initialize a layout
 			
 			layout.fieldName = new String[NUMBER_OF_FIELDS];
-			fieldValue = new int[NUMBER_OF_FIELDS];
+			//fieldValue = new int[NUMBER_OF_FIELDS];
 			
 			layout.fieldName[TYPE_FIELD] = 	"TYPE";
 			layout.fieldName[SEQUENCE_FIELD] = 	"SEQUENCE";

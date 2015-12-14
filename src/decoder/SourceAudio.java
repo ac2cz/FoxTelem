@@ -57,22 +57,40 @@ public abstract class SourceAudio implements Runnable {
 	protected int sampleRate = 48000; // samples per second
 	protected AudioFormat audioFormat = null; // The format of the audio
 
-	protected CircularByteBuffer circularBuffer;
+	protected CircularByteBuffer[] circularBuffer;
 	
 	public AudioFormat getAudioFormat() { return audioFormat; }
 	
-	public SourceAudio(String n, int circularBufferSize) {
+//	public SourceAudio(String n, int circularBufferSize) {
+//		name = n;
+//		if (circularBufferSize % 2 == 0) circularBufferSize+=1; // must be odd to prevent corruption if the buffer overflows
+//		circularBuffer = new CircularByteBuffer[1];
+//		circularBuffer[0] = new CircularByteBuffer(circularBufferSize);
+//	}
+
+	public SourceAudio(String n, int circularBufferSize, int channels) {
 		name = n;
 		if (circularBufferSize % 2 == 0) circularBufferSize+=1; // must be odd to prevent corruption if the buffer overflows
-		circularBuffer = new CircularByteBuffer(circularBufferSize);
+		if (channels == 0) {
+			circularBuffer = new CircularByteBuffer[1];
+			circularBuffer[0] = new CircularByteBuffer(circularBufferSize);
+		} else {
+		circularBuffer = new CircularByteBuffer[channels];
+		for (int i=0; i< channels; i++)
+			circularBuffer[i] = new CircularByteBuffer(circularBufferSize);
+		}
 	}
+
+//	public int readBytes(byte[] abData) {
+//		return readBytes(abData, 0);
+//	}
 	
-	public int readBytes(byte[] abData) {
+	public int readBytes(byte[] abData, int chan) {
 		int bytesRead = 0;
 
 		// We need at least abData length +1 bytes before we can read them out of the circularBuffer
 		// We make sure it has at least an extra sample
-		while (running && circularBuffer.size() < abData.length+4) {
+		while (running && circularBuffer[chan].size() < abData.length+4) {
 			try {
 				Thread.sleep(0, 1);
 			} catch (InterruptedException e) {
@@ -84,12 +102,12 @@ public abstract class SourceAudio implements Runnable {
 			try {
 				for(int i=0; i < abData.length; i+=audioFormat.getFrameSize()) {
 					if (audioFormat.getFrameSize() == 4) {
-						abData[i+3] = circularBuffer.get(3);  // try the second byte first, because we only want to succeed if both are available
-						abData[i+2] = circularBuffer.get(2);
+						abData[i+3] = circularBuffer[chan].get(3);  // try the second byte first, because we only want to succeed if both are available
+						abData[i+2] = circularBuffer[chan].get(2);
 					}
-					abData[i+1] = circularBuffer.get(1);  // try the second byte first, because we only want to succeed if both are available
-					abData[i] = circularBuffer.get(0);
-					circularBuffer.incStartPointer(audioFormat.getFrameSize());
+					abData[i+1] = circularBuffer[chan].get(1);  // try the second byte first, because we only want to succeed if both are available
+					abData[i] = circularBuffer[chan].get(0);
+					circularBuffer[chan].incStartPointer(audioFormat.getFrameSize());
 					bytesRead+=audioFormat.getFrameSize();
 				}
 			} catch (IndexOutOfBoundsException e) {
@@ -102,7 +120,10 @@ public abstract class SourceAudio implements Runnable {
 		return bytesRead;
 	}
 
-	public int getAudioBufferCapacity() { return circularBuffer.getCapacity(); }
+	public int getAudioBufferCapacity() { return circularBuffer[0].getCapacity(); }
+	public int getAudioBufferCapacity(int chan) { return circularBuffer[chan].getCapacity(); }
+	public int getAudioBufferSize() { return circularBuffer[0].bufferSize; }
+	public int getAudioBufferSize(int chan) { return circularBuffer[chan].bufferSize; }
 	
 	public boolean isDone() { return done; }
 	public abstract void run();
