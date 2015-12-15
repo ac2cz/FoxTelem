@@ -647,7 +647,7 @@ public abstract class Decoder implements Runnable {
 			clockLocked = false;
 		}
 	}
-	
+		
 
 	private void addMeasurements(Header header, Frame frame) {
 		// Pass Measurements

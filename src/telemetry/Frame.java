@@ -576,10 +576,18 @@ public abstract class Frame implements Comparable<Frame> {
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RAD to database");
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
-						if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
-							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
+						if (cameraData != null)
+							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
+								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
 
 					}
+					if (Config.satManager.hasHerci(header.getFoxId())) {
+						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
+						if (herciDataSet != null)
+							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet))
+								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HERCI HS data to database");
+					}
+			
 					//hsFrames++;
 				}
 			}

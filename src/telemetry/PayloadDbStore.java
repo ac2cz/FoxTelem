@@ -324,6 +324,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
+				if (f instanceof PayloadHERCIhighSpeed)
+					Log.println("Stop");;
 				return store.add(id, uptime, resets, f);
 			} catch (IOException e) {
 				// FIXME We dont want to stop the decoder but we want to warn the user...
@@ -367,6 +369,25 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 
+	@Override
+	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
+		for (int i=0; i< herci.length; i++) {
+			herci[i].captureHeaderInfo(id, uptime, resets);
+			try {
+				payloadQueue.add(herci[i]);
+			} catch (NullPointerException e) {
+				try {
+					Thread.sleep(100);
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				payloadQueue.add(herci[i]);
+			}
+		}
+		return true;
+	}
+	
 	private void initStpHeaderTable() {
 		String table = "STP_HEADER";
 		Statement stmt = null;
@@ -756,11 +777,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	@Override
-	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
-		// TODO Auto-generated method stub
-		return false;
-	}
+	
 
 	@Override
 	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset,

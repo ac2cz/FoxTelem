@@ -366,8 +366,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 				scrollPane.setVisible(false);
 			}
 
-			if (hsPayload != null)
+			if (hsPayload != null) {
 				parseRadiationFrames();
+				updateTab(hsPayload);
+			}
 			
 		}
 	}

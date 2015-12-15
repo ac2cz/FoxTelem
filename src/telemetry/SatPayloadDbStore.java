@@ -9,6 +9,7 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -57,12 +58,16 @@ public class SatPayloadDbStore {
 	public static String MIN_LOG = "MINTELEMETRY";
 	public static String RAD_LOG = "RADTELEMETRY";
 	public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
+	public static String HERCI_HS_LOG = "HERCI_HS";
+	public static String HERCI_HS_HEADER_LOG = "HERCI_HS_HEADER";
 	
 	public String rtTableName;
 	public String maxTableName;
 	public String minTableName;
 	public String radTableName;
 	public String radTelemTableName;
+	public String herciHSTableName;
+	public String herciHSHeaderTableName;
 	
 	private boolean multiUpdate = false;
 	
@@ -76,6 +81,9 @@ public class SatPayloadDbStore {
 	boolean updatedMin = true;
 	boolean updatedRad = true;
 	boolean updatedRadTelem = true;
+	boolean updatedHerciHS = true;
+	boolean updatedHerciHeader = true;
+	boolean updatedHerciPacket = true;
 	
 	/**
 	 * Create the payload store this this fox id
@@ -89,7 +97,8 @@ public class SatPayloadDbStore {
 		minTableName = "Fox"+foxId+MIN_LOG;
 		radTableName = "Fox"+foxId+RAD_LOG;
 		radTelemTableName = "Fox"+foxId+RAD_TELEM_LOG;
-		
+		herciHSTableName = "Fox"+foxId+HERCI_HS_LOG;
+		herciHSHeaderTableName = "Fox"+foxId+HERCI_HS_HEADER_LOG;
 		initPayloadFiles();
 	}
 	
@@ -99,6 +108,10 @@ public class SatPayloadDbStore {
 		initPayloadTable(minTableName, fox.minLayout);
 		initPayloadTable(radTableName, fox.radLayout);
 		initPayloadTable(radTelemTableName, fox.rad2Layout);
+		if (fox.hasHerci()) {
+			initPayloadTable(herciHSTableName, fox.herciHSLayout);
+			initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+		}
 	}
 
 	/** 
@@ -211,6 +224,33 @@ public class SatPayloadDbStore {
 		}
 		return true;
 	}
+	
+	/**
+	 * Add a HERCI High Speed payload record
+	 * @param f
+	 * @return
+	 * @throws IOException
+	 */
+	private boolean addHerciRecord(PayloadHERCIhighSpeed f) {
+		insert(herciHSTableName, f);
+		
+		// Capture and store any secondary payloads
+		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+		add(radiationTelemetry);
+		updatedHerciHeader = true;
+
+		ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+		for(int i=0; i< pkts.size(); i++) {
+			HerciHighSpeedPacket pk = pkts.get(i);
+			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
+			updatedHerciPacket = true;
+		}
+		return true;
+	}
+
+	
 	/**
 	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
 	 * @param f
@@ -281,6 +321,10 @@ public class SatPayloadDbStore {
 		} else if (f instanceof RadiationTelemetry ) {
 			setUpdatedRadTelem(true);
 			return insert(radTelemTableName, f);
+		} else if (f instanceof PayloadHERCIhighSpeed ) {
+			return addHerciRecord((PayloadHERCIhighSpeed)f); 
+		} else if (f instanceof HerciHighspeedHeader ) {
+			return insert(herciHSHeaderTableName, f);
 		}
 		return false;
 	}
