@@ -81,7 +81,7 @@ public class Spacecraft {
 		"Empty",
 		"Vanderbilt LEP",
 		"Virgina Tech Camera",
-		"IOWA HERCI",
+		"University of Iowa HERCI",
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
 		"Vanderbilt VUC"
