@@ -105,8 +105,12 @@ public class HighSpeedFrame extends Frame {
 					if (fox.hasHerci())
 						herciLineCount = new PayloadHerciLineCount(); 
 				} else {
+<<<<<<< HEAD
+					Log.errorDialog("Missing or Invalid Fox Id", "FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+=======
 					Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
 					corrupt = true;
+>>>>>>> 1.03
 					return;
 				}
 				firstNonHeaderByte = false;

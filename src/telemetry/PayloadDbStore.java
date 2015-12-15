@@ -756,6 +756,67 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset,
+			long fromUptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public boolean getUpdatedHerci(int id) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setUpdatedHerci(int id, boolean u) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean getUpdatedHerciHeader(int id) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setUpdatedHerciHeader(int id, boolean u) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int getNumberOfHerciFrames(int id) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public PayloadHERCIhighSpeed getLatestHerci(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public HerciHighspeedHeader getLatestHerciHeader(int id) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 }

@@ -377,7 +377,6 @@ public abstract class Frame implements Comparable<Frame> {
 		byte[] rawFrame = null;
 		int length = 0;
 		String receiver = null;
-		String demodulator = null;
 		Date stpDate = null;
 		String frequency = NONE; // frequency when this frame received
 		String source; // The frame source subsystem

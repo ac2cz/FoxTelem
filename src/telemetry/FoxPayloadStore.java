@@ -38,7 +38,11 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract void setUpdatedMeasurement(int id, boolean u);
 	public abstract boolean getUpdatedPassMeasurement(int id);
 	public abstract void setUpdatedPassMeasurement(int id, boolean u);
-
+	public abstract boolean getUpdatedHerci(int id);
+	public abstract void setUpdatedHerci(int id, boolean u);
+	public abstract boolean getUpdatedHerciHeader(int id);
+	public abstract void setUpdatedHerciHeader(int id, boolean u);
+	
 	public abstract int getTotalNumberOfFrames();
 	public abstract int getTotalNumberOfTelemFrames();
 	public abstract int getTotalNumberOfRadFrames();
@@ -46,7 +50,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract int getNumberOfFrames(int id);
 	public abstract int getNumberOfTelemFrames(int id);
 	public abstract int getNumberOfRadFrames(int id);
-	
+	public abstract int getNumberOfHerciFrames(int id);
 	
 	public abstract int getNumberOfPictureCounters(int id);
 	public abstract SortedJpegList getJpegIndex(int id);
@@ -60,7 +64,9 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param f
 	 * @return
 	 */
-	public abstract boolean add(int id, long uptime, int resets, PayloadRadExpData[] f);	
+	public abstract boolean add(int id, long uptime, int resets, PayloadRadExpData[] f);
+	public abstract boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci); 
+	
 	public abstract boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException;
 
 	/**
@@ -91,7 +97,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract PayloadMinValues getLatestMin(int id);
 	public abstract PayloadRadExpData getLatestRad(int id);
 	public abstract RadiationTelemetry getLatestRadTelem(int id);
-	
+	public abstract PayloadHERCIhighSpeed getLatestHerci(int id);
+	public abstract HerciHighspeedHeader getLatestHerciHeader(int id);
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -119,7 +126,8 @@ public abstract class FoxPayloadStore implements Runnable {
 
 	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime);
 	public abstract double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
-
+	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime);
 	public abstract double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 
 	
