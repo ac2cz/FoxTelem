@@ -79,6 +79,11 @@ public class UpdateManager implements Runnable {
 					Config.secondaryServer = secondary;
 					Log.println("Secondary set to: " + Config.secondaryServer);
 				}
+				String website = serverProperties.getProperty("webSiteUrl");
+				if (website != null) {
+					Config.webSiteUrl = website;
+					Log.println("Website UTL set to: " + Config.webSiteUrl);
+				}
 				Boolean both = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
 				if (both != null) {
 					Config.sendToBothServers = both;
@@ -99,10 +104,7 @@ public class UpdateManager implements Runnable {
 			} catch (NullPointerException nf) {
 				Log.println("Could not load the server paramaters: " + nf.getMessage());
 			}
-
 		}
-		
-		
 	}
 		
 	public void updateT0(Spacecraft sat) {
