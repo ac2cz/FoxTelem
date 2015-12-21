@@ -37,13 +37,22 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.9 - 14 December 2015";
+	public static String version = "Version 0.10 - 21 December 2015";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
 	static int poolSize = 100; // max number of threads
 	
 	public static void main(String[] args) {
+		String u,p, db;
+		if (args.length != 3) {
+			System.out.println("Usage: FoxServer user password database");
+			System.exit(1);
+		}
+		u = args[0];
+		p = args[1];
+		db = args[2];
+
 		
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
@@ -63,7 +72,7 @@ public class FoxTelemServer {
 		Log.println("Listening on port: " + port);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
 		if (args.length > 0) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {

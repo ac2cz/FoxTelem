@@ -548,13 +548,17 @@ public class SatPayloadDbStore {
 			resets[i] = rs.getInt("resets");
 			upTime[i] = rs.getLong("uptime");
 			//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
-			//PayloadRtValues rt = new PayloadRtValues(rs, fox.rtLayout);
-			results[i++] = rs.getDouble(name);
+			PayloadRtValues rt = new PayloadRtValues(fox.rtLayout);
+			results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
 			while (rs.previous()) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
 				//rt = new PayloadRtValues(rs, fox.rtLayout);
-				results[i++] = rs.getDouble(name);
+				//raw value
+				//results[i++] = rs.getDouble(name);
+				// converted
+				
+				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
 			}
 		} else {
 			results = new double[1];
@@ -565,6 +569,7 @@ public class SatPayloadDbStore {
 		resultSet[PayloadStore.DATA_COL] = results;
 		resultSet[PayloadStore.UPTIME_COL] = upTime;
 		resultSet[PayloadStore.RESETS_COL] = resets;
+		if (rs!=null)
 		rs.close();
 		return resultSet;
 

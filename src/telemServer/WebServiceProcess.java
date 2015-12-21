@@ -23,12 +23,12 @@ import common.Log;
 public class WebServiceProcess implements Runnable {
 
 	private Socket socket = null;
-	
+
 	public WebServiceProcess(Socket socket) {
 		this.socket = socket;
 	}
 
-	
+
 	@Override
 	public void run() {
 		try {
@@ -62,59 +62,81 @@ public class WebServiceProcess implements Runnable {
 
 				WebHealthTab fox1Atab = null;
 
-				try {
-					fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(1));
-				} catch (LayoutLoadException e1) {
-					e1.printStackTrace(Log.getWriter());
-				}
 
+				/*
+				 * The FoxService Command API is in the format:
+				 * COMMAND/SAT/OPTIONS
+				 * 
+				 * The following commands are valid:
+				 * /VERSION - return the version
+				 * /T0/SAT/RESET/CALL/N - Returns N T0 records for RESET logged by CALL for sat SAT
+				 * /FRAME/SAT/TYPE - Return the latest frame of type TYPE for SAT
+				 * /FIELD/SAT/NAME/R|C/N/RESET/UPTIME - Return N R-RAW or C-CONVERTED values for field NAME from sat SAT from RESET and UPTIME
+				 * 
+				 */
 				String[] path = request.split("/");
-				if (path.length > 0) {
+				if (path.length > 0) { // VERSION COMMAND
 					if (path[1].equalsIgnoreCase("version")) {
-						out.println("Fox Web Service - 0.02");
-					} else if (path[1].equalsIgnoreCase("T0")) {
-						if (path.length == 4) {
+						out.println("Fox Web Service Starting...");
+					} else if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
+						if (path.length == 6) {
 							try {
-							String t0 = calculateT0(out, Integer.parseInt(path[2]), path[3], 10);
-							out.println(t0 + "\n");
+								String t0 = calculateT0(out, Integer.parseInt(path[2]), Integer.parseInt(path[3]), path[4],  Integer.parseInt(path[5]));
+								out.println(t0 + "\n");
 							} catch (NumberFormatException e) {
-								out.println("FOX T0 Request has invalid reset + " + path[2] + "\n");								
+								out.println("FOX T0 Request is invalid id + " + path[2] + " reset " + path[3] + " number " + path[5]+"\n");								
 							}
 						} else {
 							out.println("FOX T0 Request invalid\n");
 						}
-					} else if (path[1].equalsIgnoreCase("1A")) {
+					} else if (path[1].equalsIgnoreCase("FRAME")) { // Frame Command
 						// Send the HTML page
-						PayloadRtValues rt = Config.payloadStore.getLatestRt(1);
-						if (rt != null) {
-							if (path.length == 2) {
+						if (path.length == 4) {
+							int sat = Integer.parseInt(path[2]);
+							int type = Integer.parseInt(path[3]);
+							PayloadRtValues rt = Config.payloadStore.getLatestRt(sat);
+							if (rt != null) {								
+								try {
+									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat));
+								} catch (LayoutLoadException e1) {
+									e1.printStackTrace(Log.getWriter());
+								}
+								out.println("<H2>Fox-1 Telemetry</H2>");
 								fox1Atab.setRtPayload(rt);
 								out.println(fox1Atab.toString());
-							} else if (path.length == 3) {
-								fox1Atab.setRtPayload(rt);
-								out.println(fox1Atab.toGraphString(path[2]));
+							} else {
+								out.println("FOX SERVER Currently not returning data....\n");
 							}
 						} else {
-							out.println("FOX SERVER Currently not returning data....\n");
+							out.println("FOX FRAME Request invalid\n");
 						}
-					} else if (path[1].equalsIgnoreCase("1C")) {
-						// Send the HTML page
-						PayloadRtValues rt = Config.payloadStore.getLatestRt(3);
-						if (rt != null)
-							out.println("<H2>Fox-1C Telemetry</H2>" + rt.toWebString());
-					} else if (path[1].equalsIgnoreCase("1D")) {
-						// Send the HTML page
-						PayloadRtValues rt = Config.payloadStore.getLatestRt(4);
-						if (rt != null)
-							out.println("<H2>Fox-1D Telemetry</H2>" + rt.toWebString());
-					} else {
-						// Send the DEFAULT HTML page
-						out.println("<H2>AMSAT FOX WEB SERVICE - TEST POINT</H2>");
+					} else if (path[1].equalsIgnoreCase("FIELD")) { // Field Command
+						// /FIELD/SAT/NAME/R|C/N/RESET/UPTME - Return N R-RAW or C-CONVERTED values for field NAME from sat SAT
+						if (path.length == 8) {
+							int sat = Integer.parseInt(path[2]);
+							String name = path[3];
+							String raw = path[4];
+							boolean convert = true;
+							int num = Integer.parseInt(path[5]);
+							int fromReset = Integer.parseInt(path[6]);
+							int fromUptime = Integer.parseInt(path[7]);
+							try {
+								fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat));
+							} catch (LayoutLoadException e1) {
+								e1.printStackTrace(Log.getWriter());
+							}
+							if (raw.startsWith("C"))
+								convert = false;
+							out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+						} else {
+							out.println("FOX FIELD Request invalid\n");
+						}
 					}
-				} else {
-					out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
 				}
+			} else {
+				out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
 			}
+
 			out.flush();
 			out.close();
 			in.close();
@@ -130,15 +152,15 @@ public class WebServiceProcess implements Runnable {
 			}
 		}
 
-		
+
 	}
 
-	String calculateT0(PrintWriter out, int reset, String receiver, int num) {
+	String calculateT0(PrintWriter out, int sat, int reset, String receiver, int num) {
 		Statement stmt = null;
 		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
 		String update = "  SELECT stpDate, uptime FROM STP_HEADER "
-				+ "where type = 4 and resets = "+reset+" and receiver = '"+receiver+"' "
+				+ "where id = "+sat+" and resets = "+reset+" and receiver = '"+receiver+"' "
 				+ "ORDER BY resets DESC, uptime DESC LIMIT " + num; // Derby Syntax FETCH FIRST ROW ONLY";
 		String stpDate[];
 		long uptime[];
@@ -160,7 +182,7 @@ public class WebServiceProcess implements Runnable {
 			}
 			stpDate = new String[size];
 			uptime = new long[size];
-			if (size == 0) return "No Frames from reset " + reset +" for receiver " + receiver;
+			if (size == 0) return "No Frames for sat "+sat+" from reset " + reset +" for receiver " + receiver;
 			while (r.next()) {
 				uptime[i] = r.getLong("uptime");
 				stpDate[i] = r.getString("stpDate");

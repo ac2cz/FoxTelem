@@ -54,16 +54,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	private static Connection derby;
 
-	static String url = "jdbc:mysql://localhost:3306/FOXDB?autoReconnect=true";
-    static String user = "g0kla";
+	static String url = "jdbc:mysql://localhost:3306/"; //FOXDB?autoReconnect=true";
+    static String db = "FOXDB";
+	static String user = "g0kla";
     static String password = "amsatfox";
 
 	private final int INITIAL_QUEUE_SIZE = 1000;
 	SatPayloadDbStore[] payloadStore;
 	SatPictureStore[] pictureStore;
 	
-	public PayloadDbStore() {
-		
+	public PayloadDbStore(String u, String pw, String database) {
+		db = database;
+		user = u;
+		password = pw;
 		payloadQueue = Collections.synchronizedList(new SortedFramePartArrayList(INITIAL_QUEUE_SIZE));
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		// Connect to the database and create it if it does not exist
@@ -138,7 +141,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	public static Connection getConnection() throws SQLException {
 		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
-            derby = DriverManager.getConnection(url, user, password);
+            derby = DriverManager.getConnection(url + db + "?autoReconnect=true", user, password);
 		return derby;
 
 	}
