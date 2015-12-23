@@ -1032,8 +1032,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			if (fileActions()) {
 //				releaseFcd();
 			}
+			auto.setEnabled(false);
+			if (auto.isSelected()) { 
+				lowSpeed.setSelected(true);
+				highSpeed.setSelected(false);
+				Config.autoDecodeSpeed = false;
+			}
 		} else { // its not a file so its a sound card or FCD that was picked
 			boolean fcdSelected = fcdSelected();
+			auto.setEnabled(true);
 			if (fcdSelected) {
 
 			} else {
@@ -1199,13 +1206,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						progressThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 						if (Config.iq) { //position == SourceAudio.IQ_FILE_SOURCE) {
 							if (iqSource1 != null) iqSource1.stop();
-							iqSource1 = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4,0,false);
+							iqSource1 = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4,0,highSpeed.isSelected());
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							setCenterFreq();
 							Config.passManager.setDecoder1(decoder1, iqSource1, this);
-							if (Config.autoDecodeSpeed)
-								Config.passManager.setDecoder2(decoder2, iqSource2, this);
+							//if (Config.autoDecodeSpeed)
+							//	Config.passManager.setDecoder2(decoder2, iqSource2, this);
 						} else {
 							setupDecoder(highSpeed.isSelected(), wav, wav);
 						}
@@ -1392,7 +1399,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		cbSoundCardRate.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
-		auto.setEnabled(t);
+		int position = soundCardComboBox.getSelectedIndex(); 
+		if (position == SourceAudio.FILE_SOURCE)
+			auto.setEnabled(false);
+		else
+			auto.setEnabled(t);
 		iqAudio.setEnabled(t);
 		afAudio.setEnabled(t);
 		MainWindow.enableSourceSelection(t);
