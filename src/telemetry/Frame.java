@@ -427,11 +427,11 @@ public abstract class Frame implements Comparable<Frame> {
 							frequency = value;
 							//                		System.out.println(key + " " + value);
 						}
-						if (key.equalsIgnoreCase("Rx_location")) {
+						if (key.equalsIgnoreCase("Rx-location")) {
 							rx_location = value;
 							//                		System.out.println(key + " " + value);
 						}
-						if (key.equalsIgnoreCase("Receiver_rf")) {
+						if (key.equalsIgnoreCase("Receiver-RF")) {
 							receiver_rf = value;
 							//                		System.out.println(key + " " + value);
 						}
