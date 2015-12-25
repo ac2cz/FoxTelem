@@ -37,6 +37,7 @@ import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.Decoder;
 
 /**
  * 
@@ -312,7 +313,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 			packetData[len-i-1][3] = ""+data[i][2];
 			String telem = "";
 			for (int j=2; j< 25+2; j++) {  // 25 is the number of fieleds in the HERCI LS Telem Data
-				telem = telem + data[i][j] + " ";
+				telem = telem + Decoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
 			packetData[len-i-1][4] = telem;

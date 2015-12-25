@@ -4,6 +4,7 @@ import java.util.StringTokenizer;
 
 import common.Spacecraft;
 import decoder.BitStream;
+import decoder.Decoder;
 
 /**
  * 
@@ -25,6 +26,8 @@ import decoder.BitStream;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ *
+ * THIS CLASS IS NOT USED.  IMPLEMENTED AS RadiationTelemetry
  *
  *103-60106
 
@@ -321,6 +324,13 @@ public class PayloadHERCIHousekeeping extends FramePart {
 	public int reset;
 	public long uptime;
 
+	public static final String[] herciSource = {
+			"PANIC",
+			"HRS",
+			"LRS",
+			"HSK"
+		};
+	
 	public PayloadHERCIHousekeeping(int r, long u, BitArrayLayout l) {
 		super(l);
 		reset = r;
@@ -351,9 +361,20 @@ public class PayloadHERCIHousekeeping extends FramePart {
 		if (pos == -1) {
 			;//System.err.println("ERROR: No Index for Field:" + name);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_SOURCE) {
-				int value = getRawValue(name);
-				// FIXME - DO THE LOOKUP FOR SOURCE
-		} else s =  Integer.toString(getRawValue(name));
+			int value = getRawValue(name);
+			try {
+				s = herciSource[value];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				s = "???";
+			}
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_HEX) {
+			s="";
+			int value = getRawValue(name);
+			for (int i=0; i<4; i++) {
+				s = " " + Decoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 8 ;
+			}
+		} else s =  super.getStringValue(name, fox); //Integer.toString(getRawValue(name));
 
 		return s;
 	}

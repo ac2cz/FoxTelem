@@ -397,7 +397,8 @@ public class GraphPanel extends JPanel {
 				end = len; // this reset runs to the end of the data
 			else
 				end = resetPosition.get(r+1); // Data will be One data position before the next reset, but we calculate width up to same point
-			width = (graphWidth * (end - start )/len);
+			width = (graphWidth * (end - start )/len);  // -labelWidth/2;
+			if (width <1) width =1;
 			resetLabelCount++;
 			if (graphFrame.showContinuous || resetLabelCount == resetLabelFreq) {
 				drawLabels = true;
@@ -410,7 +411,6 @@ public class GraphPanel extends JPanel {
 				
 	}
 	
-	private Integer labelPlottedKey(int reset, double uptime) { return (int)(reset * uptime); }
 	
 	/**
 	 * Draw a graph from sideBorder to graphWidth.  This is for a single reset.  If the graph has more than one reset
@@ -484,7 +484,7 @@ public class GraphPanel extends JPanel {
 
 		// draw the labels if that was passed in.  Only draw the labels for continuous graphs if we have room for one
 		// for non continuous graphs the calling function makes sure there is room, so we will always draw one,
-		// except if this is the last reset, because we dont want to draw a label of the right end of the graph
+		// except if this is the last reset, because we dont want to draw a label off the right end of the graph
 		if (drawLabels && (numberOfTimeLabels > 0 || !graphFrame.showContinuous) 
 				&& (numberOfTimeLabels > 0 || start < graphData[PayloadStore.RESETS_COL].length-1)) {  
 			// calculate the label step size

@@ -248,13 +248,16 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		
 		//for (int k =0; k < rawData.length; k++) {
 		for (int k =rawData.length-1; k >= 0; k--) {
-			for (int j=0; j<9; j++)
-				data[rawData.length-k-1][j] = rawData[k][j];
-				
+			for (int j=0; j<9; j++) {
+				if (j > 4)
+					data[rawData.length-k-1][j] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
+				else
+					data[rawData.length-k-1][j] = rawData[k][j];
+			}
 			data[rawData.length-k-1][9] = "";
 			for (int j=9; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					data[rawData.length-k-1][9] = data[rawData.length-k-1][9] + rawData[k][j] +" ";
+					data[rawData.length-k-1][9] = data[rawData.length-k-1][9] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
 		}
 		

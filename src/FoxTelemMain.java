@@ -8,13 +8,6 @@ import java.io.File;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
@@ -493,6 +486,10 @@ import decoder.Decoder;
  * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
  * MEMS Gyro 0dps set to 1.51 following measurement of VRef in the diagnostics
  * When reset button pressed on graphs the average period is reset too
+ * 1.03b
+ * Merged with Server Code - one code base
+ * Fixed crash when auto mode used with wav files
+ * Display converted HERCI Housekeeping data
  * 
  */
 
