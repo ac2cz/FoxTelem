@@ -349,14 +349,14 @@ public class GraphPanel extends JPanel {
 			// we need the title at bottom of graph, not top
 			titleHeight = graphHeight + topBorder;
 		}
-		
+
 		// Draw the title
-				g2.setColor(Color.BLACK);
-				g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
-				g2.drawString(graphFrame.displayTitle, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
-				
-				g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
-				
+		g2.setColor(Color.BLACK);
+		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
+		g2.drawString(graphFrame.displayTitle, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
+
+		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+
 		
 		// Draw baseline at the zero point, but not the labels, which are drawn for each reset
 		g2.drawLine(sideLabelOffset, zeroPoint, graphWidth+sideBorder, zeroPoint);
@@ -501,7 +501,8 @@ public class GraphPanel extends JPanel {
 
 					if (!graphFrame.showContinuous && numberOfTimeLabels == 1) timepos = 1; // We are just plotting the first label
 					// dont draw the label if we are too near the start or end
-					if ((graphFrame.showContinuous && timepos > 0 && (graphWidth - timepos) > labelWidth/2) || (!graphFrame.showContinuous && timepos > 0) || numberOfTimeLabels == 1){
+					if ((graphFrame.showContinuous && timepos > 0 && (graphWidth - timepos) > labelWidth/2) || (!graphFrame.showContinuous && timepos > 0) 
+							|| (!graphFrame.showContinuous && numberOfTimeLabels == 1)) {
 				//	if ((timepos > 0) || numberOfTimeLabels == 1){
 						String s = d.format(timelabels[v]);
 
