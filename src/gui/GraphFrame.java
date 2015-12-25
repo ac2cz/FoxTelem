@@ -753,6 +753,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			graphData = Config.payloadStore.getMaxGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
 		else if (payloadType == FramePart.TYPE_MIN_VALUES)
 			graphData = Config.payloadStore.getMinGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+		else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
+			graphData = Config.payloadStore.getRadTelemGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+		else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+			graphData = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
 		else if  (payloadType == 0) // FIXME - type 0 is DEBUG  - measurement
 			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
 		

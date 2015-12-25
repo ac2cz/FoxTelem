@@ -13,6 +13,7 @@ import common.Log;
 import common.Spacecraft;
 import decoder.BitStream;
 import decoder.Decoder;
+import gui.GraphPanel;
 
 /**
  * 
@@ -565,23 +566,29 @@ longer send telemetry.
 		case GYRO1Z: // Gyro1Z
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			if (shortString)
-				return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
 			else
-				return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			int cameraChecksumErrors = (rawValue >> 20) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
+				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
+				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			int hsAudioBufferUnderflows = (rawValue >> 20) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		}
 		return "-----";
 	}

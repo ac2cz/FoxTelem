@@ -490,6 +490,9 @@ import decoder.Decoder;
  * Merged with Server Code - one code base
  * Fixed crash when auto mode used with wav files
  * Display converted HERCI Housekeeping data
+ * Skip NULL values for some measurements.  Don't plot continuous labels to left of vertical axis.
+ * MEMS diagnostic values are now in dps (vs Volts)
+ * Fixed bug where radiation data could not be saved to CSV files
  * 
  */
 
