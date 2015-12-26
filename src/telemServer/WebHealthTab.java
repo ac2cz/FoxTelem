@@ -39,6 +39,25 @@ public class WebHealthTab {
 	public void setMaxPayload(PayloadMaxValues max) {payloadMax = max;}
 	public void setMinPayload(PayloadMinValues min) {payloadMin = min;}
 	
+	public String toCsvString(String fieldName, boolean convert, int num, int fromReset, int fromUptime) {
+		String s = "";
+		//s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
+		//s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
+		//		+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
+		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
+		if (graphData != null) {
+			for (int i=0; i< graphData[0].length; i++) {
+			//	s = s + "<tr>";
+				s = s + (int)graphData[PayloadStore.RESETS_COL][i] + "," +
+						(int)graphData[PayloadStore.UPTIME_COL][i] + "," +
+						graphData[PayloadStore.DATA_COL][i] + "/n";
+				
+			}
+		}
+		s = s + "</table>";
+		return s;
+	}
+	
 	public String toGraphString(String fieldName, boolean convert, int num, int fromReset, int fromUptime) {
 		String s = "";
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
@@ -50,7 +69,7 @@ public class WebHealthTab {
 				s = s + "<tr>";
 				s = s + "<td>"+(int)graphData[PayloadStore.RESETS_COL][i] + "</td>" +
 						"<td>"+(int)graphData[PayloadStore.UPTIME_COL][i] + "</td>" +
-						"<td>"+(int)graphData[PayloadStore.DATA_COL][i] + "</td>";
+						"<td>"+graphData[PayloadStore.DATA_COL][i] + "</td>";
 				s = s + "</tr>";
 			}
 		}
@@ -162,7 +181,13 @@ public class WebHealthTab {
 				//FIXME - PUT NAME, RT, MIN, MAX in seperate columns
 				//FIXME use rt.moduleDisplayType[j] to determine if it is one values that spans across them - like antenna
 				//FIXME - make each value clickable - underline the name is best.  That will open the table for diagnostics
-				s = s + "<a href=/tlm/graph.php?sat=1A&field=" + rt.fieldName[j] + ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
+				s = s + "<a href=/tlm/graph.php?"
+						+ "sat=" + fox.foxId+"&field=" + rt.fieldName[j]
+						+ "&raw=conv"  
+						+ "&reset=0"
+						+ "&uptime=0"
+						+ "&rows=100"
+								+ ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
 				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], );					
 			}
 		}
