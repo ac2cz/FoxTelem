@@ -372,7 +372,8 @@ public class PassManager implements Runnable {
 
 	private boolean foundFoxSignal(Spacecraft sat, PassParams pp) {
 		
-		if (Config.trackSignal && pp.rfData != null && pp.decoder != null && pp.eyeData != null) {
+		if (Config.findSignal && pp.rfData != null && pp.decoder != null && pp.eyeData != null) {
+			
 			//Log.println("Getting eye data");
 			pp.eyeData = pp.decoder.eyeData;
 			//System.out.println(sat.getIdString() + " BIT SNR:" + eyeData.bitSNR);
@@ -406,7 +407,7 @@ public class PassManager implements Runnable {
 			}
 			setFreqRangeBins(sat,pp1);
 
-			if (Config.trackSignal && pp1.decoder != null ) { // start button still pressed and still tracking
+			if (Config.findSignal && pp1.decoder != null ) { // start button still pressed and still tracking
 				//Log.println("Getting eye data");
 				//if (foundRfSignal(sat))
 				if (foundFoxSignal(sat, pp1)) {
