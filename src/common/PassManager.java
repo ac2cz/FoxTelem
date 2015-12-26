@@ -496,18 +496,19 @@ public class PassManager implements Runnable {
 				passMeasurement.setTCA(date);
 				passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, Long.toString(tca));
 				if (Config.debugSignalFinder) Log.println("TCA calculated as " + passMeasurement.getRawValue(PassMeasurement.TCA) + " with Uptime " + up + " and frequency: " + Long.toString(tca));
-				passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
-				passMeasurement.setEndResetUptime(lastReset, lastUptime);
-	
-				//FIXME
-				// Store the start and end azimuith
-				// store the max elevation
-				// the END RESET and UPTIME is captured but not written to disk or used in any way
+				
+				
 			}
 			
 		} else {
 			if (Config.debugSignalFinder) Log.println("Can't calculate TCA, not enough readings");
 		}
+		passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
+		passMeasurement.setEndResetUptime(lastReset, lastUptime);
+		//FIXME
+		// Store the start and end azimuith - these are a RtMeasurement.  Need to grab the first and last one from the Decoder
+		// store the max elevation - this requires a search like the TCA.  But this is only from SatPC32, so why bother?  Perhaps Elevation at TCA is more interesting.
+		// the END RESET and UPTIME is captured but not written to disk or used in any way
 	}
 
 	private double linearInterpolation(double x, double x0, double x1, double y0, double y1) {
