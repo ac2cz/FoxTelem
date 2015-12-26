@@ -114,7 +114,8 @@ public abstract class SourceAudio implements Runnable {
 				// If this happens, we are in an unusual situation.  We waited until the circularBuffer contains abData.length of data
 				// then we started to read it one byte at a time.  However, we have moved the read (start) pointer as far as the end
 				// pointer, so we have run out of data.
-				Log.errorDialog("AUDIO BUFFER READ ERROR", e.getMessage() + "\nTry starting the decoder again.");
+				Log.errorDialog(name + ": AUDIO BUFFER READ ERROR on channel: " + chan, e.getMessage() + "\nTry starting the decoder again.");
+				Log.println(name + ": threw error:");
 				e.printStackTrace(Log.getWriter());
 			}
 		return bytesRead;

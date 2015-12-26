@@ -101,7 +101,7 @@ public class SourceIQ extends SourceAudio {
 	RfData rfData;
 	
 	public SourceIQ(int circularBufferSize, int chan, boolean hs) {
-		super("IQ Source", circularBufferSize, chan);
+		super("IQ Source" + hs, circularBufferSize, chan);
 		highSpeed = hs;
 		channel = chan;
 		audioFormat = makeAudioFormat();
