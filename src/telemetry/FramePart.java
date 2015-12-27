@@ -56,6 +56,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
 	public static final int TYPE_RAD_TELEM_DATA = 7; 
 	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
+	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;

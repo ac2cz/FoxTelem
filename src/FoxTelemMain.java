@@ -493,7 +493,8 @@ import decoder.Decoder;
  * Skip NULL values for some measurements.  Don't plot continuous labels to left of vertical axis.
  * MEMS diagnostic values are now in dps (vs Volts)
  * Fixed bug where radiation data could not be saved to CSV files
- * 
+ * Fixed bug where FindSignal failed to lock if Track Doppler was not checked
+ * 1.03c
  * 
  */
 
