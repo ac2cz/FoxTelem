@@ -140,6 +140,9 @@ public class UpdateManager implements Runnable {
 		} catch (IOException e) {
 			Log.println("Could not write T0 file: " + file);
 			//e.printStackTrace(Log.getWriter());
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("T0 file is corrupt - likely missing reset in sequence or duplicate reset: " + file);
+			//e.printStackTrace(Log.getWriter());
 		} finally {
 			try {
 				if (fos != null) fos.close();
