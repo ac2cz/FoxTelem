@@ -37,6 +37,9 @@ import gui.MainWindow;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
+ * This class is a flat file database for a single payload type.  It is referred to as a table, but
+ * the actual data may be spread across several files on disk
+ * 
  */
 public class SatPayloadTable {
 
