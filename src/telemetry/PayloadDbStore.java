@@ -13,6 +13,7 @@ import java.util.List;
 import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
+import telemServer.StpFileProcessException;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -430,6 +431,36 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			stmt = PayloadDbStore.derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
+		} catch (SQLException e) {
+			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
+				Log.println("DUPLICATE RECORD, not stored");
+				return true; // we consider this data added
+			} else {
+				PayloadDbStore.errorPrint(e);
+			}
+			return false;
+		}
+		return true;
+	}
+
+	public boolean updateStpHeader(Frame f) throws StpFileProcessException {
+
+		Statement stmt = null;
+		String update = "update STP_HEADER ";
+		update = update + "set rx_location='"+f.rx_location +"', ";
+		update = update + "receiver_rf='"+f.receiver_rf +"' ";
+		update = update + " where receiver='"+f.receiver+"' ";
+		update = update + " and sequenceNumber="+f.sequenceNumber;
+		update = update + " and resets="+f.header.resets;
+		update = update + " and uptime="+f.header.uptime;
+		update = update + " and id="+f.header.id;
+		//Log.println("SQL:" + update);
+		try {
+			derby = getConnection();
+			stmt = PayloadDbStore.derby.createStatement();
+			@SuppressWarnings("unused")
+			int r = stmt.executeUpdate(update);
+			if (r > 1) throw new StpFileProcessException("FOXDB","MULTIPLE ROWS UPDATED!");
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");

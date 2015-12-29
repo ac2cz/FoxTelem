@@ -95,11 +95,11 @@ public abstract class Frame implements Comparable<Frame> {
 	private String frequency = NONE; // frequency when this frame received
 	private String source; // The frame source subsystem
 	private String length; // The frame length in bytes
-	private String rx_location = NONE; // the lat, long and altitude
-	private String receiver_rf = NONE; // human description of the receiver
+	public String rx_location = NONE; // the lat, long and altitude
+	public String receiver_rf = NONE; // human description of the receiver
 	public String demodulator; // will contain Config.VERSION
 	private Date stpDate;
-	private long sequenceNumber = Sequence.ERROR_NUMBER;
+	public long sequenceNumber = Sequence.ERROR_NUMBER;
 
 	private String measuredTCA = NONE; // time of TCA
 	private String measuredTCAfrequency = NONE; // frequency if this frame was

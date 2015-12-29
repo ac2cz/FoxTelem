@@ -638,6 +638,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 
+	public boolean updateStpHeader(Frame f) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 	@Override
 	public String getRtUTCFromUptime(int id, int reset, long uptime) {
 		// TODO Auto-generated method stub
