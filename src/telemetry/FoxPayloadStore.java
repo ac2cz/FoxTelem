@@ -7,7 +7,7 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
-
+import telemServer.StpFileProcessException;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -87,6 +87,7 @@ public abstract class FoxPayloadStore implements Runnable {
 
 	public abstract boolean add(int id, PassMeasurement m);
 	public abstract boolean addStpHeader(Frame f); // add the stp header records to the db
+	public abstract boolean updateStpHeader(Frame f) throws StpFileProcessException; // add the stp header records to the db
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
