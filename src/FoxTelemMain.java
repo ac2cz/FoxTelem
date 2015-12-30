@@ -495,7 +495,7 @@ import decoder.Decoder;
  * Fixed bug where radiation data could not be saved to CSV files
  * Fixed bug where FindSignal failed to lock if Track Doppler was not checked
  * 1.03c
- * 
+ * Download T0 file from amsat.org
  */
 
 public class FoxTelemMain {

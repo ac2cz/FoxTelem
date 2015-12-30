@@ -9,6 +9,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
@@ -44,12 +45,16 @@ import gui.MainWindow;
 public class SatPayloadTable {
 
 	public static final int MAX_DATA_LENGTH = 61;
-
-	private String fileName;
-	private SortedFramePartArrayList rtRecords;
+	public static final int HASH_SIZE = 9999;
+	private HashMap<Integer, SortedFramePartArrayList> tableMap; // The map of data on disk and the parts of it that are loaded
+	private static final int INITIAL_SIZE = 2; // inital number of table parts
+	private static final int MAX_RECORDS = 100; // the maximum number of rows in a table part
+	private String fileName; // this is the base filename for this table
+	private SortedFramePartArrayList rtRecords; // this is the rtRecords that are loaded into memory
 	private boolean updated = false;
 
 	public SatPayloadTable(int size, String name) throws FileNotFoundException {
+		tableMap = new HashMap<Integer, SortedFramePartArrayList>(INITIAL_SIZE);
 		
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -280,7 +285,7 @@ public class SatPayloadTable {
 	 * @param log
 	 * @throws IOException
 	 */
-	public void save(FramePart frame, String log) throws IOException {
+	private void save(FramePart frame, String log) throws IOException {
 		 
 		File aFile = new File(log );
 		if(!aFile.exists()){
