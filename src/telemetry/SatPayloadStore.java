@@ -260,31 +260,31 @@ public class SatPayloadStore {
 		return false;
 	}
 		
-	public PayloadRtValues getLatestRt() {
+	public PayloadRtValues getLatestRt() throws FileNotFoundException {
 		return (PayloadRtValues) rtRecords.getLatest();
 	}
 
-	public PayloadMaxValues getLatestMax() {
+	public PayloadMaxValues getLatestMax() throws FileNotFoundException {
 		return (PayloadMaxValues) maxRecords.getLatest();
 	}
 
-	public PayloadMinValues getLatestMin() {
+	public PayloadMinValues getLatestMin() throws FileNotFoundException {
 		return (PayloadMinValues) minRecords.getLatest();
 	}
 
-	public PayloadRadExpData getLatestRad() {
+	public PayloadRadExpData getLatestRad() throws FileNotFoundException {
 		return (PayloadRadExpData) radRecords.getLatest();
 	}
 
-	public RadiationTelemetry getLatestRadTelem() {
+	public RadiationTelemetry getLatestRadTelem() throws FileNotFoundException {
 		return (RadiationTelemetry) radTelemRecords.getLatest();
 	}
 
-	public PayloadHERCIhighSpeed getLatestHerci() {
+	public PayloadHERCIhighSpeed getLatestHerci() throws FileNotFoundException {
 		return (PayloadHERCIhighSpeed) herciRecords.getLatest();
 	}
 
-	public HerciHighspeedHeader getLatestHerciHeader() {
+	public HerciHighspeedHeader getLatestHerciHeader() throws FileNotFoundException {
 		return (HerciHighspeedHeader) herciHeaderRecords.getLatest();
 	}
 

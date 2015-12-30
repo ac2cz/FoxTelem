@@ -3,6 +3,7 @@ package telemetry;
 import gui.MainWindow;
 import gui.ProgressPanel;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -432,21 +433,36 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestRt();
+			try {
+				return store.getLatestRt();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
 	public PayloadMaxValues getLatestMax(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestMax();
+			try {
+				return store.getLatestMax();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
 	public PayloadMinValues getLatestMin(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestMin();
+			try {
+				return store.getLatestMin();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
@@ -454,7 +470,12 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public PayloadRadExpData getLatestRad(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestRad();
+			try {
+				return store.getLatestRad();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
@@ -462,7 +483,12 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public RadiationTelemetry getLatestRadTelem(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestRadTelem();
+			try {
+				return store.getLatestRadTelem();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
@@ -471,7 +497,12 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public PayloadHERCIhighSpeed getLatestHerci(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestHerci();
+			try {
+				return store.getLatestHerci();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
@@ -479,7 +510,12 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public HerciHighspeedHeader getLatestHerciHeader(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestHerciHeader();
+			try {
+				return store.getLatestHerciHeader();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}

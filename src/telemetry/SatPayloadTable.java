@@ -45,16 +45,15 @@ import gui.MainWindow;
 public class SatPayloadTable {
 
 	public static final int MAX_DATA_LENGTH = 61;
-	public static final int HASH_SIZE = 9999;
-	private HashMap<Integer, SortedFramePartArrayList> tableMap; // The map of data on disk and the parts of it that are loaded
+	public static final int MAX_SEGMENT_SIZE = 10;
+	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
-	private static final int MAX_RECORDS = 100; // the maximum number of rows in a table part
 	private String fileName; // this is the base filename for this table
 	private SortedFramePartArrayList rtRecords; // this is the rtRecords that are loaded into memory
 	private boolean updated = false;
 
 	public SatPayloadTable(int size, String name) throws FileNotFoundException {
-		tableMap = new HashMap<Integer, SortedFramePartArrayList>(INITIAL_SIZE);
+		tableIdx = new SortedArrayList<TableSeg>(INITIAL_SIZE);
 		
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -63,19 +62,35 @@ public class SatPayloadTable {
 		}
         fileName = dir+name;
 		rtRecords = new SortedFramePartArrayList(size);
-		load(fileName);
+		loadIdx();
+		updated = true;
 	}
 	
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	public int getSize() { return rtRecords.size(); }
+	public int getSize() { 
+		int s=0;
+		for (TableSeg t: tableIdx) {
+			s = s + t.records;
+		}
+		return s; 
+	}
 	
-	public boolean hasFrame(int id, long uptime, int resets) { return rtRecords.hasFrame(id, uptime, resets); }
+	public boolean hasFrame(int id, long uptime, int resets) { 
+		return rtRecords.hasFrame(id, uptime, resets); }
 	
-	public FramePart getLatest() {
-		if (rtRecords.size() == 0) return null;
-		return rtRecords.get(rtRecords.size()-1);
+	public FramePart getLatest() throws FileNotFoundException {
+		if (tableIdx.size() > 0) {
+			TableSeg lastSeg = tableIdx.get(tableIdx.size()-1);
+			if (!lastSeg.loaded) {
+				load(lastSeg.fileName);
+				lastSeg.loaded = true;
+			}
+			if (rtRecords.size() == 0) return null;
+			return rtRecords.get(rtRecords.size()-1);
+		}
+		return null;
 	}
 	
 	/**
@@ -178,16 +193,50 @@ public class SatPayloadTable {
 		return resultSet;
 	}
 	
+	private TableSeg getSeg(int reset, long uptime) throws IOException {
+		for (int i=tableIdx.size()-1; i>=0; i--) {
+			if (tableIdx.get(i).fromReset < reset && tableIdx.get(i).fromUptime < uptime) {
+				return tableIdx.get(i);
+			}
+		}
+		// We could not find a valid Segment, so create a new segment at the head of the list
+		tableIdx.add(0, new TableSeg(reset, uptime, fileName));
+		saveIdx();
+		return tableIdx.get(0);
+	}
+	
+	/**
+	 * Make sure the segment for this reset/uptime is loaded
+	 * @param f
+	 * @throws IOException 
+	 */
+	private TableSeg loadSeg(int reset, long uptime) throws IOException {
+		TableSeg seg = getSeg(reset, uptime);
+		if (seg.loaded) return seg;
+		
+		load(seg.fileName);
+		seg.loaded = true;
+		return seg;
+	}
+	
 	/**
 	 * Save a new record to disk		
 	 * @param f
 	 */
 	public boolean save(FramePart f) throws IOException {
+		// Make sure this segment is loaded, or create an empty segment if it does not exist
+		TableSeg seg = loadSeg(f.resets, f.uptime);
 		if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
 			updated = true;
-			save(f, fileName);
+			if (seg.records == MAX_SEGMENT_SIZE) {
+				// We need to add a new segment with this as the first record
+				seg = new TableSeg(f.resets, f.uptime, fileName);
+				tableIdx.add(seg);
+				saveIdx();
+			}
+			save(f, seg.fileName);
+			seg.records++;
 			return rtRecords.add(f);
-			
 		} else {
 			if (Config.debugFrames) Log.println("DUPLICATE RECORD, not loaded");
 		}
@@ -280,7 +329,7 @@ public class SatPayloadTable {
 	}
 
 	/**
-	 * Save a payload to the log file
+	 * Save a payload to the a file
 	 * @param frame
 	 * @param log
 	 * @throws IOException
@@ -296,7 +345,6 @@ public class SatPayloadTable {
 		Writer output = new BufferedWriter(new FileWriter(aFile, true));
 		try {
 			output.write( frame.toFile() + "\n" );
-
 			output.flush();
 		} finally {
 			// Make sure it is closed even if we hit an error
@@ -304,6 +352,74 @@ public class SatPayloadTable {
 			output.close();
 		}
 	}
+	
+	/**
+	 * Save Index to the a file
+	 * @throws IOException
+	 */
+	private void saveIdx() throws IOException {
+		File aFile = new File(fileName + ".idx" );
+		if(!aFile.exists()){
+			aFile.createNewFile();
+		}
+		//Log.println("Saving: " + log);
+		//use buffering and append to the existing file
+		Writer output = new BufferedWriter(new FileWriter(aFile, true));
+		for (TableSeg seg: tableIdx) {
+			try {
+				output.write( seg.toFile() + "\n" );
+				output.flush();
+			} finally {
+				// Make sure it is closed even if we hit an error
+				output.flush();
+				output.close();
+			}
+		}
+	}
+	
+	/**
+	 * Load the Index from disk
+	 * @throws FileNotFoundException
+	 */
+	public void loadIdx() throws FileNotFoundException {
+        String line;
+        File aFile = new File(fileName + ".idx" );
+		if(!aFile.exists()){
+			try {
+				aFile.createNewFile();
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(MainWindow.frame,
+						e.toString(),
+						"ERROR creating file " + aFile.getPath(),
+						JOptionPane.ERROR_MESSAGE) ;
+				e.printStackTrace(Log.getWriter());
+			}
+		}
+ 
+        BufferedReader dis = new BufferedReader(new FileReader(aFile.getPath()));
+
+        try {
+        	while ((line = dis.readLine()) != null) {
+        		if (line != null) {
+        			StringTokenizer st = new StringTokenizer(line, ",");
+        			
+        			int resets = Integer.valueOf(st.nextToken()).intValue();
+        			long uptime = Long.valueOf(st.nextToken()).longValue();
+        			int records = Integer.valueOf(st.nextToken()).intValue();
+        			String name = st.nextToken();
+        			TableSeg seg = new TableSeg(resets, uptime, name, records);
+    				tableIdx.add(seg);
+        		}
+        	}
+
+        	dis.close();
+        } catch (IOException e) {
+        	e.printStackTrace(Log.getWriter());
+
+        } catch (NumberFormatException n) {
+        	n.printStackTrace(Log.getWriter());
+        }
+	}	
 	
 	public void remove() throws IOException {
 		SatPayloadStore.remove(fileName);
