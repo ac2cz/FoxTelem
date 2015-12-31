@@ -37,8 +37,8 @@ public class TableSeg implements Comparable<TableSeg> {
 	TableSeg(int r, long u, String f) {
 		fromReset = r;
 		fromUptime = u;
-		records = 1;
-		fileName = r + "_"+ u +"_"+ f;
+		records = 0;
+		fileName = f+ "_" + r + "_"+ u +".log";
 	}
 	
 	/**

@@ -59,17 +59,17 @@ public class SatPayloadStore {
 	//private boolean initRad2 = false;
 	
 	// Primary Payloads
-	public static String RT_LOG = "rttelemetry.log";
-	public static String MAX_LOG = "maxtelemetry.log";
-	public static String MIN_LOG = "mintelemetry.log";
-	public static String RAD_LOG = "radtelemetry.log";
+	public static String RT_LOG = "rttelemetry";
+	public static String MAX_LOG = "maxtelemetry";
+	public static String MIN_LOG = "mintelemetry";
+	public static String RAD_LOG = "radtelemetry";
 
 	// Secondary payloads - decoded from the primary payloads
-	public static String RAD_TELEM_LOG = "radtelemetry2.log";
+	public static String RAD_TELEM_LOG = "radtelemetry2";
 
-	public static String HERCI_LOG = "herciHSdata.log";
-	public static String HERCI_HEADER_LOG = "herciHSheader.log";
-	public static String HERCI_PACKET_LOG = "herciHSpackets.log";
+	public static String HERCI_LOG = "herciHSdata";
+	public static String HERCI_HEADER_LOG = "herciHSheader";
+	public static String HERCI_PACKET_LOG = "herciHSpackets";
 		
 	SatPayloadTable rtRecords;
 	SatPayloadTable maxRecords;
@@ -296,18 +296,19 @@ public class SatPayloadStore {
 	 * @param name
 	 * @param period
 	 * @return
+	 * @throws IOException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
 		return rtRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
 		return maxRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
 		return minRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
@@ -320,13 +321,14 @@ public class SatPayloadStore {
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
 		return radTelemRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		return radRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
 
 	}
@@ -338,8 +340,9 @@ public class SatPayloadStore {
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		return radTelemRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_HK_DATA_LENGTH); 
 
 	}
@@ -352,8 +355,9 @@ public class SatPayloadStore {
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
 		return herciHeaderRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
@@ -365,8 +369,9 @@ public class SatPayloadStore {
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		return herciPacketRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
 
 	}

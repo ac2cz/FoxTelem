@@ -44,6 +44,7 @@ import gui.MainWindow;
  */
 public class SatPayloadTable {
 
+	public static final String DB_NAME = "FOXDB";
 	public static final int MAX_DATA_LENGTH = 61;
 	public static final int MAX_SEGMENT_SIZE = 10;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
@@ -60,7 +61,8 @@ public class SatPayloadTable {
 			dir = Config.logFileDirectory + File.separator ;
 			//System.err.println("Loading: "+log);
 		}
-        fileName = dir+name;
+        fileName = dir + DB_NAME+File.separator + name;
+        makeDir(dir + DB_NAME);
 		rtRecords = new SortedFramePartArrayList(size);
 		loadIdx();
 		updated = true;
@@ -68,6 +70,23 @@ public class SatPayloadTable {
 	
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
+	
+	private void makeDir(String dir) {
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+			
+		}
+		File aFile = new File(dir);
+		if(!aFile.isDirectory()){
+				aFile.mkdir();
+				Log.println("Making directory: " + dir);
+		}
+		if(!aFile.isDirectory()){
+			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
+					"\nAny decoded pictures will not be saved to disk. Downloaded picture lines\n"
+					+ "can still be decoded and uploaded to the server.");
+		}
+	}
 	
 	public int getSize() { 
 		int s=0;
@@ -77,14 +96,16 @@ public class SatPayloadTable {
 		return s; 
 	}
 	
-	public boolean hasFrame(int id, long uptime, int resets) { 
+	public boolean hasFrame(int id, long uptime, int resets) throws IOException { 
+		// Make sure the segment is loaded, so we can check
+		TableSeg seg = loadSeg(resets, uptime);
 		return rtRecords.hasFrame(id, uptime, resets); }
 	
 	public FramePart getLatest() throws FileNotFoundException {
 		if (tableIdx.size() > 0) {
 			TableSeg lastSeg = tableIdx.get(tableIdx.size()-1);
 			if (!lastSeg.loaded) {
-				load(lastSeg.fileName);
+				load(lastSeg);
 				lastSeg.loaded = true;
 			}
 			if (rtRecords.size() == 0) return null;
@@ -101,8 +122,10 @@ public class SatPayloadTable {
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length) {
+	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length) throws IOException {
+		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
 		
@@ -151,9 +174,10 @@ public class SatPayloadTable {
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
-
+	double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) throws IOException {
+		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
 		
@@ -195,18 +219,19 @@ public class SatPayloadTable {
 	
 	private TableSeg getSeg(int reset, long uptime) throws IOException {
 		for (int i=tableIdx.size()-1; i>=0; i--) {
-			if (tableIdx.get(i).fromReset < reset && tableIdx.get(i).fromUptime < uptime) {
+			if (tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) {
 				return tableIdx.get(i);
 			}
 		}
 		// We could not find a valid Segment, so create a new segment at the head of the list
-		tableIdx.add(0, new TableSeg(reset, uptime, fileName));
+		TableSeg seg = new TableSeg(reset, uptime, fileName);
+		tableIdx.add(seg);
 		saveIdx();
-		return tableIdx.get(0);
+		return seg;
 	}
 	
 	/**
-	 * Make sure the segment for this reset/uptime is loaded
+	 * Make sure the segment for this reset/uptime is loaded and is ready to receive data
 	 * @param f
 	 * @throws IOException 
 	 */
@@ -214,9 +239,49 @@ public class SatPayloadTable {
 		TableSeg seg = getSeg(reset, uptime);
 		if (seg.loaded) return seg;
 		
-		load(seg.fileName);
+		load(seg);
 		seg.loaded = true;
 		return seg;
+	}
+	
+	/**
+	 * Load all of the segments needed to that "number" of records is available.  Used for plotting graphs.  If segments are missing then
+	 * we do not create them
+	 * @param reset
+	 * @param uptime
+	 * @param number
+	 * @throws IOException
+	 */
+	private void loadSegments(int reset, long uptime, int number) throws IOException {
+		int total = 0;
+		if (reset == 0 && uptime == 0) {
+			// load backwards
+			for (int i=tableIdx.size()-1; i>=0; i--) {
+				if (!tableIdx.get(i).loaded) {
+					load(tableIdx.get(i));
+				}
+				total += tableIdx.get(i).records;
+				if (total >= number) break;
+			}
+		} else {
+			// load forwards from the relevant reset/uptime
+			for (int i=0; i< tableIdx.size(); i++) {
+				if ( ((i == tableIdx.size()-1) && tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) || 
+						(i < tableIdx.size()-1) &&
+						tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime
+						&& tableIdx.get(i+1).fromReset > reset && tableIdx.get(i+1).fromUptime > uptime) {
+					// Then we need to load segment at i and start counting from here
+					
+					while(i < tableIdx.size()) {
+						if (!tableIdx.get(i).loaded)
+							load(tableIdx.get(i));
+						total += tableIdx.get(i).records;
+						if (total >= number) break;
+					}
+					break;
+				}
+			}
+		}
 	}
 	
 	/**
@@ -232,10 +297,10 @@ public class SatPayloadTable {
 				// We need to add a new segment with this as the first record
 				seg = new TableSeg(f.resets, f.uptime, fileName);
 				tableIdx.add(seg);
-				saveIdx();
 			}
 			save(f, seg.fileName);
 			seg.records++;
+			saveIdx();
 			return rtRecords.add(f);
 		} else {
 			if (Config.debugFrames) Log.println("DUPLICATE RECORD, not loaded");
@@ -250,7 +315,8 @@ public class SatPayloadTable {
 	 * @param log
 	 * @throws FileNotFoundException
 	 */
-	public void load(String log) throws FileNotFoundException {
+	public void load(TableSeg seg) throws FileNotFoundException {
+		String log = seg.fileName;
         String line;
         File aFile = new File(log );
 		if(!aFile.exists()){
@@ -316,8 +382,9 @@ public class SatPayloadTable {
         				rtRecords.add(rt);
         			}
         		}
-    			updated = true;
         	}
+			updated = true;
+			seg.loaded = true;
         	dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
@@ -363,17 +430,19 @@ public class SatPayloadTable {
 			aFile.createNewFile();
 		}
 		//Log.println("Saving: " + log);
-		//use buffering and append to the existing file
-		Writer output = new BufferedWriter(new FileWriter(aFile, true));
-		for (TableSeg seg: tableIdx) {
-			try {
+		//use buffering and REPLACE the existing file
+		Writer output = new BufferedWriter(new FileWriter(aFile, false));
+		try {
+			for (TableSeg seg: tableIdx) {
+
 				output.write( seg.toFile() + "\n" );
 				output.flush();
-			} finally {
-				// Make sure it is closed even if we hit an error
-				output.flush();
-				output.close();
+
 			}
+		} finally {
+			// Make sure it is closed even if we hit an error
+			output.flush();
+			output.close();
 		}
 	}
 	
