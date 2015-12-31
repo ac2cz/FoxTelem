@@ -25,7 +25,7 @@ public class TableSeg implements Comparable<TableSeg> {
 	int fromReset = 0;
 	long fromUptime = 0;
 	int records = 0;
-	boolean loaded = false;
+	private boolean loaded = false;
 	String fileName;
 	
 	/**
@@ -54,6 +54,10 @@ public class TableSeg implements Comparable<TableSeg> {
 		records = rec;
 		fileName = f;
 	}	
+	
+	public boolean isLoaded() { return loaded; }
+	public void setLoaded(boolean t) { loaded = t; }
+	
 	public String toFile() {
 		String s = "";
 		s = s + fromReset + ",";

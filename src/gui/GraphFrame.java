@@ -372,12 +372,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		return btn;
 	}
 	
-	public void updateGraphData() {
+	public void updateGraphData(String by) {
+		System.err.println("Graph Update by: " + by);
 		if (this.textDisplay) {
 			diagnosticTable.updateData();
 			//textArea.updateData();			
 		} else
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.updateGraphData");
 	}
 
 	/**
@@ -507,7 +508,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (textDisplay)
 			diagnosticTable.updateData();
 		else
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.parseAvgPeriod");
 	}
 	
 	private void parseTextFields() {
@@ -550,7 +551,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (textDisplay)
 			diagnosticTable.updateData();
 		else
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.parseTextFields");
 	}
 	
 	private void setRedOutline(JButton but, boolean red) {
@@ -650,7 +651,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				btnHorizontalLines.setBackground(Color.RED);
 			} else
 				btnHorizontalLines.setBackground(Color.GRAY);
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:horizontal");
 		} else if (e.getSource() == btnVerticalLines) {
 			showVerticalLines = !showVerticalLines;
 			//Log.println("Plot Derivative " + plotDerivative);
@@ -658,7 +659,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				btnVerticalLines.setBackground(Color.RED);
 			} else
 				btnVerticalLines.setBackground(Color.GRAY);
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:vertical");
 		} else if (e.getSource() == btnDerivative) {
 			plotDerivative = !plotDerivative;
 			//Log.println("Plot Derivative " + plotDerivative);
@@ -666,7 +667,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				btnDerivative.setBackground(Color.RED);
 			} else
 				btnDerivative.setBackground(Color.GRAY);
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:derivative");
 		}  else if (e.getSource() == btnAvg) {
 			dspAvg = !dspAvg;
 			if (dspAvg) {	
@@ -675,7 +676,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				btnAvg.setBackground(Color.GRAY);
 			setAvgVisible(dspAvg);
 			//Log.println("Calc Average " + dspAvg);
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:avg");
 		} else if (e.getSource() == btnMain) {
 			hideMain = !hideMain;
 			if (!hideMain) {	
@@ -683,7 +684,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else
 				btnMain.setBackground(Color.GRAY);
 
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:main");
 		}  else if (e.getSource() == btnLines) {
 			hideLines = !hideLines;
 			if (hideLines) {	
@@ -691,7 +692,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else
 				btnLines.setBackground(Color.GRAY);
 
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:hideLines");
 		} else if (e.getSource() == btnPoints) {
 			hidePoints = !hidePoints;
 			if (hidePoints) {	
@@ -699,7 +700,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else
 				btnPoints.setBackground(Color.GRAY);
 
-			panel.updateGraphData();
+			panel.updateGraphData("GraphFrame.actionPerformed:points");
 		} 
 
 	}
@@ -717,7 +718,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData();
+				panel.updateGraphData("GraphFrame:stateChange:plotAllUptime");
 		}
 		
 		if (e.getSource() == cbUTC) {
@@ -729,7 +730,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData();
+				panel.updateGraphData("GraphFrame:stateChange:UTC");
 		}
 		if (e.getSource() == cbUptime) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -740,7 +741,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData();
+				panel.updateGraphData("GraphFrame:stateChange:Uptime");
 		}
 	}
 
@@ -848,16 +849,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	@Override
 	public void focusLost(FocusEvent e) {
 		if (e.getSource() == this.txtSamplePeriod) {
-			parseTextFields();
+		//	parseTextFields();
 			
 		} else if (e.getSource() == this.textFromReset) {
-			parseTextFields();
+		//	parseTextFields();
 			
 		} else if (e.getSource() == this.textFromUptime) {
-			parseTextFields();
+		//	parseTextFields();
 			
 		} else if (e.getSource() == this.txtAvgPeriod) {
-				parseAvgPeriod();
+		//		parseAvgPeriod();
 		}
 		
 	}

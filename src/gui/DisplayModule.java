@@ -232,7 +232,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						rtValue[i].setText(Integer.toString(rt.getRawValue(fieldName[i])));
 					else
 						rtValue[i].setText(rt.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData();
+					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateRtValues");
 				}
 			}
 		}
@@ -257,7 +257,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						minValue[i].setText(max.getStringValue(fieldName[i],fox));
 					else
 						maxValue[i].setText(max.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData();
+					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
 				}
 			}
 		}
@@ -282,7 +282,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						maxValue[i].setText(min.getStringValue(fieldName[i],fox));
 					else
 						minValue[i].setText(min.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData();
+					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
 				}
 			}
 		}
@@ -304,7 +304,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void updateSingleValue(int line, String value) {
 		rtValue[line].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 		rtValue[line].setText(value);
-		if (graph[line] != null) graph[line].updateGraphData();
+		if (graph[line] != null) graph[line].updateGraphData("DisplayModule.updateSingleValue");
 	}
 	
 	private void initGui() {
@@ -433,7 +433,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 			}
-			graph[i].updateGraphData();
+			graph[i].updateGraphData("DisplayModule.displayGraph");
 			graph[i].setVisible(true);
 		} catch (Exception ex) {
 			Log.println("MOUSE CLICKED EXCEPTION");

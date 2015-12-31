@@ -298,7 +298,7 @@ public class Spacecraft {
         			StringTokenizer st = new StringTokenizer(line, ",");
         			int reset = Integer.valueOf(st.nextToken()).intValue();
         			long uptime = Long.valueOf(st.nextToken()).longValue();
-        			Log.println("Loaded T0: " + reset + ": " + uptime);
+        			//Log.println("Loaded T0: " + reset + ": " + uptime);
         			if (reset == timeZero.size())
         				timeZero.add(uptime);
         			else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);

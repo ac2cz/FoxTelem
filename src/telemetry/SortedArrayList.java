@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import common.Log;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -46,10 +48,14 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 	 * @return boolean - true if this was inserted correctly
 	 */
 	public boolean add(T img) {
-
 		// find the index of the item with priority just less than this, starting at end
 		// We hope this is the fastest way given we are usually appending items
 		for (int i=this.size()-1; i>=0; i--) { 
+			if (this.get(i) == null) {
+				Log.println("NULL at: " + i);
+				Log.println("Size:" + this.size());
+				Log.println("Prev: " + this.get(i-1));
+			}
 			if (this.get(i).compareTo (img) > 0) { 
 				// positive compare result means that the item in the array is higher priority (lower uptime) than the item we are comparing to
 				// so add the new item after this one

@@ -98,6 +98,14 @@ public class SatPayloadStore {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
 								+ "Was the data directory moved?\n" + e.toString(),
+					"FATAL! Cannot find the Stored Payload data",
+					JOptionPane.ERROR_MESSAGE) ;
+			e.printStackTrace(Log.getWriter());
+			System.exit(1);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(MainWindow.frame,
+					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
+								+ "Was the data directory moved?\n" + e.toString(),
 					"FATAL! Cannot Load the Stored Payload data",
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
@@ -105,7 +113,7 @@ public class SatPayloadStore {
 		}
 	}
 	
-	private void initPayloadFiles() throws FileNotFoundException {
+	private void initPayloadFiles() throws IOException {
 		rtRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+RT_LOG);
 		maxRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+MAX_LOG);
 		minRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+MIN_LOG);
@@ -260,31 +268,31 @@ public class SatPayloadStore {
 		return false;
 	}
 		
-	public PayloadRtValues getLatestRt() throws FileNotFoundException {
+	public PayloadRtValues getLatestRt() throws IOException {
 		return (PayloadRtValues) rtRecords.getLatest();
 	}
 
-	public PayloadMaxValues getLatestMax() throws FileNotFoundException {
+	public PayloadMaxValues getLatestMax() throws IOException {
 		return (PayloadMaxValues) maxRecords.getLatest();
 	}
 
-	public PayloadMinValues getLatestMin() throws FileNotFoundException {
+	public PayloadMinValues getLatestMin() throws IOException {
 		return (PayloadMinValues) minRecords.getLatest();
 	}
 
-	public PayloadRadExpData getLatestRad() throws FileNotFoundException {
+	public PayloadRadExpData getLatestRad() throws IOException {
 		return (PayloadRadExpData) radRecords.getLatest();
 	}
 
-	public RadiationTelemetry getLatestRadTelem() throws FileNotFoundException {
+	public RadiationTelemetry getLatestRadTelem() throws IOException {
 		return (RadiationTelemetry) radTelemRecords.getLatest();
 	}
 
-	public PayloadHERCIhighSpeed getLatestHerci() throws FileNotFoundException {
+	public PayloadHERCIhighSpeed getLatestHerci() throws IOException {
 		return (PayloadHERCIhighSpeed) herciRecords.getLatest();
 	}
 
-	public HerciHighspeedHeader getLatestHerciHeader() throws FileNotFoundException {
+	public HerciHighspeedHeader getLatestHerciHeader() throws IOException {
 		return (HerciHighspeedHeader) herciHeaderRecords.getLatest();
 	}
 
@@ -401,9 +409,11 @@ public class SatPayloadStore {
 			minRecords.remove();
 			radRecords.remove();
 			radTelemRecords.remove();
-			herciRecords.remove();
-			herciHeaderRecords.remove();
-			herciPacketRecords.remove();
+			if (fox.hasHerci()) {
+				herciRecords.remove();
+				herciHeaderRecords.remove();
+				herciPacketRecords.remove();
+			}
 			initPayloadFiles();
 			setUpdatedAll();
 		} catch (IOException ex) {
@@ -442,6 +452,19 @@ public class SatPayloadStore {
 	            destination.close();
 	        }
 	    }
+	}
+	
+	public void convert() throws IOException {
+		rtRecords.convert();
+		maxRecords.convert();
+		minRecords.convert();
+		radRecords.convert();
+		radTelemRecords.convert();
+		if (fox.hasHerci()) {
+			herciRecords.convert();
+			herciHeaderRecords.convert();
+			herciPacketRecords.convert();
+		}
 	}
 	
 	/**

@@ -44,25 +44,25 @@ import gui.MainWindow;
  */
 public class SatPayloadTable {
 
-	public static final String DB_NAME = "FOXDB";
 	public static final int MAX_DATA_LENGTH = 61;
-	public static final int MAX_SEGMENT_SIZE = 10;
+	public static final int MAX_SEGMENT_SIZE = 1000;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
-	private String fileName; // this is the base filename for this table
+	private String fileName; // this is the path and filename for this table
+	private String baseFileName; // this is the base filename for this table
 	private SortedFramePartArrayList rtRecords; // this is the rtRecords that are loaded into memory
 	private boolean updated = false;
 
-	public SatPayloadTable(int size, String name) throws FileNotFoundException {
+	public SatPayloadTable(int size, String name) throws IOException {
 		tableIdx = new SortedArrayList<TableSeg>(INITIAL_SIZE);
-		
+		baseFileName = name;
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator ;
 			//System.err.println("Loading: "+log);
 		}
-        fileName = dir + DB_NAME+File.separator + name;
-        makeDir(dir + DB_NAME);
+        fileName = dir + PayloadStore.DB_NAME+File.separator + name;
+      
 		rtRecords = new SortedFramePartArrayList(size);
 		loadIdx();
 		updated = true;
@@ -71,22 +71,7 @@ public class SatPayloadTable {
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	private void makeDir(String dir) {
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + dir;
-			
-		}
-		File aFile = new File(dir);
-		if(!aFile.isDirectory()){
-				aFile.mkdir();
-				Log.println("Making directory: " + dir);
-		}
-		if(!aFile.isDirectory()){
-			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
-					"\nAny decoded pictures will not be saved to disk. Downloaded picture lines\n"
-					+ "can still be decoded and uploaded to the server.");
-		}
-	}
+	
 	
 	public int getSize() { 
 		int s=0;
@@ -101,12 +86,12 @@ public class SatPayloadTable {
 		TableSeg seg = loadSeg(resets, uptime);
 		return rtRecords.hasFrame(id, uptime, resets); }
 	
-	public FramePart getLatest() throws FileNotFoundException {
+	public FramePart getLatest() throws IOException {
 		if (tableIdx.size() > 0) {
 			TableSeg lastSeg = tableIdx.get(tableIdx.size()-1);
-			if (!lastSeg.loaded) {
+			if (!lastSeg.isLoaded()) {
 				load(lastSeg);
-				lastSeg.loaded = true;
+				
 			}
 			if (rtRecords.size() == 0) return null;
 			return rtRecords.get(rtRecords.size()-1);
@@ -237,15 +222,13 @@ public class SatPayloadTable {
 	 */
 	private TableSeg loadSeg(int reset, long uptime) throws IOException {
 		TableSeg seg = getSeg(reset, uptime);
-		if (seg.loaded) return seg;
-		
+		if (seg.isLoaded()) return seg;
 		load(seg);
-		seg.loaded = true;
 		return seg;
 	}
 	
 	/**
-	 * Load all of the segments needed to that "number" of records is available.  Used for plotting graphs.  If segments are missing then
+	 * Load all of the segments needed so that "number" of records is available.  Used for plotting graphs.  If segments are missing then
 	 * we do not create them
 	 * @param reset
 	 * @param uptime
@@ -257,7 +240,7 @@ public class SatPayloadTable {
 		if (reset == 0 && uptime == 0) {
 			// load backwards
 			for (int i=tableIdx.size()-1; i>=0; i--) {
-				if (!tableIdx.get(i).loaded) {
+				if (!tableIdx.get(i).isLoaded()) {
 					load(tableIdx.get(i));
 				}
 				total += tableIdx.get(i).records;
@@ -273,7 +256,7 @@ public class SatPayloadTable {
 					// Then we need to load segment at i and start counting from here
 					
 					while(i < tableIdx.size()) {
-						if (!tableIdx.get(i).loaded)
+						if (!tableIdx.get(i).isLoaded())
 							load(tableIdx.get(i));
 						total += tableIdx.get(i).records;
 						if (total >= number) break;
@@ -310,89 +293,160 @@ public class SatPayloadTable {
 	
 	/**
 	 * Load a payload file from disk
-	 * Payload files are stored in seperate logs, but this routine is written so that it can load mixed records
+	 * Payload files are stored in separate logs, but this routine is written so that it can load mixed records
 	 * from a single file
 	 * @param log
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	public void load(TableSeg seg) throws FileNotFoundException {
+	public void load(TableSeg seg) throws IOException {
 		String log = seg.fileName;
         String line;
-        File aFile = new File(log );
-		if(!aFile.exists()){
-			try {
-				aFile.createNewFile();
-			} catch (IOException e) {
-				JOptionPane.showMessageDialog(MainWindow.frame,
-						e.toString(),
-						"ERROR creating file " + log,
-						JOptionPane.ERROR_MESSAGE) ;
-				e.printStackTrace(Log.getWriter());
-			}
-		}
+        createNewFile(log);
  
         BufferedReader dis = new BufferedReader(new FileReader(log));
 
         try {
         	while ((line = dis.readLine()) != null) {
         		if (line != null) {
-        			StringTokenizer st = new StringTokenizer(line, ",");
-        			String date = st.nextToken();
-        			int id = Integer.valueOf(st.nextToken()).intValue();
-        			int resets = Integer.valueOf(st.nextToken()).intValue();
-        			long uptime = Long.valueOf(st.nextToken()).longValue();
-        			int type = Integer.valueOf(st.nextToken()).intValue();
-        			
-        			// We should never get this situation, but good to check..
-        			if (Config.satManager.getSpacecraft(id) == null) {
-        				Log.errorDialog("FATAL", "Attempting to Load payloads from the Payload store for satellite with Fox Id: " + id 
-        						+ "\n when no sattellite with that FoxId is configured.  Add this spacecraft to the satellite directory and restart FoxTelem."
-        						+ "\nProgram will now exit");
-        				System.exit(1);
-        			}
-        			FramePart rt = null;
-        			if (type == FramePart.TYPE_REAL_TIME) {
-        				rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
-        			} else
-        			if (type == FramePart.TYPE_MAX_VALUES) {
-        				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
-
-        			} else
-        			if (type == FramePart.TYPE_MIN_VALUES) {
-        				rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
- 
-        			}
-        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-        				rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
-        			}
-        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-        				rt = new PayloadRadExpData(id, resets, uptime, date, st);
-        			}        			
-        			if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
-        				rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
-        			}
-        			if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER ) {
-        				rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
-        			}
-        			if (type == FramePart.TYPE_HERCI_HS_PACKET ) {
-  //FIXME!!!      			//	rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
-        			}
-
-        			if (rt != null) {
-        				rtRecords.add(rt);
-        			}
+        			addLine(line);
         		}
         	}
-			updated = true;
-			seg.loaded = true;
+        	seg.setLoaded(true);
         	dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-        	
+
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
         }
-        
+
+	}
+
+	private FramePart addLine(String line) {
+		StringTokenizer st = new StringTokenizer(line, ",");
+		String date = st.nextToken();
+		int id = Integer.valueOf(st.nextToken()).intValue();
+		int resets = Integer.valueOf(st.nextToken()).intValue();
+		long uptime = Long.valueOf(st.nextToken()).longValue();
+		int type = Integer.valueOf(st.nextToken()).intValue();
+
+		// We should never get this situation, but good to check..
+		if (Config.satManager.getSpacecraft(id) == null) {
+			Log.errorDialog("FATAL", "Attempting to Load payloads from the Payload store for satellite with Fox Id: " + id 
+					+ "\n when no sattellite with that FoxId is configured.  Add this spacecraft to the satellite directory and restart FoxTelem."
+					+ "\nProgram will now exit");
+			System.exit(1);
+		}
+		FramePart rt = null;
+		if (type == FramePart.TYPE_REAL_TIME) {
+			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
+		} else
+			if (type == FramePart.TYPE_MAX_VALUES) {
+				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
+
+			} else
+				if (type == FramePart.TYPE_MIN_VALUES) {
+					rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
+
+				}
+		if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+		}
+		if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
+			rt = new PayloadRadExpData(id, resets, uptime, date, st);
+		}        			
+		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
+			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
+		}
+		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER ) {
+			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+		}
+		if (type == FramePart.TYPE_HERCI_HS_PACKET ) {
+			//FIXME!!!      			//	rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+		}
+
+		if (rt != null) {
+			rtRecords.add(rt);
+		}
+		return rt;
+	}
+	
+	public void convert() throws IOException {
+		
+		String dir = "";
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator ;
+			//System.err.println("Loading: "+log);
+		}
+        String log = dir+baseFileName+".log";
+		String line;
+		int linesAdded = 0;
+		TableSeg seg = null;
+		File aFile = new File(log );
+		if(aFile.exists()){
+			// then convert it
+			BufferedReader dis = new BufferedReader(new FileReader(log));
+			try {
+				while ((line = dis.readLine()) != null) {
+					if (line != null) {
+						FramePart rt = addLine(line);
+						if (rt != null) {
+							if (linesAdded == SatPayloadTable.MAX_SEGMENT_SIZE) {
+								linesAdded = 0;
+							}
+							if (linesAdded == 0) {
+								// First line in a segment
+								seg = new TableSeg(rt.resets, rt.uptime, fileName);
+								tableIdx.add(seg);
+							}
+							save(rt, seg.fileName);
+							linesAdded++;
+							seg.records = linesAdded;
+						}
+					}
+				}
+				updated = true;
+				
+				dis.close();
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+
+			} catch (NumberFormatException n) {
+				n.printStackTrace(Log.getWriter());
+			}
+		}
+		saveIdx();
+	}
+	
+	private boolean createNewFile(String log) throws IOException {
+		File aFile = new File(log );
+		if(!aFile.exists()){
+			try {
+				aFile.createNewFile();
+				return true;
+
+			} catch (IOException e) {
+				JOptionPane.showMessageDialog(MainWindow.frame,
+						e.toString(),
+						"ERROR creating file " + log,
+						JOptionPane.ERROR_MESSAGE) ;
+				e.printStackTrace(Log.getWriter());
+				return false;
+			} 
+		}
+		return false;
+	}
+	
+	private void writeVersion(Writer output) throws IOException {
+		
+		/*try {
+			output.write( "FOXDB VESION:" + DB_VERSION + "\n" );
+			output.flush();
+		} finally {
+			// Make sure it is closed even if we hit an error
+			output.flush();
+			output.close();
+		}*/
 	}
 
 	/**
@@ -402,13 +456,11 @@ public class SatPayloadTable {
 	 * @throws IOException
 	 */
 	private void save(FramePart frame, String log) throws IOException {
-		 
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
+
+		createNewFile(log);
 		//Log.println("Saving: " + log);
 		//use buffering and append to the existing file
+		File aFile = new File(log );
 		Writer output = new BufferedWriter(new FileWriter(aFile, true));
 		try {
 			output.write( frame.toFile() + "\n" );
@@ -419,25 +471,23 @@ public class SatPayloadTable {
 			output.close();
 		}
 	}
-	
+
 	/**
 	 * Save Index to the a file
 	 * @throws IOException
 	 */
 	private void saveIdx() throws IOException {
 		File aFile = new File(fileName + ".idx" );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
+		createNewFile(fileName + ".idx");
 		//Log.println("Saving: " + log);
 		//use buffering and REPLACE the existing file
 		Writer output = new BufferedWriter(new FileWriter(aFile, false));
+		writeVersion(output);
 		try {
 			for (TableSeg seg: tableIdx) {
 
 				output.write( seg.toFile() + "\n" );
 				output.flush();
-
 			}
 		} finally {
 			// Make sure it is closed even if we hit an error
@@ -446,28 +496,59 @@ public class SatPayloadTable {
 		}
 	}
 	
+	private void parseVersion(BufferedReader dis) throws IOException {
+		
+		/*String version;
+    	version = dis.readLine(); // read the first line
+    	String[] versionLine = version.split(":");
+    	try {
+    		String availableVersion = versionLine[1];
+    		//Log.println("FILE VERSION: "+availableVersion);
+    	
+    		int maj = Config.parseVersionMajor(availableVersion);
+    		int min = Config.parseVersionMinor(availableVersion);
+    		String point = Config.parseVersionPoint(availableVersion);
+    		//System.out.println("MAJ: "+maj);
+    		//System.out.println("MIN: "+min);
+    		//System.out.println("POINT: "+point);
+
+    		if (Config.getVersionMajor() < maj) { // fatal
+    			JOptionPane.showMessageDialog(MainWindow.frame,
+   					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
+    					+"Payload log "+fileName + " Version: "+availableVersion+ " is incompatible with this version of FoxTelem\n"
+   								+ "Was the data directory moved or new files copied in?\n",
+   					"FATAL! Data file version incompatible ",
+   					JOptionPane.ERROR_MESSAGE) ;
+   			
+   			System.exit(1);
+    		}
+    		if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) // ignore
+    			;
+    	} catch (NumberFormatException e) {
+    		e.printStackTrace(Log.getWriter());
+    		Log.println("Error parsing the Database version information.  Abandoning the check");
+    	} catch (ArrayIndexOutOfBoundsException e) {
+    		e.printStackTrace(Log.getWriter());
+    		Log.println("Error parsing the Database version format.  Abandoning the check");
+    	}*/
+	}
+	
 	/**
 	 * Load the Index from disk
-	 * @throws FileNotFoundException
+	 * @throws IOException 
 	 */
-	public void loadIdx() throws FileNotFoundException {
+	public void loadIdx() throws IOException {
         String line;
         File aFile = new File(fileName + ".idx" );
-		if(!aFile.exists()){
-			try {
-				aFile.createNewFile();
-			} catch (IOException e) {
-				JOptionPane.showMessageDialog(MainWindow.frame,
-						e.toString(),
-						"ERROR creating file " + aFile.getPath(),
-						JOptionPane.ERROR_MESSAGE) ;
-				e.printStackTrace(Log.getWriter());
-			}
+		if (createNewFile(fileName + ".idx")) {
+			Writer output = new BufferedWriter(new FileWriter(aFile, true));
+			writeVersion(output);
 		}
  
         BufferedReader dis = new BufferedReader(new FileReader(aFile.getPath()));
 
         try {
+        	parseVersion(dis);
         	while ((line = dis.readLine()) != null) {
         		if (line != null) {
         			StringTokenizer st = new StringTokenizer(line, ",");
@@ -491,6 +572,8 @@ public class SatPayloadTable {
 	}	
 	
 	public void remove() throws IOException {
-		SatPayloadStore.remove(fileName);
+		for (TableSeg seg: tableIdx)
+			SatPayloadStore.remove(seg.fileName);
+		SatPayloadStore.remove(fileName + ".idx");
 	}
 }

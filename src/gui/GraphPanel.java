@@ -89,10 +89,10 @@ public class GraphPanel extends JPanel {
 		graphFrame = gf;
 		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
 		fox = sat;
-		updateGraphData();
+		updateGraphData("GrapPanel.new");
 	}
 
-	public void updateGraphData() {
+	public void updateGraphData(String by) {
 		if (payloadType == FramePart.TYPE_REAL_TIME)
 			graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		else if (payloadType == FramePart.TYPE_MAX_VALUES)
@@ -106,6 +106,7 @@ public class GraphPanel extends JPanel {
 		else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
 			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		
+		System.err.println("-repaint by: " + by);
 		if (graphData != null && graphData[0].length > 0)
 			this.repaint();
 	}

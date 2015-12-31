@@ -3,6 +3,7 @@ package telemetry;
 import gui.MainWindow;
 import gui.ProgressPanel;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -44,6 +45,8 @@ import common.Spacecraft;
  *
  */
 public class PayloadStore extends FoxPayloadStore implements Runnable {
+	public static final String DB_NAME = "FOXDB";
+	public static final String DB_VERSION = "1.00";
 	public static final int DATA_COL = 0;
 	public static final int UPTIME_COL = 1;
 	public static final int RESETS_COL = 2;
@@ -72,15 +75,57 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		pictureStore = new SatPictureStore[sats.size()];
 		measurementStore = new SatMeasurementStore[sats.size()];
 		
+		String dir = "";
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator ;
+			//System.err.println("Loading: "+log);
+		}
+		boolean newDB = makeDir(dir + DB_NAME);
+		
 		for (int s=0; s<sats.size(); s++) {
 			payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);
+			if (newDB) {
+				// convert any legacy data
+				try {
+					payloadStore[s].convert();
+				} catch (IOException e) {
+					Log.errorDialog("ERROR", "Could not convert the old FoxTelem payload files to the new format: " +  
+							"\nAny old payloads will not be available\n");
+					e.printStackTrace(Log.getWriter());
+				}
+			}
 			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
 			fileProgress.updateProgress(100 * s / sats.size());
 		}
+		
 		fileProgress.updateProgress(100);
 	}
 	
+	/**
+	 * Make the database directory if needed.  Check to see if we have existing legacy data and run the conversion if we do
+	 * @param dir
+	 */
+	private boolean makeDir(String dir) {
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+			
+		}
+		File aFile = new File(dir);
+		if(!aFile.isDirectory()){
+			Log.println("Making new database: " + dir);
+			aFile.mkdir();
+			if(!aFile.isDirectory()){
+				Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
+						"\nAny decoded payloads will not be saved to disk\n");
+				Config.storePayloads = false;
+				return false;
+			}
+			return true;
+		}
+		
+		return false;
+	}
 	public boolean hasQueuedFrames() {
 		if (payloadQueue.size() > 0) return true;
 		return false;
@@ -438,6 +483,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
@@ -450,6 +498,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
@@ -460,6 +511,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			try {
 				return store.getLatestMin();
 			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
@@ -475,6 +529,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 
@@ -486,6 +543,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			try {
 				return store.getLatestRadTelem();
 			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
@@ -502,6 +562,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 
@@ -513,6 +576,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			try {
 				return store.getLatestHerciHeader();
 			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
