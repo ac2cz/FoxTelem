@@ -511,20 +511,6 @@ public class FoxTelemMain {
 		
 	public static void main(String[] args) {
 		
-		
-		/*
-		DateFormat form = new SimpleDateFormat("yyyyMMddHHmmss");
-		form.setTimeZone(TimeZone.getTimeZone("UTC"));
-		try {
-			Date dt = form.parse("20151110004114");
-			
-			System.err.println(dt.getTime());
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		*/
-		
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
 			// Then this is the first time we have run FoxTelem on this computer
@@ -542,7 +528,7 @@ public class FoxTelemMain {
 		Log.println("************************************************************");
 		Log.println("CurrentDir is:" + Config.currentDir);
 
-		Integer one = 1;
+/*		Integer one = 1;
 		Integer two = 2;
 		Integer three = 3;
 		SortedArrayList<Integer> list = new SortedArrayList<Integer>(10);
@@ -569,7 +555,7 @@ public class FoxTelemMain {
 		segs.add(seg3);
 		segs.add(seg1);
 		segs.add(seg2);
-		
+		*/
 //		System.exit(0);
 		
 		if (args.length > 0) {

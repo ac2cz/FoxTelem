@@ -126,10 +126,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param dir
 	 */
 	private boolean makeDir(String dir) {
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + dir;
-			
-		}
+		
 		File aFile = new File(dir);
 		if(!aFile.isDirectory()){
 			Log.println("Making new database: " + dir);
