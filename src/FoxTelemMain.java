@@ -1,6 +1,11 @@
 
 import gui.InitalSettings;
 import gui.MainWindow;
+import telemetry.FramePart;
+import telemetry.PayloadRtValues;
+import telemetry.SortedArrayList;
+import telemetry.SortedFramePartArrayList;
+import telemetry.TableSeg;
 
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -506,6 +511,7 @@ public class FoxTelemMain {
 		
 	public static void main(String[] args) {
 		
+		
 		/*
 		DateFormat form = new SimpleDateFormat("yyyyMMddHHmmss");
 		form.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -536,6 +542,36 @@ public class FoxTelemMain {
 		Log.println("************************************************************");
 		Log.println("CurrentDir is:" + Config.currentDir);
 
+		Integer one = 1;
+		Integer two = 2;
+		Integer three = 3;
+		SortedArrayList<Integer> list = new SortedArrayList<Integer>(10);
+		list.add(three);
+		list.add(one);
+		list.add(two);
+		
+		FramePart rt1 = new PayloadRtValues(Config.satManager.getRtLayout(1));
+		rt1.captureHeaderInfo(1, 1, 1);
+		FramePart rt2 = new PayloadRtValues(Config.satManager.getRtLayout(1));
+		rt2.captureHeaderInfo(1, 1, 2);
+		FramePart rt3 = new PayloadRtValues(Config.satManager.getRtLayout(1));
+		rt3.captureHeaderInfo(1, 1, 3);
+		
+		SortedFramePartArrayList frames = new SortedFramePartArrayList(10);
+		frames.add(rt1);
+		frames.add(rt3);
+		frames.add(rt2);
+		
+		TableSeg seg1 = new TableSeg(1,1,"test");
+		TableSeg seg2 = new TableSeg(2,1,"test");
+		TableSeg seg3 = new TableSeg(3,1,"test");
+		SortedArrayList<TableSeg> segs = new SortedArrayList<TableSeg>(10);
+		segs.add(seg3);
+		segs.add(seg1);
+		segs.add(seg2);
+		
+//		System.exit(0);
+		
 		if (args.length > 0) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
 				System.out.println(HELP);

@@ -65,8 +65,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	SatMeasurementStore[] measurementStore;
 	
 	public PayloadStore() {
-		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, "FoxTelem: Loading logged data, please wait ...", false);
-		fileProgress.setVisible(true);
+		
 
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
 		measurementQueue = new SortedMeasurementArrayList(INITIAL_QUEUE_SIZE);
@@ -80,7 +79,27 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			dir = Config.logFileDirectory + File.separator ;
 			//System.err.println("Loading: "+log);
 		}
+        String loadMessage = "FoxTelem: Loading logged data, please wait ...";
+        
 		boolean newDB = makeDir(dir + DB_NAME);
+		if (newDB) {
+			// Check to see if the Fox 1 Real Time file is present
+			String testFile = "Fox1"+SatPayloadStore.RT_LOG+".log";
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				testFile = Config.logFileDirectory + File.separator + testFile;
+			}
+			File aFile = new File(testFile);
+			if(aFile.exists()){
+				Log.infoDialog("Database Conversion", "You have pre version 1.03 payload log files.  These will be converted to the new 1.03 database format.\n"
+						+ "This process may take a few minutes to load the data and convert it\n");
+				loadMessage = "FoxTelem: Database conversion in progress, please wait ...";
+			} else {
+				newDB = false; // no need to convert
+			}
+			
+		}
+		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
+		fileProgress.setVisible(true);
 		
 		for (int s=0; s<sats.size(); s++) {
 			payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);

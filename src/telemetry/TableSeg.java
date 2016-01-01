@@ -34,7 +34,7 @@ public class TableSeg implements Comparable<TableSeg> {
 	 * @param u
 	 * @param f
 	 */
-	TableSeg(int r, long u, String f) {
+	public TableSeg(int r, long u, String f) {
 		fromReset = r;
 		fromUptime = u;
 		records = 0;
@@ -71,12 +71,16 @@ public class TableSeg implements Comparable<TableSeg> {
 		if (fromReset == p.fromReset && fromUptime == p.fromUptime) 
 			return 0;
 		else if (fromReset < p.fromReset)
-			return +1;
-		else if (fromReset > p.fromReset)
 			return -1;
+		else if (fromReset > p.fromReset)
+			return +1;
 		else if (fromReset == p.fromReset)	
 			if (fromUptime < p.fromUptime)
-				return +1;
-		return -1;
+				return -1;
+		return +1;
+	}
+	
+	public String toString() {
+		return fromReset+","+fromUptime+","+records;
 	}
 }

@@ -142,13 +142,23 @@ public class Log {
 	}
 	
 	public static void errorDialog(String title, String message) {
+		dialog(title, message, JOptionPane.ERROR_MESSAGE );
+	}
+	
+	public static void infoDialog(String title, String message) {
+		dialog(title, message, JOptionPane.INFORMATION_MESSAGE );
+	}
+	
+	public static void dialog(String title, String message, int type) {
 		if (showGuiDialogs)
 		JOptionPane.showMessageDialog(MainWindow.frame,
 				message.toString(),
 				title,
-			    JOptionPane.ERROR_MESSAGE) ;
+			    type) ;
 		else Log.println(title + " " + message.toString());
 	}
+	
+	
 	
 	public static String fileDateStamp() {	
 		Date today = Calendar.getInstance().getTime();  

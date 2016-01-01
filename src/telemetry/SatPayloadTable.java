@@ -238,14 +238,26 @@ public class SatPayloadTable {
 	private void loadSegments(int reset, long uptime, int number) throws IOException {
 		int total = 0;
 		if (reset == 0 && uptime == 0) {
-			// load backwards
+			// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
+			// So we first calculate where to start
+			int startIdx = 0;
 			for (int i=tableIdx.size()-1; i>=0; i--) {
+				total += tableIdx.get(i).records;
+				if (total >= number) {
+					startIdx = i;
+					break;
+				}
+			}
+			total = 0;
+			// Now start index is the first segment we need to load, so now load them if needed
+			for (int i=startIdx; i<tableIdx.size(); i++) {
 				if (!tableIdx.get(i).isLoaded()) {
 					load(tableIdx.get(i));
 				}
 				total += tableIdx.get(i).records;
-				if (total >= number) break;
+				
 			}
+			if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
 		} else {
 			// load forwards from the relevant reset/uptime
 			for (int i=0; i< tableIdx.size(); i++) {
@@ -274,7 +286,8 @@ public class SatPayloadTable {
 	public boolean save(FramePart f) throws IOException {
 		// Make sure this segment is loaded, or create an empty segment if it does not exist
 		TableSeg seg = loadSeg(f.resets, f.uptime);
-		if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
+		if (rtRecords.add(f)) {
+		//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
 			updated = true;
 			if (seg.records == MAX_SEGMENT_SIZE) {
 				// We need to add a new segment with this as the first record
@@ -284,7 +297,8 @@ public class SatPayloadTable {
 			save(f, seg.fileName);
 			seg.records++;
 			saveIdx();
-			return rtRecords.add(f);
+			//return rtRecords.add(f);
+			return true;
 		} else {
 			if (Config.debugFrames) Log.println("DUPLICATE RECORD, not loaded");
 		}

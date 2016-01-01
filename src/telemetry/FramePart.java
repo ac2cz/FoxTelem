@@ -274,14 +274,14 @@ longer send telemetry.
 		if (resets == p.resets && uptime == p.uptime) 
 			return 0;
 		else if (resets < p.resets)
-			return +1;
-		else if (resets > p.resets)
 			return -1;
+		else if (resets > p.resets)
+			return +1;
 		else if (resets == p.resets)	
 			if (uptime < p.uptime)
-				return +1;
+				return -1;
 		
-		return -1;
+		return +1;
 	}
 	
 	
