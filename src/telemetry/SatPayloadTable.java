@@ -373,10 +373,10 @@ public class SatPayloadTable {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
 		}
 		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER ) {
-			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
 		}
 		if (type == FramePart.TYPE_HERCI_HS_PACKET ) {
-			//FIXME!!!      			//	rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
 		}
 
 		if (rt != null) {

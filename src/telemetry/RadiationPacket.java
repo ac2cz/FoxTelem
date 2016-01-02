@@ -38,21 +38,21 @@ public class RadiationPacket extends BitArray{
 		
 		public static final String FILLER = "FILLER";
 		public static final String[] radPacketState = {
-			"0-???",
+			"OFF",
 			"STANDBY",
-			"2-???",
+			"DIAGNOSTIC",
 			"ACTIVE",
 			"DISABLED",
-			"5-???"
+			"HALT"
 		};
 
 		public static final String[] radPacketStateShort = {
-			"0",
+			"OFF",
 			"STDBY",
-			"2",
+			"DIAG",
 			"ACT",
 			"DIS",
-			"5"
+			"GALT"
 		};
 		
 		public static final String[] packetType = {

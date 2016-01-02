@@ -262,18 +262,22 @@ public class GraphPanel extends JPanel {
 				if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
 					drawLabel = false;
 					if (labels[v] == 1) {
-						s = RadiationPacket.radPacketStateShort[1];
+						s = RadiationPacket.radPacketStateShort[0];
 						drawLabel = true;
 					}
 					if (labels[v] == 2) {
-						s = RadiationPacket.radPacketStateShort[2];
+						s = RadiationPacket.radPacketStateShort[1];
 						drawLabel = true;
 					}
 					if (labels[v] == 3) {
-						s = RadiationPacket.radPacketStateShort[3];
+						s = RadiationPacket.radPacketStateShort[2];
 						drawLabel = true;
 					}
 					if (labels[v] == 4) {
+						s = RadiationPacket.radPacketStateShort[3];
+						drawLabel = true;
+					}
+					if (labels[v] == 5) {
 						s = RadiationPacket.radPacketStateShort[4];
 						drawLabel = true;
 					}
@@ -581,7 +585,8 @@ public class GraphPanel extends JPanel {
 //				System.out.println(x + " graphData " + graphData[i]);
 								
 				// Calculate the ratio from min to max
-				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN ) 
+				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT 
+						|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS ) 
 					//if (graphFrame.displayMain)
 						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]+1, graphHeight);
 				else if (graphType == BitArrayLayout.CONVERT_FREQ) {

@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.util.StringTokenizer;
+
 import common.Spacecraft;
 import decoder.BitStream;
 import decoder.Decoder;
@@ -127,10 +129,14 @@ public class HerciHighSpeedPacket extends FramePart {
 		initFields();
 	}
 
+	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, date, st, lay);	
+	}
 	@Override
 	protected void init() {
-		// TODO Auto-generated method stub
+		type = TYPE_HERCI_HS_PACKET;
 		
+		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 
 	public void initFields() {
