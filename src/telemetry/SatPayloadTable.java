@@ -365,9 +365,11 @@ public class SatPayloadTable {
 				}
 		if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
 			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+			rt.type = type; // make sure we get the right type
 		}
 		if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
 			rt = new PayloadRadExpData(id, resets, uptime, date, st);
+			rt.type = type; // make sure we get the right type
 		}        			
 		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));

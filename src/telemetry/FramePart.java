@@ -272,16 +272,23 @@ longer send telemetry.
 	
 	
 	public int compareTo(FramePart p) {
-		if (resets == p.resets && uptime == p.uptime) 
+		if (resets == p.resets && uptime == p.uptime && type == p.type) 
 			return 0;
 		else if (resets < p.resets)
 			return -1;
 		else if (resets > p.resets)
 			return +1;
-		else if (resets == p.resets)	
+		else if (resets == p.resets && uptime == p.uptime) {
+			if (type < p.type)
+				return -1;
+			if (type > p.type)
+				return +1;
+		} else if (resets == p.resets) {	
 			if (uptime < p.uptime)
 				return -1;
-		
+			if (uptime > p.uptime)
+				return +1;
+		} 
 		return +1;
 	}
 	
