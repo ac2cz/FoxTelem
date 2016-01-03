@@ -429,7 +429,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
 					conversion = maxPayload.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_MAX_VALUES, fox);
-				}
+				} else return;
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 			}
