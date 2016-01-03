@@ -1086,7 +1086,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (fcdSelected) {
 			
 				if (fcd == null) {
-					fcd = FcdDevice.makeDevice();			
+					fcd = FcdDevice.makeDevice();	
+					if (fcd == null) return false; // FIXME this is an issue because we found the description but not the HID device
 					try {
 						if (fcd instanceof FcdProPlusDevice)
 							panelFcd = new FcdProPlusPanel();
