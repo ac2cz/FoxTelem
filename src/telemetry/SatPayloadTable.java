@@ -260,7 +260,7 @@ public class SatPayloadTable {
 				total += tableIdx.get(i).records;
 				
 			}
-			if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
+			//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
 		} else {
 			// load forwards from the relevant reset/uptime
 			for (int i=0; i< tableIdx.size(); i++) {

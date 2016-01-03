@@ -373,7 +373,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 	
 	public void updateGraphData(String by) {
-		System.err.println("Graph Update by: " + by);
+		//System.err.println("Graph Update by: " + by);
 		if (this.textDisplay) {
 			diagnosticTable.updateData();
 			//textArea.updateData();			
