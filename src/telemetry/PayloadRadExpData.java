@@ -1,9 +1,10 @@
 package telemetry;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
-
 import decoder.BitStream;
 import decoder.Decoder;
 
@@ -44,6 +45,10 @@ public class PayloadRadExpData extends FramePart {
 		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 
+	public PayloadRadExpData(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, lay);
+	}
+	
 	protected void init() {
 		fieldValue = new int[MAX_PAYLOAD_RAD_SIZE];
 		type = TYPE_RAD_EXP_DATA;
@@ -75,16 +80,31 @@ public class PayloadRadExpData extends FramePart {
 	 * @return
 	 */
 	public RadiationTelemetry calculateTelemetryPalyoad() {
-		if (isTelemetry()) {
+		//if (isTelemetry()) {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getRadTelemLayout(id));
 			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;
-		}
-		return null;
+		//}
+		//return null;
 	}
-	
+
+	/**
+	 * Calculate the telemetry and return it
+	 * @return
+	 */
+	public PayloadHERCIHousekeeping calculateHerciTelemetryPalyoad() {
+		//if (isTelemetry()) {
+		PayloadHERCIHousekeeping radTelem = new PayloadHERCIHousekeeping(resets, uptime, Config.satManager.getRadTelemLayout(id));
+			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+				radTelem.addNext8Bits(fieldValue[k]);
+			}
+			return radTelem;
+		//}
+		//return null;
+	}
+
 	/**
 	 * We have bytes in big endian order, so we need to add the bits in a way
 	 * that makes sense when we retrieve them sequentially

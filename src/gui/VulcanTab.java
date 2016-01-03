@@ -327,7 +327,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
 					bottomHalf.setVisible(true);
-
 				}
 				else {
 					parsePackets(data);
@@ -570,6 +569,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	public void run() {
 		running = true;
 		done = false;
+		boolean justStarted = true;
 		while(running) {
 			
 			try {
@@ -591,6 +591,10 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 					parseRadiationFrames();
 					displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
 					MainWindow.setTotalDecodes();
+					if (justStarted) {
+						openGraphs();
+						justStarted = false;
+					}
 				}
 			
 		}
@@ -609,6 +613,14 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 				Config.displayRawRadData = true;
 			}
 	//		Config.save();
+			if (showRawValues.isSelected()) {
+				packetScrollPane.setVisible(false); 
+				scrollPane.setVisible(true);
+			} else { 
+				packetScrollPane.setVisible(true);
+				scrollPane.setVisible(false);
+			}
+
 			parseRadiationFrames();
 			
 		}

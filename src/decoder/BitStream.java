@@ -62,7 +62,7 @@ public abstract class BitStream extends CircularBuffer {
 	
 	public int lastErasureNumber;
 	public int lastErrorsNumber;
-
+	Decoder decoder;
 	
 	protected ArrayList<SyncPair> framesTried = new ArrayList<SyncPair>(); // keep track of the SYNC word combinations that we have already tried
 	
@@ -70,8 +70,9 @@ public abstract class BitStream extends CircularBuffer {
 	 * Initialize the array with enough room to hold 6 frames worth of bits
 	 * We should never reach this because we purge bits once we exceed 4 frames in length
 	 */
-	public BitStream(int size) {
+	public BitStream(int size, Decoder dec) {
 		super(size);
+		decoder = dec;
 		
 	}
 	
@@ -154,7 +155,7 @@ public abstract class BitStream extends CircularBuffer {
 							if (frame == null) {
 								if (!alreadyTriedToFlipBits) {
 									alreadyTriedToFlipBits = true;
-									Config.flipReceivedBits = !Config.flipReceivedBits;
+									decoder.flipReceivedBits = !decoder.flipReceivedBits;
 									//Log.println("..trying Flipped bits");
 									Frame flipFrame = decodeFrame(start, end); 
 									if (flipFrame != null) {
@@ -165,7 +166,7 @@ public abstract class BitStream extends CircularBuffer {
 										return flipFrame;
 									} else {
 										// was not a flip bit issue
-										Config.flipReceivedBits = !Config.flipReceivedBits;
+										decoder.flipReceivedBits = !decoder.flipReceivedBits;
 										framesTried.add(new SyncPair(start,end));
 										return null;
 									}
@@ -311,7 +312,7 @@ public abstract class BitStream extends CircularBuffer {
 		int word = binToInt(get10Bits(j));
 		byte word8b;
 		try {
-			word8b = Code8b10b.decode(word, Config.flipReceivedBits);
+			word8b = Code8b10b.decode(word, decoder.flipReceivedBits);
 
 
 			/*

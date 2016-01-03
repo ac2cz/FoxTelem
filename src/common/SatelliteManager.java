@@ -112,6 +112,25 @@ public class SatelliteManager {
 	}
 
 	
+	public BitArrayLayout getHerciHSLayout(int sat) {
+		Spacecraft sc = getSpacecraft(sat);
+		if (sc != null) {
+			if (sc.hasHerci())
+				return sc.herciHSLayout;
+		}
+		return null;
+	}
+
+	public BitArrayLayout getHerciHSHeaderLayout(int sat) {
+		Spacecraft sc = getSpacecraft(sat);
+		if (sc != null) {
+			if (sc.hasHerci())
+				return sc.herciHS2Layout;
+		}
+		return null;
+	}
+
+	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.measurementLayout;
@@ -132,7 +151,12 @@ public class SatelliteManager {
 		Spacecraft s = getSpacecraft(sat);
 		return s.hasCamera();
 	}
-	
+
+	public boolean hasHerci(int sat) {
+		Spacecraft s = getSpacecraft(sat);
+		return s.hasHerci();
+	}
+
 	public Spacecraft getSpacecraft(int sat) {
 		for (int i=0; i < spacecraftList.size(); i++) {
 			if (spacecraftList.get(i).foxId == sat)

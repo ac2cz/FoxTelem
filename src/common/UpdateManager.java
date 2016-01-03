@@ -1,6 +1,7 @@
 package common;
 
 import gui.MainWindow;
+import telemetry.SatPayloadStore;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -68,23 +69,44 @@ public class UpdateManager implements Runnable {
 			
 			try {
 				Log.println("Setting server params to: ");
-				Config.primaryServer = serverProperties.getProperty("primaryServer");
-				Log.println(Config.primaryServer);
-				Config.secondaryServer = serverProperties.getProperty("secondaryServer");
-				Log.println(Config.secondaryServer);
-				Config.sendToBothServers = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
-				Log.println(""+Config.sendToBothServers);
+				String primary = serverProperties.getProperty("primaryServer");
+				if (primary != null) {
+					Config.primaryServer = primary;
+					Log.println("Primary set to: " + Config.primaryServer);
+				}
+				String secondary = serverProperties.getProperty("secondaryServer");
+				if (secondary != null) {
+					Config.secondaryServer = secondary;
+					Log.println("Secondary set to: " + Config.secondaryServer);
+				}
+				String website = serverProperties.getProperty("webSiteUrl");
+				if (website != null) {
+					Config.webSiteUrl = website;
+					Log.println("Website UTL set to: " + Config.webSiteUrl);
+				}
+				Boolean both = Boolean.parseBoolean(serverProperties.getProperty("sendToBothServers"));
+				if (both != null) {
+					Config.sendToBothServers = both;
+					Log.println("Sent to both set to: "+Config.sendToBothServers);
+				}
+				String port = serverProperties.getProperty("serverPort");
+				if (port != null) {
+					Config.serverPort = Integer.parseInt(port);
+					Log.println("Port set to: "+Config.serverPort);
+				}
+				String protocol = serverProperties.getProperty("serverProtocol");
+				if (protocol != null) {
+					Config.serverProtocol = Integer.parseInt(protocol);
+					Log.println("Protocol set to: "+Config.serverProtocol);
+				}
 			} catch (NumberFormatException nf) {
 				Log.println("Could not load the server paramaters: " + nf.getMessage());
 			} catch (NullPointerException nf) {
 				Log.println("Could not load the server paramaters: " + nf.getMessage());
 			}
-
 		}
-		
-		
 	}
-	
+		
 	public void updateT0(Spacecraft sat) {
 		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
 		String file = "FOX" + sat.foxId + Config.t0UrlFile;
@@ -92,24 +114,44 @@ public class UpdateManager implements Runnable {
 			file = Config.logFileDirectory + File.separator + "FOX" + sat.foxId + Config.t0UrlFile;			
 		}
 		URL website;
+		FileOutputStream fos = null;
 		try {
 			website = new URL(urlString);
-		
-		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-		FileOutputStream fos;
-			fos = new FileOutputStream(file);
+
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			
+			fos = new FileOutputStream(file + ".tmp");
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
-			sat.loadTimeZeroSeries();
+			if (sat.loadTimeZeroSeries(file + ".tmp")) {
+				// this is a good file so we can now use it as the default
+				SatPayloadStore.remove(file);
+				File f1 = new File(file + ".tmp");
+				File f2 = new File(file);
+				SatPayloadStore.copyFile(f1, f2);
+				return;
+			} else {
+				SatPayloadStore.remove(file + ".tmp");
+				sat.loadTimeZeroSeries(null); // load the default
+			}
 		} catch (MalformedURLException e) {
 			Log.println("Invalid location for T0 file: " + file);
 			//e.printStackTrace(Log.getWriter());
 		} catch (IOException e) {
 			Log.println("Could not write T0 file: " + file);
 			//e.printStackTrace(Log.getWriter());
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("T0 file is corrupt - likely missing reset in sequence or duplicate reset: " + file);
+			//e.printStackTrace(Log.getWriter());
+		} finally {
+			try {
+				if (fos != null) fos.close();
+			} catch (IOException e) {
+				// ignore
+			}
 		}
 	}
-	
+
 	private void checkVersion() throws IOException {
 		URL oracle = new URL(Config.newVersionUrl);
         BufferedReader in = new BufferedReader(

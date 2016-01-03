@@ -9,10 +9,13 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
+
 import javax.swing.JOptionPane;
 
 import decoder.HighSpeedBitStream;
 import decoder.SourceIQ;
+import telemetry.FoxPayloadStore;
+import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
 import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
@@ -49,8 +52,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.02a";
-	public static String VERSION = VERSION_NUM + " - 21 October 2015";
+	public static String VERSION_NUM = "1.03c";
+	public static String VERSION = VERSION_NUM + " - 26	December 2015";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -66,7 +69,7 @@ public class Config {
 	public static PassManager passManager;
 	static Thread passManagerThread;
 	
-	public static PayloadStore payloadStore;
+	public static FoxPayloadStore payloadStore;
 	static Thread payloadStoreThread;
 	public static RawFrameQueue rawFrameQueue;
 	// We have one queue for the whole application
@@ -92,7 +95,8 @@ public class Config {
 	public static String soundCard = NO_SOUND_CARD_SELECTED;
 	public static String audioSink = NO_SOUND_CARD_SELECTED;
 	public static int playbackSampleRate = 48000; //44100; //192000;
-	static public boolean flipReceivedBits = false;
+	static public boolean flipReceivedBits = false;  
+	static public boolean flipReceivedBits2 = false; // FIXME - Quick Hack to see if this is an issue.  If this stays MUST go at end of config
 	static public boolean recoverClock = true;
 	static public boolean writeDebugWavFile = false;
 	static public boolean debugValues = false;
@@ -145,16 +149,17 @@ public class Config {
     public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
     public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
-    public static String primaryServer = "tlm.amsat.us";
-    public static String secondaryServer = "tlm.amsat.org";
+    public static String primaryServer = "tlm.amsat.org";
+    public static String secondaryServer = "tlm.amsat.us";
+    public static String webSiteUrl = "http://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
     // These are not saved to the file
     public static int udpPort = 41041;
     public static int tcpPort = 41042;
-    public static int serverPort = udpPort;
-  //  public static int serverProtocol = TlmServer.TCP; 
-    public static int serverProtocol = TlmServer.UDP;
+    public static int serverPort = tcpPort;
+    public static int serverProtocol = TlmServer.TCP; 
+  //  public static int serverProtocol = TlmServer.UDP;
     
 	// GUI properties
 	public static int windowHeight = 750;
@@ -173,6 +178,7 @@ public class Config {
 	public static String csvCurrentDirectory = "";
 	public static String logFileDirectory = ""; // This is the directory that we write the decoded data into and any other log files
 	public static String homeDirectory = ""; // This is the directory we write the properties in.  This allows us to find the other directories.
+	public static String serverFileDirectory = ""; 
 	static public boolean displayRawValues = false;
 	static public boolean showLatestImage = false;
 	static public boolean displayRawRadData = false;
@@ -195,9 +201,16 @@ public class Config {
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
-	static public String t0UrlPath = "http://amsat.us/FoxTelem/";
+	static public String t0UrlPath = "http://amsat.org/tlm/ops/";
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
+	
+	// Post V1.00
+	static public boolean debugHerciFrames = false;
+	
+	// V1.03
+	static public boolean autoDecodeSpeed = true;
+	static public boolean swapIQ = false;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -223,6 +236,21 @@ public class Config {
 		}
 		
 		System.out.println("Set Home to: " + homeDirectory);
+	}
+	
+	public static void basicInit() {
+		initSequence();
+		
+		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
+		osName = System.getProperty("os.name").toLowerCase();
+		setOs();
+		
+		satManager = new SatelliteManager();
+	}		
+	public static void serverInit(String u, String p, String db) {
+		basicInit();
+		initPayloadDB(u,p,db);
+		
 	}
 	
 	public static void init() {
@@ -278,9 +306,15 @@ public class Config {
 		passManagerThread.start();
 	}
 
-	
+
 	public static void initPayloadStore() {	
 		payloadStore = new PayloadStore();
+		payloadStoreThread = new Thread(payloadStore);
+		payloadStoreThread.start();
+	}
+
+	public static void initPayloadDB(String u, String p, String db) {	
+		payloadStore = new PayloadDbStore(u,p,db);
 		payloadStoreThread = new Thread(payloadStore);
 		payloadStoreThread.start();
 	}
@@ -489,6 +523,16 @@ public class Config {
 		properties.setProperty("serverParamsUrl", serverParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
+		
+		// Version 1.02 settings
+		properties.setProperty("serverFileDirectory", serverFileDirectory);
+		properties.setProperty("webSiteUrl", webSiteUrl);
+		
+		// Version 1.03 settings
+		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
+		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
+		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
+		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
 		store();
 	}
 	
@@ -627,9 +671,22 @@ public class Config {
 		ANALYZE_SNR_THRESHOLD = Double.parseDouble(getProperty("ANALYZE_SNR_THRESHOLD"));
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		
+		
 		serverParamsUrl = getProperty("serverParamsUrl");
 		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
 		downloadT0FromServer = Boolean.parseBoolean(getProperty("downloadT0FromServer"));
+	
+		// Version 1.02 settings
+		serverFileDirectory = getProperty("serverFileDirectory");
+		if (serverFileDirectory == null) serverFileDirectory = "";
+		webSiteUrl = getProperty("webSiteUrl");
+		if (webSiteUrl == null) webSiteUrl = "";
+		
+		//Version 1.03
+		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
+		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
+		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
+		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -651,7 +708,7 @@ public class Config {
         "Exit"};
 		int n = JOptionPane.showOptionDialog(
 				MainWindow.frame,
-				"Could not read properties file. Format has probablly changed or the file is corrupt.  "
+				"Could not read properties file. If this is a new release then the format has probablly been extended.\n"
 				+ "Should I create a new properties file after reading as much as possible from the existing one?",
 				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
 			    JOptionPane.YES_NO_OPTION,

@@ -45,7 +45,9 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	byte a,b,c,d;
 	
 	boolean skippedOneByte = false;
+	int channels = 0;
 	
+	/*
 	public SourceSoundCardAudio(int circularBufferSize, int rate, int device) throws IllegalArgumentException, LineUnavailableException {
 		super("SoundCard", circularBufferSize);
 		sampleRate = rate;
@@ -53,6 +55,15 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		readBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
 		
 	}
+*/
+	public SourceSoundCardAudio(int circularBufferSize, int rate, int device, int chan) throws IllegalArgumentException, LineUnavailableException {
+		super("SoundCard", circularBufferSize, chan);
+		channels = chan;
+		sampleRate = rate;
+		setDevice(device);
+		readBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
+	}
+
 	
 	private void init() throws LineUnavailableException {
 		if (targetDataLine != null) {
@@ -255,9 +266,17 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 						if (audioFormat.getFrameSize() == 4) {
 							c = readBuffer[i+2];
 							d = readBuffer[i+3];
-							circularBuffer.add(a,b,c,d);
+							if (channels == 0)
+								circularBuffer[0].add(a,b,c,d);
+							else
+								for (int chan=0; chan < channels; chan++)
+									circularBuffer[chan].add(a,b,c,d);
 						} else {
-							circularBuffer.add(a,b);
+							if (channels == 0)
+								circularBuffer[0].add(a,b);
+							else
+								for (int chan=0; chan < channels; chan++)
+									circularBuffer[chan].add(a,b);
 						}
 					}
 				} catch (IndexOutOfBoundsException e) {
@@ -270,7 +289,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 					errorCount++;
 					if (Config.debugAudioGlitches) {
 						if (errorCount % 10 == 0) {
-							Log.println("Missed audio from the sound card, Buffers missed: " + errorCount + " with capacity: " + circularBuffer.getCapacity());
+							Log.println("Missed audio from the sound card, Buffers missed: " + errorCount + " with capacity: " + getAudioBufferCapacity());
 							//	
 							//}
 							if (errorCount % 100 == 0) {
@@ -285,7 +304,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 				}
 			}
 		}
-		Log.println("Audio Source EXIT");
+		Log.println("Audio Source EXIT, channels:" + channels);
 	}
 
 }

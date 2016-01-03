@@ -1,0 +1,26 @@
+25,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,HERCI_HK,CRC_CCITT,16,NONE,28,Control,1,1,5,CRC,The CRC CCITT Check
+1,HERCI_HK,SOURCE,2,NONE,29,Control,1,2,5,Source,Source Indicator
+2,HERCI_HK,SEQ_MONOTOMIC,14,NONE,1,Control,1,3,5,Sequence,Monotonically increasing sequence
+3,HERCI_HK,SYSTEM_TIME,31,s,1,Control,1,4,5,System Time,System time since the epoch (reset)
+4,HERCI_HK,SYSTEM_TIME_SUSPECT,1,NONE,17,Control,1,5,5,Time Suspect,"Time is suspect if true, because no recent updates received"
+5,HERCI_HK,EPOCH_NUM,16,NONE,1,Control,1,6,5,Resets,Number of times the host system has been reset
+6,HERCI_HK,LENGTH,4,NONE,1,Control,1,7,5,Length,Overall record length - always 58
+7,HERCI_HK,SHK_AVG_COUNT_RATE,16,count/s,1,Detector,2,1,5,Avg Count Rate,The average count rate
+8,HERCI_HK,SHK_PEAK_COUNT_RATE,16,count/s,1,Detector,2,2,5,Peak Count Rate,The peak count rate
+9,HERCI_HK,SHK_SCIENCE_PKT_COUNT,16,NONE,1,Control,1,8,5,Packet Count,The number of science packets
+10,HERCI_HK,SHK_CMD_COUNT1,16,NONE,1,DPU,3,1,5,IHU Commands,The number of commands received from the IHU
+11,HERCI_HK,SHK_CMD_COUNT2,16,NONE,1,DPU,3,2,5,Total Comands,The total number of commands
+12,HERCI_HK,SHK_CMD_COUNT3,16,NONE,1,DPU,3,3,5,Validation Errors,Command errors
+13,HERCI_HK,DPU_TEMP,8,C,0,DPU,3,4,5,Temperature,Temperature of the DPU
+14,HERCI_HK,DETECTOR_TEMP,8,C,0,Detector,2,3,5,Temperature,Temperature of the detector
+15,HERCI_HK,PK1_SRC,4,NONE,29,Micro Packet 1,10,1,5,Source,Micro Packet 1 Source - the task that generated this
+16,HERCI_HK,PK1_TYP,4,NONE,1,Micro Packet 1,10,2,5,Type,Micro Packet 1 Type
+17,HERCI_HK,PK1_SEQ,8,NONE,1,Micro Packet 1,10,3,5,Sequence,Micro Packet 1 Packet Sequence
+18,HERCI_HK,PK1_RTI_TIME,16,s,1,Micro Packet 1,10,4,5,RTI Time,Micro Packet 1 Time in seconds
+19,HERCI_HK,PK1_DATA,96,NONE,28,Micro Packet 1,10,5,5,Data,Micro Packet 1 Data
+20,HERCI_HK,PK2_SRC,4,NONE,29,Micro Packet 2,11,1,5,Source,Micro Packet 2 Source - the task that generated this
+21,HERCI_HK,PK2_TYP,4,NONE,1,Micro Packet 2,11,2,5,Type,Micro Packet 2 Type
+22,HERCI_HK,PK2_SEQ,8,NONE,1,Micro Packet 2,11,3,5,Sequence,Micro Packet 2 Packet Sequence
+23,HERCI_HK,PK2_RTI_TIME,16,s,1,Micro Packet 2,11,4,5,RTI Time,Micro Packet 2 Time in seconds
+24,HERCI_HK,PK2_DATA,96,NONE,28,Micro Packet 2,11,5,5,Data,Micro Packet 2 Data

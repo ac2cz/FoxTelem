@@ -40,6 +40,9 @@ import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 
 import common.Config;
 import common.DesktopApi;
@@ -54,6 +57,7 @@ import javax.swing.JCheckBoxMenuItem;
 import org.rauschig.jarchivelib.Archiver;
 import org.rauschig.jarchivelib.ArchiverFactory;
 
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
 import telemetry.FramePart;
 import telemetry.HighSpeedFrame;
@@ -104,6 +108,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
 	static Thread[] radiationThread;
 	static Thread[] cameraThread;
+	static Thread[] herciThread;
 	// We have one FTP Thread for the whole application
 //	Thread ftpThread;
 //	FtpLogs ftpLogs;
@@ -144,6 +149,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static ModuleTab[] radiationTab;
 	static HealthTab[] healthTab;
 	static CameraTab[] cameraTab;
+	static HerciHSTab[] herciTab;
 	
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
@@ -268,6 +274,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (ModuleTab tab : radiationTab) {
 			tab.showGraphs();
 		}
+		for (ModuleTab tab : herciTab) {
+			tab.showGraphs();
+		}
 		measurementsTab.showGraphs();
 		frame.toFront();
 	}
@@ -282,6 +291,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 
 		for (ModuleTab tab : radiationTab) {
+			if (closeGraphs) tab.closeGraphs();
+			tabbedPane.remove(tab);
+		}
+		for (ModuleTab tab : herciTab) {
+			if (tab != null)
 			if (closeGraphs) tab.closeGraphs();
 			tabbedPane.remove(tab);
 		}
@@ -305,7 +319,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		stopThreads(healthTab);
 		stopThreads(radiationTab);
 		stopThreads(cameraTab);
-
+		stopThreads(herciTab);
+		
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		healthTab = new HealthTab[sats.size()];
 		healthThread = new Thread[sats.size()];
@@ -313,7 +328,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		radiationTab = new ModuleTab[sats.size()];
 		radiationThread = new Thread[sats.size()];
 		cameraTab = new CameraTab[sats.size()];
+		herciTab = new HerciHSTab[sats.size()];
 		cameraThread = new Thread[sats.size()];
+		herciThread = new Thread[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
 			healthTab[s] = new HealthTab(sats.get(s));
 			healthThread[s] = new Thread(healthTab[s]);
@@ -328,10 +345,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			for (int exp : sats.get(s).experiments) {
 				if (exp == Spacecraft.EXP_VULCAN)
 					addExperimentTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_VT_CAMERA)
+				if (exp == Spacecraft.EXP_VT_CAMERA || exp == Spacecraft.EXP_VT_CAMERA_LOW_RES)
 					addCameraTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_IOWA_HERCI)
-					addHerciTab(sats.get(s), s);
+				if (exp == Spacecraft.EXP_IOWA_HERCI) {
+					addHerciHSTab(sats.get(s), s);
+					addHerciLSTab(sats.get(s), s);
+				}
+					
 			}
 			
 		}
@@ -384,18 +404,28 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	}
 
-	private static void addHerciTab(Spacecraft fox, int num) {
-		
-		radiationTab[num] = new HerciTab(fox);
-		radiationThread[num] = new Thread((HerciTab)radiationTab[num]);
-//		radiationTab[num] = new RadiationTab(fox);
-//		radiationThread[num] = new Thread((RadiationTab)radiationTab[num]);
-			
+	private static void addHerciLSTab(Spacecraft fox, int num) {
+
+		radiationTab[num] = new HerciLSTab(fox);
+		radiationThread[num] = new Thread((HerciLSTab)radiationTab[num]);
 		radiationThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		radiationThread[num].start();
 
+		
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" HERCI ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
+		" HERCI HK ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
+
+	}
+	
+	private static void addHerciHSTab(Spacecraft fox, int num) {
+		herciTab[num] = new HerciHSTab(fox);
+		herciThread[num] = new Thread(herciTab[num]);
+			
+		herciThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		herciThread[num].start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+		" HERCI ("+ fox.getIdString() + ")</body></html>", herciTab[num] );
 
 	}
 	
@@ -473,20 +503,19 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmImportStp = new JMenuItem("Import STP");
 		mnFile.add(mntmImportStp);
 		
-		mntmGetServerData = new JMenuItem("Fetch Server Data");
-		mnFile.add(mntmGetServerData);
-
 		File aFile = new File(dir);
 		if(aFile.isDirectory()){
 			mntmImportStp.setVisible(true);
 			mntmImportStp.addActionListener(this);
-			mntmGetServerData.setVisible(true);
-			mntmGetServerData.addActionListener(this);
 		} else {
 			mntmImportStp.setVisible(false);
-			mntmGetServerData.setVisible(false);
+			//mntmGetServerData.setVisible(false);
 
 		}
+
+		mntmGetServerData = new JMenuItem("Fetch Server Data");
+		mnFile.add(mntmGetServerData);
+		mntmGetServerData.addActionListener(this);
 
 //		mntmLoadIQWavFile = new JMenuItem("Load IQ Wav File");
 //		mnFile.add(mntmLoadIQWavFile);
@@ -656,7 +685,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			importStp("stp", false);
 		}
 		if (e.getSource() == mntmGetServerData) {
-			importServerData();
+			replaceServerData();
 		}
 		if (e.getSource() == mntmLoadIQWavFile) {
 			inputTab.chooseIQFile();
@@ -728,6 +757,104 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
+	private void replaceServerData() {
+
+		if (Config.logFileDirectory.equalsIgnoreCase("")) {
+			Log.errorDialog("CAN'T EXTRACT SERVER DATA INTO CURRENT DIRECTORY", "You can not replace the log files in the current directory.  "
+					+ "Pick another directory from the settings menu\n");
+			return;
+					
+		}
+		String message = "Do you want to download server data to REPLACE your existing data?\n"
+				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
+				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"Do you want to continue?",
+				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.ERROR_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.NO_OPTION) {
+			return;
+		}
+
+		//String file = "serverlogs.tar.gz";
+		String file = "FOXDB.tar.gz";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
+		}
+		// We have the dir, so pull down the file
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
+		fileProgress.setVisible(true);
+
+		String urlString = Config.webSiteUrl + "/ao85/FOXDB.tar.gz";
+		try {
+			URL website = new URL(urlString);
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			FileOutputStream fos;
+			fos = new FileOutputStream(file);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+		} catch (FileNotFoundException e) {
+			Log.errorDialog("ERROR", "ERROR writing the server data to: " + file + "\n" +
+					e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (MalformedURLException e) {
+			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + file  + "\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		}
+
+		fileProgress.updateProgress(100);
+
+		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
+		decompressProgress.setVisible(true);
+
+		// Now decompress it and expand
+		File archive = new File(file);
+		File destination = new File(Config.logFileDirectory);
+
+		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
+		try {
+			archiver.extract(archive, destination);
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			decompressProgress.updateProgress(100);
+			return;
+		} catch (IllegalArgumentException e) {
+			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			decompressProgress.updateProgress(100);
+			return;
+		}
+
+		decompressProgress.updateProgress(100);
+		Config.save(); // make sure any changed settings saved
+		Config.initPayloadStore();
+		Config.initSequence();
+		Config.initServerQueue();
+		refreshTabs(true);
+	}
+
+	
 	private void importServerData() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"
@@ -846,68 +973,38 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Log.println("IMPORT STP from " + dir);
 		File folder = new File(dir);
 		File[] listOfFiles = folder.listFiles();
-		int duvFrames = 0;
-		int hsFrames = 0;
+		int version1 = 0;
+		int version101 = 0;
+		HashMap<String, Integer> callsigns = new HashMap<String, Integer>();
+		HashMap<String, String> versions = new HashMap<String, String>();
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-
 					try {
-						Frame decodedFrame = Frame.loadStp(stpDir, listOfFiles[i].getName());
-						if (decodedFrame != null && !decodedFrame.corrupt) {
-
-							/*
-							if (decodedFrame.receiver.equalsIgnoreCase("DK3WN")) {
-								long t0 = decodedFrame.getExtimateOfT0();
-								if (t0 != 0) {
-									Date d0 = new Date(t0);
-									Log.println(decodedFrame.receiver + ", Reset, " + decodedFrame.getHeader().getResets() + ", Uptime, " +
-											decodedFrame.getHeader().getUptime() + ", STP Date, " + decodedFrame.getStpDate() + ", T0, " + Frame.stpDateFormat.format(d0) + " "
-											+ d0.getTime());
-								}
-							}
-							*/
-							if (decodedFrame instanceof SlowSpeedFrame) {
-								SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-								FramePart payload = ssf.getPayload();
-								SlowSpeedHeader header = ssf.getHeader();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-								duvFrames++;
-							} else {
-								HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
-								HighSpeedHeader header = hsf.getHeader();
-								PayloadRtValues payload = hsf.getRtPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-								PayloadMaxValues maxPayload = hsf.getMaxPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
-								PayloadMinValues minPayload = hsf.getMinPayload();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
-								PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
-								if (Config.satManager.hasCamera(header.getFoxId())) {
-									PayloadCameraData cameraData = hsf.getCameraPayload();
-									Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
-								}
-								hsFrames++;
-							}
-						}
-						if (delete) {
-							listOfFiles[i].delete();
-						}
-						if (importProgress != null)
-							importProgress.updateProgress((100 * i)/listOfFiles.length);
-					} catch (IOException e) {
-						Log.println(e.getMessage());
+						Frame.importStpFile(listOfFiles[i], true);
+					} catch (StpFileProcessException e) {
+						Log.println("Could not process STP file: " + listOfFiles[i]);
 						e.printStackTrace(Log.getWriter());
 					}
+					if (importProgress != null)
+						importProgress.updateProgress((100 * i)/listOfFiles.length);
 				}
 			}
 			Log.println("Files Processed: " + listOfFiles.length);
-			Log.println("DUV Frames: " + duvFrames);
-			Log.println("HS Frames: " + hsFrames);
+			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
+			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
+			
+			Iterator it = callsigns.entrySet().iterator();
+		    while (it.hasNext()) {
+		        Map.Entry pair = (Map.Entry)it.next();
+		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
+		    }
 		}
 	}
+	
+	
+	
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
 	 * window that are not tied to a control that we have added.
@@ -921,6 +1018,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (HealthTab tab : healthTab)
 			tab.closeGraphs();
 		for (ModuleTab tab : radiationTab)
+			tab.closeGraphs();
+		for (ModuleTab tab : herciTab)
+			if (tab != null)
 			tab.closeGraphs();
 		measurementsTab.closeGraphs();
 		Config.save();

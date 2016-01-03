@@ -12,6 +12,7 @@ import common.Config;
 import common.Log;
 import decoder.Decoder;
 import decoder.EyeData;
+import decoder.Fox9600bpsDecoder;
 
 /** 
  * FOX 1 Telemetry Decoder
@@ -80,7 +81,7 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 		
 	private void init() {
-		if (Config.highSpeed) SAMPLES = 5; else SAMPLES = 120;
+		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; else SAMPLES = 120;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
 			buffer[i] = new int[SAMPLES];
@@ -102,6 +103,9 @@ public class EyePanel extends JPanel implements Runnable {
 				Log.println("ERROR: Eye Diagram thread interrupted");
 				//e.printStackTrace();
 			} 
+			//Log.println("RUNNING EYE THREAD FOR: " + decoder.name);
+			//if (decoder.name.equalsIgnoreCase("High Speed"))
+			//	Log.println("STOP");
 		
 			if (decoder != null) {
 				// We get the eye data, which is a copy of the bucket data
@@ -139,9 +143,11 @@ public class EyePanel extends JPanel implements Runnable {
 					}
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// nothing to do at run time.  We switched decoders and the array length changed underneath us
-					//Log.println("Ran off end of eye diagram data");
+					//Log.println("Ran off end of eye diagram data");	
 				}
 
+			} else {
+				//Log.println("NULL EYE DATA");
 			}
 			this.repaint();
 		}
@@ -153,6 +159,9 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 	
 	public void startProcessing(Decoder d) {
+		if (decoder != null) {
+			// we were already live and we are swapping to a new decoder
+		}
 		decoder = d;
 		running = true;
 	}
@@ -211,6 +220,7 @@ public class EyePanel extends JPanel implements Runnable {
 			}
 			} catch (NullPointerException e) {
 				// this means the buffer was changed while we were drawing it
+				//Log.println("Eye Data buffer changed while drawing it");
 			}
 			
 		} else {
@@ -245,7 +255,7 @@ public class EyePanel extends JPanel implements Runnable {
 		g.drawString("Errors  "+errors, graphWidth/2 - 70  + border, graphHeight - 10  );
 		g.drawString("Erasures  "+erasures, graphWidth/2 - 0  + border, graphHeight - 10  );
 		//g.drawString("BER:"+bitErrorRate, graphWidth/2 + 35  + border, graphHeight - 10  );
-		
+		//erasures++;  // test to see if the window is updating
 	}
 
 	private double scaleSample(int graphHeight, double h) {

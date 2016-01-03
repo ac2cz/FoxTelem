@@ -1,5 +1,10 @@
 package telemetry;
 
+import gui.MainWindow;
+import gui.ProgressPanel;
+
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -39,7 +44,9 @@ import common.Spacecraft;
  * 
  *
  */
-public class PayloadStore implements Runnable {
+public class PayloadStore extends FoxPayloadStore implements Runnable {
+	public static final String DB_NAME = "FOXDB";
+	public static final String DB_VERSION = "1.00";
 	public static final int DATA_COL = 0;
 	public static final int UPTIME_COL = 1;
 	public static final int RESETS_COL = 2;
@@ -58,6 +65,8 @@ public class PayloadStore implements Runnable {
 	SatMeasurementStore[] measurementStore;
 	
 	public PayloadStore() {
+		
+
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
 		measurementQueue = new SortedMeasurementArrayList(INITIAL_QUEUE_SIZE);
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
@@ -65,13 +74,74 @@ public class PayloadStore implements Runnable {
 		pictureStore = new SatPictureStore[sats.size()];
 		measurementStore = new SatMeasurementStore[sats.size()];
 		
+		String dir = "";
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator ;
+			//System.err.println("Loading: "+log);
+		}
+        String loadMessage = "FoxTelem: Loading logged data, please wait ...";
+        
+		boolean newDB = makeDir(dir + DB_NAME);
+		if (newDB) {
+			// Check to see if the Fox 1 Real Time file is present
+			String testFile = "Fox1"+SatPayloadStore.RT_LOG+".log";
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				testFile = Config.logFileDirectory + File.separator + testFile;
+			}
+			File aFile = new File(testFile);
+			if(aFile.exists()){
+				Log.infoDialog("Database Conversion", "You have pre version 1.03 payload log files.  These will be converted to the new 1.03 database format.\n"
+						+ "This process may take a few minutes to load the data and convert it\n");
+				loadMessage = "FoxTelem: Database conversion in progress, please wait ...";
+			} else {
+				newDB = false; // no need to convert
+			}
+			
+		}
+		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
+		fileProgress.setVisible(true);
+		
 		for (int s=0; s<sats.size(); s++) {
 			payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);
+			if (newDB) {
+				// convert any legacy data
+				try {
+					payloadStore[s].convert();
+				} catch (IOException e) {
+					Log.errorDialog("ERROR", "Could not convert the old FoxTelem payload files to the new format: " +  
+							"\nAny old payloads will not be available\n");
+					e.printStackTrace(Log.getWriter());
+				}
+			}
 			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
+			fileProgress.updateProgress(100 * s / sats.size());
 		}
+		
+		fileProgress.updateProgress(100);
 	}
 	
+	/**
+	 * Make the database directory if needed.  Check to see if we have existing legacy data and run the conversion if we do
+	 * @param dir
+	 */
+	private boolean makeDir(String dir) {
+		
+		File aFile = new File(dir);
+		if(!aFile.isDirectory()){
+			Log.println("Making new database: " + dir);
+			aFile.mkdir();
+			if(!aFile.isDirectory()){
+				Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
+						"\nAny decoded payloads will not be saved to disk\n");
+				Config.storePayloads = false;
+				return false;
+			}
+			return true;
+		}
+		
+		return false;
+	}
 	public boolean hasQueuedFrames() {
 		if (payloadQueue.size() > 0) return true;
 		return false;
@@ -173,6 +243,28 @@ public class PayloadStore implements Runnable {
 		if (store != null)
 			store.setUpdatedRad(u);
 	}
+	public boolean getUpdatedHerci(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdatedHerci();
+		return false;
+	}
+	public void setUpdatedHerci(int id, boolean u) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdatedHerci(u);
+	}
+	public boolean getUpdatedHerciHeader(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdatedHerciHeader();
+		return false;
+	}
+	public void setUpdatedHerciHeader(int id, boolean u) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdatedHerciHeader(u);
+	}
 	public boolean getUpdatedCamera(int id) { 
 		SatPictureStore store = getPictureStoreById(id);
 		if (store != null)
@@ -244,6 +336,12 @@ public class PayloadStore implements Runnable {
 			return store.getNumberOfRadFrames();
 		return 0;
 	}
+	public int getNumberOfHerciFrames(int id) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getNumberOfHerciFrames();
+		return 0;
+	}
 	
 	
 	public int getNumberOfPictureCounters(int id) { 
@@ -292,7 +390,20 @@ public class PayloadStore implements Runnable {
 		}
 		return true;
 	}
-	
+
+	/**
+	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
+	 * @param f
+	 * @return
+	 */
+	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
+		for (int i=0; i< herci.length; i++) {
+			herci[i].captureHeaderInfo(id, uptime, resets);
+			payloadQueue.addToEnd(herci[i]);
+		}
+		return true;
+	}
+
 	public boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -383,21 +494,45 @@ public class PayloadStore implements Runnable {
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestRt();
+			try {
+				return store.getLatestRt();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
 	public PayloadMaxValues getLatestMax(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestMax();
+			try {
+				return store.getLatestMax();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
 	public PayloadMinValues getLatestMin(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestMin();
+			try {
+				return store.getLatestMin();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
@@ -405,7 +540,15 @@ public class PayloadStore implements Runnable {
 	public PayloadRadExpData getLatestRad(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestRad();
+			try {
+				return store.getLatestRad();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
@@ -413,12 +556,52 @@ public class PayloadStore implements Runnable {
 	public RadiationTelemetry getLatestRadTelem(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getLatestRadTelem();
+			try {
+				return store.getLatestRadTelem();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 
 	}
 
 	
+	public PayloadHERCIhighSpeed getLatestHerci(int id) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatestHerci();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+
+	}
+
+	public HerciHighspeedHeader getLatestHerciHeader(int id) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatestHerciHeader();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+
+	}
+
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -430,21 +613,36 @@ public class PayloadStore implements Runnable {
 	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getRtGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getRtGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
 	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getMaxGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getMaxGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;		
 	}
 
 	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getMinGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getMinGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;		
 	}
 
@@ -460,35 +658,64 @@ public class PayloadStore implements Runnable {
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getRadData(period, id, fromReset, fromUptime);
+			try {
+				return store.getRadData(period, id, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 
+	
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getRadTelemData(period, id, fromReset, fromUptime);
+			try {
+				return store.getRadTelemData(period, id, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getHerciPacketData(period, id, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
 	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
-			return store.getRadTelemGraphData(name, period, fox, fromReset, fromUptime);
+			try {
+				return store.getRadTelemGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
 		return null;
 	}
-
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(fox.foxId);
+		if (store != null)
+			try {
+				return store.getHerciScienceHeaderGraphData(name, period, fox, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
 	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
 			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime);
-		return null;
-	}
-
-	
-	public String getRtUTCFromUptime(int id, int reset, long uptime) {
-		SatPayloadStore store = getPayloadStoreById(id);
-		if (store != null)
-			return store.getRtUTCFromUptime(reset, uptime);
 		return null;
 	}
 	
@@ -558,4 +785,26 @@ public class PayloadStore implements Runnable {
 		}
 		done = true;
 	}
+
+	public void initRad2() {
+		
+	}
+	
+	@Override
+	public boolean addStpHeader(Frame f) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	public boolean updateStpHeader(Frame f) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public String getRtUTCFromUptime(int id, int reset, long uptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 }

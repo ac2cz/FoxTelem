@@ -46,21 +46,25 @@ public class Log {
 	static private boolean echoToStdout = true; // true for debugging through eclipse because its handy.  This will never be true in production version.
 	static PrintWriter output = null;
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+	public static final DateFormat logDateName = new SimpleDateFormat("yyyyMMdd");
 	public static SourceTab logPanel;
 	public static String logFile = "FoxTelemDecoder.log";
 	public static Thread.UncaughtExceptionHandler uncaughtExHandler;
+	public static boolean showGuiDialogs = true;
 	/**
 	 * Initialise the logger and create a logfile with the passed name
 	 * @param file
 	 * @throws IOException 
 	 */
-	public static void init() {
+	public static void init(String logFile) {
+		
+		Log.logFile = rollLog(logFile);
 		if (Config.logging) {
 			try {
 				if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-					logFile = Config.logFileDirectory + File.separator + logFile;
+					Log.logFile = Config.logFileDirectory + File.separator + Log.logFile;
 				} 
-				File aFile = new File(logFile);
+				File aFile = new File(Log.logFile);
 				if(!aFile.exists()){
 					aFile.createNewFile();
 				}
@@ -69,9 +73,14 @@ public class Log {
 				output = new PrintWriter(new FileWriter(aFile, true));
 			} catch (IOException e) {
 				System.err.println("FATAL ERROR: Cannot write log file: FoxTelemDecoder.log\n"
-						+ "Perhaps the disk is full or the directory is not writable");
+						+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory);
+
 				e.printStackTrace();
-				System.exit(1);
+		        Log.errorDialog("FATAL ERROR", "Cannot write log file: FoxTelemDecoder.log\n"
+		        		+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory + "\n\n"
+		        				+ "You can reset FoxTelem by deleting the settings file (might want to back it up first):\n"
+		        				+ Config.homeDirectory+ File.separator+"FoxTelem.properties");
+		        System.exit(1);
 			}
 		}
 		uncaughtExHandler = new Thread.UncaughtExceptionHandler() {
@@ -83,6 +92,13 @@ public class Log {
 		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
 		    }
 		};
+	}
+	
+	public static String rollLog(String logFile) {
+		Date today = Calendar.getInstance().getTime();
+		logDateName.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String reportDate = logDateName.format(today);
+		return logFile + reportDate + ".log";
 	}
 	
 	public static boolean getLogging() { return Config.logging; }
@@ -101,36 +117,48 @@ public class Log {
 	
 	public static void print(String s) {
 		if (Config.logging) {
-			if (output == null) init();
+			if (output == null) init(logFile);
 			output.write(s);
 			if (logPanel != null) logPanel.log(s);
 			flush();
-		
-			if (echoToStdout) {
-				System.out.print(s);
-			}
 		}
+		if (echoToStdout) {
+			System.out.print(s);
+		}
+
 	}
-	
+
 	public static void println(String s) {
 		if (Config.logging) {
-			if (output == null) init();
+			if (output == null) init(logFile);
 			output.write(fileDateStamp() + s + System.getProperty("line.separator") );
 			if (logPanel != null) logPanel.log(s);
 			flush();
-		
-			if (echoToStdout) {
-				System.out.println(s);
-			}
 		}
+		if (echoToStdout) {
+			System.out.println(s);
+		}
+
 	}
 	
 	public static void errorDialog(String title, String message) {
+		dialog(title, message, JOptionPane.ERROR_MESSAGE );
+	}
+	
+	public static void infoDialog(String title, String message) {
+		dialog(title, message, JOptionPane.INFORMATION_MESSAGE );
+	}
+	
+	public static void dialog(String title, String message, int type) {
+		if (showGuiDialogs)
 		JOptionPane.showMessageDialog(MainWindow.frame,
 				message.toString(),
 				title,
-			    JOptionPane.ERROR_MESSAGE) ;
+			    type) ;
+		else Log.println(title + " " + message.toString());
 	}
+	
+	
 	
 	public static String fileDateStamp() {	
 		Date today = Calendar.getInstance().getTime();  

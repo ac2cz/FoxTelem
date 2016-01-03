@@ -218,7 +218,7 @@ public class DisplayTableModule extends JPanel implements ActionListener, MouseL
 					data[i][1] = Integer.toString(rt.getRawValue(fieldName[i]));
 				else
 					data[i][1] = rt.getStringValue(fieldName[i], fox);
-				if (graph[i] != null) graph[i].updateGraphData();
+				if (graph[i] != null) graph[i].updateGraphData("DisplayTableModule.updateRtValues");
 			}
 		}
 		displayTableModel.setData(data);

@@ -1,6 +1,11 @@
 
 import gui.InitalSettings;
 import gui.MainWindow;
+import telemetry.FramePart;
+import telemetry.PayloadRtValues;
+import telemetry.SortedArrayList;
+import telemetry.SortedFramePartArrayList;
+import telemetry.TableSeg;
 
 import java.awt.EventQueue;
 import java.awt.Toolkit;
@@ -8,13 +13,6 @@ import java.io.File;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-import java.util.TimeZone;
-
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 
@@ -463,7 +461,46 @@ import decoder.Decoder;
  * Capture the string version of the STP date in ENGLISH for all users, but leave other string dates in local language
  * Fixed bug where TCA date could be null and a SERIOUS error was reported
  * Fixed issue where the tabs were always refreshed when the spacecraft menu closed
+ * Fixed bug where UTC date was sometimes wrong on the spacecraft T0 panel
+ * Ready FoxTelem for sending server data via TCP
+ * Support downloading data from the server
+ * Fixed bug where T0 date was sometimes wrong
  * 
+ * Version 1.03
+ * Auto detect high speed vs low speed telemetry
+ * Display HERCI High Speed frames on the Herci Tab
+ * Display HERCI Housekeeping frames
+ * Support the Fox-1D low res camera format
+ * Swapped min/max values for solar panel temp on 1A
+ * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
+ * Fixed bug where HighSpeed Frames were unnecessarily held in the queue until the pass was finished
+ * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
+ * Interpolate the middle of two samples for first difference calculation, for more accurate TCA calculation
+ * Add SAFE mode bit to the Computer panel so that it can be graphed
+ * Implemented MPPT panel temperature conversion using Cubic fit
+ * Sort camera images by reset and uptime not picture counter
+ * Save position of the HERCI HS tab horizontal divider
+ * Allow the user to specify the number of thumb nails to display on the camera tab
+ * Fixed bug where Radiation Graphs did not open at start up
+ * Fixed bug where T0 file could be corrupted if URL returned bogus data
+ * Fixed bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
+ * Fixed issue where audio continued after squelch in auto mode and memory was leaked
+ * Allow the user to swap IQ channels in IQ mode
+ * Allow graphs to be plotted as points (without lines)
+ * Graph formatting parameters are not saved to config and reloaded when FoxTelem is restarted
+ * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
+ * MEMS Gyro 0dps set to 1.51 following measurement of VRef in the diagnostics
+ * When reset button pressed on graphs the average period is reset too
+ * 1.03b
+ * Merged with Server Code - one code base
+ * Fixed crash when auto mode used with wav files
+ * Display converted HERCI Housekeeping data
+ * Skip NULL values for some measurements.  Don't plot continuous labels to left of vertical axis.
+ * MEMS diagnostic values are now in dps (vs Volts)
+ * Fixed bug where radiation data could not be saved to CSV files
+ * Fixed bug where FindSignal failed to lock if Track Doppler was not checked
+ * 1.03c
+ * Download T0 file from amsat.org
  */
 
 public class FoxTelemMain {
@@ -474,16 +511,6 @@ public class FoxTelemMain {
 		
 	public static void main(String[] args) {
 		
-		DateFormat form = new SimpleDateFormat("yyyyMMddHHmmss");
-		form.setTimeZone(TimeZone.getTimeZone("UTC"));
-		try {
-			Date dt = form.parse("20151026203224");
-			System.err.println(dt.getTime());
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
 			// Then this is the first time we have run FoxTelem on this computer
@@ -491,7 +518,7 @@ public class FoxTelemMain {
 			m.initialRun();
 		}
 		
-		Log.init();
+		Log.init("FoxTelemDecoder.log");
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
@@ -501,6 +528,36 @@ public class FoxTelemMain {
 		Log.println("************************************************************");
 		Log.println("CurrentDir is:" + Config.currentDir);
 
+/*		Integer one = 1;
+		Integer two = 2;
+		Integer three = 3;
+		SortedArrayList<Integer> list = new SortedArrayList<Integer>(10);
+		list.add(three);
+		list.add(one);
+		list.add(two);
+		
+		FramePart rt1 = new PayloadRtValues(Config.satManager.getRtLayout(1));
+		rt1.captureHeaderInfo(1, 1, 1);
+		FramePart rt2 = new PayloadRtValues(Config.satManager.getRtLayout(1));
+		rt2.captureHeaderInfo(1, 1, 2);
+		FramePart rt3 = new PayloadRtValues(Config.satManager.getRtLayout(1));
+		rt3.captureHeaderInfo(1, 1, 3);
+		
+		SortedFramePartArrayList frames = new SortedFramePartArrayList(10);
+		frames.add(rt1);
+		frames.add(rt3);
+		frames.add(rt2);
+		
+		TableSeg seg1 = new TableSeg(1,1,"test");
+		TableSeg seg2 = new TableSeg(2,1,"test");
+		TableSeg seg3 = new TableSeg(3,1,"test");
+		SortedArrayList<TableSeg> segs = new SortedArrayList<TableSeg>(10);
+		segs.add(seg3);
+		segs.add(seg1);
+		segs.add(seg2);
+		*/
+//		System.exit(0);
+		
 		if (args.length > 0) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
 				System.out.println(HELP);

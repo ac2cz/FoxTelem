@@ -263,6 +263,7 @@ public class RawFrameQueue implements Runnable {
 				// We attempt to send the first one, if unsuccessful, we try the backup server.  If still unsuccessful we drop out
 				// and try next time, unless sendToBoth is set, in which case we just send to both servers
 				while (rawSlowSpeedFrames.size() > 0 && success) {
+					// If we are in a pass, then don't send the last frame
 					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawSlowSpeedFrames.size() > 1))
 						success = sendFrame(rawSlowSpeedFrames, RAW_SLOW_SPEED_FRAMES_FILE);
 					try {
@@ -273,7 +274,7 @@ public class RawFrameQueue implements Runnable {
 					} 	
 				}
 				while (rawHighSpeedFrames.size() > 0 && success) {
-					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawSlowSpeedFrames.size() > 1))
+					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawHighSpeedFrames.size() > 1))
 						success = sendFrame(rawHighSpeedFrames, RAW_HIGH_SPEED_FRAMES_FILE);
 					try {
 						Thread.sleep(100); // pause so that the server can keep up

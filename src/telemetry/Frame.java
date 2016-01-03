@@ -18,6 +18,7 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import telemServer.StpFileProcessException;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
@@ -94,11 +95,11 @@ public abstract class Frame implements Comparable<Frame> {
 	private String frequency = NONE; // frequency when this frame received
 	private String source; // The frame source subsystem
 	private String length; // The frame length in bytes
-	private String rx_location = NONE; // the lat, long and altitude
-	private String receiver_rf = NONE; // human description of the receiver
-	private String demodulator; // will contain Config.VERSION
+	public String rx_location = NONE; // the lat, long and altitude
+	public String receiver_rf = NONE; // human description of the receiver
+	public String demodulator; // will contain Config.VERSION
 	private Date stpDate;
-	private long sequenceNumber = Sequence.ERROR_NUMBER;
+	public long sequenceNumber = Sequence.ERROR_NUMBER;
 
 	private String measuredTCA = NONE; // time of TCA
 	private String measuredTCAfrequency = NONE; // frequency if this frame was
@@ -155,6 +156,7 @@ public abstract class Frame implements Comparable<Frame> {
 	}
 
 	public String getStpDate() {
+		if (stpDate == null) return null;
 		return Frame.stpDateFormat.format(stpDate);
 	}
 
@@ -348,113 +350,157 @@ public abstract class Frame implements Comparable<Frame> {
 			output.write(Integer.toString(bytes[i]) + ",");
 		output.write(Integer.toString(bytes[bytes.length - 1]) + "\n");
 	}
-
+	
 	/**
 	 * Static factory method that creates a frame from a file
 	 * 
 	 * @param fileName
 	 * @return
 	 * @throws IOException
+	 * @throws StpFileProcessException 
 	 * @throws LayoutLoadException
 	 */
-	public static Frame loadStp(String dir, String fileName) throws IOException {
-		String stpDir = "stp";
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			stpDir = Config.logFileDirectory + File.separator + dir;
-
-		}
-		FileInputStream in = new FileInputStream(stpDir + File.separator
-				+ fileName);
+	public static Frame loadStp(String fileName) throws IOException, StpFileProcessException {
+		//String stpDir = fileName;
+		//if (!dir.equalsIgnoreCase("")) {
+		//	stpDir = dir + File.separator + fileName;
+		//	
+		//}
+		FileInputStream in = new FileInputStream(fileName);
 		int c;
 		int lineLen = 0;
 
 		boolean done = false;
 		boolean readingKey = true;
-		String key = null;
-		String value = null;
+		String key = "";
+		String value = "";
 		byte[] rawFrame = null;
 		int length = 0;
 		String receiver = null;
 		Date stpDate = null;
+		String frequency = NONE; // frequency when this frame received
+		String source; // The frame source subsystem
+		String rx_location = NONE; // the lat, long and altitude
+		String receiver_rf = NONE; // human description of the receiver
+		String demodulator = null; // will contain Config.VERSION
+		long sequenceNumber = Sequence.ERROR_NUMBER;
+		
+		String measuredTCA = NONE; // time of TCA
+		String measuredTCAfrequency = NONE;
+		
 		boolean firstColon = true;
 
 		// Read the file
-		while (!done && (c = in.read()) != -1) {
-			Character ch = (char) c;
-			// System.out.print(ch);
+		try {
+			while (!done && (c = in.read()) != -1) {
+				Character ch = (char) c;
+				//System.out.print(ch);
 
-			if (ch == ':' && firstColon) {
-				firstColon = false;
-				c = in.read(); // consume the space
-				c = in.read();
-				ch = (char) c; // set ch to the first character
-				readingKey = false;
-			}
-			if ((c == 13 || c == 10)) { // CR or LF
-				c = in.read(); // consume the lf
-				if ((length == 768 || length == 42176) && lineLen == 1) {
-					// then we are ready to process
-					rawFrame = new byte[length / 8];
-					for (int i = 0; i < 96; i++) {
-						rawFrame[i] = (byte) in.read();
-					}
-					done = true;
-				} else {
-					// It was a header line
-					readingKey = true;
-					firstColon = true;
-					if (key.startsWith("Length")) {
-						length = Integer.parseInt(value);
-					}
-					if (key.equalsIgnoreCase("Receiver")) {
-						receiver = value;
-						// System.out.println(key + " " + value);
-					}
-					if (key.startsWith("Date")) {
-						// System.out.println(key + " " + value);
-						String dt = value.replace(" UTC", "");
-						stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-						try {
-							stpDate = stpDateFormat.parse(dt);
-						} catch (ParseException e) {
-							stpDate = null;
-							e.printStackTrace(Log.getWriter());
-						}
-
-					}
-					key = "";
-					value = "";
-					lineLen = 0;
+				if (ch == ':' && firstColon) {
+					firstColon = false;
+					c = in.read(); // consume the space
+					c = in.read();
+					ch = (char) c; // set ch to the first character
+					readingKey = false;
 				}
-			} else {
-				if (readingKey)
-					key = key + ch;
-				else
-					value = value + ch;
+				if ( (c == 13 || c == 10)) { // CR or LF
+					c = in.read(); // consume the lf
+					if ((length == 768 || length == 42176) && lineLen == 1) {
+						// then we are ready to process
+						rawFrame = new byte[length/8];
+						for (int i=0; i<length/8; i++) {
+							rawFrame[i] = (byte) in.read();
+						}
+						done = true;
+					} else {
+						// It was a header line
+						readingKey = true;
+						firstColon = true;
+						if (key.startsWith("Length")) {
+							length = Integer.parseInt(value);
+						}
+						if (key.equalsIgnoreCase("Receiver")) {
+							receiver = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Frequency")) {
+							frequency = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Rx-location")) {
+							rx_location = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Receiver-RF")) {
+							receiver_rf = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Demodulator")) {
+							demodulator = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.endsWith("Sequence")) {
+							sequenceNumber = Long.parseLong(value);
+							//System.out.println(key + " *** " + value);
+						}
+						if (key.equalsIgnoreCase("MeasuredTCA")) {
+							measuredTCA = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("MeasuredTCAfrequency")) {
+							measuredTCAfrequency = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.startsWith("Date")) {
+							//                		System.out.println(key + " " + value);
+							String dt = value.replace(" UTC", "");
+							stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+							try {
+								stpDate = stpDateFormat.parse(dt);
+							} catch (ParseException e) {
+								Log.println("ERROR - Date was not parsable. Setting to null");
+								stpDate = null;
+								//e.printStackTrace(Log.getWriter());
+							}
+
+						}
+						key = "";
+						value = "";
+						lineLen = 0;
+					}
+				} else {
+					if (readingKey) 
+						key = key + ch;
+					else
+						value = value + ch;
+				}
+				lineLen++;
+
 			}
-			lineLen++;
 
+		} finally {
+			in.close();
 		}
-
 		in.close();
 
 		if (rawFrame == null) {
 			// We failed to process the file
 			Log.println("Failed to Process STP file");
-
-			return null;
+			throw new StpFileProcessException(fileName, "Failed to process file: rawFrame is null " + fileName);
+			
 		}
 
 		// Let's really check it is OK by running the RS decode!
 
-		RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES
-				- SlowSpeedFrame.MAX_HEADER_SIZE
-				- SlowSpeedFrame.MAX_PAYLOAD_SIZE);
-		byte[] frame = rawFrame; // rs.decode();
-		if (!rs.validDecode()) {
-			Log.println("RS Decode Failed");
-			return null;
+		byte[] frame = null;
+		if (length == 768) {
+			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+			if (!rs.validDecode()) {
+				Log.println("RS Decode Failed");
+				throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+			}
 		}
+		frame = rawFrame; //rs.decode();
 
 		Frame frm;
 		if (length == 768) {
@@ -464,7 +510,15 @@ public abstract class Frame implements Comparable<Frame> {
 		}
 		frm.addRawFrame(frame);
 		frm.receiver = receiver;
+		frm.demodulator = demodulator;
 		frm.stpDate = stpDate;
+		frm.frequency = frequency;
+		frm.rx_location = rx_location;
+		frm.receiver_rf = receiver_rf;
+		frm.demodulator = demodulator;
+		frm.sequenceNumber = sequenceNumber;
+		frm.measuredTCA = measuredTCA;
+		frm.measuredTCAfrequency = measuredTCAfrequency;
 
 		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260)
 				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 263)
@@ -480,6 +534,136 @@ public abstract class Frame implements Comparable<Frame> {
 
 	}
 
+	public static Frame importStpFile(File f, boolean delete) throws StpFileProcessException {
+		try {
+			Frame decodedFrame = Frame.loadStp(f.getPath());
+			if (decodedFrame != null && !decodedFrame.corrupt) {
+
+				/*
+				if (decodedFrame.receiver.equalsIgnoreCase("DK3WN")) {
+					long t0 = decodedFrame.getExtimateOfT0();
+					if (t0 != 0) {
+						Date d0 = new Date(t0);
+						Log.println(decodedFrame.receiver + ", Reset, " + decodedFrame.getHeader().getResets() + ", Uptime, " +
+								decodedFrame.getHeader().getUptime() + ", STP Date, " + decodedFrame.getStpDate() + ", T0, " + Frame.stpDateFormat.format(d0) + " "
+								+ d0.getTime());
+					}
+				}
+				*/
+				if (!Config.payloadStore.addStpHeader(decodedFrame))
+					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
+				if (decodedFrame instanceof SlowSpeedFrame) {
+					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
+					FramePart payload = ssf.getPayload();
+					SlowSpeedHeader header = ssf.getHeader();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
+					//duvFrames++;
+				} else {
+					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
+					HighSpeedHeader header = hsf.getHeader();
+					PayloadRtValues payload = hsf.getRtPayload();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RT to database");
+					PayloadMaxValues maxPayload = hsf.getMaxPayload();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS MAX to database");
+					PayloadMinValues minPayload = hsf.getMinPayload();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) 
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not HS MIN add to database");
+					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RAD to database");
+					if (Config.satManager.hasCamera(header.getFoxId())) {
+						PayloadCameraData cameraData = hsf.getCameraPayload();
+						if (cameraData != null)
+							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
+								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
+
+					}
+					if (Config.satManager.hasHerci(header.getFoxId())) {
+						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
+						if (herciDataSet != null)
+							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet))
+								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HERCI HS data to database");
+					}
+			
+					//hsFrames++;
+				}
+			}
+			if (delete) {
+				f.delete();
+			}
+			return decodedFrame;
+		} catch (IOException e) {
+			Log.println(e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			throw new StpFileProcessException(f.getName(), "IO Exception processing file");
+		}
+	}
+	
+
+
+	public static String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(stpDate varchar(35), id int, resets int, uptime bigint, type int, "
+		 + "sequenceNumber bigint, "
+		 + "length int, "
+		 + "source varchar(35)," 
+		 + "receiver varchar(35),"		
+		 + "frequency varchar(35),"
+		 + "rx_location varchar(35),"	
+		 + "receiver_rf varchar(52),"		
+		 + "demodulator varchar(100),"
+		+ "measuredTCA varchar(35),"
+		+ "measuredTCAfrequency varchar(35),"
+		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+		s = s + "PRIMARY KEY (id, resets, uptime, type, receiver))";
+		return s;
+	}
+	
+	public String getInsertStmt() {
+	//	java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
+		//FIXME - need to omake this a proper date in the DB
+		String dt = "";
+		if (stpDate != null)
+			dt = stpDateFormat.format(stpDate);
+		String s = new String();
+		if (demodulator.length() > 99) demodulator = demodulator.substring(0, 99);
+		if (source.length() > 32) source = source.substring(0, 32);
+		if (receiver.length() > 32) receiver = receiver.substring(0, 32);
+		if (frequency.length() > 32) frequency = frequency.substring(0, 32);
+		if (rx_location.length() > 32) rx_location = rx_location.substring(0, 32);
+		if (receiver_rf.length() > 50) receiver_rf = receiver_rf.substring(0, 50);
+		if (measuredTCA.length() > 32) measuredTCA = measuredTCA.substring(0, 32);
+		if (measuredTCAfrequency.length() > 32) measuredTCAfrequency = measuredTCAfrequency.substring(0, 32);
+		s = s + " (stpDate,  id, resets, uptime, type, \n";
+		s = s + "sequenceNumber,\n";
+		s = s + "length,\n";
+		s = s + "source,\n";
+		s = s + "receiver,\n";
+		s = s + "frequency,\n";
+		s = s + "rx_location,\n";
+		s = s + "receiver_rf,\n";
+		s = s + "demodulator,\n";
+		s = s + "measuredTCA,\n";
+		s = s + "measuredTCAfrequency)\n";
+		
+		s = s + "values ('" + dt + "', " + this.foxId + ", " + header.resets + ", " + header.uptime + ", " + header.type + ",\n";
+		s = s + sequenceNumber+",\n";
+		s = s + length+",\n";
+		s = s + "'" + source+"',\n";
+		s = s + "'" + receiver+"',\n";
+		s = s + "'" + frequency+"',\n";
+		s = s + "'" + rx_location+"',\n";
+		s = s + "'" + receiver_rf+"',\n";
+		s = s + "'" + demodulator+"',\n";
+		s = s + "'" + measuredTCA+"',\n";
+		s = s + "'" + measuredTCAfrequency+"')\n";
+		return s;
+	}
+
+	
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame)
 			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE

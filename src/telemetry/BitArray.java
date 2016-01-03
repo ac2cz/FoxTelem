@@ -89,9 +89,11 @@ public abstract class BitArray {
 	 *  
 	 */
 	public void copyBitsToFields() {
+		if (rawBits != null) { // only convert if we actually have a raw binary array.  Otherwise this was loaded from a file and we do not want to convert
 		resetBitPosition();
 		for (int i=0; i < layout.fieldName.length; i++) {
 			fieldValue[i] = nextbits(layout.fieldBitLength[i]);
+		}
 		}
 	}
 
@@ -152,5 +154,5 @@ public abstract class BitArray {
 		return ERROR_VALUE;
 	}
 
-	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );
+	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
 }

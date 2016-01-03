@@ -82,6 +82,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox cbUseUDP;
 	private JCheckBox storePayloads;
 	private JCheckBox useLeftStereoChannel;
+	private JCheckBox swapIQ;
 	
 	boolean useUDP;
 	
@@ -244,6 +245,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		useLeftStereoChannel = addCheckBoxRow("Use Left Stereo Channel", "The default is for FoxTelem to read audio from the left stereo channel of your soundcard.  "
 				+ "If you uncheck this it will read from the right",
 				Config.useLeftStereoChannel, rightcolumnpanel0 );
+		swapIQ = addCheckBoxRow("Swap IQ", "Swap the I and Q channels in IQ deocder mode",
+				Config.swapIQ, rightcolumnpanel0 );
 		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		//JPanel rightcolumnpanel1 = addColumn(rightcolumnpanel,3);
@@ -253,6 +256,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		setServerPanelEnabled(Config.uploadToServer);
+		cbUseUDP.setEnabled(false);
 		txtPrimaryServer.setEnabled(false);
 		txtSecondaryServer.setEnabled(false);
 	}
@@ -269,7 +273,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//txtCallsign.setEnabled(en);
 	//	txtPrimaryServer.setEnabled(en);
 	//	txtSecondaryServer.setEnabled(en);
-		cbUseUDP.setEnabled(en);
+	//	cbUseUDP.setEnabled(en);
 		//txtLatitude.setEnabled(en);
 		//txtLongitude.setEnabled(en);
 	}
@@ -445,6 +449,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
+				Config.swapIQ = swapIQ.isSelected();
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;

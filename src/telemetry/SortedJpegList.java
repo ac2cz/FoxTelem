@@ -23,7 +23,7 @@ package telemetry;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * Sorted Array List to store telemetry records
+ * Sorted Array List to store Jpeg telemetry records.   
  * 
  */
 @SuppressWarnings("serial")

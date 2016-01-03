@@ -113,14 +113,17 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_MAX_ONLY = 1;
 	public static final int DISPLAY_MIN_ONLY = 2;
 	public static final int DISPLAY_ALL = 3;
+	public static final int DISPLAY_ALL_SWAP_MINMAX = 4;
 	public static final int DISPLAY_VULCAN = 5;
 	public static final int DISPLAY_LEP = 6;
 	public static final int DISPLAY_LEP_EXPOSURE = 7;
 	public static final int DISPLAY_VULCAN_EXP = 8;
 	public static final int DISPLAY_MEASURES = 9;
 	public static final int DISPLAY_PASS_MEASURES = 10;
+	public static final int DISPLAY_HERCI = 20;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
+	public static Color herciFontColor = new Color(153,0,0);
 	
 	int moduleType = DISPLAY_ALL; // default this to a module that displays normal RT MAX MIN telem
 
@@ -142,7 +145,10 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		setDefaultSizes();
 		moduleType = modType;
 		
-		if (moduleType >= DISPLAY_VULCAN) {
+		if (moduleType >= DISPLAY_HERCI) {
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, 10));
+			border.setTitleColor(herciFontColor);
+		} else if (moduleType >= DISPLAY_VULCAN) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, 10));
 			border.setTitleColor(vulcanFontColor);
 		} else {
@@ -185,7 +191,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		int w = 0;
 		if (display == DISPLAY_RT_ONLY) {
 			w = SINGLE_VAL_WIDTH;
-		} else if (display == DISPLAY_ALL ) {
+		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX ) {
 			w= VAL_WIDTH;
 		} else if ( display >= DISPLAY_VULCAN) {
 			w = VULCAN_WIDTH;
@@ -196,7 +202,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		w = 0;
 		if (display == DISPLAY_MIN_ONLY) {
 			w = SINGLE_VAL_WIDTH;
-		} else if (display == DISPLAY_ALL) {
+		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
 			w= VAL_WIDTH;
 		}
 		if (display < DISPLAY_VULCAN && minValue != null && maxValue != null) {
@@ -206,7 +212,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			w = 0;
 			if (display == DISPLAY_MAX_ONLY) {
 				w = SINGLE_VAL_WIDTH;
-			} else if (display == DISPLAY_ALL) {
+			} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
 				w= VAL_WIDTH;
 			}
 			maxValue[i].setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
@@ -226,7 +232,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						rtValue[i].setText(Integer.toString(rt.getRawValue(fieldName[i])));
 					else
 						rtValue[i].setText(rt.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData();
+					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateRtValues");
 				}
 			}
 		}
@@ -241,13 +247,17 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					if (Config.displayRawValues) {
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 							rtValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
+						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+							minValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
 						else
 							maxValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 						rtValue[i].setText(max.getStringValue(fieldName[i],fox));
+					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+						minValue[i].setText(max.getStringValue(fieldName[i],fox));
 					else
 						maxValue[i].setText(max.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData();
+					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
 				}
 			}
 		}
@@ -262,13 +272,17 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					if (Config.displayRawValues) {
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 							rtValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
+						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+							maxValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
 						else
 							minValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 						rtValue[i].setText(min.getStringValue(fieldName[i],fox));
+					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
+						maxValue[i].setText(min.getStringValue(fieldName[i],fox));
 					else
 						minValue[i].setText(min.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData();
+					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
 				}
 			}
 		}
@@ -290,7 +304,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void updateSingleValue(int line, String value) {
 		rtValue[line].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 		rtValue[line].setText(value);
-		if (graph[line] != null) graph[line].updateGraphData();
+		if (graph[line] != null) graph[line].updateGraphData("DisplayModule.updateSingleValue");
 	}
 	
 	private void initGui() {
@@ -386,7 +400,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			if (graph[i] == null) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				
-				if (moduleType == this.DISPLAY_ALL && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
+				if ((moduleType == this.DISPLAY_ALL || moduleType == this.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_REAL_TIME, fox);
 				}
@@ -403,6 +417,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
 				}
+				else if (moduleType == DISPLAY_HERCI) {
+					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
+					conversion = fox.herciHS2Layout.getConversionByName(fieldName[i]);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox);
+				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], conversion,  FramePart.TYPE_MIN_VALUES, fox);
@@ -414,7 +433,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 			}
-			graph[i].updateGraphData();
+			graph[i].updateGraphData("DisplayModule.displayGraph");
 			graph[i].setVisible(true);
 		} catch (Exception ex) {
 			Log.println("MOUSE CLICKED EXCEPTION");

@@ -1,0 +1,30 @@
+#Fox 1 Telemetry Decoder Properties
+#Fri Oct 23 21:50:05 EDT 2015
+EXP4=5
+maxFreqBoundkHz=145890
+EXP3=0
+EXP2=3
+ihuTempLookUpTableFileName=FOX1A_ihutempSN8.tab
+EXP1=0
+model=0
+minLayoutFileName=FOX1D_mintelemetry.csv
+measurementsFileName=measurements.csv
+radLayoutFileName=FOX1D_radtelemetry.csv
+minFreqBoundkHz=145870
+telemetryDownlinkFreqkHz=145880
+herciHSLayoutFileName=FOX1D_hshercitelemetry.csv
+herciHS2LayoutFileName=FOX1D_herciScienceTelemHeader.csv
+BATTERY_CURRENT_ZERO=-1.839
+passMeasurementsFileName=passmeasurements.csv
+foxId=4
+track=false
+rad2LayoutFileName=FOX1D_hercihousekeeping.csv
+rtLayoutFileName=FOX1D_rttelemetry.csv
+useIHUVBatt=false
+description=Fox-1D is a 1U CubeSat with U/v and L/v FM transponders and experiments onboard from the Penn State University, Rochester Institute of Technology, University of Iowa and Virginia Tech
+ihuVBattLookUpTableFileName=FOX1A_ihuVBattSN8.tab
+rssiLookUpTableFileName=FOX1A_rssi.tab
+maxLayoutFileName=FOX1D_maxtelemetry.csv
+catalogNumber=0
+IHU_SN=8
+name=Fox-1D

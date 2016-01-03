@@ -29,8 +29,8 @@ class RadiationTableModel extends AbstractTableModel {
 
 	RadiationTableModel() {
 		columnNames = new String[60];
-		columnNames[0] = "Reset";
-		columnNames[1] = "Uptime";
+		columnNames[0] = "RESET";
+		columnNames[1] = "UPTIME";
 		for (int k=0; k<58; k++) 
 			columnNames[k+2] = ""+k;
 	}

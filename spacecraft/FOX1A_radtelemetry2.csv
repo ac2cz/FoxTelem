@@ -10,7 +10,7 @@
 8,RAD,Power2,8,mW,0,Vulcan Experiment 2,11,2,5,Power,Vulcan Experiment 2 Power
 9,RAD,Power3,8,mW,0,Vulcan Experiment 3,12,2,5,Power,Vulcan Experiment 3 Power
 10,RAD,Power4,8,mW,0,Vulcan Experiment 4,13,2,5,Power,Vulcan Experiment 4 Power
-11,RAD,LEP_RESTARTS,8,NONE,0,Low Energy Proton Experiment,2,1,5,LEP Restarts,Number of restarts by the Low Energy Proton Experiment
+11,RAD,LEP_RESTARTS,8,NONE,1,Low Energy Proton Experiment,2,1,5,LEP Restarts,Number of restarts by the Low Energy Proton Experiment
 12,RAD,LEP_UPTIME,24,NONE,25,Low Energy Proton Experiment,2,2,5,LEP Uptime (16-sec),Uptime of the Low Energy Proton Experiment
-13,RAD,MEMORY_LIVETIME,32,NONE,0,Low Energy Proton Experiment,2,3,5,Memory Livetime (Mb-sec),Cumulative live time for running experiments
-14,RAD,MEMORY_ERRORS,16,NONE,0,Low Energy Proton Experiment,2,4,5,Memory Errors,Cumulative number of memory upsets
+13,RAD,MEMORY_LIVETIME,32,NONE,1,Low Energy Proton Experiment,2,3,5,Memory Livetime (Mb-sec),Cumulative live time for running experiments
+14,RAD,MEMORY_ERRORS,16,NONE,1,Low Energy Proton Experiment,2,4,5,Memory Errors,Cumulative number of memory upsets

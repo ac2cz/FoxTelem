@@ -5,9 +5,11 @@ import gui.MainWindow;
 
 import java.io.File;
 import java.io.IOException;
+import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
 
@@ -44,8 +46,8 @@ import common.Spacecraft;
  */
 public class SatPayloadDbStore {
 
-	public static final String ERR_TABLE_DOES_NOT_EXIST = "42X05";
-	public static final String ERR_DUPLICATE = "23505";
+	public static final String ERR_TABLE_DOES_NOT_EXIST = "42S02";
+	public static final String ERR_DUPLICATE = "23000";
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
 	
 	public int foxId;
@@ -55,11 +57,17 @@ public class SatPayloadDbStore {
 	public static String MAX_LOG = "MAXTELEMETRY";
 	public static String MIN_LOG = "MINTELEMETRY";
 	public static String RAD_LOG = "RADTELEMETRY";
+	public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
+	public static String HERCI_HS_LOG = "HERCI_HS";
+	public static String HERCI_HS_HEADER_LOG = "HERCI_HS_HEADER";
 	
 	public String rtTableName;
 	public String maxTableName;
 	public String minTableName;
 	public String radTableName;
+	public String radTelemTableName;
+	public String herciHSTableName;
+	public String herciHSHeaderTableName;
 	
 	private boolean multiUpdate = false;
 	
@@ -72,7 +80,10 @@ public class SatPayloadDbStore {
 	boolean updatedMax = true;
 	boolean updatedMin = true;
 	boolean updatedRad = true;
-	
+	boolean updatedRadTelem = true;
+	boolean updatedHerciHS = true;
+	boolean updatedHerciHeader = true;
+	boolean updatedHerciPacket = true;
 	
 	/**
 	 * Create the payload store this this fox id
@@ -85,7 +96,9 @@ public class SatPayloadDbStore {
 		maxTableName = "Fox"+foxId+MAX_LOG;
 		minTableName = "Fox"+foxId+MIN_LOG;
 		radTableName = "Fox"+foxId+RAD_LOG;
-
+		radTelemTableName = "Fox"+foxId+RAD_TELEM_LOG;
+		herciHSTableName = "Fox"+foxId+HERCI_HS_LOG;
+		herciHSHeaderTableName = "Fox"+foxId+HERCI_HS_HEADER_LOG;
 		initPayloadFiles();
 	}
 	
@@ -94,7 +107,11 @@ public class SatPayloadDbStore {
 		initPayloadTable(maxTableName, fox.maxLayout);
 		initPayloadTable(minTableName, fox.minLayout);
 		initPayloadTable(radTableName, fox.radLayout);
-		
+		initPayloadTable(radTelemTableName, fox.rad2Layout);
+		if (fox.hasHerci()) {
+			initPayloadTable(herciHSTableName, fox.herciHSLayout);
+			initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+		}
 	}
 
 	/** 
@@ -104,7 +121,8 @@ public class SatPayloadDbStore {
 		Statement stmt = null;
 		ResultSet select = null;
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			select = stmt.executeQuery("select * from " + table);
 			select.close();
 		} catch (SQLException e) {
@@ -124,13 +142,15 @@ public class SatPayloadDbStore {
 			}
 		} 
 	}
+
+
 	
 	public void setUpdatedAll() {
 		updatedRt = true;
 		updatedMax = true;
 		updatedMin = true;
 		updatedRad = true;
-		
+		updatedRadTelem = true;
 	}
 	
 	public boolean getUpdatedRt() { return updatedRt; }
@@ -150,6 +170,10 @@ public class SatPayloadDbStore {
 	public void setUpdatedRad(boolean u) {
 		updatedRad = u;
 	}
+	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
+	public void setUpdatedRadTelem(boolean u) {
+		updatedRadTelem = u;
+	}
 
 	private int count(String table) {
 		Statement stmt = null;
@@ -157,7 +181,8 @@ public class SatPayloadDbStore {
 		String update = "select count(*) from " + table;
 		//Log.println("SQL:" + update);
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			rs = stmt.executeQuery(update);
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
@@ -188,6 +213,44 @@ public class SatPayloadDbStore {
 		return add(f);
 	}
 
+	private boolean addRadRecord(PayloadRadExpData f)  {
+		insert(radTableName,f);
+		
+		// Capture and store any secondary payloads
+		if (f.isTelemetry()) {
+			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			add(radiationTelemetry);
+		}
+		return true;
+	}
+	
+	/**
+	 * Add a HERCI High Speed payload record
+	 * @param f
+	 * @return
+	 * @throws IOException
+	 */
+	private boolean addHerciRecord(PayloadHERCIhighSpeed f) {
+		insert(herciHSTableName, f);
+		
+		// Capture and store any secondary payloads
+		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+		add(radiationTelemetry);
+		updatedHerciHeader = true;
+
+		ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+		for(int i=0; i< pkts.size(); i++) {
+			HerciHighSpeedPacket pk = pkts.get(i);
+			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
+			updatedHerciPacket = true;
+		}
+		return true;
+	}
+
+	
 	/**
 	 * Add an array of payloads, usually when we have a set of radiation data from the high speed
 	 * @param f
@@ -199,7 +262,7 @@ public class SatPayloadDbStore {
 				if (f[i].hasData()) {
 					f[i].captureHeaderInfo(id, uptime, resets);
 					f[i].type = i+100;  // use type as the serial number for high speed type 4s, starting at 100 to distinguish from a Low Speed type 4
-					add(f[i]);
+					addRadRecord(f[i]);
 				}
 			}
 
@@ -219,16 +282,16 @@ public class SatPayloadDbStore {
 		update = update + f.getInsertStmt();
 		//Log.println("SQL:" + update);
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
-
+				return true; // We have the data
 			} else {
 				PayloadDbStore.errorPrint(e);
-
 			}
 			return false;
 		}
@@ -254,7 +317,14 @@ public class SatPayloadDbStore {
 			return insert(minTableName,f);
 		} else if (f instanceof PayloadRadExpData ) {
 			setUpdatedRad(true);
-			return insert(radTableName,f);
+			return addRadRecord((PayloadRadExpData)f);
+		} else if (f instanceof RadiationTelemetry ) {
+			setUpdatedRadTelem(true);
+			return insert(radTelemTableName, f);
+		} else if (f instanceof PayloadHERCIhighSpeed ) {
+			return addHerciRecord((PayloadHERCIhighSpeed)f); 
+		} else if (f instanceof HerciHighspeedHeader ) {
+			return insert(herciHSHeaderTableName, f);
 		}
 		return false;
 	}
@@ -262,10 +332,11 @@ public class SatPayloadDbStore {
 
 	private ResultSet selectLatest(String table) {
 		Statement stmt = null;
-		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC FETCH FIRST ROW ONLY";
+		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC LIMIT 1"; // Derby Syntax FETCH FIRST ROW ONLY";
 
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			//Log.println(update);
 			ResultSet r = stmt.executeQuery(update);
 			if (r.next()) {
@@ -282,30 +353,38 @@ public class SatPayloadDbStore {
 	
 	public PayloadRtValues getLatestRt() throws SQLException {
 		ResultSet r = selectLatest(rtTableName);
-		if (r != null)
-			return new PayloadRtValues(r, fox.rtLayout);
-		else return null;
+		if (r != null) {
+			PayloadRtValues rt = new PayloadRtValues(r, fox.rtLayout);
+			r.close();
+			return rt;
+		} else return null;
 	}
 
 	public PayloadMaxValues getLatestMax() throws SQLException {
 		ResultSet r = selectLatest(maxTableName);
-		if (r != null)
-			return new PayloadMaxValues(r, fox.maxLayout);
-		else return null;
+		if (r != null) {
+			PayloadMaxValues max = new PayloadMaxValues(r, fox.maxLayout);
+			r.close();
+			return max;
+		} else return null;
 	}
 
 	public PayloadMinValues getLatestMin() throws SQLException {
 		ResultSet r = selectLatest(minTableName);
-		if (r != null)
-			return new PayloadMinValues(r, fox.minLayout);
-		else return null;
+		if (r != null) {
+			PayloadMinValues min = new PayloadMinValues(r, fox.minLayout);
+			r.close();
+			return min;
+		} else return null;
 	}
 
 	public PayloadRadExpData getLatestRad() throws SQLException {
 		ResultSet r = selectLatest(radTableName);
-		if (r != null)
-			return new PayloadRadExpData(r, fox.radLayout);
-		else return null;
+		if (r != null) {
+			PayloadRadExpData rad = new PayloadRadExpData(r, fox.radLayout);
+			r.close();
+			return rad;
+		} else return null;
 	}
 
 
@@ -323,16 +402,43 @@ public class SatPayloadDbStore {
 		
 	}
 
-	public double[][] getMaxGraphData(String name, int conversion, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(maxTableName, name, conversion, period, id, fromReset, fromUptime);
+	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
+		return getGraphData(maxTableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int conversion, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(minTableName, name, conversion, period, id, fromReset, fromUptime);
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
+		return getGraphData(minTableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
+	public void initRad2() {
+		ResultSet rs;
+		String where = "select * from " + this.radTableName;
+		Statement stmt = null;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(where);
+			
+			while (rs.next()) {
+				PayloadRadExpData f = new PayloadRadExpData(rs, fox.radLayout);
+				// Capture and store any secondary payloads
+				if (f.isTelemetry()) {
+					RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+					radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+					add(radiationTelemetry);
+				}
+				
+			}
+			rs.close();
+
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
+		}
+	}
+	
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -395,11 +501,12 @@ public class SatPayloadDbStore {
 		} else {
 			update = " SELECT resets, uptime, " + name + " FROM ";
 		}
-		update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		//DERBY SYNTAX - update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		update = update + table + where + " LIMIT " + numberOfRows;
 		try {
 			//Log.println("SQL:" + update);
-			stmt = PayloadDbStore.derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, 
-                    ResultSet.CONCUR_READ_ONLY);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			ResultSet r = stmt.executeQuery(update);
 			return r;
 		} catch (SQLException e) {
@@ -410,7 +517,7 @@ public class SatPayloadDbStore {
 	}
 
     
-	private double[][] getGraphData(String table, String name, int conversion, int period, Spacecraft fox, int fromReset, long fromUptime) throws SQLException {
+	private double[][] getGraphData(String table, String name, int period, Spacecraft fox, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs;
 		String where = "";
 		
@@ -420,6 +527,7 @@ public class SatPayloadDbStore {
 			where = " where uptime >= "+ fromUptime + " and resets >= " + fromReset +
 					" ORDER BY resets DESC, uptime DESC ";
 		}
+		//FIXME - we get all of the columns so that we can populate at Payload record - see below
 		rs = selectRows(table,name, where,period);
 		
 		int size =0;
@@ -435,15 +543,22 @@ public class SatPayloadDbStore {
 		int i=0;
 
 		if (Config.displayRawValues)
-			conversion = 0;
+			;//FIXME conversion = 0;
 		if (size > 0) {
 			resets[i] = rs.getInt("resets");
 			upTime[i] = rs.getLong("uptime");
-			results[i++] = FramePart.convertRawValue(name, rs.getInt(name), conversion, fox);
+			//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
+			PayloadRtValues rt = new PayloadRtValues(fox.rtLayout);
+			results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
 			while (rs.previous()) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
-				results[i++] = FramePart.convertRawValue(name, rs.getInt(name), conversion, fox);
+				//rt = new PayloadRtValues(rs, fox.rtLayout);
+				//raw value
+				//results[i++] = rs.getDouble(name);
+				// converted
+				
+				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
 			}
 		} else {
 			results = new double[1];
@@ -454,6 +569,7 @@ public class SatPayloadDbStore {
 		resultSet[PayloadStore.DATA_COL] = results;
 		resultSet[PayloadStore.UPTIME_COL] = upTime;
 		resultSet[PayloadStore.RESETS_COL] = resets;
+		if (rs!=null)
 		rs.close();
 		return resultSet;
 
@@ -476,7 +592,8 @@ public class SatPayloadDbStore {
 	private void drop(String table) {
 		Statement stmt = null;
 		try {
-			stmt = PayloadDbStore.derby.createStatement();
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			boolean res = stmt.execute("drop table " + table);
 		} catch (SQLException e) {

@@ -6,11 +6,15 @@ import gui.MainWindow;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
@@ -49,37 +53,36 @@ import common.Spacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
+	private Spacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
+	//private boolean initRad2 = false;
 	
 	// Primary Payloads
-	public static String RT_LOG = "rttelemetry.log";
-	public static String MAX_LOG = "maxtelemetry.log";
-	public static String MIN_LOG = "mintelemetry.log";
-	public static String RAD_LOG = "radtelemetry.log";
+	public static String RT_LOG = "rttelemetry";
+	public static String MAX_LOG = "maxtelemetry";
+	public static String MIN_LOG = "mintelemetry";
+	public static String RAD_LOG = "radtelemetry";
 
 	// Secondary payloads - decoded from the primary payloads
-	public static String RAD_TELEM_LOG = "radtelemetry2.log";
+	public static String RAD_TELEM_LOG = "radtelemetry2";
 
-	public String rtFileName;
-	public String maxFileName;
-	public String minFileName;
-	public String radFileName;
-	public String radTelemFileName;
-	
-	SortedFramePartArrayList rtRecords;
-	SortedFramePartArrayList maxRecords;
-	SortedFramePartArrayList minRecords;
-	SortedFramePartArrayList radRecords;
-	SortedFramePartArrayList radTelemRecords;
-	
-	boolean updatedRt = false;
-	boolean updatedMax = false;
-	boolean updatedMin = false;
-	boolean updatedRad = false;
-	boolean updatedRadTelem = false;
+	public static String HERCI_LOG = "herciHSdata";
+	public static String HERCI_HEADER_LOG = "herciHSheader";
+	public static String HERCI_PACKET_LOG = "herciHSpackets";
+		
+	SatPayloadTable rtRecords;
+	SatPayloadTable maxRecords;
+	SatPayloadTable minRecords;
+	SatPayloadTable radRecords;
+	SatPayloadTable radTelemRecords;
+	SatPayloadTable herciRecords;
+	SatPayloadTable herciHeaderRecords;
+	SatPayloadTable herciPacketRecords;
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
+	public static final int MAX_HERCI_PACKET_DATA_LENGTH = 128;
+	public static final int MAX_HERCI_HK_DATA_LENGTH = 27; // 25 fields plus the 2 fields needed for Reset and Uptime
 	
 	/**
 	 * Create the payload store this this fox id
@@ -87,70 +90,81 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
-		initPayloadFiles();
+		fox = Config.satManager.getSpacecraft(foxId);
+		
 		try {
-			rtFileName = "Fox"+id+RT_LOG;
-			maxFileName = "Fox"+id+MAX_LOG;
-			minFileName = "Fox"+id+MIN_LOG;
-			radFileName = "Fox"+id+RAD_LOG;
-			radTelemFileName = "Fox"+id+RAD_TELEM_LOG;
-			load(rtFileName);
-			load(maxFileName);
-			load(minFileName);
-			load(radFileName);
-			load(radTelemFileName);
+			initPayloadFiles();
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
-					e.toString(),
-					"ERROR Loading Stored Payload data",
+					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
+								+ "Was the data directory moved?\n" + e.toString(),
+					"FATAL! Cannot find the Stored Payload data",
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
+			System.exit(1);
+		} catch (IOException e) {
+			JOptionPane.showMessageDialog(MainWindow.frame,
+					 "You may need to reset FoxTelem.properties or re-install FoxTelem\n"
+								+ "Was the data directory moved?\n" + e.toString(),
+					"FATAL! Cannot Load the Stored Payload data",
+					JOptionPane.ERROR_MESSAGE) ;
+			e.printStackTrace(Log.getWriter());
+			System.exit(1);
 		}
 	}
 	
-	private void initPayloadFiles() {
-		rtRecords = new SortedFramePartArrayList(INIT_SIZE);
-		maxRecords = new SortedFramePartArrayList(INIT_SIZE);
-		minRecords = new SortedFramePartArrayList(INIT_SIZE);
-		radRecords = new SortedFramePartArrayList(INIT_SIZE);
-		radTelemRecords = new SortedFramePartArrayList(INIT_SIZE);
+	private void initPayloadFiles() throws IOException {
+		rtRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+RT_LOG);
+		maxRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+MAX_LOG);
+		minRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+MIN_LOG);
+		radRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+RAD_LOG);
+		radTelemRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+RAD_TELEM_LOG);
+		if (Config.satManager.hasHerci(foxId)) {
+			herciRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+HERCI_LOG);
+			herciHeaderRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+HERCI_HEADER_LOG);
+			herciPacketRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+HERCI_PACKET_LOG);
+		}
 	}
 	
 	public void setUpdatedAll() {
-		updatedRt = true;
-		updatedMax = true;
-		updatedMin = true;
-		updatedRad = true;
-		updatedRadTelem = true;
-		
+		rtRecords.setUpdated(true);
+		maxRecords.setUpdated(true);
+		minRecords.setUpdated(true);
+		radRecords.setUpdated(true);
+		radTelemRecords.setUpdated(true);
+		if (Config.satManager.hasHerci(foxId)) {
+			herciRecords.setUpdated(true);
+			herciHeaderRecords.setUpdated(true);
+			herciPacketRecords.setUpdated(true);
+		}
 	}
 	
-	public boolean getUpdatedRt() { return updatedRt; }
-	public void setUpdatedRt(boolean u) {
-		updatedRt = u;
+	public boolean getUpdatedRt() { return rtRecords.getUpdated(); }
+	public void setUpdatedRt(boolean u) { rtRecords.setUpdated(u); }
+	public boolean getUpdatedMin() { return minRecords.getUpdated(); }
+	public void setUpdatedMin(boolean u) { minRecords.setUpdated(u); }
+	public boolean getUpdatedMax() { return maxRecords.getUpdated(); }
+	public void setUpdatedMax(boolean u) { maxRecords.setUpdated(u); }
+	public boolean getUpdatedRad() { return radRecords.getUpdated(); }
+	public void setUpdatedRad(boolean u) { radRecords.setUpdated(u); }
+	public boolean getUpdatedRadTelem() { return radTelemRecords.getUpdated(); }
+	public void setUpdatedRadTelem(boolean u) { radTelemRecords.setUpdated(u); }
+	public boolean getUpdatedHerci() { return herciRecords.getUpdated(); }
+	public void setUpdatedHerci(boolean u) { herciRecords.setUpdated(u); }
+	public boolean getUpdatedHerciHeader() { return herciHeaderRecords.getUpdated(); }
+	public void setUpdatedHerciHeader(boolean u) { herciHeaderRecords.setUpdated(u); }
+	public boolean getUpdatedHerciPacket() { return herciPacketRecords.getUpdated(); }
+	public void setUpdatedHerciPacket(boolean u) { herciPacketRecords.setUpdated(u); }
+		
+	public int getNumberOfFrames() {
+		int herci = 0;
+		if (Config.satManager.hasHerci(foxId))
+			herci = herciRecords.getSize();
+		return herci + rtRecords.getSize() + maxRecords.getSize() + minRecords.getSize() + radRecords.getSize(); 
 	}
-	public boolean getUpdatedMax() { return updatedMax; }
-	public void setUpdatedMax(boolean u) {
-		updatedMax = u;
-	}
-
-	public boolean getUpdatedMin() { return updatedMin; }
-	public void setUpdatedMin(boolean u) {
-		updatedMin = u;
-	}
-	public boolean getUpdatedRad() { return updatedRad; }
-	public void setUpdatedRad(boolean u) {
-		updatedRad = u;
-	}
-
-	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
-	public void setUpdatedRadTelem(boolean u) {
-		updatedRadTelem = u;
-	}
-
-	public int getNumberOfFrames() { return rtRecords.size() + maxRecords.size() + minRecords.size() + radRecords.size(); }
-	public int getNumberOfTelemFrames() { return rtRecords.size() + maxRecords.size() + minRecords.size(); }
-	public int getNumberOfRadFrames() { return radRecords.size(); }
+	public int getNumberOfTelemFrames() { return rtRecords.getSize() + maxRecords.getSize() + minRecords.getSize(); }
+	public int getNumberOfRadFrames() { return radRecords.getSize(); }
+	public int getNumberOfHerciFrames() { return herciRecords.getSize(); }
 		
 	public boolean add(int id, long uptime, int resets, FramePart f) throws IOException {
 		f.captureHeaderInfo(id, uptime, resets);
@@ -168,9 +182,9 @@ public class SatPayloadStore {
 			for (int i=0; i< f.length; i++) {
 				if (f[i].hasData()) {
 					f[i].captureHeaderInfo(id, uptime, resets);
-					updatedRad = true;
+					radRecords.setUpdated(true);
 					try {
-						save(f[i], radFileName);
+						radRecords.save(f[i]);
 					} catch (IOException e) {
 						// NEED TO SET A FLAG HERE THAT IS THEN SEEN BY THE GUI WHEN IT POLLS FOR RESULTS
 						e.printStackTrace(Log.getWriter());
@@ -186,17 +200,45 @@ public class SatPayloadStore {
 	}
 
 	private boolean addRadRecord(PayloadRadExpData f) throws IOException {
-		radRecords.add(f);
 		
 		// Capture and store any secondary payloads
-		if (f.isTelemetry()) {
+		if (fox.hasHerci() || f.isTelemetry()) {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
 			add(radiationTelemetry);
+			radTelemRecords.setUpdated(true);
 		}
 		return true;
 	}
-	
+
+	/**
+	 * Add a HERCI High Speed payload record
+	 * @param f
+	 * @return
+	 * @throws IOException
+	 */
+	private boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
+		//herciRecords.add(f);
+		
+		// Capture and store any secondary payloads
+		
+		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+		add(radiationTelemetry);
+		herciHeaderRecords.setUpdated(true);
+		//updatedHerciHeader = true;
+
+		ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+		for(int i=0; i< pkts.size(); i++) {
+			HerciHighSpeedPacket pk = pkts.get(i);
+			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			add(pk);
+			herciPacketRecords.setUpdated(true);
+
+		}
+		return true;
+	}
+
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -205,79 +247,55 @@ public class SatPayloadStore {
 	 */
 	private boolean add(FramePart f) throws IOException {
 		if (f instanceof PayloadRtValues ) {
-			if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
-				updatedRt = true;
-				
-					save(f, rtFileName);
-				
-				return rtRecords.add(f);
-			} else {
-				if (Config.debugFrames) Log.println("DUPLICATE RECORD, not loaded");
-			}
+			return rtRecords.save(f);
 		} else if (f instanceof PayloadMaxValues  ) {
-			if (!maxRecords.hasFrame(f.id, f.uptime, f.resets)) {
-				updatedMax = true;
-				
-					save(f, maxFileName);
-				
-				return maxRecords.add(f);
-			} else {
-				if (Config.debugFrames) Log.println("DUPLICATE MAX RECORD, not loaded");
-			}
+				return maxRecords.save(f);
 		} else if (f instanceof PayloadMinValues ) {
-			if (!minRecords.hasFrame(f.id, f.uptime, f.resets)) {
-				updatedMin = true;
-				
-					save(f, minFileName);
-				
-				return minRecords.add(f);
-			} else {
-				if (Config.debugFrames) Log.println("DUPLICATE MIN RECORD, not loaded");
-			}
+				return minRecords.save(f);
 		} else if (f instanceof PayloadRadExpData ) {
-			if (!radRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
-				updatedRad = true;
-					save(f, radFileName);				
+			if (radRecords.save(f))
 				return addRadRecord((PayloadRadExpData)f);
-			} else {
-				if (Config.debugFrames) Log.println("DUPLICATE RAD RECORD, not loaded");
-			}
 		} else if (f instanceof RadiationTelemetry ) {
-			if (!radTelemRecords.hasFrame(f.id, f.uptime, f.resets, f.type)) {
-				updatedRadTelem = true;
-					save(f, radTelemFileName);				
-				return radTelemRecords.add(f);
-			} else {
-				if (Config.debugFrames) Log.println("DUPLICATE RAD TELEM RECORD, not loaded");
-			}
+				return radTelemRecords.save(f);
+		} else if (f instanceof PayloadHERCIhighSpeed ) {
+			if (herciRecords.save(f))
+				return addHerciRecord((PayloadHERCIhighSpeed)f);
+		} else if (f instanceof HerciHighspeedHeader ) {
+				return herciHeaderRecords.save(f);
+		} else if (f instanceof HerciHighSpeedPacket ) {
+				return herciPacketRecords.save(f);
 		}
 		return false;
 	}
-
-	public PayloadRtValues getLatestRt() {
-		if (rtRecords.size() == 0) return null;
-		return (PayloadRtValues) rtRecords.get(rtRecords.size()-1);
+		
+	public PayloadRtValues getLatestRt() throws IOException {
+		return (PayloadRtValues) rtRecords.getLatest();
 	}
 
-	public PayloadMaxValues getLatestMax() {
-		if (maxRecords.size() == 0) return null;
-		return (PayloadMaxValues) maxRecords.get(maxRecords.size()-1);
+	public PayloadMaxValues getLatestMax() throws IOException {
+		return (PayloadMaxValues) maxRecords.getLatest();
 	}
 
-	public PayloadMinValues getLatestMin() {
-		if (minRecords.size() == 0) return null;
-		return (PayloadMinValues) minRecords.get(minRecords.size()-1);
+	public PayloadMinValues getLatestMin() throws IOException {
+		return (PayloadMinValues) minRecords.getLatest();
 	}
 
-	public PayloadRadExpData getLatestRad() {
-		if (radRecords.size() == 0) return null;
-		return (PayloadRadExpData) radRecords.get(radRecords.size()-1);
+	public PayloadRadExpData getLatestRad() throws IOException {
+		return (PayloadRadExpData) radRecords.getLatest();
 	}
 
-	public RadiationTelemetry getLatestRadTelem() {
-		if (radTelemRecords.size() == 0) return null;
-		return (RadiationTelemetry) radTelemRecords.get(radTelemRecords.size()-1);
+	public RadiationTelemetry getLatestRadTelem() throws IOException {
+		return (RadiationTelemetry) radTelemRecords.getLatest();
 	}
+
+	public PayloadHERCIhighSpeed getLatestHerci() throws IOException {
+		return (PayloadHERCIhighSpeed) herciRecords.getLatest();
+	}
+
+	public HerciHighspeedHeader getLatestHerciHeader() throws IOException {
+		return (HerciHighspeedHeader) herciHeaderRecords.getLatest();
+	}
+
 
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
@@ -286,87 +304,88 @@ public class SatPayloadStore {
 	 * @param name
 	 * @param period
 	 * @return
+	 * @throws IOException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
-		return getGraphData(rtRecords, name, period, id, fromReset, fromUptime);
+	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+		return rtRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
-		return getGraphData(maxRecords, name, period, id, fromReset, fromUptime);
+	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+		return maxRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
-		return getGraphData(minRecords, name, period, id, fromReset, fromUptime);
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+		return minRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) {
-		return getGraphData(radTelemRecords, name, period, id, fromReset, fromUptime);
-		
-	}
-
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
-		return getRadData(radRecords, period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
-
-	}
-	
-	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
-		return getRadData(radTelemRecords, period, id, fromReset, fromUptime, 20);
-
-	}
-	
 	/**
-	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
-	 * uptime.
+	 * Get data for a single named field from the Radiation Telemetry file for the period given
+	 * @param name
 	 * @param period
 	 * @param id
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
+	 * @throws IOException 
 	 */
-	public String[][] getRadData(SortedFramePartArrayList records, int period, int id, int fromReset, long fromUptime, int length) {
-		int start = 0;
-		int end = 0;
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+		return radTelemRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
-			start = records.size()-period;
-			end = records.size();
-		} else {
-			// we need to find the start point
-			start = records.getNearestFrameIndex(id, fromUptime, fromReset);
-			if (start == -1 ) start = records.size()-period;
-			end = start + period;
-		}
-		if (end > records.size()) end = records.size();
-		if (end < start) end = start;
-		if (start < 0) start = 0;
-		if (start > records.size()) start = records.size();
-		
-		int[][] results = new int[end-start][];
-		String[] upTime = new String[end-start];
-		String[] resets = new String[end-start];
-		
-		int j = results.length-1;
-		for (int i=end-1; i>= start; i--) {
-			//System.out.println(rtRecords.size());
-			results[j] = records.get(i).getFieldValues();
-			upTime[j] = ""+records.get(i).getUptime();
-			resets[j--] = ""+records.get(i).getResets();
-		}
-		
-		String[][] resultSet = new String[end-start][length];
-		for (int r=0; r< end-start; r++) {
-			resultSet[r][0] = resets[r];
-			resultSet[r][1] = upTime[r];
-			for (int k=0; k<results[r].length; k++)
-				resultSet[r][k+2] = ""+results[r][k];
-		}
-		
-		return resultSet;
 	}
 
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) throws IOException {
+		return radRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
+
+	}
+	
+	/**
+	 * Get a set of Radiation Telemetry records for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 * @throws IOException 
+	 */
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
+		return radTelemRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_HK_DATA_LENGTH); 
+
+	}
+
+	/**
+	 * Get data for a single named field from the HERCI Science Header for the period given
+	 * @param name
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 * @throws IOException 
+	 */
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+		return herciHeaderRecords.getGraphData(name, period, id, fromReset, fromUptime);
+		
+	}
+
+	/**
+	 * Get a set of HERCI Mini Packets for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 * @throws IOException 
+	 */
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) throws IOException {
+		return herciPacketRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
+
+	}
+
+	
+/*
 	protected String getRtUTCFromUptime(int reset, long uptime) {
 		int idx = rtRecords.getFrameIndex(foxId, uptime, reset);
 		if (idx != -1) {
@@ -375,183 +394,77 @@ public class SatPayloadStore {
 		return null;
 		
 	}
+	*/
 	
-	private double[][] getGraphData(SortedFramePartArrayList records, String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
-
-		int start = 0;
-		int end = 0;
-		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
-			start = records.size()-period;
-			end = records.size();
-		} else {
-			// we need to find the start point
-			start = records.getNearestFrameIndex(fox.foxId, fromUptime, fromReset);
-			if (start == -1 ) start = records.size()-period;
-			end = start + period;
-		}
-		if (end > records.size()) end = records.size();
-		if (end < start) end = start;
-		if (start < 0) start = 0;
-		if (start > records.size()) start = records.size();
-		double[] results = new double[end-start];
-		double[] upTime = new double[end-start];
-		double[] resets = new double[end-start];
-		
-		int j = results.length-1;
-		for (int i=end-1; i>= start; i--) {
-			//System.out.println(rtRecords.size());
-			if (Config.displayRawValues)
-				results[j] = records.get(i).getRawValue(name);
-			else
-				results[j] = records.get(i).getDoubleValue(name, fox);
-			upTime[j] = records.get(i).getUptime();
-			resets[j--] = records.get(i).getResets();
-		}
-		
-		double[][] resultSet = new double[3][end-start];
-		resultSet[PayloadStore.DATA_COL] = results;
-		resultSet[PayloadStore.UPTIME_COL] = upTime;
-		resultSet[PayloadStore.RESETS_COL] = resets;
-		
-		return resultSet;
-	}
 	
-	/**
-	 * Load a payload file from disk
-	 * Payload files are stored in seperate logs, but this routine is written so that it can load mixed records
-	 * from a single file
-	 * @param log
-	 * @throws FileNotFoundException
-	 */
-	public void load(String log) throws FileNotFoundException {
-        String line;
-        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-			Log.println("Loading: " + log);
-		}
-        File aFile = new File(log );
-		if(!aFile.exists()){
-			try {
-				aFile.createNewFile();
-			} catch (IOException e) {
-				JOptionPane.showMessageDialog(MainWindow.frame,
-						e.toString(),
-						"ERROR creating file " + log,
-						JOptionPane.ERROR_MESSAGE) ;
-				e.printStackTrace(Log.getWriter());
-			}
-		}
- 
-        BufferedReader dis = new BufferedReader(new FileReader(log));
-
-        try {
-        	while ((line = dis.readLine()) != null) {
-        		if (line != null) {
-        			StringTokenizer st = new StringTokenizer(line, ",");
-        			String date = st.nextToken();
-        			int id = Integer.valueOf(st.nextToken()).intValue();
-        			int resets = Integer.valueOf(st.nextToken()).intValue();
-        			long uptime = Long.valueOf(st.nextToken()).longValue();
-        			int type = Integer.valueOf(st.nextToken()).intValue();
-        			
-        			// We should never get this situation, but good to check..
-        			if (Config.satManager.getSpacecraft(id) == null) {
-        				Log.errorDialog("FATAL", "Attempting to Load payloads from the Payload store for satellite with Fox Id: " + id 
-        						+ "\n when no sattellite with that FoxId is configured.  Add this spacecraft to the satellite directory and restart FoxTelem."
-        						+ "\nProgram will now exit");
-        				System.exit(1);
-        			}
-        			if (type == FramePart.TYPE_REAL_TIME) {
-        				PayloadRtValues rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
-        				rtRecords.add(rt);
-        				updatedRt = true;
-        			} else
-        			if (type == FramePart.TYPE_MAX_VALUES) {
-        				PayloadMaxValues rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
-        				maxRecords.add(rt);
-        				updatedMax = true;
-        			} else
-        			if (type == FramePart.TYPE_MIN_VALUES) {
-        				PayloadMinValues rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
-        				minRecords.add(rt);
-        				updatedMin = true;
-        			}
-        			if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-        				PayloadRadExpData rt = new PayloadRadExpData(id, resets, uptime, date, st);
-        				radRecords.add(rt);
-        				updatedRad = true;
-        			}
-        			if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-        				RadiationTelemetry rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
-        				radTelemRecords.add(rt);
-        				updatedRadTelem = true;
-        			}
-        		}
-        	}
-        	dis.close();
-        } catch (IOException e) {
-        	e.printStackTrace(Log.getWriter());
-        	
-        } catch (NumberFormatException n) {
-        	n.printStackTrace(Log.getWriter());
-        }
-        
-	}
-
-	/**
-	 * Save a payload to the log file
-	 * @param frame
-	 * @param log
-	 * @throws IOException
-	 */
-	public void save(FramePart frame, String log) throws IOException {
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-		} 
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
-		//Log.println("Saving: " + log);
-		//use buffering and append to the existing file
-		Writer output = new BufferedWriter(new FileWriter(aFile, true));
-		try {
-			output.write( frame.toFile() + "\n" );
-		
-			output.flush();
-		} finally {
-			// Make sure it is closed even if we hit an error
-			output.flush();
-			output.close();
-		}
-		
-	}
 
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
 	 */
 	public void deleteAll() {
-		String dir = "";
-        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator ;
-			//System.err.println("Loading: "+log);
-		}
-			try {
-				remove(dir+rtFileName);
-				remove(dir+maxFileName);
-				remove(dir+minFileName);
-				remove(dir+radFileName);
-				remove(dir+radTelemFileName);
-				initPayloadFiles();
-				setUpdatedAll();
-			} catch (IOException ex) {
-				JOptionPane.showMessageDialog(MainWindow.frame,
-						ex.toString(),
-						"Error Deleting Payload Files for FoxId:"+foxId+", check permissions",
-						JOptionPane.ERROR_MESSAGE) ;
-			}
 
+		try {
+			rtRecords.remove();
+			maxRecords.remove();
+			minRecords.remove();
+			radRecords.remove();
+			radTelemRecords.remove();
+			if (fox.hasHerci()) {
+				herciRecords.remove();
+				herciHeaderRecords.remove();
+				herciPacketRecords.remove();
+			}
+			initPayloadFiles();
+			setUpdatedAll();
+		} catch (IOException ex) {
+			JOptionPane.showMessageDialog(MainWindow.frame,
+					ex.toString(),
+					"Error Deleting Payload Files for FoxId:"+foxId+", check permissions",
+					JOptionPane.ERROR_MESSAGE) ;
+		}
+
+	}
+	
+	/**
+	 * Utility function to copy a file
+	 * @param sourceFile
+	 * @param destFile
+	 * @throws IOException
+	 */
+	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	    if(!destFile.exists()) {
+	        destFile.createNewFile();
+	    }
+
+	    FileChannel source = null;
+	    FileChannel destination = null;
+
+	    try {
+	        source = new FileInputStream(sourceFile).getChannel();
+	        destination = new FileOutputStream(destFile).getChannel();
+	        destination.transferFrom(source, 0, source.size());
+	    }
+	    finally {
+	        if(source != null) {
+	            source.close();
+	        }
+	        if(destination != null) {
+	            destination.close();
+	        }
+	    }
+	}
+	
+	public void convert() throws IOException {
+		rtRecords.convert();
+		maxRecords.convert();
+		minRecords.convert();
+		radRecords.convert();
+		radTelemRecords.convert();
+		if (fox.hasHerci()) {
+			herciRecords.convert();
+			herciHeaderRecords.convert();
+			herciPacketRecords.convert();
+		}
 	}
 	
 	/**

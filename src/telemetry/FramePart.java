@@ -1,4 +1,6 @@
 package telemetry;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -11,6 +13,7 @@ import common.Log;
 import common.Spacecraft;
 import decoder.BitStream;
 import decoder.Decoder;
+import gui.GraphPanel;
 
 /**
  * 
@@ -51,7 +54,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_CAMERA_DATA = 5;
 	public static final int TYPE_RAD_EXP_DATA = 4; // This is both Vulcan and HERCI
 	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
-	public static final int TYPE_RAD_TELEM_DATA = 7;
+	public static final int TYPE_RAD_TELEM_DATA = 7; 
+	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
+	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
@@ -192,9 +197,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	private static final double MPPT_SOLAR_PANEL_SCALING_FACTOR = 6.54/2.42; // per Burns, then multiply.  Note that Bryce gave: 0.37069; // 30.1/(30.1+51.1).  Multiply the solar panel reading by the 2V5 Sensor step and then divide by this factor
 	private static final double PSU_CURRENT_SCALING_FACTOR = 0.003; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor
 	private static final double MPPT_CURRENT_SCALING_FACTOR = 2.5; //100.0/0.025; // Multiply the MPPT current reading by the 2V5 Sensor step and then divide by this factor
+	private static final double MPPT_RTD_CONSTANT_CURERNT = 0.001; // Constant current driver for the MPPT RTD is 1mA
+	private static final double MPPT_RTD_AMP_GAIN = -8.14228; // RTD conditioning amplifier Vout = -8.14228 * Vin +2.0523 
+	private static final double MPPT_RTD_AMP_FACTOR = 2.0523; // 
 	private static final double PA_CURRENT_INA194_FACTOR = 50; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor and the shunt value
 	private static final double PA_CURRENT_SHUNT_RESISTOR_FACTOR = 0.2; // Multiply the PSU current reading by the 3V Sensor step and then divide by the IN914 factor and this factor
-	private static final double MEMS_ZERO_VALUE_VOLTS = 1.5; // This value is from the data sheet.  Jerry to provide a value for FM
+	private static final double MEMS_ZERO_VALUE_VOLTS = 1.51; // Updated from datasheet value of 1.51 following observation of Vref in the diagnostics
 	private static final double MEMS_VOLT_PER_DPS = 0.0333; // This value is from the data sheet.  Jerry to provide a value for FM
 	
 	/*
@@ -219,6 +227,7 @@ longer send telemetry.
 		this.uptime = uptime;
 		this.captureDate = date;
 		init();
+		rawBits = null; // no binary array when loaded from file, even if the local init creates one
 		load(st);
 	}
 	
@@ -228,6 +237,24 @@ longer send telemetry.
 		rawBits = new boolean[MAX_BYTES*8];
 	}
 	
+	/**
+	 * Create a new payload based on the result set from the db
+	 * @param results
+	 * @throws SQLException 
+	 */
+	public FramePart(ResultSet results, BitArrayLayout lay) throws SQLException {
+		super(lay);
+		this.id = results.getInt("id");
+		this.resets = results.getInt("resets");
+		this.uptime = results.getLong("uptime");
+		this.captureDate = results.getString("captureDate");
+		init();
+		rawBits = null; // no binary array when loaded from database
+		for (int i=0; i < fieldValue.length; i++) {
+			fieldValue[i] = results.getInt(layout.fieldName[i]);
+		}
+//		results.close();
+	}
 	abstract protected void init();
 		
 	public void captureHeaderInfo(int id, long uptime, int resets) {
@@ -245,17 +272,24 @@ longer send telemetry.
 	
 	
 	public int compareTo(FramePart p) {
-		if (resets == p.resets && uptime == p.uptime) 
+		if (resets == p.resets && uptime == p.uptime && type == p.type) 
 			return 0;
 		else if (resets < p.resets)
-			return +1;
-		else if (resets > p.resets)
 			return -1;
-		else if (resets == p.resets)	
-			if (uptime < p.uptime)
+		else if (resets > p.resets)
+			return +1;
+		else if (resets == p.resets && uptime == p.uptime) {
+			if (type < p.type)
+				return -1;
+			if (type > p.type)
 				return +1;
-		
-		return -1;
+		} else if (resets == p.resets) {	
+			if (uptime < p.uptime)
+				return -1;
+			if (uptime > p.uptime)
+				return +1;
+		} 
+		return +1;
 	}
 	
 	
@@ -413,7 +447,15 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
 			return solarPanelTempTable.lookupValue(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
-			return solarPanelTempTable.lookupValue(rawValue) ;
+			double v = (double)rawValue;
+			v = v * VOLTAGE_STEP_FOR_2V5_SENSORS;
+			v =  (v - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
+			double r = v / this.MPPT_RTD_CONSTANT_CURERNT;
+			
+			// Cubic fir using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
+			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);
+			
+			return t;
 		case BitArrayLayout.CONVERT_TEMP:
 			return temperatureTable.lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_PA_CURRENT:
@@ -533,23 +575,29 @@ longer send telemetry.
 		case GYRO1Z: // Gyro1Z
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			if (shortString)
-				return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
 			else
-				return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			int cameraChecksumErrors = (rawValue >> 20) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
+				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
+				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			int hsAudioBufferUnderflows = (rawValue >> 20) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		}
 		return "-----";
 	}
@@ -734,6 +782,22 @@ longer send telemetry.
 			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
 		s = s + Decoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		return s;
+	}
+	
+	public String getInsertStmt() {
+		copyBitsToFields();
+		String s = new String();
+		s = s + " (captureDate,  id, resets, uptime, type, \n";
+		for (int i=0; i < layout.fieldName.length-1; i++) {
+			s = s + layout.fieldName[i] + ",\n";
+		}
+		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
+		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
+		for (int i=0; i < fieldValue.length-1; i++) {
+			s = s + fieldValue[i] + ",\n";
+		}
+		s = s + fieldValue[fieldValue.length-1] + ")\n";
 		return s;
 	}
 }

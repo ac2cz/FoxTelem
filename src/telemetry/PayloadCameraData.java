@@ -43,10 +43,10 @@ import decoder.Decoder;
 public class PayloadCameraData extends FramePart {
 	//public static final int TYPE = TYPE_CAMERA_DATA;
 	public static final byte END_OF_JPEG_DATA = -86; //0xaa;
-	public static final int LINE_HEADER_BYTES = 9; // include preamble 3; // bytes 0, 1, 2
+	public static final int LINE_HEADER_BYTES = 9; // include pre-amble 3; // bytes 0, 1, 2
 	private int headerByte = 0;
 	private int lineByte = 0;
-	boolean firstByte = true;
+	boolean firstByte = false;
 	PictureScanLine currentScanLine;
 	private int currentScanLineCount = 0;
 	
@@ -57,11 +57,14 @@ public class PayloadCameraData extends FramePart {
 	int linesAdded = 0;
 	private boolean foundEndOfJpegData = false;
 	
-	public PayloadCameraData() {
+	public PayloadCameraData(int slc) {
 		super(new BitArrayLayout());
+		
 		MAX_BYTES = HighSpeedFrame.MAX_CAMERA_PAYLOAD_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 		type = TYPE_CAMERA_DATA;
+		
+		setupScanLines(slc);
 	}
 	
 	public PayloadCameraData(int id, int resets, long uptime, String date, StringTokenizer st) {
@@ -73,6 +76,19 @@ public class PayloadCameraData extends FramePart {
 	
 	public boolean foundEndOfJpegData() { return foundEndOfJpegData; }
 
+	private void setupScanLines(int slc) {
+		firstByte = false;
+		scanLineCount = slc;
+		resetBitPosition();
+		pictureLines = new ArrayList<PictureScanLine>();
+		if (scanLineCount == 0) 
+			foundEndOfJpegData = true;
+		headerByte = 0;
+		currentScanLineCount = 0;
+		if (Config.debugCameraFrames)
+			Log.print("SLC: " + scanLineCount + " ");			
+		
+	}
 	
 	public void addNext8Bits(byte b) {
 		
@@ -119,6 +135,7 @@ public class PayloadCameraData extends FramePart {
 				headerByte = 0;
 				lineByte=0;
 				if (currentScanLineCount == scanLineCount) { // this was the last line to be added
+					//Log.println("ADDED: " + currentScanLineCount + " LINES");
 					foundEndOfJpegData = true;
 				}
 			}
@@ -161,7 +178,7 @@ public class PayloadCameraData extends FramePart {
 	 * Write the data out to a file.  We use the following format:
 	 * Header then a line from the camera.  This is repeated for all lines.  We use the header information to remember which
 	 * lines went together when we downloaded.
-	 * Each pciture scan line has the pictureCounter, scanLineNumber, scanLineLength, then a set of bytes
+	 * Each picture scan line has the pictureCounter, scanLineNumber, scanLineLength, then a set of bytes
 	 * 
 	 */
 	public String toFile() {

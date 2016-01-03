@@ -18,6 +18,7 @@ import javax.imageio.ImageIO;
 
 import common.Config;
 import common.Log;
+import common.Spacecraft;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -50,6 +51,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 
 	public static final String IMAGES_DIR = "images";
 	public static final String JPG_HEADER = "spacecraft" + File.separator + "jpeg_header.jpg";
+	public static final String JPG_HEADER_LOW_RES = "spacecraft" + File.separator + "jpeg_header_low_res.jpg";
 	public static final int UPTIME_THRESHOLD = 150; // if the uptime is within this value then it is the same picture
 	public static final boolean INSERT_MARKERS = true;
 	public static final int LAST_LINE = 59;  // 60 lines from 0 - 59
@@ -154,24 +156,24 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		return false;
 	}
 
+	/**
+	 * These are sorted by reset, uptime as picture Counter is not unique
+	 */
 	@Override
 	public int compareTo(CameraJpeg p) {
-		if (pictureCounter == p.pictureCounter && resets == p.resets && fromUptime == p.fromUptime) 
+		if (resets == p.resets && fromUptime == p.fromUptime) 
 			return 0;
-		else if (pictureCounter < p.pictureCounter)
-			return +1;
-		else if (pictureCounter > p.pictureCounter)
-			return -1;
 		else if (resets < p.resets)
 			return +1;
 		else if (resets > p.resets)
 			return -1;
-		else if (fromUptime < p.fromUptime)
+		else if (resets == p.resets)	
+			if (fromUptime < p.fromUptime)
 				return +1;
 		
 		return -1;
-
 	}
+
 	
 	public boolean fileExists() {
 		File toFile = new File(fileName);
@@ -192,7 +194,10 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	 */
 	public String createJpegFile(int id, int reset, long uptime, int pc) throws IOException {
 		String header = JPG_HEADER;
-
+		Spacecraft sat = Config.satManager.getSpacecraft(id);
+		if (sat.hasLowResCamera())
+			header = JPG_HEADER_LOW_RES;
+		
 		String name = IMAGES_DIR + File.separator + id + "_" + reset + "_" + uptime + "_" + pc  + ".jpg";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			name = Config.logFileDirectory + File.separator + name;
@@ -200,7 +205,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		File toFile = new File(name);
 		if(!toFile.exists()){
 			File headerFile = new File(header);
-			copyFile(headerFile, toFile);
+			SatPayloadStore.copyFile(headerFile, toFile);
 			return name;
 		}
 		
@@ -208,34 +213,6 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		
 	}
 
-	/**
-	 * Utility function to copy a file
-	 * @param sourceFile
-	 * @param destFile
-	 * @throws IOException
-	 */
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
-
-	    FileChannel source = null;
-	    FileChannel destination = null;
-
-	    try {
-	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
-	    }
-	    finally {
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
-	}
 
 	/**
 	 * Load the JPEG file from disk and create a Thumbnail.

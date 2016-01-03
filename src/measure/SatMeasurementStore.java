@@ -14,6 +14,7 @@ import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
 
+import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
@@ -167,20 +168,35 @@ public class SatMeasurementStore {
 		double[] resets = new double[end-start];
 		double[] dates = new double[end-start];
 		
+		//RtMeasurement m = new RtMeasurement(fox.rtLayout);
+		
+		int validRecords = 0;
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
-			//System.out.println(rtrtRecords.size());
-			results[j] = ((RtMeasurement)rtRecords.get(i)).getRawValue(name);
+			
+			double result = ((RtMeasurement)rtRecords.get(i)).getRawValue(name);
+			if ( (Double.compare(result, 0.0d) != 0) || !((RtMeasurement)rtRecords.get(i)).zeroIsNull(name) ) { 
+			  // screening out zero values because they corrupt the freq graph but breaks FEC plots
+//				System.out.println("IN:" + result);
+			results[j] = result;
 			upTime[j] = rtRecords.get(i).uptime;
 			resets[j] = rtRecords.get(i).reset;
 			dates[j--] = rtRecords.get(i).date.getTime();
+			validRecords++;
+			}
 		}
-		
-		double[][] resultSet = new double[4][end-start];
-		resultSet[PayloadStore.DATA_COL] = results;
-		resultSet[PayloadStore.UPTIME_COL] = upTime;
-		resultSet[PayloadStore.RESETS_COL] = resets;
-		resultSet[PayloadStore.UTC_COL] = dates;
+//		System.out.println("ValidRecords:" + validRecords);
+		// We have results in the result set from results.length-1-validRecords to results.length-1
+//		double[][] resultSet = new double[4][end-start];
+		double[][] resultSet = new double[4][validRecords];
+		for (int i=j+1; i< results.length; i++) {
+//			System.out.println("OUT:" + results[i]);
+		resultSet[PayloadStore.DATA_COL][i-j-1] = results[i];
+		resultSet[PayloadStore.UPTIME_COL][i-j-1] = upTime[i];
+		resultSet[PayloadStore.RESETS_COL][i-j-1] = resets[i];
+		resultSet[PayloadStore.UTC_COL][i-j-1] = dates[i];
+		}
+//		System.out.println("ResultSet:" + resultSet[PayloadStore.DATA_COL].length);
 		return resultSet;
 	}
 

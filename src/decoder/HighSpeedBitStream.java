@@ -42,8 +42,8 @@ public class HighSpeedBitStream extends BitStream {
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;
 	public static final int[] RS_PADDING = {3,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4};
 	
-	public HighSpeedBitStream() {
-		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5);
+	public HighSpeedBitStream(Decoder dec) {
+		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, dec);
 		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
 	}

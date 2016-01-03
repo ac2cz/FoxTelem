@@ -85,6 +85,9 @@ public class BitArrayLayout {
 	public static final int CONVERT_16_SEC_UPTIME = 25;
 	public static final int CONVERT_FREQ = 26;
 	public static final int CONVERT_VULCAN_STATUS = 27;
+	public static final int CONVERT_HERCI_HEX = 28;
+	public static final int CONVERT_HERCI_SOURCE = 29;
+	public static final int CONVERT_HERCI_MICRO_PKT_TYP = 30;
 
 	/**
 	 * Create an empty layout for manual init
@@ -187,6 +190,18 @@ public class BitArrayLayout {
 		if (NUMBER_OF_FIELDS != field) throw new LayoutLoadException("Error loading fields from " + fileName +
 				". Expected " + NUMBER_OF_FIELDS + " fields , but loaded " + field);
 
+	}
+	
+	public String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		for (int i=0; i < fieldName.length; i++) {
+			s = s + fieldName[i] + " int,\n";
+		}
+		// We use serial for the type, except for type 4 where we use it for the payload number.  This allows us to have
+		// multiple high speed records with the same reset and uptime
+		s = s + "PRIMARY KEY (id, resets, uptime, type))";
+		return s;
 	}
 
 }

@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import common.Config;
 import common.Log;
@@ -87,6 +88,19 @@ public class RtMeasurement extends Measurement {
 		this.type = type;
 		layout = Config.satManager.getMeasurementLayout(foxid);
 		fieldValue = new double[layout.NUMBER_OF_FIELDS];
+	}
+	
+	public boolean zeroIsNull(String name) {
+		if (name.equalsIgnoreCase(CARRIER_FREQ))
+			return true;
+		if (name.equalsIgnoreCase(BIT_SNR))
+			return true;
+		if (name.equalsIgnoreCase(RF_SNR))
+			return true;
+		if (name.equalsIgnoreCase(RF_POWER))
+			return true;
+
+		return false;	
 	}
 	
 	public double getRawValue(String name) {

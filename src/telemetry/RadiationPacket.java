@@ -23,6 +23,8 @@ import decoder.BitStream;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
+ *
+ *
  */
 public class RadiationPacket extends BitArray{
 
@@ -36,21 +38,21 @@ public class RadiationPacket extends BitArray{
 		
 		public static final String FILLER = "FILLER";
 		public static final String[] radPacketState = {
-			"0-???",
+			"OFF",
 			"STANDBY",
-			"2-???",
+			"DIAGNOSTIC",
 			"ACTIVE",
 			"DISABLED",
-			"5-???"
+			"HALT"
 		};
 
 		public static final String[] radPacketStateShort = {
-			"0",
+			"OFF",
 			"STDBY",
-			"2",
+			"DIAG",
 			"ACT",
 			"DIS",
-			"5"
+			"GALT"
 		};
 		
 		public static final String[] packetType = {
@@ -103,7 +105,7 @@ public class RadiationPacket extends BitArray{
 			layout = new BitArrayLayout(); // initialize a layout
 			
 			layout.fieldName = new String[NUMBER_OF_FIELDS];
-			fieldValue = new int[NUMBER_OF_FIELDS];
+			//fieldValue = new int[NUMBER_OF_FIELDS];
 			
 			layout.fieldName[TYPE_FIELD] = 	"TYPE";
 			layout.fieldName[SEQUENCE_FIELD] = 	"SEQUENCE";
@@ -463,7 +465,6 @@ public class RadiationPacket extends BitArray{
 			return bytes;
 		}
 
-		@Override
 		public double convertRawValue(String name, int rawValue,
 				int conversion, Spacecraft fox) {
 			// TODO Auto-generated method stub
