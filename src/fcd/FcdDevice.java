@@ -380,6 +380,7 @@ public class FcdDevice  {
 		return false;
 	}
     private void open() throws FcdException {
+    	if (fcdInfo == null) throw new FcdException("Cant find the FCD device, is it plugged in?  Try removing and reinserting it");    
 		try {
 			dev = PureJavaHidApi.openDevice(fcdInfo.getPath());
 		} catch (IOException e) {
