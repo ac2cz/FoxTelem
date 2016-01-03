@@ -784,15 +784,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			return;
 		}
 
-		String file = "serverlogs.tar.gz";
+		//String file = "serverlogs.tar.gz";
+		String file = "FOXDB.tar.gz";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + "serverlogs.tar.gz";
+			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
 		}
 		// We have the dir, so pull down the file
 		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
 		fileProgress.setVisible(true);
 
-		String urlString = Config.webSiteUrl + "/ao85/serverlogs.tar.gz";
+		String urlString = Config.webSiteUrl + "/ao85/FOXDB.tar.gz";
 		try {
 			URL website = new URL(urlString);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());

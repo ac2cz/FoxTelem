@@ -106,7 +106,7 @@ public class GraphPanel extends JPanel {
 		else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
 			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		
-		System.err.println("-repaint by: " + by);
+		//System.err.println("-repaint by: " + by);
 		if (graphData != null && graphData[0].length > 0)
 			this.repaint();
 	}

@@ -56,11 +56,7 @@ public class SatPayloadTable {
 	public SatPayloadTable(int size, String name) throws IOException {
 		tableIdx = new SortedArrayList<TableSeg>(INITIAL_SIZE);
 		baseFileName = name;
-		String dir = "";
-        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator ;
-			//System.err.println("Loading: "+log);
-		}
+		String dir = getDir();
         fileName = dir + PayloadStore.DB_NAME+File.separator + name;
       
 		rtRecords = new SortedFramePartArrayList(size);
@@ -71,7 +67,14 @@ public class SatPayloadTable {
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	
+	private String getDir() {
+		String dir = "";
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator ;
+			//System.err.println("Loading: "+log);
+		}
+        return dir;
+	}
 	
 	public int getSize() { 
 		int s=0;
@@ -209,7 +212,7 @@ public class SatPayloadTable {
 			}
 		}
 		// We could not find a valid Segment, so create a new segment at the head of the list
-		TableSeg seg = new TableSeg(reset, uptime, fileName);
+		TableSeg seg = new TableSeg(reset, uptime, baseFileName);
 		tableIdx.add(seg);
 		saveIdx();
 		return seg;
@@ -291,10 +294,10 @@ public class SatPayloadTable {
 			updated = true;
 			if (seg.records == MAX_SEGMENT_SIZE) {
 				// We need to add a new segment with this as the first record
-				seg = new TableSeg(f.resets, f.uptime, fileName);
+				seg = new TableSeg(f.resets, f.uptime, baseFileName);
 				tableIdx.add(seg);
 			}
-			save(f, seg.fileName);
+			save(f, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
 			seg.records++;
 			saveIdx();
 			//return rtRecords.add(f);
@@ -313,7 +316,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	public void load(TableSeg seg) throws IOException {
-		String log = seg.fileName;
+		String log = getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName;
         String line;
         createNewFile(log);
  
@@ -389,12 +392,8 @@ public class SatPayloadTable {
 	
 	public void convert() throws IOException {
 		
-		String dir = "";
-        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator ;
-			//System.err.println("Loading: "+log);
-		}
-        String log = dir+baseFileName+".log";
+		
+        String log = getDir()+baseFileName+".log";
 		String line;
 		int linesAdded = 0;
 		TableSeg seg = null;
@@ -412,10 +411,10 @@ public class SatPayloadTable {
 							}
 							if (linesAdded == 0) {
 								// First line in a segment
-								seg = new TableSeg(rt.resets, rt.uptime, fileName);
+								seg = new TableSeg(rt.resets, rt.uptime, baseFileName);
 								tableIdx.add(seg);
 							}
-							save(rt, seg.fileName);
+							save(rt, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
 							linesAdded++;
 							seg.records = linesAdded;
 						}
@@ -589,7 +588,7 @@ public class SatPayloadTable {
 	
 	public void remove() throws IOException {
 		for (TableSeg seg: tableIdx)
-			SatPayloadStore.remove(seg.fileName);
+			SatPayloadStore.remove(getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
 		SatPayloadStore.remove(fileName + ".idx");
 	}
 }
