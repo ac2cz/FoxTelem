@@ -53,7 +53,7 @@ public class Config {
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
 	public static String VERSION_NUM = "1.03c";
-	public static String VERSION = VERSION_NUM + " - 26	December 2015";
+	public static String VERSION = VERSION_NUM + " - 5 January 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
