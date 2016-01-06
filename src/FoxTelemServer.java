@@ -50,11 +50,11 @@ public class FoxTelemServer {
 			+ "-r - Reprocess the radiation data and generate the secondary payloads\n";
 	public static void main(String[] args) throws IOException {
 		if (args.length == 1) {
-			if ((args[2].equalsIgnoreCase("-h")) || (args[2].equalsIgnoreCase("-help")) || (args[2].equalsIgnoreCase("--help"))) {
+			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
 				System.out.println(usage);
 				System.exit(0);
 			} else
-			if ((args[2].equalsIgnoreCase("-v")) ||args[2].equalsIgnoreCase("-version")) {
+			if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
 				System.out.println("AMSAT Fox Server. Version " + version);
 				System.exit(0);
 			} else {
@@ -71,7 +71,6 @@ public class FoxTelemServer {
 		u = args[0];
 		db = args[1];
 
-		System.out.print("Password:");
 		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 	    String p;	
 	    p = in.readLine();
@@ -83,7 +82,7 @@ public class FoxTelemServer {
 		Config.logging = true;
 		Log.init("FoxServer");
 		Log.showGuiDialogs = false;
-		Log.setStdoutEcho(true); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
+		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
 		try {
 			makeExceptionDir();

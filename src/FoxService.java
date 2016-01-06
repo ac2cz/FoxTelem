@@ -29,7 +29,6 @@ public class FoxService {
 		FoxService ws = new FoxService();
 		String u,p, db;
 		if (args.length == 2) {
-			System.out.print("Password:");
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		    p = in.readLine();
 			if (p == null || p.isEmpty()) {
@@ -48,7 +47,6 @@ public class FoxService {
 
 	protected void start(String u, String p, String db) {
 		
-
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
 		Log.init("FoxWebService");
