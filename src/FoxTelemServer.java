@@ -37,7 +37,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.10 - 21 December 2015";
+	public static String version = "Version 0.11 - 5 January 2016";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
