@@ -108,7 +108,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
             
         } catch (SQLException ex) {
            Log.println(ex.getMessage());
-
+           System.err.print("FATAL: Could not connect to DB");
+           System.exit(1);
         } finally {
             try {
                 if (rs != null) {

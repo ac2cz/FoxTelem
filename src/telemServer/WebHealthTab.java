@@ -1,9 +1,14 @@
 package telemServer;
 
+import java.text.ParseException;
+import java.util.Date;
+import java.util.TimeZone;
+
 import common.Config;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
@@ -80,8 +85,10 @@ public class WebHealthTab {
 	public String toString() {
 		String s = "";
 		if (payloadRt != null) {
+			s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+"</h1>";
 		s = s + "<style> td { border: 5px solid lightgray; } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
-		s = s + "<h3>Fox "+ fox.getIdString()+"  REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime() + "</h3>"
+		s = s + "<h3>REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime() 
+		+ " Received: " + formatCaptureDate(payloadRt.getCaptureDate()) + "</h3>"
 				+ "<table>";
 		
 		s = s + "<tr bgcolor=silver>";
@@ -201,6 +208,25 @@ public class WebHealthTab {
 		return unit;
 				
 	}
+	
+	private String formatCaptureDate(String u) {
+		Date result = null;
+		String reportDate = null;
+		try {
+			FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			result = FramePart.fileDateFormat.parse(u);	
+			FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			reportDate = FramePart.reportDateFormat.format(result);
+
+		} catch (ParseException e) {
+			reportDate = "unknown";				
+		} catch (NumberFormatException e) {
+			reportDate = "unknown";				
+		}
+
+		return reportDate;
+	}
+	
 	//FIXME - This is copied from ModuleTab and should be in a shared place
 	protected void analyzeModules(BitArrayLayout rt, BitArrayLayout max, BitArrayLayout min, int moduleType) throws LayoutLoadException {
 		// First get a quick list of all the modules names and sort them into top/bottom
