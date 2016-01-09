@@ -66,7 +66,7 @@ public class WebHealthTab {
 	public String toGraphString(String fieldName, boolean convert, int num, int fromReset, int fromUptime) {
 		String s = "";
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
-		s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
+		s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+" - " + fieldName +"</h1>"
 				+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
 		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
 		if (graphData != null) {

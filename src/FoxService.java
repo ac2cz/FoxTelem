@@ -28,7 +28,7 @@ public class FoxService {
 	public static void main(String args[]) throws IOException {
 		FoxService ws = new FoxService();
 		String u,p, db;
-		if (args.length == 2) {
+		if (args.length == 3) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		    p = in.readLine();
 			if (p == null || p.isEmpty()) {
@@ -37,10 +37,17 @@ public class FoxService {
 			}
 			u = args[0];
 			db = args[1];
+			try {
+			port = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				System.err.println("FATAL: Invalid Port - " + port);
+				Log.println("FATAL: Invalid Port - " + port);
+				System.exit(1);
+			}
 			ws.start(u,p,db);
 
 		} else {
-			System.out.println("Usage: FoxService user database");
+			System.out.println("Usage: FoxService user database port");
 			System.exit(1);
 		}
 	}

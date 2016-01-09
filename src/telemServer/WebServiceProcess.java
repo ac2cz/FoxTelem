@@ -101,7 +101,7 @@ public class WebServiceProcess implements Runnable {
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
-								out.println("<H2>Fox-1 Telemetry</H2>");
+								//out.println("<H2>Fox-1 Telemetry</H2>");
 								fox1Atab.setRtPayload(rt);
 								out.println(fox1Atab.toString());
 							} else {
