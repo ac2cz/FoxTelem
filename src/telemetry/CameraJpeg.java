@@ -164,14 +164,14 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		if (resets == p.resets && fromUptime == p.fromUptime) 
 			return 0;
 		else if (resets < p.resets)
-			return +1;
-		else if (resets > p.resets)
 			return -1;
+		else if (resets > p.resets)
+			return +1;
 		else if (resets == p.resets)	
 			if (fromUptime < p.fromUptime)
-				return +1;
+				return -1;
 		
-		return -1;
+		return +1;
 	}
 
 	
