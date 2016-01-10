@@ -329,7 +329,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				if (f instanceof PayloadHERCIhighSpeed)
+				if (f instanceof PayloadCameraData)
 					Log.println("Stop");;
 				return store.add(id, uptime, resets, f);
 			} catch (IOException e) {
@@ -350,7 +350,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		for (int i=0; i< f.length; i++) {
 			if (f[i].hasData()) {
 				f[i].captureHeaderInfo(id, uptime, resets);
-				f[i].type = 100 + i; // store the index in the type field so it is unique
+				f[i].type = 400 + i; // store the index in the type field so it is unique
 				try {
 					payloadQueue.add(f[i]);
 				} catch (NullPointerException e) {
@@ -684,7 +684,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					FramePart f = (FramePart) payloadQueue.get(0);
 					if (Config.debugFieldValues)
 						Log.println(f.toString());
-					if (addToDb(f.id, f.uptime, f.resets, f))
+					if (f instanceof PayloadCameraData)
+						addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
+					else if (addToDb(f.id, f.uptime, f.resets, f))
 						;
 					else {
 						// Serious error where we could not add data to the database
@@ -745,8 +747,31 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	@Override
 	public boolean addToPictureFile(int id, long uptime, int resets,
 			PayloadCameraData f) {
-		// TODO Auto-generated method stub
-		return false;
+		SatPictureStore store = getPictureStoreById(id);
+		if (store != null) {
+			ArrayList<PictureScanLine> lines = f.pictureLines;
+			for (PictureScanLine line : lines) {
+				// Capture the header into the line
+				line.id = id;
+				line.resets = resets;
+				line.uptime = uptime;
+				try {
+					if (!store.add(id, resets, uptime, line))
+						return false;
+				} catch (IOException e) {
+					// FIXME We don't want to stop the server
+					// this probably means we did not store the camera payload or could not create the Jpeg.  Perhaps the header was missing etc
+					// or the file was in use by another process, e.g. Backup
+					Log.println("File Error writting CAMERA DATA, line not written: " + id + " " + resets + " " + uptime + "\n" + e.getMessage());
+					e.printStackTrace(Log.getWriter());
+				} catch (ArrayIndexOutOfBoundsException e) {
+					// FIXME We dont want to stop the SERVER but we want to warn the operator...
+					Log.println("CORRUPT CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
+					e.printStackTrace(Log.getWriter());
+				}
+			}
+		}
+		return true;
 	}
 
 	@Override

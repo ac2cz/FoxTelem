@@ -261,7 +261,7 @@ public class SatPayloadDbStore {
 			for (int i=0; i< f.length; i++) {
 				if (f[i].hasData()) {
 					f[i].captureHeaderInfo(id, uptime, resets);
-					f[i].type = i+100;  // use type as the serial number for high speed type 4s, starting at 100 to distinguish from a Low Speed type 4
+					f[i].type = i+400;  // use type as the serial number for high speed type 4s, starting at 400 to distinguish from a Low Speed type 4
 					addRadRecord(f[i]);
 				}
 			}
