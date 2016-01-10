@@ -48,7 +48,7 @@ public class Log {
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	public static final DateFormat logDateName = new SimpleDateFormat("yyyyMMdd");
 	public static SourceTab logPanel;
-	public static String logFile = "FoxTelemDecoder.log";
+	public static String logFile = "FoxTelemDecoder";
 	public static Thread.UncaughtExceptionHandler uncaughtExHandler;
 	public static boolean showGuiDialogs = true;
 	/**
@@ -130,7 +130,7 @@ public class Log {
 
 	public static void println(String s) {
 		if (Config.logging) {
-			if (output == null) init(logFile);
+			if (output == null) init("FoxTelemDecoder");
 			output.write(fileDateStamp() + s + System.getProperty("line.separator") );
 			if (logPanel != null) logPanel.log(s);
 			flush();

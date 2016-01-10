@@ -518,7 +518,7 @@ public class FoxTelemMain {
 			m.initialRun();
 		}
 		
-		Log.init("FoxTelemDecoder.log");
+		Log.init("FoxTelemDecoder");
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
