@@ -34,6 +34,7 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 	int scanLineNumber = 0; // 6 bits unsigned 0x00 to 0x3B, where 0x00 is the top line
 	int scanLineLength = 0; // 10 bits unsigned 0x001 to 0x3FF - count of bytes in the scan line
 	int[] scanLineData = null; // variable length line of data
+	String fileName = ""; // fileName used when this is saved to disk (only needed by the server)
 	
 	// Store the information from the frame this came from so that we can tell unique picture lines apart
 	int id;
@@ -75,6 +76,11 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 		this.resets = resets;
 	}
 
+	public String getFileName() {
+		fileName = "Fox" + id + "psl" + resets + "_" + uptime + "_" + pictureCounter +"_" +scanLineNumber + ".log";
+		return fileName;
+	}
+	
 	public int compareTo(PictureScanLine p) {
 		if (resets == p.resets && uptime == p.uptime && pictureCounter == p.pictureCounter 
 				&& scanLineNumber == p.scanLineNumber) 
@@ -142,4 +148,31 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 
 	}
 	
+	public static String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(id int, resets int, uptime bigint, "
+		 + "pictureCounter int, "
+		 + "scanLineNumber int," 
+		 + "scanLineLength int,"
+		 + "fileName varchar(255)," 
+		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+		s = s + "PRIMARY KEY (id, resets, uptime, pictureCounter))";
+		return s;
+	}
+	
+	public String getInsertStmt() {
+		String s = new String();
+		s = s + " (id, resets, uptime,\n";
+		s = s + "pictureCounter,\n";
+		s = s + "scanLineNumber,\n";
+		s = s + "scanLineLength,\n";
+		s = s + "fileName)\n";
+		
+		s = s + "values (" + this.id + ", " + resets + ", " + uptime +  ",\n";
+		s = s + pictureCounter+",\n";
+		s = s + scanLineNumber+",\n";
+		s = s + scanLineLength+",\n";
+		s = s + "'" + fileName+"')\n";
+		return s;
+	}
 }

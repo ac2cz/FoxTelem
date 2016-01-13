@@ -62,7 +62,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	private final int INITIAL_QUEUE_SIZE = 1000;
 	SatPayloadDbStore[] payloadStore;
-	SatPictureStore[] pictureStore;
+	//SatPictureStore[] pictureStore;
 	
 	public PayloadDbStore(String u, String pw, String database) {
 		db = database;
@@ -125,10 +125,10 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
         }
         
 		payloadStore = new SatPayloadDbStore[sats.size()];
-		pictureStore = new SatPictureStore[sats.size()];
+		//pictureStore = new SatPictureStore[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
 			payloadStore[s] = new SatPayloadDbStore(sats.get(s));
-			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
+			//if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			
 		}
 	}
@@ -159,13 +159,14 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				if (store.foxId == id) return store;
 		return null;
 	}
+	/*
 	private SatPictureStore getPictureStoreById(int id) {
 		for (SatPictureStore store : pictureStore)
 			if (store != null)
 				if (store.foxId == id) return store;
 		return null;
 	}
-
+*/
 	public void setUpdatedAll() {
 		for (SatPayloadDbStore store : payloadStore)
 		if (store != null)
@@ -226,13 +227,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			store.setUpdatedRad(u);
 	}
 	public boolean getUpdatedCamera(int id) { 
-		SatPictureStore store = getPictureStoreById(id);
+		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedCamera();
 		return false;
 	}
 	public void setUpdatedCamera(int id, boolean u) {
-		SatPictureStore store = getPictureStoreById(id);
+		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedCamera(u);
 	}
@@ -276,7 +277,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	
 	public int getNumberOfPictureCounters(int id) { 
-		SatPictureStore store = getPictureStoreById(id);
+		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getNumberOfPictureCounters();
 		return 0;
@@ -291,9 +292,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	*/
 
 	public SortedJpegList getJpegIndex(int id) {
-		SatPictureStore store = getPictureStoreById(id);
-		if (store != null)
-			return store.jpegIndex;
+	//	SatPayloadDbStore store = getPayloadStoreById(id);
+	//	if (store != null)
+	//		return store.jpegIndex;
 		return null;
 	}
 
@@ -484,7 +485,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 */
 	public boolean addToDb(int id, long uptime, int resets, PayloadCameraData f) {
-		SatPictureStore store = getPictureStoreById(id);   ////FIXME - THIS IS NOT A DATBASE, BUT REFERS TO A FILE. IS THAT WHAT WE WANT??
+		SatPayloadDbStore store = getPayloadStoreById(id);  
 		if (store != null) {
 			ArrayList<PictureScanLine> lines = f.pictureLines;
 			for (PictureScanLine line : lines) {
@@ -493,7 +494,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				line.resets = resets;
 				line.uptime = uptime;
 				try {
-					if (!store.add(id, resets, uptime, line))
+					if (!store.add(line))
 						return false;
 				} catch (IOException e) {
 					// FIXME We don't want to stop the decoder but we want to warn the user...
@@ -637,10 +638,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		for (SatPayloadDbStore store : payloadStore)
 			if (store != null)
 				store.deleteAll();
-		for (SatPictureStore store : pictureStore)
-			if (store != null)
-				store.deleteAll();
-
+		
 	}
 	
 	public static void errorPrint(Throwable e) {
@@ -685,7 +683,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					if (Config.debugFieldValues)
 						Log.println(f.toString());
 					if (f instanceof PayloadCameraData)
-						addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
+						addToDb(f.id, f.uptime, f.resets, (PayloadCameraData)f);
 					else if (addToDb(f.id, f.uptime, f.resets, f))
 						;
 					else {
@@ -744,34 +742,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 
+	/**
+	 * Not used.  See addToDb method
+	 */
 	@Override
-	public boolean addToPictureFile(int id, long uptime, int resets,
-			PayloadCameraData f) {
-		SatPictureStore store = getPictureStoreById(id);
-		if (store != null) {
-			ArrayList<PictureScanLine> lines = f.pictureLines;
-			for (PictureScanLine line : lines) {
-				// Capture the header into the line
-				line.id = id;
-				line.resets = resets;
-				line.uptime = uptime;
-				try {
-					if (!store.add(id, resets, uptime, line))
-						return false;
-				} catch (IOException e) {
-					// FIXME We don't want to stop the server
-					// this probably means we did not store the camera payload or could not create the Jpeg.  Perhaps the header was missing etc
-					// or the file was in use by another process, e.g. Backup
-					Log.println("File Error writting CAMERA DATA, line not written: " + id + " " + resets + " " + uptime + "\n" + e.getMessage());
-					e.printStackTrace(Log.getWriter());
-				} catch (ArrayIndexOutOfBoundsException e) {
-					// FIXME We dont want to stop the SERVER but we want to warn the operator...
-					Log.println("CORRUPT CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
-					e.printStackTrace(Log.getWriter());
-				}
-			}
-		}
-		return true;
+	public boolean addToPictureFile(int id, long uptime, int resets, PayloadCameraData f) {
+		return false;
 	}
 
 	@Override
