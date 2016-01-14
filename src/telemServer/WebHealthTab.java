@@ -31,9 +31,11 @@ public class WebHealthTab {
 	int[] bottomModuleLines = new int[10];
 	int numOfTopModules = 1;
 	int numOfBottomModules = 1;
+	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(Spacecraft f) throws LayoutLoadException {
+	public WebHealthTab(Spacecraft f, int p) throws LayoutLoadException {
 		fox = f;
+		port = p;
 		rtlayout = fox.rtLayout;
 		maxlayout = fox.maxLayout;
 		minlayout = fox.minLayout;
@@ -194,6 +196,7 @@ public class WebHealthTab {
 						+ "&reset=0"
 						+ "&uptime=0"
 						+ "&rows=100"
+						+ "&port=" + port
 								+ ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
 				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], );					
 			}

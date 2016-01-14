@@ -85,7 +85,7 @@ public class FoxService {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for WebService connection ...");
-        		pool.execute(new WebServiceProcess(serverSocket.accept()));
+        		pool.execute(new WebServiceProcess(serverSocket.accept(),port));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {
