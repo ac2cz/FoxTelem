@@ -10,6 +10,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
@@ -257,9 +258,14 @@ public class SatMeasurementStore {
         	}
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-        	
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        } catch (NoSuchElementException n) {
+        	// File is corrupt, so better tell the user
+        	Log.errorDialog("FATAL: CORRUPT FILE", "Can not load logfile, it appears to be corrupt.  You need to fix or remove the file for FoxTelem to load\n"
+        			+ "Log: " + log);
+        	n.printStackTrace(Log.getWriter());
+        	System.exit(1);
         } finally {
         	try {
 				dis.close();

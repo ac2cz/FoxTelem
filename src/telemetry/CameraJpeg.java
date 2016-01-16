@@ -12,6 +12,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
@@ -65,6 +66,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	private boolean thumbStale = false;
 	
 	BufferedImage thumbNail; // cache the thumbnail in memory
+	SortedArrayList<PictureScanLine> pictureLines;
 	
 	/**
 	 * Constructor for creation of a Jpeg index item from disk
@@ -86,6 +88,24 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	}
 
 	/**
+	 * Create a new empty Jpeg Entry that is suitable as an index entry that can be saved to the database
+	 * @param id
+	 * @param resets
+	 * @param from
+	 * @param to
+	 * @param pc
+	 */
+	CameraJpeg(int id, int resets, long from, long to, int pc) {
+		this.id = id;
+		this.resets = resets;
+		fromUptime = from;
+		toUptime = to;
+		pictureCounter = pc;
+		fileName = makeFileName();
+		pictureLines = new SortedArrayList<PictureScanLine>(60);
+	}	
+	
+	/**
 	 * Constructor for creation of a jpeg from a new scan line
 	 * @param id
 	 * @param resets
@@ -106,6 +126,10 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		addLine(line);
 	}
 
+	public String getFileName() {
+		return fileName;
+	}
+	
 	/**
 	 * Add a line to this jpeg and write it straight out to disk.  The file we write to will already have the Jpeg header
 	 * @param line
@@ -114,30 +138,57 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	public void addLine(PictureScanLine line) throws IOException {
 		if (toUptime < line.uptime)
 			toUptime = line.uptime;
+
 		OutputStream out = new FileOutputStream(fileName, true);
 		try {
-			for (int a : line.scanLineData)
-				out.write((byte)a);
-			// Write the JPEG markers if we needed to
-			if (INSERT_MARKERS) {
-				out.write((byte)0xFF);
-				int num = line.scanLineNumber % 8;
-				int rsi = (num & 0x07) | 0xD0;  // calculate the reset indication D0 - D7
-				out.write((byte)rsi);
-				
-				// If this is the last line then it is followed by the JPEG Footer
-				if (line.scanLineNumber == LAST_LINE) {
-					Log.println("LAST LINE - JPEG FOOTER ADDED");
-					out.write((byte)0xFF);
-					out.write((byte)0xD9);
-				}
-			}
-			thumbStale = true;
+			writeLine(line, out);
 		} finally {
 			out.close();
 		}
 	}
 	
+	private void writeLine(PictureScanLine line, OutputStream out) throws IOException {
+
+		for (int a : line.scanLineData)
+			out.write((byte)a);
+		// Write the JPEG markers if we needed to
+		if (INSERT_MARKERS) {
+			out.write((byte)0xFF);
+			int num = line.scanLineNumber % 8;
+			int rsi = (num & 0x07) | 0xD0;  // calculate the reset indication D0 - D7
+			out.write((byte)rsi);
+
+			// If this is the last line then it is followed by the JPEG Footer
+			if (line.scanLineNumber == LAST_LINE) {
+				Log.println("LAST LINE - JPEG FOOTER ADDED");
+				out.write((byte)0xFF);
+				out.write((byte)0xD9);
+			}
+		}
+		thumbStale = true;
+
+	}
+
+	/**
+	 * Add a line when the Jpeg Index is stored in the DB and we expect to get scan lines out of sequence.
+	 * This is the server mode.
+	 * 
+	 * @param line
+	 * @throws IOException
+	 */
+	public void addLineDb(PictureScanLine line) throws IOException {
+		if (toUptime < line.uptime)
+			toUptime = line.uptime;
+		pictureLines.add(line);
+		OutputStream out = new FileOutputStream(fileName, false);
+		try {
+			for (int i=0; i < pictureLines.size(); i++) {
+				writeLine(pictureLines.get(i), out);
+			}
+		} finally {
+			out.close();
+		}
+	}
 	
 	/**
 	 * Check to see if the uptime we have been passed is within 150 seconds of the uptimes in this file
@@ -164,14 +215,14 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		if (resets == p.resets && fromUptime == p.fromUptime) 
 			return 0;
 		else if (resets < p.resets)
-			return +1;
-		else if (resets > p.resets)
 			return -1;
+		else if (resets > p.resets)
+			return +1;
 		else if (resets == p.resets)	
 			if (fromUptime < p.fromUptime)
-				return +1;
+				return -1;
 		
-		return -1;
+		return +1;
 	}
 
 	
@@ -198,10 +249,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		if (sat.hasLowResCamera())
 			header = JPG_HEADER_LOW_RES;
 		
-		String name = IMAGES_DIR + File.separator + id + "_" + reset + "_" + uptime + "_" + pc  + ".jpg";
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			name = Config.logFileDirectory + File.separator + name;
-		} 
+		String name = makeFileName();
 		File toFile = new File(name);
 		if(!toFile.exists()){
 			File headerFile = new File(header);
@@ -211,6 +259,14 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		
 		return name;
 		
+	}
+	
+	public String makeFileName() {
+		String name = IMAGES_DIR + File.separator + id + "_" + resets + "_" + fromUptime + "_" + pictureCounter  + ".jpg";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			name = Config.logFileDirectory + File.separator + name;
+		} 
+		return name;
 	}
 
 
@@ -277,4 +333,25 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		return s;
 	}
 	
+	public static String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(id int, resets int, fromUptime bigint, toUptime bigint, "
+		 + "pictureCounter int, "
+		 + "fileName varchar(255)," 
+		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+		s = s + "PRIMARY KEY (id, resets, fromUptime, pictureCounter))";
+		return s;
+	}
+	
+	public String getInsertStmt() {
+		String s = new String();
+		s = s + " (id, resets, fromUptime, toUptime, \n";
+		s = s + "pictureCounter,\n";
+		s = s + "fileName)\n";
+		
+		s = s + "values (" + this.id + ", " + resets + ", " + fromUptime + ", " + toUptime + ",\n";
+		s = s + pictureCounter+",\n";
+		s = s + "'" + fileName+"')\n";
+		return s;
+	}
 }

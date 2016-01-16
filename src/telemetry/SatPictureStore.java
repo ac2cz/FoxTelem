@@ -67,8 +67,24 @@ public class SatPictureStore {
 	}
 
 	private void initPayloadFiles() {
+		// Check for and create the images directory if it does not exist
+		String dir = CameraJpeg.IMAGES_DIR;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator + dir;
+
+		}
+		File aFile = new File(dir);
+		if(!aFile.isDirectory()){
+				aFile.mkdir();
+				Log.println("Making directory: " + dir);
+		}
+		if(!aFile.isDirectory()){
+			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
+					"\nAny decoded pictures will not be saved to disk. Downloaded picture lines\n"
+					+ "can still be decoded and uploaded to the server.");
+		}
 		jpegIndex = new SortedJpegList(INIT_SIZE);
-		fileName = "Fox"+foxId+JPG_INDEX_NAME;
+		fileName = CameraJpeg.IMAGES_DIR + File.separator + "Fox"+foxId+JPG_INDEX_NAME;
 		try {
 			load(fileName);
 		} catch (FileNotFoundException e) {
@@ -77,31 +93,6 @@ public class SatPictureStore {
 					"ERROR Loading Stored Jpeg Index data",
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
-		}
-		
-		// Check for and create the images directory if it does not exist
-		String dir = CameraJpeg.IMAGES_DIR;
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + dir;
-			
-		}
-		File aFile = new File(dir);
-		if(!aFile.isDirectory()){
-			//try {
-				aFile.mkdir();
-				Log.println("Making directory: " + dir);
-			/*} catch (IOException e) {
-				JOptionPane.showMessageDialog(MainWindow.frame,
-						e.toString(),
-						"ERROR can't create the directory " + dir,
-						JOptionPane.ERROR_MESSAGE) ;
-				e.printStackTrace(Log.getWriter());
-			}*/
-		}
-		if(!aFile.isDirectory()){
-			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
-					"\nAny decoded pictures will not be saved to disk. Downloaded picture lines\n"
-					+ "can still be decoded and uploaded to the server.");
 		}
 		
 		//Confirm that we have the jpeg header

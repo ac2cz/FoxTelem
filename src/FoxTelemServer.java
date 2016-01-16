@@ -1,5 +1,7 @@
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
@@ -42,21 +44,40 @@ public class FoxTelemServer {
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
 	static int poolSize = 100; // max number of threads
-	static final String usage = "FoxServer user password database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
+	static final String usage = "FoxServer user database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
 			+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
 			+ "-f <dir> - Process all of the stp files in the specified directory and fix the STP_HEADER table db\n"
 			+ "-r - Reprocess the radiation data and generate the secondary payloads\n";
-	public static void main(String[] args) {
-		String u,p, db;
-		if (args.length < 3) {
+	public static void main(String[] args) throws IOException {
+		if (args.length == 1) {
+			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
+				System.out.println(usage);
+				System.exit(0);
+			} else
+			if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
+				System.out.println("AMSAT Fox Server. Version " + version);
+				System.exit(0);
+			} else {
+				System.out.println(usage);
+				System.exit(1);
+			}
+				
+		}
+		String u,db;
+		if (args.length < 2) {
 			System.out.println(usage);
 			System.exit(1);
 		}
 		u = args[0];
-		p = args[1];
-		db = args[2];
+		db = args[1];
 
-		
+		BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+	    String p;	
+	    p = in.readLine();
+		if (p == null || p.isEmpty()) {
+			System.out.println("Missing password");
+			System.exit(2);
+		}
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
 		Log.init("FoxServer");
@@ -77,41 +98,40 @@ public class FoxTelemServer {
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
-		if (args.length == 4) {
-			if ((args[3].equalsIgnoreCase("-h")) || (args[3].equalsIgnoreCase("-help")) || (args[3].equalsIgnoreCase("--help"))) {
-				System.out.println(usage);
-				System.exit(0);
-			}
-			if ((args[3].equalsIgnoreCase("-v")) ||args[3].equalsIgnoreCase("-version")) {
-				System.out.println("AMSAT Fox Server. Version " + version);
-				System.exit(0);
-			}
-			if ((args[3].equalsIgnoreCase("-r")) ) {
-
+		if (args.length == 3) {
+			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");
 				processRadData();
 				System.exit(0);
+			} else {
+				System.out.println(usage);
+				System.exit(1);
 			}
 		} else
-		if (args.length == 5) {
+		if (args.length == 4) {
 
-			if ((args[3].equalsIgnoreCase("-s")) ) {
-				String dir = args[4]; 
+			if ((args[2].equalsIgnoreCase("-s")) ) {
+				String dir = args[3]; 
 
 				Log.println("AMSAT Fox Server. \nSTP FILE LOAD FROM DIR: " + dir);
 				importStp(dir, false);
 				System.exit(0);
-			}
+			} else
 
-			if ((args[3].equalsIgnoreCase("-f")) ) {
-				String dir = args[4]; 
+			if ((args[2].equalsIgnoreCase("-f")) ) {
+				String dir = args[3]; 
 
 				Log.println("AMSAT Fox Server. \nSTP FILE fix: " + dir);
 				fixStp(dir);
 				System.exit(0);
+			} else {
+				System.out.println(usage);
+				System.exit(1);
 			}
-		} else
+		} else if (args.length > 4) {
 			System.out.println(usage);
+			System.exit(1);
+		}
 
 
 		
@@ -229,10 +249,10 @@ private static void importStp(String stpDir, boolean delete) {
 			if (listOfFiles[i].isFile() ) {
 				//Log.print("Loading STP data from: " + listOfFiles[i].getName());
 				try {
-					Frame f = Frame.importStpFile(listOfFiles[i], true);
+					Frame f = Frame.importStpFile(listOfFiles[i], false);
 					if (f == null) {
-						// null data - try to delete it but do nothing if we can not (so don't check the return code
-						listOfFiles[i].delete();
+						// null data -  do nothing if we can not (so don't check the return code
+						//listOfFiles[i].delete();
 					}
 				} catch (StpFileProcessException e) {
 					Log.println("STP IMPORT ERROR: " + e.getMessage());

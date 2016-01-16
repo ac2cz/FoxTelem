@@ -493,7 +493,7 @@ import decoder.Decoder;
  * When reset button pressed on graphs the average period is reset too
  * 1.03b
  * Merged with Server Code - one code base
- * Fixed crash when auto mode used with wav files
+ * Fixed crash when auto mode used with wav files	
  * Display converted HERCI Housekeeping data
  * Skip NULL values for some measurements.  Don't plot continuous labels to left of vertical axis.
  * MEMS diagnostic values are now in dps (vs Volts)
@@ -518,7 +518,7 @@ public class FoxTelemMain {
 			m.initialRun();
 		}
 		
-		Log.init("FoxTelemDecoder.log");
+		Log.init("FoxTelemDecoder");
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		

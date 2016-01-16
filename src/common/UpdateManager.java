@@ -129,6 +129,7 @@ public class UpdateManager implements Runnable {
 				File f1 = new File(file + ".tmp");
 				File f2 = new File(file);
 				SatPayloadStore.copyFile(f1, f2);
+				SatPayloadStore.remove(file + ".tmp");
 				return;
 			} else {
 				SatPayloadStore.remove(file + ".tmp");

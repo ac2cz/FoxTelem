@@ -23,9 +23,11 @@ import common.Log;
 public class WebServiceProcess implements Runnable {
 
 	private Socket socket = null;
-
-	public WebServiceProcess(Socket socket) {
+	int port = 8080;
+	
+	public WebServiceProcess(Socket socket, int p) {
 		this.socket = socket;
+		port = p;
 	}
 
 
@@ -97,11 +99,11 @@ public class WebServiceProcess implements Runnable {
 							PayloadRtValues rt = Config.payloadStore.getLatestRt(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat));
+									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
-								out.println("<H2>Fox-1 Telemetry</H2>");
+								//out.println("<H2>Fox-1 Telemetry</H2>");
 								fox1Atab.setRtPayload(rt);
 								out.println(fox1Atab.toString());
 							} else {
@@ -121,7 +123,7 @@ public class WebServiceProcess implements Runnable {
 							int fromReset = Integer.parseInt(path[6]);
 							int fromUptime = Integer.parseInt(path[7]);
 							try {
-								fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat));
+								fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
 							} catch (LayoutLoadException e1) {
 								e1.printStackTrace(Log.getWriter());
 							}
