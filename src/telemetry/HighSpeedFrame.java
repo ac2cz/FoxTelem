@@ -194,8 +194,8 @@ public class HighSpeedFrame extends Frame {
 		s = "\n" + header.toString() + 
 				"\n\n"+ rtPayload.toString() + 
 				"\n\n"+ maxPayload.toString() +
-				"\n\n"+ minPayload.toString();
-				//"\n\n"+ cameraPayload.toString();
+				"\n\n"+ minPayload.toString() +
+				"\n\n"+ cameraPayload.toString();
 		
 		s = s + "\n\n" + radExpPayload.length + " RADIATION FRAMES:\n\n";
 		if (radExpPayload != null)

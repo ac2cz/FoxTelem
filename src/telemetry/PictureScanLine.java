@@ -58,6 +58,19 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 		captureDate = date;
 	}
 	
+	public PictureScanLine(int id, int resets, long uptime, String captureDate, int pc, int sln, int sll, byte[] bytes) {
+		this.id = id;
+		this.resets = resets;
+		this.uptime = uptime;
+		this.captureDate = captureDate;
+		pictureCounter = pc;
+		scanLineNumber = sln;
+		scanLineLength = sll;
+		scanLineData = new int[bytes.length];
+		for (int i=0; i< scanLineData.length; i++) {
+			scanLineData[i] = (int)bytes[i];
+		}
+	}
 
 	public PictureScanLine(int id, int resets, long uptime, String captureDate, int pc, int sln, int sll, StringTokenizer st) {
 		this.id = id;
@@ -76,10 +89,19 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 		this.resets = resets;
 	}
 
+	public byte[] getBytes() {
+		byte[] b = new byte[scanLineData.length];
+		for (int i=0; i< scanLineData.length; i++) {
+			b[i] = (byte)scanLineData[i];
+		}
+		return b;
+	}
+	/*
 	public String getFileName() {
 		fileName = "Fox" + id + "psl" + resets + "_" + uptime + "_" + pictureCounter +"_" +scanLineNumber + ".log";
 		return fileName;
 	}
+	*/
 	
 	public int compareTo(PictureScanLine p) {
 		if (resets == p.resets && uptime == p.uptime && pictureCounter == p.pictureCounter 
@@ -154,9 +176,9 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 		 + "pictureCounter int, "
 		 + "scanLineNumber int," 
 		 + "scanLineLength int,"
-		 + "fileName varchar(255)," 
+		 + "imageBytes blob,"
 		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
-		s = s + "PRIMARY KEY (id, resets, uptime, pictureCounter))";
+		s = s + "PRIMARY KEY (id, resets, uptime, pictureCounter, scanLineNumber))";
 		return s;
 	}
 	
@@ -165,14 +187,12 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 		s = s + " (id, resets, uptime,\n";
 		s = s + "pictureCounter,\n";
 		s = s + "scanLineNumber,\n";
-		s = s + "scanLineLength,\n";
-		s = s + "fileName)\n";
+		s = s + "scanLineLength)\n";
 		
 		s = s + "values (" + this.id + ", " + resets + ", " + uptime +  ",\n";
 		s = s + pictureCounter+",\n";
 		s = s + scanLineNumber+",\n";
-		s = s + scanLineLength+",\n";
-		s = s + "'" + fileName+"')\n";
+		s = s + scanLineLength+")\n";
 		return s;
 	}
 }

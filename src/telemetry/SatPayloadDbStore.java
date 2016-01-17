@@ -3,11 +3,8 @@ package telemetry;
 
 import gui.MainWindow;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -342,6 +339,36 @@ public class SatPayloadDbStore {
 
 	}
 	
+	private boolean insertImageLine(String table, PictureScanLine f) {
+		String insertStmt = f.getInsertStmt();
+		boolean inserted = insertData(table, insertStmt);
+		// FIXME - this returns true unless there is an error.  So even with a duplicate we copy all the bytes in, which is wastefull!
+		if (!inserted)
+			return false;
+		else
+		try {
+			Connection derby = PayloadDbStore.getConnection();
+			java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table + " set imageBytes = ?"
+					+ " where id = " + f.id
+					+ " and resets = " + f.resets
+					+ " and uptime = " + f.uptime
+					+ " and pictureCounter = " + f.pictureCounter
+					+ " and scanLineNumber = " + f.scanLineNumber);
+			ps.setBytes(1, f.getBytes());
+			int count = ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
+				Log.println("ERROR, image bytes not stored");
+				return false; // We have the data
+			} else {
+				PayloadDbStore.errorPrint(e);
+			}
+			return false;
+		}
+		return true;
+	}
+	
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -384,46 +411,131 @@ public class SatPayloadDbStore {
 	 * @param line
 	 * @return
 	 * @throws IOException 
+	 * @throws SQLException 
 	 */
-	public boolean add(PictureScanLine line) throws IOException {
-		boolean added = insert(pictureLinesTableName, line);
+	public boolean add(PictureScanLine line) throws IOException, SQLException {
+		boolean added = insertImageLine(pictureLinesTableName, line);
 		if (added) {
-			// This was a new line
-			// Save to disk
-			savePictureLinesFile(line);
-			//FIXME - this next line will also create a file on disk, but we only want to do that if its NEW
-			//        we should have a different constructor that checks the table or that creats a simple Jpg Idx entry only...
-			CameraJpeg jpg = new CameraJpeg(line.id, line.resets, line.uptime, line.uptime, line.pictureCounter);
-			insert(jpgIdxTableName, jpg); // we add this.  If its a duplicate, we ignore and keep going.  The line still needs to be added
-			jpg.addLineDb(line);
+			// This was a new line, so we want to see if this is a new JPEG.  Either way we read all the latest lines 
+			// when we instantiate the CameraJpeg
+			String where = " where id = " + line.id
+					+ " and resets = " + line.resets
+					+ " and uptime = " + line.uptime
+					+ " and pictureCounter = " + line.pictureCounter;
+			CameraJpeg jpg = selectExistingJpeg(jpgIdxTableName, line.id, line.resets, line.uptime, line.pictureCounter);
+			
+			if (jpg == null) {
+				ResultSet rs = selectImageLines(pictureLinesTableName, where);
+				jpg = new CameraJpeg(line.id, line.resets, line.uptime, line.uptime, line.pictureCounter, rs);
+				insert(jpgIdxTableName, jpg); // we add this.  If its a duplicate, we ignore and keep going.  The line still needs to be added
+			}
+			jpg.writeAllLines();  // this triggers us to write it to the file
 			updatedCamera = true;
 			return true;
 		}
 		return false;
 	}
 	
-	public void savePictureLinesFile(PictureScanLine line) throws IOException {
-		String log = line.getFileName();
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-		} 
-		File aFile = new File(log);
-		if(!aFile.exists()) {
-			aFile.createNewFile();
-		}
-		//Log.println("Saving: " + log);
-		//use buffering 
-		boolean append = false;
-		Writer output = new BufferedWriter(new FileWriter(aFile, append));
+	/**
+	 * Query the database to see if we have a Jpeg with the same id, reset and pictureCounter, where
+	 * the uptime is close to the uptime of this line.  Then we can conclude that the line belongs in this
+	 * picture.  Otherwise we return an empty set
+	 * @param table
+	 * @param id
+	 * @param resets
+	 * @param uptime
+	 * @param pictureCounter
+	 * @return
+	 */
+	private CameraJpeg selectExistingJpeg(String table, int id, int resets, long uptime, int pictureCounter) {
+		String where = " where id = " + id
+				+ " and resets = " + resets
+				+ " and ABS(" + uptime + " - fromUptime ) < " + CameraJpeg.UPTIME_THRESHOLD
+				+ " and pictureCounter = " + pictureCounter;
+		Statement stmt = null;
+		String update = "";
+		
+		update = " SELECT id, resets, fromUptime, toUptime, pictureCounter, fileName FROM ";
+		//DERBY SYNTAX - update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		update = update + table + where ;
 		try {
-			output.write( line.toString() + "\n" );
-			output.flush();
-		} finally {
-			// Make sure it is closed even if we hit an error
-			output.flush();
-			output.close();
+			//Log.println("SQL:" + update);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet r = stmt.executeQuery(update);
+			
+			if (r.next()) {
+				String lineswhere = " where id = " + id
+						+ " and resets = " + resets
+						+ " and ABS(" + uptime + " - uptime ) < " + CameraJpeg.UPTIME_THRESHOLD
+						+ " and pictureCounter = " + pictureCounter;				
+				ResultSet rs = selectImageLines(pictureLinesTableName, lineswhere);
+				boolean runUpdate = false;
+				// we have an existing record, so load it
+				int rsid = r.getInt("id");
+				int rsresets = r.getInt("resets");
+				long fromUptime = r.getInt("fromUptime");
+				long toUptime = r.getInt("toUptime");
+				String fileName = r.getString("fileName");
+				int rspictureCounter = r.getInt("pictureCounter");
+				long newFromUptime = fromUptime;
+				long newToUptime = toUptime;
+				if (toUptime < uptime) {
+					// then we have a line that is later than the index records toUptime, so we need to update the database and return that record
+					runUpdate = true;
+					newToUptime = uptime;
+				}
+				// Note that we do not update the "fromUptime".  We used the first uptime that we got
+				if (runUpdate) {
+					try {
+						java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table 
+								+ " set fromUptime = ?, toUptime = ? "
+								+ " where id = " + rsid
+								+ " and resets = " + rsresets
+								+ " and fromUptime = " + fromUptime
+								+ " and toUptime = " + toUptime
+								+ " and pictureCounter = " + rspictureCounter);
+						ps.setLong(1, newFromUptime);
+						ps.setLong(2, newToUptime);
+						int count = ps.executeUpdate();
+						ps.close();
+					} catch (SQLException e) {
+						if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
+							Log.println("ERROR, image bytes not stored");
+							return null; // We have the data
+						} else {
+							PayloadDbStore.errorPrint(e);
+						}
+						return null;
+					}
+				}
+				CameraJpeg j = new CameraJpeg(rsid, rsresets, newFromUptime, newToUptime, rspictureCounter, rs);
+				return j;
+			} else
+			
+			return null;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
 		}
-
+		return null;
+	}
+	private ResultSet selectImageLines(String table, String where) {
+		Statement stmt = null;
+		String update = "";
+		
+		update = " SELECT id, resets, uptime, date_time, pictureCounter, scanLineNumber, scanLineLength, imageBytes FROM ";
+		//DERBY SYNTAX - update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		update = update + table + where ;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet r = stmt.executeQuery(update);
+			return r;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
+		}
+		return null;
 	}
 	
 	private ResultSet selectLatest(String table) {

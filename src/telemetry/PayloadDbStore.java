@@ -1,5 +1,6 @@
 package telemetry;
 
+import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -123,11 +124,25 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
                 Log.println(ex.getMessage());
             }
         }
-        
-		payloadStore = new SatPayloadDbStore[sats.size()];
-		//pictureStore = new SatPictureStore[sats.size()];
-		for (int s=0; s<sats.size(); s++) {
-			payloadStore[s] = new SatPayloadDbStore(sats.get(s));
+        // Check for and create the images directory if it does not exist
+        String dir = CameraJpeg.IMAGES_DIR;
+        if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+        	dir = Config.logFileDirectory + File.separator + dir;
+
+        }
+        File aFile = new File(dir);
+        if(!aFile.isDirectory()){
+        	aFile.mkdir();
+        	Log.println("Making directory: " + dir);
+        }
+        if(!aFile.isDirectory()){
+        	Log.println("FATAL: can't create the images directory: " + aFile.getAbsolutePath());
+        	System.exit(1);
+        }
+        payloadStore = new SatPayloadDbStore[sats.size()];
+        //pictureStore = new SatPictureStore[sats.size()];
+        for (int s=0; s<sats.size(); s++) {
+        	payloadStore[s] = new SatPayloadDbStore(sats.get(s));
 			//if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			
 		}
@@ -501,8 +516,11 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					// this probably means we did not store the camera payload or could not create the Jpeg.  Perhaps the header was missing etc
 					e.printStackTrace(Log.getWriter());
 				} catch (ArrayIndexOutOfBoundsException e) {
-					// FIXME We dont want to stop the decoder but we want to warn the user...
+					// FIXME We dont want to stop the SERVER but we want to warn the operator...
 					Log.println("CORRUPT CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
+					e.printStackTrace(Log.getWriter());
+				} catch (SQLException e) {
+					Log.println("SQL ERROR with CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
 					e.printStackTrace(Log.getWriter());
 				}
 			}

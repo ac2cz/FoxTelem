@@ -6,16 +6,24 @@ import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
 import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.Writer;
 import java.nio.channels.FileChannel;
+import java.sql.Date;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import javax.imageio.IIOException;
 import javax.imageio.ImageIO;
+
+import com.mysql.jdbc.Blob;
 
 import common.Config;
 import common.Log;
@@ -53,7 +61,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	public static final String IMAGES_DIR = "images";
 	public static final String JPG_HEADER = "spacecraft" + File.separator + "jpeg_header.jpg";
 	public static final String JPG_HEADER_LOW_RES = "spacecraft" + File.separator + "jpeg_header_low_res.jpg";
-	public static final int UPTIME_THRESHOLD = 150; // if the uptime is within this value then it is the same picture
+	public static final int UPTIME_THRESHOLD = 500; // if the uptime is within this value then it is the same picture.  Assumes 300 seconds per picture
 	public static final boolean INSERT_MARKERS = true;
 	public static final int LAST_LINE = 59;  // 60 lines from 0 - 59
 	public int id; // Fox Id
@@ -89,11 +97,13 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 
 	/**
 	 * Create a new empty Jpeg Entry that is suitable as an index entry that can be saved to the database
+	 * Initialize it with any existing image lines
 	 * @param id
 	 * @param resets
 	 * @param from
 	 * @param to
 	 * @param pc
+	 * @throws SQLException 
 	 */
 	CameraJpeg(int id, int resets, long from, long to, int pc) {
 		this.id = id;
@@ -101,8 +111,32 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		fromUptime = from;
 		toUptime = to;
 		pictureCounter = pc;
-		fileName = makeFileName();
 		pictureLines = new SortedArrayList<PictureScanLine>(60);
+	
+	}
+	
+	CameraJpeg(int id, int resets, long from, long to, int pc, ResultSet rs) throws SQLException {
+		this(id, resets, from, to, pc);
+		pictureLines = new SortedArrayList<PictureScanLine>(60);
+		if (rs != null) {
+			while (rs.next()) {
+				int lineId = rs.getInt("id");
+				int lineResets = rs.getInt("resets");
+				//int lineUptime = rs.getInt("uptime");
+				int linePc = rs.getInt("pictureCounter");
+				int lineNum = rs.getInt("scanLineNumber");
+				int lineLineLen = rs.getInt("scanLineLength");
+				java.sql.Blob blob = rs.getBlob("imageBytes");
+				int len = (int)blob.length();
+				byte[] blobAsBytes = blob.getBytes(1, len);
+				// we give all the lines the fromUptime so that they are sorted in order
+				PictureScanLine psl = new PictureScanLine(lineId, lineResets, from, "", linePc,lineNum,lineLineLen, blobAsBytes );
+				pictureLines.add(psl);
+				blob.free();
+			}
+		}
+		
+		fileName = makeFileName();
 	}	
 	
 	/**
@@ -122,7 +156,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		toUptime = to;
 		pictureCounter = pc;
 		captureDate = line.captureDate;
-		fileName = createJpegFile(id, resets, from, pc);
+		fileName = createJpegFile(id, resets, from, pc, false);
 		addLine(line);
 	}
 
@@ -176,11 +210,13 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	 * @param line
 	 * @throws IOException
 	 */
-	public void addLineDb(PictureScanLine line) throws IOException {
-		if (toUptime < line.uptime)
-			toUptime = line.uptime;
-		pictureLines.add(line);
-		OutputStream out = new FileOutputStream(fileName, false);
+	public void writeAllLines() throws IOException {
+	//	if (toUptime < line.uptime)
+	//		toUptime = line.uptime;
+	//	pictureLines.add(line);
+	//	savePictureLinesFile(line);
+		fileName = createJpegFile(id, resets, fromUptime, pictureCounter, true);
+		OutputStream out = new FileOutputStream(fileName, true);
 		try {
 			for (int i=0; i < pictureLines.size(); i++) {
 				writeLine(pictureLines.get(i), out);
@@ -190,6 +226,29 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		}
 	}
 	
+	/*
+	public void savePictureLinesFile(PictureScanLine line) throws IOException {
+		String log = fileName + ".psl";
+		
+		File aFile = new File(log);
+		if(!aFile.exists()) {
+			aFile.createNewFile();
+		}
+		//Log.println("Saving: " + log);
+		//use buffering 
+		boolean append = false;
+		Writer output = new BufferedWriter(new FileWriter(aFile, append));
+		try {
+			output.write( line.toString() + "\n" );
+			output.flush();
+		} finally {
+			// Make sure it is closed even if we hit an error
+			output.flush();
+			output.close();
+		}
+
+	}
+	*/
 	/**
 	 * Check to see if the uptime we have been passed is within 150 seconds of the uptimes in this file
 	 * @param id
@@ -240,10 +299,11 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	 * @param reset
 	 * @param uptime
 	 * @param pc
+	 * @param overWrite - overwrite the existing JPEG
 	 * @return
 	 * @throws IOException 
 	 */
-	public String createJpegFile(int id, int reset, long uptime, int pc) throws IOException {
+	public String createJpegFile(int id, int reset, long uptime, int pc, boolean overWrite) throws IOException {
 		String header = JPG_HEADER;
 		Spacecraft sat = Config.satManager.getSpacecraft(id);
 		if (sat.hasLowResCamera())
@@ -251,7 +311,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		
 		String name = makeFileName();
 		File toFile = new File(name);
-		if(!toFile.exists()){
+		if(overWrite || !toFile.exists()){
 			File headerFile = new File(header);
 			SatPayloadStore.copyFile(headerFile, toFile);
 			return name;
@@ -337,7 +397,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		String s = new String();
 		s = s + "(id int, resets int, fromUptime bigint, toUptime bigint, "
 		 + "pictureCounter int, "
-		 + "fileName varchar(255)," 
+		 + "fileName varchar(255),"
 		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
 		s = s + "PRIMARY KEY (id, resets, fromUptime, pictureCounter))";
 		return s;
