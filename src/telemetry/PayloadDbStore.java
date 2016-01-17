@@ -110,7 +110,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
         } catch (SQLException ex) {
            Log.println(ex.getMessage());
            System.err.print("FATAL: Could not connect to DB");
-           System.exit(1);
+           Log.alert("FATAL: Could not connect to DB");
+           //System.exit(1);
         } finally {
             try {
                 if (rs != null) {
@@ -137,7 +138,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
         }
         if(!aFile.isDirectory()){
         	Log.println("FATAL: can't create the images directory: " + aFile.getAbsolutePath());
-        	System.exit(1);
+        	Log.alert("FATAL: can't create the images directory: " + aFile.getAbsolutePath());
         }
         payloadStore = new SatPayloadDbStore[sats.size()];
         //pictureStore = new SatPictureStore[sats.size()];
@@ -345,8 +346,6 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				if (f instanceof PayloadCameraData)
-					Log.println("Stop");;
 				return store.add(id, uptime, resets, f);
 			} catch (IOException e) {
 				// FIXME We dont want to stop the decoder but we want to warn the user...
@@ -429,9 +428,11 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					stmt.execute(createString);
 				} catch (SQLException ex) {
 					PayloadDbStore.errorPrint(ex);
+					Log.alert("FATAL: Could not create STP HEADER table");
 				}
 			} else {
 				PayloadDbStore.errorPrint(e);
+				Log.alert("FATAL: Could not access the STP HEADER table");
 			}
 		} 
 	}
@@ -512,16 +513,18 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					if (!store.add(line))
 						return false;
 				} catch (IOException e) {
-					// FIXME We don't want to stop the decoder but we want to warn the user...
 					// this probably means we did not store the camera payload or could not create the Jpeg.  Perhaps the header was missing etc
 					e.printStackTrace(Log.getWriter());
+					return false; // we did not add the data
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// FIXME We dont want to stop the SERVER but we want to warn the operator...
-					Log.println("CORRUPT CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
+					Log.println("ERROR: CORRUPT CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
 					e.printStackTrace(Log.getWriter());
+					return false; // we did not add the data
 				} catch (SQLException e) {
 					Log.println("SQL ERROR with CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
 					e.printStackTrace(Log.getWriter());
+					return false; // we did not add the data
 				}
 			}
 		}
@@ -701,13 +704,17 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					if (Config.debugFieldValues)
 						Log.println(f.toString());
 					if (f instanceof PayloadCameraData)
-						addToDb(f.id, f.uptime, f.resets, (PayloadCameraData)f);
+						if (addToDb(f.id, f.uptime, f.resets, (PayloadCameraData)f))
+							;
+						else
+							Log.alert("ERROR: Could not add camera record to the database: " + f.id + " " + f.uptime+ " " + f.resets+ " " + f);
 					else if (addToDb(f.id, f.uptime, f.resets, f))
 						;
 					else {
-						// Serious error where we could not add data to the database
+						// Serious error where we could not add data to the database.  Something is wrong and we have no way at this point to prevent the STP
+						// file from being marked as processed
 						//// ALERT
-						Log.println("ERROR: Could not add record to the database: " + f.id + " " + f.uptime+ " " + f.resets+ " " + f);
+						Log.alert("ERROR: Could not add record to the database: " + f.id + " " + f.uptime+ " " + f.resets+ " " + f);
 					}
 					payloadQueue.remove(0);
 				//}

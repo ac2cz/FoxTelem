@@ -50,7 +50,7 @@ public class Log {
 	public static SourceTab logPanel;
 	public static String logFile = "FoxTelemDecoder";
 	public static Thread.UncaughtExceptionHandler uncaughtExHandler;
-	public static boolean showGuiDialogs = true;
+	public static boolean showGuiDialogs = true;  // if true popup windows are shown for serious errors.  If false ALERTs are written.
 	/**
 	 * Initialise the logger and create a logfile with the passed name
 	 * @param file
@@ -99,6 +99,33 @@ public class Log {
 		logDateName.setTimeZone(TimeZone.getTimeZone("UTC"));
 		String reportDate = logDateName.format(today);
 		return logFile + reportDate + ".log";
+	}
+	
+	public static void alert(String message) {
+		try {
+			Log.logFile = Log.logFile + ".ALERT";
+			File aFile = new File(Log.logFile);
+			if(!aFile.exists()){
+				aFile.createNewFile();
+			}
+
+			//use buffering and append to the existing file if it is there, though this should rarely be the case for an alert
+			PrintWriter out = new PrintWriter(new FileWriter(aFile, true));
+			out.write(fileDateStamp() + message + System.getProperty("line.separator") );
+			out.flush();
+			out.close();
+			System.exit(9);
+		} catch (IOException e) {
+			System.err.println("FATAL ERROR: Cannot write log file: FoxTelemDecoder.log\n"
+					+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory);
+
+			e.printStackTrace();
+	        Log.errorDialog("FATAL ERROR", "Cannot write log file: FoxTelemDecoder.log\n"
+	        		+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory + "\n\n"
+	        				+ "You can reset FoxTelem by deleting the settings file (might want to back it up first):\n"
+	        				+ Config.homeDirectory+ File.separator+"FoxTelem.properties");
+	        System.exit(1);
+		}
 	}
 	
 	public static boolean getLogging() { return Config.logging; }

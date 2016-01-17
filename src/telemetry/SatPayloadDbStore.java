@@ -239,17 +239,20 @@ public class SatPayloadDbStore {
 	}
 
 	private boolean addRadRecord(PayloadRadExpData f)  {
-		insert(radTableName,f);
-		
-		// Capture and store any secondary payloads
-		if (f.isTelemetry()) {
-			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
-			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-			add(radiationTelemetry);
+		if (insert(radTableName,f)) {
+
+			// Capture and store any secondary payloads
+			if (f.isTelemetry()) {
+				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				return add(radiationTelemetry);
+			}
+		} else {
+			return false;
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Add a HERCI High Speed payload record
 	 * @param f
@@ -257,20 +260,26 @@ public class SatPayloadDbStore {
 	 * @throws IOException
 	 */
 	private boolean addHerciRecord(PayloadHERCIhighSpeed f) {
-		insert(herciHSTableName, f);
-		
-		// Capture and store any secondary payloads
-		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
-		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-		add(radiationTelemetry);
-		updatedHerciHeader = true;
+		if (insert(herciHSTableName, f)) {
 
-		ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
-		for(int i=0; i< pkts.size(); i++) {
-			HerciHighSpeedPacket pk = pkts.get(i);
-			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
-			//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
-			updatedHerciPacket = true;
+			// Capture and store any secondary payloads
+			HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (add(radiationTelemetry)) {
+				updatedHerciHeader = true;
+
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
+					updatedHerciPacket = true;
+				}
+			} else {
+				return false;
+			}
+		} else {
+			return false;
 		}
 		return true;
 	}
@@ -339,7 +348,7 @@ public class SatPayloadDbStore {
 
 	}
 	
-	private boolean insertImageLine(String table, PictureScanLine f) {
+	private boolean insertImageLine(String table, PictureScanLine f) throws SQLException {
 		String insertStmt = f.getInsertStmt();
 		boolean inserted = insertData(table, insertStmt);
 		// FIXME - this returns true unless there is an error.  So even with a duplicate we copy all the bytes in, which is wastefull!
@@ -362,9 +371,8 @@ public class SatPayloadDbStore {
 				Log.println("ERROR, image bytes not stored");
 				return false; // We have the data
 			} else {
-				PayloadDbStore.errorPrint(e);
+				throw e;
 			}
-			return false;
 		}
 		return true;
 	}
@@ -433,7 +441,7 @@ public class SatPayloadDbStore {
 			updatedCamera = true;
 			return true;
 		}
-		return false;
+		return true; // we already had this line in the database
 	}
 	
 	/**

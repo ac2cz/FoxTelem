@@ -88,36 +88,30 @@ public class ServerProcess implements Runnable {
 	public void run() {
 		Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
 
-		//Writer f = null;
 		FileOutputStream f = null;
-		//PrintWriter out = null;
-		//BufferedReader in = null;
 		InputStream in = null;
 		String fileName;
 		File stp = null;
 		try {
-			//out = new PrintWriter(socket.getOutputStream(), true);
-			//f = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(sequence + ".stp"), "utf-8"));
 			int b=0;
 			fileName = nextSTPFile();
 			f = new FileOutputStream(fileName);
-			//in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			in = socket.getInputStream();
 			int c;
 			while ((c = in.read()) != -1) {
 				f.write(c);
-			//	Character ch = (char) c;
-			//	System.out.print(ch);
 				b++;
 			}
-			//System.out.println();
+			
 			in.close();
 			socket.close();
 			f.close();
+			
 			// At this point the file is on disk, so we can process it
 			stp = new File(fileName);
+			
 			// Import it into the database
-			// null return means the files is te
+			// null return means the file can not be recognized as an STP file or was test data
 			Frame frm = Frame.importStpFile(stp, false);
 			if (frm != null) {
 				Log.println("Processed: " + b + " bytes from " + frm.receiver + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
@@ -126,7 +120,7 @@ public class ServerProcess implements Runnable {
 				if (stp.renameTo(toFile))
 					;
 				else
-					Log.println("ERROR: Could not mark file as processed: " + stp.getAbsolutePath());
+					Log.println("ERROR: Could not mark file as processed: " + stp.getAbsolutePath()); // while this seems serious, we have the data and it is marked as unprocessed, so we can go back and recover
 			}
 			else {
 				// This was the test data and we do not care if it is processed
@@ -142,6 +136,7 @@ public class ServerProcess implements Runnable {
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
+			Log.alert("FATAL: + e.getMessage()");
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -157,26 +152,14 @@ public class ServerProcess implements Runnable {
 	}
 
 	private void storeException(File f) {
-		File toFile = new File("exceptions" + File.separator + f.getName()+".ex");
+		
 		if (f != null) {
+			File toFile = new File("exceptions" + File.separator + f.getName()+".ex");
 			if (f.renameTo(toFile)) {
 				;
 			} else {
 				Log.println("ERROR: Could not rename the file into the exeption dir: " + f.getPath());
 			}
-			//try {
-				/*
-				copyFile(f, toFile);
-				if (f.delete()) {
-					;
-				} else {
-					Log.println("ERROR: Can't remove the (original) file we stored as an exception");
-				}
-			} catch (IOException e) {
-				Log.println("ERROR: Could not copy the file into the exception dir: " + f.getPath());
-				e.printStackTrace(Log.getWriter());
-			}
-			*/
 		} else
 			Log.println("Don't know which file to store as an exception");
 	}
