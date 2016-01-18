@@ -1,4 +1,4 @@
-Version 1.03
+1.03
  * Auto detect high speed vs low speed telemetry
  * Allow the user to swap IQ channels in IQ mode
  * Allow graphs to be plotted as points (without lines)
