@@ -491,7 +491,6 @@ import decoder.Decoder;
  * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
  * MEMS Gyro 0dps set to 1.51 following measurement of VRef in the diagnostics
  * When reset button pressed on graphs the average period is reset too
- * 1.03b
  * Merged with Server Code - one code base
  * Fixed crash when auto mode used with wav files	
  * Display converted HERCI Housekeeping data
@@ -499,8 +498,8 @@ import decoder.Decoder;
  * MEMS diagnostic values are now in dps (vs Volts)
  * Fixed bug where radiation data could not be saved to CSV files
  * Fixed bug where FindSignal failed to lock if Track Doppler was not checked
- * 1.03c
  * Download T0 file from amsat.org
+ * 
  */
 
 public class FoxTelemMain {

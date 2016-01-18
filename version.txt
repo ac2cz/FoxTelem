@@ -1,8 +1,29 @@
-Version 1.02
-* Fixed bug where opening the Fox-1A spacecraft menu would cause a crash
-* Added horizontal and vertical lines to the graphs if button clicked
-* Fixed Typo on measurements tab
-* Fixed a bug where UTC was not displayed for the Diagnostic tables
-* Capture the string version of the STP date in ENGLISH for all users, but leave other string dates in local language
-* Fixed bug where TCA date could be null and a SERIOUS error was reported
-* Fixed issue where the tabs were always refreshed when the spacecraft menu closed
+Version 1.03
+ * Auto detect high speed vs low speed telemetry
+ * Allow the user to swap IQ channels in IQ mode
+ * Allow graphs to be plotted as points (without lines)
+ * Graph formatting parameters are saved to config and reloaded when FoxTelem is restarted
+ * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
+ * When reset button pressed on graphs the average period is reset too
+ * Swapped min/max values for solar panel temp on 1A
+ * Fox-1A Solar panel voltage was (incorrectly) using the MPPT conversion
+ * Fixed bug where HighSpeed Frames were unnecessarily held in the queue until the pass was finished
+ * Cap max RSSI in the lookup table at -140dB to avoid spurious readings
+ * Interpolate the middle of two samples for first difference calculation, for more accurate TCA calculation
+ * Add SAFE mode bit to the Computer panel so that it can be graphed
+ * Fixed bug where Radiation Graphs did not open at start up
+ * Fixed bug where T0 file could be corrupted if URL returned bogus data
+ * Fixed bug where FoxTelem gave many error messages but did not quit if the log dir was not writable
+ * Skip NULL values for some measurements.  Don't plot continuous labels to left of vertical axis.
+ * MEMS diagnostic values are now in dps (vs Volts)
+ * Fixed bug where radiation data could not be saved to CSV files
+ * Fixed bug where FindSignal failed to lock if Track Doppler was not checked
+ Support for Fox-1Cliff and Fox-1D:
+ * Display HERCI High Speed frames on the Herci Tab
+ * Display HERCI Housekeeping frames
+ * Support the Fox-1D low res camera format
+ * Implemented MPPT panel temperature conversion using Cubic fit
+ * Sort camera images by reset and uptime not picture counter
+ * Save position of the HERCI HS tab horizontal divider
+ * Allow the user to specify the number of thumb nails to display on the camera tab
+ * Display converted HERCI Housekeeping data
