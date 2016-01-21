@@ -277,5 +277,32 @@ public class HerciHighSpeedPacket extends FramePart {
 		return false;
 	}
 
+	public static String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(id int, resets int, uptime bigint, type int, "
+		 + "length int, "
+		 + "truncTime int,"
+		 + "segmentation int,"
+		 + "st1 int,"
+		 + "st2 int,"
+		 + "st3 int,"
+		 + "minipacket blob,"
+		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+		s = s + "PRIMARY KEY (id, resets, uptime))";
+		return s;
+	}
+	
+	public String getInsertStmt() {
+		String s = new String();
+		s = s + " (id, resets, fromUptime, toUptime, \n";
+		s = s + "pictureCounter,\n";
+		s = s + "fileName)\n";
+		
+		s = s + "values (" + this.id + ", " + resets + ", " + fromUptime + ", " + toUptime + ",\n";
+		s = s + pictureCounter+",\n";
+		s = s + "'" + fileName+"')\n";
+		return s;
+	}
 
 }
+ 

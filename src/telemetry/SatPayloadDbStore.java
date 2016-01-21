@@ -60,7 +60,7 @@ public class SatPayloadDbStore {
 	public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
 	public static String HERCI_HS_LOG = "HERCI_HS";
 	public static String HERCI_HS_HEADER_LOG = "HERCI_HS_HEADER";
-	//public static String HERCI_HS_PACKET_LOG = "HERCI_HS_PACKET";
+	public static String HERCI_HS_PACKET_LOG = "HERCI_HS_PACKET";
 	public static String JPG_IDX = "JPG_IDX";
 	public static String PICTURE_LINES = "PICTURE_LINES_IDX";
 	
@@ -71,7 +71,7 @@ public class SatPayloadDbStore {
 	public String radTelemTableName;
 	public String herciHSTableName;
 	public String herciHSHeaderTableName;
-	//public String herciHSPacketTableName;
+	public String herciHSPacketTableName;
 	public String jpgIdxTableName;
 	public String pictureLinesTableName;
 	
@@ -101,7 +101,7 @@ public class SatPayloadDbStore {
 		radTelemTableName = "Fox"+foxId+RAD_TELEM_LOG;
 		herciHSTableName = "Fox"+foxId+HERCI_HS_LOG;
 		herciHSHeaderTableName = "Fox"+foxId+HERCI_HS_HEADER_LOG;
-		//herciHSPacketTableName = "Fox"+foxId+HERCI_HS_PACKET_LOG;
+		herciHSPacketTableName = "Fox"+foxId+HERCI_HS_PACKET_LOG;
 		jpgIdxTableName = "Fox"+foxId+JPG_IDX;
 		pictureLinesTableName = "Fox"+foxId+PICTURE_LINES;
 		initPayloadFiles();
@@ -114,8 +114,7 @@ public class SatPayloadDbStore {
 		initPayloadTable(radTableName, fox.radLayout);
 		initPayloadTable(radTelemTableName, fox.rad2Layout);
 		if (fox.hasHerci()) {
-			initPayloadTable(herciHSTableName, fox.herciHSLayout);
-			initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+			initHerciTables();
 		}
 		if (fox.hasCamera()) {
 			initCameraTables();
@@ -130,6 +129,14 @@ public class SatPayloadDbStore {
 		createTable(table, createStmt);
 	}
 
+	private void initHerciTables() {
+		initPayloadTable(herciHSTableName, fox.herciHSLayout);
+		initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+		String table = herciHSPacketTableName;
+		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
+		createTable(table, createStmt);
+	}
+	
 	private void initCameraTables() {
 		String table = jpgIdxTableName;
 		String createStmt = CameraJpeg.getTableCreateStmt();
