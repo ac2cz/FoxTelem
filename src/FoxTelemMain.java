@@ -10,6 +10,8 @@ import telemetry.TableSeg;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -683,8 +685,11 @@ public class FoxTelemMain {
 		}
 
 		protected void handleException(String tname, Throwable thrown) {
-			thrown.printStackTrace();
-			Log.errorDialog("SERIOUS GUI ERROR", "Exception on " + tname);
+			thrown.printStackTrace(Log.getWriter());
+			StringWriter sw = new StringWriter();
+			thrown.printStackTrace(new PrintWriter(sw));
+            String stacktrace = sw.toString();
+			Log.errorDialog("SERIOUS GUI ERROR", "Exception on " + tname + "\n" + stacktrace);
 		}
 	}
 
