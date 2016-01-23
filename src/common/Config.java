@@ -303,6 +303,7 @@ public class Config {
 	public static void initPassManager() {	
 		passManager = new PassManager(satManager);
 		passManagerThread = new Thread(passManager);
+		passManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		passManagerThread.start();
 	}
 
@@ -310,12 +311,14 @@ public class Config {
 	public static void initPayloadStore() {	
 		payloadStore = new PayloadStore();
 		payloadStoreThread = new Thread(payloadStore);
+		payloadStoreThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		payloadStoreThread.start();
 	}
 
 	public static void initPayloadDB(String u, String p, String db) {	
 		payloadStore = new PayloadDbStore(u,p,db);
 		payloadStoreThread = new Thread(payloadStore);
+		payloadStoreThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		payloadStoreThread.start();
 	}
 	

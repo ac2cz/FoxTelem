@@ -50,6 +50,17 @@ public class SortedJpegList extends SortedArrayList<CameraJpeg> {
 		}
 		return -1;
 	}
+	
+	public int getNearestFrameIndex(int id, long uptime, int resets) {
+    	// start searching from the beginning where reset and uptime should be the lowest
+		// We want the first record where the reset is equal to or 
+    	for (int i=0; i<this.size(); i++) { 
+    		CameraJpeg f = this.get(i);
+            if (f.id == id && f.resets >= resets && f.fromUptime >= uptime)
+            	return i;
+    	}
+        return -1;
+    }
 
 }
 

@@ -142,6 +142,35 @@ public class SatPictureStore {
 		return true;
 	}
 	
+	public SortedJpegList getJpegIndex(int id, int period, int fromReset, long fromUptime) {
+		
+		int start = 0;
+		int end = 0;
+		if (fromReset == 0 && fromUptime == 0) { // then we take records nearest the end
+			start = jpegIndex.size()-period;
+			end = jpegIndex.size();
+		} else {
+			// we need to find the start point
+			start = jpegIndex.getNearestFrameIndex(fox.foxId, fromUptime, fromReset);
+			if (start == -1 ) return null;
+			end = start + period;
+		}
+		if (end > jpegIndex.size()) end = jpegIndex.size();
+		if (end < start) end = start;
+		if (start < 0) start = 0;
+		if (start > jpegIndex.size()) start = jpegIndex.size();
+		SortedJpegList results = new SortedJpegList(end-start);
+
+		
+		//int j = end-start-1;
+		for (int i=end-1; i>= start; i--) {
+			//System.out.println(rtRecords.size());
+			results.add(jpegIndex.get(i));
+		}
+		
+		return results;
+	}
+	
 	/**
 	 * Load the jpeg index from disk
 	 * @param log

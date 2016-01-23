@@ -667,7 +667,7 @@ public class FoxTelemMain {
 	}
 
 	/**
-	 * Inner class to handle excetions in the Event Dispatch Thread (EDT)
+	 * Inner class to handle exceptions in the Event Dispatch Thread (EDT)
 	 * @author chris.e.thompson
 	 *
 	 */
@@ -689,7 +689,7 @@ public class FoxTelemMain {
 			StringWriter sw = new StringWriter();
 			thrown.printStackTrace(new PrintWriter(sw));
             String stacktrace = sw.toString();
-			Log.errorDialog("SERIOUS GUI ERROR", "Exception on " + tname + "\n" + stacktrace);
+			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + "\n" + stacktrace);
 		}
 	}
 

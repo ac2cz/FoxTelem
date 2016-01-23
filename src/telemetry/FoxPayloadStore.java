@@ -53,7 +53,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract int getNumberOfHerciFrames(int id);
 	
 	public abstract int getNumberOfPictureCounters(int id);
-	public abstract SortedJpegList getJpegIndex(int id);
+	public abstract SortedJpegList getJpegIndex(int id, int period, int fromReset, long fromUptime);
 	
 	public abstract boolean add(int id, long uptime, int resets, FramePart f);
 	

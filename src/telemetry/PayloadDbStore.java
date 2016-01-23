@@ -307,7 +307,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 	*/
 
-	public SortedJpegList getJpegIndex(int id) {
+	public SortedJpegList getJpegIndex(int id, int period, int fromReset, long fromUptime) {
 	//	SatPayloadDbStore store = getPayloadStoreById(id);
 	//	if (store != null)
 	//		return store.jpegIndex;

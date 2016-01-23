@@ -8,6 +8,8 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -17,6 +19,7 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+import java.time.Period;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -64,11 +67,11 @@ import common.Spacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener, ActionListener {
-	public static final int MAX_THUMBNAILS_LIMIT = 100;
+public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener, ActionListener, FocusListener {
+	public static final int MAX_THUMBNAILS_LIMIT = 500;
 	public static final int MIN_SAMPLES = 1;
 	public static final String CAMERATAB = "CAMERATAB";
-	public int MAX_THUMBNAILS = 30;
+	public int maxThumbnails = 30;
 	public static final int THUMB_X = 100; //640/5
 	//public static final int THUMB_Y = 96; //480/5
 	
@@ -96,7 +99,14 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	JPanel rightHalf;
 
 	JTextField displayNumber2;
-	
+	private JLabel lblFromUptime;
+	private JTextField textFromUptime;
+	private JLabel lblFromReset;
+	private JTextField textFromReset;
+	public static long DEFAULT_START_UPTIME = 0;
+	public static int DEFAULT_START_RESET = 0;
+	public long START_UPTIME = DEFAULT_START_UPTIME;
+	public int START_RESET = DEFAULT_START_RESET;
 //	JLabel picture;
 	ImagePanel picture;
 	
@@ -115,7 +125,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	private static final String PIC_PC = "Pic Number: ";
 	private static final String PIC_DATE = "Captured: ";
 	
-	int numberOfFiles = 0;
+	int actualThumbnails = 0;
 	
 	CameraTab(Spacecraft sat) {
 		
@@ -128,7 +138,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 		setLayout(new BorderLayout(0, 0));
 	
-		thumbnails = new CameraThumb[MAX_THUMBNAILS];
+		thumbnails = new CameraThumb[MAX_THUMBNAILS_LIMIT]; // size this to hold references up to the limit
 		
 		topPanel = new JPanel();
 		topPanel.setMinimumSize(new Dimension(34, 250));
@@ -210,7 +220,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));		
 
 		showLatestImage = new JCheckBox("Show Latest Image", Config.showLatestImage);
-		showLatestImage.setMinimumSize(new Dimension(100, 14));
+		showLatestImage.setMinimumSize(new Dimension(150, 14));
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
@@ -238,18 +248,44 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	protected void addBottomFilter() {
 		JLabel displayNumber1 = new JLabel("Displaying last");
 		displayNumber2 = new JTextField();
+		displayNumber2.setColumns(4);
 		JLabel displayNumber3 = new JLabel("images decoded");
-		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
+		displayNumber1.setFont(new Font("SansSerif", Font.PLAIN, 10));
+		displayNumber3.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
 		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber2.setMinimumSize(new Dimension(50, 14));
-		displayNumber2.setMaximumSize(new Dimension(50, 14));
-		displayNumber2.setText(Integer.toString(MAX_THUMBNAILS));
+		//displayNumber2.setMinimumSize(new Dimension(50, 14));
+		//displayNumber2.setMaximumSize(new Dimension(50, 14));
+		displayNumber2.setText(Integer.toString(maxThumbnails));
 		displayNumber2.addActionListener(this);
 		bottomPanel.add(displayNumber1);
 		bottomPanel.add(displayNumber2);
 		bottomPanel.add(displayNumber3);
+		
+		lblFromReset = new JLabel("   from Reset  ");
+		lblFromReset.setFont(new Font("SansSerif", Font.PLAIN, 10));
+		bottomPanel.add(lblFromReset);
+		
+		textFromReset = new JTextField();
+		bottomPanel.add(textFromReset);
+		textFromReset.setText(Integer.toString(START_RESET));
+
+		textFromReset.setColumns(8);
+		textFromReset.addActionListener(this);
+		textFromReset.addFocusListener(this);
+		
+		lblFromUptime = new JLabel("   from Uptime  ");
+		lblFromUptime.setFont(new Font("SansSerif", Font.PLAIN, 10));
+		bottomPanel.add(lblFromUptime);
+		
+		textFromUptime = new JTextField();
+		bottomPanel.add(textFromUptime);
+
+		textFromUptime.setText(Long.toString(START_UPTIME));
+		textFromUptime.setColumns(8);
+//		textFromUptime.setPreferredSize(new Dimension(50,14));
+		textFromUptime.addActionListener(this);
+		textFromUptime.addFocusListener(this);
 		
 	}
 
@@ -258,31 +294,35 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	 * Load the thumbnails from disk based on the entries in the Jpeg Index
 	 */
 	private void loadThumbs() {
-		for (int j=0; j<numberOfFiles; j++)
+		for (int j=0; j<actualThumbnails; j++)
 			if (thumbnails[j] != null)
 				thumbnailsPanel.remove(thumbnails[j]);
+		jpegIndex = Config.payloadStore.getJpegIndex(foxId, maxThumbnails, START_RESET, START_UPTIME);
+		if (jpegIndex == null) return;
+//		int lastPic = 0;
+		actualThumbnails = jpegIndex.size();
 		
-		int lastPic = 0;
-		numberOfFiles = jpegIndex.size();
-		if (numberOfFiles > MAX_THUMBNAILS)
-			lastPic = numberOfFiles - MAX_THUMBNAILS;
+//		if (numberOfFiles > maxThumbnails) {
+//			lastPic = numberOfFiles - maxThumbnails;
 //			numberOfFiles = MAX_THUMBNAILS;
-		
-		for (int i=numberOfFiles-1; i >=lastPic; i--) {
+//		}
+		thumbnails = new CameraThumb[actualThumbnails];
+		for (int i=0; i < actualThumbnails; i++) {
 			
-			if (jpegIndex.get(i).fileExists()) {
+			if (jpegIndex.get(actualThumbnails-i-1).fileExists()) {
 				//Log.println("Picture from: " + jpegIndex.get(i).fileName);
 				BufferedImage thumb = null;
 				try {
-					thumb = jpegIndex.get(i).getThumbnail(THUMB_X);
+					thumb = jpegIndex.get(actualThumbnails-i-1).getThumbnail(THUMB_X);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace(Log.getWriter());
 				}
 				if (thumb != null) {
+					
 					if (thumbnails[i] == null)
 						thumbnails[i] = new CameraThumb();
-					thumbnails[i].setThumb(thumb, jpegIndex.get(i).pictureCounter, jpegIndex.get(i).resets, jpegIndex.get(i).fromUptime);
+					thumbnails[i].setThumb(thumb, jpegIndex.get(actualThumbnails-i-1).pictureCounter, jpegIndex.get(actualThumbnails-i-1).resets, jpegIndex.get(actualThumbnails-i-1).fromUptime);
 //					thumbnails[i].setIcon(new ImageIcon(thumb));
 					thumbnailsPanel.add(thumbnails[i]);
 					thumbnails[i].addMouseListener(this);
@@ -293,11 +333,11 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 				}	
 			}
 		}
-		if (Config.showLatestImage) {
-			if (selectedThumb != -1 && thumbnails[selectedThumb] != null)
-				thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
-			selectedThumb = numberOfFiles-1;
-			if (selectedThumb != -1 && thumbnails[selectedThumb] != null)
+		if (Config.showLatestImage) { // we automatically select the latest image, which is the first in the array
+			// first deselect the previous selection
+			thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
+			selectedThumb = 0;
+			if (thumbnails[selectedThumb] != null)
 				thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.BLUE));
 		}
 	}
@@ -311,7 +351,11 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	 * @param pc
 	 * @param date
 	 */
-	private void displayPictureParams(int selected) {
+	private void displayPictureParams(int clicked) {
+		if (jpegIndex == null) {
+			return;
+		}
+		int selected = jpegIndex.size() - clicked-1;
 		BufferedImage pic = null;
 		if (jpegIndex != null)
 			if (selected != -1 && jpegIndex.size() > selected && jpegIndex.get(selected) != null)
@@ -373,9 +417,8 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 //				Log.println("New data from the camera");
 
 //				setLinesDownloaded(Config.payloadStore.getNumberOfPictureLines(foxId));
-				jpegIndex = Config.payloadStore.getJpegIndex(foxId);
-				if (jpegIndex != null)
-					loadThumbs();
+				
+				loadThumbs();
 				
 				displayPictureParams(selectedThumb);
 				setImagesDownloaded(Config.payloadStore.getNumberOfPictureCounters(foxId));
@@ -457,31 +500,81 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 	}
 
+	private void parseTextFields() {
+		String text = displayNumber2.getText();
+		try {
+			maxThumbnails = Integer.parseInt(text);
+			if (maxThumbnails > MAX_THUMBNAILS_LIMIT) {
+				maxThumbnails = MAX_THUMBNAILS_LIMIT;
+				text = Integer.toString(MAX_THUMBNAILS_LIMIT);
+			}
+			if (maxThumbnails < MIN_SAMPLES) {
+				maxThumbnails = MIN_SAMPLES;
+				text = Integer.toString(MIN_SAMPLES);
+			}
+
+			//System.out.println(SAMPLES);
+			
+			//lblActual.setText("("+text+")");
+			//txtPeriod.setText("");
+		} catch (NumberFormatException ex) {
+			
+		}
+		displayNumber2.setText(text);
+		text = textFromReset.getText();
+		try {
+			START_RESET = Integer.parseInt(text);
+			if (START_RESET < 0) START_RESET = 0;
+			
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				START_RESET = DEFAULT_START_RESET;
+				
+			}
+		}
+		textFromReset.setText(text);
+		
+		text = textFromUptime.getText();
+		try {
+			START_UPTIME = Integer.parseInt(text);
+			if (START_UPTIME < 0) START_UPTIME = 0;
+			
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				START_UPTIME = DEFAULT_START_UPTIME;
+				
+			}
+		}
+		textFromUptime.setText(text);
+		
+		loadThumbs();
+		displayPictureParams(selectedThumb);
+		repaint();
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == this.displayNumber2) {
-			String text = displayNumber2.getText();
-			try {
-				MAX_THUMBNAILS = Integer.parseInt(text);
-				if (MAX_THUMBNAILS > MAX_THUMBNAILS_LIMIT) {
-					MAX_THUMBNAILS = MAX_THUMBNAILS_LIMIT;
-					text = Integer.toString(MAX_THUMBNAILS_LIMIT);
-				}
-				if (MAX_THUMBNAILS < MIN_SAMPLES) {
-					MAX_THUMBNAILS = MIN_SAMPLES;
-					text = Integer.toString(MIN_SAMPLES);
-				}
-				//System.out.println(SAMPLES);
-				
-				//lblActual.setText("("+text+")");
-				//txtPeriod.setText("");
-			} catch (NumberFormatException ex) {
-				
-			}
-			displayNumber2.setText(text);
-			loadThumbs();
-			repaint();
+			parseTextFields();
+		} else if (e.getSource() == this.textFromReset) {
+			parseTextFields();
+			
+		} else if (e.getSource() == this.textFromUptime) {
+			parseTextFields();
+			
 		}
+		
+	}
+
+	@Override
+	public void focusGained(FocusEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void focusLost(FocusEvent arg0) {
+		// TODO Auto-generated method stub
 		
 	}
 

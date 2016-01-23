@@ -88,7 +88,7 @@ import javax.swing.event.PopupMenuEvent;
 public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener, FocusListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
-	Thread fcdPanelThread;
+	//Thread fcdPanelThread;
 	
 	Thread fftPanelThread;
 	Thread decoder1Thread;
