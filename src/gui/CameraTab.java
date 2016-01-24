@@ -39,6 +39,7 @@ import javax.swing.border.SoftBevelBorder;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
+import telemetry.CameraJpeg;
 import telemetry.FramePart;
 import telemetry.SortedJpegList;
 import common.Config;
@@ -69,9 +70,10 @@ import common.Spacecraft;
 @SuppressWarnings("serial")
 public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, ItemListener, ActionListener, FocusListener {
 	public static final int MAX_THUMBNAILS_LIMIT = 500;
+	public static final int DEFAULT_THUMBNAILS = 30;
 	public static final int MIN_SAMPLES = 1;
 	public static final String CAMERATAB = "CAMERATAB";
-	public int maxThumbnails = 30;
+	public int maxThumbnails = DEFAULT_THUMBNAILS;;
 	public static final int THUMB_X = 100; //640/5
 	//public static final int THUMB_Y = 96; //480/5
 	
@@ -83,6 +85,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	int foxId = 0;
 
 	int selectedThumb = 0;
+	CameraJpeg selectedJpeg;
 	
 	JLabel lblName;
 	private String NAME;
@@ -133,6 +136,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 		fox = sat;
 		foxId = fox.foxId;
+		loadProperties();
 		NAME = fox.toString() + " Virginia Tech Camera";
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), CAMERATAB, "splitPaneHeight");
 		
@@ -311,6 +315,10 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			
 			if (jpegIndex.get(actualThumbnails-i-1).fileExists()) {
 				//Log.println("Picture from: " + jpegIndex.get(i).fileName);
+				if (selectedJpeg != null)
+					if (jpegIndex.get(actualThumbnails-i-1).compareTo(selectedJpeg) == 0) {
+						selectedThumb = i; // cache this
+					}
 				BufferedImage thumb = null;
 				try {
 					thumb = jpegIndex.get(actualThumbnails-i-1).getThumbnail(THUMB_X);
@@ -333,15 +341,29 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 				}	
 			}
 		}
-		if (Config.showLatestImage) { // we automatically select the latest image, which is the first in the array
-			// first deselect the previous selection
-			thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
-			selectedThumb = 0;
-			if (thumbnails[selectedThumb] != null)
-				thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.BLUE));
-		}
+		if (actualThumbnails > 0)
+			if (Config.showLatestImage) { // we automatically select the latest image, which is the first in the array
+				// first deselect the previous selection
+				if (thumbnails != null) {
+					if (thumbnails[selectedThumb] != null) 
+						thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
+					selectedThumb = 0;
+					if (thumbnails[selectedThumb] != null) {
+						selectThumb(selectedThumb);
+					}
+				}
+			} else {
+				if (selectedThumb < thumbnails.length)
+					if (thumbnails[selectedThumb] != null)
+						selectThumb(selectedThumb);
+			}
 	}
 	
+	private void selectThumb(int t) {
+		thumbnails[t].setBorder(new MatteBorder(3, 3, 3, 3, Color.BLUE));
+		int selected = jpegIndex.size() - t-1;
+		selectedJpeg = jpegIndex.get(selected);
+	}
 	
 	/**
 	 * Display the main picture with its paramaters
@@ -357,18 +379,19 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		}
 		int selected = jpegIndex.size() - clicked-1;
 		BufferedImage pic = null;
-		if (jpegIndex != null)
-			if (selected != -1 && jpegIndex.size() > selected && jpegIndex.get(selected) != null)
-				try {
-					File f = new File(jpegIndex.get(selected).fileName);
-					pic = ImageIO.read(f);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace(Log.getWriter());
-				}
+		if (selected >= 0)
+			if (jpegIndex != null)
+				if (selected != -1 && jpegIndex.size() > selected && jpegIndex.get(selected) != null)
+					try {
+						File f = new File(jpegIndex.get(selected).fileName);
+						pic = ImageIO.read(f);
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace(Log.getWriter());
+					}
 		if (pic != null) {
 			picture.setBufferedImage(pic);
-//			picture.setIcon(new ImageIcon(pic));
+			//			picture.setIcon(new ImageIcon(pic));
 			picReset.setText(""+jpegIndex.get(selected).resets);
 			picUptime.setText("" + jpegIndex.get(selected).fromUptime);
 			picPC.setText("" + jpegIndex.get(selected).pictureCounter);
@@ -377,8 +400,8 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	}
 
 	private String displayCaptureDate(String u) {
-		    Date result = null;
-		    String reportDate = null;
+		Date result = null;
+		String reportDate = null;
 			try {
 				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				result = FramePart.fileDateFormat.parse(u);
@@ -432,16 +455,39 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 	}
 
+	public void saveProperties() {
+
+		Config.saveGraphIntParam(fox.getIdString(), "CameraTab", "maxThumbnails", maxThumbnails);
+		Config.saveGraphIntParam(fox.getIdString(), "CameraTab", "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), "CameraTab", "fromUptime", this.START_UPTIME);
+		Config.saveGraphIntParam(fox.getIdString(), "CameraTab", "selectedThumb", this.selectedThumb);
+	}
+	
+	public void loadProperties() {
+
+		maxThumbnails = Config.loadGraphIntValue(fox.getIdString(), "CameraTab", "maxThumbnails");
+		if (maxThumbnails == 0) maxThumbnails = DEFAULT_THUMBNAILS;
+		if (maxThumbnails > MAX_THUMBNAILS_LIMIT) {
+			maxThumbnails = MAX_THUMBNAILS_LIMIT;
+		}
+			
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), "CameraTab", "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), "CameraTab", "fromUptime");
+		this.selectedThumb = Config.loadGraphIntValue(fox.getIdString(), "CameraTab", "selectedThumb");
+
+	}
+	
 	@Override
 	public void mouseClicked(MouseEvent e) {
 		//Log.println("Mouse Clicked");
 		for (int i=0; i< thumbnails.length; i++) {
 			if (e.getSource() == thumbnails[i]) {
-				if (selectedThumb != -1 && thumbnails[selectedThumb] != null)
+				if (selectedThumb != -1 && selectedThumb < thumbnails.length && thumbnails[selectedThumb] != null)
 				thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
 				this.selectedThumb = i;
 				displayPictureParams(selectedThumb);
-				thumbnails[i].setBorder(new MatteBorder(3, 3, 3, 3, Color.BLUE));
+				selectThumb(i);
+				saveProperties();
 			}
 		}
 	}
@@ -461,7 +507,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		for (int i=0; i< thumbnails.length; i++) {
 			if (e.getSource() == thumbnails[i]) {
 				if (selectedThumb == i)
-					thumbnails[i].setBorder(new MatteBorder(3, 3, 3, 3, Color.BLUE));
+					selectThumb(i);
 				else
 					thumbnails[i].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
 			}
@@ -563,6 +609,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			parseTextFields();
 			
 		}
+		saveProperties();
 		
 	}
 
