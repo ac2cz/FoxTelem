@@ -245,6 +245,8 @@ public class SatPayloadDbStore {
 			if (f.isTelemetry()) {
 				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 400) // this is a high speed record
+					radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
 				return add(radiationTelemetry);
 			}
 		} else {
@@ -265,6 +267,8 @@ public class SatPayloadDbStore {
 			// Capture and store any secondary payloads
 			HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 600) // this is a high speed record
+				radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
 			if (add(radiationTelemetry)) {
 				updatedHerciHeader = true;
 
@@ -272,6 +276,8 @@ public class SatPayloadDbStore {
 				for(int i=0; i< pkts.size(); i++) {
 					HerciHighSpeedPacket pk = pkts.get(i);
 					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					if (f.type >= 600) // this is a high speed record
+						pk.type = f.type + 300 + i*10; 
 					//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
 					updatedHerciPacket = true;
 				}

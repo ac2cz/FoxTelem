@@ -393,6 +393,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
 		for (int i=0; i< herci.length; i++) {
 			herci[i].captureHeaderInfo(id, uptime, resets);
+			herci[i].type = 600 + i; // store the index in the type field so it is unique
 			try {
 				payloadQueue.add(herci[i]);
 			} catch (NullPointerException e) {

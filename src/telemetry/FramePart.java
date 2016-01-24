@@ -62,6 +62,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
 	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
 	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
+	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
+	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
+	// Correspondingly TYPE 900+ are reserved for Herci Packets payloads
 	// Correspondingly TYPE 700+ are reserved for Rad Telemetry payloads
 	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");

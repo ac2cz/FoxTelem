@@ -205,6 +205,8 @@ public class SatPayloadStore {
 		if (fox.hasHerci() || f.isTelemetry()) {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 400) // this is a high speed record
+				radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
 			add(radiationTelemetry);
 			radTelemRecords.setUpdated(true);
 		}
@@ -224,6 +226,8 @@ public class SatPayloadStore {
 		
 		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
 		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+		if (f.type >= 600) // this is a high speed record
+			radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
 		add(radiationTelemetry);
 		herciHeaderRecords.setUpdated(true);
 		//updatedHerciHeader = true;
@@ -232,6 +236,8 @@ public class SatPayloadStore {
 		for(int i=0; i< pkts.size(); i++) {
 			HerciHighSpeedPacket pk = pkts.get(i);
 			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 600) // this is a high speed record
+				pk.type = f.type + 300 + i*10; // we give the telem record 900+ type.  Assumes 10 minipackets or less
 			add(pk);
 			herciPacketRecords.setUpdated(true);
 
