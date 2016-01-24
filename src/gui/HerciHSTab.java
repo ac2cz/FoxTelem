@@ -296,7 +296,6 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 			scrollPane.setVisible(false);
 		}
 		
-
 		updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
 		MainWindow.frame.repaint();
 

@@ -237,7 +237,7 @@ public class SatPayloadStore {
 			HerciHighSpeedPacket pk = pkts.get(i);
 			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
 			if (f.type >= 600) // this is a high speed record
-				pk.type = f.type + 300 + i*10; // we give the telem record 900+ type.  Assumes 10 minipackets or less
+				pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
 			add(pk);
 			herciPacketRecords.setUpdated(true);
 

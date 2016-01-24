@@ -1,7 +1,9 @@
 package telemetry;
 
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import common.Log;
 import common.Spacecraft;
 import decoder.BitStream;
 import decoder.Decoder;
@@ -101,12 +103,10 @@ about Big-Endian above all applies here as well.
 
  */
 public class HerciHighSpeedPacket extends FramePart {
-	public static int MAX_PACKET_BYTES = 128; // FIXME-not sure what the max value is
-	public static int MAX_PACKET_HEADER_BYTES = 7;
-	public int NUMBER_OF_FIELDS = 7; // This is the initial value as it is the header size
-	public int reset;
-	public long uptime;
-	public int id;
+	public static final int MAX_PACKET_BYTES = 128; // FIXME-not sure what the max value is
+	public static final int MAX_PACKET_HEADER_BYTES = 8;  // There are 7 fields in the header across 8 bytes
+	public static final int NUMBER_OF_HEADER_FIELDS = 7;
+	public int NUMBER_OF_FIELDS = 7; // This is the initial value as it is the header size.  We add the number if minipacket bytes to this later
 	
 	int[] rawBytes = new int[MAX_PACKET_BYTES];
 	int numberOfRawBytes = 0;
@@ -121,7 +121,7 @@ public class HerciHighSpeedPacket extends FramePart {
 	
 	HerciHighSpeedPacket(int sat, int r, long u) {
 		super(new BitArrayLayout());
-		reset = r;
+		resets = r;
 		uptime = u;
 		id = sat;
 		rawBits = new boolean[MAX_PACKET_HEADER_BYTES*8 + MAX_PACKET_BYTES*8]; 
@@ -129,9 +129,44 @@ public class HerciHighSpeedPacket extends FramePart {
 		initFields();
 	}
 
-	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);	
+	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st) {
+		super(new BitArrayLayout());
+		this.id = id;
+		this.resets = resets;
+		this.uptime = uptime;
+		this.captureDate = date;
+		init();
+		rawBits = null; // no binary array when loaded from file, even if the local init creates one
+		initFields();
+		loadFrom(st,0);
+		initPacket();
+		loadFrom(st,NUMBER_OF_HEADER_FIELDS);
+		
+		
 	}
+	
+	protected void loadFrom(StringTokenizer st, int i) {
+		String s = null;
+		try {
+			while(i < NUMBER_OF_FIELDS) {
+				if ((s = st.nextToken()) != null) {
+				if (s.startsWith("0x")) {
+					s = s.replace("0x", "");
+					fieldValue[i++] = Integer.valueOf(s,16);
+				} else
+					fieldValue[i++] = Integer.valueOf(s).intValue();
+				}
+			}
+		} catch (NoSuchElementException e) {
+			// we are done and can finish
+		} catch (ArrayIndexOutOfBoundsException e) {
+			// Something nasty happened when we were loading, so skip this record and log an error
+			Log.println("ERROR: Too many fields:  Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+		} catch (NumberFormatException n) {
+			Log.println("ERROR: Invalid number:  Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+		}
+	}
+	
 	@Override
 	protected void init() {
 		type = TYPE_HERCI_HS_PACKET;
@@ -184,7 +219,7 @@ public class HerciHighSpeedPacket extends FramePart {
 		int status2 = getStatus2();
 		int status3 = getStatus3();
 		
-		NUMBER_OF_FIELDS = 7 + getLength()+1;
+		NUMBER_OF_FIELDS = NUMBER_OF_HEADER_FIELDS + getLength()+1;
 		initFields();
 	
 		fieldValue[TYPE_FIELD] = type;
@@ -195,7 +230,7 @@ public class HerciHighSpeedPacket extends FramePart {
 		fieldValue[STATUS_FIELD2] = status2;
 		fieldValue[STATUS_FIELD3] = status3;
 		
-		for (int i=7; i< layout.fieldName.length; i++) {
+		for (int i=NUMBER_OF_HEADER_FIELDS; i< layout.fieldName.length; i++) {
 			layout.fieldName[i] = "Byte"+i+"";
 			layout.fieldBitLength[i] = 8;
 		}
@@ -244,6 +279,14 @@ public class HerciHighSpeedPacket extends FramePart {
 		
 	}
 
+	public byte[] getMiniPacketBytes() {
+		copyBitsToFields();
+		byte[] b = new byte[NUMBER_OF_FIELDS-NUMBER_OF_HEADER_FIELDS];
+		for (int i=NUMBER_OF_HEADER_FIELDS; i<NUMBER_OF_FIELDS; i++)
+			b[i-7] = (byte)fieldValue[i];
+		return b;
+	}
+	
 	@Override
 	public String getStringValue(String name, Spacecraft fox) {
 		// TODO Auto-generated method stub
@@ -280,6 +323,7 @@ public class HerciHighSpeedPacket extends FramePart {
 	public static String getTableCreateStmt() {
 		String s = new String();
 		s = s + "(id int, resets int, uptime bigint, type int, "
+		 + "pktType int, "
 		 + "length int, "
 		 + "truncTime int,"
 		 + "segmentation int,"
@@ -288,19 +332,29 @@ public class HerciHighSpeedPacket extends FramePart {
 		 + "st3 int,"
 		 + "minipacket blob,"
 		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
-		s = s + "PRIMARY KEY (id, resets, uptime))";
+		s = s + "PRIMARY KEY (id, resets, uptime, type))";
 		return s;
 	}
 	
 	public String getInsertStmt() {
 		String s = new String();
-		s = s + " (id, resets, fromUptime, toUptime, \n";
-		s = s + "pictureCounter,\n";
-		s = s + "fileName)\n";
+		s = s + " (id, resets, uptime, type, \n";
+		s = s + "pktType,\n";
+		s = s + "length,\n";
+		s = s + "truncTime,\n";
+		s = s + "segmentation,\n";
+		s = s + "st1,\n";
+		s = s + "st2,\n";
+		s = s + "st3)\n";
 		
-		s = s + "values (" + this.id + ", " + resets + ", " + fromUptime + ", " + toUptime + ",\n";
-		s = s + pictureCounter+",\n";
-		s = s + "'" + fileName+"')\n";
+		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ",\n";
+		s = s + fieldValue[TYPE_FIELD]+",\n";
+		s = s + fieldValue[LENGTH_FIELD]+",\n";
+		s = s + fieldValue[TIME_FIELD]+",\n";
+		s = s + fieldValue[SEG_FIELD]+",\n";
+		s = s + fieldValue[STATUS_FIELD1]+",\n";
+		s = s + fieldValue[STATUS_FIELD2]+",\n";
+		s = s + fieldValue[STATUS_FIELD3]+")\n";
 		return s;
 	}
 

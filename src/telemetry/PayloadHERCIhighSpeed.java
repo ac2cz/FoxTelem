@@ -136,6 +136,7 @@ Transfer Frame:
 public class PayloadHERCIhighSpeed extends FramePart {
 
 	public static final int MAX_PAYLOAD_SIZE = 868;
+	public static final int MAX_HEADER_SIZE = 16; // 16 bytes in the header
 	
 	public PayloadHERCIhighSpeed(BitArrayLayout lay) {
 		super(lay);
@@ -177,19 +178,19 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		ArrayList<HerciHighSpeedPacket> packets = new ArrayList<HerciHighSpeedPacket>();
 		
 		boolean morePackets = true;
-		int packetDataStart = 8;;
+		int packetDataStart = HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES;
 		while (morePackets) {
 			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime);
 			for (int k=0; k<HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES; k++) { 
-				radTelem.addNext8Bits(fieldValue[k+16]);
+				radTelem.addNext8Bits(fieldValue[k+PayloadHERCIhighSpeed.MAX_HEADER_SIZE]);  
 			}
 			radTelem.initPacket();
 			if (radTelem.getLength() > 0) {
 				if (packetDataStart + radTelem.getLength() <= HerciHighSpeedPacket.MAX_PACKET_BYTES) {
 					for (int k=0; k<radTelem.getLength(); k++) {
-						radTelem.addNext8Bits(fieldValue[k+16+packetDataStart]);
+						radTelem.addNext8Bits(fieldValue[k+PayloadHERCIhighSpeed.MAX_HEADER_SIZE+packetDataStart]);
 					}
-					packetDataStart = 16 + radTelem.getLength() + packetDataStart;  // FIXME - 16 is the length  of the science header in BYTES
+					packetDataStart = PayloadHERCIhighSpeed.MAX_HEADER_SIZE + radTelem.getLength() + packetDataStart; 
 					packets.add(radTelem);
 				} else {
 					morePackets = false;

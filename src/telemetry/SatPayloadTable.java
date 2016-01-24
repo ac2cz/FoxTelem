@@ -374,14 +374,17 @@ public class SatPayloadTable {
 			rt = new PayloadRadExpData(id, resets, uptime, date, st);
 			rt.type = type; // make sure we get the right type
 		}        			
-		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
+		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
+			rt.type = type; // make sure we get the right type
 		}
-		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER ) {
+		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
 			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+			rt.type = type; // make sure we get the right type
 		}
-		if (type == FramePart.TYPE_HERCI_HS_PACKET ) {
-			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+		if (type == FramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
+			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st);
+			rt.type = type; // make sure we get the right type
 		}
 
 		if (rt != null) {

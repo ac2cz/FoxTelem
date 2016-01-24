@@ -284,8 +284,8 @@ public class SatPayloadDbStore {
 					HerciHighSpeedPacket pk = pkts.get(i);
 					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
 					if (f.type >= 600) // this is a high speed record
-						pk.type = f.type + 300 + i*10; 
-					//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
+						pk.type = f.type*1000 + 900 + i;  // This will give a type formatted like 601903
+					add(pk);
 					updatedHerciPacket = true;
 				}
 			} else {
@@ -390,6 +390,34 @@ public class SatPayloadDbStore {
 		return true;
 	}
 	
+	private boolean insertHerciPacket(String table, HerciHighSpeedPacket f) {
+		String insertStmt = f.getInsertStmt();
+		boolean inserted = insertData(table, insertStmt);
+		// FIXME - this returns true unless there is an error.  So even with a duplicate we copy all the bytes in, which is wastefull!
+		if (!inserted)
+			return false;
+		else
+		try {
+			Connection derby = PayloadDbStore.getConnection();
+			java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table + " set minipacket = ?"
+					+ " where id = " + f.id
+					+ " and resets = " + f.resets
+					+ " and uptime = " + f.uptime
+					+ " and type = " + f.type);
+			ps.setBytes(1, f.getMiniPacketBytes());
+			int count = ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
+				Log.println("ERROR, image bytes not stored");
+				return false; // We have the data
+			} else {
+				PayloadDbStore.errorPrint(e);
+			}
+		}
+		return true;
+	}
+	
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -416,7 +444,10 @@ public class SatPayloadDbStore {
 			return addHerciRecord((PayloadHERCIhighSpeed)f); 
 		} else if (f instanceof HerciHighspeedHeader ) {
 			return insert(herciHSHeaderTableName, f);
-		} 
+		} else if (f instanceof HerciHighSpeedPacket ) {
+			return insertHerciPacket(herciHSPacketTableName, (HerciHighSpeedPacket)f);
+			
+		}
 		return false;
 	}
 
