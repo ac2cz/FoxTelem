@@ -561,6 +561,7 @@ public class SatPayloadTable {
 		if (createNewFile(fileName + ".idx")) {
 			Writer output = new BufferedWriter(new FileWriter(aFile, true));
 			writeVersion(output);
+			output.close();
 		}
  
         BufferedReader dis = new BufferedReader(new FileReader(aFile.getPath()));
@@ -586,6 +587,9 @@ public class SatPayloadTable {
 
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        } finally {
+        	
+        	dis.close();
         }
 	}	
 	
