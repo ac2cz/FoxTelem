@@ -103,7 +103,9 @@ about Big-Endian above all applies here as well.
 
  */
 public class HerciHighSpeedPacket extends FramePart {
-	public static final int MAX_PACKET_BYTES = 128; // FIXME-not sure what the max value is
+	public static final int MAX_PACKET_BYTES = 128; // Since the maximum packet size is 8+30*4, segmentation is never
+													// required to ship down a complete minipacket, i.e. the minipackets
+													// are always single segments.
 	public static final int MAX_PACKET_HEADER_BYTES = 8;  // There are 7 fields in the header across 8 bytes
 	public static final int NUMBER_OF_HEADER_FIELDS = 7;
 	public int NUMBER_OF_FIELDS = 7; // This is the initial value as it is the header size.  We add the number if minipacket bytes to this later
