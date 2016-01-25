@@ -320,10 +320,9 @@ Field
  */
 public class RadiationTelemetry extends FramePart {
 
+	public static final int TELEM_BYTES = 20;
 	public static final int MAX_RAD_TELEM_BYTES = 58;
 	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
-	public int reset;
-	public long uptime;
 	
 	public static final String[] herciSource = {
 			"PANIC",
@@ -339,7 +338,7 @@ public class RadiationTelemetry extends FramePart {
 		};
 	public RadiationTelemetry(int r, long u, BitArrayLayout l) {
 		super(l);
-		reset = r;
+		resets = r;
 		uptime = u;
 		
 		

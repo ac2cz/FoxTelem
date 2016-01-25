@@ -315,29 +315,36 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	}
 	
 	protected void parseRadiationFrames() {
-		String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 		
-		if (data.length > 0)
-			if (Config.displayRawRadData) {
+
+
+		if (Config.displayRawRadData) {
+			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+			if (data.length > 0)
 				radTableModel.setData(parseRawBytes(data));
-			} else {
-				if (displayTelem) {
+		} else {
+			if (displayTelem) {
+				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				if (data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
 					bottomHalf.setVisible(true);
-				}
-				else {
+			
+			}
+			else {
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				if (data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);
 					bottomHalfPackets.setVisible(true);
 					topHalf.setVisible(false);
 					bottomHalf.setVisible(false);
-
-				}
+			
 			}
-	
+		}
+
 		if (showRawValues.isSelected()) {
 			packetScrollPane.setVisible(false); 
 			scrollPane.setVisible(true);
@@ -352,15 +359,18 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	
 	private void parseTelemetry(String data[][]) {
 		
+		
 		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
 		
 		// try to decode any telemetry packets
 		for (int i=0; i<data.length; i++) {
 			RadiationTelemetry radTelem = null;
 			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.rad2Layout);
-			for (int k=2; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES+2; k++) {  // Add 2 to skip past reset uptime
+			radTelem.rawBits = null; // otherwise we will overwrite the data we side load in
+			for (int k=2; k<RadiationTelemetry.TELEM_BYTES+2; k++) {  // Add 2 to skip past reset uptime
 				try {
-					radTelem.addNext8Bits(Integer.valueOf(data[i][k]));
+					int val = Integer.valueOf(data[i][k]);
+					radTelem.fieldValue[k-2] = val;
 				} catch (NumberFormatException e) {
 
 				}
@@ -370,11 +380,11 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 			}
 			
 		}
-		
+	
 		// Now put the telemetry packets into the table data structure
 		String[][] packetData = new String[packets.size()][5];
 		for (int i=0; i < packets.size(); i++) { 
-			packetData[packets.size()-i-1][0] = ""+packets.get(i).reset;
+			packetData[packets.size()-i-1][0] = ""+packets.get(i).resets;
 			packetData[packets.size()-i-1][1] = ""+packets.get(i).uptime;
 			packetData[packets.size()-i-1][2] = "TELEMETRY";
 			packetData[packets.size()-i-1][3] = ""+packets.get(i).fieldValue[3]; // UPTIME
@@ -382,7 +392,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 			packetData[packets.size()-i-1][4] = telem; 
 		}
 
-		if (packetData.length > 0) {
+		if (data.length > 0) {
 			radPacketTableModel.setData(packetData);
 		}
 		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
