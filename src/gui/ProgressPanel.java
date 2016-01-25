@@ -22,10 +22,18 @@ public class ProgressPanel extends JDialog implements ActionListener {
 		setTitle(message);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 //		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		int x = 100;
+		int y = 100;
+		if (MainWindow.frame != null) {
+			x = MainWindow.frame.getX() + MainWindow.frame.getWidth()/2 - (message.length()*9)/2;
+			y = MainWindow.frame.getY() + MainWindow.frame.getHeight()/2;
+		} else {
+			Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
+			x = (int) ((dimension.getWidth() - this.getWidth()) / 2);
+			y = (int) ((dimension.getHeight() - this.getHeight()) / 2);
+		}
 		setBounds(100, 100, message.length()*9, 10);
-		Dimension dimension = Toolkit.getDefaultToolkit().getScreenSize();
-		    int x = (int) ((dimension.getWidth() - this.getWidth()) / 2);
-		    int y = (int) ((dimension.getHeight() - this.getHeight()) / 2);
+	
 		    this.setLocation(x, y);
 	}
 	
