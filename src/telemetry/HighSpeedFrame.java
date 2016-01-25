@@ -52,6 +52,9 @@ public class HighSpeedFrame extends Frame {
 	
 	HighSpeedTrailer trailer = null;
 
+	int radiationPayloadSize = 20;  // default size expects buffered mode to be off
+	boolean bufferedRadMode = true; // assume we are in rad mode unless we find zero bytes
+
 	int numberBytesAdded = 0;
 	int radiationBytesAdded = 0;  // count of the number of vulcan or HERCI bytes that we have added
 	int radFrame = 0;  // the number of Vulcan or HERCI experiment payloads added to this frame so far
@@ -165,13 +168,14 @@ public class HighSpeedFrame extends Frame {
 				}
 			}
 		} else if (!fox.hasHerci() && numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE && radFrame < DEFAULT_RAD_EXP_PAYLOADS) {
-			radExpPayload[radFrame].addNext8Bits(b);	
+			radExpPayload[radFrame].addNext8Bits(b);
+			if (b == 0x00) bufferedRadMode = false;
 			radiationBytesAdded++;
-			if (radiationBytesAdded == PayloadRadExpData.MAX_PAYLOAD_RAD_SIZE) {
+			if ((!bufferedRadMode && radiationBytesAdded == RadiationTelemetry.TELEM_BYTES) || 
+			     (bufferedRadMode && radiationBytesAdded == PayloadRadExpData.MAX_PAYLOAD_RAD_SIZE)) {
 				radiationBytesAdded = 0;
 				radFrame++;
 			}
-			
 		} else if (numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE + MAX_TRAILER_SIZE)
 			;//trailer.addNext8Bits(b); //FEC ;
 		else
