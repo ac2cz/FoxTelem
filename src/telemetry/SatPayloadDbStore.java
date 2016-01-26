@@ -390,6 +390,7 @@ public class SatPayloadDbStore {
 		return true;
 	}
 	
+	/*
 	private boolean insertHerciPacket(String table, HerciHighSpeedPacket f) {
 		String insertStmt = f.getInsertStmt();
 		boolean inserted = insertData(table, insertStmt);
@@ -417,7 +418,7 @@ public class SatPayloadDbStore {
 		}
 		return true;
 	}
-	
+	*/
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -445,7 +446,7 @@ public class SatPayloadDbStore {
 		} else if (f instanceof HerciHighspeedHeader ) {
 			return insert(herciHSHeaderTableName, f);
 		} else if (f instanceof HerciHighSpeedPacket ) {
-			return insertHerciPacket(herciHSPacketTableName, (HerciHighSpeedPacket)f);
+			return insert(herciHSPacketTableName, (HerciHighSpeedPacket)f);
 			
 		}
 		return false;

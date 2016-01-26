@@ -324,21 +324,23 @@ public class HerciHighSpeedPacket extends FramePart {
 
 	public static String getTableCreateStmt() {
 		String s = new String();
-		s = s + "(id int, resets int, uptime bigint, type int, "
+		s = s + "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int, resets int, uptime bigint, type int, "
 		 + "pktType int, "
 		 + "length int, "
 		 + "truncTime int,"
 		 + "segmentation int,"
 		 + "st1 int,"
 		 + "st2 int,"
-		 + "st3 int,"
-		 + "minipacket blob,"
-		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+		 + "st3 int,";
+		 
+		for (int i=NUMBER_OF_HEADER_FIELDS; i< MAX_PACKET_BYTES; i++ )
+			s = s + "byte" + i + " int NOT NULL DEFAULT 0,";
 		s = s + "PRIMARY KEY (id, resets, uptime, type))";
 		return s;
 	}
 	
 	public String getInsertStmt() {
+		copyBitsToFields();
 		String s = new String();
 		s = s + " (id, resets, uptime, type, \n";
 		s = s + "pktType,\n";
@@ -347,7 +349,10 @@ public class HerciHighSpeedPacket extends FramePart {
 		s = s + "segmentation,\n";
 		s = s + "st1,\n";
 		s = s + "st2,\n";
-		s = s + "st3)\n";
+		s = s + "st3,\n";
+		for (int i=NUMBER_OF_HEADER_FIELDS; i < NUMBER_OF_FIELDS-1; i++ )
+			s = s + "byte" + i + " ,\n";
+		s = s + "byte" + (NUMBER_OF_FIELDS-1) + " )\n";
 		
 		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ",\n";
 		s = s + fieldValue[TYPE_FIELD]+",\n";
@@ -356,7 +361,10 @@ public class HerciHighSpeedPacket extends FramePart {
 		s = s + fieldValue[SEG_FIELD]+",\n";
 		s = s + fieldValue[STATUS_FIELD1]+",\n";
 		s = s + fieldValue[STATUS_FIELD2]+",\n";
-		s = s + fieldValue[STATUS_FIELD3]+")\n";
+		s = s + fieldValue[STATUS_FIELD3]+",\n";
+		for (int i=NUMBER_OF_HEADER_FIELDS; i< NUMBER_OF_FIELDS-1; i++ )
+			s = s + fieldValue[i] + " ,\n";
+		s = s + fieldValue[NUMBER_OF_FIELDS-1] + " )\n";
 		return s;
 	}
 

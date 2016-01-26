@@ -335,6 +335,8 @@ public class SatPayloadTable {
 
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        } finally {
+        	dis.close();
         }
 
 	}
