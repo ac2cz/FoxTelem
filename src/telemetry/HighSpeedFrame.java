@@ -52,11 +52,13 @@ public class HighSpeedFrame extends Frame {
 	
 	HighSpeedTrailer trailer = null;
 
+	int[] radiationLookaheadBuffer = new int[20]; // a 20 byte buffer to check if this frame contains rad telemetry data
 	int radiationPayloadSize = 20;  // default size expects buffered mode to be off
 	boolean bufferedRadMode = true; // assume we are in rad mode unless we find zero bytes
 
 	int numberBytesAdded = 0;
 	int radiationBytesAdded = 0;  // count of the number of vulcan or HERCI bytes that we have added
+	private boolean first20RadBytes = true; // true while we are reading the first 20 bytes of rad data
 	int radFrame = 0;  // the number of Vulcan or HERCI experiment payloads added to this frame so far
 	private boolean firstNonHeaderByte = true;
 	private boolean firstCameraByte = true;
@@ -169,8 +171,29 @@ public class HighSpeedFrame extends Frame {
 			}
 		} else if (!fox.hasHerci() && numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE && radFrame < DEFAULT_RAD_EXP_PAYLOADS) {
 			radExpPayload[radFrame].addNext8Bits(b);
-			if (b == 0x00) bufferedRadMode = false;
+			if (first20RadBytes)
+				radiationLookaheadBuffer[radiationBytesAdded] = b;
 			radiationBytesAdded++;
+			if (first20RadBytes && radiationBytesAdded == RadiationTelemetry.TELEM_BYTES ) {
+				// We have the first 20 bytes of the experiment data.  We analyze it and try to "guess" if it is Telemetry or Packets
+				// If the data contains zeros it is definitely telemetry
+				// If the data contains no zeros AND 0x7E markers then it is most likely packets
+				// If it has no zeros and no 0x7E markets then we don't know, so we default to telemetry
+				first20RadBytes = false;
+				boolean foundZero = false;
+				boolean foundMarker = false;
+				for (int j=0; j < radiationLookaheadBuffer.length; j++) {
+					if (radiationLookaheadBuffer[j] == 0) foundZero = true;
+					if (radiationLookaheadBuffer[j] == 0x7E) foundMarker = true;
+				}
+				if (foundZero)
+					bufferedRadMode = false;
+				else
+					if (!foundZero && foundMarker)
+						bufferedRadMode = true;
+					else
+						bufferedRadMode = false;
+			}
 			if ((!bufferedRadMode && radiationBytesAdded == RadiationTelemetry.TELEM_BYTES) || 
 			     (bufferedRadMode && radiationBytesAdded == PayloadRadExpData.MAX_PAYLOAD_RAD_SIZE)) {
 				radiationBytesAdded = 0;
