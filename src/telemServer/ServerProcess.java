@@ -114,8 +114,9 @@ public class ServerProcess implements Runnable {
 			// null return means the file can not be recognized as an STP file or was test data
 			Frame frm = Frame.importStpFile(stp, false);
 			if (frm != null) {
-				Log.println("Processed: " + b + " bytes from " + frm.receiver + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
-						+ " " + frm.getHeader().getType());
+				Log.println("Processed: " + b + " bytes from " + frm.receiver + " for " 
+						+ frm.getHeader().getFoxId() + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
+						+ " " + frm.getHeader().getType() + "---" + fileName);
 				File toFile = new File(stp.getPath()+".processed");
 				if (stp.renameTo(toFile))
 					;
