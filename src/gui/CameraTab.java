@@ -344,7 +344,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		if (actualThumbnails > 0)
 			if (Config.showLatestImage) { // we automatically select the latest image, which is the first in the array
 				// first deselect the previous selection
-				if (thumbnails != null) {
+				if (thumbnails != null && selectedThumb < thumbnails.length  && selectedThumb >=0) {
 					if (thumbnails[selectedThumb] != null) 
 						thumbnails[selectedThumb].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
 					selectedThumb = 0;
