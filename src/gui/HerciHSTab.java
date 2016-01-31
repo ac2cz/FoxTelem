@@ -210,26 +210,28 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		
 		column = packetTable.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-
 		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(45);
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
-
-		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(90);
+
+		column = packetTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(35);
+		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(35);
 
 		column = packetTable.getColumnModel().getColumn(5);
-		column.setPreferredWidth(90);
-		
+		column.setPreferredWidth(55);
+
 		column = packetTable.getColumnModel().getColumn(6);
-		column.setPreferredWidth(45);
+		column.setPreferredWidth(35);
+		
 		column = packetTable.getColumnModel().getColumn(7);
 		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(8);
 		column.setPreferredWidth(45);
-
 		column = packetTable.getColumnModel().getColumn(9);
+		column.setPreferredWidth(45);
+
+		column = packetTable.getColumnModel().getColumn(10);
 		column.setPreferredWidth(600);
 
 		if (showRawValues.isSelected()) {
@@ -244,20 +246,23 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 
 	private String[][] parseMiniPackets() {
 		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0);
-		String[][] data = new String[rawData.length][10];
+		String[][] data = new String[rawData.length][11];
 		
 		//for (int k =0; k < rawData.length; k++) {
 		for (int k =rawData.length-1; k >= 0; k--) {
-			for (int j=0; j<9; j++) {
-				if (j > 4)
-					data[rawData.length-k-1][j] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
-				else
-					data[rawData.length-k-1][j] = rawData[k][j];
+			data[rawData.length-k-1][0] = rawData[k][0];
+			data[rawData.length-k-1][1] = rawData[k][1];
+			data[rawData.length-k-1][2] = rawData[k][2] + ":" + rawData[k][4];  //acquire time
+			data[rawData.length-k-1][3] = rawData[k][5];
+			data[rawData.length-k-1][4] = rawData[k][6];
+			data[rawData.length-k-1][5] = ""+Integer.parseInt(rawData[k][7])/40+":"+Integer.parseInt(rawData[k][7])%40; //rti
+			for (int j=8; j<12; j++) {
+				data[rawData.length-k-1][j-2] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
 			}
-			data[rawData.length-k-1][9] = "";
-			for (int j=9; j<rawData[k].length; j++) {
+			data[rawData.length-k-1][10] = "";
+			for (int j=13; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					data[rawData.length-k-1][9] = data[rawData.length-k-1][9] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
+					data[rawData.length-k-1][10] = data[rawData.length-k-1][10] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
 		}
 		

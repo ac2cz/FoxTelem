@@ -28,16 +28,17 @@ import telemetry.PayloadHERCIhighSpeed;
 class HerciHsPacketTableModel extends FoxTelemTableModel {
 	
 	HerciHsPacketTableModel() {
-		columnNames = new String[10];
+		columnNames = new String[11];
 		columnNames[0] = "RESET";
 		columnNames[1] = "UPTIME";
-		columnNames[2] = "TYPE";
-		columnNames[3] = "LENGTH";
-		columnNames[4] = "ACQUIRE TIME";
-		columnNames[5] = "SEGMENTATION";
-		columnNames[6] = "ST1";
-		columnNames[7] = "ST2";
-		columnNames[8] = "ST3";
-		columnNames[9] = "COUNT DATA (30 x 1-second integrated counts)";
+		columnNames[2] = "ACQUIRE TIME";
+		columnNames[3] = "TYPE";
+		columnNames[4] = "LEN";
+		columnNames[5] = "RTI";
+		columnNames[6] = "SEG";
+		columnNames[7] = "ST1";
+		columnNames[8] = "ST2";
+		columnNames[9] = "ST3";
+		columnNames[10] = "COUNT DATA (30 x 1-second integrated counts)";
 	}
 }

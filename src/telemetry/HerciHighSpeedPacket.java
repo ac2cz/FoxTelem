@@ -124,7 +124,6 @@ public class HerciHighSpeedPacket extends FramePart {
 	int epoch;  // the experiment epoch from the header
 	long headerTime; // the experiment time from the header
 	long packetTimestamp; // the 32 bit timestamp when the packet was generated - calculated
-	int RTI;  // is the current sub-seconds, which increments every 25mSec, counting from 0 to 39.
 	
 	HerciHighSpeedPacket(int sat, int r, long u, int e, long t) {
 		super(new BitArrayLayout());
@@ -147,7 +146,6 @@ public class HerciHighSpeedPacket extends FramePart {
 		epoch = Integer.valueOf(st.nextToken()).intValue();
 		headerTime = Long.valueOf(st.nextToken()).longValue();
 		packetTimestamp = Long.valueOf(st.nextToken()).longValue();
-		RTI = Integer.valueOf(st.nextToken()).intValue();
 		
 		init();
 		rawBits = null; // no binary array when loaded from file, even if the local init creates one
@@ -157,6 +155,16 @@ public class HerciHighSpeedPacket extends FramePart {
 		loadFrom(st,NUMBER_OF_HEADER_FIELDS);
 		
 		
+	}
+	
+	public int[] getFieldValues() {
+		int[] f = new int[fieldValue.length+3];
+		f[0] = epoch;
+		f[1] = (int) headerTime;
+		f[2] = (int) packetTimestamp;
+		for (int i=3; i< f.length; i ++)
+			f[i] = fieldValue[i-3];
+		return f;
 	}
 	
 	protected void loadFrom(StringTokenizer st, int i) {
@@ -185,7 +193,7 @@ public class HerciHighSpeedPacket extends FramePart {
 		copyBitsToFields();
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
-		+ epoch + "," + headerTime + "," + packetTimestamp + "," + RTI + "," ;
+		+ epoch + "," + headerTime + "," + packetTimestamp + "," ;
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
@@ -262,9 +270,9 @@ public class HerciHighSpeedPacket extends FramePart {
 		}
 		
 		packetTimestamp = UTIL_event_time(time, (int)headerTime, 0); // FIXME C unsigned 16 bit int, we pass java signed int
-		fieldValue[TIME_FIELD] = (int) packetTimestamp;
+		//fieldValue[TIME_FIELD] = (int) packetTimestamp;
 		//packetTimestamp = UTIL_event_time(time, 417072, 0); // FIXME C unsigned 16 bit int, we pass java signed int
-		RTI = (int) (packetTimestamp%40);
+		
 		copyBitsToFields();
 	}
 	
