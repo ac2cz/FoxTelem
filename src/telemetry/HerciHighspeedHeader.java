@@ -101,6 +101,8 @@ import decoder.Decoder;
 public class HerciHighspeedHeader extends FramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 16;
+	public static final int HERCI_EPOCH_FIELD = 5;
+	public static final int HERCI_TIME_FIELD = 4;
 	public int NUMBER_OF_FIELDS = 8;
 	public int reset;
 	public long uptime;
@@ -221,12 +223,15 @@ public class HerciHighspeedHeader extends FramePart {
 		}
 		return s;
 	}
+	
+
 	public String toString() {
 		copyBitsToFields();
 		String s = new String();
 		s = s + "HERCI HS SCIENCE HEADER:\n";
 		for (int i=0; i < layout.fieldName.length; i++) {
-			s = s + layout.fieldName[i] + ": " + fieldValue[i]+"\n";
+			//s = s + layout.fieldName[i] + ": " + fieldValue[i]+"\n";
+			s = s + Decoder.hex(fieldValue[i]) + " ";
 		
 		}
 		return s;

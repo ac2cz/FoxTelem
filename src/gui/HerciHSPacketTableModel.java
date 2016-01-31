@@ -33,11 +33,11 @@ class HerciHsPacketTableModel extends FoxTelemTableModel {
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "TYPE";
 		columnNames[3] = "LENGTH";
-		columnNames[4] = "TRUNC TIME";
+		columnNames[4] = "ACQUIRE TIME";
 		columnNames[5] = "SEGMENTATION";
 		columnNames[6] = "ST1";
 		columnNames[7] = "ST2";
 		columnNames[8] = "ST3";
-		columnNames[9] = "MINI PACKET DATA";
+		columnNames[9] = "COUNT DATA (30 x 1-second integrated counts)";
 	}
 }

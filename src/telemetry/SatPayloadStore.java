@@ -219,7 +219,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException
 	 */
-	private boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
+	protected boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
 		//herciRecords.add(f);
 		
 		// Capture and store any secondary payloads
