@@ -205,12 +205,13 @@ public class Config {
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
 	
-	// Post V1.00
+	// V1.01
 	static public boolean debugHerciFrames = false;
 	
 	// V1.03
 	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
+	static public boolean generateSecondaryPayloads = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";

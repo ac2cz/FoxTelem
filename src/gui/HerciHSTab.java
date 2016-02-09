@@ -17,6 +17,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
@@ -54,7 +56,7 @@ import decoder.Decoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
+public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, ListSelectionListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 226;
@@ -72,7 +74,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 	JScrollPane scrollPane;
 	JScrollPane packetScrollPane;
 	JCheckBox showRawValues;
-	
+	JCheckBox showRawBytes;
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
@@ -151,12 +153,14 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 		
-		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawRadData);
+		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
 		bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
-
-		showRawValues.setMinimumSize(new Dimension(1600, 14));
-		showRawValues.setMaximumSize(new Dimension(1600, 14));
+		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
+		bottomPanel.add(showRawBytes );
+		showRawBytes.addItemListener(this);
+	//	showRawBytes.setMinimumSize(new Dimension(1600, 14));
+	//	showRawBytes.setMaximumSize(new Dimension(1600, 14));
 
 		addBottomFilter();
 
@@ -234,14 +238,16 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		column = packetTable.getColumnModel().getColumn(10);
 		column.setPreferredWidth(600);
 
-		if (showRawValues.isSelected()) {
+		if (showRawBytes.isSelected()) {
 			packetScrollPane.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
 			packetScrollPane.setVisible(true);
 			scrollPane.setVisible(false);
 		}
-
+		packetTable.getSelectionModel().addListSelectionListener(this);
+		table.getSelectionModel().addListSelectionListener(this);
+				
 	}
 
 	private String[][] parseMiniPackets() {
@@ -338,6 +344,15 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 				e.printStackTrace(Log.getWriter());
 			}
 			if (foxId != 0)
+				if (Config.displayRawRadData != showRawBytes.isSelected()) {
+					showRawBytes.setSelected(Config.displayRawRadData);
+					if (hsPayload != null)
+						parseRadiationFrames();
+				}
+				if (Config.displayRawValues != showRawValues.isSelected()) {
+					showRawValues.setSelected(Config.displayRawValues);
+					updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
+				}
 				if (Config.payloadStore.getUpdatedHerci(foxId)) {
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
 					Config.payloadStore.setUpdatedHerci(foxId, false);
@@ -357,15 +372,14 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		
-		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.displayRawRadData = false;
 			} else {
 				Config.displayRawRadData = true;
 			}
-	//		Config.save();
-			if (showRawValues.isSelected()) {
+			if (showRawBytes.isSelected()) {
 				packetScrollPane.setVisible(false); 
 				scrollPane.setVisible(true);
 			} else { 
@@ -379,10 +393,30 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 			}
 			
 		}
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+
+			if (hsPayload != null) {
+				parseRadiationFrames();
+				updateTab(hsPayload);
+			}
+			
+		}
+
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		super.actionPerformed(e);
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }

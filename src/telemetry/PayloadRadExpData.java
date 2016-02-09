@@ -93,7 +93,7 @@ public class PayloadRadExpData extends FramePart {
 	/**
 	 * Calculate the telemetry and return it
 	 * @return
-	 */
+	 
 	public PayloadHERCIHousekeeping calculateHerciTelemetryPalyoad() {
 		//if (isTelemetry()) {
 		PayloadHERCIHousekeeping radTelem = new PayloadHERCIHousekeeping(resets, uptime, Config.satManager.getRadTelemLayout(id));
@@ -104,7 +104,8 @@ public class PayloadRadExpData extends FramePart {
 		//}
 		//return null;
 	}
-
+    */
+	
 	/**
 	 * We have bytes in big endian order, so we need to add the bits in a way
 	 * that makes sense when we retrieve them sequentially

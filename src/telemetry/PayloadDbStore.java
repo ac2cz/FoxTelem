@@ -896,6 +896,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public RadiationTelemetry getRadTelem(int id, int resets, long uptime) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 }

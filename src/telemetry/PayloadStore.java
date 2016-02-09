@@ -569,6 +569,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 
 	}
+	
+	public RadiationTelemetry getRadTelem(int id, int resets, long uptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getRadTelem(id, resets, uptime);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+
+	}
 
 	
 	public PayloadHERCIhighSpeed getLatestHerci(int id) {

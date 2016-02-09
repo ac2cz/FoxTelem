@@ -228,7 +228,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
-		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(400,10), new Dimension(1500,10)));
+		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1500,10)));
 
 		addBottomFilter();
 	}

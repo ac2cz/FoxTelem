@@ -102,6 +102,13 @@ public class SatPayloadTable {
 		return null;
 	}
 	
+	public FramePart getFrame(int id, long uptime, int resets) throws IOException { 
+		// Make sure the segment is loaded, so we can check
+		TableSeg seg = loadSeg(resets, uptime);
+		int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
+		return rtRecords.get(i);
+	}
+	
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -375,32 +382,44 @@ public class SatPayloadTable {
 		if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
 			rt = new PayloadRadExpData(id, resets, uptime, date, st);
 			rt.type = type; // make sure we get the right type
+			
+			
+			// hack to convert data
+			if (Config.generateSecondaryPayloads) {
+				PayloadRadExpData f = (PayloadRadExpData)rt; 
+				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 400) // this is a high speed record
+					radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+				Config.payloadStore.setUpdatedRad(id, true);			
+			}
 		}        			
 		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
 			rt.type = type; // make sure we get the right type
-			///// FIXME - TEMP HACK FOR TESTING
-			
-			PayloadHERCIhighSpeed f = (PayloadHERCIhighSpeed)rt;
-			HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
-			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-			if (f.type >= 600) // this is a high speed record
-				radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
-			Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
-
-			//updatedHerciHeader = true;
-
-			ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
-			for(int i=0; i< pkts.size(); i++) {
-				HerciHighSpeedPacket pk = pkts.get(i);
-				pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (Config.generateSecondaryPayloads) {
+				// Test routine that generates the secondary payloads
+				PayloadHERCIhighSpeed f = (PayloadHERCIhighSpeed)rt;
+				HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
 				if (f.type >= 600) // this is a high speed record
-					pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
-					Config.payloadStore.add(f.id, f.uptime, f.resets,pk);
-				
+					radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
 
+				//updatedHerciHeader = true;
+
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					if (f.type >= 600) // this is a high speed record
+						pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
+						Config.payloadStore.add(f.id, f.uptime, f.resets,pk);
+
+
+				}
 			}
-			/////
 		}
 		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
 			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));

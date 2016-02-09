@@ -98,6 +98,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract PayloadMinValues getLatestMin(int id);
 	public abstract PayloadRadExpData getLatestRad(int id);
 	public abstract RadiationTelemetry getLatestRadTelem(int id);
+	public abstract RadiationTelemetry getRadTelem(int id, int resets, long uptime);
 	public abstract PayloadHERCIhighSpeed getLatestHerci(int id);
 	public abstract HerciHighspeedHeader getLatestHerciHeader(int id);
 	/**

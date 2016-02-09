@@ -88,6 +88,8 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_HEX = 28;
 	public static final int CONVERT_HERCI_SOURCE = 29;
 	public static final int CONVERT_HERCI_MICRO_PKT_TYP = 30;
+	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
+	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
 
 	/**
 	 * Create an empty layout for manual init

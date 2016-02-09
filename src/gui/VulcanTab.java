@@ -23,6 +23,8 @@ import javax.swing.JTable;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
@@ -59,7 +61,7 @@ import common.Spacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
+public class VulcanTab extends RadiationTab implements ItemListener, Runnable, ListSelectionListener {
 
 	public static final String VULCANTAB = "VULCANTAB";
 	private static final String DECODED = "Radiation Payloads Decoded: ";
@@ -70,6 +72,8 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	JLabel lblFramesDecoded;
 		
 	JCheckBox showRawValues;
+	JCheckBox showRawBytes;
+
 	RadiationTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 	JTable table;
@@ -169,10 +173,13 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 				
-		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawRadData);
+		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
 				bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
-
+		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
+		bottomPanel.add(showRawBytes );
+		showRawBytes.addItemListener(this);
+		
 		decodePacket = addRadioButton("Packets (Buffered Mode)", bottomPanel );
 		decodeTelem = addRadioButton("Telemetry", bottomPanel );
 		ButtonGroup group = new ButtonGroup();
@@ -183,8 +190,8 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 		else
 			decodePacket.setSelected(true);
 		
-		decodeTelem.setMinimumSize(new Dimension(1600, 14));
-		decodeTelem.setMaximumSize(new Dimension(1600, 14));
+	//	decodeTelem.setMinimumSize(new Dimension(1600, 14));
+	//	decodeTelem.setMaximumSize(new Dimension(1600, 14));
 
 		addBottomFilter();
 		
@@ -312,6 +319,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(600);
 
+		packetTable.getSelectionModel().addListSelectionListener(this);
+		table.getSelectionModel().addListSelectionListener(this);
+				
 	}
 	
 	protected void parseRadiationFrames() {
@@ -345,7 +355,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 			}
 		}
 
-		if (showRawValues.isSelected()) {
+		if (showRawBytes.isSelected()) {
 			packetScrollPane.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
@@ -588,9 +598,13 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 			
-			if (Config.displayRawRadData != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawRadData);
+			if (Config.displayRawRadData != showRawBytes.isSelected()) {
+				showRawBytes.setSelected(Config.displayRawRadData);
 				parseRadiationFrames();
+			}
+			if (Config.displayRawValues != showRawValues.isSelected()) {
+				showRawValues.setSelected(Config.displayRawValues);
+				updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 			}
 
 			if (foxId != 0)
@@ -615,15 +629,14 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		
-		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.displayRawRadData = false;
 			} else {
 				Config.displayRawRadData = true;
 			}
-	//		Config.save();
-			if (showRawValues.isSelected()) {
+			if (showRawBytes.isSelected()) {
 				packetScrollPane.setVisible(false); 
 				scrollPane.setVisible(true);
 			} else { 
@@ -632,6 +645,17 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 			}
 
 			parseRadiationFrames();
+			
+		}
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+
+			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 			
 		}
 	}
@@ -647,6 +671,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable {
 			displayTelem=true;
 			parseRadiationFrames();
 		}
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

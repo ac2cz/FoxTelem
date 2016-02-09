@@ -23,6 +23,8 @@ import javax.swing.JTable;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
@@ -61,7 +63,7 @@ import decoder.Decoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
+public class HerciLSTab extends RadiationTab implements ItemListener, ListSelectionListener, Runnable {
 
 	public static final String HERCITAB = "HERCITAB";
 	private static final String DECODED = "Housekeeping Payloads Decoded: ";
@@ -72,6 +74,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 	JLabel lblFramesDecoded;
 		
 	JCheckBox showRawValues;
+	JCheckBox showRawBytes;
 	RadiationTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 	JTable table;
@@ -137,7 +140,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 		BitArrayLayout rad = fox.rad2Layout;
 		BitArrayLayout none = null;
 		try {
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI_HK);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -170,9 +173,13 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 				
-		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawRadData);
-				bottomPanel.add(showRawValues );
+		showRawValues = new JCheckBox("Dislay Raw Values", Config.displayRawValues);
+		bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
+		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
+		bottomPanel.add(showRawBytes );
+		showRawBytes.addItemListener(this);
+		
 
 //		decodePacket = addRadioButton("Packets (Buffered Mode)", bottomPanel );
 //		decodeTelem = addRadioButton("Telemetry", bottomPanel );
@@ -184,8 +191,8 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 //		else
 //			decodePacket.setSelected(true);
 		
-		showRawValues.setMinimumSize(new Dimension(1600, 14));
-		showRawValues.setMaximumSize(new Dimension(1600, 14));
+//		showRawBytes.setMinimumSize(new Dimension(1600, 14));
+//		showRawBytes.setMaximumSize(new Dimension(1600, 14));
 
 		addBottomFilter();
 		
@@ -269,6 +276,10 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(600);
 
+		//packetTable.getSelectionModel().addListSelectionListener(this);
+		//table.getSelectionModel().addListSelectionListener(this);
+		//packetTable.getRowSelectionAllowed();
+				
 	}
 	
 	protected void parseRadiationFrames() {
@@ -289,7 +300,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 
 			}
 	
-		if (showRawValues.isSelected()) {
+		if (showRawBytes.isSelected()) {
 			packetScrollPane.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
@@ -312,7 +323,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 			packetData[len-i-1][2] = "TELEMETRY";
 			packetData[len-i-1][3] = ""+data[i][2];
 			String telem = "";
-			for (int j=2; j< 25+2; j++) {  // 25 is the number of fieleds in the HERCI LS Telem Data
+			for (int j=2; j< fox.rad2Layout.fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
 				telem = telem + Decoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
@@ -322,7 +333,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 		if (packetData.length > 0) {
 			radPacketTableModel.setData(packetData);
 		}
-		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+		updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME));
 		//updateTab(data.get(packets.size()-1));
 	}
 	
@@ -355,9 +366,13 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 			
-			if (Config.displayRawRadData != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawRadData);
+			if (Config.displayRawRadData != showRawBytes.isSelected()) {
+				showRawBytes.setSelected(Config.displayRawRadData);
 				parseRadiationFrames();
+			}
+			if (Config.displayRawValues != showRawValues.isSelected()) {
+				showRawValues.setSelected(Config.displayRawValues);
+				updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 			}
 
 			if (foxId != 0)
@@ -378,15 +393,14 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		
-		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.displayRawRadData = false;
 			} else {
 				Config.displayRawRadData = true;
 			}
-	//		Config.save();
-			if (showRawValues.isSelected()) {
+			if (showRawBytes.isSelected()) {
 				packetScrollPane.setVisible(false); 
 				scrollPane.setVisible(true);
 			} else { 
@@ -395,6 +409,17 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 			}
 
 			parseRadiationFrames();
+			
+		}
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+
+			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 			
 		}
 	}
@@ -409,6 +434,31 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable {
 		if (e.getSource() == decodeTelem) {
 			displayTelem=true;
 			parseRadiationFrames();
+		}
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent e) {
+		Object source = e.getSource();
+		if (source == packetTable.getSelectionModel() ) {
+			int r = packetTable.getSelectedRow();
+			if (r >=0 && r <= packetTable.getRowCount()) {
+				int reset = Integer.parseInt( (String) packetTable.getValueAt(r, 0));
+				long uptime = Long.parseLong( (String) packetTable.getValueAt(r, 1));
+				textFromReset.setText(""+reset);
+				textFromUptime.setText(""+uptime);
+				System.out.println(reset + " " + uptime);
+				parseRadiationFrames();
+			}
+		}
+		if (source == table.getSelectionModel() ) {
+			int r = table.getSelectedRow();
+			if (r >=0 && r <= table.getRowCount()) {
+				int reset = Integer.parseInt( (String) table.getValueAt(r, 0));
+				long uptime = Long.parseLong( (String) table.getValueAt(r, 1));
+				System.out.println(reset + " " + uptime);
+				parseRadiationFrames();
+			}
 		}
 	}
 
