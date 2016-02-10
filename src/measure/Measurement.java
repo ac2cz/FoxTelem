@@ -45,7 +45,7 @@ public abstract class Measurement implements Comparable<Measurement> {
 	@Override
 	public int compareTo(Measurement p) {
 		if (date !=null && p.date != null) {
-			return p.date.compareTo(date);
+			return date.compareTo(p.date);
 		}
 		return -1;
 
