@@ -270,18 +270,66 @@ public class SatPayloadTable {
 			//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
 		} else {
 			// load forwards from the relevant reset/uptime
+			// We search from the earliest index records looking for the first instance where the reset or uptime is greater than the search point.
+			// We start loading from the previous record.
+			
+			/* Logic is like this:
+				reset x
+				uptime y
+				
+				idx
+				fromR	fromU
+				0		100
+				1		50
+				2		900
+				3		55
+				
+				case 1:
+				x=1
+				y=100
+				We want to load 2/900 onwards
+				So:
+				x < fromR, y then irrelevant
+				
+				case 2:
+				x=1
+				y=45
+				We want to load from 1/50
+				x = fromR, so y < fromU
+				
+				case 3:
+				x=3
+				y=100
+				We want to load 3/55
+				x = fromR, y > fromU - load current
+				
+				case 4:
+				x=1
+				y=0
+				We want to load 0/100 because the data could be at the end
+				x > fromR, y is irrelevent
+				AND (x < next fromR OR (x = next from R AND y < uptime) )
+			 * 
+			 */
+			
 			for (int i=0; i< tableIdx.size(); i++) {
-				if ( ((i == tableIdx.size()-1) && tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) || 
-						(i < tableIdx.size()-1) &&
-						tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime
-						&& tableIdx.get(i+1).fromReset > reset && tableIdx.get(i+1).fromUptime > uptime) {
+				if ( //case 4:
+						//case 1:
+						(tableIdx.get(i).fromReset > reset ) || // situation where the data is for a higher reset, so load from here always by default
+						(i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
+						 (tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) || // but the next record has higher reset or uptime
+						//case 2:
+						(tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime <= uptime) || // if current reset equal and uptime same or lower
+						//case 3:
+						(i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset)) // load this.  It might have the data we need and its the last segment
+					{
 					// Then we need to load segment at i and start counting from here
-					
+					//System.err.println("Loading from seg: "+i);
 					while(i < tableIdx.size()) {
 						if (!tableIdx.get(i).isLoaded())
 							load(tableIdx.get(i));
 						total += tableIdx.get(i).records;
-						if (total >= number) break;
+						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 					}
 					break;
 				}
