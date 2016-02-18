@@ -314,7 +314,28 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	/**
+	 * This add will block while waiting for the SQL database.  This works for the server where each
+	 * request is in a seperate thread.  For a GUI application this add would need to be called from a background thread.
+	 */
 	public boolean add(int id, long uptime, int resets, FramePart f) {
+		if (Config.debugFieldValues)
+			Log.println(f.toString());
+		if (f instanceof PayloadCameraData)
+			if (addToDb(id, uptime, resets, (PayloadCameraData)f))
+				return true;
+			else
+				Log.alert("ERROR: Could not add camera record to the database: " + id + " " + uptime+ " " + resets+ " " + f);
+		else if (addToDb(id, uptime, resets, f))
+			return true;
+		else {
+			// Serious error where we could not add data to the database.  Something is wrong and we have no way at this point to prevent the STP
+			// file from being marked as processed
+			//// ALERT
+			Log.alert("ERROR: Could not add record to the database: " + id + " " + uptime+ " " + resets+ " " + f);
+		}
+		return false;
+		/*
 		boolean rc = false;
 		int retries = 0;
 		int MAX_RETRIES = 5;
@@ -340,6 +361,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		}
 
 		return rc;
+		*/
 	}
 
 	public boolean addToDb(int id, long uptime, int resets, FramePart f) {
@@ -692,6 +714,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 		running = true;
 		done = false;
+		/*
 		while(running) {
 			try {
 				Thread.sleep(100); // check for new inserts multiple times per second
@@ -721,7 +744,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				//}
 			}
 		}
-
+		 */
+		Log.println("Database Payload store started. No background thread..");
 		done = true;
 	}
 
