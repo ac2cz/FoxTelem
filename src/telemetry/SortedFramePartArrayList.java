@@ -80,7 +80,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     	// start searching from the beginning where reset and uptime should be the lowest
     	for (int i=0; i<this.size(); i++) { 
     		FramePart f = this.get(i);
-            if (f.id == id && f.resets >= resets && f.uptime >= uptime)
+            if (compare(f, id, uptime, resets, 0) <= 0)
             	return i;
     	}
         return -1;
@@ -90,11 +90,30 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     	// start searching from the beginning where reset and uptime should be the lowest
     	for (int i=0; i<this.size(); i++) { 
     		FramePart f = this.get(i);
-            if (f.id == id && f.resets >= resets && f.uptime >= uptime && f.type >= type)
+    		if (compare(f, id, uptime, resets, type) <= 0)
             	return i;
     	}
         return -1;
     }
 
-    
+    private int compare(FramePart p, int id, long uptime, int resets, int type) {
+    	if (resets == p.resets && uptime == p.uptime && type == p.type) 
+    		return 0;
+    	else if (resets < p.resets)
+    		return -1;
+    	else if (resets > p.resets)
+    		return +1;
+    	else if (resets == p.resets && uptime == p.uptime) {
+    		if (type < p.type)
+    			return -1;
+    		if (type > p.type)
+    			return +1;
+    	} else if (resets == p.resets) {	
+    		if (uptime < p.uptime)
+    			return -1;
+    		if (uptime > p.uptime)
+    			return +1;
+    	} 
+    	return +1;
+    }
 }
