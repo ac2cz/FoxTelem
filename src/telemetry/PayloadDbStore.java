@@ -388,6 +388,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			if (f[i].hasData()) {
 				f[i].captureHeaderInfo(id, uptime, resets);
 				f[i].type = 400 + i; // store the index in the type field so it is unique
+				if (!addToDb(id, uptime, resets, f[i]))
+					return false;
+				/*
 				try {
 					payloadQueue.add(f[i]);
 				} catch (NullPointerException e) {
@@ -399,23 +402,29 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					}
 					payloadQueue.add(f[i]);
 				}
+				*/
 			}
 		}
 		return true;
 	}
 
+	/*
 	public boolean addToDb(int id, long uptime, int resets, PayloadRadExpData[] f) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.add(id, uptime, resets, f);
 		return false;
 	}
-
+	 */
+	
 	@Override
 	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
 		for (int i=0; i< herci.length; i++) {
 			herci[i].captureHeaderInfo(id, uptime, resets);
 			herci[i].type = 600 + i; // store the index in the type field so it is unique
+			if (!addToDb(id, uptime, resets, herci[i]))
+				return false;
+			/*
 			try {
 				payloadQueue.add(herci[i]);
 			} catch (NullPointerException e) {
@@ -427,6 +436,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				}
 				payloadQueue.add(herci[i]);
 			}
+			*/
 		}
 		return true;
 	}
