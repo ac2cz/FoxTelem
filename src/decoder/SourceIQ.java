@@ -383,7 +383,7 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	private void zeroPsdAvg() {
-		Log.println("ZERO PSD!!!!!!");
+		//Log.println("ZERO PSD!!!!!!");
 		for (int s=0; s<fftData.length-1; s+=2) {
 			psdAvg[s/2] = 0;
 			psdSum[s/2] = 0;
