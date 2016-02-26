@@ -249,7 +249,7 @@ public class SatPayloadDbStore {
 		if (insert(radTableName,f)) {
 
 			// Capture and store any secondary payloads
-			if (f.isTelemetry()) {
+			if (fox.hasHerci() || f.isTelemetry()) {
 				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
 				if (f.type >= 400) // this is a high speed record
@@ -686,7 +686,7 @@ public class SatPayloadDbStore {
 			while (rs.next()) {
 				PayloadRadExpData f = new PayloadRadExpData(rs, fox.radLayout);
 				// Capture and store any secondary payloads
-				if (f.isTelemetry()) {
+				if (fox.hasHerci() || f.isTelemetry()) {
 					RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 					radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
 					add(radiationTelemetry);
