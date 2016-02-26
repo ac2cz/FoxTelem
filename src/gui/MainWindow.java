@@ -184,7 +184,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		        //showGraphs();
 		    }
 		});
-		
+	
 		if (Config.isMacOs()) {
 			macApplication = com.apple.eawt.Application.getApplication();
 			macApplication.setAboutHandler(new MacAboutHandler());
@@ -255,6 +255,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		// Once the main window is up we check the version info
 		updateManager = new UpdateManager();
 		updateManagerThread = new Thread(updateManager);
+		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
 		
 	}

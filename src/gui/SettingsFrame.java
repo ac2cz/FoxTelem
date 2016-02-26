@@ -69,6 +69,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	//private JCheckBox cbHtmlFormatting;
 
 	private JTextField txtLogFileDirectory;
+	private JTextField txtServerUrl;
 	private JTextField txtCallsign;
 	private JTextField txtLatitude;
 	private JTextField txtLongitude;
@@ -132,22 +133,40 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//northpanel.add(panel);
 		northpanel.setLayout(new BorderLayout());
 
-		
 		JPanel northpanel1 = new JPanel();
 		JPanel northpanel2 = new JPanel();
+		JPanel northpanelA = new JPanel();
+		JPanel northpanelB = new JPanel();
 		northpanel.add(northpanel1, BorderLayout.NORTH);
-		northpanel.add(northpanel2, BorderLayout.SOUTH);
 		northpanel1.setLayout(new BorderLayout());
+		northpanel1.add(northpanelA, BorderLayout.NORTH);
+		northpanel1.add(northpanelB, BorderLayout.SOUTH);
+		northpanel.add(northpanel2, BorderLayout.SOUTH);
+		
 		northpanel2.setLayout(new BorderLayout());
+		northpanelA.setLayout(new BorderLayout());
+		northpanelB.setLayout(new BorderLayout());
 		
 		JLabel lblHomeDir = new JLabel("Home directory     ");
 		lblHomeDir.setToolTipText("This is the directory that contains the settings file");
 		lblHomeDir.setBorder(new EmptyBorder(5, 2, 5, 5) );
-		northpanel1.add(lblHomeDir, BorderLayout.WEST);
+		northpanelA.add(lblHomeDir, BorderLayout.WEST);
 
 		JLabel lblHomeDir2 = new JLabel(Config.homeDirectory);
-		northpanel1.add(lblHomeDir2, BorderLayout.CENTER);
+		northpanelA.add(lblHomeDir2, BorderLayout.CENTER);
 
+		JLabel lblServerUrl = new JLabel("Server Data URL  ");
+		lblServerUrl.setToolTipText("This sets the URL we use to fetch and download server data");
+		lblServerUrl.setBorder(new EmptyBorder(5, 2, 5, 5) );
+		northpanelB.add(lblServerUrl, BorderLayout.WEST);
+		
+		txtServerUrl = new JTextField(Config.webSiteUrl);
+		northpanelB.add(txtServerUrl, BorderLayout.CENTER);
+		txtServerUrl.setColumns(30);
+		
+		txtServerUrl.addActionListener(this);
+
+		
 		JLabel lblLogFilesDir = new JLabel("Log files directory");
 		lblLogFilesDir.setToolTipText("This sets the directory that the downloaded telemetry data is stored in");
 		lblLogFilesDir.setBorder(new EmptyBorder(5, 2, 5, 5) );
@@ -446,7 +465,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.stationDetails = txtStation.getText();
 				Config.primaryServer = txtPrimaryServer.getText();
 				Config.secondaryServer = txtSecondaryServer.getText();
-		
+				
+				Config.webSiteUrl = txtServerUrl.getText();
+				
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();

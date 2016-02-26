@@ -82,7 +82,7 @@ public class SatPayloadStore {
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
 	public static final int MAX_HERCI_PACKET_DATA_LENGTH = 128;
-	public static final int MAX_HERCI_HK_DATA_LENGTH = 27; // 25 fields plus the 2 fields needed for Reset and Uptime
+	//public static final int MAX_HERCI_HK_DATA_LENGTH = 27; // 25 fields plus the 2 fields needed for Reset and Uptime
 	
 	/**
 	 * Create the payload store this this fox id
@@ -205,6 +205,8 @@ public class SatPayloadStore {
 		if (fox.hasHerci() || f.isTelemetry()) {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 400) // this is a high speed record
+				radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
 			add(radiationTelemetry);
 			radTelemRecords.setUpdated(true);
 		}
@@ -217,13 +219,15 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException
 	 */
-	private boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
+	protected boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
 		//herciRecords.add(f);
 		
 		// Capture and store any secondary payloads
 		
 		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
 		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+		if (f.type >= 600) // this is a high speed record
+			radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
 		add(radiationTelemetry);
 		herciHeaderRecords.setUpdated(true);
 		//updatedHerciHeader = true;
@@ -232,6 +236,8 @@ public class SatPayloadStore {
 		for(int i=0; i< pkts.size(); i++) {
 			HerciHighSpeedPacket pk = pkts.get(i);
 			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 600) // this is a high speed record
+				pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
 			add(pk);
 			herciPacketRecords.setUpdated(true);
 
@@ -286,6 +292,12 @@ public class SatPayloadStore {
 
 	public RadiationTelemetry getLatestRadTelem() throws IOException {
 		return (RadiationTelemetry) radTelemRecords.getLatest();
+	}
+	
+	public RadiationTelemetry getRadTelem(int id, int resets, long uptime) throws IOException {
+		if (uptime == 0 && resets == 0)
+			return getLatestRadTelem();
+		return (RadiationTelemetry) radTelemRecords.getFrame(id, uptime, resets);
 	}
 
 	public PayloadHERCIhighSpeed getLatestHerci() throws IOException {
@@ -351,7 +363,7 @@ public class SatPayloadStore {
 	 * @throws IOException 
 	 */
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
-		return radTelemRecords.getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_HK_DATA_LENGTH); 
+		return radTelemRecords.getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_HERCI_HK_DATA_LENGTH+2); 
 
 	}
 

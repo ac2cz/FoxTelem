@@ -434,7 +434,7 @@ public class Spacecraft {
 	
 	public String toString() {
 
-		return "Fox-" + getIdString();
+		return this.name; //"Fox-" + getIdString();
 
 	}
 }

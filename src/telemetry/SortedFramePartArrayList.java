@@ -62,15 +62,58 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
         return -1;
     }
 
+    public FramePart getFrame(int id, long uptime, int resets) {
+    	int i = getNearestFrameIndex(id, uptime, resets);
+    	if (i != -1)
+            return get(i);
+        return null;
+    }
+    
+    public FramePart getFrame(int id, long uptime, int resets, int type) {
+    	int i = getNearestFrameIndex(id, uptime, resets, type);
+    	if (i != -1)
+            return get(i);
+        return null;
+    }
+    
     public int getNearestFrameIndex(int id, long uptime, int resets) {
     	// start searching from the beginning where reset and uptime should be the lowest
     	for (int i=0; i<this.size(); i++) { 
     		FramePart f = this.get(i);
-            if (f.id == id && f.resets >= resets && f.uptime >= uptime)
+            if (compare(f, id, uptime, resets, 0) <= 0)
+            	return i;
+    	}
+        return -1;
+    }
+    
+    public int getNearestFrameIndex(int id, long uptime, int resets, int type) {
+    	// start searching from the beginning where reset and uptime should be the lowest
+    	for (int i=0; i<this.size(); i++) { 
+    		FramePart f = this.get(i);
+    		if (compare(f, id, uptime, resets, type) <= 0)
             	return i;
     	}
         return -1;
     }
 
-    
+    private int compare(FramePart p, int id, long uptime, int resets, int type) {
+    	if (resets == p.resets && uptime == p.uptime && type == p.type) 
+    		return 0;
+    	else if (resets < p.resets)
+    		return -1;
+    	else if (resets > p.resets)
+    		return +1;
+    	else if (resets == p.resets && uptime == p.uptime) {
+    		if (type < p.type)
+    			return -1;
+    		if (type > p.type)
+    			return +1;
+    	} else if (resets == p.resets) {	
+    		if (uptime < p.uptime)
+    			return -1;
+    		if (uptime > p.uptime)
+    			return +1;
+    	} 
+    	return +1;
+    }
 }

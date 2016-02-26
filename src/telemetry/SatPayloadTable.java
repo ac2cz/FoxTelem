@@ -102,6 +102,13 @@ public class SatPayloadTable {
 		return null;
 	}
 	
+	public FramePart getFrame(int id, long uptime, int resets) throws IOException { 
+		// Make sure the segment is loaded, so we can check
+		TableSeg seg = loadSeg(resets, uptime);
+		int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
+		return rtRecords.get(i);
+	}
+	
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -263,18 +270,66 @@ public class SatPayloadTable {
 			//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
 		} else {
 			// load forwards from the relevant reset/uptime
+			// We search from the earliest index records looking for the first instance where the reset or uptime is greater than the search point.
+			// We start loading from the previous record.
+			
+			/* Logic is like this:
+				reset x
+				uptime y
+				
+				idx
+				fromR	fromU
+				0		100
+				1		50
+				2		900
+				3		55
+				
+				case 1:
+				x=1
+				y=100
+				We want to load 2/900 onwards
+				So:
+				x < fromR, y then irrelevant
+				
+				case 2:
+				x=1
+				y=45
+				We want to load from 1/50
+				x = fromR, so y < fromU
+				
+				case 3:
+				x=3
+				y=100
+				We want to load 3/55
+				x = fromR, y > fromU - load current
+				
+				case 4:
+				x=1
+				y=0
+				We want to load 0/100 because the data could be at the end
+				x > fromR, y is irrelevent
+				AND (x < next fromR OR (x = next from R AND y < uptime) )
+			 * 
+			 */
+			
 			for (int i=0; i< tableIdx.size(); i++) {
-				if ( ((i == tableIdx.size()-1) && tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) || 
-						(i < tableIdx.size()-1) &&
-						tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime
-						&& tableIdx.get(i+1).fromReset > reset && tableIdx.get(i+1).fromUptime > uptime) {
+				if ( //case 4:
+						//case 1:
+						(tableIdx.get(i).fromReset > reset ) || // situation where the data is for a higher reset, so load from here always by default
+						(i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
+						 (tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) || // but the next record has higher reset or uptime
+						//case 2:
+						(tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime <= uptime) || // if current reset equal and uptime same or lower
+						//case 3:
+						(i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset)) // load this.  It might have the data we need and its the last segment
+					{
 					// Then we need to load segment at i and start counting from here
-					
+					//System.err.println("Loading from seg: "+i);
 					while(i < tableIdx.size()) {
 						if (!tableIdx.get(i).isLoaded())
 							load(tableIdx.get(i));
 						total += tableIdx.get(i).records;
-						if (total >= number) break;
+						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 					}
 					break;
 				}
@@ -335,6 +390,8 @@ public class SatPayloadTable {
 
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        } finally {
+        	dis.close();
         }
 
 	}
@@ -373,15 +430,52 @@ public class SatPayloadTable {
 		if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
 			rt = new PayloadRadExpData(id, resets, uptime, date, st);
 			rt.type = type; // make sure we get the right type
+			
+			
+			// hack to convert data
+			if (Config.generateSecondaryPayloads) {
+				PayloadRadExpData f = (PayloadRadExpData)rt; 
+				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 400) // this is a high speed record
+					radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+				Config.payloadStore.setUpdatedRad(id, true);			
+			}
 		}        			
-		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA) {
+		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
+			rt.type = type; // make sure we get the right type
+			if (Config.generateSecondaryPayloads) {
+				// Test routine that generates the secondary payloads
+				PayloadHERCIhighSpeed f = (PayloadHERCIhighSpeed)rt;
+				HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 600) // this is a high speed record
+					radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+
+				//updatedHerciHeader = true;
+
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					if (f.type >= 600) // this is a high speed record
+						pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
+						Config.payloadStore.add(f.id, f.uptime, f.resets,pk);
+
+
+				}
+			}
 		}
-		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER ) {
+		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
 			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+			rt.type = type; // make sure we get the right type
 		}
-		if (type == FramePart.TYPE_HERCI_HS_PACKET ) {
-			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+		if (type == FramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
+			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st);
+			rt.type = type; // make sure we get the right type
 		}
 
 		if (rt != null) {
@@ -558,6 +652,7 @@ public class SatPayloadTable {
 		if (createNewFile(fileName + ".idx")) {
 			Writer output = new BufferedWriter(new FileWriter(aFile, true));
 			writeVersion(output);
+			output.close();
 		}
  
         BufferedReader dis = new BufferedReader(new FileReader(aFile.getPath()));
@@ -583,6 +678,9 @@ public class SatPayloadTable {
 
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        } finally {
+        	
+        	dis.close();
         }
 	}	
 	

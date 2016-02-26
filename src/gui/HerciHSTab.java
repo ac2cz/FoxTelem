@@ -17,6 +17,8 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
@@ -54,7 +56,7 @@ import decoder.Decoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
+public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, ListSelectionListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 226;
@@ -72,7 +74,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 	JScrollPane scrollPane;
 	JScrollPane packetScrollPane;
 	JCheckBox showRawValues;
-	
+	JCheckBox showRawBytes;
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
@@ -151,12 +153,14 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 		
-		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawRadData);
+		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
 		bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
-
-		showRawValues.setMinimumSize(new Dimension(1600, 14));
-		showRawValues.setMaximumSize(new Dimension(1600, 14));
+		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
+		bottomPanel.add(showRawBytes );
+		showRawBytes.addItemListener(this);
+	//	showRawBytes.setMinimumSize(new Dimension(1600, 14));
+	//	showRawBytes.setMaximumSize(new Dimension(1600, 14));
 
 		addBottomFilter();
 
@@ -210,54 +214,61 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 		
 		column = packetTable.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-
 		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(45);
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
-
-		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(90);
+
+		column = packetTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(35);
+		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(35);
 
 		column = packetTable.getColumnModel().getColumn(5);
-		column.setPreferredWidth(90);
-		
+		column.setPreferredWidth(55);
+
 		column = packetTable.getColumnModel().getColumn(6);
-		column.setPreferredWidth(45);
+		column.setPreferredWidth(35);
+		
 		column = packetTable.getColumnModel().getColumn(7);
 		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(8);
 		column.setPreferredWidth(45);
-
 		column = packetTable.getColumnModel().getColumn(9);
+		column.setPreferredWidth(45);
+
+		column = packetTable.getColumnModel().getColumn(10);
 		column.setPreferredWidth(600);
 
-		if (showRawValues.isSelected()) {
+		if (showRawBytes.isSelected()) {
 			packetScrollPane.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
 			packetScrollPane.setVisible(true);
 			scrollPane.setVisible(false);
 		}
-
+		packetTable.getSelectionModel().addListSelectionListener(this);
+		table.getSelectionModel().addListSelectionListener(this);
+				
 	}
 
 	private String[][] parseMiniPackets() {
 		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0);
-		String[][] data = new String[rawData.length][10];
+		String[][] data = new String[rawData.length][11];
 		
 		//for (int k =0; k < rawData.length; k++) {
 		for (int k =rawData.length-1; k >= 0; k--) {
-			for (int j=0; j<9; j++) {
-				if (j > 4)
-					data[rawData.length-k-1][j] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
-				else
-					data[rawData.length-k-1][j] = rawData[k][j];
+			data[rawData.length-k-1][0] = rawData[k][0];
+			data[rawData.length-k-1][1] = rawData[k][1];
+			data[rawData.length-k-1][2] = rawData[k][2] + ":" + rawData[k][4];  //acquire time
+			data[rawData.length-k-1][3] = rawData[k][5];
+			data[rawData.length-k-1][4] = rawData[k][6];
+			data[rawData.length-k-1][5] = ""+Integer.parseInt(rawData[k][7])/40+":"+Integer.parseInt(rawData[k][7])%40; //rti
+			for (int j=8; j<12; j++) {
+				data[rawData.length-k-1][j-2] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
 			}
-			data[rawData.length-k-1][9] = "";
-			for (int j=9; j<rawData[k].length; j++) {
+			data[rawData.length-k-1][10] = "";
+			for (int j=13; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					data[rawData.length-k-1][9] = data[rawData.length-k-1][9] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
+					data[rawData.length-k-1][10] = data[rawData.length-k-1][10] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
 		}
 		
@@ -296,7 +307,6 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 			scrollPane.setVisible(false);
 		}
 		
-
 		updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
 		MainWindow.frame.repaint();
 
@@ -334,6 +344,15 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 				e.printStackTrace(Log.getWriter());
 			}
 			if (foxId != 0)
+				if (Config.displayRawRadData != showRawBytes.isSelected()) {
+					showRawBytes.setSelected(Config.displayRawRadData);
+					if (hsPayload != null)
+						parseRadiationFrames();
+				}
+				if (Config.displayRawValues != showRawValues.isSelected()) {
+					showRawValues.setSelected(Config.displayRawValues);
+					updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
+				}
 				if (Config.payloadStore.getUpdatedHerci(foxId)) {
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
 					Config.payloadStore.setUpdatedHerci(foxId, false);
@@ -353,15 +372,14 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		
-		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.displayRawRadData = false;
 			} else {
 				Config.displayRawRadData = true;
 			}
-	//		Config.save();
-			if (showRawValues.isSelected()) {
+			if (showRawBytes.isSelected()) {
 				packetScrollPane.setVisible(false); 
 				scrollPane.setVisible(true);
 			} else { 
@@ -375,10 +393,30 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener {
 			}
 			
 		}
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+
+			if (hsPayload != null) {
+				parseRadiationFrames();
+				updateTab(hsPayload);
+			}
+			
+		}
+
 	}
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		super.actionPerformed(e);
+	}
+
+	@Override
+	public void valueChanged(ListSelectionEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }

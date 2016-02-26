@@ -136,6 +136,10 @@ Transfer Frame:
 public class PayloadHERCIhighSpeed extends FramePart {
 
 	public static final int MAX_PAYLOAD_SIZE = 868;
+	public static final int MAX_HEADER_SIZE = 16; // 16 bytes in the header
+	
+	int epoch; // captured from the telem header
+	long time; // captured from the telem header
 	
 	public PayloadHERCIhighSpeed(BitArrayLayout lay) {
 		super(lay);
@@ -170,6 +174,9 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
+		radTelem.copyBitsToFields();
+		epoch = radTelem.fieldValue[HerciHighspeedHeader.HERCI_EPOCH_FIELD];
+		time = radTelem.fieldValue[HerciHighspeedHeader.HERCI_TIME_FIELD];
 		return radTelem;
 	}
 
@@ -177,19 +184,20 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		ArrayList<HerciHighSpeedPacket> packets = new ArrayList<HerciHighSpeedPacket>();
 		
 		boolean morePackets = true;
-		int packetDataStart = 8;;
+		int packetDataStart = PayloadHERCIhighSpeed.MAX_HEADER_SIZE;
 		while (morePackets) {
-			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime);
+			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime, epoch, time);
 			for (int k=0; k<HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES; k++) { 
-				radTelem.addNext8Bits(fieldValue[k+16]);
+				radTelem.addNext8Bits(fieldValue[packetDataStart+k]);  
 			}
+			packetDataStart = packetDataStart+HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES;
 			radTelem.initPacket();
 			if (radTelem.getLength() > 0) {
-				if (packetDataStart + radTelem.getLength() <= HerciHighSpeedPacket.MAX_PACKET_BYTES) {
-					for (int k=0; k<radTelem.getLength(); k++) {
-						radTelem.addNext8Bits(fieldValue[k+16+packetDataStart]);
+				if (packetDataStart + radTelem.getLength()+1 <= MAX_PAYLOAD_SIZE-MAX_HEADER_SIZE) {
+					for (int k=0; k<radTelem.getLength()+1; k++) {
+						radTelem.addNext8Bits(fieldValue[k+packetDataStart]);
 					}
-					packetDataStart = 16 + radTelem.getLength() + packetDataStart;  // FIXME - 16 is the length  of the science header in BYTES
+					packetDataStart = radTelem.getLength()+1 + packetDataStart; 
 					packets.add(radTelem);
 				} else {
 					morePackets = false;

@@ -88,6 +88,38 @@ public abstract class SourceAudio implements Runnable {
 	public int readBytes(byte[] abData, int chan) {
 		int bytesRead = 0;
 
+		// We block until we have read abData length bytes, assuming we are still running
+		while (running && bytesRead < abData.length) {
+			if (circularBuffer[chan].size() > audioFormat.getFrameSize()) {// if we have at least one set of bytes, then read them
+				try {
+					if (audioFormat.getFrameSize() == 4) {
+						abData[bytesRead+3] = circularBuffer[chan].get(3);  // try the second byte first, because we only want to succeed if both are available
+						abData[bytesRead+2] = circularBuffer[chan].get(2);
+					}
+					abData[bytesRead+1] = circularBuffer[chan].get(1);  // try the second byte first, because we only want to succeed if both are available
+					abData[bytesRead] = circularBuffer[chan].get(0);
+					circularBuffer[chan].incStartPointer(audioFormat.getFrameSize());
+					bytesRead+=audioFormat.getFrameSize();
+				} catch (IndexOutOfBoundsException e) {
+					// If this happens, we are in an unusual situation.  We waited until the circularBuffer contains abData.length of data
+					// then we started to read it one byte at a time.  However, we have moved the read (start) pointer as far as the end
+					// pointer, so we have run out of data.
+					Log.errorDialog(name + ": AUDIO BUFFER READ ERROR on channel: " + chan, e.getMessage() + "\nTry starting the decoder again.");
+					Log.println(name + ": threw error:");
+					e.printStackTrace(Log.getWriter());
+				}
+			} else {
+				try {
+					Thread.sleep(0, 1);
+				} catch (InterruptedException e) {
+					e.printStackTrace(Log.getWriter());
+				}
+			}
+		}
+		return bytesRead;
+		
+		/*
+		
 		// We need at least abData length +1 bytes before we can read them out of the circularBuffer
 		// We make sure it has at least an extra sample
 		while (running && circularBuffer[chan].size() < abData.length+4) {
@@ -119,6 +151,7 @@ public abstract class SourceAudio implements Runnable {
 				e.printStackTrace(Log.getWriter());
 			}
 		return bytesRead;
+		*/
 	}
 
 	public int getAudioBufferCapacity() { return circularBuffer[0].getCapacity(); }

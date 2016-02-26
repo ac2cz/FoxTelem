@@ -351,10 +351,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return 0;
 	}
 
-	public SortedJpegList getJpegIndex(int id) {
+	public SortedJpegList getJpegIndex(int id, int period, int fromReset, long fromUptime) {
 		SatPictureStore store = getPictureStoreById(id);
 		if (store != null)
-			return store.jpegIndex;
+			return store.getJpegIndex(id, period, fromReset, fromUptime);
 		return null;
 	}
 	
@@ -399,6 +399,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
 		for (int i=0; i< herci.length; i++) {
 			herci[i].captureHeaderInfo(id, uptime, resets);
+			herci[i].type = 600 + i;
 			payloadQueue.addToEnd(herci[i]);
 		}
 		return true;
@@ -558,6 +559,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		if (store != null)
 			try {
 				return store.getLatestRadTelem();
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+
+	}
+	
+	public RadiationTelemetry getRadTelem(int id, int resets, long uptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getRadTelem(id, resets, uptime);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());

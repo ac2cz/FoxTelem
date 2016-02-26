@@ -62,6 +62,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
 	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
 	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
+	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
+	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
+	// Correspondingly TYPE 900+ are reserved for Herci Packets payloads
 	// Correspondingly TYPE 700+ are reserved for Rad Telemetry payloads
 	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -71,8 +74,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 
 	// These fields are updated when the Frame Part is stored in the PayloadStore
 	protected int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
-	protected long uptime;  // The Uptime captured from the header
-	protected int resets;  // The resets captured from the header
+	public long uptime;  // The Uptime captured from the header
+	public int resets;  // The resets captured from the header
 	protected String captureDate; // the date/time that this was captured
 	protected int type; // the type of this payload
 	
@@ -763,7 +766,7 @@ longer send telemetry.
 			// we are done and can finish
 		} catch (ArrayIndexOutOfBoundsException e) {
 			// Something nasty happened when we were loading, so skip this record and log an error
-			Log.println("ERROR: Too many fields:  Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+			Log.println("ERROR: Too many fields:  Could not load field "+i+ " frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 		} catch (NumberFormatException n) {
 			Log.println("ERROR: Invalid number:  Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 		}

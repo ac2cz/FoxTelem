@@ -320,10 +320,10 @@ Field
  */
 public class RadiationTelemetry extends FramePart {
 
+	public static final int TELEM_BYTES = 20;
+	public static final int MAX_HERCI_HK_DATA_LENGTH = 46;
 	public static final int MAX_RAD_TELEM_BYTES = 58;
 	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
-	public int reset;
-	public long uptime;
 	
 	public static final String[] herciSource = {
 			"PANIC",
@@ -332,14 +332,31 @@ public class RadiationTelemetry extends FramePart {
 			"HSK"
 		};
 	public static final String[] herciMicroPktTyp = {
-			"PANIC",
-			"HRS",
-			"LRS",
-			"HSK"
+			"??",
+			"VERSION",
+			"POST"
+		};
+	public static final String[] herciMicroPktSource = {
+			"??", //0
+			"CLOCK?", //1
+			"??", //0
+			"??", //0
+			"??", //0
+			"??", //0
+			"??", //0
+			"??", //0
+			"??", //0
+			"??", //0
+			"??", //A
+			"??", //B
+			"IEB", //C
+			"??", //D
+			"COMMAND", //E - 14
+			"HOUSEKEEPING" //F - 15
 		};
 	public RadiationTelemetry(int r, long u, BitArrayLayout l) {
 		super(l);
-		reset = r;
+		resets = r;
 		uptime = u;
 		
 		
@@ -384,16 +401,41 @@ public class RadiationTelemetry extends FramePart {
 				s = "???";
 			}
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_HEX) {
-			s="";
 			int value = getRawValue(name);
-			for (int i=0; i<4; i++) {
-				s = " " + Decoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+			s="";
+			for (int i=0; i<2; i++) {
+				s = Decoder.plainhex(value & 0xff) + " " + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_HEX) {
+			int value = getRawValue(name);
+
+			s = Decoder.plainhex(value & 0xff);
+			for (int i=2; i<=12; i++) {
+				value = getRawValue(name+i);
+				s = s+ " " + Decoder.plainhex(value & 0xff); // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 8 ;
+			}
+			s= s + " \"";
+			value = getRawValue(name);
+			s = s+ (char) (value & 0xff);
+			for (int i=2; i<=12; i++) {
+				value = getRawValue(name+i);
+				s = s+ (char) (value & 0xff);
+				value = value >> 8 ;
+			}
+			s=s+"\"";
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_TYP) {
 			int value = getRawValue(name);
 			try {
 				s = herciMicroPktTyp[value];
+			} catch (ArrayIndexOutOfBoundsException e) {
+				s = "???";
+			}
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_SOURCE) {
+			int value = getRawValue(name);
+			try {
+				s = herciMicroPktSource[value];
 			} catch (ArrayIndexOutOfBoundsException e) {
 				s = "???";
 			}

@@ -10,6 +10,8 @@ import telemetry.TableSeg;
 import java.awt.EventQueue;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -483,7 +485,7 @@ import decoder.Decoder;
  * Allow the user to specify the number of thumb nails to display on the camera tab
  * Fixed bug where Radiation Graphs did not open at start up
  * Fixed bug where T0 file could be corrupted if URL returned bogus data
- * Fixed bug where FoxTelem gave many error messages but did not quit of the log dir was not writable
+ * Fixed bug where FoxTelem gave many error messages but did not quit if the log dir was not writable
  * Fixed issue where audio continued after squelch in auto mode and memory was leaked
  * Allow the user to swap IQ channels in IQ mode
  * Allow graphs to be plotted as points (without lines)
@@ -491,16 +493,15 @@ import decoder.Decoder;
  * Plot more labels on horizontal axis when many resets plotted and fixed some graph formatting issues
  * MEMS Gyro 0dps set to 1.51 following measurement of VRef in the diagnostics
  * When reset button pressed on graphs the average period is reset too
- * 1.03b
  * Merged with Server Code - one code base
- * Fixed crash when auto mode used with wav files
+ * Fixed crash when auto mode used with wav files	
  * Display converted HERCI Housekeeping data
  * Skip NULL values for some measurements.  Don't plot continuous labels to left of vertical axis.
  * MEMS diagnostic values are now in dps (vs Volts)
  * Fixed bug where radiation data could not be saved to CSV files
  * Fixed bug where FindSignal failed to lock if Track Doppler was not checked
- * 1.03c
  * Download T0 file from amsat.org
+ * 
  */
 
 public class FoxTelemMain {
@@ -518,7 +519,7 @@ public class FoxTelemMain {
 			m.initialRun();
 		}
 		
-		Log.init("FoxTelemDecoder.log");
+		Log.init("FoxTelemDecoder");
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
@@ -528,35 +529,6 @@ public class FoxTelemMain {
 		Log.println("************************************************************");
 		Log.println("CurrentDir is:" + Config.currentDir);
 
-/*		Integer one = 1;
-		Integer two = 2;
-		Integer three = 3;
-		SortedArrayList<Integer> list = new SortedArrayList<Integer>(10);
-		list.add(three);
-		list.add(one);
-		list.add(two);
-		
-		FramePart rt1 = new PayloadRtValues(Config.satManager.getRtLayout(1));
-		rt1.captureHeaderInfo(1, 1, 1);
-		FramePart rt2 = new PayloadRtValues(Config.satManager.getRtLayout(1));
-		rt2.captureHeaderInfo(1, 1, 2);
-		FramePart rt3 = new PayloadRtValues(Config.satManager.getRtLayout(1));
-		rt3.captureHeaderInfo(1, 1, 3);
-		
-		SortedFramePartArrayList frames = new SortedFramePartArrayList(10);
-		frames.add(rt1);
-		frames.add(rt3);
-		frames.add(rt2);
-		
-		TableSeg seg1 = new TableSeg(1,1,"test");
-		TableSeg seg2 = new TableSeg(2,1,"test");
-		TableSeg seg3 = new TableSeg(3,1,"test");
-		SortedArrayList<TableSeg> segs = new SortedArrayList<TableSeg>(10);
-		segs.add(seg3);
-		segs.add(seg1);
-		segs.add(seg2);
-		*/
-//		System.exit(0);
 		
 		if (args.length > 0) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
@@ -666,7 +638,7 @@ public class FoxTelemMain {
 	}
 
 	/**
-	 * Inner class to handle excetions in the Event Dispatch Thread (EDT)
+	 * Inner class to handle exceptions in the Event Dispatch Thread (EDT)
 	 * @author chris.e.thompson
 	 *
 	 */
@@ -684,8 +656,11 @@ public class FoxTelemMain {
 		}
 
 		protected void handleException(String tname, Throwable thrown) {
-			thrown.printStackTrace();
-			Log.errorDialog("SERIOUS GUI ERROR", "Exception on " + tname);
+			thrown.printStackTrace(Log.getWriter());
+			StringWriter sw = new StringWriter();
+			thrown.printStackTrace(new PrintWriter(sw));
+            String stacktrace = sw.toString();
+			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + "\n" + stacktrace);
 		}
 	}
 

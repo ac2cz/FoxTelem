@@ -456,60 +456,66 @@ public class PassManager implements Runnable {
 		// Get the frequency data for this pass
 		double[][] graphData = null;
 		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
-		graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
-
-		// if we have enough readings, calculate the first derivative
-		if (graphData[0].length > MIN_FREQ_READINGS_FOR_TCA) {
-			double[] firstDifference = new double[graphData[0].length];
-
-			for (int i=1; i < graphData[0].length; i++) {
-				double value = graphData[PayloadStore.DATA_COL][i];
-				double value2 = graphData[PayloadStore.DATA_COL][i-1];
-				firstDifference[i] = 5 * ((value - value2) / (graphData[PayloadStore.UPTIME_COL][i]-graphData[PayloadStore.UPTIME_COL][i-1]));
-			}
-			
-			// Now we find the point where the doppler is changing fastest. This is a negative slope because the frequency is
-			// falling, so we look for the largest negative number, which is the minimum of the first derivative
-			int max = 0;
-			double maxDeriv = 0;
-			for (int i=1; i < graphData[0].length; i++) {
-				if (firstDifference[i] < maxDeriv) {
-					maxDeriv = firstDifference[i];
-					max = i;
-				}
-			}
-			
-			// We need to make sure that the minimum was not the first or last point, which would indicate that we did not find an inflection
-			if (max != 0 && max != graphData[0].length) {
-				// we found a maximum at an inflection point, rather than it being at one end or the other
-				// Interpolate between the two frequencies to find the actual frequency at the max slope
-				long up = (long) (graphData[PayloadStore.UPTIME_COL][max] + graphData[PayloadStore.UPTIME_COL][max-1])/2;
-				long date = (long) (graphData[PayloadStore.UTC_COL][max] + graphData[PayloadStore.UTC_COL][max-1])/2;
-				
-				long tca = (long) linearInterpolation(up, graphData[PayloadStore.UPTIME_COL][max], graphData[PayloadStore.UPTIME_COL][max-1],
-						graphData[PayloadStore.DATA_COL][max], graphData[PayloadStore.DATA_COL][max-1]);
-				
-				// FIXME
-				// We should check that the maxDeriv is large enough to indicate it was actually the inflection point and not just
-				// noise or random perturbations
-				
-				pendingTCA = true;
-				passMeasurement.setTCA(date);
-				passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, Long.toString(tca));
-				if (Config.debugSignalFinder) Log.println("TCA calculated as " + passMeasurement.getRawValue(PassMeasurement.TCA) + " with Uptime " + up + " and frequency: " + Long.toString(tca));
-				
-				
-			}
-			
+		if (passMeasurement.getReset() == 0 && passMeasurement.getUptime() == 0) {
+			// We did not get any readings
+			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, "0");
+			passMeasurement.setEndResetUptime(0, 0);
 		} else {
-			if (Config.debugSignalFinder) Log.println("Can't calculate TCA, not enough readings");
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
+
+			// if we have enough readings, calculate the first derivative
+			if (graphData[0].length > MIN_FREQ_READINGS_FOR_TCA) {
+				double[] firstDifference = new double[graphData[0].length];
+
+				for (int i=1; i < graphData[0].length; i++) {
+					double value = graphData[PayloadStore.DATA_COL][i];
+					double value2 = graphData[PayloadStore.DATA_COL][i-1];
+					firstDifference[i] = 5 * ((value - value2) / (graphData[PayloadStore.UPTIME_COL][i]-graphData[PayloadStore.UPTIME_COL][i-1]));
+				}
+
+				// Now we find the point where the doppler is changing fastest. This is a negative slope because the frequency is
+				// falling, so we look for the largest negative number, which is the minimum of the first derivative
+				int max = 0;
+				double maxDeriv = 0;
+				for (int i=1; i < graphData[0].length; i++) {
+					if (firstDifference[i] < maxDeriv) {
+						maxDeriv = firstDifference[i];
+						max = i;
+					}
+				}
+
+				// We need to make sure that the minimum was not the first or last point, which would indicate that we did not find an inflection
+				if (max != 0 && max != graphData[0].length) {
+					// we found a maximum at an inflection point, rather than it being at one end or the other
+					// Interpolate between the two frequencies to find the actual frequency at the max slope
+					long up = (long) (graphData[PayloadStore.UPTIME_COL][max] + graphData[PayloadStore.UPTIME_COL][max-1])/2;
+					long date = (long) (graphData[PayloadStore.UTC_COL][max] + graphData[PayloadStore.UTC_COL][max-1])/2;
+
+					long tca = (long) linearInterpolation(up, graphData[PayloadStore.UPTIME_COL][max], graphData[PayloadStore.UPTIME_COL][max-1],
+							graphData[PayloadStore.DATA_COL][max], graphData[PayloadStore.DATA_COL][max-1]);
+
+					// FIXME
+					// We should check that the maxDeriv is large enough to indicate it was actually the inflection point and not just
+					// noise or random perturbations
+
+					pendingTCA = true;
+					passMeasurement.setTCA(date);
+					passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, Long.toString(tca));
+					if (Config.debugSignalFinder) Log.println("TCA calculated as " + passMeasurement.getRawValue(PassMeasurement.TCA) + " with Uptime " + up + " and frequency: " + Long.toString(tca));
+
+
+				}
+
+			} else {
+				if (Config.debugSignalFinder) Log.println("Can't calculate TCA, not enough readings");
+			}
+			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
+			passMeasurement.setEndResetUptime(lastReset, lastUptime);
+			//FIXME
+			// Store the start and end azimuith - these are a RtMeasurement.  Need to grab the first and last one from the Decoder
+			// store the max elevation - this requires a search like the TCA.  But this is only from SatPC32, so why bother?  Perhaps Elevation at TCA is more interesting.
+			// the END RESET and UPTIME is captured but not written to disk or used in any way
 		}
-		passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
-		passMeasurement.setEndResetUptime(lastReset, lastUptime);
-		//FIXME
-		// Store the start and end azimuith - these are a RtMeasurement.  Need to grab the first and last one from the Decoder
-		// store the max elevation - this requires a search like the TCA.  But this is only from SatPC32, so why bother?  Perhaps Elevation at TCA is more interesting.
-		// the END RESET and UPTIME is captured but not written to disk or used in any way
 	}
 
 	private double linearInterpolation(double x, double x0, double x1, double y0, double y1) {

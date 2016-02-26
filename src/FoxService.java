@@ -1,4 +1,6 @@
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
@@ -19,28 +21,39 @@ import common.Log;
  */
 public class FoxService {
 
-	public static String version = "Version 0.10 - 21 December 2015";
+	public static String version = "Version 0.11 - 5 January 2016";
 	public static int port = 8080;
 	int poolSize = 100;
 	
-	public static void main(String args[]) {
+	public static void main(String args[]) throws IOException {
 		FoxService ws = new FoxService();
 		String u,p, db;
 		if (args.length == 3) {
+			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
+		    p = in.readLine();
+			if (p == null || p.isEmpty()) {
+				System.out.println("Missing password");
+				System.exit(2);
+			}
 			u = args[0];
-			p = args[1];
-			db = args[2];
+			db = args[1];
+			try {
+			port = Integer.parseInt(args[2]);
+			} catch (NumberFormatException e) {
+				System.err.println("FATAL: Invalid Port - " + port);
+				Log.println("FATAL: Invalid Port - " + port);
+				System.exit(1);
+			}
 			ws.start(u,p,db);
 
 		} else {
-			System.out.println("Usage: FoxService user password database");
+			System.out.println("Usage: FoxService user database port");
 			System.exit(1);
 		}
 	}
 
 	protected void start(String u, String p, String db) {
 		
-
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
 		Log.init("FoxWebService");
@@ -72,7 +85,7 @@ public class FoxService {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for WebService connection ...");
-        		pool.execute(new WebServiceProcess(serverSocket.accept()));
+        		pool.execute(new WebServiceProcess(serverSocket.accept(),port));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {

@@ -1,7 +1,9 @@
 package telemetry;
 
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import common.Log;
 import common.Spacecraft;
 import decoder.BitStream;
 import decoder.Decoder;
@@ -101,12 +103,12 @@ about Big-Endian above all applies here as well.
 
  */
 public class HerciHighSpeedPacket extends FramePart {
-	public static int MAX_PACKET_BYTES = 128; // FIXME-not sure what the max value is
-	public static int MAX_PACKET_HEADER_BYTES = 7;
-	public int NUMBER_OF_FIELDS = 7; // This is the initial value as it is the header size
-	public int reset;
-	public long uptime;
-	public int id;
+	public static final int MAX_PACKET_BYTES = 128; // Since the maximum packet size is 8+30*4, segmentation is never
+													// required to ship down a complete minipacket, i.e. the minipackets
+													// are always single segments.
+	public static final int MAX_PACKET_HEADER_BYTES = 8;  // There are 7 fields in the header across 8 bytes
+	public static final int NUMBER_OF_HEADER_FIELDS = 7;
+	public int NUMBER_OF_FIELDS = 7; // This is the initial value as it is the header size.  We add the number if minipacket bytes to this later
 	
 	int[] rawBytes = new int[MAX_PACKET_BYTES];
 	int numberOfRawBytes = 0;
@@ -119,19 +121,86 @@ public class HerciHighSpeedPacket extends FramePart {
 	public static final int STATUS_FIELD2 = 5;
 	public static final int STATUS_FIELD3 = 6;
 	
-	HerciHighSpeedPacket(int sat, int r, long u) {
+	int epoch;  // the experiment epoch from the header
+	long headerTime; // the experiment time from the header
+	long packetTimestamp; // the 32 bit timestamp when the packet was generated - calculated
+	
+	HerciHighSpeedPacket(int sat, int r, long u, int e, long t) {
 		super(new BitArrayLayout());
-		reset = r;
+		resets = r;
 		uptime = u;
+		epoch = e;
+		headerTime = t;
 		id = sat;
 		rawBits = new boolean[MAX_PACKET_HEADER_BYTES*8 + MAX_PACKET_BYTES*8]; 
 		
 		initFields();
 	}
 
-	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);	
+	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st) {
+		super(new BitArrayLayout());
+		this.id = id;
+		this.resets = resets;
+		this.uptime = uptime;
+		this.captureDate = date;
+		epoch = Integer.valueOf(st.nextToken()).intValue();
+		headerTime = Long.valueOf(st.nextToken()).longValue();
+		packetTimestamp = Long.valueOf(st.nextToken()).longValue();
+		
+		init();
+		rawBits = null; // no binary array when loaded from file, even if the local init creates one
+		initFields();
+		loadFrom(st,0);
+		initPacket();
+		loadFrom(st,NUMBER_OF_HEADER_FIELDS);
+		
+		
 	}
+	
+	public int[] getFieldValues() {
+		int[] f = new int[fieldValue.length+3];
+		f[0] = epoch;
+		f[1] = (int) headerTime;
+		f[2] = (int) packetTimestamp;
+		for (int i=3; i< f.length; i ++)
+			f[i] = fieldValue[i-3];
+		return f;
+	}
+	
+	protected void loadFrom(StringTokenizer st, int i) {
+		String s = null;
+		try {
+			while(i < NUMBER_OF_FIELDS) {
+				if ((s = st.nextToken()) != null) {
+				if (s.startsWith("0x")) {
+					s = s.replace("0x", "");
+					fieldValue[i++] = Integer.valueOf(s,16);
+				} else
+					fieldValue[i++] = Integer.valueOf(s).intValue();
+				}
+			}
+		} catch (NoSuchElementException e) {
+			// we are done and can finish
+		} catch (ArrayIndexOutOfBoundsException e) {
+			// Something nasty happened when we were loading, so skip this record and log an error
+			Log.println("ERROR: Too many fields:  Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+		} catch (NumberFormatException n) {
+			Log.println("ERROR: Invalid number:  Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+		}
+	}
+	
+	public String toFile() {
+		copyBitsToFields();
+		String s = new String();
+		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
+		+ epoch + "," + headerTime + "," + packetTimestamp + "," ;
+		for (int i=0; i < layout.fieldName.length-1; i++) {
+			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
+		}
+		s = s + Decoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		return s;
+	}
+	
 	@Override
 	protected void init() {
 		type = TYPE_HERCI_HS_PACKET;
@@ -184,7 +253,7 @@ public class HerciHighSpeedPacket extends FramePart {
 		int status2 = getStatus2();
 		int status3 = getStatus3();
 		
-		NUMBER_OF_FIELDS = 7 + getLength()+1;
+		NUMBER_OF_FIELDS = NUMBER_OF_HEADER_FIELDS + getLength()+1;
 		initFields();
 	
 		fieldValue[TYPE_FIELD] = type;
@@ -195,10 +264,15 @@ public class HerciHighSpeedPacket extends FramePart {
 		fieldValue[STATUS_FIELD2] = status2;
 		fieldValue[STATUS_FIELD3] = status3;
 		
-		for (int i=7; i< layout.fieldName.length; i++) {
+		for (int i=NUMBER_OF_HEADER_FIELDS; i< layout.fieldName.length; i++) {
 			layout.fieldName[i] = "Byte"+i+"";
 			layout.fieldBitLength[i] = 8;
 		}
+		
+		packetTimestamp = UTIL_event_time(time, (int)headerTime, 0); // FIXME C unsigned 16 bit int, we pass java signed int
+		//fieldValue[TIME_FIELD] = (int) packetTimestamp;
+		//packetTimestamp = UTIL_event_time(time, 417072, 0); // FIXME C unsigned 16 bit int, we pass java signed int
+		
 		copyBitsToFields();
 	}
 	
@@ -244,6 +318,14 @@ public class HerciHighSpeedPacket extends FramePart {
 		
 	}
 
+	public byte[] getMiniPacketBytes() {
+		copyBitsToFields();
+		byte[] b = new byte[NUMBER_OF_FIELDS-NUMBER_OF_HEADER_FIELDS];
+		for (int i=NUMBER_OF_HEADER_FIELDS; i<NUMBER_OF_FIELDS; i++)
+			b[i-7] = (byte)fieldValue[i];
+		return b;
+	}
+	
 	@Override
 	public String getStringValue(String name, Spacecraft fox) {
 		// TODO Auto-generated method stub
@@ -277,5 +359,108 @@ public class HerciHighSpeedPacket extends FramePart {
 		return false;
 	}
 
+	public static final int MAX_DELTA =  64; /*The MAX_DELTA value determines     */
+    /* how long we can expect the data   */
+    /* formatting routines to stall with */
+    /* data prior to delivery            */
+
+/*Extract instrument event time
+* Data from the spacecraft is delivered with enough information to
+* recover an event time for the attached dataset.  This time indicates
+* the time at which data acquisition began.  Accuracy is limited by timing
+* resulution within the instrument (usually good to better than 2.5mSec)
+* and by the accuracy achieved when generating a SCLK/SCET relationship 
+* that is (hopefully) delivered with the data record.
+*
+* arguments:
+*	mp_time_in is the RTI field from the minipacket.
+*		This is delivered MSB first from the instrument,
+*		fix it before passing it to this routine!
+*	waves_time_in is the seconds field from the telemetry
+*		transport packet.  This is also delivered
+*		MSB first from the instrument, fix it before 
+*		passing it to this routine!
+*	epoch is ZERO to return spacecraft seconds.
+*		(unix_epoch  - spcacraft_epoch) to return
+*		unix seconds.
+* returns:
+*	UNIX time_t structure containing the decoded instrument event time.
+*
+*/
+private int UTIL_event_time(int mp_time_in, int waves_time_in,int epoch)		/* epoch is offset to UNIX time*/
+{
+int pkt_time;
+int mp_time;
+int delta;
+int l_epoch;
+
+pkt_time =  waves_time_in & 0xFFFFFFFE; /* strip Time quality bit */
+mp_time =   mp_time_in;
+
+mp_time = mp_time / 40;	/* 10 bit second in mP */
+delta = mp_time -
+   (pkt_time & 0x000003FF);	/* 32 bit SCLK */
+ 
+ 			/*
+ 	  OK, nominally 'mp - SCLK' is negative
+ 	if it's positive, then there is a roll
+ 	involved and we need to adjust the delta
+ 	we using by 1024 (10 bit roll value)
+ 	UNLESS it's tiny.. 
+ 	  Currently (2008) the telemetry model 
+     doesn't let data hang around (*), so there's
+     no need to worry about stale data...
+ 			*/
+if (delta > MAX_DELTA)
+delta = delta - 0x0400;
+return pkt_time + delta + epoch;
+}
+	
+	public static String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int, resets int, uptime bigint, type int, "
+		 + "pktType int, "
+		 + "length int, "
+		 + "truncTime int,"
+		 + "segmentation int,"
+		 + "st1 int,"
+		 + "st2 int,"
+		 + "st3 int,";
+		 
+		for (int i=NUMBER_OF_HEADER_FIELDS; i< MAX_PACKET_BYTES; i++ )
+			s = s + "byte" + i + " int NOT NULL DEFAULT 0,";
+		s = s + "PRIMARY KEY (id, resets, uptime, type))";
+		return s;
+	}
+	
+	public String getInsertStmt() {
+		copyBitsToFields();
+		String s = new String();
+		s = s + " (id, resets, uptime, type, \n";
+		s = s + "pktType,\n";
+		s = s + "length,\n";
+		s = s + "truncTime,\n";
+		s = s + "segmentation,\n";
+		s = s + "st1,\n";
+		s = s + "st2,\n";
+		s = s + "st3,\n";
+		for (int i=NUMBER_OF_HEADER_FIELDS; i < NUMBER_OF_FIELDS-1; i++ )
+			s = s + "byte" + i + " ,\n";
+		s = s + "byte" + (NUMBER_OF_FIELDS-1) + " )\n";
+		
+		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ",\n";
+		s = s + fieldValue[TYPE_FIELD]+",\n";
+		s = s + fieldValue[LENGTH_FIELD]+",\n";
+		s = s + fieldValue[TIME_FIELD]+",\n";
+		s = s + fieldValue[SEG_FIELD]+",\n";
+		s = s + fieldValue[STATUS_FIELD1]+",\n";
+		s = s + fieldValue[STATUS_FIELD2]+",\n";
+		s = s + fieldValue[STATUS_FIELD3]+",\n";
+		for (int i=NUMBER_OF_HEADER_FIELDS; i< NUMBER_OF_FIELDS-1; i++ )
+			s = s + fieldValue[i] + " ,\n";
+		s = s + fieldValue[NUMBER_OF_FIELDS-1] + " )\n";
+		return s;
+	}
 
 }
+ 

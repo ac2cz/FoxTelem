@@ -60,6 +60,9 @@ public class SatPayloadDbStore {
 	public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
 	public static String HERCI_HS_LOG = "HERCI_HS";
 	public static String HERCI_HS_HEADER_LOG = "HERCI_HS_HEADER";
+	public static String HERCI_HS_PACKET_LOG = "HERCI_HS_PACKET";
+	public static String JPG_IDX = "JPG_IDX";
+	public static String PICTURE_LINES = "PICTURE_LINES_IDX";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -68,13 +71,11 @@ public class SatPayloadDbStore {
 	public String radTelemTableName;
 	public String herciHSTableName;
 	public String herciHSHeaderTableName;
+	public String herciHSPacketTableName;
+	public String jpgIdxTableName;
+	public String pictureLinesTableName;
 	
 	private boolean multiUpdate = false;
-	
-//	SortedFramePartArrayList rtRecords;
-//	SortedFramePartArrayList maxRecords;
-//	SortedFramePartArrayList minRecords;
-//	SortedFramePartArrayList radRecords;
 	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
@@ -84,6 +85,7 @@ public class SatPayloadDbStore {
 	boolean updatedHerciHS = true;
 	boolean updatedHerciHeader = true;
 	boolean updatedHerciPacket = true;
+	boolean updatedCamera = true;
 	
 	/**
 	 * Create the payload store this this fox id
@@ -99,6 +101,9 @@ public class SatPayloadDbStore {
 		radTelemTableName = "Fox"+foxId+RAD_TELEM_LOG;
 		herciHSTableName = "Fox"+foxId+HERCI_HS_LOG;
 		herciHSHeaderTableName = "Fox"+foxId+HERCI_HS_HEADER_LOG;
+		herciHSPacketTableName = "Fox"+foxId+HERCI_HS_PACKET_LOG;
+		jpgIdxTableName = "Fox"+foxId+JPG_IDX;
+		pictureLinesTableName = "Fox"+foxId+PICTURE_LINES;
 		initPayloadFiles();
 	}
 	
@@ -109,8 +114,10 @@ public class SatPayloadDbStore {
 		initPayloadTable(radTableName, fox.radLayout);
 		initPayloadTable(radTelemTableName, fox.rad2Layout);
 		if (fox.hasHerci()) {
-			initPayloadTable(herciHSTableName, fox.herciHSLayout);
-			initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+			initHerciTables();
+		}
+		if (fox.hasCamera()) {
+			initCameraTables();
 		}
 	}
 
@@ -118,6 +125,28 @@ public class SatPayloadDbStore {
 	 *  create the tables if they do not exist
 	 */
 	private void initPayloadTable(String table, BitArrayLayout layout) {
+		String createStmt = layout.getTableCreateStmt();
+		createTable(table, createStmt);
+	}
+
+	private void initHerciTables() {
+		initPayloadTable(herciHSTableName, fox.herciHSLayout);
+		initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+		String table = herciHSPacketTableName;
+		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
+		createTable(table, createStmt);
+	}
+	
+	private void initCameraTables() {
+		String table = jpgIdxTableName;
+		String createStmt = CameraJpeg.getTableCreateStmt();
+		createTable(table, createStmt);
+		table = pictureLinesTableName;
+		createStmt = PictureScanLine.getTableCreateStmt();
+		createTable(table, createStmt);
+	}
+	
+	private void createTable(String table, String createStmt) {
 		Statement stmt = null;
 		ResultSet select = null;
 		try {
@@ -127,11 +156,11 @@ public class SatPayloadDbStore {
 			select.close();
 		} catch (SQLException e) {
 			
-			if ( e.getSQLState().equals(ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
+			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
 				String createString = "CREATE TABLE " + table + " ";
-				createString = createString + layout.getTableCreateStmt();
+				createString = createString + createStmt;
 				
-				System.out.println ("Creating new DB table " + table);
+				Log.println ("Creating new DB table " + table);
 				try {
 					stmt.execute(createString);
 				} catch (SQLException ex) {
@@ -142,8 +171,6 @@ public class SatPayloadDbStore {
 			}
 		} 
 	}
-
-
 	
 	public void setUpdatedAll() {
 		updatedRt = true;
@@ -173,6 +200,10 @@ public class SatPayloadDbStore {
 	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
 	public void setUpdatedRadTelem(boolean u) {
 		updatedRadTelem = u;
+	}
+	public boolean getUpdatedCamera() { return updatedCamera; }
+	public void setUpdatedCamera(boolean u) {
+		updatedCamera = u;
 	}
 
 	private int count(String table) {
@@ -207,6 +238,7 @@ public class SatPayloadDbStore {
 	public int getNumberOfFrames() { return count(rtTableName) + count(maxTableName) + count(minTableName) + count(radTableName); }
 	public int getNumberOfTelemFrames() { return count(rtTableName) + count(maxTableName) + count(minTableName); }
 	public int getNumberOfRadFrames() { return count(radTableName);}
+	public int getNumberOfPictureCounters() { return count(jpgIdxTableName);}
 		
 	public boolean add(int id, long uptime, int resets, FramePart f) throws IOException {
 		f.captureHeaderInfo(id, uptime, resets);
@@ -214,17 +246,22 @@ public class SatPayloadDbStore {
 	}
 
 	private boolean addRadRecord(PayloadRadExpData f)  {
-		insert(radTableName,f);
-		
-		// Capture and store any secondary payloads
-		if (f.isTelemetry()) {
-			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
-			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-			add(radiationTelemetry);
+		if (insert(radTableName,f)) {
+
+			// Capture and store any secondary payloads
+			if (f.isTelemetry()) {
+				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 400) // this is a high speed record
+					radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
+				return add(radiationTelemetry);
+			}
+		} else {
+			return false;
 		}
 		return true;
 	}
-	
+
 	/**
 	 * Add a HERCI High Speed payload record
 	 * @param f
@@ -232,20 +269,30 @@ public class SatPayloadDbStore {
 	 * @throws IOException
 	 */
 	private boolean addHerciRecord(PayloadHERCIhighSpeed f) {
-		insert(herciHSTableName, f);
-		
-		// Capture and store any secondary payloads
-		HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
-		radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-		add(radiationTelemetry);
-		updatedHerciHeader = true;
+		if (insert(herciHSTableName, f)) {
 
-		ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
-		for(int i=0; i< pkts.size(); i++) {
-			HerciHighSpeedPacket pk = pkts.get(i);
-			pk.captureHeaderInfo(f.id, f.uptime, f.resets);
-			//////add(pk);  // FIXME - we dont add the packets to the database because I dont have a layout for them in the sat
-			updatedHerciPacket = true;
+			// Capture and store any secondary payloads
+			HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 600) // this is a high speed record
+				radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
+			if (add(radiationTelemetry)) {
+				updatedHerciHeader = true;
+
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					if (f.type >= 600) // this is a high speed record
+						pk.type = f.type*1000 + 900 + i;  // This will give a type formatted like 601903
+					add(pk);
+					updatedHerciPacket = true;
+				}
+			} else {
+				return false;
+			}
+		} else {
+			return false;
 		}
 		return true;
 	}
@@ -261,7 +308,7 @@ public class SatPayloadDbStore {
 			for (int i=0; i< f.length; i++) {
 				if (f[i].hasData()) {
 					f[i].captureHeaderInfo(id, uptime, resets);
-					f[i].type = i+100;  // use type as the serial number for high speed type 4s, starting at 100 to distinguish from a Low Speed type 4
+					f[i].type = i+400;  // use type as the serial number for high speed type 4s, starting at 400 to distinguish from a Low Speed type 4
 					addRadRecord(f[i]);
 				}
 			}
@@ -277,9 +324,24 @@ public class SatPayloadDbStore {
 	 * @return
 	 */
 	private boolean insert(String table, FramePart f) {
+		String insertStmt = f.getInsertStmt();
+		return insertData(table, insertStmt);
+	}
+	
+	private boolean insert(String table, CameraJpeg f) {
+		String insertStmt = f.getInsertStmt();
+		return insertData(table, insertStmt);
+	}
+	
+	private boolean insert(String table, PictureScanLine f) {
+		String insertStmt = f.getInsertStmt();
+		return insertData(table, insertStmt);
+	}
+	
+	private boolean insertData(String table, String insertStmt) {
 		Statement stmt = null;
 		String update = "insert into " + table;
-		update = update + f.getInsertStmt();
+		update = update + insertStmt;
 		//Log.println("SQL:" + update);
 		try {
 			Connection derby = PayloadDbStore.getConnection();
@@ -299,6 +361,64 @@ public class SatPayloadDbStore {
 
 	}
 	
+	private boolean insertImageLine(String table, PictureScanLine f) throws SQLException {
+		String insertStmt = f.getInsertStmt();
+		boolean inserted = insertData(table, insertStmt);
+		// FIXME - this returns true unless there is an error.  So even with a duplicate we copy all the bytes in, which is wastefull!
+		if (!inserted)
+			return false;
+		else
+		try {
+			Connection derby = PayloadDbStore.getConnection();
+			java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table + " set imageBytes = ?"
+					+ " where id = " + f.id
+					+ " and resets = " + f.resets
+					+ " and uptime = " + f.uptime
+					+ " and pictureCounter = " + f.pictureCounter
+					+ " and scanLineNumber = " + f.scanLineNumber);
+			ps.setBytes(1, f.getBytes());
+			int count = ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
+				Log.println("ERROR, image bytes not stored");
+				return false; // We have the data
+			} else {
+				throw e;
+			}
+		}
+		return true;
+	}
+	
+	/*
+	private boolean insertHerciPacket(String table, HerciHighSpeedPacket f) {
+		String insertStmt = f.getInsertStmt();
+		boolean inserted = insertData(table, insertStmt);
+		// FIXME - this returns true unless there is an error.  So even with a duplicate we copy all the bytes in, which is wastefull!
+		if (!inserted)
+			return false;
+		else
+		try {
+			Connection derby = PayloadDbStore.getConnection();
+			java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table + " set minipacket = ?"
+					+ " where id = " + f.id
+					+ " and resets = " + f.resets
+					+ " and uptime = " + f.uptime
+					+ " and type = " + f.type);
+			ps.setBytes(1, f.getMiniPacketBytes());
+			int count = ps.executeUpdate();
+			ps.close();
+		} catch (SQLException e) {
+			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
+				Log.println("ERROR, image bytes not stored");
+				return false; // We have the data
+			} else {
+				PayloadDbStore.errorPrint(e);
+			}
+		}
+		return true;
+	}
+	*/
 	/**
 	 * Add the frame to the correct array and file
 	 * @param f
@@ -325,11 +445,152 @@ public class SatPayloadDbStore {
 			return addHerciRecord((PayloadHERCIhighSpeed)f); 
 		} else if (f instanceof HerciHighspeedHeader ) {
 			return insert(herciHSHeaderTableName, f);
+		} else if (f instanceof HerciHighSpeedPacket ) {
+			return insert(herciHSPacketTableName, (HerciHighSpeedPacket)f);
+			
 		}
 		return false;
 	}
 
-
+	/**
+	 * Add a camera payload to the server database.  We must write an index entry to the camera lines table,
+	 * write the camera lines to a file if this is a unique entry (not a dupe). We then check if this is a new
+	 * picture and if so, add an entry to the jpeg index. The jpeg is then generated or updated and the latest
+	 * jpeg and thumbnail is written to disk.
+	 * 
+	 * @param id
+	 * @param resets
+	 * @param uptime
+	 * @param line
+	 * @return
+	 * @throws IOException 
+	 * @throws SQLException 
+	 */
+	public boolean add(PictureScanLine line) throws IOException, SQLException {
+		boolean added = insertImageLine(pictureLinesTableName, line);
+		if (added) {
+			// This was a new line, so we want to see if this is a new JPEG.  Either way we read all the latest lines 
+			// when we instantiate the CameraJpeg
+			String where = " where id = " + line.id
+					+ " and resets = " + line.resets
+					+ " and uptime = " + line.uptime
+					+ " and pictureCounter = " + line.pictureCounter;
+			CameraJpeg jpg = selectExistingJpeg(jpgIdxTableName, line.id, line.resets, line.uptime, line.pictureCounter);
+			
+			if (jpg == null) {
+				ResultSet rs = selectImageLines(pictureLinesTableName, where);
+				jpg = new CameraJpeg(line.id, line.resets, line.uptime, line.uptime, line.pictureCounter, rs);
+				insert(jpgIdxTableName, jpg); // we add this.  If its a duplicate, we ignore and keep going.  The line still needs to be added
+			}
+			jpg.writeAllLines();  // this triggers us to write it to the file
+			updatedCamera = true;
+			return true;
+		}
+		return true; // we already had this line in the database
+	}
+	
+	/**
+	 * Query the database to see if we have a Jpeg with the same id, reset and pictureCounter, where
+	 * the uptime is close to the uptime of this line.  Then we can conclude that the line belongs in this
+	 * picture.  Otherwise we return an empty set
+	 * @param table
+	 * @param id
+	 * @param resets
+	 * @param uptime
+	 * @param pictureCounter
+	 * @return
+	 */
+	private CameraJpeg selectExistingJpeg(String table, int id, int resets, long uptime, int pictureCounter) {
+		String where = " where id = " + id
+				+ " and resets = " + resets
+				+ " and ABS(" + uptime + " - fromUptime ) < " + CameraJpeg.UPTIME_THRESHOLD
+				+ " and pictureCounter = " + pictureCounter;
+		Statement stmt = null;
+		String update = "";
+		
+		update = " SELECT id, resets, fromUptime, toUptime, pictureCounter, fileName FROM ";
+		//DERBY SYNTAX - update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		update = update + table + where ;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet r = stmt.executeQuery(update);
+			
+			if (r.next()) {
+				String lineswhere = " where id = " + id
+						+ " and resets = " + resets
+						+ " and ABS(" + uptime + " - uptime ) < " + CameraJpeg.UPTIME_THRESHOLD
+						+ " and pictureCounter = " + pictureCounter;				
+				ResultSet rs = selectImageLines(pictureLinesTableName, lineswhere);
+				boolean runUpdate = false;
+				// we have an existing record, so load it
+				int rsid = r.getInt("id");
+				int rsresets = r.getInt("resets");
+				long fromUptime = r.getInt("fromUptime");
+				long toUptime = r.getInt("toUptime");
+				String fileName = r.getString("fileName");
+				int rspictureCounter = r.getInt("pictureCounter");
+				long newFromUptime = fromUptime;
+				long newToUptime = toUptime;
+				if (toUptime < uptime) {
+					// then we have a line that is later than the index records toUptime, so we need to update the database and return that record
+					runUpdate = true;
+					newToUptime = uptime;
+				}
+				// Note that we do not update the "fromUptime".  We used the first uptime that we got
+				if (runUpdate) {
+					try {
+						java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table 
+								+ " set fromUptime = ?, toUptime = ? "
+								+ " where id = " + rsid
+								+ " and resets = " + rsresets
+								+ " and fromUptime = " + fromUptime
+								+ " and toUptime = " + toUptime
+								+ " and pictureCounter = " + rspictureCounter);
+						ps.setLong(1, newFromUptime);
+						ps.setLong(2, newToUptime);
+						int count = ps.executeUpdate();
+						ps.close();
+					} catch (SQLException e) {
+						if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
+							Log.println("ERROR, image bytes not stored");
+							return null; // We have the data
+						} else {
+							PayloadDbStore.errorPrint(e);
+						}
+						return null;
+					}
+				}
+				CameraJpeg j = new CameraJpeg(rsid, rsresets, newFromUptime, newToUptime, rspictureCounter, rs);
+				return j;
+			} else
+			
+			return null;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
+		}
+		return null;
+	}
+	private ResultSet selectImageLines(String table, String where) {
+		Statement stmt = null;
+		String update = "";
+		
+		update = " SELECT id, resets, uptime, date_time, pictureCounter, scanLineNumber, scanLineLength, imageBytes FROM ";
+		//DERBY SYNTAX - update = update + table + where + " FETCH NEXT " + numberOfRows + " ROWS ONLY";
+		update = update + table + where ;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = PayloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			ResultSet r = stmt.executeQuery(update);
+			return r;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint(e);
+		}
+		return null;
+	}
+	
 	private ResultSet selectLatest(String table) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC LIMIT 1"; // Derby Syntax FETCH FIRST ROW ONLY";
