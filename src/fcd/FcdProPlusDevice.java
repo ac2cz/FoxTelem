@@ -8,12 +8,7 @@ import common.Log;
 
 public class FcdProPlusDevice extends FcdDevice {
 
-	public static final byte APP_SET_RF_FILTER = 113;
-	public static final byte APP_SET_MIXER_GAIN = 114;
-
-	public static final byte APP_GET_RF_FILTER = (byte)0x99;
-	public static final byte APP_GET_MIXER_GAIN = (byte)0x9A;
-	public static final byte APP_GET_IF_FILTER = (byte)0xA2;
+	
 
 	//RF Filter Numbers
 	int TRFE_0_4 = 0,
@@ -53,16 +48,16 @@ public class FcdProPlusDevice extends FcdDevice {
 		MAX_FREQ = 2050000000;
 	}
 
-    public int setFcdFreq(long freq) throws FcdException {
-    	super.setFcdFreq(freq);
-		Log.println("Freq causes RF Filter to be set"); 
-		return setRfFilter(freq);
-    }
+ //   public int setFcdFreq(long freq) throws FcdException {
+ //   	super.setFcdFreq(freq);
+//		Log.println("Freq causes RF Filter to be set"); 
+//		return setRfFilter(freq);
+ //   }
 	/**
 	 * Set the RF Filter based on the frequency requested
 	 * @param freq
 	 * @throws FcdException 
-	 */
+	 
 	public int setRfFilter(long freq) throws FcdException {
 		if (freq >= 4000000 && freq <= 8000000) {
 			Log.println("RF Filter set to 8-16M");
@@ -120,7 +115,7 @@ public class FcdProPlusDevice extends FcdDevice {
     		return -1;
     	}
     }
-    
+    */
     public String getRfFilter() throws IOException, FcdException {
 		
 		int FCD_CMD_LEN = 3;
@@ -155,47 +150,7 @@ public class FcdProPlusDevice extends FcdDevice {
 		return "";
 	}
 
-    public int setMixerGain(boolean on) throws FcdException {
-    	
-    	try {
-    		int FCD_CMD_LEN = 2;
-    		byte[] report = new byte[FCD_CMD_LEN];
-
-    		report[0] = (byte)APP_SET_MIXER_GAIN;
-    		if (on)
-    			report[1] = (byte)0x01;
-    		else
-    			report[1] = (byte)0x00;
-
-    		sendFcdCommand(report, FCD_CMD_LEN);
-    		if (report[0] == APP_SET_MIXER_GAIN)
-    			return 0;
-    		else
-    			throw new FcdException("Set Mixer Gain Command not executed: ");
-    	} catch (IOException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-
-    		return -1;
-    	}
-    }
-
-    public boolean getMixerGain() throws IOException, FcdException {
-		
-		int FCD_CMD_LEN = 3;
-		byte[] report = new byte[FCD_CMD_LEN];
-		report[1] = 0;
-		report[0] = (byte)APP_GET_MIXER_GAIN;
-		sendFcdCommand(report,FCD_CMD_LEN);
-		
-		if (report[0] == APP_GET_MIXER_GAIN) {
-			Log.println("MIXER GAIN: " + report[2]);
-			if (report[2] == 1)
-				return true;
-		} else
-			throw new FcdException("Get Mixer Gain Command not executed: ");
-		return false;
-	}
+    
     public int setLnaGain(boolean on) throws FcdException {
     	
     	try {
@@ -236,6 +191,48 @@ public class FcdProPlusDevice extends FcdDevice {
 		} else
 			throw new FcdException("Get LNA Command not executed: ");
 		return false;
+	}
+    
+    public int setIFGain(int val) throws FcdException {
+    	
+    	try {
+    		int FCD_CMD_LEN = 2;
+    		byte[] report = new byte[FCD_CMD_LEN];
+
+    		report[0] = (byte)APP_SET_IF_GAIN1;
+    		if (val > 0 && val < 60)
+    			report[1] = (byte)val;
+    		else
+    			report[1] = (byte)0x00;
+
+    		sendFcdCommand(report, FCD_CMD_LEN);
+    		if (report[0] == APP_SET_IF_GAIN1)
+    			return 0;
+    		else
+    			throw new FcdException("Set LNA Command not executed: ");
+    	} catch (IOException e) {
+    		// TODO Auto-generated catch block
+    		e.printStackTrace();
+
+    		return -1;
+    	}
+    }
+
+    public int getIFGain() throws IOException, FcdException {
+		
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)APP_GET_IF_GAIN1;
+		sendFcdCommand(report,FCD_CMD_LEN);
+		
+		if (report[0] == APP_GET_IF_GAIN1) {
+			Log.println("IF GAIN: " + report[2]);
+			if (report[2] > 0 && report[2] < 60)
+				return report[2];
+		} else
+			throw new FcdException("Get LNA Command not executed: ");
+		return 0;
 	}
     
 

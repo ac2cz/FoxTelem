@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -8,13 +9,21 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
 
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
+import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.swing.SpinnerListModel;
+import javax.swing.SpinnerModel;
 import javax.swing.border.TitledBorder;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
 import common.Config;
 import common.Log;
@@ -23,7 +32,7 @@ import fcd.FcdException;
 import fcd.FcdProPlusDevice;
 
 @SuppressWarnings("serial")
-public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionListener, Runnable {
+public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionListener, Runnable, ChangeListener {
 	JLabel title;
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
@@ -33,6 +42,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	JCheckBox cbLnaGain;
 	JTextField rfFilterValue;
 	JTextField ifFilterValue;
+	JSpinner ifSpinner;
 	
 	FcdProPlusPanel() throws IOException, FcdException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
@@ -44,27 +54,48 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	public void initializeGui() throws IOException, FcdException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();
-		add(center, BorderLayout.NORTH);
-		center.setLayout(new BoxLayout(center, BoxLayout.X_AXIS));
+		JPanel top = new JPanel();
+		add(top, BorderLayout.NORTH);
+		top.setLayout(new BoxLayout(top, BoxLayout.X_AXIS));
 		cbMixerGain = new JCheckBox("Mixer Gain");
-		center.add(cbMixerGain);
+		top.add(cbMixerGain);
 		cbMixerGain.addItemListener(this);
 		cbLnaGain = new JCheckBox("LNA Gain    ");
-		center.add(cbLnaGain);
+		top.add(cbLnaGain);
 		cbLnaGain.addItemListener(this);
 		
+		/*
+		JLabel lblIfGain = new JLabel("IF Gain ");
+		top.add(lblIfGain);
+		String[] vals = new String[60];
+		for (int i=0; i < 60; i++)
+			vals[i] = ""+i;
+		SpinnerListModel ifGainModel = new SpinnerListModel(vals);
+		ifSpinner = new JSpinner(ifGainModel);
+		JComponent editor = ifSpinner.getEditor();
+	    JFormattedTextField ftf = ((JSpinner.DefaultEditor)editor).getTextField();
+		ftf.setColumns(3);
+		ifSpinner.addChangeListener(this);
+		top.add(ifSpinner);
+		
+		*/
+		add(center, BorderLayout.CENTER);
+		center.setLayout(new BoxLayout(center, BoxLayout.X_AXIS));
+		
 		JLabel rfFilter = new JLabel("    RF Filter");
-		center.add(rfFilter);
+		top.add(rfFilter);
 		rfFilterValue = new JTextField();
+		rfFilterValue.setColumns(35);
 		rfFilterValue.setEnabled(false);
-		center.add(rfFilterValue);
+		top.add(rfFilterValue);
 		
 		JLabel ifFilter = new JLabel("    IF Filter");
-		center.add(ifFilter);
+		top.add(ifFilter);
 		ifFilterValue = new JTextField();
+		ifFilterValue.setColumns(30);
 		ifFilterValue.setEnabled(false);
-		center.add(ifFilterValue);
-		
+		top.add(ifFilterValue);
+		top.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1000,10)));
 	}
 	
 	@Override
@@ -92,25 +123,11 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 		cbLnaGain.setSelected(fcd.getLnaGain());	
 		rfFilterValue.setText(fcd.getRfFilter());
 		ifFilterValue.setText(fcd.getIfFilter());
+//		int ifG = fcd.getIFGain();
+//		ifSpinner.setValue(""+ifG);
 	}
 	
-	/*
-	public void getSettingsOLD() throws IOException, FcdException {
-		
-		updateParam(3, "LNA  ENHANCE", fcd.getParam(FcdDevice.APP_GET_LNA_ENHANCE));
-		updateParam(4, "BAND", fcd.getParam(FcdDevice.APP_GET_BAND));
-		updateParam(5, "MIXER FILTER", fcd.getParam(FcdDevice.APP_GET_MIXER_FILTER));
-		updateParam(6, "GAIN MODE", fcd.getParam(FcdDevice.APP_GET_GAIN_MODE));
-		updateParam(7, "RC FILTER", fcd.getParam(FcdDevice.APP_GET_RC_FILTER));
-		updateParam(8, "MIXER GAIN1", fcd.getParam(FcdDevice.APP_GET_GAIN1));
-		updateParam(9, "MIXER GAIN2", fcd.getParam(FcdDevice.APP_GET_GAIN2));
-		updateParam(10, "MIXER GAIN3", fcd.getParam(FcdDevice.APP_GET_GAIN3));
-		updateParam(11, "MIXER GAIN4", fcd.getParam(FcdDevice.APP_GET_GAIN4));
-		updateParam(12, "MIXER GAIN5", fcd.getParam(FcdDevice.APP_GET_GAIN5));
-		updateParam(13, "MIXER GAIN6", fcd.getParam(FcdDevice.APP_GET_GAIN6));
-		updateParam(14, "IF FILTER", fcd.getParam(FcdDevice.APP_GET_IF_FILTER));
-	}
-	*/
+	
 	private void updateParam(int i, String name, int cmd) {
 	}
 
@@ -186,6 +203,22 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 				e1.printStackTrace();
 			}
 		}
+		
+	}
+
+	@Override
+	public void stateChanged(ChangeEvent e) {
+		if (e.getSource() == ifSpinner) {
+			int u = Integer.parseInt((String) ifSpinner.getValue());
+	        try {
+	        	Log.println("Setting IF Gain to: " + u);
+				fcd.setIFGain(u);
+			} catch (FcdException e1) {
+				Log.println("Error setting IF Gain on FCD");
+				e1.printStackTrace(Log.getWriter());
+			}
+		}
+		
 	}
 
 	

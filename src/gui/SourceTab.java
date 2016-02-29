@@ -1093,6 +1093,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 							panelFcd = new FcdProPlusPanel();
 						else
 							panelFcd = new FcdProPanel();
+						panelFcd.setFcd(fcd);
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					} catch (FcdException e) {
