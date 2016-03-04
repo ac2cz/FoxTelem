@@ -26,7 +26,7 @@ public class FcdProDevice extends FcdDevice {
 	public static String[] lnaGain = {"-5dB","-2.5dB","0dB","2.5dB","5dB","7.5dB","10dB","12.5dB","15dB","17.5dB","20dB","25dB","30dB"};
 
 	// TUNER_MIXER_GAIN_ENUM
-	public static String[] mixerGain = {"0dB", "12dB"};
+	public static String[] mixerGain = {"4dB", "12dB"};
 	int TMGE_P4_0DB=0,
 	 TMGE_P12_0DB=1;
 	
