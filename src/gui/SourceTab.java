@@ -55,6 +55,7 @@ import decoder.SourceSoundCardAudio;
 import decoder.SourceWav;
 import fcd.FcdDevice;
 import fcd.FcdException;
+import fcd.FcdProPlusDevice;
 
 import javax.swing.JProgressBar;
 import javax.swing.event.PopupMenuListener;
@@ -124,6 +125,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JComboBox<String> cbSoundCardRate;
 	JPanel panelFile;
 	FcdPanel panelFcd;
+	JPanel SDRpanel;
 	JRadioButton highSpeed;
 	JRadioButton lowSpeed;
 	JRadioButton auto;
@@ -533,16 +535,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			afAudio.doClick();
 		}
 
-		try {
-			panelFcd = new FcdPanel();
-		} catch (IOException e) {
-			e.printStackTrace(Log.getWriter());
-		} catch (FcdException e) {
-			e.printStackTrace(Log.getWriter());
-		}
+		SDRpanel = new JPanel();
 		//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
-		panel_c.add(panelFcd, BorderLayout.CENTER);
-		panelFcd.setVisible(false);
+		panel_c.add(SDRpanel, BorderLayout.CENTER);
+		SDRpanel.setLayout(new BorderLayout());
+		SDRpanel.setVisible(false);
 		
 	//	fcdPanelThread = new Thread(panelFcd);
 	//	fcdPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -1089,16 +1086,29 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (fcdSelected) {
 			
 				if (fcd == null) {
-					fcd = new FcdDevice();			
+					fcd = FcdDevice.makeDevice();	
+					if (fcd == null) return false; // FIXME this is an issue because we found the description but not the HID device
+					try {
+						if (fcd instanceof FcdProPlusDevice)
+							panelFcd = new FcdProPlusPanel();
+						else
+							panelFcd = new FcdProPanel();
+						panelFcd.setFcd(fcd);
+					} catch (IOException e) {
+						e.printStackTrace(Log.getWriter());
+					} catch (FcdException e) {
+						e.printStackTrace(Log.getWriter());
+					}
+					SDRpanel.add(panelFcd, BorderLayout.CENTER);
 				}
-				panelFcd.setVisible(true);
-				panelFcd.setFcd(fcd);
+				SDRpanel.setVisible(true);
 		
 			Config.iq = true;
 			iqAudio.setSelected(true);
 			setIQVisible(true);
 		} else {
-			panelFcd.setVisible(false);
+			SDRpanel.setVisible(false);
+			panelFcd = null;
 		}
 
 		return fcdSelected;
@@ -1355,7 +1365,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
-		panelFcd.setVisible(false);
+		SDRpanel.setVisible(false);
 
 	}
 	
