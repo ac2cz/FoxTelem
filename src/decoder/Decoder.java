@@ -272,6 +272,7 @@ public abstract class Decoder implements Runnable {
 			}	
 
 			audioReadThread = new Thread(audioSource);
+			audioReadThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 			audioReadThread.start();
 		}
 		
