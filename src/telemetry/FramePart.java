@@ -117,6 +117,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int GYRO1Z = 11;
 	public static final int GYRO1V = 12;
 	public static final int GYRO2V = 13;
+	public static final int UNKNOWN = 15;
+	public static final int IHU_SW_VERSION = 14;
+	//public static final int BUS_VOLTAGE_OVER_2 = 15;
 	
 	// Flattened C ENUM for IHU Errors
 	public static final String[] ihuErrorType = {
@@ -601,8 +604,15 @@ longer send telemetry.
 			else
 				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+		case UNKNOWN: // IHU measurement of bus voltage
+			return "unknown:" + type;
+		case IHU_SW_VERSION: // Version of the software on the IHU
+			int swType = (rawValue >> 8) & 0xff;
+			int swMajor = (rawValue >> 16) & 0xff;
+			int swMinor = (rawValue >> 24) & 0xff;
+			return "IHU SW: " + Character.toString((char) swType) + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
 		}
-		return "-----";
+		return "-----" + type;
 	}
 
 	/**
