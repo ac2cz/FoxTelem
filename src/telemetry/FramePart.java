@@ -458,7 +458,7 @@ longer send telemetry.
 			v =  (v - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
 			double r = v / this.MPPT_RTD_CONSTANT_CURERNT;
 			
-			// Cubic fir using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
+			// Cubic fit using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
 			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);
 			
 			return t;
