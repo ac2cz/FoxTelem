@@ -753,6 +753,19 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 	
+	public void offloadSegments() {
+		for (SatPayloadStore store : payloadStore)
+			if (store != null)
+				store.offloadSegments();
+	//	for (SatPictureStore store : pictureStore)
+	//		if (store != null)
+	//			store.deleteAll();
+	//	for (SatMeasurementStore store : measurementStore)
+	//		if (store != null)
+	//			store.deleteAll();
+
+	}
+	
 	/**
 	 * The run thread is for inserts, so that we minimize the load on the decoder.  We check the queue of payloads and add any that are in it
 	 */
@@ -785,6 +798,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 					Thread.yield(); // don't hog the thread or we block when trying to add new payloads
 				}
 			}
+			offloadSegments();
 			if (measurementQueue.size() > 0) {
 				while (measurementQueue.size() > 0) {
 					Measurement f = measurementQueue.get(0);

@@ -95,6 +95,8 @@ public class SatPayloadTable {
 			if (!lastSeg.isLoaded()) {
 				load(lastSeg);
 				
+			} else {
+				lastSeg.accessed();
 			}
 			if (rtRecords.size() == 0) return null;
 			return rtRecords.get(rtRecords.size()-1);
@@ -233,6 +235,7 @@ public class SatPayloadTable {
 	 */
 	private TableSeg loadSeg(int reset, long uptime) throws IOException {
 		TableSeg seg = getSeg(reset, uptime);
+		seg.accessed();
 		if (seg.isLoaded()) return seg;
 		load(seg);
 		return seg;
@@ -264,6 +267,8 @@ public class SatPayloadTable {
 			for (int i=startIdx; i<tableIdx.size(); i++) {
 				if (!tableIdx.get(i).isLoaded()) {
 					load(tableIdx.get(i));
+				} else {
+					tableIdx.get(i).accessed();
 				}
 				total += tableIdx.get(i).records;
 				
@@ -329,6 +334,9 @@ public class SatPayloadTable {
 					while(i < tableIdx.size()) {
 						if (!tableIdx.get(i).isLoaded())
 							load(tableIdx.get(i));
+						else {
+							tableIdx.get(i).accessed();
+						}
 						total += tableIdx.get(i).records;
 						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 					}
@@ -336,6 +344,36 @@ public class SatPayloadTable {
 				}
 			}
 		}
+	}
+	
+	public void offloadSegments() {
+		for (TableSeg seg : tableIdx) {
+			if (seg.isLoaded() && seg.isStale()) {
+				offloadSeg(seg);
+				Log.println("Offloaded: " + seg.toString());
+			}
+		}
+	}
+	
+	private void offloadSeg(TableSeg seg) {
+		boolean foundStart = false;
+		int removed = 0;
+		seg.setLoaded(false);
+		for (int i=0; i<rtRecords.size();i++) {
+			FramePart f = rtRecords.get(i);
+			if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
+				// we have the first record, so we offload them
+				foundStart = true;
+			}
+			if (foundStart) {
+				rtRecords.remove(i);
+				removed++;
+				if (removed == seg.records) {
+					break; // we are done
+				}
+			}
+		}
+		
 	}
 	
 	/**
@@ -480,8 +518,11 @@ public class SatPayloadTable {
 		}
 
 		// Check the the record set is actuall loaded.  Sometimes at start up the GUI is querying for records before they are loaded
-		if (rtRecords != null && rt != null) {
+		try {
 			rtRecords.add(rt);
+		} catch (NullPointerException e) {
+			Log.println("Tried to add NULL to the Database");
+			return null;
 		}
 		return rt;
 	}

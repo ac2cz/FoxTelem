@@ -1,4 +1,7 @@
 package telemetry;
+
+import java.util.Date;
+
 /**
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz
@@ -27,6 +30,8 @@ public class TableSeg implements Comparable<TableSeg> {
 	int records = 0;
 	private boolean loaded = false;
 	String fileName;
+	long lastAccess;
+	private static final int STALE_PERIOD = 10000;
 	
 	/**
 	 * Create a new segment and give it a filename
@@ -39,6 +44,7 @@ public class TableSeg implements Comparable<TableSeg> {
 		fromUptime = u;
 		records = 0;
 		fileName = f+ "_" + r + "_"+ u +".log";
+		accessed();
 	}
 	
 	/**
@@ -53,10 +59,25 @@ public class TableSeg implements Comparable<TableSeg> {
 		fromUptime = u;
 		records = rec;
 		fileName = f;
+		accessed();
 	}	
 	
-	public boolean isLoaded() { return loaded; }
-	public void setLoaded(boolean t) { loaded = t; }
+	public void accessed() {
+		lastAccess = System.nanoTime()/1000000;
+	}
+	
+	public boolean isLoaded() {
+		return loaded; 
+	}
+	public boolean isStale() {
+		long now = System.nanoTime()/1000000;
+		long elapsed = now - lastAccess;
+		if (elapsed > STALE_PERIOD)
+			return true;
+		return false;
+	}
+	public void setLoaded(boolean t) { 
+		loaded = t; }
 	
 	public String toFile() {
 		String s = "";

@@ -408,7 +408,18 @@ public class SatPayloadStore {
 	}
 	*/
 	
-	
+	public void offloadSegments() {
+		rtRecords.offloadSegments();
+		maxRecords.offloadSegments();
+		minRecords.offloadSegments();
+		radRecords.offloadSegments();
+		radTelemRecords.offloadSegments();
+		if (fox.hasHerci()) {
+			herciRecords.offloadSegments();
+			herciHeaderRecords.offloadSegments();
+			herciPacketRecords.offloadSegments();
+		}
+	}
 
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
