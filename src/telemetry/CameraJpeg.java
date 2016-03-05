@@ -69,7 +69,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	public long fromUptime;
 	public long toUptime;
 	public int pictureCounter;
-	public String fileName;
+	private String fileName;
 	public String captureDate;
 	private boolean thumbStale = false;
 	
@@ -161,7 +161,11 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	}
 
 	public String getFileName() {
-		return fileName;
+		String toFileName = fileName;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toFileName = Config.logFileDirectory + File.separator + fileName;
+		}	
+		return toFileName;
 	}
 	
 	/**
@@ -173,7 +177,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		if (toUptime < line.uptime)
 			toUptime = line.uptime;
 
-		OutputStream out = new FileOutputStream(fileName, true);
+		String toFileName = getFileName();
+			
+		OutputStream out = new FileOutputStream(toFileName, true);
 		try {
 			writeLine(line, out);
 		} finally {
@@ -216,7 +222,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	//	pictureLines.add(line);
 	//	savePictureLinesFile(line);
 		fileName = createJpegFile(id, resets, fromUptime, pictureCounter, true);
-		OutputStream out = new FileOutputStream(fileName, true);
+		String toFileName = getFileName();
+		
+		OutputStream out = new FileOutputStream(toFileName, true);
 		try {
 			for (int i=0; i < pictureLines.size(); i++) {
 				writeLine(pictureLines.get(i), out);
@@ -286,7 +294,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 
 	
 	public boolean fileExists() {
-		File toFile = new File(fileName);
+		String toFileName = getFileName();
+			
+		File toFile = new File(toFileName);
 		if(!toFile.exists())
 			return false;
 		return true;
@@ -310,7 +320,11 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 			header = JPG_HEADER_LOW_RES;
 		
 		String name = makeFileName();
-		File toFile = new File(name);
+		String toFileName = name;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toFileName = Config.logFileDirectory + File.separator + name;
+		}
+		File toFile = new File(toFileName);
 		if(overWrite || !toFile.exists()){
 			File headerFile = new File(header);
 			SatPayloadStore.copyFile(headerFile, toFile);
@@ -323,9 +337,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	
 	public String makeFileName() {
 		String name = IMAGES_DIR + File.separator + id + "_" + resets + "_" + fromUptime + "_" + pictureCounter  + ".jpg";
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			name = Config.logFileDirectory + File.separator + name;
-		} 
+	//	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+	//		name = Config.logFileDirectory + File.separator + name;
+	//	} 
 		return name;
 	}
 
@@ -340,7 +354,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	public BufferedImage getThumbnail(int sizeX) throws IOException, IIOException {
 		if (!thumbStale && thumbNail != null) return thumbNail;
 		BufferedImage img;
-		File thumbFile = new File(fileName+".tn");
+		String imageFile = getFileName();
+		
+		File thumbFile = new File(imageFile+".tn");
 		if(!thumbStale && thumbFile.exists()) {
 			img = ImageIO.read(thumbFile);
 			//Log.println("Loading thumb");
@@ -348,12 +364,12 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 			return img;
 		}
 		//scale based on X
-		File source = new File(fileName);
+		File source = new File(imageFile);
 		img = ImageIO.read(source);
 		if (img != null) {
 			double w = img.getWidth();
 			double scale = sizeX/w;
-			File f = new File(fileName+".tn");
+			File f = new File(imageFile+".tn");
 			thumbNail = scale(img, scale);
 			ImageIO.write(thumbNail, "JPEG", f);
 		}

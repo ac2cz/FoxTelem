@@ -292,8 +292,8 @@ public class SatPictureStore {
 		try {
 			for (int i=0; i<jpegIndex.size(); i++) {	
 				if (jpegIndex.get(i).fileExists()) {
-					SatPayloadStore.remove(jpegIndex.get(i).fileName);
-					SatPayloadStore.remove(jpegIndex.get(i).fileName+".tn");
+					SatPayloadStore.remove(jpegIndex.get(i).getFileName());
+					SatPayloadStore.remove(jpegIndex.get(i).getFileName()+".tn");
 				}
 			}
 			SatPayloadStore.remove(log);

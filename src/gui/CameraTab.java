@@ -383,7 +383,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			if (jpegIndex != null)
 				if (selected != -1 && jpegIndex.size() > selected && jpegIndex.get(selected) != null)
 					try {
-						File f = new File(jpegIndex.get(selected).fileName);
+						File f = new File(jpegIndex.get(selected).getFileName());
 						pic = ImageIO.read(f);
 					} catch (IOException e) {
 						// TODO Auto-generated catch block
