@@ -120,6 +120,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length) throws IOException {
+		if (rtRecords == null) return null;
 		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
@@ -478,7 +479,8 @@ public class SatPayloadTable {
 			rt.type = type; // make sure we get the right type
 		}
 
-		if (rt != null) {
+		// Check the the record set is actuall loaded.  Sometimes at start up the GUI is querying for records before they are loaded
+		if (rtRecords != null && rt != null) {
 			rtRecords.add(rt);
 		}
 		return rt;

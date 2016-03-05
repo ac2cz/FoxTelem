@@ -8,6 +8,7 @@ import telemetry.SortedFramePartArrayList;
 import telemetry.TableSeg;
 
 import java.awt.EventQueue;
+import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
 import java.io.PrintWriter;
@@ -16,6 +17,8 @@ import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import common.Config;
@@ -509,7 +512,8 @@ public class FoxTelemMain {
 	static Decoder decoder;
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
 			+ "Usage: FoxTelem [-version] [fileName.wav]\n\n";
-		
+	static String seriousErrorMsg;
+	
 	public static void main(String[] args) {
 		
 		FoxTelemMain m = new FoxTelemMain();
@@ -570,6 +574,8 @@ public class FoxTelemMain {
 					Log.println("SERIOUS ERROR - Uncaught and thrown from Initial Setup");
 					e.printStackTrace();
 					e.printStackTrace(Log.getWriter());
+					Log.errorDialog("SERIOUS ERROR - Uncaught and thrown from Initial Setup", e.getMessage());
+					
 				}
 	//		}
 	//	});		
@@ -606,8 +612,27 @@ public class FoxTelemMain {
 					window.setVisible(true);
 				} catch (Exception e) {
 					Log.println("SERIOUS ERROR - Uncaught and thrown from GUI");
+					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the spacecraft files then\n"
+							+ "try reverting to an older version, or install the standard files.  \n"
+							+ "If that does not work then you can try deleting the FoxTelem.properties\n"
+							+ "file in your home directory, in a sub directory called .FoxTelem, though this\n"
+							+ "will delete your settings\n";
 					e.printStackTrace();
 					e.printStackTrace(Log.getWriter());
+					EventQueue.invokeLater(new Runnable() {
+				        @Override
+				        public void run(){
+				        	Frame frm = new Frame();
+				        	JOptionPane.showMessageDialog(frm,
+				        			seriousErrorMsg,
+									"SERIOUS ERROR - Uncaught and thrown from GUI",
+									JOptionPane.ERROR_MESSAGE) ;
+				        	System.exit(99);
+							
+				        }
+					});
+				
+					
 				}
 			}
 		});		
