@@ -53,7 +53,7 @@ import java.awt.event.MouseListener;
  * and the complex (negative) frequencies from N/2 - N.
  * 
  * The negative frequencies go to the left of the center and the positive to the right.  The selected carrier
- * frequency is in the middle of the screen.  We effectively draw to graphs side  by side.
+ * frequency is in the middle of the screen.  We effectively draw two graphs side  by side.
  * 
  * We tune the SDR from here.  The user can click the mouse on the display or use the arrow buttons.  If automatic tracking
  * is enabled then this module calculates a new frequency as though the user changed it.
@@ -167,20 +167,66 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			} else {
 				liveData = false;
 			}
+			retune();
 			this.repaint();
 			
 		}
 		done = true;
 	}
 	
-		public static int littleEndian2(byte b[]) {
-			byte b1 = b[0];
-			byte b2 = b[1];
-			int value =  ((b2 & 0xff) << 8)
-			     | ((b1 & 0xff) << 0);
-			if (value > (32768-1)) value = -65536 + value;
-			return value;
+	private void retune() {
+		// auto tune
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK) > TRACK_SIGNAL_THRESHOLD) {
+			if (Config.passManager.getState() == PassManager.DECODE  ||
+					Config.passManager.getState() == PassManager.ANALYZE) {
+				tuneDelay++;
+			} else if (Config.passManager.getState() == PassManager.FADED) {
+				// don't tune, just wait, it does not move far enough in the fade period
+			} else {
+				tuneDelay = TUNE_THRESHOLD;
+			}
+			if (tuneDelay == TUNE_THRESHOLD) {
+				tuneDelay = 0;
+				// move half the distance to the bin
+				int targetBin = 0;
+				if (Config.findSignal)
+					targetBin = rfData.getBinOfStrongestSignal();
+				else
+					targetBin = rfData.getBinOfPeakSignal();
+				int move = targetBin - selectedBin;
+				if (targetBin < selectedBin) {
+					if (move > 100)
+						selectedBin -= 50;
+					else
+						if (move > 10)
+							selectedBin -= 5;
+						else
+							selectedBin--;
+				}
+				if (targetBin > selectedBin) {
+					if (move < -100)
+						selectedBin += 50;
+					else if (move < -10)
+						selectedBin += 5;
+					else
+						selectedBin++;
+				}
+				if (Config.findSignal) {
+					if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
+						Config.selectedBin = selectedBin;
+				} else
+					Config.selectedBin = selectedBin;
+			}
 		}
+	}
+	public static int littleEndian2(byte b[]) {
+		byte b1 = b[0];
+		byte b2 = b[1];
+		int value =  ((b2 & 0xff) << 8)
+				| ((b1 & 0xff) << 0);
+		if (value > (32768-1)) value = -65536 + value;
+		return value;
+	}
 
 	private int getSelectionFromBin(int bin) {
 		int selection;
@@ -243,14 +289,11 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				s = f2.format(labels[v]);
 			else
 				s = f1.format(labels[v]);
-			if (v < numberOfLabels-1 
-					&& !(v == 0 && pos > graphHeight)
-					) {
+			if (v < numberOfLabels-1 && !(v == 0 && pos > graphHeight)) {
 				g2.setColor(graphTextColor);
 				g.drawString(s, sideLabel, pos+topBorder+4); // add 4 to line up with tick line
 				g2.setColor(graphAxisColor);
 				g.drawLine(sideBorder-5, pos+topBorder, sideBorder+5, pos+topBorder);
-
 			}
 		}
 		
@@ -352,49 +395,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					g.drawString("* " , strongestBin, strongestpeak - 5  );
 					//				g.drawString("* " + strong + "dB" , strongestBin, strongestpeak - 10  );
 				}
-				// auto tune
-				if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK) > TRACK_SIGNAL_THRESHOLD) {
-					if (Config.passManager.getState() == PassManager.DECODE  ||
-							Config.passManager.getState() == PassManager.ANALYZE) {
-						tuneDelay++;
-					} else if (Config.passManager.getState() == PassManager.FADED) {
-						// don't tune, just wait, it does not move far enough in the fade period
-					} else {
-						tuneDelay = TUNE_THRESHOLD;
-					}
-					if (tuneDelay == TUNE_THRESHOLD) {
-						tuneDelay = 0;
-						// move half the distance to the bin
-						int targetBin = 0;
-						if (Config.findSignal)
-							targetBin = rfData.getBinOfStrongestSignal();
-						else
-							targetBin = rfData.getBinOfPeakSignal();
-						int move = targetBin - selectedBin;
-						if (targetBin < selectedBin) {
-								if (move > 100)
-									selectedBin -= 50;
-								else
-								if (move > 10)
-									selectedBin -= 5;
-								else
-							selectedBin--;
-						}
-						if (targetBin > selectedBin) {
-								if (move < -100)
-									selectedBin += 50;
-								else if (move < -10)
-									selectedBin += 5;
-								else
-							selectedBin++;
-						}
-						if (Config.findSignal) {
-							if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
-								Config.selectedBin = selectedBin;
-						} else
-							Config.selectedBin = selectedBin;
-					}
-				}
+				
 			} else {
 				Log.println("RF DATA NULL");
 			}
