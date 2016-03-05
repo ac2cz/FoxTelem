@@ -618,7 +618,7 @@ public class GraphPanel extends JPanel {
 				}
 				if (!graphFrame.hideMain) {
 					if (!graphFrame.hideLines) g2.drawLine(lastx, lasty, x, y);
-					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x, y, 2,2));
+					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x-1, y-1, 2,2));
 				}
 				
 				if (graphFrame.plotDerivative) {
