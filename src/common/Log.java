@@ -90,6 +90,8 @@ public class Log {
 		    	PrintWriter pw = new PrintWriter(sw);
 		    	ex.printStackTrace(pw);
 		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
+		        if (!showGuiDialogs) // this is the server
+		        	alert("Uncaught exception.  Need to clear the ALERT and restart the server:\n" + sw.toString());
 		    }
 		};
 	}

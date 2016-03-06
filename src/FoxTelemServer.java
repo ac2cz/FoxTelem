@@ -7,9 +7,11 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import telemServer.ImageProcess;
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
+import telemetry.PayloadDbStore;
 import common.Config;
 import common.Log;
 
@@ -39,15 +41,19 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.14 - 25 February 2016";
+	public static String version = "Version 0.15 - 6 March 2016";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
 	static int poolSize = 100; // max number of threads
 	static final String usage = "FoxServer user database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
 			+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
-			+ "-f <dir> - Process all of the stp files in the specified directory and fix the STP_HEADER table db\n"
+			+ "-f <dir> - Read the stp files in the specified directory and fix the STP_HEADER table db\n"
 			+ "-r - Reprocess the radiation data and generate the secondary payloads\n";
+	
+	static Thread imageThread;
+	static ImageProcess imageProcess;
+	
 	public static void main(String[] args) throws IOException {
 		if (args.length == 1) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
@@ -148,7 +154,12 @@ public class FoxTelemServer {
 
         //ServerProcess process = null;
         //Thread processThread;
-
+        
+        // Start the background image processing thread
+        imageProcess = new ImageProcess();
+        imageThread = new Thread(imageProcess);
+        imageThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+        imageThread.start();
         
         while (listening) {
         	try {

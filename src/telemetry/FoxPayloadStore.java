@@ -1,6 +1,7 @@
 package telemetry;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 
 import measure.Measurement;
@@ -88,6 +89,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract boolean add(int id, PassMeasurement m);
 	public abstract boolean addStpHeader(Frame f); // add the stp header records to the db
 	public abstract boolean updateStpHeader(Frame f) throws StpFileProcessException; // add the stp header records to the db
+	
+	public abstract boolean processNewImageLines() throws SQLException, IOException; // process new lines once they are received.  Called from the server only
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 

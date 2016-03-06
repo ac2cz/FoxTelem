@@ -824,4 +824,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public boolean processNewImageLines() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
 }
