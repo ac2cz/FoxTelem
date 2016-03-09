@@ -366,25 +366,26 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 			
-			if (Config.displayRawRadData != showRawBytes.isSelected()) {
-				showRawBytes.setSelected(Config.displayRawRadData);
-				parseRadiationFrames();
-			}
-			if (Config.displayRawValues != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawValues);
-				updateTab(Config.payloadStore.getLatestRadTelem(foxId));
-			}
-
-			if (foxId != 0)
-				if (Config.payloadStore.getUpdatedRad(foxId)) {
-					//radPayload = Config.payloadStore.getLatestRad(foxId);
-					Config.payloadStore.setUpdatedRad(foxId, false);
-
+			if (foxId != 0 && Config.payloadStore.initialized()) {
+				if (Config.displayRawRadData != showRawBytes.isSelected()) {
+					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
-					MainWindow.setTotalDecodes();
 				}
-			
+				if (Config.displayRawValues != showRawValues.isSelected()) {
+					showRawValues.setSelected(Config.displayRawValues);
+					updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+				}
+
+				if (foxId != 0)
+					if (Config.payloadStore.getUpdatedRad(foxId)) {
+						//radPayload = Config.payloadStore.getLatestRad(foxId);
+						Config.payloadStore.setUpdatedRad(foxId, false);
+
+						parseRadiationFrames();
+						displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
+						MainWindow.setTotalDecodes();
+					}
+			}
 		}
 		done = true;
 	}

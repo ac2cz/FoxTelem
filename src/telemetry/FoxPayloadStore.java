@@ -14,7 +14,9 @@ import common.Log;
 import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {
-
+	protected boolean loaded = false; // set this to true once we have completed initial start up to prevent graphs reading null data
+	
+	public boolean initialized() { return loaded; }
 	public abstract boolean hasQueuedFrames();
 
 	public abstract boolean hasQueuedMeasurements();

@@ -597,30 +597,31 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			} catch (InterruptedException e) {
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
-			} 			
-			if (Config.displayRawRadData != showRawBytes.isSelected()) {
-				showRawBytes.setSelected(Config.displayRawRadData);
-				parseRadiationFrames();
 			}
-			if (Config.displayRawValues != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawValues);
-				updateTab(Config.payloadStore.getLatestRadTelem(foxId));
-			}
-
-			if (foxId != 0)
-				if (Config.payloadStore.getUpdatedRad(foxId)) {
-					//radPayload = Config.payloadStore.getLatestRad(foxId);
-					Config.payloadStore.setUpdatedRad(foxId, false);
-
+			if (Config.payloadStore.initialized()) {
+				if (Config.displayRawRadData != showRawBytes.isSelected()) {
+					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
-					MainWindow.setTotalDecodes();
-					if (justStarted) {
-						openGraphs();
-						justStarted = false;
-					}
 				}
-			
+				if (Config.displayRawValues != showRawValues.isSelected()) {
+					showRawValues.setSelected(Config.displayRawValues);
+					updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+				}
+
+				if (foxId != 0)
+					if (Config.payloadStore.getUpdatedRad(foxId)) {
+						//radPayload = Config.payloadStore.getLatestRad(foxId);
+						Config.payloadStore.setUpdatedRad(foxId, false);
+
+						parseRadiationFrames();
+						displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
+						MainWindow.setTotalDecodes();
+						if (justStarted) {
+							openGraphs();
+							justStarted = false;
+						}
+					}
+			}
 		}
 		done = true;
 	}
