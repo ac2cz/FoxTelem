@@ -370,10 +370,11 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 	
+			
 			if (Config.displayRawValues != showRawValues.isSelected()) {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
-			if (foxId != 0) {
+			if (foxId != 0 && Config.payloadStore.initialized()) {
 				if (Config.payloadStore.getUpdatedMax(foxId)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null)

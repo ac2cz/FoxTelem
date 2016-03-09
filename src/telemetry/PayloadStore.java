@@ -52,6 +52,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public static final int RESETS_COL = 2;
 	public static final int UTC_COL = 3;
 	private boolean running = true;
+	
 	@SuppressWarnings("unused")
 	private boolean done = false;
 	
@@ -119,6 +120,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		}
 		
 		fileProgress.updateProgress(100);
+		loaded = true;
 	}
 	
 	/**
@@ -142,6 +144,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		
 		return false;
 	}
+	
+	
+	
 	public boolean hasQueuedFrames() {
 		if (payloadQueue.size() > 0) return true;
 		return false;

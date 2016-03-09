@@ -343,7 +343,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 				Log.println("ERROR: HERCI thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
-			if (foxId != 0)
+			if (foxId != 0 && Config.payloadStore.initialized()) {
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					if (hsPayload != null)
@@ -363,7 +363,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 					displayFramesDecoded(Config.payloadStore.getNumberOfHerciFrames(foxId));
 					MainWindow.setTotalDecodes();
 				}
-						
+			}
 		}
 		done = true;
 	}
