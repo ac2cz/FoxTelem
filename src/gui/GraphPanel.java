@@ -208,8 +208,11 @@ public class GraphPanel extends JPanel {
 		// calculate number of labels we need on vertical axis
 		int numberOfLabels = (graphHeight)/labelHeight;
 		
+		boolean intStep = false;
+		if (graphType == BitArrayLayout.CONVERT_INTEGER)
+			intStep = true;
 		// calculate the label step size
-		double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels);
+		double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, intStep);
 		// check the actual number
 		numberOfLabels = labels.length;
 		
@@ -493,7 +496,7 @@ public class GraphPanel extends JPanel {
 		if (drawLabels && (numberOfTimeLabels > 0 || !graphFrame.showContinuous) 
 				&& (numberOfTimeLabels > 0 || start < graphData[PayloadStore.RESETS_COL].length-1)) {  
 			// calculate the label step size
-			double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels);
+			double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, true);
 			numberOfTimeLabels = timelabels.length;
 			int resets = (int) graphData[PayloadStore.RESETS_COL][start];
 
@@ -644,24 +647,20 @@ public class GraphPanel extends JPanel {
 
 	/**
 	 * Given a number of ticks across a window and the range, calculate the tick size
-	 * and return an array of tick values to use on an axis.  It will have one of the following step sizes:
-	 * 0.01
-	 * 0.1
-	 * 1
-	 * 10
-	 * 100
-	 * 1000
+	 * and return an array of tick values to use on an axis.  It will have one of the step sizes
+	 * calculated by the stepFunction
+	 * 
 	 * @param range
 	 * @param ticks
 	 * @return
 	 */
-	static double[] calcAxisInterval(double min, double max, int ticks) {
+	static double[] calcAxisInterval(double min, double max, int ticks, boolean intStep) {
 		double range = max - min;
 		if (ticks ==0) ticks = 1;
 		double step = 0.0;
 		
 		// From the range and the number of ticks, work out a suitable tick size
-		step = getStep(range, ticks);
+		step = getStep(range, ticks, intStep);
 		// Now find the first value before the minimum.
 		double startValue = roundToSignificantFigures(Math.round(min/step) * step, 6);
 
@@ -674,11 +673,11 @@ public class GraphPanel extends JPanel {
 //		}
 		if (ticks > MAX_TICKS) {
 			ticks = MAX_TICKS;  // safety check
-			step = getStep(range, ticks);
+			step = getStep(range, ticks, intStep);
 		}
 		if (ticks < 0) {
 			ticks = 1;
-			step = getStep(range, ticks);
+			step = getStep(range, ticks, intStep);
 		}
 		
 		double[] tickList = new double[ticks];
@@ -702,50 +701,53 @@ public class GraphPanel extends JPanel {
 		return tickList;
 	}
 
-	private static double getStep(double range, int ticks) {
+	private static double getStep(double range, int ticks, boolean intStep) {
 		double step = 0;
-		if (range/ticks <= 0.01) step = 0.01d;
-		else if (range/ticks <= 0.1) step = 0.10d;
-		else if (range/ticks <= 0.2) step = 0.20d;
-		else if (range/ticks <= 0.25) step = 0.25d;
-		else if (range/ticks <= 0.33) step = 0.33d;
-		else if (range/ticks <= 0.5) step = 0.50d;
+		
+		if (!intStep && range/ticks <= 0.01) step = 0.01d;
+		else if (!intStep && range/ticks <= 0.1) step = 0.10d;
+		else if (!intStep && range/ticks <= 0.2) step = 0.20d;
+		else if (!intStep && range/ticks <= 0.25) step = 0.25d;
+		else if (!intStep && range/ticks <= 0.33) step = 0.33d;
+		else if (!intStep && range/ticks <= 0.5) step = 0.50d;
 		else if (range/ticks <= 1) step = 1.00d;
 		else if (range/ticks <= 2) step = 2.00d;
-		else if (range/ticks <= 2.5) step = 2.50d;
-		else if (range/ticks <= 3.3) step = 3.33d;
+		else if (!intStep && range/ticks <= 2.5) step = 2.50d;
+		else if (!intStep && range/ticks <= 3.3) step = 3.33d;
 		else if (range/ticks <= 5) step = 5.00d;
 		else if (range/ticks <= 10) step = 10.00d;
 		else if (range/ticks <= 25) step = 25.00d;
-		else if (range/ticks <= 33) step = 33.33d;
+		else if (!intStep && range/ticks <= 33) step = 33.33d;
 		else if (range/ticks <= 50) step = 50.00d;
 		else if (range/ticks <= 100) step = 100.00d;
 		else if (range/ticks <= 200) step = 200.00d;
 		else if (range/ticks <= 250) step = 250.00d;
-		else if (range/ticks <= 333) step = 333.33d;
+		else if (!intStep && range/ticks <= 333) step = 333.33d;
 		else if (range/ticks <= 500) step = 500.00d;
 		else if (range/ticks <= 1000) step = 1000.00d;
 		else if (range/ticks <= 2000) step = 2000.00d;
 		else if (range/ticks <= 2500) step = 2500.00d;
-		else if (range/ticks <= 3333) step = 3333.33d;
+		else if (!intStep && range/ticks <= 3333) step = 3333.33d;
 		else if (range/ticks <= 5000) step = 5000.00d;
 		else if (range/ticks <= 10000) step = 10000.00d;
 		else if (range/ticks <= 20000) step = 20000.00d;
 		else if (range/ticks <= 25000) step = 25000.00d;
-		else if (range/ticks <= 33333) step = 33333.33d;
+		else if (!intStep && range/ticks <= 33333) step = 33333.33d;
 		else if (range/ticks <= 50000) step = 50000.00d;
 		else if (range/ticks <= 100000) step = 100000.00d;
 		else if (range/ticks <= 250000) step = 250000.00d;
-		else if (range/ticks <= 333333) step = 333333.33d;
+		else if (!intStep && range/ticks <= 333333) step = 333333.33d;
 		else if (range/ticks <= 500000) step = 500000.00d;
 		else if (range/ticks <= 1000000) step = 1000000.00d;
 		else if (range/ticks <= 2000000) step = 2000000.00d;
 		else if (range/ticks <= 2500000) step = 2500000.00d;
-		else if (range/ticks <= 3333333) step = 3333333.33d;
+		else if (!intStep && range/ticks <= 3333333) step = 3333333.33d;
 		else if (range/ticks <= 5000000) step = 5000000.00d;
 		else if (range/ticks <= 10000000) step = 10000000.00d;
 		return step;
 	}
+
+	
 	
 	public static double roundToSignificantFigures(double num, int n) {
 	    if(num == 0) {

@@ -269,7 +269,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int numberOfLabels = graphHeight/labelHeight;
 		
 		// calculate the label step size
-		double[] labels = GraphPanel.calcAxisInterval(minValue, maxValue, numberOfLabels);
+		double[] labels = GraphPanel.calcAxisInterval(minValue, maxValue, numberOfLabels, false);
 		// check the actual number
 		numberOfLabels = labels.length;
 		
@@ -459,7 +459,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		}
 		
 		// Draw the horizontal axis
-		double[] freqlabels = GraphPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels);
+		double[] freqlabels = GraphPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, false);
 
 		DecimalFormat d = new DecimalFormat("0");
 		for (int v=0; v < numberOfTimeLabels; v++) {

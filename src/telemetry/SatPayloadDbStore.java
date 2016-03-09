@@ -360,6 +360,7 @@ public class SatPayloadDbStore {
 			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
+			stmt.close();
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
 				//Log.println("DUPLICATE RECORD, not stored");
@@ -469,6 +470,10 @@ public class SatPayloadDbStore {
 	/**
 	 * This is called from the server image thread and will process any new Image lines that have been received since it
 	 * last ran.  New jpeg images are written to disk and existing jpegs are updated.
+	 * 
+	 * Note that image lines are in sets of three, but we process each line individually.  This is inefficient because
+	 * we effectively write the file three times over.  But this happens every 5 sseconds at most, so the overhead is low
+	 * If time permits this can be optimized to write the file once for each set of three lines.
 	 * 
 	 * @return
 	 * @throws SQLException 

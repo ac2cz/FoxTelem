@@ -329,7 +329,7 @@ public class SatPayloadTable {
 					while(i < tableIdx.size()) {
 						if (!tableIdx.get(i).isLoaded())
 							load(tableIdx.get(i));
-						total += tableIdx.get(i).records;
+						total += tableIdx.get(i++).records;
 						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 					}
 					break;
