@@ -211,7 +211,7 @@ public class Config {
 	// V1.03
 	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
-	static public boolean generateSecondaryPayloads = true;
+	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
