@@ -25,6 +25,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
@@ -40,6 +41,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -47,6 +49,7 @@ import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import fcd.FcdProDevice;
 
 /**
  * 
@@ -92,6 +95,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnPoints;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
+	private JComboBox cbAddVariable;
 	
 	public Spacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
@@ -261,10 +265,22 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		contentPane.add(footerPanel, BorderLayout.SOUTH);
 		footerPanel.setLayout(new BorderLayout(0,0));
 		JPanel footerPanelLeft = new JPanel();
+		JPanel footerPanelFarLeft = new JPanel();
 		JPanel footerPanelRight = new JPanel();
 		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
+		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
+		// make a list of the variables that we could plot
+		ArrayList<String> variables = new ArrayList<String>();
+		for (int v=0; v<sat.rtLayout.fieldName.length; v++) {
+			if (sat.rtLayout.conversion[v] == conversionType)
+				variables.add(sat.rtLayout.fieldName[v]);
+		}
+		Object[] fields = variables.toArray();
+		cbAddVariable = new JComboBox(fields);
+		footerPanelFarLeft.add(cbAddVariable);
+		
 		cbUptime = new JCheckBox("Show Uptime");
 		cbUptime.setSelected(!hideUptime);
 		cbUptime.addItemListener(this);
