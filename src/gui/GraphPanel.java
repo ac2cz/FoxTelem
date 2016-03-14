@@ -47,16 +47,16 @@ import telemetry.RadiationPacket;
 @SuppressWarnings("serial")
 public class GraphPanel extends JPanel {
 	Spacecraft fox;
-	double[][] graphData = null;
+	double[][][] graphData = null;
 	double[] firstDifference = null;
 	double[] dspData = null;
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
-	Color graphColor = Color.BLUE;
+	Color[] graphColor = {Color.BLUE, Color.green, Color.red, Color.darkGray, Color.cyan, Color.pink, Color.magenta, Color.orange, Color.yellow};
 	Color graphAxisColor = Color.BLACK;
 	Color graphTextColor = Color.DARK_GRAY;
 	
 	String title = "Test Graph";
-	String fieldName = null;
+	//String[] fieldName = null;
 	
 	HashMap<Integer, Long> maxPlottedUptimeForReset;
 	
@@ -81,11 +81,11 @@ public class GraphPanel extends JPanel {
 	private int graphType;
 	private int payloadType;
 	
-	GraphPanel(String t, String fieldName, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
+	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
 		title = t;
 		payloadType = plType;
 		graphType = conversionType;
-		this.fieldName = fieldName;
+		//this.fieldName = fieldName;
 		graphFrame = gf;
 		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
 		fox = sat;
@@ -93,21 +93,23 @@ public class GraphPanel extends JPanel {
 	}
 
 	public void updateGraphData(String by) {
-		if (payloadType == FramePart.TYPE_REAL_TIME)
-			graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_MAX_VALUES)
-			graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_MIN_VALUES)
-			graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-			graphData = Config.payloadStore.getRadTelemGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-			graphData = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-		else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
-			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-		
+		graphData = new double[graphFrame.fieldName.length][][];
+		for (int i=0; i<graphFrame.fieldName.length; i++) {
+			if (payloadType == FramePart.TYPE_REAL_TIME)
+				graphData[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_MAX_VALUES)
+				graphData[i] = Config.payloadStore.getMaxGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_MIN_VALUES)
+				graphData[i] = Config.payloadStore.getMinGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
+				graphData[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+				graphData[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
+				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		}
 		//System.err.println("-repaint by: " + by);
-		if (graphData != null && graphData[0].length > 0)
+		if (graphData != null && graphData[0][0].length > 0)
 			this.repaint();
 	}
 	
@@ -120,7 +122,8 @@ public class GraphPanel extends JPanel {
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		maxPlottedUptimeForReset = new HashMap();
-		if (graphData[0].length == 0) return;
+		if (graphData[0][0].length == 0) return;
+		
 		if (graphFrame.showUTCtime && !graphFrame.hideUptime) {
 			bottomBorder = (int)(Config.graphAxisFontSize*3.5);
 		} else {
@@ -151,11 +154,12 @@ public class GraphPanel extends JPanel {
 		double minValue = 99E99;
 	//	double maxValueAxisTwo = 0;
 	//	double minValueAxisTwo = 99E99;
-				
-		for (int i=0; i < graphData[0].length; i++) {
-			if (graphData[PayloadStore.DATA_COL][i] >= maxValue) maxValue = graphData[PayloadStore.DATA_COL][i];
-			if (graphData[PayloadStore.DATA_COL][i] <= minValue) minValue = graphData[PayloadStore.DATA_COL][i];
-		}
+
+		for (int j=0; j < graphFrame.fieldName.length; j++)
+			for (int i=0; i < graphData[j][0].length; i++) {
+				if (graphData[j][PayloadStore.DATA_COL][i] >= maxValue) maxValue = graphData[j][PayloadStore.DATA_COL][i];
+				if (graphData[j][PayloadStore.DATA_COL][i] <= minValue) minValue = graphData[j][PayloadStore.DATA_COL][i];
+			}
 
 		if (maxValue == minValue) {
 			if (graphType == BitArrayLayout.CONVERT_INTEGER) 
@@ -325,6 +329,7 @@ public class GraphPanel extends JPanel {
 		}
 
 		// Analyze the data for the horizontal axis next
+		// We only need to do this for the first data set (if there are multiple)
 		// First check to see if we have more than one reset
 		// Remember that the data STARTS with the most recent records and goes back in time
 		// We will also look for large jumps in the Uptime meaning that data was taken from a later day or pass
@@ -332,24 +337,24 @@ public class GraphPanel extends JPanel {
 		ArrayList<Integer> resetPosition = new ArrayList<Integer>();
 		resetPosition.add(0); // We have a reset at position 0 of course
 		
-		double currentReset = graphData[PayloadStore.RESETS_COL][0];
-		double lastUptime = graphData[PayloadStore.UPTIME_COL][0];
+		double currentReset = graphData[0][PayloadStore.RESETS_COL][0];
+		double lastUptime = graphData[0][PayloadStore.UPTIME_COL][0];
 		
-		for (int i=1; i < graphData[PayloadStore.RESETS_COL].length; i++) {
-			if (graphData[PayloadStore.RESETS_COL][i] != currentReset) {
+		for (int i=1; i < graphData[0][PayloadStore.RESETS_COL].length; i++) {
+			if (graphData[0][PayloadStore.RESETS_COL][i] != currentReset) {
 				// We have another reset in this data
 				// Add this position to the array.  It is the FIRST piece of data that has this reset
 				resetPosition.add(i);
-				currentReset = graphData[PayloadStore.RESETS_COL][i];
+				currentReset = graphData[0][PayloadStore.RESETS_COL][i];
 			} else {
 				if (graphFrame.UPTIME_THRESHOLD != GraphFrame.CONTINUOUS_UPTIME_THRESHOLD)
 					// We dont have a reset, but maybe a big gap in the data
-					if ((graphData[PayloadStore.UPTIME_COL][i] - lastUptime) > graphFrame.UPTIME_THRESHOLD) {
+					if ((graphData[0][PayloadStore.UPTIME_COL][i] - lastUptime) > graphFrame.UPTIME_THRESHOLD) {
 						resetPosition.add(i);
-						currentReset = graphData[PayloadStore.RESETS_COL][i];
+						currentReset = graphData[0][PayloadStore.RESETS_COL][i];
 					}
 			}
-			lastUptime = graphData[PayloadStore.UPTIME_COL][i];
+			lastUptime = graphData[0][PayloadStore.UPTIME_COL][i];
 		}
 
 		int titleHeight = Config.graphAxisFontSize+10;
@@ -399,7 +404,7 @@ public class GraphPanel extends JPanel {
 			int width = 0;
 			int start = resetPosition.get(r); // The position in the data array that this reset starts
 			int end = 0; // The position in the data array that this reset starts. It is one before the next reset or the end of the data
-			int len = graphData[PayloadStore.DATA_COL].length;
+			int len = graphData[0][PayloadStore.DATA_COL].length;
 			startScreenPos = sideBorder + (graphWidth * start)/len;
 			if (r == resetPosition.size()-1) // then we are at the last reset
 				end = len; // this reset runs to the end of the data
@@ -451,7 +456,7 @@ public class GraphPanel extends JPanel {
 			for (int i=graphFrame.AVG_PERIOD/2; i < graphData[0].length-graphFrame.AVG_PERIOD/2; i++) {
 				sum = 0;
 				for (int j=0; j< graphFrame.AVG_PERIOD; j++)
-					sum += graphData[PayloadStore.DATA_COL][i+j-graphFrame.AVG_PERIOD/2];
+					sum += graphData[0][PayloadStore.DATA_COL][i+j-graphFrame.AVG_PERIOD/2];
 				sum = sum / (double)(graphFrame.AVG_PERIOD);
 				dspData[i] = sum;
 				if (first) {
@@ -467,16 +472,16 @@ public class GraphPanel extends JPanel {
 		double maxTimeValue = 0;
 		double minTimeValue = 99999999;
 		for (int i=start; i < end; i++) {
-			if (graphData[PayloadStore.UPTIME_COL][i] >= maxTimeValue) maxTimeValue = graphData[PayloadStore.UPTIME_COL][i];
-			if (graphData[PayloadStore.UPTIME_COL][i] <= minTimeValue) minTimeValue = graphData[PayloadStore.UPTIME_COL][i];
+			if (graphData[0][PayloadStore.UPTIME_COL][i] >= maxTimeValue) maxTimeValue = graphData[0][PayloadStore.UPTIME_COL][i];
+			if (graphData[0][PayloadStore.UPTIME_COL][i] <= minTimeValue) minTimeValue = graphData[0][PayloadStore.UPTIME_COL][i];
 			if (graphFrame.plotDerivative && i > 0) {
-				double value = graphData[PayloadStore.DATA_COL][i];
-				double value2 = graphData[PayloadStore.DATA_COL][i-1];
+				double value = graphData[0][PayloadStore.DATA_COL][i];
+				double value2 = graphData[0][PayloadStore.DATA_COL][i-1];
 				if (graphType == BitArrayLayout.CONVERT_FREQ) {
 					value = value - freqOffset;
 					value2 = value2 - freqOffset;
 				}
-				firstDifference[i] = 5 * ((value - value2) / (graphData[PayloadStore.UPTIME_COL][i]-graphData[PayloadStore.UPTIME_COL][i-1]));
+				firstDifference[i] = 5 * ((value - value2) / (graphData[0][PayloadStore.UPTIME_COL][i]-graphData[0][PayloadStore.UPTIME_COL][i-1]));
 			//	if (firstDifference[i] < minValue) minValue = firstDifference[i];
 				//	if (firstDifference[i] > maxValue) maxValue = firstDifference[i];
 			}
@@ -494,11 +499,11 @@ public class GraphPanel extends JPanel {
 		// for non continuous graphs the calling function makes sure there is room, so we will always draw one,
 		// except if this is the last reset, because we dont want to draw a label off the right end of the graph
 		if (drawLabels && (numberOfTimeLabels > 0 || !graphFrame.showContinuous) 
-				&& (numberOfTimeLabels > 0 || start < graphData[PayloadStore.RESETS_COL].length-1)) {  
+				&& (numberOfTimeLabels > 0 || start < graphData[0][PayloadStore.RESETS_COL].length-1)) {  
 			// calculate the label step size
 			double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, true);
 			numberOfTimeLabels = timelabels.length;
-			int resets = (int) graphData[PayloadStore.RESETS_COL][start];
+			int resets = (int) graphData[0][PayloadStore.RESETS_COL][start];
 
 			boolean firstLabel = true;
 			DecimalFormat d = new DecimalFormat("0");
@@ -565,82 +570,84 @@ public class GraphPanel extends JPanel {
 			//spaceSize = graphWidth/(end - start);
 		}
 
-		int lastx = sideBorder+1; 
-		int lastx2 = sideBorder+1;
-		int lasty = graphHeight/2;
-		int lasty2 = graphHeight/2;
-		int lasty3 = graphHeight/2;
-		int x = 0;
-		int x2 = 0;
-		int y = 0;
-		int y2=0;
-		int y3=0;
 	//	int skip = 0;
-		g2.setColor(graphColor);
 		
 		if (graphData != null)
-			for (int i=start; i < end; i+=stepSize) {
+			for (int j=0; j<graphFrame.fieldName.length; j++) {
+				int lastx = sideBorder+1; 
+				int lastx2 = sideBorder+1;
+				int lasty = graphHeight/2;
+				int lasty2 = graphHeight/2;
+				int lasty3 = graphHeight/2;
+				int x = 0;
+				int x2 = 0;
+				int y = 0;
+				int y2=0;
+				int y3=0;
+				for (int i=start; i < end; i+=stepSize) {
 
-				// calculate the horizontal position of this point based on the number of points and the width
-				x = getRatioPosition(minTimeValue, maxTimeValue, graphData[PayloadStore.UPTIME_COL][i], graphWidth);
-				x = x + sideBorder;
-				x2 = (x + lastx)/2; // position for the first deriv
-//				System.out.println(x + " graphData " + graphData[i]);
-								
-				// Calculate the ratio from min to max
-				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT 
-						|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS ) 
-					//if (graphFrame.displayMain)
-						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]+1, graphHeight);
-				else if (graphType == BitArrayLayout.CONVERT_FREQ) {
-					//if (graphFrame.displayMain)
-						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i]-freqOffset, graphHeight);
-					if (graphFrame.plotDerivative)
-						y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
-					if (graphFrame.dspAvg)
-						y3 = getRatioPosition(minValue, maxValue, dspData[i]-freqOffset, graphHeight);
-				} else {
-					//if (graphFrame.displayMain)
-						y = getRatioPosition(minValue, maxValue, graphData[PayloadStore.DATA_COL][i], graphHeight);
-					if (graphFrame.plotDerivative)
-						y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
-					if (graphFrame.dspAvg)
-						y3 = getRatioPosition(minValue, maxValue, dspData[i], graphHeight);
+					// calculate the horizontal position of this point based on the number of points and the width
+					x = getRatioPosition(minTimeValue, maxTimeValue, graphData[j][PayloadStore.UPTIME_COL][i], graphWidth);
+					x = x + sideBorder;
+					x2 = (x + lastx)/2; // position for the first deriv
+					//				System.out.println(x + " graphData " + graphData[i]);
+
+					// Calculate the ratio from min to max
+					if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT 
+							|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS ) 
+						//if (graphFrame.displayMain)
+						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]+1, graphHeight);
+					else if (graphType == BitArrayLayout.CONVERT_FREQ) {
+						//if (graphFrame.displayMain)
+						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]-freqOffset, graphHeight);
+						if (graphFrame.plotDerivative)
+							y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
+						if (graphFrame.dspAvg)
+							y3 = getRatioPosition(minValue, maxValue, dspData[i]-freqOffset, graphHeight);
+					} else {
+						//if (graphFrame.displayMain)
+						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i], graphHeight);
+						if (graphFrame.plotDerivative)
+							y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
+						if (graphFrame.dspAvg)
+							y3 = getRatioPosition(minValue, maxValue, dspData[i], graphHeight);
+					}
+					y=graphHeight-y+topBorder;
+					y2=graphHeight-y2+topBorder;
+					y3=graphHeight-y3+topBorder;
+
+					//				System.out.println(x + " value " + value);
+					if (i == start) {
+						lastx=x;
+						lastx2=x2;
+						lasty=y;
+						lasty2=y2;
+						lasty3=y3;
+					}
+					if (!graphFrame.hideMain) {
+						g2.setColor(graphColor[j]);
+						if (!graphFrame.hideLines) g2.drawLine(lastx, lasty, x, y);
+						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x-1, y-1, 2,2));
+					}
+
+					if (graphFrame.plotDerivative) {
+						g2.setColor(Config.AMSAT_RED);
+						if (!graphFrame.hideLines) g2.drawLine(lastx2, lasty2, x2, y2);
+						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x2, y2,2,2));
+					}
+					if (graphFrame.dspAvg) {
+						g2.setColor(Config.AMSAT_GREEN);
+						if (!graphFrame.hideLines) g2.drawLine(lastx, lasty3, x, y3);
+						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x, y3,2,2));
+					}
+
+					
+					lastx = x;
+					lastx2 = x2;
+					lasty = y;
+					lasty2 = y2;
+					lasty3 = y3;
 				}
-			y=graphHeight-y+topBorder;
-			y2=graphHeight-y2+topBorder;
-			y3=graphHeight-y3+topBorder;
-				
-//				System.out.println(x + " value " + value);
-				if (i == start) {
-					lastx=x;
-					lastx2=x2;
-					lasty=y;
-					lasty2=y2;
-					lasty3=y3;
-				}
-				if (!graphFrame.hideMain) {
-					if (!graphFrame.hideLines) g2.drawLine(lastx, lasty, x, y);
-					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x-1, y-1, 2,2));
-				}
-				
-				if (graphFrame.plotDerivative) {
-					g2.setColor(Config.AMSAT_RED);
-					if (!graphFrame.hideLines) g2.drawLine(lastx2, lasty2, x2, y2);
-					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x2, y2,2,2));
-				}
-				if (graphFrame.dspAvg) {
-					g2.setColor(Config.AMSAT_GREEN);
-					if (!graphFrame.hideLines) g2.drawLine(lastx, lasty3, x, y3);
-					if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x, y3,2,2));
-				}
-				
-				g2.setColor(graphColor);
-				lastx = x;
-				lastx2 = x2;
-				lasty = y;
-				lasty2 = y2;
-				lasty3 = y3;
 			}
 	}
 
@@ -658,7 +665,7 @@ public class GraphPanel extends JPanel {
 		double range = max - min;
 		if (ticks ==0) ticks = 1;
 		double step = 0.0;
-		
+
 		// From the range and the number of ticks, work out a suitable tick size
 		step = getStep(range, ticks, intStep);
 		// Now find the first value before the minimum.

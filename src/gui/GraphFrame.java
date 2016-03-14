@@ -75,7 +75,7 @@ import fcd.FcdProDevice;
 @SuppressWarnings("serial")
 public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener, FocusListener {
 
-	private String fieldName;
+	public String[] fieldName;
 	String displayTitle;
 	private int payloadType;
 	private JPanel contentPane;
@@ -96,6 +96,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
 	private JComboBox cbAddVariable;
+	private ArrayList<String> variables;
 	
 	public Spacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
@@ -144,7 +145,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public GraphFrame(String title, String fieldName, int conversionType, int plType, Spacecraft sat) {
 		fox = sat;
-		this.fieldName = fieldName;
+		this.fieldName = new String[1];
+		this.fieldName[0] = fieldName;
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
@@ -187,7 +189,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
 		} else {
-			panel = new GraphPanel(title, fieldName, conversionType, payloadType, this, sat);
+			panel = new GraphPanel(title, conversionType, payloadType, this, sat);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
@@ -272,7 +274,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
 		// make a list of the variables that we could plot
-		ArrayList<String> variables = new ArrayList<String>();
+		variables = new ArrayList<String>();
 		for (int v=0; v<sat.rtLayout.fieldName.length; v++) {
 			if (sat.rtLayout.conversion[v] == conversionType)
 				variables.add(sat.rtLayout.fieldName[v]);
@@ -280,6 +282,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Object[] fields = variables.toArray();
 		cbAddVariable = new JComboBox(fields);
 		footerPanelFarLeft.add(cbAddVariable);
+		cbAddVariable.addActionListener(this);
 		
 		cbUptime = new JCheckBox("Show Uptime");
 		cbUptime.setSelected(!hideUptime);
@@ -403,62 +406,62 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public void saveProperties(boolean open) {
 		//Log.println("Saving graph properties: " + fieldName);
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowHeight", this.getHeight());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowWidth", this.getWidth());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowX", this.getX());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowY", this.getY());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowHeight", this.getHeight());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowWidth", this.getWidth());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowX", this.getX());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowY", this.getY());
 		
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "numberOfSamples", this.SAMPLES);
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "fromReset", this.START_RESET);
-		Config.saveGraphLongParam(fox.getIdString(), fieldName, "fromUptime", this.START_UPTIME);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "open", open);
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "numberOfSamples", this.SAMPLES);
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), fieldName[0], "fromUptime", this.START_UPTIME);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "open", open);
 		
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideMain", hideMain);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideLines", hideLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hidePoints", hidePoints);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "plotDerivative", plotDerivative);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "dspAvg", dspAvg);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showVerticalLines", showVerticalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showHorizontalLines", showHorizontalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showUTCtime", showUTCtime);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideUptime", hideUptime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideMain", hideMain);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideLines", hideLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hidePoints", hidePoints);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "plotDerivative", plotDerivative);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "dspAvg", dspAvg);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showVerticalLines", showVerticalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showHorizontalLines", showHorizontalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showUTCtime", showUTCtime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideUptime", hideUptime);
 		
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "AVG_PERIOD", AVG_PERIOD);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showContinuous", showContinuous);
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "AVG_PERIOD", AVG_PERIOD);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showContinuous", showContinuous);
 	}
 
 	public boolean loadProperties() {
-		int windowX = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowX");
-		int windowY = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowY");
-		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowWidth");
-		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowHeight");
+		int windowX = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowX");
+		int windowY = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowY");
+		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowWidth");
+		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0)
 			setBounds(100, 100, 740, 400);
 		else
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 
-		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), fieldName, "numberOfSamples");
+		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "numberOfSamples");
 		if (SAMPLES == 0) SAMPLES = DEFAULT_SAMPLES;
 		if (SAMPLES > MAX_SAMPLES) {
 			SAMPLES = MAX_SAMPLES;
 		}
 			
-		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), fieldName, "fromReset");
-		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), fieldName, "fromUptime");
-		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "open");
-		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideMain");
-		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideLines");
-		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hidePoints");
-		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "plotDerivative");
-		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "dspAvg");
-		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showVerticalLines");
-		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showHorizontalLines");
-		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showUTCtime");
-		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideUptime");
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), fieldName[0], "fromUptime");
+		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "open");
+		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideMain");
+		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideLines");
+		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hidePoints");
+		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "plotDerivative");
+		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "dspAvg");
+		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showVerticalLines");
+		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showHorizontalLines");
+		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showUTCtime");
+		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideUptime");
 		
-		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName, "AVG_PERIOD");
+		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "AVG_PERIOD");
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
-		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showContinuous");
+		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 		return open;
 	}
@@ -579,7 +582,37 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.txtSamplePeriod) {
+		if (e.getSource() == cbAddVariable) {
+			int position = cbAddVariable.getSelectedIndex();
+			int fields = fieldName.length;
+			String[] temp = new String[fields];
+			int i = 0;
+			boolean toggle = false;
+			for (String s: fieldName) {
+				temp[i++] = s;
+				if (s.equalsIgnoreCase(variables.get(position))) toggle=true;
+			}
+			
+			if (toggle && fieldName.length > 1) {
+				// we remove this entry
+				fieldName = new String[fields-1];
+				i=0;
+				for (String s: temp)
+					if (!s.equalsIgnoreCase(variables.get(position)))
+						fieldName[i++] = s;
+				
+			} else {
+				// we add it
+				fieldName = new String[fields+1];
+				i=0;
+				for (String s: temp)
+					fieldName[i++] = s;
+				fieldName[i] = variables.get(position);
+				
+			}
+			panel.updateGraphData("GraphFrame:stateChange:addVariable");
+		}
+		else if (e.getSource() == this.txtSamplePeriod) {
 			parseTextFields();
 			
 		} else if (e.getSource() == this.textFromReset) {
@@ -759,24 +792,29 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			else
 				panel.updateGraphData("GraphFrame:stateChange:Uptime");
 		}
+		
 	}
 
 	private void saveToCSV(File aFile) throws IOException {
-		double[][] graphData = null;
+		double[][][] graphData = null;
 		
-		if (payloadType == FramePart.TYPE_REAL_TIME)
-			graphData = Config.payloadStore.getRtGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_MAX_VALUES)
-			graphData = Config.payloadStore.getMaxGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_MIN_VALUES)
-			graphData = Config.payloadStore.getMinGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-			graphData = Config.payloadStore.getRadTelemGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-			graphData = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-		else if  (payloadType == 0) // FIXME - type 0 is DEBUG  - measurement
-			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+		graphData = new double[fieldName.length][][];
 		
+		for (int j=0; j < fieldName.length; j++) {
+			if (payloadType == FramePart.TYPE_REAL_TIME)
+				graphData[j] = Config.payloadStore.getRtGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_MAX_VALUES)
+				graphData[j] = Config.payloadStore.getMaxGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_MIN_VALUES)
+				graphData[j] = Config.payloadStore.getMinGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
+				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+			else if  (payloadType == 0) // FIXME - type 0 is DEBUG  - measurement
+				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+
+		}
 		if (graphData != null) {
 			if(!aFile.exists()){
 				aFile.createNewFile();
@@ -786,11 +824,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			Writer output = new BufferedWriter(new FileWriter(aFile, false));
 
 			for (int i=0; i< graphData[0].length; i++) {
-				output.write( graphData[PayloadStore.RESETS_COL][i] + ", " +
-						graphData[PayloadStore.UPTIME_COL][i] + ", " +
-						graphData[PayloadStore.DATA_COL][i] + "\n" );
+				String s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +
+						graphData[0][PayloadStore.UPTIME_COL][i] ;
+				for (int j=0; j < fieldName.length; j++)				
+						s = s + ", " + graphData[j][PayloadStore.DATA_COL][i] + "\n";
+				
+				output.write(s); 
 			}
-
+			
 			output.flush();
 			output.close();
 
