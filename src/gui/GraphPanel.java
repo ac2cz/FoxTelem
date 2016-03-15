@@ -48,6 +48,7 @@ import telemetry.RadiationPacket;
 public class GraphPanel extends JPanel {
 	Spacecraft fox;
 	double[][][] graphData = null;
+	double[][][] graphData2 = null;
 	double[] firstDifference = null;
 	double[] dspData = null;
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
@@ -110,6 +111,23 @@ public class GraphPanel extends JPanel {
 			else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
 				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		}
+		if (graphFrame.fieldName2 != null && graphFrame.fieldName2.length > 0) {
+			graphData2 = new double[graphFrame.fieldName2.length][][];
+			for (int i=0; i<graphFrame.fieldName2.length; i++) {
+				if (payloadType == FramePart.TYPE_REAL_TIME)
+					graphData2[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_MAX_VALUES)
+					graphData2[i] = Config.payloadStore.getMaxGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_MIN_VALUES)
+					graphData2[i] = Config.payloadStore.getMinGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
+					graphData2[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+					graphData2[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
+					graphData2[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			}
+		}
 		//System.err.println("-repaint by: " + by);
 		if (graphData != null && graphData[0][0].length > 0)
 			this.repaint();
@@ -143,193 +161,19 @@ public class GraphPanel extends JPanel {
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
-		// Draw vertical axis - always in the same place
-		g2.drawLine(sideBorder, getHeight()-bottomBorder, sideBorder, topBorder);
-
-		
 		if (graphFrame.plotDerivative) {
 			firstDifference = new double[graphData[0][0].length];	
 		}
 
-		//Analyze the vertical data first because it also determines where we draw the baseline		 
-		double maxValue = 0;
-		double minValue = 99E99;
-	//	double maxValueAxisTwo = 0;
-	//	double minValueAxisTwo = 99E99;
-
-		for (int j=0; j < graphFrame.fieldName.length; j++)
-			for (int i=0; i < graphData[j][0].length; i++) {
-				if (graphData[j][PayloadStore.DATA_COL][i] >= maxValue) maxValue = graphData[j][PayloadStore.DATA_COL][i];
-				if (graphData[j][PayloadStore.DATA_COL][i] <= minValue) minValue = graphData[j][PayloadStore.DATA_COL][i];
-			}
-
-		if (maxValue == minValue) {
-			if (graphType == BitArrayLayout.CONVERT_INTEGER) 
-				maxValue = maxValue + 10;
-			else
-				maxValue = maxValue + 1;
+		double[] axisPoints2 = {0d, 0d, 0d};
+		if (graphData2 != null) {
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false);
 		}
 		
-		if (graphType == BitArrayLayout.CONVERT_SPIN) {
-			maxValue = 8;
-			minValue = -8;
-					
-		}
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines);
 
-		if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
-			maxValue = 5;
-			minValue = 0;
-					
-		}
-
+		int zeroPoint = (int) axisPoints[0];
 		
-		if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
-			maxValue = 2;
-			minValue = 0;		
-		}
-	
-		if (graphType == BitArrayLayout.CONVERT_FREQ) {
-			maxValue = maxValue - freqOffset;
-			minValue = minValue - freqOffset;
-		}
-		
-		if (graphFrame.plotDerivative) {
-			// We want to include zero in the graph
-			if (minValue > 0) minValue = maxValue * -0.1;
-			if (maxValue < 0) maxValue = minValue * -0.1;
-		}
-		// Scale the max and min values so we do not crash into the top and bottom of the window
-	//	if (graphType == BitArrayLayout.CONVERT_FREQ) {
-
-//		} else {
-		if (maxValue < 0)
-			maxValue = maxValue - maxValue * 0.20;
-		else
-			maxValue = maxValue + maxValue * 0.20;
-		if (minValue < 0)
-			minValue = minValue + minValue * 0.20;
-		else
-			minValue = minValue - minValue * 0.20;
-	//	}
-		// calculate number of labels we need on vertical axis
-		int numberOfLabels = (graphHeight)/labelHeight;
-		
-		boolean intStep = false;
-		if (graphType == BitArrayLayout.CONVERT_INTEGER)
-			intStep = true;
-		// calculate the label step size
-		double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, intStep);
-		// check the actual number
-		numberOfLabels = labels.length;
-		
-		boolean foundZeroPoint = false;
-		int zeroPoint = graphHeight + topBorder; // 10 is the default font size
-
-		DecimalFormat f1 = new DecimalFormat("0.0");
-		DecimalFormat f2 = new DecimalFormat("0");
-		
-		for (int v=0; v < numberOfLabels; v++) {
-			
-			int pos = getRatioPosition(minValue, maxValue, labels[v], graphHeight);
-			pos = graphHeight-pos;
-			String s = null;
-			if (labels[v] == Math.round(labels[v]))
-				s = f2.format(labels[v]);
-			else
-				s = f1.format(labels[v]);
-			// dont draw a label at the zero point or just below it because we have axis labels there
-			boolean drawLabel = true;
-			if (v < numberOfLabels-1 
-					&& !(labels[v] == 0.0 || labels[v+1] == 0.0)
-					&& !(v == 0 && pos > graphHeight)
-					) {
-				if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
-					drawLabel = false;
-					if (labels[v] == 1) {
-						s = "STWD";
-						drawLabel = true;
-					}
-					if (labels[v] == 2) {
-						s = "DEP";
-						drawLabel = true;
-					}
-					
-				} 
-				if (graphType == BitArrayLayout.CONVERT_STATUS_BIT) {
-					drawLabel = false;
-					if (labels[v] == 1) {
-						s = "OK";
-						drawLabel = true;
-					}
-					if (labels[v] == 2) {
-						s = "FAIL";
-						drawLabel = true;
-					}
-					
-				} 
-
-				if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
-					drawLabel = false;
-					if (labels[v] == 1) {
-						s = RadiationPacket.radPacketStateShort[0];
-						drawLabel = true;
-					}
-					if (labels[v] == 2) {
-						s = RadiationPacket.radPacketStateShort[1];
-						drawLabel = true;
-					}
-					if (labels[v] == 3) {
-						s = RadiationPacket.radPacketStateShort[2];
-						drawLabel = true;
-					}
-					if (labels[v] == 4) {
-						s = RadiationPacket.radPacketStateShort[3];
-						drawLabel = true;
-					}
-					if (labels[v] == 5) {
-						s = RadiationPacket.radPacketStateShort[4];
-						drawLabel = true;
-					}
-					
-				} 
-
-				
-				if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
-					drawLabel = false;
-					if (labels[v] == 2) {
-						s = "TRUE";
-						drawLabel = true;
-					}
-					if (labels[v] == 1) {
-						s = "FALSE";
-						drawLabel = true;
-					}
-					
-				} 
-				
-				if (drawLabel && pos > 0 && (pos < graphHeight-Config.graphAxisFontSize/2))	{ 
-					g2.setColor(graphTextColor);
-					g2.drawString(s, sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); // add 4 to line up with tick line
-					g2.setColor(graphAxisColor);
-					if (graphFrame.showHorizontalLines) {
-						g2.setColor(Color.GRAY);
-						g2.drawLine(sideBorder-5, pos+topBorder, graphWidth+sideBorder, pos+topBorder);
-						g2.setColor(graphTextColor);
-					} else
-						g.drawLine(sideBorder-5, pos+topBorder, sideBorder+5, pos+topBorder);
-				}
-			}
-			if (!foundZeroPoint) {
-				if (labels[v] >= 0) {
-					foundZeroPoint = true;
-					if ( v ==0 )
-						zeroPoint = graphHeight+topBorder; // 10 is the default font size;
-					else
-						zeroPoint = pos+topBorder;
-				}
-			}
-		}
-
 		// Analyze the data for the horizontal axis next
 		// We only need to do this for the first data set (if there are multiple)
 		// First check to see if we have more than one reset
@@ -421,11 +265,205 @@ public class GraphPanel extends JPanel {
 			} else {
 				drawLabels = false;
 			}
-			drawGraphForSingleReset(start, end, width, graphHeight, startScreenPos, zeroPoint, minValue, maxValue, drawLabels);
+			drawGraphForSingleReset(start, end, width, graphHeight, startScreenPos, zeroPoint, axisPoints[1], axisPoints[2], 
+					axisPoints2[1], axisPoints2[2], drawLabels);
 		}
 				
 	}
 	
+	private double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines) {
+		
+		// Draw vertical axis - always in the same place
+		g2.drawLine(sideBorder + axisPosition, getHeight()-bottomBorder, sideBorder+axisPosition, topBorder);
+		
+		//Analyze the vertical data first because it also determines where we draw the baseline		 
+				double maxValue = 0;
+				double minValue = 99E99;
+			//	double maxValueAxisTwo = 0;
+			//	double minValueAxisTwo = 99E99;
+
+				for (int j=0; j < graphData.length; j++)
+					for (int i=0; i < graphData[j][0].length; i++) {
+						if (graphData[j][PayloadStore.DATA_COL][i] >= maxValue) maxValue = graphData[j][PayloadStore.DATA_COL][i];
+						if (graphData[j][PayloadStore.DATA_COL][i] <= minValue) minValue = graphData[j][PayloadStore.DATA_COL][i];
+					}
+
+				if (maxValue == minValue) {
+					if (graphType == BitArrayLayout.CONVERT_INTEGER) 
+						maxValue = maxValue + 10;
+					else
+						maxValue = maxValue + 1;
+				}
+				
+				if (graphType == BitArrayLayout.CONVERT_SPIN) {
+					maxValue = 8;
+					minValue = -8;
+							
+				}
+
+				if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
+					maxValue = 5;
+					minValue = 0;
+							
+				}
+
+				
+				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
+					maxValue = 2;
+					minValue = 0;		
+				}
+			
+				if (graphType == BitArrayLayout.CONVERT_FREQ) {
+					maxValue = maxValue - freqOffset;
+					minValue = minValue - freqOffset;
+				}
+				
+				if (graphFrame.plotDerivative) {
+					// We want to include zero in the graph
+					if (minValue > 0) minValue = maxValue * -0.1;
+					if (maxValue < 0) maxValue = minValue * -0.1;
+				}
+				// Scale the max and min values so we do not crash into the top and bottom of the window
+			//	if (graphType == BitArrayLayout.CONVERT_FREQ) {
+
+//				} else {
+				if (maxValue < 0)
+					maxValue = maxValue - maxValue * 0.20;
+				else
+					maxValue = maxValue + maxValue * 0.20;
+				if (minValue < 0)
+					minValue = minValue + minValue * 0.20;
+				else
+					minValue = minValue - minValue * 0.20;
+			//	}
+				// calculate number of labels we need on vertical axis
+				int numberOfLabels = (graphHeight)/labelHeight;
+				
+				boolean intStep = false;
+				if (graphType == BitArrayLayout.CONVERT_INTEGER)
+					intStep = true;
+				// calculate the label step size
+				double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, intStep);
+				// check the actual number
+				numberOfLabels = labels.length;
+				
+				boolean foundZeroPoint = false;
+				int zeroPoint = graphHeight + topBorder; // 10 is the default font size
+
+				DecimalFormat f1 = new DecimalFormat("0.0");
+				DecimalFormat f2 = new DecimalFormat("0");
+				
+				
+				
+				for (int v=0; v < numberOfLabels; v++) {
+					
+					int pos = getRatioPosition(minValue, maxValue, labels[v], graphHeight);
+					pos = graphHeight-pos;
+					String s = null;
+					if (labels[v] == Math.round(labels[v]))
+						s = f2.format(labels[v]);
+					else
+						s = f1.format(labels[v]);
+					// dont draw a label at the zero point or just below it because we have axis labels there
+					boolean drawLabel = true;
+					if (v < numberOfLabels-1 
+							&& !(labels[v] == 0.0 || labels[v+1] == 0.0)
+							&& !(v == 0 && pos > graphHeight)
+							) {
+						if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
+							drawLabel = false;
+							if (labels[v] == 1) {
+								s = "STWD";
+								drawLabel = true;
+							}
+							if (labels[v] == 2) {
+								s = "DEP";
+								drawLabel = true;
+							}
+							
+						} 
+						if (graphType == BitArrayLayout.CONVERT_STATUS_BIT) {
+							drawLabel = false;
+							if (labels[v] == 1) {
+								s = "OK";
+								drawLabel = true;
+							}
+							if (labels[v] == 2) {
+								s = "FAIL";
+								drawLabel = true;
+							}
+							
+						} 
+
+						if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
+							drawLabel = false;
+							if (labels[v] == 1) {
+								s = RadiationPacket.radPacketStateShort[0];
+								drawLabel = true;
+							}
+							if (labels[v] == 2) {
+								s = RadiationPacket.radPacketStateShort[1];
+								drawLabel = true;
+							}
+							if (labels[v] == 3) {
+								s = RadiationPacket.radPacketStateShort[2];
+								drawLabel = true;
+							}
+							if (labels[v] == 4) {
+								s = RadiationPacket.radPacketStateShort[3];
+								drawLabel = true;
+							}
+							if (labels[v] == 5) {
+								s = RadiationPacket.radPacketStateShort[4];
+								drawLabel = true;
+							}
+							
+						} 
+
+						
+						if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
+							drawLabel = false;
+							if (labels[v] == 2) {
+								s = "TRUE";
+								drawLabel = true;
+							}
+							if (labels[v] == 1) {
+								s = "FALSE";
+								drawLabel = true;
+							}
+							
+						} 
+						
+						if (drawLabel && pos > 0 && (pos < graphHeight-Config.graphAxisFontSize/2))	{ 
+							g2.setColor(graphTextColor);
+							int fudge = 0;
+							if (axisPosition > 0) fudge = sideBorder;
+							g2.drawString(s, fudge+axisPosition+sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); // add 4 to line up with tick line
+							g2.setColor(graphAxisColor);
+							if (showHorizontalLines) {
+								g2.setColor(Color.GRAY);
+								g2.drawLine(sideBorder-5, pos+topBorder, graphWidth+sideBorder, pos+topBorder);
+								g2.setColor(graphTextColor);
+							} else
+								g.drawLine(sideBorder+axisPosition-5, pos+topBorder, sideBorder+axisPosition+5, pos+topBorder);
+						}
+					}
+					if (!foundZeroPoint) {
+						if (labels[v] >= 0) {
+							foundZeroPoint = true;
+							if ( v ==0 )
+								zeroPoint = graphHeight+topBorder; // 10 is the default font size;
+							else
+								zeroPoint = pos+topBorder;
+						}
+					}
+				}
+				double[] axisPoint = new double[3];
+				axisPoint[0] = zeroPoint;
+				axisPoint[1] = minValue;
+				axisPoint[2] = maxValue;
+				return axisPoint;
+	}
 	
 	/**
 	 * Draw a graph from sideBorder to graphWidth.  This is for a single reset.  If the graph has more than one reset
@@ -443,7 +481,7 @@ public class GraphPanel extends JPanel {
 	 * @param maxValue
 	 */
 	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, 
-			int sideBorder, int zeroPoint, double minValue, double maxValue, boolean drawLabels) {
+			int sideBorder, int zeroPoint, double minValue, double maxValue, double minValue2, double maxValue2, boolean drawLabels) {
 		
 		/**
 		 * Calculate a running average if the user selected it.  We can only do this if we have enough data
@@ -573,9 +611,16 @@ public class GraphPanel extends JPanel {
 		}
 
 	//	int skip = 0;
+		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, minTimeValue, maxTimeValue, minValue, maxValue, 0);
+		if (graphData2 != null)
+			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, minTimeValue, maxTimeValue, minValue2, maxValue2, graphData[0].length);
 		
+	}
+
+	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, double minTimeValue, 
+			double maxTimeValue, double minValue, double maxValue, int colorIdx) {
 		if (graphData != null)
-			for (int j=0; j<graphFrame.fieldName.length; j++) {
+			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
 				int lastx2 = sideBorder+1;
 				int lasty = graphHeight/2;
@@ -627,7 +672,7 @@ public class GraphPanel extends JPanel {
 						lasty3=y3;
 					}
 					if (!graphFrame.hideMain) {
-						g2.setColor(graphColor[j]);
+						g2.setColor(graphColor[j+colorIdx]);
 						if (!graphFrame.hideLines) g2.drawLine(lastx, lasty, x, y);
 						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x-1, y-1, 2,2));
 					}
@@ -652,7 +697,6 @@ public class GraphPanel extends JPanel {
 				}
 			}
 	}
-
 
 	/**
 	 * Given a number of ticks across a window and the range, calculate the tick size
