@@ -65,6 +65,11 @@ public abstract class BitArray {
 		return layout.getConversionByName(name);
 		
 	}
+	
+	public String getUnitsByName(String name) {
+		return layout.getUnitsByName(name);
+		
+	}
 
 	public abstract String getStringValue(String name, Spacecraft fox);
 	/**

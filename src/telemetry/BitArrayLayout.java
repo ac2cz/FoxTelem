@@ -129,6 +129,18 @@ public class BitArrayLayout {
 		}
 	}
 
+	public String getUnitsByName(String name) {
+		int pos = -1;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == -1) {
+			return "";
+		} else {
+			return (fieldUnits[pos]);
+		}
+	}
 	
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 

@@ -51,7 +51,9 @@ public class GraphPanel extends JPanel {
 	double[] firstDifference = null;
 	double[] dspData = null;
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
-	Color[] graphColor = {Color.BLUE, Color.green, Color.red, Color.darkGray, Color.cyan, Color.pink, Color.magenta, Color.orange, Color.yellow};
+	public static final int MAX_VARIABLES = 10;
+	Color[] graphColor = {Color.BLUE, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
+			Config.GRAPH7, Config.GRAPH8, Config.GRAPH9, Config.GRAPH10};
 	Color graphAxisColor = Color.BLACK;
 	Color graphTextColor = Color.DARK_GRAY;
 	
@@ -146,7 +148,7 @@ public class GraphPanel extends JPanel {
 
 		
 		if (graphFrame.plotDerivative) {
-			firstDifference = new double[graphData[0].length];	
+			firstDifference = new double[graphData[0][0].length];	
 		}
 
 		//Analyze the vertical data first because it also determines where we draw the baseline		 
@@ -452,7 +454,7 @@ public class GraphPanel extends JPanel {
 				graphFrame.AVG_PERIOD = graphData[0].length /2 ;
 			double sum = 0;
 			boolean first = true;
-			dspData = new double[graphData[0].length];
+			dspData = new double[graphData[0][0].length];
 			for (int i=graphFrame.AVG_PERIOD/2; i < graphData[0].length-graphFrame.AVG_PERIOD/2; i++) {
 				sum = 0;
 				for (int j=0; j< graphFrame.AVG_PERIOD; j++)

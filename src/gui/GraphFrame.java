@@ -49,6 +49,7 @@ import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.SinkAudio;
 import fcd.FcdProDevice;
 
 /**
@@ -76,6 +77,9 @@ import fcd.FcdProDevice;
 public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener, FocusListener {
 
 	public String[] fieldName;
+	public String[] fieldName2;
+	String fieldUnits = "";
+	String fieldUnits2 = "";
 	String displayTitle;
 	private int payloadType;
 	private JPanel contentPane;
@@ -143,10 +147,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	/**
 	 * Create the frame.
 	 */
-	public GraphFrame(String title, String fieldName, int conversionType, int plType, Spacecraft sat) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat) {
 		fox = sat;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
+		this.fieldUnits = fieldUnits;
+		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
@@ -276,7 +282,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		// make a list of the variables that we could plot
 		variables = new ArrayList<String>();
 		for (int v=0; v<sat.rtLayout.fieldName.length; v++) {
-			if (sat.rtLayout.conversion[v] == conversionType)
+			//if (sat.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits))
 				variables.add(sat.rtLayout.fieldName[v]);
 		}
 		Object[] fields = variables.toArray();
@@ -585,14 +591,25 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (e.getSource() == cbAddVariable) {
 			int position = cbAddVariable.getSelectedIndex();
 			int fields = fieldName.length;
+			int fields2 = 0;;
 			String[] temp = new String[fields];
+			String[] temp2 = null;
 			int i = 0;
 			boolean toggle = false;
+			boolean toggle2 = false;
 			for (String s: fieldName) {
 				temp[i++] = s;
 				if (s.equalsIgnoreCase(variables.get(position))) toggle=true;
 			}
-			
+			int j = 0;
+			if (fieldName2 != null && fieldName2.length > 0) {
+				fields2 = fieldName2.length;
+				temp2 = new String[fields2];
+				for (String s: fieldName2) {
+					temp2[j++] = s;
+					if (s.equalsIgnoreCase(variables.get(position))) toggle2=true;
+				}
+			}
 			if (toggle && fieldName.length > 1) {
 				// we remove this entry
 				fieldName = new String[fields-1];
@@ -601,15 +618,51 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					if (!s.equalsIgnoreCase(variables.get(position)))
 						fieldName[i++] = s;
 				
-			} else {
-				// we add it
-				fieldName = new String[fields+1];
+			} else if (toggle2 && fieldName2.length > 1) {
+				// we remove this entry
+				fieldName2 = new String[fields2-1];
 				i=0;
-				for (String s: temp)
-					fieldName[i++] = s;
-				fieldName[i] = variables.get(position);
-				
+				for (String s: temp2)
+					if (!s.equalsIgnoreCase(variables.get(position)))
+						fieldName2[i++] = s;
+			} else {
+				if (fieldName.length < (GraphPanel.MAX_VARIABLES-1)) {
+					// Check if this is the same units, otherwise set this as unit2
+					String unit = fox.rtLayout.getUnitsByName(variables.get(position));
+					if (!unit.equalsIgnoreCase(fieldUnits)) {
+						fieldUnits2 = unit;
+						// we add it to the second list as the units are different
+						fieldName2 = new String[fields2+1];
+						i=0;
+						if (temp2 != null) // then add what we have so far
+							for (String s: temp2)
+								fieldName2[i++] = s;
+						fieldName2[i] = variables.get(position);
+					} else {
+					// we add it to the normal list
+					fieldName = new String[fields+1];
+					i=0;
+					for (String s: temp)
+						fieldName[i++] = s;
+					fieldName[i] = variables.get(position);
+					}
+					
+				}
 			}
+			
+			// now rebuild the pick list
+			variables = new ArrayList<String>();
+			for (int v=0; v<fox.rtLayout.fieldName.length; v++) {
+				if (fox.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || fox.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
+						|| fieldUnits2.equalsIgnoreCase(""))
+					variables.add(fox.rtLayout.fieldName[v]);
+			}
+		
+			cbAddVariable.removeAllItems();
+			for (String s:variables) {
+				cbAddVariable.addItem(s);
+			}
+			
 			panel.updateGraphData("GraphFrame:stateChange:addVariable");
 		}
 		else if (e.getSource() == this.txtSamplePeriod) {
