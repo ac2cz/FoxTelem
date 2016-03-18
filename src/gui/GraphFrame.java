@@ -590,7 +590,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == cbAddVariable) {
+			// Add or remove a variable to be plotted on the graph
 			int position = cbAddVariable.getSelectedIndex();
+			if (fieldName[0].equalsIgnoreCase(variables.get(position))) return; // can't toggle the main value
+			
 			int fields = fieldName.length;
 			int fields2 = 0;;
 			String[] temp = new String[fields];
