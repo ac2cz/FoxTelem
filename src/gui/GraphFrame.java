@@ -81,8 +81,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public String[] fieldName2;
 	String fieldUnits = "";
 	String fieldUnits2 = "";
-	String displayTitle;
+	String displayTitle; // the actual title of the graph - calculated
+	String title; // the title of the module, e.g. Computer - passed in
 	private int payloadType;
+	private int conversionType;
 	private JPanel contentPane;
 	private GraphPanel panel;
 	private JPanel titlePanel;
@@ -153,6 +155,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
 		this.fieldUnits = fieldUnits;
+		this.title = title;
+		this.conversionType = conversionType;
+		
+		BitArrayLayout layout = getLayout(plType);
 		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -174,14 +180,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		titlePanel.add(titlePanelLeft, BorderLayout.EAST);
 		titlePanel.add(titlePanelcenter, BorderLayout.CENTER);
 
-		displayTitle = title;
-		if (plType != 0) // measurement
-			displayTitle = sat.name + " " + title;
-		if (conversionType == BitArrayLayout.CONVERT_FREQ) {
-			int freqOffset = sat.telemetryDownlinkFreqkHz;
-			displayTitle = title + " delta from " + freqOffset + " kHz";
-		}
-
+		calcTitle();
 		
 //		JLabel lblTitle = new JLabel(displayTitle);
 //		lblTitle.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize + 3));
@@ -281,10 +280,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
 		// make a list of the variables that we could plot
+		
 		variables = new ArrayList<String>();
-		for (int v=0; v<sat.rtLayout.fieldName.length; v++) {
+		for (int v=0; v<layout.fieldName.length; v++) {
 			//if (sat.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits))
-				variables.add(sat.rtLayout.fieldName[v]);
+				variables.add(layout.fieldName[v]);
 		}
 		Object[] fields = variables.toArray();
 		cbAddVariable = new JComboBox(fields);
@@ -371,6 +371,28 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 	}
 
+	private BitArrayLayout getLayout(int plType) {
+		BitArrayLayout layout = null;
+		if (plType == FramePart.TYPE_REAL_TIME)
+			layout = fox.rtLayout;
+		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
+			layout = fox.measurementLayout;
+		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
+			layout = fox.passMeasurementLayout;
+		return layout;
+	}
+	
+	private void calcTitle() {
+		BitArrayLayout layout = getLayout(payloadType);
+		displayTitle = title + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
+		if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
+				payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
+			displayTitle = fox.name + " " + displayTitle;
+		if (conversionType == BitArrayLayout.CONVERT_FREQ) {
+			int freqOffset = fox.telemetryDownlinkFreqkHz;
+			displayTitle = title + " delta from " + freqOffset + " kHz";
+		}
+	}
 	private void setAvgVisible(boolean f) {
 		lblAvg.setVisible(f);
 		txtAvgPeriod.setVisible(f);
@@ -601,6 +623,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			int i = 0;
 			boolean toggle = false;
 			boolean toggle2 = false;
+			BitArrayLayout layout = null;
+			if (payloadType == FramePart.TYPE_REAL_TIME)
+				layout = fox.rtLayout;
+			else if (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
+				layout = fox.measurementLayout;
+			else if (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
+				layout = fox.passMeasurementLayout;
+			
 			for (String s: fieldName) {
 				temp[i++] = s;
 				if (s.equalsIgnoreCase(variables.get(position))) toggle=true;
@@ -632,7 +662,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else {
 				if (fieldName.length < (GraphPanel.MAX_VARIABLES-1)) {
 					// Check if this is the same units, otherwise set this as unit2
-					String unit = fox.rtLayout.getUnitsByName(variables.get(position));
+					String unit = layout.getUnitsByName(variables.get(position));
 					if (!unit.equalsIgnoreCase(fieldUnits)) {
 						fieldUnits2 = unit;
 						// we add it to the second list as the units are different
@@ -656,10 +686,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 			// now rebuild the pick list
 			variables = new ArrayList<String>();
-			for (int v=0; v<fox.rtLayout.fieldName.length; v++) {
-				if (fox.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || fox.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
+			
+			for (int v=0; v<layout.fieldName.length; v++) {
+				if (layout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || layout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
 						|| fieldUnits2.equalsIgnoreCase(""))
-					variables.add(fox.rtLayout.fieldName[v]);
+					variables.add(layout.fieldName[v]);
 			}
 		
 			cbAddVariable.removeAllItems();
