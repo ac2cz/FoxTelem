@@ -66,7 +66,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
 	// Correspondingly TYPE 900+ are reserved for Herci Packets payloads
 	// Correspondingly TYPE 700+ are reserved for Rad Telemetry payloads
-	
+		
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	

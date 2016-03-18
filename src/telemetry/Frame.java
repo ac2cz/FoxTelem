@@ -194,8 +194,8 @@ public abstract class Frame implements Comparable<Frame> {
 	public void setPassMeasurement(PassMeasurement m) {
 		passMeasurement = m;
 		String strDate = null;
-		if (m.getRawValue(PassMeasurement.TCA) != null)
-			strDate = m.getRawValue(PassMeasurement.TCA);
+		if (m.getStringValue(PassMeasurement.TCA) != null)
+			strDate = m.getStringValue(PassMeasurement.TCA);
 
 		if (strDate != null) {
 			Log.println("Got TCA: " + strDate);
@@ -211,7 +211,7 @@ public abstract class Frame implements Comparable<Frame> {
 			measuredTCA = stpDateFormat.format(date);
 			Log.println("STP TCA set as: " + measuredTCA);
 		}
-		if (m.getRawValue(PassMeasurement.TCA_FREQ) != null)
+		if (m.getRawValue(PassMeasurement.TCA_FREQ) != PassMeasurement.ERR)
 			measuredTCAfrequency = m.getRawValue(PassMeasurement.TCA_FREQ)
 					+ " Hz";
 	}

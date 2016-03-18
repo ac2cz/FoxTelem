@@ -14,6 +14,7 @@ import javax.swing.JPanel;
 
 import common.Config;
 import common.Spacecraft;
+import measure.SatMeasurementStore;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
@@ -108,8 +109,11 @@ public class GraphPanel extends JPanel {
 				graphData[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 			else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
 				graphData[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-			else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
+			else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
 				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
+				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			
 		}
 		if (graphFrame.fieldName2 != null && graphFrame.fieldName2.length > 0) {
 			graphData2 = new double[graphFrame.fieldName2.length][][];
@@ -124,12 +128,15 @@ public class GraphPanel extends JPanel {
 					graphData2[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 				else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
 					graphData2[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-				else if  (payloadType == 0) // FIXME - type 0 is DEBUG -  measurement
+				else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
 					graphData2[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
+					graphData2[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				
 			}
 		}
 		//System.err.println("-repaint by: " + by);
-		if (graphData != null && graphData[0][0].length > 0)
+		if (graphData != null && graphData[0] != null && graphData[0][0].length > 0)
 			this.repaint();
 	}
 	
@@ -611,13 +618,13 @@ public class GraphPanel extends JPanel {
 		}
 
 	//	int skip = 0;
-		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, minTimeValue, maxTimeValue, minValue, maxValue, 0);
+		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0);
 		if (graphData2 != null)
-			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, minTimeValue, maxTimeValue, minValue2, maxValue2, graphData[0].length);
+			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphData[0].length);
 		
 	}
 
-	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, double minTimeValue, 
+	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, int sideBorder, double minTimeValue, 
 			double maxTimeValue, double minValue, double maxValue, int colorIdx) {
 		if (graphData != null)
 			for (int j=0; j<graphData.length; j++) {

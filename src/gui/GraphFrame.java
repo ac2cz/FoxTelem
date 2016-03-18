@@ -51,6 +51,7 @@ import common.Log;
 import common.Spacecraft;
 import decoder.SinkAudio;
 import fcd.FcdProDevice;
+import measure.SatMeasurementStore;
 
 /**
  * 
@@ -864,8 +865,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
 			else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
 				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-			else if  (payloadType == 0) // FIXME - type 0 is DEBUG  - measurement
+			else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
 				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
+				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
 
 		}
 		if (graphData != null) {

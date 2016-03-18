@@ -18,6 +18,7 @@ import javax.swing.border.TitledBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import measure.SatMeasurementStore;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -433,13 +434,15 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
-				
+					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
+					
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox);
 				} 
 				else if (moduleType == DISPLAY_MEASURES) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.measurementLayout.getConversionByName(fieldName[i]);
 					
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  0, fox);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox);
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
@@ -481,7 +484,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void mouseClicked(MouseEvent e) {
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
-				if (moduleType == DISPLAY_PASS_MEASURES || rtValue[i].getText().equalsIgnoreCase(noValue)) {
+				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
 				} else
 					displayGraph(i);

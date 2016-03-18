@@ -212,14 +212,14 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 					if (passMeasurement != null) {
 						Config.payloadStore.setUpdatedPassMeasurement(sats.get(s).foxId, false);
 
-						passes[s].updateSingleValue(1, passMeasurement.getRawValue(PassMeasurement.AOS));
-						passes[s].updateSingleValue(2, passMeasurement.getRawValue(PassMeasurement.TCA));
-						passes[s].updateSingleValue(3, passMeasurement.getRawValue(PassMeasurement.TCA_FREQ));
-						passes[s].updateSingleValue(4, passMeasurement.getRawValue(PassMeasurement.LOS));
-						passes[s].updateSingleValue(5, passMeasurement.getRawValue(PassMeasurement.START_AZIMUTH));
-						passes[s].updateSingleValue(6, passMeasurement.getRawValue(PassMeasurement.END_AZIMUTH));
-						passes[s].updateSingleValue(7, passMeasurement.getRawValue(PassMeasurement.MAX_ELEVATION));
-						passes[s].updateSingleValue(8, passMeasurement.getRawValue(PassMeasurement.TOTAL_PAYLOADS));
+						passes[s].updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
+						passes[s].updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
+						passes[s].updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
+						passes[s].updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
+						passes[s].updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
+						passes[s].updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
+						passes[s].updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
+						passes[s].updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
 					}
 				}
 			}

@@ -835,4 +835,13 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 
+	@Override
+	public double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset,
+			long fromUptime) {
+		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
+		if (store != null)
+			return store.getPassMeasurementGraphData(name, period, fox, fromReset, fromUptime);
+		return null;
+	}
+
 }

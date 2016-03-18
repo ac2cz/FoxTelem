@@ -9,6 +9,7 @@ import java.util.TimeZone;
 
 import common.Config;
 import common.Log;
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 
 /**
@@ -34,7 +35,7 @@ import telemetry.FramePart;
  */
 public class PassMeasurement extends Measurement {
 
-	public String[] fieldValue = null;
+	public long[] fieldValue = null;
 
 	int endReset = 0;
 	long endUptime = 0;
@@ -47,6 +48,8 @@ public class PassMeasurement extends Measurement {
 	public static final String END_AZIMUTH = "END_AZIMUTH";
 	public static final String MAX_ELEVATION = "MAX_ELEVATION";
 	public static final String TOTAL_PAYLOADS = "TOTAL_PAYLOADS";
+	
+	public static final long ERR = -99999;
 
 	/**
 	 * Load a past measurement from disk
@@ -56,19 +59,18 @@ public class PassMeasurement extends Measurement {
 	 */
 	public PassMeasurement(int foxid, String dt, int reset, long uptime, int type, StringTokenizer st) {
 		id = foxid;
+		this.reset = reset;
+		this.uptime = uptime;
 		this.type = type;
-
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		this.date = new Date();
 		try {
 			this.date = FramePart.fileDateFormat.parse(dt);
 		} catch (ParseException e) {
 			e.printStackTrace(Log.getWriter());
 		}
 		layout = Config.satManager.getPassMeasurementLayout(foxid);
-		fieldValue = new String[layout.NUMBER_OF_FIELDS];
-		setRawValue(AOS, dt);
-		load(st);
+		fieldValue = new long[layout.NUMBER_OF_FIELDS];
+		if (st!= null) // if null was passed then we are probablly going to call a legacy load routine for a conversion from old data
+			load(st);
 	}
 
 	/**
@@ -80,12 +82,12 @@ public class PassMeasurement extends Measurement {
 		id = foxid;
 		this.type = SatMeasurementStore.PASS_MEASUREMENT_TYPE;
 		date = Calendar.getInstance().getTime();  
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String captureDate = FramePart.fileDateFormat.format(date);
+		//FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		//String captureDate = FramePart.fileDateFormat.format(date);
 		layout = Config.satManager.getPassMeasurementLayout(foxid);
-		fieldValue = new String[layout.NUMBER_OF_FIELDS];
+		fieldValue = new long[layout.NUMBER_OF_FIELDS];
 
-		setRawValue(AOS, captureDate);
+		setRawValue(AOS, date.getTime());
 
 	}
 
@@ -100,15 +102,37 @@ public class PassMeasurement extends Measurement {
 		this.endReset = reset;
 		this.endUptime = uptime;
 	}
-	public String getRawValue(String name) {
+	
+	public String getDateFromLong(long dt) {
+		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String date = FramePart.fileDateFormat.format(dt);
+		return date;
+	}
+	
+	public long getRawValue(String name) {
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
 				return fieldValue[i];
 		}
+		return ERR;
+	}
+	
+	
+	public String getStringValue(String name) {
+		for (int i=0; i < layout.fieldName.length; i++) {
+			if (name.equalsIgnoreCase(layout.fieldName[i])) {
+				if (layout.conversion[i] == BitArrayLayout.CONVERT_JAVA_DATE) {
+					String dt = getDateFromLong(fieldValue[i]);
+					return dt;
+				} else {
+					return ""+fieldValue[i];
+				}
+			}
+		}
 		return null;
 	}
-
-	public void setRawValue(String name, String value) {
+	
+	public void setRawValue(String name, long value) {
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
 				fieldValue[i] = value;
@@ -117,18 +141,19 @@ public class PassMeasurement extends Measurement {
 
 	public void setLOS() {
 		Date losDate = Calendar.getInstance().getTime();  
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String dt = FramePart.fileDateFormat.format(losDate);
-		setRawValue(LOS, dt);
+		//FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		//String dt = FramePart.fileDateFormat.format(losDate);
+		setRawValue(LOS, losDate.getTime());
 	}
 
 	public void setTCA(Long dateMills) {
 		Date dt = new Date(dateMills);
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String dateTime = FramePart.fileDateFormat.format(dt);
-		setRawValue(TCA, dateTime);
+		//FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		//String dateTime = FramePart.fileDateFormat.format(dt);
+		setRawValue(TCA, dt.getTime());
 	}
 
+	
 
 	/**
 	 * Load this framePart from a file, which has been opened by a calling method.  The string tokenizer contains a 
@@ -140,7 +165,48 @@ public class PassMeasurement extends Measurement {
 
 		try {
 			for (int i=0; i < layout.NUMBER_OF_FIELDS; i++)
-				fieldValue[i] = st.nextToken();
+				fieldValue[i] = Long.valueOf(st.nextToken());
+		} catch (NoSuchElementException e) {
+			// we are done and can finish
+		} catch (ArrayIndexOutOfBoundsException e) {
+			// Something nasty happened when we were loading, so skip this record and log an error
+			Log.println("ERROR: Too many fields:  Could not load measurement " + this.id + " " + getRawValue(AOS));
+		} catch (NumberFormatException n) {
+			Log.println("ERROR: Invalid number:  Could not load measurement " + this.id + " " + getRawValue(AOS));
+		}
+	}
+	
+	/**
+	 * Load the pre 1.04 format and convert the data in place
+	 * @param st
+	 */
+	protected void load103(StringTokenizer st) {
+
+		try {
+			// the first 3 fields are dates that need to be converted
+			
+			try {
+				loadDate(st,0);
+				loadDate(st,1);
+				loadDate(st,2);
+			} catch (ParseException e) {
+				e.printStackTrace(Log.getWriter());
+			}
+			for (int i=3; i < layout.NUMBER_OF_FIELDS-1; i++) {
+				String tok = st.nextToken();
+				if (tok != null && !tok.equalsIgnoreCase("null"))
+					fieldValue[i] = Long.valueOf(tok);
+				else
+					fieldValue[i] = 0;
+			}
+			// lastly get the number of decodes and screen out the values greater than 900 which were caused by a bug
+			String tok = st.nextToken();
+			long decodes = 0;
+			if (tok != null && !tok.equalsIgnoreCase("null"))
+				decodes = Long.valueOf(tok);
+			if (decodes > 900) decodes = 0;
+			fieldValue[layout.NUMBER_OF_FIELDS-1] = decodes;
+			
 		} catch (NoSuchElementException e) {
 			// we are done and can finish
 		} catch (ArrayIndexOutOfBoundsException e) {
@@ -151,18 +217,29 @@ public class PassMeasurement extends Measurement {
 		}
 	}
 
+	private void loadDate(StringTokenizer st, int i) throws ParseException {
+		String dt1 = st.nextToken();
+		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		Date date1 = FramePart.fileDateFormat.parse(dt1);
+		fieldValue[i] = date1.getTime();
+
+	}
+	
 	/**
 	 * Output the set of fields in this framePart as a set of comma separated values in a string.  This 
 	 * can then be written to a file
+	 * We need to override the default method in Measurement, otherwise we output the double array vs the longs
+	 * 
 	 * @return
 	 */
 	public String toFile() {
 		String s = new String();
-		s = s + getRawValue(AOS) + "," + id + "," + reset + "," + uptime + "," + type + ",";
+		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String captureDate = FramePart.fileDateFormat.format(date);
+		s = s + captureDate + "," + id + "," + reset + "," + uptime + "," + type + ",";
 		for (int i=0; i < layout.NUMBER_OF_FIELDS-1; i++)
 			s = s + fieldValue[i] + ",";
 		s = s + fieldValue[layout.NUMBER_OF_FIELDS-1];
 		return s;
 	}
-
 }

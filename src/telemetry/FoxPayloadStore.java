@@ -136,7 +136,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime);
 	public abstract double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
-
+	public abstract double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 	
 	public abstract String getRtUTCFromUptime(int id, int reset, long uptime);
 	

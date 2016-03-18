@@ -90,6 +90,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_TYP = 30;
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
+	public static final int CONVERT_JAVA_DATE = 33;
 
 	/**
 	 * Create an empty layout for manual init

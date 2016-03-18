@@ -458,7 +458,7 @@ public class PassManager implements Runnable {
 		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
 		if (passMeasurement.getReset() == 0 && passMeasurement.getUptime() == 0) {
 			// We did not get any readings
-			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, "0");
+			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, 0);
 			passMeasurement.setEndResetUptime(0, 0);
 		} else {
 			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
@@ -500,7 +500,7 @@ public class PassManager implements Runnable {
 
 					pendingTCA = true;
 					passMeasurement.setTCA(date);
-					passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, Long.toString(tca));
+					passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, tca);
 					if (Config.debugSignalFinder) Log.println("TCA calculated as " + passMeasurement.getRawValue(PassMeasurement.TCA) + " with Uptime " + up + " and frequency: " + Long.toString(tca));
 
 
@@ -509,7 +509,7 @@ public class PassManager implements Runnable {
 			} else {
 				if (Config.debugSignalFinder) Log.println("Can't calculate TCA, not enough readings");
 			}
-			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
+			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, graphData[0].length);
 			passMeasurement.setEndResetUptime(lastReset, lastUptime);
 			//FIXME
 			// Store the start and end azimuith - these are a RtMeasurement.  Need to grab the first and last one from the Decoder
