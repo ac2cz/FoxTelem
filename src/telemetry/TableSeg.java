@@ -31,7 +31,7 @@ public class TableSeg implements Comparable<TableSeg> {
 	private boolean loaded = false;
 	String fileName;
 	long lastAccess;
-	private static final int STALE_PERIOD = 10000;
+	private static final int STALE_PERIOD = 10000; // Keep the stale period short. 60 seconds
 	
 	/**
 	 * Create a new segment and give it a filename
@@ -67,16 +67,20 @@ public class TableSeg implements Comparable<TableSeg> {
 	}
 	
 	public boolean isLoaded() {
+		accessed();
 		return loaded; 
 	}
 	public boolean isStale() {
-		long now = System.nanoTime()/1000000;
-		long elapsed = now - lastAccess;
-		if (elapsed > STALE_PERIOD)
-			return true;
+		if (loaded) {
+			long now = System.nanoTime()/1000000;
+			long elapsed = now - lastAccess;
+			if (elapsed > STALE_PERIOD)
+				return true;
+		}
 		return false;
 	}
 	public void setLoaded(boolean t) { 
+		accessed();
 		loaded = t; }
 	
 	public String toFile() {

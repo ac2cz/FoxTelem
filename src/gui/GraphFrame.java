@@ -100,7 +100,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public static int DEFAULT_START_RESET = 0;
 	public long START_UPTIME = DEFAULT_START_UPTIME;
 	public int START_RESET = DEFAULT_START_RESET;
-	public static final int MAX_SAMPLES = 99999;
+	public static final int MAX_SAMPLES = 999999;
 	public static final int MAX_AVG_SAMPLES = 999;
 	public static int DEFAULT_AVG_PERIOD = 12;
 	public int AVG_PERIOD = DEFAULT_AVG_PERIOD;

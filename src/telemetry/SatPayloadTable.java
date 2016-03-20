@@ -347,15 +347,20 @@ public class SatPayloadTable {
 	}
 	
 	public void offloadSegments() {
+		boolean resized = false;
 		for (TableSeg seg : tableIdx) {
-			if (seg.isLoaded() && seg.isStale()) {
+			if (seg.isStale()) {
 				offloadSeg(seg);
 				Log.println("Offloaded: " + seg.toString());
+				resized = true;
 			}
 		}
+		if (resized)
+			rtRecords.trimToSize(); // now try to reclaim the space
 	}
 	
 	private void offloadSeg(TableSeg seg) {
+		if (rtRecords == null || rtRecords.size() == 0) return;
 		boolean foundStart = false;
 		int removed = 0;
 		seg.setLoaded(false);
@@ -373,6 +378,7 @@ public class SatPayloadTable {
 				}
 			}
 		}
+		
 		
 	}
 	
