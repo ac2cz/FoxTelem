@@ -358,6 +358,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	public void run() {
 		running = true;
 		done = false;
+		boolean justStarted = true;
 		while(running) {
 			
 			try {
@@ -384,7 +385,12 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 						parseRadiationFrames();
 						displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
 						MainWindow.setTotalDecodes();
+						if (justStarted) {
+							openGraphs();
+							justStarted = false;
+						}
 					}
+				
 			}
 		}
 		done = true;
