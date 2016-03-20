@@ -431,41 +431,41 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if ((moduleType == this.DISPLAY_ALL || moduleType == this.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
 					
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox);
 				} 
 				else if (moduleType == DISPLAY_MEASURES) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.measurementLayout.getConversionByName(fieldName[i]);
 					
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox);
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.herciHS2Layout.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, fox);
 				}
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
 					conversion = maxPayload.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title, fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, fox);
 				} else return;
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));

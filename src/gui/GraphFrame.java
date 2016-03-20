@@ -383,8 +383,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 	
 	private void calcTitle() {
-		BitArrayLayout layout = getLayout(payloadType);
-		displayTitle = title + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
+		//BitArrayLayout layout = getLayout(payloadType);
+		displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
 		if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
 				payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
 			displayTitle = fox.name + " " + displayTitle;
