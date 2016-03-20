@@ -284,6 +284,8 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 				reportDate = "unknown";				
 			} catch (NumberFormatException e) {
 				reportDate = "unknown";				
+			} catch (ArrayIndexOutOfBoundsException e) {
+				reportDate = "unknown";
 			}
 			
 			lblCaptureDate.setText(CAPTURE_DATE + reportDate);
