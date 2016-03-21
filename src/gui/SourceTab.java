@@ -744,7 +744,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
-		findSignalPanel.setVisible(b);
+		findSignalPanel.setVisible(b&&Config.findSignal);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
