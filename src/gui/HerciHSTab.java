@@ -335,6 +335,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	public void run() {
 		running = true;
 		done = false;
+		boolean justStarted = true;
 		while(running) {
 
 			try {
@@ -362,6 +363,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 					
 					displayFramesDecoded(Config.payloadStore.getNumberOfHerciFrames(foxId));
 					MainWindow.setTotalDecodes();
+					if (justStarted) {
+						openGraphs();
+						justStarted = false;
+					}
 				}
 			}
 		}

@@ -59,7 +59,7 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
 		JLabel lblId = new JLabel("Measurements captured at Ground Station "
 				+ Config.callsign);
-		lblId.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblId.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblId.setForeground(textLblColor);
 		topPanel.add(lblId);
 

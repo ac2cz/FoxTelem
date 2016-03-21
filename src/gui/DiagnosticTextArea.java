@@ -3,7 +3,7 @@ package gui;
 import javax.swing.JTextArea;
 
 import common.Config;
-
+import common.Spacecraft;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 
@@ -63,7 +63,7 @@ public class DiagnosticTextArea extends JTextArea {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
 				
-				display = FramePart.ihuDiagnosticString(value, false);
+				display = FramePart.ihuDiagnosticString(value, false, graphFrame.fox);
 				if (display != null) { 	
 					this.append((int)graphData[PayloadStore.RESETS_COL][i] + " " + (int)graphData[PayloadStore.UPTIME_COL][i] + " " +
 							display + "\n");

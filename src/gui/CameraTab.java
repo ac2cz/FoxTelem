@@ -149,15 +149,16 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		add(topPanel, BorderLayout.NORTH);
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
 		
+		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
-		lblName.setMaximumSize(new Dimension(1600, 20));
-		lblName.setMinimumSize(new Dimension(1600, 20));
-		lblName.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblName.setMaximumSize(new Dimension(1600, (int)(Config.displayModuleFontSize * 20/11)));
+		lblName.setMinimumSize(new Dimension(1600, (int)(Config.displayModuleFontSize * 20/11)));
+		lblName.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		topPanel.add(lblName);
 		
 		lblImagesDecoded = new JLabel(DECODED);
 		lblImagesDecoded.setToolTipText("The number of images that we have downloaded from Fox");
-		lblImagesDecoded.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblImagesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		lblImagesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		topPanel.add(lblImagesDecoded);
 
@@ -224,7 +225,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));		
 
 		showLatestImage = new JCheckBox("Show Latest Image", Config.showLatestImage);
-		showLatestImage.setMinimumSize(new Dimension(150, 14));
+		showLatestImage.setMinimumSize(new Dimension(150, fonth));
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
@@ -235,7 +236,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	
 	private JLabel addPicParam(String text) {
 		JLabel title = new JLabel(text);
-		title.setFont(new Font("SansSerif", Font.BOLD, 12));
+		title.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		JLabel lab = new JLabel();
 		JPanel panel = new JPanel();
 		//panel.setLayout(new FlowLayout(FlowLayout.LEADING));

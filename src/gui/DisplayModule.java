@@ -157,13 +157,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		moduleType = modType;
 		
 		if (moduleType >= DISPLAY_HERCI) {
-			border.setTitleFont(new Font("SansSerif", Font.BOLD, 12));
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));
 			border.setTitleColor(herciFontColor);
 		} else if (moduleType >= DISPLAY_VULCAN) {
-			border.setTitleFont(new Font("SansSerif", Font.BOLD, 10));
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
 			border.setTitleColor(vulcanFontColor);
 		} else {
-			border.setTitleFont(new Font("SansSerif", Font.BOLD, 12));	
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));	
 			border.setTitleColor(Color.BLUE);
 			maxValue = new JLabel[size];
 			minValue = new JLabel[size];
@@ -367,11 +367,14 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 		// NOW ADD THE TITLE
 		JLabel rtTitle;
-		if (moduleType < DISPLAY_VULCAN)
+		if (moduleType < DISPLAY_VULCAN) {
 			rtTitle = new JLabel("  RT");
-		else 
+			rtTitle.setToolTipText("The most current realtime value of the telemetry is in this column");
+		} else { 
 			rtTitle = new JLabel("Last");
-		
+			rtTitle.setToolTipText("The most current value of the telemetry is in this column");
+			
+		}
 		rtTitle.setFont(new Font("SansSerif", Font.BOLD, Config.displayModuleFontSize));	
 		rtTitle.setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
 		rtTitle.setMaximumSize(new Dimension(w, ROW_HEIGHT)); // width height
@@ -388,6 +391,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			
 		if (moduleType < DISPLAY_VULCAN) {
 			JLabel minTitle = new JLabel("MIN");
+			minTitle.setToolTipText("The minimum realtime value since the min telemetry was reset is in this column");
 			minTitle.setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
 			minTitle.setMaximumSize(new Dimension(w, ROW_HEIGHT)); // width height
 			minTitle.setPreferredSize(new Dimension(w, ROW_HEIGHT)); // width height
@@ -401,6 +405,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			}
 
 			JLabel maxTitle = new JLabel("MAX");
+			maxTitle.setToolTipText("The maximum realtime value since the max telemetry was reset is in this column");
 			maxTitle.setFont(new Font("SansSerif", Font.BOLD, Config.displayModuleFontSize));	
 			maxTitle.setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
 			maxTitle.setMaximumSize(new Dimension(w, ROW_HEIGHT)); // width height

@@ -108,14 +108,15 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), VULCANTAB, "splitPaneHeight");
 		
+		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
-		lblName.setMaximumSize(new Dimension(1600, 20));
-		lblName.setMinimumSize(new Dimension(1600, 20));
-		lblName.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblName.setMaximumSize(new Dimension(1600, fonth));
+		lblName.setMinimumSize(new Dimension(1600, fonth));
+		lblName.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		topPanel.add(lblName);
 		
 		lblFramesDecoded = new JLabel(DECODED);
-		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		topPanel.add(lblFramesDecoded);
 	

@@ -136,7 +136,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
 				
-				display = FramePart.ihuDiagnosticString(value, false);
+				display = FramePart.ihuDiagnosticString(value, false, fox);
 				if (display != null) { 	
 					if (graphFrame.showUTCtime) {
 						setColumnName(0, "Date");

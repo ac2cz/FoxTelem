@@ -376,7 +376,7 @@ longer send telemetry.
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_INTEGER) {
 			s = Long.toString(Math.round(getRawValue(name)));
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
-			s = ihuDiagnosticString(getRawValue(name), true);
+			s = ihuDiagnosticString(getRawValue(name), true, fox);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HARD_ERROR) {
 			s = hardErrorString(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR) {
@@ -507,7 +507,7 @@ longer send telemetry.
 	 * @param shortString
 	 * @return
 	 */
-	public static String ihuDiagnosticString(int rawValue, boolean shortString) {
+	public static String ihuDiagnosticString(int rawValue, boolean shortString, Spacecraft fox) {
 		// First 8 bits hold the type
 		int type = rawValue & 0xff ;
 		int value = 0;
@@ -604,13 +604,15 @@ longer send telemetry.
 			else
 				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
-		case UNKNOWN: // IHU measurement of bus voltage
-			return "unknown:" + type;
 		case IHU_SW_VERSION: // Version of the software on the IHU
 			int swType = (rawValue >> 8) & 0xff;
 			int swMajor = (rawValue >> 16) & 0xff;
 			int swMinor = (rawValue >> 24) & 0xff;
-			return "IHU SW: " + Character.toString((char) swType) + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
+			
+			return "IHU SW: " + Character.toString((char) swType) + fox.foxId + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
+		case UNKNOWN: // IHU measurement of bus voltage
+			value = (rawValue >> 8) & 0xfff;
+			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.ihuVBattTable.lookupValue(value),3) + "V";
 		}
 		return "-----" + type;
 	}
