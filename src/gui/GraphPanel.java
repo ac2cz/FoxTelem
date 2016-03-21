@@ -143,27 +143,29 @@ public class GraphPanel extends JPanel {
 	
 	private void drawLegend(int graphWidth) {
 		if (graphFrame.fieldName.length == 1 && graphFrame.fieldName2 == null) return;
-		int leftOffset = 110;
-		int leftLineOffset = -20;
-		int fonth = 12;
+		
+		
 		int verticalOffset = 15;
 		int lineLength = 15;
 		int longestWord = 17;
 		int rows = graphFrame.fieldName.length;
-		int font = 9;
+		int font = (int)(9 * Config.graphAxisFontSize / 11 );
+		int leftOffset = longestWord * font + 20;
+		int leftLineOffset = 50;
+		int fonth = (int)(12*font/9);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, font));
-		g2.drawRect(graphWidth - leftOffset - 1, topBorder + 4,longestWord * 9 +1 , 9 + fonth * rows +1  );
+		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, topBorder + 4,longestWord * font +1 , 9 + fonth * rows +1  );
 		g2.setColor(Color.LIGHT_GRAY);
-		g2.fillRect(graphWidth - leftOffset, topBorder + 5, longestWord * 9 , 9 + fonth * rows  );
+		g2.fillRect(sideBorder + graphWidth - leftOffset, topBorder + 5, longestWord * font , 9 + fonth * rows  );
 		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName[i], graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.drawString(graphFrame.fieldName[i], sideBorder+ graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
-			g2.fillRect(graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
+			g2.fillRect(sideBorder + graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
 		}
 		
 		verticalOffset =+ verticalOffset + graphFrame.fieldName.length * fonth;
@@ -171,9 +173,9 @@ public class GraphPanel extends JPanel {
 		if (graphFrame.fieldName2 != null)
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName2[i], graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.drawString(graphFrame.fieldName2[i], sideBorder + graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
-			g2.fillRect(graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
+			g2.fillRect(sideBorder + graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
 		}
 	}
 	

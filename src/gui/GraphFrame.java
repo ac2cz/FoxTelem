@@ -83,6 +83,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	String fieldUnits2 = "";
 	String displayTitle; // the actual title of the graph - calculated
 	String title; // the title of the module, e.g. Computer - passed in
+	BitArrayLayout layout;
 	private int payloadType;
 	private int conversionType;
 	private JPanel contentPane;
@@ -133,6 +134,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JTextField textFromReset;
 	//private DiagnosticTextArea textArea;
 	private DiagnosticTable diagnosticTable;
+	JButton btnAdd;
 	
 	public boolean plotDerivative;
 	public boolean dspAvg;
@@ -144,6 +146,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean hidePoints = true;
 	public boolean hideLines = true;
 	public boolean showContinuous = false;
+	
+	public boolean add = false;
 	
 	boolean textDisplay = false;
 	
@@ -158,7 +162,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.title = title;
 		this.conversionType = conversionType;
 		
-		BitArrayLayout layout = getLayout(plType);
+		layout = getLayout(plType);
 		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -175,11 +179,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		titlePanel = new JPanel();
 		contentPane.add(titlePanel, BorderLayout.NORTH);
 		titlePanel.setLayout(new BorderLayout(0,0));
-		JPanel titlePanelLeft = new JPanel();
+		JPanel titlePanelRight = new JPanel();
 		JPanel titlePanelcenter = new JPanel();
-		titlePanel.add(titlePanelLeft, BorderLayout.EAST);
+		JPanel titlePanelLeft = new JPanel();
+		titlePanel.add(titlePanelRight, BorderLayout.EAST);
 		titlePanel.add(titlePanelcenter, BorderLayout.CENTER);
-
+		titlePanel.add(titlePanelLeft, BorderLayout.WEST);
 		calcTitle();
 		
 //		JLabel lblTitle = new JLabel(displayTitle);
@@ -195,40 +200,55 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
+		if (!textDisplay) {
+			btnAdd = new JButton("+ ");
+			titlePanelLeft.add(btnAdd);
+			btnAdd.addActionListener(this);
+			btnAdd.setToolTipText("Add another trace to this graph");
+			cbAddVariable = new JComboBox();
+
+			// make a list of the variables that we could plot
+			// this is every variable in the Layout that is shown in a module. Only broken telem channels are not shown
+			initVarlist();
+			titlePanelLeft.add(cbAddVariable);
+			cbAddVariable.addActionListener(this);
+			cbAddVariable.setVisible(add);
+		}
+
 		
 		// Toolbar buttons
 		btnLines = new JButton("Lines");
 		btnLines.setMargin(new Insets(0,0,0,0));
 		btnLines.setToolTipText("Draw lines between data points");
 		btnLines.addActionListener(this);
-		titlePanelLeft.add(btnLines);
+		titlePanelRight.add(btnLines);
 		if (this.textDisplay) btnLines.setVisible(false);
 
 		btnPoints = new JButton("Points");
 		btnPoints.setMargin(new Insets(0,0,0,0));
 		btnPoints.setToolTipText("Show data points");
 		btnPoints.addActionListener(this);
-		titlePanelLeft.add(btnPoints);
+		titlePanelRight.add(btnPoints);
 		if (this.textDisplay) btnPoints.setVisible(false);
 
 		
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
-		titlePanelLeft.add(btnHorizontalLines);
+		titlePanelRight.add(btnHorizontalLines);
 		if (this.textDisplay) btnHorizontalLines.setVisible(false);
 
 		btnVerticalLines = createIconButton("/images/verticalLines.png","Verrtical","Show Vertical Lines");
-		titlePanelLeft.add(btnVerticalLines);
+		titlePanelRight.add(btnVerticalLines);
 		if (this.textDisplay) btnVerticalLines.setVisible(false);
 
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
 		btnMain.setToolTipText("Hide the unprocessed telemetry data");
 		btnMain.addActionListener(this);
-		titlePanelLeft.add(btnMain);
+		titlePanelRight.add(btnMain);
 		if (this.textDisplay) btnMain.setVisible(false);
 
 		btnDerivative = createIconButton("/images/derivSmall.png","Deriv","Plot 1st Derivative (1st difference)");
-		titlePanelLeft.add(btnDerivative);
+		titlePanelRight.add(btnDerivative);
 		if (this.textDisplay) btnDerivative.setVisible(false);
 
 		btnAvg = new JButton("AVG");
@@ -236,7 +256,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnAvg.setToolTipText("Running Average / Low Pass Filter");
 		btnAvg.addActionListener(this);
 		
-		titlePanelLeft.add(btnAvg);
+		titlePanelRight.add(btnAvg);
 		if (this.textDisplay) btnAvg.setVisible(false);
 
 		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA || 
@@ -254,15 +274,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		setRedOutline(btnVerticalLines, showVerticalLines);
 
 		btnLatest = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
-		titlePanelLeft.add(btnLatest);
+		titlePanelRight.add(btnLatest);
 		//if (this.textDisplay) btnLatest.setEnabled(false);
 		
 		btnCSV = createIconButton("/images/saveSmall.png","CSV","Save this data to a CSV file");
-		titlePanelLeft.add(btnCSV);
+		titlePanelRight.add(btnCSV);
 		if (this.textDisplay) btnCSV.setEnabled(false);
 		
 		btnCopy = createIconButton("/images/copySmall.png","Copy","Copy graph to clipboard");
-		titlePanelLeft.add(btnCopy);
+		titlePanelRight.add(btnCopy);
 		if (this.textDisplay) btnCopy.setEnabled(false);
 		
 		footerPanel = new JPanel();
@@ -274,20 +294,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
-
-		if (!textDisplay) {
-			// make a list of the variables that we could plot
-			// this is every variable in the Layout that is shown in a module. Only broken telem channels are not shown
-			variables = new ArrayList<String>();
-			for (int v=0; v<layout.fieldName.length; v++) {
-				if (!sat.rtLayout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
-					variables.add(layout.fieldName[v]);
-			}
-			Object[] fields = variables.toArray();
-			cbAddVariable = new JComboBox(fields);
-			footerPanelFarLeft.add(cbAddVariable);
-			cbAddVariable.addActionListener(this);
-		}
 
 		cbUptime = new JCheckBox("Show Uptime");
 		cbUptime.setSelected(!hideUptime);
@@ -378,6 +384,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		return false;
 	}
 	
+	private void initVarlist() {
+		variables = new ArrayList<String>();
+		for (int v=0; v<layout.fieldName.length; v++) {
+			if (!fox.rtLayout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+				variables.add(layout.fieldName[v]);
+		}
+		cbAddVariable.removeAllItems();
+		for (String s:variables) {
+			cbAddVariable.addItem(s);
+		}
+	}
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FramePart.TYPE_REAL_TIME)
@@ -618,9 +635,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() == btnAdd) {
+			add = !add;
+			cbAddVariable.setVisible(add);
+		} else
 		if (e.getSource() == cbAddVariable) {
 			// Add or remove a variable to be plotted on the graph
 			int position = cbAddVariable.getSelectedIndex();
+			if (position == -1) return;
 			if (fieldName[0].equalsIgnoreCase(variables.get(position))) return; // can't toggle the main value
 			
 			int fields = fieldName.length;
@@ -712,6 +734,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				cbAddVariable.addItem(s);
 			}
 			
+			if (fieldName.length > 1 || fieldName2 != null)
+				displayTitle = fox.name;
+			else {
+				calcTitle();
+				add = false;
+				cbAddVariable.setVisible(add);
+			}
 			panel.updateGraphData("GraphFrame:stateChange:addVariable");
 		}
 		else if (e.getSource() == this.txtSamplePeriod) {
@@ -726,12 +755,23 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		} else if (e.getSource() == this.txtAvgPeriod) {
 				parseAvgPeriod();
 		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
+	/*		fieldUnits2 = "";
+			fieldName2 = null;
+			String name = fieldName[0];
+			fieldName = new String[1];
+			fieldName[0] = name;
+			initVarlist();
+			add = false;
+			cbAddVariable.setVisible(add);
+			calcTitle();
+		*/	
 			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
 			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
 			txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
 			parseTextFields();
 			parseAvgPeriod();
+			
 		} else if (e.getSource() == btnCSV) {
 			File file = null;
 			File dir = null;
