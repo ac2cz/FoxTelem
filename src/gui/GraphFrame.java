@@ -295,6 +295,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtSamplePeriod.addActionListener(this);
 		txtSamplePeriod.addFocusListener(this);
+		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
 
 		
 		footerPanelLeft.add(lblPlot);
@@ -341,6 +342,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		chckbxPlotAllUptime.setSelected(showContinuous);
 		
 		chckbxPlotAllUptime.addItemListener(this);
+		chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
 		if (this.textDisplay) chckbxPlotAllUptime.setVisible(false);
 		
 	}

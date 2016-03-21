@@ -107,7 +107,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		JPanel topPanel = new JPanel();
 		JPanel topPanel1 = new JPanel();
 		JPanel topPanel2 = new JPanel();
-		topPanel.setMinimumSize(new Dimension(10, 50));
+		topPanel.setMinimumSize(new Dimension((int)(Config.displayModuleFontSize * 10/11), 50));
 		add(topPanel, BorderLayout.NORTH);
 		
 		topPanel.setLayout(new BorderLayout(0,0));
@@ -120,36 +120,37 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblId = new JLabel(ID);
 //		lblId.setMaximumSize(new Dimension(280, 14));
 //		lblId.setMinimumSize(new Dimension(280, 14));
-		lblId.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblId.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblId.setForeground(textLblColor);
 		topPanel1.add(lblId);
 		lblIdValue = new JLabel();
 		//lblIdValue.setMaximumSize(new Dimension(280, 14));
 		//lblIdValue.setMinimumSize(new Dimension(280, 14));
-		lblIdValue.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblIdValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblIdValue.setForeground(textColor);
 		topPanel1.add(lblIdValue);
 
 		
 		lblMode = new JLabel(MODE);
-		lblMode.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblMode.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblMode.setForeground(textLblColor);
 		topPanel1.add(lblMode);
 		lblModeValue = new JLabel();
-		lblModeValue.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblModeValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblModeValue.setForeground(textColor);
 		topPanel1.add(lblModeValue);
 		
 		// force the next labels to the right side of screen
-		topPanel1.add(new Box.Filler(new Dimension(14,14), new Dimension(1600,14), new Dimension(1600,14)));
+		int fonth = (int)(Config.displayModuleFontSize * 14/11);
+		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
 
 		lblFramesDecoded = new JLabel(DECODED);
-		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		lblFramesDecoded.setForeground(textLblColor);
 		topPanel1.add(lblFramesDecoded);
 		lblFramesDecodedValue = new JLabel();
-		lblFramesDecodedValue.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblFramesDecodedValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblFramesDecodedValue.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		lblFramesDecodedValue.setForeground(textColor);
 		topPanel1.add(lblFramesDecodedValue);
@@ -176,7 +177,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 		
 		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
-		showRawValues.setMinimumSize(new Dimension(100, 14));
+		showRawValues.setMinimumSize(new Dimension(100, fonth));
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
@@ -186,10 +187,10 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		showUTCtime.addItemListener(this);
 		
 		// force the next labels to the right side of screen
-		bottomPanel.add(new Box.Filler(new Dimension(14,14), new Dimension(400,14), new Dimension(1600,14)));
+		bottomPanel.add(new Box.Filler(new Dimension(14,fonth), new Dimension(400,fonth), new Dimension(1600,fonth)));
 		
 		lblCaptureDate = new JLabel(CAPTURE_DATE);
-		lblCaptureDate.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblCaptureDate.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 10/11)));
 		lblCaptureDate.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
 		lblCaptureDate.setForeground(textLblColor);
 		bottomPanel.add(lblCaptureDate );
@@ -209,27 +210,27 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 
 	private JLabel addReset(JPanel topPanel2, String type) {
 		JLabel lblResets = new JLabel(type + " " + RESETS);
-		lblResets.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblResets.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 //		lblResets.setMinimumSize(new Dimension(200, 14));
 //		lblResets.setMaximumSize(new Dimension(200, 14));
 		lblResets.setForeground(textLblColor);
 		topPanel2.add(lblResets);
 		JLabel lblResetsValue = new JLabel();
-		lblResetsValue.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblResetsValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblResetsValue.setForeground(textColor);
 		topPanel2.add(lblResetsValue);
 		return lblResetsValue;
 	}
 	private JLabel addUptime(JPanel topPanel2, String type) {
-
+		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		JLabel lblUptime = new JLabel(UPTIME);
-		lblUptime.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblUptime.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblUptime.setForeground(textLblColor);
 		topPanel2.add(lblUptime);
 		JLabel lblUptimeValue = new JLabel();
-		lblUptimeValue.setFont(new Font("SansSerif", Font.BOLD, 14));
-		lblUptimeValue.setMinimumSize(new Dimension(1600, 14));
-		lblUptimeValue.setMaximumSize(new Dimension(1600, 14));
+		lblUptimeValue.setFont(new Font("SansSerif", Font.BOLD, fonth));
+		lblUptimeValue.setMinimumSize(new Dimension(1600, fonth));
+		lblUptimeValue.setMaximumSize(new Dimension(1600, fonth));
 		lblUptimeValue.setForeground(textColor);
 		topPanel2.add(lblUptimeValue);
 		return lblUptimeValue;

@@ -156,13 +156,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		moduleType = modType;
 		
 		if (moduleType >= DISPLAY_HERCI) {
-			border.setTitleFont(new Font("SansSerif", Font.BOLD, 12));
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));
 			border.setTitleColor(herciFontColor);
 		} else if (moduleType >= DISPLAY_VULCAN) {
-			border.setTitleFont(new Font("SansSerif", Font.BOLD, 10));
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
 			border.setTitleColor(vulcanFontColor);
 		} else {
-			border.setTitleFont(new Font("SansSerif", Font.BOLD, 12));	
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));	
 			border.setTitleColor(Color.BLUE);
 			maxValue = new JLabel[size];
 			minValue = new JLabel[size];
