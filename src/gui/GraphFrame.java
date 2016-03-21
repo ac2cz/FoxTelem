@@ -186,12 +186,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		lblTitle.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize + 3));
 //		titlePanelcenter.add(lblTitle);
 
-		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
-				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR ) {   // Should not hard code this - need to update
-			//textArea = new DiagnosticTextArea(title, fieldName, this);
+		if (textDisplay(conversionType) ) {   
 			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
-			//JScrollPane scroll = new JScrollPane (diagnosticTable, 
-			//		   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
 		} else {
@@ -279,18 +275,20 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
-		// make a list of the variables that we could plot
-		
-		variables = new ArrayList<String>();
-		for (int v=0; v<layout.fieldName.length; v++) {
-			//if (sat.rtLayout.fieldUnits[v].equalsIgnoreCase(fieldUnits))
-				variables.add(layout.fieldName[v]);
+		if (!textDisplay) {
+			// make a list of the variables that we could plot
+			// this is every variable in the Layout that is shown in a module. Only broken telem channels are not shown
+			variables = new ArrayList<String>();
+			for (int v=0; v<layout.fieldName.length; v++) {
+				if (!sat.rtLayout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+					variables.add(layout.fieldName[v]);
+			}
+			Object[] fields = variables.toArray();
+			cbAddVariable = new JComboBox(fields);
+			footerPanelFarLeft.add(cbAddVariable);
+			cbAddVariable.addActionListener(this);
 		}
-		Object[] fields = variables.toArray();
-		cbAddVariable = new JComboBox(fields);
-		footerPanelFarLeft.add(cbAddVariable);
-		cbAddVariable.addActionListener(this);
-		
+
 		cbUptime = new JCheckBox("Show Uptime");
 		cbUptime.setSelected(!hideUptime);
 		cbUptime.addItemListener(this);
@@ -373,6 +371,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 	}
 
+	private boolean textDisplay(int conversionType) {
+		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
+				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR )
+			return true;
+		return false;
+	}
+	
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FramePart.TYPE_REAL_TIME)
@@ -654,13 +659,19 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					if (!s.equalsIgnoreCase(variables.get(position)))
 						fieldName[i++] = s;
 				
-			} else if (toggle2 && fieldName2.length > 1) {
+			} else if (toggle2 && fieldName2.length > 0) {
 				// we remove this entry
-				fieldName2 = new String[fields2-1];
-				i=0;
-				for (String s: temp2)
-					if (!s.equalsIgnoreCase(variables.get(position)))
-						fieldName2[i++] = s;
+				if (fieldName2.length == 1) {
+					fieldName2 = null;
+					fieldUnits2 = "";
+					fields2 = 0;
+				} else {
+					fieldName2 = new String[fields2-1];
+					i=0;
+					for (String s: temp2)
+						if (!s.equalsIgnoreCase(variables.get(position)))
+							fieldName2[i++] = s;
+				}
 			} else {
 				if (fieldName.length < (GraphPanel.MAX_VARIABLES-1)) {
 					// Check if this is the same units, otherwise set this as unit2
@@ -690,6 +701,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			variables = new ArrayList<String>();
 			
 			for (int v=0; v<layout.fieldName.length; v++) {
+				if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
 				if (layout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || layout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
 						|| fieldUnits2.equalsIgnoreCase(""))
 					variables.add(layout.fieldName[v]);

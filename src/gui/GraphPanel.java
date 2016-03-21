@@ -53,8 +53,8 @@ public class GraphPanel extends JPanel {
 	double[] firstDifference = null;
 	double[] dspData = null;
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
-	public static final int MAX_VARIABLES = 10;
-	Color[] graphColor = {Color.BLUE, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
+	public static final int MAX_VARIABLES = 11;
+	Color[] graphColor = {Color.BLUE, Config.GRAPH1, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
 			Config.GRAPH7, Config.GRAPH8, Config.GRAPH9, Config.GRAPH10};
 	Color graphAxisColor = Color.BLACK;
 	Color graphTextColor = Color.DARK_GRAY;
@@ -115,6 +115,7 @@ public class GraphPanel extends JPanel {
 				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 			
 		}
+		graphData2 = null;
 		if (graphFrame.fieldName2 != null && graphFrame.fieldName2.length > 0) {
 			graphData2 = new double[graphFrame.fieldName2.length][][];
 			for (int i=0; i<graphFrame.fieldName2.length; i++) {
@@ -140,6 +141,41 @@ public class GraphPanel extends JPanel {
 			this.repaint();
 	}
 	
+	private void drawLegend(int graphWidth) {
+		if (graphFrame.fieldName.length == 1 && graphFrame.fieldName2 == null) return;
+		int leftOffset = 110;
+		int leftLineOffset = -20;
+		int fonth = 12;
+		int verticalOffset = 15;
+		int lineLength = 15;
+		int longestWord = 17;
+		int rows = graphFrame.fieldName.length;
+		int font = 9;
+		if (graphFrame.fieldName2 != null)
+			rows = rows + graphFrame.fieldName2.length;
+		
+		g.setFont(new Font("SansSerif", Font.PLAIN, font));
+		g2.drawRect(graphWidth - leftOffset - 1, topBorder + 4,longestWord * 9 +1 , 9 + fonth * rows +1  );
+		g2.setColor(Color.LIGHT_GRAY);
+		g2.fillRect(graphWidth - leftOffset, topBorder + 5, longestWord * 9 , 9 + fonth * rows  );
+		
+		for (int i=0; i < graphFrame.fieldName.length; i++) {
+			g2.setColor(Color.BLACK);
+			g2.drawString(graphFrame.fieldName[i], graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.setColor(graphColor[i]);
+			g2.fillRect(graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
+		}
+		
+		verticalOffset =+ verticalOffset + graphFrame.fieldName.length * fonth;
+		
+		if (graphFrame.fieldName2 != null)
+		for (int i=0; i < graphFrame.fieldName2.length; i++) {
+			g2.setColor(Color.BLACK);
+			g2.drawString(graphFrame.fieldName2[i], graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
+			g2.fillRect(graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
+		}
+	}
 	
 	/*
 	 * Draw on a panel, where x is horizontal from left to right and y is vertical from top to bottom
@@ -178,8 +214,10 @@ public class GraphPanel extends JPanel {
 		}
 		
 		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines);
-
+		drawLegend(graphWidth);
+		
 		int zeroPoint = (int) axisPoints[0];
+		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
 		// Analyze the data for the horizontal axis next
 		// We only need to do this for the first data set (if there are multiple)
