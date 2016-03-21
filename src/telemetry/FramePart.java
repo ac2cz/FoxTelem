@@ -611,7 +611,8 @@ longer send telemetry.
 			
 			return "IHU SW: " + Character.toString((char) swType) + fox.foxId + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
 		case UNKNOWN: // IHU measurement of bus voltage
-			return "type " + type + ": " + rawValue;
+			value = (rawValue >> 8) & 0xfff;
+			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.ihuVBattTable.lookupValue(value),3) + "V";
 		}
 		return "-----" + type;
 	}
