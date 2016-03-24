@@ -212,10 +212,10 @@ public class GraphPanel extends JPanel {
 
 		double[] axisPoints2 = {0d, 0d, 0d};
 		if (graphData2 != null) {
-			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false);
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2);
 		}
 		
-		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines);
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits);
 		drawLegend(graphWidth);
 		
 		int zeroPoint = (int) axisPoints[0];
@@ -278,7 +278,7 @@ public class GraphPanel extends JPanel {
 		else {
 			g2.drawString("UTC", sideLabelOffset, zeroPoint+(int)(1.5*Config.graphAxisFontSize)+offset );
 			g.setFont(new Font("SansSerif", Font.PLAIN, (int)(Config.graphAxisFontSize*0.9)));
-			g2.drawString("(Spacecraft UTC is approximate)", graphWidth-Config.graphAxisFontSize*5, titleHeight );
+			g2.drawString("(Spacecraft UTC is approximate)", graphWidth-Config.graphAxisFontSize*10, titleHeight );
 			g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
 		}
@@ -318,7 +318,7 @@ public class GraphPanel extends JPanel {
 				
 	}
 	
-	private double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines) {
+	private double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines, String units) {
 		
 		// Draw vertical axis - always in the same place
 		g2.drawLine(sideBorder + axisPosition, getHeight()-bottomBorder, sideBorder+axisPosition, topBorder);
@@ -400,7 +400,11 @@ public class GraphPanel extends JPanel {
 				DecimalFormat f1 = new DecimalFormat("0.0");
 				DecimalFormat f2 = new DecimalFormat("0");
 				
+				int fudge = 0;
+				if (axisPosition > 0) fudge = sideBorder;
 				
+				g2.setColor(graphTextColor);
+				g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
 				
 				for (int v=0; v < numberOfLabels; v++) {
 					
@@ -411,10 +415,12 @@ public class GraphPanel extends JPanel {
 						s = f2.format(labels[v]);
 					else
 						s = f1.format(labels[v]);
-					// dont draw a label at the zero point or just below it because we have axis labels there
+					
 					boolean drawLabel = true;
-					if (v < numberOfLabels-1 
-							&& !(labels[v] == 0.0 || labels[v+1] == 0.0)
+					// dont draw a label at the zero point or just below it because we have axis labels there, unless
+					// this is the second axis
+					if ( v < numberOfLabels-1 
+							&& !((axisPosition == 0) && (labels[v] == 0.0 || labels[v+1] == 0.0))
 							&& !(v == 0 && pos > graphHeight)
 							) {
 						if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
@@ -483,8 +489,7 @@ public class GraphPanel extends JPanel {
 						
 						if (drawLabel && pos > 0 && (pos < graphHeight-Config.graphAxisFontSize/2))	{ 
 							g2.setColor(graphTextColor);
-							int fudge = 0;
-							if (axisPosition > 0) fudge = sideBorder;
+							
 							g2.drawString(s, fudge+axisPosition+sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); // add 4 to line up with tick line
 							g2.setColor(graphAxisColor);
 							if (showHorizontalLines) {
@@ -495,6 +500,7 @@ public class GraphPanel extends JPanel {
 								g.drawLine(sideBorder+axisPosition-5, pos+topBorder, sideBorder+axisPosition+5, pos+topBorder);
 						}
 					}
+					
 					if (!foundZeroPoint) {
 						if (labels[v] >= 0) {
 							foundZeroPoint = true;
@@ -660,7 +666,7 @@ public class GraphPanel extends JPanel {
 	//	int skip = 0;
 		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0);
 		if (graphData2 != null)
-			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphData[0].length);
+			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length);
 		
 	}
 

@@ -28,6 +28,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -387,18 +388,21 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private void initVarlist() {
 		variables = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
-			if (!fox.rtLayout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
 				variables.add(layout.fieldName[v]);
 		}
+		Object[] fields = variables.toArray();
 		cbAddVariable.removeAllItems();
-		for (String s:variables) {
-			cbAddVariable.addItem(s);
-		}
+		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FramePart.TYPE_REAL_TIME)
 			layout = fox.rtLayout;
+		else if (plType == FramePart.TYPE_RAD_TELEM_DATA)
+			layout = fox.rad2Layout;
+		else if (plType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+			layout = fox.herciHS2Layout;
 		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
 			layout = fox.measurementLayout;
 		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
@@ -652,13 +656,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			int i = 0;
 			boolean toggle = false;
 			boolean toggle2 = false;
-			BitArrayLayout layout = null;
-			if (payloadType == FramePart.TYPE_REAL_TIME)
-				layout = fox.rtLayout;
-			else if (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
-				layout = fox.measurementLayout;
-			else if (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
-				layout = fox.passMeasurementLayout;
+			BitArrayLayout layout = getLayout(payloadType);
+			
 			
 			for (String s: fieldName) {
 				temp[i++] = s;
@@ -755,16 +754,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		} else if (e.getSource() == this.txtAvgPeriod) {
 				parseAvgPeriod();
 		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
-	/*		fieldUnits2 = "";
-			fieldName2 = null;
-			String name = fieldName[0];
-			fieldName = new String[1];
-			fieldName[0] = name;
-			initVarlist();
-			add = false;
-			cbAddVariable.setVisible(add);
-			calcTitle();
-		*/	
+			if (!textDisplay) {
+				fieldUnits2 = "";
+				fieldName2 = null;
+				String name = fieldName[0];
+				fieldName = new String[1];
+				fieldName[0] = name;
+				initVarlist();
+				add = false;
+				cbAddVariable.setVisible(add);
+				calcTitle();
+			}
 			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
 			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
