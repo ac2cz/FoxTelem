@@ -212,10 +212,10 @@ public class GraphPanel extends JPanel {
 
 		double[] axisPoints2 = {0d, 0d, 0d};
 		if (graphData2 != null) {
-			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2);
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, 0); // default graph type to 0 for now
 		}
 		
-		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits);
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, graphType);
 		drawLegend(graphWidth);
 		
 		int zeroPoint = (int) axisPoints[0];
@@ -329,7 +329,7 @@ public class GraphPanel extends JPanel {
 				
 	}
 	
-	private double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines, String units) {
+	private double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines, String units, int graphType) {
 		
 		// Draw vertical axis - always in the same place
 		g2.drawLine(sideBorder + axisPosition, getHeight()-bottomBorder, sideBorder+axisPosition, topBorder);
