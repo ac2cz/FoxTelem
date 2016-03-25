@@ -71,9 +71,9 @@ public class GraphPanel extends JPanel {
 	
 	int topBorder = (int)(Config.graphAxisFontSize*2); //Config.graphAxisFontSize; // The distance from the top of the drawing surface to the graph.  The title goes in this space
 	int bottomBorder = (int)(Config.graphAxisFontSize*2.5); // The distance from the bottom of the drawing surface to the graph
-	int sideBorder = (int)(Config.graphAxisFontSize *4); // left side border.  The position that the axis is drawn and the graph starts
+	int sideBorder = (int)(Config.graphAxisFontSize *5); // left side border.  The position that the axis is drawn and the graph starts
 	int sideLabelOffset = (int)(Config.graphAxisFontSize *0.5); // offset before we draw a label on the vertical axis
-	static int labelWidth = (int)(6 * Config.graphAxisFontSize);  // 40 was a bit too tight for 6 digit uptime
+	static int labelWidth = (int)(6.7 * Config.graphAxisFontSize);  // 40 was a bit too tight for 6 digit uptime
 	static int labelHeight = (int)(Config.graphAxisFontSize * 1.4);
 
 	private static int MAX_TICKS = 4096/labelWidth;
@@ -163,7 +163,7 @@ public class GraphPanel extends JPanel {
 		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName[i], sideBorder+ graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.drawString(graphFrame.fieldName[i]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
 		}
@@ -173,7 +173,7 @@ public class GraphPanel extends JPanel {
 		if (graphFrame.fieldName2 != null)
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName2[i], sideBorder + graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.drawString(graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
 		}
@@ -286,13 +286,24 @@ public class GraphPanel extends JPanel {
 //		System.out.println("Found " + resetPosition.size() + " resets at: ");
 //		for (int q=0; q < resetPosition.size(); q++ )
 //		System.out.println(" -" + graphData[PayloadStore.UPTIME_COL][resetPosition.get(q)] + " and ");
+		
+		
+		/*
+		 * Now we cycle through the resets and draw them one after another.  We will draw the labels on the horizontal axis with each
+		 * reset.  There are a few things that we need to keep in mind
+		 * 1. If "continuous" is checked then we are spacing the resets out according to the uptime.
+		 * 2. If a reset is very narrow then we may not have room to draw a label, so we calculate the maximum number of labels for the window
+		 *    size and work out if we need to skip drawing some labels so they will fit
+		 */
 		int maxLabels = (int)(graphWidth/(labelWidth*2));
 		int resetLabelFreq = (int) Math.ceil(resetPosition.size() / (double)maxLabels); // reduce the number of labels if we have too many resets
 		int resetLabelCount = 0;
-		boolean drawLabels = false;
+		boolean drawLabels = false; // set to false if we want to skip labels on the reset we are going to plot
 		for (int r=0; r < resetPosition.size(); r++) {
 //			int resets = (int) graphData[PayloadStore.RESETS_COL][resetPosition.get(r)];
 //			System.out.println("Processing reset " + resets);
+			
+			// Grab the paramaters we need to pass to the routine that draws the part of the graph for this reset
 			int startScreenPos = 0;
 			int width = 0;
 			int start = resetPosition.get(r); // The position in the data array that this reset starts
@@ -400,8 +411,8 @@ public class GraphPanel extends JPanel {
 				DecimalFormat f1 = new DecimalFormat("0.0");
 				DecimalFormat f2 = new DecimalFormat("0");
 				
-				int fudge = 0;
-				if (axisPosition > 0) fudge = sideBorder;
+				int fudge = 0; // fudge factor so that labels on the right axis are offset by the side border, otherwise they would be drawn to left of axis
+				if (axisPosition > 0) fudge = sideBorder + (int)(Config.graphAxisFontSize);
 				
 				g2.setColor(graphTextColor);
 				g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
@@ -589,8 +600,8 @@ public class GraphPanel extends JPanel {
 		int numberOfTimeLabels = graphWidth/labelWidth;
 
 		// draw the labels if that was passed in.  Only draw the labels for continuous graphs if we have room for one
-		// for non continuous graphs the calling function makes sure there is room, so we will always draw one,
-		// except if this is the last reset, because we dont want to draw a label off the right end of the graph
+		// For non continuous graphs the calling function makes sure there is room, so we will always draw one,
+		// except if this is the last reset, because we don't want to draw a label off the right end of the graph
 		if (drawLabels && (numberOfTimeLabels > 0 || !graphFrame.showContinuous) 
 				&& (numberOfTimeLabels > 0 || start < graphData[0][PayloadStore.RESETS_COL].length-1)) {  
 			// calculate the label step size
@@ -607,9 +618,13 @@ public class GraphPanel extends JPanel {
 
 					if (!graphFrame.showContinuous && numberOfTimeLabels == 1) timepos = 1; // We are just plotting the first label
 					// dont draw the label if we are too near the start or end
-					if ((graphFrame.showContinuous && timepos > 0 && (graphWidth - timepos) > labelWidth/2) || (!graphFrame.showContinuous && timepos > 0) 
-							|| (!graphFrame.showContinuous && numberOfTimeLabels == 1)) {
-				//	if ((timepos > 0) || numberOfTimeLabels == 1){
+					if ((graphFrame.showContinuous && timepos > 0 && graphWidth > timepos && (graphWidth - timepos) > labelWidth/2)
+							// this is when continuous not ticked.  We only draw labels in the range, but we may not quite fit in.  
+							// This is a compromise so we draw enough labels in short resets
+							|| (!graphFrame.showContinuous && timepos > 0 && graphWidth > timepos)
+							// this is for rests with 1 value. It might cause an overlap but we live with that
+							|| (!graphFrame.showContinuous && numberOfTimeLabels == 1)) {  
+
 						String s = d.format(timelabels[v]);
 
 						int offset = 0;
@@ -767,6 +782,9 @@ public class GraphPanel extends JPanel {
 
 		// From the range and the number of ticks, work out a suitable tick size
 		step = getStep(range, ticks, intStep);
+		
+		// We don't want labels that plot off the end of the graph, so reduce the ticks if needed
+		ticks = (int) Math.ceil(range / step);
 		// Now find the first value before the minimum.
 		double startValue = roundToSignificantFigures(Math.round(min/step) * step, 6);
 

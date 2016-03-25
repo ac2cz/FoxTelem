@@ -967,8 +967,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			Writer output = new BufferedWriter(new FileWriter(aFile, false));
 
-			for (int i=0; i< graphData[0].length; i++) {
-				String s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +
+			for (int i=0; i< graphData[0][0].length; i++) {
+				String s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +  // can always read reset and uptime from field 0
 						graphData[0][PayloadStore.UPTIME_COL][i] ;
 				for (int j=0; j < fieldName.length; j++)				
 						s = s + ", " + graphData[j][PayloadStore.DATA_COL][i] + "\n";
