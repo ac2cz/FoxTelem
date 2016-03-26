@@ -134,7 +134,7 @@ public class ServerProcess implements Runnable {
 			}
 			
 		} catch (SocketException e) {
-			Log.println("SOCKET EXCETION, file will not be processed");
+			Log.println("SOCKET EXCEPTION, file will not be processed");
 		} catch (IOException e) {
 			Log.println("ERROR ALERT:" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
