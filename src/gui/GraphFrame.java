@@ -540,7 +540,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		String fields2 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName2");
 		if (fields2 != null && !fields2.equalsIgnoreCase("")) {
 			fieldName2 = fields2.split(";");
-			String unit = layout.getUnitsByName(fieldName2[0]);
+			fieldUnits2 = layout.getUnitsByName(fieldName2[0]);
 		}
 		return open;
 	}

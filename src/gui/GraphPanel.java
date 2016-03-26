@@ -141,31 +141,42 @@ public class GraphPanel extends JPanel {
 			this.repaint();
 	}
 	
-	private void drawLegend(int graphWidth) {
+	private void drawLegend(int graphWidth, int titleHeight) {
 		if (graphFrame.fieldName.length == 1 && graphFrame.fieldName2 == null) return;
-		
 		
 		int verticalOffset = 15;
 		int lineLength = 15;
-		int longestWord = 17;
+		
 		int rows = graphFrame.fieldName.length;
 		int font = (int)(9 * Config.graphAxisFontSize / 11 );
-		int leftOffset = longestWord * font + 20;
+		
 		int leftLineOffset = 50;
 		int fonth = (int)(12*font/9);
+		int fontw = (int)(8*font/10);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
 		
+		int longestWord = 20;
+		for (int i=0; i < graphFrame.fieldName.length; i++)
+			if (graphFrame.fieldName[i].length() > longestWord)
+				longestWord = graphFrame.fieldName[i].length();
+		
+		if (graphFrame.fieldName2 != null)
+		for (int i=0; i < graphFrame.fieldName2.length; i++)
+			if (graphFrame.fieldName2[i].length() > longestWord)
+				longestWord = graphFrame.fieldName2[i].length();
+		int leftOffset = longestWord * fontw + 20; // the point where we start drawing the box from the right edge of the graph
+		
 		g.setFont(new Font("SansSerif", Font.PLAIN, font));
-		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, topBorder + 4,longestWord * font +1 , 9 + fonth * rows +1  );
+		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,longestWord * fontw +1 , 9 + fonth * rows +1  );
 		g2.setColor(Color.LIGHT_GRAY);
-		g2.fillRect(sideBorder + graphWidth - leftOffset, topBorder + 5, longestWord * font , 9 + fonth * rows  );
+		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
 		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName[i]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.drawString(graphFrame.fieldName[i]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
-			g2.fillRect(sideBorder + graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
+			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
 		}
 		
 		verticalOffset =+ verticalOffset + graphFrame.fieldName.length * fonth;
@@ -173,9 +184,9 @@ public class GraphPanel extends JPanel {
 		if (graphFrame.fieldName2 != null)
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, topBorder + verticalOffset +5 + i * fonth );
+			g2.drawString(graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
-			g2.fillRect(sideBorder + graphWidth - leftLineOffset, topBorder + verticalOffset + i * fonth, lineLength + 5,2);
+			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
 		}
 	}
 	
@@ -216,7 +227,7 @@ public class GraphPanel extends JPanel {
 		}
 		
 		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, graphType);
-		drawLegend(graphWidth);
+		
 		
 		int zeroPoint = (int) axisPoints[0];
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
@@ -263,8 +274,11 @@ public class GraphPanel extends JPanel {
 
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 
+		// draw the key
+		drawLegend(graphWidth, topBorder); // FIXME - need to work out where to plot the key when the axis is on top
 		
 		// Draw baseline at the zero point, but not the labels, which are drawn for each reset
+		g2.setColor(graphAxisColor);
 		g2.drawLine(sideLabelOffset, zeroPoint, graphWidth+sideBorder, zeroPoint);
 		g2.setColor(graphTextColor);
 		int offset = 0;
@@ -679,14 +693,14 @@ public class GraphPanel extends JPanel {
 		}
 
 	//	int skip = 0;
-		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0);
+		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0, graphType);
 		if (graphData2 != null)
-			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length);
+			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, 0);
 		
 	}
 
 	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, int sideBorder, double minTimeValue, 
-			double maxTimeValue, double minValue, double maxValue, int colorIdx) {
+			double maxTimeValue, double minValue, double maxValue, int colorIdx, int graphType) {
 		if (graphData != null)
 			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
