@@ -53,9 +53,9 @@ public class GraphPanel extends JPanel {
 	double[] firstDifference = null;
 	double[] dspData = null;
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
-	public static final int MAX_VARIABLES = 11;
+	public static final int MAX_VARIABLES = 13;
 	Color[] graphColor = {Color.BLUE, Config.GRAPH1, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
-			Config.GRAPH7, Config.GRAPH8, Config.GRAPH9, Config.GRAPH10};
+			Config.GRAPH7, Config.GRAPH8, Config.GRAPH9, Config.GRAPH10 , Config.GRAPH11 , Config.GRAPH12};
 	Color graphAxisColor = Color.BLACK;
 	Color graphTextColor = Color.DARK_GRAY;
 	

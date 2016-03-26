@@ -75,7 +75,9 @@ public class Config {
 	public static Color GRAPH8 = new Color(153,102,0); // brown
 	public static Color GRAPH9 = new Color(102,102,204); // pastel purple
 	public static Color GRAPH10 = new Color(0,51,153); // deep blue
-
+	public static Color GRAPH11 = new Color(255,255,255); // black
+	public static Color GRAPH12 = new Color(153,153,255); // purple
+	
 	public static SatelliteManager satManager;
 	public static PassManager passManager;
 	static Thread passManagerThread;

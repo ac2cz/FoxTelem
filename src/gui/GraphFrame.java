@@ -485,6 +485,19 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "AVG_PERIOD", AVG_PERIOD);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showContinuous", showContinuous);
+		
+		String fields1 = "";
+		for (String s : fieldName)
+			fields1 += s + ";";
+		Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName", fields1);
+		String fields2 = "";
+		if (fieldName2 != null) {
+			for (String s : fieldName2)
+				fields2 += s + ";";
+			Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName2", fields2);
+		} else {
+			Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName2", fields2); // make sure it is saved as blank
+		}
 	}
 
 	public boolean loadProperties() {
@@ -520,6 +533,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
 		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
+		
+		String fields1 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName");
+		if (fields1 != null)
+			fieldName = fields1.split(";");
+		String fields2 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName2");
+		if (fields2 != null && !fields2.equalsIgnoreCase("")) {
+			fieldName2 = fields2.split(";");
+			String unit = layout.getUnitsByName(fieldName2[0]);
+		}
 		return open;
 	}
 
@@ -657,7 +679,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			boolean toggle = false;
 			boolean toggle2 = false;
 			BitArrayLayout layout = getLayout(payloadType);
-			
+			int totalVariables = fieldName.length;
 			
 			for (String s: fieldName) {
 				temp[i++] = s;
@@ -671,6 +693,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					temp2[j++] = s;
 					if (s.equalsIgnoreCase(variables.get(position))) toggle2=true;
 				}
+				totalVariables += fieldName2.length;
 			}
 			if (toggle && fieldName.length > 1) {
 				// we remove this entry
@@ -694,28 +717,28 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 							fieldName2[i++] = s;
 				}
 			} else {
-				if (fieldName.length < (GraphPanel.MAX_VARIABLES-1)) {
-					// Check if this is the same units, otherwise set this as unit2
-					String unit = layout.getUnitsByName(variables.get(position));
-					if (!unit.equalsIgnoreCase(fieldUnits)) {
-						fieldUnits2 = unit;
-						// we add it to the second list as the units are different
-						fieldName2 = new String[fields2+1];
-						i=0;
-						if (temp2 != null) // then add what we have so far
-							for (String s: temp2)
-								fieldName2[i++] = s;
-						fieldName2[i] = variables.get(position);
-					} else {
+				if (totalVariables == GraphPanel.MAX_VARIABLES) return; // can't add more variables than the graphPanel can plot
+				// Check if this is the same units, otherwise set this as unit2
+				String unit = layout.getUnitsByName(variables.get(position));
+				if (!unit.equalsIgnoreCase(fieldUnits)) {
+					fieldUnits2 = unit;
+					// we add it to the second list as the units are different
+					fieldName2 = new String[fields2+1];
+					i=0;
+					if (temp2 != null) // then add what we have so far
+						for (String s: temp2)
+							fieldName2[i++] = s;
+					fieldName2[i] = variables.get(position);
+				} else {
 					// we add it to the normal list
 					fieldName = new String[fields+1];
 					i=0;
 					for (String s: temp)
 						fieldName[i++] = s;
 					fieldName[i] = variables.get(position);
-					}
-					
 				}
+
+
 			}
 			
 			// now rebuild the pick list
