@@ -88,7 +88,7 @@ public class FoxTelemServer {
 		Config.logging = true;
 		Log.init("FoxServer");
 		Log.showGuiDialogs = false;
-		Log.setStdoutEcho(true); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
+		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
 		try {
 			makeExceptionDir();

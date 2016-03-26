@@ -14,6 +14,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Writer;
 import java.net.Socket;
+import java.net.SocketException;
 import java.nio.channels.FileChannel;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -132,12 +133,16 @@ public class ServerProcess implements Runnable {
 					Log.println("ERROR: Could not mark file as null data: " + stp.getAbsolutePath());
 			}
 			
+		} catch (SocketException e) {
+			Log.println("SOCKET EXCETION, file will not be processed");
 		} catch (IOException e) {
 			Log.println("ERROR ALERT:" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
-			Log.alert("FATAL: + e.getMessage()");
+			Log.alert("FATAL: " + e.getMessage());
+		
+
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
