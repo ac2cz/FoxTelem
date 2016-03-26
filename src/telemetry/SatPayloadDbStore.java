@@ -155,7 +155,7 @@ public class SatPayloadDbStore {
 		try {
 			Connection derby = PayloadDbStore.getConnection();
 			stmt = derby.createStatement();
-			select = stmt.executeQuery("select * from " + table);
+			select = stmt.executeQuery("select 1 from " + table + " LIMIT 1");
 			select.close();
 		} catch (SQLException e) {
 			

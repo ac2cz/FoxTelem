@@ -41,7 +41,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.15 - 6 March 2016";
+	public static String version = "Version 0.17 - 26 March 2016";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -88,7 +88,7 @@ public class FoxTelemServer {
 		Config.logging = true;
 		Log.init("FoxServer");
 		Log.showGuiDialogs = false;
-		Log.setStdoutEcho(true); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
+		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
 		try {
 			makeExceptionDir();
