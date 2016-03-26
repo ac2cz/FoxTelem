@@ -448,7 +448,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		try {
 			derby = getConnection();
 			stmt = PayloadDbStore.derby.createStatement();
-			select = stmt.executeQuery("select * from " + table);
+			select = stmt.executeQuery("select 1 from " + table + " LIMIT 1");
 			select.close();
 		} catch (SQLException e) {
 			
