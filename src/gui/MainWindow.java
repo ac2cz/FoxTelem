@@ -192,6 +192,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			macApplication.setQuitHandler(new MacQuitHandler(this));
 		}
 		
+		initMenu();
+		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		getContentPane().add(tabbedPane);
@@ -247,7 +249,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		addHealthTabs();
 		
 		addMeasurementsTab();
-		initMenu();
+		
 		
 		initialize();
 		//pack(); // pack all in as tight as possible

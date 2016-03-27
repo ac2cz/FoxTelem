@@ -204,7 +204,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			        "Wav files", "wav", "wave");
 			fc.setFileFilter(filter);
 		//}
-		
+		if (Config.startButtonPressed) processStartButtonClick();
 	}
 	
 	public void showFilters(boolean b) { filterPanel.setVisible(b); }
@@ -1583,6 +1583,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	 * Try to close any open OS resources
 	 */
 	public void shutdown() {
+		Config.startButtonPressed = this.STARTED;
 		if (fcd != null)
 			try {
 				fcd.cleanup();
