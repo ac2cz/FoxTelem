@@ -87,6 +87,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	BitArrayLayout layout;
 	private int payloadType;
 	private int conversionType;
+	int conversionType2;
 	private JPanel contentPane;
 	private GraphPanel panel;
 	private JPanel titlePanel;
@@ -399,6 +400,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		BitArrayLayout layout = null;
 		if (plType == FramePart.TYPE_REAL_TIME)
 			layout = fox.rtLayout;
+		else if (plType == FramePart.TYPE_MAX_VALUES)
+			layout = fox.maxLayout;
+		else if (plType == FramePart.TYPE_MIN_VALUES)
+			layout = fox.minLayout;
 		else if (plType == FramePart.TYPE_RAD_TELEM_DATA)
 			layout = fox.rad2Layout;
 		else if (plType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
@@ -599,6 +604,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (AVG_PERIOD > MAX_AVG_SAMPLES) {
 				AVG_PERIOD = MAX_AVG_SAMPLES;
 				text = Integer.toString(MAX_AVG_SAMPLES);
+				txtAvgPeriod.setText(text);
 			}
 		} catch (NumberFormatException ex) {
 			
@@ -722,6 +728,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				String unit = layout.getUnitsByName(variables.get(position));
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
+					conversionType2 = layout.getConversionByName(variables.get(position));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
 					i=0;

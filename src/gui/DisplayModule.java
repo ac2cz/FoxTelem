@@ -276,7 +276,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						minValue[i].setText(max.getStringValue(fieldName[i],fox));
 					else
 						maxValue[i].setText(max.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
+					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
 				}
 			}
 		}
@@ -301,7 +301,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						maxValue[i].setText(min.getStringValue(fieldName[i],fox));
 					else
 						minValue[i].setText(min.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
+					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
 				}
 			}
 		}
@@ -440,35 +440,40 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
-					
+					units = fox.passMeasurementLayout.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox);
 				} 
 				else if (moduleType == DISPLAY_MEASURES) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.measurementLayout.getConversionByName(fieldName[i]);
-					
+					units = fox.measurementLayout.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox);
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
+					units = fox.rad2Layout.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.herciHS2Layout.getConversionByName(fieldName[i]);
+					units = fox.herciHS2Layout.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
+					units = fox.rad2Layout.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
+					units = minPayload.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, fox);
 				}
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
+					conversion = maxPayload.getConversionByName(fieldName[i]);
 					conversion = maxPayload.getConversionByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, fox);
 				} else return;

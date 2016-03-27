@@ -82,13 +82,13 @@ public class GraphPanel extends JPanel {
 	Graphics g;
 	
 	GraphFrame graphFrame;
-	private int graphType;
-	private int payloadType;
+	private int conversionType;  
+	private int payloadType; // This is RT, MAX, MIN, RAD, Measurement etc
 	
 	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
 		title = t;
 		payloadType = plType;
-		graphType = conversionType;
+		this.conversionType = conversionType;
 		//this.fieldName = fieldName;
 		graphFrame = gf;
 		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
@@ -197,8 +197,13 @@ public class GraphPanel extends JPanel {
 	 */
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
-		maxPlottedUptimeForReset = new HashMap();
+		
+		if (graphData == null) return;
+		if (graphData[0] == null) return;
+		if (graphData[0][0] == null) return;
 		if (graphData[0][0].length == 0) return;
+		
+		maxPlottedUptimeForReset = new HashMap();
 		
 		if (graphFrame.showUTCtime && !graphFrame.hideUptime) {
 			bottomBorder = (int)(Config.graphAxisFontSize*3.5);
@@ -223,10 +228,10 @@ public class GraphPanel extends JPanel {
 
 		double[] axisPoints2 = {0d, 0d, 0d};
 		if (graphData2 != null) {
-			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, 0); // default graph type to 0 for now
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2); // default graph type to 0 for now
 		}
 		
-		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, graphType);
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, conversionType);
 		
 		
 		int zeroPoint = (int) axisPoints[0];
@@ -561,31 +566,7 @@ public class GraphPanel extends JPanel {
 	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, 
 			int sideBorder, int zeroPoint, double minValue, double maxValue, double minValue2, double maxValue2, boolean drawLabels) {
 		
-		/**
-		 * Calculate a running average if the user selected it.  We can only do this if we have enough data
-		 * 
-		 */
-		if (graphFrame.dspAvg) {
-			if (graphFrame.AVG_PERIOD > graphData[0].length/2)
-				graphFrame.AVG_PERIOD = graphData[0].length /2 ;
-			double sum = 0;
-			boolean first = true;
-			dspData = new double[graphData[0][0].length];
-			for (int i=graphFrame.AVG_PERIOD/2; i < graphData[0].length-graphFrame.AVG_PERIOD/2; i++) {
-				sum = 0;
-				for (int j=0; j< graphFrame.AVG_PERIOD; j++)
-					sum += graphData[0][PayloadStore.DATA_COL][i+j-graphFrame.AVG_PERIOD/2];
-				sum = sum / (double)(graphFrame.AVG_PERIOD);
-				dspData[i] = sum;
-				if (first) {
-					for (int j=0; j<graphFrame.AVG_PERIOD/2; j++)
-						dspData[j] = sum;
-					first = false;
-				}
-			}
-			for (int j=graphData[0].length-graphFrame.AVG_PERIOD; j<graphData[0].length; j++)
-				dspData[j] = sum;
-		}
+		
 
 		double maxTimeValue = 0;
 		double minTimeValue = 99999999;
@@ -595,7 +576,7 @@ public class GraphPanel extends JPanel {
 			if (graphFrame.plotDerivative && i > 0) {
 				double value = graphData[0][PayloadStore.DATA_COL][i];
 				double value2 = graphData[0][PayloadStore.DATA_COL][i-1];
-				if (graphType == BitArrayLayout.CONVERT_FREQ) {
+				if (conversionType == BitArrayLayout.CONVERT_FREQ) {
 					value = value - freqOffset;
 					value2 = value2 - freqOffset;
 				}
@@ -693,15 +674,44 @@ public class GraphPanel extends JPanel {
 		}
 
 	//	int skip = 0;
-		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0, graphType);
+		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0, conversionType);
 		if (graphData2 != null)
-			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, 0);
+			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2);
 		
 	}
 
 	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, int sideBorder, double minTimeValue, 
 			double maxTimeValue, double minValue, double maxValue, int colorIdx, int graphType) {
 		if (graphData != null)
+			
+			/**
+			 * Calculate a running average if the user selected it.  We can only do this if we have enough data
+			 * 
+			 */
+			if (graphFrame.dspAvg) {
+				if (graphFrame.AVG_PERIOD > graphData[0][0].length/2)
+					graphFrame.AVG_PERIOD = graphData[0][0].length /2 ;
+				double sum = 0;
+				boolean first = true;
+				dspData = new double[graphData[0][0].length];
+				for (int i=graphFrame.AVG_PERIOD/2; i < graphData[0][0].length-graphFrame.AVG_PERIOD/2; i++) {
+					sum = 0;
+					for (int j=0; j< graphFrame.AVG_PERIOD; j++)
+						sum += graphData[0][PayloadStore.DATA_COL][i+j-graphFrame.AVG_PERIOD/2];
+					sum = sum / (double)(graphFrame.AVG_PERIOD);
+					dspData[i] = sum;
+					if (first) {
+						for (int j=0; j<graphFrame.AVG_PERIOD/2; j++)
+							dspData[j] = sum;
+						first = false;
+					}
+				}
+				for (int j=graphData[0][0].length-graphFrame.AVG_PERIOD; j<graphData[0][0].length; j++)
+					dspData[j] = sum;
+			}
+			
+			
+			
 			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
 				int lastx2 = sideBorder+1;
