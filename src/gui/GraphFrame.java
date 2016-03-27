@@ -244,7 +244,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
-		btnMain.setToolTipText("Hide the unprocessed telemetry data");
+		btnMain.setToolTipText("Hide the first trace (useful if the derivative or average has been plotted)");
 		btnMain.addActionListener(this);
 		titlePanelRight.add(btnMain);
 		if (this.textDisplay) btnMain.setVisible(false);
@@ -417,13 +417,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	private void calcTitle() {
 		//BitArrayLayout layout = getLayout(payloadType);
-		displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
-		if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
-				payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
-			displayTitle = fox.name + " " + displayTitle;
-		if (conversionType == BitArrayLayout.CONVERT_FREQ) {
-			int freqOffset = fox.telemetryDownlinkFreqkHz;
-			displayTitle = title + " delta from " + freqOffset + " kHz";
+		if (fieldName.length > 1 || fieldName2 != null)
+			displayTitle = fox.name;
+		else {
+			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
+			if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
+					payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
+				displayTitle = fox.name + " " + displayTitle;
+			if (conversionType == BitArrayLayout.CONVERT_FREQ) {
+				int freqOffset = fox.telemetryDownlinkFreqkHz;
+				displayTitle = title + " delta from " + freqOffset + " kHz";
+			}
 		}
 	}
 	private void setAvgVisible(boolean f) {
@@ -764,12 +768,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			
 			if (fieldName.length > 1 || fieldName2 != null)
-				displayTitle = fox.name;
+				;
 			else {
-				calcTitle();
 				add = false;
 				cbAddVariable.setVisible(add);
 			}
+			calcTitle();
 			panel.updateGraphData("GraphFrame:stateChange:addVariable");
 		}
 		else if (e.getSource() == this.txtSamplePeriod) {

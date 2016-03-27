@@ -155,6 +155,10 @@ public class GraphPanel extends JPanel {
 		int fontw = (int)(8*font/10);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
+
+		if (graphFrame.plotDerivative) rows +=1;
+		if (graphFrame.dspAvg) rows +=1;
+		
 		
 		int longestWord = 20;
 		for (int i=0; i < graphFrame.fieldName.length; i++)
@@ -181,12 +185,29 @@ public class GraphPanel extends JPanel {
 		
 		verticalOffset =+ verticalOffset + graphFrame.fieldName.length * fonth;
 		
-		if (graphFrame.fieldName2 != null)
+		if (graphFrame.fieldName2 != null) {
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
+			g2.drawString("AVG:" + graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
+		}
+		verticalOffset =+ verticalOffset + graphFrame.fieldName2.length * fonth;
+		}
+		
+		int x = 0;
+		if (graphFrame.plotDerivative) {
+			g2.setColor(Color.BLACK);
+			g2.drawString("Der:" + graphFrame.fieldName[0]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5  );
+			g2.setColor(Config.AMSAT_RED);
+			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset, lineLength + 5,2);
+			x = 1;
+		}
+		if (graphFrame.dspAvg) {
+			g2.setColor(Color.BLACK);
+			g2.drawString("Avg:" + graphFrame.fieldName[0]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + x * fonth );
+			g2.setColor(Config.AMSAT_GREEN);
+			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + x * fonth, lineLength + 5,2);
 		}
 	}
 	
@@ -566,7 +587,31 @@ public class GraphPanel extends JPanel {
 	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, 
 			int sideBorder, int zeroPoint, double minValue, double maxValue, double minValue2, double maxValue2, boolean drawLabels) {
 		
-		
+		/**
+		 * Calculate a running average if the user selected it.  We can only do this if we have enough data
+		 * 
+		 */
+		if (graphFrame.dspAvg) {
+			if (graphFrame.AVG_PERIOD > graphData[0][0].length/2)
+				graphFrame.AVG_PERIOD = graphData[0][0].length /2 ;
+			double sum = 0;
+			boolean first = true;
+			dspData = new double[graphData[0][0].length];
+			for (int i=graphFrame.AVG_PERIOD/2; i < graphData[0][0].length-graphFrame.AVG_PERIOD/2; i++) {
+				sum = 0;
+				for (int j=0; j< graphFrame.AVG_PERIOD; j++)
+					sum += graphData[0][PayloadStore.DATA_COL][i+j-graphFrame.AVG_PERIOD/2];
+				sum = sum / (double)(graphFrame.AVG_PERIOD);
+				dspData[i] = sum;
+				if (first) {
+					for (int j=0; j<graphFrame.AVG_PERIOD/2; j++)
+						dspData[j] = sum;
+					first = false;
+				}
+			}
+			for (int j=graphData[0][0].length-graphFrame.AVG_PERIOD; j<graphData[0][0].length; j++)
+				dspData[j] = sum;
+		}
 
 		double maxTimeValue = 0;
 		double minTimeValue = 99999999;
@@ -674,44 +719,17 @@ public class GraphPanel extends JPanel {
 		}
 
 	//	int skip = 0;
-		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue, maxValue, 0, conversionType);
+		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
+				maxTimeValue, minValue, maxValue, 0, conversionType, true);
 		if (graphData2 != null)
-			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2);
+			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
+					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, false);
 		
 	}
 
 	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, int sideBorder, double minTimeValue, 
-			double maxTimeValue, double minValue, double maxValue, int colorIdx, int graphType) {
+			double maxTimeValue, double minValue, double maxValue, int colorIdx, int graphType, boolean plotDsp) {
 		if (graphData != null)
-			
-			/**
-			 * Calculate a running average if the user selected it.  We can only do this if we have enough data
-			 * 
-			 */
-			if (graphFrame.dspAvg) {
-				if (graphFrame.AVG_PERIOD > graphData[0][0].length/2)
-					graphFrame.AVG_PERIOD = graphData[0][0].length /2 ;
-				double sum = 0;
-				boolean first = true;
-				dspData = new double[graphData[0][0].length];
-				for (int i=graphFrame.AVG_PERIOD/2; i < graphData[0][0].length-graphFrame.AVG_PERIOD/2; i++) {
-					sum = 0;
-					for (int j=0; j< graphFrame.AVG_PERIOD; j++)
-						sum += graphData[0][PayloadStore.DATA_COL][i+j-graphFrame.AVG_PERIOD/2];
-					sum = sum / (double)(graphFrame.AVG_PERIOD);
-					dspData[i] = sum;
-					if (first) {
-						for (int j=0; j<graphFrame.AVG_PERIOD/2; j++)
-							dspData[j] = sum;
-						first = false;
-					}
-				}
-				for (int j=graphData[0][0].length-graphFrame.AVG_PERIOD; j<graphData[0][0].length; j++)
-					dspData[j] = sum;
-			}
-			
-			
-			
 			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
 				int lastx2 = sideBorder+1;
@@ -739,16 +757,16 @@ public class GraphPanel extends JPanel {
 					else if (graphType == BitArrayLayout.CONVERT_FREQ) {
 						//if (graphFrame.displayMain)
 						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]-freqOffset, graphHeight);
-						if (graphFrame.plotDerivative)
+						if (graphFrame.plotDerivative && plotDsp && j==0)
 							y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
-						if (graphFrame.dspAvg)
+						if (graphFrame.dspAvg && plotDsp && j==0)
 							y3 = getRatioPosition(minValue, maxValue, dspData[i]-freqOffset, graphHeight);
 					} else {
 						//if (graphFrame.displayMain)
 						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i], graphHeight);
-						if (graphFrame.plotDerivative)
+						if (graphFrame.plotDerivative && plotDsp && j==0)
 							y2 = getRatioPosition(minValue, maxValue, firstDifference[i], graphHeight);
-						if (graphFrame.dspAvg)
+						if (graphFrame.dspAvg && plotDsp && j==0)
 							y3 = getRatioPosition(minValue, maxValue, dspData[i], graphHeight);
 					}
 					y=graphHeight-y+topBorder;
@@ -763,18 +781,19 @@ public class GraphPanel extends JPanel {
 						lasty2=y2;
 						lasty3=y3;
 					}
-					if (!graphFrame.hideMain) {
+					// Hide the trace if hideMain is set, unless this is not the first trace or we are not plotting deriv/dsp for this set of data
+					if (!graphFrame.hideMain || ( graphFrame.hideMain && plotDsp && j > 0 ) || ( graphFrame.hideMain && !plotDsp)) {
 						g2.setColor(graphColor[j+colorIdx]);
 						if (!graphFrame.hideLines) g2.drawLine(lastx, lasty, x, y);
 						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x-1, y-1, 2,2));
 					}
 
-					if (graphFrame.plotDerivative) {
+					if (graphFrame.plotDerivative && plotDsp && j==0) {
 						g2.setColor(Config.AMSAT_RED);
 						if (!graphFrame.hideLines) g2.drawLine(lastx2, lasty2, x2, y2);
 						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x2, y2,2,2));
 					}
-					if (graphFrame.dspAvg) {
+					if (graphFrame.dspAvg && plotDsp && j==0) {
 						g2.setColor(Config.AMSAT_GREEN);
 						if (!graphFrame.hideLines) g2.drawLine(lastx, lasty3, x, y3);
 						if (!graphFrame.hidePoints) g2.draw(new Ellipse2D.Double(x, y3,2,2));
