@@ -511,7 +511,8 @@ public class FoxTelemMain {
 
 	static Decoder decoder;
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
-			+ "Usage: FoxTelem [-version] [fileName.wav]\n\n";
+			+ "Usage: FoxTelem [-version][-s] [fileName.wav]\n"
+			+ "-s automatically start the decoder\n\n";
 	static String seriousErrorMsg;
 	
 	public static void main(String[] args) {
@@ -543,7 +544,9 @@ public class FoxTelemMain {
 				System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
 				System.exit(0);
 			}
-
+			if (args[0].equalsIgnoreCase("-s"))
+				Config.startButtonPressed = true;
+					
 		}
 
 		invokeGUI();

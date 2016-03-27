@@ -53,7 +53,7 @@ public class Config {
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
 	public static String VERSION_NUM = "1.04b";
-	public static String VERSION = VERSION_NUM + " - 17 March 2016";
+	public static String VERSION = VERSION_NUM + " - 26 March 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -225,6 +225,9 @@ public class Config {
 	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
+	
+	// V1.04
+	static public boolean startButtonPressed = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -550,6 +553,9 @@ public class Config {
 		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
 		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
+		
+		// Version 1.04
+		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
 		store();
 	}
 	
@@ -704,6 +710,9 @@ public class Config {
 		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
 		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
+		
+		// Version 1.04
+		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
