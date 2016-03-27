@@ -372,9 +372,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	      // Setting a mouse listener directly on split pane does not work, because no events are being received.
 	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
 	          public void mouseReleased(MouseEvent e) {
-	        	  splitPaneHeight = splitPane.getDividerLocation();
-	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		  Config.splitPaneHeight = splitPaneHeight;
+	        	  if (Config.iq == true) {
+	        		  splitPaneHeight = splitPane.getDividerLocation();
+	        		  //Log.println("SplitPane: " + splitPaneHeight);
+	        		  Config.splitPaneHeight = splitPaneHeight;
+	        	  }
 	          }
 	      });
 	    }
@@ -772,6 +774,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 	private void setIQVisible(boolean b) {
 		fftPanel.setVisible(b);
+		if (b==true) {
+			if (Config.splitPaneHeight != 0) 
+				splitPane.setDividerLocation(Config.splitPaneHeight);
+			else
+				splitPane.setDividerLocation(200);
+		}
 		rdbtnShowFFT.setVisible(b);
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
