@@ -228,6 +228,7 @@ public class Config {
 	
 	// V1.04
 	static public boolean startButtonPressed = true;
+	static public int splitPaneHeight = 200;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -556,6 +557,8 @@ public class Config {
 		
 		// Version 1.04
 		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
+		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
+		
 		store();
 	}
 	
@@ -713,6 +716,7 @@ public class Config {
 		
 		// Version 1.04
 		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
+		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

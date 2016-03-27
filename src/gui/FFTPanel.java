@@ -462,7 +462,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		double[] freqlabels = GraphPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, false);
 
 		DecimalFormat d = new DecimalFormat("0");
-		for (int v=0; v < numberOfTimeLabels; v++) {
+		for (int v=0; v < freqlabels.length; v++) {
 			int timepos = getRatioPosition(minTimeValue, maxTimeValue, freqlabels[v], graphWidth);
 
 			// dont draw the label if we are too near the start or end

@@ -13,6 +13,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -34,6 +36,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
@@ -41,6 +44,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.plaf.SplitPaneUI;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import common.Config;
 import common.Log;
@@ -174,6 +179,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private JTextField txtFreq;
 	MainWindow mainWindow;
 	private JProgressBar progressBar;
+	
+	int splitPaneHeight;
+	JSplitPane splitPane;
 	
 	public SourceTab(MainWindow mw) {
 		mainWindow = mw;
@@ -310,7 +318,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	}
 	
 	private void buildBottomPanel(JPanel parent, String layout, JPanel bottomPanel) {
-		parent.add(bottomPanel, layout);
+		//parent.add(bottomPanel, layout);
 		////bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 		bottomPanel.setLayout(new BorderLayout(3, 3));
 		bottomPanel.setPreferredSize(new Dimension(800, 250));
@@ -323,6 +331,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnShowFFT.setSelected(true);
 		audioOpts.add(rdbtnShowFFT);
 		*/
+		
 		audioGraph = new AudioGraphPanel();
 		audioGraph.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		bottomPanel.add(audioGraph, BorderLayout.CENTER);
@@ -345,10 +354,33 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		fftPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		fftPanel.setBackground(Color.LIGHT_GRAY);
 		
-		bottomPanel.add(fftPanel, BorderLayout.SOUTH);
+		//bottomPanel.add(fftPanel, BorderLayout.SOUTH);
 		fftPanel.setVisible(false);
 		fftPanel.setPreferredSize(new Dimension(100, 150));
 		fftPanel.setMaximumSize(new Dimension(100, 150));
+		
+		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+				bottomPanel, fftPanel);
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setContinuousLayout(true); // repaint as we resize, otherwise we can not see the moved line against the dark background
+		if (Config.splitPaneHeight != 0) 
+			splitPane.setDividerLocation(Config.splitPaneHeight);
+		else
+			splitPane.setDividerLocation(200);
+		SplitPaneUI spui = splitPane.getUI();
+	    if (spui instanceof BasicSplitPaneUI) {
+	      // Setting a mouse listener directly on split pane does not work, because no events are being received.
+	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
+	          public void mouseReleased(MouseEvent e) {
+	        	  splitPaneHeight = splitPane.getDividerLocation();
+	        	  Log.println("SplitPane: " + splitPaneHeight);
+	      		  Config.splitPaneHeight = splitPaneHeight;
+	          }
+	      });
+	    }
+;
+		
+		parent.add(splitPane, layout);
 		
 	}
 	
