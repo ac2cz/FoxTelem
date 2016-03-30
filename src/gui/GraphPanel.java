@@ -438,7 +438,9 @@ public class GraphPanel extends JPanel {
 				int numberOfLabels = (graphHeight)/labelHeight;
 				
 				boolean intStep = false;
-				if (graphType == BitArrayLayout.CONVERT_INTEGER)
+				if (graphType == BitArrayLayout.CONVERT_INTEGER || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS 
+						|| graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_BOOLEAN
+						|| graphType == BitArrayLayout.CONVERT_STATUS_BIT)
 					intStep = true;
 				// calculate the label step size
 				double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, intStep);
@@ -470,8 +472,8 @@ public class GraphPanel extends JPanel {
 					boolean drawLabel = true;
 					// dont draw a label at the zero point or just below it because we have axis labels there, unless
 					// this is the second axis
-					if ( v < numberOfLabels-1 
-							&& !((axisPosition == 0) && (labels[v] == 0.0 || labels[v+1] == 0.0))
+					if ( v < numberOfLabels
+							&& !((axisPosition == 0) && (labels[v] == 0.0 || ( v < numberOfLabels-1 && labels[v+1] == 0.0)))
 							&& !(v == 0 && pos > graphHeight)
 							) {
 						if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
