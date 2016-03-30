@@ -1024,7 +1024,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			// Write the data to the file.  Reset, Uptime, Value.
 			// If there are multiple variabes then we write the rest of the values on the same line into subsequent columns
 			// First write a header row
-			String h = "resets, uptime";
+			String h;
+			if (this.showUTCtime)
+				h="UTC";
+			else
+				h= "resets, uptime";
 			for (int j=0; j < fieldName.length; j++)				
 				h = h + ", " + fieldName[j] ;
 			if (fieldName2 != null)
@@ -1033,7 +1037,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			output.write(h + "\n");
 			
 			for (int i=0; i< graphData[0][0].length; i++) {
-				String s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +  // can always read reset and uptime from field 0
+				String s;
+				if (this.showUTCtime) {
+					if (fox.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
+						s = fox.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 
+						+ " " + fox.getUtcTimeForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]);
+					else
+						s = "??"; 
+				} else
+					s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +  // can always read reset and uptime from field 0
 						graphData[0][PayloadStore.UPTIME_COL][i] ;
 				for (int j=0; j < fieldName.length; j++)				
 						s = s + ", " + graphData[j][PayloadStore.DATA_COL][i] ;
