@@ -973,6 +973,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 	private void saveToCSV(File aFile) throws IOException {
 		double[][][] graphData = null;
+		double[][][] graphData2 = null;
 		
 		graphData = new double[fieldName.length][][];
 		
@@ -993,6 +994,25 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
 
 		}
+		if (fieldName2 != null) {
+			graphData2 = new double[fieldName.length][][];
+			for (int j=0; j < fieldName2.length; j++) {
+				if (payloadType == FramePart.TYPE_REAL_TIME)
+					graphData2[j] = Config.payloadStore.getRtGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_MAX_VALUES)
+					graphData2[j] = Config.payloadStore.getMaxGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_MIN_VALUES)
+					graphData2[j] = Config.payloadStore.getMinGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
+					graphData2[j] = Config.payloadStore.getRadTelemGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
+					graphData2[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+				else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
+					graphData2[j] = Config.payloadStore.getMeasurementGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
+					graphData2[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+			}
+		}
 		if (graphData != null) {
 			if(!aFile.exists()){
 				aFile.createNewFile();
@@ -1001,12 +1021,26 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			Writer output = new BufferedWriter(new FileWriter(aFile, false));
 
+			// Write the data to the file.  Reset, Uptime, Value.
+			// If there are multiple variabes then we write the rest of the values on the same line into subsequent columns
+			// First write a header row
+			String h = "resets, uptime";
+			for (int j=0; j < fieldName.length; j++)				
+				h = h + ", " + fieldName[j] ;
+			if (fieldName2 != null)
+			for (int j=0; j < fieldName2.length; j++)				
+				h = h + ", " + fieldName2[j] ;
+			output.write(h + "\n");
+			
 			for (int i=0; i< graphData[0][0].length; i++) {
 				String s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +  // can always read reset and uptime from field 0
 						graphData[0][PayloadStore.UPTIME_COL][i] ;
 				for (int j=0; j < fieldName.length; j++)				
-						s = s + ", " + graphData[j][PayloadStore.DATA_COL][i] + "\n";
-				
+						s = s + ", " + graphData[j][PayloadStore.DATA_COL][i] ;
+				if (graphData2 != null)
+				for (int j=0; j < fieldName2.length; j++)				
+					s = s + ", " + graphData2[j][PayloadStore.DATA_COL][i] ;
+				s=s+ "\n";
 				output.write(s); 
 			}
 			
