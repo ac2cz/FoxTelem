@@ -50,7 +50,9 @@ import javax.swing.plaf.basic.BasicSplitPaneUI;
 import common.Config;
 import common.Log;
 import common.PassManager;
+import decoder.FoxDecoder;
 import decoder.Decoder;
+import decoder.FUNcubeDecoder;
 import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
 import decoder.SinkAudio;
@@ -1006,11 +1008,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	}
 
 	
-	private void setupAudioSink(Decoder d) {
+	private void setupAudioSink(Decoder decoder12) {
 		int position = speakerComboBox.getSelectedIndex();
 		
 		try {
-			sink = new SinkAudio(d.getAudioFormat());
+			sink = new SinkAudio(decoder12.getAudioFormat());
 			sink.setDevice(position);
 		if (position != -1) {
 			Config.audioSink = SinkAudio.getDeviceName(position);
@@ -1211,7 +1213,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			}
 		} else
 		if (highSpeed) {
-			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+			//decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+			decoder1 = new FUNcubeDecoder(audioSource, 0);
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}

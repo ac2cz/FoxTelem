@@ -27,7 +27,7 @@ import filter.AGCFilter;
  * This is the High Speed Decoder
  * 
  */
-public class Fox9600bpsDecoder extends Decoder {
+public class Fox9600bpsDecoder extends FoxDecoder {
 	public static final int HIGH_SPEED_BITS_PER_SECOND = 9600;
 	
 	public Fox9600bpsDecoder(SourceAudio as, int chan) {
@@ -45,7 +45,7 @@ public class Fox9600bpsDecoder extends Decoder {
 	
 	private void setHighSpeedParameters() {
 		//decodedFrame = new HighSpeedFrame();
-		bitStream = new HighSpeedBitStream(this);
+		foxBitStream = new HighSpeedBitStream(this);
 		BITS_PER_SECOND = HIGH_SPEED_BITS_PER_SECOND;
 		bucketSize = currentSampleRate / BITS_PER_SECOND;
 		SAMPLE_WIDTH = 1;

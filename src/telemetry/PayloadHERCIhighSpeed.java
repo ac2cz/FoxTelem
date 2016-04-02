@@ -5,7 +5,7 @@ import java.util.StringTokenizer;
 
 import common.Config;
 import common.Spacecraft;
-import decoder.Decoder;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -216,7 +216,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		String s = new String();
 		s = s + "HERCI EXPERIMENT HIGH SPEED DATA: " + MAX_BYTES + " bytes\n";
 		for (int i =0; i< MAX_BYTES; i++) {
-			s = s + Decoder.hex(fieldValue[i]) + " ";
+			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 			// Print 32 bytes in a row
 			if ((i+1)%32 == 0) s = s + "\n";
 		}

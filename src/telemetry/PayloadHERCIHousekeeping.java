@@ -3,8 +3,8 @@ package telemetry;
 import java.util.StringTokenizer;
 
 import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -371,7 +371,7 @@ public class PayloadHERCIHousekeeping extends FramePart {
 			s="";
 			int value = getRawValue(name);
 			for (int i=0; i<4; i++) {
-				s = " " + Decoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				s = " " + FoxDecoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
 		} else s =  super.getStringValue(name, fox); //Integer.toString(getRawValue(name));
@@ -427,7 +427,7 @@ public double convertRawValue(String name, int rawValue, int conversion, Spacecr
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}

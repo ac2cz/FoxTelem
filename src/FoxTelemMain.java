@@ -23,7 +23,7 @@ import javax.swing.UIManager;
 
 import common.Config;
 import common.Log;
-import decoder.Decoder;
+import decoder.FoxDecoder;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -509,7 +509,7 @@ import decoder.Decoder;
 
 public class FoxTelemMain {
 
-	static Decoder decoder;
+	static FoxDecoder foxDecoder;
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
 			+ "Usage: FoxTelem [-version][-s] [fileName.wav]\n"
 			+ "-s automatically start the decoder\n\n";

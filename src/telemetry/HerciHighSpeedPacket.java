@@ -5,8 +5,8 @@ import java.util.StringTokenizer;
 
 import common.Log;
 import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 /*
  * 
  *  
@@ -195,9 +195,9 @@ public class HerciHighSpeedPacket extends FramePart {
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
 		+ epoch + "," + headerTime + "," + packetTimestamp + "," ;
 		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
+			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
-		s = s + Decoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
 		return s;
 	}
 	
@@ -313,7 +313,7 @@ public class HerciHighSpeedPacket extends FramePart {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
@@ -345,7 +345,7 @@ public class HerciHighSpeedPacket extends FramePart {
 		String s = new String();
 		s = s + "HERCI Science Mini Packet: " + MAX_PACKET_HEADER_BYTES+getLength() + " bytes\n";
 		for (int i =0; i< MAX_PACKET_HEADER_BYTES; i++) {
-			s = s + Decoder.hex(fieldValue[i]) + " ";
+			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 			// Print 32 bytes in a row
 			if ((i+1)%32 == 0) s = s + "\n";
 		}

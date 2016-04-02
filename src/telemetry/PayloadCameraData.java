@@ -5,8 +5,8 @@ import java.util.StringTokenizer;
 
 import common.Config;
 import common.Log;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -142,8 +142,8 @@ public class PayloadCameraData extends FramePart {
 		}
 		
 		if (Config.debugCameraFrames) {
-			Log.print(Decoder.hex(b) + ": ");
-			BitStream.printBitArray(BitStream.intToBin8(b));
+			Log.print(FoxDecoder.hex(b) + ": ");
+			FoxBitStream.printBitArray(FoxBitStream.intToBin8(b));
 		}
 		if (numberBytesAdded == HighSpeedFrame.MAX_CAMERA_PAYLOAD_SIZE) {
 			foundEndOfJpegData = true;

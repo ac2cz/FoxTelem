@@ -106,13 +106,13 @@ public class PassManager implements Runnable {
 	}
 
 	public void setDecoder1(Decoder d, SourceIQ iq, SourceTab in) {
-		pp1.decoder = d;		
+		pp1.foxDecoder = d;		
 		pp1.iqSource = iq;	
 		inputTab = in;
 	}
 	
 	public void setDecoder2(Decoder d, SourceIQ iq, SourceTab in) {
-		pp2.decoder = d;		
+		pp2.foxDecoder = d;		
 		pp2.iqSource = iq;		
 		inputTab = in;
 	}
@@ -186,7 +186,7 @@ public class PassManager implements Runnable {
 	}
 	
 	private void setFreqRangeBins(Spacecraft sat, PassParams pp) {
-		if (pp.decoder != null && pp.iqSource != null) {
+		if (pp.foxDecoder != null && pp.iqSource != null) {
 			Config.toBin = pp.iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
 			Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
 			
@@ -194,8 +194,8 @@ public class PassManager implements Runnable {
 	}
 	
 	private void initParams(PassParams pp) {
-		if (pp.decoder != null && pp.iqSource != null) {
-			if (Config.debugSignalFinder) Log.println("Initialized Pass Params for: " + pp.decoder.name);
+		if (pp.foxDecoder != null && pp.iqSource != null) {
+			if (Config.debugSignalFinder) Log.println("Initialized Pass Params for: " + pp.foxDecoder.name);
 			pp.rfData = pp.iqSource.getRfData();
 			if (pp.rfData != null)
 				pp.rfData.reset(); // new satellite to scan so reset the data
@@ -209,10 +209,10 @@ public class PassManager implements Runnable {
 		if (!Config.findSignal) return EXIT;
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering INIT state");
 		faded = false;
-		if (pp1.decoder != null) {  // if the start button is pressed then Decoder1 must be none null
+		if (pp1.foxDecoder != null) {  // if the start button is pressed then Decoder1 must be none null
 			setFreqRangeBins(sat, pp1);
 			initParams(pp1);
-			if (pp2.decoder != null) {
+			if (pp2.foxDecoder != null) {
 				setFreqRangeBins(sat, pp2);
 				initParams(pp2);
 			}
@@ -308,7 +308,7 @@ public class PassManager implements Runnable {
 	 */
 	private int startPass(Spacecraft sat) {
 		if (!Config.findSignal) return EXIT;
-		if (pp1.decoder != null) { // start button is still pressed
+		if (pp1.foxDecoder != null) { // start button is still pressed
 			
 			try {
 				Thread.sleep(SNR_PERIOD);
@@ -335,7 +335,7 @@ public class PassManager implements Runnable {
 //		Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
 		passMeasurement = new PassMeasurement(sat.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + sat.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
-				+ " with " + pp.decoder.name + " decoder bin:" + Config.selectedBin);
+				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
 	}
 	
@@ -372,10 +372,10 @@ public class PassManager implements Runnable {
 
 	private boolean foundFoxSignal(Spacecraft sat, PassParams pp) {
 		
-		if (Config.findSignal && pp.rfData != null && pp.decoder != null && pp.eyeData != null) {
+		if (Config.findSignal && pp.rfData != null && pp.foxDecoder != null && pp.eyeData != null) {
 			
 			//Log.println("Getting eye data");
-			pp.eyeData = pp.decoder.eyeData;
+			pp.eyeData = pp.foxDecoder.eyeData;
 			//System.out.println(sat.getIdString() + " BIT SNR:" + eyeData.bitSNR);
 			if (pp.eyeData != null && pp.eyeData.bitSNR > Config.BIT_SNR_THRESHOLD) {
 				// We have a signal
@@ -407,7 +407,7 @@ public class PassManager implements Runnable {
 			}
 			setFreqRangeBins(sat,pp1);
 
-			if (Config.findSignal && pp1.decoder != null ) { // start button still pressed and still tracking
+			if (Config.findSignal && pp1.foxDecoder != null ) { // start button still pressed and still tracking
 				//Log.println("Getting eye data");
 				//if (foundRfSignal(sat))
 				if (foundFoxSignal(sat, pp1)) {
@@ -547,7 +547,7 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (pp1.decoder != null && Config.findSignal)
+			if (pp1.foxDecoder != null && Config.findSignal)
 				for (int s=0; s < spacecraft.size(); s++) {
 					//Log.println("Looking for: " + spacecraft.get(s).name);
 					if (spacecraft.get(s).track)

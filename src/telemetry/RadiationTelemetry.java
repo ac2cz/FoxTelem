@@ -3,8 +3,8 @@ package telemetry;
 import java.util.StringTokenizer;
 
 import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -404,16 +404,16 @@ public class RadiationTelemetry extends FramePart {
 			int value = getRawValue(name);
 			s="";
 			for (int i=0; i<2; i++) {
-				s = Decoder.plainhex(value & 0xff) + " " + s; // we get the least sig byte each time, so new bytes go on the front
+				s = FoxDecoder.plainhex(value & 0xff) + " " + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_HEX) {
 			int value = getRawValue(name);
 
-			s = Decoder.plainhex(value & 0xff);
+			s = FoxDecoder.plainhex(value & 0xff);
 			for (int i=2; i<=12; i++) {
 				value = getRawValue(name+i);
-				s = s+ " " + Decoder.plainhex(value & 0xff); // we get the least sig byte each time, so new bytes go on the front
+				s = s+ " " + FoxDecoder.plainhex(value & 0xff); // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
 			s= s + " \"";
@@ -496,7 +496,7 @@ public class RadiationTelemetry extends FramePart {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}

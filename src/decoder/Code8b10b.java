@@ -573,10 +573,10 @@ public class Code8b10b {
 			System.out.println("************* RD: " + rd + " **************");
 			for (int i=0; i<256; i++) {
 				int testValue = Encode_8b10b[rd][i];
-				System.out.print(Decoder.hex(testValue) + ": ");
+				System.out.print(FoxDecoder.hex(testValue) + ": ");
 				int nextRd = getNextRd(testValue, false);
 				testValue = testValue & 0x3ff;				
-				boolean[] bit10b = BitStream.intToBin10(testValue);
+				boolean[] bit10b = FoxBitStream.intToBin10(testValue);
 				for (int j=0; j < bit10b.length; j++)
 					if (bit10b[j]) System.out.print(1 + " "); else System.out.print(0 + " ");
 				System.out.println(" Next rd: " + nextRd);
@@ -593,7 +593,7 @@ public class Code8b10b {
 	 */
 	public static boolean[] encode(int word) {
 		int word10b = Encode_8b10b[0][word];
-		return BitStream.intToBin10(word10b);
+		return FoxBitStream.intToBin10(word10b);
 	}
 
 	/**

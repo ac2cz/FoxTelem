@@ -1,7 +1,7 @@
 package telemetry;
 
 import common.Spacecraft;
-import decoder.BitStream;
+import decoder.FoxBitStream;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -116,7 +116,7 @@ public abstract class BitArray {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}

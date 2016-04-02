@@ -10,6 +10,7 @@ import javax.swing.JPanel;
 
 import common.Config;
 import common.Log;
+import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
@@ -46,7 +47,7 @@ import decoder.Fox9600bpsDecoder;
 public class EyePanel extends JPanel implements Runnable {
 	boolean done = false;
 	boolean running = true;
-	Decoder decoder;
+	Decoder foxDecoder;
 	int zeroValue;
 	//double[] snr;
 	int[][] buffer;
@@ -81,7 +82,7 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 		
 	private void init() {
-		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; else SAMPLES = 120;
+		if (foxDecoder instanceof Fox9600bpsDecoder) SAMPLES = 5; else SAMPLES = 120;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
 			buffer[i] = new int[SAMPLES];
@@ -107,11 +108,11 @@ public class EyePanel extends JPanel implements Runnable {
 			//if (decoder.name.equalsIgnoreCase("High Speed"))
 			//	Log.println("STOP");
 		
-			if (decoder != null) {
+			if (foxDecoder != null) {
 				// We get the eye data, which is a copy of the bucket data
 
-				eyeData = decoder.getEyeData();
-				zeroValue = decoder.getZeroValue();
+				eyeData = foxDecoder.getEyeData();
+				zeroValue = foxDecoder.getZeroValue();
 				if (eyeData != null) {
 					// Cache the values while we graph them
 					data = eyeData.getData();
@@ -125,7 +126,7 @@ public class EyePanel extends JPanel implements Runnable {
 					
 				}
 			}
-			if (decoder != null && data != null ) { 
+			if (foxDecoder != null && data != null ) { 
 				init();
 				int a=0; 
 				int b=0;
@@ -133,7 +134,7 @@ public class EyePanel extends JPanel implements Runnable {
 				try {
 					if (NUMBER_OF_BITS > data.length) NUMBER_OF_BITS = data.length;
 					for (int i=0; i < NUMBER_OF_BITS; i++) {
-						for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
+						for (int j=0; j < foxDecoder.getBucketSize(); j+=foxDecoder.getBucketSize()/SAMPLES) {
 							if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
 								buffer[a][b++] = data[i][j];
 							}
@@ -158,11 +159,11 @@ public class EyePanel extends JPanel implements Runnable {
 		title.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 	}
 	
-	public void startProcessing(Decoder d) {
-		if (decoder != null) {
+	public void startProcessing(Decoder decoder1) {
+		if (foxDecoder != null) {
 			// we were already live and we are swapping to a new decoder
 		}
-		decoder = d;
+		foxDecoder = decoder1;
 		running = true;
 	}
 	
@@ -208,7 +209,7 @@ public class EyePanel extends JPanel implements Runnable {
 			for (int i=0; i < NUMBER_OF_BITS; i++) {
 				for (int j=0; j < SAMPLES; j++) {
 					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
-					double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/Decoder.MAX_VOLUME + border;
+					double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/FoxDecoder.MAX_VOLUME + border;
 					if (j==0) {
 						lastx = x;
 						lasty = (int)y;
@@ -228,7 +229,7 @@ public class EyePanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		double h = graphHeight/2+graphHeight/3*zeroValue/Decoder.MAX_VOLUME+border;
+		double h = graphHeight/2+graphHeight/3*zeroValue/FoxDecoder.MAX_VOLUME+border;
 		g2.drawLine(0, (int)h, graphWidth, (int)h);
 		
 		//sample.setText("sample: " + s++);
@@ -259,7 +260,7 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 
 	private double scaleSample(int graphHeight, double h) {
-		double y = graphHeight/2+graphHeight/2.5*h/Decoder.MAX_VOLUME + border;
+		double y = graphHeight/2+graphHeight/2.5*h/FoxDecoder.MAX_VOLUME + border;
 		return y;
 	}
 }

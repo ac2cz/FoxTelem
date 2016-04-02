@@ -1,6 +1,6 @@
 package telemetry;
 
-import decoder.Decoder;
+import decoder.FoxDecoder;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -46,7 +46,7 @@ public class SlowSpeedTrailer extends FramePart {
 		String s = new String();
 		s = s + "FEC CHECk BYTES:\n";
 		for (int i =0; i< MAX_BYTES; i++) {
-			s = s + Decoder.hex(fecBytes[i]) + " ";
+			s = s + FoxDecoder.hex(fecBytes[i]) + " ";
 			// Too tired to write the algorithm for row separators.... later....
 			if (i==7 || i==15|| i==23 || i==31 || i==39 || i==47 || i==55) s = s + "\n";
 		}

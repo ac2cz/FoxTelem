@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -44,7 +45,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	boolean running = true;
 	boolean done = false;
 	int centerFreqX = 220;
-	Decoder decoder;
+	Decoder foxDecoder;
 	byte[] audioData = null;
 	int AUDIO_DATA_SIZE = 1024;
 	int currentDataPosition = 0;
@@ -100,11 +101,11 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			} 
 			
 			byte[] buffer;
-			if (decoder != null) {
+			if (foxDecoder != null) {
 				if (showFilteredAudio)
-					buffer = decoder.getFilteredData();
+					buffer = foxDecoder.getFilteredData();
 				else
-					buffer = decoder.getAudioData();
+					buffer = foxDecoder.getAudioData();
 			
 				if (buffer != null) {
 					audioData = buffer;				
@@ -115,9 +116,9 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}			
 	}
 	
-	public void startProcessing(Decoder d) {
-		decoder = d;
-		title.setText("Sample rate: " + Integer.toString(decoder.getCurrentSampleRate()) + " | Samples: " + decoder.getSampleWindowLength());
+	public void startProcessing(Decoder decoder1) {
+		foxDecoder = decoder1;
+		title.setText("Sample rate: " + Integer.toString(foxDecoder.getCurrentSampleRate()) + " | Samples: " + foxDecoder.getSampleWindowLength());
 		
 		running = true;
 	}
@@ -170,10 +171,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				by[0] = audioData[i];
 				by[1] = audioData[i+1];
 				int value;
-				if (decoder.getBigEndian())
-					value = Decoder.bigEndian2(by, decoder.getBitsPerSample());
+				if (foxDecoder.getBigEndian())
+					value = FoxDecoder.bigEndian2(by, foxDecoder.getBitsPerSample());
 				else
-					value = Decoder.littleEndian2(by, decoder.getBitsPerSample());
+					value = FoxDecoder.littleEndian2(by, foxDecoder.getBitsPerSample());
 
 					//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
 					x = border*2 + i*(graphWidth-border*2)/audioData.length;
@@ -196,18 +197,18 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			Runtime rt = Runtime.getRuntime();
 			long usedMB = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;
 			g.drawString("Mem: "+usedMB, 10, 20 );
-			if (decoder !=null)
-				if (decoder.getFilter() != null) {
-					g.drawString("Gain: "+GraphPanel.roundToSignificantFigures(decoder.getFilter().getGain(),4), 70, 20 );
-					bufferCapacityAvg += decoder.getAudioBufferCapacity();
+			if (foxDecoder !=null)
+				if (foxDecoder.getFilter() != null) {
+					g.drawString("Gain: "+GraphPanel.roundToSignificantFigures(foxDecoder.getFilter().getGain(),4), 70, 20 );
+					bufferCapacityAvg += foxDecoder.getAudioBufferCapacity();
 					bufferCapacitySample++;
 					if (bufferCapacitySample == BUFFER_CAP_SAMPLE_NO) {
 						bufferCapacity = (int) (bufferCapacityAvg / bufferCapacitySample);
 						bufferCapacitySample=0;
 						bufferCapacityAvg = 0;
 					}
-					g.drawString("Size: "+decoder.getAudioBufferSize() + 
-							" Capacity: "+decoder.getAudioBufferCapacity(), getWidth()-200, 20 );
+					g.drawString("Size: "+foxDecoder.getAudioBufferSize() + 
+							" Capacity: "+foxDecoder.getAudioBufferCapacity(), getWidth()-200, 20 );
 
 				}
 		}

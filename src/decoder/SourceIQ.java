@@ -318,11 +318,11 @@ public class SourceIQ extends SourceAudio {
 			qb[0] = fcdData[j+2];  
 			qb[1] = fcdData[j+3];
 			if (upstreamAudioFormat.isBigEndian()) {
-				id = Decoder.bigEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
-				qd = Decoder.bigEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
+				id = FoxDecoder.bigEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
+				qd = FoxDecoder.bigEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
 			} else {
-				id = Decoder.littleEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
-				qd = Decoder.littleEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
+				id = FoxDecoder.littleEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
+				qd = FoxDecoder.littleEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
 			}
 			 		
 			// filter out any DC from I/Q signals

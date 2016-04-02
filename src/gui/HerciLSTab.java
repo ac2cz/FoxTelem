@@ -39,7 +39,7 @@ import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import decoder.Decoder;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -324,7 +324,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 			packetData[len-i-1][3] = ""+data[i][2];
 			String telem = "";
 			for (int j=2; j< fox.rad2Layout.fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
-				telem = telem + Decoder.plainhex(Integer.parseInt(data[i][j])) + " ";
+				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
 			packetData[len-i-1][4] = telem;

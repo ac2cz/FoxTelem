@@ -11,8 +11,8 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 import gui.GraphPanel;
 
 /**
@@ -651,7 +651,7 @@ longer send telemetry.
 				+ "tn " + Integer.toHexString(taskNumber) + " "
 				+ "al " + Integer.toHexString(alignment);
 		else
-			s = s + "Watchdog Reports: " + BitStream.stringBitArray(BitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
+			s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
 					+ " Error Type: " + ihuErrorType[errorCode] + " "
 					+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
 					+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
@@ -701,7 +701,7 @@ longer send telemetry.
 		s[0] = errorCode + " - " + ihuErrorType[errorCode];
 		s[1] = Integer.toHexString(alignment);
 		
-		s[2] =  BitStream.stringBitArray(BitStream.intToBin9(watchDogReports));
+		s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
 		s[3] = Integer.toHexString(taskNumber) + " - ";
 		if (taskNumber < ihuTask.length)
 			s[3] = s[3] + ihuTask[taskNumber];
@@ -794,9 +794,9 @@ longer send telemetry.
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
+			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
-		s = s + Decoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
 		return s;
 	}
 	

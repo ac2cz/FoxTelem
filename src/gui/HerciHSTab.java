@@ -32,7 +32,7 @@ import telemetry.SatPayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import decoder.Decoder;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -263,12 +263,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 			data[rawData.length-k-1][4] = rawData[k][6];
 			data[rawData.length-k-1][5] = ""+Integer.parseInt(rawData[k][7])/40+":"+Integer.parseInt(rawData[k][7])%40; //rti
 			for (int j=8; j<12; j++) {
-				data[rawData.length-k-1][j-2] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
+				data[rawData.length-k-1][j-2] = FoxDecoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
 			}
 			data[rawData.length-k-1][10] = "";
 			for (int j=13; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					data[rawData.length-k-1][10] = data[rawData.length-k-1][10] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
+					data[rawData.length-k-1][10] = data[rawData.length-k-1][10] + FoxDecoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
 		}
 		
@@ -282,7 +282,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 			rawData[i][1] = Long.toString(hsPayload.getUptime());
 
 			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-				rawData[i][k+2] = Decoder.plainhex(hsPayload.fieldValue[k] & 0xff);
+				rawData[i][k+2] = FoxDecoder.plainhex(hsPayload.fieldValue[k] & 0xff);
 			}
 		}
 		

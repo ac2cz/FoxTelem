@@ -1,7 +1,7 @@
 package telemetry;
 
 import common.Spacecraft;
-import decoder.BitStream;
+import decoder.FoxBitStream;
 
 /**
  * 
@@ -398,7 +398,7 @@ public class RadiationPacket extends BitArray{
 				
 			}
 			bitPosition = bitPosition + n;
-			field = BitStream.binToInt(b);
+			field = FoxBitStream.binToInt(b);
 			return field;
 			
 		}
