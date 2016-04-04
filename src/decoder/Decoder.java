@@ -228,20 +228,17 @@ public abstract class Decoder implements Runnable {
 
         	}
 
-
         	Performance.startTimer("Sample");
         	sampleBuckets();
         	Performance.endTimer("Sample");
 
         	Performance.startTimer("ClockSync");
+        	byte[] clockAdvance;
+        	clockAdvance = recoverClock(1);
+        	if (clockAdvance != null && Config.recoverClock ) {
+        		rebucketData(filteredData, clockAdvance);    				
+        	} 
 
-        	//if (!clockLocked) {
-        		byte[] clockAdvance;
-        		clockAdvance = recoverClock(1);
-        		if (clockAdvance != null && Config.recoverClock ) {
-        			rebucketData(filteredData, clockAdvance);    				
-        		}
-        	//}
         	eyeData.calcAverages();
     		if (monitorAudio && Config.squelchAudio) {
     			if (eyeData.bitSNR < MIN_BIT_SNR) {
@@ -284,8 +281,12 @@ public abstract class Decoder implements Runnable {
 	}
 
 	/**
-	 * calculate the clock offset from the data.  Use the offset to pull the clock forward for the next period.  Reprocess the
-	 * current window if the clock offset was large
+	 * Calculate the clock offset from the data.  Use the offset to pull the clock forward for the next period.  Return the extra
+	 * bytes that were read from the audio source.  This aligns the clock.
+	 * The returned transition point is the number of samples into the bucket that the actual bit starts, on average.  This is the 
+	 * number of samples that we are late.
+	 * 
+	 * The factor is 1 for normal audio
 	 */
 	protected byte[] recoverClock(int factor) {
     	int transitionPoint = 0; // The average offset of the start/end of a pulse in each bucket
@@ -592,6 +593,79 @@ public abstract class Decoder implements Runnable {
 		Log.println("DECODER Exit");
 	}
 
+	/**
+	 * Print the data for debug purposes so that we can graph it in excel
+	 * Include markers for the start and end of buckets and for the value of the mid point sample
+	 */
+	protected void printBucketsValues() {
+		
+//		for (int m=0; m<2; m++)
+	//		System.out.println(-40000); // start of window
+		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
+			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
+//			for (int m=0; m<4; m++)
+	//			System.out.println(40000); // start of bucket marker
+			int step = 10;
+			int middle = 120;
+			if (this instanceof Fox9600bpsDecoder) {
+				step = 1;
+				middle = 3;
+			}
+			
+			for (int j=0; j<bucketSize; j+=step) { // 20) {
+				//if (j== BUCKET_SIZE/4) System.out.print("** ");
+				//if (j==BUCKET_SIZE/2 && Config.debugBits) {
+				
+				if (j==middle) {  
+					if (this.middleSample[i] == true)
+						System.out.println(35000); // middle of bucket value
+					else
+						System.out.println(-35000); // middle of bucket value
+						
+				}
+				
+				System.out.println(dataValues[i][j] + " ");
+				//if (j== BUCKET_SIZE/4) System.out.print(" ** ");
+			}
+		}
+//		System.out.println("Average Max: " + averageMax);
+//		System.out.println("Average Min: " + averageMin);
+//		System.out.println("Zero: " + zeroValue);
+	}
+
+	/**
+	 * Print the data for debug purposes so that we can graph it in excel
+	 * Include markers for the start and end of buckets and for the value of the mid point sample
+	 */
+	protected void printByteValues() {
+		byte[] by = new byte[2];
+		int k = 0;
+	//		System.out.println(-40000); // start of window
+		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
+			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
+//			for (int m=0; m<4; m++)
+	//			System.out.println(40000); // start of bucket marker
+			int step = 10;
+			if (this instanceof Fox9600bpsDecoder) {
+				step = 1;
+			}
+			
+			for (int j=0; j<bucketSize; j+=step) { // 20) {
+				//if (j== BUCKET_SIZE/4) System.out.print("** ");
+				//if (j==BUCKET_SIZE/2 && Config.debugBits) {
+				
+//				by[0] = filteredData[k];
+//				by[1] = filteredData[k+1];
+				by[0] = abData[k];
+				by[1] = abData[k+1];
+				System.out.println(littleEndian2(by, bitsPerSample));
+				//if (j== BUCKET_SIZE/4) System.out.print(" ** ");
+				k +=4;
+			}
+		}
+	}
+	
+	
 	public static void printBytes(byte b[]) {
 		for (int i=0; i < b.length; i++) {
 			System.out.print(b[i] + " ");

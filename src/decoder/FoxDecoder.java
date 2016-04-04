@@ -52,24 +52,22 @@ import telemetry.SlowSpeedHeader;
  * 
  * A decoder that can be started from the GUI or from the command line.  This is an abstract class, so one of its children
  * is instantiated:
- * WavDecoder - for test wav files
- * SoundCardDecoder - to read bytes from the sound card
- * IQDecoder - to read bytes from an SDR or IQ receiver, with I and Q on the two stereo channels
- * BitFileDecoder - test decoder to read text files that contain 10b words.  The file must contain a complete frame
+ * Fox200bpsDecoder - the DUV decoder
+ * Fox9600bpsDecoder - the High Speed decoder
  * 
- * This class contains the methods needed to convert the received bytes into integers, filter the received audio,
- * and sample the audio at the bit threshold.  This can be configured for either high speed or slow speed telemetry.
+ * This class contains the methods needed to sample the audio stream and determine if each bucket contains a 1 or a 0.  
  * 
  * The sampled bits are passed to the BitStream which holds all of the logic needed to find the start and end of
- * frames and to decode the 10 bit words into 8 bit bytes. 
+ * frames and to decode the 10 bit words into 8 bit bytes. It then calls the routines to decode the frame and add it to the
+ * database
+ * 
+ * This can be configured for either high speed or slow speed telemetry.
  *  
  * 
  * @author chris.e.thompson
  *
  */
 public abstract class FoxDecoder extends Decoder {
-	
-	
 	/**
      * This holds the stream of bits that we have not decoded. Once we have several
      * SYNC words, this is flushed of processed bits.
@@ -78,42 +76,17 @@ public abstract class FoxDecoder extends Decoder {
 	
 	public static final int BIT_DISTANCE_THRESHOLD_PERCENT = 15; // use 20 for 736R audio *****15; // Distance that bits need to be apart to change the bit decision as % of average BIT HEIGHT
 														
-	
 	protected int currentFilterLength = 0;
 	protected double currentFilterFreq = 0d;
-	
-	
-    
-   // private int[] firstZero = null;
-   // private int[] secondZero = null;
- 
-    
-
-   // private int windowNumber = 0;
-    
- 
-
-    
- 
-    private boolean clockLocked = false; // set to true when we have decoded a frame. Not reset until decode fails
     
     private int lastBitValue = 0; // store the value of the last bit for use in the bit detection algorithm
     private boolean lastBit = false;
-	
-  //  private boolean frameMarkerFound = false;
-  //  private int missedSyncWords = 0;
-  //  private int frameByteCount = 0;
-    
+	    
     private long lastLoopTime = 0; // loop timer to slow down execution if we want to simulate decoding from a file
     private long OPTIMAL_TIME = 0; // scaling factor for loop timer
     private Frame decodedFrame = null;
     
-
     public Filter monitorFilter = null;
-//    private AGCFilter agcFilter = null;
-    
- 
-	//protected boolean monitorFiltered; // try if we are monitoring audio after it is filtered
     
     /**
      * Given an audio source, decode the data in it,
@@ -219,7 +192,7 @@ public abstract class FoxDecoder extends Decoder {
 			Performance.endTimer("Store");
 		} else {
 			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
-			clockLocked = false;
+			//clockLocked = false;
 		}
 	}
 		
@@ -371,6 +344,7 @@ public abstract class FoxDecoder extends Decoder {
 				middleSample[i] = false;
 				eyeData.setLow(sampleSum);
 			}
+			
 		}
 	}
 
@@ -463,7 +437,7 @@ public abstract class FoxDecoder extends Decoder {
 	
 
 	/**
-	 * Check the correlation between the clock and the data.  Determine if we should move the clock forward or backwards
+	 * Check the correlation between the clock and the data.  Determine if we should pull the data forward and by how much
 	 * The clock will then be adjusted for the next window
 	 * 
 	 * If the clock is perfectly aligned, then the rise of fall would happen in the first and last samples of the bucket.  We will define sync when
@@ -527,77 +501,6 @@ public abstract class FoxDecoder extends Decoder {
 	
 
 	
-	/**
-	 * Print the data for debug purposes so that we can graph it in excel
-	 * Include markers for the start and end of buckets and for the value of the mid point sample
-	 */
-	protected void printBucketsValues() {
-		
-//		for (int m=0; m<2; m++)
-	//		System.out.println(-40000); // start of window
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
-//			for (int m=0; m<4; m++)
-	//			System.out.println(40000); // start of bucket marker
-			int step = 10;
-			int middle = 120;
-			if (this instanceof Fox9600bpsDecoder) {
-				step = 1;
-				middle = 3;
-			}
-			
-			for (int j=0; j<bucketSize; j+=step) { // 20) {
-				//if (j== BUCKET_SIZE/4) System.out.print("** ");
-				//if (j==BUCKET_SIZE/2 && Config.debugBits) {
-				
-				if (j==middle) {  
-					if (this.middleSample[i] == true)
-						System.out.println(35000); // middle of bucket value
-					else
-						System.out.println(-35000); // middle of bucket value
-						
-				}
-				
-				System.out.println(dataValues[i][j] + " ");
-				//if (j== BUCKET_SIZE/4) System.out.print(" ** ");
-			}
-		}
-//		System.out.println("Average Max: " + averageMax);
-//		System.out.println("Average Min: " + averageMin);
-//		System.out.println("Zero: " + zeroValue);
-	}
-
-	/**
-	 * Print the data for debug purposes so that we can graph it in excel
-	 * Include markers for the start and end of buckets and for the value of the mid point sample
-	 */
-	protected void printByteValues() {
-		byte[] by = new byte[2];
-		int k = 0;
-	//		System.out.println(-40000); // start of window
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
-//			for (int m=0; m<4; m++)
-	//			System.out.println(40000); // start of bucket marker
-			int step = 10;
-			if (this instanceof Fox9600bpsDecoder) {
-				step = 1;
-			}
-			
-			for (int j=0; j<bucketSize; j+=step) { // 20) {
-				//if (j== BUCKET_SIZE/4) System.out.print("** ");
-				//if (j==BUCKET_SIZE/2 && Config.debugBits) {
-				
-//				by[0] = filteredData[k];
-//				by[1] = filteredData[k+1];
-				by[0] = abData[k];
-				by[1] = abData[k+1];
-				System.out.println(littleEndian2(by, bitsPerSample));
-				//if (j== BUCKET_SIZE/4) System.out.print(" ** ");
-				k +=4;
-			}
-		}
-	}
 	
 
 }

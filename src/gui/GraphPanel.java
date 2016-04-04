@@ -931,7 +931,7 @@ public class GraphPanel extends JPanel {
 	    return shifted/magnitude;
 	}
 	
-	private int getRatioPosition(double min, double max, double value, int dimension) {
+	public static int getRatioPosition(double min, double max, double value, int dimension) {
 		double ratio = (max - value) / (max - min);
 		int position = (int)Math.round(dimension * ratio);
 		return dimension-position;

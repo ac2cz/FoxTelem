@@ -52,41 +52,23 @@ public abstract class FoxBitStream extends BitStream {
 	
 	protected static final int MAX_ERASURES = 16; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
 	protected static final int FRAME_PROCESSED = -999;
-	protected int SYNC_WORD_DISTANCE = 0; // 10*(SlowSpeedFrame.getMaxBytes()+1);
+	
 	protected static final int SYNC_WORD_BIT_TOLERANCE = 0; // if we are within this many bits, then try to decode the frame - hey, you never know..
-	protected int PURGE_THRESHOLD = 0; // Remove bits if we have accumulated this many and not found a frame
-	protected ArrayList<Integer> syncWords = new ArrayList<Integer>(); // The positions of all the SYNC words we have found
+	
 	protected int word10bitPosition = 0; // The position in the 10 bit word when we are searching for SYNC words bit by bit
 	protected boolean[] word10 = new boolean[10]; // The 10 bit word used to find SYNC words, selected from the end of the bitStream
 	protected boolean alreadyTriedToFlipBits = false; // only try to flip the bits once, otherwise we willl try to double process every failed RS word
 	
 	public int lastErasureNumber;
 	public int lastErrorsNumber;
-	FoxDecoder foxDecoder;
-	
-	protected ArrayList<SyncPair> framesTried = new ArrayList<SyncPair>(); // keep track of the SYNC word combinations that we have already tried
 	
 	/**
 	 * Initialize the array with enough room to hold 6 frames worth of bits
 	 * We should never reach this because we purge bits once we exceed 4 frames in length
 	 */
 	public FoxBitStream(int size, FoxDecoder dec) {
-		super(size);
-		foxDecoder = dec;
+		super(size, dec);
 		
-	}
-	
-	/**
-	 * Adds a bit at the end
-	 * @param n
-	 */
-	public void addBit(boolean n) {
-		//System.out.println("BIT STREAM SIZE: " + this.size() + " " + this);
-		this.add(n);
-		Performance.startTimer("add:purge");
-		purgeBits();
-		Performance.endTimer("add:purge");
-
 	}
 	
 	/**
@@ -155,7 +137,7 @@ public abstract class FoxBitStream extends BitStream {
 							if (frame == null) {
 								if (!alreadyTriedToFlipBits) {
 									alreadyTriedToFlipBits = true;
-									foxDecoder.flipReceivedBits = !foxDecoder.flipReceivedBits;
+									decoder.flipReceivedBits = !decoder.flipReceivedBits;
 									//Log.println("..trying Flipped bits");
 									Frame flipFrame = decodeFrame(start, end); 
 									if (flipFrame != null) {
@@ -166,7 +148,7 @@ public abstract class FoxBitStream extends BitStream {
 										return flipFrame;
 									} else {
 										// was not a flip bit issue
-										foxDecoder.flipReceivedBits = !foxDecoder.flipReceivedBits;
+										decoder.flipReceivedBits = !decoder.flipReceivedBits;
 										framesTried.add(new SyncPair(start,end));
 										return null;
 									}
@@ -312,7 +294,7 @@ public abstract class FoxBitStream extends BitStream {
 		int word = binToInt(get10Bits(j));
 		byte word8b;
 		try {
-			word8b = Code8b10b.decode(word, foxDecoder.flipReceivedBits);
+			word8b = Code8b10b.decode(word, decoder.flipReceivedBits);
 
 
 			/*
@@ -345,45 +327,10 @@ public abstract class FoxBitStream extends BitStream {
 		}
 	}
 	
-	/**
-	 * If we have too many bits, then remove one frame's worth from the beginning.  This prevents too much data from being accumulated
-	 */
-	protected void purgeBits() {
-		
-		if (this.size() > PURGE_THRESHOLD) {
-			//printSyncWordPositions();
-			
-			removeBits(0, SYNC_WORD_DISTANCE);
-			framesTried = new ArrayList<SyncPair>();
-//			this.incStartPointer(SYNC_WORD_DISTANCE-1);
-			//printSyncWordPositions();
-		}
-	}
+	
 	
 
-	/**
-	 * Remove bits from the bit list and update the position of any
-	 * frameMarker Candidates
-	 * @return
-	 */
-	public void removeBits(int start, int end) {
-		if (Config.debugFrames) Log.println("Purging " + (end - start) + " bits");
-		int distance = end - start;
-//		for (int c=start; c < end; c++) {
-//			this.remove(0); // Remove the bits in this range
-//		}
-		this.incStartPointer(distance);
-		// Update the frame markers
-		for (int j=0; j< syncWords.size(); j++) {
-			int marker = syncWords.get(j) - distance;
-			if (marker < 0) { 
-				syncWords.remove(j);
-				j=j-1;
-			} else
-				syncWords.set(j,  marker);
-		}
-	}
-	
+
 	public boolean haveSyncWordAtBit(int b) {
 		for (int i=0; i< syncWords.size(); i++)
 			if (syncWords.get(i) == b) return true;
