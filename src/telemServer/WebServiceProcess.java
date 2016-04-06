@@ -16,6 +16,8 @@ import java.util.TimeZone;
 import telemetry.Frame;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
 import common.Config;
 import common.Log;
@@ -60,7 +62,7 @@ public class WebServiceProcess implements Runnable {
 				// this blank line signals the end of the headers
 				out.println("");
 
-				//			String path = request.substring(1, request.length());
+				//String path = request.substring(1, request.length());
 
 				WebHealthTab fox1Atab = null;
 
@@ -97,6 +99,8 @@ public class WebServiceProcess implements Runnable {
 							int sat = Integer.parseInt(path[2]);
 							int type = Integer.parseInt(path[3]);
 							PayloadRtValues rt = Config.payloadStore.getLatestRt(sat);
+							PayloadMaxValues max = Config.payloadStore.getLatestMax(sat);
+							PayloadMinValues min = Config.payloadStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
 									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
@@ -105,6 +109,8 @@ public class WebServiceProcess implements Runnable {
 								}
 								//out.println("<H2>Fox-1 Telemetry</H2>");
 								fox1Atab.setRtPayload(rt);
+								fox1Atab.setMaxPayload(max);
+								fox1Atab.setMinPayload(min);
 								out.println(fox1Atab.toString());
 							} else {
 								out.println("FOX SERVER Currently not returning data....\n");
