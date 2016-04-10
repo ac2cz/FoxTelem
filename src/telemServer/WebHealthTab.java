@@ -89,12 +89,13 @@ public class WebHealthTab {
 		String s = "";
 		if (payloadRt != null) {
 			s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+"</h1>";
+			// We set the style of table 1 for the telemetry.  Table 2 is the inner table for the max/min/rt rows
 		s = s + "<style> table.table1 td { border: 5px solid lightgray; } "
 				+ "table.table1 th { background-color: lightgray; border: 3px solid lightgray; } "
 				+ "table.table1 td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
-		s = s + "<style> table.table2 td { border: 1px solid darkgray; } "
+		s = s + "<style> table.table2 td { border: 0px solid darkgray; } "
 				+ "table.table2 th { background-color: darkgray; border: 1px solid darkgray; } "
-				+ "table.table2 td { padding: 0px; vertical-align: top; background-color: darkgray } </style>";	
+				+ "table.table2 td { padding: 3px; vertical-align: top; background-color: darkgray } </style>";	
 		
 		s = s + "<h3>REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime() 
 		+ " Received: " + formatCaptureDate(payloadRt.getCaptureDate()) + "</h3>"
@@ -188,7 +189,7 @@ public class WebHealthTab {
 				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName +
 						".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
-				//FIXME use rt.moduleDisplayType[j] to determine if it is one values that spans across them - like antenna
+				
 				s = s + "<tr><td><a href=/tlm/graph.php?"
 						+ "sat=" + fox.foxId+"&field=" + rt.fieldName[j]
 								+ "&raw=conv"  
