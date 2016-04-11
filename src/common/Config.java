@@ -52,8 +52,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.04b";
-	public static String VERSION = VERSION_NUM + " - 26 March 2016";
+	public static String VERSION_NUM = "1.04c";
+	public static String VERSION = VERSION_NUM + " - 11 April 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
