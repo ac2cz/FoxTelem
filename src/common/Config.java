@@ -1,6 +1,7 @@
 package common;
 
 import gui.MainWindow;
+import gui.ProgressPanel;
 
 import java.awt.Color;
 import java.io.File;
@@ -52,6 +53,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
+	public static ProgressPanel fileProgress;
+	
 	public static String VERSION_NUM = "1.04c";
 	public static String VERSION = VERSION_NUM + " - 11 April 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";

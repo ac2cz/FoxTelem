@@ -260,6 +260,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
 		
+		// We are fully up, remove the database loading message
+		Config.fileProgress.updateProgress(100);
+
 	}
 
 	public static void enableSourceSelection(boolean t) {
