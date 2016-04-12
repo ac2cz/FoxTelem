@@ -313,25 +313,25 @@ public class SatPayloadTable {
 					//case 1:
 					if (tableIdx.get(i).fromReset > reset ) { // situation where the data is for a higher reset, so load from here always by default
 						loadnow = true;
-						System.out.println("Case 1: " + i);
+						//System.out.println("Case 1: " + i);
 					} 
 					//case 4:
 					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
 							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and high uptime
 						loadnow = true;
-						System.out.println("Case 4: " + i);
+						//System.out.println("Case 4: " + i);
 					}
 					//case 4b:
 					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime < uptime && // this record has the same reset and uptime is less than the target
 							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and uptime higher
 						loadnow = true;
-						System.out.println("Case 4b: " + i);
+						//System.out.println("Case 4b: " + i);
 
 					}
 					//case 3:
 					if (i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset) { // load this.  It might have the data we need and its the last segment
 						loadnow = true;
-						System.out.println("Case 3: " + i);
+						//System.out.println("Case 3: " + i);
 
 					}
 				}
