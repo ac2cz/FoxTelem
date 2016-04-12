@@ -252,8 +252,8 @@ public class SatMeasurementStore {
         String line;
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
-			Log.println("Loading: " + log);
 		}
+        Log.println("Loading: " + log);
         File aFile = new File(log );
 		if(!aFile.exists()){
 			try {
@@ -411,15 +411,18 @@ public class SatMeasurementStore {
 	 * @throws IOException
 	 */ 
 	public void convertPassMeasures() throws IOException {
-		
+		String dir = "";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator;
+		} 
         String oldlog = "Fox"+foxId+OLD_PASS_LOG;
         String log = "Fox"+foxId+PASS_LOG;
-		
-		File aFile = new File(oldlog );
+		Log.println("CONVERTING " + oldlog + " to " + log);
+		File aFile = new File(dir + oldlog );
 		if(aFile.exists()){
 			// then convert it
 			load(oldlog, true);
-			
+			Log.println("Loaded: " + this.passRecords.size() + " records");
 			for(Measurement m: this.passRecords) {
 				PassMeasurement p = (PassMeasurement)m;
 				save(p,log);	
