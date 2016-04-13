@@ -2,6 +2,8 @@ package decoder;
 
 import common.Log;
 import filter.AGCFilter;
+import filter.MatchedFilter;
+import filter.RaisedCosineFilter;
 
 /**
  * 
@@ -38,8 +40,16 @@ public class Fox9600bpsDecoder extends Decoder {
 		Log.println("Initializing HIGH SPEED: ");
 		setHighSpeedParameters();
 		super.init();
-		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
-		filter.init(currentSampleRate, 0, 0);
+		//filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
+		//filter.init(currentSampleRate, 0, 0);
+		
+		//filter = new MatchedFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
+		//filter.init(currentSampleRate, 9600, 10);
+		
+		// Use Raised cosine as a matched filter.  It should be the same length as the pulse, so we make
+		// it length 10, for a 1 and a 0.  The 1 will be centered.
+		filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		filter.init(currentSampleRate, 9600, 10);
 
 	}
 	

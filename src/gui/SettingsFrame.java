@@ -556,6 +556,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.save();
 				this.dispose();
 			}
+			// We are fully up, remove the database loading message
+			Config.fileProgress.updateProgress(100);
 		}
 
 		if (e.getSource() == btnBrowse) {
