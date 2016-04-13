@@ -298,10 +298,10 @@ public class GraphPanel extends JPanel {
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
 		g2.drawString(graphFrame.displayTitle, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
 
-		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
-
 		// draw the key
 		drawLegend(graphWidth, topBorder); // FIXME - need to work out where to plot the key when the axis is on top
+		
+		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
 		// Draw baseline at the zero point, but not the labels, which are drawn for each reset
 		g2.setColor(graphAxisColor);
