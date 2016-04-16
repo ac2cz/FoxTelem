@@ -39,6 +39,8 @@ import common.Log;
  * decoder can not keep up with the arrival of real time data and data was lost.  For a file source, the run method can block
  * until space is available in the circular buffer, as no data will be lost.
  * 
+ * An audio source can have multiple channels that read from the same hardware.  This allows one soundcard to be shared by multiple decoders.
+ * 
  * @author chris.e.thompson
  *
  */
@@ -61,12 +63,6 @@ public abstract class SourceAudio implements Runnable {
 	
 	public AudioFormat getAudioFormat() { return audioFormat; }
 	
-//	public SourceAudio(String n, int circularBufferSize) {
-//		name = n;
-//		if (circularBufferSize % 2 == 0) circularBufferSize+=1; // must be odd to prevent corruption if the buffer overflows
-//		circularBuffer = new CircularByteBuffer[1];
-//		circularBuffer[0] = new CircularByteBuffer(circularBufferSize);
-//	}
 
 	public SourceAudio(String n, int circularBufferSize, int channels) {
 		name = n;
@@ -81,9 +77,6 @@ public abstract class SourceAudio implements Runnable {
 		}
 	}
 
-//	public int readBytes(byte[] abData) {
-//		return readBytes(abData, 0);
-//	}
 	
 	public int readBytes(byte[] abData, int chan) {
 		int bytesRead = 0;
@@ -117,41 +110,6 @@ public abstract class SourceAudio implements Runnable {
 			}
 		}
 		return bytesRead;
-		
-		/*
-		
-		// We need at least abData length +1 bytes before we can read them out of the circularBuffer
-		// We make sure it has at least an extra sample
-		while (running && circularBuffer[chan].size() < abData.length+4) {
-			try {
-				Thread.sleep(0, 1);
-			} catch (InterruptedException e) {
-				e.printStackTrace(Log.getWriter());
-			}
-		//	Log.println(name + ": readbytes Wait.. because running="+running+ " circ buf size="+circularBuffer.size());
-		}
-		if (running) // in case we stopped mid read
-			try {
-				for(int i=0; i < abData.length; i+=audioFormat.getFrameSize()) {
-					if (audioFormat.getFrameSize() == 4) {
-						abData[i+3] = circularBuffer[chan].get(3);  // try the second byte first, because we only want to succeed if both are available
-						abData[i+2] = circularBuffer[chan].get(2);
-					}
-					abData[i+1] = circularBuffer[chan].get(1);  // try the second byte first, because we only want to succeed if both are available
-					abData[i] = circularBuffer[chan].get(0);
-					circularBuffer[chan].incStartPointer(audioFormat.getFrameSize());
-					bytesRead+=audioFormat.getFrameSize();
-				}
-			} catch (IndexOutOfBoundsException e) {
-				// If this happens, we are in an unusual situation.  We waited until the circularBuffer contains abData.length of data
-				// then we started to read it one byte at a time.  However, we have moved the read (start) pointer as far as the end
-				// pointer, so we have run out of data.
-				Log.errorDialog(name + ": AUDIO BUFFER READ ERROR on channel: " + chan, e.getMessage() + "\nTry starting the decoder again.");
-				Log.println(name + ": threw error:");
-				e.printStackTrace(Log.getWriter());
-			}
-		return bytesRead;
-		*/
 	}
 
 	public int getAudioBufferCapacity() { return circularBuffer[0].getCapacity(); }

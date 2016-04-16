@@ -52,6 +52,7 @@ public class GraphPanel extends JPanel {
 	double[][][] graphData2 = null;
 	double[] firstDifference = null;
 	double[] dspData = null;
+	boolean drawGraph2 = false;
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
 	public static final int MAX_VARIABLES = 13;
 	Color[] graphColor = {Color.BLUE, Config.GRAPH1, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
@@ -223,6 +224,13 @@ public class GraphPanel extends JPanel {
 		if (graphData[0] == null) return;
 		if (graphData[0][0] == null) return;
 		if (graphData[0][0].length == 0) return;
+
+		drawGraph2 = true;
+		if (graphData2 == null) drawGraph2 = false;
+		else if (graphData2[0] == null) drawGraph2 = false;
+		else if (graphData2[0][0] == null) drawGraph2 = false;
+		else if (graphData2[0][0].length == 0) drawGraph2 = false;
+
 		
 		maxPlottedUptimeForReset = new HashMap();
 		
@@ -248,7 +256,7 @@ public class GraphPanel extends JPanel {
 		}
 
 		double[] axisPoints2 = {0d, 0d, 0d};
-		if (graphData2 != null) {
+		if (drawGraph2) {
 			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2); // default graph type to 0 for now
 		}
 		
@@ -723,7 +731,7 @@ public class GraphPanel extends JPanel {
 	//	int skip = 0;
 		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
 				maxTimeValue, minValue, maxValue, 0, conversionType, true);
-		if (graphData2 != null)
+		if (drawGraph2)
 			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
 					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, false);
 		
