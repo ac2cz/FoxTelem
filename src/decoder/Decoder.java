@@ -417,10 +417,10 @@ public abstract class Decoder implements Runnable {
         }
  */
         if (Config.filterData)
-        	if (this instanceof Fox9600bpsDecoder) 
-        		Log.println("FILTER: none");
-        	else
-        		Log.println("FILTER: " + filter.toString()); //filters[Config.useFilterNumber].toString());
+        	//if (this instanceof Fox9600bpsDecoder) 
+        	//	Log.println("FILTER: none");
+        	//else
+        	Log.println("FILTER: " + filter.toString()); //filters[Config.useFilterNumber].toString());
         Log.println("BUFFER: " + BUFFER_SIZE);
         Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
         

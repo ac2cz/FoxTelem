@@ -1,5 +1,6 @@
 package decoder;
 
+import filter.MatchedFilter;
 import filter.RaisedCosineFilter;
 import filter.WindowedSincFilter;
 import gui.FilterPanel;
@@ -55,11 +56,19 @@ public class Fox200bpsDecoder extends Decoder {
 		currentFilterFreq = Config.filterFrequency;
 		useFilterNumber = Config.useFilterNumber;
 		if (useFilterNumber == FilterPanel.RAISED_COSINE)
-			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			//filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 		else
 			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 		filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		
+		// Experiments have determined that the optimal filter is the WS length 480
+		filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		filter.init(currentSampleRate, Config.filterFrequency, bucketSize*2);
+		//double[] coef = filter.getKernal();
+		//int i=0;
+		//for (double d: coef)
+		//	System.out.println(i++ + "," + d);
 	}
 	
 	private void setSlowSpeedParameters() {

@@ -355,7 +355,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		fftPanel.setBackground(Color.LIGHT_GRAY);
 		
 		//bottomPanel.add(fftPanel, BorderLayout.SOUTH);
-		fftPanel.setVisible(false);
+		setFFTVisible(false);
 		fftPanel.setPreferredSize(new Dimension(100, 150));
 		fftPanel.setMaximumSize(new Dimension(100, 150));
 		
@@ -388,22 +388,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	
 	private void buildRightPanel(JPanel parent, String layout, JPanel rightPanel) {
 		parent.add(rightPanel, layout);
-//		rightPanel.setPreferredSize(new Dimension(800, 250));
-//		rightPanel.setLayout(new GridLayout(0, 3, 0, 0));
-//		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.X_AXIS));
 			
 		JPanel opts = new JPanel();
 		rightPanel.add(opts);
-//		opts.setLayout(new BoxLayout(opts, BoxLayout.Y_AXIS));
 		opts.setLayout(new BorderLayout());
 		
 		JPanel optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(null, "Audio Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		opts.add(optionsPanel, BorderLayout.CENTER);
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
-		
-//		spacecraftPanel = new SpacecraftPanel();
-//		opts.add(spacecraftPanel, BorderLayout.CENTER);
 		
 		filterPanel = new FilterPanel();
 		opts.add(filterPanel, BorderLayout.NORTH);
@@ -428,6 +421,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnFilterOutputAudio.addItemListener(this);
 		rdbtnFilterOutputAudio.setSelected(Config.filterOutputAudio);
 		rdbtnFilterOutputAudio.setVisible(false);
+		optionsPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500)));
 		
 	//	rdbtnUseLimiter = new JCheckBox("Use FM Limiter");
 	//	optionsPanel.add(rdbtnUseLimiter);
@@ -443,7 +437,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	//	rdbtnWriteDebugData.setVisible(true);
 
 //		optionsPanel.setVisible(true);
-		filterPanel.setVisible(true);
+		filterPanel.setVisible(false); // hide the filters because we have calculated the optimal matched filters
 
 	}
 	
@@ -771,8 +765,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		//soundCardComboBox.setSelectedIndex(SourceAudio.IQ_FILE_SOURCE);
 	}
 	
-
-	private void setIQVisible(boolean b) {
+	private void setFFTVisible(boolean b) {
 		fftPanel.setVisible(b);
 		if (b==true) {
 			if (Config.splitPaneHeight != 0) 
@@ -780,6 +773,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			else
 				splitPane.setDividerLocation(200);
 		}
+	}
+	
+	private void setIQVisible(boolean b) {
+		setFFTVisible(b);
 		rdbtnShowFFT.setVisible(b);
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
@@ -1530,9 +1527,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == rdbtnShowFFT) {
 			if (fftPanel != null)
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-	            fftPanel.setVisible(false);
+				setFFTVisible(false);
 	        } else {
-	            fftPanel.setVisible(true);
+	        	setFFTVisible(true);
 	        	
 	        }
 		}

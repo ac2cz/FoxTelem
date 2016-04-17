@@ -55,10 +55,10 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 	};
 	*/
 	
-	public static final int WS_LEN_MIN = 1024;
-	public static final int WS_LEN_MAX = 4096;
-	public static final int RC_LEN_MIN = 64;
-	public static final int RC_LEN_MAX = 512;
+	public static final int WS_LEN_MIN = 480;
+	public static final int WS_LEN_MAX = 4800;
+	public static final int RC_LEN_MIN = 48;
+	public static final int RC_LEN_MAX = 480;
 	
 	public static final int FREQ_MIN = 0;
 	public static final int FREQ_MAX = 400;
@@ -117,7 +117,7 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 		add(lLength);
 		
 		rcSlider = createSlider(RC_LEN_MIN, RC_LEN_MAX, RC_LEN_MIN);
-		wsSlider = createSlider(WS_LEN_MIN, WS_LEN_MAX, WS_LEN_MIN);
+		wsSlider = createSlider(WS_LEN_MIN, WS_LEN_MAX, WS_LEN_MIN*2);
 		//updateSlider();
 		add(rcSlider);
 		add(wsSlider);
