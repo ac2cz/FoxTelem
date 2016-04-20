@@ -89,7 +89,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private int conversionType;
 	int conversionType2;
 	private JPanel contentPane;
-	private GraphPanel panel;
+	private GraphCanvas panel;
 	private JPanel titlePanel;
 	private JPanel footerPanel;
 	
@@ -197,6 +197,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
+		} else if (this.fieldName[0].equalsIgnoreCase("EL")){
+			this.fieldName = new String[3];
+			this.fieldName[0] = "EL";
+			this.fieldName[1] = "AZ";
+			this.fieldName[2] = "BIT_SNR";
+			panel = new DensityPlotPanel(title, conversionType, payloadType, this, sat);
+			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
 			panel = new GraphPanel(title, conversionType, payloadType, this, sat);
 			contentPane.add(panel, BorderLayout.CENTER);
