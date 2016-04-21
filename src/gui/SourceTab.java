@@ -1139,6 +1139,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					SDRpanel.add(panelFcd, BorderLayout.CENTER);
 				}
 				SDRpanel.setVisible(true);
+				if (fcd.isHidConnected()) {
+					panelFcd.setEnabled(true);
+				} else {
+					panelFcd.setEnabled(false);
+				}
 		
 			Config.iq = true;
 			iqAudio.setSelected(true);

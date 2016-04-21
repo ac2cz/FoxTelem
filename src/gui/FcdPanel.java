@@ -12,5 +12,7 @@ public abstract class FcdPanel extends JPanel {
 	public abstract void setFcd(FcdDevice fcd) throws IOException, FcdException;
 	
 	public abstract void updateFilter() throws IOException, FcdException;
+	
+	public abstract void setEnabled(boolean b);
 
 }
