@@ -50,12 +50,12 @@ public class DensityPlotPanel extends GraphCanvas {
 		double horStep = maxHor/(double)maxHorBoxes; // the step size for the horixental axis
 		
 		// we have three sets of data:
-		// EL is in variable 0, AZ in variable 1 and the value is in variable 2
+		// EL is in variable 1, AZ in variable 2 and the value is in variable 0
 		// We do not care about resets and uptime, we just running average the data into the grid
 		for (int i=1; i < graphData[0][PayloadStore.DATA_COL].length; i++) {
-			double vert = graphData[0][PayloadStore.DATA_COL][i];
-			double hor = graphData[1][PayloadStore.DATA_COL][i];
-			double value = graphData[2][PayloadStore.DATA_COL][i];
+			double vert = graphData[1][PayloadStore.DATA_COL][i];
+			double hor = graphData[2][PayloadStore.DATA_COL][i];
+			double value = graphData[0][PayloadStore.DATA_COL][i];
 			if (Double.isNaN(value)) value = 0;
 			
 			// integrity check
@@ -111,10 +111,10 @@ public class DensityPlotPanel extends GraphCanvas {
 			String s = f2.format(labels[v]);
 
 			g2.drawString(s, sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); 
-			g2.setColor(graphAxisColor);
+			
 			//g.drawLine(sideBorder+axisPosition-5, pos+topBorder, sideBorder+axisPosition+5, pos+topBorder);
 		}
-		
+		g2.setColor(graphAxisColor);
 		int zeroPoint = graphHeight + topBorder;
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 
@@ -127,8 +127,8 @@ public class DensityPlotPanel extends GraphCanvas {
 		// Draw the title
 		g2.setColor(Color.BLACK);
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
-		graphFrame.displayTitle = "Fox-1A - Bit Signal to Noise vs Az El";
-		g2.drawString(graphFrame.displayTitle, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
+		String title = graphFrame.displayTitle + " Skyplot vs Az El";
+		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
 
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		

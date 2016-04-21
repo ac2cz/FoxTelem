@@ -87,7 +87,7 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 					DisplayModule.DISPLAY_RT_ONLY);
 			satellite[s].addName(6, "Elevation (deg)", RtMeasurement.EL,
 					DisplayModule.DISPLAY_RT_ONLY);
-			satellite[s].addName(7, "RS Erros", RtMeasurement.ERRORS,
+			satellite[s].addName(7, "RS Errors", RtMeasurement.ERRORS,
 					DisplayModule.DISPLAY_RT_ONLY);
 			satellite[s].addName(8, "RS Erasures", RtMeasurement.ERASURES,
 					DisplayModule.DISPLAY_RT_ONLY);

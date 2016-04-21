@@ -150,13 +150,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean showContinuous = false;
 	
 	public boolean add = false;
+	public boolean skyPlot = false;
 	
 	boolean textDisplay = false;
 	
 	/**
 	 * Create the frame.
 	 */
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat, Boolean showSkyChart) {
 		fox = sat;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -170,6 +171,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 		loadProperties();
+		
+		if (showSkyChart != null) // take the value, otherwise we use what was loaded from the save
+			this.skyPlot = showSkyChart;
 		
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
 //		setIconImage(img);
@@ -197,11 +201,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
-		} else if (this.fieldName[0].equalsIgnoreCase("EL")){
+		} else if (skyPlot){
+			String s = this.fieldName[0];
 			this.fieldName = new String[3];
-			this.fieldName[0] = "EL";
-			this.fieldName[1] = "AZ";
-			this.fieldName[2] = "BIT_SNR";
+			this.fieldName[1] = "EL";
+			this.fieldName[2] = "AZ";
+			this.fieldName[0] = s;
 			panel = new DensityPlotPanel(title, conversionType, payloadType, this, sat);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
@@ -424,7 +429,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	private void calcTitle() {
 		//BitArrayLayout layout = getLayout(payloadType);
-		if (fieldName.length > 1 || fieldName2 != null)
+		if (!skyPlot && (fieldName.length > 1 || fieldName2 != null))
 			displayTitle = fox.name;
 		else {
 			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
@@ -498,6 +503,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showHorizontalLines", showHorizontalLines);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showUTCtime", showUTCtime);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideUptime", hideUptime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "skyPlot", skyPlot);
 		
 		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "AVG_PERIOD", AVG_PERIOD);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showContinuous", showContinuous);
@@ -544,6 +550,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showHorizontalLines");
 		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showUTCtime");
 		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideUptime");
+		skyPlot = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "skyPlot");
 		
 		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "AVG_PERIOD");
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;

@@ -4,13 +4,20 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 
+import javax.imageio.ImageIO;
 import javax.swing.BoxLayout;
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
@@ -71,7 +78,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	String[] fieldName = null;  // string used to lookup new values
 	JLabel[] rtValue = null;   // the RT value displated
 	JLabel[] maxValue = null;
-	JLabel[] minValue = null;
+	JComponent[] minValue = null;
 	JLabel[] label = null;     // the label for the row
 	JPanel[] row = null;      // a panel that stores the whole row
 	int[] display;           // an array that stores how each row is displayed RT, MAX. MIN, ALL
@@ -159,6 +166,10 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		if (moduleType >= DISPLAY_HERCI) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));
 			border.setTitleColor(herciFontColor);
+		} else if (moduleType == DISPLAY_MEASURES) {
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
+			border.setTitleColor(vulcanFontColor);
+			minValue = new JButton[size];
 		} else if (moduleType >= DISPLAY_VULCAN) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
 			border.setTitleColor(vulcanFontColor);
@@ -267,13 +278,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 							rtValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
 						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
-							minValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
+							((JLabel)minValue[i]).setText(Integer.toString(max.getRawValue(fieldName[i])));
 						else
 							maxValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 						rtValue[i].setText(max.getStringValue(fieldName[i],fox));
 					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
-						minValue[i].setText(max.getStringValue(fieldName[i],fox));
+						((JLabel)minValue[i]).setText(max.getStringValue(fieldName[i],fox));
 					else
 						maxValue[i].setText(max.getStringValue(fieldName[i],fox));
 					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
@@ -294,13 +305,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
 							maxValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
 						else
-							minValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
+							((JLabel)minValue[i]).setText(Integer.toString(min.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
 						rtValue[i].setText(min.getStringValue(fieldName[i],fox));
 					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
 						maxValue[i].setText(min.getStringValue(fieldName[i],fox));
 					else
-						minValue[i].setText(min.getStringValue(fieldName[i],fox));
+						((JLabel)minValue[i]).setText(min.getStringValue(fieldName[i],fox));
 					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
 				}
 			}
@@ -388,7 +399,16 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			rtValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));			
 			row[i].add(rtValue[i]);
 		}
-			
+		
+		if (moduleType == DISPLAY_MEASURES) {
+			// We want to add a button for a sky plot.  This goes in the min column
+			for (int i=1; i < size; i++) {
+				minValue[i] = createIconButton("/images/horizontalLines.png","Sky","Plot sky chart");
+				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
+				row[i].add(minValue[i]);
+			}
+		}
+		
 		if (moduleType < DISPLAY_VULCAN) {
 			JLabel minTitle = new JLabel("MIN");
 			minTitle.setToolTipText("The minimum realtime value since the min telemetry was reset is in this column");
@@ -423,11 +443,14 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		// TODO Auto-generated method stub
-		
+		for (int i=1; i< size; i++) {
+			if (moduleType == DISPLAY_MEASURES && e.getSource() == minValue[i]) {
+				displayGraph(i, true);				
+			} 
+		}
 	}
 
-	public void displayGraph(int i) {
+	public void displayGraph(int i, Boolean showSkyChart) {
 		try {
 			if (graph[i] == null) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
@@ -436,46 +459,46 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if ((moduleType == this.DISPLAY_ALL || moduleType == this.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
 					units = fox.passMeasurementLayout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox, showSkyChart);
 				} 
 				else if (moduleType == DISPLAY_MEASURES) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.measurementLayout.getConversionByName(fieldName[i]);
 					units = fox.measurementLayout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
 					units = fox.rad2Layout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.herciHS2Layout.getConversionByName(fieldName[i]);
 					units = fox.herciHS2Layout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
 					units = fox.rad2Layout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
 					units = minPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, fox, showSkyChart);
 				}
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
 					conversion = maxPayload.getConversionByName(fieldName[i]);
 					conversion = maxPayload.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, fox);
+					graph[i] = new GraphFrame(title + "-" + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, fox, showSkyChart);
 				} else return;
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
@@ -497,7 +520,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
 				} else
-					displayGraph(i);
+					displayGraph(i, false);
 			}
 		}
 	}
@@ -507,6 +530,14 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
 				row[i].setBackground(Color.BLUE);
+				if (label[i] != null)
+					label[i].setForeground(Color.WHITE);
+				if (rtValue[i] != null)
+					rtValue[i].setForeground(Color.WHITE);
+				if (maxValue != null && maxValue[i] != null)
+					maxValue[i].setForeground(Color.WHITE);
+				if (minValue != null && minValue[i] != null)
+					minValue[i].setForeground(Color.WHITE);
 			}
 		}
 	}
@@ -516,6 +547,15 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		for (int i=0; i< size; i++) {
 			if (e.getSource() == row[i]) {
 				row[i].setBackground(Color.lightGray);
+				if (label[i] != null)
+					label[i].setForeground(Color.BLACK);
+				if (rtValue[i] != null)
+					rtValue[i].setForeground(Color.BLACK);
+				if (maxValue != null && maxValue[i] != null)
+					maxValue[i].setForeground(Color.BLACK);
+				if (minValue != null && minValue[i] != null)
+					minValue[i].setForeground(Color.BLACK);
+				this.repaint();
 			}
 		}
 	}
@@ -555,7 +595,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		for (int i=0; i < fieldName.length; i++) {
 			boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[i], "open");
 			if (open) {
-				displayGraph(i);
+				displayGraph(i, null);
 			}
 		}
 	}
@@ -591,5 +631,25 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		ROW_HEIGHT = (int)(ROW_HEIGHT * scale);
 		HERCI_MICRO_PKT_NAME_WIDTH = (int)(HERCI_MICRO_PKT_NAME_WIDTH * scale);
 		HERCI_MICRO_PKT_VALUE_WIDTH = (int)(HERCI_MICRO_PKT_VALUE_WIDTH * scale);
+	}
+	
+	public JButton createIconButton(String icon, String name, String toolTip) {
+		JButton btn;
+		BufferedImage wPic = null;
+		try {
+			wPic = ImageIO.read(this.getClass().getResource(icon));
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+		}
+		if (wPic != null) {
+			btn = new JButton(new ImageIcon(wPic));
+			btn.setMargin(new Insets(0,0,0,0));
+		} else {
+			btn = new JButton(name);	
+		}
+		btn.setToolTipText(toolTip);
+		
+		btn.addActionListener(this);
+		return btn;
 	}
 }
