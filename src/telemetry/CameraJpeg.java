@@ -1,5 +1,6 @@
 package telemetry;
 
+import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.GraphicsConfiguration;
 import java.awt.GraphicsDevice;
@@ -353,7 +354,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	 */
 	public BufferedImage getThumbnail(int sizeX) throws IOException, IIOException {
 		if (!thumbStale && thumbNail != null) return thumbNail;
-		BufferedImage img;
+		BufferedImage img = null;
 		String imageFile = getFileName();
 		
 		File thumbFile = new File(imageFile+".tn");
@@ -365,11 +366,19 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		}
 		//scale based on X
 		File source = new File(imageFile);
-		img = ImageIO.read(source);
+		File f = new File(imageFile+".tn");
+		try {
+			img = ImageIO.read(source);
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+			// Error creating the image file.  Probably corrupt. Create a blank file to show it is there but not valid
+			img = new BufferedImage(sizeX, 75,  BufferedImage.TYPE_INT_ARGB);
+			ImageIO.write(img, "JPEG", f);		
+		}
 		if (img != null) {
 			double w = img.getWidth();
 			double scale = sizeX/w;
-			File f = new File(imageFile+".tn");
+			
 			thumbNail = scale(img, scale);
 			ImageIO.write(thumbNail, "JPEG", f);
 		}
