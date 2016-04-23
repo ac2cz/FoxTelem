@@ -858,6 +858,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
+		
+		// We are fully updated, remove the database loading message
+		Config.fileProgress.updateProgress(100);
 	}
 
 	

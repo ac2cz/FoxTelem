@@ -66,7 +66,7 @@ public class DensityPlotPanel extends GraphCanvas {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		
 		if (!checkDataExists()) return;
-			
+		boolean noAzElReadings = true;	
 		int graphHeight = getHeight() - topBorder - bottomBorder;
 		int graphWidth = getWidth() - sideBorder*2; // width of entire graph
 		
@@ -87,7 +87,6 @@ public class DensityPlotPanel extends GraphCanvas {
 		
 		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; // 10 degree sky segments
 		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; // 10 degree sky segments
-		double[][][] axisGraphData = new double[1][3][maxHorBoxes];
 		
 		double vertStep = maxVert/(double)maxVertBoxes; // the step size for the vertical axis
 		double horStep = maxHor/(double)maxHorBoxes; // the step size for the horixental axis
@@ -97,7 +96,9 @@ public class DensityPlotPanel extends GraphCanvas {
 		// We do not care about resets and uptime, we just running average the data into the grid
 		for (int i=1; i < graphData[0][PayloadStore.DATA_COL].length; i++) {
 			double vert = graphData2[0][PayloadStore.DATA_COL][i];
+			if (vert > 0) noAzElReadings = false;
 			double hor = graphData2[1][PayloadStore.DATA_COL][i];
+			if (hor > 0) noAzElReadings = false;
 			double value = graphData[0][PayloadStore.DATA_COL][i];
 			if (Double.isNaN(value)) value = 0;
 			
@@ -116,7 +117,7 @@ public class DensityPlotPanel extends GraphCanvas {
 			dataGridCount[vertBox][horBox]++;
 			
 		}
-		// now calculate the averages and store the fake values for the axis
+		// now calculate the averages
 		double maxValue = -999999999;
 		double minValue = 999999999;
 		for (int h=0; h < maxHorBoxes; h++) {
@@ -129,12 +130,8 @@ public class DensityPlotPanel extends GraphCanvas {
 					if (dataGrid[v][h] > maxValue) maxValue = dataGrid[v][h];
 					if (dataGrid[v][h] < minValue) minValue = dataGrid[v][h];
 				}
-				if (h==0) {
-					axisGraphData[0][PayloadStore.DATA_COL][v] = v * vertStep;
-				}
+				
 			}
-			axisGraphData[0][PayloadStore.RESETS_COL][h] = 0;
-			axisGraphData[0][PayloadStore.UPTIME_COL][h] = h;
 		}
 
 		drawLegend(graphHeight, graphWidth, minValue, maxValue, graphFrame.fieldUnits);
@@ -198,7 +195,11 @@ public class DensityPlotPanel extends GraphCanvas {
 			g2.drawString(""+(long)timelabels[h], timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
 		}
 		
-		
+		if (noAzElReadings) {
+			g2.setColor(Color.BLACK);
+			g2.drawString("No Azimuth and Elevation Data Available for plot", graphWidth/2-50, graphHeight/2);
+			return;
+		}
 
 		for (int v=0; v < maxVertBoxes; v++)
 			for (int h=0; h < maxHorBoxes; h++) {
