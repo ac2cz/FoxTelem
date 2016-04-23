@@ -136,6 +136,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
+	JMenuItem mntmLeaderboard;
+	JMenuItem mntmSoftware;
 	JMenuItem mntmAbout;
 	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
@@ -579,6 +581,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmManual = new JMenuItem("Open Manual");
 		mnHelp.add(mntmManual);
 		mntmManual.addActionListener(this);
+		mntmLeaderboard = new JMenuItem("View Fox Server Leaderboard");
+		mnHelp.add(mntmLeaderboard);
+		mntmLeaderboard.addActionListener(this);
+		//mntmSoftware = new JMenuItem("Latest Software");
+		//mnHelp.add(mntmSoftware);
+		//mntmSoftware.addActionListener(this);
 		if (!Config.isMacOs()) {
 			mntmAbout = new JMenuItem("About FoxTelem");
 			mnHelp.add(mntmAbout);
@@ -749,12 +757,30 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		
 		if (e.getSource() == mntmManual) {
-            try {
-                DesktopApi.browse(new URI(HelpAbout.MANUAL));
-        } catch (URISyntaxException ex) {
-                //It looks like there's a problem
-        	ex.printStackTrace();
-        }
+			try {
+				DesktopApi.browse(new URI(HelpAbout.MANUAL));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
+
+		}
+		if (e.getSource() == mntmLeaderboard) {
+			try {
+				DesktopApi.browse(new URI(HelpAbout.LEADERBOARD));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
+
+		}
+		if (e.getSource() == mntmSoftware) {
+			try {
+				DesktopApi.browse(new URI(HelpAbout.SOFTWARE));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
 
 		}
 		if (e.getSource() == mntmAbout) {
