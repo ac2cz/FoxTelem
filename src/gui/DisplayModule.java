@@ -445,7 +445,10 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void actionPerformed(ActionEvent e) {
 		for (int i=1; i< size; i++) {
 			if (moduleType == DISPLAY_MEASURES && e.getSource() == minValue[i]) {
-				displayGraph(i, true);				
+				if (rtValue[i].getText().equalsIgnoreCase(noValue))
+					;// dont open graph
+				else
+					displayGraph(i, true);				
 			} 
 		}
 	}
