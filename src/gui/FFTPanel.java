@@ -228,10 +228,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					else
 						selectedBin++;
 				}
-				//if (Config.findSignal) {
-				//	if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
-				//		Config.selectedBin = selectedBin;
-				//} else
+				if (Config.findSignal) {
+					if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
+						Config.selectedBin = selectedBin;
+				} else
 					Config.selectedBin = selectedBin;
 			}
 		}
@@ -347,10 +347,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				int upperSelection = getSelectionFromBin(Config.toBin);
 				int lowerSelection = getSelectionFromBin(Config.fromBin);
 
+				if (upperSelection != lowerSelection) {
 				c = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
 				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
 				c = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
 				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
+				}
 			}
 			
 			if (rfData != null) {

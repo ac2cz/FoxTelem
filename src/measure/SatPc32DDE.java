@@ -45,7 +45,7 @@ public class SatPc32DDE {
 		    {
 		        // Requesting DDE String
 		        String ddeString = conversation.request("SatPcDdeItem");
-		        Log.println("SatPC32: " + ddeString);
+		      //  Log.println("SatPC32: " + ddeString);
 		        if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
 		        String parts[] = ddeString.split(" ");
 		        satellite = parts[0].substring(2, parts[0].length());
@@ -73,6 +73,9 @@ public class SatPc32DDE {
 		}
 		catch (DDEMLException e)
 		{
+			if (e.getErrorCode() == 0x400a)
+				;// we can ignore failed connection error.  SatPC32 is not open
+			else
 		    Log.println("DDEMLException: 0x" + Integer.toHexString(e.getErrorCode())
 		                       + " " + e.getMessage());
 		    return false;

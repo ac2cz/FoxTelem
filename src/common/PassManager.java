@@ -9,6 +9,7 @@ import telemetry.PayloadStore;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
+import measure.SatPc32DDE;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.RfData;
@@ -83,8 +84,8 @@ public class PassManager implements Runnable {
 	int lastReset;
 	long lastUptime;
 	
-	final int SCAN_PERIOD = 250; //ms - we always do this
-	final int ANALYZE_PERIOD = 500; //ms - we pause for this if strongest signal > scan signal threshold 
+	final int SCAN_PERIOD = 200; //ms - we always do this
+	final int ANALYZE_PERIOD = 600; //ms - we pause for this if strongest signal > scan signal threshold 
 	final int SNR_PERIOD = 1500; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR
 	final int DECODE_PERIOD = 5000; //ms
 	final int FADE_PERIOD = 125 * 1000; //ms - need to wait for the length of a beacon to see if this is still a pass
@@ -187,9 +188,13 @@ public class PassManager implements Runnable {
 	
 	private void setFreqRangeBins(Spacecraft sat, PassParams pp) {
 		if (pp.decoder != null && pp.iqSource != null) {
-			Config.toBin = pp.iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
-			Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
-			
+			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
+				Config.toBin = 0;
+				Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
+			} else {
+				Config.toBin = pp.iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
+				Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
+			}
 		}
 	}
 	
@@ -547,11 +552,23 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			String satString = null;
+			if (Config.useDDEforFindSignal) {
+				SatPc32DDE satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected) {
+						satString = satPC.satellite;
+				}
+			}
 			if (pp1.decoder != null && Config.findSignal)
 				for (int s=0; s < spacecraft.size(); s++) {
 					//Log.println("Looking for: " + spacecraft.get(s).name);
-					if (spacecraft.get(s).track)
-						stateMachine(spacecraft.get(s));
+					if (spacecraft.get(s).track) 
+						if (Config.useDDEforFindSignal) {
+							if (satString != null && satString.equalsIgnoreCase(spacecraft.get(s).name))
+								stateMachine(spacecraft.get(s));
+						} else
+							stateMachine(spacecraft.get(s));
 				}
 			else {
 				//Log.println("Waiting for decoder");

@@ -56,7 +56,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.04d";
-	public static String VERSION = VERSION_NUM + " - 18 April 2016";
+	public static String VERSION = VERSION_NUM + " - 22 April 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -232,6 +232,7 @@ public class Config {
 	// V1.04
 	static public boolean startButtonPressed = true;
 	static public int splitPaneHeight = 200;
+	public static boolean useDDEforFindSignal = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -561,6 +562,7 @@ public class Config {
 		// Version 1.04
 		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
+		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
 		
 		store();
 	}
@@ -720,6 +722,7 @@ public class Config {
 		// Version 1.04
 		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
 		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
+		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
