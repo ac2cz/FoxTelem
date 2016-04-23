@@ -403,7 +403,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		if (moduleType == DISPLAY_MEASURES) {
 			// We want to add a button for a sky plot.  This goes in the min column
 			for (int i=1; i < size; i++) {
-				minValue[i] = createIconButton("/images/horizontalLines.png","Sky","Plot sky chart");
+				minValue[i] = createIconButton("/images/skyPlot.png","Sky","Plot sky chart");
 				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 				row[i].add(minValue[i]);
 			}
@@ -452,7 +452,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 	public void displayGraph(int i, Boolean showSkyChart) {
 		try {
-			if (graph[i] == null) {
+			//if (graph[i] == null) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				String units = "";
 				
@@ -502,7 +502,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				} else return;
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
-			}
+		//	}
 			graph[i].updateGraphData("DisplayModule.displayGraph");
 			graph[i].setVisible(true);
 		} catch (Exception ex) {

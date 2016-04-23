@@ -23,7 +23,45 @@ public class DensityPlotPanel extends GraphCanvas {
 		super(t, conversionType, plType, gf, sat);
 		updateGraphData("DensityPlotPanel.new");
 	}
-	
+	private void drawLegend(int graphHeight, int graphWidth, double minValue, double maxValue, String units) {
+			
+		int verticalOffset = 60;
+		int leftOffset = 15;
+		int lineLength = 15;
+		int legendHeight = graphHeight-verticalOffset*2;
+
+		int font = (int)(9 * Config.graphAxisFontSize / 11 );
+		int fonth = (int)(12*font/9);
+
+		int legendWidth = font*4;
+
+		int numberOfLabels = legendHeight/labelHeight;
+		double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, false);
+		if (labels.length > 0) {
+			int rows = labels.length;
+			int boxHeight = (int)legendHeight/rows;
+			legendHeight = boxHeight*rows;
+
+			g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+			g2.drawString("Key", sideBorder + graphWidth + leftOffset + 5, verticalOffset - fonth*2  );
+			g2.drawString("("+units+")", sideBorder + graphWidth + leftOffset + 5, verticalOffset - fonth  );
+
+			g.setFont(new Font("SansSerif", Font.PLAIN, font));
+			for (int i=0; i < rows; i++) {
+				int shade = getRatioPosition(minValue, maxValue, labels[i], 255);
+				if (shade > 255) shade = 255;
+				if (shade <0) shade = 0;
+				shade = 255-shade; // we want min signal white and max black
+				g2.setColor(new Color(shade,shade,shade));
+				g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + i * boxHeight, legendWidth, boxHeight);
+				if (shade > 127) g2.setColor(Color.BLACK);
+				else g2.setColor(Color.WHITE);
+				g2.drawString(""+labels[i], sideBorder + graphWidth + leftOffset+5, verticalOffset + i * boxHeight + (int)(boxHeight*0.8));
+
+			}
+		}
+		
+	}
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		
@@ -42,6 +80,11 @@ public class DensityPlotPanel extends GraphCanvas {
 		int maxVertBoxes = 18*2;
 		int maxHorBoxes = 36*2;
 		
+		int boxHeight = graphHeight / maxVertBoxes;
+		graphHeight = boxHeight * maxVertBoxes; // fix rounding issues
+		int boxWidth = graphWidth / maxHorBoxes;
+		graphWidth = boxWidth * maxHorBoxes;
+		
 		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; // 10 degree sky segments
 		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; // 10 degree sky segments
 		double[][][] axisGraphData = new double[1][3][maxHorBoxes];
@@ -50,16 +93,16 @@ public class DensityPlotPanel extends GraphCanvas {
 		double horStep = maxHor/(double)maxHorBoxes; // the step size for the horixental axis
 		
 		// we have three sets of data:
-		// EL is in variable 1, AZ in variable 2 and the value is in variable 0
+		// In graphData2 EL is in variable 0, AZ in variable 1 and the value is in variable 0 of graphData
 		// We do not care about resets and uptime, we just running average the data into the grid
 		for (int i=1; i < graphData[0][PayloadStore.DATA_COL].length; i++) {
-			double vert = graphData[1][PayloadStore.DATA_COL][i];
-			double hor = graphData[2][PayloadStore.DATA_COL][i];
+			double vert = graphData2[0][PayloadStore.DATA_COL][i];
+			double hor = graphData2[1][PayloadStore.DATA_COL][i];
 			double value = graphData[0][PayloadStore.DATA_COL][i];
 			if (Double.isNaN(value)) value = 0;
 			
 			// integrity check
-			if (graphData[0][PayloadStore.UPTIME_COL][i] != graphData[2][PayloadStore.UPTIME_COL][i])
+			if (graphData[0][PayloadStore.UPTIME_COL][i] != graphData2[1][PayloadStore.UPTIME_COL][i])
 				System.err.println("ERROR!!!!!!!!!");
 			
 			int vertBox = (int)Math.round((vert/vertStep));
@@ -94,6 +137,10 @@ public class DensityPlotPanel extends GraphCanvas {
 			axisGraphData[0][PayloadStore.UPTIME_COL][h] = h;
 		}
 
+		drawLegend(graphHeight, graphWidth, minValue, maxValue, graphFrame.fieldUnits);
+		
+		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+		
 		//double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, axisGraphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, conversionType);
 		// Draw vertical axis - always in the same place
 		g2.drawLine(sideBorder, getHeight()-bottomBorder, sideBorder, topBorder);
@@ -101,7 +148,7 @@ public class DensityPlotPanel extends GraphCanvas {
 		double[] labels = calcAxisInterval(0, maxVert, numberOfLabels, false);
 		numberOfLabels = labels.length;
 		g2.setColor(graphTextColor);
-		g2.drawString("("+graphFrame.fieldUnits+")", sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
+		g2.drawString("Elevation", sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
 		
 		DecimalFormat f2 = new DecimalFormat("0");
 		for (int v=1; v < numberOfLabels; v++) {
@@ -127,8 +174,8 @@ public class DensityPlotPanel extends GraphCanvas {
 		// Draw the title
 		g2.setColor(Color.BLACK);
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
-		String title = graphFrame.displayTitle + " Skyplot vs Az El";
-		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
+		String title = graphFrame.displayTitle + " vs Az El";
+		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight-10);
 
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
@@ -151,8 +198,7 @@ public class DensityPlotPanel extends GraphCanvas {
 			g2.drawString(""+(long)timelabels[h], timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
 		}
 		
-		int boxHeight = graphHeight / maxVertBoxes;
-		int boxWidth = graphWidth / maxHorBoxes;
+		
 
 		for (int v=0; v < maxVertBoxes; v++)
 			for (int h=0; h < maxHorBoxes; h++) {
