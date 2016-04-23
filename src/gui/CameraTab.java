@@ -142,7 +142,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 		setLayout(new BorderLayout(0, 0));
 	
-		thumbnails = new CameraThumb[MAX_THUMBNAILS_LIMIT]; // size this to hold references up to the limit
+		thumbnails = new CameraThumb[maxThumbnails]; // size this to hold references up to the limit that was loaded from the properties file
 		
 		topPanel = new JPanel();
 		topPanel.setMinimumSize(new Dimension(34, 250));

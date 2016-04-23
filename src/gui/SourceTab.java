@@ -113,6 +113,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	//JCheckBox rdbtnShowIF;
 	JCheckBox rdbtnTrackSignal;
 	JCheckBox rdbtnFindSignal;
+	JCheckBox rdbtnWhenAboveHorizon;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
@@ -233,11 +234,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		JPanel options1 = new JPanel();
 		options1.setLayout(new FlowLayout(FlowLayout.LEFT));
 		optionsPanel.add(options1);
-		rdbtnShowFFT = new JCheckBox("Show FFT");
-		rdbtnShowFFT.addItemListener(this);
-		rdbtnShowFFT.setSelected(true);
-		options1.add(rdbtnShowFFT);
-		rdbtnShowFFT.setVisible(false);
+		
 
 		showSNR = addRadioButton("Show Avg SNR", options1 );
 		showLevel = addRadioButton("Peak SNR", options1 );
@@ -280,6 +277,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnFindSignal.setVisible(true);
 
 		optionsPanel.add(findSignalPanel);
+		
+		rdbtnWhenAboveHorizon = new JCheckBox("when above horizon  ");
+		rdbtnWhenAboveHorizon.setToolTipText("Find Signal is executed when the Satellite is above the horizon according to SatPC32, which must be running");
+		findSignalPanel.add(rdbtnWhenAboveHorizon);
+		rdbtnWhenAboveHorizon.addItemListener(this);
+		rdbtnWhenAboveHorizon.setSelected(Config.useDDEforFindSignal);
+		
+		
 		JLabel when = new JLabel ("when peak over ");
 		findSignalPanel.add(when);
 		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
@@ -421,6 +426,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnFilterOutputAudio.addItemListener(this);
 		rdbtnFilterOutputAudio.setSelected(Config.filterOutputAudio);
 		rdbtnFilterOutputAudio.setVisible(false);
+		
+		rdbtnShowFFT = new JCheckBox("Show FFT");
+		rdbtnShowFFT.addItemListener(this);
+		rdbtnShowFFT.setSelected(true);
+		optionsPanel.add(rdbtnShowFFT);
+		rdbtnShowFFT.setVisible(false);
 		optionsPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500)));
 		
 	//	rdbtnUseLimiter = new JCheckBox("Use FM Limiter");
@@ -781,6 +792,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
+		if (Config.isWindowsOs())
+			rdbtnWhenAboveHorizon.setVisible(b);
+		else
+			rdbtnWhenAboveHorizon.setVisible(false);
 		findSignalPanel.setVisible(b&&Config.findSignal);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
@@ -1139,6 +1154,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					SDRpanel.add(panelFcd, BorderLayout.CENTER);
 				}
 				SDRpanel.setVisible(true);
+				if (fcd.isHidConnected()) {
+					panelFcd.setEnabled(true);
+				} else {
+					panelFcd.setEnabled(false);
+				}
 		
 			Config.iq = true;
 			iqAudio.setSelected(true);
@@ -1592,6 +1612,19 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	        	//Config.save();
 	        }
 			findSignalPanel.setVisible(Config.findSignal);
+
+		}
+		
+		if (e.getSource() == rdbtnWhenAboveHorizon) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				
+	            Config.useDDEforFindSignal=false;
+	            //Config.save();
+	        } else {
+	        	Config.useDDEforFindSignal=true;
+	        	
+	        	//Config.save();
+	        }
 
 		}
 		if (e.getSource() == rdbtnShowLog) {

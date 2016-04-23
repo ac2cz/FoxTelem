@@ -182,6 +182,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay++;
 			} else if (Config.passManager.getState() == PassManager.FADED) {
 				// don't tune, just wait, it does not move far enough in the fade period
+				// it is more likely that we get distracted by another signal and wander off
 			} else {
 				tuneDelay = TUNE_THRESHOLD;
 			}
@@ -189,25 +190,41 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay = 0;
 				// move half the distance to the bin
 				int targetBin = 0;
+				if (Config.findSignal && !(Config.passManager.getState() == PassManager.DECODE  ||
+					Config.passManager.getState() == PassManager.ANALYZE))
+					targetBin = rfData.getBinOfStrongestSignal();
+				else
+					targetBin = rfData.getBinOfPeakSignal();
+				/*
 				if (Config.findSignal)
 					targetBin = rfData.getBinOfStrongestSignal();
 				else
 					targetBin = rfData.getBinOfPeakSignal();
+				*/
 				int move = targetBin - selectedBin;
+				//System.out.println("MOVE: "+ move);
 				if (targetBin < selectedBin) {
-					if (move > 100)
+					if (move < -100)
 						selectedBin -= 50;
 					else
-						if (move > 10)
+						if (move < -25)
 							selectedBin -= 5;
+						else if (move < -5)
+							selectedBin -= 5;
+						else if (move < -2)
+							selectedBin -= 2;
 						else
 							selectedBin--;
 				}
 				if (targetBin > selectedBin) {
-					if (move < -100)
+					if (move > 100)
 						selectedBin += 50;
-					else if (move < -10)
+					else if (move > 25)
 						selectedBin += 5;
+					else if (move > 5)
+						selectedBin += 5;
+					else if (move > 2)
+						selectedBin += 2;
 					else
 						selectedBin++;
 				}
@@ -330,10 +347,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				int upperSelection = getSelectionFromBin(Config.toBin);
 				int lowerSelection = getSelectionFromBin(Config.fromBin);
 
+				if (upperSelection != lowerSelection) {
 				c = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
 				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
 				c = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
 				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
+				}
 			}
 			
 			if (rfData != null) {

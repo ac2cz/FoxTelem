@@ -33,7 +33,6 @@ import fcd.FcdProPlusDevice;
 
 @SuppressWarnings("serial")
 public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionListener, Runnable, ChangeListener {
-	JLabel title;
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
@@ -51,6 +50,11 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 		initializeGui();
 	}
 	
+	public void setEnabled(boolean b) {
+
+		cbMixerGain.setEnabled(b);
+		cbLnaGain.setEnabled(b);
+	}
 	public void initializeGui() throws IOException, FcdException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();

@@ -68,6 +68,8 @@ public class FcdDevice  {
 		init();
 	}
 
+	public boolean isHidConnected() { if (dev != null) return true; return false; }
+	
 	public static FcdDevice makeDevice() throws IOException, FcdException {
 		try {
 			List<HidDeviceInfo> devList = PureJavaHidApi.enumerateDevices();
@@ -163,6 +165,7 @@ public class FcdDevice  {
     	//HidDevice dev = null;
     	lastReport = null;
     	if (dev == null) open();
+    	if (dev != null) {
     		dev.setInputReportListener(new InputReportListener() {
     			@Override
     			public void onInputReport(HidDevice source, byte Id, byte[] data, int len) {
@@ -191,6 +194,7 @@ public class FcdDevice  {
     			}
     			//Log.println(s);
     		}
+    	}
     }
     private void open() throws FcdException {
 		try {
@@ -199,7 +203,7 @@ public class FcdDevice  {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		if (dev == null) throw new FcdException("Cant Open the FCD.  Is Fox Telem already running?");    	
+		//if (dev == null) throw new FcdException("Cant Open the FCD.  Is Fox Telem already running?");    	
     }
 
     public void cleanup() throws IOException, FcdException {

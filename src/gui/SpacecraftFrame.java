@@ -35,6 +35,7 @@ import common.Spacecraft;
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener {
 
 	private final JPanel contentPanel = new JPanel();
+	JTextField name;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -83,8 +84,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading0 = title("Identification");
 		titlePanel.setBorder(heading0);
 
-		JLabel lName = new JLabel("Name: " + sat.name);
-		titlePanel.add(lName);
+		//JLabel lName = new JLabel("Name: " + sat.name);
+		name = addSettingsRow(titlePanel, 15, "Name", 
+				"The name must be the same as the name in SatPC32 if you want to automaticaly check if it is above the horizon", ""+sat.name);
+		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
 		
@@ -319,6 +322,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
+					refreshTabs = true;
+				}
+				if (!sat.name.equalsIgnoreCase(name.getText())) {
+					sat.name = name.getText();
 					refreshTabs = true;
 				}
 				sat.track = track.isSelected();

@@ -33,10 +33,10 @@ public class RfData extends DataMeasure {
     public static final int AVGSIG = 3; // The average signal in the filter width.
     public static final int STRONGEST_SIG = 4;
     public static final int STRONGEST_BIN = 5;
-    public double rfSNR;
-    public double strongestSigRfSNR;
+    public double rfSNR; // Average SNR in the filter band of the receiver
+    public double strongestSigRfSNR; // A quick and dirty estimate of the SNR of a strong signal outside the filter band
     
-    protected long AVERAGE_PERIOD = 100; // 1000 = 1 sec average time
+    protected long AVERAGE_PERIOD = 150; // 1000 = 1 sec average time.  Each FFT window is processed in 2ms
     
     double binBandwidth;
     SourceIQ iqSource;
