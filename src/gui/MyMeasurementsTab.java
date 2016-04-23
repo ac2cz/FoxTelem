@@ -137,6 +137,10 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 			if (mod != null)
 				mod.showGraphs();
 		}
+		for (DisplayModule mod : passes) {
+			if (mod != null)
+				mod.showGraphs();
+		}
 	}
 
 	public void openGraphs() {
@@ -144,10 +148,18 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 			if (mod != null)
 				mod.openGraphs();
 		}
+		for (DisplayModule mod : passes) {
+			if (mod != null)
+				mod.openGraphs();
+		}
 	}
 
 	public void closeGraphs() {
 		for (DisplayModule mod : satellite) {
+			if (mod != null)
+				mod.closeGraphs();
+		}
+		for (DisplayModule mod : passes) {
 			if (mod != null)
 				mod.closeGraphs();
 		}
