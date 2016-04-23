@@ -230,7 +230,7 @@ public class Config {
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
 	// V1.04
-	static public boolean startButtonPressed = true;
+	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
 	public static boolean useDDEforFindSignal = false;
 	
