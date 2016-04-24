@@ -940,9 +940,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public boolean processNewImageLines() throws SQLException, IOException {
 		for (SatPayloadDbStore store : payloadStore)
 			if (store != null)
-				if (!store.processNewImageLines())
-					return false;
-		return true;
+				store.processNewImageLines();
+		return true; // we don't care if lines were added or not
 	}
 
 	@Override

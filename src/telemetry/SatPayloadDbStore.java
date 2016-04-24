@@ -475,13 +475,17 @@ public class SatPayloadDbStore {
 	 * we effectively write the file three times over.  But this happens every 5 sseconds at most, so the overhead is low
 	 * If time permits this can be optimized to write the file once for each set of three lines.
 	 * 
-	 * @return
+	 * @return true if we added image lines to a jpeg
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
 	public boolean processNewImageLines() throws SQLException, IOException {
-		if (!fox.hasCamera()) return true; // nothing to process
+		if (!fox.hasCamera()) {
+			//Log.println("Nothing to process for " + fox.getIdString());
+			return false; // nothing to process
+		}
 		
+		//Log.println("Checking for lines on: " + fox.getIdString());
 		// Get a list of new unprocessed lines
 		String lineswhere = " where id = " + this.foxId
 				+ " and processed = 0";
@@ -525,7 +529,7 @@ public class SatPayloadDbStore {
 			return true;
 		}
 		*/
-		return false;
+		return true;
 	}
 	
 	/**
