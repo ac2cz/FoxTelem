@@ -818,17 +818,22 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					fieldName = new String[1];
 					fieldName[0] = name;
 				}
-				initVarlist();
-				add = false;
-				cbAddVariable.setVisible(add);
+				if (!skyPlot) {
+					initVarlist();
+					add = false;
+					cbAddVariable.setVisible(add);
+				}
 				calcTitle();
 			}
 			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
 			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
-			txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
+			
 			parseTextFields();
-			parseAvgPeriod();
+			if (!skyPlot) {
+				txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
+				parseAvgPeriod();
+			}
 			
 		} else if (e.getSource() == btnCSV) {
 			File file = null;
