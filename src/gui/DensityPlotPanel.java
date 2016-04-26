@@ -172,7 +172,7 @@ public class DensityPlotPanel extends GraphCanvas {
 		g2.setColor(Color.BLACK);
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
 		String title = graphFrame.displayTitle + " vs Az El";
-		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight-10);
+		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight-Config.graphAxisFontSize/2);
 
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
