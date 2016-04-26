@@ -1,5 +1,5 @@
 #Fox 1 Telemetry Decoder Properties
-#Mon Nov 02 19:03:14 EST 2015
+#Sat Apr 23 18:00:54 EDT 2016
 EXP4=0
 maxFreqBoundkHz=145990
 EXP3=0
@@ -24,5 +24,5 @@ ihuVBattLookUpTableFileName=FOX1A_ihuVBattSN7.tab
 rssiLookUpTableFileName=FOX1A_rssiFM.tab
 maxLayoutFileName=FOX1A_maxtelemetry.csv
 catalogNumber=0
-name=AO-85
 IHU_SN=7
+name=AO-85
