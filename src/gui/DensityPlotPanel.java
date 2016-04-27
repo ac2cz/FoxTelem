@@ -77,16 +77,16 @@ public class DensityPlotPanel extends GraphCanvas {
 		// standard routines can draw them
 		double maxVert = 90.0;
 		double maxHor = 360.0;
-		int maxVertBoxes = 18*2;
-		int maxHorBoxes = 36*2;
+		int maxVertBoxes = 90/2;//18*4; // 90 = 1 degree sky segments, 45 = 2 degree
+		int maxHorBoxes = 180/2;//36*4; // 180 = 2 degree sky segments
 		
 		int boxHeight = graphHeight / maxVertBoxes;
 		graphHeight = boxHeight * maxVertBoxes; // fix rounding issues
 		int boxWidth = graphWidth / maxHorBoxes;
 		graphWidth = boxWidth * maxHorBoxes;
 		
-		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; // 10 degree sky segments
-		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; // 10 degree sky segments
+		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; 
+		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; 
 		
 		double vertStep = maxVert/(double)maxVertBoxes; // the step size for the vertical axis
 		double horStep = maxHor/(double)maxHorBoxes; // the step size for the horixental axis
@@ -137,9 +137,8 @@ public class DensityPlotPanel extends GraphCanvas {
 		drawLegend(graphHeight, graphWidth, minValue, maxValue, graphFrame.fieldUnits);
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
-		
-		//double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, axisGraphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, conversionType);
 		// Draw vertical axis - always in the same place
+		g2.setColor(graphAxisColor);
 		g2.drawLine(sideBorder, getHeight()-bottomBorder, sideBorder, topBorder);
 		int numberOfLabels = (graphHeight)/labelHeight;
 		double[] labels = calcAxisInterval(0, maxVert, numberOfLabels, false);
@@ -155,8 +154,6 @@ public class DensityPlotPanel extends GraphCanvas {
 			String s = f2.format(labels[v]);
 
 			g2.drawString(s, sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); 
-			
-			//g.drawLine(sideBorder+axisPosition-5, pos+topBorder, sideBorder+axisPosition+5, pos+topBorder);
 		}
 		g2.setColor(graphAxisColor);
 		int zeroPoint = graphHeight + topBorder;
@@ -204,7 +201,7 @@ public class DensityPlotPanel extends GraphCanvas {
 		for (int v=0; v < maxVertBoxes; v++)
 			for (int h=0; h < maxHorBoxes; h++) {
 
-				int x = getRatioPosition(0, maxHorBoxes, h, graphWidth) +sideBorder;
+				int x = getRatioPosition(0, maxHorBoxes, h, graphWidth) +sideBorder+1;
 				int y = getRatioPosition(0, maxVertBoxes, v, graphHeight);
 
 				double val = dataGrid[v][h];

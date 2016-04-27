@@ -455,7 +455,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 	public void displayGraph(int i, Boolean showSkyChart) {
 		try {
-			//if (graph[i] == null) {
+			if (graph[i] == null || graph[i].skyPlot != showSkyChart) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				String units = "";
 				
@@ -505,7 +505,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				} else return;
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
-		//	}
+			}
 			graph[i].updateGraphData("DisplayModule.displayGraph");
 			graph[i].setVisible(true);
 		} catch (Exception ex) {
