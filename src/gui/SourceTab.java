@@ -143,7 +143,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JRadioButton viewLowSpeed;
 	JPanel findSignalPanel;
 	JPanel autoViewpanel;
-	
+	Box.Filler audioOptionsFiller;
 	JTextArea log;
 	JScrollPane logScrollPane;
 	
@@ -216,7 +216,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (Config.startButtonPressed) processStartButtonClick();
 	}
 	
-	public void showFilters(boolean b) { filterPanel.setVisible(b); }
+	public void showFilters(boolean b) { 
+		filterPanel.setVisible(b);
+		audioOptionsFiller.setVisible(!b);}
+	public boolean getShowFilterState() {
+		return filterPanel.isVisible();
+	}
 //	public void showDecoderOptions(boolean b) { optionsPanel.setVisible(b); }
 	
 	public void enableFilters(boolean b) {
@@ -432,7 +437,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnShowFFT.setSelected(true);
 		optionsPanel.add(rdbtnShowFFT);
 		rdbtnShowFFT.setVisible(false);
-		optionsPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500)));
+		audioOptionsFiller = new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500));
+		optionsPanel.add(audioOptionsFiller);
 		
 	//	rdbtnUseLimiter = new JCheckBox("Use FM Limiter");
 	//	optionsPanel.add(rdbtnUseLimiter);
@@ -448,7 +454,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	//	rdbtnWriteDebugData.setVisible(true);
 
 //		optionsPanel.setVisible(true);
-		filterPanel.setVisible(false); // hide the filters because we have calculated the optimal matched filters
+		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 
 	}
 	

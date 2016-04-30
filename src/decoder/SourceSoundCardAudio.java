@@ -105,7 +105,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		        Mixer mixer = AudioSystem.getMixer(info);
 		        try
 		        {
-		        	//Log.println("Found audio Device: " + info.getName() + " Desc:" + info.getDescription());
+		        	Log.println("Found audio Device: " + info.getName() + " Desc:" + info.getDescription());
 		            Info dataLineInfo = new DataLine.Info(TargetDataLine.class, audioFmt);
 		            String name = info.getName();
 		            String desc = info.getDescription();

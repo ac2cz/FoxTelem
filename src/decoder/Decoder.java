@@ -1,5 +1,7 @@
 package decoder;
 import java.io.IOException;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
@@ -382,14 +384,20 @@ public abstract class Decoder implements Runnable {
 		} 
 		
 		catch (NullPointerException e) {
-			// ONLY CATCH THIS IN PRODUCTION VERSION		
+			// ONLY CATCH THIS IN PRODUCTION VERSION	
+			/*
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
 					"FATAL ERROR IN DECODER",
 				    JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace();
 			e.printStackTrace(Log.getWriter());
-			
+			*/
+			e.printStackTrace(Log.getWriter());
+	    	StringWriter sw = new StringWriter();
+	    	PrintWriter pw = new PrintWriter(sw);
+	    	e.printStackTrace(pw);
+	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
 		}
 		Log.println("DECODER Exit");
 	}

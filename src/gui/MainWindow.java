@@ -262,6 +262,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
 		
+		
+		
 		// We are fully up, remove the database loading message
 		Config.fileProgress.updateProgress(100);
 
@@ -568,7 +570,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
-		mnOptions.add(chckbxmntmShowFilterOptions);
+		mnDecoder.add(chckbxmntmShowFilterOptions);
+		chckbxmntmShowFilterOptions.setState(Config.showFilters);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
 		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
@@ -748,7 +751,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			}
 		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
-				inputTab.showFilters(chckbxmntmShowFilterOptions.getState());
+			Config.showFilters = chckbxmntmShowFilterOptions.getState();
+				inputTab.showFilters(Config.showFilters);
 		}
 		
 		if (e.getSource() == chckbxmntmShowDecoderOptions) {	

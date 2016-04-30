@@ -233,6 +233,7 @@ public class Config {
 	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
 	public static boolean useDDEforFindSignal = false;
+	public static boolean showFilters = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -563,7 +564,7 @@ public class Config {
 		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
 		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
-		
+		properties.setProperty("showFilters", Boolean.toString(showFilters));
 		store();
 	}
 	
@@ -723,6 +724,7 @@ public class Config {
 		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
 		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
 		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
+		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
