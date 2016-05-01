@@ -33,7 +33,7 @@ public abstract class GraphCanvas extends JPanel {
 	int bottomBorder = (int)(Config.graphAxisFontSize*2.5); // The distance from the bottom of the drawing surface to the graph
 	int sideBorder = (int)(Config.graphAxisFontSize *5); // left side border.  The position that the axis is drawn and the graph starts
 	int sideLabelOffset = (int)(Config.graphAxisFontSize *0.5); // offset before we draw a label on the vertical axis
-	static int labelWidth = (int)(6.7 * Config.graphAxisFontSize);  // 40 was a bit too tight for 6 digit uptime
+	static int labelWidth = (int)(6 * Config.graphAxisFontSize);  // 40 was a bit too tight for 6 digit uptime
 	static int labelHeight = (int)(Config.graphAxisFontSize * 1.4);
 
 	protected static int MAX_TICKS = 4096/labelWidth;
