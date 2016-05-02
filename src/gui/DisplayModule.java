@@ -98,6 +98,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	private int SINGLE_VAL_WIDTH = 120;
 	private int VULCAN_WIDTH = 70;
 	private int VULCAN_NAME_WIDTH = 140;
+	private int MEASUREMENT_WIDTH = 80;
+	private int MEASUREMENT_NAME_WIDTH = 140;
 	private int HERCI_MICRO_PKT_NAME_WIDTH = 80;
 	private int HERCI_MICRO_PKT_VALUE_WIDTH = 310;
 
@@ -113,6 +115,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	private static final int MAC_ROW_HEIGHT = 16;
 	private static final int MAC_HERCI_MICRO_PKT_NAME_WIDTH = 88;
 	private static final int MAC_HERCI_MICRO_PKT_VALUE_WIDTH = 341;
+	private static final int MAC_MEASUREMENT_WIDTH = 88;
+	private static final int MAC_MEASUREMENT_NAME_WIDTH = 154;
 
 	// These are the linux defaults
 	private static final int LIN_VAL_WIDTH = 48;
@@ -123,6 +127,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	private static final int LIN_ROW_HEIGHT = 16;
 	private static final int LIN_HERCI_MICRO_PKT_NAME_WIDTH = 92;
 	private static final int LIN_HERCI_MICRO_PKT_VALUE_WIDTH = 382;
+	private static final int LIN_MEASUREMENT_WIDTH = 96;
+	private static final int LIN_MEASUREMENT_NAME_WIDTH = 168;
 	
 	public static final int DISPLAY_RT_ONLY = 0;
 	public static final int DISPLAY_MAX_ONLY = 1;
@@ -135,6 +141,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_VULCAN_EXP = 8;
 	public static final int DISPLAY_MEASURES = 9;
 	public static final int DISPLAY_PASS_MEASURES = 10;
+	public static final int DISPLAY_MIN_AND_MAX_ONLY = 15;
 	public static final int DISPLAY_HERCI = 20;
 	public static final int DISPLAY_HERCI_HK = 21;
 	public static final int DISPLAY_HERCI_MICRO_PKT = 22;
@@ -210,9 +217,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		this.fieldName[i] = fieldName;
 		this.display[i] = display;
 		
-		int w = 0;
-		if (display == DISPLAY_RT_ONLY) {
-			w = SINGLE_VAL_WIDTH;
+		int w = SINGLE_VAL_WIDTH; // default e.g. for passmeasures
+		if (display == DISPLAY_RT_ONLY)  {
+			w = SINGLE_VAL_WIDTH;			
+		} else 	if (display == DISPLAY_MAX_ONLY || display == DISPLAY_MIN_ONLY || display == DISPLAY_MIN_AND_MAX_ONLY) {
+			w = 0;
+		} else if (display == DISPLAY_MEASURES ) {
+			w= MEASUREMENT_WIDTH;
 		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX ) {
 			w= VAL_WIDTH;
 		} else if ( display >= DISPLAY_VULCAN && display < DISPLAY_HERCI_MICRO_PKT ) {
@@ -226,22 +237,29 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			label[i].setPreferredSize(new Dimension(w, ROW_HEIGHT)); // width height
 			w = HERCI_MICRO_PKT_VALUE_WIDTH;
 		}
+
 		rtValue[i].setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
 		rtValue[i].setMaximumSize(new Dimension(w, ROW_HEIGHT)); // width height
 		rtValue[i].setPreferredSize(new Dimension(w, ROW_HEIGHT)); // width height
-		w = 0;
-		if (display == DISPLAY_MIN_ONLY) {
-			w = SINGLE_VAL_WIDTH;
-		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
-			w= VAL_WIDTH;
-		}
+
 		if (display < DISPLAY_VULCAN && minValue != null && maxValue != null) {
+
+			w = 0;
+			if (display == DISPLAY_MIN_ONLY || display == DISPLAY_MIN_AND_MAX_ONLY) {
+				w = SINGLE_VAL_WIDTH;
+			} else 	if (display == DISPLAY_MAX_ONLY) {
+				w = 0;
+			} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
+				w= VAL_WIDTH;
+			}
 			minValue[i].setMinimumSize(new Dimension(w, ROW_HEIGHT)); // width height
 			minValue[i].setMaximumSize(new Dimension(w, ROW_HEIGHT)); // width height
 			minValue[i].setPreferredSize(new Dimension(w, ROW_HEIGHT)); // width height
 			w = 0;
-			if (display == DISPLAY_MAX_ONLY) {
+			if (display == DISPLAY_MAX_ONLY || display == DISPLAY_MIN_AND_MAX_ONLY) {
 				w = SINGLE_VAL_WIDTH;
+			} else 	if (display == DISPLAY_MIN_ONLY) {
+				w = 0;
 			} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX) {
 				w= VAL_WIDTH;
 			}
@@ -249,6 +267,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			maxValue[i].setMaximumSize(new Dimension(w, ROW_HEIGHT)); // width height
 			maxValue[i].setPreferredSize(new Dimension(w, ROW_HEIGHT)); // width height
 		}
+
 	}
 
 
@@ -352,9 +371,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			
 		}
 		
-		// Setup the width fir the NAME column
+		// Setup the width for the NAME column
 		int w = NAME_WIDTH;
-		if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
+		if ( moduleType == DISPLAY_MEASURES) {
+			w = MEASUREMENT_NAME_WIDTH;
+		} else if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_NAME_WIDTH;
 		} else if ( moduleType >= DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_NAME_WIDTH;
@@ -370,7 +391,9 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 		// Setup the width for the Value Column
 		w = VAL_WIDTH;
-		if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
+		if ( moduleType == DISPLAY_MEASURES) {
+			w = MEASUREMENT_WIDTH;
+		} else if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_WIDTH;
 		} else if ( moduleType >= DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_VALUE_WIDTH;
@@ -613,6 +636,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			ROW_HEIGHT = MAC_ROW_HEIGHT;
 			HERCI_MICRO_PKT_NAME_WIDTH = MAC_HERCI_MICRO_PKT_NAME_WIDTH;
 			HERCI_MICRO_PKT_VALUE_WIDTH = MAC_HERCI_MICRO_PKT_VALUE_WIDTH;
+			MEASUREMENT_WIDTH = MAC_MEASUREMENT_WIDTH;
+			MEASUREMENT_NAME_WIDTH = MAC_MEASUREMENT_NAME_WIDTH;
 		}
 		if (Config.isLinuxOs()) {
 			VAL_WIDTH = LIN_VAL_WIDTH;
@@ -623,6 +648,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			ROW_HEIGHT = LIN_ROW_HEIGHT;
 			HERCI_MICRO_PKT_NAME_WIDTH = LIN_HERCI_MICRO_PKT_NAME_WIDTH;
 			HERCI_MICRO_PKT_VALUE_WIDTH = LIN_HERCI_MICRO_PKT_VALUE_WIDTH;
+			MEASUREMENT_WIDTH = LIN_MEASUREMENT_WIDTH;
+			MEASUREMENT_NAME_WIDTH = LIN_MEASUREMENT_NAME_WIDTH;
 		}
 
 //		Log.println("Using scale: " + scale);
@@ -631,6 +658,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		VULCAN_WIDTH = (int)(VULCAN_WIDTH * scale);
 		VULCAN_NAME_WIDTH = (int)(VULCAN_NAME_WIDTH * scale);
 		NAME_WIDTH = (int)(NAME_WIDTH * scale);
+		MEASUREMENT_WIDTH = (int)(MEASUREMENT_WIDTH * scale);
+		MEASUREMENT_NAME_WIDTH = (int)(MEASUREMENT_NAME_WIDTH * scale);
 		ROW_HEIGHT = (int)(ROW_HEIGHT * scale);
 		HERCI_MICRO_PKT_NAME_WIDTH = (int)(HERCI_MICRO_PKT_NAME_WIDTH * scale);
 		HERCI_MICRO_PKT_VALUE_WIDTH = (int)(HERCI_MICRO_PKT_VALUE_WIDTH * scale);
