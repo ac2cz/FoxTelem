@@ -672,15 +672,13 @@ public abstract class Decoder implements Runnable {
 		rtMeasurement.setBitSNR(eyeData.bitSNR);
 		rtMeasurement.setErrors(bitStream.lastErrorsNumber);
 		rtMeasurement.setErasures(bitStream.lastErasureNumber);
+		SatPc32DDE satPC = new SatPc32DDE();
+
 		if (Config.useDDEforAzEl) {
-			SatPc32DDE satPC = new SatPc32DDE();
 			boolean connected = satPC.connect();
 			if (connected) {
-				if (Config.useDDEforAzEl) {
 					rtMeasurement.setAzimuth(satPC.azimuth);
 					rtMeasurement.setElevation(satPC.elevation);
-				}
-
 			}
 		}
 		if (this.audioSource instanceof SourceIQ) {
@@ -690,6 +688,10 @@ public abstract class Decoder implements Runnable {
 			rtMeasurement.setCarrierFrequency(freq);
 			rtMeasurement.setRfPower(sig);
 			rtMeasurement.setRfSNR(rfSnr);
+		} else {
+			if (Config.useDDEforFreq) {
+				rtMeasurement.setCarrierFrequency(satPC.downlinkFrequency);
+			}
 		}
 		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
 		frame.setMeasurement(rtMeasurement);

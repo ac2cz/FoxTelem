@@ -338,7 +338,16 @@ public class PassManager implements Runnable {
 
 	private void lockSignal(Spacecraft sat, PassParams pp) {
 //		Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
+
 		passMeasurement = new PassMeasurement(sat.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
+		if (Config.useDDEforAzEl) {
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
+			}
+		}
+
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + sat.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
 				+ " with " + pp.decoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
@@ -398,6 +407,13 @@ public class PassManager implements Runnable {
 	private int faded(Spacecraft sat) {
 		if (!Config.findSignal) return EXIT;
 		passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
+		if (Config.useDDEforAzEl) { // store end Azimuth too
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+			}
+		}
 		faded = true;
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 
@@ -456,6 +472,22 @@ public class PassManager implements Runnable {
 		return EXIT;
 	}
 
+	private void calculateMaxEl(Spacecraft sat) {
+		double[][] graphData = null;
+		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
+		if (passMeasurement.getReset() == 0 && passMeasurement.getUptime() == 0) {
+			// We did not get any readings
+			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, 0);
+		} else {
+			long maxEl = 0;
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
+			for (int i=1; i < graphData[0].length; i++) {
+				long value = (long)graphData[PayloadStore.DATA_COL][i];
+				if (value > maxEl) maxEl = value;
+			}
+			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, maxEl);
+		}
+	}
 
 	private void calculateTCA(Spacecraft sat) {
 		// Get the frequency data for this pass
