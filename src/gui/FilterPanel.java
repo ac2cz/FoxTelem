@@ -15,6 +15,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import common.Config;
+import common.Log;
 
 /**
  * 
@@ -169,22 +170,32 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 		return slideFilterLength;
 	}
 	
-	private void updateSlider() {
+	public static void checkFilterParams() {
 		if (Config.useFilterNumber == RAISED_COSINE) {
-			rcSlider.setVisible(true);
-			wsSlider.setVisible(false);
 			if (Config.filterLength > RC_LEN_MAX) {
 				Config.filterLength = RC_LEN_MAX;
 			}
+		
+		} else if (Config.useFilterNumber == WINDOWED_SINC){
+			if (Config.filterLength < WS_LEN_MIN) {
+				Config.filterLength = WS_LEN_MIN;
+			}
+		
+		} 
+		
+	}
+	
+	private void updateSlider() {
+		checkFilterParams();
+		if (Config.useFilterNumber == RAISED_COSINE) {
+			rcSlider.setVisible(true);
+			wsSlider.setVisible(false);
 			rcSlider.setValue(Config.filterLength);
 			freqSlider.setVisible(true);
 		
 		} else if (Config.useFilterNumber == WINDOWED_SINC){
 			rcSlider.setVisible(false);
 			wsSlider.setVisible(true);
-			if (Config.filterLength < WS_LEN_MIN) {
-				Config.filterLength = WS_LEN_MIN;
-			}
 			wsSlider.setValue(Config.filterLength);
 			freqSlider.setVisible(true);
 		
@@ -196,6 +207,7 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 		}
 		lFreq.setText(L_FREQ+" " + Config.filterFrequency);
 		lLength.setText(L_LENGTH+" "+Config.filterLength);
+		//Log.println("Filter Len Set to: " + Config.filterLength);
 		//Config.save();
 
 	}

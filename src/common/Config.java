@@ -128,7 +128,7 @@ public class Config {
 	static public int DEBUG_COUNT = -1;
 	static public boolean filterData = true; // Low Pass filter the data
 	public static int filterIterations = 1; // The number of times to run the low pass filter.  Gain is applied only after the first run
-	public static int filterLength = 2048;
+	public static int filterLength = 512;
 	static public boolean useRSfec = true;
 	static public boolean squelchAudio = true;
 	static public boolean useAGC = true;

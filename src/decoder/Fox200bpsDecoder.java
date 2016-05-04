@@ -37,6 +37,7 @@ public class Fox200bpsDecoder extends Decoder {
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
 		super("DUV", as, chan);
+		//Log.println("STARTED filter len: " + Config.filterLength);
 	}
 	
 	public void init() {
@@ -44,6 +45,7 @@ public class Fox200bpsDecoder extends Decoder {
 		setSlowSpeedParameters();
 		super.init();
 		useFilterNumber = Config.useFilterNumber;
+		//Log.println("INIT filter len: " + Config.filterLength);
 		updateFilter();
 	}
 	
@@ -52,6 +54,8 @@ public class Fox200bpsDecoder extends Decoder {
 	 */
 	private void updateFilter() {
 		// Get the params that were set by the GUI
+		FilterPanel.checkFilterParams();
+		//Log.println("UPDATE filter len: " + Config.filterLength);
 		currentFilterLength = Config.filterLength;
 		currentFilterFreq = Config.filterFrequency;
 		useFilterNumber = Config.useFilterNumber;
