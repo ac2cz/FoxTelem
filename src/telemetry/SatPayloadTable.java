@@ -285,20 +285,26 @@ public class SatPayloadTable {
 				2		900
 				3		55
 				
-				case 1:
+				case 1: 
 				reset=1
 				uptime=100
 				We want to load 2/900 onwards
 				So:
 				reset < fromR, uptime then irrelevant
+				
+				case 2: - special case at the start
+				reset = 0
+				uptime = 1
+				We want to load 0/100 onwards because we DO NOT HAVE data before it, otherwise it is case 4
+				So: reset = fromR, y < fromU
 								
-				case 3:
+				case 3: - special case at the end
 				x=3
 				y=100
 				We want to load 3/55
 				x = fromR, y > fromU - load current
 				
-				case 4:
+				case 4: 
 				reset=1
 				uptime=0
 				We want to load 0/100 because the data could be at the end
@@ -315,6 +321,11 @@ public class SatPayloadTable {
 						loadnow = true;
 						//System.out.println("Case 1: " + i);
 					} 
+					// case 2:
+					if (i == 0) 
+						if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
+							loadnow = true;
+						}
 					//case 4:
 					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
 							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and high uptime
