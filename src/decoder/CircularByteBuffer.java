@@ -156,20 +156,23 @@ public class CircularByteBuffer {
 		return bytes[p];
 	}
 	
+	
 	/** 
 	 * Set the start position to a new point.  
 	 */
 	public void incStartPointer(int amount) {
-		if (endPointer > startPointer ) {
+		// snapshot the value to avoid failing the check due to a race condition
+		int e = endPointer;
+		if (e > startPointer ) {
 			// then the startPointer needs to remain less than the end pointer after the increment
-			if (startPointer + amount >= endPointer)
-				throw new IndexOutOfBoundsException("Attempt to move start pointer " + startPointer + " past end pointer " + endPointer);
+			if (startPointer + amount >= e)
+				throw new IndexOutOfBoundsException("Attempt to move start pointer " + startPointer + " past end pointer " + e);
 		} else {
-			// if it wraps then it needs to stay less
+			// if it wraps then it needs to stay less, otherwise we are fine
 			if (startPointer + amount >= bufferSize) {
 				int testPointer = incPointer(startPointer, amount);
 				if (testPointer >= endPointer)
-					throw new IndexOutOfBoundsException("Attempt to move start pointer past end pointer");
+					throw new IndexOutOfBoundsException("Attempt to wrap start pointer " + startPointer + " past end pointer " + e);
 			}
 		}
 		startPointer = incPointer(startPointer, amount);
