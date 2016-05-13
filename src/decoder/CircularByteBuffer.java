@@ -184,11 +184,12 @@ public class CircularByteBuffer {
 	 */
 	public int size() {
 		int size = 0;
-		if (endPointer >= startPointer)
-			size = endPointer - startPointer;
+		int e = endPointer; // snapshot the end pointer to avoid a race condition in the checks below.  The size can only grow if the end pointer moves, so this is safe
+		if (e >= startPointer)
+			size = e - startPointer;
 		else {
 			size = bufferSize - startPointer; // distance from start to end of the real array
-			size = size + endPointer;  //  add the distance from the start to the write pointer
+			size = size + e;  //  add the distance from the start to the write pointer
 		}
 		return size;	
 	}
