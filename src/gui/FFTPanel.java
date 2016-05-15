@@ -257,6 +257,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		
 	public void paintComponent(Graphics g) {				
 		super.paintComponent( g ); // call superclass's paintComponent  
+		if (iqSource == null) return;
 		
 		sideBorder = 2 * Config.graphAxisFontSize;
 		topBorder = Config.graphAxisFontSize;
