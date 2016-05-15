@@ -11,8 +11,6 @@ import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import decoder.Decoder;
-import decoder.EyeData;
-import decoder.RfData;
 import decoder.SourceIQ;
 
 /**
@@ -467,6 +465,7 @@ public class PassManager implements Runnable {
 	private int endPass(Spacecraft sat) {
 		if (!Config.findSignal) return EXIT;
 		calculateTCA(sat);
+		calculateMaxEl(sat);
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
 		Config.payloadStore.add(sat.foxId, passMeasurement);
 		return EXIT;
@@ -479,7 +478,7 @@ public class PassManager implements Runnable {
 			// We did not get any readings
 			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, 0);
 		} else {
-			long maxEl = 0;
+			long maxEl = -180; // just in case we have a pass that is theoretically below the horizon but we still manage to track it, allow negatives
 			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
 			for (int i=1; i < graphData[0].length; i++) {
 				long value = (long)graphData[PayloadStore.DATA_COL][i];

@@ -4,11 +4,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -110,7 +107,9 @@ public abstract class Frame implements Comparable<Frame> {
 
 	// Store a reference to any measurements that were made at the same time as
 	// the Frame was downloaded, so we can pass them on to the server
+	@SuppressWarnings("unused") // this is used
 	private RtMeasurement rtMeasurement;
+	@SuppressWarnings("unused") // this is used
 	private PassMeasurement passMeasurement;
 
 	/**
@@ -384,7 +383,7 @@ public abstract class Frame implements Comparable<Frame> {
 		String receiver = null;
 		Date stpDate = null;
 		String frequency = NONE; // frequency when this frame received
-		String source; // The frame source subsystem
+		//String source; // The frame source subsystem
 		String rx_location = NONE; // the lat, long and altitude
 		String receiver_rf = NONE; // human description of the receiver
 		String demodulator = null; // will contain Config.VERSION

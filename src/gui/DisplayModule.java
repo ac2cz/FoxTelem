@@ -482,7 +482,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				String units = "";
 				
-				if ((moduleType == this.DISPLAY_ALL || moduleType == this.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
+				if ((moduleType == DisplayModule.DISPLAY_ALL || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox, showSkyChart);

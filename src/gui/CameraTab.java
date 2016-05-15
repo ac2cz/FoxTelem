@@ -19,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.time.Period;
 import java.util.Date;
 import java.util.TimeZone;
 

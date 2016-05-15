@@ -2,15 +2,10 @@ package telemetry;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.ArrayList;
-
 import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
-import measure.SatMeasurementStore;
 import telemServer.StpFileProcessException;
-import common.Config;
-import common.Log;
 import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {

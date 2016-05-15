@@ -48,7 +48,6 @@ import common.Spacecraft;
 public class SatPictureStore {
 
 	private static final int INIT_SIZE = 100;
-	@SuppressWarnings("unused")
 	private Spacecraft fox;
 	public int foxId;
 	public static String JPG_INDEX_NAME = "jpg_index.dat";

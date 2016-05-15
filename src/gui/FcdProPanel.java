@@ -1,7 +1,6 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -9,15 +8,12 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-import common.Config;
 import common.Log;
 import fcd.FcdDevice;
 import fcd.FcdException;
@@ -29,7 +25,9 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 	boolean running = true;
 	boolean done = false;
 	FcdProDevice fcd;
+	@SuppressWarnings("rawtypes")
 	JComboBox cbMixerGain;
+	@SuppressWarnings("rawtypes")
 	JComboBox cbLnaGain;
 	JTextField rfFilterValue;
 	JTextField bandValue;
@@ -48,6 +46,7 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 		bandValue.setEnabled(b);
 		
 	}
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void initializeGui() throws IOException, FcdException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();
@@ -122,9 +121,6 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 	}
 	
 	
-	private void updateParam(int i, String name, int cmd) {
-	}
-
 	@Override
 	public void run() {
 		done = false;

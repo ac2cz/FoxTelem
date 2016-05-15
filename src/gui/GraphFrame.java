@@ -37,9 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.SoftBevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -50,8 +48,6 @@ import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import decoder.SinkAudio;
-import fcd.FcdProDevice;
 import measure.SatMeasurementStore;
 
 /**
@@ -105,6 +101,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnPoints;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
+	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
 	
@@ -157,6 +154,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	/**
 	 * Create the frame.
 	 */
+	@SuppressWarnings("rawtypes")
 	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat, Boolean showSkyChart) {
 		fox = sat;
 		this.fieldName = new String[1];
@@ -404,6 +402,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		return false;
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initVarlist() {
 		variables = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
@@ -689,6 +688,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			but.setBackground(Color.GRAY);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnAdd) {

@@ -3,13 +3,11 @@ package telemetry;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
@@ -86,6 +84,7 @@ public class SatPayloadTable {
 	
 	public boolean hasFrame(int id, long uptime, int resets) throws IOException { 
 		// Make sure the segment is loaded, so we can check
+		@SuppressWarnings("unused")
 		TableSeg seg = loadSeg(resets, uptime);
 		return rtRecords.hasFrame(id, uptime, resets); }
 	
@@ -104,6 +103,7 @@ public class SatPayloadTable {
 	
 	public FramePart getFrame(int id, long uptime, int resets) throws IOException { 
 		// Make sure the segment is loaded, so we can check
+		@SuppressWarnings("unused")
 		TableSeg seg = loadSeg(resets, uptime);
 		int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
 		return rtRecords.get(i);

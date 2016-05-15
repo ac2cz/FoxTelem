@@ -1,6 +1,5 @@
 package decoder;
 
-import filter.MatchedFilter;
 import filter.RaisedCosineFilter;
 import filter.WindowedSincFilter;
 import gui.FilterPanel;

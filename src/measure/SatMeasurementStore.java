@@ -15,12 +15,7 @@ import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
 
-import telemetry.FramePart;
-import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
-import telemetry.SatPayloadStore;
-import telemetry.SatPayloadTable;
-import telemetry.TableSeg;
 import common.Config;
 import common.Log;
 import common.Spacecraft;

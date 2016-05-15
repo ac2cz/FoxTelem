@@ -1,7 +1,5 @@
 package telemetry;
 
-import java.util.ArrayList;
-
 import common.Config;
 import common.Log;
 

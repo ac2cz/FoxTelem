@@ -49,7 +49,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public static final int DATA_COL = 0;
 	public static final int UPTIME_COL = 1;
 	public static final int RESETS_COL = 2;
+	@SuppressWarnings("unused")
 	private boolean running = true;
+	@SuppressWarnings("unused")
 	private boolean done = false;
 	
 	private List<FramePart> payloadQueue;
@@ -509,7 +511,6 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		try {
 			derby = getConnection();
 			stmt = PayloadDbStore.derby.createStatement();
-			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
 			if (r > 1) throw new StpFileProcessException("FOXDB","MULTIPLE ROWS UPDATED!");
 		} catch (SQLException e) {

@@ -387,11 +387,13 @@ public class HerciHighSpeedPacket extends FramePart {
 *	UNIX time_t structure containing the decoded instrument event time.
 *
 */
+
 private int UTIL_event_time(int mp_time_in, int waves_time_in,int epoch)		/* epoch is offset to UNIX time*/
 {
 int pkt_time;
 int mp_time;
 int delta;
+@SuppressWarnings("unused")
 int l_epoch;
 
 pkt_time =  waves_time_in & 0xFFFFFFFE; /* strip Time quality bit */

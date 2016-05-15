@@ -3,22 +3,15 @@ package gui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
 import java.awt.geom.Ellipse2D;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import javax.swing.JPanel;
-
 import common.Config;
 import common.Spacecraft;
-import measure.SatMeasurementStore;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
 import telemetry.PayloadStore;
-import telemetry.RadiationPacket;
 
 /**
  * 
@@ -153,7 +146,7 @@ public class GraphPanel extends GraphCanvas {
 		
 		if (!checkDataExists()) return;
 		
-		maxPlottedUptimeForReset = new HashMap();
+		maxPlottedUptimeForReset = new HashMap<Integer, Long>();
 		
 		
 		// Have border above and below

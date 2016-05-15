@@ -26,12 +26,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,7 +37,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -59,17 +56,6 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
-import telemetry.FramePart;
-import telemetry.HighSpeedFrame;
-import telemetry.HighSpeedHeader;
-import telemetry.LayoutLoadException;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
@@ -894,6 +880,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	
+	@SuppressWarnings("unused")
 	private void importServerData() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"
@@ -1034,9 +1021,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
 			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
 			
-			Iterator it = callsigns.entrySet().iterator();
+			Iterator<?> it = callsigns.entrySet().iterator();
 		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
+		        @SuppressWarnings("rawtypes")
+				Map.Entry pair = (Map.Entry)it.next();
 		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
 		    }
 		}

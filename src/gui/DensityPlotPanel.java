@@ -16,6 +16,7 @@ import telemetry.PayloadStore;
  * @author chris
  *
  */
+@SuppressWarnings("serial")
 public class DensityPlotPanel extends GraphCanvas {
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
 
@@ -27,7 +28,6 @@ public class DensityPlotPanel extends GraphCanvas {
 			
 		int verticalOffset = 60;
 		int leftOffset = 15;
-		int lineLength = 15;
 		int legendHeight = graphHeight-verticalOffset*2;
 
 		int font = (int)(9 * Config.graphAxisFontSize / 11 );
@@ -185,7 +185,6 @@ public class DensityPlotPanel extends GraphCanvas {
 		double[] timelabels = calcAxisInterval(0, maxHor, numberOfTimeLabels, true);
 		numberOfTimeLabels = timelabels.length;
 		
-		DecimalFormat d = new DecimalFormat("0");
 		for (int h=0; h < numberOfTimeLabels; h++) {
 			int timepos = getRatioPosition(0, maxHor, timelabels[h], graphWidth);
 			g2.setColor(graphTextColor);

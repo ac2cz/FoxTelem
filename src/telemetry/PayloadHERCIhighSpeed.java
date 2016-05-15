@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
-import common.Spacecraft;
 import decoder.Decoder;
 
 /**

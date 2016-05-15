@@ -16,6 +16,7 @@ import telemetry.FramePart;
 import telemetry.PayloadStore;
 import telemetry.RadiationPacket;
 
+@SuppressWarnings("serial")
 public abstract class GraphCanvas extends JPanel {
 	Spacecraft fox;
 	double[][][] graphData = null;

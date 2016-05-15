@@ -28,10 +28,10 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.JLabel;
 
-import common.Config;
 import common.Log;
 import common.Spacecraft;
 
+@SuppressWarnings("serial")
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener {
 
 	private final JPanel contentPanel = new JPanel();

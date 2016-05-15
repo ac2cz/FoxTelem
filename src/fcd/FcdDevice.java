@@ -172,8 +172,7 @@ public class FcdDevice  {
     				lastReport = data;
     			}
     		});
-    		@SuppressWarnings("unused")
-			int result = dev.setOutputReport((byte)0, command, len);
+    		int result = dev.setOutputReport((byte)0, command, len);
     		Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
     		
     		try {

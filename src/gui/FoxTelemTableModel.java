@@ -1,8 +1,6 @@
 package gui;
 import javax.swing.table.AbstractTableModel;
 
-import telemetry.PayloadHERCIhighSpeed;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

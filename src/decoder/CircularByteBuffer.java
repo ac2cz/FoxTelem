@@ -111,7 +111,7 @@ public class CircularByteBuffer {
 	 * @param o
 	 * @return
 	 */
-	private boolean add(byte o) {
+	public boolean add(byte o) {
 			bytes[endPointer] = o;
 
 			endPointer++;

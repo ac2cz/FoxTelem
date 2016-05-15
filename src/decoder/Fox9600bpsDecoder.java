@@ -1,10 +1,7 @@
 package decoder;
 
 import common.Log;
-import filter.AGCFilter;
-import filter.MatchedFilter;
 import filter.RaisedCosineFilter;
-import filter.WindowedSincFilter;
 
 /**
  * 
@@ -52,7 +49,7 @@ public class Fox9600bpsDecoder extends Decoder {
 		// it length 10, for a 1 and a 0.  The 1 will be centered. This is twice the bucket size
 		filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 		//filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
-		filter.init(currentSampleRate, 9600, bucketSize*2);
+		filter.init(currentSampleRate, HIGH_SPEED_BITS_PER_SECOND, bucketSize*2);
 		//double[] coef = filter.getKernal();
 		//int i=0;
 		//for (double d: coef)
