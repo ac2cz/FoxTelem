@@ -561,7 +561,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		mntmSat = new JMenuItem[sats.size()];
 		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem("Fox-" + sats.get(i).getIdString());
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}

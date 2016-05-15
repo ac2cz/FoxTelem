@@ -338,7 +338,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			 */ 
 			if (Config.findSignal) {
 				if (fox != null) {
-					g.drawString(Config.passManager.getStateName() + ": Fox-"+fox.getIdString(), graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
+					g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
 				} else
 					g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
