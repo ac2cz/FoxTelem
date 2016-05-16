@@ -14,6 +14,7 @@ import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
+import gui.GraphCanvas;
 
 /** 
  * FOX 1 Telemetry Decoder
@@ -217,7 +218,7 @@ public class EyePanel extends JPanel implements Runnable {
 				for (int j=0; j < SAMPLES; j++) {
 					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
 					//double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/FoxDecoder.MAX_VOLUME + border;
-					double y = GraphPanel.getRatioPosition(minValue, maxValue, buffer[i][j]*0.7, graphHeight);
+					double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.7, graphHeight);
 					if (j==0) {
 						lastx = x;
 						lasty = (int)y;
@@ -247,12 +248,12 @@ public class EyePanel extends JPanel implements Runnable {
 
 		int width = 30;
 		
-		double low = GraphPanel.getRatioPosition(minValue, maxValue, avgLow, graphHeight);
+		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)low, graphWidth/2+width + border, (int)low);
 
 
 		//double high = scaleSample(graphHeight, avgHigh);
-		double high = GraphPanel.getRatioPosition(minValue, maxValue, avgHigh, graphHeight);
+		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)high, graphWidth/2+width + border, (int)high);
 
 		g2.drawLine(graphWidth/2 + border , (int)high, graphWidth/2 + border, (int)low);

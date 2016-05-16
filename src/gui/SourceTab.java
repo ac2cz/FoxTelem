@@ -485,7 +485,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		lblSource.setMaximumSize(new Dimension(180, 14));
 		
 		lowSpeed = addRadioButton("Low Speed", panel_2 );
-		highSpeed = addRadioButton("High Speed", panel_2 );
+		highSpeed = addRadioButton("PSK", panel_2 );
+//		highSpeed = addRadioButton("High Speed", panel_2 );
 		auto = addRadioButton("Auto", panel_2 );
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
@@ -1238,7 +1239,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		} else
 		if (highSpeed) {
 			//decoder1 = new Fox9600bpsDecoder(audioSource, 0);
-			decoder1 = new FUNcubeDecoder(audioSource, 0);
+			decoder1 = new FUNcubeDecoder(audioSource, 0); // test PSK decoder
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}

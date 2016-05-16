@@ -591,7 +591,7 @@ public class PassManager implements Runnable {
 						satString = satPC.satellite;
 				}
 			}
-			if (pp1.decoder != null && Config.findSignal)
+			if (pp1.foxDecoder != null && Config.findSignal)
 				for (int s=0; s < spacecraft.size(); s++) {
 					//Log.println("Looking for: " + spacecraft.get(s).name);
 					if (spacecraft.get(s).track) 
