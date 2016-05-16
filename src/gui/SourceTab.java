@@ -115,6 +115,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	//JCheckBox rdbtnShowIF;
 	JCheckBox rdbtnTrackSignal;
 	JCheckBox rdbtnFindSignal;
+	JCheckBox rdbtnWhenAboveHorizon;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
@@ -144,7 +145,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JRadioButton viewLowSpeed;
 	JPanel findSignalPanel;
 	JPanel autoViewpanel;
-	
+	Box.Filler audioOptionsFiller;
 	JTextArea log;
 	JScrollPane logScrollPane;
 	
@@ -217,7 +218,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (Config.startButtonPressed) processStartButtonClick();
 	}
 	
-	public void showFilters(boolean b) { filterPanel.setVisible(b); }
+	public void showFilters(boolean b) { 
+		filterPanel.setVisible(b);
+		audioOptionsFiller.setVisible(!b);}
+	public boolean getShowFilterState() {
+		return filterPanel.isVisible();
+	}
 //	public void showDecoderOptions(boolean b) { optionsPanel.setVisible(b); }
 	
 	public void enableFilters(boolean b) {
@@ -235,11 +241,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		JPanel options1 = new JPanel();
 		options1.setLayout(new FlowLayout(FlowLayout.LEFT));
 		optionsPanel.add(options1);
-		rdbtnShowFFT = new JCheckBox("Show FFT");
-		rdbtnShowFFT.addItemListener(this);
-		rdbtnShowFFT.setSelected(true);
-		options1.add(rdbtnShowFFT);
-		rdbtnShowFFT.setVisible(false);
+		
 
 		showSNR = addRadioButton("Show Avg SNR", options1 );
 		showLevel = addRadioButton("Peak SNR", options1 );
@@ -282,6 +284,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnFindSignal.setVisible(true);
 
 		optionsPanel.add(findSignalPanel);
+		
+		rdbtnWhenAboveHorizon = new JCheckBox("when above horizon  ");
+		rdbtnWhenAboveHorizon.setToolTipText("Find Signal is executed when the Satellite is above the horizon according to SatPC32, which must be running");
+		findSignalPanel.add(rdbtnWhenAboveHorizon);
+		rdbtnWhenAboveHorizon.addItemListener(this);
+		rdbtnWhenAboveHorizon.setSelected(Config.useDDEforFindSignal);
+		
+		
 		JLabel when = new JLabel ("when peak over ");
 		findSignalPanel.add(when);
 		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
@@ -357,7 +367,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		fftPanel.setBackground(Color.LIGHT_GRAY);
 		
 		//bottomPanel.add(fftPanel, BorderLayout.SOUTH);
-		fftPanel.setVisible(false);
+		setFFTVisible(false);
 		fftPanel.setPreferredSize(new Dimension(100, 150));
 		fftPanel.setMaximumSize(new Dimension(100, 150));
 		
@@ -390,22 +400,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	
 	private void buildRightPanel(JPanel parent, String layout, JPanel rightPanel) {
 		parent.add(rightPanel, layout);
-//		rightPanel.setPreferredSize(new Dimension(800, 250));
-//		rightPanel.setLayout(new GridLayout(0, 3, 0, 0));
-//		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.X_AXIS));
 			
 		JPanel opts = new JPanel();
 		rightPanel.add(opts);
-//		opts.setLayout(new BoxLayout(opts, BoxLayout.Y_AXIS));
 		opts.setLayout(new BorderLayout());
 		
 		JPanel optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(null, "Audio Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		opts.add(optionsPanel, BorderLayout.CENTER);
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
-		
-//		spacecraftPanel = new SpacecraftPanel();
-//		opts.add(spacecraftPanel, BorderLayout.CENTER);
 		
 		filterPanel = new FilterPanel();
 		opts.add(filterPanel, BorderLayout.NORTH);
@@ -431,6 +434,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnFilterOutputAudio.setSelected(Config.filterOutputAudio);
 		rdbtnFilterOutputAudio.setVisible(false);
 		
+		rdbtnShowFFT = new JCheckBox("Show FFT");
+		rdbtnShowFFT.addItemListener(this);
+		rdbtnShowFFT.setSelected(true);
+		optionsPanel.add(rdbtnShowFFT);
+		rdbtnShowFFT.setVisible(false);
+		audioOptionsFiller = new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500));
+		optionsPanel.add(audioOptionsFiller);
+		
 	//	rdbtnUseLimiter = new JCheckBox("Use FM Limiter");
 	//	optionsPanel.add(rdbtnUseLimiter);
 	//	rdbtnUseLimiter.addItemListener(this);
@@ -445,7 +456,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	//	rdbtnWriteDebugData.setVisible(true);
 
 //		optionsPanel.setVisible(true);
-		filterPanel.setVisible(true);
+		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 
 	}
 	
@@ -773,8 +784,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		//soundCardComboBox.setSelectedIndex(SourceAudio.IQ_FILE_SOURCE);
 	}
 	
-
-	private void setIQVisible(boolean b) {
+	private void setFFTVisible(boolean b) {
 		fftPanel.setVisible(b);
 		if (b==true) {
 			if (Config.splitPaneHeight != 0) 
@@ -782,10 +792,18 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			else
 				splitPane.setDividerLocation(200);
 		}
+	}
+	
+	private void setIQVisible(boolean b) {
+		setFFTVisible(b);
 		rdbtnShowFFT.setVisible(b);
 //		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
+		if (Config.isWindowsOs())
+			rdbtnWhenAboveHorizon.setVisible(b);
+		else
+			rdbtnWhenAboveHorizon.setVisible(false);
 		findSignalPanel.setVisible(b&&Config.findSignal);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
@@ -1099,6 +1117,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 	}
 
+	@SuppressWarnings("unused")
 	private void releaseFcd() {
 		if (fcd != null) { // release the FCD device
 			try {
@@ -1144,6 +1163,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					SDRpanel.add(panelFcd, BorderLayout.CENTER);
 				}
 				SDRpanel.setVisible(true);
+				if (fcd.isHidConnected()) {
+					panelFcd.setEnabled(true);
+				} else {
+					panelFcd.setEnabled(false);
+				}
 		
 			Config.iq = true;
 			iqAudio.setSelected(true);
@@ -1533,9 +1557,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == rdbtnShowFFT) {
 			if (fftPanel != null)
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-	            fftPanel.setVisible(false);
+				setFFTVisible(false);
 	        } else {
-	            fftPanel.setVisible(true);
+	        	setFFTVisible(true);
 	        	
 	        }
 		}
@@ -1600,6 +1624,19 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			findSignalPanel.setVisible(Config.findSignal);
 
 		}
+		
+		if (e.getSource() == rdbtnWhenAboveHorizon) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				
+	            Config.useDDEforFindSignal=false;
+	            //Config.save();
+	        } else {
+	        	Config.useDDEforFindSignal=true;
+	        	
+	        	//Config.save();
+	        }
+
+		}
 		if (e.getSource() == rdbtnShowLog) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				logScrollPane.setVisible(false);
@@ -1626,7 +1663,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	 * Try to close any open OS resources
 	 */
 	public void shutdown() {
-		Config.startButtonPressed = this.STARTED;
+		Config.startButtonPressed = SourceTab.STARTED;
 		if (fcd != null)
 			try {
 				fcd.cleanup();

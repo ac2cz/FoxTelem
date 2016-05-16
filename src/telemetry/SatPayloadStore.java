@@ -3,20 +3,13 @@ package telemetry;
 
 import gui.MainWindow;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
-import java.util.StringTokenizer;
-
 import javax.swing.JOptionPane;
 
 import common.Config;
@@ -443,6 +436,7 @@ public class SatPayloadStore {
 	 * @param destFile
 	 * @throws IOException
 	 */
+	@SuppressWarnings("resource") // because we have a finally statement and the checker does not seem to realize that
 	public static void copyFile(File sourceFile, File destFile) throws IOException {
 	    if(!destFile.exists()) {
 	        destFile.createNewFile();

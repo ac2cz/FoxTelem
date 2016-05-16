@@ -75,8 +75,6 @@ public class SatPayloadDbStore {
 	public String jpgIdxTableName;
 	public String pictureLinesTableName;
 	
-	private boolean multiUpdate = false;
-	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
 	boolean updatedMin = true;
@@ -336,6 +334,7 @@ public class SatPayloadDbStore {
 		return insertData(table, insertStmt);
 	}
 	
+	@SuppressWarnings("unused")
 	private boolean insert(String table, PictureScanLine f) {
 		String insertStmt = f.getInsertStmt();
 		return insertData(table, insertStmt);
@@ -392,6 +391,7 @@ public class SatPayloadDbStore {
 					+ " and pictureCounter = " + f.pictureCounter
 					+ " and scanLineNumber = " + f.scanLineNumber);
 			ps.setBytes(1, f.getBytes());
+			@SuppressWarnings("unused")
 			int count = ps.executeUpdate();
 			ps.close();
 		} catch (SQLException e) {
@@ -475,13 +475,17 @@ public class SatPayloadDbStore {
 	 * we effectively write the file three times over.  But this happens every 5 sseconds at most, so the overhead is low
 	 * If time permits this can be optimized to write the file once for each set of three lines.
 	 * 
-	 * @return
+	 * @return true if we added image lines to a jpeg
 	 * @throws SQLException 
 	 * @throws IOException 
 	 */
 	public boolean processNewImageLines() throws SQLException, IOException {
-		if (!fox.hasCamera()) return true; // nothing to process
+		if (!fox.hasCamera()) {
+			//Log.println("Nothing to process for " + fox.getIdString());
+			return false; // nothing to process
+		}
 		
+		//Log.println("Checking for lines on: " + fox.getIdString());
 		// Get a list of new unprocessed lines
 		String lineswhere = " where id = " + this.foxId
 				+ " and processed = 0";
@@ -513,6 +517,7 @@ public class SatPayloadDbStore {
 					+ " and pictureCounter = " + rs.getInt("pictureCounter")
 					+ " and scanLineNumber = " + rs.getInt("scanLineNumber"));
 			ps.setLong(1, 1);
+			@SuppressWarnings("unused")
 			int count = ps.executeUpdate();
 			ps.close();
 			
@@ -525,7 +530,7 @@ public class SatPayloadDbStore {
 			return true;
 		}
 		*/
-		return false;
+		return true;
 	}
 	
 	/**
@@ -586,6 +591,7 @@ public class SatPayloadDbStore {
 				int rsresets = r.getInt("resets");
 				long fromUptime = r.getInt("fromUptime");
 				long toUptime = r.getInt("toUptime");
+				@SuppressWarnings("unused")
 				String fileName = r.getString("fileName");
 				int rspictureCounter = r.getInt("pictureCounter");
 				long newFromUptime = fromUptime;
@@ -607,6 +613,7 @@ public class SatPayloadDbStore {
 								+ " and pictureCounter = " + rspictureCounter);
 						ps.setLong(1, newFromUptime);
 						ps.setLong(2, newToUptime);
+						@SuppressWarnings("unused")
 						int count = ps.executeUpdate();
 						ps.close();
 					} catch (SQLException e) {
@@ -919,11 +926,11 @@ public class SatPayloadDbStore {
 				try {
 					Thread.sleep(100);
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					//e1.printStackTrace();
+					;; // do nothing
 				}
 				try {
 					Log.println("RETRYING.....");
+					@SuppressWarnings("unused")
 					boolean res = stmt.execute("drop table " + table);
 				} catch (SQLException e1) {
 					Log.println("RETRY FAILED");

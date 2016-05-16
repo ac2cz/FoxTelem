@@ -1,12 +1,6 @@
 
 import gui.InitalSettings;
 import gui.MainWindow;
-import telemetry.FramePart;
-import telemetry.PayloadRtValues;
-import telemetry.SortedArrayList;
-import telemetry.SortedFramePartArrayList;
-import telemetry.TableSeg;
-
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -18,7 +12,6 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import common.Config;

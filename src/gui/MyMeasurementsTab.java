@@ -2,6 +2,7 @@ package gui;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -11,6 +12,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import measure.PassMeasurement;
 import measure.RtMeasurement;
@@ -64,7 +66,10 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 		topPanel.add(lblId);
 
 		JPanel centerPanel = new JPanel();
-		add(centerPanel, BorderLayout.CENTER);
+		centerPanel.setLayout(new WrapLayout(FlowLayout.LEADING, 25, 25));
+		JScrollPane scrollPane = new JScrollPane (centerPanel, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		add(scrollPane, BorderLayout.CENTER);
 
 		sats = Config.satManager.getSpacecraftList();
 		satellite = new DisplayModule[sats.size()];
@@ -76,21 +81,21 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 					DisplayModule.DISPLAY_MEASURES);
 			centerPanel.add(satellite[s]);
 			satellite[s].addName(1, "Bit Sig to Noise (-)",
-					RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_RT_ONLY);
+					RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_MEASURES);
 			satellite[s].addName(2, "RF Sig to Noise (db)",
-					RtMeasurement.RF_SNR, DisplayModule.DISPLAY_RT_ONLY);
+					RtMeasurement.RF_SNR, DisplayModule.DISPLAY_MEASURES);
 			satellite[s].addName(3, "RF Power (dBm)", RtMeasurement.RF_POWER,
-					DisplayModule.DISPLAY_RT_ONLY);
+					DisplayModule.DISPLAY_MEASURES);
 			satellite[s].addName(4, "Carrier Frequency (Hz)",
-					RtMeasurement.CARRIER_FREQ, DisplayModule.DISPLAY_RT_ONLY);
+					RtMeasurement.CARRIER_FREQ, DisplayModule.DISPLAY_MEASURES);
 			satellite[s].addName(5, "Azimuth (deg)", RtMeasurement.AZ,
-					DisplayModule.DISPLAY_RT_ONLY);
+					DisplayModule.DISPLAY_MEASURES);
 			satellite[s].addName(6, "Elevation (deg)", RtMeasurement.EL,
-					DisplayModule.DISPLAY_RT_ONLY);
-			satellite[s].addName(7, "RS Erros", RtMeasurement.ERRORS,
-					DisplayModule.DISPLAY_RT_ONLY);
+					DisplayModule.DISPLAY_MEASURES);
+			satellite[s].addName(7, "RS Errors", RtMeasurement.ERRORS,
+					DisplayModule.DISPLAY_MEASURES);
 			satellite[s].addName(8, "RS Erasures", RtMeasurement.ERASURES,
-					DisplayModule.DISPLAY_RT_ONLY);
+					DisplayModule.DISPLAY_MEASURES);
 		}
 		
 		for (int s = 0; s < sats.size(); s++) {
@@ -137,6 +142,10 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 			if (mod != null)
 				mod.showGraphs();
 		}
+		for (DisplayModule mod : passes) {
+			if (mod != null)
+				mod.showGraphs();
+		}
 	}
 
 	public void openGraphs() {
@@ -144,10 +153,18 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 			if (mod != null)
 				mod.openGraphs();
 		}
+		for (DisplayModule mod : passes) {
+			if (mod != null)
+				mod.openGraphs();
+		}
 	}
 
 	public void closeGraphs() {
 		for (DisplayModule mod : satellite) {
+			if (mod != null)
+				mod.closeGraphs();
+		}
+		for (DisplayModule mod : passes) {
 			if (mod != null)
 				mod.closeGraphs();
 		}

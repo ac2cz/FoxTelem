@@ -289,8 +289,7 @@ public class Spacecraft {
         //File aFile = new File(log );
 
         
-        @SuppressWarnings("resource")
-		BufferedReader dis = new BufferedReader(new FileReader(log));
+        BufferedReader dis = new BufferedReader(new FileReader(log));
 
         try {
         	while ((line = dis.readLine()) != null) {

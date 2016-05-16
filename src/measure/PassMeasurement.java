@@ -122,8 +122,18 @@ public class PassMeasurement extends Measurement {
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i])) {
 				if (layout.conversion[i] == BitArrayLayout.CONVERT_JAVA_DATE) {
-					String dt = getDateFromLong(fieldValue[i]);
-					return dt;
+					if (fieldValue[i] == 0)
+						return "-----";
+					else {
+						String dt = getDateFromLong(fieldValue[i]);
+						return dt;
+					}
+				} else if (layout.conversion[i] == BitArrayLayout.CONVERT_FREQ) {
+					if (fieldValue[i] == 0)
+						return "-----";
+					else {
+						return ""+fieldValue[i];
+					}
 				} else {
 					return ""+fieldValue[i];
 				}

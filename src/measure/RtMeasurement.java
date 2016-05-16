@@ -7,7 +7,6 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import common.Config;
 import common.Log;

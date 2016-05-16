@@ -1,17 +1,14 @@
 package gui;
 
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 
-import common.Config;
-
+@SuppressWarnings("serial")
 public class ProgressPanel extends JDialog implements ActionListener {
 
 	String title;

@@ -9,10 +9,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,11 +28,7 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
-import telemetry.CobsDecodeException;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadHERCIHousekeeping;
-import telemetry.RadiationPacket;
-import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -206,14 +199,6 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		parseRadiationFrames();
 	}
 	
-	private JRadioButton addRadioButton(String name, JPanel panel) {
-		JRadioButton radioButton = new JRadioButton(name);
-		radioButton.setEnabled(true);
-		radioButton.addActionListener(this);
-		panel.add(radioButton);
-		return radioButton;
-	}
-
 	private void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}

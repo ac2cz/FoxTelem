@@ -33,7 +33,7 @@ public class ImageProcess implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		
+		Log.println("STOPPING: Image Procesing Thread Exit");
 	}
 
 }

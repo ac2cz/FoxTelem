@@ -27,8 +27,6 @@ import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadRadExpData;
-import telemetry.SatPayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;

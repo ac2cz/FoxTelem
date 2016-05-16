@@ -40,13 +40,15 @@ import common.Config;
 @SuppressWarnings("serial")
 public class FilterPanel extends JPanel  implements ChangeListener, ActionListener {
 	
+	public static final int MATCHED = 2;
 	public static final int RAISED_COSINE = 0;
 	public static final int WINDOWED_SINC = 1;
-	public static final int MAX_FILTERS = 2;
+	public static final int MAX_FILTERS = 3;
 	
 	String[] filterName = { 
 			"Raised Cosine", 
-			"Windowed Sinc" 
+			"Windowed Sinc",
+			"Matched"
 			};
 	/*
 	Filter filters[] = {
@@ -55,8 +57,8 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 	};
 	*/
 	
-	public static final int WS_LEN_MIN = 1024;
-	public static final int WS_LEN_MAX = 4096;
+	public static final int WS_LEN_MIN = 480;
+	public static final int WS_LEN_MAX = 4800;
 	public static final int RC_LEN_MIN = 64;
 	public static final int RC_LEN_MAX = 512;
 	
@@ -68,6 +70,11 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 	JSlider rcSlider;
 	JSlider wsSlider;
 	JSlider freqSlider;
+	JLabel lFreq;
+	JLabel lLength;
+	
+	private String L_FREQ = "Cutoff frequency (Hz)";
+	private String L_LENGTH = "Filter Length (samples)";
 	
 	FilterPanel() {
 		//filter
@@ -97,7 +104,7 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 		filler0.setMinimumSize(new Dimension(14,14));
 		filler0.setMaximumSize(new Dimension(14,14));
 		add(filler0);
-		JLabel lFreq = new JLabel("Cutoff frequency (Hz)");
+		lFreq = new JLabel(L_FREQ);
 		lFreq.setAlignmentX(Component.LEFT_ALIGNMENT);
 		add(lFreq);
 		
@@ -112,12 +119,12 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 		filler1.setMinimumSize(new Dimension(14,14));
 		filler1.setMaximumSize(new Dimension(14,14));
 		add(filler1);
-		JLabel lLength = new JLabel("Filter Length (samples)");
+		lLength = new JLabel(L_LENGTH);
 		lLength.setAlignmentX(Component.LEFT_ALIGNMENT);
 		add(lLength);
 		
 		rcSlider = createSlider(RC_LEN_MIN, RC_LEN_MAX, RC_LEN_MIN);
-		wsSlider = createSlider(WS_LEN_MIN, WS_LEN_MAX, WS_LEN_MIN);
+		wsSlider = createSlider(WS_LEN_MIN, WS_LEN_MAX, WS_LEN_MIN*2);
 		//updateSlider();
 		add(rcSlider);
 		add(wsSlider);
@@ -162,23 +169,44 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 		return slideFilterLength;
 	}
 	
-	private void updateSlider() {
+	public static void checkFilterParams() {
 		if (Config.useFilterNumber == RAISED_COSINE) {
-			rcSlider.setVisible(true);
-			wsSlider.setVisible(false);
 			if (Config.filterLength > RC_LEN_MAX) {
 				Config.filterLength = RC_LEN_MAX;
 			}
-			rcSlider.setValue(Config.filterLength);
-		} else {
-			rcSlider.setVisible(false);
-			wsSlider.setVisible(true);
+		
+		} else if (Config.useFilterNumber == WINDOWED_SINC){
 			if (Config.filterLength < WS_LEN_MIN) {
 				Config.filterLength = WS_LEN_MIN;
 			}
-			wsSlider.setValue(Config.filterLength);
-		}
 		
+		} 
+		
+	}
+	
+	private void updateSlider() {
+		checkFilterParams();
+		if (Config.useFilterNumber == RAISED_COSINE) {
+			rcSlider.setVisible(true);
+			wsSlider.setVisible(false);
+			rcSlider.setValue(Config.filterLength);
+			freqSlider.setVisible(true);
+		
+		} else if (Config.useFilterNumber == WINDOWED_SINC){
+			rcSlider.setVisible(false);
+			wsSlider.setVisible(true);
+			wsSlider.setValue(Config.filterLength);
+			freqSlider.setVisible(true);
+		
+		} else {
+			rcSlider.setVisible(false);
+			wsSlider.setVisible(false);
+			freqSlider.setVisible(false);
+			
+		}
+		lFreq.setText(L_FREQ+" " + Config.filterFrequency);
+		lLength.setText(L_LENGTH+" "+Config.filterLength);
+		//Log.println("Filter Len Set to: " + Config.filterLength);
 		//Config.save();
 
 	}

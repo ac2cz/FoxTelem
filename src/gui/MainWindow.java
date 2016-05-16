@@ -26,12 +26,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,7 +37,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -59,17 +56,6 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
-import telemetry.FramePart;
-import telemetry.HighSpeedFrame;
-import telemetry.HighSpeedHeader;
-import telemetry.LayoutLoadException;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
@@ -136,6 +122,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
+	JMenuItem mntmLeaderboard;
+	JMenuItem mntmSoftware;
 	JMenuItem mntmAbout;
 	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
@@ -260,6 +248,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
 		
+		
+		
+		// We are fully up, remove the database loading message
+		Config.fileProgress.updateProgress(100);
+
 	}
 
 	public static void enableSourceSelection(boolean t) {
@@ -554,7 +547,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		mntmSat = new JMenuItem[sats.size()];
 		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem("Fox-" + sats.get(i).getIdString());
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}
@@ -563,7 +556,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
-		mnOptions.add(chckbxmntmShowFilterOptions);
+		mnDecoder.add(chckbxmntmShowFilterOptions);
+		chckbxmntmShowFilterOptions.setState(Config.showFilters);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
 		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
@@ -576,6 +570,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmManual = new JMenuItem("Open Manual");
 		mnHelp.add(mntmManual);
 		mntmManual.addActionListener(this);
+		mntmLeaderboard = new JMenuItem("View Fox Server Leaderboard");
+		mnHelp.add(mntmLeaderboard);
+		mntmLeaderboard.addActionListener(this);
+		//mntmSoftware = new JMenuItem("Latest Software");
+		//mnHelp.add(mntmSoftware);
+		//mntmSoftware.addActionListener(this);
 		if (!Config.isMacOs()) {
 			mntmAbout = new JMenuItem("About FoxTelem");
 			mnHelp.add(mntmAbout);
@@ -737,7 +737,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			}
 		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
-				inputTab.showFilters(chckbxmntmShowFilterOptions.getState());
+			Config.showFilters = chckbxmntmShowFilterOptions.getState();
+				inputTab.showFilters(Config.showFilters);
 		}
 		
 		if (e.getSource() == chckbxmntmShowDecoderOptions) {	
@@ -746,12 +747,30 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		
 		if (e.getSource() == mntmManual) {
-            try {
-                DesktopApi.browse(new URI(HelpAbout.MANUAL));
-        } catch (URISyntaxException ex) {
-                //It looks like there's a problem
-        	ex.printStackTrace();
-        }
+			try {
+				DesktopApi.browse(new URI(HelpAbout.MANUAL));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
+
+		}
+		if (e.getSource() == mntmLeaderboard) {
+			try {
+				DesktopApi.browse(new URI(HelpAbout.LEADERBOARD));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
+
+		}
+		if (e.getSource() == mntmSoftware) {
+			try {
+				DesktopApi.browse(new URI(HelpAbout.SOFTWARE));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
 
 		}
 		if (e.getSource() == mntmAbout) {
@@ -855,9 +874,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
+		
+		// We are fully updated, remove the database loading message
+		Config.fileProgress.updateProgress(100);
 	}
 
 	
+	@SuppressWarnings("unused")
 	private void importServerData() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"
@@ -998,9 +1021,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
 			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
 			
-			Iterator it = callsigns.entrySet().iterator();
+			Iterator<?> it = callsigns.entrySet().iterator();
 		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
+		        @SuppressWarnings("rawtypes")
+				Map.Entry pair = (Map.Entry)it.next();
 		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
 		    }
 		}

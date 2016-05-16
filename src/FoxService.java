@@ -21,7 +21,7 @@ import common.Log;
  */
 public class FoxService {
 
-	public static String version = "Version 0.17 - 31 March 2016";
+	public static String version = "Version 0.18a - 9 April 2016";
 	public static int port = 8080;
 	int poolSize = 100;
 	

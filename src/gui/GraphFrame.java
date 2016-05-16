@@ -37,9 +37,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.SoftBevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -50,8 +48,6 @@ import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import decoder.SinkAudio;
-import fcd.FcdProDevice;
 import measure.SatMeasurementStore;
 
 /**
@@ -89,7 +85,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private int conversionType;
 	int conversionType2;
 	private JPanel contentPane;
-	private GraphPanel panel;
+	private GraphCanvas panel;
 	private JPanel titlePanel;
 	private JPanel footerPanel;
 	
@@ -105,6 +101,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnPoints;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
+	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
 	
@@ -115,7 +112,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public static int DEFAULT_START_RESET = 0;
 	public long START_UPTIME = DEFAULT_START_UPTIME;
 	public int START_RESET = DEFAULT_START_RESET;
-	public static final int MAX_SAMPLES = 99999;
+	public static final int MAX_SAMPLES = 999999;
 	public static final int MAX_AVG_SAMPLES = 999;
 	public static int DEFAULT_AVG_PERIOD = 12;
 	public int AVG_PERIOD = DEFAULT_AVG_PERIOD;
@@ -150,13 +147,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean showContinuous = false;
 	
 	public boolean add = false;
+	public boolean skyPlot = false;
 	
 	boolean textDisplay = false;
 	
 	/**
 	 * Create the frame.
 	 */
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat) {
+	@SuppressWarnings("rawtypes")
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat, Boolean showSkyChart) {
 		fox = sat;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -170,6 +169,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 		loadProperties();
+		
+		if (showSkyChart != null) // take the value, otherwise we use what was loaded from the save
+			this.skyPlot = showSkyChart;
 		
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
 //		setIconImage(img);
@@ -197,12 +199,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
+		} else if (skyPlot){
+			initSkyPlotFields();
+			panel = new DensityPlotPanel(title, conversionType, payloadType, this, sat);
+			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
 			panel = new GraphPanel(title, conversionType, payloadType, this, sat);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
-		if (!textDisplay) {
+		if (!(textDisplay || skyPlot)) {
 			btnAdd = new JButton("+ ");
 			titlePanelLeft.add(btnAdd);
 			btnAdd.addActionListener(this);
@@ -224,34 +230,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnLines.setToolTipText("Draw lines between data points");
 		btnLines.addActionListener(this);
 		titlePanelRight.add(btnLines);
-		if (this.textDisplay) btnLines.setVisible(false);
+		if (this.textDisplay || skyPlot) btnLines.setVisible(false);
 
 		btnPoints = new JButton("Points");
 		btnPoints.setMargin(new Insets(0,0,0,0));
 		btnPoints.setToolTipText("Show data points");
 		btnPoints.addActionListener(this);
 		titlePanelRight.add(btnPoints);
-		if (this.textDisplay) btnPoints.setVisible(false);
+		if (this.textDisplay || skyPlot) btnPoints.setVisible(false);
 
 		
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
 		titlePanelRight.add(btnHorizontalLines);
-		if (this.textDisplay) btnHorizontalLines.setVisible(false);
+		if (this.textDisplay || skyPlot) btnHorizontalLines.setVisible(false);
 
 		btnVerticalLines = createIconButton("/images/verticalLines.png","Verrtical","Show Vertical Lines");
 		titlePanelRight.add(btnVerticalLines);
-		if (this.textDisplay) btnVerticalLines.setVisible(false);
+		if (this.textDisplay || skyPlot) btnVerticalLines.setVisible(false);
 
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
 		btnMain.setToolTipText("Hide the first trace (useful if the derivative or average has been plotted)");
 		btnMain.addActionListener(this);
 		titlePanelRight.add(btnMain);
-		if (this.textDisplay) btnMain.setVisible(false);
+		if (this.textDisplay || skyPlot) btnMain.setVisible(false);
 
 		btnDerivative = createIconButton("/images/derivSmall.png","Deriv","Plot 1st Derivative (1st difference)");
 		titlePanelRight.add(btnDerivative);
-		if (this.textDisplay) btnDerivative.setVisible(false);
+		if (this.textDisplay || skyPlot) btnDerivative.setVisible(false);
 
 		btnAvg = new JButton("AVG");
 		btnAvg.setMargin(new Insets(0,0,0,0));
@@ -259,7 +265,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnAvg.addActionListener(this);
 		
 		titlePanelRight.add(btnAvg);
-		if (this.textDisplay) btnAvg.setVisible(false);
+		if (this.textDisplay || skyPlot) btnAvg.setVisible(false);
 
 		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA || 
 				conversionType == BitArrayLayout.CONVERT_BOOLEAN ) {
@@ -297,31 +303,32 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
-		cbUptime = new JCheckBox("Show Uptime");
-		cbUptime.setSelected(!hideUptime);
-		cbUptime.addItemListener(this);
-		footerPanelLeft.add(cbUptime);
+		if (!skyPlot) {
+			cbUptime = new JCheckBox("Show Uptime");
+			cbUptime.setSelected(!hideUptime);
+			cbUptime.addItemListener(this);
+			footerPanelLeft.add(cbUptime);
 
-		cbUTC = new JCheckBox("UTC Time   |");
-		cbUTC.setSelected(showUTCtime);
-		cbUTC.addItemListener(this);
-		footerPanelLeft.add(cbUTC);
-		
-		lblAvg = new JLabel("Avg");
-		txtAvgPeriod = new JTextField();
-//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
-		txtAvgPeriod.addActionListener(this);
-		txtAvgPeriod.addFocusListener(this);
-		lblAvgPeriod = new JLabel("samples  ");
-		
-		setAvgVisible(dspAvg);
-		
-		footerPanelLeft.add(lblAvg);
-		footerPanelLeft.add(txtAvgPeriod);
-		footerPanelLeft.add(lblAvgPeriod);
-		txtAvgPeriod.setText(Integer.toString(AVG_PERIOD));
-		txtAvgPeriod.setColumns(3);
+			cbUTC = new JCheckBox("UTC Time   |");
+			cbUTC.setSelected(showUTCtime);
+			cbUTC.addItemListener(this);
+			footerPanelLeft.add(cbUTC);
 
+			lblAvg = new JLabel("Avg");
+			txtAvgPeriod = new JTextField();
+			//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
+			txtAvgPeriod.addActionListener(this);
+			txtAvgPeriod.addFocusListener(this);
+			lblAvgPeriod = new JLabel("samples  ");
+
+			setAvgVisible(dspAvg);
+
+			footerPanelLeft.add(lblAvg);
+			footerPanelLeft.add(txtAvgPeriod);
+			footerPanelLeft.add(lblAvgPeriod);
+			txtAvgPeriod.setText(Integer.toString(AVG_PERIOD));
+			txtAvgPeriod.setColumns(3);
+		}
 		lblPlot = new JLabel("Plot");
 		txtSamplePeriod = new JTextField();
 //		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
@@ -368,15 +375,24 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 		
-		chckbxPlotAllUptime = new JCheckBox("Continuous");
-		chckbxPlotAllUptime.setToolTipText("");
-		footerPanelLeft.add(chckbxPlotAllUptime);
-		chckbxPlotAllUptime.setSelected(showContinuous);
-		
-		chckbxPlotAllUptime.addItemListener(this);
-		chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
-		if (this.textDisplay) chckbxPlotAllUptime.setVisible(false);
-		
+		if (!(skyPlot || textDisplay)) {
+			chckbxPlotAllUptime = new JCheckBox("Continuous");
+			chckbxPlotAllUptime.setToolTipText("");
+			footerPanelLeft.add(chckbxPlotAllUptime);
+			chckbxPlotAllUptime.setSelected(showContinuous);
+
+			chckbxPlotAllUptime.addItemListener(this);
+			chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
+			
+		}
+	}
+	
+	private void initSkyPlotFields() {
+		String s = this.fieldName[0];
+		this.fieldName2 = new String[2];
+		this.fieldName2[0] = "EL";
+		this.fieldName2[1] = "AZ";
+		this.fieldName[0] = s;
 	}
 
 	private boolean textDisplay(int conversionType) {
@@ -386,6 +402,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		return false;
 	}
 	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initVarlist() {
 		variables = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
@@ -417,7 +434,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	private void calcTitle() {
 		//BitArrayLayout layout = getLayout(payloadType);
-		if (fieldName.length > 1 || fieldName2 != null)
+		if (!skyPlot && (fieldName.length > 1 || fieldName2 != null))
 			displayTitle = fox.name;
 		else {
 			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
@@ -491,6 +508,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showHorizontalLines", showHorizontalLines);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showUTCtime", showUTCtime);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideUptime", hideUptime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "skyPlot", skyPlot);
 		
 		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "AVG_PERIOD", AVG_PERIOD);
 		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showContinuous", showContinuous);
@@ -537,6 +555,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showHorizontalLines");
 		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showUTCtime");
 		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideUptime");
+		skyPlot = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "skyPlot");
 		
 		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "AVG_PERIOD");
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
@@ -669,6 +688,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			but.setBackground(Color.GRAY);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnAdd) {
@@ -789,22 +809,31 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				parseAvgPeriod();
 		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
 			if (!textDisplay) {
-				fieldUnits2 = "";
-				fieldName2 = null;
-				String name = fieldName[0];
-				fieldName = new String[1];
-				fieldName[0] = name;
-				initVarlist();
-				add = false;
-				cbAddVariable.setVisible(add);
+				if (skyPlot)
+					initSkyPlotFields();
+				else {
+					fieldUnits2 = "";
+					fieldName2 = null;
+					String name = fieldName[0];
+					fieldName = new String[1];
+					fieldName[0] = name;
+				}
+				if (!skyPlot) {
+					initVarlist();
+					add = false;
+					cbAddVariable.setVisible(add);
+				}
 				calcTitle();
 			}
 			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
 			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
-			txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
+			
 			parseTextFields();
-			parseAvgPeriod();
+			if (!skyPlot) {
+				txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
+				parseAvgPeriod();
+			}
 			
 		} else if (e.getSource() == btnCSV) {
 			File file = null;

@@ -3,7 +3,6 @@ package gui;
 import javax.swing.JTextArea;
 
 import common.Config;
-import common.Spacecraft;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 

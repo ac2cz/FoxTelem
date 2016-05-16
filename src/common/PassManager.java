@@ -9,9 +9,8 @@ import telemetry.PayloadStore;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
+import measure.SatPc32DDE;
 import decoder.Decoder;
-import decoder.EyeData;
-import decoder.RfData;
 import decoder.SourceIQ;
 
 /**
@@ -83,8 +82,8 @@ public class PassManager implements Runnable {
 	int lastReset;
 	long lastUptime;
 	
-	final int SCAN_PERIOD = 250; //ms - we always do this
-	final int ANALYZE_PERIOD = 500; //ms - we pause for this if strongest signal > scan signal threshold 
+	final int SCAN_PERIOD = 200; //ms - we always do this
+	final int ANALYZE_PERIOD = 600; //ms - we pause for this if strongest signal > scan signal threshold 
 	final int SNR_PERIOD = 1500; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR
 	final int DECODE_PERIOD = 5000; //ms
 	final int FADE_PERIOD = 125 * 1000; //ms - need to wait for the length of a beacon to see if this is still a pass
@@ -187,9 +186,13 @@ public class PassManager implements Runnable {
 	
 	private void setFreqRangeBins(Spacecraft sat, PassParams pp) {
 		if (pp.foxDecoder != null && pp.iqSource != null) {
-			Config.toBin = pp.iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
-			Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
-			
+			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
+				Config.toBin = 0;
+				Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
+			} else {
+				Config.toBin = pp.iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
+				Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
+			}
 		}
 	}
 	
@@ -333,7 +336,16 @@ public class PassManager implements Runnable {
 
 	private void lockSignal(Spacecraft sat, PassParams pp) {
 //		Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
+
 		passMeasurement = new PassMeasurement(sat.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
+		if (Config.useDDEforAzEl) {
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
+			}
+		}
+
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + sat.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
 				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
@@ -393,6 +405,13 @@ public class PassManager implements Runnable {
 	private int faded(Spacecraft sat) {
 		if (!Config.findSignal) return EXIT;
 		passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
+		if (Config.useDDEforAzEl) { // store end Azimuth too
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+			}
+		}
 		faded = true;
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 
@@ -446,11 +465,28 @@ public class PassManager implements Runnable {
 	private int endPass(Spacecraft sat) {
 		if (!Config.findSignal) return EXIT;
 		calculateTCA(sat);
+		calculateMaxEl(sat);
 		if (Config.debugSignalFinder) Log.println(sat.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
 		Config.payloadStore.add(sat.foxId, passMeasurement);
 		return EXIT;
 	}
 
+	private void calculateMaxEl(Spacecraft sat) {
+		double[][] graphData = null;
+		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
+		if (passMeasurement.getReset() == 0 && passMeasurement.getUptime() == 0) {
+			// We did not get any readings
+			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, 0);
+		} else {
+			long maxEl = -180; // just in case we have a pass that is theoretically below the horizon but we still manage to track it, allow negatives
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
+			for (int i=1; i < graphData[0].length; i++) {
+				long value = (long)graphData[PayloadStore.DATA_COL][i];
+				if (value > maxEl) maxEl = value;
+			}
+			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, maxEl);
+		}
+	}
 
 	private void calculateTCA(Spacecraft sat) {
 		// Get the frequency data for this pass
@@ -547,11 +583,23 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (pp1.foxDecoder != null && Config.findSignal)
+			String satString = null;
+			if (Config.useDDEforFindSignal) {
+				SatPc32DDE satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected) {
+						satString = satPC.satellite;
+				}
+			}
+			if (pp1.decoder != null && Config.findSignal)
 				for (int s=0; s < spacecraft.size(); s++) {
 					//Log.println("Looking for: " + spacecraft.get(s).name);
-					if (spacecraft.get(s).track)
-						stateMachine(spacecraft.get(s));
+					if (spacecraft.get(s).track) 
+						if (Config.useDDEforFindSignal) {
+							if (satString != null && satString.equalsIgnoreCase(spacecraft.get(s).name))
+								stateMachine(spacecraft.get(s));
+						} else
+							stateMachine(spacecraft.get(s));
 				}
 			else {
 				//Log.println("Waiting for decoder");

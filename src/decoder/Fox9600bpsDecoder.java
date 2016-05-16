@@ -1,7 +1,7 @@
 package decoder;
 
 import common.Log;
-import filter.AGCFilter;
+import filter.RaisedCosineFilter;
 
 /**
  * 
@@ -38,9 +38,22 @@ public class Fox9600bpsDecoder extends FoxDecoder {
 		Log.println("Initializing HIGH SPEED: ");
 		setHighSpeedParameters();
 		super.init();
-		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
-		filter.init(currentSampleRate, 0, 0);
-
+		//filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
+		//filter.init(currentSampleRate, 0, 0);
+		
+//		filter = new MatchedFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
+		//filter.init(currentSampleRate, 9600, 10);
+		
+		// Experiments have determined we should use Raised cosine as a matched filter.  
+		// It should be the same length as the pulse (a whole wavelength), so we make
+		// it length 10, for a 1 and a 0.  The 1 will be centered. This is twice the bucket size
+		filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		//filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		filter.init(currentSampleRate, HIGH_SPEED_BITS_PER_SECOND, bucketSize*2);
+		//double[] coef = filter.getKernal();
+		//int i=0;
+		//for (double d: coef)
+		//	System.out.println(i++ + "," + d);
 	}
 	
 	private void setHighSpeedParameters() {

@@ -1,8 +1,5 @@
 package common;
 
-import java.util.ArrayList;
-
-import measure.PassMeasurement;
 import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.EyeData;

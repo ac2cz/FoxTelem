@@ -55,7 +55,9 @@ public class RawFrameQueue implements Runnable {
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSframes.log";
 	SortedFrameArrayList rawSlowSpeedFrames;
 	SortedFrameArrayList rawHighSpeedFrames;
+	@SuppressWarnings("unused")
 	private boolean updatedSlowQueue = false;
+	@SuppressWarnings("unused")
 	private boolean updatedHSQueue = false;
 	
 	TlmServer primaryServer;

@@ -99,8 +99,8 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 			
 		}
-		ProgressPanel fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
-		fileProgress.setVisible(true);
+		Config.fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
+		Config.fileProgress.setVisible(true);
 		
 		for (int s=0; s<sats.size(); s++) {
 			payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);
@@ -116,10 +116,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
-			fileProgress.updateProgress(100 * s / sats.size());
+			Config.fileProgress.updateProgress(100 * s / sats.size());
 		}
 		
-		fileProgress.updateProgress(100);
 		loaded = true;
 	}
 	

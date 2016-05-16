@@ -1,6 +1,7 @@
 package common;
 
 import gui.MainWindow;
+import gui.ProgressPanel;
 
 import java.awt.Color;
 import java.io.File;
@@ -52,8 +53,10 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.04c (bpsk)";
-	public static String VERSION = VERSION_NUM + " - 26 March 2016";
+	public static ProgressPanel fileProgress;
+	
+	public static String VERSION_NUM = "1.05";
+	public static String VERSION = VERSION_NUM + " - 16 May 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -125,7 +128,7 @@ public class Config {
 	static public int DEBUG_COUNT = -1;
 	static public boolean filterData = true; // Low Pass filter the data
 	public static int filterIterations = 1; // The number of times to run the low pass filter.  Gain is applied only after the first run
-	public static int filterLength = 2048;
+	public static int filterLength = 512;
 	static public boolean useRSfec = true;
 	static public boolean squelchAudio = true;
 	static public boolean useAGC = true;
@@ -227,8 +230,10 @@ public class Config {
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
 	// V1.04
-	static public boolean startButtonPressed = true;
+	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
+	public static boolean useDDEforFindSignal = false;
+	public static boolean showFilters = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -558,7 +563,8 @@ public class Config {
 		// Version 1.04
 		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
-		
+		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
+		properties.setProperty("showFilters", Boolean.toString(showFilters));
 		store();
 	}
 	
@@ -717,6 +723,8 @@ public class Config {
 		// Version 1.04
 		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
 		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
+		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
+		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

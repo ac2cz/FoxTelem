@@ -33,12 +33,7 @@ public class CircularByteBufferTest {
 	
 	@Test
 	public void test2() {
-		try {
-			Log.init("test.txt");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Log.init("test.txt");
 		CircularByteBuffer a = new CircularByteBuffer(50);
 		for (int i=0; i< 20; i++) {
 			a.add((byte)i);
@@ -74,12 +69,7 @@ public class CircularByteBufferTest {
 	}
 	@Test
 	public void testSize() {
-		try {
-			Log.init("test.txt");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Log.init("test.txt");
 		CircularByteBuffer a = new CircularByteBuffer(10);
 		a.add((byte)10);
 		a.add((byte)11);
@@ -130,12 +120,7 @@ public class CircularByteBufferTest {
 
 	@Test
 	public void largeTest() {
-		try {
-			Log.init("test.txt");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		Log.init("test.txt");
 		CircularByteBuffer a = new CircularByteBuffer(50);
 		for (int i=0; i< 20; i++) {
 			a.add((byte)i);
