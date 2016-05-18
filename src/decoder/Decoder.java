@@ -266,7 +266,7 @@ public abstract class Decoder implements Runnable {
         	processBitsWindow();
 
         	Performance.endTimer("BitsWindow");
-
+     ///   	Log.infoDialog("PAUSEED", "Press enter");
         	
         }
         if (sink != null)

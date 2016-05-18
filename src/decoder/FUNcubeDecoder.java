@@ -28,7 +28,7 @@ public class FUNcubeDecoder extends Decoder {
 	protected void init() {
 		Log.println("Initializing 1200bps BPSK decoder: ");
 		
-		bitStream = new FUNcubeBitStream(50000, this);
+		bitStream = new FUNcubeBitStream(500000, this);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 10;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
@@ -46,6 +46,7 @@ public class FUNcubeDecoder extends Decoder {
 		
 		for (int n=0; n<SINCOS_SIZE; n++) {
 			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
+			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
 		}
 	}
 
@@ -72,8 +73,9 @@ public class FUNcubeDecoder extends Decoder {
 	private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)48000;
 	private static final int SINCOS_SIZE = 256;
 	private double[] cosTab = new double[SINCOS_SIZE];
+	private double[] sinTab = new double[SINCOS_SIZE];
 	
-	protected void sampleBuckets2() {
+	protected void sampleBucketsVCO() {
 		int avgClockOffset = 0;
 
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
@@ -89,7 +91,7 @@ public class FUNcubeDecoder extends Decoder {
 				vcoPhase += VCO_PHASE_INC;
 				if (vcoPhase > 2.0*Math.PI)
 					vcoPhase -= 2.0*Math.PI;
-				double product = (dataValues[i][s] * cosTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE]);
+				double product = (dataValues[i][s] * sinTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE]);
 				sampleSum =+ product;
 				eyeData.setData(i,s,(int) product);  // overwrite the raw waveform with the recovered bits
 
@@ -109,36 +111,53 @@ public class FUNcubeDecoder extends Decoder {
 			}
 			//System.out.println("Bit: " + i +" " + middleSample[i]);
 			bitStream.addBit(middleSample[i]);
+			System.out.println("Bit: " + i +" " + middleSample[i]);
+			bitStream.checkSyncVector();
 
 		}
-		bitStream.findSyncVector();
 		clockOffset = 0;
-	//	System.exit(1);
+		
 	}
 	
 	protected void sampleBuckets() {
 		long avgClockOffset = 0;
 		double scale = MAX_VOLUME/32767*32767;
+		double maxBitEnergy = 0;
+		int maxBitEnergyIdx = 0;
+		int sumMaxBitEnergyIdx = 0;
+		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			sampleNumber++;
 			long sampleSum = 0;
 			int samples = 0;
+			maxBitEnergyIdx = 0;
 			
 			int clockSample1 = 0, clockSample2 = 0, clockSample3 = 0;
 
-			// Multiple and sum the samples with the previous bit
 			for (int s=0; s < bucketSize; s++) {
+				// detect the peak energy for clock sync
+				double energy = dataValues[i][s] * dataValues[i][s];
+				//Log.println("E:" + energy);
+				if (energy > maxBitEnergy) {
+					maxBitEnergy = energy;
+					maxBitEnergyIdx = s;
+				}
+				// Multiple and sum the samples with the previous bit
 				if (i ==0) { // first bit {
 					sampleSum = sampleSum + dataValues[i][s] * lastDataValue[s];
 					eyeData.setData(i,s,(int) (dataValues[i][s] * lastDataValue[s]));  // overwrite the raw waveform with the recovered bits
 				} else {
 					sampleSum = sampleSum + dataValues[i][s] * dataValues[i-1][s];
 					eyeData.setData(i,s,(int) (dataValues[i][s] * dataValues[i-1][s]));  // overwrite the raw waveform with the recovered bits
+					if (i == SAMPLE_WINDOW_LENGTH-1) {
+						// last bit, store the value for next time
+						lastDataValue[s] = dataValues[i][s];
+					}
 				}
 				samples++;
-				
-
 			}
+			sumMaxBitEnergyIdx = sumMaxBitEnergyIdx + maxBitEnergyIdx;
+			
 			//Clock offset calculation
 			if (i ==0) { // first bit {
 				clockSample1 = dataValues[i][bucketSize/2] * lastDataValue[bucketSize/2]; // middle of bit
@@ -158,23 +177,27 @@ public class FUNcubeDecoder extends Decoder {
 			if (sampleSum >= 0) { // This means the phase did not change
 				middleSample[i] = true;
 				eyeData.setHigh((int)sampleSum/samples);
-			} else {
+			} else { // we had a phase change, so a zero
 				middleSample[i] = false;
 				eyeData.setLow((int)sampleSum/samples);
 			}
-			//System.out.println("Bit: " + i +" " + middleSample[i]);
+		//	System.out.println("Bit: " + i +" " + middleSample[i]);
 			bitStream.addBit(middleSample[i]);
+			bitStream.checkSyncVector();
 		}
-		bitStream.findSyncVector();
-		for (int i=0; i < bucketSize; i++) {
-			lastDataValue[i] = dataValues[SAMPLE_WINDOW_LENGTH-1][i];
-		 }	
+		int avgMaxBitEnergyIdx = sumMaxBitEnergyIdx / SAMPLE_WINDOW_LENGTH;
+//		System.out.println(bucketSize/4 + ": Max Energy: " + avgMaxBitEnergyIdx);
+		
+//		for (int i=0; i < bucketSize; i++) {
+//			lastDataValue[i] = dataValues[SAMPLE_WINDOW_LENGTH-1][i];
+//		 }	
 		avgClockOffset = avgClockOffset / (SAMPLE_WINDOW_LENGTH-1);
-		System.out.println("Clock Offset: " + avgClockOffset);
-		if (avgClockOffset < 1000000)
-			clockOffset = 2;
+		
+		if (avgMaxBitEnergyIdx > bucketSize/4)
+			clockOffset = 1;
 		else
 			clockOffset = 0;
+		
 	//	System.exit(1);
 		
 	}
@@ -188,6 +211,27 @@ public class FUNcubeDecoder extends Decoder {
 	protected int recoverClockOffset() {
 		
 		return clockOffset;
+	}
+	
+	protected byte[] recoverClock(int factor) {
+
+    	if (clockOffset > 0) {
+    	// There are 40 samples in a 1200bps bucket. The clock offset 
+    		byte[] clockData = new byte[clockOffset*bytesPerSample];
+    		if (Config.debugClock) Log.println("Advancing clock " + clockOffset + " samples");
+    		int nBytesRead = readBytes(clockData);
+    		if (nBytesRead != (clockOffset*bytesPerSample)) {
+    			if (Config.debugClock) Log.println("ERROR: Could not advance clock");
+    		} else {
+    			// This is the new clock offsest
+    			// Reprocess the data in the current window
+    			return clockData;
+    		}
+    	} else {
+    		if (Config.debugClock) Log.println("PSK CLOCK STABLE");
+    		return null;
+    	}
+    	return null;
 	}
 
 	@Override
