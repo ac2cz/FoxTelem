@@ -6,7 +6,7 @@ import java.awt.Graphics;
 import java.text.DecimalFormat;
 
 import common.Config;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import telemetry.PayloadStore;
 
 /**
@@ -20,7 +20,7 @@ import telemetry.PayloadStore;
 public class DensityPlotPanel extends GraphCanvas {
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
 
-	DensityPlotPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
+	DensityPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
 		updateGraphData("DensityPlotPanel.new");
 	}

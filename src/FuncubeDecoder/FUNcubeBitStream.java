@@ -1,8 +1,9 @@
-package decoder;
+package FuncubeDecoder;
 
-import FuncubeDecoder.FECDecoder;
 import common.Config;
 import common.Log;
+import decoder.BitStream;
+import decoder.Decoder;
 
 public class FUNcubeBitStream extends BitStream {
 

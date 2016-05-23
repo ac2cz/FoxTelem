@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import common.Config;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.PayloadStore;
 
@@ -59,7 +59,7 @@ public class GraphPanel extends GraphCanvas {
 	
 	
 	
-	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
+	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
 		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
 		updateGraphData("GrapPanel.new");

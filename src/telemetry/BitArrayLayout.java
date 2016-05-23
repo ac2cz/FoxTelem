@@ -95,7 +95,7 @@ public class BitArrayLayout {
 	/**
 	 * Create an empty layout for manual init
 	 */
-	BitArrayLayout() {
+	public BitArrayLayout() {
 		
 	}
 	

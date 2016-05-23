@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
+import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 
@@ -88,7 +89,7 @@ public class PayloadRadExpData extends FramePart {
 	 */
 	public RadiationTelemetry calculateTelemetryPalyoad() {
 		//if (isTelemetry()) {
-			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getRadTelemLayout(id));
+			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}

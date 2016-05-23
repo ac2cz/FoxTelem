@@ -4,7 +4,7 @@ import java.awt.Color;
 
 import javax.swing.JPanel;
 
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -33,7 +33,7 @@ import telemetry.LayoutLoadException;
 @SuppressWarnings("serial")
 public class ModuleTab extends FoxTelemTab {
 
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId = 0;
 
 	DisplayModule[] topModules;

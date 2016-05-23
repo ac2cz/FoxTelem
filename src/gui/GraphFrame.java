@@ -48,6 +48,7 @@ import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
 
 /**
@@ -105,7 +106,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
 	
-	public Spacecraft fox;
+	public FoxSpacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
 	public int SAMPLES = DEFAULT_SAMPLES;
 	public static long DEFAULT_START_UPTIME = 0;
@@ -155,7 +156,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft sat, Boolean showSkyChart) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, FoxSpacecraft sat, Boolean showSkyChart) {
 		fox = sat;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -416,15 +417,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FramePart.TYPE_REAL_TIME)
-			layout = fox.rtLayout;
+			layout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
 		else if (plType == FramePart.TYPE_MAX_VALUES)
-			layout = fox.maxLayout;
+			layout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
 		else if (plType == FramePart.TYPE_MIN_VALUES)
-			layout = fox.minLayout;
+			layout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 		else if (plType == FramePart.TYPE_RAD_TELEM_DATA)
-			layout = fox.rad2Layout;
+			layout = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		else if (plType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-			layout = fox.herciHS2Layout;
+			layout = fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT);
 		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
 			layout = fox.measurementLayout;
 		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)

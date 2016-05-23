@@ -9,7 +9,7 @@ import java.text.DecimalFormat;
 import javax.swing.JPanel;
 
 import common.Config;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -18,7 +18,7 @@ import telemetry.RadiationPacket;
 
 @SuppressWarnings("serial")
 public abstract class GraphCanvas extends JPanel {
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	double[][][] graphData = null;
 	double[][][] graphData2 = null;
 	String title = "Test Graph";
@@ -44,7 +44,7 @@ public abstract class GraphCanvas extends JPanel {
 	Graphics2D g2;
 	Graphics g;
 
-	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
+	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		title = t;
 		payloadType = plType;
 		this.conversionType = conversionType;

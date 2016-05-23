@@ -14,7 +14,7 @@ import javax.swing.JOptionPane;
 
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -46,7 +46,7 @@ import common.Spacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
-	private Spacecraft fox;
+	private FoxSpacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
 	//private boolean initRad2 = false;
@@ -83,7 +83,7 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
-		fox = Config.satManager.getSpacecraft(foxId);
+		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(foxId);
 		
 		try {
 			initPayloadFiles();
@@ -311,17 +311,17 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+	public double[][] getRtGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
 		return rtRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+	public double[][] getMaxGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
 		return maxRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+	public double[][] getMinGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
 		return minRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
@@ -336,7 +336,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
 		return radTelemRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}
@@ -370,7 +370,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
 		return herciHeaderRecords.getGraphData(name, period, id, fromReset, fromUptime);
 		
 	}

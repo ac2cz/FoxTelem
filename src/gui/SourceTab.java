@@ -47,12 +47,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
+import FuncubeDecoder.FUNcubeDecoder;
 import common.Config;
 import common.Log;
 import common.PassManager;
 import decoder.FoxDecoder;
 import decoder.Decoder;
-import decoder.FUNcubeDecoder;
 import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
 import decoder.SinkAudio;

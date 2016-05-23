@@ -2,7 +2,7 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 
@@ -373,7 +373,7 @@ public class RadiationTelemetry extends FramePart {
 		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 
-	public String getStringValue(String name, Spacecraft fox) {
+	public String getStringValue(String name, FoxSpacecraft fox) {
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
@@ -444,7 +444,7 @@ public class RadiationTelemetry extends FramePart {
 		return s;
 	}
 
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
 		
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 			switch (conversion) {
@@ -501,7 +501,7 @@ public class RadiationTelemetry extends FramePart {
 		
 	}
 
-	public String toDataString(Spacecraft fox) {
+	public String toDataString(FoxSpacecraft fox) {
 		copyBitsToFields();
 		String s = new String();
 		for (int i=0; i < layout.fieldName.length; i++) {

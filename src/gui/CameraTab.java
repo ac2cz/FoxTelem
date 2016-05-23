@@ -43,7 +43,7 @@ import telemetry.FramePart;
 import telemetry.SortedJpegList;
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -80,7 +80,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	
 	private SortedJpegList jpegIndex;
 	
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId = 0;
 
 	int selectedThumb = 0;
@@ -129,7 +129,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	
 	int actualThumbnails = 0;
 	
-	CameraTab(Spacecraft sat) {
+	CameraTab(FoxSpacecraft sat) {
 		
 		
 		

@@ -15,6 +15,7 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import gui.MainWindow;
 
 /**
@@ -172,7 +173,7 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) throws IOException {
+	double[][] getGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) throws IOException {
 		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
@@ -437,18 +438,18 @@ public class SatPayloadTable {
 		}
 		FramePart rt = null;
 		if (type == FramePart.TYPE_REAL_TIME) {
-			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
+			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.REAL_TIME_LAYOUT));
 		} else
 			if (type == FramePart.TYPE_MAX_VALUES) {
-				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
+				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
 
 			} else
 				if (type == FramePart.TYPE_MIN_VALUES) {
-					rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
+					rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
 
 				}
 		if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 		if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
@@ -468,7 +469,7 @@ public class SatPayloadTable {
 			}
 		}        			
 		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
-			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
+			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
 			rt.type = type; // make sure we get the right type
 			if (Config.generateSecondaryPayloads) {
 				// Test routine that generates the secondary payloads
@@ -494,7 +495,7 @@ public class SatPayloadTable {
 			}
 		}
 		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
-			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS2_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 		if (type == FramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {

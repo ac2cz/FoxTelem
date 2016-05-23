@@ -30,6 +30,7 @@ import telemetry.PayloadHERCIhighSpeed;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.FoxDecoder;
 
 /**
@@ -76,7 +77,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
-	public HerciHSTab(Spacecraft sat) {
+	public HerciHSTab(FoxSpacecraft sat) {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
@@ -114,7 +115,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 		initDisplayHalves(healthPanel);
 
-		BitArrayLayout rad = fox.herciHS2Layout;
+		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI);

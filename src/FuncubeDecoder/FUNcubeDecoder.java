@@ -1,13 +1,14 @@
-package decoder;
+package FuncubeDecoder;
 
 import java.io.IOException;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.UnsupportedAudioFileException;
 
-import FuncubeDecoder.FECDecoder;
 import common.Config;
 import common.Log;
+import decoder.Decoder;
+import decoder.SourceAudio;
 import filter.AGCFilter;
 
 public class FUNcubeDecoder extends Decoder {
@@ -439,7 +440,12 @@ public class FUNcubeDecoder extends Decoder {
 						dmMaxCorr=0;
 						decodeOK = dmErrBits<0 ? false : true;
 						Log.println("FEC DECODE: " + decodeOK);
-						cntDec += (decodeOK ? 1 : 0);
+						if (decodeOK) {
+							FUNcubeFrame fcf = new FUNcubeFrame();
+							fcf.addRawFrame(decoded);
+							fcf.toString();
+						}
+						//cntDec += (decodeOK ? 1 : 0);
 					}
 					if (dmCorr > dmMaxCorr)
 						dmMaxCorr=dmCorr;

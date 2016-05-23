@@ -21,7 +21,7 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import common.TlmServer;
 import fec.RsCodeWord;
 
@@ -69,7 +69,7 @@ public abstract class Frame implements Comparable<Frame> {
 			"E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
 
 	protected Header header = null;
-	Spacecraft fox; // the satellite that we are decoding a frame for, populated
+	FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
 	public static final int DUV_FRAME = 0;

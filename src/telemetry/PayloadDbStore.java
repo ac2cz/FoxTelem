@@ -18,6 +18,7 @@ import telemServer.StpFileProcessException;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -145,7 +146,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
         payloadStore = new SatPayloadDbStore[sats.size()];
         //pictureStore = new SatPictureStore[sats.size()];
         for (int s=0; s<sats.size(); s++) {
-        	payloadStore[s] = new SatPayloadDbStore(sats.get(s));
+        	payloadStore[s] = new SatPayloadDbStore((FoxSpacecraft) sats.get(s));
 			//if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			
 		}
@@ -154,7 +155,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public void initRad2() {
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		for (int s=0; s<sats.size(); s++) {
-			payloadStore[s] = new SatPayloadDbStore(sats.get(s));
+			payloadStore[s] = new SatPayloadDbStore((FoxSpacecraft) sats.get(s));
 			payloadStore[s].initRad2();
 		}
 	}
@@ -627,7 +628,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getRtGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -639,7 +640,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMaxGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -651,7 +652,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMinGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -856,14 +857,14 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getRadTelemGraphData(String name, int period,
-			Spacecraft fox, int fromReset, long fromUptime) {
+			FoxSpacecraft fox, int fromReset, long fromUptime) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public double[][] getMeasurementGraphData(String name, int period,
-			Spacecraft fox, int fromReset, long fromUptime) {
+			FoxSpacecraft fox, int fromReset, long fromUptime) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -877,7 +878,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 
 	@Override
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset,
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
 			long fromUptime) {
 		// TODO Auto-generated method stub
 		return null;
@@ -946,7 +947,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset,
+	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
 			long fromUptime) {
 		// TODO Auto-generated method stub
 		return null;

@@ -3,7 +3,10 @@ package common;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import FuncubeDecoder.FUNcubeSpacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -36,19 +39,25 @@ import telemetry.LayoutLoadException;
 public class SatelliteManager {
 	
 	ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
+	public FUNcubeSpacecraft funCube;
 	
 	public SatelliteManager()  {
-		File folder = new File(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR);
+		File folder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
 		//File folder = new File("spacecraft");
 		File[] listOfFiles = folder.listFiles();
-
+		Pattern pattern = Pattern.compile("AO-73");
 		if (listOfFiles != null) {
 		for (int i = 0; i < listOfFiles.length; i++) {
 			if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".dat")) {
 				Log.println("Loading spacecraft from: " + listOfFiles[i].getName());
 				Spacecraft satellite = null;
 				try {
-					satellite = new Spacecraft(listOfFiles[i].getName());
+					//FIXME - HACK FOR FCUBE
+					Matcher matcher = pattern.matcher(listOfFiles[i].getName());
+					if (matcher.find())
+						funCube = new FUNcubeSpacecraft(listOfFiles[i].getName());
+					else
+						satellite = new FoxSpacecraft(listOfFiles[i].getName());
 				} catch (FileNotFoundException e) {
 					Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
 					e.printStackTrace(Log.getWriter());
@@ -69,7 +78,7 @@ public class SatelliteManager {
 		}
 		if (spacecraftList.size() == 0) {
 			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 
-					Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +
+					Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR +
 					"\n and confirm it contains the "
 					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
 			System.exit(1);
@@ -81,39 +90,46 @@ public class SatelliteManager {
 	 * @param sat
 	 * @return
 	 */
-	public BitArrayLayout getRtLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
-		if (sc != null) return sc.rtLayout;
+	public BitArrayLayout getLayoutByName(int sat, String name) {
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		if (sc != null) return sc.getLayoutByName(name);
 		return null;
 	}
 
+	/*
 	public BitArrayLayout getMaxLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) return sc.maxLayout;
 		return null;
 	}
 
 	public BitArrayLayout getMinLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) return sc.minLayout;
 		return null;
 	}
 
 	public BitArrayLayout getRadLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) return sc.radLayout;
 		return null;
 	}
 
 	public BitArrayLayout getRadTelemLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) return sc.rad2Layout;
 		return null;
 	}
 
 	
 	public BitArrayLayout getHerciHSLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) {
 			if (sc.hasHerci())
 				return sc.herciHSLayout;
@@ -122,7 +138,8 @@ public class SatelliteManager {
 	}
 
 	public BitArrayLayout getHerciHSHeaderLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) {
 			if (sc.hasHerci())
 				return sc.herciHS2Layout;
@@ -130,30 +147,37 @@ public class SatelliteManager {
 		return null;
 	}
 
+	*/
 	
 	public BitArrayLayout getMeasurementLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) return sc.measurementLayout;
 		return null;
 	}
 
 	public BitArrayLayout getPassMeasurementLayout(int sat) {
-		Spacecraft sc = getSpacecraft(sat);
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
 		if (sc != null) return sc.passMeasurementLayout;
 		return null;
 	}
 	
-	public ArrayList<Spacecraft> getSpacecraftList() { return spacecraftList; } 
+	public ArrayList<Spacecraft> getSpacecraftList() { 
+		return spacecraftList; 
+	} 
 
 	public int getNumberOfSpacecraft() { return spacecraftList.size(); }
 
 	public boolean hasCamera(int sat) {
-		Spacecraft s = getSpacecraft(sat);
+		if (!validFoxId(sat)) return false;
+		FoxSpacecraft s = (FoxSpacecraft)getSpacecraft(sat);
 		return s.hasCamera();
 	}
 
 	public boolean hasHerci(int sat) {
-		Spacecraft s = getSpacecraft(sat);
+		if (!validFoxId(sat)) return false;
+		FoxSpacecraft s = (FoxSpacecraft)getSpacecraft(sat);
 		return s.hasHerci();
 	}
 

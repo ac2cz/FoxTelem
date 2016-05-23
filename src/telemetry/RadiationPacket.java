@@ -1,6 +1,6 @@
 package telemetry;
 
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 
 /**
@@ -122,7 +122,7 @@ public class RadiationPacket extends BitArray{
 		public int getType() { return fieldValue[TYPE_FIELD]; }
 		public int getSequence() { return fieldValue[SEQUENCE_FIELD]; }
 		
-		public String getStringValue(String name, Spacecraft fox) {
+		public String getStringValue(String name, FoxSpacecraft fox) {
 			// FIXME - implement
 			return null;
 		}
@@ -466,7 +466,7 @@ public class RadiationPacket extends BitArray{
 		}
 
 		public double convertRawValue(String name, int rawValue,
-				int conversion, Spacecraft fox) {
+				int conversion, FoxSpacecraft fox) {
 			// TODO Auto-generated method stub
 			return 0;
 		}

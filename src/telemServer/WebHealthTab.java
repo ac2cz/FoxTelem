@@ -7,6 +7,7 @@ import java.util.TimeZone;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import gui.DisplayModule;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -17,7 +18,7 @@ import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
 
 public class WebHealthTab {
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	PayloadRtValues payloadRt;
 	PayloadMaxValues payloadMax;
 	PayloadMinValues payloadMin;
@@ -34,13 +35,15 @@ public class WebHealthTab {
 	int numOfBottomModules = 1;
 	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(Spacecraft f, int p) throws LayoutLoadException {
+	public WebHealthTab(FoxSpacecraft f, int p) throws LayoutLoadException {
 		fox = f;
 		port = p;
-		rtlayout = fox.rtLayout;
-		maxlayout = fox.maxLayout;
-		minlayout = fox.minLayout;
-		analyzeModules(fox.rtLayout, fox.maxLayout, fox.minLayout, 0);
+		rtlayout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+		minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		analyzeModules(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), 
+				fox.getLayoutByName(Spacecraft.MAX_LAYOUT), 
+				fox.getLayoutByName(Spacecraft.MIN_LAYOUT), 0);
 	}
 	
 	public void setRtPayload(PayloadRtValues rt) {payloadRt = rt;}

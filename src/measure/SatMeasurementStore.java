@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -170,15 +170,15 @@ public class SatMeasurementStore {
 		return (PassMeasurement) passRecords.get(passRecords.size()-1);
 	}
 
-	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		return getGraphData(rtRecords, name, period, fox, fromReset, fromUptime);
 	}
 	
-	public double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		return getGraphData(passRecords, name, period, fox, fromReset, fromUptime);
 	}
 	
-	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 
 		int start = 0;
 		int end = 0;

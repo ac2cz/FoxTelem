@@ -57,7 +57,7 @@ public abstract class SourceAudio implements Runnable {
 	protected boolean done = false;
 	protected boolean running = true;
 	protected int sampleRate = 48000; // samples per second
-	protected AudioFormat audioFormat = null; // The format of the audio
+	public AudioFormat audioFormat = null; // The format of the audio
 
 	protected CircularByteBuffer[] circularBuffer;
 	

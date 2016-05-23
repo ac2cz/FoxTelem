@@ -11,6 +11,7 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import gui.GraphPanel;
@@ -315,7 +316,7 @@ longer send telemetry.
 			
 	}
 	
-	public String reportDate() {
+	public static String reportDate() {
 		
 		// Get the date using Calendar object.
 		// java.util.Date has no timezone, but the forat will give it the 
@@ -344,7 +345,7 @@ longer send telemetry.
 	 * @param name
 	 * @return
 	 */
-	public String getStringValue(String name, Spacecraft fox) {
+	public String getStringValue(String name, FoxSpacecraft fox) {
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
@@ -409,7 +410,7 @@ longer send telemetry.
 	 * @param conversion
 	 * @return
 	 */
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
 		
 	//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 		switch (conversion) {
@@ -434,7 +435,7 @@ longer send telemetry.
 				return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_B_SCALING_FACTOR;
 			if (name.equalsIgnoreCase("BATT_C_V"))
 				if (fox.useIHUVBatt)
-					return fox.ihuVBattTable.lookupValue(rawValue);
+					return fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 				else
 					return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_C_SCALING_FACTOR;
 			return ERROR_VALUE;
@@ -483,9 +484,9 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_MEMS_ROTATION:
 			return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
 		case BitArrayLayout.CONVERT_RSSI:
-			return fox.rssiTable.lookupValue(rawValue);
+			return fox.getLookupTableByName(Spacecraft.RSSI_LOOKUP).lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_IHU_TEMP:
-			return fox.ihuTable.lookupValue(rawValue);
+			return fox.getLookupTableByName(Spacecraft.IHU_TEMP_LOOKUP).lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_STATUS_BIT:
 			return rawValue;
 		case BitArrayLayout.CONVERT_IHU_DIAGNOSTIC:
@@ -507,7 +508,7 @@ longer send telemetry.
 	 * @param shortString
 	 * @return
 	 */
-	public static String ihuDiagnosticString(int rawValue, boolean shortString, Spacecraft fox) {
+	public static String ihuDiagnosticString(int rawValue, boolean shortString, FoxSpacecraft fox) {
 		// First 8 bits hold the type
 		int type = rawValue & 0xff ;
 		int value = 0;
@@ -612,7 +613,7 @@ longer send telemetry.
 			return "IHU SW: " + Character.toString((char) swType) + fox.foxId + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
-			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.ihuVBattTable.lookupValue(value),3) + "V";
+			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value),3) + "V";
 		}
 		return "-----" + type;
 	}

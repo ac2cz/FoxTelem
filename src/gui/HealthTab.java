@@ -31,6 +31,7 @@ import javax.swing.border.BevelBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 import java.awt.Color;
 import java.text.ParseException;
@@ -99,8 +100,8 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	private static final String CAPTURE_DATE = "Captured: ";
 	
 	
-	public HealthTab(Spacecraft f) {
-		fox = f;
+	public HealthTab(Spacecraft spacecraft) {
+		fox = (FoxSpacecraft) spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
 		
@@ -195,9 +196,9 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblCaptureDate.setForeground(textLblColor);
 		bottomPanel.add(lblCaptureDate );
 		
-		BitArrayLayout rt = fox.rtLayout;
-		BitArrayLayout max = fox.maxLayout;
-		BitArrayLayout min = fox.minLayout;
+		BitArrayLayout rt = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		BitArrayLayout max = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
 		try {
 			analyzeModules(rt, max, min, DisplayModule.DISPLAY_ALL);
@@ -257,7 +258,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	 */
 	private void displayId(int u) {
 		String id = "??";
-		id = fox.toString() + "(" + Spacecraft.models[fox.model] + ")";
+		id = fox.toString() + "(" + fox.models[fox.model] + ")";
 		lblIdValue.setText(id);
 	}
 

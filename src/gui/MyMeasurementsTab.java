@@ -19,6 +19,7 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -75,44 +76,45 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 		satellite = new DisplayModule[sats.size()];
 		passes = new DisplayModule[sats.size()];
 		for (int s = 0; s < sats.size(); s++) {
-
-			Spacecraft fox = sats.get(s);
-			satellite[s] = new DisplayModule(fox, fox.name, 9,
-					DisplayModule.DISPLAY_MEASURES);
-			centerPanel.add(satellite[s]);
-			satellite[s].addName(1, "Bit Sig to Noise (-)",
-					RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(2, "RF Sig to Noise (db)",
-					RtMeasurement.RF_SNR, DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(3, "RF Power (dBm)", RtMeasurement.RF_POWER,
-					DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(4, "Carrier Frequency (Hz)",
-					RtMeasurement.CARRIER_FREQ, DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(5, "Azimuth (deg)", RtMeasurement.AZ,
-					DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(6, "Elevation (deg)", RtMeasurement.EL,
-					DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(7, "RS Errors", RtMeasurement.ERRORS,
-					DisplayModule.DISPLAY_MEASURES);
-			satellite[s].addName(8, "RS Erasures", RtMeasurement.ERASURES,
-					DisplayModule.DISPLAY_MEASURES);
+			if (sats.get(s).isFox1()) {
+				FoxSpacecraft fox = (FoxSpacecraft) sats.get(s);
+				satellite[s] = new DisplayModule(fox, fox.name, 9,
+						DisplayModule.DISPLAY_MEASURES);
+				centerPanel.add(satellite[s]);
+				satellite[s].addName(1, "Bit Sig to Noise (-)",
+						RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(2, "RF Sig to Noise (db)",
+						RtMeasurement.RF_SNR, DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(3, "RF Power (dBm)", RtMeasurement.RF_POWER,
+						DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(4, "Carrier Frequency (Hz)",
+						RtMeasurement.CARRIER_FREQ, DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(5, "Azimuth (deg)", RtMeasurement.AZ,
+						DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(6, "Elevation (deg)", RtMeasurement.EL,
+						DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(7, "RS Errors", RtMeasurement.ERRORS,
+						DisplayModule.DISPLAY_MEASURES);
+				satellite[s].addName(8, "RS Erasures", RtMeasurement.ERASURES,
+						DisplayModule.DISPLAY_MEASURES);
+			}
 		}
-		
 		for (int s = 0; s < sats.size(); s++) {
-			Spacecraft fox = sats.get(s);
-			passes[s] = new DisplayModule(fox, fox.name + " passes", 9,
-					DisplayModule.DISPLAY_PASS_MEASURES);
-			centerPanel.add(passes[s]);
-			passes[s].addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(2, "TCA",	PassMeasurement.TCA, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(3, "TCA Freq (Hz)",PassMeasurement.TCA_FREQ, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(4, "LOS", PassMeasurement.LOS, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(5, "Start Azimuth", PassMeasurement.START_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
-			passes[s].addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
+			if (sats.get(s).isFox1()) {
+				FoxSpacecraft fox = (FoxSpacecraft) sats.get(s);
+				passes[s] = new DisplayModule(fox, fox.name + " passes", 9,
+						DisplayModule.DISPLAY_PASS_MEASURES);
+				centerPanel.add(passes[s]);
+				passes[s].addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(2, "TCA",	PassMeasurement.TCA, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(3, "TCA Freq (Hz)",PassMeasurement.TCA_FREQ, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(4, "LOS", PassMeasurement.LOS, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(5, "Start Azimuth", PassMeasurement.START_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
+				passes[s].addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
+			}
 		}
-		
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));

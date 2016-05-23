@@ -4,7 +4,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 /*
@@ -327,14 +327,14 @@ public class HerciHighSpeedPacket extends FramePart {
 	}
 	
 	@Override
-	public String getStringValue(String name, Spacecraft fox) {
+	public String getStringValue(String name, FoxSpacecraft fox) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public double convertRawValue(String name, int rawValue, int conversion,
-			Spacecraft fox) {
+			FoxSpacecraft fox) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

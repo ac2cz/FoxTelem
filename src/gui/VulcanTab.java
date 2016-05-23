@@ -38,6 +38,7 @@ import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -99,7 +100,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	boolean displayTelem = true;
 	
-	public VulcanTab(Spacecraft sat)  {
+	public VulcanTab(FoxSpacecraft sat)  {
 		
 		super();
 		fox = sat;
@@ -138,7 +139,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = fox.rad2Layout;
+		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
@@ -376,9 +377,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		// try to decode any telemetry packets
 		for (int i=0; i<data.length; i++) {
 			RadiationTelemetry radTelem = null;
-			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.rad2Layout);
+			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
 			radTelem.rawBits = null; // otherwise we will overwrite the data we side load in
-			for (int k=2; k<this.fox.rad2Layout.NUMBER_OF_FIELDS+2; k++) {  // Add 2 to skip past reset uptime
+			for (int k=2; k<this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).NUMBER_OF_FIELDS+2; k++) {  // Add 2 to skip past reset uptime
 				try {
 					int val = Integer.valueOf(data[i][k]);
 					radTelem.fieldValue[k-2] = val;

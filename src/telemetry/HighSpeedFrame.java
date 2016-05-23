@@ -1,10 +1,13 @@
 package telemetry;
 
 import common.Config;
+import common.FoxSpacecraft;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
 import common.Log;
+import common.Spacecraft;
 
 /**
  * 
@@ -96,13 +99,13 @@ public class HighSpeedFrame extends Frame {
 		else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
 			if (firstNonHeaderByte) {
 				header.copyBitsToFields(); // make sure the id is populated
-				fox = Config.satManager.getSpacecraft(header.id);
+				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 				if (fox != null) {
-					rtPayload = new PayloadRtValues(Config.satManager.getRtLayout(header.id));
-					maxPayload = new PayloadMaxValues(Config.satManager.getMaxLayout(header.id));
-					minPayload = new PayloadMinValues(Config.satManager.getMinLayout(header.id));
+					rtPayload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+					maxPayload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+					minPayload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
 					for (int i=0; i < DEFAULT_RAD_EXP_PAYLOADS; i++)
-						radExpPayload[i] = new PayloadRadExpData(Config.satManager.getRadLayout(header.id));				
+						radExpPayload[i] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));				
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					if (fox.hasCamera())
@@ -146,7 +149,7 @@ public class HighSpeedFrame extends Frame {
 					if (herciLineCount.hasData()) {
 						herciPayload = new PayloadHERCIhighSpeed[herciLineCount.getLineCount()];
 						for (int i=0; i < herciLineCount.getLineCount(); i++)
-							herciPayload[i] = new PayloadHERCIhighSpeed(Config.satManager.getHerciHSLayout(header.id));	
+							herciPayload[i] = new PayloadHERCIhighSpeed(Config.satManager.getLayoutByName(header.id, Spacecraft.HERCI_HS_LAYOUT));	
 					}
 				} else {
 					// This looks like a corrupt frame, set the linecount to zero so that we do not process it

@@ -20,6 +20,7 @@ import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 
 public class WebServiceProcess implements Runnable {
@@ -103,7 +104,7 @@ public class WebServiceProcess implements Runnable {
 							PayloadMinValues min = Config.payloadStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -129,7 +130,7 @@ public class WebServiceProcess implements Runnable {
 							int fromReset = Integer.parseInt(path[6]);
 							int fromUptime = Integer.parseInt(path[7]);
 							try {
-								fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
+								fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
 							} catch (LayoutLoadException e1) {
 								e1.printStackTrace(Log.getWriter());
 							}

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
+import common.Spacecraft;
 import decoder.FoxDecoder;
 
 /**
@@ -169,7 +170,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 	 * @return
 	 */
 	public HerciHighspeedHeader calculateTelemetryPalyoad() {
-		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getHerciHSHeaderLayout(id));
+		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
 		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}

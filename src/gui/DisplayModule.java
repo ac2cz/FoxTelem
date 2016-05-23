@@ -25,6 +25,7 @@ import javax.swing.border.TitledBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
@@ -72,7 +73,7 @@ import telemetry.RadiationPacket;
 public class DisplayModule extends JPanel implements ActionListener, MouseListener {
 
 	int size = 0;
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId;
 	double scale; // amount to scale the modules by given the Font size
 	String[] fieldName = null;  // string used to lookup new values
@@ -159,7 +160,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	 * @param title
 	 * @param size
 	 */
-	public DisplayModule(Spacecraft sat, String title, int size, int modType) {
+	public DisplayModule(FoxSpacecraft sat, String title, int size, int modType) {
 		fox = sat;
 		foxId = fox.foxId;
 		this.size = size;
@@ -500,20 +501,23 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
-					units = fox.rad2Layout.getUnitsByName(fieldName[i]);
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+					conversion = lay.getConversionByName(fieldName[i]);
+					units = lay.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					conversion = fox.herciHS2Layout.getConversionByName(fieldName[i]);
-					units = fox.herciHS2Layout.getUnitsByName(fieldName[i]);
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT);
+					conversion = lay.getConversionByName(fieldName[i]);
+					units = lay.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					conversion = fox.rad2Layout.getConversionByName(fieldName[i]);
-					units = fox.rad2Layout.getUnitsByName(fieldName[i]);
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+					conversion = lay.getConversionByName(fieldName[i]);
+					units = lay.getUnitsByName(fieldName[i]);
 					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {

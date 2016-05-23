@@ -11,7 +11,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import common.Config;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
@@ -40,7 +40,7 @@ import telemetry.PayloadStore;
  */
 @SuppressWarnings("serial")
 public class DiagnosticTable extends JPanel {
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	double[][] graphData = null;
 	String title = "Test Graph";
 	String fieldName = null;
@@ -51,7 +51,7 @@ public class DiagnosticTable extends JPanel {
 	JScrollPane scrollPane;
 	
 	
-	DiagnosticTable(String t, String fieldName, int conversionType, GraphFrame gf, Spacecraft sat) {
+	DiagnosticTable(String t, String fieldName, int conversionType, GraphFrame gf, FoxSpacecraft sat) {
 		this.conversionType = conversionType;
 		title = t;
 		this.fieldName = fieldName;

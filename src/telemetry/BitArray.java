@@ -1,6 +1,6 @@
 package telemetry;
 
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 
 /**
@@ -53,7 +53,7 @@ public abstract class BitArray {
 //	public String[] getFieldNames() { return fieldName; }
 	public int[] getFieldValues() { return fieldValue; }
 
-	BitArray(BitArrayLayout l) {
+	protected BitArray(BitArrayLayout l) {
 		layout = l;
 	}
 	
@@ -71,7 +71,7 @@ public abstract class BitArray {
 		
 	}
 
-	public abstract String getStringValue(String name, Spacecraft fox);
+	public abstract String getStringValue(String name, FoxSpacecraft fox);
 	/**
 	 * Given a downloaded byte, add it to the raw bits array
 	 * Store the least significant bit first, even though the satellite sends the msb first.
@@ -143,7 +143,7 @@ public abstract class BitArray {
 	 * @param name
 	 * @return
 	 */
-	public double getDoubleValue(String name, Spacecraft fox) {
+	public double getDoubleValue(String name, FoxSpacecraft fox) {
 		
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
@@ -159,5 +159,7 @@ public abstract class BitArray {
 		return ERROR_VALUE;
 	}
 
-	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
+	public abstract double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox );	
+	
+	
 }

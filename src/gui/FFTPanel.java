@@ -17,6 +17,7 @@ import common.Config;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
 
@@ -503,8 +504,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		
 	}
 
-	public void setFox(Spacecraft f) {
-		fox = f;
+	public void setFox(Spacecraft spacecraft) {
+		fox = spacecraft;
 	}
 	
 	public void startProcessing(SourceIQ d) {
