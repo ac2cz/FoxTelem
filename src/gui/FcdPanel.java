@@ -4,15 +4,15 @@ import java.io.IOException;
 
 import javax.swing.JPanel;
 
-import fcd.FcdDevice;
-import fcd.FcdException;
+import fcd.Device;
+import fcd.DeviceException;
 
 @SuppressWarnings("serial")
 public abstract class FcdPanel extends JPanel {
 
-	public abstract void setFcd(FcdDevice fcd) throws IOException, FcdException;
+	public abstract void setFcd(Device fcd) throws IOException, DeviceException;
 	
-	public abstract void updateFilter() throws IOException, FcdException;
+	public abstract void updateFilter() throws IOException, DeviceException;
 	
 	public abstract void setEnabled(boolean b);
 

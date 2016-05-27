@@ -150,7 +150,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		    String[] result = new String[device];
 		    result[0] = "Select audio source here then press start";
 		    result[FILE_SOURCE] = FILE_SOURCE_NAME;
-		 //   result[IQ_FILE_SOURCE] = IQ_FILE_SOURCE_NAME;
+		    result[AIRSPY_SOURCE] = AIRSPY_SOURCE_NAME;
 		 //   result[BIT_FILE_SOURCE] = BIT_FILE_SOURCE_NAME;
 		    for (int i=OFFSET; i< device; i++)
 		    	result[i] = devices[i];

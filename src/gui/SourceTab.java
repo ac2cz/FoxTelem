@@ -58,8 +58,10 @@ import decoder.SourceAudio;
 import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceWav;
+import device.airspy.AirspyDevice;
+import fcd.Device;
+import fcd.DeviceException;
 import fcd.FcdDevice;
-import fcd.FcdException;
 import fcd.FcdProPlusDevice;
 
 import javax.swing.JProgressBar;
@@ -149,7 +151,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	
 	FilterPanel filterPanel;
 	
-	FcdDevice fcd;
+	Device rfDevice;
 	
 	static final int RATE_96000_IDX = 2;
 	static final int RATE_192000_IDX = 3;
@@ -941,14 +943,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			if (iqSource2 != null)
 				(iqSource2).setCenterFreqkHz(freq);
 			Config.fcdFrequency = freq;
-			if (fcd != null) {
+			if (rfDevice != null) {
 				if (freq < 100 || freq > 2500000) {
 					Log.errorDialog("FCD ERROR", "Frequency must be between 100 and 2500000");
 				} else {
 					try {
-						fcd.setFcdFreq(freq*1000);
+						rfDevice.setFrequency(freq*1000);
 						panelFcd.updateFilter();
-					} catch (FcdException e1) {
+					} catch (DeviceException e1) {
 						Log.errorDialog("ERROR", e1.getMessage());
 						e1.printStackTrace(Log.getWriter());
 					} catch (IOException e1) {
@@ -1093,6 +1095,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				highSpeed.setSelected(false);
 				Config.autoDecodeSpeed = false;
 			}
+		} else if (position == SourceAudio.AIRSPY_SOURCE) {
+			setIQVisible(true);
+			btnStartButton.setEnabled(true);
+			cbSoundCardRate.setVisible(true);
+			panelFile.setVisible(false);
+			auto.setEnabled(true);
 		} else { // its not a file so its a sound card or FCD that was picked
 			boolean fcdSelected = fcdSelected();
 			auto.setEnabled(true);
@@ -1117,15 +1125,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 	@SuppressWarnings("unused")
 	private void releaseFcd() {
-		if (fcd != null) { // release the FCD device
+		if (rfDevice != null) { // release the FCD device
 			try {
-				fcd.cleanup();
+				rfDevice.cleanup();
 			} catch (IOException e) {
 				e.printStackTrace(Log.getWriter());
-			} catch (FcdException e) {
+			} catch (DeviceException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			fcd = null;
+			rfDevice = null;
 		}
 	}
 	
@@ -1140,28 +1148,28 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		return false;
 	}
 	
-	private boolean usingFcd() throws IOException, FcdException {
+	private boolean usingFcd() throws IOException, DeviceException {
 		boolean fcdSelected = fcdSelected();
 		if (fcdSelected) {
 			
-				if (fcd == null) {
-					fcd = FcdDevice.makeDevice();	
-					if (fcd == null) return false; // FIXME this is an issue because we found the description but not the HID device
+				if (rfDevice == null) {
+					rfDevice = FcdDevice.makeDevice();	
+					if (rfDevice == null) return false; // FIXME this is an issue because we found the description but not the HID device
 					try {
-						if (fcd instanceof FcdProPlusDevice)
+						if (rfDevice instanceof FcdProPlusDevice)
 							panelFcd = new FcdProPlusPanel();
 						else
 							panelFcd = new FcdProPanel();
-						panelFcd.setFcd(fcd);
+						panelFcd.setFcd(rfDevice);
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
-					} catch (FcdException e) {
+					} catch (DeviceException e) {
 						e.printStackTrace(Log.getWriter());
 					}
 					SDRpanel.add(panelFcd, BorderLayout.CENTER);
 				}
 				SDRpanel.setVisible(true);
-				if (fcd.isHidConnected()) {
+				if (rfDevice.isConnected()) {
 					panelFcd.setEnabled(true);
 				} else {
 					panelFcd.setEnabled(false);
@@ -1179,8 +1187,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	}
 
 	private void setFcdSampleRate() {
-		Config.scSampleRate = fcd.SAMPLE_RATE;
-		if (fcd.SAMPLE_RATE == 96000)
+		Config.scSampleRate = rfDevice.SAMPLE_RATE;
+		if (rfDevice.SAMPLE_RATE == 96000)
 			cbSoundCardRate.setSelectedIndex(RATE_96000_IDX);
 		else
 			cbSoundCardRate.setSelectedIndex(RATE_192000_IDX);
@@ -1294,6 +1302,30 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					} else {
 						stopButton();
 					}
+				} else if (position == SourceAudio.AIRSPY_SOURCE) {
+					SourceAudio audioSource;
+					if (rfDevice == null) {
+						rfDevice = AirspyDevice.makeDevice();
+						try {
+							panelFcd = new FcdProPanel();
+						} catch (IOException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						} catch (DeviceException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+						SDRpanel.add(panelFcd, BorderLayout.CENTER);
+						SDRpanel.setVisible(true);
+						panelFcd.setEnabled(true);
+						Config.iq = true;
+						iqAudio.setSelected(true);
+						setIQVisible(true);
+
+					} else {
+						SDRpanel.setVisible(false);
+						panelFcd = null;
+					}
 				} else { // soundcard - fcd or normal
 					SourceAudio audioSource;
 					boolean fcdSelected = false;
@@ -1332,7 +1364,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Log.errorDialog("FCD Start Error", e.getMessage());
 						e.printStackTrace(Log.getWriter());
 						stopButton();
-					} catch (FcdException e) {
+					} catch (DeviceException e) {
 						Log.errorDialog("FCD Start Error", e.getMessage());
 						e.printStackTrace(Log.getWriter());
 						stopButton();
@@ -1661,12 +1693,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	 */
 	public void shutdown() {
 		Config.startButtonPressed = SourceTab.STARTED;
-		if (fcd != null)
+		if (rfDevice != null)
 			try {
-				fcd.cleanup();
+				rfDevice.cleanup();
 			} catch (IOException e) {
 				e.printStackTrace(Log.getWriter());
-			} catch (FcdException e) {
+			} catch (DeviceException e) {
 				e.printStackTrace(Log.getWriter());
 			}
 

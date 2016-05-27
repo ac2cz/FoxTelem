@@ -23,9 +23,9 @@ package fcd;
  *
  */
 @SuppressWarnings("serial")
-public class FcdException extends Exception{
+public class DeviceException extends Exception{
 
-	public FcdException(String string) {
+	public DeviceException(String string) {
 		super(string);
 	}
 	
