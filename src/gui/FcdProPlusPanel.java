@@ -20,8 +20,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import common.Log;
-import fcd.FcdDevice;
-import fcd.FcdException;
+import fcd.Device;
+import fcd.DeviceException;
 import fcd.FcdProPlusDevice;
 
 @SuppressWarnings("serial")
@@ -36,7 +36,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
 	
-	FcdProPlusPanel() throws IOException, FcdException {
+	FcdProPlusPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
@@ -48,7 +48,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 		cbMixerGain.setEnabled(b);
 		cbLnaGain.setEnabled(b);
 	}
-	public void initializeGui() throws IOException, FcdException {
+	public void initializeGui() throws IOException, DeviceException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();
 		JPanel top = new JPanel();
@@ -96,20 +96,20 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	}
 	
 	@Override
-	public void setFcd(FcdDevice fcd) throws IOException, FcdException {
+	public void setFcd(Device fcd) throws IOException, DeviceException {
 		setFcd((FcdProPlusDevice)fcd);
 		
 	}
-	public void setFcd(FcdProPlusDevice f) throws IOException, FcdException { 
+	public void setFcd(FcdProPlusDevice f) throws IOException, DeviceException { 
 		fcd = f; 
 		getSettings();
 	}
 	
-	public void updateFilter() throws IOException, FcdException {
+	public void updateFilter() throws IOException, DeviceException {
 		rfFilterValue.setText(fcd.getRfFilter());
 	}
 	
-	public void getSettings()  throws IOException, FcdException {
+	public void getSettings()  throws IOException, DeviceException {
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -146,7 +146,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (FcdException e) {
+				} catch (DeviceException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -171,7 +171,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 					fcd.setMixerGain(true);
 				}
 				cbMixerGain.setSelected(fcd.getMixerGain());
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting Mixer Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			} catch (IOException e1) {
@@ -187,7 +187,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 					fcd.setLnaGain(true);
 				}
 				cbLnaGain.setSelected(fcd.getLnaGain());
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			} catch (IOException e1) {
@@ -207,7 +207,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	        try {
 	        	Log.println("Setting IF Gain to: " + u);
 				fcd.setIFGain(u);
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting IF Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			}
