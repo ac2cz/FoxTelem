@@ -628,7 +628,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public double[][] getRtGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -640,7 +640,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public double[][] getMaxGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -652,7 +652,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;		
 	}
 
-	public double[][] getMinGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -884,35 +884,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	@Override
-	public boolean getUpdatedHerci(int id) {
-		// TODO Auto-generated method stub
-		return false;
-	}
 
-	@Override
-	public void setUpdatedHerci(int id, boolean u) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public boolean getUpdatedHerciHeader(int id) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public void setUpdatedHerciHeader(int id, boolean u) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public int getNumberOfHerciFrames(int id) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 
 	@Override
 	public PayloadHERCIhighSpeed getLatestHerci(int id) {
@@ -951,6 +923,30 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			long fromUptime) {
 		// TODO Auto-generated method stub
 		return null;
+	} 
+
+	@Override
+	public boolean getUpdated(int id, String lay) {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public void setUpdated(int id, String lay, boolean u) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public int getTotalNumberOfFrames(String lay) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getNumberOfFrames(int id, String lay) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 

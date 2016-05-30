@@ -16,7 +16,8 @@ public abstract class Spacecraft {
 	public String propertiesFileName;
 	
 	public static String SPACECRAFT_DIR = "spacecraft";
-
+	public static final int ERROR_IDX = -1;
+	
 	public static final int FOX1A = 1;
 	public static final int FOX1B = 2;
 	public static final int FOX1C = 3;
@@ -33,7 +34,8 @@ public abstract class Spacecraft {
 	public static final String RAD_LAYOUT = "RAD";
 	public static final String RAD2_LAYOUT = "RAD2";
 	public static final String HERCI_HS_LAYOUT = "HERCI";
-	public static final String HERCI_HS2_LAYOUT = "RAD2";
+	public static final String HERCI_HS_HEADER_LAYOUT = "RAD2";
+	public static final String HERCI_HS_PKT_LAYOUT = "RAD3";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
@@ -60,6 +62,7 @@ public abstract class Spacecraft {
 	
 	public int foxId = 1;
 	public int catalogNumber = 0;
+	public String series = "Fox";
 	public String name = "Fox-1A";
 	public String description = "";
 	public int model;
@@ -72,12 +75,12 @@ public abstract class Spacecraft {
 	
 	public int numberOfLayouts = 4;
 	public String[] layoutFilename;
-	public String[] layoutName;
+	//public String[] layoutName;
 	public BitArrayLayout[] layout;
 	 	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
-	public String[] lookupTableName;
+	//public String[] lookupTableName;
 	public LookUpTable[] lookupTable;
 	
 	public String measurementsFileName;
@@ -101,30 +104,43 @@ public abstract class Spacecraft {
 		return false;
 	}
 	
-	public BitArrayLayout getLayoutByName(String name) {
+	public int getLayoutIdxByName(String name) {
 		for (int i=0; i<numberOfLayouts; i++)
-			if (layoutName[i].equalsIgnoreCase(name))
+			if (layout[i].name.equalsIgnoreCase(name))
+				return i;
+		return ERROR_IDX;
+	}
+	public int getLookupIdxByName(String name) {
+		for (int i=0; i<numberOfLookupTables; i++)
+			if (lookupTable[i].name.equalsIgnoreCase(name))
+				return i;
+		return ERROR_IDX;
+	}
+	
+	public BitArrayLayout getLayoutByName(String name) {
+		int i = getLayoutIdxByName(name);
+		if (i != ERROR_IDX)
 				return layout[i];
 		return null;
 	}
 
 	public LookUpTable getLookupTableByName(String name) {
-		for (int i=0; i<numberOfLookupTables; i++)
-			if (lookupTableName[i].equalsIgnoreCase(name))
+		int i = getLookupIdxByName(name);
+		if (i != ERROR_IDX)
 				return lookupTable[i];
 		return null;
 	}
 
 	public String getLayoutFileNameByName(String name) {
-		for (int i=0; i<numberOfLayouts; i++)
-			if (layoutName[i].equalsIgnoreCase(name))
+		int i = getLayoutIdxByName(name);
+		if (i != ERROR_IDX)
 				return layoutFilename[i];
 		return null;
 	}
 
 	public String getLookupTableFileNameByName(String name) {
-		for (int i=0; i<numberOfLookupTables; i++)
-			if (lookupTableName[i].equalsIgnoreCase(name))
+		int i = getLookupIdxByName(name);
+		if (i != ERROR_IDX)
 				return lookupTableFilename[i];
 		return null;
 	}
@@ -148,22 +164,23 @@ public abstract class Spacecraft {
 			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			layoutFilename = new String[numberOfLayouts];
-			layoutName = new String[numberOfLayouts];
+			//layoutName = new String[numberOfLayouts];
 			layout = new BitArrayLayout[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
-				layoutFilename[i] = getProperty("layoutFilename"+i);
-				layoutName[i] = getProperty("layoutName"+i);
+				layoutFilename[i] = getProperty("layout"+i+".filename");
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
+				layout[i].name = getProperty("layout"+i+".name");
+				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
 			}
 			
 			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
 			lookupTableFilename = new String[numberOfLookupTables];
-			lookupTableName = new String[numberOfLookupTables];
+			//lookupTableName = new String[numberOfLookupTables];
 			lookupTable = new LookUpTable[numberOfLookupTables];
 			for (int i=0; i < numberOfLookupTables; i++) {
-				lookupTableFilename[i] = getProperty("lookupTableFilename"+i);
-				lookupTableName[i] = getProperty("lookupTable"+i);
+				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
 				lookupTable[i] = new LookUpTable(lookupTableFilename[i]);
+				lookupTable[i].name = getProperty("lookupTable"+i);
 			}
 			
 			
@@ -229,6 +246,10 @@ public abstract class Spacecraft {
 		id = Integer.toString(foxId);
 
 		return id;
+	}
+	
+	public String toString() {
+		return name;
 	}
 	
 }

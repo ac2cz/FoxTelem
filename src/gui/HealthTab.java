@@ -16,6 +16,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
@@ -88,9 +89,9 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	
 	JCheckBox showRawValues;
 	JCheckBox showUTCtime;
-	PayloadRtValues realTime; // the RT payload we are currently displaying
-	PayloadMaxValues maxPayload; // the max payload we are currently displaying
-	PayloadMinValues minPayload; // the min payload we are currently displaying
+	FramePart realTime; // the RT payload we are currently displaying
+	FramePart maxPayload; // the max payload we are currently displaying
+	FramePart minPayload; // the min payload we are currently displaying
 		
 	private static final String ID = "Satellite ";
 	private static final String MODE = "  Mode: ";
@@ -101,7 +102,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	
 	
 	public HealthTab(Spacecraft spacecraft) {
-		fox = (FoxSpacecraft) spacecraft;
+		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
 		
@@ -274,13 +275,13 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		    Date result = null;
 		    String reportDate = null;
 			try {
-				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				result = FramePart.fileDateFormat.parse(u);
+				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				result = FoxFramePart.fileDateFormat.parse(u);
 				if (showUTCtime.isSelected())
-					FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				else 
-					FramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
-				reportDate = FramePart.reportDateFormat.format(result);
+					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
+				reportDate = FoxFramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
 				reportDate = "unknown";				
@@ -293,66 +294,66 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 			lblCaptureDate.setText(CAPTURE_DATE + reportDate);
 	}
 	
-	public void updateTabRT(PayloadRtValues rt) {
+	public void updateTabRT(FramePart realTime2) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.updateRtValues(rt);
+			mod.updateRtValues(realTime2);
 		}
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.updateRtValues(rt);
+			mod.updateRtValues(realTime2);
 		}
-		displayId(rt.getFoxId());
-		displayUptime(lblUptimeValue, rt.getUptime());
-		displayResets(lblResetsValue, rt.getResets());
-		displayCaptureDate(rt.getCaptureDate());
+		displayId(realTime2.getFoxId());
+		displayUptime(lblUptimeValue, realTime2.getUptime());
+		displayResets(lblResetsValue, realTime2.getResets());
+		displayCaptureDate(realTime2.getCaptureDate());
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
 	
 	
-	public void updateTabMax(PayloadMaxValues max) {
+	public void updateTabMax(FramePart maxPayload2) {
 		
 	//	System.out.println("GOT MAX PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.updateMaxValues(max);
+			mod.updateMaxValues(maxPayload2);
 		}
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.updateMaxValues(max);
+			mod.updateMaxValues(maxPayload2);
 		}
 	
-		displayId(max.getFoxId());
-		displayUptime(lblMaxUptimeValue, max.getUptime());
-		displayResets(lblMaxResetsValue, max.getResets());
-		displayCaptureDate(max.getCaptureDate());
-		displayMode(max.getRawValue("SafeModeIndication"));
+		displayId(maxPayload2.getFoxId());
+		displayUptime(lblMaxUptimeValue, maxPayload2.getUptime());
+		displayResets(lblMaxResetsValue, maxPayload2.getResets());
+		displayCaptureDate(maxPayload2.getCaptureDate());
+		displayMode(maxPayload2.getRawValue("SafeModeIndication"));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
-	public void updateTabMin(PayloadMinValues min) {
+	public void updateTabMin(FramePart minPayload2) {
 		
 	//	System.out.println("GOT MIN PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.updateMinValues(min);
+			mod.updateMinValues(minPayload2);
 		}
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.updateMinValues(min);
+			mod.updateMinValues(minPayload2);
 		}
 	
-		displayId(min.getFoxId());
-		displayUptime(lblMinUptimeValue, min.getUptime());
-		displayResets(lblMinResetsValue, min.getResets());
-		displayCaptureDate(min.getCaptureDate());
-		displayMode(min.getRawValue("SafeModeIndication"));
+		displayId(minPayload2.getFoxId());
+		displayUptime(lblMinUptimeValue, minPayload2.getUptime());
+		displayResets(lblMinResetsValue, minPayload2.getResets());
+		displayCaptureDate(minPayload2.getCaptureDate());
+		displayMode(minPayload2.getRawValue("SafeModeIndication"));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
 	
@@ -379,23 +380,23 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdatedMax(foxId)) {
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null)
 						updateTabMax(maxPayload);
-					Config.payloadStore.setUpdatedMax(foxId, false);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
 					
 				}
-				if (Config.payloadStore.getUpdatedMin(foxId)) {
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
 					if (minPayload != null)
 						updateTabMin(minPayload);
-					Config.payloadStore.setUpdatedMin(foxId, false);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
 					
 				}
 
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				if (Config.payloadStore.getUpdatedRt(foxId)) {
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT)) {
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
 						updateTabRT(realTime);
@@ -404,13 +405,12 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 						//System.out.println("NO new RT Data: ");
 
 					}
-					Config.payloadStore.setUpdatedRt(foxId, false);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
 					if (justStarted) {
 						openGraphs();
 						justStarted = false;
 					}
 				}
-				
 				
 				MainWindow.setTotalDecodes();
 

@@ -16,7 +16,7 @@ import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.Frame;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.Header;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;
@@ -144,7 +144,7 @@ public abstract class FoxDecoder extends Decoder {
 			if (Config.storePayloads) {
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FramePart payload = ssf.getPayload();
+					FoxFramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
 					

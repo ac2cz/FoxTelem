@@ -329,7 +329,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		cameraThread = new Thread[sats.size()];
 		herciThread = new Thread[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
-			if (sats.get(s).isFox1()) {
 				healthTab[s] = new HealthTab(sats.get(s));
 				healthThread[s] = new Thread(healthTab[s]);
 				healthThread[s].setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -340,6 +339,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 						+ sats.get(s).toString() + "</b></body></html>", healthTab[s] );
 				//			+" Health", healthTab );
 
+				if (sats.get(s).isFox1()) {
 				for (int exp : ((FoxSpacecraft)sats.get(s)).experiments) {
 					if (exp == FoxSpacecraft.EXP_VULCAN)
 						addExperimentTab((FoxSpacecraft)sats.get(s), s);
@@ -1049,6 +1049,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (HealthTab tab : healthTab)
 			tab.closeGraphs();
 		for (ModuleTab tab : radiationTab)
+			if (tab != null)
 			tab.closeGraphs();
 		for (ModuleTab tab : herciTab)
 			if (tab != null)

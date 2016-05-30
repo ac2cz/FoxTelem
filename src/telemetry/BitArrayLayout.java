@@ -42,6 +42,8 @@ public class BitArrayLayout {
 	public int NUMBER_OF_FIELDS = 0;
 	
 	public String fileName;
+	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
+	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
 	
 	public static final String NONE = "NONE";
 	
@@ -107,6 +109,11 @@ public class BitArrayLayout {
 	 */
 	public BitArrayLayout(String f) throws FileNotFoundException, LayoutLoadException {
 		load(f);
+	}
+	
+	public boolean isSecondaryPayload() {
+		if (parentLayout != null) return true;
+		return false;
 	}
 	
 	public boolean hasFieldName(String name) {

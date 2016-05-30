@@ -30,7 +30,7 @@ import decoder.FoxDecoder;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class PayloadRadExpData extends FramePart {
+public class PayloadRadExpData extends FoxFramePart {
 	
 	public static final int MAX_PAYLOAD_RAD_SIZE = 58;
 	

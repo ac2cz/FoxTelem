@@ -1,10 +1,11 @@
 package FuncubeDecoder;
 
-import common.FoxSpacecraft;
+import common.Spacecraft;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 
-public class PayloadHighRes extends BitArray {
+public class PayloadHighRes extends FramePart {
 
 	protected PayloadHighRes(BitArrayLayout l) {
 		super(l);
@@ -12,15 +13,21 @@ public class PayloadHighRes extends BitArray {
 	}
 
 	@Override
-	public String getStringValue(String name, FoxSpacecraft fox) {
+	public String getStringValue(String name, Spacecraft fox) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox) {
+	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public String toString() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

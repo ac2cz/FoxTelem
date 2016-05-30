@@ -43,7 +43,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
@@ -106,7 +106,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
 	
-	public FoxSpacecraft fox;
+	public Spacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
 	public int SAMPLES = DEFAULT_SAMPLES;
 	public static long DEFAULT_START_UPTIME = 0;
@@ -156,8 +156,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, FoxSpacecraft sat, Boolean showSkyChart) {
-		fox = sat;
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft fox2, Boolean showSkyChart) {
+		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
 		this.fieldUnits = fieldUnits;
@@ -197,15 +197,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		titlePanelcenter.add(lblTitle);
 
 		if (textDisplay(conversionType) ) {   
-			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
+			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, (FoxSpacecraft)fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
 		} else if (skyPlot){
 			initSkyPlotFields();
-			panel = new DensityPlotPanel(title, conversionType, payloadType, this, sat);
+			panel = new DensityPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
-			panel = new GraphPanel(title, conversionType, payloadType, this, sat);
+			panel = new GraphPanel(title, conversionType, payloadType, this, fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
@@ -416,16 +416,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
-		if (plType == FramePart.TYPE_REAL_TIME)
+		if (plType == FoxFramePart.TYPE_REAL_TIME)
 			layout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
-		else if (plType == FramePart.TYPE_MAX_VALUES)
+		else if (plType == FoxFramePart.TYPE_MAX_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
-		else if (plType == FramePart.TYPE_MIN_VALUES)
+		else if (plType == FoxFramePart.TYPE_MIN_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
-		else if (plType == FramePart.TYPE_RAD_TELEM_DATA)
+		else if (plType == FoxFramePart.TYPE_RAD_TELEM_DATA)
 			layout = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
-		else if (plType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-			layout = fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+			layout = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
 			layout = fox.measurementLayout;
 		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
@@ -1008,39 +1008,39 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		graphData = new double[fieldName.length][][];
 		
 		for (int j=0; j < fieldName.length; j++) {
-			if (payloadType == FramePart.TYPE_REAL_TIME)
+			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 				graphData[j] = Config.payloadStore.getRtGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_MAX_VALUES)
+			else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
 				graphData[j] = Config.payloadStore.getMaxGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_MIN_VALUES)
+			else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
 				graphData[j] = Config.payloadStore.getMinGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 			else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
-				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
-				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 
 		}
 		if (fieldName2 != null) {
 			graphData2 = new double[fieldName.length][][];
 			for (int j=0; j < fieldName2.length; j++) {
-				if (payloadType == FramePart.TYPE_REAL_TIME)
+				if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 					graphData2[j] = Config.payloadStore.getRtGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_MAX_VALUES)
+				else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
 					graphData2[j] = Config.payloadStore.getMaxGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_MIN_VALUES)
+				else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
 					graphData2[j] = Config.payloadStore.getMinGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-					graphData2[j] = Config.payloadStore.getRadTelemGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-					graphData2[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+					graphData2[j] = Config.payloadStore.getRadTelemGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+					graphData2[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 				else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
-					graphData2[j] = Config.payloadStore.getMeasurementGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
-					graphData2[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName2[j], this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 			}
 		}
 		if (graphData != null) {
@@ -1068,10 +1068,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 			for (int i=0; i< graphData[0][0].length; i++) {
 				String s;
-				if (this.showUTCtime) {
-					if (fox.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
-						s = fox.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 
-						+ " " + fox.getUtcTimeForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]);
+				if (this.showUTCtime && fox.isFox1()) {
+					FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+					if (fox2.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
+						s = fox2.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 
+						+ " " + fox2.getUtcTimeForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]);
 					else
 						s = "??"; 
 				} else

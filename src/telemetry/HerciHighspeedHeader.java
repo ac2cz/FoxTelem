@@ -3,6 +3,7 @@ package telemetry;
 import java.util.StringTokenizer;
 
 import common.FoxSpacecraft;
+import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 
@@ -98,7 +99,7 @@ import decoder.FoxDecoder;
       type is unique.  Lengths also vary with each type
       of data.
  */
-public class HerciHighspeedHeader extends FramePart {
+public class HerciHighspeedHeader extends FoxFramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 16;
 	public static final int HERCI_EPOCH_FIELD = 5;
@@ -173,7 +174,7 @@ public class HerciHighspeedHeader extends FramePart {
 		
 	}
 
-	public String getStringValue(String name, FoxSpacecraft fox) {
+	public String getStringValue(String name, Spacecraft fox) {
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
@@ -197,7 +198,7 @@ public class HerciHighspeedHeader extends FramePart {
 				s = " " + FoxDecoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
-		} else s =  super.getStringValue(name, fox);
+		} else s = super.getStringValue(name, fox);
 
 		return s;
 	}

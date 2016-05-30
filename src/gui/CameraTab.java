@@ -39,7 +39,7 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import telemetry.CameraJpeg;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.SortedJpegList;
 import common.Config;
 import common.Log;
@@ -403,10 +403,10 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		Date result = null;
 		String reportDate = null;
 			try {
-				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				result = FramePart.fileDateFormat.parse(u);
-				FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				reportDate = FramePart.reportDateFormat.format(result);
+				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				result = FoxFramePart.fileDateFormat.parse(u);
+				FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				reportDate = FoxFramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
 				reportDate = "unknown";				

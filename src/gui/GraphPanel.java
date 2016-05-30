@@ -10,6 +10,7 @@ import java.util.HashMap;
 
 import common.Config;
 import common.FoxSpacecraft;
+import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.PayloadStore;
 
@@ -59,9 +60,9 @@ public class GraphPanel extends GraphCanvas {
 	
 	
 	
-	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
-		super(t, conversionType, plType, gf, sat);
-		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
+	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft fox2) {
+		super(t, conversionType, plType, gf, fox2);
+		freqOffset = fox2.telemetryDownlinkFreqkHz * 1000;
 		updateGraphData("GrapPanel.new");
 	}
 
@@ -401,9 +402,12 @@ public class GraphPanel extends GraphCanvas {
 
 						}
 						if (graphFrame.showUTCtime) {
-							if (fox.hasTimeZero(resets)) {
-								g2.drawString(fox.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
-								g2.drawString(""+fox.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+							if (fox.isFox1()) {
+								FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+							if (fox2.hasTimeZero(resets)) {
+								g2.drawString(fox2.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+								g2.drawString(""+fox2.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+							}
 							}
 						}
 						g2.setColor(graphAxisColor);

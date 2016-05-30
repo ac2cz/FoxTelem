@@ -4,7 +4,7 @@ import java.awt.Color;
 
 import javax.swing.JPanel;
 
-import common.FoxSpacecraft;
+import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -33,7 +33,7 @@ import telemetry.LayoutLoadException;
 @SuppressWarnings("serial")
 public class ModuleTab extends FoxTelemTab {
 
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	int foxId = 0;
 
 	DisplayModule[] topModules;
@@ -151,8 +151,14 @@ public class ModuleTab extends FoxTelemTab {
 				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName +
 				".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
-				displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], rt.moduleDisplayType[j]);					
-			}
+				try {
+					displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], rt.moduleDisplayType[j]);					
+				} catch (NullPointerException e) {
+					throw new LayoutLoadException("Found NULL item error in Layout File: "+ rt.fileName +
+							".\nModule: " + topModuleName +
+									" has " + topModuleLine + " lines, but error adding " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
+				}
+				}
 		}
 
 	}

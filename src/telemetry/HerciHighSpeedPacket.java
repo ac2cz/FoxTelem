@@ -4,6 +4,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import common.Log;
+import common.Spacecraft;
 import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
@@ -102,7 +103,7 @@ about Big-Endian above all applies here as well.
               a unique 'Type' and status bit assignment.
 
  */
-public class HerciHighSpeedPacket extends FramePart {
+public class HerciHighSpeedPacket extends FoxFramePart {
 	public static final int MAX_PACKET_BYTES = 128; // Since the maximum packet size is 8+30*4, segmentation is never
 													// required to ship down a complete minipacket, i.e. the minipackets
 													// are always single segments.
@@ -325,19 +326,7 @@ public class HerciHighSpeedPacket extends FramePart {
 			b[i-7] = (byte)fieldValue[i];
 		return b;
 	}
-	
-	@Override
-	public String getStringValue(String name, FoxSpacecraft fox) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	@Override
-	public double convertRawValue(String name, int rawValue, int conversion,
-			FoxSpacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	
 	@Override
 	public String toString() {

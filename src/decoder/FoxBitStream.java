@@ -6,7 +6,7 @@ import common.Config;
 import common.Log;
 import common.Performance;
 import telemetry.Frame;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.HighSpeedHeader;
 import telemetry.SlowSpeedHeader;
 
@@ -195,7 +195,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * Search to see if there is a header before this SYNC word indicating that we missed a SYNC
 	 * Otherwise we throw this data away
 	 */
-	protected void checkMissingStartSYNC(int n, FramePart header) {
+	protected void checkMissingStartSYNC(int n, FoxFramePart header) {
 		int start = syncWords.get(n);
 		
 		if (start > SYNC_WORD_DISTANCE) {

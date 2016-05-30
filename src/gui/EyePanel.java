@@ -207,13 +207,13 @@ public class EyePanel extends JPanel implements Runnable {
 		int minValue = +999999;
 		// Check that buffer has been populated all the way to the end
 		if (buffer != null && buffer[NUMBER_OF_BITS-1] != null) {
+			try {
 			for (int i=0; i < NUMBER_OF_BITS; i++) {
 				for (int j=0; j < SAMPLES; j++) {
 					if (maxValue < buffer[i][j]) maxValue = buffer[i][j];
 					if (minValue > buffer[i][j]) minValue = buffer[i][j];
 				}
 			}
-			try {
 			for (int i=0; i < NUMBER_OF_BITS; i++) {
 				for (int j=0; j < SAMPLES; j++) {
 					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);

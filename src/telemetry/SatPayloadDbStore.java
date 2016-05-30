@@ -109,6 +109,9 @@ public class SatPayloadDbStore {
 	private void initPayloadFiles() {
 //		for (int i=0; i<fox.numberOfLayouts; i++)
 //			initPayloadTable("Fox"+fox.foxId+fox.layoutName[i]+"_LOG", fox.layout[i]);
+		
+		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
+		//
 		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
 		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
@@ -132,7 +135,7 @@ public class SatPayloadDbStore {
 
 	private void initHerciTables() {
 		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
-		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT));
+		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT));
 		String table = herciHSPacketTableName;
 		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
 		createTable(table, createStmt);
@@ -725,17 +728,17 @@ public class SatPayloadDbStore {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public double[][] getRtGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(rtTableName, name, period, id, fromReset, fromUptime);
+	public double[][] getRtGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime) throws SQLException {
+		return getGraphData(rtTableName, name, period, fox2, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMaxGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws SQLException {
+	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		return getGraphData(maxTableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws SQLException {
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		return getGraphData(minTableName, name, period, id, fromReset, fromUptime);
 		
 	}
@@ -845,7 +848,7 @@ public class SatPayloadDbStore {
 	}
 
     
-	private double[][] getGraphData(String table, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) throws SQLException {
+	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs;
 		String where = "";
 		
@@ -876,8 +879,8 @@ public class SatPayloadDbStore {
 			resets[i] = rs.getInt("resets");
 			upTime[i] = rs.getLong("uptime");
 			//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
-			PayloadRtValues rt = new PayloadRtValues(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-			results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
+			PayloadRtValues rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+			results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), id);
 			while (rs.previous()) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
@@ -886,7 +889,7 @@ public class SatPayloadDbStore {
 				//results[i++] = rs.getDouble(name);
 				// converted
 				
-				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
+				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), id);
 			}
 		} else {
 			results = new double[1];

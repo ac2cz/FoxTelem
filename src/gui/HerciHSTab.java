@@ -25,6 +25,7 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadHERCIhighSpeed;
 import common.Config;
@@ -115,7 +116,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 		initDisplayHalves(healthPanel);
 
-		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT);
+		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI);
@@ -312,7 +313,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 	
 	
-	public void updateTab(BitArray rad) {
+	public void updateTab(FramePart rad) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
@@ -353,14 +354,14 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 					showRawValues.setSelected(Config.displayRawValues);
 					updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
 				}
-				if (Config.payloadStore.getUpdatedHerci(foxId)) {
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT)) {
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
-					Config.payloadStore.setUpdatedHerci(foxId, false);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT, false);
 
 					if (hsPayload != null)
 						parseRadiationFrames();
 					
-					displayFramesDecoded(Config.payloadStore.getNumberOfHerciFrames(foxId));
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.HERCI_HS_LAYOUT));
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs();

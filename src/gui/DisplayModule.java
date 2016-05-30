@@ -29,6 +29,7 @@ import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
@@ -73,7 +74,7 @@ import telemetry.RadiationPacket;
 public class DisplayModule extends JPanel implements ActionListener, MouseListener {
 
 	int size = 0;
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	int foxId;
 	double scale; // amount to scale the modules by given the Font size
 	String[] fieldName = null;  // string used to lookup new values
@@ -87,9 +88,9 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	GraphFrame[] graph = null;
 	//GridBagConstraints layoutConstraints;
 	String noValue = "0000";
-	BitArray rtPayload;
-	PayloadMaxValues maxPayload;
-	PayloadMinValues minPayload;
+	FramePart rtPayload;
+	FramePart maxPayload;
+	FramePart minPayload;
 	
 	private static final int DEFAULT_FONT_SIZE = 11;
 //	int id = 0; // The Fox Id
@@ -160,8 +161,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	 * @param title
 	 * @param size
 	 */
-	public DisplayModule(FoxSpacecraft sat, String title, int size, int modType) {
-		fox = sat;
+	public DisplayModule(Spacecraft fox2, String title, int size, int modType) {
+		fox = fox2;
 		foxId = fox.foxId;
 		this.size = size;
 		this.title = title;
@@ -272,7 +273,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	}
 
 
-	public void updateRtValues(BitArray rt) {
+	public void updateRtValues(FramePart rt) {
 		rtPayload = rt;
 		for (int i=0; i < size; i++) {
 			if(fieldName[i] != null) {
@@ -288,50 +289,50 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		}
 	}
 	
-	public void updateMaxValues(PayloadMaxValues max) {
-		maxPayload = max;
+	public void updateMaxValues(FramePart maxPayload2) {
+		maxPayload = maxPayload2;
 		for (int i=0; i < size; i++) {
 			if(fieldName[i] != null) {
 				maxValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
-				if (max.hasFieldName(fieldName[i])) { 
+				if (maxPayload2.hasFieldName(fieldName[i])) { 
 					if (Config.displayRawValues) {
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
-							rtValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
+							rtValue[i].setText(Integer.toString(maxPayload2.getRawValue(fieldName[i])));
 						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
-							((JLabel)minValue[i]).setText(Integer.toString(max.getRawValue(fieldName[i])));
+							((JLabel)minValue[i]).setText(Integer.toString(maxPayload2.getRawValue(fieldName[i])));
 						else
-							maxValue[i].setText(Integer.toString(max.getRawValue(fieldName[i])));
+							maxValue[i].setText(Integer.toString(maxPayload2.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
-						rtValue[i].setText(max.getStringValue(fieldName[i],fox));
+						rtValue[i].setText(maxPayload2.getStringValue(fieldName[i],fox));
 					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
-						((JLabel)minValue[i]).setText(max.getStringValue(fieldName[i],fox));
+						((JLabel)minValue[i]).setText(maxPayload2.getStringValue(fieldName[i],fox));
 					else
-						maxValue[i].setText(max.getStringValue(fieldName[i],fox));
+						maxValue[i].setText(maxPayload2.getStringValue(fieldName[i],fox));
 					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
 				}
 			}
 		}
 	}
 	
-	public void updateMinValues(PayloadMinValues min) {
-		minPayload = min;
+	public void updateMinValues(FramePart minPayload2) {
+		minPayload = minPayload2;
 		for (int i=0; i < size; i++) {
 			if(fieldName[i] != null) {
 				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
-				if (min.hasFieldName(fieldName[i])) {
+				if (minPayload2.hasFieldName(fieldName[i])) {
 					if (Config.displayRawValues) {
 						if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
-							rtValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
+							rtValue[i].setText(Integer.toString(minPayload2.getRawValue(fieldName[i])));
 						else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
-							maxValue[i].setText(Integer.toString(min.getRawValue(fieldName[i])));
+							maxValue[i].setText(Integer.toString(minPayload2.getRawValue(fieldName[i])));
 						else
-							((JLabel)minValue[i]).setText(Integer.toString(min.getRawValue(fieldName[i])));
+							((JLabel)minValue[i]).setText(Integer.toString(minPayload2.getRawValue(fieldName[i])));
 					} else if (display[i] == DISPLAY_RT_ONLY) // we put this in the RT column
-						rtValue[i].setText(min.getStringValue(fieldName[i],fox));
+						rtValue[i].setText(minPayload2.getStringValue(fieldName[i],fox));
 					else if (display[i] == DISPLAY_ALL_SWAP_MINMAX) // we put the max in the min column
-						maxValue[i].setText(min.getStringValue(fieldName[i],fox));
+						maxValue[i].setText(minPayload2.getStringValue(fieldName[i],fox));
 					else
-						((JLabel)minValue[i]).setText(min.getStringValue(fieldName[i],fox));
+						((JLabel)minValue[i]).setText(minPayload2.getStringValue(fieldName[i],fox));
 					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
 				}
 			}
@@ -486,7 +487,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if ((moduleType == DisplayModule.DISPLAY_ALL || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, fox, showSkyChart);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
@@ -501,34 +502,34 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				}
 				else if (moduleType == DISPLAY_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS2_LAYOUT);
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, fox, showSkyChart);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_HERCI_SCIENCE_HEADER, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
 					units = minPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, fox, showSkyChart);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MIN_VALUES, fox, showSkyChart);
 				}
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
 					conversion = maxPayload.getConversionByName(fieldName[i]);
 					conversion = maxPayload.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, fox, showSkyChart);
+					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MAX_VALUES, fox, showSkyChart);
 				} else return;
 				
 				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));

@@ -28,6 +28,7 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import common.Config;
 import common.Log;
@@ -324,7 +325,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	}
 	
 	
-	public void updateTab(BitArray rad) {
+	public void updateTab(FramePart rad) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
@@ -364,12 +365,12 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				}
 
 				if (foxId != 0)
-					if (Config.payloadStore.getUpdatedRad(foxId)) {
+					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
-						Config.payloadStore.setUpdatedRad(foxId, false);
+						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 
 						parseRadiationFrames();
-						displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
+						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs();

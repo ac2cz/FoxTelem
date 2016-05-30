@@ -200,7 +200,7 @@ public abstract class Frame implements Comparable<Frame> {
 			Log.println("Got TCA: " + strDate);
 			Date date = null;
 			try {
-				date = FramePart.fileDateFormat.parse(strDate);
+				date = FoxFramePart.fileDateFormat.parse(strDate);
 			} catch (ParseException e) {
 				// We don't do anything in this case, the date will be null
 				e.printStackTrace();
@@ -558,7 +558,7 @@ public abstract class Frame implements Comparable<Frame> {
 					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FramePart payload = ssf.getPayload();
+					FoxFramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");

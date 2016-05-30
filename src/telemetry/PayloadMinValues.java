@@ -26,7 +26,7 @@ import decoder.FoxDecoder;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class PayloadMinValues extends FramePart {
+public class PayloadMinValues extends FoxFramePart {
 
 	//public static final int NUMBER_OF_FIELDS = 38;
 

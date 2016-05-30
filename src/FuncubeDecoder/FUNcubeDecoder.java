@@ -443,7 +443,10 @@ public class FUNcubeDecoder extends Decoder {
 						if (decodeOK) {
 							FUNcubeFrame fcf = new FUNcubeFrame();
 							fcf.addRawFrame(decoded);
-							fcf.toString();
+							Log.println(fcf.toString());
+							if (Config.storePayloads) {
+								Config.payloadStore.add(fcf.header.id, 0, 0, fcf.rtPayload);
+							}
 						}
 						//cntDec += (decodeOK ? 1 : 0);
 					}

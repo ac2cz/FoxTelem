@@ -39,7 +39,6 @@ import telemetry.LayoutLoadException;
 public class SatelliteManager {
 	
 	ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
-	public FUNcubeSpacecraft funCube;
 	
 	public SatelliteManager()  {
 		File folder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
@@ -55,7 +54,7 @@ public class SatelliteManager {
 					//FIXME - HACK FOR FCUBE
 					Matcher matcher = pattern.matcher(listOfFiles[i].getName());
 					if (matcher.find())
-						funCube = new FUNcubeSpacecraft(listOfFiles[i].getName());
+						satellite = new FUNcubeSpacecraft(listOfFiles[i].getName());
 					else
 						satellite = new FoxSpacecraft(listOfFiles[i].getName());
 				} catch (FileNotFoundException e) {

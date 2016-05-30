@@ -2,8 +2,10 @@ package FuncubeDecoder;
 
 import common.Config;
 import common.Log;
+import common.Spacecraft;
 import common.FoxSpacecraft;
 import telemetry.BitArray;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.SlowSpeedFrame;
 
@@ -46,7 +48,7 @@ public class FUNcubeFrame {
 	
 	FUNcubeHeader header = null;
 	PayloadRealTime rtPayload = null;
-	BitArray payload = null;
+	FramePart payload = null;
 	FUNcubeSpacecraft funCube;
 	
 	byte[] bytes;
@@ -84,9 +86,10 @@ public class FUNcubeFrame {
 			header.copyBitsToFields();
 			if (Config.debugFrames) Log.println("DECODING FUNCUBE PAYLOAD TYPE: " + header.type);
 			int type = header.type;
-			funCube = Config.satManager.funCube;
+			header.id = FUNcubeSpacecraft.FUNCUBE_ID; //// TO DO HARD CODED SO THAT IT GOES TO THE RIGHT PAYLOAD STORE
+			funCube = (FUNcubeSpacecraft)Config.satManager.getSpacecraft(FUNcubeSpacecraft.FUNCUBE_ID);
 			if (funCube != null) {
-				rtPayload = new PayloadRealTime(funCube.rtLayout);
+				rtPayload = new PayloadRealTime(funCube.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
 				payload = funCube.getPayloadByType(type);
 				if (payload == null) {
 					//Log.errorDialog("Missing or Invalid Fox Id", 

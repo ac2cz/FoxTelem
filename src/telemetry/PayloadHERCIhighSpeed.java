@@ -133,7 +133,7 @@ Transfer Frame:
 
 
  */
-public class PayloadHERCIhighSpeed extends FramePart {
+public class PayloadHERCIhighSpeed extends FoxFramePart {
 
 	public static final int MAX_PAYLOAD_SIZE = 868;
 	public static final int MAX_HEADER_SIZE = 16; // 16 bytes in the header
@@ -162,7 +162,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 	protected void init() {
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
 		fieldValue = new int[MAX_PAYLOAD_SIZE];  // we declare this as the max payload size rather than the size of the layout so that we include all of the minipackets
-		type = FramePart.TYPE_HERCI_HIGH_SPEED_DATA;
+		type = FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA;
 	}
 
 	/**

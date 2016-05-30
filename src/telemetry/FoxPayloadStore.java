@@ -7,6 +7,7 @@ import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
 import common.FoxSpacecraft;
+import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {
 	protected boolean loaded = false; // set this to true once we have completed initial start up to prevent graphs reading null data
@@ -19,41 +20,25 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract void setUpdatedAll();
 	public abstract void setUpdatedAll(int id);
 	
-	public abstract boolean getUpdatedRt(int id);
+	public abstract boolean getUpdated(int id, String lay);
+	public abstract void setUpdated(int id, String lay, boolean u);
 	
-	public abstract void setUpdatedRt(int id, boolean u);
-	
-	public abstract boolean getUpdatedMax(int id);
-	public abstract void setUpdatedMax(int id, boolean u);
-
-	public abstract boolean getUpdatedMin(int id);
-	public abstract void setUpdatedMin(int id, boolean u);
-	public abstract boolean getUpdatedRad(int id);
-	public abstract void setUpdatedRad(int id, boolean u);
 	public abstract boolean getUpdatedCamera(int id);
 	public abstract void setUpdatedCamera(int id, boolean u);
 	public abstract boolean getUpdatedMeasurement(int id);
 	public abstract void setUpdatedMeasurement(int id, boolean u);
 	public abstract boolean getUpdatedPassMeasurement(int id);
 	public abstract void setUpdatedPassMeasurement(int id, boolean u);
-	public abstract boolean getUpdatedHerci(int id);
-	public abstract void setUpdatedHerci(int id, boolean u);
-	public abstract boolean getUpdatedHerciHeader(int id);
-	public abstract void setUpdatedHerciHeader(int id, boolean u);
 	
 	public abstract int getTotalNumberOfFrames();
-	public abstract int getTotalNumberOfTelemFrames();
-	public abstract int getTotalNumberOfRadFrames();
+	public abstract int getTotalNumberOfFrames(String lay);
 
-	public abstract int getNumberOfFrames(int id);
+	public abstract int getNumberOfFrames(int id, String lay);
 	public abstract int getNumberOfTelemFrames(int id);
-	public abstract int getNumberOfRadFrames(int id);
-	public abstract int getNumberOfHerciFrames(int id);
-	
 	public abstract int getNumberOfPictureCounters(int id);
 	public abstract SortedJpegList getJpegIndex(int id, int period, int fromReset, long fromUptime);
 	
-	public abstract boolean add(int id, long uptime, int resets, FramePart f);
+	public abstract boolean add(int id, long uptime, int resets, FramePart payload);
 	
 	public abstract boolean addToFile(int id, long uptime, int resets, FramePart f);
 
@@ -91,11 +76,11 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
-	public abstract PayloadRtValues getLatestRt(int id);
+	public abstract FramePart getLatestRt(int id);
 
-	public abstract PayloadMaxValues getLatestMax(int id);
+	public abstract FramePart getLatestMax(int id);
 
-	public abstract PayloadMinValues getLatestMin(int id);
+	public abstract FramePart getLatestMin(int id);
 	public abstract PayloadRadExpData getLatestRad(int id);
 	public abstract RadiationTelemetry getLatestRadTelem(int id);
 	public abstract RadiationTelemetry getRadTelem(int id, int resets, long uptime);
@@ -109,11 +94,11 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
-	public abstract double[][] getRtGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 
-	public abstract double[][] getMaxGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 
-	public abstract double[][] getMinGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and

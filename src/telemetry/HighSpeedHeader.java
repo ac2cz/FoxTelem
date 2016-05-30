@@ -1,7 +1,7 @@
 package telemetry;
 
 import common.Config;
-
+import common.Spacecraft;
 import decoder.FoxDecoder;
 
 /**
@@ -58,4 +58,8 @@ public class HighSpeedHeader extends Header {
 		
 		return s;
 	}
+
+
+
+
 }
