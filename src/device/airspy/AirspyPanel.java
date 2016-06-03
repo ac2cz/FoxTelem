@@ -1,4 +1,4 @@
-package gui;
+package device.airspy;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -7,40 +7,48 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
+import javax.usb.UsbException;
+
+import org.usb4java.LibUsbException;
 
 import common.Log;
 import fcd.Device;
 import fcd.DeviceException;
-import fcd.FcdProPlusDevice;
+import fcd.DevicePanel;
 
 @SuppressWarnings("serial")
-public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionListener, Runnable, ChangeListener {
+public class AirspyPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
-	FcdProPlusDevice fcd;
+	AirspyDevice device;
 	JCheckBox cbMixerGain;
 	JCheckBox cbLnaGain;
 	JTextField rfFilterValue;
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
+	private JComboBox<AirspySampleRate> mSampleRateCombo;
+	AirspyTunerConfiguration config = new AirspyTunerConfiguration();
 	
-	FcdProPlusPanel() throws IOException, DeviceException {
-		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
+	public AirspyPanel() throws IOException, DeviceException {
+		TitledBorder title = new TitledBorder(null, "Airspy", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
-		initializeGui();
 	}
 	
 	public void setEnabled(boolean b) {
@@ -61,6 +69,41 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 		top.add(cbLnaGain);
 		cbLnaGain.addItemListener(this);
 		
+		/**
+		 * Sample Rate
+		 */
+		top.add( new JLabel( "Sample Rate:" ) );
+		
+		List<AirspySampleRate> rates = device.getSampleRates();
+		
+		mSampleRateCombo = new JComboBox<AirspySampleRate>( 
+			new DefaultComboBoxModel<AirspySampleRate>( rates.toArray( 
+					new AirspySampleRate[ rates.size() ] ) ) );
+		mSampleRateCombo.setEnabled( false );
+		mSampleRateCombo.addActionListener( new ActionListener()
+		{
+			@Override
+			public void actionPerformed( ActionEvent e )
+			{
+				AirspySampleRate rate = (AirspySampleRate)mSampleRateCombo.getSelectedItem();
+
+				try
+				{
+					device.setSampleRate( rate );
+					//save();
+				} 
+				catch ( LibUsbException | UsbException | DeviceException e1 )
+				{
+					//JOptionPane.showMessageDialog( AirspyTunerEditor.this, 
+					//	"Couldn't set sample rate to " + rate.getLabel() );
+					
+					Log.errorDialog( "Error setting airspy sample rate", e1.getMessage() );
+				} 
+			}
+		} );
+		
+		top.add( mSampleRateCombo );
+		mSampleRateCombo.setEnabled(true);
 		/*
 		JLabel lblIfGain = new JLabel("IF Gain ");
 		top.add(lblIfGain);
@@ -80,33 +123,33 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 		center.setLayout(new BoxLayout(center, BoxLayout.X_AXIS));
 		
 		JLabel rfFilter = new JLabel("    RF Filter");
-		top.add(rfFilter);
+//		top.add(rfFilter);
 		rfFilterValue = new JTextField();
 		rfFilterValue.setColumns(35);
 		rfFilterValue.setEnabled(false);
-		top.add(rfFilterValue);
+//		top.add(rfFilterValue);
 		
 		JLabel ifFilter = new JLabel("    IF Filter");
-		top.add(ifFilter);
+//		top.add(ifFilter);
 		ifFilterValue = new JTextField();
 		ifFilterValue.setColumns(30);
 		ifFilterValue.setEnabled(false);
-		top.add(ifFilterValue);
+//		top.add(ifFilterValue);
 		top.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1000,10)));
 	}
 	
 	@Override
-	public void setFcd(Device fcd) throws IOException, DeviceException {
-		setFcd((FcdProPlusDevice)fcd);
-		
+	public void setDevice(Device fcd) throws IOException, DeviceException {
+		setAirpy((AirspyDevice)fcd);
+		initializeGui();
 	}
-	public void setFcd(FcdProPlusDevice f) throws IOException, DeviceException { 
-		fcd = f; 
+	public void setAirpy(AirspyDevice f) throws IOException, DeviceException { 
+		device = f; 
 		getSettings();
 	}
 	
 	public void updateFilter() throws IOException, DeviceException {
-		rfFilterValue.setText(fcd.getRfFilter());
+		//rfFilterValue.setText(fcd.getRfFilter());
 	}
 	
 	public void getSettings()  throws IOException, DeviceException {
@@ -116,10 +159,10 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  // Allow startup to settle down first
-		cbMixerGain.setSelected(fcd.getMixerGain());
-		cbLnaGain.setSelected(fcd.getLnaGain());	
-		rfFilterValue.setText(fcd.getRfFilter());
-		ifFilterValue.setText(fcd.getIfFilter());
+		//cbMixerGain.setSelected(fcd.getMixerGain());
+	//	cbLnaGain.setSelected(device.getLnaGain());	
+		//rfFilterValue.setText(fcd.getRfFilter());
+		//ifFilterValue.setText(fcd.getIfFilter());
 //		int ifG = fcd.getIFGain();
 //		ifSpinner.setValue(""+ifG);
 	}
@@ -140,7 +183,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 			} 
 
 
-			if (fcd != null) {
+			if (device != null) {
 				try {
 					getSettings();
 				} catch (IOException e) {
@@ -163,50 +206,46 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (e.getSource() == cbMixerGain) {
-			try {
-				if (e.getStateChange() == ItemEvent.DESELECTED) {
-					fcd.setMixerGain(false);
-				} else {
-					fcd.setMixerGain(true);
-				}
-				cbMixerGain.setSelected(fcd.getMixerGain());
-			} catch (DeviceException e1) {
-				Log.println("Error setting Mixer Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading Mixer Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			}
-		}
 		if (e.getSource() == cbLnaGain) {
-			try {
-				if (e.getStateChange() == ItemEvent.DESELECTED) {
-					fcd.setLnaGain(false);
-				} else {
-					fcd.setLnaGain(true);
-				}
-				cbLnaGain.setSelected(fcd.getLnaGain());
-			} catch (DeviceException e1) {
-				Log.println("Error setting LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			loadConfig();
 		}
+		if (e.getSource() == cbMixerGain) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				;//fcd.setMixerGain(false);
+			} else {
+				;//fcd.setMixerGain(true);
+			}
+			//cbMixerGain.setSelected(fcd.getMixerGain());
+		}
+		
 		
 	}
 
+	private void loadConfig() {
+		try {
+			Log.println("Loading config");
+			device.apply(config);
+		} catch (LibUsbException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (DeviceException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (UsbException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+
+	}
+	
 	@Override
 	public void stateChanged(ChangeEvent e) {
+		
 		if (e.getSource() == ifSpinner) {
 			int u = Integer.parseInt((String) ifSpinner.getValue());
 	        try {
 	        	Log.println("Setting IF Gain to: " + u);
-				fcd.setIFGain(u);
+				device.setIFGain(u);
 			} catch (DeviceException e1) {
 				Log.println("Error setting IF Gain on FCD");
 				e1.printStackTrace(Log.getWriter());

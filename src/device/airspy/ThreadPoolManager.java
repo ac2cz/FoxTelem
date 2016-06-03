@@ -52,7 +52,7 @@ public class ThreadPoolManager
 		if( mExecutor == null )
 		{
 			mExecutor = Executors.newScheduledThreadPool( THREAD_POOL_SIZE, 
-					new NamingThreadFactory( "sdrtrunk" ) );
+					new NamingThreadFactory( "FoxTelem_airspy_fixedRate" ) );
 		}
 
 		ScheduledFuture<?> task = 
@@ -69,7 +69,7 @@ public class ThreadPoolManager
 		if( mExecutor == null )
 		{
 			mExecutor = Executors.newScheduledThreadPool( THREAD_POOL_SIZE, 
-					new NamingThreadFactory( "sdrtrunk" ) );
+					new NamingThreadFactory( "FoxTelem_airspy_once" ) );
 		}
 		
 		mExecutor.schedule( command, delay, unit );

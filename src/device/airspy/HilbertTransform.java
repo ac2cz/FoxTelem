@@ -20,17 +20,14 @@ package device.airspy;
 
 import java.util.Arrays;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import sample.Listener;
-import sample.complex.ComplexBuffer;
-import sample.real.RealBuffer;
-import dsp.filter.Filters;
+import common.Log;
+import decoder.Listener;
+import decoder.ComplexBuffer;
+import decoder.RealBuffer;
 
 public class HilbertTransform implements Listener<RealBuffer>
 {
-	private static final Logger mLog = LoggerFactory.getLogger( HilbertTransform.class );
+	//private static final Logger mLog = LoggerFactory.getLogger( HilbertTransform.class );
 
 	private float[] mHilbertFilter;
 	
@@ -238,7 +235,7 @@ public class HilbertTransform implements Listener<RealBuffer>
 	{
 		for( int[] indexSet: mIndexMap )
 		{
-			mLog.debug( "Row:" + Arrays.toString( indexSet ) );
+			Log.println( "Row:" + Arrays.toString( indexSet ) );
 		}
 	}
 

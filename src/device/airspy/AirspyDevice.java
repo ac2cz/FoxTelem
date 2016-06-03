@@ -12,6 +12,9 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import javax.usb.UsbException;
+
+import org.apache.commons.io.EndianUtils;
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
 import org.usb4java.DeviceHandle;
@@ -22,6 +25,8 @@ import org.usb4java.Transfer;
 import org.usb4java.TransferCallback;
 
 import common.Log;
+import decoder.ComplexBuffer;
+import decoder.SourceUSB;
 import device.airspy.ThreadPoolManager.ThreadType;
 import fcd.DeviceException;
 
@@ -84,9 +89,10 @@ public class AirspyDevice extends fcd.Device
 	public static final long FREQUENCY_MAX = 1800000000l;
 	public static final long FREQUENCY_DEFAULT = 101100000;
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.90;
-//	public static final AirspySampleRate DEFAULT_SAMPLE_RATE =
-//			new AirspySampleRate( 0, 10000000, "10.00 MHz" );
-    public static final int DEFAULT_SAMPLE_RATE = 0; // 0 = 10Mhz
+	public static final AirspySampleRate DEFAULT_SAMPLE_RATE =
+			new AirspySampleRate( 1, 3000000, "3.00 MHz" );
+	// AirspySampleRate( 0, 10000000, "10.00 MHz" );
+//    public static final int DEFAULT_SAMPLE_RATE = 0; // 0 = 10Mhz
 	public static final long USB_TIMEOUT_MS = 2000l; //milliseconds
 	public static final byte USB_ENDPOINT = (byte)0x81;
 	public static final byte USB_INTERFACE = (byte)0x0;
@@ -117,12 +123,14 @@ public class AirspyDevice extends fcd.Device
 	private int mBufferSize = 262144;
 	private BufferProcessor mBufferProcessor = new BufferProcessor();
 	private AirspySampleAdapter mSampleAdapter = new AirspySampleAdapter();
-//	private DCRemovalFilter_RB mDCFilter = new DCRemovalFilter_RB( 0.01f );
-//	private HilbertTransform mHilbertTransform = new HilbertTransform();
+	private DCRemovalFilter_RB mDCFilter = new DCRemovalFilter_RB( 0.01f );
+	private HilbertTransform mHilbertTransform = new HilbertTransform();
 	
-//	private AirspyDeviceInformation mDeviceInfo;
-//	private List<AirspySampleRate> mSampleRates = new ArrayList<>();
+	private AirspyDeviceInformation mDeviceInfo;
+	private List<AirspySampleRate> mSampleRates = new ArrayList<>();
 	private int mSampleRate = 0;
+	
+	SourceUSB usbSource;
 	
 	public AirspyDevice( Device device,ThreadPoolManager threadPoolManager ) 
 										  throws DeviceException 
@@ -130,10 +138,28 @@ public class AirspyDevice extends fcd.Device
 		//super( FREQUENCY_MIN, FREQUENCY_MAX, 0, USABLE_BANDWIDTH_PERCENT );
 		
 		mDevice = device;
-		//mThreadPoolManager = threadPoolManager;
+			mThreadPoolManager = threadPoolManager;
 	}
 	
-	public static AirspyDevice makeDevice() {
+	public void setUsbSource(SourceUSB usb) { 
+		usbSource = usb;
+	if( mBufferProcessor == null || !mBufferProcessor.isRunning() )
+	{
+		mBufferProcessor = new BufferProcessor();
+
+		Thread thread = new Thread( mBufferProcessor );
+		thread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		thread.setDaemon( true );
+		thread.setName( "Airspy Buffer Processor" );
+
+		thread.start();
+	}}
+	
+	public void stop() {
+		mBufferProcessor.stop();
+	}
+	
+	public static AirspyDevice makeDevice() throws UsbException {
 		DeviceList deviceList = new DeviceList();
 		AirspyDevice dev = null;
 
@@ -194,7 +220,7 @@ public class AirspyDevice extends fcd.Device
 	}
 
 	private static AirspyDevice initAirspyTuner( Device device, 
-			DeviceDescriptor descriptor )
+			DeviceDescriptor descriptor ) throws UsbException
 	{
 		try
 		{
@@ -215,7 +241,7 @@ public class AirspyDevice extends fcd.Device
 		}
 	}
 
-	public void init() throws DeviceException
+	public void init() throws DeviceException, UsbException
 	{
 		mDeviceHandle = new DeviceHandle();
 
@@ -264,7 +290,7 @@ public class AirspyDevice extends fcd.Device
 		}
 
 		setFrequency( FREQUENCY_DEFAULT );
-		/*		
+			
 		try
 		{
 			determineAvailableSampleRates();
@@ -275,7 +301,7 @@ public class AirspyDevice extends fcd.Device
 		} catch (DeviceException e) {
 			Log.errorDialog( "Error identifying available samples rates", e.getMessage() );
 		}
-	*/	
+	
 		try
 		{
 			setSampleRate( DEFAULT_SAMPLE_RATE );
@@ -283,8 +309,6 @@ public class AirspyDevice extends fcd.Device
 		catch ( IllegalArgumentException e) {
 			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
 		} catch (LibUsbException e) {
-			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
-		} catch (DeviceException e) {
 			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
 		}
 	}
@@ -362,9 +386,8 @@ public class AirspyDevice extends fcd.Device
 	 	}
 	 }
 
-/*	 
-	@Override
-	public void apply( TunerConfiguration config ) throws DeviceException
+ 
+	public void apply( TunerConfiguration config ) throws DeviceException, LibUsbException, UsbException
 	{
 		if( config instanceof AirspyTunerConfiguration )
 		{
@@ -386,7 +409,7 @@ public class AirspyDevice extends fcd.Device
 			catch( DeviceException e )
 			{
 				throw new DeviceException( "Couldn't set sample rate [" + 
-						rate.toString() + "]", e );
+						rate.toString() + "]" + e.getMessage() );
 			}
 
 			try
@@ -403,12 +426,12 @@ public class AirspyDevice extends fcd.Device
 				//the custom values.
 				setGain( airspy.getGain() );
 				
-				setFrequencyCorrection( airspy.getFrequencyCorrection() );
+				//setFrequencyCorrection( airspy.getFrequencyCorrection() );
 			}
 			catch( Exception e )
 			{
 				throw new DeviceException( "Couldn't apply gain settings from "
-						+ "airspy config", e );
+						+ "airspy config " + e.getMessage() );
 			}
 			
 			try
@@ -428,12 +451,13 @@ public class AirspyDevice extends fcd.Device
 		}
 	}
 
+	/*
 	@Override
 	public long getTunedFrequency() throws DeviceException
 	{
 		return mFrequencyController.getTunedFrequency();
 	}
-*/
+	*/
 	@Override
 	public int setFrequency( long frequency ) throws DeviceException
 	{
@@ -485,21 +509,21 @@ public class AirspyDevice extends fcd.Device
 	 * 
 	 * @throws DeviceException if there was a USB error
 	 */
-	public void setSampleRate( int rate ) throws
-				LibUsbException, DeviceException
+	public void setSampleRate( AirspySampleRate rate ) throws
+				LibUsbException, UsbException, DeviceException
 	{
-		if( rate != mSampleRate )
+		if( rate.getRate() != mSampleRate )
 		{
-			int result = readByte( Command.SET_SAMPLE_RATE, 0, rate, true );
+			int result = readByte( Command.SET_SAMPLE_RATE, 0, rate.getIndex(), true );
 
 			if( result != 1 )
 			{
-				throw new DeviceException( "Error setting sample rate [" + 
+				throw new UsbException( "Error setting sample rate [" + 
 						rate + "] rate - return value [" + result + "]" );
 			}
 			else
 			{
-				mSampleRate = rate;
+				mSampleRate = rate.getRate();
 				//mFrequencyController.setSampleRate( mSampleRate );
 			}
 		}
@@ -508,26 +532,26 @@ public class AirspyDevice extends fcd.Device
 	
 	/**
 	 * Returns a list of sample rates supported by the firmware version 
-	 
+	 */
 	public List<AirspySampleRate> getSampleRates()
 	{
 		return mSampleRates;
 	}
-	*/
+	
 	
 	/**
 	 * Airspy sample rate object that matches the current sample rate setting.
-	 
+	 */ 
 	public AirspySampleRate getAirspySampleRate()
 	{
 		return getSampleRate( mSampleRate );
 	}
-*/
+
 	/**
 	 * Airspy sample rate object that matches the specified rate in hertz, or
 	 * null if there are no available sample rates for the tuner that match the
 	 * argument value.
-	 
+	 */
 	public AirspySampleRate getSampleRate( int rate )
 	{
 		for( AirspySampleRate sampleRate: mSampleRates )
@@ -541,7 +565,7 @@ public class AirspyDevice extends fcd.Device
 		//We should never get to here ...
 		return null;
 	}
-	*/
+	
 	
 	/**
 	 * Enables/Disables sample packing to allow two 12-bit samples to be packed
@@ -711,7 +735,7 @@ public class AirspyDevice extends fcd.Device
 	/**
 	 * Queries the device for available sample rates.  Will always provide at
 	 * least the default 10 MHz sample rate.
-	 
+	 */
 	private void determineAvailableSampleRates() 
 						throws LibUsbException, DeviceException
 	{
@@ -751,7 +775,7 @@ public class AirspyDevice extends fcd.Device
 			//Press on, nothing else to do here ..
 		}
 	}
-*/
+
 	/**
 	 * Formats the rate in hertz for display as megahertz
 	 */
@@ -762,7 +786,7 @@ public class AirspyDevice extends fcd.Device
 
 	/**
 	 * Device information
-	 
+	 */
 	public AirspyDeviceInformation getDeviceInfo()
 	{
 		//Lazy initialization
@@ -773,10 +797,10 @@ public class AirspyDevice extends fcd.Device
 		
 		return mDeviceInfo;
 	}
-*/
+
 	/**
 	 * Reads version information from the device and populates the info object
-	 
+	 */
 	private void readDeviceInfo()
 	{
 		if( mDeviceInfo == null )
@@ -793,7 +817,7 @@ public class AirspyDevice extends fcd.Device
 		} 
 		catch ( LibUsbException | DeviceException e )
 		{
-			Log.error( "Error reading airspy board ID", e );
+			Log.errorDialog( "Error reading airspy board ID", e.getMessage() );
 		}
 
 		// Version String 
@@ -807,7 +831,7 @@ public class AirspyDevice extends fcd.Device
 		} 
 		catch ( LibUsbException | DeviceException e )
 		{
-			Log.error( "Error reading airspy version string", e );
+			Log.errorDialog( "Error reading airspy version string", e.getMessage() );
 		}
 		
 		//Part ID and Serial Number 
@@ -821,10 +845,10 @@ public class AirspyDevice extends fcd.Device
 		} 
 		catch ( LibUsbException | DeviceException e )
 		{
-			Log.error( "Error reading airspy version string", e );
+			Log.errorDialog("Error reading airspy version string", e.getMessage() );
 		}
 	}
-	*/
+
 	
 	/**
 	 * Reads a single byte value from the device.
@@ -1534,21 +1558,27 @@ public class AirspyDevice extends fcd.Device
 				
 				mFilledBuffers.drainTo( buffers );
 
+	//			Log.print("PROCESSING BUFFERS: " + buffers.size());
 				for( byte[] buffer: buffers )
 				{
+	//				Log.print(" " + buffer.length);
 					float[] realSamples = mSampleAdapter.convert( buffer );
 
-//////////////////////					realSamples = mDCFilter.filter( realSamples );
+					realSamples = mDCFilter.filter( realSamples );
 
-////////////////////////					float[] quadratureSamples = mHilbertTransform.filter( realSamples );
+					float[] quadratureSamples = mHilbertTransform.filter( realSamples );
 					
-//////////////					mComplexBufferBroadcaster.broadcast( 
-	//////////////////////						new ComplexBuffer( quadratureSamples ) );
+//					mComplexBufferBroadcaster.broadcast( 
+//							new ComplexBuffer( quadratureSamples ) );
+					if (usbSource != null)
+						usbSource.write(realSamples);
 				}
+	///			Log.println("");
 			}
 			catch( Exception e )
 			{
-				Log.errorDialog("error during Airspy buffer dispatching", e.getMessage() );
+				e.printStackTrace();
+				//Log.errorDialog("error during Airspy buffer dispatching", e.getMessage() );
 			}
         }
 	}

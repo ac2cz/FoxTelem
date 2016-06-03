@@ -62,13 +62,13 @@ import java.awt.event.MouseListener;
  */
 @SuppressWarnings("serial")
 public class FFTPanel extends JPanel implements Runnable, MouseListener {
-	private static final double TRACK_SIGNAL_THRESHOLD = -80;
+	private static final float TRACK_SIGNAL_THRESHOLD = -80;
 	Spacecraft fox;
 	
 	int fftSamples = SourceIQ.FFT_SAMPLES;
 	//double[] fftData = new double[fftSamples*2];
 	
-	private double[] psd = null;
+	private float[] psd = null;
 	
 	boolean running = true;
 	boolean done = false;
@@ -147,8 +147,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	public void run() {
 		done = false;
 		running = true;
-		double[] buffer = null;
-		psd = new double[fftSamples+1];
+		float[] buffer = null;
+		psd = new float[fftSamples+1];
 		while(running) {
 			if (iqSource != null) {
 				buffer = iqSource.getPowerSpectralDensity();
@@ -278,8 +278,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int zeroPoint = graphHeight;
 		
 		
-		double maxValue = 10;
-		double minValue = -100;
+		float maxValue = 10;
+		float minValue = -100;
 
 		int labelHeight = 14;
 		int sideLabel = 3;

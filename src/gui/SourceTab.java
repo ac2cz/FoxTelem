@@ -46,6 +46,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
+import javax.usb.UsbException;
 
 import common.Config;
 import common.Log;
@@ -57,12 +58,17 @@ import decoder.SinkAudio;
 import decoder.SourceAudio;
 import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
+import decoder.SourceUSB;
 import decoder.SourceWav;
 import device.airspy.AirspyDevice;
+import device.airspy.AirspyPanel;
 import fcd.Device;
 import fcd.DeviceException;
 import fcd.FcdDevice;
+import fcd.DevicePanel;
+import fcd.FcdProPanel;
 import fcd.FcdProPlusDevice;
+import fcd.FcdProPlusPanel;
 
 import javax.swing.JProgressBar;
 import javax.swing.event.PopupMenuListener;
@@ -132,7 +138,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JLabel lblFile;
 	JComboBox<String> cbSoundCardRate;
 	JPanel panelFile;
-	FcdPanel panelFcd;
+	DevicePanel panelFcd;
 	JPanel SDRpanel;
 	JRadioButton highSpeed;
 	JRadioButton lowSpeed;
@@ -1160,7 +1166,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 							panelFcd = new FcdProPlusPanel();
 						else
 							panelFcd = new FcdProPanel();
-						panelFcd.setFcd(rfDevice);
+						panelFcd.setDevice(rfDevice);
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					} catch (DeviceException e) {
@@ -1305,9 +1311,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				} else if (position == SourceAudio.AIRSPY_SOURCE) {
 					SourceAudio audioSource;
 					if (rfDevice == null) {
-						rfDevice = AirspyDevice.makeDevice();
 						try {
-							panelFcd = new FcdProPanel();
+							rfDevice = AirspyDevice.makeDevice();
+						} catch (UsbException e1) {
+							// TODO Auto-generated catch block
+							e1.printStackTrace();
+						}
+						try {
+							panelFcd = new AirspyPanel();
+							panelFcd.setDevice(rfDevice);
 						} catch (IOException e) {
 							// TODO Auto-generated catch block
 							e.printStackTrace();
@@ -1321,7 +1333,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Config.iq = true;
 						iqAudio.setSelected(true);
 						setIQVisible(true);
-
+						audioSource = new SourceUSB("Airspy USB Source", 3000000, 6000000, 0);
+						((AirspyDevice)rfDevice).setUsbSource((SourceUSB)audioSource);
+						iqSource1 = new SourceIQ(6000000*5, 0,false); 
+						iqSource1.setAudioSource(audioSource,0); 
+						decoder1 = new Fox200bpsDecoder(iqSource1, 0);
+						setupAudioSink(decoder1);
+						
 					} else {
 						SDRpanel.setVisible(false);
 						panelFcd = null;
@@ -1370,6 +1388,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						stopButton();
 					}
 				}
+				
 				
 				if (decoder1 != null) {
 					decoder1Thread = new Thread(decoder1);
@@ -1461,6 +1480,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
+		if (rfDevice != null)
+			if (rfDevice instanceof AirspyDevice)
+				((AirspyDevice)rfDevice).stop();
 		SDRpanel.setVisible(false);
 
 	}

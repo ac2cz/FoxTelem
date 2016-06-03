@@ -2,7 +2,7 @@ package decoder;
 
 import javax.sound.sampled.AudioFormat;
 
-import org.jtransforms.fft.DoubleFFT_1D;
+import org.jtransforms.fft.FloatFFT_1D;
 
 import common.Config;
 import common.Log;
@@ -27,50 +27,56 @@ public class SourceIQ extends SourceAudio {
 	public static final int AF_SAMPLE_RATE = 48000;
 	public AudioFormat upstreamAudioFormat;
 //	public static final int READ_BUFFER_SIZE = 512 * 4; // about 5 ms at 48k sample rate;
-	public int IQ_SAMPLE_RATE = 192000;
+	public int IQ_SAMPLE_RATE = 0;
+
+	// FUDGE
+	//public static final int FFT_SAMPLES = 16*4096;
 	public static final int FFT_SAMPLES = 4096; //2048; //4096; //8192;
 	/* The number of samples to read from the IQ source each time we request data */
+
+	// FUDGE
+	//public static final int samplesToRead = 16*3840;
 	public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48
 	
-	double[] fftData = new double[FFT_SAMPLES*2];
+	float[] fftData = new float[FFT_SAMPLES*2];
 //	double[] fftFilter = new double[FFT_SAMPLES*2]; // this will hold the fft of the low pass filter and is the same length as FFT
 //	double[] rawAudioI = new double[samplesToRead/2]; // NCO
 //	double[] rawAudioQ = new double[samplesToRead/2]; // NCO
 //	double[] rawAudio = new double[FFT_SAMPLES*2]; // NCO
-	private double[] psd = new double[FFT_SAMPLES*2+1];;
-	private double[] psdSum = new double[FFT_SAMPLES*2+1];;
-	private double[] psdAvg = new double[FFT_SAMPLES*2+1];;
+	private float[] psd = new float[FFT_SAMPLES*2+1];;
+	private float[] psdSum = new float[FFT_SAMPLES*2+1];;
+	private float[] psdAvg = new float[FFT_SAMPLES*2+1];;
 	int psdAvgCount = 0;
 	int PSD_AVG_LEN = 5;
-	double[] overlap = new double[2*FFT_SAMPLES - (samplesToRead/2)];
+	float[] overlap = new float[2*FFT_SAMPLES - (samplesToRead/2)];
 	
 	byte[] outputData = new byte[samplesToRead/4];
 	byte[] fcdData = new byte[samplesToRead];
-	byte[] audioData = new byte[samplesToRead/4];
-	double[] demodAudio = new double[samplesToRead/4];
+	byte[] audioData = null;
+	float[] demodAudio = new float[samplesToRead/4];
 
 	int centerFreq; // The frequency that the dongle is set to
 	
-	double binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
+	float binBandwidth = 0;
 	int filterWidth = 0 ; //We filter +- this number of bins 64 bins is 3000 Hz for 4096 FFT samples, Normal FM channel is 16kHz = +-8kHz = 170
 		
-	double[] blackmanWindow = new double[FFT_SAMPLES+1];
-	double[] blackmanFilterShape;
-	double[] tukeyFilterShape;
+	float[] blackmanWindow = new float[FFT_SAMPLES+1];
+	float[] blackmanFilterShape;
+	float[] tukeyFilterShape;
 	
-	DoubleFFT_1D fft;
+	FloatFFT_1D fft;
 	FmDemodulator fm;
 
 	// decimation filter params
 	private static final int NZEROS = 5;
 	private static final int NPOLES = 5;
 	private double GAIN = 9.197583870e+02;
-	private double[] xvi = new double[NZEROS+1];
-	private double[] yvi = new double[NPOLES+1];
-	private double[] xvq = new double[NZEROS+1];
-	private double[] yvq = new double[NPOLES+1];
+	private float[] xvi = new float[NZEROS+1];
+	private float[] yvi = new float[NPOLES+1];
+	private float[] xvq = new float[NZEROS+1];
+	private float[] yvq = new float[NPOLES+1];
 
 	// NCO filter params
 //	private static double NCOGAIN = 9.197583870e+02;
@@ -105,7 +111,7 @@ public class SourceIQ extends SourceAudio {
 		highSpeed = hs;
 		channel = chan;
 		audioFormat = makeAudioFormat();
-		fft = new DoubleFFT_1D(FFT_SAMPLES);
+		fft = new FloatFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
 		blackmanWindow = initBlackmanWindow(FFT_SAMPLES);
 		//initFftFilter();
@@ -170,7 +176,7 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	
-	public double[] getPowerSpectralDensity() { 
+	public float[] getPowerSpectralDensity() { 
 		if (fftDataFresh==false) {
 			return null;
 		} else {
@@ -182,6 +188,7 @@ public class SourceIQ extends SourceAudio {
 
 	protected int readUpstreamBytes(byte[] abData) {
 		int nBytesRead = 0;
+		Log.println("Reading IQ...");
 		nBytesRead = upstreamAudioSource.readBytes(abData, upstreamChannel);	
 		return nBytesRead;
 	}
@@ -194,13 +201,16 @@ public class SourceIQ extends SourceAudio {
 			if (upstreamAudioReadThread != null) { 
 				upstreamAudioSource.stop(); 
 			}	
-
-			upstreamAudioReadThread = new Thread(upstreamAudioSource);
-			upstreamAudioReadThread.start();
+			
+			if (!(upstreamAudioSource instanceof SourceUSB)) {
+				upstreamAudioReadThread = new Thread(upstreamAudioSource);
+				upstreamAudioReadThread.start();
+			}
 		}
 	}
 
-	private void init() {
+	private void init() {	
+		
 		// The IQ Sample Rate is the same as the format for the upstream audio
 		IQ_SAMPLE_RATE = (int)upstreamAudioFormat.getSampleRate();
 		decimationFactor = IQ_SAMPLE_RATE / AF_SAMPLE_RATE;
@@ -212,22 +222,28 @@ public class SourceIQ extends SourceAudio {
 		else
 			filterWidth = (int) (5000/binBandwidth) ;
 		
+/////////////// FUDGE		
+		//filterWidth = 800;
+//		filterWidth = filterWidth*2;
+		//decimationFactor = decimationFactor/2;
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
 		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
-		overlap = new double[2*FFT_SAMPLES - (samplesToRead/2)];
+		overlap = new float[2*FFT_SAMPLES - (samplesToRead/2)];
 		
 		outputData = new byte[samplesToRead/4];
 		fcdData = new byte[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
-		demodAudio = new double[samplesToRead/4];
+		demodAudio = new float[samplesToRead/4];
+/////////////// BIG FUDGE - not sure why doubling the length of the audio file helps here....
 		audioData = new byte[samplesToRead/decimationFactor];
 		
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
+		Log.println("Decimation Factor: " + decimationFactor);
 
-		audioDcFilter = new DcRemoval(0.9999d);
+		audioDcFilter = new DcRemoval(0.9999f);
 
-		iDcFilter = new DcRemoval(0.9999d);
-		qDcFilter = new DcRemoval(0.9999d);
+		iDcFilter = new DcRemoval(0.9999f);
+		qDcFilter = new DcRemoval(0.9999f);
 		rfData = new RfData(this);
 		zeroPsdAvg();
 	}
@@ -241,7 +257,7 @@ public class SourceIQ extends SourceAudio {
 		// Start reading data from the audio source.  This will store it in the circular buffer in the audio source
 		startAudioThread();
 		
-		Log.println("IQ Source START");
+		Log.println("IQ Source START. Running="+running);
 		init();
 		while (running) {
 			int nBytesRead = 0;
@@ -250,7 +266,7 @@ public class SourceIQ extends SourceAudio {
 				if (nBytesRead != fcdData.length)
 					Log.println("ERROR: IQ Source could not read sufficient bytes from audio source");
 				outputData = processBytes(fcdData, false);
-				
+		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
 				 
@@ -262,7 +278,11 @@ public class SourceIQ extends SourceAudio {
 				}
 				*/
 				fftDataFresh = true;
-				for(int i=0; i < outputData.length; i+=4) {					
+				for(int i=0; i < outputData.length; i+=4) {	
+					if (i+4 > outputData.length) {
+			//			Log.println("Only added: "+i +" of " + outputData.length);
+						break;
+					}
 					circularBuffer[channel].add(outputData[i],outputData[i+1],outputData[i+2],outputData[i+3]);
 				}
 			} else {
@@ -274,7 +294,7 @@ public class SourceIQ extends SourceAudio {
 			}
 		}
 
-		Log.println("IQ Source EXIT");
+		Log.println("IQ Source EXIT.  Running="+running);
 
 	}
 
@@ -289,6 +309,7 @@ public class SourceIQ extends SourceAudio {
 				e.printStackTrace();
 			}
 		done = true;
+		
 	}
 
 	// local variables that I want to allocate only once
@@ -312,17 +333,17 @@ public class SourceIQ extends SourceAudio {
 		
 		// Loop through the 192k data, sample size 4
 		for (int j=0; j < nBytesRead; j+=4 ) { // sample size is 4, 2 bytes per channel
-			double id, qd;
+			float id, qd;
 			ib[0] = fcdData[j];
 			ib[1] = fcdData[j+1];
 			qb[0] = fcdData[j+2];  
 			qb[1] = fcdData[j+3];
 			if (upstreamAudioFormat.isBigEndian()) {
-				id = Decoder.bigEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
-				qd = Decoder.bigEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
+				id = (float) (Decoder.bigEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
+				qd = (float) (Decoder.bigEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
 			} else {
-				id = Decoder.littleEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
-				qd = Decoder.littleEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0;
+				id = (float) (Decoder.littleEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
+				qd = (float) (Decoder.littleEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
 			}
 			 		
 			// filter out any DC from I/Q signals
@@ -359,7 +380,7 @@ public class SourceIQ extends SourceAudio {
 		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
-		for (int t=0; t < 1; t++)
+		for (int t=0; t < 3; t++)
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
 			else
@@ -368,10 +389,14 @@ public class SourceIQ extends SourceAudio {
 		// Every 4th entry goes to the audio output to get us from 192k -> 48k
 		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
 			// scaling and conversion to integer
-			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
+			float value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
 			int sample = (int) Math.round((value + 1.0) * 32767.5) - 32768;
 			byte high = (byte) ((sample >> 8) & 0xFF);
 			byte low = (byte) (sample & 0xFF);
+			if (k + 3 >= audioData.length ) {
+				//Log.println("k:" + k);
+				break;
+			}
 			audioData[k] = low;
 			audioData[k + 1] = high;
 			// Put same in other stereo channel
@@ -393,11 +418,11 @@ public class SourceIQ extends SourceAudio {
 	}
 	private void zeroFFT() {
 		for (int i=0; i< FFT_SAMPLES*2; i++) {
-			fftData[i] = 0.0;
+			fftData[i] = 0.0f;
 		}
 	}
 	
-	private void runFFT(double[] fftData) {
+	private void runFFT(float[] fftData) {
 		
 		// calculating the fft of the data, so we will have spectral power of each frequency component
 		// fft resolution (number of bins) is samplesNum, because we initialized with that value
@@ -417,11 +442,11 @@ public class SourceIQ extends SourceAudio {
 			psd[s/2] = psd(fftData[s], fftData[s+1]);
 			
 			if (psdAvgCount >= PSD_AVG_LEN) {
-				psdSum[s/2] = psdSum[s/2]/(double)PSD_AVG_LEN;
+				psdSum[s/2] = psdSum[s/2]/(float)PSD_AVG_LEN;
 				psdAvg[s/2] = psdSum[s/2];
 				psdAvgCount = 0;
 			} else {
-				if (Double.isInfinite(psdSum[s/2]))
+				if (Float.isInfinite(psdSum[s/2]))
 					psdSum[s/2] = psd[s/2]*psdAvgCount;
 				psdSum[s/2] += psd[s/2];
 			}
@@ -430,14 +455,14 @@ public class SourceIQ extends SourceAudio {
 
 	}
 	
-	private double psd(double i, double q) {
+	private float psd(float i, float q) {
 		// 10*log (x^2 + y^2) == 20 * log(sqrt(x^2 + y^2)) so we can avoid the sqrt
-		return 20*Math.log10(Math.sqrt((i*i) + (q*q))/binBandwidth);	// Compute PSD
+		return (float) (20*Math.log10(Math.sqrt((i*i) + (q*q))/binBandwidth));	// Compute PSD
 		//psd[s/2] = 10*Math.log10( ((fftData[s]*fftData[s]) + (fftData[s+1]*fftData[s+1]) )/binBandwidth);	// Compute PSD
 		
 	}
 	
-	private void inverseFFT(double[] fftData) {
+	private void inverseFFT(float[] fftData) {
 //		int dist = 0;
 //		if (offsetFFT) dist = (FFT_SAMPLES - SourceIQ.samplesToRead) /2;
 		fft.complexInverse(fftData, true); // true means apply scaling - but it does not work?
@@ -459,7 +484,7 @@ public class SourceIQ extends SourceAudio {
 
 	}
 
-	double[] newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
+	float[] newData = new float[fftData.length]; // make a new array to copy so we can store the section we want
 	/**
 	 * Apply a Tukey or blackman window to the segment of the spectrum that we want, then move the selected frequency to zero
 	 * We have selected a bin.  This is the FFT bin from 0 to FFT_SAMPLES.  It could be positive or negative.
@@ -473,12 +498,12 @@ public class SourceIQ extends SourceAudio {
 	 *  
 	 * @param fftData
 	 */
-	private void filterFFTWindow(double[] fftData) {
-		for (int z=0; z<fftData.length; z++) newData[z] = 0.0;
+	private void filterFFTWindow(float[] fftData) {
+		for (int z=0; z<fftData.length; z++) newData[z] = 0.0f;
 		
 		int peakSignalBin = 0;  // the peak signal bin
-		double peak = -999999d;
-		double strongest = -999999d;
+		float peak = -999999f;
+		float strongest = -999999f;
 		int strongestBin = 0;
 		
 		// We break the spectrum into chunks, so that we pass through it only once, but can analyze the different sections in different ways
@@ -488,8 +513,8 @@ public class SourceIQ extends SourceAudio {
 		// pass band to noiseEnd
 		// noiseEnd to end of spectrum
 		
-		double noise = 0d;
-		double avgSig = 0d;
+		float noise = 0f;
+		float avgSig = 0f;
 		int noiseReading = 0;
 		int sigReading = 0;
 		int binIndex = Config.selectedBin*2; // multiply by two because each bin has a real and imaginary part
@@ -502,8 +527,8 @@ public class SourceIQ extends SourceAudio {
 		// Selected frequencies part
 		int dcOffset=0; // must be even
 		int k=dcOffset;
-		double iAvg = 0;
-		double qAvg = 0;
+		float iAvg = 0;
+		float qAvg = 0;
 		
 		int noiseStart = start - filterBins;
 		if (noiseStart < 0 ) noiseStart = 0;
@@ -512,7 +537,7 @@ public class SourceIQ extends SourceAudio {
 		
 		// Here we start the analysis of the spectrum
 
-		double sig = 0;
+		float sig = 0;
 		for (int n=0; n < noiseStart; n+=2) {
 			if (Config.fromBin*2 < n && n < Config.toBin*2) {
 				sig = psd(fftData[n], fftData[n+1]);
@@ -593,8 +618,8 @@ public class SourceIQ extends SourceAudio {
 			newData[0] = iAvg / (filterBins * 2);
 			newData[1] = qAvg / (filterBins * 2);
 		}
-		avgSig = avgSig / (double)sigReading;
-		noise = noise / (double)noiseReading;
+		avgSig = avgSig / (float)sigReading;
+		noise = noise / (float)noiseReading;
 		//Log.println("Sig: " + avgSig + " from " + sigReading + " Noise: " + noise + " from readings: " + noiseReading);
 		//Log.println("peak bin: " + peakSignalBin);
 		// store the peak signal
@@ -687,7 +712,7 @@ public class SourceIQ extends SourceAudio {
 	*/
 	
 	@SuppressWarnings("unused")
-	private void antiAlias12kHzIIRFilter(double[] rawAudioData) {
+	private void antiAlias12kHzIIRFilter(float[] rawAudioData) {
 		// Designed at www-users.cs.york.ac.uk/~fisher
 		// Need to filter the data before we decimate
 		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
@@ -695,87 +720,87 @@ public class SourceIQ extends SourceAudio {
 		// and use a shorter filter, so we choose 12kHz
 		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
 		//double[] out = new double[rawAudioData.length];
-		GAIN = 9.197583870e+02;
+		float GAIN = 9.197583870e+02f;
 		for (int j=0; j < rawAudioData.length; j+=2 ) {
 			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
 			xvi[5] = rawAudioData[j] / GAIN;
 			yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-			yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-					+ (  0.0884067190 * yvi[0]) + ( -0.6658412244 * yvi[1])
-					+ (  2.0688801399 * yvi[2]) + ( -3.3337619982 * yvi[3])
-					+ (  2.8075246179 * yvi[4]);
+			yvi[5] =   (xvi[0] + xvi[5]) + 5f * (xvi[1] + xvi[4]) + 10f * (xvi[2] + xvi[3])
+					+ (  0.0884067190f * yvi[0]) + ( -0.6658412244f * yvi[1])
+					+ (  2.0688801399f * yvi[2]) + ( -3.3337619982f * yvi[3])
+					+ (  2.8075246179f * yvi[4]);
 			rawAudioData[j] = yvi[5];
 
 			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
 			xvq[5] = rawAudioData[j+1] / GAIN;
 			yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-			yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-					+ (  0.0884067190 * yvq[0]) + ( -0.6658412244 * yvq[1])
-					+ (  2.0688801399 * yvq[2]) + ( -3.3337619982 * yvq[3])
-					+ (  2.8075246179 * yvq[4]);
+			yvq[5] =   (xvq[0] + xvq[5]) + 5f * (xvq[1] + xvq[4]) + 10f * (xvq[2] + xvq[3])
+					+ (  0.0884067190f * yvq[0]) + ( -0.6658412244f * yvq[1])
+					+ (  2.0688801399f * yvq[2]) + ( -3.3337619982f * yvq[3])
+					+ (  2.8075246179f * yvq[4]);
 			rawAudioData[j+1] = yvq[5];
 
 		}
 		
 	}
-	private void antiAlias16kHzIIRFilter(double[] rawAudioData) {
+	private void antiAlias16kHzIIRFilter(float[] rawAudioData) {
 		// Designed at www-users.cs.york.ac.uk/~fisher
 		// Need to filter the data before we decimate
 		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
 		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
 		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
 		//double[] out = new double[rawAudioData.length];
-		GAIN = 3.006238283e+02;
+		float GAIN = 3.006238283e+02f;
 		for (int j=0; j < rawAudioData.length; j+=2 ) {
 			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
 	        xvi[5] = rawAudioData[j] / GAIN;
 	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-	                     + (  0.0394215023 * yvi[0]) + ( -0.3293736653 * yvi[1])
-	                     + (  1.1566456875 * yvi[2]) + ( -2.1603685744 * yvi[3])
-	                     + (  2.1872297286 * yvi[4]);
+	        yvi[5] =   (xvi[0] + xvi[5]) + 5f * (xvi[1] + xvi[4]) + 10f * (xvi[2] + xvi[3])
+	                     + (  0.0394215023f * yvi[0]) + ( -0.3293736653f * yvi[1])
+	                     + (  1.1566456875f * yvi[2]) + ( -2.1603685744f * yvi[3])
+	                     + (  2.1872297286f * yvi[4]);
 	        
 			rawAudioData[j] = yvi[5];
 
 			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
 	        xvq[5] = rawAudioData[j+1] / GAIN;
 	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-	                     + (  0.0394215023 * yvq[0]) + ( -0.3293736653 * yvq[1])
-	                     + (  1.1566456875 * yvq[2]) + ( -2.1603685744 * yvq[3])
-	                     + (  2.1872297286 * yvq[4]);
+	        yvq[5] =   (xvq[0] + xvq[5]) + 5f * (xvq[1] + xvq[4]) + 10f * (xvq[2] + xvq[3])
+	                     + (  0.0394215023f * yvq[0]) + ( -0.3293736653f * yvq[1])
+	                     + (  1.1566456875f * yvq[2]) + ( -2.1603685744f * yvq[3])
+	                     + (  2.1872297286f * yvq[4]);
 			rawAudioData[j+1] = yvq[5];
 
 		}
 		
 	}
 
-	private void antiAlias20kHzIIRFilter(double[] rawAudioData) {
+	private void antiAlias20kHzIIRFilter(float[] rawAudioData) {
 		// Designed at www-users.cs.york.ac.uk/~fisher
 		// Need to filter the data before we decimate
 		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
 		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
 		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
 		//double[] out = new double[rawAudioData.length];
-		GAIN = 1.328001690e+02;
+		float GAIN = 1.328001690e+02f;
 		for (int j=0; j < rawAudioData.length; j+=2 ) {
 			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
 	        xvi[5] = rawAudioData[j] / GAIN;
 	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-	                     + (  0.0175819825 * yvi[0]) + ( -0.1605530625 * yvi[1])
-	                     + (  0.6276667742 * yvi[2]) + ( -1.3438919231 * yvi[3])
-	                     + (  1.6182326801 * yvi[4]);
+	        yvi[5] =   (xvi[0] + xvi[5]) + 5f * (xvi[1] + xvi[4]) + 10f * (xvi[2] + xvi[3])
+	                     + (  0.0175819825f * yvi[0]) + ( -0.1605530625f * yvi[1])
+	                     + (  0.6276667742f * yvi[2]) + ( -1.3438919231f * yvi[3])
+	                     + (  1.6182326801f * yvi[4]);
 	        
 			rawAudioData[j] = yvi[5];
 
 			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
 	        xvq[5] = rawAudioData[j+1] / GAIN;
 	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-	                     + (  0.0175819825 * yvq[0]) + ( -0.1605530625 * yvq[1])
-	                     + (  0.6276667742 * yvq[2]) + ( -1.3438919231 * yvq[3])
-	                     + (  1.6182326801 * yvq[4]);
+	        yvq[5] =   (xvq[0] + xvq[5]) + 5f * (xvq[1] + xvq[4]) + 10f * (xvq[2] + xvq[3])
+	                     + (  0.0175819825f * yvq[0]) + ( -0.1605530625f * yvq[1])
+	                     + (  0.6276667742f * yvq[2]) + ( -1.3438919231f * yvq[3])
+	                     + (  1.6182326801f * yvq[4]);
 			rawAudioData[j+1] = yvq[5];
 
 		}
@@ -783,31 +808,31 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	@SuppressWarnings("unused")
-	private void antiAlias24kHzIIRFilter(double[] rawAudioData) {
+	private void antiAlias24kHzIIRFilter(float[] rawAudioData) {
 		// Designed at www-users.cs.york.ac.uk/~fisher
 		// Need to filter the data before we decimate
 		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
 		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
 		//double[] out = new double[rawAudioData.length];
-		GAIN = 7.052142314e+01;
+		float GAIN = 7.052142314e+01f;
 		for (int j=0; j < rawAudioData.length; j+=2 ) {
 			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
 	        xvi[5] = rawAudioData[j] / GAIN;
 	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-	                     + (  0.0078245894 * yvi[0]) + ( -0.0773061573 * yvi[1])
-	                     + (  0.3292913096 * yvi[2]) + ( -0.8090163636 * yvi[3])
-	                     + (  1.0954437995 * yvi[4]);
+	        yvi[5] =   (xvi[0] + xvi[5]) + 5f * (xvi[1] + xvi[4]) + 10f * (xvi[2] + xvi[3])
+	                     + (  0.0078245894f * yvi[0]) + ( -0.0773061573f * yvi[1])
+	                     + (  0.3292913096f * yvi[2]) + ( -0.8090163636f * yvi[3])
+	                     + (  1.0954437995f * yvi[4]);
 	        
 			rawAudioData[j] = yvi[5];
 
 			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
 	        xvq[5] = rawAudioData[j+1] / GAIN;
 	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-	                     + (  0.0078245894 * yvq[0]) + ( -0.0773061573 * yvq[1])
-	                     + (  0.3292913096 * yvq[2]) + ( -0.8090163636 * yvq[3])
-	                     + (  1.0954437995 * yvq[4]);
+	        yvq[5] =   (xvq[0] + xvq[5]) + 5f * (xvq[1] + xvq[4]) + 10f * (xvq[2] + xvq[3])
+	                     + (  0.0078245894f * yvq[0]) + ( -0.0773061573f * yvq[1])
+	                     + (  0.3292913096f * yvq[2]) + ( -0.8090163636f * yvq[3])
+	                     + (  1.0954437995f * yvq[4]);
 			rawAudioData[j+1] = yvq[5];
 
 		}
@@ -836,10 +861,10 @@ public class SourceIQ extends SourceAudio {
 		
 	}
 */
-	private double[] initBlackmanWindow(int len) {
-		double[] blackmanWindow = new double[len+1];
+	private float[] initBlackmanWindow(int len) {
+		float[] blackmanWindow = new float[len+1];
 		for (int i=0; i <= len; i ++) {
-			blackmanWindow[i] = 0.42 - 0.5 * Math.cos(2 * Math.PI * i / len) + 0.08 * Math.cos((4 * Math.PI * i) / len);
+			blackmanWindow[i] = (float) (0.42 - 0.5 * Math.cos(2 * Math.PI * i / len) + 0.08 * Math.cos((4 * Math.PI * i) / len));
 			if (blackmanWindow[i] < 0)
 				blackmanWindow[i] = 0;
 			//blackmanWindow[i] = 1;
@@ -854,20 +879,20 @@ public class SourceIQ extends SourceAudio {
 	 * @param len
 	 * @return
 	 */
-	private double[] initTukeyWindow(int len) {
-		double[] window = new double[len+1];
-		double alpha = 0.5d;
+	private float[] initTukeyWindow(int len) {
+		float[] window = new float[len+1];
+		float alpha = 0.5f;
 		int lowerLimit = (int) ((alpha*(len-1))/2);
 		int upperLimit = (int) ((len -1) * ( 1 - alpha/2));
 		
 		for (int i=0; i < lowerLimit; i ++) {
-			window[i] = 0.5 * (1 + Math.cos(Math.PI*( 2*i/(alpha*(len-1)) -1)));
+			window[i] = (float) (0.5 * (1 + Math.cos(Math.PI*( 2*i/(alpha*(len-1)) -1))));
 		}
 		for (int i=lowerLimit; i < upperLimit; i ++) {
 			window[i] = 1;
 		}
 		for (int i=upperLimit; i < len; i ++) {
-			window[i] = 0.5 * (1 + Math.cos(Math.PI*( 2*i/(alpha*(len-1)) - (2/alpha)+1)));
+			window[i] = (float) (0.5 * (1 + Math.cos(Math.PI*( 2*i/(alpha*(len-1)) - (2/alpha)+1))));
 		}
 		return window;
 	}

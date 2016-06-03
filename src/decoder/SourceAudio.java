@@ -196,4 +196,49 @@ public abstract class SourceAudio implements Runnable {
 
 			//return audioDataBytes;
 		}
+	static public void getBytesFromFloats(final float[] audioData, final int storedSamples, boolean stereo, byte[] audioDataBytes) {
+		//int bytesPerSample = 2;
+		//if (stereo) bytesPerSample = 4;
+		
+			//byte[] audioDataBytes = new byte[storedSamples * bytesPerSample];
+
+			int k = 0;
+			if (!stereo) {
+				for (int i = 0; i < storedSamples; i++) {
+					// saturation
+					audioData[i] = (float) Math.min(1.0, Math.max(-1.0, audioData[i]));
+
+					// scaling and conversion to integer
+					int sample = (int) Math.round((audioData[i] + 1.0) * 32767.5) - 32768;
+
+					byte high = (byte) ((sample >> 8) & 0xFF);
+					byte low = (byte) (sample & 0xFF);
+					audioDataBytes[k] = low;
+					audioDataBytes[k + 1] = high;
+					k = k + 2;
+				}
+			} else {
+				// STEREO
+				for (int i = 0; i < storedSamples; i++) {
+					// saturation
+					audioData[i] = (float) Math.min(1.0, Math.max(-1.0, audioData[i]));
+
+					// scaling and conversion to integer
+					int sample = (int) Math.round((audioData[i] + 1.0) * 32767.5) - 32768;
+
+					byte high = (byte) ((sample >> 8) & 0xFF);
+					byte low = (byte) (sample & 0xFF);
+					audioDataBytes[k] = low;
+					audioDataBytes[k + 1] = high;
+					// Put the same in the other channel
+					audioDataBytes[k + 2] = low;
+					audioDataBytes[k + 3] = high;
+					k = k + 4;
+				}
+				
+			}
+
+			//return audioDataBytes;
+		}
+	
 }

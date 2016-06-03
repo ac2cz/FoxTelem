@@ -76,7 +76,7 @@ public abstract class Filter {
 		SAMPLERATE = (int) sampleRate;
 		cutoffFreq = freq;
 		length = len;
-		dcFilter = new DcRemoval(0.9999d);
+		dcFilter = new DcRemoval(0.9999f);
 		// A buffer to hold the overlap at the end of filtering a window of data
 		// needs to be added to the start of the next window
 		overlapDouble = new double[getFilterLength()];
@@ -125,7 +125,7 @@ public abstract class Filter {
 		// copy into a buffer with the extra space for the overlap and DC filter while we are at it
 		for (int i = 0; i < samplesRead; i++) {
 			if (filterDC)
-				abBufferDouble[i] = dcFilter.filter(inputDouble[i]);
+				abBufferDouble[i] = dcFilter.filter((float) inputDouble[i]);
 			else
 				abBufferDouble[i] = inputDouble[i];
 			//abBufferDouble[i] = inputDouble[i];

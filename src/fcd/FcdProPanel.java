@@ -1,4 +1,4 @@
-package gui;
+package fcd;
 
 import java.awt.BorderLayout;
 import java.awt.event.ActionEvent;
@@ -15,12 +15,9 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import common.Log;
-import fcd.Device;
-import fcd.DeviceException;
-import fcd.FcdProDevice;
 
 @SuppressWarnings("serial")
-public class FcdProPanel extends FcdPanel implements ItemListener, ActionListener, Runnable {
+public class FcdProPanel extends DevicePanel implements ItemListener, ActionListener, Runnable {
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
@@ -33,7 +30,7 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 	JTextField bandValue;
 	JTextField ifFilterValue;
 	
-	FcdProPanel() throws IOException, DeviceException {
+	public FcdProPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
@@ -88,7 +85,7 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 	}
 	
 	@Override
-	public void setFcd(Device fcd) throws IOException, DeviceException {
+	public void setDevice(Device fcd) throws IOException, DeviceException {
 		setFcd((FcdProDevice)fcd);
 		
 	}

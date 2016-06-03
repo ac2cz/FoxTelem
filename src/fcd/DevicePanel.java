@@ -1,16 +1,13 @@
-package gui;
+package fcd;
 
 import java.io.IOException;
 
 import javax.swing.JPanel;
 
-import fcd.Device;
-import fcd.DeviceException;
-
 @SuppressWarnings("serial")
-public abstract class FcdPanel extends JPanel {
+public abstract class DevicePanel extends JPanel {
 
-	public abstract void setFcd(Device fcd) throws IOException, DeviceException;
+	public abstract void setDevice(Device fcd) throws IOException, DeviceException;
 	
 	public abstract void updateFilter() throws IOException, DeviceException;
 	
