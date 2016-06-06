@@ -53,7 +53,7 @@ public class SourceIQ extends SourceAudio {
 	float[] overlap = new float[2*FFT_SAMPLES - (samplesToRead/2)];
 	
 	byte[] outputData = new byte[samplesToRead/4];
-	byte[] fcdData = new byte[samplesToRead];
+	float[] fcdData = new float[samplesToRead];
 	byte[] audioData = null;
 	float[] demodAudio = new float[samplesToRead/4];
 
@@ -223,7 +223,7 @@ public class SourceIQ extends SourceAudio {
 			filterWidth = (int) (5000/binBandwidth) ;
 		
 /////////////// FUDGE		
-		//filterWidth = 800;
+	filterWidth = 200;
 //		filterWidth = filterWidth*2;
 		//decimationFactor = decimationFactor/2;
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
@@ -231,10 +231,10 @@ public class SourceIQ extends SourceAudio {
 		overlap = new float[2*FFT_SAMPLES - (samplesToRead/2)];
 		
 		outputData = new byte[samplesToRead/4];
-		fcdData = new byte[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
-		demodAudio = new float[samplesToRead/4];
+		fcdData = new float[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
+		demodAudio = new float[samplesToRead/2];
 /////////////// BIG FUDGE - not sure why doubling the length of the audio file helps here....
-		audioData = new byte[samplesToRead/decimationFactor];
+		audioData = new byte[2*samplesToRead/decimationFactor];
 		
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
@@ -262,7 +262,9 @@ public class SourceIQ extends SourceAudio {
 		while (running) {
 			int nBytesRead = 0;
 			if (circularBuffer[channel].getCapacity() > fcdData.length) {
-				nBytesRead = upstreamAudioSource.readBytes(fcdData, upstreamChannel);	
+				//nBytesRead = upstreamAudioSource.readBytes(fcdData, upstreamChannel);
+				// FUDGE
+				nBytesRead = ((SourceUSB)upstreamAudioSource).readBytes(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
 					Log.println("ERROR: IQ Source could not read sufficient bytes from audio source");
 				outputData = processBytes(fcdData, false);
@@ -323,17 +325,18 @@ public class SourceIQ extends SourceAudio {
 	 * @param fcdData
 	 * @return
 	 */
-	protected byte[] processBytes(byte[] fcdData, boolean clockMove) {
+	protected byte[] processBytes(float[] fcdData, boolean clockMove) {
 		int dist = 0;
 		if (offsetFFT) dist = (FFT_SAMPLES - SourceIQ.samplesToRead) /2;
 		
-		int nBytesRead = fcdData.length;
+		//int nBytesRead = fcdData.length;
 		zeroFFT();
 		int i = 0;
 		
 		// Loop through the 192k data, sample size 4
-		for (int j=0; j < nBytesRead; j+=4 ) { // sample size is 4, 2 bytes per channel
+		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 4, 2 bytes per channel
 			float id, qd;
+			/*
 			ib[0] = fcdData[j];
 			ib[1] = fcdData[j+1];
 			qb[0] = fcdData[j+2];  
@@ -345,7 +348,9 @@ public class SourceIQ extends SourceAudio {
 				id = (float) (Decoder.littleEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
 				qd = (float) (Decoder.littleEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
 			}
-			 		
+			 */
+			id = fcdData[j];
+			qd = fcdData[j+1];
 			// filter out any DC from I/Q signals
 			id = iDcFilter.filter(id);
 			qd = qDcFilter.filter(qd);
@@ -372,7 +377,7 @@ public class SourceIQ extends SourceAudio {
 
 		int d=0;		
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
-		for (int j=0; j < nBytesRead/2; j +=2 ) { // data size is 2 
+		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
 				demodAudio[d++] = fm.demodulate(fftData[j+dist*2], fftData[j+1+dist*2]);			
 		}
 		

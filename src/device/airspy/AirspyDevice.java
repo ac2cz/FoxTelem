@@ -1571,7 +1571,7 @@ public class AirspyDevice extends fcd.Device
 //					mComplexBufferBroadcaster.broadcast( 
 //							new ComplexBuffer( quadratureSamples ) );
 					if (usbSource != null)
-						usbSource.write(realSamples);
+						usbSource.write(quadratureSamples);
 				}
 	///			Log.println("");
 			}
