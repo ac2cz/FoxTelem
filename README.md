@@ -18,4 +18,7 @@ AMSAT Fox-1 Telemetry Decoder
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  
-You can download the latest version of the program from: http://amsat.us/FoxTelem
+You can download the latest version of the program from: 
+http://amsat.us/FoxTelem/windows
+http://amsat.us/FoxTelem/mac
+http://amsat.us/FoxTelem/linux
