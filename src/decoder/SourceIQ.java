@@ -30,13 +30,13 @@ public class SourceIQ extends SourceAudio {
 	public int IQ_SAMPLE_RATE = 0;
 
 	// FUDGE
-	//public static final int FFT_SAMPLES = 16*4096;
-	public static final int FFT_SAMPLES = 4096; //2048; //4096; //8192;
+	public static final int FFT_SAMPLES = 16*4096;
+	//public static final int FFT_SAMPLES = 4096; //2048; //4096; //8192;
 	/* The number of samples to read from the IQ source each time we request data */
 
 	// FUDGE
-	//public static final int samplesToRead = 16*3840;
-	public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
+	public static final int samplesToRead = 16*3840;
+	//public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48
 	
@@ -222,8 +222,9 @@ public class SourceIQ extends SourceAudio {
 		else
 			filterWidth = (int) (5000/binBandwidth) ;
 		
-/////////////// FUDGE		
-	filterWidth = 200;
+/////////////// FUDGE - NEED TO WORK OUT WHY THE BANDWIDTH IS COMING OUT WRONG....		
+		filterWidth = filterWidth*4;
+	// filterWidth = (int) (200000/binBandwidth);
 //		filterWidth = filterWidth*2;
 		//decimationFactor = decimationFactor/2;
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
@@ -234,7 +235,7 @@ public class SourceIQ extends SourceAudio {
 		fcdData = new float[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new float[samplesToRead/2];
 /////////////// BIG FUDGE - not sure why doubling the length of the audio file helps here....
-		audioData = new byte[2*samplesToRead/decimationFactor];
+		audioData = new byte[2*samplesToRead/decimationFactor];  // we need the 2 because there are 4 bytes for each float and demod audio is samplesToRead/2
 		
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
@@ -385,7 +386,7 @@ public class SourceIQ extends SourceAudio {
 		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
-		for (int t=0; t < 3; t++)
+		for (int t=0; t < 5; t++)
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
 			else

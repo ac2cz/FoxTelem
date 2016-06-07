@@ -199,7 +199,7 @@ public class Config {
 	static public boolean showLatestImage = false;
 	static public boolean displayRawRadData = false;
 	static public boolean displayUTCtime = true;
-	static public boolean applyBlackmanWindow = false;
+	static public boolean applyBlackmanWindow = true;
 	public static boolean useLimiter = false;
 	static public boolean showIF = false;
 	static public boolean trackSignal = true;
