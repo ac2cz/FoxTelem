@@ -3,6 +3,7 @@ package fcd;
 import java.io.IOException;
 
 import common.Log;
+import device.DeviceException;
 import purejavahidapi.HidDeviceInfo;
 
 public class FcdProDevice extends FcdDevice {

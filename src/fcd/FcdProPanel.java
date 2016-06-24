@@ -15,6 +15,9 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import common.Log;
+import device.Device;
+import device.DeviceException;
+import device.DevicePanel;
 
 @SuppressWarnings("serial")
 public class FcdProPanel extends DevicePanel implements ItemListener, ActionListener, Runnable {

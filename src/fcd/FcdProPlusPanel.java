@@ -20,6 +20,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import common.Log;
+import device.Device;
+import device.DeviceException;
+import device.DevicePanel;
 
 @SuppressWarnings("serial")
 public class FcdProPlusPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {

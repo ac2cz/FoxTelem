@@ -27,8 +27,8 @@ import org.usb4java.TransferCallback;
 import common.Log;
 import decoder.ComplexBuffer;
 import decoder.SourceUSB;
+import device.DeviceException;
 import device.airspy.ThreadPoolManager.ThreadType;
-import fcd.DeviceException;
 
 /**
  * SDR Trunk 
@@ -70,7 +70,7 @@ import fcd.DeviceException;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class AirspyDevice extends fcd.Device
+public class AirspyDevice extends device.Device
 {
 	public static final Gain LINEARITY_GAIN_DEFAULT = Gain.LINEARITY_14;
 	public static final Gain SENSITIVITY_GAIN_DEFAULT = Gain.SENSITIVITY_10;
@@ -91,8 +91,6 @@ public class AirspyDevice extends fcd.Device
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.90;
 	public static final AirspySampleRate DEFAULT_SAMPLE_RATE =
 			new AirspySampleRate( 1, 3000000, "3.00 MHz" );
-	// AirspySampleRate( 0, 10000000, "10.00 MHz" );
-//    public static final int DEFAULT_SAMPLE_RATE = 0; // 0 = 10Mhz
 	public static final long USB_TIMEOUT_MS = 2000l; //milliseconds
 	public static final byte USB_ENDPOINT = (byte)0x81;
 	public static final byte USB_INTERFACE = (byte)0x0;
@@ -109,9 +107,6 @@ public class AirspyDevice extends fcd.Device
 										LibUsb.RECIPIENT_DEVICE );
 
 	public static final DecimalFormat MHZ_FORMATTER = new DecimalFormat( "#.00 MHz" );
-	
-//	private final static Logger Log = 
-//			LoggerFactory.getLogger( AirspyTunerController.class );
 	
 	private Device mDevice;
 	private DeviceHandle mDeviceHandle;

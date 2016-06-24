@@ -27,9 +27,9 @@ import javax.usb.UsbException;
 import org.usb4java.LibUsbException;
 
 import common.Log;
-import fcd.Device;
-import fcd.DeviceException;
-import fcd.DevicePanel;
+import device.Device;
+import device.DeviceException;
+import device.DevicePanel;
 
 @SuppressWarnings("serial")
 public class AirspyPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {

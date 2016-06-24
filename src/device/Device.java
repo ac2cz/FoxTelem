@@ -1,4 +1,4 @@
-package fcd;
+package device;
 
 import java.io.IOException;
 import java.util.List;
@@ -35,7 +35,7 @@ import purejavahidapi.PureJavaHidApi;
  */
 public abstract class Device {
 	
-	public int MIN_FREQ = 150000;
+	public int MIN_FREQ = 1500;
 	public int MAX_FREQ = 2050000000;
 	public int SAMPLE_RATE = 192000;
 	
@@ -53,7 +53,10 @@ public abstract class Device {
 
 	public int getCurrentSampleRate() throws DeviceException {
 		// TODO Auto-generated method stub
-		return 0;
+		return SAMPLE_RATE;
 	}
 
+	public int getMinFreq() { return MIN_FREQ; }
+	public int getMaxFreq() { return MAX_FREQ; }
+	
 }

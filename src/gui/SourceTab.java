@@ -60,12 +60,12 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
+import device.Device;
+import device.DeviceException;
+import device.DevicePanel;
 import device.airspy.AirspyDevice;
 import device.airspy.AirspyPanel;
-import fcd.Device;
-import fcd.DeviceException;
 import fcd.FcdDevice;
-import fcd.DevicePanel;
 import fcd.FcdProPanel;
 import fcd.FcdProPlusDevice;
 import fcd.FcdProPlusPanel;
@@ -950,8 +950,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				(iqSource2).setCenterFreqkHz(freq);
 			Config.fcdFrequency = freq;
 			if (rfDevice != null) {
-				if (freq < 100 || freq > 2500000) {
-					Log.errorDialog("FCD ERROR", "Frequency must be between 100 and 2500000");
+				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
+					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
 					try {
 						rfDevice.setFrequency(freq*1000);
@@ -1311,6 +1311,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				} else if (position == SourceAudio.AIRSPY_SOURCE) {
 					SourceAudio audioSource;
 					if (rfDevice == null) {
+						Log.println("Airspy Source Selected");
 						try {
 							rfDevice = AirspyDevice.makeDevice();
 						} catch (UsbException e1) {
@@ -1333,7 +1334,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Config.iq = true;
 						iqAudio.setSelected(true);
 						setIQVisible(true);
-						audioSource = new SourceUSB("Airspy USB Source", 3000000, 6000000, 0);
+						audioSource = new SourceUSB("Airspy USB Source", 3000000, 6000000, 0); //FIXME - not sure we should have the sampleRate here as it can be changed by the user
 						((AirspyDevice)rfDevice).setUsbSource((SourceUSB)audioSource);
 						iqSource1 = new SourceIQ(6000000*5, 0,false); 
 						iqSource1.setAudioSource(audioSource,0); 

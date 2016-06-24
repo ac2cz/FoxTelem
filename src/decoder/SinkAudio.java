@@ -150,7 +150,15 @@ public class SinkAudio {
 		sourceDataLine.drain();
 		sourceDataLine.close();
 	}
+
 	
+	public void write(float[] f) {
+		byte[] audioData = new byte[f.length*2];
+		boolean stereo = true;
+		SourceAudio.getBytesFromFloats(f, f.length, stereo, audioData);
+
+		write(audioData, audioData.length);
+	}
 	/**
 	 * Write bytes to the output.  
 	 * @param myData

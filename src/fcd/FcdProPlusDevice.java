@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import purejavahidapi.HidDeviceInfo;
 import common.Log;
+import device.DeviceException;
 
 public class FcdProPlusDevice extends FcdDevice {
 

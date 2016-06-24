@@ -30,12 +30,12 @@ public class SourceIQ extends SourceAudio {
 	public int IQ_SAMPLE_RATE = 0;
 
 	// FUDGE
-	public static final int FFT_SAMPLES = 16*4096;
+	public static final int FFT_SAMPLES = 32*4096;
 	//public static final int FFT_SAMPLES = 4096; //2048; //4096; //8192;
 	/* The number of samples to read from the IQ source each time we request data */
 
 	// FUDGE
-	public static final int samplesToRead = 16*3840;
+	public static final int samplesToRead = 32*3840;
 	//public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48

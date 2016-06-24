@@ -5,12 +5,14 @@ import java.util.List;
 
 import common.Config;
 import common.Log;
+import device.Device;
+import device.DeviceException;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
 import purejavahidapi.InputReportListener;
 import purejavahidapi.PureJavaHidApi;
 
-public class FcdDevice extends Device {
+public abstract class FcdDevice extends Device {
 	byte[] lastReport;
 	//static boolean commandMUX = false;
 
