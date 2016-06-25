@@ -106,8 +106,6 @@ public abstract class Decoder implements Runnable {
 	public static final int BIT_DISTANCE_THRESHOLD_PERCENT = 15; // use 20 for 736R audio *****15; // Distance that bits need to be apart to change the bit decision as % of average BIT HEIGHT
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
-	private byte[] abData;
-	private byte[] filteredData;
 	private double[] abBufferDouble;
 	private double[] abBufferDoubleFiltered; 
 	protected int currentFilterLength = 0;
@@ -196,7 +194,7 @@ public abstract class Decoder implements Runnable {
 		processing = true;
 		done = false;
 		
-		BUFFER_SIZE = bytesPerSample * SAMPLE_WINDOW_LENGTH * bucketSize;
+		BUFFER_SIZE = SAMPLE_WINDOW_LENGTH * bucketSize;
 
 		// Timing for each loop in milli seconds
 		OPTIMAL_TIME = 500*SAMPLE_WINDOW_LENGTH/BITS_PER_SECOND;
@@ -210,7 +208,7 @@ public abstract class Decoder implements Runnable {
 		
 		initWindowData();
 //		agcFilter = new AGCFilter();
-		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
 		monitorFilter.init(currentSampleRate, 3000, 256);
 	}
 
@@ -332,20 +330,20 @@ public abstract class Decoder implements Runnable {
 	public int getAudioBufferSize() { return audioSource.getAudioBufferSize(); }
 	public int getAudioBufferCapacity() { return audioSource.getAudioBufferCapacity(); }
 	
-	public byte[] getAudioData() {
+	public double[] getAudioData() {
 		if (dataFresh==false) {
 			return null;
 		} else {
 			dataFresh=false;
-			return abData;
+			return abBufferDouble;
 		}
 	}
-	public byte[] getFilteredData() {
+	public double[] getFilteredData() {
 		if (dataFresh==false) 
 			return null;
 		else {
 			dataFresh=false;
-			return filteredData;
+			return abBufferDoubleFiltered;
 		}
 	}
 	
@@ -402,10 +400,10 @@ public abstract class Decoder implements Runnable {
 		Log.println("DECODER Exit");
 	}
 	
-	protected int readBytes(byte[] abData) {
+	protected int read(double[] abData) {
 		int nBytesRead = 0;
 		//Log.println("Reading bytes from channel: " + audioChannel);
-		nBytesRead = audioSource.readBytes(abData, audioChannel);	
+		nBytesRead = audioSource.read(abData, audioChannel);	
 		return nBytesRead;
 	}
 
@@ -414,10 +412,8 @@ public abstract class Decoder implements Runnable {
 		boolean stereo = true;
 		if (audioSource.audioFormat.getChannels() == Decoder.MONO) stereo = false;
         int nBytesRead = 0;
-        abData = new byte[BUFFER_SIZE];  
-        filteredData = new byte[BUFFER_SIZE];  
-		abBufferDouble = new double[BUFFER_SIZE /bytesPerSample];
-		abBufferDoubleFiltered = new double[BUFFER_SIZE /bytesPerSample];
+ 		abBufferDouble = new double[BUFFER_SIZE];
+		abBufferDoubleFiltered = new double[BUFFER_SIZE];
 		
  /*       if (Config.writeDebugWavFile) {
         	WavDecoder.initDebugWav();
@@ -441,27 +437,27 @@ public abstract class Decoder implements Runnable {
     		Performance.endTimer("Setup");
         	if (nBytesRead >= 0) {
         		Performance.startTimer("Read");
-                nBytesRead = readBytes(abData);
+                nBytesRead = read(abBufferDouble);
                 if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
                 	if (sink != null)
-                		sink.write(abData, abData.length);
+                		sink.write(abBufferDouble);
                 }
                 if (Config.debugBytes) 
-                	if (nBytesRead != abData.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
+                	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
         		Performance.endTimer("Read");
         		Performance.startTimer("Filter");
 
                 if (Config.filterData) { // && !Config.highSpeed) {
-                	SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
+                	//SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
                 	/**
                 	 * Note that the filter converts the byte values to doubles and then back, so that
                 	 * we can play the filtered audio back to the user if requested.
                 	 */
                 	//filteredData = filter.filter(abData); //filters[Config.useFilterNumber].filter(abData);
                 	filter.filter(abBufferDouble, abBufferDoubleFiltered);
-                	SourceAudio.getBytesFromDoubles(abBufferDoubleFiltered, abBufferDoubleFiltered.length, stereo, filteredData);
+                	//SourceAudio.getBytesFromDoubles(abBufferDoubleFiltered, abBufferDoubleFiltered.length, stereo, filteredData);
                 } else
-                	filteredData = abData;
+                	abBufferDoubleFiltered = abBufferDouble;
                 if (Config.filterOutputAudio) {
 //                	monitorFilter.filter(abBufferDouble, abBufferDouble);
  //               	SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, abData);
@@ -471,12 +467,12 @@ public abstract class Decoder implements Runnable {
 
                 dataFresh = true;
                 if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
-        			sink.write(filteredData, abData.length);
+        			sink.write(abBufferDoubleFiltered);
                 }
                 Performance.endTimer("Monitor");
                 Performance.startTimer("Bucket");
 
-                bucketData(filteredData);
+                bucketData(abBufferDoubleFiltered);
                 Performance.endTimer("Bucket");
 
         	}
@@ -489,10 +485,10 @@ public abstract class Decoder implements Runnable {
         	Performance.startTimer("ClockSync");
 
         	if (!clockLocked) {
-        		byte[] clockAdvance;
+        		double[] clockAdvance;
         		clockAdvance = recoverClock(1);
         		if (clockAdvance != null && Config.recoverClock ) {
-        			rebucketData(filteredData, clockAdvance);    				
+        			rebucketData(abBufferDoubleFiltered, clockAdvance);    				
         		}
         	}
         	eyeData.calcAverages();
@@ -526,9 +522,6 @@ public abstract class Decoder implements Runnable {
         	Performance.startTimer("debugValues");
 
         	if (Config.debugValues /*&& framesDecoded == writeAfterFrame*/) {
-        		if (Config.debugBytes) printBytes(abData);
-        		//    			if (debugBytes) printBuckets();
-        		//if (frameMarkerFound)  
         		printBucketsValues();
         		//printByteValues();
         	}
@@ -701,19 +694,19 @@ public abstract class Decoder implements Runnable {
 	 * calculate the clock offset from the data.  Use the offset to pull the clock forward for the next period.  Reprocess the
 	 * current window if the clock offset was large
 	 */
-	protected byte[] recoverClock(int factor) {
+	protected double[] recoverClock(int factor) {
     	int transitionPoint = 0; // The average offset of the start/end of a pulse in each bucket
     	transitionPoint = recoverClockOffset();
     	
     	// There are 240 samples in a slow speed bucket, so if we are within 24 samples, then the start/end is in the first 10% and we do nothing
     	// There are 5 samples in high speed bucket, so we need to transition between sample 0 and 1.
     	if (transitionPoint > bucketSize/CLOCK_TOLERANCE && transitionPoint < bucketSize-bucketSize/CLOCK_TOLERANCE) {
-    		int clockAdvance = (transitionPoint-bucketSize/CLOCK_TOLERANCE)*bytesPerSample;  // We must consume a multiple of BYTES_PER_SAMPLE (4), otherwise we offset from the byte order of the samples
-    		byte[] clockData = new byte[clockAdvance * factor];;
+    		int clockAdvance = (transitionPoint-bucketSize/CLOCK_TOLERANCE);  // We must consume a multiple of BYTES_PER_SAMPLE (4), otherwise we offset from the byte order of the samples
+    		double[] clockData = new double[clockAdvance * factor];;
     		if (Config.debugClock) Log.println("Advancing clock " + clockAdvance/bytesPerSample + " samples");
    // 		if (Config.debugValues)
    // 			System.out.println(-60000); // clock change marker
-    		int nBytesRead = readBytes(clockData);
+    		int nBytesRead = read(clockData);
     		if (nBytesRead != (clockAdvance * factor)) {
     			if (Config.debugClock) Log.println("ERROR: Could not advance clock");
     		} else {
@@ -735,7 +728,7 @@ public abstract class Decoder implements Runnable {
 	 * 
 	 * @param clockAdvance
 	 */
-	protected void rebucketData(byte[] abData, byte[] clippedData) {
+	protected void rebucketData(double[] abData, double[] clippedData) {
 		appendClippedData(abData, clippedData);
     	resetWindowData();
 		bucketData(abData);
@@ -750,7 +743,7 @@ public abstract class Decoder implements Runnable {
 	 * @param abData
 	 * @param clippedData
 	 */
-	protected void appendClippedData(byte[] data, byte[] clippedData) {
+	protected void appendClippedData(double[] data, double[] clippedData) {
 		// Pull the data back in the abByte array
 		for (int i=clippedData.length; i<data.length; i++) {
 			data[i-clippedData.length] = data[i];
@@ -781,55 +774,24 @@ public abstract class Decoder implements Runnable {
 	 * Divide the sampled data into buckets, based on the perfect clock
 	 * @param abData
 	 */
-	protected void bucketData(byte[] abData) {
+	protected void bucketData(double[] abData) {
 		int k = 0; // position in the data stream where we read data
 		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			minValue[i] = 256*256;
 			
-			if (channels == STEREO) {
-				for (int j=0; j < bucketSize; j++ ) { // sample size is 4, 2 bytes per channel 				
-					byte[] by = new byte[2];
-					if (Config.useLeftStereoChannel) {     // THIS PROBABLLY SHOULD BE PASSED IN AS PART OF INIT, BUT WE WILL ALLOW IT TO BE CHANGED LIVE BY THE USER IN THE GUI
-						by[0] = abData[k];
-						by[1] = abData[k+1];
-					} else {
-						by[0] = abData[k+2];  
-						by[1] = abData[k+3];
-					}
-					int value;
-					if (bigEndian)
-						value = bigEndian2(by, bitsPerSample);
-					else
-						value = littleEndian2(by, bitsPerSample);
-					dataValues[i][j] = value; 
-					eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
-
-					if (value > maxValue[i]) maxValue[i] = value;
-					if (value < minValue[i]) minValue[i] = value;
-					k=k+4; // move forward 4 to skip the next two bytes on the other stereo channel
-				}
-			} else {
-				// MONO
+				// AT THIS POINT ASSUME MONO STREAM OF DOUBLES that we need to convert to
+				// integer samples in the buckets
+				// Doubles are from +/-1.  The samples are from +/- 32k
 				for (int j=0; j < bucketSize; j++ ) { // sample size is 2, 2 bytes per channel 				
-					byte[] by = new byte[2];
-					by[0] = abData[k];
-					by[1] = abData[k+1];
-					int value;
-					if (bigEndian)
-						value = bigEndian2(by, bitsPerSample);
-					else
-						value = littleEndian2(by, bitsPerSample);
+					int value = (int)(abData[k] * 32768.0);
 					dataValues[i][j] = value; 
 					eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
 
 					if (value > maxValue[i]) maxValue[i] = value;
 					if (value < minValue[i]) minValue[i] = value;
-					k=k+2; // move forward 2
-				
+					k=k+1; // move forward 1
 				}
-			}
-		
 			averageMax = averageMax + maxValue[i];
 			averageMin = averageMin + minValue[i];
 		}
@@ -1105,37 +1067,6 @@ public abstract class Decoder implements Runnable {
 //		System.out.println("Zero: " + zeroValue);
 	}
 
-	/**
-	 * Print the data for debug purposes so that we can graph it in excel
-	 * Include markers for the start and end of buckets and for the value of the mid point sample
-	 */
-	protected void printByteValues() {
-		byte[] by = new byte[2];
-		int k = 0;
-	//		System.out.println(-40000); // start of window
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
-//			for (int m=0; m<4; m++)
-	//			System.out.println(40000); // start of bucket marker
-			int step = 10;
-			if (this instanceof Fox9600bpsDecoder) {
-				step = 1;
-			}
-			
-			for (int j=0; j<bucketSize; j+=step) { // 20) {
-				//if (j== BUCKET_SIZE/4) System.out.print("** ");
-				//if (j==BUCKET_SIZE/2 && Config.debugBits) {
-				
-//				by[0] = filteredData[k];
-//				by[1] = filteredData[k+1];
-				by[0] = abData[k];
-				by[1] = abData[k+1];
-				System.out.println(littleEndian2(by, bitsPerSample));
-				//if (j== BUCKET_SIZE/4) System.out.print(" ** ");
-				k +=4;
-			}
-		}
-	}
 	
 	public static void printBytes(byte b[]) {
 		for (int i=0; i < b.length; i++) {

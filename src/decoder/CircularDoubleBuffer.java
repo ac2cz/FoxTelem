@@ -28,16 +28,16 @@ import common.Log;
  *
  */
 
-public class CircularFloatBuffer {
-	float[] bytes;
+public class CircularDoubleBuffer {
+	double[] bytes;
 	int bufferSize = 0;; 
 	int startPointer = 0;
 	int endPointer = 0;
 	public static final int DEFAULT_SIZE = 48000*2; // 0.5 second
 	int statusCount = 0;
 	
-	public CircularFloatBuffer(int size) {
-		bytes = new float[size];
+	public CircularDoubleBuffer(int size) {
+		bytes = new double[size];
 		bufferSize = size;
 //		startPointer = bufferSize - 1; // initialize this to the end of the array, otherwise we can not write data to it
 		Log.println("Created circular BYTE buffer with " + bufferSize + " bytes");
@@ -62,7 +62,7 @@ public class CircularFloatBuffer {
 
 	
 
-	public boolean add(float one, float two) {
+	public boolean add(double one, double two) {
 		if (endPointer+1 == startPointer) {
 			throw new IndexOutOfBoundsException("End pointer has reached start pointer");
 		} 
@@ -78,7 +78,7 @@ public class CircularFloatBuffer {
 	 * @param o
 	 * @return
 	 */
-	public boolean add(float o) {
+	public boolean add(double o) {
 			bytes[endPointer] = o;
 
 			endPointer++;
@@ -116,7 +116,7 @@ public class CircularFloatBuffer {
 	 * Typically the startPointer is then incremented if the data is "consumed"
 	 * An error is generated if it will go past the end pointer
 	 */
-	public float get(int i) {
+	public double get(int i) {
 		if (i > size())
 			throw new IndexOutOfBoundsException("Attempt to read past end pointer");
 		int p = incPointer(startPointer, i);

@@ -59,15 +59,15 @@ public class Fox200bpsDecoder extends Decoder {
 		currentFilterFreq = Config.filterFrequency;
 		useFilterNumber = Config.useFilterNumber;
 		if (useFilterNumber == FilterPanel.RAISED_COSINE) {
-			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		} else if (useFilterNumber == FilterPanel.WINDOWED_SINC) {
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		} else if (useFilterNumber == FilterPanel.MATCHED) {
 			//filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 			// Experiments have determined that the optimal filter is the WS length 480
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, bucketSize*2);
 		}
 		

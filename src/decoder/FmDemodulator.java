@@ -37,12 +37,12 @@ import common.Config;
  *
  */
 public class FmDemodulator {
-	protected float[] i = new float[3];
-	protected float[] q = new float[3];
-	float lastPhase = 0f;
-	float gain = 0.5f;
-	float limiti;
-	float limitq;
+	protected double[] i = new double[3];
+	protected double[] q = new double[3];
+	double lastPhase = 0f;
+	double gain = 0.5f;
+	double limiti;
+	double limitq;
 	
 	
 	public FmDemodulator() {
@@ -67,9 +67,9 @@ public class FmDemodulator {
 	 * @param qn
 	 * @return
 	 */
-	public double atanDemodulate(float in, float qn) {
-		float I,Q; 
-		float angle = 0;;
+	public double atanDemodulate(double in, double qn) {
+		double I,Q; 
+		double angle = 0;;
 		
 		/**
 		 * Multiply the current sample against the complex conjugate of the 
@@ -92,15 +92,15 @@ public class FmDemodulator {
 		 * original message waveform during the modulation.  This value now
 		 * serves as the instantaneous amplitude of the demodulated signal
 		 */
-		float denominator = 1.0f / I;
-		angle = (float) Math.atan( (float)Q * denominator );
+		double denominator = 1.0f / I;
+		angle = (double) Math.atan( (double)Q * denominator );
 
 		// If both real and imaginary parts are negative, need to subtract PI radians
 		if (I < 0 && Q < 0) {
-			angle = (float) (angle - Math.PI);
+			angle = (double) (angle - Math.PI);
 		}
 		if (I < 0 && Q >= 0) {
-			angle = (float) (angle + Math.PI);
+			angle = (double) (angle + Math.PI);
 		}
 
 		return angle * gain;
@@ -143,9 +143,9 @@ public class FmDemodulator {
 	 * @param q
 	 * @return
 	 */
-	public float demodulate(float in, float qn) {
+	public double demodulate(double fftData, double fftData2) {
 		if (Config.useLimiter) {
-		limiter(in, qn);
+		limiter(fftData, fftData2);
 		
 		}
 		i[0] = i[1];
@@ -157,18 +157,18 @@ public class FmDemodulator {
 		i[2] = limiti;
 		q[2] = limitq;
 		} else {
-			i[2] = in;
-			q[2] = qn;
+			i[2] = fftData;
+			q[2] = fftData2;
 		}
 		
 		// it simplifies to: Demodn={Qn*In-1  -  In*Qn-1}/{In2+Qn2}
 		
-		float gain = 0.5f; // magic number of 1/2 seems to work best
-		float num = i[1] * ( q[2] - q[0] ) - q[1] * ( i[2] - i[0] );
+		double gain = 0.5f; // magic number of 1/2 seems to work best
+		double num = i[1] * ( q[2] - q[0] ) - q[1] * ( i[2] - i[0] );
 		//double num = q[2] * i[1]  - i[2] * q[1];
-		float den = (i[1]*i[1] + q[1]*q[1]); 
+		double den = (i[1]*i[1] + q[1]*q[1]); 
 		
-		float deltafreq =  gain* (num/den);
+		double deltafreq =  gain* (num/den);
 	
 		if (Double.isNaN(deltafreq)) {
 			//Log.println("FM NaN: num:"+num+" den:"+den);
@@ -182,10 +182,10 @@ public class FmDemodulator {
 	 * @param i
 	 * @param q
 	 */
-	private void limiter(float i, float q) {
-		float f = (float) Math.atan2(q, i);
-		limiti = (float) Math.cos(f);
-		limitq = (float) Math.sin(f);
+	private void limiter(double i, double q) {
+		double f = (double) Math.atan2(q, i);
+		limiti = (double) Math.cos(f);
+		limitq = (double) Math.sin(f);
 	}
 
 }

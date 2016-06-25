@@ -47,7 +47,7 @@ public class Fox9600bpsDecoder extends Decoder {
 		// Experiments have determined we should use Raised cosine as a matched filter.  
 		// It should be the same length as the pulse (a whole wavelength), so we make
 		// it length 10, for a 1 and a 0.  The 1 will be centered. This is twice the bucket size
-		filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
 		//filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 		filter.init(currentSampleRate, HIGH_SPEED_BITS_PER_SECOND, bucketSize*2);
 		//double[] coef = filter.getKernal();

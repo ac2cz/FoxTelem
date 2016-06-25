@@ -42,7 +42,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	TargetDataLine targetDataLine = null;
 	int errorCount = 0;
 	byte[] readBuffer;
-	byte a,b,c,d;
+	double a,b;
 	
 	boolean skippedOneByte = false;
 	int channels = 0;
@@ -56,8 +56,8 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		
 	}
 */
-	public SourceSoundCardAudio(int circularBufferSize, int rate, int device, int chan) throws IllegalArgumentException, LineUnavailableException {
-		super("SoundCard", circularBufferSize, chan);
+	public SourceSoundCardAudio(int circularBufferSize, int rate, int device, int chan, boolean storeStereo) throws IllegalArgumentException, LineUnavailableException {
+		super("SoundCard", circularBufferSize, chan, storeStereo);
 		channels = chan;
 		sampleRate = rate;
 		setDevice(device);
@@ -224,6 +224,9 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 
 	
 
+	/**
+	 * the run method reads from the actual physical source and stores the results in the circular buffer
+	 */
 	@Override
 	public void run() {
 		done = false;
@@ -257,26 +260,27 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 					} 
 				//boolean readBoth = false;
 				int nBytesRead = targetDataLine.read(readBuffer, 0, readBuffer.length);
+				
 				try {
 					for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
 
-						a = readBuffer[i];
-						b = readBuffer[i+1];
+						a = SourceAudio.getDoubleFromBytes(readBuffer[i],readBuffer[i+1],audioFormat);
 						
-						if (audioFormat.getFrameSize() == 4) {
-							c = readBuffer[i+2];
-							d = readBuffer[i+3];
+						if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
+							b = SourceAudio.getDoubleFromBytes(readBuffer[i+2],readBuffer[i+3], audioFormat);
+						}
+						if (audioFormat.getFrameSize() == 4 && storeStereo) {
 							if (channels == 0)
-								circularBuffer[0].add(a,b,c,d);
+								circularDoubleBuffer[0].add(a,b);
 							else
 								for (int chan=0; chan < channels; chan++)
-									circularBuffer[chan].add(a,b,c,d);
+									circularDoubleBuffer[chan].add(a,b);
 						} else {
 							if (channels == 0)
-								circularBuffer[0].add(a,b);
+								circularDoubleBuffer[0].add(a);
 							else
 								for (int chan=0; chan < channels; chan++)
-									circularBuffer[chan].add(a,b);
+									circularDoubleBuffer[chan].add(a);
 						}
 					}
 				} catch (IndexOutOfBoundsException e) {
@@ -307,4 +311,6 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		Log.println("Audio Source EXIT, channels:" + channels);
 	}
 
+	
+	
 }

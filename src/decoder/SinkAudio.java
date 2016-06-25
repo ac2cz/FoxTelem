@@ -152,24 +152,31 @@ public class SinkAudio {
 	}
 
 	
-	public void write(float[] f) {
-		byte[] audioData = new byte[f.length*2];
-		boolean stereo = true;
-		SourceAudio.getBytesFromFloats(f, f.length, stereo, audioData);
+	/**
+	 * Write the array of doubles to the sound card.  This can be a mono or stereo stream. If it is mono and the output is stereo then
+	 * write the same data to each channel
+	 * 
+	 * @param f
+	 */
+	public void write(double[] f) {
+		byte[] audioData = new byte[f.length*audioFormat.getFrameSize()];
+		boolean stereo = false;
+		if (audioFormat.getChannels() == 2) stereo = true;
+		SourceAudio.getBytesFromDoubles(f, f.length, stereo, audioData); // assume we copy MONO stream of data to stereo channels
 
-		write(audioData, audioData.length);
+		write(audioData);
 	}
 	/**
 	 * Write bytes to the output.  
 	 * @param myData
 	 * @param numBytesRead
 	 */
-	public void write(byte[] myData, int numBytesRead) {
+	public void write(byte[] myData) {
 		// FIXME - This potentially needs to happen in a background thread because the write blocks until the buffer is filled.  This slows the overall
 		// audio loop down to the speed of the audio playback.  If we are receiving real time, that means we risk missing some of the audio on the input
 	//	if (Config.playbackSampleRate < Config.currentSampleRate) {
 			
-			sourceDataLine.write(myData, 0, numBytesRead);
+			sourceDataLine.write(myData, 0, myData.length);
 	//	} else
 	//		sourceDataLine.write(myData, 0, numBytesRead);
 	}

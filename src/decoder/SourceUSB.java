@@ -6,31 +6,20 @@ import common.Config;
 import common.Log;
 import device.airspy.AirspyDevice;
 
-public class SourceUSB extends SourceAudio implements Runnable {
+public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnable {
 
-	int channels = 0;
+	
 	int errorCount = 0;
-	CircularFloatBuffer[] circularFloatBuffer;
 	
 	public SourceUSB(String n, int sampleRate, int circularBufferSize, int channels) {
 		super(n, circularBufferSize, channels);
-		if (circularBufferSize % 2 == 0) circularBufferSize+=1; // must be odd to prevent corruption if the buffer overflows
-		if (channels == 0) {
-			circularFloatBuffer = new CircularFloatBuffer[1];
-			circularFloatBuffer[0] = new CircularFloatBuffer(circularBufferSize);
-		} else {
-			circularFloatBuffer = new CircularFloatBuffer[channels];
-		for (int i=0; i< channels; i++)
-			circularFloatBuffer[i] = new CircularFloatBuffer(circularBufferSize);
-		}
-		this.channels = channels;
 		this.sampleRate = sampleRate;
 		audioFormat = makeAudioFormat(sampleRate);
 	}
 
 	//byte[] readBuffer;
 	float a,b,c,d;
-	public void write(float[] realSamples) {
+	public void receive(float[] realSamples) {
 		try {
 			int bytesPerSample = 2;
 			for(int i=0; i< realSamples.length; i+=bytesPerSample) {
@@ -39,10 +28,10 @@ public class SourceUSB extends SourceAudio implements Runnable {
 				b = realSamples[i+1];
 
 				if (channels == 0)
-					circularFloatBuffer[0].add(a,b);
+					circularDoubleBuffer[0].add(a,b);
 				else
 					for (int chan=0; chan < channels; chan++)
-						circularFloatBuffer[chan].add(a,b);
+						circularDoubleBuffer[chan].add(a,b);
 
 			}
 		} catch (IndexOutOfBoundsException e) {
@@ -70,41 +59,6 @@ public class SourceUSB extends SourceAudio implements Runnable {
 		}
 	}
 	
-	public int readBytes(float[] abData, int chan) {
-		int bytesRead = 0;
-
-		// We block until we have read abData length bytes, assuming we are still running
-		while (running && bytesRead < abData.length) {
-			if (circularFloatBuffer[chan].size() > 2) {// if we have at least one set of bytes, then read them
-				try {
-					
-					abData[bytesRead+1] = circularFloatBuffer[chan].get(1);  // try the second byte first, because we only want to succeed if both are available
-					abData[bytesRead] = circularFloatBuffer[chan].get(0);
-					circularFloatBuffer[chan].incStartPointer(2);
-					bytesRead+=2;
-				} catch (IndexOutOfBoundsException e) {
-					// If this happens, we are in an unusual situation.  We waited until the circularBuffer contains abData.length of data
-					// then we started to read it one byte at a time.  However, we have moved the read (start) pointer as far as the end
-					// pointer, so we have run out of data.
-					Log.errorDialog(name + ": AUDIO BUFFER READ ERROR on channel: " + chan, e.getMessage() + "\nTry starting the decoder again.");
-					Log.println(name + ": threw error:");
-					e.printStackTrace(Log.getWriter());
-				}
-			} else {
-				try {
-					Thread.sleep(0, 1);
-				} catch (InterruptedException e) {
-					e.printStackTrace(Log.getWriter());
-				}
-			}
-		}
-		return bytesRead;
-	}
-	public int readBytes(byte[] abData, int chan) {
-		Log.errorDialog("ERROR", "Cant read bytes from USBSouce, need to read floats");
-		System.exit(1);
-		return 0;
-	}
 	/**
 	 * Populate an AudioFormat object with the parameters we need and return the object
 	 * @return
