@@ -68,7 +68,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	int fftSamples = SourceIQ.FFT_SAMPLES;
 	//double[] fftData = new double[fftSamples*2];
 	
-	private float[] psd = null;
+	private double[] psd = null;
 	
 	boolean running = true;
 	boolean done = false;
@@ -147,8 +147,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	public void run() {
 		done = false;
 		running = true;
-		float[] buffer = null;
-		psd = new float[fftSamples+1];
+		double[] buffer = null;
+		psd = new double[fftSamples+1];
 		while(running) {
 			if (iqSource != null) {
 				buffer = iqSource.getPowerSpectralDensity();

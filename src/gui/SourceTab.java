@@ -1208,11 +1208,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			circularBufferSize = sampleRate * 4;
 		} else {
 		}		SourceSoundCardAudio audioSource = null;
+		boolean storeStereo = false;
+		if (Config.iq) storeStereo = true;
 		try {
 			if (Config.autoDecodeSpeed)
-				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2); // split the audio source
+				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2, storeStereo); // split the audio source
 			else
-				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0);
+				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
 		} catch (LineUnavailableException e1) {
 			JOptionPane.showMessageDialog(this,
 					e1.toString(),

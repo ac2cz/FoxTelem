@@ -125,7 +125,7 @@ public abstract class Filter {
 		// copy into a buffer with the extra space for the overlap and DC filter while we are at it
 		for (int i = 0; i < samplesRead; i++) {
 			if (filterDC)
-				abBufferDouble[i] = dcFilter.filter((float) inputDouble[i]);
+				abBufferDouble[i] = dcFilter.filter( inputDouble[i]);
 			else
 				abBufferDouble[i] = inputDouble[i];
 			//abBufferDouble[i] = inputDouble[i];

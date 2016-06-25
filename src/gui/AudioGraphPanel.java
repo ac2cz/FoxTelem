@@ -11,6 +11,7 @@ import javax.swing.JLabel;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
+import decoder.SourceAudio;
 
 /**
  * 
@@ -45,7 +46,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	boolean done = false;
 	int centerFreqX = 220;
 	Decoder decoder;
-	byte[] audioData = null;
+	double[] audioData = null;
 	int AUDIO_DATA_SIZE = 1024;
 	int currentDataPosition = 0;
 	JLabel sample;
@@ -99,7 +100,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				//e.printStackTrace();
 			} 
 			
-			byte[] buffer;
+			double[] buffer;
 			if (decoder != null) {
 				if (showFilteredAudio)
 					buffer = decoder.getFilteredData();
@@ -166,26 +167,20 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			if (stepSize <= 0) stepSize = 1;
 			for (int i=0; i < audioData.length-stepSize; i+=stepSize*2) {
 				// data is stereo, but we want to decimate before display
-				byte[] by = new byte[2];
-				by[0] = audioData[i];
-				by[1] = audioData[i+1];
-				int value;
-				if (decoder.getBigEndian())
-					value = Decoder.bigEndian2(by, decoder.getBitsPerSample());
-				else
-					value = Decoder.littleEndian2(by, decoder.getBitsPerSample());
 
-					//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
-					x = border*2 + i*(graphWidth-border*2)/audioData.length;
-					
-					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y = graphHeight/2+graphHeight/2.5*value/32768 + border;
-					//int y = 100;
-					g2.drawLine(lastx, lasty, x, (int)y);
-					lastx = x;
-					lasty = (int)y;
+				//int value = SourceAudio.getIntFromDouble(audioData[i]);
 
-				}
+				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
+				x = border*2 + i*(graphWidth-border*2)/audioData.length;
+
+				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
+				double y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
+				//int y = 100;
+				g2.drawLine(lastx, lasty, x, (int)y);
+				lastx = x;
+				lasty = (int)y;
+
+			}
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line

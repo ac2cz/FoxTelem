@@ -31,16 +31,16 @@ package filter;
  */
 public class DcRemoval {
 
-	private float mAlpha;
-	private float mPreviousInput = 0.0f;
-	private float mPreviousOutput = 0.0f;
+	private double mAlpha;
+	private double mPreviousInput = 0.0f;
+	private double mPreviousOutput = 0.0f;
 	
-	public DcRemoval( float a ) {
-		mAlpha = a;
+	public DcRemoval( double d ) {
+		mAlpha = d;
 	}
     
-	public float filter( float currentInput ) {
-		float currentOutput = ( currentInput - mPreviousInput ) + 
+	public double filter( double currentInput ) {
+		double currentOutput = ( currentInput - mPreviousInput ) + 
 							  ( mAlpha * mPreviousOutput );
 		
 		
