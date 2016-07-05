@@ -263,11 +263,22 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 				
 				try {
 					for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
-
-						a = SourceAudio.getDoubleFromBytes(readBuffer[i],readBuffer[i+1],audioFormat);
+						byte[] ia = {readBuffer[i],readBuffer[i+1]};
+						if (audioFormat.isBigEndian()) {
+							a = Decoder.bigEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						} else {
+							a = Decoder.littleEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						}
+						//a = SourceAudio.getDoubleFromBytes(readBuffer[i],readBuffer[i+1],audioFormat);
 						
 						if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
-							b = SourceAudio.getDoubleFromBytes(readBuffer[i+2],readBuffer[i+3], audioFormat);
+							byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
+							if (audioFormat.isBigEndian()) {
+								b = Decoder.bigEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							} else {
+								b = Decoder.littleEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							}
+							//b = SourceAudio.getDoubleFromBytes(readBuffer[i+2],readBuffer[i+3], audioFormat);
 						}
 						if (audioFormat.getFrameSize() == 4 && storeStereo) {
 							if (channels == 0)
@@ -276,6 +287,8 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 								for (int chan=0; chan < channels; chan++)
 									circularDoubleBuffer[chan].add(a,b);
 						} else {
+							if (!Config.useLeftStereoChannel)
+								a = b; // use the audio from the right channel
 							if (channels == 0)
 								circularDoubleBuffer[0].add(a);
 							else

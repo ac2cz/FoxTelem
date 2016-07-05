@@ -33,7 +33,7 @@ public class SourceIQ extends SourceAudio {
 	//public static final int FFT_SAMPLES = 4096; //2048; //4096; //8192;
 	/* The number of samples to read from the IQ source each time we request data */
 
-	public static int samplesToRead = 3840;
+	public static int samplesToRead = 3840*2;
 	//public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48
@@ -106,7 +106,7 @@ public class SourceIQ extends SourceAudio {
 	RfData rfData;
 	
 	public SourceIQ(int circularDoubleBufferSize, int chan, boolean hs) {
-		super("IQ Source" + hs, circularDoubleBufferSize, chan, true);
+		super("IQ Source" + hs, circularDoubleBufferSize, chan, false);
 		highSpeed = hs;
 		channel = chan;
 		audioFormat = makeAudioFormat();
@@ -199,6 +199,9 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	private void init() {	
+		// The IQ Sample Rate is the same as the format for the upstream audio
+		IQ_SAMPLE_RATE = (int)upstreamAudioFormat.getSampleRate();
+		
 		int factor = IQ_SAMPLE_RATE / 192000;
 		if (factor > 0) { // lengthen the FFT for large bandwidths
 			FFT_SAMPLES = FFT_SAMPLES * factor;
@@ -212,11 +215,8 @@ public class SourceIQ extends SourceAudio {
 		psd = new double[FFT_SAMPLES*2+1];;
 		psdSum = new double[FFT_SAMPLES*2+1];;
 		psdAvg = new double[FFT_SAMPLES*2+1];;
-		overlap = new double[2*FFT_SAMPLES - (samplesToRead/2)];
 		newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
 
-		// The IQ Sample Rate is the same as the format for the upstream audio
-		IQ_SAMPLE_RATE = (int)upstreamAudioFormat.getSampleRate();
 		decimationFactor = IQ_SAMPLE_RATE / AF_SAMPLE_RATE;
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
@@ -233,7 +233,7 @@ public class SourceIQ extends SourceAudio {
 		//decimationFactor = decimationFactor/2;
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
 		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
-		overlap = new double[2*FFT_SAMPLES - (samplesToRead/2)];
+		overlap = new double[2*FFT_SAMPLES - (samplesToRead)];
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
@@ -243,11 +243,12 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
 		Log.println("Decimation Factor: " + decimationFactor);
+		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
+		
+		audioDcFilter = new DcRemoval(0.9999d);
 
-		audioDcFilter = new DcRemoval(0.9999);
-
-		iDcFilter = new DcRemoval(0.9999);
-		qDcFilter = new DcRemoval(0.9999);
+		iDcFilter = new DcRemoval(0.9999d);
+		qDcFilter = new DcRemoval(0.9999d);
 		rfData = new RfData(this);
 		zeroPsdAvg();
 	}
@@ -271,7 +272,7 @@ public class SourceIQ extends SourceAudio {
 				// FUDGE
 				nBytesRead = upstreamAudioSource.read(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
-					Log.println("ERROR: IQ Source could not read sufficient bytes from audio source");
+					Log.println("ERROR: IQ Source could not read sufficient data from audio source");
 				outputData = processBytes(fcdData, false);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
@@ -332,7 +333,7 @@ public class SourceIQ extends SourceAudio {
 	 */
 	protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		int dist = 0;
-		if (offsetFFT) dist = (FFT_SAMPLES - SourceIQ.samplesToRead) /2;
+		if (offsetFFT) dist = (2*FFT_SAMPLES - SourceIQ.samplesToRead)/2;
 		
 		//int nBytesRead = fcdData.length;
 		zeroFFT();
@@ -341,19 +342,7 @@ public class SourceIQ extends SourceAudio {
 		// Loop through the 192k data, sample size 4
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 4, 2 bytes per channel
 			double id, qd;
-			/*
-			ib[0] = fcdData[j];
-			ib[1] = fcdData[j+1];
-			qb[0] = fcdData[j+2];  
-			qb[1] = fcdData[j+3];
-			if (upstreamAudioFormat.isBigEndian()) {
-				id = (double) (Decoder.bigEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
-				qd = (double) (Decoder.bigEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
-			} else {
-				id = (double) (Decoder.littleEndian2(ib, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
-				qd = (double) (Decoder.littleEndian2(qb, upstreamAudioFormat.getSampleSizeInBits())/ 32768.0);
-			}
-			 */
+			
 			id = fcdData[j];
 			qd = fcdData[j+1];
 			// filter out any DC from I/Q signals
@@ -362,11 +351,11 @@ public class SourceIQ extends SourceAudio {
 
 			// i and q go into consecutive spaces in the complex FFT data input
 			if (Config.swapIQ) {
-				fftData[i+dist*2] = qd;
-				fftData[i+1+dist*2] = id;
+				fftData[i+dist] = qd;
+				fftData[i+1+dist] = id;
 			} else {
-				fftData[i+dist*2] = id;
-				fftData[i+1+dist*2] = qd;
+				fftData[i+dist] = id;
+				fftData[i+1+dist] = qd;
 			}
 			i+=2;
 		}
@@ -383,7 +372,7 @@ public class SourceIQ extends SourceAudio {
 		int d=0;		
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-				demodAudio[d++] = fm.demodulate(fftData[j+dist*2], fftData[j+1+dist*2]);			
+				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);			
 		}
 		
 		int k = 0;
@@ -473,12 +462,12 @@ public class SourceIQ extends SourceAudio {
 	
 		// Add the last overlap.  
 		// We have iq data, so the FFTData buffer is actually FFT_SAMPLES * 2 in length
-		// We request samplesToRead bytes from readBytes, it grabs 4 * samplesToRead from the source because we
+		// We request samplesToRead bytes from the source
 		// That data becomes 2 iq samples
-		int overlapLength = 2*FFT_SAMPLES - samplesToRead;
+		int overlapLength = 2*FFT_SAMPLES - samplesToRead*2;
 		//int overlapLength = dist;
 		for (int o=0; o < overlapLength; o++) {
-			fftData[o] += overlap[o];
+			fftData[o] += overlap[o];             ///// ADDING THE OVERLAP causes distortion unless we get it just right
 		}
 
 		// capture this overlap
