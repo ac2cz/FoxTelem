@@ -65,7 +65,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	private static final float TRACK_SIGNAL_THRESHOLD = -80;
 	Spacecraft fox;
 	
-	int fftSamples = SourceIQ.FFT_SAMPLES;
+	int fftSamples = 0;
 	//double[] fftData = new double[fftSamples*2];
 	
 	private double[] psd = null;
@@ -143,14 +143,25 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		//source.drain();
 	}
 	
-	@Override
-	public void run() {
+	private void init() {
+		fftSamples = SourceIQ.FFT_SAMPLES;
 		done = false;
 		running = true;
-		double[] buffer = null;
 		psd = new double[fftSamples+1];
+		title.setText("FFT: " +  fftSamples);
+	}
+	
+	@Override
+	public void run() {
+		
+		double[] buffer = null;
 		while(running) {
 			if (iqSource != null) {
+				if (fftSamples != SourceIQ.FFT_SAMPLES) {
+					fftSamples = SourceIQ.FFT_SAMPLES;
+					psd = new double[fftSamples+1];
+					title.setText("FFT: " +  fftSamples);
+				}
 				buffer = iqSource.getPowerSpectralDensity();
 				centerFreqX = iqSource.getCenterFreqkHz();
 				selectedBin = Config.selectedBin;
@@ -271,7 +282,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		graphHeight = getHeight() - topBorder*2;
 		graphWidth = getWidth() - sideBorder*2; // width of entire graph
 		
-								
+		
 		int minTimeValue = centerFreqX-iqSource.IQ_SAMPLE_RATE/2000;//96;
 		int maxTimeValue = centerFreqX+iqSource.IQ_SAMPLE_RATE/2000;//96;
 		int numberOfTimeLabels = graphWidth/labelWidth;
@@ -509,7 +520,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	public void startProcessing(SourceIQ d) {
 		iqSource = d;
-		//title.setText("Sample rate: " +  d.upstreamAudioFormat.getSampleRate());
+		init();
+		//title.setText("Sample rate: " +  iqSource.IQ_SAMPLE_RATE);
 		running = true;
 	}
 	

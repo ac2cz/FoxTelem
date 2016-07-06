@@ -12,7 +12,7 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 	int errorCount = 0;
 	
 	public SourceUSB(String n, int sampleRate, int circularBufferSize, int channels) {
-		super(n, circularBufferSize, channels);
+		super(n, circularBufferSize, channels, true); // store stereo data in the audio source
 		this.sampleRate = sampleRate;
 		audioFormat = makeAudioFormat(sampleRate);
 	}

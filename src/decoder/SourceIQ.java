@@ -33,7 +33,7 @@ public class SourceIQ extends SourceAudio {
 	//public static final int FFT_SAMPLES = 4096; //2048; //4096; //8192;
 	/* The number of samples to read from the IQ source each time we request data */
 
-	public static int samplesToRead = 3840*2;
+	public static int samplesToRead = 3840;
 	//public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48
@@ -203,9 +203,10 @@ public class SourceIQ extends SourceAudio {
 		IQ_SAMPLE_RATE = (int)upstreamAudioFormat.getSampleRate();
 		
 		int factor = IQ_SAMPLE_RATE / 192000;
-		if (factor > 0) { // lengthen the FFT for large bandwidths
-			FFT_SAMPLES = FFT_SAMPLES * factor;
-			samplesToRead = samplesToRead * factor;
+		if (factor > 1) { // lengthen the FFT for large bandwidths
+			Log.println("FFT FACTOR: " + factor);
+			FFT_SAMPLES = FFT_SAMPLES * 16;
+			samplesToRead = samplesToRead * 16;
 		}
 		fft = new DoubleFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
@@ -222,14 +223,13 @@ public class SourceIQ extends SourceAudio {
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
 		if (highSpeed)
-			filterWidth = (int) (9600*2/binBandwidth) ;
+			filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		else
-			filterWidth = (int) (5000/binBandwidth) ;
+			filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
 		
 /////////////// FUDGE - NEED TO WORK OUT WHY THE BANDWIDTH IS COMING OUT WRONG.... * 4 for Airspy
-		filterWidth = filterWidth*1;
-	// filterWidth = (int) (200000/binBandwidth);
-//		filterWidth = filterWidth*2;
+	 //filterWidth = (int) (200000/binBandwidth);
+	//	filterWidth = filterWidth*4;
 		//decimationFactor = decimationFactor/2;
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
 		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
@@ -237,7 +237,6 @@ public class SourceIQ extends SourceAudio {
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
-/////////////// BIG FUDGE - not sure why doubling the length of the audio file helps here....
 		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
 		// Remove *2 for AIRSPY ^
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
@@ -268,8 +267,6 @@ public class SourceIQ extends SourceAudio {
 		while (running) {
 			int nBytesRead = 0;
 			if (circularDoubleBuffer[channel].getCapacity() > fcdData.length) {
-				//nBytesRead = upstreamAudioSource.readBytes(fcdData, upstreamChannel);
-				// FUDGE
 				nBytesRead = upstreamAudioSource.read(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
 					Log.println("ERROR: IQ Source could not read sufficient data from audio source");
@@ -287,10 +284,11 @@ public class SourceIQ extends SourceAudio {
 				*/
 				fftDataFresh = true;
 				for(int i=0; i < outputData.length; i+=2) {	
-			// FUDGE		if (i+2 > outputData.length) {
-			//			Log.println("Only added: "+i +" of " + outputData.length);
-			//			break;
-			//		}
+			// FUDGE		
+					if (i+2 > outputData.length) {
+						Log.println("Only added: "+i +" of " + outputData.length);
+						break;
+					}
 					circularDoubleBuffer[channel].add(outputData[i],outputData[i+1]);
 				}
 			} else {
@@ -339,8 +337,8 @@ public class SourceIQ extends SourceAudio {
 		zeroFFT();
 		int i = 0;
 		
-		// Loop through the 192k data, sample size 4
-		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 4, 2 bytes per channel
+		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
+		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
 			
 			id = fcdData[j];
@@ -389,11 +387,11 @@ public class SourceIQ extends SourceAudio {
 		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
 			// scaling and conversion to integer
 			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
-	// FUDGE - safety factor
-//			if (k + 3 >= audioData.length ) {
-//				//Log.println("k:" + k);
-//				break;
-//			}
+	// FUDGE - safety factor because the decimation is not exact
+			if (k + 3 >= audioData.length ) {
+				//Log.println("k:" + k);
+				break;
+			}
 			audioData[k] = value;
 			k+=1;			
 		 }
@@ -430,7 +428,7 @@ public class SourceIQ extends SourceAudio {
 	private void calcPsd() {
 		// Calculate power spectral density (PSD) so that we can display it
 		// This is the magnitude of the complex signal, so it is sqrt(i^2 + q^2)
-		// divided by the bin bandwidth  THIS IS NOT DONE CURRENTLY  - SO WHAT DOES IT MEAN?
+		// divided by the bin bandwidth  
 		for (int s=0; s<fftData.length-1; s+=2) {
 			psd[s/2] = psd(fftData[s], fftData[s+1]);
 			

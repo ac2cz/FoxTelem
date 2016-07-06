@@ -1566,7 +1566,7 @@ public class AirspyDevice extends device.Device
 //					mComplexBufferBroadcaster.broadcast( 
 //							new ComplexBuffer( quadratureSamples ) );
 					if (usbSource != null)
-						usbSource.write(quadratureSamples);
+						usbSource.receive(quadratureSamples);
 				}
 	///			Log.println("");
 			}
