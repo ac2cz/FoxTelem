@@ -124,6 +124,13 @@ public class SourceIQ extends SourceAudio {
 		upstreamAudioFormat = as.getAudioFormat();	
 	}
 	
+	public void setFilterWidth(int freq) {
+		if (freq == 0 || binBandwidth == 0) return;
+		filterWidth = (int) (freq/binBandwidth);
+		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
+		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
+	}
+	
 	public RfData getRfData() {
 		if (rfData != null) {
 			rfData.calcAverages();
@@ -223,22 +230,23 @@ public class SourceIQ extends SourceAudio {
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
 		if (highSpeed)
-			filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
+			setFilterWidth(9600*2);
+			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		else
-			filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
+			setFilterWidth(10000);
+			//filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
 		
 /////////////// FUDGE - NEED TO WORK OUT WHY THE BANDWIDTH IS COMING OUT WRONG.... * 4 for Airspy
-	 //filterWidth = (int) (200000/binBandwidth);
+	 //filterWidth = (int) (75000/binBandwidth);
 	//	filterWidth = filterWidth*4;
 		//decimationFactor = decimationFactor/2;
-		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
-		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
+		
 		overlap = new double[2*FFT_SAMPLES - (samplesToRead)];
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
 		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
-		// Remove *2 for AIRSPY ^
+
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
 		Log.println("Decimation Factor: " + decimationFactor);
@@ -286,7 +294,7 @@ public class SourceIQ extends SourceAudio {
 				for(int i=0; i < outputData.length; i+=2) {	
 			// FUDGE		
 					if (i+2 > outputData.length) {
-						Log.println("Only added: "+i +" of " + outputData.length);
+						//Log.println("Only added: "+i +" of " + outputData.length);
 						break;
 					}
 					circularDoubleBuffer[channel].add(outputData[i],outputData[i+1]);

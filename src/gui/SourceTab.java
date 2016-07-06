@@ -143,6 +143,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JRadioButton highSpeed;
 	JRadioButton lowSpeed;
 	JRadioButton auto;
+	JRadioButton WFM;
+	JRadioButton FM;
+	JRadioButton NFM;
 	JRadioButton iqAudio;
 	JRadioButton afAudio;
 	JRadioButton showSNR;
@@ -572,16 +575,28 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		panelFreq.add(lblFreq);
 		lblFreq.setVisible(false);
 		
+		
 		txtFreq = new JTextField(Long.toString(Config.fcdFrequency));
 		txtFreq.addActionListener(this);
 		panelFreq.add(txtFreq);
 		txtFreq.setColumns(10);
 		txtFreq.setVisible(false);
 
-		lblkHz = new JLabel(" kHz");
+		lblkHz = new JLabel(" kHz   ");
 		panelFreq.add(lblkHz);
 		lblkHz.setVisible(false);
-
+		WFM = addRadioButton("WFM", panelFreq );
+		FM = addRadioButton("FM", panelFreq );
+		NFM = addRadioButton("NFM", panelFreq );
+		ButtonGroup modeGroup = new ButtonGroup();
+		modeGroup.add(WFM);
+		modeGroup.add(FM);
+		modeGroup.add(NFM);
+		WFM.setVisible(false);
+		FM.setVisible(false);
+		NFM.setVisible(false);
+		FM.setSelected(true);
+		
 		if (Config.iq) {
 			iqAudio.doClick();  // we want to trigger the action event so the window is setup correctly at startup
 		} else {
@@ -821,6 +836,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		lblFreq.setVisible(b);
 		lblkHz.setVisible(b);
 		txtFreq.setVisible(b);
+		WFM.setVisible(b);
+		FM.setVisible(b);
+		NFM.setVisible(b);
 	}
 	
 	public void setViewDecoder1() {
@@ -871,6 +889,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
+		if (e.getSource() == WFM | e.getSource() == FM | e.getSource() == NFM) { 
+			setFilterWidth();
+		}
 		if (e.getSource() == highSpeed) { 
 				Config.highSpeed = true;
 				Config.autoDecodeSpeed = false;
@@ -1392,7 +1413,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					}
 				}
 				
-				
+				setFilterWidth();
 				if (decoder1 != null) {
 					decoder1Thread = new Thread(decoder1);
 					decoder1Thread.setUncaughtExceptionHandler(Log.uncaughtExHandler);				
@@ -1525,6 +1546,17 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		enableSourceSelectionComponents(true);
 	}
 	
+	private void setFilterWidth() {
+		int freq = 9600*2;
+		if (WFM.isSelected()) freq = 75000;
+		if (NFM.isSelected()) freq = 10000;
+		if (iqSource1 != null) {
+			iqSource1.setFilterWidth(freq);
+		}
+		if (iqSource2 != null) {
+			iqSource2.setFilterWidth(freq);
+		}
+	}
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
