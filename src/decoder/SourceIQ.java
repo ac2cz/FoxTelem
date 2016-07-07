@@ -21,6 +21,15 @@ public class SourceIQ extends SourceAudio {
 	SourceAudio upstreamAudioSource;
 	Thread upstreamAudioReadThread;
 	
+	public static final int MODE_WFM = 0;
+	public static final int MODE_FM = 1;
+	public static final int MODE_NFM = 2;
+	public static final int MODE_USB = 3;
+	public static final int MODE_LSB = 4;
+	public static final int MODE_CW = 5;
+	
+	private int mode = MODE_FM;
+	
 	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
 	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
 	private boolean highSpeed = false;
@@ -130,6 +139,12 @@ public class SourceIQ extends SourceAudio {
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
 		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
 	}
+
+	public int getMode() { return mode; }
+	
+	public void setMode(int mode) {
+		this.mode = mode;
+	}
 	
 	public RfData getRfData() {
 		if (rfData != null) {
@@ -205,16 +220,31 @@ public class SourceIQ extends SourceAudio {
 		}
 	}
 
+	/**
+	 * 47Hz resolution has worked well in FoxTelem for the FCD.  ie 4096 length FFT.  To preserve that fidelity we calculate the nearest 
+	 * power of 2 that gives that resolution, given a sampleRate, up to a maximum of 2^16
+	 */
+	private void setFFTsize() {
+	
+		for (int f=0; f<17; f++) {
+			int len = (int)Math.pow(2, f);
+			if (IQ_SAMPLE_RATE / len < 47) {
+				int factor = len / 4096;
+				FFT_SAMPLES = len; 
+				samplesToRead = 3840 * factor;
+				return;
+			}
+		}
+		// Default to max
+		FFT_SAMPLES = 4096 * 16;
+		samplesToRead = 3840 * 16;
+	}
+	
 	private void init() {	
 		// The IQ Sample Rate is the same as the format for the upstream audio
 		IQ_SAMPLE_RATE = (int)upstreamAudioFormat.getSampleRate();
-		
-		int factor = IQ_SAMPLE_RATE / 192000;
-		if (factor > 1) { // lengthen the FFT for large bandwidths
-			Log.println("FFT FACTOR: " + factor);
-			FFT_SAMPLES = FFT_SAMPLES * 16;
-			samplesToRead = samplesToRead * 16;
-		}
+	
+		setFFTsize();
 		fft = new DoubleFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
 		blackmanWindow = initBlackmanWindow(FFT_SAMPLES);
@@ -229,13 +259,15 @@ public class SourceIQ extends SourceAudio {
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
-		if (highSpeed)
+		if (highSpeed) {
 			setFilterWidth(9600*2);
+			mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
-		else
+		} else {
 			setFilterWidth(10000);
+			mode = MODE_NFM;
 			//filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
-		
+		}
 /////////////// FUDGE - NEED TO WORK OUT WHY THE BANDWIDTH IS COMING OUT WRONG.... * 4 for Airspy
 	 //filterWidth = (int) (75000/binBandwidth);
 	//	filterWidth = filterWidth*4;

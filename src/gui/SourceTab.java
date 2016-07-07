@@ -146,6 +146,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JRadioButton WFM;
 	JRadioButton FM;
 	JRadioButton NFM;
+	JRadioButton LSB;
+	JRadioButton USB;
+	JRadioButton CW;
 	JRadioButton iqAudio;
 	JRadioButton afAudio;
 	JRadioButton showSNR;
@@ -588,15 +591,27 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		WFM = addRadioButton("WFM", panelFreq );
 		FM = addRadioButton("FM", panelFreq );
 		NFM = addRadioButton("NFM", panelFreq );
+		LSB = addRadioButton("LSB", panelFreq );
+		USB = addRadioButton("USB", panelFreq );
+		CW = addRadioButton("CW", panelFreq );
 		ButtonGroup modeGroup = new ButtonGroup();
 		modeGroup.add(WFM);
 		modeGroup.add(FM);
 		modeGroup.add(NFM);
+		modeGroup.add(LSB);
+		modeGroup.add(USB);
+		modeGroup.add(CW);
 		WFM.setVisible(false);
 		FM.setVisible(false);
 		NFM.setVisible(false);
-		FM.setSelected(true);
-		
+		LSB.setVisible(false);
+		USB.setVisible(false);
+		CW.setVisible(false);
+
+		LSB.setEnabled(false);
+		USB.setEnabled(false);
+		CW.setEnabled(false);
+
 		if (Config.iq) {
 			iqAudio.doClick();  // we want to trigger the action event so the window is setup correctly at startup
 		} else {
@@ -830,6 +845,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		showLevel.setVisible(b);
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
+		if (this.soundCardComboBox.getSelectedIndex() == SourceAudio.AIRSPY_SOURCE) {
+				cbSoundCardRate.setVisible(!b);
+			}
 	}
 	
 	private void setFreqVisible(boolean b) {
@@ -839,6 +857,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		WFM.setVisible(b);
 		FM.setVisible(b);
 		NFM.setVisible(b);
+		LSB.setVisible(b);
+		USB.setVisible(b);
+		CW.setVisible(b);
 	}
 	
 	public void setViewDecoder1() {
@@ -889,7 +910,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
-		if (e.getSource() == WFM | e.getSource() == FM | e.getSource() == NFM) { 
+		if (e.getSource() == WFM | e.getSource() == FM | e.getSource() == NFM | e.getSource() == LSB | e.getSource() == USB | e.getSource() == CW) { 
 			setFilterWidth();
 		}
 		if (e.getSource() == highSpeed) { 
@@ -1123,11 +1144,11 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				Config.autoDecodeSpeed = false;
 			}
 		} else if (position == SourceAudio.AIRSPY_SOURCE) {
-			setIQVisible(true);
 			btnStartButton.setEnabled(true);
 			cbSoundCardRate.setVisible(true);
 			panelFile.setVisible(false);
 			auto.setEnabled(true);
+			setIQVisible(true);
 		} else { // its not a file so its a sound card or FCD that was picked
 			boolean fcdSelected = fcdSelected();
 			auto.setEnabled(true);
@@ -1338,18 +1359,38 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						try {
 							rfDevice = AirspyDevice.makeDevice();
 						} catch (UsbException e1) {
-							// TODO Auto-generated catch block
-							e1.printStackTrace();
+							Log.errorDialog("AIRSPY Start Error", e1.getMessage());
+							e1.printStackTrace(Log.getWriter());
+							stopButton();
 						}
+					}
+					try {
+						panelFcd = new AirspyPanel();
+
+					} catch (IOException e) {
+						Log.errorDialog("AIRSPY Panel Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
+					} catch (DeviceException e) {
+						Log.errorDialog("AIRSPY Device Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
+					}
+
+					if (rfDevice == null) {
+						Log.errorDialog("Missing AIRSPY device", "Insert the device or choose anther source");
+						stopButton();
+					} else {
 						try {
-							panelFcd = new AirspyPanel();
 							panelFcd.setDevice(rfDevice);
 						} catch (IOException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							Log.errorDialog("AIRSPY Panel Error", e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							stopButton();
 						} catch (DeviceException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
+							Log.errorDialog("AIRSPY Device Error", e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							stopButton();
 						}
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
@@ -1359,15 +1400,23 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						setIQVisible(true);
 						audioSource = new SourceUSB("Airspy USB Source", 3000000, 6000000, 0); //FIXME - not sure we should have the sampleRate here as it can be changed by the user
 						((AirspyDevice)rfDevice).setUsbSource((SourceUSB)audioSource);
-						iqSource1 = new SourceIQ(6000000*5, 0,false); 
-						iqSource1.setAudioSource(audioSource,0); 
-						decoder1 = new Fox200bpsDecoder(iqSource1, 0);
+						boolean decoder1HS = highSpeed.isSelected();
+						if (Config.autoDecodeSpeed) {
+							iqSource2 = new SourceIQ(Config.scSampleRate * 4, 0,true);
+							iqSource2.setAudioSource(audioSource,1); 
+							decoder1HS = false;
+						}
+						iqSource1 = new SourceIQ(6000000, 0,decoder1HS); 
+						iqSource1.setAudioSource(audioSource,0);
+						setCenterFreq();
+						setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 						setupAudioSink(decoder1);
-						
-					} else {
-						SDRpanel.setVisible(false);
-						panelFcd = null;
+						Config.passManager.setDecoder1(decoder1, iqSource1, this);
+						if (Config.autoDecodeSpeed)
+							Config.passManager.setDecoder2(decoder2, iqSource2, this);
+						Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store the name
 					}
+
 				} else { // soundcard - fcd or normal
 					SourceAudio audioSource;
 					boolean fcdSelected = false;
@@ -1413,7 +1462,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					}
 				}
 				
-				setFilterWidth();
 				if (decoder1 != null) {
 					decoder1Thread = new Thread(decoder1);
 					decoder1Thread.setUncaughtExceptionHandler(Log.uncaughtExHandler);				
@@ -1472,6 +1520,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 									JOptionPane.ERROR_MESSAGE) ;
 						}
 					}
+					try {
+						Thread.sleep(100); // wait to prevent race condition as decode starts
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					setMode();
 				}
 			}
 		}
@@ -1546,15 +1601,54 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		enableSourceSelectionComponents(true);
 	}
 	
+	private void setMode() {
+		int mode = SourceIQ.MODE_NFM;
+		if (iqSource1 != null)
+			mode = iqSource1.getMode();
+		if (mode == SourceIQ.MODE_WFM) WFM.setSelected(true);
+		if (mode == SourceIQ.MODE_FM) FM.setSelected(true);
+		if (mode == SourceIQ.MODE_NFM) NFM.setSelected(true);
+		if (mode == SourceIQ.MODE_LSB) LSB.setSelected(true);
+		if (mode == SourceIQ.MODE_USB) USB.setSelected(true);
+		if (mode == SourceIQ.MODE_CW) CW.setSelected(true);
+		setFilterWidth();
+	}
+	
 	private void setFilterWidth() {
+		int mode = 0;
 		int freq = 9600*2;
-		if (WFM.isSelected()) freq = 75000;
-		if (NFM.isSelected()) freq = 10000;
+		if (WFM.isSelected()) {
+			freq = 75000;
+			mode = SourceIQ.MODE_WFM;
+		}
+		if (FM.isSelected()) {
+			freq = 9600*2;
+			mode = SourceIQ.MODE_FM;
+		}
+		if (NFM.isSelected()) {
+			freq = 10000;
+			mode = SourceIQ.MODE_NFM;
+		}
+		if (LSB.isSelected()) {
+			freq = 2400;
+			mode = SourceIQ.MODE_LSB;
+		}
+		if (USB.isSelected()) {
+			freq = 2400;
+			mode = SourceIQ.MODE_USB;
+		}
+		if (CW.isSelected()) {
+			freq = 800;
+			mode = SourceIQ.MODE_CW;
+		}
 		if (iqSource1 != null) {
 			iqSource1.setFilterWidth(freq);
+			iqSource1.setMode(mode);
 		}
 		if (iqSource2 != null) {
-			iqSource2.setFilterWidth(freq);
+			// Dont change the other source, which is setup for high speed
+			//iqSource2.setFilterWidth(freq);
+			//iqSource2.setMode(mode);
 		}
 	}
 	private void enableSourceSelectionComponents(boolean t) {

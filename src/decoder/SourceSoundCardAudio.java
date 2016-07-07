@@ -163,11 +163,13 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	}
 	
 	public static String getDeviceName(int position) {
+		if (position == SourceAudio.AIRSPY_SOURCE) return SourceAudio.AIRSPY_SOURCE_NAME;
 		Mixer appMixer = mixerList[position];
 		return getMixerIdString(appMixer);
 	}
 	
 	public static int getDeviceIdByName(String name) {
+		if (name.equalsIgnoreCase(SourceAudio.AIRSPY_SOURCE_NAME)) return SourceAudio.AIRSPY_SOURCE;
 		for (int i=1; i< mixerList.length; i++) {
 			if (mixerList[i] != null)
 				if (name.equalsIgnoreCase(getMixerIdString(mixerList[i]))) {

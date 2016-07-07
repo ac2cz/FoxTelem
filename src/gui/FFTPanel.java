@@ -451,6 +451,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			x = getRatioPosition(0, fftSamples/2, i-fftSamples/2, graphWidth/2);
 			x = x + sideBorder;
 			
+			if (i >= psd.length) return; // the FFT was resized and we are in the middle of a paint
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
@@ -472,7 +473,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						
 			x = getRatioPosition(0, fftSamples/2, i, graphWidth/2);
 			x = x + sideBorder + graphWidth/2;
-			
+
+			if (i >= psd.length) return; // the FFT was resized and we are in the middle of a paint
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
