@@ -34,6 +34,7 @@ import javax.usb.UsbException;
 import org.usb4java.LibUsbException;
 
 import common.Log;
+import decoder.SourceIQ;
 import device.Device;
 import device.DeviceException;
 import device.DevicePanel;
@@ -53,6 +54,7 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 	JSpinner ifSpinner;
 	
 	private JComboBox<AirspySampleRate> mSampleRateCombo;
+	private JComboBox<Integer> cbDecimation;
 	AirspyTunerConfiguration config = new AirspyTunerConfiguration();
 	
 	private JTextField mConfigurationName;
@@ -87,8 +89,8 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 	}
 	
 	public void setEnabled(boolean b) {
-		//cbMixerGain.setEnabled(b);
-		//cbLnaGain.setEnabled(b);
+		mSampleRateCombo.setEnabled(b);
+		cbDecimation.setEnabled(b);
 	}
 	public void initializeGui() throws IOException, DeviceException {
 		setLayout(new BorderLayout(3,3));
@@ -108,27 +110,22 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		 * Sample Rate
 		 */
 		top.add( new JLabel( "Sample Rate:  " ) );
-		
 		List<AirspySampleRate> rates = device.getSampleRates();
-		
 		mSampleRateCombo = new JComboBox<AirspySampleRate>( 
 			new DefaultComboBoxModel<AirspySampleRate>( rates.toArray( 
 					new AirspySampleRate[ rates.size() ] ) ) );
-		mSampleRateCombo.setEnabled( false );
-		mSampleRateCombo.addActionListener( new ActionListener()
-		{
+
+		mSampleRateCombo.addActionListener( new ActionListener() {
 			@Override
-			public void actionPerformed( ActionEvent e )
-			{
+			public void actionPerformed( ActionEvent e ) {
 				AirspySampleRate rate = (AirspySampleRate)mSampleRateCombo.getSelectedItem();
 
-				try
-				{
+				try	{
 					device.setSampleRate( rate );
+					
 					//save();
 				} 
-				catch ( LibUsbException | UsbException | DeviceException e1 )
-				{
+				catch ( LibUsbException | UsbException | DeviceException e1 ) {
 					//JOptionPane.showMessageDialog( AirspyTunerEditor.this, 
 					//	"Couldn't set sample rate to " + rate.getLabel() );
 					
@@ -138,8 +135,22 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		} );
 		
 		top.add( mSampleRateCombo );
-		mSampleRateCombo.setEnabled(true);
+		mSampleRateCombo.setEnabled(false);
+
+		top.add( new JLabel( "  Decimation:  " ) );
+		Integer[] decRates = {1,2,4,8,16,32};
+		cbDecimation = new JComboBox<Integer>( 
+			new DefaultComboBoxModel<Integer>( decRates));
+			cbDecimation.addActionListener( new ActionListener() {
+			@Override
+			public void actionPerformed( ActionEvent e ) {
+				
+			}
+		} );
 		
+		top.add( cbDecimation );
+		cbDecimation.setEnabled(false);
+
 		 /**
          * Frequency Correction
          
@@ -192,17 +203,11 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		top.add( new JLabel( "  Gain Mode:  " ) );
 		mGainModeCombo = new JComboBox<GainMode>( GainMode.values() );
 		mGainModeCombo.setEnabled( true );
-		mGainModeCombo.addActionListener( new ActionListener()
-		{
+		mGainModeCombo.addActionListener( new ActionListener() {
 			@Override
-			public void actionPerformed( ActionEvent e )
-			{
+			public void actionPerformed( ActionEvent e ) {
 				GainMode mode = (GainMode)mGainModeCombo.getSelectedItem();
-
-				updateGainComponents( mode );
-				
-				
-					
+				updateGainComponents( mode );			
 			}
 		} );
 		
@@ -234,23 +239,21 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		mMasterGain.addChangeListener( new ChangeListener()
 		{
 			@Override
-			public void stateChanged( ChangeEvent event )
-			{
+			public void stateChanged( ChangeEvent event ) {
 				GainMode mode = (GainMode)mGainModeCombo.getSelectedItem();
 				int value = mMasterGain.getValue();
 				Gain gain = Gain.getGain( mode, value );
 
-				try
-				{
+				try {
 					device.setGain( gain );
 					mMasterGainValueLabel.setText( String.valueOf( gain.getValue() ) );
 				} 
-				catch ( Exception e )
-				{
+				catch ( Exception e ) {
 					Log.errorDialog( "Couldn't set airspy gain to:" + gain.name(), e.getMessage() );
 					JOptionPane.showMessageDialog( mMasterGain, "Couldn't set gain value to " + 
 							gain.getValue() );
 				}
+				updateGainComponents( mode );
 			}
 		} );
 
@@ -274,18 +277,15 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		mIFGain.addChangeListener( new ChangeListener()
 		{
 			@Override
-			public void stateChanged( ChangeEvent event )
-			{
+			public void stateChanged( ChangeEvent event ) {
 				int gain = mIFGain.getValue();
 
-				try
-				{
+				try {
 					device.setIFGain( gain );
 					//save();
 					mIFGainValueLabel.setText( String.valueOf( gain ) );
 				} 
-				catch ( Exception e )
-				{
+				catch ( Exception e ) {
 					Log.errorDialog( "Couldn't set airspy IF gain to:" + gain, e.getMessage() );
 					
 					JOptionPane.showMessageDialog( mIFGain, "Couldn't set IF gain value to " + gain );
@@ -516,82 +516,46 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		switch( mode )
 		{
 			case LINEARITY:
-				if( !mMasterGain.isEnabled() )
-				{
 					mMasterGain.setEnabled( true );
 					mMasterGainValueLabel.setEnabled( true );
-				}
-				if( mIFGain.isEnabled() )
-				{
 				    mIFGain.setEnabled( false );
 					mIFGainValueLabel.setEnabled( false );
-				}
-				if( mLNAGain.isEnabled() )
-				{
 					mLNAAGC.setEnabled( false );
 				    mLNAGainValueLabel.setEnabled( false );
 				    mLNAGain.setEnabled( false );
-				}
-				if( mMixerGain.isEnabled() )
-				{
 				    mMixerGainValueLabel.setEnabled( false );
 				    mMixerAGC.setEnabled( false );
 				    mMixerGain.setEnabled( false );
-				}
 				break;
 			case SENSITIVITY:
-				if( !mMasterGain.isEnabled() )
-				{
 					mMasterGain.setEnabled( true );
 					mMasterGainValueLabel.setEnabled( true );
-				}
-				if( mIFGain.isEnabled() )
-				{
 				    mIFGain.setEnabled( false );
 					mIFGainValueLabel.setEnabled( false );
-				}
-				if( mLNAGain.isEnabled() )
-				{
 					mLNAAGC.setEnabled( false );
 				    mLNAGainValueLabel.setEnabled( false );
 				    mLNAGain.setEnabled( false );
-				}
-				if( mMixerGain.isEnabled() )
-				{
 				    mMixerGainValueLabel.setEnabled( false );
 				    mMixerAGC.setEnabled( false );
 				    mMixerGain.setEnabled( false );
-				}
 				break;
 			case CUSTOM:
-				if( mMasterGain.isEnabled() )
-				{
 					mMasterGain.setEnabled( false );
 					mMasterGainValueLabel.setEnabled( false );
-				}
-				if( !mIFGain.isEnabled() )
-				{
 				    mIFGain.setEnabled( true );
 					mIFGainValueLabel.setEnabled( true );
-				}
-				if( !mLNAGain.isEnabled() )
-				{
 					mLNAAGC.setEnabled( true );
 				    mLNAGainValueLabel.setEnabled( true );
 				    mLNAGain.setEnabled( true );
-				}
-				if( !mMixerGain.isEnabled() )
-				{
 				    mMixerGainValueLabel.setEnabled( true );
 				    mMixerAGC.setEnabled( true );
 				    mMixerGain.setEnabled( true );
-				}
 			default:
 				break;
 		}
 		AirspyTunerConfiguration airspy = config;
-		
-		Gain gain = airspy.getGain();
+		int value = mMasterGain.getValue();
+		Gain gain = Gain.getGain( mode, value );
 
 		if( mode == GainMode.CUSTOM ) {
 			mIFGain.setValue( airspy.getIFGain() );
@@ -650,6 +614,15 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		
 	}
 
-	
+	@Override
+	public int getSampleRate() {
+		return device.getAirspySampleRate().getRate();
+	}
+
+	@Override
+	public int getDecimationRate() {
+		return (int)cbDecimation.getSelectedItem();
+	}
+
 
 }

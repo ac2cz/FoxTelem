@@ -78,8 +78,6 @@ public abstract class FcdDevice extends Device {
 		if (fcdInfo == null)
 			Log.errorDialog("ERROR", "RF device not found");
 		else {
-			Log.println("Set Freq to: " + Config.fcdFrequency*1000);
-			setFrequency(Config.fcdFrequency*1000L );
 		}
 	}
 	protected void open() throws DeviceException {

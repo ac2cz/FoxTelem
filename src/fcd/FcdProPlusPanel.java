@@ -215,6 +215,15 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		
 	}
 
-	
+	@Override
+	public int getSampleRate() {
+		return fcd.SAMPLE_RATE;
+	}
+
+	@Override
+	public int getDecimationRate() {
+		return 1;
+	}
+
 
 }

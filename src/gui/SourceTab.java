@@ -579,7 +579,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		lblFreq.setVisible(false);
 		
 		
-		txtFreq = new JTextField(Long.toString(Config.fcdFrequency));
+		txtFreq = new JTextField();
 		txtFreq.addActionListener(this);
 		panelFreq.add(txtFreq);
 		txtFreq.setColumns(10);
@@ -983,34 +983,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 		// Frequency Text Field
 		if (e.getSource() == this.txtFreq) {
-			//String text = txtFreq.getText();
-			txtFreq.selectAll();
-			int freq = Integer.parseInt(txtFreq.getText());
-			if (iqSource1 != null)
-				(iqSource1).setCenterFreqkHz(freq);
-			if (iqSource2 != null)
-				(iqSource2).setCenterFreqkHz(freq);
-			Config.fcdFrequency = freq;
-			if (rfDevice != null) {
-				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
-					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
-				} else {
-					try {
-						rfDevice.setFrequency(freq*1000);
-						panelFcd.updateFilter();
-					} catch (DeviceException e1) {
-						Log.errorDialog("ERROR", e1.getMessage());
-						e1.printStackTrace(Log.getWriter());
-					} catch (IOException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace(Log.getWriter());
-					}
-				}
-				//lblFreqvalue.setText(Integer.toString(freq));
-				//textFileName.setText("");
-			} else {
-//				Log.errorDialog("ERROR", "Cant set the frequency of the FCD");
-			}
+			setCenterFreq();
 		}
 		
 		// SOUND CARD AND FILE COMBO BOX
@@ -1394,19 +1367,24 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						}
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
-						panelFcd.setEnabled(true);
+						panelFcd.setEnabled(false); // this is just the rate change params for the Airspy panel
 						Config.iq = true;
 						iqAudio.setSelected(true);
 						setIQVisible(true);
-						audioSource = new SourceUSB("Airspy USB Source", 3000000, 6000000, 0); //FIXME - not sure we should have the sampleRate here as it can be changed by the user
+						int rate = panelFcd.getSampleRate();
+						int decmimation = panelFcd.getDecimationRate();
+						int channels = 0;
+						if (Config.autoDecodeSpeed)
+							channels = 2;
+						audioSource = new SourceUSB("Airspy USB Source", rate, rate*2, channels); 
 						((AirspyDevice)rfDevice).setUsbSource((SourceUSB)audioSource);
 						boolean decoder1HS = highSpeed.isSelected();
 						if (Config.autoDecodeSpeed) {
-							iqSource2 = new SourceIQ(Config.scSampleRate * 4, 0,true);
+							iqSource2 = new SourceIQ(rate*2, 0,true);
 							iqSource2.setAudioSource(audioSource,1); 
 							decoder1HS = false;
 						}
-						iqSource1 = new SourceIQ(6000000, 0,decoder1HS); 
+						iqSource1 = new SourceIQ(rate*2, 0,decoder1HS); 
 						iqSource1.setAudioSource(audioSource,0);
 						setCenterFreq();
 						setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
@@ -1526,21 +1504,50 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
+					if (rfDevice != null) {
+						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+						setCenterFreq();
+					}
 					setMode();
 				}
 			}
 		}
 
 	}
-	
+
 	private void setCenterFreq() {
+		//String text = txtFreq.getText();
 		try {
+			txtFreq.selectAll();
 			int freq = Integer.parseInt(txtFreq.getText());
-			iqSource1.setCenterFreqkHz(freq);
-			if (iqSource2 != null) iqSource2.setCenterFreqkHz(freq);
+			if (iqSource1 != null)
+				(iqSource1).setCenterFreqkHz(freq);
+			if (iqSource2 != null)
+				(iqSource2).setCenterFreqkHz(freq);
+			Config.fcdFrequency = freq;
+			if (rfDevice != null) {
+				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
+					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
+				} else {
+					try {
+						rfDevice.setFrequency(freq*1000);
+						panelFcd.updateFilter();
+					} catch (DeviceException e1) {
+						Log.errorDialog("ERROR", e1.getMessage());
+						e1.printStackTrace(Log.getWriter());
+					} catch (IOException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace(Log.getWriter());
+					}
+				}
+			} else {
+
+			}
+
 		} catch (NumberFormatException n) {
 			// not much to say here, just catch the error
 		}
+
 	}
 
 	private void stopDecoder() {
@@ -1562,7 +1569,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (rfDevice != null)
 			if (rfDevice instanceof AirspyDevice)
 				((AirspyDevice)rfDevice).stop();
-		SDRpanel.setVisible(false);
+		if (this.soundCardComboBox.getSelectedIndex() == SourceAudio.AIRSPY_SOURCE) {
+			SDRpanel.setVisible(true);	
+			if (panelFcd != null)
+				panelFcd.setEnabled(true);
+		} else {
+			SDRpanel.setVisible(false);
+		}
+		
 
 	}
 	
@@ -1618,7 +1632,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		int mode = 0;
 		int freq = 9600*2;
 		if (WFM.isSelected()) {
-			freq = 75000;
+			freq = 2*75000;
 			mode = SourceIQ.MODE_WFM;
 		}
 		if (FM.isSelected()) {
