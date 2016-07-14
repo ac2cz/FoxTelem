@@ -1,4 +1,4 @@
-package device.airspy;
+package device;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;

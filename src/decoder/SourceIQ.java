@@ -46,6 +46,7 @@ public class SourceIQ extends SourceAudio {
 	//public static final int samplesToRead = 3840; //3840; // 1 bit at 192k is bytes_per_sample * bucket_size * 4, or 2 bits at 96000
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48
+	int iqDecimation = 4; // This is the decimation of the IQ samples before we run the FFT.  This reduces the bandwidth for wideband devices
 	
 	double[] fftData = null; //new double[FFT_SAMPLES*2];
 	double[] newData = null; //new double[fftData.length]; // make a new array to copy so we can store the section we want

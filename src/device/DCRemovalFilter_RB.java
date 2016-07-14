@@ -1,4 +1,4 @@
-package device.airspy;
+package device;
 
 import decoder.Listener;
 import decoder.RealBuffer;

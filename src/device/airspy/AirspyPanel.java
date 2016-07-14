@@ -89,8 +89,10 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 	}
 	
 	public void setEnabled(boolean b) {
-		mSampleRateCombo.setEnabled(b);
-		cbDecimation.setEnabled(b);
+		if (mSampleRateCombo != null)
+			mSampleRateCombo.setEnabled(b);
+		if (cbDecimation != null)
+			cbDecimation.setEnabled(b);
 	}
 	public void initializeGui() throws IOException, DeviceException {
 		setLayout(new BorderLayout(3,3));

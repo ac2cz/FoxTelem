@@ -27,14 +27,18 @@ import org.usb4java.TransferCallback;
 import common.Log;
 import decoder.ComplexBuffer;
 import decoder.SourceUSB;
+import device.DCRemovalFilter_RB;
 import device.DeviceException;
-import device.airspy.ThreadPoolManager.ThreadType;
+import device.HilbertTransform;
+import device.ThreadPoolManager;
+import device.TunerClass;
+import device.TunerConfiguration;
+import device.ThreadPoolManager.ThreadType;
 
 /**
- * SDR Trunk 
- * Copyright (C) 2015-2016 Dennis Sheirer
+ * This class is based in the Airspy Tuner implemented in SDR Trunk.  Portions are therefore Copyright (C) 2015-2016 Dennis Sheirer
  *    
- * Ported from libairspy at:
+ * Dennis ported the Java code from libairspy at:
  * https://github.com/airspy/host/tree/master/libairspy
  * -----------------------------------------------------------------------------
  * Copyright (c) 2013, Michael Ossmann <mike@ossmann.com>

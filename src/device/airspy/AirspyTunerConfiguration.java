@@ -19,6 +19,8 @@ package device.airspy;
 
 import javax.xml.bind.annotation.XmlAttribute;
 
+import device.TunerConfiguration;
+import device.TunerType;
 import device.airspy.AirspyDevice.Gain;
 
 

@@ -16,7 +16,7 @@
  *     You should have received a copy of the GNU General Public License
  *     along with this program.  If notf, see <http://www.gnu.org/licenses/>
  ******************************************************************************/
-package device.airspy;
+package device;
 
 public enum Filters 
 {
