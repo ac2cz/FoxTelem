@@ -433,7 +433,7 @@ public class SourceIQ extends SourceAudio {
 			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
 	// FUDGE - safety factor because the decimation is not exact
 			if (k >= audioData.length ) {
-				Log.println("k:" + k);
+				//Log.println("k:" + k);
 				break;
 			}
 			audioData[k] = value;
@@ -506,14 +506,15 @@ public class SourceIQ extends SourceAudio {
 		// That data becomes 2 iq samples
 
 		int overlapLength = filterWidth*2; // te amount of overlap we need is equal to the length of the filter
-		
+		overlapLength = 0;
+			
 		for (int o=0; o < overlapLength; o++) {
 			fftData[o+dist] += overlap[o]; ///// ADDING THE OVERLAP causes distortion unless we get it just right.  The data is offset, so add from the offset distance
 		}
 
 		// capture this overlap
 		// We start right after the data, which runs from dist to samplesToRead+dist
-		for (int o=samplesToRead+dist; o < overlapLength; o++) {
+		for (int o=samplesToRead+dist; o < samplesToRead+dist+overlapLength; o++) {
 			overlap[o-samplesToRead-dist] = fftData[o];
 		}
 
