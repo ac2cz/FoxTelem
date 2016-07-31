@@ -107,6 +107,7 @@ public class SourceIQ extends SourceAudio {
 	boolean fftDataFresh = false;
 	public static boolean useNCO = false;
 	public boolean offsetFFT = true;
+	int dist = 0; // the offset distance
 	
 	// Only needed for NCO
 //	private static final int SINCOS_SIZE = 256;
@@ -232,13 +233,13 @@ public class SourceIQ extends SourceAudio {
 			if (IQ_SAMPLE_RATE / len < 47) {
 				int factor = len / 4096;
 				FFT_SAMPLES = len; 
-				samplesToRead = 3840 * factor;
+				samplesToRead = 3840 * factor/2;
 				return;
 			}
 		}
 		// Default to max
 		FFT_SAMPLES = 4096 * 16;
-		samplesToRead = 3840 * 16;
+		samplesToRead = 3840 * 16/2;
 	}
 	
 	private void init() {	
@@ -248,7 +249,7 @@ public class SourceIQ extends SourceAudio {
 		setFFTsize();
 		fft = new DoubleFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
-		blackmanWindow = initBlackmanWindow(FFT_SAMPLES);
+		blackmanWindow = initBlackmanWindow(FFT_SAMPLES); // FIXME - SHOULD BE FFT_SAMPLES +1????
 
 		fftData = new double[FFT_SAMPLES*2];
 		psd = new double[FFT_SAMPLES*2+1];;
@@ -265,7 +266,7 @@ public class SourceIQ extends SourceAudio {
 			mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		} else {
-			setFilterWidth(10000);
+			setFilterWidth(5000); // was 10000 for AirSpy
 			mode = MODE_NFM;
 			//filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
 		}
@@ -274,7 +275,10 @@ public class SourceIQ extends SourceAudio {
 	//	filterWidth = filterWidth*4;
 		//decimationFactor = decimationFactor/2;
 		
-		overlap = new double[2*FFT_SAMPLES - (samplesToRead)];
+		if (offsetFFT) 
+			dist = 128*FFT_SAMPLES/4096; // offset puts the data outside the taper of the window function and gives better audio, but at the expense of dynamic range
+
+		overlap = new double[2*FFT_SAMPLES - (samplesToRead)]; // we only use part of this, but this is the maximum it could be
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
@@ -371,9 +375,8 @@ public class SourceIQ extends SourceAudio {
 	 * @return
 	 */
 	protected double[] processBytes(double[] fcdData, boolean clockMove) {
-		int dist = 0;
-		if (offsetFFT) dist = (2*FFT_SAMPLES - SourceIQ.samplesToRead)/2;
-		
+				//dist = 128;
+ 
 		//int nBytesRead = fcdData.length;
 		zeroFFT();
 		int i = 0;
@@ -429,8 +432,8 @@ public class SourceIQ extends SourceAudio {
 			// scaling and conversion to integer
 			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
 	// FUDGE - safety factor because the decimation is not exact
-			if (k + 3 >= audioData.length ) {
-				//Log.println("k:" + k);
+			if (k >= audioData.length ) {
+				Log.println("k:" + k);
 				break;
 			}
 			audioData[k] = value;
@@ -495,23 +498,23 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	private void inverseFFT(double[] fftData) {
-//		int dist = 0;
-//		if (offsetFFT) dist = (FFT_SAMPLES - SourceIQ.samplesToRead) /2;
 		fft.complexInverse(fftData, true); // true means apply scaling - but it does not work?
 	
 		// Add the last overlap.  
 		// We have iq data, so the FFTData buffer is actually FFT_SAMPLES * 2 in length
 		// We request samplesToRead bytes from the source
 		// That data becomes 2 iq samples
-		int overlapLength = 2*FFT_SAMPLES - samplesToRead*2;
-		//int overlapLength = dist;
+
+		int overlapLength = filterWidth*2; // te amount of overlap we need is equal to the length of the filter
+		
 		for (int o=0; o < overlapLength; o++) {
-			fftData[o] += overlap[o];             ///// ADDING THE OVERLAP causes distortion unless we get it just right
+			fftData[o+dist] += overlap[o]; ///// ADDING THE OVERLAP causes distortion unless we get it just right.  The data is offset, so add from the offset distance
 		}
 
 		// capture this overlap
-		for (int o=2*FFT_SAMPLES-overlapLength; o < 2*FFT_SAMPLES; o++) {
-			overlap[o-(2*FFT_SAMPLES-overlapLength)] = fftData[o];
+		// We start right after the data, which runs from dist to samplesToRead+dist
+		for (int o=samplesToRead+dist; o < overlapLength; o++) {
+			overlap[o-samplesToRead-dist] = fftData[o];
 		}
 
 	}

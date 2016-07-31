@@ -124,7 +124,7 @@ public abstract class SourceAudio implements Runnable {
 	 * Convert audio bytes from a soundcard into an array of doubles.  Create the doubles array
 	 * @param abBuffer
 	 * @return
-	 */
+	 
 	static public void getDoublesFromBytes(byte[] abBuffer, boolean stereo, double[] abBufferDouble) {
 		//There are 4 bytes_per_sample in a stereo file, 2 in mono
 		int bytesPerSample = 2;
@@ -152,10 +152,15 @@ public abstract class SourceAudio implements Runnable {
 				
 			//	return abBufferDouble;
 	}
-
+    */
+	
+	/*
 	static public int getIntFromDouble(double d) {
-		return (int)(d * 32768.0);
+		return (int)(d * 32768.0); // not sure why this would ever work....
 	}
+	*/
+	
+	/*
 	static public double getDoubleFromBytes(byte a, byte b) {
 		return ((a & 0xFF) | (b << 8)) / 32768.0f;
 		
@@ -172,7 +177,7 @@ public abstract class SourceAudio implements Runnable {
 		//return ((a & 0xFF) | (b << 8)) / 32768.0f;
 		
 	}
-	
+	*/
 	
 	
 	

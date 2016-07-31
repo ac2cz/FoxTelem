@@ -22,22 +22,22 @@ import common.Log;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  * 
- * Hacked copy of cicular buffer to try to get airspy working.  Needs to be folded back in with inheritance
+ * Hacked copy of circular buffer to try to get airspy working.  Needs to be folded back in with inheritance
  * 
  * @author chris.e.thompson g0kla/ac2cz
  *
  */
 
 public class CircularDoubleBuffer {
-	double[] bytes;
+	double[] doubles;
 	int bufferSize = 0;; 
 	int startPointer = 0;
 	int endPointer = 0;
-	public static final int DEFAULT_SIZE = 48000*2; // 0.5 second
+	public static final int DEFAULT_SIZE = 48000*2; // 1 second of stereo data
 	int statusCount = 0;
 	
 	public CircularDoubleBuffer(int size) {
-		bytes = new double[size];
+		doubles = new double[size];
 		bufferSize = size;
 //		startPointer = bufferSize - 1; // initialize this to the end of the array, otherwise we can not write data to it
 		Log.println("Created circular BYTE buffer with " + bufferSize + " bytes");
@@ -79,7 +79,7 @@ public class CircularDoubleBuffer {
 	 * @return
 	 */
 	public boolean add(double o) {
-			bytes[endPointer] = o;
+			doubles[endPointer] = o;
 
 			endPointer++;
 			statusCount++;
@@ -120,7 +120,7 @@ public class CircularDoubleBuffer {
 		if (i > size())
 			throw new IndexOutOfBoundsException("Attempt to read past end pointer");
 		int p = incPointer(startPointer, i);
-		return bytes[p];
+		return doubles[p];
 	}
 	
 	

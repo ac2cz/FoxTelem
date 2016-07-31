@@ -90,7 +90,7 @@ public abstract class Filter {
 	 * These are raw bytes from the audio stream and are returned in the same format
 	 * @param abBuffer
 	 * @return
-	 */
+	 
 	public byte[] filterAndCopy(byte[] abBuffer) {
 				
 		int bytesPerSample = 2;
@@ -105,6 +105,7 @@ public abstract class Filter {
 		SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, audioDataBytes);
 		return audioDataBytes;
 	}
+	*/
 	
 	public void filter(double[] inputDouble, double[] outputDouble) {
 		

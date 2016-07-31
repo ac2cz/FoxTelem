@@ -1425,6 +1425,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 								Config.passManager.setDecoder1(decoder1, iqSource1, this);
 								if (Config.autoDecodeSpeed)
 									Config.passManager.setDecoder2(decoder2, iqSource2, this);
+								txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 								setCenterFreq();
 							} else {
 								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
@@ -1640,7 +1641,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			mode = SourceIQ.MODE_FM;
 		}
 		if (NFM.isSelected()) {
-			freq = 10000;
+			freq = 5000;
 			mode = SourceIQ.MODE_NFM;
 		}
 		if (LSB.isSelected()) {

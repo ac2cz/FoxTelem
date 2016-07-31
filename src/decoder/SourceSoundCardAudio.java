@@ -1,4 +1,4 @@
-package decoder;
+	package decoder;
 
 import gui.MainWindow;
 
@@ -288,7 +288,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 							else
 								for (int chan=0; chan < channels; chan++)
 									circularDoubleBuffer[chan].add(a,b);
-						} else {
+						} else { // we have only mono and we need to know which channel to take the data from
 							if (!Config.useLeftStereoChannel)
 								a = b; // use the audio from the right channel
 							if (channels == 0)
