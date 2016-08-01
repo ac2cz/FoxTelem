@@ -140,9 +140,19 @@ public class SourceWav extends SourceAudio implements Runnable {
 					for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
 						//circularDoubleBuffer.add(readBuffer[i]);
 						if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
-							b = SourceAudio.getDoubleFromBytes(readBuffer[i+2],readBuffer[i+3]);
+							byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
+							if (audioFormat.isBigEndian()) {
+								b = Decoder.bigEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							} else {
+								b = Decoder.littleEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							}
 						}
-						a = SourceAudio.getDoubleFromBytes(readBuffer[i],readBuffer[i+1]);
+						byte[] ia = {readBuffer[i],readBuffer[i+1]};
+						if (audioFormat.isBigEndian()) {
+							a = Decoder.bigEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						} else {
+							a = Decoder.littleEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						}
 						if (audioFormat.getFrameSize() == 4 && storeStereo) {
 							if (channels == 0)
 								circularDoubleBuffer[0].add(a,b);
