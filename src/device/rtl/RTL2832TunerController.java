@@ -45,8 +45,16 @@ import org.usb4java.LibUsbException;
 import org.usb4java.Transfer;
 import org.usb4java.TransferCallback;
 
+import common.Log;
+import decoder.Broadcaster;
+import decoder.ByteSampleAdapter;
+import decoder.ComplexBuffer;
+import decoder.FloatAveragingBuffer;
+import decoder.Listener;
 import device.DeviceException;
 import device.ThreadPoolManager;
+import device.ThreadPoolManager.ThreadType;
+import device.TunerType;
 
 public abstract class RTL2832TunerController extends device.Device
 {
@@ -122,10 +130,10 @@ public abstract class RTL2832TunerController extends device.Device
 								   int centerUnusableBandwidth,
 								   double usableBandwidthPercentage ) throws DeviceException
 	{
-		super( minTunableFrequency, 
-			   maxTunableFrequency, 
-			   centerUnusableBandwidth, 
-			   usableBandwidthPercentage );
+		//super( minTunableFrequency, 
+		//	   maxTunableFrequency, 
+		//	   centerUnusableBandwidth, 
+		//	   usableBandwidthPercentage );
 		
 		mThreadPoolManager = threadPoolManager;
 
@@ -169,7 +177,7 @@ public abstract class RTL2832TunerController extends device.Device
 		}
 		catch( Exception e )
 		{
-			mLog.error( "error while reading the EEPROM device descriptor", e );
+			Log.errorDialog( "error while reading the EEPROM device descriptor", e.getMessage() );
 		}
 		
 		try
@@ -178,15 +186,15 @@ public abstract class RTL2832TunerController extends device.Device
 
 			if( eeprom == null )
 			{
-				mLog.error( "eeprom byte array was null - constructed "
-						+ "empty descriptor object" );
+				Log.errorDialog( "eeprom byte array was null - constructed "
+						, "empty descriptor object" );
 			}
 		}
 		catch( Exception e )
 		{
-			mLog.error( "error while constructing device descriptor using "
+			Log.errorDialog( "error while constructing device descriptor using "
 				+ "descriptor byte array " + 
-				( eeprom == null ? "[null]" : Arrays.toString( eeprom )), e );
+				( eeprom == null ? "[null]" : Arrays.toString( eeprom )), e.getMessage() );
 		}
 	}
 	
@@ -194,7 +202,7 @@ public abstract class RTL2832TunerController extends device.Device
 	 * Claims the USB interface.  Attempts to detach the active kernel driver
 	 * if one is currently attached.
 	 */
-	public static void claimInterface( DeviceHandle handle ) throws SourceException
+	public static void claimInterface( DeviceHandle handle ) throws DeviceException
 	{
 		if( handle != null )
 		{
@@ -206,10 +214,10 @@ public abstract class RTL2832TunerController extends device.Device
 
 				if( result != LibUsb.SUCCESS )
 				{
-					mLog.error( "failed attempt to detach kernel driver [" + 
+					Log.errorDialog( "ERROR", "failed attempt to detach kernel driver [" + 
 							LibUsb.errorName( result ) + "]" );
 					
-					throw new SourceException( "couldn't detach kernel driver "
+					throw new DeviceException( "couldn't detach kernel driver "
 							+ "from device" );
 				}
 			}
@@ -218,25 +226,25 @@ public abstract class RTL2832TunerController extends device.Device
 			
 			if( result != LibUsb.SUCCESS )
 			{
-				throw new SourceException( "couldn't claim usb interface [" + 
+				throw new DeviceException( "couldn't claim usb interface [" + 
 					LibUsb.errorName( result ) + "]" );
 			}
 		}
 		else
 		{
-			throw new SourceException( "couldn't claim usb interface - no "
+			throw new DeviceException( "couldn't claim usb interface - no "
 					+ "device handle" );
 		}
 	}
 	
 	public static void releaseInterface( DeviceHandle handle ) 
-						throws SourceException
+						throws DeviceException
 	{
 		int result = LibUsb.releaseInterface( handle, USB_INTERFACE );
 		
 		if( result != LibUsb.SUCCESS )
 		{
-			throw new SourceException( "couldn't release interface [" + 
+			throw new DeviceException( "couldn't release interface [" + 
 					LibUsb.errorName( result ) + "]" );
 		}
 	}
@@ -347,12 +355,12 @@ public abstract class RTL2832TunerController extends device.Device
 	}
 	
 	public abstract void setSampleRateFilters( int sampleRate ) 
-						throws SourceException;
+						throws DeviceException;
 	
 	public abstract TunerType getTunerType();
 	
 	public static TunerType identifyTunerType( Device device ) 
-										throws SourceException
+										throws DeviceException
 	{
 		DeviceHandle handle = new DeviceHandle();
 		
@@ -360,7 +368,7 @@ public abstract class RTL2832TunerController extends device.Device
 		
 		if( reason != LibUsb.SUCCESS )
 		{
-			throw new SourceException( "couldn't open device - check permissions"
+			throw new DeviceException( "couldn't open device - check permissions"
 				+ " (udev.rule) [" + LibUsb.errorName( reason ) + "]" );
 		}
 		
@@ -386,16 +394,16 @@ public abstract class RTL2832TunerController extends device.Device
 				
 				if( e.getErrorCode() < 0 )
 				{
-					mLog.error( "error performing dummy write - attempting "
-							+ "device reset", e );
+					Log.errorDialog( "error performing dummy write - attempting "
+							+ "device reset", e.getMessage() );
 
 					resetRequired = true;
 				}
 				else
 				{
-					throw new SourceException( "error performing dummy write "
+					throw new DeviceException( "error performing dummy write "
 							+ "to device [" + LibUsb.errorName( 
-									e.getErrorCode() ) + "]", e );
+									e.getErrorCode() ) + "] " + e.getMessage() );
 				}
 			}
 
@@ -413,10 +421,10 @@ public abstract class RTL2832TunerController extends device.Device
 				}
 				catch( LibUsbException e2 )
 				{
-					mLog.error( "device reset attempted, but lost device handle.  "
+					Log.errorDialog( "ERROR", "device reset attempted, but lost device handle.  "
 					+ "Try restarting the application to use this device" );
 
-					throw new SourceException( "couldn't reset device" );
+					throw new DeviceException( "couldn't reset device" );
 				}
 			}
 
@@ -461,7 +469,7 @@ public abstract class RTL2832TunerController extends device.Device
 		}
 		catch( Exception e )
 		{
-			mLog.error( "error while determining tuner type", e );
+			Log.errorDialog( "error while determining tuner type", e.getMessage() );
 		}
 		
 		return tunerClass;
@@ -485,7 +493,7 @@ public abstract class RTL2832TunerController extends device.Device
         }
         catch ( Exception e )
         {
-        	mLog.error( "attempt to release USB interface failed", e );
+        	Log.errorDialog( "attempt to release USB interface failed", e.getMessage() );
         }
     }
 	
@@ -643,7 +651,7 @@ public abstract class RTL2832TunerController extends device.Device
 		writeDemodRegister( handle, page, address, value, 1 );
 	}
 	
-	protected boolean isI2CRepeaterEnabled() throws SourceException
+	protected boolean isI2CRepeaterEnabled() throws DeviceException
 	{
 		int register = readDemodRegister( mDeviceHandle, Page.ONE, (short)0x1, 1 );
 		
@@ -954,12 +962,12 @@ public abstract class RTL2832TunerController extends device.Device
 		return false;
 	}
 
-	public int getCurrentSampleRate() throws SourceException 
+	public int getCurrentSampleRate() throws DeviceException 
 	{
 		return mSampleRate.getRate();
 	}
 	
-    public int getSampleRateFromTuner() throws SourceException
+    public int getSampleRateFromTuner() throws DeviceException
 	{
         try
         {
@@ -982,14 +990,14 @@ public abstract class RTL2832TunerController extends device.Device
         }
         catch ( Exception e )
         {
-        	throw new SourceException( "RTL2832 Tuner Controller - cannot get "
-        			+ "current sample rate", e );
+        	throw new DeviceException( "RTL2832 Tuner Controller - cannot get "
+        			+ "current sample rate " + e.getMessage() );
         }
 
         return DEFAULT_SAMPLE_RATE.getRate();
 	}
 	
-	public void setSampleRate( SampleRate sampleRate ) throws SourceException
+	public void setSampleRate( SampleRate sampleRate ) throws DeviceException
 	{
 		/* Write high-order 16-bits of sample rate ratio to demod register */
 		writeDemodRegister( mDeviceHandle, Page.ONE, (short)0x9F, 
@@ -1020,7 +1028,7 @@ public abstract class RTL2832TunerController extends device.Device
 		}
 	}
 	
-	public void setSampleRateFrequencyCorrection( int ppm ) throws SourceException
+	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException
 	{
 		int offset = -ppm * TWO_TO_22_POWER / 1000000;
 		
@@ -1041,7 +1049,7 @@ public abstract class RTL2832TunerController extends device.Device
 		}
 		catch( Exception e )
 		{
-			throw new SourceException( "couldn't set sample rate frequency correction", e );
+			throw new DeviceException( "couldn't set sample rate frequency correction " + e.getMessage() );
 		}
 	}
 	
@@ -1092,9 +1100,9 @@ public abstract class RTL2832TunerController extends device.Device
 		}
 		catch( LibUsbException e )
 		{
-			mLog.error( "usb error while attempting to set read address to "
+			Log.errorDialog( "usb error while attempting to set read address to "
 				+ "EEPROM register, prior to reading the EEPROM device "
-				+ "descriptor", e );
+				+ "descriptor", e.getMessage() );
 		}
 
 		for( int x = 0; x < length; x++ )
@@ -1107,9 +1115,9 @@ public abstract class RTL2832TunerController extends device.Device
 			}
 			catch( Exception e )
 			{
-				mLog.error( "error while reading eeprom byte [" + x + "/" + 
+				Log.errorDialog( "error while reading eeprom byte [" + x + "/" + 
 					length + "] aborting eeprom read and returning partially "
-							+ "filled descriptor byte array", e );
+							+ "filled descriptor byte array", e.getMessage() );
 				x = length;
 			}
 		}
@@ -1389,9 +1397,9 @@ public abstract class RTL2832TunerController extends device.Device
 
 					resetUSBBuffer();
 				}
-				catch( SourceException e )
+				catch( DeviceException e )
 				{
-					mLog.error( "couldn't start buffer processor", e );
+					Log.errorDialog( "couldn't start buffer processor", e.getMessage() );
 					
 					mRunning.set( false );
 				}
@@ -1406,7 +1414,7 @@ public abstract class RTL2832TunerController extends device.Device
 				}
 				catch( NullPointerException npe )
 				{
-					mLog.error( "NPE! = tpm null: " + ( mThreadPoolManager == null ), npe );
+					Log.errorDialog( "NPE! = tpm null: " + ( mThreadPoolManager == null ), npe.getMessage() );
 				}
 				
 				mLibUsbHandlerStatus = ByteBuffer.allocateDirect( 4 );
@@ -1429,7 +1437,7 @@ public abstract class RTL2832TunerController extends device.Device
             			}
             			else
             			{
-            				mLog.error( "Error submitting transfer [" + 
+            				Log.errorDialog( "ERROR", "Error submitting transfer [" + 
             						LibUsb.errorName( result ) + "]" );
             			}
             		}
@@ -1439,7 +1447,7 @@ public abstract class RTL2832TunerController extends device.Device
 					
 					if( result != LibUsb.SUCCESS )
 					{
-						mLog.error( "error handling events for libusb" );
+						Log.errorDialog( "ERROR", "error handling events for libusb" );
 					}
 					
 					transfers.clear();
@@ -1459,7 +1467,7 @@ public abstract class RTL2832TunerController extends device.Device
             		
             		if( result != LibUsb.SUCCESS )
             		{
-            			mLog.error( "error handling events for libusb during cancel" );
+            			Log.errorDialog( "ERROR", "error handling events for libusb during cancel" );
             		}
             		
             		mLibUsbHandlerStatus.rewind();
@@ -1522,7 +1530,7 @@ public abstract class RTL2832TunerController extends device.Device
 					break;
 				default:
 					/* unexpected error */
-					mLog.error( "transfer error [" + 
+					Log.errorDialog( "ERROR", "transfer error [" + 
 						getTransferStatus( transfer.status() ) + 
 						"] transferred actual: " + transfer.actualLength() );
 			}
@@ -1586,7 +1594,7 @@ public abstract class RTL2832TunerController extends device.Device
 			}
 			catch( Exception e )
 			{
-				mLog.error( "error duing rtl2832 buffer dispatcher run", e );
+				Log.errorDialog("error duing rtl2832 buffer dispatcher run", e.getMessage() );
 			}
         }
 	}
@@ -1640,7 +1648,7 @@ public abstract class RTL2832TunerController extends device.Device
 	            {
 	                mAbort = true;
 
-	                mLog.error( "error handling usb events [" + 
+	                Log.errorDialog("ERROR", "error handling usb events [" + 
 	            			LibUsb.errorName( result ) + "]" );
 	                
 	                throw new LibUsbException("Unable to handle USB "
@@ -1736,7 +1744,7 @@ public abstract class RTL2832TunerController extends device.Device
 				/* Reset the sample counter */
 				mSampleCounter.set( 0 );
 				
-				mLog.info( "monitor reset for new sample rate [" + mTargetSampleRate + "]" );
+				Log.println( "monitor reset for new sample rate [" + mTargetSampleRate + "]" );
 			}
 			else
 			{
@@ -1777,7 +1785,7 @@ public abstract class RTL2832TunerController extends device.Device
 				sb.append( " Hz ] target " );
 				sb.append( mDecimalFormatter.format( mTargetSampleRate ) );
 				
-				mLog.info( sb.toString() );
+				Log.println( sb.toString() );
 			}
         }
 	}
