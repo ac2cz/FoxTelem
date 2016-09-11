@@ -94,9 +94,16 @@ public class WebServiceProcess implements Runnable {
 					} else if (path[1].equalsIgnoreCase("FRAME")) { // Frame Command
 						// Send the HTML page
 						if (path.length == 4) {
-							int sat = Integer.parseInt(path[2]);
-							int type = Integer.parseInt(path[3]);
-							PayloadRtValues rt = Config.payloadStore.getLatestRt(sat);
+							PayloadRtValues rt = null;
+							int sat = 1;
+							int type = 1;
+							try {
+								sat = Integer.parseInt(path[2]);
+								type = Integer.parseInt(path[3]);
+								rt = Config.payloadStore.getLatestRt(sat);
+							} catch (NumberFormatException e) {
+								out.println("Invalid sat or type");
+							}
 							if (rt != null) {								
 								try {
 									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
