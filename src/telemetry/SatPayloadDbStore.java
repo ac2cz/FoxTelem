@@ -491,6 +491,7 @@ public class SatPayloadDbStore {
 				+ " and processed = 0";
 					
 		ResultSet rs = selectImageLines(pictureLinesTableName, lineswhere);
+		if (rs == null) return false;
 		while (rs.next()) {
 			Log.println("Processing new image line " + rs.getInt("scanLineNumber") + " for FoxId: " 
 					+ this.foxId + " r:" + rs.getInt("resets") +" u:" + rs.getInt("uptime") + " pc:" + rs.getInt("pictureCounter"));
@@ -502,6 +503,7 @@ public class SatPayloadDbStore {
 			
 			if (jpg == null) {
 				ResultSet jpgRs = selectImageLines(pictureLinesTableName, where);
+				if (jpgRs == null) return false;
 				jpg = new CameraJpeg(this.foxId, rs.getInt("resets"), rs.getInt("uptime"), rs.getInt("uptime"), rs.getInt("pictureCounter"), jpgRs);
 				insert(jpgIdxTableName, jpg); // we add this.  If its a duplicate, we ignore and keep going.  The line still needs to be added
 			}
@@ -585,6 +587,7 @@ public class SatPayloadDbStore {
 						+ " and ABS(" + uptime + " - uptime ) < " + CameraJpeg.UPTIME_THRESHOLD
 						+ " and pictureCounter = " + pictureCounter;				
 				ResultSet rs = selectImageLines(pictureLinesTableName, lineswhere);
+				if (rs == null) return null;
 				boolean runUpdate = false;
 				// we have an existing record, so load it
 				int rsid = r.getInt("id");
