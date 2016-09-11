@@ -24,7 +24,7 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 
-	public static String version = "Version 0.18b - 9 April 2016";
+	public static String version = "Version 0.19a - 10 Sept 2016";
 	private Socket socket = null;
 	int port = 8080;
 	
