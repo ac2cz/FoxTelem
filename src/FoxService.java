@@ -21,7 +21,7 @@ import common.Log;
  */
 public class FoxService {
 
-	public static String version = "Version 0.18a - 9 April 2016";
+	
 	public static int port = 8080;
 	int poolSize = 100;
 	
@@ -63,7 +63,7 @@ public class FoxService {
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
-		Log.println("Fox Webservice starting up on port " + port + ": " + version);
+		Log.println("Fox Webservice starting up on port " + port + ": " + WebServiceProcess.version);
 		Log.println("(press ctrl-c to exit)");
 
 		ServerSocket serverSocket = null;
