@@ -1,12 +1,12 @@
 #Fox 1 Telemetry Decoder Properties
-#Sun Feb 21 14:25:02 EST 2016
+#Sun Sep 11 21:25:49 EDT 2016
 EXP4=0
 maxFreqBoundkHz=145970
 EXP3=0
 EXP2=1
 ihuTempLookUpTableFileName=FOX1A_ihutempSN8.tab
 EXP1=6
-model=0
+model=1
 minLayoutFileName=RadFxSat_mintelemetry.csv
 measurementsFileName=measurements.csv
 minFreqBoundkHz=145950
@@ -24,5 +24,5 @@ ihuVBattLookUpTableFileName=FOX1C_ihuVBattSN9.tab
 rssiLookUpTableFileName=FOX1C_rssiFM.tab
 maxLayoutFileName=RadFxSat_maxtelemetry.csv
 catalogNumber=0
-IHU_SN=9
 name=RadFxSat
+IHU_SN=9

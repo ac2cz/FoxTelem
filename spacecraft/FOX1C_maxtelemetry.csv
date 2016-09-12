@@ -19,7 +19,7 @@
 17,MAX,PANEL_MINUS_Y_T,12,C,24,NONE,0,0,4,NONE,NONE
 18,MAX,PANEL_PLUS_Z_T,12,C,24,NONE,0,0,4,NONE,NONE
 19,MAX,PANEL_MINUS_Z_T,12,C,24,NONE,0,0,4,NONE,NONE
-20,MAX,PSUTemperature,12,C,7,NONE,0,0,0,NONE,PSU card high temperature raw value
+20,MAX,PSUTemperature,12,C,8,NONE,0,0,0,NONE,PSU card high temperature raw value
 21,MAX,SPIN,12,rpm,12,NONE,0,0,0,NONE,Highest calculated spin rate RPM using solar cells
 22,MAX,TXPACurrent,12,mA,10,NONE,0,0,0,NONE,Transmit power amplifier high current raw value
 23,MAX,TXTemperature,12,C,7,NONE,0,0,0,NONE,Transmitter card high temperature raw value
