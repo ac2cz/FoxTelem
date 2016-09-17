@@ -210,7 +210,7 @@ public class LookUpTable {
 			e.printStackTrace(Log.getWriter());
 
 		} catch (NumberFormatException n) {
-			Log.errorDialog("NUMBER FORMAT EXCEPTION", n.getMessage());
+			Log.errorDialog("NUMBER FORMAT EXCEPTION", "Loading Lookup table " + fileName + " " + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 
 		} catch (NoSuchElementException n) {
