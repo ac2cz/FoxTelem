@@ -611,7 +611,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		LSB.setEnabled(false);
 		USB.setEnabled(false);
 		CW.setEnabled(false);
-
+		
 		if (Config.iq) {
 			iqAudio.doClick();  // we want to trigger the action event so the window is setup correctly at startup
 		} else {
@@ -854,12 +854,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		lblFreq.setVisible(b);
 		lblkHz.setVisible(b);
 		txtFreq.setVisible(b);
-		WFM.setVisible(b);
-		FM.setVisible(b);
-		NFM.setVisible(b);
-		LSB.setVisible(b);
-		USB.setVisible(b);
-		CW.setVisible(b);
+		
+		WFM.setVisible(false);
+		FM.setVisible(false);
+		NFM.setVisible(false);
+		LSB.setVisible(false);
+		USB.setVisible(false);
+		CW.setVisible(false);
 	}
 	
 	public void setViewDecoder1() {
@@ -1526,7 +1527,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			if (iqSource2 != null)
 				(iqSource2).setCenterFreqkHz(freq);
 			Config.fcdFrequency = freq;
-			if (rfDevice != null) {
+			if (rfDevice != null && panelFcd != null) {
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
@@ -1568,8 +1569,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
 		if (rfDevice != null)
-			if (rfDevice instanceof AirspyDevice)
+			if (rfDevice instanceof AirspyDevice) {
 				((AirspyDevice)rfDevice).stop();
+				//rfDevice = null;
+			}
 		if (this.soundCardComboBox.getSelectedIndex() == SourceAudio.AIRSPY_SOURCE) {
 			SDRpanel.setVisible(true);	
 			if (panelFcd != null)
