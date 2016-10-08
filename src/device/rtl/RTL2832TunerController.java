@@ -1020,7 +1020,7 @@ public abstract class RTL2832TunerController extends device.Device
 
 		mSampleRate = sampleRate;
 
-		mFrequencyController.setSampleRate( sampleRate.getRate() );
+		//mFrequencyController.setSampleRate( sampleRate.getRate() );
 		
 		if( mSampleRateMonitor != null )
 		{
@@ -1045,7 +1045,7 @@ public abstract class RTL2832TunerController extends device.Device
 		/* Test to retune controller to apply frequency correction */
 		try
 		{
-			mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
+			//////////////////mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
 		}
 		catch( Exception e )
 		{
