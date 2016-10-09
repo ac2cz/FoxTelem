@@ -29,7 +29,7 @@ import common.Log;
  *
  * This is the DUV Decoder
  */
-public class Fox200bpsDecoder extends Decoder {
+public class Fox200bpsDecoder extends FoxDecoder {
 
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
 	private int useFilterNumber;
@@ -79,7 +79,7 @@ public class Fox200bpsDecoder extends Decoder {
 	
 	private void setSlowSpeedParameters() {
 		//decodedFrame = new SlowSpeedFrame();
-		bitStream = new SlowSpeedBitStream(this);
+		foxBitStream = new SlowSpeedBitStream(this);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
 		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;

@@ -11,7 +11,7 @@ import org.apache.commons.net.ftp.FTP;
 import org.apache.commons.net.ftp.FTPClient;
 import org.apache.commons.net.ftp.FTPReply;
 
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import common.Config;
 import common.Log;
 
@@ -111,7 +111,7 @@ public class FtpLogs implements Runnable {
 	private void sendFile(String fileName) throws FileNotFoundException {
         File firstLocalFile = new File(fileName);
         
-        String firstRemoteFile = FramePart.fileDateStamp() + "_" + Config.callsign.toLowerCase() + "_" + fileName ;
+        String firstRemoteFile = FoxFramePart.fileDateStamp() + "_" + Config.callsign.toLowerCase() + "_" + fileName ;
         InputStream inputStream = new FileInputStream(firstLocalFile);
 
         

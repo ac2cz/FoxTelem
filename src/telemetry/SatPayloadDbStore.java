@@ -16,6 +16,7 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -51,7 +52,7 @@ public class SatPayloadDbStore {
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
 	
 	public int foxId;
-	public Spacecraft fox;
+	public FoxSpacecraft fox;
 	
 	public static String RT_LOG = "RTTELEMETRY";
 	public static String MAX_LOG = "MAXTELEMETRY";
@@ -89,7 +90,7 @@ public class SatPayloadDbStore {
 	 * Create the payload store this this fox id
 	 * @param id
 	 */
-	public SatPayloadDbStore(Spacecraft fox) {
+	public SatPayloadDbStore(FoxSpacecraft fox) {
 		this.fox = fox;
 		foxId = fox.foxId;
 		rtTableName = "Fox"+foxId+RT_LOG;
@@ -106,11 +107,16 @@ public class SatPayloadDbStore {
 	}
 	
 	private void initPayloadFiles() {
-		initPayloadTable(rtTableName, fox.rtLayout);
-		initPayloadTable(maxTableName, fox.maxLayout);
-		initPayloadTable(minTableName, fox.minLayout);
-		initPayloadTable(radTableName, fox.radLayout);
-		initPayloadTable(radTelemTableName, fox.rad2Layout);
+//		for (int i=0; i<fox.numberOfLayouts; i++)
+//			initPayloadTable("Fox"+fox.foxId+fox.layoutName[i]+"_LOG", fox.layout[i]);
+		
+		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
+		//
+		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
+		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
+		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
+		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
 		if (fox.hasHerci()) {
 			initHerciTables();
 		}
@@ -128,8 +134,8 @@ public class SatPayloadDbStore {
 	}
 
 	private void initHerciTables() {
-		initPayloadTable(herciHSTableName, fox.herciHSLayout);
-		initPayloadTable(herciHSHeaderTableName, fox.herciHS2Layout);
+		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
+		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT));
 		String table = herciHSPacketTableName;
 		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
 		createTable(table, createStmt);
@@ -682,7 +688,7 @@ public class SatPayloadDbStore {
 	public PayloadRtValues getLatestRt() throws SQLException {
 		ResultSet r = selectLatest(rtTableName);
 		if (r != null) {
-			PayloadRtValues rt = new PayloadRtValues(r, fox.rtLayout);
+			PayloadRtValues rt = new PayloadRtValues(r, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
 			r.close();
 			return rt;
 		} else return null;
@@ -691,7 +697,7 @@ public class SatPayloadDbStore {
 	public PayloadMaxValues getLatestMax() throws SQLException {
 		ResultSet r = selectLatest(maxTableName);
 		if (r != null) {
-			PayloadMaxValues max = new PayloadMaxValues(r, fox.maxLayout);
+			PayloadMaxValues max = new PayloadMaxValues(r, fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
 			r.close();
 			return max;
 		} else return null;
@@ -700,7 +706,7 @@ public class SatPayloadDbStore {
 	public PayloadMinValues getLatestMin() throws SQLException {
 		ResultSet r = selectLatest(minTableName);
 		if (r != null) {
-			PayloadMinValues min = new PayloadMinValues(r, fox.minLayout);
+			PayloadMinValues min = new PayloadMinValues(r, fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
 			r.close();
 			return min;
 		} else return null;
@@ -709,7 +715,7 @@ public class SatPayloadDbStore {
 	public PayloadRadExpData getLatestRad() throws SQLException {
 		ResultSet r = selectLatest(radTableName);
 		if (r != null) {
-			PayloadRadExpData rad = new PayloadRadExpData(r, fox.radLayout);
+			PayloadRadExpData rad = new PayloadRadExpData(r, fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
 			r.close();
 			return rad;
 		} else return null;
@@ -725,8 +731,8 @@ public class SatPayloadDbStore {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(rtTableName, name, period, id, fromReset, fromUptime);
+	public double[][] getRtGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime) throws SQLException {
+		return getGraphData(rtTableName, name, period, fox2, fromReset, fromUptime);
 		
 	}
 
@@ -751,7 +757,7 @@ public class SatPayloadDbStore {
 			rs = stmt.executeQuery(where);
 			
 			while (rs.next()) {
-				PayloadRadExpData f = new PayloadRadExpData(rs, fox.radLayout);
+				PayloadRadExpData f = new PayloadRadExpData(rs, fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
 				// Capture and store any secondary payloads
 				if (fox.hasHerci() || f.isTelemetry()) {
 					RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
@@ -845,7 +851,7 @@ public class SatPayloadDbStore {
 	}
 
     
-	private double[][] getGraphData(String table, String name, int period, Spacecraft fox, int fromReset, long fromUptime) throws SQLException {
+	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs;
 		String where = "";
 		
@@ -876,8 +882,8 @@ public class SatPayloadDbStore {
 			resets[i] = rs.getInt("resets");
 			upTime[i] = rs.getLong("uptime");
 			//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
-			PayloadRtValues rt = new PayloadRtValues(fox.rtLayout);
-			results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
+			PayloadRtValues rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+			results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), id);
 			while (rs.previous()) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
@@ -886,7 +892,7 @@ public class SatPayloadDbStore {
 				//results[i++] = rs.getDouble(name);
 				// converted
 				
-				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), fox);
+				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getConversionByName(name), id);
 			}
 		} else {
 			results = new double[1];

@@ -3,7 +3,7 @@ package filter;
 import javax.sound.sampled.AudioFormat;
 
 import common.Config;
-import decoder.Decoder;
+import decoder.FoxDecoder;
 import decoder.SourceAudio;
 
 /**
@@ -54,7 +54,7 @@ public abstract class Filter {
 	public double getGain() {return gain;}
 	
 	protected void coreInit() {
-		if (audioFormat.getChannels() == Decoder.MONO) stereo = false;
+		if (audioFormat.getChannels() == FoxDecoder.MONO) stereo = false;
 		useAGC = Config.useAGC;
 	}
 	

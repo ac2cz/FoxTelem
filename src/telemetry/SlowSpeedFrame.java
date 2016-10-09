@@ -4,7 +4,9 @@ import java.io.BufferedReader;
 import java.io.IOException;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
+import common.Spacecraft;
 
 /**
  * 
@@ -34,8 +36,8 @@ public class SlowSpeedFrame extends Frame {
 	public static final int MAX_TRAILER_SIZE = 32;
 	
 	//SlowSpeedHeader header = null;
-	FramePart payload = null;
-	FramePart fecTrailer = null;
+	FoxFramePart payload = null;
+	FoxFramePart fecTrailer = null;
 	
 	
 	public SlowSpeedFrame() {
@@ -57,7 +59,7 @@ public class SlowSpeedFrame extends Frame {
 		return (SlowSpeedHeader)header;
 	}
 
-	public FramePart getPayload() {
+	public FoxFramePart getPayload() {
 		return payload;
 	}
 
@@ -81,16 +83,16 @@ public class SlowSpeedFrame extends Frame {
 			header.copyBitsToFields();
 			if (Config.debugFrames) Log.println("DECODING PAYLOAD TYPE: " + header.type);
 			int type = header.type;
-			fox = Config.satManager.getSpacecraft(header.id);
+			fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 			if (fox != null) {
-				if (type == FramePart.TYPE_DEBUG) payload = new PayloadRtValues(Config.satManager.getRtLayout(header.id));
-				if (type == FramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getRtLayout(header.id));
-				if (type == FramePart.TYPE_MAX_VALUES) payload = new PayloadMaxValues(Config.satManager.getMaxLayout(header.id));
-				if (type == FramePart.TYPE_MIN_VALUES) payload = new PayloadMinValues(Config.satManager.getMinLayout(header.id));
-				if (type == FramePart.TYPE_RAD_EXP_DATA) payload = new PayloadRadExpData(Config.satManager.getRadLayout(header.id));
-				if (type > FramePart.TYPE_RAD_EXP_DATA) {
+				if (type == FoxFramePart.TYPE_DEBUG) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.DEBUG_LAYOUT));
+				if (type == FoxFramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+				if (type == FoxFramePart.TYPE_MAX_VALUES) payload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+				if (type == FoxFramePart.TYPE_MIN_VALUES) payload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+				if (type == FoxFramePart.TYPE_RAD_EXP_DATA) payload = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				if (type > FoxFramePart.TYPE_RAD_EXP_DATA) {
 					Log.println("INVALID payload type, defaulting to Real Time Values");
-					payload = new PayloadRtValues(Config.satManager.getRtLayout(header.id));
+					payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
 				}
 			} else {
 				//Log.errorDialog("Missing or Invalid Fox Id", 

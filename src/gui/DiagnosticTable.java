@@ -11,9 +11,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import common.Config;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
 
 /**
@@ -40,7 +40,7 @@ import telemetry.PayloadStore;
  */
 @SuppressWarnings("serial")
 public class DiagnosticTable extends JPanel {
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	double[][] graphData = null;
 	String title = "Test Graph";
 	String fieldName = null;
@@ -51,7 +51,7 @@ public class DiagnosticTable extends JPanel {
 	JScrollPane scrollPane;
 	
 	
-	DiagnosticTable(String t, String fieldName, int conversionType, GraphFrame gf, Spacecraft sat) {
+	DiagnosticTable(String t, String fieldName, int conversionType, GraphFrame gf, FoxSpacecraft sat) {
 		this.conversionType = conversionType;
 		title = t;
 		this.fieldName = fieldName;
@@ -128,7 +128,7 @@ public class DiagnosticTable extends JPanel {
 
 	}
 	public void updateDiagnosticData() {
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		String[][] tableData = new String[graphData[0].length][7];
 		
 		if (graphData[0].length > 0) {
@@ -136,7 +136,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
 				
-				display = FramePart.ihuDiagnosticString(value, false, fox);
+				display = FoxFramePart.ihuDiagnosticString(value, false, fox);
 				if (display != null) { 	
 					if (graphFrame.showUTCtime) {
 						setColumnName(0, "Date");
@@ -168,14 +168,14 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateHardErrorData() {
-		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		String[][] tableData = new String[graphData[0].length][8];
 		
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FramePart.hardErrorStringArray(value, false);
+				display = FoxFramePart.hardErrorStringArray(value, false);
 				
 				if (display != null) { 	
 					if (graphFrame.showUTCtime) {
@@ -207,14 +207,14 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateSoftErrorData() {
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 		String[][] tableData = new String[graphData[0].length][6];
 		
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FramePart.softErrorStringArray(value, false);
+				display = FoxFramePart.softErrorStringArray(value, false);
 				
 				if (display != null) { 	
 					if (graphFrame.showUTCtime) {

@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
-import decoder.Decoder;
+import common.Spacecraft;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -132,7 +133,7 @@ Transfer Frame:
 
 
  */
-public class PayloadHERCIhighSpeed extends FramePart {
+public class PayloadHERCIhighSpeed extends FoxFramePart {
 
 	public static final int MAX_PAYLOAD_SIZE = 868;
 	public static final int MAX_HEADER_SIZE = 16; // 16 bytes in the header
@@ -161,7 +162,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 	protected void init() {
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
 		fieldValue = new int[MAX_PAYLOAD_SIZE];  // we declare this as the max payload size rather than the size of the layout so that we include all of the minipackets
-		type = FramePart.TYPE_HERCI_HIGH_SPEED_DATA;
+		type = FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA;
 	}
 
 	/**
@@ -169,7 +170,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 	 * @return
 	 */
 	public HerciHighspeedHeader calculateTelemetryPalyoad() {
-		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getHerciHSHeaderLayout(id));
+		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
 		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
@@ -215,7 +216,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		String s = new String();
 		s = s + "HERCI EXPERIMENT HIGH SPEED DATA: " + MAX_BYTES + " bytes\n";
 		for (int i =0; i< MAX_BYTES; i++) {
-			s = s + Decoder.hex(fieldValue[i]) + " ";
+			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 			// Print 32 bytes in a row
 			if ((i+1)%32 == 0) s = s + "\n";
 		}

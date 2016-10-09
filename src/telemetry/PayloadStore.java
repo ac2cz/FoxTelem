@@ -16,6 +16,7 @@ import measure.SortedMeasurementArrayList;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -85,7 +86,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		boolean newDB = makeDir(dir + DB_NAME);
 		if (newDB) {
 			// Check to see if the Fox 1 Real Time file is present
-			String testFile = "Fox1"+SatPayloadStore.RT_LOG+".log";
+			String testFile = "Fox1"+"rtTelemetry"+".log"; // name is now hardcoded because it is the LEGACY name and no longer used
 			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 				testFile = Config.logFileDirectory + File.separator + testFile;
 			}
@@ -103,22 +104,24 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		Config.fileProgress.setVisible(true);
 		
 		for (int s=0; s<sats.size(); s++) {
-			payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);
-			if (newDB) {
-				// convert any legacy data
-				try {
-					payloadStore[s].convert();
-				} catch (IOException e) {
-					Log.errorDialog("ERROR", "Could not convert the old FoxTelem payload files to the new format: " +  
-							"\nAny old payloads will not be available\n");
-					e.printStackTrace(Log.getWriter());
+			
+				payloadStore[s] = new SatPayloadStore(sats.get(s).foxId);
+				if (newDB) {
+					// convert any legacy data
+					try {
+						payloadStore[s].convert();
+					} catch (IOException e) {
+						Log.errorDialog("ERROR", "Could not convert the old FoxTelem payload files to the new format: " +  
+								"\nAny old payloads will not be available\n");
+						e.printStackTrace(Log.getWriter());
+					}
 				}
-			}
-			if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
-			measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
-			Config.fileProgress.updateProgress(100 * s / sats.size());
+				if (sats.get(s).isFox1())
+					if (((FoxSpacecraft)sats.get(s)).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
+				measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
+				Config.fileProgress.updateProgress(100 * s / sats.size());
+			
 		}
-		
 		loaded = true;
 	}
 	
@@ -200,19 +203,19 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			mStore.setUpdatedAll();
 	}
 	
-	public boolean getUpdatedRt(int id) { 
+	public boolean getUpdated(int id, String lay) { 
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.getUpdatedRt();
+			return store.getUpdated(lay);
 		return false;
 	}
 	
-	public void setUpdatedRt(int id, boolean u) {
+	public void setUpdated(int id, String lay, boolean u) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
-			store.setUpdatedRt(u);
+			store.setUpdated(lay, u);
 	}
-	
+	/*
 	public boolean getUpdatedMax(int id) { 
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -269,6 +272,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		if (store != null)
 			store.setUpdatedHerciHeader(u);
 	}
+	*/
 	public boolean getUpdatedCamera(int id) { 
 		SatPictureStore store = getPictureStoreById(id);
 		if (store != null)
@@ -303,37 +307,47 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			store.setUpdatedPassMeasurement(u);
 	}
 
+	
 	public int getTotalNumberOfFrames() {
 		int total = 0;
 		for (SatPayloadStore store : payloadStore)
 			total += store.getNumberOfFrames();
 		return total;
 	}
-	public int getTotalNumberOfTelemFrames() { 
+	public int getTotalNumberOfFrames(String lay) { 
 		int total = 0;
 		for (SatPayloadStore store : payloadStore)
-			total += store.getNumberOfTelemFrames();
+			total += store.getNumberOfFrames(lay);
 		return total;
 	}
+	
+	/*
 	public int getTotalNumberOfRadFrames() { 
 		int total = 0;
 		for (SatPayloadStore store : payloadStore)
 			total += store.getNumberOfRadFrames();
 		return total;
 	}
-
+*/
 	public int getNumberOfFrames(int id) { 
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getNumberOfFrames();
 		return 0;
 	}
-	public int getNumberOfTelemFrames(int id) { 
+	public int getNumberOfFrames(int id, String lay) { 
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getNumberOfFrames(lay);
+		return 0;
+	}
+	public int getNumberOfTelemFrames(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getNumberOfTelemFrames();
-		return 0;
+		return 0;		
 	}
+	/*
 	public int getNumberOfRadFrames(int id) { 
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -346,7 +360,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			return store.getNumberOfHerciFrames();
 		return 0;
 	}
-	
+	*/
 	
 	public int getNumberOfPictureCounters(int id) { 
 		SatPictureStore store = getPictureStoreById(id);
@@ -496,7 +510,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public PayloadRtValues getLatestRt(int id) {
+	public FramePart getLatestRt(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -511,7 +525,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public PayloadMaxValues getLatestMax(int id) {
+	public FramePart getLatestMax(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -526,7 +540,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public PayloadMinValues getLatestMin(int id) {
+	public FramePart getLatestMin(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -711,7 +725,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -722,7 +736,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -733,7 +747,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
 			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime);
@@ -835,12 +849,14 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset,
+	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
 			long fromUptime) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
 			return store.getPassMeasurementGraphData(name, period, fox, fromReset, fromUptime);
 		return null;
-	}
+	} 
 
+
+	
 }

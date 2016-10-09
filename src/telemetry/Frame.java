@@ -21,7 +21,7 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import common.TlmServer;
 import fec.RsCodeWord;
 
@@ -69,7 +69,7 @@ public abstract class Frame implements Comparable<Frame> {
 			"E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
 
 	protected Header header = null;
-	Spacecraft fox; // the satellite that we are decoding a frame for, populated
+	FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
 	public static final int DUV_FRAME = 0;
@@ -200,7 +200,7 @@ public abstract class Frame implements Comparable<Frame> {
 			Log.println("Got TCA: " + strDate);
 			Date date = null;
 			try {
-				date = FramePart.fileDateFormat.parse(strDate);
+				date = FoxFramePart.fileDateFormat.parse(strDate);
 			} catch (ParseException e) {
 				// We don't do anything in this case, the date will be null
 				e.printStackTrace();
@@ -560,7 +560,7 @@ public abstract class Frame implements Comparable<Frame> {
 					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FramePart payload = ssf.getPayload();
+					FoxFramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");

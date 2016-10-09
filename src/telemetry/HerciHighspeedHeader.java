@@ -2,9 +2,10 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
+import common.FoxSpacecraft;
 import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -98,7 +99,7 @@ import decoder.Decoder;
       type is unique.  Lengths also vary with each type
       of data.
  */
-public class HerciHighspeedHeader extends FramePart {
+public class HerciHighspeedHeader extends FoxFramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 16;
 	public static final int HERCI_EPOCH_FIELD = 5;
@@ -168,7 +169,7 @@ public class HerciHighspeedHeader extends FramePart {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
@@ -194,15 +195,15 @@ public class HerciHighspeedHeader extends FramePart {
 			s="";
 			int value = getRawValue(name);
 			for (int i=0; i<4; i++) {
-				s = " " + Decoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				s = " " + FoxDecoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
-		} else s =  super.getStringValue(name, fox);
+		} else s = super.getStringValue(name, fox);
 
 		return s;
 	}
 
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
 		
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 			switch (conversion) {
@@ -214,7 +215,7 @@ public class HerciHighspeedHeader extends FramePart {
 	}
 
 
-	public String toDataString(Spacecraft fox) {
+	public String toDataString(FoxSpacecraft fox) {
 		copyBitsToFields();
 		String s = new String();
 		for (int i=0; i < layout.fieldName.length; i++) {
@@ -231,7 +232,7 @@ public class HerciHighspeedHeader extends FramePart {
 		s = s + "HERCI HS SCIENCE HEADER:\n";
 		for (int i=0; i < layout.fieldName.length; i++) {
 			//s = s + layout.fieldName[i] + ": " + fieldValue[i]+"\n";
-			s = s + Decoder.hex(fieldValue[i]) + " ";
+			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 		
 		}
 		return s;

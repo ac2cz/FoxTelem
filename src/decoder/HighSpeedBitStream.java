@@ -37,12 +37,12 @@ import telemetry.HighSpeedFrame;
  *
  */
 @SuppressWarnings("serial")
-public class HighSpeedBitStream extends BitStream {
+public class HighSpeedBitStream extends FoxBitStream {
 	public static int HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;
 	public static final int[] RS_PADDING = {3,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4};
 	
-	public HighSpeedBitStream(Decoder dec) {
+	public HighSpeedBitStream(FoxDecoder dec) {
 		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, dec);
 		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	

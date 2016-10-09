@@ -5,8 +5,9 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
-import decoder.BitStream;
-import decoder.Decoder;
+import common.Spacecraft;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -29,7 +30,7 @@ import decoder.Decoder;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class PayloadRadExpData extends FramePart {
+public class PayloadRadExpData extends FoxFramePart {
 	
 	public static final int MAX_PAYLOAD_RAD_SIZE = 58;
 	
@@ -88,7 +89,7 @@ public class PayloadRadExpData extends FramePart {
 	 */
 	public RadiationTelemetry calculateTelemetryPalyoad() {
 		//if (isTelemetry()) {
-			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getRadTelemLayout(id));
+			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
@@ -146,7 +147,7 @@ public class PayloadRadExpData extends FramePart {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
@@ -165,7 +166,7 @@ public class PayloadRadExpData extends FramePart {
 		String s = new String();
 		s = s + "RADIATION EXPERIMENT DATA:\n";
 		for (int i =0; i< MAX_BYTES; i++) {
-			s = s + Decoder.hex(fieldValue[i]) + " ";
+			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 			// Print 8 bytes in a row
 			if ((i+1)%8 == 0) s = s + "\n";
 		}
@@ -190,11 +191,11 @@ public class PayloadRadExpData extends FramePart {
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			//s = s + Decoder.dec(fieldValue[i]) + ",";
-			s = s + Decoder.hex(fieldValue[i]) + ",";
+			s = s + FoxDecoder.hex(fieldValue[i]) + ",";
 		}
 		// add the final field with no comma delimiter
 		//s = s + Decoder.dec(fieldValue[fieldValue.length-1]);
-		s = s + Decoder.hex(fieldValue[fieldValue.length-1]);
+		s = s + FoxDecoder.hex(fieldValue[fieldValue.length-1]);
 		return s;
 	}
 	

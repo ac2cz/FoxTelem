@@ -46,6 +46,7 @@ import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
@@ -328,28 +329,29 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		cameraThread = new Thread[sats.size()];
 		herciThread = new Thread[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
-			healthTab[s] = new HealthTab(sats.get(s));
-			healthThread[s] = new Thread(healthTab[s]);
-			healthThread[s].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-			healthThread[s].start();
-			
-			tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-//			tabbedPane.addTab( ""  
-			+ sats.get(s).toString() + "</b></body></html>", healthTab[s] );
-//			+" Health", healthTab );
-			
-			for (int exp : sats.get(s).experiments) {
-				if (exp == Spacecraft.EXP_VULCAN)
-					addExperimentTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_VT_CAMERA || exp == Spacecraft.EXP_VT_CAMERA_LOW_RES)
-					addCameraTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_IOWA_HERCI) {
-					addHerciHSTab(sats.get(s), s);
-					addHerciLSTab(sats.get(s), s);
+				healthTab[s] = new HealthTab(sats.get(s));
+				healthThread[s] = new Thread(healthTab[s]);
+				healthThread[s].setUncaughtExceptionHandler(Log.uncaughtExHandler);
+				healthThread[s].start();
+
+				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+						//			tabbedPane.addTab( ""  
+						+ sats.get(s).toString() + "</b></body></html>", healthTab[s] );
+				//			+" Health", healthTab );
+
+				if (sats.get(s).isFox1()) {
+				for (int exp : ((FoxSpacecraft)sats.get(s)).experiments) {
+					if (exp == FoxSpacecraft.EXP_VULCAN)
+						addExperimentTab((FoxSpacecraft)sats.get(s), s);
+					if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
+						addCameraTab((FoxSpacecraft)sats.get(s), s);
+					if (exp == FoxSpacecraft.EXP_IOWA_HERCI) {
+						addHerciHSTab((FoxSpacecraft)sats.get(s), s);
+						addHerciLSTab((FoxSpacecraft)sats.get(s), s);
+					}
+
 				}
-					
 			}
-			
 		}
 	}
 
@@ -388,7 +390,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				}
 
 	}
-	private static void addExperimentTab(Spacecraft fox, int num) {
+	private static void addExperimentTab(FoxSpacecraft fox, int num) {
 		
 		radiationTab[num] = new VulcanTab(fox);
 		radiationThread[num] = new Thread((VulcanTab)radiationTab[num]);
@@ -400,7 +402,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	}
 
-	private static void addHerciLSTab(Spacecraft fox, int num) {
+	private static void addHerciLSTab(FoxSpacecraft fox, int num) {
 
 		radiationTab[num] = new HerciLSTab(fox);
 		radiationThread[num] = new Thread((HerciLSTab)radiationTab[num]);
@@ -413,7 +415,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	}
 	
-	private static void addHerciHSTab(Spacecraft fox, int num) {
+	private static void addHerciHSTab(FoxSpacecraft fox, int num) {
 		herciTab[num] = new HerciHSTab(fox);
 		herciThread[num] = new Thread(herciTab[num]);
 			
@@ -425,7 +427,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 	}
 	
-	private static void addCameraTab(Spacecraft fox, int num) {
+	private static void addCameraTab(FoxSpacecraft fox, int num) {
 
 		cameraTab[num] = new CameraTab(fox);
 		cameraThread[num] = new Thread(cameraTab[num]);
@@ -732,8 +734,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
-				SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
-				f.setVisible(true);
+				if (sats.get(i).isFox1()) {
+					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
+					f.setVisible(true);
+				}
 			}
 		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
@@ -1045,6 +1049,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (HealthTab tab : healthTab)
 			tab.closeGraphs();
 		for (ModuleTab tab : radiationTab)
+			if (tab != null)
 			tab.closeGraphs();
 		for (ModuleTab tab : herciTab)
 			if (tab != null)

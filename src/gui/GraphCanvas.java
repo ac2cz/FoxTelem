@@ -9,10 +9,11 @@ import java.text.DecimalFormat;
 import javax.swing.JPanel;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
 import telemetry.RadiationPacket;
 
@@ -44,54 +45,54 @@ public abstract class GraphCanvas extends JPanel {
 	Graphics2D g2;
 	Graphics g;
 
-	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
+	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, Spacecraft fox2) {
 		title = t;
 		payloadType = plType;
 		this.conversionType = conversionType;
 		//this.fieldName = fieldName;
 		graphFrame = gf;
 		
-		fox = sat;
+		fox = fox2;
 		
 	}
 
 	public void updateGraphData(String by) {
 		graphData = new double[graphFrame.fieldName.length][][];
 		for (int i=0; i<graphFrame.fieldName.length; i++) {
-			if (payloadType == FramePart.TYPE_REAL_TIME)
+			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 				graphData[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_MAX_VALUES)
+			else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
 				graphData[i] = Config.payloadStore.getMaxGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_MIN_VALUES)
+			else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
 				graphData[i] = Config.payloadStore.getMinGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-				graphData[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-			else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-				graphData[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+				graphData[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+				graphData[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 			else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
-				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
-				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 			
 		}
 		graphData2 = null;
 		if (graphFrame.fieldName2 != null && graphFrame.fieldName2.length > 0) {
 			graphData2 = new double[graphFrame.fieldName2.length][][];
 			for (int i=0; i<graphFrame.fieldName2.length; i++) {
-				if (payloadType == FramePart.TYPE_REAL_TIME)
+				if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 					graphData2[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_MAX_VALUES)
+				else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
 					graphData2[i] = Config.payloadStore.getMaxGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_MIN_VALUES)
+				else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
 					graphData2[i] = Config.payloadStore.getMinGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-					graphData2[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
-				else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-					graphData2[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+					graphData2[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+					graphData2[i] = Config.payloadStore.getHerciScienceHeaderGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 				else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
-					graphData2[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+					graphData2[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
-					graphData2[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+					graphData2[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
 				
 			}
 		}
@@ -451,7 +452,7 @@ public abstract class GraphCanvas extends JPanel {
 	    return shifted/magnitude;
 	}
 	
-	public int getRatioPosition(double min, double max, double value, int dimension) {
+	public static int getRatioPosition(double min, double max, double value, int dimension) {
 		double ratio = (max - value) / (max - min);
 		int position = (int)Math.round(dimension * ratio);
 		return dimension-position;

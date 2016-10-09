@@ -10,9 +10,11 @@ import javax.swing.JPanel;
 
 import common.Config;
 import common.Log;
+import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
+import gui.GraphCanvas;
 
 /** 
  * FOX 1 Telemetry Decoder
@@ -81,7 +83,8 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 		
 	private void init() {
-		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; else SAMPLES = 120;
+		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; 
+		else SAMPLES = decoder.getBucketSize()/2;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
 			buffer[i] = new int[SAMPLES];
@@ -158,11 +161,11 @@ public class EyePanel extends JPanel implements Runnable {
 		title.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 	}
 	
-	public void startProcessing(Decoder d) {
+	public void startProcessing(Decoder decoder1) {
 		if (decoder != null) {
 			// we were already live and we are swapping to a new decoder
 		}
-		decoder = d;
+		decoder = decoder1;
 		running = true;
 	}
 	
@@ -200,15 +203,22 @@ public class EyePanel extends JPanel implements Runnable {
 		//if (Config.highSpeed)
 		//	step = 1;
 		//int spaceSize = 1;
-		
+		int maxValue = -999999;
+		int minValue = +999999;
 		// Check that buffer has been populated all the way to the end
 		if (buffer != null && buffer[NUMBER_OF_BITS-1] != null) {
-
 			try {
 			for (int i=0; i < NUMBER_OF_BITS; i++) {
 				for (int j=0; j < SAMPLES; j++) {
+					if (maxValue < buffer[i][j]) maxValue = buffer[i][j];
+					if (minValue > buffer[i][j]) minValue = buffer[i][j];
+				}
+			}
+			for (int i=0; i < NUMBER_OF_BITS; i++) {
+				for (int j=0; j < SAMPLES; j++) {
 					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
-					double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/Decoder.MAX_VOLUME + border;
+					//double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/FoxDecoder.MAX_VOLUME + border;
+					double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.7, graphHeight);
 					if (j==0) {
 						lastx = x;
 						lasty = (int)y;
@@ -228,7 +238,7 @@ public class EyePanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		double h = graphHeight/2+graphHeight/3*zeroValue/Decoder.MAX_VOLUME+border;
+		double h = graphHeight/2+graphHeight/3*zeroValue/FoxDecoder.MAX_VOLUME+border;
 		g2.drawLine(0, (int)h, graphWidth, (int)h);
 		
 		//sample.setText("sample: " + s++);
@@ -238,11 +248,12 @@ public class EyePanel extends JPanel implements Runnable {
 
 		int width = 30;
 		
-		double low = scaleSample(graphHeight, avgLow);
+		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)low, graphWidth/2+width + border, (int)low);
 
 
-		double high = scaleSample(graphHeight, avgHigh);
+		//double high = scaleSample(graphHeight, avgHigh);
+		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)high, graphWidth/2+width + border, (int)high);
 
 		g2.drawLine(graphWidth/2 + border , (int)high, graphWidth/2 + border, (int)low);
@@ -259,7 +270,7 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 
 	private double scaleSample(int graphHeight, double h) {
-		double y = graphHeight/2+graphHeight/2.5*h/Decoder.MAX_VOLUME + border;
+		double y = graphHeight/2+graphHeight/2.5*h/FoxDecoder.MAX_VOLUME + border;
 		return y;
 	}
 }

@@ -2,7 +2,7 @@ package telemetry;
 
 import common.Config;
 
-import decoder.Decoder;
+import decoder.FoxDecoder;
 /**
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz
@@ -113,10 +113,10 @@ public class SlowSpeedHeader extends Header {
 
 		
 		s = s + "AMSAT FOX-1 Telemetry Captured at: " + reportDate() + "\n" 
-				+ "ID: " + Decoder.dec(id) 
-				+ " RESET COUNT: " + Decoder.dec(resets)
-				+ " UPTIME: " + Decoder.dec(uptime)
-				+ " TYPE: " + Decoder.dec(type);
+				+ "ID: " + FoxDecoder.dec(id) 
+				+ " RESET COUNT: " + FoxDecoder.dec(resets)
+				+ " UPTIME: " + FoxDecoder.dec(uptime)
+				+ " TYPE: " + FoxDecoder.dec(type);
 		return s;
 		
 		//String result = String.format("%s: %02d - %02d percent", name, seconds,dfd);

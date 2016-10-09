@@ -17,7 +17,7 @@ import javax.imageio.ImageIO;
 
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -305,7 +305,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	 */
 	public String createJpegFile(int id, int reset, long uptime, int pc, boolean overWrite) throws IOException {
 		String header = JPG_HEADER;
-		Spacecraft sat = Config.satManager.getSpacecraft(id);
+		FoxSpacecraft sat = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
 		if (sat.hasLowResCamera())
 			header = JPG_HEADER_LOW_RES;
 		

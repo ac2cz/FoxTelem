@@ -2,9 +2,9 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
-import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import common.FoxSpacecraft;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -317,7 +317,7 @@ Field
         housekeeping channel to the ground.
 
  */
-public class PayloadHERCIHousekeeping extends FramePart {
+public class PayloadHERCIHousekeeping extends FoxFramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 58;
 	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
@@ -350,7 +350,7 @@ public class PayloadHERCIHousekeeping extends FramePart {
 		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 
-	public String getStringValue(String name, Spacecraft fox) {
+	public String getStringValue(String name, FoxSpacecraft fox) {
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
@@ -371,7 +371,7 @@ public class PayloadHERCIHousekeeping extends FramePart {
 			s="";
 			int value = getRawValue(name);
 			for (int i=0; i<4; i++) {
-				s = " " + Decoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				s = " " + FoxDecoder.plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
 		} else s =  super.getStringValue(name, fox); //Integer.toString(getRawValue(name));
@@ -380,7 +380,7 @@ public class PayloadHERCIHousekeeping extends FramePart {
 	}
 
 
-public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
 		
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 			switch (conversion) {
@@ -427,12 +427,12 @@ public double convertRawValue(String name, int rawValue, int conversion, Spacecr
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
 
-	public String toDataString(Spacecraft fox) {
+	public String toDataString(FoxSpacecraft fox) {
 		copyBitsToFields();
 		String s = new String();
 		for (int i=0; i < layout.fieldName.length; i++) {

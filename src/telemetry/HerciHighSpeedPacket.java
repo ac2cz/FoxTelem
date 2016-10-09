@@ -5,8 +5,9 @@ import java.util.StringTokenizer;
 
 import common.Log;
 import common.Spacecraft;
-import decoder.BitStream;
-import decoder.Decoder;
+import common.FoxSpacecraft;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 /*
  * 
  *  
@@ -102,7 +103,7 @@ about Big-Endian above all applies here as well.
               a unique 'Type' and status bit assignment.
 
  */
-public class HerciHighSpeedPacket extends FramePart {
+public class HerciHighSpeedPacket extends FoxFramePart {
 	public static final int MAX_PACKET_BYTES = 128; // Since the maximum packet size is 8+30*4, segmentation is never
 													// required to ship down a complete minipacket, i.e. the minipackets
 													// are always single segments.
@@ -195,9 +196,9 @@ public class HerciHighSpeedPacket extends FramePart {
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
 		+ epoch + "," + headerTime + "," + packetTimestamp + "," ;
 		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + Decoder.dec(getRawValue(layout.fieldName[i])) + ",";
+			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
-		s = s + Decoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
 		return s;
 	}
 	
@@ -313,7 +314,7 @@ public class HerciHighSpeedPacket extends FramePart {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
@@ -325,19 +326,7 @@ public class HerciHighSpeedPacket extends FramePart {
 			b[i-7] = (byte)fieldValue[i];
 		return b;
 	}
-	
-	@Override
-	public String getStringValue(String name, Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
-	@Override
-	public double convertRawValue(String name, int rawValue, int conversion,
-			Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	
 	@Override
 	public String toString() {
@@ -345,7 +334,7 @@ public class HerciHighSpeedPacket extends FramePart {
 		String s = new String();
 		s = s + "HERCI Science Mini Packet: " + MAX_PACKET_HEADER_BYTES+getLength() + " bytes\n";
 		for (int i =0; i< MAX_PACKET_HEADER_BYTES; i++) {
-			s = s + Decoder.hex(fieldValue[i]) + " ";
+			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 			// Print 32 bytes in a row
 			if ((i+1)%32 == 0) s = s + "\n";
 		}

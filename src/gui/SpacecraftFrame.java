@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
 @SuppressWarnings("serial")
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener {
@@ -53,14 +54,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JButton btnGetT0;
 	T0SeriesTableModel t0TableModel;
 	
-	Spacecraft sat;
+	FoxSpacecraft sat;
 
 	int headerSize = 12;
 	
 	/**
 	 * Create the dialog.
 	 */
-	public SpacecraftFrame(Spacecraft sat, JFrame owner, boolean modal) {
+	public SpacecraftFrame(FoxSpacecraft sat, JFrame owner, boolean modal) {
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
@@ -106,14 +107,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading = title("Fixed Paramaters");
 		leftFixedPanel.setBorder(heading);
 		
-		JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
+		JLabel lModel = new JLabel("Model: " + sat.modelNames[sat.model]);
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
-			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
+			lExp[i] = new JLabel("Experiment "+(i+1)+": " + FoxSpacecraft.expNames[sat.experiments[i]]);
 			leftFixedPanel.add(lExp[i]);
 		}
 
@@ -182,12 +183,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				"The calibration paramater for zero battery current", ""+sat.BATTERY_CURRENT_ZERO);
 
 		rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
-				"The file containing the lookup table for Received Signal Strength", ""+sat.rssiLookUpTableFileName);
+				"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
 		ihuTempLookUpTableFileName = addSettingsRow(rightPanel2, 25, "IHU Temp Lookup Table", 
-				"The file containing the lookup table for the IHU Temperature", ""+sat.ihuTempLookUpTableFileName);
+				"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
 		ihuVBattLookUpTableFileName = addSettingsRow(rightPanel2, 25, "VBatt Lookup Table", 
-				"The file containing the lookup table for the Battery Voltage", ""+sat.ihuVBattLookUpTableFileName);
+				"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
 	
+		rssiLookUpTableFileName.setEnabled(false);
+		ihuTempLookUpTableFileName.setEnabled(false);
+		ihuVBattLookUpTableFileName .setEnabled(false);
+		
 		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
 				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
 		
@@ -302,18 +307,18 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				} catch (NumberFormatException ex) {
 					throw new NumberFormatException("The Frequency fields must contain a valid number");
 				}
-				if (!sat.rssiLookUpTableFileName.equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
-					sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
-					refreshTabs = true;
-				}
-				if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
-					sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
-					refreshTabs = true;
-				}
-				if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
-					sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
-					refreshTabs = true;
-				}
+	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
+	//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
+	//				refreshTabs = true;
+	//			}
+//				if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
+//					sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
+//					refreshTabs = true;
+//				}
+	//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
+	//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
+	//				refreshTabs = true;
+	//			}
 				
 				if (sat.BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
 					sat.BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
