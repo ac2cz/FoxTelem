@@ -103,16 +103,17 @@ public abstract class FoxDecoder extends Decoder {
 	public void init() {
 		Performance.setEnabled(Config.debugPerformance);  // enable performance logging (or not)
 		
-		BUFFER_SIZE = bytesPerSample * SAMPLE_WINDOW_LENGTH * bucketSize;
+		BUFFER_SIZE = SAMPLE_WINDOW_LENGTH * bucketSize;
+
+//		BUFFER_SIZE = bytesPerSample * SAMPLE_WINDOW_LENGTH * bucketSize;
 
 		// Timing for each loop in milli seconds
-		OPTIMAL_TIME = 500*SAMPLE_WINDOW_LENGTH/BITS_PER_SECOND;
-		
-		
+		OPTIMAL_TIME = 500*SAMPLE_WINDOW_LENGTH/BITS_PER_SECOND;	
 		
 		initWindowData();
 //		agcFilter = new AGCFilter();
-		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
+//		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 		monitorFilter.init(currentSampleRate, 3000, 256);
 	}
 
@@ -136,6 +137,7 @@ public abstract class FoxDecoder extends Decoder {
 		decodedFrame = foxBitStream.findFrames();
 		//Performance.endTimer("findFrames");
 		if (decodedFrame != null && !decodedFrame.corrupt) {
+			//System.err.println("FOUND FRAME");
 			Performance.startTimer("Store");
 			// Successful frame
 			eyeData.lastErasureCount = foxBitStream.lastErasureNumber;

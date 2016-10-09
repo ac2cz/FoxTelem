@@ -93,10 +93,7 @@ public abstract class Spacecraft {
 	
 	public Spacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
-		propertiesFileName = fileName;
-		
-		
-		
+		propertiesFileName = fileName;		
 	}
 	
 	public boolean isFox1() {

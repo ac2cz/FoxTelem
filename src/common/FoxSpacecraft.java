@@ -296,10 +296,10 @@ public class FoxSpacecraft extends Spacecraft{
 	//		herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
+			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing data value when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );		
+			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );		
 		}
 
 	}

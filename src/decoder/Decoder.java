@@ -104,13 +104,11 @@ public abstract class Decoder implements Runnable {
 	public static final int MAX_VOLUME = 32000;
 	public static final int MIN_VOLUME = 600;// Use low value for 736R audio e.g. 100 ***** 600;
 	public static final int MIN_BIT_SNR = 2;// Above this threshold we unsquelch the audio
-	public static final int BIT_DISTANCE_THRESHOLD_PERCENT = 15; // use 20 for 736R audio *****15; // Distance that bits need to be apart to change the bit decision as % of average BIT HEIGHT
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
 	private double[] abBufferDouble;
 	private double[] abBufferDoubleFiltered; 
-	protected int currentFilterLength = 0;
-	protected double currentFilterFreq = 0d;
+	
 	private boolean dataFresh = false; // true if we have just written new data for the GUI to read
 	
 	
@@ -441,7 +439,7 @@ public abstract class Decoder implements Runnable {
         	//else
         	Log.println("FILTER: " + filter.toString()); //filters[Config.useFilterNumber].toString());
         Log.println("BUFFER: " + BUFFER_SIZE);
-        Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
+        //Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
         
 		startAudioThread();
         
