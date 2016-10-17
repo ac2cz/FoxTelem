@@ -32,7 +32,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes()+1);
 	
 	
-	public SlowSpeedBitStream(FoxDecoder dec) {
+	public SlowSpeedBitStream(Decoder dec) {
 		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, dec);
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;

@@ -15,6 +15,8 @@ public class FUNcubeDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	private int lastDataValue[];
 	private int clockOffset = 0;
+	private double[] cosTab;
+	private double[] sinTab;
 	
 	/**
      * This holds the stream of bits that we have not decoded. Once we have several
@@ -44,8 +46,11 @@ public class FUNcubeDecoder extends Decoder {
 		initWindowData();
 		lastDataValue = new int[bucketSize];
 		
-		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE /bytesPerSample));
+		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 		filter.init(currentSampleRate, 0, 0);
+		
+		cosTab = new double[SINCOS_SIZE];
+		sinTab = new double[SINCOS_SIZE];
 		
 		for (int n=0; n<SINCOS_SIZE; n++) {
 			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
@@ -75,8 +80,7 @@ public class FUNcubeDecoder extends Decoder {
 	private static final double RX_CARRIER_FREQ = 1200.0;
 	//private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)48000;
 	private static final int SINCOS_SIZE = 256;
-	private double[] cosTab = new double[SINCOS_SIZE];
-	private double[] sinTab = new double[SINCOS_SIZE];
+
 	
 	protected void sampleBucketsVCO() {
 		int avgClockOffset = 0;
@@ -224,13 +228,13 @@ public class FUNcubeDecoder extends Decoder {
 		return clockOffset;
 	}
 	
-	protected byte[] recoverClock(int factor) {
+	protected double[] recoverClock(int factor) {
 
     	if (clockOffset > 0) {
     	// There are 40 samples in a 1200bps bucket. The clock offset 
-    		byte[] clockData = new byte[clockOffset*bytesPerSample];
+    		double[] clockData = new double[clockOffset];
     		if (Config.debugClock) Log.println("Advancing clock " + clockOffset + " samples");
-    		int nBytesRead = readBytes(clockData);
+    		int nBytesRead = read(clockData);
     		if (nBytesRead != (clockOffset*bytesPerSample)) {
     			if (Config.debugClock) Log.println("ERROR: Could not advance clock");
     		} else {

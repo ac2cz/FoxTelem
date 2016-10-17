@@ -66,7 +66,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * Initialize the array with enough room to hold 6 frames worth of bits
 	 * We should never reach this because we purge bits once we exceed 4 frames in length
 	 */
-	public FoxBitStream(int size, FoxDecoder dec) {
+	public FoxBitStream(int size, Decoder dec) {
 		super(size, dec);
 		
 	}

@@ -62,6 +62,7 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
+import decoder.decoder.FoxBPSK.FoxBPSKDecoder;
 import device.Device;
 import device.DeviceException;
 import device.DevicePanel;
@@ -1271,7 +1272,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		} else
 		if (highSpeed) {
 			//decoder1 = new Fox9600bpsDecoder(audioSource, 0);
-			decoder1 = new FUNcubeDecoder(audioSource, 0); // test PSK decoder
+			decoder1 = new FoxBPSKDecoder(audioSource, 0); // test PSK decoder
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}
