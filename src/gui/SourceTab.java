@@ -62,7 +62,7 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
-import decoder.decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 import device.Device;
 import device.DeviceException;
 import device.DevicePanel;

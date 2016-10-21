@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import common.Config;
 import common.Log;
 import decoder.FoxDecoder;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
@@ -84,6 +85,7 @@ public class EyePanel extends JPanel implements Runnable {
 		
 	private void init() {
 		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; 
+		else if (decoder instanceof FoxBPSKDecoder) SAMPLES = 40;
 		else SAMPLES = decoder.getBucketSize()/2;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
@@ -134,19 +136,38 @@ public class EyePanel extends JPanel implements Runnable {
 				int b=0;
 				
 				try {
-					if (NUMBER_OF_BITS > data.length) NUMBER_OF_BITS = data.length;
-					for (int i=0; i < NUMBER_OF_BITS; i++) {
-						for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
-							if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
-								buffer[a][b++] = data[i][j];
+					if (decoder instanceof FoxBPSKDecoder) {
+						NUMBER_OF_BITS = data.length;
+						int offset = ((FoxBPSKDecoder) decoder).recoverClockOffset();
+						for (int i=0; i < NUMBER_OF_BITS; i++) {
+							for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
+								if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
+									if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+										buffer[a][b++] = data[i-1][j+decoder.getBucketSize()+offset];
+									else if (offset > 0 && j + offset >= decoder.getBucketSize() && i < NUMBER_OF_BITS-1) // copy from next
+										buffer[a][b++] = data[i+1][decoder.getBucketSize()-1-j+offset];
+									else if (j+offset >=0 && j+offset < decoder.getBucketSize())
+										buffer[a][b++] = data[i][j+offset];
+								}
 							}
+							b=0;
+							a++;
 						}
-						b=0;
-						a++;
+					} else {
+						if (NUMBER_OF_BITS > data.length) NUMBER_OF_BITS = data.length;
+						for (int i=0; i < NUMBER_OF_BITS; i++) {
+							for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
+								if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
+									buffer[a][b++] = data[i][j];
+								}
+							}
+							b=0;
+							a++;
+						}
 					}
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// nothing to do at run time.  We switched decoders and the array length changed underneath us
-					//Log.println("Ran off end of eye diagram data");	
+					Log.println("Ran off end of eye diagram data: a:" + a + " b:" + b);	
 				}
 
 			} else {
@@ -218,7 +239,7 @@ public class EyePanel extends JPanel implements Runnable {
 				for (int j=0; j < SAMPLES; j++) {
 					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
 					//double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/FoxDecoder.MAX_VOLUME + border;
-					double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.7, graphHeight);
+					double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.6, graphHeight);
 					if (j==0) {
 						lastx = x;
 						lasty = (int)y;
@@ -248,12 +269,11 @@ public class EyePanel extends JPanel implements Runnable {
 
 		int width = 30;
 		
-		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow, graphHeight);
+		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow*0.6, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)low, graphWidth/2+width + border, (int)low);
 
 
-		//double high = scaleSample(graphHeight, avgHigh);
-		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh, graphHeight);
+		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh*0.6, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)high, graphWidth/2+width + border, (int)high);
 
 		g2.drawLine(graphWidth/2 + border , (int)high, graphWidth/2 + border, (int)low);
@@ -269,8 +289,4 @@ public class EyePanel extends JPanel implements Runnable {
 		//erasures++;  // test to see if the window is updating
 	}
 
-	private double scaleSample(int graphHeight, double h) {
-		double y = graphHeight/2+graphHeight/2.5*h/FoxDecoder.MAX_VOLUME + border;
-		return y;
-	}
 }

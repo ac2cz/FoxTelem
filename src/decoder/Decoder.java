@@ -109,7 +109,7 @@ public abstract class Decoder implements Runnable {
 	private double[] abBufferDouble;
 	private double[] abBufferDoubleFiltered; 
 	
-	private boolean dataFresh = false; // true if we have just written new data for the GUI to read
+	protected boolean dataFresh = false; // true if we have just written new data for the GUI to read
 	
 	
     protected int[][] dataValues = null;
@@ -478,7 +478,6 @@ public abstract class Decoder implements Runnable {
                 Performance.endTimer("Filter");
                 Performance.startTimer("Monitor");
 
-                dataFresh = true;
                 if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
         			sink.write(abBufferDoubleFiltered);
                 }
@@ -521,6 +520,7 @@ public abstract class Decoder implements Runnable {
     		} else {
     			squelch = false;
     		}
+            dataFresh = true;
 
         	eyeData.setFreshData(true);
         	Performance.endTimer("ClockSync");

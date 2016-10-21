@@ -1,4 +1,4 @@
-package decoder.decoder.FoxBPSK;
+package decoder.FoxBPSK;
 
 	import java.io.IOException;
 import java.util.Scanner;
@@ -16,6 +16,7 @@ import decoder.SlowSpeedBitStream;
 	import decoder.SourceAudio;
 import decoder.SourceIQ;
 import filter.AGCFilter;
+import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
@@ -40,6 +41,8 @@ import telemetry.SlowSpeedHeader;
 		private int clockOffset = 0;
 		private double[] cosTab;
 		private double[] sinTab;
+		
+		double[] pskAudioData;
 		
 		/**
 	     * This holds the stream of bits that we have not decoded. Once we have several
@@ -71,6 +74,8 @@ import telemetry.SlowSpeedHeader;
 			
 			filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 			filter.init(currentSampleRate, 0, 0);
+			//filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
+			//filter.init(currentSampleRate, 1200, 65);
 			
 			cosTab = new double[SINCOS_SIZE];
 			sinTab = new double[SINCOS_SIZE];
@@ -79,6 +84,7 @@ import telemetry.SlowSpeedHeader;
 				cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
 				sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
 			}
+			pskAudioData = new double[BUFFER_SIZE];
 		}
 
 		protected void resetWindowData() {
@@ -86,6 +92,9 @@ import telemetry.SlowSpeedHeader;
 			
 		}
 		
+		public double[] getBasebandData() {
+			return pskAudioData;
+		}
 		
 		/**
 		 * Sample the buckets (one bucket per bit) to determine the change in phase and hence
@@ -104,158 +113,45 @@ import telemetry.SlowSpeedHeader;
 		//private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)48000;
 		private static final int SINCOS_SIZE = 256;
 
-		
-		protected void sampleBucketsVCO() {
-			int avgClockOffset = 0;
-
-			for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-				sampleNumber++;
-				double sampleSum = 0;
-				int samples = 0;
-				
-				int clockSample1 = 0, clockSample2 = 0, clockSample3 = 0;
-
-				// Multiple and sum the samples with the previous bit
-				for (int s=0; s < bucketSize; s++) {
-
-					vcoPhase += VCO_PHASE_INC;
-					if (vcoPhase > 2.0*Math.PI)
-						vcoPhase -= 2.0*Math.PI;
-					double product = (dataValues[i][s] * sinTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE]);
-					sampleSum =+ product;
-					eyeData.setData(i,s,(int) product);  // overwrite the raw waveform with the recovered bits
-
-					samples++;
-
-
-				}
-				
-				// bit decision based in the integral and threshold
-				//System.out.println("Sum: " + sampleSum);
-				if (sampleSum > 0) {
-					middleSample[i] = true;
-					eyeData.setHigh((int)sampleSum/samples);
-				} else {
-					middleSample[i] = false;
-					eyeData.setLow((int)sampleSum/samples);
-				}
-				//System.out.println("Bit: " + i +" " + middleSample[i]);
-				bitStream.addBit(middleSample[i]);
-				System.out.println("Bit: " + i +" " + middleSample[i]);
-				//bitStream.checkSyncVector();
-
-			}
-			clockOffset = 0;
-			
-		}
-		
 		protected void sampleBuckets() {
 			for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 
 				for (int s=0; s < bucketSize; s++) {
-					RxDownSample(dataValues[i][s]/ 32768.0,dataValues[i][s]/ 32768.0, i);
+					//sampleWithVCO(dataValues[i][s], i, s);
+					RxDownSample(dataValues[i][s]/ 32768.0,dataValues[i][s]/ 32768.0, i, s);
+					pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
+					int eyeValue = (int)(32768*(energy1/dmEnergy[dmPeakPos]-1));
+					eyeData.setData(i,s,eyeValue);
+					if (middleSample[i] == false)
+						eyeData.setLow(eyeValue);
+					else
+						eyeData.setHigh(eyeValue);
 				}
 			}
-			Scanner scanner = new Scanner(System.in);
-		///	System.out.println("Press enter");
-		///	String username = scanner.next();
-		}
-		protected void sampleBuckets1BitDelay() {
-			long avgClockOffset = 0;
-			double scale = MAX_VOLUME/32767*32767;
-			double maxBitEnergy = 0;
-			int maxBitEnergyIdx = 0;
-			int sumMaxBitEnergyIdx = 0;
-			
-			for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-				sampleNumber++;
-				long sampleSum = 0;
-				int samples = 0;
-				maxBitEnergyIdx = 0;
-				
-				int clockSample1 = 0, clockSample2 = 0, clockSample3 = 0;
+        	eyeData.calcAverages();
 
-				for (int s=0; s < bucketSize; s++) {
-					// detect the peak energy for clock sync
-					double energy = dataValues[i][s] * dataValues[i][s];
-					//Log.println("E:" + energy);
-					if (energy > maxBitEnergy) {
-						maxBitEnergy = energy;
-						maxBitEnergyIdx = s;
-					}
-					// Multiple and sum the samples with the previous bit
-					if (i ==0) { // first bit {
-						sampleSum = sampleSum + dataValues[i][s] * lastDataValue[s];
-						eyeData.setData(i,s,(int) (dataValues[i][s] * lastDataValue[s]));  // overwrite the raw waveform with the recovered bits
-					} else {
-						sampleSum = sampleSum + dataValues[i][s] * dataValues[i-1][s];
-						eyeData.setData(i,s,(int) (dataValues[i][s] * dataValues[i-1][s]));  // overwrite the raw waveform with the recovered bits
-						if (i == SAMPLE_WINDOW_LENGTH-1) {
-							// last bit, store the value for next time
-							lastDataValue[s] = dataValues[i][s];
-						}
-					}
-					samples++;
-				}
-				sumMaxBitEnergyIdx = sumMaxBitEnergyIdx + maxBitEnergyIdx;
-				
-				//Clock offset calculation
-				if (i ==0) { // first bit {
-					clockSample1 = dataValues[i][bucketSize/2] * lastDataValue[bucketSize/2]; // middle of bit
-					clockSample3 = dataValues[i+1][bucketSize/2] * dataValues[i][bucketSize/2]; // middle of next
-					clockSample2 = dataValues[i][bucketSize-1] * lastDataValue[bucketSize-1]; // between the samples, at end of current bit
-				} else if (i< SAMPLE_WINDOW_LENGTH-1) { // all bits except the last
-					clockSample1 = dataValues[i][bucketSize/2] * dataValues[i-1][bucketSize/2]; // middle of bit
-					clockSample3 = dataValues[i+1][bucketSize/2] * dataValues[i][bucketSize/2]; // middle of next
-					clockSample2 = dataValues[i][bucketSize-1] * dataValues[i-1][bucketSize-1]; // between the samples, at end of current bit
-				}
-				int clockError = (clockSample3 - clockSample1) * clockSample2;
-				//System.out.println("Clock error: " + clockError);
-				
-				avgClockOffset =  avgClockOffset + clockError;
-				
-				// bit decision based in the sign of the integral
-				if (sampleSum >= 0) { // This means the phase did not change
-					middleSample[i] = true;
-					eyeData.setHigh((int)sampleSum/samples);
-				} else { // we had a phase change, so a zero
-					middleSample[i] = false;
-					eyeData.setLow((int)sampleSum/samples);
-				}
-			//	System.out.println("Bit: " + i +" " + middleSample[i]);
-				bitStream.addBit(middleSample[i]);
-				//bitStream.checkSyncVector();
-			}
-			int avgMaxBitEnergyIdx = sumMaxBitEnergyIdx / SAMPLE_WINDOW_LENGTH;
-//			System.out.println(bucketSize/4 + ": Max Energy: " + avgMaxBitEnergyIdx);
-			
-//			for (int i=0; i < bucketSize; i++) {
-//				lastDataValue[i] = dataValues[SAMPLE_WINDOW_LENGTH-1][i];
-//			 }	
-			avgClockOffset = avgClockOffset / (SAMPLE_WINDOW_LENGTH-1);
-			
-			if (avgMaxBitEnergyIdx > bucketSize/4)
-				clockOffset = 1;
-			else
-				clockOffset = 0;
-			
-		//	System.exit(1);
-			
+	//	Scanner scanner = new Scanner(System.in);
+	//		System.out.println("Press enter");
+	//	String username = scanner.next();
 		}
-
+		
+		
+		
+	
 		/**
 		 * Determine if the bit sampling buckets are aligned with the data. This is calculated when the
 		 * buckets are sampled
 		 * 
 		 */
 		@Override
-		protected int recoverClockOffset() {
+		public int recoverClockOffset() {
 			
 			return clockOffset;
 		}
 		
 		protected double[] recoverClock(int factor) {
 
+			/*
 	    	if (clockOffset > 0) {
 	    	// There are 40 samples in a 1200bps bucket. The clock offset 
 	    		double[] clockData = new double[clockOffset];
@@ -272,32 +168,18 @@ import telemetry.SlowSpeedHeader;
 	    		if (Config.debugClock) Log.println("PSK CLOCK STABLE");
 	    		return null;
 	    	}
+	    	*/
 	    	return null;
 		}
 
 		@Override
 		protected void processBitsWindow() {
-			if (Config.debugValues /*&& framesDecoded == writeAfterFrame*/) {
-				   /////// 		//if (Config.debugBytes) printBytes(abData);
-				    		//    			if (debugBytes) printBuckets();
-				    		//if (frameMarkerFound)  
-				    		printBucketsValues();
-				    		//printByteValues();
-				    	}
-				    	//if (Config.debugValues) count ++;
-				    	//if (count == 3) System.exit(0); /// DROP OUT FOR TEST PURPOSES
-				    	//if (Config.DEBUG_COUNT != -1 && count > Config.DEBUG_COUNT)
-				    	//	nBytesRead = -1; /// DROP OUT FOR TEST PURPOSES
-
-				    	Performance.endTimer("debugValues");
-
-				    	Performance.startTimer("findSync");
-				    	boolean found = bitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
-				    	Performance.endTimer("findSync");
-				    	if (found) {
-				    		processPossibleFrame();
-				    	}
-			
+			Performance.startTimer("findSync");
+			boolean found = bitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
+			Performance.endTimer("findSync");
+			if (found) {
+				processPossibleFrame();
+			}
 		}
 
 		private Frame decodedFrame = null;
@@ -306,12 +188,10 @@ import telemetry.SlowSpeedHeader;
 		 */
 		protected void processPossibleFrame() {
 			
-			
 			//Performance.startTimer("findFrames");
 			decodedFrame = bitStream.findFrames();
 			//Performance.endTimer("findFrames");
 			if (decodedFrame != null && !decodedFrame.corrupt) {
-				System.err.println("FOUND FRAME");
 				Performance.startTimer("Store");
 				// Successful frame
 				eyeData.lastErasureCount = bitStream.lastErasureNumber;
@@ -372,12 +252,14 @@ import telemetry.SlowSpeedHeader;
 			}
 		}
 			
-
 		private void addMeasurements(Header header, Frame frame) {
 			// Pass Measurements
-			
+			// Still needs to be coded for FOX-1E
 		}
 		
+		/**
+		 * The PSK demodulation algorithm is based on code by Howard and the Funcube team
+		 */
 		private static final int DOWN_SAMPLE_FILTER_SIZE = 27;
 		private static final double[] dsFilter = {
 			-6.103515625000e-004F,  /* filter tap #    0 */
@@ -430,12 +312,6 @@ import telemetry.SlowSpeedHeader;
 			+0.0030315224F,+0.0119213911F,+0.0164594107F,+0.0157790936F,+0.0107237026F,+0.0033563764F,-0.0038246093F,-0.0086975143F,
 			-0.0101130691F
 		};
-		private static final int SYNC_VECTOR_SIZE = 65;
-		private static final byte[] SYNC_VECTOR = {	// 65 symbol known pattern
-			1,1,1,1,1,1,1,-1,-1,-1,-1,1,1,1,-1,1,1,1,1,-1,-1,1,-1,1,1,-1,-1,1,-1,-1,1,-1,-1,-1,-1,-1,-1,1,-1,-1,-1,1,-1,-1,1,1,-1,-1,-1,1,-1,1,1,1,-1,1,-1,1,1,-1,1,1,-1,-1,-1
-		};
-		private static final int FEC_BITS_SIZE = 5200;
-		private static final int FEC_BLOCK_SIZE = 256;
 		private static final int DOWN_SAMPLE_RATE = 9600;
 		private static final int BIT_RATE = 1200;
 		private static final int SAMPLES_PER_BIT = DOWN_SAMPLE_RATE/BIT_RATE;
@@ -445,130 +321,139 @@ import telemetry.SlowSpeedHeader;
 		private static final double BIT_PHASE_INC = 1.0/(double)DOWN_SAMPLE_RATE;
 		private static final double BIT_TIME = 1.0/(double)BIT_RATE;
 
-
-
-
-//		private FECDecoder decoder = new FECDecoder();
-		private int cntRaw, cntDS, cntBit, cntFEC, cntDec, dmErrBits;
+		private int cntRaw, cntDS; 
 		private double energy1, energy2;
 
-		// debugging stuff
-		//private double[] tuned;
-		//private int tunedIdx;
-		//private double[] downSmpl;
-		//private int downSmplIdx;
-		//private double[] demodIQ;
-		//private int[] demodBits;
-		//private double[] demodRe;
-		//private int demodIdx, demodLastBit;
-		// Down sample from input rate to DOWN_SAMPLE_RATE and low pass filter
-			private double[][] dsBuf = new double[DOWN_SAMPLE_FILTER_SIZE][2];
-			private int dsPos = DOWN_SAMPLE_FILTER_SIZE-1, dsCnt = 0;
-			private double HOWARD_FUDGE_FACTOR = 0.9 * 32768.0;
-			private void RxDownSample(double i, double q, int sampleNumber) {
-			//	tuned[tunedIdx]=i;
-			//	tuned[tunedIdx+1]=q;
-			//	tunedIdx = (tunedIdx+2) % tuned.length;
-				dsBuf[dsPos][0]=i;
-				dsBuf[dsPos][1]=q;
-				if (++dsCnt>=(int)currentSampleRate/DOWN_SAMPLE_RATE) {	// typically 96000/9600
-					double fi = 0.0, fq = 0.0;
-					// apply low pass FIR
-					for (int n=0; n<DOWN_SAMPLE_FILTER_SIZE; n++) {
-						int dsi = (n+dsPos)%DOWN_SAMPLE_FILTER_SIZE; 
-						fi+=dsBuf[dsi][0]*dsFilter[n];
-						fq+=dsBuf[dsi][1]*dsFilter[n];
-					}
-					dsCnt=0;
-					// feed down sampled values to demodulator
-					RxDemodulate(fi * HOWARD_FUDGE_FACTOR, fq * HOWARD_FUDGE_FACTOR, sampleNumber);
-				}
-				dsPos--;
-				if (dsPos<0)
-					dsPos=DOWN_SAMPLE_FILTER_SIZE-1;
-				cntRaw++;
-			}
-			
-			private double[][] dmBuf = new double[MATCHED_FILTER_SIZE][2];
-			private int dmPos = MATCHED_FILTER_SIZE-1;
-			private double[] dmEnergy = new double[SAMPLES_PER_BIT+2];
-			private int dmBitPos = 0, dmPeakPos = 0, dmNewPeak = 0, dmCorr = 0, dmMaxCorr = 0;
-			private double dmEnergyOut = 1.0;
-			private int[] dmHalfTable = {4,5,6,7,0,1,2,3};
-			private double dmBitPhase = 0.0;
-			private double[] dmLastIQ = new double[2];
+		private double[][] dsBuf = new double[DOWN_SAMPLE_FILTER_SIZE][2];
+		private int dsPos = DOWN_SAMPLE_FILTER_SIZE-1, dsCnt = 0;
+		private double HOWARD_FUDGE_FACTOR = 0.9 * 32768.0;
 
-			private void RxDemodulate(double i, double q, int sampleNumber) {
-				// debugging
-			//	downSmpl[downSmplIdx]=i;
-			//	downSmpl[downSmplIdx+1]=q;
-			//	downSmplIdx=(downSmplIdx+2)%downSmpl.length;
-				// advance phase of VCO, wrap at 2*Pi
-				vcoPhase += VCO_PHASE_INC;
-				if (vcoPhase > 2.0*Math.PI)
-					vcoPhase -= 2.0*Math.PI;
-				// quadrature demodulate carrier to base band with VCO, store in FIR buffer
-				dmBuf[dmPos][0]=i*cosTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
-				dmBuf[dmPos][1]=q*sinTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
-				// apply FIR (base band smoothing, root raised cosine)
+		/**
+		 * Down sample from input rate to DOWN_SAMPLE_RATE and low pass filter
+		 * @param i
+		 * @param q
+		 * @param bucketNumber
+		 */
+		private void RxDownSample(double i, double q, int bucketNumber, int bucketOffset) {
+			dsBuf[dsPos][0]=i;
+			dsBuf[dsPos][1]=q;
+			if (++dsCnt>=(int)currentSampleRate/DOWN_SAMPLE_RATE) {	// typically 48000/9600
 				double fi = 0.0, fq = 0.0;
-				for (int n=0; n<MATCHED_FILTER_SIZE; n++) {
-					int dmi = (MATCHED_FILTER_SIZE-dmPos+n);
-					fi+=dmBuf[n][0]*dmFilter[dmi];
-					fq+=dmBuf[n][1]*dmFilter[dmi];
+				// apply low pass FIR
+				for (int n=0; n<DOWN_SAMPLE_FILTER_SIZE; n++) {
+					int dsi = (n+dsPos)%DOWN_SAMPLE_FILTER_SIZE; 
+					fi+=dsBuf[dsi][0]*dsFilter[n];
+					fq+=dsBuf[dsi][1]*dsFilter[n];
 				}
-				dmPos--;
-				if (dmPos<0)
-					dmPos=MATCHED_FILTER_SIZE-1;
-
-				// debug IQ data
-//				demodIdx = (demodIdx+2)%demodIQ.length;
-//				demodIQ[demodIdx]=fi;
-//				demodIQ[demodIdx+1]=fq;
-
-				// store smoothed bit energy
-				energy1 = fi*fi+fq*fq;
-				dmEnergy[dmBitPos] = (dmEnergy[dmBitPos]*(1.0-BIT_SMOOTH1))+(energy1*BIT_SMOOTH1);
-				// at peak bit energy? decode 
-				if (dmBitPos==dmPeakPos) {
-					dmEnergyOut = (dmEnergyOut*(1.0-BIT_SMOOTH2))+(energy1*BIT_SMOOTH2);
-					double di = -(dmLastIQ[0]*fi + dmLastIQ[1]*fq);
-					double dq = dmLastIQ[0]*fq - dmLastIQ[1]*fi;
-					dmLastIQ[0]=fi;
-					dmLastIQ[1]=fq;
-					energy2 = Math.sqrt(di*di+dq*dq);
-					if (energy2>100.0) {	// TODO: work out where these magic numbers come from!
-						boolean bit = di<0.0;	// is that a 1 or 0?
-						
-						middleSample[sampleNumber] = bit;
-
-						//System.out.println("Bit: " + i +" " + middleSample[i]);
-						bitStream.addBit(bit);
-	////////					if (Config.debugBits) Log.print("" + (bit ? 1 : 0));
-						
-					}
-				}
-				// half-way into next bit? reset peak energy point
-				if (dmBitPos==dmHalfTable[dmPeakPos])
-					dmPeakPos = dmNewPeak;
-				dmBitPos = (dmBitPos+1) % SAMPLES_PER_BIT;
-				// advance phase of bit position
-				dmBitPhase += BIT_PHASE_INC;
-				if (dmBitPhase>=BIT_TIME) {
-					dmBitPhase-=BIT_TIME;
-					dmBitPos=0;	// TODO: Is this a kludge?
-					// rolled round another bit, measure new peak energy position
-					double eMax = -1.0e10F;
-					for (int n=0; n<SAMPLES_PER_BIT; n++) {
-						if (dmEnergy[n]>eMax) {
-							dmNewPeak=n;
-							eMax=dmEnergy[n];
-						}
-					}
-				}
-				cntDS++;
+				dsCnt=0;
+				// feed down sampled values to demodulator
+				RxDemodulate(fi * HOWARD_FUDGE_FACTOR, fq * HOWARD_FUDGE_FACTOR, bucketNumber, bucketOffset);
 			}
+			dsPos--;
+			if (dsPos<0)
+				dsPos=DOWN_SAMPLE_FILTER_SIZE-1;
+			cntRaw++;
+		}
 
+		private double[][] dmBuf = new double[MATCHED_FILTER_SIZE][2];
+		private int dmPos = MATCHED_FILTER_SIZE-1;
+		private double[] dmEnergy = new double[SAMPLES_PER_BIT+2];
+		private double[] eyeEnergy = new double[SAMPLES_PER_BIT+2];
+		private int dmBitPos = 0, dmPeakPos = 0, dmNewPeak = 0;
+		private double dmEnergyOut = 1.0;
+		private int[] dmHalfTable = {4,5,6,7,0,1,2,3};
+		private double dmBitPhase = 0.0;
+		private double[] dmLastIQ = new double[2];
+		private int lastBucketOffset = 0;
+		
+		/**
+		 * Demodulate the DBPSK signal, adjust the clock if needed to stay in sync.  Populate the bit buffer
+		 * @param i
+		 * @param q
+		 * @param bucketNumber
+		 */
+		private void RxDemodulate(double i, double q, int bucketNumber, int bucketOffset) {
+			vcoPhase += VCO_PHASE_INC;
+			if (vcoPhase > 2.0*Math.PI)
+				vcoPhase -= 2.0*Math.PI;
+			// quadrature demodulate carrier to base band with VCO, store in FIR buffer
+			dmBuf[dmPos][0]=i*cosTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+			dmBuf[dmPos][1]=q*sinTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+			// apply FIR (base band smoothing, root raised cosine)
+			double fi = 0.0, fq = 0.0;
+			for (int n=0; n<MATCHED_FILTER_SIZE; n++) {
+				int dmi = (MATCHED_FILTER_SIZE-dmPos+n);
+				fi+=dmBuf[n][0]*dmFilter[dmi];
+				fq+=dmBuf[n][1]*dmFilter[dmi];
+			}
+			dmPos--;
+			if (dmPos<0)
+				dmPos=MATCHED_FILTER_SIZE-1;
+
+			
+			// store smoothed bit energy
+			energy1 = fi*fi+fq*fq;
+			
+			dmEnergy[dmBitPos] = (dmEnergy[dmBitPos]*(1.0-BIT_SMOOTH1))+(energy1*BIT_SMOOTH1);
+			
+			////System.out.println(dmPeakPos);
+			// set a range of eye diagram values given we have downsampled
+			// need to offset based on the peak postion in the bit dmPeakPos.  There are 8 samples in a bit, 0-7, so if this is not 3, then we need to shift the data
+			/*
+			for (int e=lastBucketOffset; e < bucketOffset; e++) {
+				if (e-dmPeakPos-3 > 0 && e-dmPeakPos-3 < bucketSize)
+					eyeData.setData(bucketNumber,e-dmPeakPos-3, (int)(Math.sqrt(energy1)));
+			}
+			lastBucketOffset = bucketOffset;
+			*/
+			/*
+			if (bucketOffset/4-dmPeakPos-3 > 0 && bucketOffset/4-dmPeakPos-3 < bucketSize)
+				eyeData.setData(bucketNumber,bucketOffset/4-dmPeakPos-3, (int)(Math.sqrt(energy1)));
+			*/
+			// at peak bit energy? decode 
+			if (dmBitPos==dmPeakPos) {
+				dmEnergyOut = (dmEnergyOut*(1.0-BIT_SMOOTH2))+(energy1*BIT_SMOOTH2);
+				double di = -(dmLastIQ[0]*fi + dmLastIQ[1]*fq);
+				double dq = dmLastIQ[0]*fq - dmLastIQ[1]*fi;
+				dmLastIQ[0]=fi;
+				dmLastIQ[1]=fq;
+				energy2 = Math.sqrt(di*di+dq*dq);
+				
+				// store the energy as the eye diagram, with dmPeakPos in the middle
+				// We have 8 samples + 2 
+				//for (int e=0; e < 10; e++) {
+				//	eyeData.setData(currentBucket, e, (int)Math.sqrt(eyeEnergy[e]));
+				//}
+				if (energy2>100.0) {	// TODO: work out where these magic numbers come from!
+					boolean bit = di<0.0;	// is that a 1 or 0?
+					middleSample[bucketNumber] = bit;
+					bitStream.addBit(bit);
+				}
+			}
+			// half-way into next bit? reset peak energy point
+			if (dmBitPos==dmHalfTable[dmPeakPos]) {
+				dmPeakPos = dmNewPeak;
+				clockOffset = 4*(dmNewPeak-6);
+			}
+			dmBitPos = (dmBitPos+1) % SAMPLES_PER_BIT;
+			// advance phase of bit position
+			dmBitPhase += BIT_PHASE_INC;
+			if (dmBitPhase>=BIT_TIME) {
+				dmBitPhase-=BIT_TIME;
+				dmBitPos=0;	// TODO: Is this a kludge?
+				// rolled round another bit, measure new peak energy position
+				double eMax = -1.0e10F;
+				for (int n=0; n<SAMPLES_PER_BIT; n++) {
+					if (dmEnergy[n]>eMax) {
+						dmNewPeak=n;
+						eMax=dmEnergy[n];
+					}
+				}
+			}
+			cntDS++;
+
+		}
+		
 	}
 
 

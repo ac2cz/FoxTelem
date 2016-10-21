@@ -12,6 +12,7 @@ import common.Config;
 import common.Log;
 import decoder.Decoder;
 import decoder.SourceAudio;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 
 /**
  * 
@@ -47,6 +48,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	int centerFreqX = 220;
 	Decoder foxDecoder;
 	double[] audioData = null;
+	double[] pskAudioData = null;
 	int AUDIO_DATA_SIZE = 1024;
 	int currentDataPosition = 0;
 	JLabel sample;
@@ -108,7 +110,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					buffer = foxDecoder.getAudioData();
 			
 				if (buffer != null) {
-					audioData = buffer;				
+					audioData = buffer;		
+					if (foxDecoder instanceof FoxBPSKDecoder) {
+						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();				
+					}
 				}
 				
 				this.repaint();
@@ -150,8 +155,11 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		int lastx = border*2+1; 
 		int lasty = graphHeight/2;
 		int x = border*2+1;
+		int lastx2 = border*2+1; 
+		int lasty2 = graphHeight/2;
+		int x2 = border*2+1;
 		
-		g2.setColor(Color.BLUE);
+		
 		
 		int stepSize = 1;
 		//int spaceSize = 1;
@@ -169,17 +177,35 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				// data is stereo, but we want to decimate before display
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
-
+				g2.setColor(Color.BLUE);
 				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
 				x = border*2 + i*(graphWidth-border*2)/audioData.length;
 
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-				double y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
+				double y = 0.0d;
+				if (foxDecoder instanceof FoxBPSKDecoder)
+					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
+				else
+					y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
 				//int y = 100;
 				g2.drawLine(lastx, lasty, x, (int)y);
 				lastx = x;
 				lasty = (int)y;
 
+				if (foxDecoder instanceof FoxBPSKDecoder) {
+					if (pskAudioData != null && pskAudioData.length > 0) {
+					g2.setColor(Color.BLACK);
+					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
+
+					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
+					double y2 = 3*graphHeight/4+graphHeight/5*pskAudioData[i] + border;
+					//int y = 100;
+					g2.drawLine(lastx2, lasty2, x2, (int)y2);
+					lastx2 = x2;
+					lasty2 = (int)y2;
+					}
+				}
+				
 			}
 		}
 		g2.setColor(Color.GRAY);
