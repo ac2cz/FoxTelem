@@ -151,7 +151,7 @@ public abstract class FoxDecoder extends Decoder {
 					if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
 					
 					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame);
+					addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
 					if (Config.autoDecodeSpeed)
 						MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 				} else {
@@ -176,7 +176,7 @@ public abstract class FoxDecoder extends Decoder {
 							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
 					}
 					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame);
+					addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
 					if (Config.autoDecodeSpeed)
 						MainWindow.inputTab.setViewDecoder2();
 				}
@@ -199,42 +199,7 @@ public abstract class FoxDecoder extends Decoder {
 	}
 		
 
-	private void addMeasurements(Header header, Frame frame) {
-		// Pass Measurements
-		if (Config.passManager.isNewPass()) {
-			Log.println("Setting reset/uptime for new pass");
-			Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
-		} else {
-			Config.passManager.setLastResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
-		}
 
-		// Real time measurements
-		RtMeasurement rtMeasurement = new RtMeasurement(header.getFoxId(), header.getResets(), header.getUptime(), SatMeasurementStore.RT_MEASUREMENT_TYPE);
-		rtMeasurement.setBitSNR(eyeData.bitSNR);
-		rtMeasurement.setErrors(foxBitStream.lastErrorsNumber);
-		rtMeasurement.setErasures(foxBitStream.lastErasureNumber);
-		if (Config.useDDEforAzEl) {
-			SatPc32DDE satPC = new SatPc32DDE();
-			boolean connected = satPC.connect();
-			if (connected) {
-				if (Config.useDDEforAzEl) {
-					rtMeasurement.setAzimuth(satPC.azimuth);
-					rtMeasurement.setElevation(satPC.elevation);
-				}
-
-			}
-		}
-		if (this.audioSource instanceof SourceIQ) {
-			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
-			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK);
-			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNR;
-			rtMeasurement.setCarrierFrequency(freq);
-			rtMeasurement.setRfPower(sig);
-			rtMeasurement.setRfSNR(rfSnr);
-		}
-		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
-		frame.setMeasurement(rtMeasurement);
-	}
 	
 	
 	

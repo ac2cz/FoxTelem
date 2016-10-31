@@ -85,7 +85,7 @@ public class EyePanel extends JPanel implements Runnable {
 		
 	private void init() {
 		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; 
-		else if (decoder instanceof FoxBPSKDecoder) SAMPLES = 40;
+		else if (decoder instanceof FoxBPSKDecoder) SAMPLES = 8;
 		else SAMPLES = decoder.getBucketSize()/2;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
@@ -134,11 +134,14 @@ public class EyePanel extends JPanel implements Runnable {
 				init();
 				int a=0; 
 				int b=0;
-				
 				try {
-					if (decoder instanceof FoxBPSKDecoder) {
+					
+					if (false && decoder instanceof FoxBPSKDecoder)
 						NUMBER_OF_BITS = data.length;
+					
+					/*
 						int offset = ((FoxBPSKDecoder) decoder).recoverClockOffset();
+						
 						for (int i=0; i < NUMBER_OF_BITS; i++) {
 							for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
 								if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
@@ -153,7 +156,10 @@ public class EyePanel extends JPanel implements Runnable {
 							b=0;
 							a++;
 						}
+						
+						
 					} else {
+					*/
 						if (NUMBER_OF_BITS > data.length) NUMBER_OF_BITS = data.length;
 						for (int i=0; i < NUMBER_OF_BITS; i++) {
 							for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
@@ -164,7 +170,7 @@ public class EyePanel extends JPanel implements Runnable {
 							b=0;
 							a++;
 						}
-					}
+		//			}
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// nothing to do at run time.  We switched decoders and the array length changed underneath us
 					Log.println("Ran off end of eye diagram data: a:" + a + " b:" + b);	
@@ -239,7 +245,7 @@ public class EyePanel extends JPanel implements Runnable {
 				for (int j=0; j < SAMPLES; j++) {
 					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
 					//double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/FoxDecoder.MAX_VOLUME + border;
-					double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.6, graphHeight);
+					double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.5, graphHeight);
 					if (j==0) {
 						lastx = x;
 						lasty = (int)y;
@@ -269,11 +275,11 @@ public class EyePanel extends JPanel implements Runnable {
 
 		int width = 30;
 		
-		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow*0.6, graphHeight);
+		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow*0.5, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)low, graphWidth/2+width + border, (int)low);
 
 
-		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh*0.6, graphHeight);
+		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh*0.5, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)high, graphWidth/2+width + border, (int)high);
 
 		g2.drawLine(graphWidth/2 + border , (int)high, graphWidth/2 + border, (int)low);
@@ -282,6 +288,10 @@ public class EyePanel extends JPanel implements Runnable {
 		String s = Double.toString(r) + "";
 		g.drawString("SNR:"+s, graphWidth/2 + 10  + border, graphHeight/2 + 10  );
 
+		//debug
+		//g.drawString("HIGH:"+avgHigh, graphWidth/2 + 10  + border, 10  );
+		//g.drawString("LOW:"+avgLow, graphWidth/2 + 10  + border, graphHeight - 30  );
+		
 		g2.setColor(Color.GRAY);
 		g.drawString("Errors  "+errors, graphWidth/2 - 70  + border, graphHeight - 10  );
 		g.drawString("Erasures  "+erasures, graphWidth/2 - 0  + border, graphHeight - 10  );

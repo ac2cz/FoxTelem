@@ -210,9 +210,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		g2.drawLine(0, graphHeight/2+border, graphWidth, graphHeight/2+border);
-		
-
+		if (foxDecoder instanceof FoxBPSKDecoder)
+			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
+		else
+			g2.drawLine(0, graphHeight/2+border, graphWidth, graphHeight/2+border);
 		if (Config.debugAudioGlitches) {
 			Runtime rt = Runtime.getRuntime();
 			long usedMB = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;

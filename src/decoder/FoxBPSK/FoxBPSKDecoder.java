@@ -16,6 +16,7 @@ import decoder.SlowSpeedBitStream;
 	import decoder.SourceAudio;
 import decoder.SourceIQ;
 import filter.AGCFilter;
+import filter.DcRemoval;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import measure.RtMeasurement;
@@ -41,6 +42,7 @@ import telemetry.SlowSpeedHeader;
 		private int clockOffset = 0;
 		private double[] cosTab;
 		private double[] sinTab;
+		DcRemoval audioDcFilter;
 		
 		double[] pskAudioData;
 		
@@ -61,18 +63,20 @@ import telemetry.SlowSpeedHeader;
 			
 			bitStream = new SlowSpeedBitStream(this);
 			BITS_PER_SECOND = BITS_PER_SECOND_1200;
-			SAMPLE_WINDOW_LENGTH = 10;  
+			SAMPLE_WINDOW_LENGTH = 60;  
 			bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 			
 			BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
-			SAMPLE_WIDTH = bucketSize*SAMPLE_WIDTH_PERCENT/100;
+			SAMPLE_WIDTH = 4;
 			if (SAMPLE_WIDTH < 1) SAMPLE_WIDTH = 1;
 			CLOCK_TOLERANCE = bucketSize/2;
 			CLOCK_REOVERY_ZERO_THRESHOLD = 20;
 			initWindowData();
+			
 			lastDataValue = new int[bucketSize];
 			
 			filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
+			audioDcFilter = new DcRemoval(0.9999d);
 			filter.init(currentSampleRate, 0, 0);
 			//filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
 			//filter.init(currentSampleRate, 1200, 65);
@@ -115,20 +119,23 @@ import telemetry.SlowSpeedHeader;
 
 		protected void sampleBuckets() {
 			for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-
 				for (int s=0; s < bucketSize; s++) {
 					//sampleWithVCO(dataValues[i][s], i, s);
-					RxDownSample(dataValues[i][s]/ 32768.0,dataValues[i][s]/ 32768.0, i, s);
+					double value = dataValues[i][s]/ 32768.0;
+//////					value = audioDcFilter.filter(value);		
+					RxDownSample(value, value, i, s);
 					pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
 					int eyeValue = (int)(32768*(energy1/dmEnergy[dmPeakPos]-1));
 					eyeData.setData(i,s,eyeValue);
-					if (middleSample[i] == false)
-						eyeData.setLow(eyeValue);
-					else
-						eyeData.setHigh(eyeValue);
 				}
+				int offset = recoverClockOffset();
+				if (middleSample[i] == false)
+					eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
+				else
+					eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 			}
-        	eyeData.calcAverages();
+			int offset = recoverClockOffset();
+			eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
 	//	Scanner scanner = new Scanner(System.in);
 	//		System.out.println("Press enter");
@@ -205,7 +212,7 @@ import telemetry.SlowSpeedHeader;
 						if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
 						
 						// Capture measurements once per payload or every 5 seconds ish
-						addMeasurements(header, decodedFrame);
+						addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
 						if (Config.autoDecodeSpeed)
 							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 					} else {
@@ -230,7 +237,7 @@ import telemetry.SlowSpeedHeader;
 								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
 						}
 						// Capture measurements once per payload or every 5 seconds ish
-						addMeasurements(header, decodedFrame);
+						addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
 						if (Config.autoDecodeSpeed)
 							MainWindow.inputTab.setViewDecoder2();
 					}
@@ -252,11 +259,6 @@ import telemetry.SlowSpeedHeader;
 			}
 		}
 			
-		private void addMeasurements(Header header, Frame frame) {
-			// Pass Measurements
-			// Still needs to be coded for FOX-1E
-		}
-		
 		/**
 		 * The PSK demodulation algorithm is based on code by Howard and the Funcube team
 		 */
@@ -433,7 +435,7 @@ import telemetry.SlowSpeedHeader;
 			// half-way into next bit? reset peak energy point
 			if (dmBitPos==dmHalfTable[dmPeakPos]) {
 				dmPeakPos = dmNewPeak;
-				clockOffset = 4*(dmNewPeak-6);
+				clockOffset = 4*(dmNewPeak-6); // store the clock offset so we can display the eye diagram "triggered" correctly
 			}
 			dmBitPos = (dmBitPos+1) % SAMPLES_PER_BIT;
 			// advance phase of bit position

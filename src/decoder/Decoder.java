@@ -118,7 +118,7 @@ public abstract class Decoder implements Runnable {
     private int[] minValue = null;
     private int[] firstZero = null;
     private int[] secondZero = null;
-    protected boolean[] middleSample = null; // The sampled bit for the entire bucket
+    public boolean[] middleSample = null; // The sampled bit for the entire bucket
     
     /**
      * This holds the stream of bits that we have not decoded. Once we have several
@@ -664,7 +664,42 @@ public abstract class Decoder implements Runnable {
 		
 	}
 	
-	
+	protected void addMeasurements(Header header, Frame frame, int lastErrorsNumber, int lastErasureNumber) {
+		// Pass Measurements
+		if (Config.passManager.isNewPass()) {
+			Log.println("Setting reset/uptime for new pass");
+			Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+		} else {
+			Config.passManager.setLastResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+		}
+
+		// Real time measurements
+		RtMeasurement rtMeasurement = new RtMeasurement(header.getFoxId(), header.getResets(), header.getUptime(), SatMeasurementStore.RT_MEASUREMENT_TYPE);
+		rtMeasurement.setBitSNR(eyeData.bitSNR);
+		rtMeasurement.setErrors(lastErrorsNumber);
+		rtMeasurement.setErasures(lastErasureNumber);
+		if (Config.useDDEforAzEl) {
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				if (Config.useDDEforAzEl) {
+					rtMeasurement.setAzimuth(satPC.azimuth);
+					rtMeasurement.setElevation(satPC.elevation);
+				}
+
+			}
+		}
+		if (this.audioSource instanceof SourceIQ) {
+			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
+			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK);
+			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNR;
+			rtMeasurement.setCarrierFrequency(freq);
+			rtMeasurement.setRfPower(sig);
+			rtMeasurement.setRfSNR(rfSnr);
+		}
+		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
+		frame.setMeasurement(rtMeasurement);
+	}	
 	
 
 	
