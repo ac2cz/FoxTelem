@@ -144,6 +144,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	DevicePanel panelFcd;
 	JPanel SDRpanel;
 	JRadioButton highSpeed;
+	JRadioButton psk;
 	JRadioButton lowSpeed;
 	JRadioButton auto;
 	JRadioButton WFM;
@@ -499,13 +500,15 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		lblSource.setMinimumSize(new Dimension(180, 14));
 		lblSource.setMaximumSize(new Dimension(180, 14));
 		
-		lowSpeed = addRadioButton("Low Speed", panel_2 );
-		highSpeed = addRadioButton("PSK", panel_2 );
+		lowSpeed = addRadioButton("DUV", panel_2 );
+		highSpeed = addRadioButton("High Speed", panel_2 );
+		psk = addRadioButton("PSK", panel_2 );
 //		highSpeed = addRadioButton("High Speed", panel_2 );
 		auto = addRadioButton("Auto", panel_2 );
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
+		group.add(psk);
 		group.add(auto);
 		
 		if (Config.autoDecodeSpeed) {
@@ -932,6 +935,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			autoViewpanel.setVisible(false);
 			//Config.save();
 		}
+		if (e.getSource() == psk) { 
+			Config.highSpeed = false;
+			Config.autoDecodeSpeed = false;
+			enableFilters(false);
+			autoViewpanel.setVisible(false);
+			//Config.save();
+		}
 		if (e.getSource() == auto) { 
 			Config.autoDecodeSpeed = true;
 			enableFilters(true);
@@ -1119,6 +1129,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			if (auto.isSelected()) { 
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
+				psk.setSelected(false);
 				Config.autoDecodeSpeed = false;
 			}
 		} else if (position == SourceAudio.AIRSPY_SOURCE) {
@@ -1269,10 +1280,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
-		} else
-		if (highSpeed) {
-			//decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+		} else if (this.psk.isSelected()) 
 			decoder1 = new FoxBPSKDecoder(audioSource, 0); // test PSK decoder
+		else if (highSpeed) {
+			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}
@@ -1679,6 +1690,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		cbSoundCardRate.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
+		psk.setEnabled(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
 		if (position == SourceAudio.FILE_SOURCE)
 			auto.setEnabled(false);
