@@ -360,13 +360,11 @@ import telemetry.SlowSpeedHeader;
 		private double[][] dmBuf = new double[MATCHED_FILTER_SIZE][2];
 		private int dmPos = MATCHED_FILTER_SIZE-1;
 		private double[] dmEnergy = new double[SAMPLES_PER_BIT+2];
-		private double[] eyeEnergy = new double[SAMPLES_PER_BIT+2];
 		private int dmBitPos = 0, dmPeakPos = 0, dmNewPeak = 0;
 		private double dmEnergyOut = 1.0;
 		private int[] dmHalfTable = {4,5,6,7,0,1,2,3};
 		private double dmBitPhase = 0.0;
 		private double[] dmLastIQ = new double[2];
-		private int lastBucketOffset = 0;
 		
 		/**
 		 * Demodulate the DBPSK signal, adjust the clock if needed to stay in sync.  Populate the bit buffer
@@ -398,20 +396,6 @@ import telemetry.SlowSpeedHeader;
 			
 			dmEnergy[dmBitPos] = (dmEnergy[dmBitPos]*(1.0-BIT_SMOOTH1))+(energy1*BIT_SMOOTH1);
 			
-			////System.out.println(dmPeakPos);
-			// set a range of eye diagram values given we have downsampled
-			// need to offset based on the peak postion in the bit dmPeakPos.  There are 8 samples in a bit, 0-7, so if this is not 3, then we need to shift the data
-			/*
-			for (int e=lastBucketOffset; e < bucketOffset; e++) {
-				if (e-dmPeakPos-3 > 0 && e-dmPeakPos-3 < bucketSize)
-					eyeData.setData(bucketNumber,e-dmPeakPos-3, (int)(Math.sqrt(energy1)));
-			}
-			lastBucketOffset = bucketOffset;
-			*/
-			/*
-			if (bucketOffset/4-dmPeakPos-3 > 0 && bucketOffset/4-dmPeakPos-3 < bucketSize)
-				eyeData.setData(bucketNumber,bucketOffset/4-dmPeakPos-3, (int)(Math.sqrt(energy1)));
-			*/
 			// at peak bit energy? decode 
 			if (dmBitPos==dmPeakPos) {
 				dmEnergyOut = (dmEnergyOut*(1.0-BIT_SMOOTH2))+(energy1*BIT_SMOOTH2);
@@ -421,11 +405,6 @@ import telemetry.SlowSpeedHeader;
 				dmLastIQ[1]=fq;
 				energy2 = Math.sqrt(di*di+dq*dq);
 				
-				// store the energy as the eye diagram, with dmPeakPos in the middle
-				// We have 8 samples + 2 
-				//for (int e=0; e < 10; e++) {
-				//	eyeData.setData(currentBucket, e, (int)Math.sqrt(eyeEnergy[e]));
-				//}
 				if (energy2>100.0) {	// TODO: work out where these magic numbers come from!
 					boolean bit = di<0.0;	// is that a 1 or 0?
 					middleSample[bucketNumber] = bit;
@@ -453,7 +432,6 @@ import telemetry.SlowSpeedHeader;
 				}
 			}
 			cntDS++;
-
 		}
 		
 	}
