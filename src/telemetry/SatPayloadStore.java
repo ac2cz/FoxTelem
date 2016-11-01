@@ -493,18 +493,6 @@ public class SatPayloadStore {
 		try {
 			for (int i=0; i<fox.numberOfLayouts; i++)
 				records[i].remove();
-				/*
-			rtRecords.remove();
-			maxRecords.remove();
-			minRecords.remove();
-			radRecords.remove();
-			radTelemRecords.remove();
-			if (fox.hasHerci()) {
-				herciRecords.remove();
-				herciHeaderRecords.remove();
-				herciPacketRecords.remove();
-			}
-			*/
 			initPayloadFiles();
 			setUpdatedAll();
 		} catch (IOException ex) {

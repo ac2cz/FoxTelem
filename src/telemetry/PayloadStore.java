@@ -759,6 +759,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * Delete all of the log files.  This is called from the main window by the user
 	 */
 	public void deleteAll() {
+		loaded=false;
 		for (SatPayloadStore store : payloadStore)
 			if (store != null)
 				store.deleteAll();
@@ -768,7 +769,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		for (SatMeasurementStore store : measurementStore)
 			if (store != null)
 				store.deleteAll();
-
+		loaded=true;
 	}
 	
 	/**

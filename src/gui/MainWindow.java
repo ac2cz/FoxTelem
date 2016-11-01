@@ -251,9 +251,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	
 	public static void refreshTabs(boolean closeGraphs) {
 		for (SpacecraftTab tab : spacecraftTab) {
-			if (closeGraphs) tab.closeGraphs();
+			tab.refreshTabs(closeGraphs);
 		}
 
+		if(closeGraphs)
+			measurementsTab.closeGraphs();
+		tabbedPane.remove(measurementsTab);
 		addMeasurementsTab();
 		Config.payloadStore.setUpdatedAll();
 
