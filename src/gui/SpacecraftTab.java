@@ -5,6 +5,7 @@ import java.util.ArrayList;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
+import javax.swing.border.EmptyBorder;
 
 import common.Config;
 import common.FoxSpacecraft;
@@ -41,6 +42,7 @@ public class SpacecraftTab extends JPanel {
 	HealthTab healthTab;
 	CameraTab cameraTab;
 	HerciHSTab herciTab;
+	MyMeasurementsTab measurementsTab;
 
 	// We have one health thread per health tab
 	Thread healthThread;
@@ -48,7 +50,8 @@ public class SpacecraftTab extends JPanel {
 	Thread radiationThread;
 	Thread cameraThread;
 	Thread herciThread;
-
+	Thread measurementThread;
+	
 	public SpacecraftTab(Spacecraft s) {
 		sat = s;
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
@@ -56,12 +59,14 @@ public class SpacecraftTab extends JPanel {
 		setLayout(new BorderLayout(0, 0));
 		add(tabbedPane, BorderLayout.CENTER);
 		addHealthTabs();
+		addMeasurementsTab(sat);
 	}
 	
 	public void showGraphs() {
 		healthTab.showGraphs();
 		radiationTab.showGraphs();
 		herciTab.showGraphs();
+		measurementsTab.showGraphs();
 	}
 
 	public void refreshTabs(boolean closeGraphs) {
@@ -80,6 +85,11 @@ public class SpacecraftTab extends JPanel {
 			tabbedPane.remove(cameraTab);
 
 		addHealthTabs();
+		
+		if(closeGraphs)
+			measurementsTab.closeGraphs();
+		tabbedPane.remove(measurementsTab);
+		addMeasurementsTab(sat);
 	}
 
 	private void addHealthTabs() {
@@ -156,6 +166,26 @@ public class SpacecraftTab extends JPanel {
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" Camera ("+ fox.getIdString() + ")</body></html>", cameraTab);
 	}
+	
+	private void addMeasurementsTab(Spacecraft fox) {
+		if (measurementsTab != null) {
+			measurementsTab.stopProcessing();
+			while (!measurementsTab.isDone())
+				try {
+					Thread.sleep(5);
+				} catch (InterruptedException e) {
+					e.printStackTrace(Log.getWriter());
+				}
+		}
+		measurementsTab = new MyMeasurementsTab(fox);
+		measurementsTab.setBorder(new EmptyBorder(5, 5, 5, 5));
+		tabbedPane.addTab( "<html><body leftmargin=5 topmargin=8 marginwidth=5 marginheight=5>Measurements</body></html>", measurementsTab );
+		measurementThread = new Thread(measurementsTab);
+		measurementThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		measurementThread.start();
+		
+	}
+	
 
 	private void stopThreads(FoxTelemTab tab) {
 		if (tab != null) {
@@ -176,6 +206,8 @@ public class SpacecraftTab extends JPanel {
 			radiationTab.closeGraphs();
 		if (herciTab != null)
 			herciTab.closeGraphs();
+		
+		measurementsTab.closeGraphs();
 	}
 
 }

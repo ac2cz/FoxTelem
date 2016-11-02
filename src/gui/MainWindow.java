@@ -122,8 +122,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// GUI components
 	static JTabbedPane tabbedPane;
 	public static SourceTab inputTab;
-	static MyMeasurementsTab measurementsTab;
-	static Thread measurementThread;
 
 	// We have a radiation tab and a health tab per satellite
 	static SpacecraftTab[] spacecraftTab;
@@ -218,8 +216,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		addHealthTabs();
 		
-		addMeasurementsTab();
-		
 		initialize();
 		//pack(); // pack all in as tight as possible
 
@@ -245,7 +241,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (SpacecraftTab tab : spacecraftTab) {
 			tab.showGraphs();
 		}
-		measurementsTab.showGraphs();
 		frame.toFront();
 	}
 	
@@ -254,10 +249,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			tab.refreshTabs(closeGraphs);
 		}
 
-		if(closeGraphs)
-			measurementsTab.closeGraphs();
-		tabbedPane.remove(measurementsTab);
-		addMeasurementsTab();
+		
 		Config.payloadStore.setUpdatedAll();
 
 		if (Config.logFileDirectory.equals(""))
@@ -281,26 +273,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				//			+" Health", healthTab );
 		}
 	}
-
-	private static void addMeasurementsTab() {
-		if (measurementsTab != null) {
-			measurementsTab.stopProcessing();
-			while (!measurementsTab.isDone())
-				try {
-					Thread.sleep(5);
-				} catch (InterruptedException e) {
-					e.printStackTrace(Log.getWriter());
-				}
-		}
-		measurementsTab = new MyMeasurementsTab();
-		measurementsTab.setBorder(new EmptyBorder(5, 5, 5, 5));
-		tabbedPane.addTab( "<html><body leftmargin=5 topmargin=8 marginwidth=5 marginheight=5>Measurements</body></html>", measurementsTab );
-		measurementThread = new Thread(measurementsTab);
-		measurementThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		measurementThread.start();
-		
-	}
-	
 
 	public static void setAudioMissed(int missed) {
 		double miss = missed / 10.0;
@@ -909,8 +881,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 		for (SpacecraftTab tab : spacecraftTab)
 			tab.closeGraphs();
-		
-		measurementsTab.closeGraphs();
+
 		Config.save();
 	}
 

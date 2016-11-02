@@ -44,16 +44,17 @@ import common.FoxSpacecraft;
  */
 @SuppressWarnings("serial")
 public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
-		ItemListener {
-	DisplayModule[] satellite;
-	DisplayModule[] passes;
-	ArrayList<Spacecraft> sats;
+ItemListener {
+	DisplayModule satellite;
+	DisplayModule passes;
+	Spacecraft sat;
 	RtMeasurement rtMeasurement;
 	PassMeasurement passMeasurement;
 	JCheckBox cbUseDDEAzEl;
 	JCheckBox cbUseDDEFreq;
 
-	MyMeasurementsTab() {
+	MyMeasurementsTab(Spacecraft s) {
+		sat = s;
 		setLayout(new BorderLayout(0, 0));
 
 		JPanel topPanel = new JPanel();
@@ -69,51 +70,45 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 		JPanel centerPanel = new JPanel();
 		centerPanel.setLayout(new WrapLayout(FlowLayout.LEADING, 25, 25));
 		JScrollPane scrollPane = new JScrollPane (centerPanel, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		add(scrollPane, BorderLayout.CENTER);
 
-		sats = Config.satManager.getSpacecraftList();
-		satellite = new DisplayModule[sats.size()];
-		passes = new DisplayModule[sats.size()];
-		for (int s = 0; s < sats.size(); s++) {
-			if (sats.get(s).isFox1()) {
-				FoxSpacecraft fox = (FoxSpacecraft) sats.get(s);
-				satellite[s] = new DisplayModule(fox, fox.name, 9,
-						DisplayModule.DISPLAY_MEASURES);
-				centerPanel.add(satellite[s]);
-				satellite[s].addName(1, "Bit Sig to Noise (-)",
-						RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(2, "RF Sig to Noise (db)",
-						RtMeasurement.RF_SNR, DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(3, "RF Power (dBm)", RtMeasurement.RF_POWER,
-						DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(4, "Carrier Frequency (Hz)",
-						RtMeasurement.CARRIER_FREQ, DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(5, "Azimuth (deg)", RtMeasurement.AZ,
-						DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(6, "Elevation (deg)", RtMeasurement.EL,
-						DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(7, "RS Errors", RtMeasurement.ERRORS,
-						DisplayModule.DISPLAY_MEASURES);
-				satellite[s].addName(8, "RS Erasures", RtMeasurement.ERASURES,
-						DisplayModule.DISPLAY_MEASURES);
-			}
+		if (sat.isFox1()) {
+			FoxSpacecraft fox = (FoxSpacecraft) sat;
+			satellite = new DisplayModule(fox, fox.name, 9,
+					DisplayModule.DISPLAY_MEASURES);
+			centerPanel.add(satellite);
+			satellite.addName(1, "Bit Sig to Noise (-)",
+					RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(2, "RF Sig to Noise (db)",
+					RtMeasurement.RF_SNR, DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(3, "RF Power (dBm)", RtMeasurement.RF_POWER,
+					DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(4, "Carrier Frequency (Hz)",
+					RtMeasurement.CARRIER_FREQ, DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(5, "Azimuth (deg)", RtMeasurement.AZ,
+					DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(6, "Elevation (deg)", RtMeasurement.EL,
+					DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(7, "RS Errors", RtMeasurement.ERRORS,
+					DisplayModule.DISPLAY_MEASURES);
+			satellite.addName(8, "RS Erasures", RtMeasurement.ERASURES,
+					DisplayModule.DISPLAY_MEASURES);
 		}
-		for (int s = 0; s < sats.size(); s++) {
-			if (sats.get(s).isFox1()) {
-				FoxSpacecraft fox = (FoxSpacecraft) sats.get(s);
-				passes[s] = new DisplayModule(fox, fox.name + " passes", 9,
-						DisplayModule.DISPLAY_PASS_MEASURES);
-				centerPanel.add(passes[s]);
-				passes[s].addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(2, "TCA",	PassMeasurement.TCA, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(3, "TCA Freq (Hz)",PassMeasurement.TCA_FREQ, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(4, "LOS", PassMeasurement.LOS, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(5, "Start Azimuth", PassMeasurement.START_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
-				passes[s].addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
-			}
+
+		if (sat.isFox1()) {
+			FoxSpacecraft fox = (FoxSpacecraft) sat;
+			passes = new DisplayModule(fox, fox.name + " passes", 9,
+					DisplayModule.DISPLAY_PASS_MEASURES);
+			centerPanel.add(passes);
+			passes.addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(2, "TCA",	PassMeasurement.TCA, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(3, "TCA Freq (Hz)",PassMeasurement.TCA_FREQ, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(4, "LOS", PassMeasurement.LOS, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(5, "Start Azimuth", PassMeasurement.START_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
+			passes.addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
 		}
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
@@ -140,36 +135,27 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 	}
 
 	public void showGraphs() {
-		for (DisplayModule mod : satellite) {
-			if (mod != null)
-				mod.showGraphs();
-		}
-		for (DisplayModule mod : passes) {
-			if (mod != null)
-				mod.showGraphs();
-		}
+
+		if (satellite != null)
+			satellite.showGraphs();
+
+		if (passes != null)
+			passes.showGraphs();
+
 	}
 
 	public void openGraphs() {
-		for (DisplayModule mod : satellite) {
-			if (mod != null)
-				mod.openGraphs();
-		}
-		for (DisplayModule mod : passes) {
-			if (mod != null)
-				mod.openGraphs();
-		}
+		if (satellite != null)
+			satellite.openGraphs();
+		if (passes != null)
+			passes.openGraphs();
 	}
 
 	public void closeGraphs() {
-		for (DisplayModule mod : satellite) {
-			if (mod != null)
-				mod.closeGraphs();
-		}
-		for (DisplayModule mod : passes) {
-			if (mod != null)
-				mod.closeGraphs();
-		}
+		if (satellite != null)
+			satellite.closeGraphs();
+		if (passes != null)
+			passes.closeGraphs();
 	}
 
 	@Override
@@ -185,60 +171,59 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 				Log.println("ERROR: Measurement thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
-			for (int s = 0; s < sats.size(); s++) {
-				if (Config.payloadStore.getUpdatedMeasurement(sats.get(s).foxId)) {
+			if (Config.payloadStore.getUpdatedMeasurement(sat.foxId)) {
 
-					rtMeasurement = Config.payloadStore
-							.getLatestMeasurement(sats.get(s).foxId);
-					if (rtMeasurement != null) {
-						Config.payloadStore.setUpdatedMeasurement(sats.get(s).foxId, false);
+				rtMeasurement = Config.payloadStore
+						.getLatestMeasurement(sat.foxId);
+				if (rtMeasurement != null) {
+					Config.payloadStore.setUpdatedMeasurement(sat.foxId, false);
 
-						double snr = GraphPanel.roundToSignificantFigures(
-								rtMeasurement
-										.getRawValue(RtMeasurement.BIT_SNR), 3);
-						satellite[s].updateSingleValue(1, Double.toString(snr));
-						double rfsnr = GraphPanel
-								.roundToSignificantFigures(rtMeasurement
-										.getRawValue(RtMeasurement.RF_SNR), 3);
-						satellite[s].updateSingleValue(2,
-								Double.toString(rfsnr));
-						double power = GraphPanel
-								.roundToSignificantFigures(rtMeasurement
-										.getRawValue(RtMeasurement.RF_POWER), 3);
-						satellite[s].updateSingleValue(3,
-								Double.toString(power));
-						long freq = (long) rtMeasurement
-								.getRawValue(RtMeasurement.CARRIER_FREQ);
-						satellite[s].updateSingleValue(4, Long.toString(freq));
-						int az = (int) rtMeasurement
-								.getRawValue(RtMeasurement.AZ);
-						satellite[s].updateSingleValue(5, Integer.toString(az));
-						int el = (int) rtMeasurement
-								.getRawValue(RtMeasurement.EL);
-						satellite[s].updateSingleValue(6, Integer.toString(el));
-						int err = (int) rtMeasurement
-								.getRawValue(RtMeasurement.ERRORS);
-						satellite[s]
-								.updateSingleValue(7, Integer.toString(err));
-						int erase = (int) rtMeasurement
-								.getRawValue(RtMeasurement.ERASURES);
-						satellite[s].updateSingleValue(8,
-								Integer.toString(erase));
-					}
+					double snr = GraphPanel.roundToSignificantFigures(
+							rtMeasurement
+							.getRawValue(RtMeasurement.BIT_SNR), 3);
+					satellite.updateSingleValue(1, Double.toString(snr));
+					double rfsnr = GraphPanel
+							.roundToSignificantFigures(rtMeasurement
+									.getRawValue(RtMeasurement.RF_SNR), 3);
+					satellite.updateSingleValue(2,
+							Double.toString(rfsnr));
+					double power = GraphPanel
+							.roundToSignificantFigures(rtMeasurement
+									.getRawValue(RtMeasurement.RF_POWER), 3);
+					satellite.updateSingleValue(3,
+							Double.toString(power));
+					long freq = (long) rtMeasurement
+							.getRawValue(RtMeasurement.CARRIER_FREQ);
+					satellite.updateSingleValue(4, Long.toString(freq));
+					int az = (int) rtMeasurement
+							.getRawValue(RtMeasurement.AZ);
+					satellite.updateSingleValue(5, Integer.toString(az));
+					int el = (int) rtMeasurement
+							.getRawValue(RtMeasurement.EL);
+					satellite.updateSingleValue(6, Integer.toString(el));
+					int err = (int) rtMeasurement
+							.getRawValue(RtMeasurement.ERRORS);
+					satellite
+					.updateSingleValue(7, Integer.toString(err));
+					int erase = (int) rtMeasurement
+							.getRawValue(RtMeasurement.ERASURES);
+					satellite.updateSingleValue(8,
+							Integer.toString(erase));
 				}
-				if (Config.payloadStore.getUpdatedPassMeasurement(sats.get(s).foxId)) {
-					passMeasurement = Config.payloadStore.getLatestPassMeasurement(sats.get(s).foxId);
-					if (passMeasurement != null) {
-						Config.payloadStore.setUpdatedPassMeasurement(sats.get(s).foxId, false);
 
-						passes[s].updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
-						passes[s].updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
-						passes[s].updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
-						passes[s].updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
-						passes[s].updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
-						passes[s].updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
-						passes[s].updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
-						passes[s].updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
+				if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
+					passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
+					if (passMeasurement != null) {
+						Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
+
+						passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
+						passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
+						passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
+						passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
+						passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
+						passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
+						passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
+						passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
 					}
 				}
 			}
@@ -246,7 +231,6 @@ public class MyMeasurementsTab extends FoxTelemTab implements Runnable,
 				openGraphs();
 				justStarted = false;
 			}
-
 		}
 		done = true;
 	}
