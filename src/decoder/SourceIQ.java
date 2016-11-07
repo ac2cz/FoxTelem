@@ -403,8 +403,7 @@ public class SourceIQ extends SourceAudio {
 
 		if (!Config.showIF) calcPsd();
 		
-		if (mode != MODE_PSK)
-			filterFFTWindow(fftData);
+		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
 		
 		if (Config.showIF) calcPsd();
 
@@ -956,17 +955,20 @@ public class SourceIQ extends SourceAudio {
 
 
 	private double ncoBFO(double i, double q) {
-		
-		double mi = ncoMixerI(i,q);
-		double mq = ncoMixerQ(i,q);
+		int ssbOffset = 0;
+		// offset by 1200Hz if this is PSK
+			ssbOffset = (int)(1200.0/(192000.0/4096.0)); // 1200 / binBandwidth = number of bins for 1200 Hz
+			//System.err.println("OFF: " + ssbOffset);
+		double mi = ncoMixerI(i,q, ssbOffset);
+		double mq = ncoMixerQ(i,q, ssbOffset);
 		return mi + mq;
 	}
 
 	
 	private double iPhase = 0.0;
-	private double ncoMixerI(double i, double q) {
+	private double ncoMixerI(double i, double q, int offset) {
 		
-		double inc = 2.0*Math.PI*Config.selectedBin/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
 		iPhase+=inc;
 		if (iPhase>2.0*Math.PI)
 			iPhase-=2.0*Math.PI;
@@ -981,9 +983,9 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	private double qPhase = 0.0;
-	private double ncoMixerQ(double i, double q) {
+	private double ncoMixerQ(double i, double q, int offset) {
 		
-		double inc = 2.0*Math.PI*Config.selectedBin/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
 		qPhase+=inc;
 		if (qPhase>2.0*Math.PI)
 			qPhase-=2.0*Math.PI;

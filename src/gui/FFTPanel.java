@@ -213,6 +213,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				else
 					targetBin = rfData.getBinOfPeakSignal();
 				*/
+				
 				int move = targetBin - selectedBin;
 				//System.out.println("MOVE: "+ move);
 				if (targetBin < selectedBin) {
