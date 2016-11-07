@@ -121,7 +121,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JCheckBox rdbtnWriteDebugData;
 	//JCheckBox rdbtnApplyBlackmanWindow;
 	//JCheckBox rdbtnUseLimiter;
-	//JCheckBox rdbtnShowIF;
+	JCheckBox rdbtnShowIF;
 	JCheckBox rdbtnTrackSignal;
 	JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnWhenAboveHorizon;
@@ -277,13 +277,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnApplyBlackmanWindow.addItemListener(this);
 		rdbtnApplyBlackmanWindow.setSelected(Config.applyBlackmanWindow);
 		rdbtnApplyBlackmanWindow.setVisible(false);
-		 
+		*/ 
 		rdbtnShowIF = new JCheckBox("Show IF");
 		optionsPanel.add(rdbtnShowIF);
 		rdbtnShowIF.addItemListener(this);
 		rdbtnShowIF.setSelected(Config.showIF);
 		rdbtnShowIF.setVisible(false);
-		 */
+		 
 		rdbtnTrackSignal = new JCheckBox("Track Doppler");
 		options1.add(rdbtnTrackSignal);
 		rdbtnTrackSignal.addItemListener(this);
@@ -840,7 +840,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private void setIQVisible(boolean b) {
 		setFFTVisible(b);
 		rdbtnShowFFT.setVisible(b);
-//		rdbtnShowIF.setVisible(b);
+		rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
 		if (Config.isWindowsOs())
@@ -918,14 +918,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
-		if (e.getSource() == WFM | e.getSource() == FM | e.getSource() == NFM | e.getSource() == LSB | e.getSource() == USB | e.getSource() == CW) { 
-			setFilterWidth();
-		}
+	
 		if (e.getSource() == highSpeed) { 
 				Config.highSpeed = true;
 				Config.autoDecodeSpeed = false;
 				enableFilters(false);
 				autoViewpanel.setVisible(false);
+				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FM);
 				//Config.save();
 		}
 		if (e.getSource() == lowSpeed) { 
@@ -933,6 +932,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			Config.autoDecodeSpeed = false;
 			enableFilters(true);
 			autoViewpanel.setVisible(false);
+			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_NFM);
 			//Config.save();
 		}
 		if (e.getSource() == psk) { 
@@ -940,11 +940,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
+			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_PSK);
 			//Config.save();
 		}
 		if (e.getSource() == auto) { 
 			Config.autoDecodeSpeed = true;
 			enableFilters(true);
+			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_NFM);
+			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FM);
 	//		autoViewpanel.setVisible(true);
 			//Config.save();
 		}
@@ -1636,55 +1639,17 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	}
 	
 	private void setMode() {
-		int mode = SourceIQ.MODE_NFM;
-		if (iqSource1 != null)
-			mode = iqSource1.getMode();
-		if (mode == SourceIQ.MODE_WFM) WFM.setSelected(true);
-		if (mode == SourceIQ.MODE_FM) FM.setSelected(true);
-		if (mode == SourceIQ.MODE_NFM) NFM.setSelected(true);
-		if (mode == SourceIQ.MODE_LSB) LSB.setSelected(true);
-		if (mode == SourceIQ.MODE_USB) USB.setSelected(true);
-		if (mode == SourceIQ.MODE_CW) CW.setSelected(true);
-		setFilterWidth();
-	}
-	
-	private void setFilterWidth() {
-		int mode = 0;
-		int freq = 9600*2;
-		if (WFM.isSelected()) {
-			freq = 2*75000;
-			mode = SourceIQ.MODE_WFM;
-		}
-		if (FM.isSelected()) {
-			freq = 9600*2;
-			mode = SourceIQ.MODE_FM;
-		}
-		if (NFM.isSelected()) {
-			freq = 5000;
-			mode = SourceIQ.MODE_NFM;
-		}
-		if (LSB.isSelected()) {
-			freq = 2400;
-			mode = SourceIQ.MODE_LSB;
-		}
-		if (USB.isSelected()) {
-			freq = 2400;
-			mode = SourceIQ.MODE_USB;
-		}
-		if (CW.isSelected()) {
-			freq = 800;
-			mode = SourceIQ.MODE_CW;
-		}
 		if (iqSource1 != null) {
-			iqSource1.setFilterWidth(freq);
-			iqSource1.setMode(mode);
+			if (psk.isSelected()) iqSource1.setMode(SourceIQ.MODE_PSK);
+			if (lowSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_NFM);
+			if (highSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FM);
+			if (auto.isSelected()) iqSource1.setMode(SourceIQ.MODE_NFM);
 		}
 		if (iqSource2 != null) {
-			// Dont change the other source, which is setup for high speed
-			//iqSource2.setFilterWidth(freq);
-			//iqSource2.setMode(mode);
+			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FM);			
 		}
 	}
+	
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
@@ -1801,6 +1766,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	        	//Config.save();
 	        }
 		}
+		*/
 		if (e.getSource() == rdbtnShowIF) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				
@@ -1814,7 +1780,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	        	//Config.save();
 	        }
 		}
-		*/
+		
 		if (e.getSource() == rdbtnTrackSignal) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				

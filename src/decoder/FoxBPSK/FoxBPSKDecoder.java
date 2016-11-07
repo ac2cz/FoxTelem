@@ -123,7 +123,7 @@ import telemetry.SlowSpeedHeader;
 					//sampleWithVCO(dataValues[i][s], i, s);
 					double value = dataValues[i][s]/ 32768.0;
 //////					value = audioDcFilter.filter(value);		
-					RxDownSample(value, value, i, s);
+					RxDownSample(value, value, i);
 					pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
 					int eyeValue = (int)(32768*(energy1/dmEnergy[dmPeakPos]-1));
 					eyeData.setData(i,s,eyeValue);
@@ -336,7 +336,7 @@ import telemetry.SlowSpeedHeader;
 		 * @param q
 		 * @param bucketNumber
 		 */
-		private void RxDownSample(double i, double q, int bucketNumber, int bucketOffset) {
+		private void RxDownSample(double i, double q, int bucketNumber) {
 			dsBuf[dsPos][0]=i;
 			dsBuf[dsPos][1]=q;
 			if (++dsCnt>=(int)currentSampleRate/DOWN_SAMPLE_RATE) {	// typically 48000/9600
@@ -349,7 +349,7 @@ import telemetry.SlowSpeedHeader;
 				}
 				dsCnt=0;
 				// feed down sampled values to demodulator
-				RxDemodulate(fi * HOWARD_FUDGE_FACTOR, fq * HOWARD_FUDGE_FACTOR, bucketNumber, bucketOffset);
+				RxDemodulate(fi * HOWARD_FUDGE_FACTOR, fq * HOWARD_FUDGE_FACTOR, bucketNumber);
 			}
 			dsPos--;
 			if (dsPos<0)
@@ -372,7 +372,7 @@ import telemetry.SlowSpeedHeader;
 		 * @param q
 		 * @param bucketNumber
 		 */
-		private void RxDemodulate(double i, double q, int bucketNumber, int bucketOffset) {
+		private void RxDemodulate(double i, double q, int bucketNumber) {
 			vcoPhase += VCO_PHASE_INC;
 			if (vcoPhase > 2.0*Math.PI)
 				vcoPhase -= 2.0*Math.PI;

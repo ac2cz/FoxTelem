@@ -24,11 +24,9 @@ public class SourceIQ extends SourceAudio {
 	public static final int MODE_WFM = 0;
 	public static final int MODE_FM = 1;
 	public static final int MODE_NFM = 2;
-	public static final int MODE_USB = 3;
-	public static final int MODE_LSB = 4;
-	public static final int MODE_CW = 5;
+	public static final int MODE_PSK = 3;
 	
-	private int mode = MODE_FM;
+	private int mode = MODE_NFM;
 	
 	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
 	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
@@ -109,9 +107,9 @@ public class SourceIQ extends SourceAudio {
 	int dist = 0; // the offset distance
 	
 	// Only needed for NCO
-//	private static final int SINCOS_SIZE = 256;
-//	private double[] sinTab = new double[SINCOS_SIZE];
-//	private double[] cosTab = new double[SINCOS_SIZE];
+	private static final int SINCOS_SIZE = 256;
+	private double[] sinTab = new double[SINCOS_SIZE];
+	private double[] cosTab = new double[SINCOS_SIZE];
 
 	RfData rfData;
 	
@@ -122,10 +120,10 @@ public class SourceIQ extends SourceAudio {
 		audioFormat = makeAudioFormat();
 		//initFftFilter();
 		// NCO
-//		for (int n=0; n<SINCOS_SIZE; n++) {
-//			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
-//			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
-//		}
+		for (int n=0; n<SINCOS_SIZE; n++) {
+			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
+			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
+		}
 	}
 
 	public void setAudioSource(SourceAudio as, int chan) {
@@ -260,13 +258,13 @@ public class SourceIQ extends SourceAudio {
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
-		if (highSpeed) {
+		if (mode == MODE_FM) {
 			setFilterWidth(9600*2);
-			mode = MODE_FM;
+			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		} else {
 			setFilterWidth(5000); // was 10000 for AirSpy
-			mode = MODE_NFM;
+			//mode = MODE_NFM;
 			//filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
 		}
 /////////////// FUDGE - NEED TO WORK OUT WHY THE BANDWIDTH IS COMING OUT WRONG.... * 4 for Airspy
@@ -400,20 +398,26 @@ public class SourceIQ extends SourceAudio {
 			}
 			i+=2;
 		}
-		
+	
 		runFFT(fftData); // results back in fftData
 
 		if (!Config.showIF) calcPsd();
 		
-		filterFFTWindow(fftData);
-		if (Config.showIF) calcPsd();
+		if (mode != MODE_PSK)
+			filterFFTWindow(fftData);
 		
-		inverseFFT(fftData);
+		if (Config.showIF) calcPsd();
+
+		if (mode != MODE_PSK)
+			inverseFFT(fftData);
 
 		int d=0;		
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);			
+			if (mode != MODE_PSK)	
+				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
+			else	
+				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
 		}
 		
 		int k = 0;
@@ -950,7 +954,15 @@ public class SourceIQ extends SourceAudio {
 		return af;
 	}//end getAudioFormat
 
-	/*
+
+	private double ncoBFO(double i, double q) {
+		
+		double mi = ncoMixerI(i,q);
+		double mq = ncoMixerQ(i,q);
+		return mi + mq;
+	}
+
+	
 	private double iPhase = 0.0;
 	private double ncoMixerI(double i, double q) {
 		
@@ -984,5 +996,5 @@ public class SourceIQ extends SourceAudio {
 			return q;
 		}
 	}
-*/
+
 }
