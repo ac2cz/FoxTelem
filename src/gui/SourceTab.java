@@ -19,6 +19,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -63,9 +64,10 @@ import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
 import decoder.FoxBPSK.FoxBPSKDecoder;
-import device.Device;
+import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
+import device.TunerManager;
 import device.airspy.AirspyDevice;
 import device.airspy.AirspyPanel;
 import fcd.FcdDevice;
@@ -167,7 +169,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	
 	FilterPanel filterPanel;
 	
-	Device rfDevice;
+	TunerController rfDevice;
+	TunerManager tunerManager;
 	
 	static final int RATE_96000_IDX = 2;
 	static final int RATE_192000_IDX = 3;
@@ -536,7 +539,22 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		btnStartButton.setEnabled(false);
 		btnStartButton.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-		soundCardComboBox = new JComboBox<String>(SourceSoundCardAudio.getAudioSources());
+		tunerManager = new TunerManager();
+		
+		String[] sources = SourceSoundCardAudio.getAudioSources();
+		ArrayList<String> usbSources = null;
+		try {
+			usbSources = tunerManager.makeDeviceList();
+		} catch (UsbException e) {
+			Log.println("ERROR GETTING USB SOURCES");
+			e.printStackTrace();
+		}
+		String[] allSources = new String[sources.length + usbSources.size()];
+		int j = 0;
+		for (String s : sources) allSources[j++] = s;
+		if (usbSources != null)
+			for (String s : usbSources) allSources[j++] = s;
+		soundCardComboBox = new JComboBox<String>(allSources);
 		soundCardComboBox.addPopupMenuListener(new PopupMenuListener() {
 			public void popupMenuCanceled(PopupMenuEvent arg0) {
 			}
@@ -1392,7 +1410,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						iqAudio.setSelected(true);
 						setIQVisible(true);
 						int rate = panelFcd.getSampleRate();
-						int decmimation = panelFcd.getDecimationRate();
+						//int decmimation = panelFcd.getDecimationRate();
 						int channels = 0;
 						if (Config.autoDecodeSpeed)
 							channels = 2;

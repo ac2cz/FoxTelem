@@ -7,7 +7,7 @@ import javax.swing.JPanel;
 @SuppressWarnings("serial")
 public abstract class DevicePanel extends JPanel {
 
-	public abstract void setDevice(Device fcd) throws IOException, DeviceException;
+	public abstract void setDevice(TunerController fcd) throws IOException, DeviceException;
 	
 	public abstract void updateFilter() throws IOException, DeviceException;
 	

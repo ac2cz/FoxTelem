@@ -35,7 +35,7 @@ import org.usb4java.LibUsbException;
 
 import common.Log;
 import decoder.SourceIQ;
-import device.Device;
+import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 import device.airspy.AirspyDevice.Gain;
@@ -426,7 +426,7 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 	}
 	
 	@Override
-	public void setDevice(Device fcd) throws IOException, DeviceException {
+	public void setDevice(TunerController fcd) throws IOException, DeviceException {
 		setAirpy((AirspyDevice)fcd);
 		initializeGui();
 		GainMode mode = (GainMode)mGainModeCombo.getSelectedItem();

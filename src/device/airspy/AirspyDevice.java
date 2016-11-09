@@ -74,7 +74,7 @@ import device.ThreadPoolManager.ThreadType;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class AirspyDevice extends device.Device
+public class AirspyDevice extends device.TunerController
 {
 	public static final Gain LINEARITY_GAIN_DEFAULT = Gain.LINEARITY_14;
 	public static final Gain SENSITIVITY_GAIN_DEFAULT = Gain.SENSITIVITY_10;
@@ -137,6 +137,7 @@ public class AirspyDevice extends device.Device
 		//super( FREQUENCY_MIN, FREQUENCY_MAX, 0, USABLE_BANDWIDTH_PERCENT );
 		
 		mDevice = device;
+		name = "USBAirspy";
 			mThreadPoolManager = threadPoolManager;
 	}
 	

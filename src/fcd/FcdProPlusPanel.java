@@ -20,7 +20,7 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
 import common.Log;
-import device.Device;
+import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 
@@ -96,7 +96,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	}
 	
 	@Override
-	public void setDevice(Device fcd) throws IOException, DeviceException {
+	public void setDevice(TunerController fcd) throws IOException, DeviceException {
 		setFcd((FcdProPlusDevice)fcd);
 		
 	}

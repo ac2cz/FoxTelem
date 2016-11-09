@@ -56,7 +56,7 @@ import device.ThreadPoolManager;
 import device.ThreadPoolManager.ThreadType;
 import device.TunerType;
 
-public abstract class RTL2832TunerController extends device.Device
+public abstract class RTL2832TunerController extends device.TunerController
 {
 	public final static int INT_NULL_VALUE = -1;
 	public final static long LONG_NULL_VALUE = -1l;

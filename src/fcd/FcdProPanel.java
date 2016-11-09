@@ -15,7 +15,7 @@ import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
 import common.Log;
-import device.Device;
+import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 
@@ -88,7 +88,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 	}
 	
 	@Override
-	public void setDevice(Device fcd) throws IOException, DeviceException {
+	public void setDevice(TunerController fcd) throws IOException, DeviceException {
 		setFcd((FcdProDevice)fcd);
 		
 	}
