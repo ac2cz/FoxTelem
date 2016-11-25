@@ -601,6 +601,7 @@ public class SourceIQ extends SourceAudio {
 			noise += sig;
 			noiseReading++;
 		}
+		
 		for (int n=end; n < noiseEnd; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
 			if (Config.fromBin*2 < n && n < Config.toBin*2) {

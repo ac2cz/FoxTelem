@@ -112,6 +112,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	        public void actionPerformed(ActionEvent e) {
 	         //       System.out.println("TUNE LEFT");
 	                selectedBin = selectedBin-1;
+	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
 	                Config.selectedBin = selectedBin;
 	          //     printBin();
 	        }
@@ -121,6 +123,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	        public void actionPerformed(ActionEvent e) {
 	         //       System.out.println("TUNE RIGHT");
 	                selectedBin = selectedBin+1;
+	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
 	                Config.selectedBin = selectedBin;
 	         //       printBin();
 	        }
