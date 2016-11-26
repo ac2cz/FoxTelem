@@ -34,8 +34,8 @@ public abstract class Spacecraft {
 	public static final String RAD_LAYOUT = "RAD";
 	public static final String RAD2_LAYOUT = "RAD2";
 	public static final String HERCI_HS_LAYOUT = "HERCI";
-	public static final String HERCI_HS_HEADER_LAYOUT = "RAD2";
-	public static final String HERCI_HS_PKT_LAYOUT = "RAD3";
+	public static final String HERCI_HS_HEADER_LAYOUT = "HERCI2";
+	public static final String HERCI_HS_PKT_LAYOUT = "HERCI3";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";

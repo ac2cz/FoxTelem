@@ -1482,6 +1482,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				}
 
 				if (decoder1Thread != null) {
+					setMode();
 					try {
 						decoder1Thread.start();
 						//if (audioGraphThread != null) audioGraph.stopProcessing();
@@ -1529,7 +1530,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 						setCenterFreq();
 					}
-					setMode();
+					
 				}
 			}
 		}
