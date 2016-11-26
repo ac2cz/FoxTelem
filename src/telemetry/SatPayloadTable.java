@@ -499,7 +499,7 @@ public class SatPayloadTable {
 			rt.type = type; // make sure we get the right type
 		}
 		if (type == FoxFramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
-			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st);
+			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 
