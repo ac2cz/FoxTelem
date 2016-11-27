@@ -97,6 +97,7 @@ public class SpacecraftTab extends JPanel {
 		stopThreads(radiationTab);
 		stopThreads(cameraTab);
 		stopThreads(herciTab);
+		
 
 		healthTab = new HealthTab(sat);
 		healthThread = new Thread(healthTab);
