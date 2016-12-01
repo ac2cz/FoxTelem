@@ -1,5 +1,5 @@
 #Fox 1 Telemetry Decoder Properties
-#Fri Nov 25 20:11:54 EST 2016
+#Sat Nov 26 17:08:38 EST 2016
 useIHUVBatt=true
 numberOfLookupTables=3
 measurementsFileName=measurements.csv
@@ -13,7 +13,7 @@ layout1.filename=FOX1C_maxtelemetry.csv
 name=Fox-1Cliff
 description=Fox-1C is a 1U CubeSat with U/v and L/v FM transponders and experiments from Penn State University, Rochester Institute of Technology, Vanderbilt University and Virginia Tech
 numberOfLayouts=6
-track=true
+track=false
 layout1.name=MAX
 lookupTable1.filename=FOX1C_ihuVBattSN9.tab
 layout3.name=MIN
