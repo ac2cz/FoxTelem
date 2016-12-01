@@ -17,7 +17,7 @@ import common.Spacecraft;
 * FOX 1 Telemetry Decoder
 * @author chris.e.thompson g0kla/ac2cz
 *
-* Copyright (C) 2015 amsat.org
+* Copyright (C) 2016 amsat.org
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,6 +31,9 @@ import common.Spacecraft;
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* 
+* The SpacecraftTab is a sub tab of the MainWindow.  It groups all of the tabs for a given spacecraft
+* including health, experiments and measurements.
 *
 */
 @SuppressWarnings("serial")
