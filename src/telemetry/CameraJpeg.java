@@ -361,8 +361,13 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		} catch (IOException e) {
 			e.printStackTrace(Log.getWriter());
 			// Error creating the image file.  Probably corrupt. Create a blank file to show it is there but not valid
+			try {
 			img = new BufferedImage(sizeX, 75,  BufferedImage.TYPE_INT_ARGB);
-			ImageIO.write(img, "JPEG", f);		
+			ImageIO.write(img, "JPEG", f);	
+			} catch (Exception e2) {
+				Log.errorDialog("ERROR Writing the Jpeg Header to File", "Can't read the file: " + source.getName() + "\n"
+						+ "Can't write the file: " + f.getName());
+			}
 		}
 		if (img != null) {
 			double w = img.getWidth();
