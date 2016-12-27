@@ -249,8 +249,17 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	private void displayMode(int u) {
 		if (u == 1)
 			lblModeValue.setText("SAFE");
-		else
-			lblModeValue.setText("TRANSPONDER");
+		else {
+			// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
+			// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same
+			if (realTime != null && minPayload != null && maxPayload != null) {
+				if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+					lblModeValue.setText("DATA");
+				else
+					lblModeValue.setText("TRANSPONDER");
+			} else
+				lblModeValue.setText("TRANSPONDER");
+		}
 	}
 
 	/**
@@ -311,6 +320,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		displayResets(lblResetsValue, realTime2.getResets());
 		displayCaptureDate(realTime2.getCaptureDate());
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+		displayMode(0);
 	}
 
 	
