@@ -17,6 +17,7 @@ import javax.imageio.ImageIO;
 
 import common.Config;
 import common.Log;
+import gui.CameraTab;
 import common.FoxSpacecraft;
 
 /**
@@ -117,6 +118,10 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 				int lineNum = rs.getInt("scanLineNumber");
 				int lineLineLen = rs.getInt("scanLineLength");
 				java.sql.Blob blob = rs.getBlob("imageBytes");
+				if (blob == null) {
+					Log.println("ERROR: Tried to create JPEG but no data bytes available");
+					return;
+				}
 				int len = (int)blob.length();
 				byte[] blobAsBytes = blob.getBytes(1, len);
 				// we give all the lines the fromUptime so that they are sorted in order
@@ -221,6 +226,15 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 			}
 		} finally {
 			out.close();
+		}
+		// We should also update the thumbnail image
+		// Don't call the GUI routine as it creates Swing Dialog if there is an error
+//		BufferedImage thumb = null;
+		try {
+			makeServerThumbnail(CameraTab.THUMB_X);
+		} catch (IOException e) {
+			// Log any error, but do not stop here as this is not critial to store server data
+			e.printStackTrace(Log.getWriter());
 		}
 	}
 	
@@ -333,7 +347,33 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		return name;
 	}
 
-
+	public void makeServerThumbnail(int sizeX) throws IOException, IIOException {
+		
+		BufferedImage img = null;
+		String imageFile = getFileName();
+		
+		//scale based on X
+		File source = new File(imageFile);
+		imageFile = imageFile.replace(".jpg", "_tn.jpg");
+		File f = new File(imageFile);
+		try {
+			img = ImageIO.read(source);
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+			// Error reading the image file.  Probably corrupt. Create a blank file to show it is there but not valid
+			img = new BufferedImage(sizeX, 75,  BufferedImage.TYPE_INT_ARGB);
+			ImageIO.write(img, "JPEG", f);	
+		}
+		if (img != null) {
+			double w = img.getWidth();
+			double scale = sizeX/w;
+			
+			thumbNail = scale(img, scale);
+			ImageIO.write(thumbNail, "JPEG", f);
+		}
+		thumbStale = false;
+	}
+	
 	/**
 	 * Load the JPEG file from disk and create a Thumbnail.
 	 * @param sizeX
@@ -346,7 +386,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		BufferedImage img = null;
 		String imageFile = getFileName();
 		
-		File thumbFile = new File(imageFile+".tn");
+		File source = new File(imageFile);
+		imageFile = imageFile.replace(".jpg", "_tn.jpg");
+		File thumbFile = new File(imageFile);
 		if(!thumbStale && thumbFile.exists()) {
 			img = ImageIO.read(thumbFile);
 			//Log.println("Loading thumb");
@@ -354,8 +396,8 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 			return img;
 		}
 		//scale based on X
-		File source = new File(imageFile);
-		File f = new File(imageFile+".tn");
+		
+		File f = new File(imageFile);
 		try {
 			img = ImageIO.read(source);
 		} catch (IOException e) {

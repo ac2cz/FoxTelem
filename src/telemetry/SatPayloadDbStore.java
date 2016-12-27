@@ -172,10 +172,10 @@ public class SatPayloadDbStore {
 				try {
 					stmt.execute(createString);
 				} catch (SQLException ex) {
-					PayloadDbStore.errorPrint(ex);
+					PayloadDbStore.errorPrint("createTable:"+table, ex);
 				}
 			} else {
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("createTable:"+table,e);
 			}
 		} 
 	}
@@ -227,7 +227,7 @@ public class SatPayloadDbStore {
 			if ( e.getSQLState().equals(ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
 				// ignore. We are probablly starting up or deleting the tables
 			} else
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("count:"+table, e);
 			return 0;
 		}
 		int count = 0;
@@ -373,7 +373,7 @@ public class SatPayloadDbStore {
 				//Log.println("DUPLICATE RECORD, not stored");
 				return true; // We have the data
 			} else {
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("insertData:"+table, e);
 			}
 			return false;
 		}
@@ -532,6 +532,7 @@ public class SatPayloadDbStore {
 			ps.close();
 			
 		}
+		rs.close();
 		/*
 		if (added) {
 			// This was a new line, so we want to see if this is a new JPEG.  Either way we read all the latest lines 
@@ -632,21 +633,21 @@ public class SatPayloadDbStore {
 							Log.println("ERROR, image bytes not stored");
 							return null; // We have the data
 						} else {
-							PayloadDbStore.errorPrint(e);
+							PayloadDbStore.errorPrint("selectExistingJpeg", e);
 						}
 						return null;
 					}
 				}
 				r.close();
-				rs.close();
 				CameraJpeg j = new CameraJpeg(rsid, rsresets, newFromUptime, newToUptime, rspictureCounter, rs);
+				rs.close();
 				return j;
 			} else {
 				r.close();
 				return null;
 			}
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("selectExistingJpeg", e);
 		}
 		return null;
 	}
@@ -664,7 +665,7 @@ public class SatPayloadDbStore {
 			ResultSet r = stmt.executeQuery(update);
 			return r;
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("selectImageLines:"+table, e);
 		}
 		return null;
 	}
@@ -684,7 +685,7 @@ public class SatPayloadDbStore {
 				return null;
 			}
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("selectLatest:"+table, e);
 		}
 		return null;
 		
@@ -774,7 +775,7 @@ public class SatPayloadDbStore {
 			rs.close();
 			stmt.close();
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("initRad2", e);
 		}
 	}
 	
@@ -850,7 +851,7 @@ public class SatPayloadDbStore {
 			stmt.close();
 			return r;
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("selectRows:"+table, e);
 		}
 		return null;
 		
@@ -951,13 +952,13 @@ public class SatPayloadDbStore {
 					stmt.close();
 				} catch (SQLException e1) {
 					Log.println("RETRY FAILED");
-					PayloadDbStore.errorPrint(e);
+					PayloadDbStore.errorPrint("drop:"+table, e);
 				}
 			}
 			if ( e.getSQLState().equals(ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
 				// then we don't care cause its already gone
 			} else {
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("drop:"+table,e);
 			}
 		}
 	}

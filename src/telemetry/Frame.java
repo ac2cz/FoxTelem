@@ -569,22 +569,22 @@ public abstract class Frame implements Comparable<Frame> {
 					PayloadRtValues payload = hsf.getRtPayload();
 					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RT to database");
-		//			PayloadMaxValues maxPayload = hsf.getMaxPayload();
-		//			if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload))
-		//				throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS MAX to database");
-		//			PayloadMinValues minPayload = hsf.getMinPayload();
-		//			if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) 
-		//				throw new StpFileProcessException(f.getName(), "Failed to process file: Could not HS MIN add to database");
-		//			PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-		//			if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads))
-		//				throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RAD to database");
-		//			if (Config.satManager.hasCamera(header.getFoxId())) {
-		//				PayloadCameraData cameraData = hsf.getCameraPayload();
-		//				if (cameraData != null)
-		//					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
-		//						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
+					PayloadMaxValues maxPayload = hsf.getMaxPayload();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS MAX to database");
+					PayloadMinValues minPayload = hsf.getMinPayload();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) 
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not HS MIN add to database");
+					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads))
+						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RAD to database");
+					if (Config.satManager.hasCamera(header.getFoxId())) {
+						PayloadCameraData cameraData = hsf.getCameraPayload();
+						if (cameraData != null)
+							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
+								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
 
-		//			}
+					}
 					if (Config.satManager.hasHerci(header.getFoxId())) {
 						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
 						if (herciDataSet != null)

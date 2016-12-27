@@ -463,11 +463,11 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				try {
 					stmt.execute(createString);
 				} catch (SQLException ex) {
-					PayloadDbStore.errorPrint(ex);
+					PayloadDbStore.errorPrint("initStpHeaderTable", ex);
 					Log.alert("FATAL: Could not create STP HEADER table");
 				}
 			} else {
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("initStpHeaderTable", e);
 				Log.alert("FATAL: Could not access the STP HEADER table");
 			}
 		} 
@@ -490,7 +490,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				Log.println("DUPLICATE RECORD, not stored");
 				return true; // we consider this data added
 			} else {
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("addStpHeader", e);
 			}
 			return false;
 		}
@@ -519,7 +519,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				Log.println("DUPLICATE RECORD, not stored");
 				return true; // we consider this data added
 			} else {
-				PayloadDbStore.errorPrint(e);
+				PayloadDbStore.errorPrint("updateStpHeader", e);
 			}
 			return false;
 		}
@@ -611,7 +611,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			try {
 				return store.getLatestRad();
 			} catch (SQLException e) {
-				errorPrint(e);
+				errorPrint("getLatestRad", e);
 				e.printStackTrace(Log.getWriter());
 				return null;
 			}
@@ -646,7 +646,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			try {
 				return store.getMaxGraphData(name, period, fox, fromReset, fromUptime);
 			} catch (SQLException e) {
-				errorPrint(e);
+				errorPrint("getMaxGraphData", e);
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;		
@@ -658,7 +658,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			try {
 				return store.getMinGraphData(name, period, fox, fromReset, fromUptime);
 			} catch (SQLException e) {
-				errorPrint(e);
+				errorPrint("getMinGraphData", e);
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;		
@@ -697,22 +697,23 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		
 	}
 	
-	public static void errorPrint(Throwable e) {
+	public static void errorPrint(String cause, Throwable e) {
 		if (e instanceof SQLException)
-			SQLExceptionPrint((SQLException)e);
+			SQLExceptionPrint(cause, (SQLException)e);
 		else {
-			Log.println("ERROR: A NON SQLException error occured while accessing the DB");
+			Log.println("ERROR: "+cause+" A NON SQLException error occured while accessing the DB");
 			e.printStackTrace(Log.getWriter());
 		}
 	} // END errorPrint
 
 	// Iterates through a stack of SQLExceptions
-	static void SQLExceptionPrint(SQLException sqle) {
+	static void SQLExceptionPrint(String cause, SQLException sqle) {
 		while (sqle != null) {
-			Log.println("\n---SQLException Caught---\n");
+			Log.println("\n---SQLException Caught--- Caused by: "+cause+"\n");
 			Log.println("SQLState: " + (sqle).getSQLState());
 			Log.println("Severity: " + (sqle).getErrorCode());
 			Log.println("Message: " + (sqle).getMessage());
+			Log.alert("SERIOUS SQL exception caused by "+cause+".  Need to clear the ALERT and restart the server:\n");
 			//sqle.printStackTrace(Log.getWriter());
 			sqle = sqle.getNextException();
 		}
