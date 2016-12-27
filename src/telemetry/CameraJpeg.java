@@ -238,29 +238,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		}
 	}
 	
-	/*
-	public void savePictureLinesFile(PictureScanLine line) throws IOException {
-		String log = fileName + ".psl";
-		
-		File aFile = new File(log);
-		if(!aFile.exists()) {
-			aFile.createNewFile();
-		}
-		//Log.println("Saving: " + log);
-		//use buffering 
-		boolean append = false;
-		Writer output = new BufferedWriter(new FileWriter(aFile, append));
-		try {
-			output.write( line.toString() + "\n" );
-			output.flush();
-		} finally {
-			// Make sure it is closed even if we hit an error
-			output.flush();
-			output.close();
-		}
-
-	}
-	*/
+	
 	/**
 	 * Check to see if the uptime we have been passed is within 150 seconds of the uptimes in this file
 	 * @param id

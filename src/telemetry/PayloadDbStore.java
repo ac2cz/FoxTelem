@@ -453,6 +453,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			stmt = PayloadDbStore.derby.createStatement();
 			select = stmt.executeQuery("select 1 from " + table + " LIMIT 1");
 			select.close();
+			stmt.close();
 		} catch (SQLException e) {
 			
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
@@ -462,6 +463,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				Log.println ("Creating new DB table " + table);
 				try {
 					stmt.execute(createString);
+					stmt.close();
 				} catch (SQLException ex) {
 					PayloadDbStore.errorPrint("initStpHeaderTable", ex);
 					Log.alert("FATAL: Could not create STP HEADER table");
@@ -469,6 +471,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			} else {
 				PayloadDbStore.errorPrint("initStpHeaderTable", e);
 				Log.alert("FATAL: Could not access the STP HEADER table");
+				try { stmt.close(); } catch (SQLException e2) {};
 			}
 		} 
 	}
@@ -485,13 +488,16 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			stmt = PayloadDbStore.derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
+			stmt.close();
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
+				try { stmt.close(); } catch (SQLException e2) {};
 				return true; // we consider this data added
 			} else {
 				PayloadDbStore.errorPrint("addStpHeader", e);
 			}
+			try { stmt.close(); } catch (SQLException e2) {};
 			return false;
 		}
 		return true;
@@ -513,14 +519,17 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			derby = getConnection();
 			stmt = PayloadDbStore.derby.createStatement();
 			int r = stmt.executeUpdate(update);
+			stmt.close();
 			if (r > 1) throw new StpFileProcessException("FOXDB","MULTIPLE ROWS UPDATED!");
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
+				try { stmt.close(); } catch (SQLException e2) {};
 				return true; // we consider this data added
 			} else {
 				PayloadDbStore.errorPrint("updateStpHeader", e);
 			}
+			try { stmt.close(); } catch (SQLException e2) {};
 			return false;
 		}
 		return true;
