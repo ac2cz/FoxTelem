@@ -50,8 +50,6 @@ ItemListener {
 	Spacecraft sat;
 	RtMeasurement rtMeasurement;
 	PassMeasurement passMeasurement;
-	JCheckBox cbUseDDEAzEl;
-	JCheckBox cbUseDDEFreq;
 
 	MyMeasurementsTab(Spacecraft s) {
 		sat = s;
@@ -113,24 +111,6 @@ ItemListener {
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-
-		cbUseDDEFreq = new JCheckBox("Read Freq from SatPC32",
-				Config.useDDEforFreq);
-		cbUseDDEFreq.setMinimumSize(new Dimension(100, 14));
-		bottomPanel.add(cbUseDDEFreq);
-		cbUseDDEFreq.addItemListener(this);
-		cbUseDDEFreq.setEnabled(false);
-		if (Config.isWindowsOs())
-			cbUseDDEFreq.setEnabled(true);
-
-		cbUseDDEAzEl = new JCheckBox("Read Az/El from SatPC32",
-				Config.useDDEforAzEl);
-		cbUseDDEAzEl.setMinimumSize(new Dimension(100, 14));
-		bottomPanel.add(cbUseDDEAzEl);
-		cbUseDDEAzEl.addItemListener(this);
-		cbUseDDEAzEl.setEnabled(false);
-		if (Config.isWindowsOs())
-			cbUseDDEAzEl.setEnabled(true);
 
 	}
 
@@ -237,23 +217,6 @@ ItemListener {
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		Object source = e.getItemSelectable();
-
-		if (source == cbUseDDEFreq) {
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.useDDEforFreq = false;
-			} else {
-				Config.useDDEforFreq = true;
-			}
-		}
-		if (source == cbUseDDEAzEl) {
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.useDDEforAzEl = false;
-			} else {
-				Config.useDDEforAzEl = true;
-			}
-		}
+		
 	}
 }
