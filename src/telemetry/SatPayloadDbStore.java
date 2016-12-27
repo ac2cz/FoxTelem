@@ -161,6 +161,7 @@ public class SatPayloadDbStore {
 			stmt = derby.createStatement();
 			select = stmt.executeQuery("select 1 from " + table + " LIMIT 1");
 			select.close();
+			stmt.close();
 		} catch (SQLException e) {
 			
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
@@ -234,6 +235,7 @@ public class SatPayloadDbStore {
 			if (!rs.isClosed() && rs.next());
 				count = rs.getInt(1);
 			rs.close();
+			stmt.close();
 		} catch (SQLException e) {
 			e.printStackTrace(Log.getWriter());
 			count = 0;
@@ -635,11 +637,14 @@ public class SatPayloadDbStore {
 						return null;
 					}
 				}
+				r.close();
+				rs.close();
 				CameraJpeg j = new CameraJpeg(rsid, rsresets, newFromUptime, newToUptime, rspictureCounter, rs);
 				return j;
-			} else
-			
-			return null;
+			} else {
+				r.close();
+				return null;
+			}
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint(e);
 		}
@@ -767,7 +772,7 @@ public class SatPayloadDbStore {
 				
 			}
 			rs.close();
-
+			stmt.close();
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint(e);
 		}
@@ -842,6 +847,7 @@ public class SatPayloadDbStore {
 			Connection derby = PayloadDbStore.getConnection();
 			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
 			ResultSet r = stmt.executeQuery(update);
+			stmt.close();
 			return r;
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint(e);
@@ -930,6 +936,7 @@ public class SatPayloadDbStore {
 			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			boolean res = stmt.execute("drop table " + table);
+			stmt.close();
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(ERR_OPEN_RESULT_SET) ) {  // Open Result set
 				try {
@@ -941,6 +948,7 @@ public class SatPayloadDbStore {
 					Log.println("RETRYING.....");
 					@SuppressWarnings("unused")
 					boolean res = stmt.execute("drop table " + table);
+					stmt.close();
 				} catch (SQLException e1) {
 					Log.println("RETRY FAILED");
 					PayloadDbStore.errorPrint(e);
