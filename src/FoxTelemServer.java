@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import telemServer.ImageProcess;
+import telemServer.ServerConfig;
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
@@ -101,8 +102,10 @@ public class FoxTelemServer {
 		Log.println("Listening on port: " + port);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.serverInit(u,p,db); // initialize and create the payload store.  
 
+		ServerConfig.init();
+		
 		if (args.length == 3) {
 			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");

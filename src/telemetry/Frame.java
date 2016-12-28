@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
@@ -23,6 +24,7 @@ import common.Log;
 import common.Sequence;
 import common.FoxSpacecraft;
 import common.TlmServer;
+import decoder.HighSpeedBitStream;
 import fec.RsCodeWord;
 
 /**
@@ -498,11 +500,21 @@ public abstract class Frame implements Comparable<Frame> {
 
 		byte[] frame = null;
 		if (length == 768) {
-			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
-			if (!rs.validDecode()) {
-				Log.println("RS Decode Failed");
-				throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+			if (ServerConfig.slowSpeedRsDecode) {
+				RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+				if (!rs.validDecode()) {
+					Log.println("RS Decode Failed");
+					throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+				}
 			}
+		} else {
+			// High Speed Frame
+			// Log.println("RS Decode for: " + length/8 + "byte frame..");
+			if (ServerConfig.highSpeedRsDecode)
+				if (!highSpeedRsDecode(rawFrame)) {
+					Log.println("HIGH SPEED RS Decode Failed");
+					throw new StpFileProcessException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
+				}
 		}
 		frame = rawFrame; //rs.decode();
 
@@ -536,6 +548,61 @@ public abstract class Frame implements Comparable<Frame> {
 		// if (frm != null) Log.println(frm.getHeader().toString());
 		return frm;
 
+	}
+	
+	/**
+	 * Run an RS Decode on a high speed frame.  These bytes should have already been corrected at the ground station, so there should be
+	 * no errors.  We do not have a list of erasures at this point, but that should not matter.
+	 * @param rawFrame byte[]
+	 * @return boolean
+	 */
+	private static boolean highSpeedRsDecode(byte[] rawFrame) {
+		RsCodeWord[] codeWords = new RsCodeWord[HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS];
+		 
+		for (int q=0; q < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; q++) {
+			codeWords[q] = new RsCodeWord(HighSpeedBitStream.RS_PADDING[q]);
+		}
+	
+		int bytesInFrame = 0;
+		int f=0; // position in the Rs code words as we allocate bits to them
+		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
+		
+		for (byte b8 : rawFrame) {
+			bytesInFrame++;
+			if (bytesInFrame == HighSpeedFrame.MAX_FRAME_SIZE+1) {  
+				// first parity byte.  All the checkbytes are at the end
+				//Log.println("parity");
+				// Reset to the first code word
+				rsNum = 0;
+				//Next byte position in the codewords
+				f++;
+			}
+			try {
+				codeWords[rsNum++].addByte(b8);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				e.printStackTrace(Log.getWriter());
+			}
+			if (rsNum == HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS) {
+				rsNum=0;
+				f++;
+				if (f > RsCodeWord.NN)
+					Log.println("ERROR: Allocated more high speed data that fits in an RSCodeWord");
+			}
+		}
+
+	//// DEBUG ///
+	//		System.out.println(codeWords[0]);
+			
+		// Now Decode all of the RS words and fail if any do not pass
+		for (int i=0; i < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; i++) {
+			codeWords[i].decode();  
+			if (!codeWords[i].validDecode()) {
+				// We had a failure to decode, so the frame is corrupt
+				Log.println("FAILED RS DECODE FOR HS WORD " + i);
+				return false;
+			} 
+		}
+		return true;
 	}
 
 	public static Frame importStpFile(File f, boolean delete) throws StpFileProcessException {
