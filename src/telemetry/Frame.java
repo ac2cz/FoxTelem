@@ -509,9 +509,9 @@ public abstract class Frame implements Comparable<Frame> {
 			}
 		} else {
 			// High Speed Frame
-			// Log.println("RS Decode for: " + length/8 + "byte frame..");
+			// Log.println("RS Decode for: " + length/8 + " byte frame..");
 			if (ServerConfig.highSpeedRsDecode)
-				if (!highSpeedRsDecode(rawFrame)) {
+				if (!highSpeedRsDecode(rawFrame, demodulator)) {
 					Log.println("HIGH SPEED RS Decode Failed");
 					throw new StpFileProcessException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
 				}
@@ -556,7 +556,14 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @param rawFrame byte[]
 	 * @return boolean
 	 */
-	private static boolean highSpeedRsDecode(byte[] rawFrame) {
+	private static boolean highSpeedRsDecode(byte[] rawFrame, String demodulator) {
+		
+		String versionString[] = demodulator.split(" ");
+		int major = Config.parseVersionMajor(versionString[1]);
+		int minor = Config.parseVersionMinor(versionString[1]);
+		String point = Config.parseVersionPoint(versionString[1]);
+		//Log.println("RS Decode for: " + demodulator + " "+ major +" "+ minor +" "+ point);
+		
 		RsCodeWord[] codeWords = new RsCodeWord[HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS];
 		 
 		for (int q=0; q < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; q++) {
@@ -572,10 +579,15 @@ public abstract class Frame implements Comparable<Frame> {
 			if (bytesInFrame == HighSpeedFrame.MAX_FRAME_SIZE+1) {  
 				// first parity byte.  All the checkbytes are at the end
 				//Log.println("parity");
-				// Reset to the first code word
-				rsNum = 0;
-				//Next byte position in the codewords
-				f++;
+				if (major > 1 || (major == 1 && minor > 5) || (major == 1 && minor == 5 && point.equalsIgnoreCase("d"))) {
+					// FoxTelem 1.05c and later
+					// Reset to the first code word and Next byte position in the codewords
+					rsNum = 0;
+					f++;
+				} else {
+					// FoxTelem 1.05b and earlier
+					rsNum = 1;
+				}
 			}
 			try {
 				codeWords[rsNum++].addByte(b8);
