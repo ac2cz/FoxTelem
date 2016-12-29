@@ -580,12 +580,12 @@ public abstract class Frame implements Comparable<Frame> {
 				// first parity byte.  All the checkbytes are at the end
 				//Log.println("parity");
 				if (major > 1 || (major == 1 && minor > 5) || (major == 1 && minor == 5 && point.equalsIgnoreCase("d"))) {
-					// FoxTelem 1.05c and later
+					// FoxTelem 1.05d and later - use correct RS Decode
 					// Reset to the first code word and Next byte position in the codewords
 					rsNum = 0;
 					f++;
 				} else {
-					// FoxTelem 1.05b and earlier
+					// FoxTelem 1.05b and earlier - Compensate for the offset FEC Bytes and Decode
 					rsNum = 1;
 				}
 			}

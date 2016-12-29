@@ -227,6 +227,9 @@ public class Config {
 	// V1.03
 	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
+<<<<<<< HEAD
+	static public boolean generateSecondaryPayloads = false;
+=======
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
 	// V1.04
@@ -234,6 +237,7 @@ public class Config {
 	static public int splitPaneHeight = 200;
 	public static boolean useDDEforFindSignal = false;
 	public static boolean showFilters = true;
+>>>>>>> 1.05c
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -292,14 +296,6 @@ public class Config {
 		initServerQueue();
 	}
 
-	public static String getLogFileDirectory() {
-		String toFileName = "";
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			toFileName = Config.logFileDirectory + File.separator;
-		}	
-		return toFileName;
-	}
-	
 	public static int getVersionMajor() {
 		return parseVersionMajor(VERSION_NUM);
 	}

@@ -106,7 +106,7 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	ArrayList<Long> timeZero = null;
 	
-	public FoxSpacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
+	public FoxSpacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
 		super(fileName);
 		load(); // don't call load until this constructor has started and the variables have been initialized
 		try {
@@ -296,10 +296,10 @@ public class FoxSpacecraft extends Spacecraft{
 	//		herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
+			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );		
+			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath());		
 		}
 
 	}

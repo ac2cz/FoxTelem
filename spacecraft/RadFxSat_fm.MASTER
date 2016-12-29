@@ -1,5 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Sat Nov 26 17:00:51 EST 2016
+#File named .dat should be in the logfiles directory and is loaded by FoxTelem
+#File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=false
 numberOfLookupTables=3
 measurementsFileName=measurements.csv

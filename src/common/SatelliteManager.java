@@ -2,6 +2,7 @@ package common;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -9,6 +10,7 @@ import java.util.regex.Pattern;
 import FuncubeDecoder.FUNcubeSpacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
+import telemetry.SatPayloadStore;
 
 /**
  * 
@@ -41,39 +43,87 @@ public class SatelliteManager {
 	ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	
 	public SatelliteManager()  {
-		File folder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
+		File masterFolder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
+		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
+		loadSats(folder);
+	}
+	
+	private File getFolder(File masterFolder) {
+		File folder = new File(Config.getLogFileDirectory() + FoxSpacecraft.SPACECRAFT_DIR);
+		if(!folder.isDirectory()){
+			folder.mkdir();
+			Log.infoDialog("NEW FILE LAYOUT", "The configuration files for the spacecraft have been copied to: \n" + folder.getAbsolutePath() + "\n"
+					+ "Delete any of the copied .dat files that you do not want to load when using this logfiles directory.\n"
+					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n"
+							+ "and can be copied back in later if needed.");
+			// Now copy in any missing files
+			File[] listOfFiles = masterFolder.listFiles();
+			if (listOfFiles != null) {
+				for (int i = 0; i < listOfFiles.length; i++) {
+					if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".MASTER")) {
+						Log.println("Checking spacecraft file: " + listOfFiles[i].getName());
+						String targetName = listOfFiles[i].getName().replace(".MASTER", ".dat");
+						File targetFile = new File(folder + File.separator + targetName);
+						if(!targetFile.exists()){
+							// Missing this file
+							Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
+							try {
+								SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+							} catch (IOException e) {
+								Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
+								e.printStackTrace();
+							}
+						} else {
+							Log.println("Leaving existing spacecraft file: " + targetFile.getName());
+						}
+					}
+				}
+			}
+		}
+		if(!folder.isDirectory()){
+			Log.errorDialog("ERROR", "ERROR can't create the directory: " + folder.getAbsolutePath() +  
+					"\nFoxTelem needs to save the spacecraft settings in your logfile directroy.  It is either not accessible or not writable\n");
+		}
+		
+		System.out.println("Set Logfile Spacecraft directory to: " + folder);
+		
+		
+		return folder;
+	}
+	
+	private void loadSats(File folder) {
 		File[] listOfFiles = folder.listFiles();
 		Pattern pattern = Pattern.compile("AO-73");
 		if (listOfFiles != null) {
-		for (int i = 0; i < listOfFiles.length; i++) {
-			if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".dat")) {
-				Log.println("Loading spacecraft from: " + listOfFiles[i].getName());
-				Spacecraft satellite = null;
-				try {
-					//FIXME - HACK FOR FCUBE
-					Matcher matcher = pattern.matcher(listOfFiles[i].getName());
-					if (matcher.find())
-						satellite = new FUNcubeSpacecraft(listOfFiles[i].getName());
-					else
-						satellite = new FoxSpacecraft(listOfFiles[i].getName());
-				} catch (FileNotFoundException e) {
-					Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
-					e.printStackTrace(Log.getWriter());
-					satellite = null;
-				} catch (LayoutLoadException e) {
-					Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
-					e.printStackTrace(Log.getWriter());
-					satellite = null;
-				}
-				if (satellite != null)
-					if (getSpacecraft(satellite.foxId) != null)
-						Log.errorDialog("WARNING", "Can not load two satellites with the same Fox ID.  Skipping file\n"
-								+ listOfFiles[i].getName());
-					else
-						spacecraftList.add(satellite);
-			} 
-		}
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".dat")) {
+					Log.println("Loading spacecraft from: " + listOfFiles[i].getName());
+					Spacecraft satellite = null;
+					try {
+						//FIXME - HACK FOR FCUBE
+						Matcher matcher = pattern.matcher(listOfFiles[i].getName());
+						if (matcher.find())
+							satellite = new FUNcubeSpacecraft(listOfFiles[i]);
+						else
+							satellite = new FoxSpacecraft(listOfFiles[i]);
+					} catch (FileNotFoundException e) {
+						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
+						e.printStackTrace(Log.getWriter());
+						satellite = null;
+					} catch (LayoutLoadException e) {
+						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
+						e.printStackTrace(Log.getWriter());
+						satellite = null;
+					}
+					if (satellite != null)
+						if (getSpacecraft(satellite.foxId) != null)
+							Log.errorDialog("WARNING", "Can not load two satellites with the same Fox ID.  Skipping file\n"
+									+ listOfFiles[i].getName());
+						else
+							spacecraftList.add(satellite);
+				} 
+			}
 		}
 		if (spacecraftList.size() == 0) {
 			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 

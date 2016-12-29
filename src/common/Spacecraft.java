@@ -13,7 +13,7 @@ import telemetry.LookUpTable;
 
 public abstract class Spacecraft {
 	public Properties properties; // Java properties file for user defined values
-	public String propertiesFileName;
+	public File propertiesFile;
 	
 	public static String SPACECRAFT_DIR = "spacecraft";
 	public static final int ERROR_IDX = -1;
@@ -91,9 +91,9 @@ public abstract class Spacecraft {
 	// User Config
 	public boolean track = true; // default is we track a satellite
 	
-	public Spacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
+	public Spacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
-		propertiesFileName = fileName;		
+		propertiesFile = fileName;		
 	}
 	
 	public boolean isFox1() {
@@ -145,10 +145,10 @@ public abstract class Spacecraft {
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
 		try {
-			FileInputStream f=new FileInputStream(Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName);
+			FileInputStream f=new FileInputStream(propertiesFile);
 			properties.load(f);
 		} catch (IOException e) {
-			throw new LayoutLoadException("Could not load spacecraft files: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName);
+			throw new LayoutLoadException("Could not load spacecraft files: " + propertiesFile.getAbsolutePath());
 		}
 		try {
 			foxId = Integer.parseInt(getProperty("foxId"));
@@ -188,13 +188,13 @@ public abstract class Spacecraft {
 				track = Boolean.parseBoolean(t);
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
+			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing data value when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );		
+			throw new LayoutLoadException("Missing data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("File not found loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
+			throw new LayoutLoadException("File not found loading Spacecraft file: " + propertiesFile.getAbsolutePath());
 		}
 	}
 	
@@ -209,14 +209,14 @@ public abstract class Spacecraft {
 	protected String getProperty(String key) throws LayoutLoadException {
 		String value = properties.getProperty(key);
 		if (value == null) {
-			throw new LayoutLoadException("Missing data value: " + key + " when loading Spacecraft file: \n" + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
+			throw new LayoutLoadException("Missing data value: " + key + " when loading Spacecraft file: \n" + propertiesFile.getAbsolutePath() );
 //			throw new NullPointerException();
 		}
 		return value;
 	}
 	protected void store() {
 		try {
-			properties.store(new FileOutputStream(Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator + propertiesFileName), "Fox 1 Telemetry Decoder Properties");
+			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
 		} catch (FileNotFoundException e1) {
 			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
 			e1.printStackTrace(Log.getWriter());
