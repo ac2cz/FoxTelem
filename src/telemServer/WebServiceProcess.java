@@ -16,12 +16,16 @@ import java.util.TimeZone;
 import telemetry.Frame;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 
 public class WebServiceProcess implements Runnable {
 
+	public static String version = "Version 0.19a - 10 Sept 2016";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -60,7 +64,7 @@ public class WebServiceProcess implements Runnable {
 				// this blank line signals the end of the headers
 				out.println("");
 
-				//			String path = request.substring(1, request.length());
+				//String path = request.substring(1, request.length());
 
 				WebHealthTab fox1Atab = null;
 
@@ -79,7 +83,7 @@ public class WebServiceProcess implements Runnable {
 				String[] path = request.split("/");
 				if (path.length > 0) { // VERSION COMMAND
 					if (path[1].equalsIgnoreCase("version")) {
-						out.println("Fox Web Service Starting...");
+						out.println("Fox Web Service..." + version);
 					} else if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
 						if (path.length == 6) {
 							try {
@@ -94,17 +98,28 @@ public class WebServiceProcess implements Runnable {
 					} else if (path[1].equalsIgnoreCase("FRAME")) { // Frame Command
 						// Send the HTML page
 						if (path.length == 4) {
-							int sat = Integer.parseInt(path[2]);
-							int type = Integer.parseInt(path[3]);
-							PayloadRtValues rt = Config.payloadStore.getLatestRt(sat);
+							PayloadRtValues rt = null;
+							int sat = 1;
+							int type = 1;
+							try {
+								sat = Integer.parseInt(path[2]);
+								type = Integer.parseInt(path[3]);
+								rt = Config.payloadStore.getLatestRt(sat);
+							} catch (NumberFormatException e) {
+								out.println("Invalid sat or type");
+							}
+							PayloadMaxValues max = Config.payloadStore.getLatestMax(sat);
+							PayloadMinValues min = Config.payloadStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
 								//out.println("<H2>Fox-1 Telemetry</H2>");
 								fox1Atab.setRtPayload(rt);
+								fox1Atab.setMaxPayload(max);
+								fox1Atab.setMinPayload(min);
 								out.println(fox1Atab.toString());
 							} else {
 								out.println("FOX SERVER Currently not returning data....\n");
@@ -115,21 +130,33 @@ public class WebServiceProcess implements Runnable {
 					} else if (path[1].equalsIgnoreCase("FIELD")) { // Field Command
 						// /FIELD/SAT/NAME/R|C/N/RESET/UPTME - Return N R-RAW or C-CONVERTED values for field NAME from sat SAT
 						if (path.length == 8) {
-							int sat = Integer.parseInt(path[2]);
 							String name = path[3];
 							String raw = path[4];
 							boolean convert = true;
-							int num = Integer.parseInt(path[5]);
-							int fromReset = Integer.parseInt(path[6]);
-							int fromUptime = Integer.parseInt(path[7]);
+							int sat = 0;
+							int num = 0;
+							int fromReset = 0;
+							int fromUptime = 0;
 							try {
-								fox1Atab = new WebHealthTab(Config.satManager.getSpacecraft(sat),port);
+								sat = Integer.parseInt(path[2]);
+								num = Integer.parseInt(path[5]);
+								fromReset = Integer.parseInt(path[6]);
+								fromUptime = Integer.parseInt(path[7]);
+							} catch (NumberFormatException e) {
+								out.println("Invalid sat or type");
+							}
+							if (sat != 0) {
+							try {
+								fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
 							} catch (LayoutLoadException e1) {
 								e1.printStackTrace(Log.getWriter());
 							}
 							if (raw.startsWith("C"))
 								convert = false;
 							out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+							} else {
+								out.println("FOX SAT Requested invalid\n");
+							}
 						} else {
 							out.println("FOX FIELD Request invalid\n");
 						}

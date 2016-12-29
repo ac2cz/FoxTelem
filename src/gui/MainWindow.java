@@ -26,12 +26,10 @@ import javax.swing.JOptionPane;
 import javax.swing.JTabbedPane;
 
 import java.awt.event.ItemListener;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -39,7 +37,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -49,6 +46,7 @@ import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
@@ -59,17 +57,6 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
-import telemetry.FramePart;
-import telemetry.HighSpeedFrame;
-import telemetry.HighSpeedHeader;
-import telemetry.LayoutLoadException;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
@@ -102,17 +89,7 @@ import com.apple.eawt.Application;
 public class MainWindow extends JFrame implements ActionListener, ItemListener, WindowListener, WindowStateListener {
 	
 	static Application macApplication;
-
-	static // We have one health thread per health tab
-	Thread[] healthThread;
-	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
-	static Thread[] radiationThread;
-	static Thread[] cameraThread;
-	static Thread[] herciThread;
-	// We have one FTP Thread for the whole application
-//	Thread ftpThread;
-//	FtpLogs ftpLogs;
-
+	
 	static UpdateManager updateManager;
 	Thread updateManagerThread;
 	
@@ -136,6 +113,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
+	JMenuItem mntmLeaderboard;
+	JMenuItem mntmSoftware;
 	JMenuItem mntmAbout;
 	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
@@ -143,13 +122,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// GUI components
 	static JTabbedPane tabbedPane;
 	public static SourceTab inputTab;
-	static MyMeasurementsTab measurementsTab;
-	static Thread measurementThread;
+
 	// We have a radiation tab and a health tab per satellite
-	static ModuleTab[] radiationTab;
-	static HealthTab[] healthTab;
-	static CameraTab[] cameraTab;
-	static HerciHSTab[] herciTab;
+	static SpacecraftTab[] spacecraftTab;
 	
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
@@ -168,19 +143,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	 */
 	public MainWindow() {
 
-//		ftpLogs = new FtpLogs();
-//		if (ftpThread != null) { ftpLogs.stopProcessing(); }		
-//		ftpThread = new Thread(ftpLogs);
-//		ftpThread.start();
-
-		//decoder = d;
 		frame = this; // a handle for error dialogues
 		frame.addWindowFocusListener(new WindowAdapter() {
 		    public void windowGainedFocus(WindowEvent e) {
 		        //frame.requestFocusInWindow();
 		        //System.err.println("FOCUS!");
-		    	// THIS DOES NOT QUITE WORK. We get an oscillation.  And the event fires every window interaction
-		    	
+		    	// THIS DOES NOT QUITE WORK. We get an oscillation.  And the event fires every window interaction		    	
 		        //showGraphs();
 		    }
 		});
@@ -191,6 +159,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			macApplication.setPreferencesHandler(new MacPreferencesHandler());
 			macApplication.setQuitHandler(new MacQuitHandler(this));
 		}
+		
+		initMenu();
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
@@ -246,9 +216,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		addHealthTabs();
 		
-		addMeasurementsTab();
-		initMenu();
-		
 		initialize();
 		//pack(); // pack all in as tight as possible
 
@@ -258,6 +225,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
 		
+		// We are fully up, remove the database loading message
+		Config.fileProgress.updateProgress(100);
 	}
 
 	public static void enableSourceSelection(boolean t) {
@@ -269,42 +238,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	public static void showGraphs() {
-		for (HealthTab tab : healthTab) {
+		for (SpacecraftTab tab : spacecraftTab) {
 			tab.showGraphs();
 		}
-		for (ModuleTab tab : radiationTab) {
-			tab.showGraphs();
-		}
-		for (ModuleTab tab : herciTab) {
-			tab.showGraphs();
-		}
-		measurementsTab.showGraphs();
 		frame.toFront();
 	}
 	
 	public static void refreshTabs(boolean closeGraphs) {
-		for (HealthTab tab : healthTab) {
-			if (closeGraphs) tab.closeGraphs();
-			tabbedPane.remove(tab);
+		for (SpacecraftTab tab : spacecraftTab) {
+			tab.refreshTabs(closeGraphs);
 		}
-		if (closeGraphs) measurementsTab.closeGraphs();
-		tabbedPane.remove(measurementsTab);
+
 		
-
-		for (ModuleTab tab : radiationTab) {
-			if (closeGraphs) tab.closeGraphs();
-			tabbedPane.remove(tab);
-		}
-		for (ModuleTab tab : herciTab) {
-			if (tab != null)
-			if (closeGraphs) tab.closeGraphs();
-			tabbedPane.remove(tab);
-		}
-		for (CameraTab tab : cameraTab)
-			tabbedPane.remove(tab);
-
-		addHealthTabs();
-		addMeasurementsTab();
 		Config.payloadStore.setUpdatedAll();
 
 		if (Config.logFileDirectory.equals(""))
@@ -317,131 +262,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private static void addHealthTabs() {
-		stopThreads(healthTab);
-		stopThreads(radiationTab);
-		stopThreads(cameraTab);
-		stopThreads(herciTab);
-		
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		healthTab = new HealthTab[sats.size()];
-		healthThread = new Thread[sats.size()];
-		// FIXME - this is inefficient.  We do not need to reserve space for all these tabs.  Not all sats have a camera
-		radiationTab = new ModuleTab[sats.size()];
-		radiationThread = new Thread[sats.size()];
-		cameraTab = new CameraTab[sats.size()];
-		herciTab = new HerciHSTab[sats.size()];
-		cameraThread = new Thread[sats.size()];
-		herciThread = new Thread[sats.size()];
+		spacecraftTab = new SpacecraftTab[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
-			healthTab[s] = new HealthTab(sats.get(s));
-			healthThread[s] = new Thread(healthTab[s]);
-			healthThread[s].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-			healthThread[s].start();
-			
-			tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-//			tabbedPane.addTab( ""  
-			+ sats.get(s).toString() + "</b></body></html>", healthTab[s] );
-//			+" Health", healthTab );
-			
-			for (int exp : sats.get(s).experiments) {
-				if (exp == Spacecraft.EXP_VULCAN)
-					addExperimentTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_VT_CAMERA || exp == Spacecraft.EXP_VT_CAMERA_LOW_RES)
-					addCameraTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_IOWA_HERCI) {
-					addHerciHSTab(sats.get(s), s);
-					addHerciLSTab(sats.get(s), s);
-				}
-					
-			}
-			
+			spacecraftTab[s] = new SpacecraftTab(sats.get(s));
+
+				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+						//			tabbedPane.addTab( ""  
+						+ sats.get(s).toString() + "</b></body></html>", spacecraftTab[s] );
+				//			+" Health", healthTab );
 		}
-	}
-
-	private static void addMeasurementsTab() {
-		if (measurementsTab != null) {
-			measurementsTab.stopProcessing();
-			while (!measurementsTab.isDone())
-				try {
-					Thread.sleep(5);
-				} catch (InterruptedException e) {
-					e.printStackTrace(Log.getWriter());
-				}
-		}
-		measurementsTab = new MyMeasurementsTab();
-		measurementsTab.setBorder(new EmptyBorder(5, 5, 5, 5));
-		tabbedPane.addTab( "<html><body leftmargin=5 topmargin=8 marginwidth=5 marginheight=5>Measurements</body></html>", measurementsTab );
-		measurementThread = new Thread(measurementsTab);
-		measurementThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		measurementThread.start();
-		
-	}
-	
-	private static void stopThreads(FoxTelemTab[] tabs) {
-		if (tabs != null)
-			for (FoxTelemTab thread : tabs)
-				if (thread != null) { 
-					thread.stopProcessing(); 
-
-					while (!thread.isDone())
-						try {
-							Thread.sleep(5);
-						} catch (InterruptedException e) {
-							e.printStackTrace(Log.getWriter());
-						}
-
-				}
-
-	}
-	private static void addExperimentTab(Spacecraft fox, int num) {
-		
-		radiationTab[num] = new VulcanTab(fox);
-		radiationThread[num] = new Thread((VulcanTab)radiationTab[num]);
-		radiationThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		radiationThread[num].start();
-
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" VU Rad ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
-
-	}
-
-	private static void addHerciLSTab(Spacecraft fox, int num) {
-
-		radiationTab[num] = new HerciLSTab(fox);
-		radiationThread[num] = new Thread((HerciLSTab)radiationTab[num]);
-		radiationThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		radiationThread[num].start();
-
-		
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" HERCI HK ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
-
-	}
-	
-	private static void addHerciHSTab(Spacecraft fox, int num) {
-		herciTab[num] = new HerciHSTab(fox);
-		herciThread[num] = new Thread(herciTab[num]);
-			
-		herciThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		herciThread[num].start();
-
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" HERCI ("+ fox.getIdString() + ")</body></html>", herciTab[num] );
-
-	}
-	
-	private static void addCameraTab(Spacecraft fox, int num) {
-
-		cameraTab[num] = new CameraTab(fox);
-		cameraThread[num] = new Thread(cameraTab[num]);
-		cameraThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		cameraThread[num].start();
-
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" Camera ("+ fox.getIdString() + ")</body></html>", cameraTab[num] );
-//		tabbedPane.addTab( ""+ fox.toString()+
-//				" Experiment", radiationTab );
-
 	}
 
 	public static void setAudioMissed(int missed) {
@@ -552,7 +382,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		mntmSat = new JMenuItem[sats.size()];
 		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem("Fox-" + sats.get(i).getIdString());
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}
@@ -561,7 +391,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
-		mnOptions.add(chckbxmntmShowFilterOptions);
+		mnDecoder.add(chckbxmntmShowFilterOptions);
+		chckbxmntmShowFilterOptions.setState(Config.showFilters);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
 		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
@@ -574,6 +405,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mntmManual = new JMenuItem("Open Manual");
 		mnHelp.add(mntmManual);
 		mntmManual.addActionListener(this);
+		mntmLeaderboard = new JMenuItem("View Fox Server Leaderboard");
+		mnHelp.add(mntmLeaderboard);
+		mntmLeaderboard.addActionListener(this);
+		//mntmSoftware = new JMenuItem("Latest Software");
+		//mnHelp.add(mntmSoftware);
+		//mntmSoftware.addActionListener(this);
 		if (!Config.isMacOs()) {
 			mntmAbout = new JMenuItem("About FoxTelem");
 			mnHelp.add(mntmAbout);
@@ -730,12 +567,15 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
-				SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
-				f.setVisible(true);
+				if (sats.get(i).isFox1()) {
+					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
+					f.setVisible(true);
+				}
 			}
 		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
-				inputTab.showFilters(chckbxmntmShowFilterOptions.getState());
+			Config.showFilters = chckbxmntmShowFilterOptions.getState();
+				inputTab.showFilters(Config.showFilters);
 		}
 		
 		if (e.getSource() == chckbxmntmShowDecoderOptions) {	
@@ -744,12 +584,30 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		
 		if (e.getSource() == mntmManual) {
-            try {
-                DesktopApi.browse(new URI(HelpAbout.MANUAL));
-        } catch (URISyntaxException ex) {
-                //It looks like there's a problem
-        	ex.printStackTrace();
-        }
+			try {
+				DesktopApi.browse(new URI(HelpAbout.MANUAL));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
+
+		}
+		if (e.getSource() == mntmLeaderboard) {
+			try {
+				DesktopApi.browse(new URI(HelpAbout.LEADERBOARD));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
+
+		}
+		if (e.getSource() == mntmSoftware) {
+			try {
+				DesktopApi.browse(new URI(HelpAbout.SOFTWARE));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			}
 
 		}
 		if (e.getSource() == mntmAbout) {
@@ -853,9 +711,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
+		
+		// We are fully updated, remove the database loading message
+		Config.fileProgress.updateProgress(100);
 	}
 
 	
+	@SuppressWarnings("unused")
 	private void importServerData() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"
@@ -996,9 +858,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
 			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
 			
-			Iterator it = callsigns.entrySet().iterator();
+			Iterator<?> it = callsigns.entrySet().iterator();
 		    while (it.hasNext()) {
-		        Map.Entry pair = (Map.Entry)it.next();
+		        @SuppressWarnings("rawtypes")
+				Map.Entry pair = (Map.Entry)it.next();
 		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
 		    }
 		}
@@ -1016,14 +879,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.windowX = this.getX();
 		Config.windowY = this.getY();
 
-		for (HealthTab tab : healthTab)
+		for (SpacecraftTab tab : spacecraftTab)
 			tab.closeGraphs();
-		for (ModuleTab tab : radiationTab)
-			tab.closeGraphs();
-		for (ModuleTab tab : herciTab)
-			if (tab != null)
-			tab.closeGraphs();
-		measurementsTab.closeGraphs();
+
 		Config.save();
 	}
 

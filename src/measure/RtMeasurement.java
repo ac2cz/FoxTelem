@@ -7,8 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import common.Config;
 import common.Log;
 
@@ -34,10 +33,6 @@ import common.Log;
  *
  */
 public class RtMeasurement extends Measurement {
-
-	String captureDate;
-		
-	
 	
 	public static final String BIT_SNR = "BIT_SNR";
 	public static final String RF_SNR = "RF_SNR";
@@ -57,11 +52,10 @@ public class RtMeasurement extends Measurement {
 	 */
 	public RtMeasurement(int foxid, String date, int reset, long uptime, int type, StringTokenizer st) {
 		id = foxid;
-		captureDate = date;
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		this.date = new Date();
 		try {
-			this.date = FramePart.fileDateFormat.parse(captureDate);
+			this.date = FoxFramePart.fileDateFormat.parse(date);
 		} catch (ParseException e) {
 			e.printStackTrace(Log.getWriter());
 		}
@@ -81,8 +75,8 @@ public class RtMeasurement extends Measurement {
 	public RtMeasurement(int foxid, int reset, long uptime, int type) {
 		id = foxid;
 		date = Calendar.getInstance().getTime();  
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		captureDate = FramePart.fileDateFormat.format(date);
+		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		
 		this.reset = reset;
 		this.uptime = uptime;
 		this.type = type;
@@ -163,26 +157,16 @@ public class RtMeasurement extends Measurement {
 		} catch (NoSuchElementException e) {
 			// we are done and can finish
 		} catch (ArrayIndexOutOfBoundsException e) {
+			String captureDate = FoxFramePart.fileDateFormat.format(date);
 			// Something nasty happened when we were loading, so skip this record and log an error
-			Log.println("ERROR: Too many fields:  Could not load measurement " + this.id + " " + this.captureDate + this.type);
+			Log.println("ERROR: Too many fields:  Could not load measurement " + this.id + " " + captureDate + this.type);
 		} catch (NumberFormatException n) {
-			Log.println("ERROR: Invalid number:  Could not load measurement " + this.id + " " + this.captureDate+ this.type);
+			String captureDate = FoxFramePart.fileDateFormat.format(date);
+			Log.println("ERROR: Invalid number:  Could not load measurement " + this.id + " " + captureDate+ this.type);
 		}
 	}
 	
-	/**
-	 * Output the set of fields in this framePart as a set of comma separated values in a string.  This 
-	 * can then be written to a file
-	 * @return
-	 */
-	public String toFile() {
-		String s = new String();
-		s = s + captureDate + "," + id + "," + reset + "," + uptime + "," + type + ",";
-		for (int i=0; i < layout.NUMBER_OF_FIELDS-1; i++)
-			s = s + fieldValue[i] + ",";
-		s = s + fieldValue[layout.NUMBER_OF_FIELDS-1];
-		return s;
-	}
+	
 
 
 }

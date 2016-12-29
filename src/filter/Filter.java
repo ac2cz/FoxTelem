@@ -3,7 +3,7 @@ package filter;
 import javax.sound.sampled.AudioFormat;
 
 import common.Config;
-import decoder.Decoder;
+import decoder.FoxDecoder;
 import decoder.SourceAudio;
 
 /**
@@ -54,7 +54,7 @@ public abstract class Filter {
 	public double getGain() {return gain;}
 	
 	protected void coreInit() {
-		if (audioFormat.getChannels() == Decoder.MONO) stereo = false;
+		if (audioFormat.getChannels() == FoxDecoder.MONO) stereo = false;
 		useAGC = Config.useAGC;
 	}
 	
@@ -76,7 +76,7 @@ public abstract class Filter {
 		SAMPLERATE = (int) sampleRate;
 		cutoffFreq = freq;
 		length = len;
-		dcFilter = new DcRemoval(0.9999d);
+		dcFilter = new DcRemoval(0.9999f);
 		// A buffer to hold the overlap at the end of filtering a window of data
 		// needs to be added to the start of the next window
 		overlapDouble = new double[getFilterLength()];
@@ -90,7 +90,7 @@ public abstract class Filter {
 	 * These are raw bytes from the audio stream and are returned in the same format
 	 * @param abBuffer
 	 * @return
-	 */
+	 
 	public byte[] filterAndCopy(byte[] abBuffer) {
 				
 		int bytesPerSample = 2;
@@ -105,6 +105,7 @@ public abstract class Filter {
 		SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, audioDataBytes);
 		return audioDataBytes;
 	}
+	*/
 	
 	public void filter(double[] inputDouble, double[] outputDouble) {
 		
@@ -125,7 +126,7 @@ public abstract class Filter {
 		// copy into a buffer with the extra space for the overlap and DC filter while we are at it
 		for (int i = 0; i < samplesRead; i++) {
 			if (filterDC)
-				abBufferDouble[i] = dcFilter.filter(inputDouble[i]);
+				abBufferDouble[i] = dcFilter.filter( inputDouble[i]);
 			else
 				abBufferDouble[i] = inputDouble[i];
 			//abBufferDouble[i] = inputDouble[i];

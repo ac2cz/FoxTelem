@@ -1,9 +1,6 @@
 package telemetry;
 
-import common.Config;
-import common.Log;
-
-public class PayloadHerciLineCount extends FramePart {
+public class PayloadHerciLineCount extends FoxFramePart {
 
 	int scanLineCount = 1; // default to true so that we initialize it the first time we populate data
 	

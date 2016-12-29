@@ -9,8 +9,8 @@ import org.junit.Test;
 import telemetry.Cobs;
 import telemetry.CobsDecodeException;
 import telemetry.RadiationPacket;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -143,20 +143,20 @@ public class CobsTest {
 		int[] output = Cobs.unStuffData(input, 256);
 		
 		for (int i=0; i< output.length; i++) {
-			System.out.println(Decoder.hex(output[i]));
+			System.out.println(FoxDecoder.hex(output[i]));
 		}
 		
 		
 		// print them out in binary first so we can see what is going on
 		// This prints msb in the left most position and lsb on the right
-		boolean[] w = BitStream.intToBin8(output[0]);
-		System.out.println(BitStream.stringBitArray(w));
-		w = BitStream.intToBin8(output[1]);
-		System.out.println(BitStream.stringBitArray(w));
-		w = BitStream.intToBin8(output[2]);
-		System.out.println(BitStream.stringBitArray(w));
-		w = BitStream.intToBin8(output[3]);
-		System.out.println(BitStream.stringBitArray(w));
+		boolean[] w = FoxBitStream.intToBin8(output[0]);
+		System.out.println(FoxBitStream.stringBitArray(w));
+		w = FoxBitStream.intToBin8(output[1]);
+		System.out.println(FoxBitStream.stringBitArray(w));
+		w = FoxBitStream.intToBin8(output[2]);
+		System.out.println(FoxBitStream.stringBitArray(w));
+		w = FoxBitStream.intToBin8(output[3]);
+		System.out.println(FoxBitStream.stringBitArray(w));
 		
 
 		for (int i=0; i< input.length; i++) {

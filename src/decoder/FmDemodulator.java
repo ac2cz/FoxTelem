@@ -39,8 +39,8 @@ import common.Config;
 public class FmDemodulator {
 	protected double[] i = new double[3];
 	protected double[] q = new double[3];
-	double lastPhase = 0d;
-	double gain = 0.5;
+	double lastPhase = 0f;
+	double gain = 0.5f;
 	double limiti;
 	double limitq;
 	
@@ -83,7 +83,7 @@ public class FmDemodulator {
 		q[0] = qn;
 		
 		if (I == 0) {
-			I=1E-20; // small value to prevent divide by zero error
+			I=1E-20f; // small value to prevent divide by zero error
 			//angle = 0;
 		} 
 		/**
@@ -92,15 +92,15 @@ public class FmDemodulator {
 		 * original message waveform during the modulation.  This value now
 		 * serves as the instantaneous amplitude of the demodulated signal
 		 */
-		double denominator = 1.0d / I;
-		angle = Math.atan( (double)Q * denominator );
+		double denominator = 1.0f / I;
+		angle = (double) Math.atan( (double)Q * denominator );
 
 		// If both real and imaginary parts are negative, need to subtract PI radians
 		if (I < 0 && Q < 0) {
-			angle = angle - Math.PI;
+			angle = (double) (angle - Math.PI);
 		}
 		if (I < 0 && Q >= 0) {
-			angle = angle + Math.PI;
+			angle = (double) (angle + Math.PI);
 		}
 
 		return angle * gain;
@@ -143,9 +143,9 @@ public class FmDemodulator {
 	 * @param q
 	 * @return
 	 */
-	public double demodulate(double in, double qn) {
+	public double demodulate(double fftData, double fftData2) {
 		if (Config.useLimiter) {
-		limiter(in, qn);
+		limiter(fftData, fftData2);
 		
 		}
 		i[0] = i[1];
@@ -157,13 +157,13 @@ public class FmDemodulator {
 		i[2] = limiti;
 		q[2] = limitq;
 		} else {
-			i[2] = in;
-			q[2] = qn;
+			i[2] = fftData;
+			q[2] = fftData2;
 		}
 		
 		// it simplifies to: Demodn={Qn*In-1  -  In*Qn-1}/{In2+Qn2}
 		
-		double gain = 0.5d; // magic number of 1/2 seems to work best
+		double gain = 0.5f; // magic number of 1/2 seems to work best
 		double num = i[1] * ( q[2] - q[0] ) - q[1] * ( i[2] - i[0] );
 		//double num = q[2] * i[1]  - i[2] * q[1];
 		double den = (i[1]*i[1] + q[1]*q[1]); 
@@ -183,9 +183,9 @@ public class FmDemodulator {
 	 * @param q
 	 */
 	private void limiter(double i, double q) {
-		double f = Math.atan2(q, i);
-		limiti = Math.cos(f);
-		limitq = Math.sin(f);
+		double f = (double) Math.atan2(q, i);
+		limiti = (double) Math.cos(f);
+		limitq = (double) Math.sin(f);
 	}
 
 }

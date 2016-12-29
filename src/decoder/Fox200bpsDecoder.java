@@ -29,13 +29,14 @@ import common.Log;
  *
  * This is the DUV Decoder
  */
-public class Fox200bpsDecoder extends Decoder {
+public class Fox200bpsDecoder extends FoxDecoder {
 
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
 	private int useFilterNumber;
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
 		super("DUV", as, chan);
+		//Log.println("STARTED filter len: " + Config.filterLength);
 	}
 	
 	public void init() {
@@ -43,6 +44,7 @@ public class Fox200bpsDecoder extends Decoder {
 		setSlowSpeedParameters();
 		super.init();
 		useFilterNumber = Config.useFilterNumber;
+		//Log.println("INIT filter len: " + Config.filterLength);
 		updateFilter();
 	}
 	
@@ -51,20 +53,33 @@ public class Fox200bpsDecoder extends Decoder {
 	 */
 	private void updateFilter() {
 		// Get the params that were set by the GUI
+		FilterPanel.checkFilterParams();
+		//Log.println("UPDATE filter len: " + Config.filterLength);
 		currentFilterLength = Config.filterLength;
 		currentFilterFreq = Config.filterFrequency;
 		useFilterNumber = Config.useFilterNumber;
-		if (useFilterNumber == FilterPanel.RAISED_COSINE)
-			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
-		else
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
-		filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
+		if (useFilterNumber == FilterPanel.RAISED_COSINE) {
+			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
+			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
+		} else if (useFilterNumber == FilterPanel.WINDOWED_SINC) {
+			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
+			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
+		} else if (useFilterNumber == FilterPanel.MATCHED) {
+			//filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			// Experiments have determined that the optimal filter is the WS length 480
+			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
+			filter.init(currentSampleRate, Config.filterFrequency, bucketSize*2);
+		}
 		
+		//double[] coef = filter.getKernal();
+		//int i=0;
+		//for (double d: coef)
+		//	System.out.println(i++ + "," + d);
 	}
 	
 	private void setSlowSpeedParameters() {
 		//decodedFrame = new SlowSpeedFrame();
-		bitStream = new SlowSpeedBitStream(this);
+		foxBitStream = new SlowSpeedBitStream(this);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
 		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;

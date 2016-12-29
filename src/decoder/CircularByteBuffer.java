@@ -111,7 +111,7 @@ public class CircularByteBuffer {
 	 * @param o
 	 * @return
 	 */
-	private boolean add(byte o) {
+	public boolean add(byte o) {
 			bytes[endPointer] = o;
 
 			endPointer++;
@@ -156,20 +156,23 @@ public class CircularByteBuffer {
 		return bytes[p];
 	}
 	
+	
 	/** 
 	 * Set the start position to a new point.  
 	 */
 	public void incStartPointer(int amount) {
-		if (endPointer > startPointer ) {
+		// snapshot the value to avoid failing the check due to a race condition
+		int e = endPointer;
+		if (e > startPointer ) {
 			// then the startPointer needs to remain less than the end pointer after the increment
-			if (startPointer + amount >= endPointer)
-				throw new IndexOutOfBoundsException("Attempt to move start pointer " + startPointer + " past end pointer " + endPointer);
+			if (startPointer + amount >= e)
+				throw new IndexOutOfBoundsException("Attempt to move start pointer " + startPointer + " past end pointer " + e);
 		} else {
-			// if it wraps then it needs to stay less
+			// if it wraps then it needs to stay less, otherwise we are fine
 			if (startPointer + amount >= bufferSize) {
 				int testPointer = incPointer(startPointer, amount);
 				if (testPointer >= endPointer)
-					throw new IndexOutOfBoundsException("Attempt to move start pointer past end pointer");
+					throw new IndexOutOfBoundsException("Attempt to wrap start pointer " + startPointer + " past end pointer " + e);
 			}
 		}
 		startPointer = incPointer(startPointer, amount);
@@ -181,11 +184,12 @@ public class CircularByteBuffer {
 	 */
 	public int size() {
 		int size = 0;
-		if (endPointer >= startPointer)
-			size = endPointer - startPointer;
+		int e = endPointer; // snapshot the end pointer to avoid a race condition in the checks below.  The size can only grow if the end pointer moves, so this is safe
+		if (e >= startPointer)
+			size = e - startPointer;
 		else {
 			size = bufferSize - startPointer; // distance from start to end of the real array
-			size = size + endPointer;  //  add the distance from the start to the write pointer
+			size = size + e;  //  add the distance from the start to the write pointer
 		}
 		return size;	
 	}

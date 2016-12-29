@@ -15,11 +15,10 @@ import java.util.StringTokenizer;
 
 import javax.swing.JOptionPane;
 
-import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -45,12 +44,15 @@ import common.Spacecraft;
 public class SatMeasurementStore {
 
 	private static final int INIT_SIZE = 1000;
-	public static final int RT_MEASUREMENT_TYPE = 1;
-	public static final int PASS_MEASUREMENT_TYPE = 2;
+	
+	// These types need to be unique compared to the Type in FramePart so that we can graph things in different ways
+	public static final int RT_MEASUREMENT_TYPE = -1;
+	public static final int PASS_MEASUREMENT_TYPE = -2;
 	
 	public int foxId;
 	
-	public static String PASS_LOG = "passmeasurements.log";
+	public static String PASS_LOG = "passmeasurements2.log";
+	public static String OLD_PASS_LOG = "passmeasurements.log";
 	public static String RT_LOG = "rtmeasurements.log";
 	
 	public String rtFileName;
@@ -73,8 +75,30 @@ public class SatMeasurementStore {
 		try {
 			rtFileName = "Fox"+id+RT_LOG;
 			passFileName = "Fox"+id+PASS_LOG;
-			load(rtFileName);
-			load(passFileName);
+			
+			
+			String testFile = passFileName;
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				testFile = Config.logFileDirectory + File.separator + testFile;
+			}
+			File aFile = new File(testFile);
+			if(!aFile.exists()){
+				// then we need to convert to the new format in 1.04 and beyond
+				try {
+					convertPassMeasures();
+				} catch (IOException e) {
+					JOptionPane.showMessageDialog(MainWindow.frame,
+							e.toString(),
+							"ERROR converting old pass measurements",
+							JOptionPane.ERROR_MESSAGE) ;
+					e.printStackTrace(Log.getWriter());
+				}
+			} else {
+				load(passFileName, false);
+			}
+			
+			load(rtFileName, false);
+			
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
@@ -146,7 +170,15 @@ public class SatMeasurementStore {
 		return (PassMeasurement) passRecords.get(passRecords.size()-1);
 	}
 
-	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+		return getGraphData(rtRecords, name, period, fox, fromReset, fromUptime);
+	}
+	
+	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+		return getGraphData(passRecords, name, period, fox, fromReset, fromUptime);
+	}
+	
+	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
 
 		int start = 0;
 		int end = 0;
@@ -175,8 +207,13 @@ public class SatMeasurementStore {
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			
-			double result = ((RtMeasurement)rtRecords.get(i)).getRawValue(name);
-			if ( (Double.compare(result, 0.0d) != 0) || !((RtMeasurement)rtRecords.get(i)).zeroIsNull(name) ) { 
+			Measurement m = rtRecords.get(i);
+			double result;
+			if (m instanceof RtMeasurement )
+				result = ((RtMeasurement)rtRecords.get(i)).getRawValue(name);
+			else
+				result = ((PassMeasurement)rtRecords.get(i)).getRawValue(name);
+//			if ( (Double.compare(result, 0.0d) != 0) || !((RtMeasurement)rtRecords.get(i)).zeroIsNull(name) ) { 
 			  // screening out zero values because they corrupt the freq graph but breaks FEC plots
 //				System.out.println("IN:" + result);
 			results[j] = result;
@@ -184,7 +221,7 @@ public class SatMeasurementStore {
 			resets[j] = rtRecords.get(i).reset;
 			dates[j--] = rtRecords.get(i).date.getTime();
 			validRecords++;
-			}
+//			}
 		}
 //		System.out.println("ValidRecords:" + validRecords);
 		// We have results in the result set from results.length-1-validRecords to results.length-1
@@ -206,12 +243,12 @@ public class SatMeasurementStore {
 	 * @param log
 	 * @throws FileNotFoundException
 	 */
-	public void load(String log) throws FileNotFoundException {
+	public void load(String log, boolean load103) throws FileNotFoundException {
         String line;
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
-			Log.println("Loading: " + log);
 		}
+        Log.println("Loading: " + log);
         File aFile = new File(log );
 		if(!aFile.exists()){
 			try {
@@ -244,13 +281,19 @@ public class SatMeasurementStore {
         						+ "\nProgram will now exit");
         				System.exit(1);
         			}
-        			if (type == RT_MEASUREMENT_TYPE) {
-        				RtMeasurement rt = new RtMeasurement(id, date, reset, uptime, type, st);
+        			if (type == RT_MEASUREMENT_TYPE || type == 1) {  // 1 is the legacy type
+        				RtMeasurement rt = new RtMeasurement(id, date, reset, uptime, RT_MEASUREMENT_TYPE, st);
         				rtRecords.add(rt);
         				updatedRt = true;
         			}
-        			if (type == PASS_MEASUREMENT_TYPE) {
-        				PassMeasurement rt = new PassMeasurement(id, date, reset, uptime, type, st);
+        			if (type == PASS_MEASUREMENT_TYPE || type == 2) {  // 2 is the legacy type
+        				PassMeasurement rt = null;
+        				if (load103) {
+        					rt = new PassMeasurement(id, date, reset, uptime, PASS_MEASUREMENT_TYPE, null);
+        					rt.load103(st);
+        				} else {
+        					rt = new PassMeasurement(id, date, reset, uptime, PASS_MEASUREMENT_TYPE, st);
+        				}
         				passRecords.add(rt);
         				updatedPass = true;
         			}
@@ -357,4 +400,29 @@ public class SatMeasurementStore {
 		}
 	}
 
+	/**
+	 * Convert from passMeasurement in 1.03 to 1.04
+	 * Only the dates pose an issue. These have been saved as strings and need to be converted into long
+	 * @throws IOException
+	 */ 
+	public void convertPassMeasures() throws IOException {
+		String dir = "";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			dir = Config.logFileDirectory + File.separator;
+		} 
+        String oldlog = "Fox"+foxId+OLD_PASS_LOG;
+        String log = "Fox"+foxId+PASS_LOG;
+		Log.println("CONVERTING " + oldlog + " to " + log);
+		File aFile = new File(dir + oldlog );
+		if(aFile.exists()){
+			// then convert it
+			load(oldlog, true);
+			Log.println("Loaded: " + this.passRecords.size() + " records");
+			for(Measurement m: this.passRecords) {
+				PassMeasurement p = (PassMeasurement)m;
+				save(p,log);	
+			}
+		}
+	}
+	
 }

@@ -9,9 +9,8 @@ import telemetry.PayloadStore;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
+import measure.SatPc32DDE;
 import decoder.Decoder;
-import decoder.EyeData;
-import decoder.RfData;
 import decoder.SourceIQ;
 
 /**
@@ -61,7 +60,7 @@ public class PassManager implements Runnable {
 	
 	SourceTab inputTab; // the source tab that called this.  For callbacks when decoder live
 	SatelliteManager satelliteManager;
-	ArrayList<Spacecraft> spacecraft;
+	ArrayList<Spacecraft> foxSpacecraft;
 	boolean running = true;
 	boolean done = false;
 	PassMeasurement passMeasurement; // the paramaters we have measured about the current pass
@@ -83,8 +82,8 @@ public class PassManager implements Runnable {
 	int lastReset;
 	long lastUptime;
 	
-	final int SCAN_PERIOD = 250; //ms - we always do this
-	final int ANALYZE_PERIOD = 500; //ms - we pause for this if strongest signal > scan signal threshold 
+	final int SCAN_PERIOD = 200; //ms - we always do this
+	final int ANALYZE_PERIOD = 600; //ms - we pause for this if strongest signal > scan signal threshold 
 	final int SNR_PERIOD = 1500; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR
 	final int DECODE_PERIOD = 5000; //ms
 	final int FADE_PERIOD = 125 * 1000; //ms - need to wait for the length of a beacon to see if this is still a pass
@@ -100,19 +99,19 @@ public class PassManager implements Runnable {
 	
 	public PassManager(SatelliteManager satMan ) {
 		satelliteManager = satMan;
-		spacecraft = satMan.spacecraftList;
+		foxSpacecraft = satMan.spacecraftList;
 		pp1 = new PassParams();
 		pp2 = new PassParams();
 	}
 
 	public void setDecoder1(Decoder d, SourceIQ iq, SourceTab in) {
-		pp1.decoder = d;		
+		pp1.foxDecoder = d;		
 		pp1.iqSource = iq;	
 		inputTab = in;
 	}
 	
 	public void setDecoder2(Decoder d, SourceIQ iq, SourceTab in) {
-		pp2.decoder = d;		
+		pp2.foxDecoder = d;		
 		pp2.iqSource = iq;		
 		inputTab = in;
 	}
@@ -146,38 +145,38 @@ public class PassManager implements Runnable {
 		lastUptime = uptime;
 	}
 	
-	private void stateMachine(Spacecraft sat) {
+	private void stateMachine(Spacecraft spacecraft) {
 		state = INIT;
 		while (state != EXIT)
-			nextState(sat);
+			nextState(spacecraft);
 	}
 	
-	private void nextState(Spacecraft sat) {
+	private void nextState(Spacecraft spacecraft) {
 
 		switch (state) {
 		case INIT:
-			state = init(sat);
+			state = init(spacecraft);
 			break;
 		case SCAN:
-			state = scan(sat);
+			state = scan(spacecraft);
 			break;
 		case ANALYZE:
-			state = analyzeSNR(sat);
+			state = analyzeSNR(spacecraft);
 			break;
 		case START_PASS:
-			state = startPass(sat);
+			state = startPass(spacecraft);
 			break;
 		case DECODE:
-			state = decode(sat);
+			state = decode(spacecraft);
 			break;
 		case FADED:
-			state = faded(sat);
+			state = faded(spacecraft);
 			break;
 		case END_PASS:
-			state = endPass(sat);
+			state = endPass(spacecraft);
 			break;
 		case EXIT:
-			state = exit(sat);
+			state = exit(spacecraft);
 			break;
 		default:
 			break;
@@ -185,17 +184,21 @@ public class PassManager implements Runnable {
 
 	}
 	
-	private void setFreqRangeBins(Spacecraft sat, PassParams pp) {
-		if (pp.decoder != null && pp.iqSource != null) {
-			Config.toBin = pp.iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
-			Config.fromBin = pp.iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
-			
+	private void setFreqRangeBins(Spacecraft spacecraft, PassParams pp) {
+		if (pp.foxDecoder != null && pp.iqSource != null) {
+			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
+				Config.toBin = 0;
+				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
+			} else {
+				Config.toBin = pp.iqSource.getBinFromFreqHz(spacecraft.maxFreqBoundkHz*1000);
+				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
+			}
 		}
 	}
 	
 	private void initParams(PassParams pp) {
-		if (pp.decoder != null && pp.iqSource != null) {
-			if (Config.debugSignalFinder) Log.println("Initialized Pass Params for: " + pp.decoder.name);
+		if (pp.foxDecoder != null && pp.iqSource != null) {
+			if (Config.debugSignalFinder) Log.println("Initialized Pass Params for: " + pp.foxDecoder.name);
 			pp.rfData = pp.iqSource.getRfData();
 			if (pp.rfData != null)
 				pp.rfData.reset(); // new satellite to scan so reset the data
@@ -205,15 +208,15 @@ public class PassManager implements Runnable {
 		
 	}
 	
-	private int init(Spacecraft sat) {
+	private int init(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering INIT state");
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering INIT state");
 		faded = false;
-		if (pp1.decoder != null) {  // if the start button is pressed then Decoder1 must be none null
-			setFreqRangeBins(sat, pp1);
+		if (pp1.foxDecoder != null) {  // if the start button is pressed then Decoder1 must be none null
+			setFreqRangeBins(spacecraft, pp1);
 			initParams(pp1);
-			if (pp2.decoder != null) {
-				setFreqRangeBins(sat, pp2);
+			if (pp2.foxDecoder != null) {
+				setFreqRangeBins(spacecraft, pp2);
 				initParams(pp2);
 			}
 			return SCAN;
@@ -262,11 +265,11 @@ public class PassManager implements Runnable {
 	 * The RF SNR is measured in decoder 1, even if we have two decoders.
 	 * @return
 	 */
-	private int analyzeSNR(Spacecraft sat) {
+	private int analyzeSNR(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering ANALYZE state");
-		MainWindow.inputTab.fftPanel.setFox(sat);
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignal());
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering ANALYZE state");
+		MainWindow.inputTab.fftPanel.setFox(spacecraft);
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignal());
 		Config.selectedBin = pp1.rfData.getBinOfStrongestSignal();
 		pp1.rfData.reset(); // because we changed frequency
 
@@ -277,7 +280,7 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (foundRfSignal(sat, pp1)) {
+			if (foundRfSignal(spacecraft, pp1)) {
 				// We have a signal
 				return START_PASS;			
 			} else {
@@ -287,11 +290,11 @@ public class PassManager implements Runnable {
 		return EXIT;
 	}
 
-	private boolean foundRfSignal(Spacecraft sat, PassParams pp) {
+	private boolean foundRfSignal(Spacecraft spacecraft, PassParams pp) {
 		//System.out.println(sat.getIdString() + " RF SIG:" + rfData.rfSNR);
 		if (pp.rfData != null && pp.rfData.rfSNR > Config.ANALYZE_SNR_THRESHOLD) {
 			// We have a signal
-			if (Config.debugSignalFinder) Log.println("Found Candiate Signal from " + sat.getIdString());
+			if (Config.debugSignalFinder) Log.println("Found Candiate Signal from " + spacecraft.getIdString());
 			Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
 			
 			return true;
@@ -303,12 +306,12 @@ public class PassManager implements Runnable {
 	/**
 	 * We check if we should start the pass by measuring the BIT SNR.  If there are two deocders we need to do this in
 	 * both.  If either has a FOX Signal then we Save the AOS and begin decode
-	 * @param sat
+	 * @param spacecraft
 	 * @return
 	 */
-	private int startPass(Spacecraft sat) {
+	private int startPass(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		if (pp1.decoder != null) { // start button is still pressed
+		if (pp1.foxDecoder != null) { // start button is still pressed
 			
 			try {
 				Thread.sleep(SNR_PERIOD);
@@ -316,26 +319,35 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (foundFoxSignal(sat, pp1)) {
+			if (foundFoxSignal(spacecraft, pp1)) {
 				// We have a signal
-				lockSignal(sat, pp1);
+				lockSignal(spacecraft, pp1);
 				return DECODE;
 			}
 			if (pp2 != null)
-			if (foundFoxSignal(sat, pp2)) {
+			if (foundFoxSignal(spacecraft, pp2)) {
 				// We have a signal
-				lockSignal(sat, pp2);
+				lockSignal(spacecraft, pp2);
 				return DECODE;
 			}
 		}
 		return EXIT;
 	}
 
-	private void lockSignal(Spacecraft sat, PassParams pp) {
+	private void lockSignal(Spacecraft spacecraft, PassParams pp) {
 //		Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
-		passMeasurement = new PassMeasurement(sat.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
-		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + sat.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
-				+ " with " + pp.decoder.name + " decoder bin:" + Config.selectedBin);
+
+		passMeasurement = new PassMeasurement(spacecraft.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
+		if (Config.useDDEforAzEl) {
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
+			}
+		}
+
+		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
+				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
 	}
 	
@@ -343,26 +355,26 @@ public class PassManager implements Runnable {
 	 * In Decode mode we are decoding the signal.  We check to make sure that the signal has not stopped
 	 * @return
 	 */
-	private int decode(Spacecraft sat) {
+	private int decode(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering DECODE state");
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering DECODE state");
 		try {
 			Thread.sleep(DECODE_PERIOD);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		setFreqRangeBins(sat, pp1);
+		setFreqRangeBins(spacecraft, pp1);
 		if (pp2 != null)
-		setFreqRangeBins(sat, pp2);
+		setFreqRangeBins(spacecraft, pp2);
 
-		if (foundFoxSignal(sat, pp1)) {
+		if (foundFoxSignal(spacecraft, pp1)) {
 //			lockSignal(sat, pp1);
 			inputTab.setViewDecoder1();
 			return DECODE;
 		}
 		if (pp2 != null)
-		if (foundFoxSignal(sat, pp2)) {
+		if (foundFoxSignal(spacecraft, pp2)) {
 //			lockSignal(sat, pp2);
 			inputTab.setViewDecoder2();
 			return DECODE;
@@ -370,12 +382,12 @@ public class PassManager implements Runnable {
 		return FADED;
 	}
 
-	private boolean foundFoxSignal(Spacecraft sat, PassParams pp) {
+	private boolean foundFoxSignal(Spacecraft spacecraft, PassParams pp) {
 		
-		if (Config.findSignal && pp.rfData != null && pp.decoder != null && pp.eyeData != null) {
+		if (Config.findSignal && pp.rfData != null && pp.foxDecoder != null && pp.eyeData != null) {
 			
 			//Log.println("Getting eye data");
-			pp.eyeData = pp.decoder.eyeData;
+			pp.eyeData = pp.foxDecoder.eyeData;
 			//System.out.println(sat.getIdString() + " BIT SNR:" + eyeData.bitSNR);
 			if (pp.eyeData != null && pp.eyeData.bitSNR > Config.BIT_SNR_THRESHOLD) {
 				// We have a signal
@@ -387,14 +399,21 @@ public class PassManager implements Runnable {
 	
 	/**
 	 * Wait to see if we have lost the signal because the satellite faded, or because the pass ended
-	 * @param sat
+	 * @param spacecraft
 	 * @return
 	 */
-	private int faded(Spacecraft sat) {
+	private int faded(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
 		passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
+		if (Config.useDDEforAzEl) { // store end Azimuth too
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+			}
+		}
 		faded = true;
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 
 		long startTime = System.nanoTime()/1000000; // get time in ms
 		long fadeTime = 0;
@@ -405,12 +424,12 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			setFreqRangeBins(sat,pp1);
+			setFreqRangeBins(spacecraft,pp1);
 
-			if (Config.findSignal && pp1.decoder != null ) { // start button still pressed and still tracking
+			if (Config.findSignal && pp1.foxDecoder != null ) { // start button still pressed and still tracking
 				//Log.println("Getting eye data");
 				//if (foundRfSignal(sat))
-				if (foundFoxSignal(sat, pp1)) {
+				if (foundFoxSignal(spacecraft, pp1)) {
 					// We have a signal
 					Config.selectedBin = pp1.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly, in case we were slightly off
 					pp1.rfData.reset();
@@ -419,7 +438,7 @@ public class PassManager implements Runnable {
 					return DECODE;
 				}
 				if (pp2 != null)
-				if (foundFoxSignal(sat, pp2)) {
+				if (foundFoxSignal(spacecraft, pp2)) {
 					// We have a signal
 					Config.selectedBin = pp2.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly, in case we were slightly off
 					pp2.rfData.reset();
@@ -440,28 +459,45 @@ public class PassManager implements Runnable {
 	
 	/**
 	 * Record the LOS and calculate the TCA if possible, then exit
-	 * @param sat
+	 * @param spacecraft
 	 * @return
 	 */
-	private int endPass(Spacecraft sat) {
+	private int endPass(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		calculateTCA(sat);
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
-		Config.payloadStore.add(sat.foxId, passMeasurement);
+		calculateTCA(spacecraft);
+		calculateMaxEl(spacecraft);
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
+		Config.payloadStore.add(spacecraft.foxId, passMeasurement);
 		return EXIT;
 	}
 
+	private void calculateMaxEl(Spacecraft spacecraft) {
+		double[][] graphData = null;
+		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
+		if (passMeasurement.getReset() == 0 && passMeasurement.getUptime() == 0) {
+			// We did not get any readings
+			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, 0);
+		} else {
+			long maxEl = -180; // just in case we have a pass that is theoretically below the horizon but we still manage to track it, allow negatives
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime());
+			for (int i=1; i < graphData[0].length; i++) {
+				long value = (long)graphData[PayloadStore.DATA_COL][i];
+				if (value > maxEl) maxEl = value;
+			}
+			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, maxEl);
+		}
+	}
 
-	private void calculateTCA(Spacecraft sat) {
+	private void calculateTCA(Spacecraft spacecraft) {
 		// Get the frequency data for this pass
 		double[][] graphData = null;
 		int MAX_QUANTITY = 999; // get all of them.  We will never have this many for a pass
 		if (passMeasurement.getReset() == 0 && passMeasurement.getUptime() == 0) {
 			// We did not get any readings
-			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, "0");
+			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, 0);
 			passMeasurement.setEndResetUptime(0, 0);
 		} else {
-			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, sat, passMeasurement.getReset(), passMeasurement.getUptime());
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime());
 
 			// if we have enough readings, calculate the first derivative
 			if (graphData[0].length > MIN_FREQ_READINGS_FOR_TCA) {
@@ -500,7 +536,7 @@ public class PassManager implements Runnable {
 
 					pendingTCA = true;
 					passMeasurement.setTCA(date);
-					passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, Long.toString(tca));
+					passMeasurement.setRawValue(PassMeasurement.TCA_FREQ, tca);
 					if (Config.debugSignalFinder) Log.println("TCA calculated as " + passMeasurement.getRawValue(PassMeasurement.TCA) + " with Uptime " + up + " and frequency: " + Long.toString(tca));
 
 
@@ -509,7 +545,7 @@ public class PassManager implements Runnable {
 			} else {
 				if (Config.debugSignalFinder) Log.println("Can't calculate TCA, not enough readings");
 			}
-			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, Integer.toString(graphData[0].length));
+			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, graphData[0].length);
 			passMeasurement.setEndResetUptime(lastReset, lastUptime);
 			//FIXME
 			// Store the start and end azimuith - these are a RtMeasurement.  Need to grab the first and last one from the Decoder
@@ -523,8 +559,8 @@ public class PassManager implements Runnable {
 		return y;
 	}
 
-	private int exit(Spacecraft sat) {
-		if (Config.debugSignalFinder) Log.println(sat.foxId + " Entering EXIT state");
+	private int exit(Spacecraft spacecraft) {
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering EXIT state");
 		passMeasurement = null;
 		return EXIT;
 	}
@@ -547,11 +583,23 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (pp1.decoder != null && Config.findSignal)
-				for (int s=0; s < spacecraft.size(); s++) {
+			String satString = null;
+			if (Config.useDDEforFindSignal) {
+				SatPc32DDE satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected) {
+						satString = satPC.satellite;
+				}
+			}
+			if (pp1.foxDecoder != null && Config.findSignal)
+				for (int s=0; s < foxSpacecraft.size(); s++) {
 					//Log.println("Looking for: " + spacecraft.get(s).name);
-					if (spacecraft.get(s).track)
-						stateMachine(spacecraft.get(s));
+					if (foxSpacecraft.get(s).track) 
+						if (Config.useDDEforFindSignal) {
+							if (satString != null && satString.equalsIgnoreCase(foxSpacecraft.get(s).name))
+								stateMachine(foxSpacecraft.get(s));
+						} else
+							stateMachine(foxSpacecraft.get(s));
 				}
 			else {
 				//Log.println("Waiting for decoder");

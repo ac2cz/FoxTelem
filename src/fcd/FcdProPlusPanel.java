@@ -1,8 +1,7 @@
-package gui;
+package fcd;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -11,29 +10,22 @@ import java.io.IOException;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
-import javax.swing.JFormattedTextField;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerListModel;
-import javax.swing.SpinnerModel;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-import common.Config;
 import common.Log;
-import fcd.FcdDevice;
-import fcd.FcdException;
-import fcd.FcdProPlusDevice;
+import device.Device;
+import device.DeviceException;
+import device.DevicePanel;
 
 @SuppressWarnings("serial")
-public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionListener, Runnable, ChangeListener {
-	JLabel title;
+public class FcdProPlusPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
@@ -44,14 +36,19 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
 	
-	FcdProPlusPanel() throws IOException, FcdException {
+	public FcdProPlusPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
 		initializeGui();
 	}
 	
-	public void initializeGui() throws IOException, FcdException {
+	public void setEnabled(boolean b) {
+
+		cbMixerGain.setEnabled(b);
+		cbLnaGain.setEnabled(b);
+	}
+	public void initializeGui() throws IOException, DeviceException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();
 		JPanel top = new JPanel();
@@ -99,20 +96,20 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	}
 	
 	@Override
-	public void setFcd(FcdDevice fcd) throws IOException, FcdException {
+	public void setDevice(Device fcd) throws IOException, DeviceException {
 		setFcd((FcdProPlusDevice)fcd);
 		
 	}
-	public void setFcd(FcdProPlusDevice f) throws IOException, FcdException { 
+	public void setFcd(FcdProPlusDevice f) throws IOException, DeviceException { 
 		fcd = f; 
 		getSettings();
 	}
 	
-	public void updateFilter() throws IOException, FcdException {
+	public void updateFilter() throws IOException, DeviceException {
 		rfFilterValue.setText(fcd.getRfFilter());
 	}
 	
-	public void getSettings()  throws IOException, FcdException {
+	public void getSettings()  throws IOException, DeviceException {
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -128,9 +125,6 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	}
 	
 	
-	private void updateParam(int i, String name, int cmd) {
-	}
-
 	@Override
 	public void run() {
 		done = false;
@@ -152,7 +146,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (FcdException e) {
+				} catch (DeviceException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -177,7 +171,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 					fcd.setMixerGain(true);
 				}
 				cbMixerGain.setSelected(fcd.getMixerGain());
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting Mixer Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			} catch (IOException e1) {
@@ -193,7 +187,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 					fcd.setLnaGain(true);
 				}
 				cbLnaGain.setSelected(fcd.getLnaGain());
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			} catch (IOException e1) {
@@ -213,7 +207,7 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 	        try {
 	        	Log.println("Setting IF Gain to: " + u);
 				fcd.setIFGain(u);
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting IF Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			}
@@ -221,6 +215,15 @@ public class FcdProPlusPanel extends FcdPanel implements ItemListener, ActionLis
 		
 	}
 
-	
+	@Override
+	public int getSampleRate() {
+		return fcd.SAMPLE_RATE;
+	}
+
+	@Override
+	public int getDecimationRate() {
+		return 1;
+	}
+
 
 }

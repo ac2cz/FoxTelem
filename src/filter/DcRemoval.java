@@ -32,11 +32,11 @@ package filter;
 public class DcRemoval {
 
 	private double mAlpha;
-	private double mPreviousInput = 0.0f;
-	private double mPreviousOutput = 0.0f;
+	private double mPreviousInput = 0.0d;
+	private double mPreviousOutput = 0.0d;
 	
-	public DcRemoval( double a ) {
-		mAlpha = a;
+	public DcRemoval( double d ) {
+		mAlpha = d;
 	}
     
 	public double filter( double currentInput ) {

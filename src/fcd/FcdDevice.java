@@ -5,44 +5,19 @@ import java.util.List;
 
 import common.Config;
 import common.Log;
+import device.Device;
+import device.DeviceException;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
 import purejavahidapi.InputReportListener;
 import purejavahidapi.PureJavaHidApi;
 
-/**
- * 
- * FOX 1 Telemetry Decoder
- * @author chris.e.thompson g0kla/ac2cz
- *
- * Copyright (C) 2015 amsat.org
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>.
- *
- * This class wraps the HID Device and holds the commands that we pass to the Funcube Dongle.
- * 
- */
-public class FcdDevice  {
+public abstract class FcdDevice extends Device {
 	byte[] lastReport;
-	static boolean commandMUX = false;
-	
+	//static boolean commandMUX = false;
+
 	HidDevice dev = null;
 	// FCD Pro+ defaults
-	public int MIN_FREQ = 150000;
-	public int MAX_FREQ = 2050000000;
-	public int SAMPLE_RATE = 192000;
-	
 	// Commands that are common to pro and pro plus
 	public static final byte APP_SET_FREQUENCY_HZ = 101;
 	public static final byte APP_GET_FREQUENCY_HZ = 102;
@@ -52,23 +27,25 @@ public class FcdDevice  {
 
 	public static final byte APP_SET_MIXER_GAIN = 114;
 	public static final byte APP_GET_MIXER_GAIN = (byte)0x9A; // 154
-	
+
 	public static final byte APP_SET_IF_GAIN1 = 115;
 	public static final byte APP_GET_IF_GAIN1 = (byte)0x9D; // 157
-	
+
 	public static final byte APP_SET_RF_FILTER = 113;
 	public static final byte APP_GET_RF_FILTER = (byte)0x99; // 153
-	
+
 	public static final byte APP_GET_IF_FILTER = (byte)0xA2; //162
-	
+
 	HidDeviceInfo fcdInfo;
 
-	public FcdDevice(HidDeviceInfo fcdInfo) throws IOException, FcdException {
+	public FcdDevice(HidDeviceInfo fcdInfo) throws IOException, DeviceException {
+		super();
 		this.fcdInfo = fcdInfo;
 		init();
 	}
+	public boolean isConnected() { if (dev != null) return true; return false; }
 
-	public static FcdDevice makeDevice() throws IOException, FcdException {
+	public static Device makeDevice() throws IOException, DeviceException {
 		try {
 			List<HidDeviceInfo> devList = PureJavaHidApi.enumerateDevices();
 
@@ -94,22 +71,34 @@ public class FcdDevice  {
 		}
 		return null;
 	}
-	
-	private void init() throws IOException, FcdException {
+
+	private void init() throws IOException, DeviceException {
 		Log.println("INIT HID USB");
 
 		if (fcdInfo == null)
-			Log.errorDialog("ERROR", "FCD device not found");
+			Log.errorDialog("ERROR", "RF device not found");
 		else {
-			Log.println("Set Freq to: " + Config.fcdFrequency*1000);
-			setFcdFreq(Config.fcdFrequency*1000);
 		}
-}
+	}
+	protected void open() throws DeviceException {
+		try {
+			dev = PureJavaHidApi.openDevice(fcdInfo.getPath());
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//if (dev == null) throw new FcdException("Cant Open the FCD.  Is Fox Telem already running?");    	
+	}
 
+	public void cleanup() throws IOException, DeviceException {
+		if (dev != null) {
+			dev.close();
+			Log.println("Closed RF device");
+		}
+		dev = null;
+	}
+	public void getFcdVersion() throws IOException, DeviceException {
 
-	
-	public void getFcdVersion() throws IOException, FcdException {
-	
 		int FCD_CMD_LEN = 1;
 		int FCD_CMD_BL_QUERY = 01;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -117,140 +106,125 @@ public class FcdDevice  {
 		report[0] = (byte)FCD_CMD_BL_QUERY;
 		sendFcdCommand(report,FCD_CMD_LEN);
 	}
-	
-    public int setFcdFreq(long freq) throws FcdException {
-    	
-    	try {
-    		int FCD_CMD_LEN = 5;
-    		byte[] report = new byte[FCD_CMD_LEN];
 
-    		report[0] = (byte)APP_SET_FREQUENCY_HZ;;
-    		report[1] = (byte)freq;
-    		report[2] = (byte)(freq>>8); 
-    		report[3] = (byte)(freq>>16); 
-    		report[4] = (byte)(freq>>24); 
+	public int setFrequency(long freq) throws DeviceException {
 
-    		sendFcdCommand(report, FCD_CMD_LEN);
-    		return 0;
-    	} catch (IOException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
+		try {
+			int FCD_CMD_LEN = 5;
+			byte[] report = new byte[FCD_CMD_LEN];
 
-    		return -1;
-    	}
-    }
-    
+			report[0] = (byte)APP_SET_FREQUENCY_HZ;;
+			report[1] = (byte)freq;
+			report[2] = (byte)(freq>>8); 
+			report[3] = (byte)(freq>>16); 
+			report[4] = (byte)(freq>>24); 
 
-    public int getParam(byte cmd) throws IOException, FcdException {
-		
+			sendFcdCommand(report, FCD_CMD_LEN);
+			return 0;
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+			return -1;
+		}
+	}
+
+
+	public int getParam(byte cmd) throws IOException, DeviceException {
+
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
 		report[1] = 0;
 		report[0] = (byte)cmd;
 		sendFcdCommand(report,FCD_CMD_LEN);
-		
+
 		if (report[0] == cmd) {
 			Log.println("PARAM:"+cmd+" " + report[2]);
 			return report[2];
 		} else 
-			throw new FcdException("Command not executed: " + cmd);
-		
+			throw new DeviceException("Command not executed: " + cmd);
+
 	}
-    
 
-    protected void sendFcdCommand(byte[] command, int len) throws IOException, FcdException {
 
-    	//HidDevice dev = null;
-    	lastReport = null;
-    	if (dev == null) open();
-    		dev.setInputReportListener(new InputReportListener() {
-    			@Override
-    			public void onInputReport(HidDevice source, byte Id, byte[] data, int len) {
-    				lastReport = data;
-    			}
-    		});
-    		@SuppressWarnings("unused")
+	protected void sendFcdCommand(byte[] command, int len) throws IOException, DeviceException {
+
+		//HidDevice dev = null;
+		lastReport = null;
+		if (dev == null) open();
+		if (dev != null) {
+			dev.setInputReportListener(new InputReportListener() {
+				@Override
+				public void onInputReport(HidDevice source, byte Id, byte[] data, int len) {
+					lastReport = data;
+				}
+			});
 			int result = dev.setOutputReport((byte)0, command, len);
-    		Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
-    		
-    		try {
+			Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
+
+			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-    		result = dev.getFeatureReport(command, len);
-    		if (lastReport != null) {
-    			for (int i = 0; i < len; i++)
-    				Log.print(String.format("%02X ", lastReport[i]));
-    			Log.println("");
-    			String s = new String();
-    			for (int i=0; i< len; i++) {
-    				s = s + (char)lastReport[i];
-    				command[i] = lastReport[i];
-    			}
-    			//Log.println(s);
-    		}
-    }
-    private void open() throws FcdException {
+			result = dev.getFeatureReport(command, len);
+			if (lastReport != null) {
+				for (int i = 0; i < len; i++)
+					Log.print(String.format("%02X ", lastReport[i]));
+				Log.println("");
+				String s = new String();
+				for (int i=0; i< len; i++) {
+					s = s + (char)lastReport[i];
+					command[i] = lastReport[i];
+				}
+				//Log.println(s);
+			}
+		}
+
+
+	}
+	public int setMixerGain(boolean on) throws DeviceException {
+
 		try {
-			dev = PureJavaHidApi.openDevice(fcdInfo.getPath());
+			int FCD_CMD_LEN = 2;
+			byte[] report = new byte[FCD_CMD_LEN];
+
+			report[0] = (byte)APP_SET_MIXER_GAIN;
+			if (on)
+				report[1] = (byte)0x01;
+			else
+				report[1] = (byte)0x00;
+
+			sendFcdCommand(report, FCD_CMD_LEN);
+			if (report[0] == APP_SET_MIXER_GAIN)
+				return 0;
+			else
+				throw new DeviceException("Set Mixer Gain Command not executed: ");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+
+			return -1;
 		}
-		if (dev == null) throw new FcdException("Cant Open the FCD.  Is Fox Telem already running?");    	
-    }
+	}
 
-    public void cleanup() throws IOException, FcdException {
-    	if (dev != null) {
-    			dev.close();
-    			Log.println("Closed FCD device");
-    	}
-    	dev = null;
-    }
-    
-public int setMixerGain(boolean on) throws FcdException {
-    	
-    	try {
-    		int FCD_CMD_LEN = 2;
-    		byte[] report = new byte[FCD_CMD_LEN];
+	public boolean getMixerGain() throws IOException, DeviceException {
 
-    		report[0] = (byte)APP_SET_MIXER_GAIN;
-    		if (on)
-    			report[1] = (byte)0x01;
-    		else
-    			report[1] = (byte)0x00;
-
-    		sendFcdCommand(report, FCD_CMD_LEN);
-    		if (report[0] == APP_SET_MIXER_GAIN)
-    			return 0;
-    		else
-    			throw new FcdException("Set Mixer Gain Command not executed: ");
-    	} catch (IOException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-
-    		return -1;
-    	}
-    }
-
-    public boolean getMixerGain() throws IOException, FcdException {
-		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
 		report[1] = 0;
 		report[0] = (byte)APP_GET_MIXER_GAIN;
 		sendFcdCommand(report,FCD_CMD_LEN);
-		
+
 		if (report[0] == APP_GET_MIXER_GAIN) {
 			Log.println("MIXER GAIN: " + report[2]);
 			if (report[2] == 1)
 				return true;
 		} else
-			throw new FcdException("Get Mixer Gain Command not executed: ");
+			throw new DeviceException("Get Mixer Gain Command not executed: ");
 		return false;
 	}
-    
-    
+
+
 }

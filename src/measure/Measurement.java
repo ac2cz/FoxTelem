@@ -3,6 +3,7 @@ package measure;
 import java.util.Date;
 
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
 
 /**
  * 
@@ -29,7 +30,7 @@ public abstract class Measurement implements Comparable<Measurement> {
 
 	public static final int INVALID_ERRORS = 999;
 
-	Date date;
+	Date date; // the date this measurement was made
 	public int id;
 	int type;
 	int reset; // the reset on the received frame when this value was measured
@@ -51,4 +52,18 @@ public abstract class Measurement implements Comparable<Measurement> {
 
 	}
 
+	/**
+	 * Output the set of fields in this framePart as a set of comma separated values in a string.  This 
+	 * can then be written to a file
+	 * @return
+	 */
+	public String toFile() {
+		String s = new String();
+		String captureDate = FoxFramePart.fileDateFormat.format(date);
+		s = s + captureDate + "," + id + "," + reset + "," + uptime + "," + type + ",";
+		for (int i=0; i < layout.NUMBER_OF_FIELDS-1; i++)
+			s = s + fieldValue[i] + ",";
+		s = s + fieldValue[layout.NUMBER_OF_FIELDS-1];
+		return s;
+	}
 }

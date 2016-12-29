@@ -1,10 +1,13 @@
 package telemetry;
 
 import common.Config;
+import common.FoxSpacecraft;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 
 import common.Log;
+import common.Spacecraft;
 
 /**
  * 
@@ -29,9 +32,10 @@ import common.Log;
  */
 public class HighSpeedFrame extends Frame {
 	
+	public static final int MAX_FRAME_SIZE = 4600;
 	public static final int MAX_HEADER_SIZE = 6;
 	public static final int PAYLOAD_SIZE = 60;
-	public static final int MAX_PAYLOAD_SIZE = 4600 - MAX_HEADER_SIZE; 
+	public static final int MAX_PAYLOAD_SIZE = MAX_FRAME_SIZE - MAX_HEADER_SIZE; 
 	public static final int MAX_CAMERA_PAYLOAD_SIZE = 4300;
 	public static final int MAX_TRAILER_SIZE = HighSpeedTrailer.MAX_BYTES; // Multiple RS Codewords with 32 FEC bytes each
 	
@@ -41,9 +45,9 @@ public class HighSpeedFrame extends Frame {
 	public static final int MAX_HERCI_PAYLOADS = 5;
 	
 	//HighSpeedHeader header = null;
-	FramePart rtPayload = null;
-	FramePart maxPayload = null;
-	FramePart minPayload = null;
+	FoxFramePart rtPayload = null;
+	FoxFramePart maxPayload = null;
+	FoxFramePart minPayload = null;
 	PayloadRadExpData[] radExpPayload = new PayloadRadExpData[DEFAULT_RAD_EXP_PAYLOADS];
 	PayloadCameraScanLineCount cameraScanLineCount = null;
 	PayloadCameraData cameraPayload = null;
@@ -96,13 +100,13 @@ public class HighSpeedFrame extends Frame {
 		else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
 			if (firstNonHeaderByte) {
 				header.copyBitsToFields(); // make sure the id is populated
-				fox = Config.satManager.getSpacecraft(header.id);
+				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 				if (fox != null) {
-					rtPayload = new PayloadRtValues(Config.satManager.getRtLayout(header.id));
-					maxPayload = new PayloadMaxValues(Config.satManager.getMaxLayout(header.id));
-					minPayload = new PayloadMinValues(Config.satManager.getMinLayout(header.id));
+					rtPayload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+					maxPayload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+					minPayload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
 					for (int i=0; i < DEFAULT_RAD_EXP_PAYLOADS; i++)
-						radExpPayload[i] = new PayloadRadExpData(Config.satManager.getRadLayout(header.id));				
+						radExpPayload[i] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));				
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					if (fox.hasCamera())
@@ -146,7 +150,7 @@ public class HighSpeedFrame extends Frame {
 					if (herciLineCount.hasData()) {
 						herciPayload = new PayloadHERCIhighSpeed[herciLineCount.getLineCount()];
 						for (int i=0; i < herciLineCount.getLineCount(); i++)
-							herciPayload[i] = new PayloadHERCIhighSpeed(Config.satManager.getHerciHSLayout(header.id));	
+							herciPayload[i] = new PayloadHERCIhighSpeed(Config.satManager.getLayoutByName(header.id, Spacecraft.HERCI_HS_LAYOUT));	
 					}
 				} else {
 					// This looks like a corrupt frame, set the linecount to zero so that we do not process it

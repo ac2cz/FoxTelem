@@ -3,8 +3,8 @@ package fcd;
 import java.io.IOException;
 
 import purejavahidapi.HidDeviceInfo;
-import purejavahidapi.PureJavaHidApi;
 import common.Log;
+import device.DeviceException;
 
 public class FcdProPlusDevice extends FcdDevice {
 
@@ -41,11 +41,11 @@ public class FcdProPlusDevice extends FcdDevice {
 			"7MHz", "8MHz"
 	};
 
-	public FcdProPlusDevice(HidDeviceInfo fcdInfo) throws IOException, FcdException {
+	public FcdProPlusDevice(HidDeviceInfo fcdInfo) throws IOException, DeviceException {
 		super(fcdInfo);
 		SAMPLE_RATE = 192000;
-		MIN_FREQ = 150000;
-		MAX_FREQ = 2050000000;
+		MIN_FREQ = 150;
+		MAX_FREQ = 2050000;
 	}
 
  //   public int setFcdFreq(long freq) throws FcdException {
@@ -56,7 +56,7 @@ public class FcdProPlusDevice extends FcdDevice {
 	/**
 	 * Set the RF Filter based on the frequency requested
 	 * @param freq
-	 * @throws FcdException 
+	 * @throws DeviceException 
 	 
 	public int setRfFilter(long freq) throws FcdException {
 		if (freq >= 4000000 && freq <= 8000000) {
@@ -116,7 +116,7 @@ public class FcdProPlusDevice extends FcdDevice {
     	}
     }
     */
-    public String getRfFilter() throws IOException, FcdException {
+    public String getRfFilter() throws IOException, DeviceException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -129,11 +129,11 @@ public class FcdProPlusDevice extends FcdDevice {
 			if (report[2] > -1 && report[2] < rfFilterName.length)
 			return rfFilterName[report[2]];
 		} else
-			throw new FcdException("Get RF Filter Command not executed: ");
+			throw new DeviceException("Get RF Filter Command not executed: ");
 		return "";
 	}
 
-    public String getIfFilter() throws IOException, FcdException {
+    public String getIfFilter() throws IOException, DeviceException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -146,12 +146,12 @@ public class FcdProPlusDevice extends FcdDevice {
 			if (report[2] > -1 && report[2] < ifFilterName.length)
 			return ifFilterName[report[2]];
 		} else
-			throw new FcdException("Get IF Filter Command not executed: ");
+			throw new DeviceException("Get IF Filter Command not executed: ");
 		return "";
 	}
 
     
-    public int setLnaGain(boolean on) throws FcdException {
+    public int setLnaGain(boolean on) throws DeviceException {
     	
     	try {
     		int FCD_CMD_LEN = 2;
@@ -167,7 +167,7 @@ public class FcdProPlusDevice extends FcdDevice {
     		if (report[0] == APP_SET_LNA_GAIN)
     			return 0;
     		else
-    			throw new FcdException("Set LNA Command not executed: ");
+    			throw new DeviceException("Set LNA Command not executed: ");
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
@@ -176,7 +176,7 @@ public class FcdProPlusDevice extends FcdDevice {
     	}
     }
 
-    public boolean getLnaGain() throws IOException, FcdException {
+    public boolean getLnaGain() throws IOException, DeviceException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -189,11 +189,11 @@ public class FcdProPlusDevice extends FcdDevice {
 			if (report[2] == 1)
 				return true;
 		} else
-			throw new FcdException("Get LNA Command not executed: ");
+			throw new DeviceException("Get LNA Command not executed: ");
 		return false;
 	}
     
-    public int setIFGain(int val) throws FcdException {
+    public int setIFGain(int val) throws DeviceException {
     	
     	try {
     		int FCD_CMD_LEN = 2;
@@ -209,7 +209,7 @@ public class FcdProPlusDevice extends FcdDevice {
     		if (report[0] == APP_SET_IF_GAIN1)
     			return 0;
     		else
-    			throw new FcdException("Set LNA Command not executed: ");
+    			throw new DeviceException("Set LNA Command not executed: ");
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
@@ -218,7 +218,7 @@ public class FcdProPlusDevice extends FcdDevice {
     	}
     }
 
-    public int getIFGain() throws IOException, FcdException {
+    public int getIFGain() throws IOException, DeviceException {
 		
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -231,7 +231,7 @@ public class FcdProPlusDevice extends FcdDevice {
 			if (report[2] > 0 && report[2] < 60)
 				return report[2];
 		} else
-			throw new FcdException("Get LNA Command not executed: ");
+			throw new DeviceException("Get LNA Command not executed: ");
 		return 0;
 	}
     

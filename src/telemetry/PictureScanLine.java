@@ -177,6 +177,7 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 		 + "scanLineNumber int," 
 		 + "scanLineLength int,"
 		 + "imageBytes blob,"
+		 + "processed tinyint(1) not null default 0,"
 		+ "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
 		s = s + "PRIMARY KEY (id, resets, uptime, pictureCounter, scanLineNumber))";
 		return s;

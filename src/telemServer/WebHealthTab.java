@@ -7,8 +7,10 @@ import java.util.TimeZone;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
+import gui.DisplayModule;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
@@ -16,7 +18,7 @@ import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
 
 public class WebHealthTab {
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	PayloadRtValues payloadRt;
 	PayloadMaxValues payloadMax;
 	PayloadMinValues payloadMin;
@@ -33,13 +35,15 @@ public class WebHealthTab {
 	int numOfBottomModules = 1;
 	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(Spacecraft f, int p) throws LayoutLoadException {
+	public WebHealthTab(FoxSpacecraft f, int p) throws LayoutLoadException {
 		fox = f;
 		port = p;
-		rtlayout = fox.rtLayout;
-		maxlayout = fox.maxLayout;
-		minlayout = fox.minLayout;
-		analyzeModules(fox.rtLayout, fox.maxLayout, fox.minLayout, 0);
+		rtlayout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+		minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		analyzeModules(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), 
+				fox.getLayoutByName(Spacecraft.MAX_LAYOUT), 
+				fox.getLayoutByName(Spacecraft.MIN_LAYOUT), 0);
 	}
 	
 	public void setRtPayload(PayloadRtValues rt) {payloadRt = rt;}
@@ -88,32 +92,38 @@ public class WebHealthTab {
 		String s = "";
 		if (payloadRt != null) {
 			s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+"</h1>";
-		s = s + "<style> td { border: 5px solid lightgray; } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
+			// We set the style of table 1 for the telemetry.  Table 2 is the inner table for the max/min/rt rows
+		s = s + "<style> table.table1 td { border: 5px solid lightgray; } "
+				+ "table.table1 th { background-color: lightgray; border: 3px solid lightgray; } "
+				+ "table.table1 td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
+		s = s + "<style> table.table2 td { border: 0px solid darkgray; } "
+				+ "table.table2 th { background-color: darkgray; border: 1px solid darkgray; } "
+				+ "table.table2 td { padding: 3px; vertical-align: top; background-color: darkgray } </style>";	
+		
 		s = s + "<h3>REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime() 
 		+ " Received: " + formatCaptureDate(payloadRt.getCaptureDate()) + "</h3>"
-				+ "<table>";
+				+ "<table class='table1'>";
 		
 		s = s + "<tr bgcolor=silver>";
 
-		// FIXME - These headers span the name, rt, max and min
 		for (int i=1; i < 4; i++) {
 			s = s + "<th><strong>" + topModuleNames[i] + "<strong>"
 			+ "</th>";
 		}
 		
-		s = s + "</tr><tr>";
+		s = s + "</tr>";
+		s = s + "<tr>";
 		for (int i=1; i < 4; i++) {
-			s = s + "<td>";
+			
 			// FIXME - FORMAT TO TOP.
 			try {
 				s = s + addModuleLines(topModuleNames[i], topModuleLines[i], rtlayout);
 			} catch (LayoutLoadException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			s = s + "</td>";
+			
 		}
 		s = s + "</tr>";
-
 		s = s + "<tr bgcolor=silver>";
 
 		// FIXME - These headers span the name, rt, max and min
@@ -123,15 +133,13 @@ public class WebHealthTab {
 		}
 		
 		s = s + "</tr><tr>";
-		for (int i=4; i < 6; i++) {
-			s = s + "<td>";
+		for (int i=4; i < 6; i++) {	
 			// FIXME - FORMAT TO TOP.
 			try {
 				s = s + addModuleLines(topModuleNames[i], topModuleLines[i], rtlayout);
 			} catch (LayoutLoadException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			s = s + "</td>";
 		}
 		s = s + "</tr>";
 
@@ -142,16 +150,13 @@ public class WebHealthTab {
 			s = s + "<th><strong>" + bottomModuleNames[i] + "</strong>"
 			+ "</th>";
 		}
-		
 		s = s + "</tr><tr>";
 		for (int i=1; i < 4; i++) {
-			s = s + "<td>";
 			try {
 				s = s + addModuleLines(bottomModuleNames[i], bottomModuleLines[i], rtlayout);
 			} catch (LayoutLoadException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			s = s + "</td>";
 		}
 		s = s + "</tr>";
 		s = s + "<tr bgcolor=silver>";
@@ -162,13 +167,11 @@ public class WebHealthTab {
 		}
 		s = s + "</tr><tr>";
 		for (int i=4; i < 7; i++) {
-			s = s + "<td>";
 			try {
 				s = s + addModuleLines(bottomModuleNames[i], bottomModuleLines[i], rtlayout);
 			} catch (LayoutLoadException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			s = s + "</td>";
 		}
 		s = s + "</tr>";
 
@@ -181,26 +184,48 @@ public class WebHealthTab {
 	
 	private String addModuleLines(String topModuleName, int topModuleLine, BitArrayLayout rt) throws LayoutLoadException {
 		String s = "";
+		s = s + "<td><table class='table2'>";
+		s = s + "<tr><th></th><th>RT</th><th>MIN</th><th>MAX</th></tr>";
 		for (int j=0; j<rt.NUMBER_OF_FIELDS; j++) {
 			if (rt.module[j].equals(topModuleName)) {
 				//Log.println("Adding:" + rt.shortName[j]);
 				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName +
-				".\nModule: " + topModuleName +
+						".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
-				//FIXME - PUT NAME, RT, MIN, MAX in seperate columns
-				//FIXME use rt.moduleDisplayType[j] to determine if it is one values that spans across them - like antenna
-				//FIXME - make each value clickable - underline the name is best.  That will open the table for diagnostics
-				s = s + "<a href=/tlm/graph.php?"
+				
+				s = s + "<tr><td><a href=/tlm/graph.php?"
 						+ "sat=" + fox.foxId+"&field=" + rt.fieldName[j]
-						+ "&raw=conv"  
-						+ "&reset=0"
-						+ "&uptime=0"
-						+ "&rows=100"
-						+ "&port=" + port
-								+ ">" + rt.shortName[j] + "</a>" + formatUnits(rt.fieldUnits[j]) + ": " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "<br>"; 
-				//displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], );					
+								+ "&raw=conv"  
+								+ "&reset=0"
+								+ "&uptime=0"
+								+ "&rows=100"
+								+ "&port=" + port
+								+ ">" + rt.shortName[j] + "</a>";
+				s = s + formatUnits(rt.fieldUnits[j]) + "</td><td align=center > " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "</td>"; 
+
+				s = s + "<td align=center >";
+				// Min
+				if (rt.moduleDisplayType[j] != DisplayModule.DISPLAY_RT_ONLY) {
+					if (rt.moduleDisplayType[j] == DisplayModule.DISPLAY_ALL_SWAP_MINMAX) {
+						if (payloadMax != null)
+							s = s + payloadMax.getStringValue(rt.fieldName[j], fox);
+					} else if (payloadMin != null)
+						s = s + payloadMin.getStringValue(rt.fieldName[j], fox);
+				}
+				s = s + "</td><td align=center >";
+				// Max
+				if (rt.moduleDisplayType[j] != DisplayModule.DISPLAY_RT_ONLY) {
+					if (rt.moduleDisplayType[j] == DisplayModule.DISPLAY_ALL_SWAP_MINMAX) {
+						if (payloadMin != null)
+							s = s + payloadMin.getStringValue(rt.fieldName[j], fox);
+					} else if (payloadMax != null)
+						s = s + payloadMax.getStringValue(rt.fieldName[j], fox);
+				}
+				s = s + "</td></tr>";
+
 			}
 		}
+		s = s + "</table></td>";
 		return s;
 
 	}
@@ -216,10 +241,10 @@ public class WebHealthTab {
 		Date result = null;
 		String reportDate = null;
 		try {
-			FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			result = FramePart.fileDateFormat.parse(u);	
-			FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			reportDate = FramePart.reportDateFormat.format(result);
+			FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			result = FoxFramePart.fileDateFormat.parse(u);	
+			FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			reportDate = FoxFramePart.reportDateFormat.format(result);
 
 		} catch (ParseException e) {
 			reportDate = "unknown";				

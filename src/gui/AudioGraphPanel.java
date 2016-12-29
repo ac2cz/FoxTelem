@@ -11,6 +11,8 @@ import javax.swing.JLabel;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
+import decoder.SourceAudio;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 
 /**
  * 
@@ -44,8 +46,9 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	boolean running = true;
 	boolean done = false;
 	int centerFreqX = 220;
-	Decoder decoder;
-	byte[] audioData = null;
+	Decoder foxDecoder;
+	double[] audioData = null;
+	double[] pskAudioData = null;
 	int AUDIO_DATA_SIZE = 1024;
 	int currentDataPosition = 0;
 	JLabel sample;
@@ -99,15 +102,18 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				//e.printStackTrace();
 			} 
 			
-			byte[] buffer;
-			if (decoder != null) {
+			double[] buffer;
+			if (foxDecoder != null) {
 				if (showFilteredAudio)
-					buffer = decoder.getFilteredData();
+					buffer = foxDecoder.getFilteredData();
 				else
-					buffer = decoder.getAudioData();
+					buffer = foxDecoder.getAudioData();
 			
 				if (buffer != null) {
-					audioData = buffer;				
+					audioData = buffer;		
+					if (foxDecoder instanceof FoxBPSKDecoder) {
+						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();				
+					}
 				}
 				
 				this.repaint();
@@ -115,9 +121,9 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}			
 	}
 	
-	public void startProcessing(Decoder d) {
-		decoder = d;
-		title.setText("Sample rate: " + Integer.toString(decoder.getCurrentSampleRate()) + " | Samples: " + decoder.getSampleWindowLength());
+	public void startProcessing(Decoder decoder1) {
+		foxDecoder = decoder1;
+		title.setText("Sample rate: " + Integer.toString(foxDecoder.getCurrentSampleRate()) + " | Samples: " + foxDecoder.getSampleWindowLength());
 		
 		running = true;
 	}
@@ -149,8 +155,11 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		int lastx = border*2+1; 
 		int lasty = graphHeight/2;
 		int x = border*2+1;
+		int lastx2 = border*2+1; 
+		int lasty2 = graphHeight/2;
+		int x2 = border*2+1;
 		
-		g2.setColor(Color.BLUE);
+		
 		
 		int stepSize = 1;
 		//int spaceSize = 1;
@@ -166,48 +175,61 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			if (stepSize <= 0) stepSize = 1;
 			for (int i=0; i < audioData.length-stepSize; i+=stepSize*2) {
 				// data is stereo, but we want to decimate before display
-				byte[] by = new byte[2];
-				by[0] = audioData[i];
-				by[1] = audioData[i+1];
-				int value;
-				if (decoder.getBigEndian())
-					value = Decoder.bigEndian2(by, decoder.getBitsPerSample());
+
+				//int value = SourceAudio.getIntFromDouble(audioData[i]);
+				g2.setColor(Color.BLUE);
+				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
+				x = border*2 + i*(graphWidth-border*2)/audioData.length;
+
+				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
+				double y = 0.0d;
+				if (foxDecoder instanceof FoxBPSKDecoder)
+					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
 				else
-					value = Decoder.littleEndian2(by, decoder.getBitsPerSample());
+					y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
+				//int y = 100;
+				g2.drawLine(lastx, lasty, x, (int)y);
+				lastx = x;
+				lasty = (int)y;
 
-					//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
-					x = border*2 + i*(graphWidth-border*2)/audioData.length;
-					
+				if (foxDecoder instanceof FoxBPSKDecoder) {
+					if (pskAudioData != null && pskAudioData.length > 0) {
+					g2.setColor(Color.BLACK);
+					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
+
 					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y = graphHeight/2+graphHeight/2.5*value/32768 + border;
+					double y2 = 3*graphHeight/4+graphHeight/5*pskAudioData[i] + border;
 					//int y = 100;
-					g2.drawLine(lastx, lasty, x, (int)y);
-					lastx = x;
-					lasty = (int)y;
-
+					g2.drawLine(lastx2, lasty2, x2, (int)y2);
+					lastx2 = x2;
+					lasty2 = (int)y2;
+					}
 				}
+				
+			}
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		g2.drawLine(0, graphHeight/2+border, graphWidth, graphHeight/2+border);
-		
-
+		if (foxDecoder instanceof FoxBPSKDecoder)
+			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
+		else
+			g2.drawLine(0, graphHeight/2+border, graphWidth, graphHeight/2+border);
 		if (Config.debugAudioGlitches) {
 			Runtime rt = Runtime.getRuntime();
 			long usedMB = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;
 			g.drawString("Mem: "+usedMB, 10, 20 );
-			if (decoder !=null)
-				if (decoder.getFilter() != null) {
-					g.drawString("Gain: "+GraphPanel.roundToSignificantFigures(decoder.getFilter().getGain(),4), 70, 20 );
-					bufferCapacityAvg += decoder.getAudioBufferCapacity();
+			if (foxDecoder !=null)
+				if (foxDecoder.getFilter() != null) {
+					g.drawString("Gain: "+GraphPanel.roundToSignificantFigures(foxDecoder.getFilter().getGain(),4), 70, 20 );
+					bufferCapacityAvg += foxDecoder.getAudioBufferCapacity();
 					bufferCapacitySample++;
 					if (bufferCapacitySample == BUFFER_CAP_SAMPLE_NO) {
 						bufferCapacity = (int) (bufferCapacityAvg / bufferCapacitySample);
 						bufferCapacitySample=0;
 						bufferCapacityAvg = 0;
 					}
-					g.drawString("Size: "+decoder.getAudioBufferSize() + 
-							" Capacity: "+decoder.getAudioBufferCapacity(), getWidth()-200, 20 );
+					g.drawString("Size: "+foxDecoder.getAudioBufferSize() + 
+							" Capacity: "+foxDecoder.getAudioBufferCapacity(), getWidth()-200, 20 );
 
 				}
 		}

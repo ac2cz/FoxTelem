@@ -9,10 +9,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -31,15 +28,13 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
-import telemetry.CobsDecodeException;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadHERCIHousekeeping;
-import telemetry.RadiationPacket;
-import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import decoder.Decoder;
+import common.FoxSpacecraft;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -100,7 +95,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	
 	boolean displayTelem = true;
 	
-	public HerciLSTab(Spacecraft sat)  {
+	public HerciLSTab(FoxSpacecraft sat)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
@@ -137,7 +132,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = fox.rad2Layout;
+		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI_HK);
@@ -206,14 +201,6 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		parseRadiationFrames();
 	}
 	
-	private JRadioButton addRadioButton(String name, JPanel panel) {
-		JRadioButton radioButton = new JRadioButton(name);
-		radioButton.setEnabled(true);
-		radioButton.addActionListener(this);
-		panel.add(radioButton);
-		return radioButton;
-	}
-
 	private void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
@@ -323,8 +310,8 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 			packetData[len-i-1][2] = "TELEMETRY";
 			packetData[len-i-1][3] = ""+data[i][2];
 			String telem = "";
-			for (int j=2; j< fox.rad2Layout.fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
-				telem = telem + Decoder.plainhex(Integer.parseInt(data[i][j])) + " ";
+			for (int j=2; j< fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
+				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
 			packetData[len-i-1][4] = telem;
@@ -338,7 +325,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	}
 	
 	
-	public void updateTab(BitArray rad) {
+	public void updateTab(FramePart rad) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
@@ -358,6 +345,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	public void run() {
 		running = true;
 		done = false;
+		boolean justStarted = true;
 		while(running) {
 			
 			try {
@@ -366,25 +354,31 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 			
-			if (Config.displayRawRadData != showRawBytes.isSelected()) {
-				showRawBytes.setSelected(Config.displayRawRadData);
-				parseRadiationFrames();
-			}
-			if (Config.displayRawValues != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawValues);
-				updateTab(Config.payloadStore.getLatestRadTelem(foxId));
-			}
-
-			if (foxId != 0)
-				if (Config.payloadStore.getUpdatedRad(foxId)) {
-					//radPayload = Config.payloadStore.getLatestRad(foxId);
-					Config.payloadStore.setUpdatedRad(foxId, false);
-
+			if (foxId != 0 && Config.payloadStore.initialized()) {
+				if (Config.displayRawRadData != showRawBytes.isSelected()) {
+					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					displayFramesDecoded(Config.payloadStore.getNumberOfRadFrames(foxId));
-					MainWindow.setTotalDecodes();
 				}
-			
+				if (Config.displayRawValues != showRawValues.isSelected()) {
+					showRawValues.setSelected(Config.displayRawValues);
+					updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+				}
+
+				if (foxId != 0)
+					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+						//radPayload = Config.payloadStore.getLatestRad(foxId);
+						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
+
+						parseRadiationFrames();
+						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						MainWindow.setTotalDecodes();
+						if (justStarted) {
+							openGraphs();
+							justStarted = false;
+						}
+					}
+				
+			}
 		}
 		done = true;
 	}

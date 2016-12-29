@@ -17,6 +17,7 @@ import common.Config;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
 
@@ -62,10 +63,10 @@ import java.awt.event.MouseListener;
  */
 @SuppressWarnings("serial")
 public class FFTPanel extends JPanel implements Runnable, MouseListener {
-	private static final double TRACK_SIGNAL_THRESHOLD = -80;
+	private static final float TRACK_SIGNAL_THRESHOLD = -80;
 	Spacecraft fox;
 	
-	int fftSamples = SourceIQ.FFT_SAMPLES;
+	int fftSamples = 0;
 	//double[] fftData = new double[fftSamples*2];
 	
 	private double[] psd = null;
@@ -111,6 +112,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	        public void actionPerformed(ActionEvent e) {
 	         //       System.out.println("TUNE LEFT");
 	                selectedBin = selectedBin-1;
+	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
 	                Config.selectedBin = selectedBin;
 	          //     printBin();
 	        }
@@ -120,6 +123,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	        public void actionPerformed(ActionEvent e) {
 	         //       System.out.println("TUNE RIGHT");
 	                selectedBin = selectedBin+1;
+	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
 	                Config.selectedBin = selectedBin;
 	         //       printBin();
 	        }
@@ -143,14 +148,25 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		//source.drain();
 	}
 	
-	@Override
-	public void run() {
+	private void init() {
+		fftSamples = SourceIQ.FFT_SAMPLES;
 		done = false;
 		running = true;
-		double[] buffer = null;
 		psd = new double[fftSamples+1];
+		title.setText("FFT: " +  fftSamples);
+	}
+	
+	@Override
+	public void run() {
+		
+		double[] buffer = null;
 		while(running) {
 			if (iqSource != null) {
+				if (fftSamples != SourceIQ.FFT_SAMPLES) {
+					fftSamples = SourceIQ.FFT_SAMPLES;
+					psd = new double[fftSamples+1];
+					title.setText("FFT: " +  fftSamples);
+				}
 				buffer = iqSource.getPowerSpectralDensity();
 				centerFreqX = iqSource.getCenterFreqkHz();
 				selectedBin = Config.selectedBin;
@@ -182,6 +198,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay++;
 			} else if (Config.passManager.getState() == PassManager.FADED) {
 				// don't tune, just wait, it does not move far enough in the fade period
+				// it is more likely that we get distracted by another signal and wander off
 			} else {
 				tuneDelay = TUNE_THRESHOLD;
 			}
@@ -189,25 +206,42 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay = 0;
 				// move half the distance to the bin
 				int targetBin = 0;
+				if (Config.findSignal && !(Config.passManager.getState() == PassManager.DECODE  ||
+					Config.passManager.getState() == PassManager.ANALYZE))
+					targetBin = rfData.getBinOfStrongestSignal();
+				else
+					targetBin = rfData.getBinOfPeakSignal();
+				/*
 				if (Config.findSignal)
 					targetBin = rfData.getBinOfStrongestSignal();
 				else
 					targetBin = rfData.getBinOfPeakSignal();
+				*/
+				
 				int move = targetBin - selectedBin;
+				//System.out.println("MOVE: "+ move);
 				if (targetBin < selectedBin) {
-					if (move > 100)
+					if (move < -100)
 						selectedBin -= 50;
 					else
-						if (move > 10)
+						if (move < -25)
 							selectedBin -= 5;
+						else if (move < -5)
+							selectedBin -= 5;
+						else if (move < -2)
+							selectedBin -= 2;
 						else
 							selectedBin--;
 				}
 				if (targetBin > selectedBin) {
-					if (move < -100)
+					if (move > 100)
 						selectedBin += 50;
-					else if (move < -10)
+					else if (move > 25)
 						selectedBin += 5;
+					else if (move > 5)
+						selectedBin += 5;
+					else if (move > 2)
+						selectedBin += 2;
 					else
 						selectedBin++;
 				}
@@ -240,6 +274,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		
 	public void paintComponent(Graphics g) {				
 		super.paintComponent( g ); // call superclass's paintComponent  
+		if (iqSource == null) return;
 		
 		sideBorder = 2 * Config.graphAxisFontSize;
 		topBorder = Config.graphAxisFontSize;
@@ -253,15 +288,15 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		graphHeight = getHeight() - topBorder*2;
 		graphWidth = getWidth() - sideBorder*2; // width of entire graph
 		
-								
+		
 		int minTimeValue = centerFreqX-iqSource.IQ_SAMPLE_RATE/2000;//96;
 		int maxTimeValue = centerFreqX+iqSource.IQ_SAMPLE_RATE/2000;//96;
 		int numberOfTimeLabels = graphWidth/labelWidth;
 		int zeroPoint = graphHeight;
 		
 		
-		double maxValue = 10;
-		double minValue = -100;
+		float maxValue = 10;
+		float minValue = -100;
 
 		int labelHeight = 14;
 		int sideLabel = 3;
@@ -269,7 +304,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int numberOfLabels = graphHeight/labelHeight;
 		
 		// calculate the label step size
-		double[] labels = GraphPanel.calcAxisInterval(minValue, maxValue, numberOfLabels);
+		double[] labels = GraphPanel.calcAxisInterval(minValue, maxValue, numberOfLabels, false);
 		// check the actual number
 		numberOfLabels = labels.length;
 		
@@ -321,7 +356,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			 */ 
 			if (Config.findSignal) {
 				if (fox != null) {
-					g.drawString(Config.passManager.getStateName() + ": Fox-"+fox.getIdString(), graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
+					g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
 				} else
 					g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
@@ -330,10 +365,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				int upperSelection = getSelectionFromBin(Config.toBin);
 				int lowerSelection = getSelectionFromBin(Config.fromBin);
 
+				if (upperSelection != lowerSelection) {
 				c = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
 				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
 				c = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
 				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
+				}
 			}
 			
 			if (rfData != null) {
@@ -420,6 +457,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			x = getRatioPosition(0, fftSamples/2, i-fftSamples/2, graphWidth/2);
 			x = x + sideBorder;
 			
+			if (i >= psd.length) return; // the FFT was resized and we are in the middle of a paint
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
@@ -441,7 +479,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						
 			x = getRatioPosition(0, fftSamples/2, i, graphWidth/2);
 			x = x + sideBorder + graphWidth/2;
-			
+
+			if (i >= psd.length) return; // the FFT was resized and we are in the middle of a paint
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
@@ -459,10 +498,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		}
 		
 		// Draw the horizontal axis
-		double[] freqlabels = GraphPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels);
+		double[] freqlabels = GraphPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, false);
 
 		DecimalFormat d = new DecimalFormat("0");
-		for (int v=0; v < numberOfTimeLabels; v++) {
+		for (int v=0; v < freqlabels.length; v++) {
 			int timepos = getRatioPosition(minTimeValue, maxTimeValue, freqlabels[v], graphWidth);
 
 			// dont draw the label if we are too near the start or end
@@ -483,13 +522,14 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		
 	}
 
-	public void setFox(Spacecraft f) {
-		fox = f;
+	public void setFox(Spacecraft spacecraft) {
+		fox = spacecraft;
 	}
 	
 	public void startProcessing(SourceIQ d) {
 		iqSource = d;
-		//title.setText("Sample rate: " +  d.upstreamAudioFormat.getSampleRate());
+		init();
+		//title.setText("Sample rate: " +  iqSource.IQ_SAMPLE_RATE);
 		running = true;
 	}
 	

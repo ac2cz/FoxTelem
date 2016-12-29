@@ -8,11 +8,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import telemetry.LookUpTableRSSI;
+import telemetry.LookUpTable;
 
 public class RSSILookUpTableTest {
 
-	LookUpTableRSSI table;
+	LookUpTable table;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -24,7 +24,7 @@ public class RSSILookUpTableTest {
 
 	@Before
 	public void setUp() throws Exception {
-		table = new LookUpTableRSSI();
+		table = new LookUpTable();
 	}
 
 	@After

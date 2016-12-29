@@ -37,12 +37,12 @@ import telemetry.HighSpeedFrame;
  *
  */
 @SuppressWarnings("serial")
-public class HighSpeedBitStream extends BitStream {
+public class HighSpeedBitStream extends FoxBitStream {
 	public static int HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;
 	public static final int[] RS_PADDING = {3,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4};
 	
-	public HighSpeedBitStream(Decoder dec) {
+	public HighSpeedBitStream(FoxDecoder dec) {
 		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, dec);
 		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
@@ -102,7 +102,7 @@ public class HighSpeedBitStream extends BitStream {
 			}
 			bytesInFrame++;
 
-			if (bytesInFrame == 4601) {  //FIXME - hard coded value
+			if (bytesInFrame == HighSpeedFrame.MAX_FRAME_SIZE+1) {  
 				// first parity byte
 				//Log.println("parity");
 				// Reset to the first code word
@@ -163,12 +163,39 @@ public class HighSpeedBitStream extends BitStream {
 		// Consume all of the bits up to this point, but not the end SYNC word
 		removeBits(0, end-10);
 
+		//// DEBUG ///
+//		System.out.println(codeWords[0]);
+//		System.out.println("Bytes in Frame: " + bytesInFrame);
 		f=0;
 		rsNum=0;
+
+		boolean readingParity = false;
 		// We have corrected the bytes, now allocate back to the rawFrame and add to the frame
 		for (int i=0; i < bytesInFrame; i++) {
 			try {
-				rawFrame[i] = codeWords[rsNum++].getByte(f);
+				if (i == HighSpeedFrame.MAX_FRAME_SIZE) {
+				//	Log.println("PARITY");
+					readingParity=true;
+					rsNum=0;
+					f++;
+				}
+				
+				if (readingParity) {
+					if (rsNum==0) {
+				//		Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
+				//		Log.println(""+codeWords[rsNum].getByte(f));
+						rawFrame[i] = codeWords[rsNum++].getByte(f);
+					} else {
+				//		Log.print(i+ " RS: "+rsNum+ " - " + (f-1) + " :"); 
+				//		Log.println(""+codeWords[rsNum].getByte(f-1));
+						rawFrame[i] = codeWords[rsNum++].getByte(f-1);
+					}
+				} else {
+				//	Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
+				//	Log.println(""+codeWords[rsNum].getByte(f));
+					rawFrame[i] = codeWords[rsNum++].getByte(f);
+				}
+				
 			} catch (IndexOutOfBoundsException e) {
 				Log.println(e.getMessage());
 				if (Config.useRSfec)

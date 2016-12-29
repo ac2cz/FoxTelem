@@ -1,20 +1,11 @@
 package telemServer;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Writer;
 import java.net.Socket;
-import java.nio.channels.FileChannel;
+import java.net.SocketException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -132,12 +123,16 @@ public class ServerProcess implements Runnable {
 					Log.println("ERROR: Could not mark file as null data: " + stp.getAbsolutePath());
 			}
 			
+		} catch (SocketException e) {
+			Log.println("SOCKET EXCEPTION, file will not be processed");
 		} catch (IOException e) {
 			Log.println("ERROR ALERT:" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
-			Log.alert("FATAL: + e.getMessage()");
+			Log.alert("FATAL: " + e.getMessage());
+		
+
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());

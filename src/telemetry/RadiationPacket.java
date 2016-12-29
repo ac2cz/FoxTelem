@@ -1,7 +1,8 @@
 package telemetry;
 
+import common.FoxSpacecraft;
 import common.Spacecraft;
-import decoder.BitStream;
+import decoder.FoxBitStream;
 
 /**
  * 
@@ -122,7 +123,7 @@ public class RadiationPacket extends BitArray{
 		public int getType() { return fieldValue[TYPE_FIELD]; }
 		public int getSequence() { return fieldValue[SEQUENCE_FIELD]; }
 		
-		public String getStringValue(String name, Spacecraft fox) {
+		public String getStringValue(String name, FoxSpacecraft fox) {
 			// FIXME - implement
 			return null;
 		}
@@ -398,7 +399,7 @@ public class RadiationPacket extends BitArray{
 				
 			}
 			bitPosition = bitPosition + n;
-			field = BitStream.binToInt(b);
+			field = FoxBitStream.binToInt(b);
 			return field;
 			
 		}
@@ -469,5 +470,11 @@ public class RadiationPacket extends BitArray{
 				int conversion, Spacecraft fox) {
 			// TODO Auto-generated method stub
 			return 0;
+		}
+
+		@Override
+		public String getStringValue(String name, Spacecraft fox) {
+			// TODO Auto-generated method stub
+			return null;
 		}
 }

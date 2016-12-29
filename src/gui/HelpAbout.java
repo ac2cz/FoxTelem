@@ -55,6 +55,8 @@ public class HelpAbout extends JDialog implements ActionListener {
 	private final String AMSAT = "http://www.amsat.org";
 	private final String FOX = "http://ww2.amsat.org/?page_id=1113";
 	public final static String MANUAL = "foxtelem_manual.pdf";
+	public final static String LEADERBOARD = "http://www.amsat.org/tlm/";
+	public final static String SOFTWARE = "http://amsat.us/FoxTelem/";
 	JButton btnClose;
 	
 	/**

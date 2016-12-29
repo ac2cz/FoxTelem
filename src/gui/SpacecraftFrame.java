@@ -28,13 +28,39 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.JLabel;
 
-import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 
+/**
+* 
+* FOX 1 Telemetry Decoder
+* @author chris.e.thompson g0kla/ac2cz
+*
+* Copyright (C) 2015 amsat.org
+*
+* This program is free software: you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation, either version 3 of the License, or
+* (at your option) any later version.
+*
+* This program is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* 
+* The SpacecraftFrame is a seperate window that opens and allows the spacecraft paramaters to
+* be viewed and edited.
+*
+*/
+@SuppressWarnings("serial")
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener {
 
 	private final JPanel contentPanel = new JPanel();
+	JTextField name;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -52,14 +78,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JButton btnGetT0;
 	T0SeriesTableModel t0TableModel;
 	
-	Spacecraft sat;
+	FoxSpacecraft sat;
 
 	int headerSize = 12;
 	
 	/**
 	 * Create the dialog.
 	 */
-	public SpacecraftFrame(Spacecraft sat, JFrame owner, boolean modal) {
+	public SpacecraftFrame(FoxSpacecraft sat, JFrame owner, boolean modal) {
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
@@ -83,8 +109,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading0 = title("Identification");
 		titlePanel.setBorder(heading0);
 
-		JLabel lName = new JLabel("Name: " + sat.name);
-		titlePanel.add(lName);
+		//JLabel lName = new JLabel("Name: " + sat.name);
+		name = addSettingsRow(titlePanel, 15, "Name", 
+				"The name must be the same as the name in SatPC32 if you want to automaticaly check if it is above the horizon", ""+sat.name);
+		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
 		
@@ -103,14 +131,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading = title("Fixed Paramaters");
 		leftFixedPanel.setBorder(heading);
 		
-		JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
+		JLabel lModel = new JLabel("Model: " + sat.modelNames[sat.model]);
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
-			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
+			lExp[i] = new JLabel("Experiment "+(i+1)+": " + FoxSpacecraft.expNames[sat.experiments[i]]);
 			leftFixedPanel.add(lExp[i]);
 		}
 
@@ -179,12 +207,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				"The calibration paramater for zero battery current", ""+sat.BATTERY_CURRENT_ZERO);
 
 		rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
-				"The file containing the lookup table for Received Signal Strength", ""+sat.rssiLookUpTableFileName);
+				"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
 		ihuTempLookUpTableFileName = addSettingsRow(rightPanel2, 25, "IHU Temp Lookup Table", 
-				"The file containing the lookup table for the IHU Temperature", ""+sat.ihuTempLookUpTableFileName);
+				"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
 		ihuVBattLookUpTableFileName = addSettingsRow(rightPanel2, 25, "VBatt Lookup Table", 
-				"The file containing the lookup table for the Battery Voltage", ""+sat.ihuVBattLookUpTableFileName);
+				"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
 	
+		rssiLookUpTableFileName.setEnabled(false);
+		ihuTempLookUpTableFileName.setEnabled(false);
+		ihuVBattLookUpTableFileName .setEnabled(false);
+		
 		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
 				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
 		
@@ -299,18 +331,18 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				} catch (NumberFormatException ex) {
 					throw new NumberFormatException("The Frequency fields must contain a valid number");
 				}
-				if (!sat.rssiLookUpTableFileName.equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
-					sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
-					refreshTabs = true;
-				}
-				if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
-					sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
-					refreshTabs = true;
-				}
-				if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
-					sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
-					refreshTabs = true;
-				}
+	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
+	//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
+	//				refreshTabs = true;
+	//			}
+//				if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
+//					sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
+//					refreshTabs = true;
+//				}
+	//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
+	//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
+	//				refreshTabs = true;
+	//			}
 				
 				if (sat.BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
 					sat.BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
@@ -319,6 +351,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
+					refreshTabs = true;
+				}
+				if (!sat.name.equalsIgnoreCase(name.getText())) {
+					sat.name = name.getText();
 					refreshTabs = true;
 				}
 				sat.track = track.isSelected();

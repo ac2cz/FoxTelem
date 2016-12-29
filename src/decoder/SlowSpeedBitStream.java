@@ -28,7 +28,7 @@ import fec.RsCodeWord;
  *
  */
 @SuppressWarnings("serial")
-public class SlowSpeedBitStream extends BitStream {
+public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes()+1);
 	
 	

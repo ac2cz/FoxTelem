@@ -1,7 +1,6 @@
-package gui;
+package fcd;
 
 import java.awt.BorderLayout;
-import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -9,41 +8,46 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 
 import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-import common.Config;
 import common.Log;
-import fcd.FcdDevice;
-import fcd.FcdException;
-import fcd.FcdProDevice;
+import device.Device;
+import device.DeviceException;
+import device.DevicePanel;
 
 @SuppressWarnings("serial")
-public class FcdProPanel extends FcdPanel implements ItemListener, ActionListener, Runnable {
-	JLabel title;
+public class FcdProPanel extends DevicePanel implements ItemListener, ActionListener, Runnable {
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
 	FcdProDevice fcd;
+	@SuppressWarnings("rawtypes")
 	JComboBox cbMixerGain;
+	@SuppressWarnings("rawtypes")
 	JComboBox cbLnaGain;
 	JTextField rfFilterValue;
 	JTextField bandValue;
 	JTextField ifFilterValue;
 	
-	FcdProPanel() throws IOException, FcdException {
+	public FcdProPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
 		initializeGui();
 	}
 	
-	public void initializeGui() throws IOException, FcdException {
+	public void setEnabled(boolean b) {
+		cbMixerGain.setEnabled(b);
+		cbLnaGain.setEnabled(b);
+		bandValue.setEnabled(b);
+		
+	}
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public void initializeGui() throws IOException, DeviceException {
 		setLayout(new BorderLayout(3,3));
 		JPanel center = new JPanel();
 		add(center, BorderLayout.NORTH);
@@ -84,21 +88,21 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 	}
 	
 	@Override
-	public void setFcd(FcdDevice fcd) throws IOException, FcdException {
+	public void setDevice(Device fcd) throws IOException, DeviceException {
 		setFcd((FcdProDevice)fcd);
 		
 	}
-	public void setFcd(FcdProDevice f) throws IOException, FcdException { 
+	public void setFcd(FcdProDevice f) throws IOException, DeviceException { 
 		fcd = f; 
 		getSettings();
 	}
 	
-	public void updateFilter() throws IOException, FcdException {
+	public void updateFilter() throws IOException, DeviceException {
 		rfFilterValue.setText(fcd.getRfFilter());
 		bandValue.setText(fcd.getBand());
 	}
 	
-	public void getSettings()  throws IOException, FcdException {
+	public void getSettings()  throws IOException, DeviceException {
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -117,9 +121,6 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 	}
 	
 	
-	private void updateParam(int i, String name, int cmd) {
-	}
-
 	@Override
 	public void run() {
 		done = false;
@@ -141,7 +142,7 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
-				} catch (FcdException e) {
+				} catch (DeviceException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -165,7 +166,7 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 					fcd.setMixerGain(true);
 				else 
 					fcd.setMixerGain(false);
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			} 
@@ -174,12 +175,22 @@ public class FcdProPanel extends FcdPanel implements ItemListener, ActionListene
 			try {
 				int position = cbLnaGain.getSelectedIndex();
 				fcd.setLnaGain(position);
-			} catch (FcdException e1) {
+			} catch (DeviceException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			} 
 		}
 		
+	}
+
+	@Override
+	public int getSampleRate() {
+		return fcd.SAMPLE_RATE;
+	}
+
+	@Override
+	public int getDecimationRate() {
+		return 1;
 	}
 
 	

@@ -25,8 +25,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.ArrayList;
 
 import javax.imageio.ImageIO;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -35,18 +37,19 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.SoftBevelBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
+import measure.SatMeasurementStore;
 
 /**
  * 
@@ -72,11 +75,18 @@ import common.Spacecraft;
 @SuppressWarnings("serial")
 public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener, FocusListener {
 
-	private String fieldName;
-	String displayTitle;
+	public String[] fieldName;
+	public String[] fieldName2;
+	String fieldUnits = "";
+	String fieldUnits2 = "";
+	String displayTitle; // the actual title of the graph - calculated
+	String title; // the title of the module, e.g. Computer - passed in
+	BitArrayLayout layout;
 	private int payloadType;
+	private int conversionType;
+	int conversionType2;
 	private JPanel contentPane;
-	private GraphPanel panel;
+	private GraphCanvas panel;
 	private JPanel titlePanel;
 	private JPanel footerPanel;
 	
@@ -92,6 +102,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnPoints;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
+	@SuppressWarnings("rawtypes")
+	private JComboBox cbAddVariable;
+	private ArrayList<String> variables;
 	
 	public Spacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
@@ -121,6 +134,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JTextField textFromReset;
 	//private DiagnosticTextArea textArea;
 	private DiagnosticTable diagnosticTable;
+	JButton btnAdd;
 	
 	public boolean plotDerivative;
 	public boolean dspAvg;
@@ -133,18 +147,32 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean hideLines = true;
 	public boolean showContinuous = false;
 	
+	public boolean add = false;
+	public boolean skyPlot = false;
+	
 	boolean textDisplay = false;
 	
 	/**
 	 * Create the frame.
 	 */
-	public GraphFrame(String title, String fieldName, int conversionType, int plType, Spacecraft sat) {
-		fox = sat;
-		this.fieldName = fieldName;
+	@SuppressWarnings("rawtypes")
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft fox2, Boolean showSkyChart) {
+		fox = fox2;
+		this.fieldName = new String[1];
+		this.fieldName[0] = fieldName;
+		this.fieldUnits = fieldUnits;
+		this.title = title;
+		this.conversionType = conversionType;
+		
+		layout = getLayout(plType);
+		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
 		loadProperties();
+		
+		if (showSkyChart != null) // take the value, otherwise we use what was loaded from the save
+			this.skyPlot = showSkyChart;
 		
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
 //		setIconImage(img);
@@ -156,35 +184,44 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		titlePanel = new JPanel();
 		contentPane.add(titlePanel, BorderLayout.NORTH);
 		titlePanel.setLayout(new BorderLayout(0,0));
-		JPanel titlePanelLeft = new JPanel();
+		JPanel titlePanelRight = new JPanel();
 		JPanel titlePanelcenter = new JPanel();
-		titlePanel.add(titlePanelLeft, BorderLayout.EAST);
+		JPanel titlePanelLeft = new JPanel();
+		titlePanel.add(titlePanelRight, BorderLayout.EAST);
 		titlePanel.add(titlePanelcenter, BorderLayout.CENTER);
-
-		displayTitle = title;
-		if (plType != 0) // measurement
-			displayTitle = sat.name + " " + title;
-		if (conversionType == BitArrayLayout.CONVERT_FREQ) {
-			int freqOffset = sat.telemetryDownlinkFreqkHz;
-			displayTitle = title + " delta from " + freqOffset + " kHz";
-		}
-
+		titlePanel.add(titlePanelLeft, BorderLayout.WEST);
+		calcTitle();
 		
 //		JLabel lblTitle = new JLabel(displayTitle);
 //		lblTitle.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize + 3));
 //		titlePanelcenter.add(lblTitle);
 
-		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
-				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR ) {   // Should not hard code this - need to update
-			//textArea = new DiagnosticTextArea(title, fieldName, this);
-			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
-			//JScrollPane scroll = new JScrollPane (diagnosticTable, 
-			//		   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		if (textDisplay(conversionType) ) {   
+			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, (FoxSpacecraft)fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
-		} else {
-			panel = new GraphPanel(title, fieldName, conversionType, payloadType, this, sat);
+		} else if (skyPlot){
+			initSkyPlotFields();
+			panel = new DensityPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
+		} else {
+			panel = new GraphPanel(title, conversionType, payloadType, this, fox2);
+			contentPane.add(panel, BorderLayout.CENTER);
+		}
+
+		if (!(textDisplay || skyPlot)) {
+			btnAdd = new JButton("+ ");
+			titlePanelLeft.add(btnAdd);
+			btnAdd.addActionListener(this);
+			btnAdd.setToolTipText("Add another trace to this graph");
+			cbAddVariable = new JComboBox();
+
+			// make a list of the variables that we could plot
+			// this is every variable in the Layout that is shown in a module. Only broken telem channels are not shown
+			initVarlist();
+			titlePanelLeft.add(cbAddVariable);
+			cbAddVariable.addActionListener(this);
+			cbAddVariable.setVisible(add);
 		}
 
 		
@@ -193,43 +230,43 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnLines.setMargin(new Insets(0,0,0,0));
 		btnLines.setToolTipText("Draw lines between data points");
 		btnLines.addActionListener(this);
-		titlePanelLeft.add(btnLines);
-		if (this.textDisplay) btnLines.setVisible(false);
+		titlePanelRight.add(btnLines);
+		if (this.textDisplay || skyPlot) btnLines.setVisible(false);
 
 		btnPoints = new JButton("Points");
 		btnPoints.setMargin(new Insets(0,0,0,0));
 		btnPoints.setToolTipText("Show data points");
 		btnPoints.addActionListener(this);
-		titlePanelLeft.add(btnPoints);
-		if (this.textDisplay) btnPoints.setVisible(false);
+		titlePanelRight.add(btnPoints);
+		if (this.textDisplay || skyPlot) btnPoints.setVisible(false);
 
 		
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
-		titlePanelLeft.add(btnHorizontalLines);
-		if (this.textDisplay) btnHorizontalLines.setVisible(false);
+		titlePanelRight.add(btnHorizontalLines);
+		if (this.textDisplay || skyPlot) btnHorizontalLines.setVisible(false);
 
 		btnVerticalLines = createIconButton("/images/verticalLines.png","Verrtical","Show Vertical Lines");
-		titlePanelLeft.add(btnVerticalLines);
-		if (this.textDisplay) btnVerticalLines.setVisible(false);
+		titlePanelRight.add(btnVerticalLines);
+		if (this.textDisplay || skyPlot) btnVerticalLines.setVisible(false);
 
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
-		btnMain.setToolTipText("Hide the unprocessed telemetry data");
+		btnMain.setToolTipText("Hide the first trace (useful if the derivative or average has been plotted)");
 		btnMain.addActionListener(this);
-		titlePanelLeft.add(btnMain);
-		if (this.textDisplay) btnMain.setVisible(false);
+		titlePanelRight.add(btnMain);
+		if (this.textDisplay || skyPlot) btnMain.setVisible(false);
 
 		btnDerivative = createIconButton("/images/derivSmall.png","Deriv","Plot 1st Derivative (1st difference)");
-		titlePanelLeft.add(btnDerivative);
-		if (this.textDisplay) btnDerivative.setVisible(false);
+		titlePanelRight.add(btnDerivative);
+		if (this.textDisplay || skyPlot) btnDerivative.setVisible(false);
 
 		btnAvg = new JButton("AVG");
 		btnAvg.setMargin(new Insets(0,0,0,0));
 		btnAvg.setToolTipText("Running Average / Low Pass Filter");
 		btnAvg.addActionListener(this);
 		
-		titlePanelLeft.add(btnAvg);
-		if (this.textDisplay) btnAvg.setVisible(false);
+		titlePanelRight.add(btnAvg);
+		if (this.textDisplay || skyPlot) btnAvg.setVisible(false);
 
 		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA || 
 				conversionType == BitArrayLayout.CONVERT_BOOLEAN ) {
@@ -246,55 +283,59 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		setRedOutline(btnVerticalLines, showVerticalLines);
 
 		btnLatest = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
-		titlePanelLeft.add(btnLatest);
+		titlePanelRight.add(btnLatest);
 		//if (this.textDisplay) btnLatest.setEnabled(false);
 		
 		btnCSV = createIconButton("/images/saveSmall.png","CSV","Save this data to a CSV file");
-		titlePanelLeft.add(btnCSV);
+		titlePanelRight.add(btnCSV);
 		if (this.textDisplay) btnCSV.setEnabled(false);
 		
 		btnCopy = createIconButton("/images/copySmall.png","Copy","Copy graph to clipboard");
-		titlePanelLeft.add(btnCopy);
+		titlePanelRight.add(btnCopy);
 		if (this.textDisplay) btnCopy.setEnabled(false);
 		
 		footerPanel = new JPanel();
 		contentPane.add(footerPanel, BorderLayout.SOUTH);
 		footerPanel.setLayout(new BorderLayout(0,0));
 		JPanel footerPanelLeft = new JPanel();
+		JPanel footerPanelFarLeft = new JPanel();
 		JPanel footerPanelRight = new JPanel();
 		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
+		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
-		cbUptime = new JCheckBox("Show Uptime");
-		cbUptime.setSelected(!hideUptime);
-		cbUptime.addItemListener(this);
-		footerPanelLeft.add(cbUptime);
+		if (!skyPlot) {
+			cbUptime = new JCheckBox("Show Uptime");
+			cbUptime.setSelected(!hideUptime);
+			cbUptime.addItemListener(this);
+			footerPanelLeft.add(cbUptime);
 
-		cbUTC = new JCheckBox("UTC Time   |");
-		cbUTC.setSelected(showUTCtime);
-		cbUTC.addItemListener(this);
-		footerPanelLeft.add(cbUTC);
-		
-		lblAvg = new JLabel("Avg");
-		txtAvgPeriod = new JTextField();
-//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
-		txtAvgPeriod.addActionListener(this);
-		txtAvgPeriod.addFocusListener(this);
-		lblAvgPeriod = new JLabel("samples  ");
-		
-		setAvgVisible(dspAvg);
-		
-		footerPanelLeft.add(lblAvg);
-		footerPanelLeft.add(txtAvgPeriod);
-		footerPanelLeft.add(lblAvgPeriod);
-		txtAvgPeriod.setText(Integer.toString(AVG_PERIOD));
-		txtAvgPeriod.setColumns(3);
+			cbUTC = new JCheckBox("UTC Time   |");
+			cbUTC.setSelected(showUTCtime);
+			cbUTC.addItemListener(this);
+			footerPanelLeft.add(cbUTC);
 
+			lblAvg = new JLabel("Avg");
+			txtAvgPeriod = new JTextField();
+			//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
+			txtAvgPeriod.addActionListener(this);
+			txtAvgPeriod.addFocusListener(this);
+			lblAvgPeriod = new JLabel("samples  ");
+
+			setAvgVisible(dspAvg);
+
+			footerPanelLeft.add(lblAvg);
+			footerPanelLeft.add(txtAvgPeriod);
+			footerPanelLeft.add(lblAvgPeriod);
+			txtAvgPeriod.setText(Integer.toString(AVG_PERIOD));
+			txtAvgPeriod.setColumns(3);
+		}
 		lblPlot = new JLabel("Plot");
 		txtSamplePeriod = new JTextField();
 //		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtSamplePeriod.addActionListener(this);
 		txtSamplePeriod.addFocusListener(this);
+		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
 
 		
 		footerPanelLeft.add(lblPlot);
@@ -335,16 +376,78 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 		
-		chckbxPlotAllUptime = new JCheckBox("Continuous");
-		chckbxPlotAllUptime.setToolTipText("");
-		footerPanelLeft.add(chckbxPlotAllUptime);
-		chckbxPlotAllUptime.setSelected(showContinuous);
-		
-		chckbxPlotAllUptime.addItemListener(this);
-		if (this.textDisplay) chckbxPlotAllUptime.setVisible(false);
-		
+		if (!(skyPlot || textDisplay)) {
+			chckbxPlotAllUptime = new JCheckBox("Continuous");
+			chckbxPlotAllUptime.setToolTipText("");
+			footerPanelLeft.add(chckbxPlotAllUptime);
+			chckbxPlotAllUptime.setSelected(showContinuous);
+
+			chckbxPlotAllUptime.addItemListener(this);
+			chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
+			
+		}
+	}
+	
+	private void initSkyPlotFields() {
+		String s = this.fieldName[0];
+		this.fieldName2 = new String[2];
+		this.fieldName2[0] = "EL";
+		this.fieldName2[1] = "AZ";
+		this.fieldName[0] = s;
 	}
 
+	private boolean textDisplay(int conversionType) {
+		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
+				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR )
+			return true;
+		return false;
+	}
+	
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	private void initVarlist() {
+		variables = new ArrayList<String>();
+		for (int v=0; v<layout.fieldName.length; v++) {
+			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+				variables.add(layout.fieldName[v]);
+		}
+		Object[] fields = variables.toArray();
+		cbAddVariable.removeAllItems();
+		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
+	}
+	private BitArrayLayout getLayout(int plType) {
+		BitArrayLayout layout = null;
+		if (plType == FoxFramePart.TYPE_REAL_TIME)
+			layout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_MAX_VALUES)
+			layout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_MIN_VALUES)
+			layout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+			layout = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+			layout = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
+		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
+			layout = fox.measurementLayout;
+		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
+			layout = fox.passMeasurementLayout;
+		return layout;
+	}
+	
+	private void calcTitle() {
+		//BitArrayLayout layout = getLayout(payloadType);
+		if (!skyPlot && (fieldName.length > 1 || fieldName2 != null))
+			displayTitle = fox.name;
+		else {
+			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
+			if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
+					payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
+				displayTitle = fox.name + " " + displayTitle;
+			if (conversionType == BitArrayLayout.CONVERT_FREQ) {
+				int freqOffset = fox.telemetryDownlinkFreqkHz;
+				displayTitle = title + " delta from " + freqOffset + " kHz";
+			}
+		}
+	}
 	private void setAvgVisible(boolean f) {
 		lblAvg.setVisible(f);
 		txtAvgPeriod.setVisible(f);
@@ -387,63 +490,87 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public void saveProperties(boolean open) {
 		//Log.println("Saving graph properties: " + fieldName);
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowHeight", this.getHeight());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowWidth", this.getWidth());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowX", this.getX());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "windowY", this.getY());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowHeight", this.getHeight());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowWidth", this.getWidth());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowX", this.getX());
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowY", this.getY());
 		
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "numberOfSamples", this.SAMPLES);
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "fromReset", this.START_RESET);
-		Config.saveGraphLongParam(fox.getIdString(), fieldName, "fromUptime", this.START_UPTIME);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "open", open);
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "numberOfSamples", this.SAMPLES);
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), fieldName[0], "fromUptime", this.START_UPTIME);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "open", open);
 		
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideMain", hideMain);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideLines", hideLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hidePoints", hidePoints);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "plotDerivative", plotDerivative);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "dspAvg", dspAvg);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showVerticalLines", showVerticalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showHorizontalLines", showHorizontalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showUTCtime", showUTCtime);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "hideUptime", hideUptime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideMain", hideMain);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideLines", hideLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hidePoints", hidePoints);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "plotDerivative", plotDerivative);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "dspAvg", dspAvg);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showVerticalLines", showVerticalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showHorizontalLines", showHorizontalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showUTCtime", showUTCtime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideUptime", hideUptime);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "skyPlot", skyPlot);
 		
-		Config.saveGraphIntParam(fox.getIdString(), fieldName, "AVG_PERIOD", AVG_PERIOD);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName, "showContinuous", showContinuous);
+		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "AVG_PERIOD", AVG_PERIOD);
+		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showContinuous", showContinuous);
+		
+		String fields1 = "";
+		for (String s : fieldName)
+			fields1 += s + ";";
+		Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName", fields1);
+		String fields2 = "";
+		if (fieldName2 != null) {
+			for (String s : fieldName2)
+				fields2 += s + ";";
+			Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName2", fields2);
+		} else {
+			Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName2", fields2); // make sure it is saved as blank
+		}
 	}
 
 	public boolean loadProperties() {
-		int windowX = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowX");
-		int windowY = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowY");
-		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowWidth");
-		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), fieldName, "windowHeight");
+		int windowX = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowX");
+		int windowY = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowY");
+		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowWidth");
+		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0)
 			setBounds(100, 100, 740, 400);
 		else
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 
-		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), fieldName, "numberOfSamples");
+		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "numberOfSamples");
 		if (SAMPLES == 0) SAMPLES = DEFAULT_SAMPLES;
 		if (SAMPLES > MAX_SAMPLES) {
 			SAMPLES = MAX_SAMPLES;
 		}
 			
-		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), fieldName, "fromReset");
-		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), fieldName, "fromUptime");
-		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "open");
-		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideMain");
-		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideLines");
-		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hidePoints");
-		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "plotDerivative");
-		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "dspAvg");
-		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showVerticalLines");
-		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showHorizontalLines");
-		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showUTCtime");
-		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "hideUptime");
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), fieldName[0], "fromUptime");
+		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "open");
+		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideMain");
+		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideLines");
+		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hidePoints");
+		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "plotDerivative");
+		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "dspAvg");
+		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showVerticalLines");
+		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showHorizontalLines");
+		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showUTCtime");
+		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideUptime");
+		skyPlot = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "skyPlot");
 		
-		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName, "AVG_PERIOD");
+		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "AVG_PERIOD");
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
-		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName, "showContinuous");
+		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
+		
+		String fields1 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName");
+		if (fields1 != null)
+			fieldName = fields1.split(";");
+		String fields2 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName2");
+		if (fields2 != null && !fields2.equalsIgnoreCase("")) {
+			fieldName2 = fields2.split(";");
+			fieldUnits2 = layout.getUnitsByName(fieldName2[0]);
+		}
 		return open;
 	}
 
@@ -501,6 +628,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (AVG_PERIOD > MAX_AVG_SAMPLES) {
 				AVG_PERIOD = MAX_AVG_SAMPLES;
 				text = Integer.toString(MAX_AVG_SAMPLES);
+				txtAvgPeriod.setText(text);
 			}
 		} catch (NumberFormatException ex) {
 			
@@ -561,9 +689,115 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			but.setBackground(Color.GRAY);
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.txtSamplePeriod) {
+		if (e.getSource() == btnAdd) {
+			add = !add;
+			cbAddVariable.setVisible(add);
+		} else
+		if (e.getSource() == cbAddVariable) {
+			// Add or remove a variable to be plotted on the graph
+			int position = cbAddVariable.getSelectedIndex();
+			if (position == -1) return;
+			if (fieldName[0].equalsIgnoreCase(variables.get(position))) return; // can't toggle the main value
+			
+			int fields = fieldName.length;
+			int fields2 = 0;;
+			String[] temp = new String[fields];
+			String[] temp2 = null;
+			int i = 0;
+			boolean toggle = false;
+			boolean toggle2 = false;
+			BitArrayLayout layout = getLayout(payloadType);
+			int totalVariables = fieldName.length;
+			
+			for (String s: fieldName) {
+				temp[i++] = s;
+				if (s.equalsIgnoreCase(variables.get(position))) toggle=true;
+			}
+			int j = 0;
+			if (fieldName2 != null && fieldName2.length > 0) {
+				fields2 = fieldName2.length;
+				temp2 = new String[fields2];
+				for (String s: fieldName2) {
+					temp2[j++] = s;
+					if (s.equalsIgnoreCase(variables.get(position))) toggle2=true;
+				}
+				totalVariables += fieldName2.length;
+			}
+			if (toggle && fieldName.length > 1) {
+				// we remove this entry
+				fieldName = new String[fields-1];
+				i=0;
+				for (String s: temp)
+					if (!s.equalsIgnoreCase(variables.get(position)))
+						fieldName[i++] = s;
+				
+			} else if (toggle2 && fieldName2.length > 0) {
+				// we remove this entry
+				if (fieldName2.length == 1) {
+					fieldName2 = null;
+					fieldUnits2 = "";
+					fields2 = 0;
+				} else {
+					fieldName2 = new String[fields2-1];
+					i=0;
+					for (String s: temp2)
+						if (!s.equalsIgnoreCase(variables.get(position)))
+							fieldName2[i++] = s;
+				}
+			} else {
+				if (totalVariables == GraphPanel.MAX_VARIABLES) return; // can't add more variables than the graphPanel can plot
+				// Check if this is the same units, otherwise set this as unit2
+				String unit = layout.getUnitsByName(variables.get(position));
+				if (!unit.equalsIgnoreCase(fieldUnits)) {
+					fieldUnits2 = unit;
+					conversionType2 = layout.getConversionByName(variables.get(position));
+					// we add it to the second list as the units are different
+					fieldName2 = new String[fields2+1];
+					i=0;
+					if (temp2 != null) // then add what we have so far
+						for (String s: temp2)
+							fieldName2[i++] = s;
+					fieldName2[i] = variables.get(position);
+				} else {
+					// we add it to the normal list
+					fieldName = new String[fields+1];
+					i=0;
+					for (String s: temp)
+						fieldName[i++] = s;
+					fieldName[i] = variables.get(position);
+				}
+
+
+			}
+			
+			// now rebuild the pick list
+			variables = new ArrayList<String>();
+			
+			for (int v=0; v<layout.fieldName.length; v++) {
+				if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+				if (layout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || layout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
+						|| fieldUnits2.equalsIgnoreCase(""))
+					variables.add(layout.fieldName[v]);
+			}
+		
+			cbAddVariable.removeAllItems();
+			for (String s:variables) {
+				cbAddVariable.addItem(s);
+			}
+			
+			if (fieldName.length > 1 || fieldName2 != null)
+				;
+			else {
+				add = false;
+				cbAddVariable.setVisible(add);
+			}
+			calcTitle();
+			panel.updateGraphData("GraphFrame:stateChange:addVariable");
+		}
+		else if (e.getSource() == this.txtSamplePeriod) {
 			parseTextFields();
 			
 		} else if (e.getSource() == this.textFromReset) {
@@ -575,12 +809,33 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		} else if (e.getSource() == this.txtAvgPeriod) {
 				parseAvgPeriod();
 		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
+			if (!textDisplay) {
+				if (skyPlot)
+					initSkyPlotFields();
+				else {
+					fieldUnits2 = "";
+					fieldName2 = null;
+					String name = fieldName[0];
+					fieldName = new String[1];
+					fieldName[0] = name;
+				}
+				if (!skyPlot) {
+					initVarlist();
+					add = false;
+					cbAddVariable.setVisible(add);
+				}
+				calcTitle();
+			}
 			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
 			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
-			txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
+			
 			parseTextFields();
-			parseAvgPeriod();
+			if (!skyPlot) {
+				txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
+				parseAvgPeriod();
+			}
+			
 		} else if (e.getSource() == btnCSV) {
 			File file = null;
 			File dir = null;
@@ -743,24 +998,51 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			else
 				panel.updateGraphData("GraphFrame:stateChange:Uptime");
 		}
+		
 	}
 
 	private void saveToCSV(File aFile) throws IOException {
-		double[][] graphData = null;
+		double[][][] graphData = null;
+		double[][][] graphData2 = null;
 		
-		if (payloadType == FramePart.TYPE_REAL_TIME)
-			graphData = Config.payloadStore.getRtGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_MAX_VALUES)
-			graphData = Config.payloadStore.getMaxGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_MIN_VALUES)
-			graphData = Config.payloadStore.getMinGraphData(fieldName, this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_RAD_TELEM_DATA)
-			graphData = Config.payloadStore.getRadTelemGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-		else if (payloadType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
-			graphData = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
-		else if  (payloadType == 0) // FIXME - type 0 is DEBUG  - measurement
-			graphData = Config.payloadStore.getMeasurementGraphData(fieldName, this.SAMPLES, this.fox, this.START_RESET, this.START_UPTIME);
+		graphData = new double[fieldName.length][][];
 		
+		for (int j=0; j < fieldName.length; j++) {
+			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
+				graphData[j] = Config.payloadStore.getRtGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
+				graphData[j] = Config.payloadStore.getMaxGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
+				graphData[j] = Config.payloadStore.getMinGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+			else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+			else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
+				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
+				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+
+		}
+		if (fieldName2 != null) {
+			graphData2 = new double[fieldName.length][][];
+			for (int j=0; j < fieldName2.length; j++) {
+				if (payloadType == FoxFramePart.TYPE_REAL_TIME)
+					graphData2[j] = Config.payloadStore.getRtGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
+					graphData2[j] = Config.payloadStore.getMaxGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
+					graphData2[j] = Config.payloadStore.getMinGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+					graphData2[j] = Config.payloadStore.getRadTelemGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+					graphData2[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
+					graphData2[j] = Config.payloadStore.getMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
+					graphData2[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+			}
+		}
 		if (graphData != null) {
 			if(!aFile.exists()){
 				aFile.createNewFile();
@@ -769,12 +1051,42 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			Writer output = new BufferedWriter(new FileWriter(aFile, false));
 
-			for (int i=0; i< graphData[0].length; i++) {
-				output.write( graphData[PayloadStore.RESETS_COL][i] + ", " +
-						graphData[PayloadStore.UPTIME_COL][i] + ", " +
-						graphData[PayloadStore.DATA_COL][i] + "\n" );
+			// Write the data to the file.  Reset, Uptime, Value.
+			// If there are multiple variabes then we write the rest of the values on the same line into subsequent columns
+			// First write a header row
+			String h;
+			if (this.showUTCtime)
+				h="UTC";
+			else
+				h= "resets, uptime";
+			for (int j=0; j < fieldName.length; j++)				
+				h = h + ", " + fieldName[j] ;
+			if (fieldName2 != null)
+			for (int j=0; j < fieldName2.length; j++)				
+				h = h + ", " + fieldName2[j] ;
+			output.write(h + "\n");
+			
+			for (int i=0; i< graphData[0][0].length; i++) {
+				String s;
+				if (this.showUTCtime && fox.isFox1()) {
+					FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+					if (fox2.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
+						s = fox2.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 
+						+ " " + fox2.getUtcTimeForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]);
+					else
+						s = "??"; 
+				} else
+					s = graphData[0][PayloadStore.RESETS_COL][i] + ", " +  // can always read reset and uptime from field 0
+						graphData[0][PayloadStore.UPTIME_COL][i] ;
+				for (int j=0; j < fieldName.length; j++)				
+						s = s + ", " + graphData[j][PayloadStore.DATA_COL][i] ;
+				if (graphData2 != null)
+				for (int j=0; j < fieldName2.length; j++)				
+					s = s + ", " + graphData2[j][PayloadStore.DATA_COL][i] ;
+				s=s+ "\n";
+				output.write(s); 
 			}
-
+			
 			output.flush();
 			output.close();
 

@@ -7,9 +7,12 @@ import java.net.SocketTimeoutException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
+import telemServer.ImageProcess;
+import telemServer.ServerConfig;
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
+import telemetry.PayloadDbStore;
 import common.Config;
 import common.Log;
 
@@ -39,15 +42,19 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.14 - 25 February 2016";
+	public static String version = "Version 0.19a - 10 Sept 2016";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
-	static int poolSize = 100; // max number of threads
+	static int poolSize = 8; // max number of threads
 	static final String usage = "FoxServer user database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
 			+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
-			+ "-f <dir> - Process all of the stp files in the specified directory and fix the STP_HEADER table db\n"
+			+ "-f <dir> - Read the stp files in the specified directory and fix the STP_HEADER table db\n"
 			+ "-r - Reprocess the radiation data and generate the secondary payloads\n";
+	
+	static Thread imageThread;
+	static ImageProcess imageProcess;
+	
 	public static void main(String[] args) throws IOException {
 		if (args.length == 1) {
 			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
@@ -82,7 +89,7 @@ public class FoxTelemServer {
 		Config.logging = true;
 		Log.init("FoxServer");
 		Log.showGuiDialogs = false;
-		Log.setStdoutEcho(true); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
+		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
 		try {
 			makeExceptionDir();
@@ -95,8 +102,10 @@ public class FoxTelemServer {
 		Log.println("Listening on port: " + port);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.serverInit(u,p,db); // initialize and create the payload store.  
 
+		ServerConfig.init();
+		
 		if (args.length == 3) {
 			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");
@@ -148,7 +157,12 @@ public class FoxTelemServer {
 
         //ServerProcess process = null;
         //Thread processThread;
-
+        
+        // Start the background image processing thread
+        imageProcess = new ImageProcess();
+        imageThread = new Thread(imageProcess);
+        imageThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+        imageThread.start();
         
         while (listening) {
         	try {

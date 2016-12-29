@@ -1,8 +1,8 @@
 package telemetry;
 
 import common.Config;
-
-import decoder.Decoder;
+import common.Spacecraft;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -52,10 +52,14 @@ public class HighSpeedHeader extends Header {
 		String s = new String();
 
 		s = s + "AMSAT FOX-1 High Speed Telemetry Captured at: " + reportDate() + "\n" 
-				+ "ID: " + Decoder.dec(id) 
-				+ " RESET COUNT: " + Decoder.dec(resets)
-				+ " UPTIME: " + Decoder.dec(uptime);
+				+ "ID: " + FoxDecoder.dec(id) 
+				+ " RESET COUNT: " + FoxDecoder.dec(resets)
+				+ " UPTIME: " + FoxDecoder.dec(uptime);
 		
 		return s;
 	}
+
+
+
+
 }

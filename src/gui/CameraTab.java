@@ -19,7 +19,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.time.Period;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -40,11 +39,11 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import telemetry.CameraJpeg;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.SortedJpegList;
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -81,7 +80,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	
 	private SortedJpegList jpegIndex;
 	
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId = 0;
 
 	int selectedThumb = 0;
@@ -130,7 +129,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	
 	int actualThumbnails = 0;
 	
-	CameraTab(Spacecraft sat) {
+	CameraTab(FoxSpacecraft sat) {
 		
 		
 		
@@ -142,22 +141,23 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 		setLayout(new BorderLayout(0, 0));
 	
-		thumbnails = new CameraThumb[MAX_THUMBNAILS_LIMIT]; // size this to hold references up to the limit
+		thumbnails = new CameraThumb[maxThumbnails]; // size this to hold references up to the limit that was loaded from the properties file
 		
 		topPanel = new JPanel();
 		topPanel.setMinimumSize(new Dimension(34, 250));
 		add(topPanel, BorderLayout.NORTH);
 		topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.X_AXIS));
 		
+		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
-		lblName.setMaximumSize(new Dimension(1600, 20));
-		lblName.setMinimumSize(new Dimension(1600, 20));
-		lblName.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblName.setMaximumSize(new Dimension(1600, (int)(Config.displayModuleFontSize * 20/11)));
+		lblName.setMinimumSize(new Dimension(1600, (int)(Config.displayModuleFontSize * 20/11)));
+		lblName.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		topPanel.add(lblName);
 		
 		lblImagesDecoded = new JLabel(DECODED);
 		lblImagesDecoded.setToolTipText("The number of images that we have downloaded from Fox");
-		lblImagesDecoded.setFont(new Font("SansSerif", Font.BOLD, 14));
+		lblImagesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
 		lblImagesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		topPanel.add(lblImagesDecoded);
 
@@ -224,7 +224,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));		
 
 		showLatestImage = new JCheckBox("Show Latest Image", Config.showLatestImage);
-		showLatestImage.setMinimumSize(new Dimension(150, 14));
+		showLatestImage.setMinimumSize(new Dimension(150, fonth));
 		//showRawValues.setMaximumSize(new Dimension(100, 14));
 		bottomPanel.add(showLatestImage );
 		showLatestImage.addItemListener(this);
@@ -235,7 +235,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	
 	private JLabel addPicParam(String text) {
 		JLabel title = new JLabel(text);
-		title.setFont(new Font("SansSerif", Font.BOLD, 12));
+		title.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		JLabel lab = new JLabel();
 		JPanel panel = new JPanel();
 		//panel.setLayout(new FlowLayout(FlowLayout.LEADING));
@@ -403,10 +403,10 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		Date result = null;
 		String reportDate = null;
 			try {
-				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				result = FramePart.fileDateFormat.parse(u);
-				FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				reportDate = FramePart.reportDateFormat.format(result);
+				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				result = FoxFramePart.fileDateFormat.parse(u);
+				FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				reportDate = FoxFramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
 				reportDate = "unknown";				

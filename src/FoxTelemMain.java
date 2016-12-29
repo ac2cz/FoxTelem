@@ -1,12 +1,6 @@
 
 import gui.InitalSettings;
 import gui.MainWindow;
-import telemetry.FramePart;
-import telemetry.PayloadRtValues;
-import telemetry.SortedArrayList;
-import telemetry.SortedFramePartArrayList;
-import telemetry.TableSeg;
-
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -18,12 +12,11 @@ import java.security.CodeSource;
 import java.security.ProtectionDomain;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import common.Config;
 import common.Log;
-import decoder.Decoder;
+//import decoder.FoxDecoder;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -509,9 +502,9 @@ import decoder.Decoder;
 
 public class FoxTelemMain {
 
-	static Decoder decoder;
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
-			+ "Usage: FoxTelem [-version] [fileName.wav]\n\n";
+			+ "Usage: FoxTelem [-version][-s] [fileName.wav]\n"
+			+ "-s automatically start the decoder\n\n";
 	static String seriousErrorMsg;
 	
 	public static void main(String[] args) {
@@ -543,7 +536,9 @@ public class FoxTelemMain {
 				System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
 				System.exit(0);
 			}
-
+			if (args[0].equalsIgnoreCase("-s"))
+				Config.startButtonPressed = true;
+					
 		}
 
 		invokeGUI();

@@ -13,13 +13,13 @@
 11,RT,PANEL_MINUS_Y_V,12,V,23,-Y Panel,14,2,3,Voltage,- Y Solar Panel Voltage
 12,RT,PANEL_PLUS_Z_V,12,V,23,+Z Panel,12,2,3,Voltage,+ Z Solar Panel Voltage
 13,RT,PANEL_MINUS_Z_V,12,V,23,-Z Panel,15,2,3,Voltage,- Z Solar Panel Voltage
-14,RT,PANEL_PLUS_X_T,12,C,24,+X Panel,10,1,3,Temp,+ X Solar Panel Temperature
-15,RT,PANEL_MINUS_X_T,12,C,24,-X Panel,13,1,3,Temp,- X Solar Panel Temperature
-16,RT,PANEL_PLUS_Y_T,12,C,24,+Y Panel,11,1,3,Temp,+ Y Solar Panel Temperature
-17,RT,PANEL_MINUS_Y_T,12,C,24,-Y Panel,14,1,3,Temp,- Y Solar Panel Temperature
-18,RT,PANEL_PLUS_Z_T,12,C,24,+Z Panel,12,1,3,Temp,+ Z Solar Panel Temperature
-19,RT,PANEL_MINUS_Z_T,12,C,24,-Z Panel,15,1,3,Temp,- Z Solar Panel Temperature
-20,RT,PSUTemperature,12,C,7,MPPT,4,2,3,Board Temp,Maximum Power Point Tracker Card Temperature
+14,RT,PANEL_PLUS_X_T,12,C,24,+X Panel,10,1,4,Temp,+ X Solar Panel Temperature
+15,RT,PANEL_MINUS_X_T,12,C,24,-X Panel,13,1,4,Temp,- X Solar Panel Temperature
+16,RT,PANEL_PLUS_Y_T,12,C,24,+Y Panel,11,1,4,Temp,+ Y Solar Panel Temperature
+17,RT,PANEL_MINUS_Y_T,12,C,24,-Y Panel,14,1,4,Temp,- Y Solar Panel Temperature
+18,RT,PANEL_PLUS_Z_T,12,C,24,+Z Panel,12,1,4,Temp,+ Z Solar Panel Temperature
+19,RT,PANEL_MINUS_Z_T,12,C,24,-Z Panel,15,1,4,Temp,- Z Solar Panel Temperature
+20,RT,PSUTemperature,12,C,8,MPPT,4,2,3,Board Temp,Maximum Power Point Tracker Card Temperature
 21,RT,SPIN,12,rpm,12,Computer,2,2,3,Spacecraft Spin,Calculated spin rate using solar cells
 22,RT,TXPACurrent,12,mA,10,NONE,0,0,3,PA Current,Transmit power amplifier current
 23,RT,TXTemperature,12,C,7,NONE,0,0,3,TX Temperature,Transmitter card temperature

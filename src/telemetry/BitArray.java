@@ -1,7 +1,7 @@
 package telemetry;
 
 import common.Spacecraft;
-import decoder.BitStream;
+import decoder.FoxBitStream;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -53,7 +53,7 @@ public abstract class BitArray {
 //	public String[] getFieldNames() { return fieldName; }
 	public int[] getFieldValues() { return fieldValue; }
 
-	BitArray(BitArrayLayout l) {
+	protected BitArray(BitArrayLayout l) {
 		layout = l;
 	}
 	
@@ -63,6 +63,11 @@ public abstract class BitArray {
 	
 	public int getConversionByName(String name) {
 		return layout.getConversionByName(name);
+		
+	}
+	
+	public String getUnitsByName(String name) {
+		return layout.getUnitsByName(name);
 		
 	}
 
@@ -111,7 +116,7 @@ public abstract class BitArray {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
@@ -155,4 +160,6 @@ public abstract class BitArray {
 	}
 
 	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
+	
+	
 }

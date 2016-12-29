@@ -90,6 +90,8 @@ public class Log {
 		    	PrintWriter pw = new PrintWriter(sw);
 		    	ex.printStackTrace(pw);
 		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
+		        if (!showGuiDialogs) // this is the server
+		        	alert("Uncaught exception.  Need to clear the ALERT and restart the server:\n" + sw.toString());
 		    }
 		};
 	}
@@ -116,7 +118,7 @@ public class Log {
 			out.flush();
 			out.close();
 			System.exit(9);
-		} catch (IOException e) {
+		} catch (Exception e) { // catch all exceptions at this point, otherwise we can go into a loop
 			System.err.println("FATAL ERROR: Cannot write log file: FoxTelemDecoder.log\n"
 					+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory);
 
@@ -178,12 +180,18 @@ public class Log {
 	}
 	
 	public static void dialog(String title, String message, int type) {
+		try {
 		if (showGuiDialogs)
 		JOptionPane.showMessageDialog(MainWindow.frame,
 				message.toString(),
 				title,
 			    type) ;
 		else Log.println(title + " " + message.toString());
+		} catch (Exception e) {
+			// catch all exceptions at this point, to avoid popping up messages in a loop
+			System.err.println("FATAL ERROR: Cannot show dialog: " + title + "\n" + message + "\n");
+			System.exit(1);
+		}
 	}
 	
 	

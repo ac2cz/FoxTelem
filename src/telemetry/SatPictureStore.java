@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
 
 import common.Config;
 import common.Log;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 
 /**
  * 
@@ -48,8 +48,7 @@ import common.Spacecraft;
 public class SatPictureStore {
 
 	private static final int INIT_SIZE = 100;
-	@SuppressWarnings("unused")
-	private Spacecraft fox;
+	private FoxSpacecraft fox;
 	public int foxId;
 	public static String JPG_INDEX_NAME = "jpg_index.dat";
 	private String fileName = JPG_INDEX_NAME;
@@ -62,7 +61,7 @@ public class SatPictureStore {
 	 */
 	public SatPictureStore(int id) {
 		foxId = id;
-		fox = Config.satManager.getSpacecraft(id);
+		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
 		initPayloadFiles();
 	}
 

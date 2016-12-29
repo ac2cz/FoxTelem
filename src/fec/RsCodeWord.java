@@ -88,6 +88,15 @@ public class RsCodeWord  {
 		nextByte = pad;
 		numberOfCorrections = 0;
 	}
+	
+	public String toString() {
+		String s = "RS SIZE: " + DATA_BYTES + "/" + NN + " PAD:" + RSPAD + "\n";
+		for(int i = 0; i < NN; i++){
+			s = s + i+ ": " + rsCodeWord[i] + " " ;
+			if (i % 16 == 15) s = s + "\n";
+		}
+		return s;
+	}
 
 	public void addByte(byte b) throws ArrayIndexOutOfBoundsException {
 		rsCodeWord[nextByte++] = b;

@@ -42,6 +42,8 @@ public class BitArrayLayout {
 	public int NUMBER_OF_FIELDS = 0;
 	
 	public String fileName;
+	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
+	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
 	
 	public static final String NONE = "NONE";
 	
@@ -90,11 +92,12 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_TYP = 30;
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
+	public static final int CONVERT_JAVA_DATE = 33;
 
 	/**
 	 * Create an empty layout for manual init
 	 */
-	BitArrayLayout() {
+	public BitArrayLayout() {
 		
 	}
 	
@@ -106,6 +109,11 @@ public class BitArrayLayout {
 	 */
 	public BitArrayLayout(String f) throws FileNotFoundException, LayoutLoadException {
 		load(f);
+	}
+	
+	public boolean isSecondaryPayload() {
+		if (parentLayout != null) return true;
+		return false;
 	}
 	
 	public boolean hasFieldName(String name) {
@@ -129,6 +137,31 @@ public class BitArrayLayout {
 		}
 	}
 
+	public String getUnitsByName(String name) {
+		int pos = -1;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == -1) {
+			return "";
+		} else {
+			return (fieldUnits[pos]);
+		}
+	}
+	
+	public String getShortNameByName(String name) {
+		int pos = -1;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == -1) {
+			return "";
+		} else {
+			return (shortName[pos]);
+		}
+	}
 	
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 

@@ -5,8 +5,8 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
-import common.Spacecraft;
-import decoder.Decoder;
+import common.FoxSpacecraft;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -29,7 +29,7 @@ import decoder.Decoder;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class PayloadRtValues extends FramePart {
+public class PayloadRtValues extends FoxFramePart {
 
 	//public static final int NUMBER_OF_FIELDS = 43;
 	
@@ -56,7 +56,7 @@ public class PayloadRtValues extends FramePart {
 		
 		//copyBitsToFields(); // dont need this as we loaded from the DB for the Web service
 		
-		Spacecraft fox = Config.satManager.getSpacecraft(id);
+		FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
 		String s = new String();
 		s = s + "<h3>Fox "+ fox.getIdString()+"  REAL TIME Telemetry   Reset: " + resets + " Uptime: " + uptime + "</h3>"
 				+ "<table>"
@@ -192,52 +192,52 @@ public class PayloadRtValues extends FramePart {
 		copyBitsToFields();
 		String s = new String();
 		s = s + "REAL TIME Telemetry:\n" 
-				+ "BATT_A_V: " + Decoder.dec(getRawValue("BATT_A_V")) 
-				+ " BATT_B_V: " + Decoder.dec(getRawValue("BATT_B_V")) 
-				+ " BATT_C_V: " + Decoder.dec(getRawValue("BATT_C_V"))
+				+ "BATT_A_V: " + FoxDecoder.dec(getRawValue("BATT_A_V")) 
+				+ " BATT_B_V: " + FoxDecoder.dec(getRawValue("BATT_B_V")) 
+				+ " BATT_C_V: " + FoxDecoder.dec(getRawValue("BATT_C_V"))
 				+ "\n"
-				+ "BATT_A_T: " + Decoder.dec(getRawValue("BATT_A_T")) 
-				+ " BATT_B_T: " + Decoder.dec(getRawValue("BATT_B_T"))
-				+ " BATT_C_T: " + Decoder.dec(getRawValue("BATT_C_T"))
+				+ "BATT_A_T: " + FoxDecoder.dec(getRawValue("BATT_A_T")) 
+				+ " BATT_B_T: " + FoxDecoder.dec(getRawValue("BATT_B_T"))
+				+ " BATT_C_T: " + FoxDecoder.dec(getRawValue("BATT_C_T"))
 				+ "\n"
-				+ "TOTAL_BATT_I: " + Decoder.dec(getRawValue("TOTAL_BATT_I")) 
-				+ " BATTBoardTemperature: " + Decoder.dec(getRawValue("BATTBoardTemperature"))
+				+ "TOTAL_BATT_I: " + FoxDecoder.dec(getRawValue("TOTAL_BATT_I")) 
+				+ " BATTBoardTemperature: " + FoxDecoder.dec(getRawValue("BATTBoardTemperature"))
 				+ "\n"
-				+ "PANEL_PLUS_X_V: " + Decoder.dec(getRawValue("PANEL_PLUS_X_V")) 
-				+ " PANEL_MINUS_X_V: " + Decoder.dec(getRawValue("PANEL_MINUS_X_V"))
-				+ " PANEL_PLUS_Y_V: " + Decoder.dec(getRawValue("PANEL_PLUS_Y_V"))
-				+ " PANEL_MINUS_Y_V: " + Decoder.dec(getRawValue("PANEL_MINUS_Y_V"))
-				+ " PANEL_PLUS_Z_V: " + Decoder.dec(getRawValue("PANEL_PLUS_Z_V"))
-				+ " PANEL_MINUS_Z_V: " + Decoder.dec(getRawValue("PANEL_MINUS_Z_V"))
+				+ "PANEL_PLUS_X_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_X_V")) 
+				+ " PANEL_MINUS_X_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_X_V"))
+				+ " PANEL_PLUS_Y_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Y_V"))
+				+ " PANEL_MINUS_Y_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Y_V"))
+				+ " PANEL_PLUS_Z_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Z_V"))
+				+ " PANEL_MINUS_Z_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Z_V"))
 				+ "\n"
-				+ "PANEL_PLUS_X_T: " + Decoder.dec(getRawValue("PANEL_PLUS_X_T")) 
-				+ " PANEL_MINUS_X_T: " + Decoder.dec(getRawValue("PANEL_MINUS_X_T"))
-				+ " PANEL_PLUS_Y_T: " + Decoder.dec(getRawValue("PANEL_PLUS_Y_T"))
-				+ " PANEL_MINUS_Y_T: " + Decoder.dec(getRawValue("PANEL_MINUS_Y_T"))
-				+ " PANEL_PLUS_Z_T: " + Decoder.dec(getRawValue("PANEL_PLUS_Z_T"))
-				+ " PANEL_MINUS_Z_T: " + Decoder.dec(getRawValue("PANEL_MINUS_Z_T"))
+				+ "PANEL_PLUS_X_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_X_T")) 
+				+ " PANEL_MINUS_X_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_X_T"))
+				+ " PANEL_PLUS_Y_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Y_T"))
+				+ " PANEL_MINUS_Y_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Y_T"))
+				+ " PANEL_PLUS_Z_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Z_T"))
+				+ " PANEL_MINUS_Z_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Z_T"))
 				+ "\n"
-				+ "PSUTemperature: " + Decoder.dec(getRawValue("PSUTemperature")) 
+				+ "PSUTemperature: " + FoxDecoder.dec(getRawValue("PSUTemperature")) 
 				+ " SPIN: " + (getRawValue("SPIN"))
 				+ "\n"
-				+ "TXPACurrent: " + Decoder.dec(getRawValue("TXPACurrent")) 
-				+ " TXTemperature: " + Decoder.dec(getRawValue("TXTemperature"))
+				+ "TXPACurrent: " + FoxDecoder.dec(getRawValue("TXPACurrent")) 
+				+ " TXTemperature: " + FoxDecoder.dec(getRawValue("TXTemperature"))
 				+ "\n"
-				+ "RXTemperature: " + Decoder.dec(getRawValue("RXTemperature")) 
-				+ " RSSI: " + Decoder.dec(getRawValue("RSSI"))
+				+ "RXTemperature: " + FoxDecoder.dec(getRawValue("RXTemperature")) 
+				+ " RSSI: " + FoxDecoder.dec(getRawValue("RSSI"))
 				+ "\n"
-				+ "IHUTemperature: " + Decoder.dec(getRawValue("IHUTemperature")) 
+				+ "IHUTemperature: " + FoxDecoder.dec(getRawValue("IHUTemperature")) 
 				+ " AntennaDeploySensors: " + (int)(getRawValue("RXAntenna")) + " "
 				+ (int)(getRawValue("TXAntenna"))
 				+ "\n"
-				+ "SatelliteXAxisAngularVelocity: " + Decoder.dec(getRawValue("SatelliteXAxisAngularVelocity")) + " "
-				+ " SatelliteYAxisAngularVelocity: " + Decoder.dec(getRawValue("SatelliteYAxisAngularVelocity"))+ " "
-				+ " SatelliteZAxisAngularVelocity: " + Decoder.dec(getRawValue("SatelliteZAxisAngularVelocity"))+ " "
+				+ "SatelliteXAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteXAxisAngularVelocity")) + " "
+				+ " SatelliteYAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteYAxisAngularVelocity"))+ " "
+				+ " SatelliteZAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteZAxisAngularVelocity"))+ " "
 				+ "\n"
-				+ "EXP4Temp: " + Decoder.dec(getRawValue("EXP4Temperature")) 
-				+ " PSUCurrent: " + Decoder.dec(getRawValue("PSUCurrent"))
+				+ "EXP4Temp: " + FoxDecoder.dec(getRawValue("EXP4Temperature")) 
+				+ " PSUCurrent: " + FoxDecoder.dec(getRawValue("PSUCurrent"))
 				+ "\n"
-				+ "IHUDiagnosticData: " + Decoder.dec(getRawValue("IHUDiagnosticData"))
+				+ "IHUDiagnosticData: " + FoxDecoder.dec(getRawValue("IHUDiagnosticData"))
 				+ "\n"
 				+ "ExperimentFailureIndication: " + (int)(getRawValue("Experiment1FailureIndication")) + " "
 				+ (int)(getRawValue("Experiment2FailureIndication")) + " "
@@ -248,7 +248,7 @@ public class PayloadRtValues extends FramePart {
 				+ (int)(getRawValue("PSU1I2CFailureIndications")) + " "
 				+ (int)(getRawValue("PSU2I2CFailureIndications")) + " "
 				+ "\n"
-				+ "NumberofGroundCommandedTLMResets: " + Decoder.dec(getRawValue("NumberofGroundCommandedTLMResets"))
+				+ "NumberofGroundCommandedTLMResets: " + FoxDecoder.dec(getRawValue("NumberofGroundCommandedTLMResets"))
 				;
 		return s;
 		

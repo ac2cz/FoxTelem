@@ -1,4 +1,4 @@
-package decoder;
+	package decoder;
 
 import gui.MainWindow;
 
@@ -42,7 +42,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	TargetDataLine targetDataLine = null;
 	int errorCount = 0;
 	byte[] readBuffer;
-	byte a,b,c,d;
+	double a,b;
 	
 	boolean skippedOneByte = false;
 	int channels = 0;
@@ -56,8 +56,8 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		
 	}
 */
-	public SourceSoundCardAudio(int circularBufferSize, int rate, int device, int chan) throws IllegalArgumentException, LineUnavailableException {
-		super("SoundCard", circularBufferSize, chan);
+	public SourceSoundCardAudio(int circularBufferSize, int rate, int device, int chan, boolean storeStereo) throws IllegalArgumentException, LineUnavailableException {
+		super("SoundCard", circularBufferSize, chan, storeStereo);
 		channels = chan;
 		sampleRate = rate;
 		setDevice(device);
@@ -105,7 +105,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		        Mixer mixer = AudioSystem.getMixer(info);
 		        try
 		        {
-		        	//Log.println("Found audio Device: " + info.getName() + " Desc:" + info.getDescription());
+		        	Log.println("Found audio Device: " + info.getName() + " Desc:" + info.getDescription());
 		            Info dataLineInfo = new DataLine.Info(TargetDataLine.class, audioFmt);
 		            String name = info.getName();
 		            String desc = info.getDescription();
@@ -150,7 +150,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		    String[] result = new String[device];
 		    result[0] = "Select audio source here then press start";
 		    result[FILE_SOURCE] = FILE_SOURCE_NAME;
-		 //   result[IQ_FILE_SOURCE] = IQ_FILE_SOURCE_NAME;
+		    result[AIRSPY_SOURCE] = AIRSPY_SOURCE_NAME;
 		 //   result[BIT_FILE_SOURCE] = BIT_FILE_SOURCE_NAME;
 		    for (int i=OFFSET; i< device; i++)
 		    	result[i] = devices[i];
@@ -163,11 +163,13 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	}
 	
 	public static String getDeviceName(int position) {
+		if (position == SourceAudio.AIRSPY_SOURCE) return SourceAudio.AIRSPY_SOURCE_NAME;
 		Mixer appMixer = mixerList[position];
 		return getMixerIdString(appMixer);
 	}
 	
 	public static int getDeviceIdByName(String name) {
+		if (name.equalsIgnoreCase(SourceAudio.AIRSPY_SOURCE_NAME)) return SourceAudio.AIRSPY_SOURCE;
 		for (int i=1; i< mixerList.length; i++) {
 			if (mixerList[i] != null)
 				if (name.equalsIgnoreCase(getMixerIdString(mixerList[i]))) {
@@ -224,6 +226,9 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 
 	
 
+	/**
+	 * the run method reads from the actual physical source and stores the results in the circular buffer
+	 */
 	@Override
 	public void run() {
 		done = false;
@@ -257,26 +262,40 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 					} 
 				//boolean readBoth = false;
 				int nBytesRead = targetDataLine.read(readBuffer, 0, readBuffer.length);
+				
 				try {
 					for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
-
-						a = readBuffer[i];
-						b = readBuffer[i+1];
-						
-						if (audioFormat.getFrameSize() == 4) {
-							c = readBuffer[i+2];
-							d = readBuffer[i+3];
-							if (channels == 0)
-								circularBuffer[0].add(a,b,c,d);
-							else
-								for (int chan=0; chan < channels; chan++)
-									circularBuffer[chan].add(a,b,c,d);
+						byte[] ia = {readBuffer[i],readBuffer[i+1]};
+						if (audioFormat.isBigEndian()) {
+							a = Decoder.bigEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
 						} else {
+							a = Decoder.littleEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						}
+						//a = SourceAudio.getDoubleFromBytes(readBuffer[i],readBuffer[i+1],audioFormat);
+						
+						if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
+							byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
+							if (audioFormat.isBigEndian()) {
+								b = Decoder.bigEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							} else {
+								b = Decoder.littleEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							}
+							//b = SourceAudio.getDoubleFromBytes(readBuffer[i+2],readBuffer[i+3], audioFormat);
+						}
+						if (audioFormat.getFrameSize() == 4 && storeStereo) {
 							if (channels == 0)
-								circularBuffer[0].add(a,b);
+								circularDoubleBuffer[0].add(a,b);
 							else
 								for (int chan=0; chan < channels; chan++)
-									circularBuffer[chan].add(a,b);
+									circularDoubleBuffer[chan].add(a,b);
+						} else { // we have only mono and we need to know which channel to take the data from
+							if (!Config.useLeftStereoChannel)
+								a = b; // use the audio from the right channel
+							if (channels == 0)
+								circularDoubleBuffer[0].add(a);
+							else
+								for (int chan=0; chan < channels; chan++)
+									circularDoubleBuffer[chan].add(a);
 						}
 					}
 				} catch (IndexOutOfBoundsException e) {
@@ -307,4 +326,6 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		Log.println("Audio Source EXIT, channels:" + channels);
 	}
 
+	
+	
 }

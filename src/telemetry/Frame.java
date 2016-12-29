@@ -4,11 +4,8 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -18,14 +15,16 @@ import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import common.TlmServer;
+import decoder.HighSpeedBitStream;
 import fec.RsCodeWord;
 
 /**
@@ -72,7 +71,7 @@ public abstract class Frame implements Comparable<Frame> {
 			"E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
 
 	protected Header header = null;
-	Spacecraft fox; // the satellite that we are decoding a frame for, populated
+	FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
 	public static final int DUV_FRAME = 0;
@@ -110,7 +109,9 @@ public abstract class Frame implements Comparable<Frame> {
 
 	// Store a reference to any measurements that were made at the same time as
 	// the Frame was downloaded, so we can pass them on to the server
+	@SuppressWarnings("unused") // this is used
 	private RtMeasurement rtMeasurement;
+	@SuppressWarnings("unused") // this is used
 	private PassMeasurement passMeasurement;
 
 	/**
@@ -194,24 +195,29 @@ public abstract class Frame implements Comparable<Frame> {
 	public void setPassMeasurement(PassMeasurement m) {
 		passMeasurement = m;
 		String strDate = null;
-		if (m.getRawValue(PassMeasurement.TCA) != null)
-			strDate = m.getRawValue(PassMeasurement.TCA);
+		if (m.getStringValue(PassMeasurement.TCA) != null)
+			strDate = m.getStringValue(PassMeasurement.TCA);
 
 		if (strDate != null) {
 			Log.println("Got TCA: " + strDate);
 			Date date = null;
 			try {
-				date = FramePart.fileDateFormat.parse(strDate);
+				date = FoxFramePart.fileDateFormat.parse(strDate);
 			} catch (ParseException e) {
-				// TODO Auto-generated catch block
+				// We don't do anything in this case, the date will be null
 				e.printStackTrace();
+				date = null;
 			}
 
-			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			measuredTCA = stpDateFormat.format(date);
-			Log.println("STP TCA set as: " + measuredTCA);
+			if (date != null) {
+				stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				measuredTCA = stpDateFormat.format(date);
+				Log.println("STP TCA set as: " + measuredTCA);
+			} else {
+				measuredTCA = NONE;
+			}
 		}
-		if (m.getRawValue(PassMeasurement.TCA_FREQ) != null)
+		if (m.getRawValue(PassMeasurement.TCA_FREQ) != PassMeasurement.ERR)
 			measuredTCAfrequency = m.getRawValue(PassMeasurement.TCA_FREQ)
 					+ " Hz";
 	}
@@ -327,16 +333,14 @@ public abstract class Frame implements Comparable<Frame> {
 		return header;
 
 	}
-
-	private String escapeComma(String s) {
-		char pattern = ',';
-		char escapeChar = '~';
+	
+	static char pattern = ',';
+	static char escapeChar = '~';
+	private String escapeComma(String s) {	
 		return s.replace(pattern, escapeChar);
 	}
 
 	private String insertComma(String s) {
-		char pattern = ',';
-		char escapeChar = '~';
 		return s.replace(escapeChar, pattern);
 	}
 
@@ -379,7 +383,7 @@ public abstract class Frame implements Comparable<Frame> {
 		String receiver = null;
 		Date stpDate = null;
 		String frequency = NONE; // frequency when this frame received
-		String source; // The frame source subsystem
+		//String source; // The frame source subsystem
 		String rx_location = NONE; // the lat, long and altitude
 		String receiver_rf = NONE; // human description of the receiver
 		String demodulator = null; // will contain Config.VERSION
@@ -389,14 +393,14 @@ public abstract class Frame implements Comparable<Frame> {
 		String measuredTCAfrequency = NONE;
 		
 		boolean firstColon = true;
-
+		char ch;
 		// Read the file
 		try {
 			while (!done && (c = in.read()) != -1) {
-				Character ch = (char) c;
+				ch = (char) c;
 				//System.out.print(ch);
 
-				if (ch == ':' && firstColon) {
+				if (c == 58 && firstColon) { // ':'
 					firstColon = false;
 					c = in.read(); // consume the space
 					c = in.read();
@@ -461,8 +465,10 @@ public abstract class Frame implements Comparable<Frame> {
 								Log.println("ERROR - Date was not parsable. Setting to null");
 								stpDate = null;
 								//e.printStackTrace(Log.getWriter());
+							} catch (NumberFormatException e) {
+								Log.println("ERROR - Date was not parsable. Setting to null");
+								stpDate = null;
 							}
-
 						}
 						key = "";
 						value = "";
@@ -494,11 +500,21 @@ public abstract class Frame implements Comparable<Frame> {
 
 		byte[] frame = null;
 		if (length == 768) {
-			RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
-			if (!rs.validDecode()) {
-				Log.println("RS Decode Failed");
-				throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+			if (ServerConfig.slowSpeedRsDecode) {
+				RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+				if (!rs.validDecode()) {
+					Log.println("RS Decode Failed");
+					throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+				}
 			}
+		} else {
+			// High Speed Frame
+			// Log.println("RS Decode for: " + length/8 + " byte frame..");
+			if (ServerConfig.highSpeedRsDecode)
+				if (!highSpeedRsDecode(rawFrame, demodulator)) {
+					Log.println("HIGH SPEED RS Decode Failed");
+					throw new StpFileProcessException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
+				}
 		}
 		frame = rawFrame; //rs.decode();
 
@@ -533,6 +549,73 @@ public abstract class Frame implements Comparable<Frame> {
 		return frm;
 
 	}
+	
+	/**
+	 * Run an RS Decode on a high speed frame.  These bytes should have already been corrected at the ground station, so there should be
+	 * no errors.  We do not have a list of erasures at this point, but that should not matter.
+	 * @param rawFrame byte[]
+	 * @return boolean
+	 */
+	private static boolean highSpeedRsDecode(byte[] rawFrame, String demodulator) {
+		
+		String versionString[] = demodulator.split(" ");
+		int major = Config.parseVersionMajor(versionString[1]);
+		int minor = Config.parseVersionMinor(versionString[1]);
+		String point = Config.parseVersionPoint(versionString[1]);
+		//Log.println("RS Decode for: " + demodulator + " "+ major +" "+ minor +" "+ point);
+		
+		RsCodeWord[] codeWords = new RsCodeWord[HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS];
+		 
+		for (int q=0; q < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; q++) {
+			codeWords[q] = new RsCodeWord(HighSpeedBitStream.RS_PADDING[q]);
+		}
+	
+		int bytesInFrame = 0;
+		int f=0; // position in the Rs code words as we allocate bits to them
+		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
+		
+		for (byte b8 : rawFrame) {
+			bytesInFrame++;
+			if (bytesInFrame == HighSpeedFrame.MAX_FRAME_SIZE+1) {  
+				// first parity byte.  All the checkbytes are at the end
+				//Log.println("parity");
+				if (major > 1 || (major == 1 && minor > 5) || (major == 1 && minor == 5 && point.equalsIgnoreCase("d"))) {
+					// FoxTelem 1.05c and later
+					// Reset to the first code word and Next byte position in the codewords
+					rsNum = 0;
+					f++;
+				} else {
+					// FoxTelem 1.05b and earlier
+					rsNum = 1;
+				}
+			}
+			try {
+				codeWords[rsNum++].addByte(b8);
+			} catch (ArrayIndexOutOfBoundsException e) {
+				e.printStackTrace(Log.getWriter());
+			}
+			if (rsNum == HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS) {
+				rsNum=0;
+				f++;
+				if (f > RsCodeWord.NN)
+					Log.println("ERROR: Allocated more high speed data that fits in an RSCodeWord");
+			}
+		}
+
+	//// DEBUG ///
+	//		System.out.println(codeWords[0]);
+			
+		// Now Decode all of the RS words and fail if any do not pass
+		for (int i=0; i < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; i++) {
+			codeWords[i].decode();  
+			if (!codeWords[i].validDecode()) {
+				// We had a failure to decode, so the frame is corrupt
+				Log.println("FAILED RS DECODE FOR HS WORD " + i);
+				return false;
+			} 
+		}
+		return true;
+	}
 
 	public static Frame importStpFile(File f, boolean delete) throws StpFileProcessException {
 		try {
@@ -554,7 +637,7 @@ public abstract class Frame implements Comparable<Frame> {
 					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FramePart payload = ssf.getPayload();
+					FoxFramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");

@@ -1,6 +1,7 @@
 package common;
 
 import gui.MainWindow;
+import gui.ProgressPanel;
 
 import java.awt.Color;
 import java.io.File;
@@ -52,8 +53,10 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 
-	public static String VERSION_NUM = "1.04";
-	public static String VERSION = VERSION_NUM + " - 9 February 2016";
+	public static ProgressPanel fileProgress;
+	
+	public static String VERSION_NUM = "1.05d";
+	public static String VERSION = VERSION_NUM + " - 28 Dec 2016";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -64,7 +67,20 @@ public class Config {
 	public static final Color AMSAT_RED = new Color(224,0,0);
 	public static final Color PURPLE = new Color(123,6,130);
 	public static final Color AMSAT_GREEN = new Color(0,102,0);
-
+	
+	public static Color GRAPH1 = new Color(255,153,51); // orange
+	public static Color GRAPH2 = new Color(0,153,0); // green
+	public static Color GRAPH3 = new Color(255,51,0); // red
+	public static Color GRAPH4 = new Color(102,204,51); // bright green
+	public static Color GRAPH5 = new Color(255,204,0); // yellow
+	public static Color GRAPH6 = new Color(153,0,0); // dark red
+	public static Color GRAPH7 = new Color(51,51,102); // dark blue
+	public static Color GRAPH8 = new Color(153,102,0); // brown
+	public static Color GRAPH9 = new Color(102,102,204); // pastel purple
+	public static Color GRAPH10 = new Color(0,51,153); // deep blue
+	public static Color GRAPH11 = new Color(255,255,255); // black
+	public static Color GRAPH12 = new Color(153,153,255); // purple
+	
 	public static SatelliteManager satManager;
 	public static PassManager passManager;
 	static Thread passManagerThread;
@@ -112,7 +128,7 @@ public class Config {
 	static public int DEBUG_COUNT = -1;
 	static public boolean filterData = true; // Low Pass filter the data
 	public static int filterIterations = 1; // The number of times to run the low pass filter.  Gain is applied only after the first run
-	public static int filterLength = 2048;
+	public static int filterLength = 512;
 	static public boolean useRSfec = true;
 	static public boolean squelchAudio = true;
 	static public boolean useAGC = true;
@@ -183,7 +199,7 @@ public class Config {
 	static public boolean showLatestImage = false;
 	static public boolean displayRawRadData = false;
 	static public boolean displayUTCtime = true;
-	static public boolean applyBlackmanWindow = false;
+	static public boolean applyBlackmanWindow = false; // false means use Tukey
 	public static boolean useLimiter = false;
 	static public boolean showIF = false;
 	static public boolean trackSignal = true;
@@ -211,7 +227,13 @@ public class Config {
 	// V1.03
 	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
-	static public boolean generateSecondaryPayloads = false;
+	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
+	
+	// V1.04
+	static public boolean startButtonPressed = false;
+	static public int splitPaneHeight = 200;
+	public static boolean useDDEforFindSignal = false;
+	public static boolean showFilters = true;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -537,6 +559,12 @@ public class Config {
 		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
 		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
+		
+		// Version 1.04
+		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
+		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
+		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
+		properties.setProperty("showFilters", Boolean.toString(showFilters));
 		store();
 	}
 	
@@ -691,6 +719,12 @@ public class Config {
 		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
 		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
+		
+		// Version 1.04
+		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
+		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
+		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
+		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
