@@ -107,7 +107,7 @@ public class HelpAbout extends JDialog implements ActionListener {
 		
 		
 //		addLine("<html>Written by <b>Chris Thompson AC2CZ</b><br><br></html>", northApanel);
-		addUrl("Written by ", "mailto:g0kla@arrl.net?subject=FoxTelem%20Help%20Email", "<b>Chris Thompson</b>", " AC2CZ", northApanel);
+		addUrl("Written by ", "www.g0kla.com", "<b>Chris Thompson</b>", " AC2CZ", northApanel);
 		addUrl("You can browse ", MANUAL, "the manual", " for help", northApanel);
 		
 		addUrl("Visit the ", FOX, "Amsat Fox", " pages to learn more about Fox-1 and the Radio Amateur Satellite Corporation.", northApanel);
