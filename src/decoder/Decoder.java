@@ -15,21 +15,9 @@ import common.Config;
 import common.Log;
 import common.Performance;
 import filter.Filter;
-import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.Frame;
-import telemetry.FramePart;
 import telemetry.Header;
-import telemetry.HighSpeedHeader;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.HighSpeedFrame;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
 
 /**
  * 
@@ -140,25 +128,12 @@ public abstract class Decoder implements Runnable {
     private boolean clockLocked = false; // set to true when we have decoded a frame. Not reset until decode fails
     private boolean processing = true; // called to end the thread from the GUI
     private boolean done = true; // true when we have dropped out of the loop or when not running the loop
-	
-    private int lastBitValue = 0; // store the value of the last bit for use in the bit detection algorithm
-    private boolean lastBit = false;
-	
-  //  private boolean frameMarkerFound = false;
-  //  private int missedSyncWords = 0;
-  //  private int frameByteCount = 0;
-    
-    private long lastLoopTime = 0; // loop timer to slow down execution if we want to simulate decoding from a file
-    private long OPTIMAL_TIME = 0; // scaling factor for loop timer
-    private Frame decodedFrame = null;
     
     protected Filter filter = null;
     public Filter monitorFilter = null;
-//    private AGCFilter agcFilter = null;
     
     private SinkAudio sink = null; // The audio output device that we copy bytes to if we are monitoring the audio
     private boolean monitorAudio = false; // true if we are monitoring the audio
-	//protected boolean monitorFiltered; // try if we are monitoring audio after it is filtered
     
     /**
      * Given an audio source, decode the data in it,
@@ -442,8 +417,7 @@ public abstract class Decoder implements Runnable {
         //Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
         
 		startAudioThread();
-        
-        int count=0;
+
         while (nBytesRead != -1 && processing) {
         	Performance.startTimer("Setup");
     		resetWindowData();

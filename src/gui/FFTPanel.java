@@ -17,7 +17,6 @@ import common.Config;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
 

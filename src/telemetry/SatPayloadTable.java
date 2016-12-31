@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import gui.MainWindow;
 
 /**

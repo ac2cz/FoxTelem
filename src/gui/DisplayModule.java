@@ -25,14 +25,10 @@ import javax.swing.border.TitledBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
 import telemetry.RadiationPacket;
 
 /**

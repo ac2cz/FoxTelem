@@ -40,7 +40,7 @@ public class HilbertTransform implements Listener<RealBuffer>
 	private int[][] mIndexMap;
 	private int mMapHeight;
 	private int mCenterTapIndex;
-	private float mCenterCoefficent;
+//	private float mCenterCoefficent;
 	
 	private boolean mInvertFlag = false;
 	
@@ -68,7 +68,7 @@ public class HilbertTransform implements Listener<RealBuffer>
 		mBufferSize = mHilbertFilter.length + 1;
 		mBuffer = new float[ mBufferSize ];
 		
-		mCenterCoefficent = mHilbertFilter[ mHilbertFilter.length / 2 ];
+	//	mCenterCoefficent = mHilbertFilter[ mHilbertFilter.length / 2 ];
 
 		generateIndexMap( mHilbertFilter.length );
 	}

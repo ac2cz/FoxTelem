@@ -1,13 +1,10 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
-import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;

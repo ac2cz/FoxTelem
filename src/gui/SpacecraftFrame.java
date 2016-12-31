@@ -131,7 +131,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading = title("Fixed Paramaters");
 		leftFixedPanel.setBorder(heading);
 		
-		JLabel lModel = new JLabel("Model: " + sat.modelNames[sat.model]);
+		JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);

@@ -1,6 +1,5 @@
 package common;
 
-import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.RfData;

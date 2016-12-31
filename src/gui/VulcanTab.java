@@ -29,7 +29,6 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
 
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
 import telemetry.FramePart;

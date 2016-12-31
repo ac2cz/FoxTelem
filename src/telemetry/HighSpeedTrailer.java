@@ -1,7 +1,5 @@
 package telemetry;
 
-import common.Spacecraft;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

@@ -1,19 +1,14 @@
 package telemetry;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import common.Log;
 import common.Spacecraft;
 import common.FoxSpacecraft;
 import decoder.FoxBitStream;
-import decoder.FoxDecoder;
 import gui.GraphPanel;
 
 /**

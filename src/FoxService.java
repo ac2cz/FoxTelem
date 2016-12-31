@@ -78,9 +78,6 @@ public class FoxService {
             System.exit(-1);
         }
 
-        WebServiceProcess process = null;
-        Thread processThread;
-        
         while (listening) {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);

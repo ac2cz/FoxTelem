@@ -130,13 +130,13 @@ public class SatPayloadStore {
 
 	public boolean getUpdated(String layout) { 
 		int i = fox.getLayoutIdxByName(layout);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return records[i].getUpdated(); 
 		return false;
 	}
 	public void setUpdated(String layout, boolean u) {
 		int i = fox.getLayoutIdxByName(layout);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 		records[i].setUpdated(u); 
 	}
 
@@ -175,7 +175,7 @@ public class SatPayloadStore {
 	}
 	public int getNumberOfFrames(String layout) { 
 		int i = fox.getLayoutIdxByName(layout);
-		if (i != fox.ERROR_IDX) {
+		if (i != Spacecraft.ERROR_IDX) {
 			if (!fox.layout[i].isSecondaryPayload())
 				return records[i].getSize();
 			return 0;
@@ -203,7 +203,7 @@ public class SatPayloadStore {
 	 */
 	public boolean add(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		int l = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
-		if (l != fox.ERROR_IDX)
+		if (l != Spacecraft.ERROR_IDX)
 		if (!records[l].hasFrame(id, uptime, resets)) {
 			for (int i=0; i< f.length; i++) {
 				if (f[i].hasData()) {
@@ -215,7 +215,7 @@ public class SatPayloadStore {
 						// NEED TO SET A FLAG HERE THAT IS THEN SEEN BY THE GUI WHEN IT POLLS FOR RESULTS
 						e.printStackTrace(Log.getWriter());
 					}
-					addRadRecord(f[i]);
+					addRadSecondaryRecord(f[i]);
 				}
 			}
 		} else {
@@ -225,7 +225,7 @@ public class SatPayloadStore {
 		return true;
 	}
 
-	private boolean addRadRecord(PayloadRadExpData f) throws IOException {
+	private boolean addRadSecondaryRecord(PayloadRadExpData f) throws IOException {
 		
 		// Capture and store any secondary payloads
 		if (f.layout.name.equalsIgnoreCase(Spacecraft.HERCI_HS_LAYOUT) || f.isTelemetry()) {
@@ -245,7 +245,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException
 	 */
-	protected boolean addHerciRecord(PayloadHERCIhighSpeed f) throws IOException {
+	protected boolean addHerciSecondaryRecord(PayloadHERCIhighSpeed f) throws IOException {
 		//herciRecords.add(f);
 		
 		// Capture and store any secondary payloads
@@ -278,46 +278,26 @@ public class SatPayloadStore {
 	 * @throws IOException 
 	 */
 	private boolean add(FramePart f) throws IOException {
-		
+		boolean ret = false;
 		int i = fox.getLayoutIdxByName(f.layout.name);
-		if (i != fox.ERROR_IDX) {
-			boolean ret = records[i].save(f); 
-			if (f instanceof PayloadRadExpData) {
-				return addRadRecord((PayloadRadExpData)f);				
-			} else if (f instanceof PayloadHERCIhighSpeed ) {
-				return addHerciRecord((PayloadHERCIhighSpeed)f);				
+		if (i != Spacecraft.ERROR_IDX) {
+			ret = records[i].save(f); 
+			if (ret) {
+				if (f instanceof PayloadRadExpData) {
+					return addRadSecondaryRecord((PayloadRadExpData)f);				
+				} else if (f instanceof PayloadHERCIhighSpeed ) {
+					return addHerciSecondaryRecord((PayloadHERCIhighSpeed)f);				
+				}
 			}
 		}
-		return false;
+		return ret;
 		
-		/*
-		if (f instanceof PayloadRtValues ) {
-			return rtRecords.save(f);
-		} else if (f instanceof PayloadMaxValues  ) {
-				return maxRecords.save(f);
-		} else if (f instanceof PayloadMinValues ) {
-				return minRecords.save(f);
-		} else if (f instanceof PayloadRadExpData ) {
-			if (radRecords.save(f))
-				return addRadRecord((PayloadRadExpData)f);
-		} else if (f instanceof RadiationTelemetry ) {
-				return radTelemRecords.save(f);
-		} else if (f instanceof PayloadHERCIhighSpeed ) {
-			if (herciRecords.save(f))
-				return addHerciRecord((PayloadHERCIhighSpeed)f);
-		} else if (f instanceof HerciHighspeedHeader ) {
-				return herciHeaderRecords.save(f);
-		} else if (f instanceof HerciHighSpeedPacket ) {
-				return herciPacketRecords.save(f);
-		}
-		return false;
-		*/
 	}
 		
 
 	public FramePart getLatest(String layout) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return records[i].getLatest(); 
 		return null;
 	}
@@ -347,7 +327,7 @@ public class SatPayloadStore {
 		if (uptime == 0 && resets == 0)
 			return getLatestRadTelem();
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD2_LAYOUT);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return (RadiationTelemetry) records[i].getFrame(id, uptime, resets);
 		return null;
 	}
@@ -372,7 +352,7 @@ public class SatPayloadStore {
 	 */
 	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return records[i].getGraphData(name, period, id, fromReset, fromUptime);
 		return null;
 	}
@@ -408,7 +388,7 @@ public class SatPayloadStore {
 
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
 		return null;
 	}
@@ -424,7 +404,7 @@ public class SatPayloadStore {
 	 */
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD2_LAYOUT);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_HERCI_HK_DATA_LENGTH+2); 
 		return null;
 	}
@@ -455,7 +435,7 @@ public class SatPayloadStore {
 	 */
 	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.HERCI_HS_PKT_LAYOUT);
-		if (i != fox.ERROR_IDX)
+		if (i != Spacecraft.ERROR_IDX)
 			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
 		return null;
 	}

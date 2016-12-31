@@ -19,10 +19,6 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRtValues;
-
 import java.awt.Dimension;
 
 import javax.swing.border.EmptyBorder;
@@ -32,8 +28,6 @@ import javax.swing.border.BevelBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
-
 import java.awt.Color;
 import java.text.ParseException;
 import java.util.Date;
@@ -281,7 +275,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	 */
 	private void displayId(int u) {
 		String id = "??";
-		id = fox.toString() + "(" + fox.models[fox.model] + ")";
+		id = fox.toString() + "(" + Spacecraft.models[fox.model] + ")";
 		lblIdValue.setText(id);
 	}
 

@@ -4,8 +4,6 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import common.Log;
-import common.Spacecraft;
-import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 /*

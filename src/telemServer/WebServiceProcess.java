@@ -104,12 +104,12 @@ public class WebServiceProcess implements Runnable {
 							try {
 								sat = Integer.parseInt(path[2]);
 								type = Integer.parseInt(path[3]);
-								rt = Config.payloadStore.getLatestRt(sat);
+								rt = (PayloadRtValues) Config.payloadStore.getLatestRt(sat);
 							} catch (NumberFormatException e) {
 								out.println("Invalid sat or type");
 							}
-							PayloadMaxValues max = Config.payloadStore.getLatestMax(sat);
-							PayloadMinValues min = Config.payloadStore.getLatestMin(sat);
+							PayloadMaxValues max = (PayloadMaxValues) Config.payloadStore.getLatestMax(sat);
+							PayloadMinValues min = (PayloadMinValues) Config.payloadStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
 									fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
@@ -239,7 +239,7 @@ public class WebServiceProcess implements Runnable {
 			
 			return s;
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("calculateT0", e);
 			return e.toString();
 		}
 		

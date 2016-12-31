@@ -48,11 +48,9 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.usb.UsbException;
 
-import FuncubeDecoder.FUNcubeDecoder;
 import common.Config;
 import common.Log;
 import common.PassManager;
-import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
@@ -1523,7 +1521,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					try {
 						Thread.sleep(100); // wait to prevent race condition as decode starts
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					if (rfDevice != null) {
@@ -1558,7 +1555,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Log.errorDialog("ERROR", e1.getMessage());
 						e1.printStackTrace(Log.getWriter());
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace(Log.getWriter());
 					}
 				}
@@ -1948,7 +1944,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 	@Override
 	public void focusGained(FocusEvent arg0) {
-		// TODO Auto-generated method stub
 		
 	}
 

@@ -2,7 +2,6 @@ package decoder;
 
 import javax.sound.sampled.AudioFormat;
 
-import common.Config;
 import common.Log;
 
 /**

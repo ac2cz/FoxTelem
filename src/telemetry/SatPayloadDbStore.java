@@ -216,6 +216,7 @@ public class SatPayloadDbStore {
 		updatedCamera = u;
 	}
 
+	@SuppressWarnings("unused")
 	private int count(String table) {
 		Statement stmt = null;
 		ResultSet rs = null;
@@ -230,7 +231,7 @@ public class SatPayloadDbStore {
 				// ignore. We are probablly starting up or deleting the tables
 			} else
 				PayloadDbStore.errorPrint("count:"+table, e);
-			try { rs.close(); stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (rs != null) rs.close(); if (stmt != null) stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
 			return 0;
 		}
 		int count = 0;
@@ -672,6 +673,7 @@ public class SatPayloadDbStore {
 		}
 		return null;
 	}
+	@SuppressWarnings("unused")
 	private ResultSet selectImageLines(String table, String where) {
 		Statement stmt = null;
 		String update = "";
@@ -688,7 +690,7 @@ public class SatPayloadDbStore {
 			return r;
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint("selectImageLines:"+table, e);
-			try { r.close(); stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (r != null) r.close(); if (stmt != null) stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
 		}
 		return null;
 	}

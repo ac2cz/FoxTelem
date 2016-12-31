@@ -78,7 +78,6 @@ public class SourceIQ extends SourceAudio {
 	// decimation filter params
 	private static final int NZEROS = 5;
 	private static final int NPOLES = 5;
-	private double GAIN = 9.197583870e+02;
 	private double[] xvi = new double[NZEROS+1];
 	private double[] yvi = new double[NPOLES+1];
 	private double[] xvq = new double[NZEROS+1];
@@ -246,7 +245,7 @@ public class SourceIQ extends SourceAudio {
 		setFFTsize();
 		fft = new DoubleFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
-		blackmanWindow = initBlackmanWindow(FFT_SAMPLES); // FIXME - SHOULD BE FFT_SAMPLES +1????
+		blackmanWindow = initBlackmanWindow(FFT_SAMPLES); 
 
 		fftData = new double[FFT_SAMPLES*2];
 		psd = new double[FFT_SAMPLES*2+1];;
@@ -320,7 +319,6 @@ public class SourceIQ extends SourceAudio {
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				*/
