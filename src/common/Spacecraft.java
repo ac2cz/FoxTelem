@@ -26,16 +26,28 @@ public abstract class Spacecraft {
 	public static final int FUN_CUBE1 = 100;
 	public static final int FUN_CUBE2 = 101;
 	
+	// Primary Payloads
+//	public static String RT_LOG = "";
+//	public static String MAX_LOG = "";
+//	public static String MIN_LOG = "";
+//	public static String RAD_LOG = "";
+
+	// Secondary payloads - decoded from the primary payloads
+//	public static String RAD_TELEM_LOG = "";
+
+//	public static String HERCI_LOG = "";
+//	public static String HERCI_HEADER_LOG = "";
+//	public static String HERCI_PACKET_LOG = "";
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
-	public static final String REAL_TIME_LAYOUT = "RT";
-	public static final String MAX_LAYOUT = "MAX";
-	public static final String MIN_LAYOUT = "MIN";
-	public static final String RAD_LAYOUT = "RAD";
-	public static final String RAD2_LAYOUT = "RAD2";
-	public static final String HERCI_HS_LAYOUT = "HERCI";
-	public static final String HERCI_HS_HEADER_LAYOUT = "HERCI2";
-	public static final String HERCI_HS_PKT_LAYOUT = "HERCI3";
+	public static final String REAL_TIME_LAYOUT = "rttelemetry";
+	public static final String MAX_LAYOUT = "maxtelemetry";
+	public static final String MIN_LAYOUT = "mintelemetry";
+	public static final String RAD_LAYOUT = "radtelemetry";
+	public static final String RAD2_LAYOUT = "radtelemetry2";
+	public static final String HERCI_HS_LAYOUT = "herciHSdata";
+	public static final String HERCI_HS_HEADER_LAYOUT = "herciHSheader";
+	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";

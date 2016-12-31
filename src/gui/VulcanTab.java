@@ -142,6 +142,11 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 
 		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
+		if (rad == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.RAD2_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else 
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
 		} catch (LayoutLoadException e) {
