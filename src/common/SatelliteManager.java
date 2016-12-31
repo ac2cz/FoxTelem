@@ -86,7 +86,7 @@ public class SatelliteManager {
 					"\nFoxTelem needs to save the spacecraft settings in your logfile directroy.  It is either not accessible or not writable\n");
 		}
 		
-		System.out.println("Set Logfile Spacecraft directory to: " + folder);
+		Log.println("Set Logfile Spacecraft directory to: " + folder);
 		
 		
 		return folder;

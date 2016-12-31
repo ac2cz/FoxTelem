@@ -233,7 +233,7 @@ public class Config {
 	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
 	public static boolean useDDEforFindSignal = false;
-	public static boolean showFilters = true;
+	public static boolean showFilters = false; // Default this off
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";

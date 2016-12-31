@@ -100,32 +100,11 @@ public class SatPayloadStore {
 		records = new SatPayloadTable[fox.numberOfLayouts];
 		for (int i=0; i<fox.numberOfLayouts; i++)
 			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name);
-		/*
-		maxRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+MAX_LOG);
-		minRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+MIN_LOG);
-		radRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+RAD_LOG);
-		radTelemRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+RAD_TELEM_LOG);
-		if (Config.satManager.hasHerci(foxId)) {
-			herciRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+HERCI_LOG);
-			herciHeaderRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+HERCI_HEADER_LOG);
-			herciPacketRecords = new SatPayloadTable(INIT_SIZE, "Fox"+foxId+HERCI_PACKET_LOG);
-		}
-		*/
 	}
 	
 	public void setUpdatedAll() {
 		for (int i=0; i<fox.numberOfLayouts; i++)
 			records[i].setUpdated(true);
-		/* maxRecords.setUpdated(true);
-		minRecords.setUpdated(true);
-		radRecords.setUpdated(true);
-		radTelemRecords.setUpdated(true);
-		if (Config.satManager.hasHerci(foxId)) {
-			herciRecords.setUpdated(true);
-			herciHeaderRecords.setUpdated(true);
-			herciPacketRecords.setUpdated(true);
-		}
-		*/
 	}
 
 	public boolean getUpdated(String layout) { 
@@ -140,24 +119,6 @@ public class SatPayloadStore {
 		records[i].setUpdated(u); 
 	}
 
-	/*
-	public boolean getUpdatedRt() { return rtRecords.getUpdated(); }
-	public void setUpdatedRt(boolean u) { rtRecords.setUpdated(u); }
-	public boolean getUpdatedMin() { return minRecords.getUpdated(); }
-	public void setUpdatedMin(boolean u) { minRecords.setUpdated(u); }
-	public boolean getUpdatedMax() { return maxRecords.getUpdated(); }
-	public void setUpdatedMax(boolean u) { maxRecords.setUpdated(u); }
-	public boolean getUpdatedRad() { return radRecords.getUpdated(); }
-	public void setUpdatedRad(boolean u) { radRecords.setUpdated(u); }
-	public boolean getUpdatedRadTelem() { return radTelemRecords.getUpdated(); }
-	public void setUpdatedRadTelem(boolean u) { radTelemRecords.setUpdated(u); }
-	public boolean getUpdatedHerci() { return herciRecords.getUpdated(); }
-	public void setUpdatedHerci(boolean u) { herciRecords.setUpdated(u); }
-	public boolean getUpdatedHerciHeader() { return herciHeaderRecords.getUpdated(); }
-	public void setUpdatedHerciHeader(boolean u) { herciHeaderRecords.setUpdated(u); }
-	public boolean getUpdatedHerciPacket() { return herciPacketRecords.getUpdated(); }
-	public void setUpdatedHerciPacket(boolean u) { herciPacketRecords.setUpdated(u); }
-	*/
 	
 	public int getNumberOfFrames() {
 		int total = 0;
@@ -185,10 +146,6 @@ public class SatPayloadStore {
 	
 	public int getNumberOfTelemFrames() { return getNumberOfFrames(Spacecraft.REAL_TIME_LAYOUT) 
 			+ getNumberOfFrames(Spacecraft.MAX_LAYOUT) +getNumberOfFrames(Spacecraft.MIN_LAYOUT); }
-	/*
-	public int getNumberOfRadFrames() { return radRecords.getSize(); }
-	public int getNumberOfHerciFrames() { return herciRecords.getSize(); }
-	*/
 	
 	public boolean add(int id, long uptime, int resets, FramePart f) throws IOException {
 		f.captureHeaderInfo(id, uptime, resets);
@@ -506,18 +463,7 @@ public class SatPayloadStore {
 	public void convert() throws IOException {
 		for (int i=0; i<fox.numberOfLayouts; i++)
 			records[i].convert();
-		/*
-		rtRecords.convert();
-		maxRecords.convert();
-		minRecords.convert();
-		radRecords.convert();
-		radTelemRecords.convert();
-		if (fox.hasHerci()) {
-			herciRecords.convert();
-			herciHeaderRecords.convert();
-			herciPacketRecords.convert();
-		}
-		*/
+
 	}
 	
 	/**

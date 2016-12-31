@@ -209,7 +209,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 
 	public void initFields() {
 		layout = new BitArrayLayout(); // initialize a layout
-		layout.name = "HERCI3";
+		layout.name = "herciHSpackets";
 		layout.fieldName = new String[NUMBER_OF_FIELDS];
 		//fieldValue = new int[NUMBER_OF_FIELDS];
 		fieldValue = new int[layout.fieldName.length];
