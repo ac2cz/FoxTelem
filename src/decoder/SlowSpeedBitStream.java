@@ -29,14 +29,12 @@ import fec.RsCodeWord;
  */
 @SuppressWarnings("serial")
 public class SlowSpeedBitStream extends FoxBitStream {
-	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes()+1);
-	
+	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 975; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	
 	public SlowSpeedBitStream(Decoder dec) {
 		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, dec);
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;
-		
 	}
 	
 	/**
@@ -55,10 +53,10 @@ public class SlowSpeedBitStream extends FoxBitStream {
 		// We have found a frame, so process it. start is the first bit of data
 		// end is the first bit after the second SYNC word.  We do not 
 		// want to pass the SYNC word to the FRAME, so we process all the 
-		// bits up to but not including end-10.
+		// bits up to but not including end-SYNC_WORD_LENGTH.
 		int f=0; // position in the frame as we decode it
 
-		for (int j=start; j< end-10; j+=10) {
+		for (int j=start; j< end-FoxBitStream.SYNC_WORD_LENGTH; j+=10) {
 
 			byte b8 = -1;
 			lastErasureNumber = numberOfErasures;
@@ -94,7 +92,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 
 				slowSpeedFrame.addRawFrame(rawFrame);
 				// Consume all of the bits up to this point, but not the end SYNC word
-				removeBits(0, end-10);
+				removeBits(0, end-FoxBitStream.SYNC_WORD_LENGTH);
 				return slowSpeedFrame;
 			} else {
 				return null;

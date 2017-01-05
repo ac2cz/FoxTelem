@@ -77,12 +77,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 		// We have found a frame, so process it. start is the first bit of data
 		// end is the first bit after the second SYNC word.  We do not 
 		// want to pass the SYNC word to the FRAME, so we process all the 
-		// bits up to but not including end-10.
+		// bits up to but not including end-SYNC_WORD_LENGTH.
 		int f=0; // position in the Rs code words as we allocate bits to them
 		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
 		
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
-		for (int j=start; j< end-10; j+=10) {
+		for (int j=start; j< end-FoxBitStream.SYNC_WORD_LENGTH; j+=10) {
 
 			byte b8 = -1;
 			try {
@@ -161,7 +161,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 //		lastErrorsNumber = lastErrorsNumber / NUMBER_OF_RS_CODEWORDS;
 //		lastErasureNumber = lastErasureNumber /NUMBER_OF_RS_CODEWORDS;
 		// Consume all of the bits up to this point, but not the end SYNC word
-		removeBits(0, end-10);
+		removeBits(0, end-FoxBitStream.SYNC_WORD_LENGTH);
 
 		//// DEBUG ///
 //		System.out.println(codeWords[0]);

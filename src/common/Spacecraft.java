@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 import telemetry.BitArrayLayout;
+import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
 
@@ -100,6 +101,10 @@ public abstract class Spacecraft {
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 	
+	public int numberOfFrameLayouts = 1;
+	public String[] frameLayoutFilename;
+	public FrameLayout[] frameLayout;
+	
 	// User Config
 	public boolean track = true; // default is we track a satellite
 	
@@ -171,9 +176,24 @@ public abstract class Spacecraft {
 			telemetryDownlinkFreqkHz = Integer.parseInt(getProperty("telemetryDownlinkFreqkHz"));			
 			minFreqBoundkHz = Integer.parseInt(getProperty("minFreqBoundkHz"));
 			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
+
+			
+			// Frame Layouts
+			/**
+			numberOfFrameLayouts = Integer.parseInt(getProperty("numberOfFrameLayouts"));
+			frameLayoutFilename = new String[numberOfFrameLayouts];
+			frameLayout = new FrameLayout[numberOfFrameLayouts];
+			for (int i=0; i < numberOfFrameLayouts; i++) {
+				frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
+				frameLayout[i] = new FrameLayout(frameLayoutFilename[i]);
+				frameLayout[i].name = getProperty("frameLayout"+i+".name");
+			}
+			*/
+			
+			
+			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			layoutFilename = new String[numberOfLayouts];
-			//layoutName = new String[numberOfLayouts];
 			layout = new BitArrayLayout[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
@@ -181,10 +201,10 @@ public abstract class Spacecraft {
 				layout[i].name = getProperty("layout"+i+".name");
 				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
 			}
-			
+
+			// Lookup Tables
 			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
 			lookupTableFilename = new String[numberOfLookupTables];
-			//lookupTableName = new String[numberOfLookupTables];
 			lookupTable = new LookUpTable[numberOfLookupTables];
 			for (int i=0; i < numberOfLookupTables; i++) {
 				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");

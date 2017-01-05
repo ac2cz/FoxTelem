@@ -47,18 +47,22 @@ public abstract class FoxBitStream extends BitStream {
 	public boolean testedErasure = false;
 	public static int TEST_CORRUPTIONS = 00; //A non zero number tests the RS decode mechanism by corrupting this many 8b words
 	*/
+	protected static final int SYNC_WORD_LENGTH = 15;
+	protected static final int DATA_WORD_LENGTH = 10;
 	
 	protected static final int MAX_ERASURES = 16; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
 	protected static final int FRAME_PROCESSED = -999;
 	
 	protected static final int SYNC_WORD_BIT_TOLERANCE = 0; // if we are within this many bits, then try to decode the frame - hey, you never know..
 	
-	protected int word10bitPosition = 0; // The position in the 10 bit word when we are searching for SYNC words bit by bit
-	protected boolean[] word10 = new boolean[10]; // The 10 bit word used to find SYNC words, selected from the end of the bitStream
+	protected int syncWordbitPosition = 0; // The position in the 10 bit word when we are searching for SYNC words bit by bit
+	protected boolean[] syncWord = new boolean[SYNC_WORD_LENGTH]; // The SYNC_WORD_LENGTH bit word used to find SYNC words, selected from the end of the bitStream
 	protected boolean alreadyTriedToFlipBits = false; // only try to flip the bits once, otherwise we willl try to double process every failed RS word
 	
 	public int lastErasureNumber;
 	public int lastErrorsNumber;
+	
+	protected boolean findFramesWithPRN = false;
 	
 	/**
 	 * Initialize the array with enough room to hold 6 frames worth of bits
@@ -71,31 +75,34 @@ public abstract class FoxBitStream extends BitStream {
 	
 	/**
 	 * Search through windowLength bits and test to see if the last
-	 * 10 bits are a frame marker.  If it is, then add the position of the first bit of data that
+	 * SYNC_WORD_LENGTH bits are a frame marker.  If it is, then add the position of the first bit of data that
 	 * FOLLOWS the SYNC marker to the syncWords array
 	 * @param windowLength
 	 * @return true if we found the SYNC word
 	 */
 	public boolean findSyncMarkers(int windowLength) {
 		boolean found = false;
-		if (this.size() < 10) return false;
+		if (this.size() < SYNC_WORD_LENGTH) return false;
 		for (int i=this.size()-windowLength; i < this.size(); i++) {
-			word10[word10bitPosition++] = this.get(i);
-			if (word10bitPosition > 9) {
-				word10bitPosition = 9;
-				// Check the last 10 bits in the bit stream for the end of frame market
-				int word = binToInt(word10);
-				if (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME) {
+			syncWord[syncWordbitPosition++] = this.get(i);
+			if (syncWordbitPosition > SYNC_WORD_LENGTH-1) {
+				syncWordbitPosition = SYNC_WORD_LENGTH-1;
+				// Check the last SYNC_WORD_LENGTH bits in the bit stream for the end of frame market
+				int word = binToInt(syncWord);
+				if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
+				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
+				!findFramesWithPRN && (word == CodePRN.FRAME )) {
+				//if (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME) {
 					found = true;
 					syncWords.add(i+1);
 					if (Config.debugFrames) {
 						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1));
-						printBitArray(word10);
+						printBitArray(syncWord);
 					}
 				} 
 				// now shift the bits and continue looking for frame marker
-				for (int k=1; k<10; k++)
-					word10[k-1] = word10[k];
+				for (int k=1; k<SYNC_WORD_LENGTH; k++)
+					syncWord[k-1] = syncWord[k];
 			} 
 		}
 		return found;
