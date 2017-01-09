@@ -722,6 +722,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			Log.println("SQLState: " + (sqle).getSQLState());
 			Log.println("Severity: " + (sqle).getErrorCode());
 			Log.println("Message: " + (sqle).getMessage());
+			sqle.printStackTrace(Log.getWriter());
 			Log.alert("SERIOUS SQL exception caused by "+cause+".  Need to clear the ALERT and restart the server:\n");
 			//sqle.printStackTrace(Log.getWriter());
 			sqle = sqle.getNextException();
