@@ -454,8 +454,8 @@ public class Config {
 	}
 
 	public static void save() {
-		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
-		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
+//		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
+//		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
 		properties.setProperty("recoverClock", Boolean.toString(recoverClock));
 		properties.setProperty("flipReceivedBits", Boolean.toString(flipReceivedBits));
 		properties.setProperty("filterData", Boolean.toString(filterData));
@@ -604,8 +604,8 @@ public class Config {
 		}
 		try {
 		recoverClock = Boolean.parseBoolean(getProperty("recoverClock"));
-		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
-		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
+//		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
+//		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
 		flipReceivedBits = Boolean.parseBoolean(getProperty("flipReceivedBits"));
 		filterData = Boolean.parseBoolean(getProperty("filterData"));
 		filterIterations = Integer.parseInt(getProperty("filterIterations"));
