@@ -11,7 +11,7 @@ def processStructure(type, file):
     global lineNum #otherwise the assignment below automagically creates a local lineNum variable
     structure = ""
     columns = [2, 3, 7, 6, 13, 14, 15, 16, 1, 8]
-    for line in infile:
+    for line in file:
         fields = line.split(',')
         if ('END' in fields[0]):
             return structure
@@ -51,7 +51,8 @@ if (type == "RAD"):
     outFileName = foxId + '_radtelemetry.csv'
 if (type == "WOD"):
     outFileName = foxId + '_wodtelemetry.csv'
-    
+if (type == "RT"):
+    type = "realTime"    
 print ('Processing '+ type + ' from file: ' + fileName)
 
 # open the infile and read all the content in as a set of lines
