@@ -47,8 +47,8 @@ public abstract class FoxBitStream extends BitStream {
 	public boolean testedErasure = false;
 	public static int TEST_CORRUPTIONS = 00; //A non zero number tests the RS decode mechanism by corrupting this many 8b words
 	*/
-	protected static final int SYNC_WORD_LENGTH = 15;
-	protected static final int DATA_WORD_LENGTH = 10;
+	protected int SYNC_WORD_LENGTH = 10; // These can be overridden in a child class if the length is different.  Update in the constructor
+	protected int DATA_WORD_LENGTH = 10; 
 	
 	protected static final int MAX_ERASURES = 16; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
 	protected static final int FRAME_PROCESSED = -999;

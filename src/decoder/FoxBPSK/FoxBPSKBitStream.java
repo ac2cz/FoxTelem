@@ -1,7 +1,10 @@
-package decoder;
+package decoder.FoxBPSK;
 
 import common.Config;
 import common.Log;
+import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.LookupException;
 import telemetry.SlowSpeedFrame;
 import fec.RsCodeWord;
 
@@ -28,11 +31,12 @@ import fec.RsCodeWord;
  *
  */
 @SuppressWarnings("serial")
-public class SlowSpeedBitStream extends FoxBitStream {
-	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
+public class FoxBPSKBitStream extends FoxBitStream {
+	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 975; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	
-	public SlowSpeedBitStream(Decoder dec) {
+	public FoxBPSKBitStream(Decoder dec) {
 		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, dec);
+		SYNC_WORD_LENGTH = 15;
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;
 	}
