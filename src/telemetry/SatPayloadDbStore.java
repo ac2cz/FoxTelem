@@ -929,7 +929,7 @@ public class SatPayloadDbStore {
 			where = " ORDER BY resets DESC, uptime DESC ";
 		} else {
 			where = " where uptime >= "+ fromUptime + " and resets >= " + fromReset +
-					" ORDER BY resets DESC, uptime DESC ";
+					" ORDER BY resets, uptime ";
 		}
 		//FIXME - we get all of the columns so that we can populate at Payload record - see below
 		//rs = selectRows(table,name, where,period);
@@ -982,14 +982,14 @@ public class SatPayloadDbStore {
 				upTime = new double[1];
 				resets = new double[1];
 			}
-		} catch (SQLException e) {
-			PayloadDbStore.errorPrint("selectRows:"+table, e);
-
-
 			resultSet = new double[3][size];
 			resultSet[PayloadStore.DATA_COL] = results;
 			resultSet[PayloadStore.UPTIME_COL] = upTime;
 			resultSet[PayloadStore.RESETS_COL] = resets;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("selectRows:"+table, e);
+
+
 		} finally {
 			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
 			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
