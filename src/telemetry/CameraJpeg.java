@@ -106,30 +106,9 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	
 	}
 	
-	CameraJpeg(int id, int resets, long from, long to, int pc, ResultSet rs) throws SQLException {
+	CameraJpeg(int id, int resets, long from, long to, int pc, SortedArrayList<PictureScanLine> psl) throws SQLException {
 		this(id, resets, from, to, pc);
-		pictureLines = new SortedArrayList<PictureScanLine>(60);
-		if (rs != null) {
-			while (rs.next()) {
-				int lineId = rs.getInt("id");
-				int lineResets = rs.getInt("resets");
-				//int lineUptime = rs.getInt("uptime");
-				int linePc = rs.getInt("pictureCounter");
-				int lineNum = rs.getInt("scanLineNumber");
-				int lineLineLen = rs.getInt("scanLineLength");
-				java.sql.Blob blob = rs.getBlob("imageBytes");
-				if (blob == null) {
-					Log.println("ERROR: Tried to create JPEG but no data bytes available");
-					return;
-				}
-				int len = (int)blob.length();
-				byte[] blobAsBytes = blob.getBytes(1, len);
-				// we give all the lines the fromUptime so that they are sorted in order
-				PictureScanLine psl = new PictureScanLine(lineId, lineResets, from, "", linePc,lineNum,lineLineLen, blobAsBytes );
-				pictureLines.add(psl);
-				blob.free();
-			}
-		}
+		pictureLines = psl;
 		
 		fileName = makeFileName();
 	}	
@@ -227,15 +206,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		} finally {
 			out.close();
 		}
-		// We should also update the thumbnail image
-		// Don't call the GUI routine as it creates Swing Dialog if there is an error
-//		BufferedImage thumb = null;
-		try {
-			makeServerThumbnail(CameraTab.THUMB_X);
-		} catch (IOException e) {
-			// Log any error, but do not stop here as this is not critial to store server data
-			e.printStackTrace(Log.getWriter());
-		}
+		makeServerThumbnail(CameraTab.THUMB_X);
 	}
 	
 	
@@ -325,7 +296,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		return name;
 	}
 
-	public void makeServerThumbnail(int sizeX) throws IOException, IIOException {
+	public void makeServerThumbnail(int sizeX) {
 		
 		BufferedImage img = null;
 		String imageFile = getFileName();
@@ -340,14 +311,32 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 			e.printStackTrace(Log.getWriter());
 			// Error reading the image file.  Probably corrupt. Create a blank file to show it is there but not valid
 			img = new BufferedImage(sizeX, 75,  BufferedImage.TYPE_INT_ARGB);
-			ImageIO.write(img, "JPEG", f);	
+			try {
+				ImageIO.write(img, "JPEG", f);
+			} catch (IOException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}	
 		}
 		if (img != null) {
 			double w = img.getWidth();
 			double scale = sizeX/w;
 			
 			thumbNail = scale(img, scale);
-			ImageIO.write(thumbNail, "JPEG", f);
+			try {
+				ImageIO.write(thumbNail, "JPEG", f);
+			} catch (IOException e) {
+				// ERROR Writing the thumbnail.  We dont want to crash for this, so try to write a blank thumb
+				e.printStackTrace();
+				// Error reading the image file.  Probably corrupt. Create a blank file to show it is there but not valid
+				img = new BufferedImage(sizeX, 75,  BufferedImage.TYPE_INT_ARGB);
+				try {
+					ImageIO.write(img, "JPEG", f);
+				} catch (IOException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}	
+			}
 		}
 		thumbStale = false;
 	}
