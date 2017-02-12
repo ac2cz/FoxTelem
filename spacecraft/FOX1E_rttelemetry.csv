@@ -1,55 +1,58 @@
-54,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,RT,BATT_A_V,12,V,2,Battery,3,1,3,Cell A,Battery pair A voltage (0-2.5V scale)
-1,RT,BATT_B_V,12,V,34,Battery,3,2,3,Cell A + B,Battery pairs A+B voltage (0-3.3V scale)
-2,RT,BATT_C_V,12,V,4,Battery,3,3,3,Cell A + B + C,Battery pairs A+B+C voltage (0-5.0V scale)
-3,RT,battAtemp,12,C,8,Battery,3,4,3,Temperature A,Battery pair A temperature
-4,RT,battBtemp,12,C,8,Battery,3,5,3,Temperature B,Battery pair B temperature
-5,RT,battCtemp,12,C,8,Battery,3,6,3,Temperature C,Battery pair C temperature
-6,RT,battCurr,12,mA,9,Battery,3,7,3,Current,Total Battery DC current
-7,RT,battCardTemp,12,C,8,Battery,3,8,3,Board Temp,Battery Card Temperature
-8,RT,posXv,12,V,23,+X Panel,10,1,3,Voltage,+X solar panel voltage
-9,RT,posYv,12,V,23,+Y Panel,11,1,3,Voltage,+Y solar panel voltage
-10,RT,posZv,12,V,23,+Z Panel,12,1,3,Voltage,+Z solar panel voltage
-11,RT,negXv,12,V,23,-X Panel,13,1,3,Voltage,-X solar panel voltage
-12,RT,negYv,12,V,23,-Y Panel,14,1,3,Voltage,-Y solar panel voltage
-13,RT,negZv,12,V,23,-Z Panel,15,1,3,Voltage,-Z solar panel voltage
-14,RT,posXt,12,C,24,+X Panel,10,2,3,Temp,+X solar panel temperature
-15,RT,posYt,12,C,24,+Y Panel,11,2,3,Temp,+Y solar panel temperature
-16,RT,posZt,12,C,24,+Z Panel,12,2,3,Temp,+Z solar panel temperature
-17,RT,negXt,12,C,24,-X Panel,13,2,3,Temp,-X solar panel temperature
-18,RT,negYt,12,C,24,-Y Panel,14,2,3,Temp,-Y solar panel temperature
-19,RT,negZt,12,C,24,-Z Panel,15,2,3,Temp,-Z solar panel temperature
-20,RT,PSUTemp,12,C,8,PSU,4,2,3,Board Temp,Power Supply Card Temperature
-21,RT,spin,12,rpm,12,Computer,2,2,3,Spacecraft Spin,Calculated spin rate using solar cells
-22,RT,TxPAi,12,mA,10,Radio,1,2,3,PA Current,Transmit power amplifier current
-23,RT,TxTemp,12,C,7,Radio,1,1,3,TX Temperature,Transmitter card temperature
-24,RT,FwdPower,12,mW,0,Radio,1,4,3,Fwd Power,Receiver card temperature
-25,RT,rssi,12,dBm,14,Radio,1,3,3,RSSI,Received Signal Strength Indication
-26,RT,IHUcpuTemp,12,C,15,Computer,2,1,3,Temperature,Internal Temperature of IHU
-27,RT,Xvelocity,12,dps,13,+X Panel,10,3,3,Rotation,Angular Veolcity around X Axis
-28,RT,Yvelocity,12,dps,13,+Y Panel,11,3,3,Rotation,Angular Veolcity around Y Axis
-29,RT,Zvelocity,12,dps,13,+Z Panel,12,3,3,Rotation,Angular Veolcity around Z Axis
-30,RT,Exp4Temp,12,C,7,Experiments,5,1,0,EXP4 Temp,Experiment 4 card temperature
-31,RT,PSUCurrent,12,mA,22,PSU,4,1,3,Current,Power Supply DC Current
-32,RT,ReflectedPwr,12,mW,0,Radio,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
-33,RT,ICR3V,12,V,23,ICR,6,1,3,3V,ICR 3V
-34,RT,ICR3VProt,12,V,23,ICR,6,2,3,3V Prot,ICR 3V Proteted
-35,RT,ICR2dot5V,12,V,23,ICR,6,3,3,2.5V,ICR 2.5V
-36,RT,ICR2dot5VProt,12,V,23,ICR,6,4,3,2.5V Prot,ICR 2.5V Protected
-37,RT,rf6,12,-,0,NONE,0,0,0,None,None
-38,RT,rf7,12,-,0,NONE,0,0,0,None,None
-39,RT,MuxTest,12,V,23,ICR,6,5,3,MUX,Sensor Power Voltage at the ICR
-40,RT,LtVGACtl,12,V,23,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-41,RT,pad,20,-,0,NONE,0,0,0,None,None
-42,RT,IHUdiagData,32,-,18,Computer,2,8,0,Diagnostic Info,Diagnostic Data on IHU Performance
-43,RT,expFailure0,1,-,17,Experiments,5,2,0,Vanderbilt Radiation,Vanderbilt University Vulcan Experiment Indicator
-44,RT,expFailure1,1,-,17,Experiments,5,3,0,Exp 1,Experiment 1 Failure Indicator
-45,RT,expFailure2,1,-,17,Experiments,5,4,0,Exp 2,Experiment 2 Failure Indicator
-46,RT,expFailure3,1,-,17,Experiments,5,5,0,Exp 3,Experiment 3 Failure Indicator
-47,RT,I2CfailureBatt,1,-,17,Computer,2,3,0,Battery I2C,Battery I2C Bus failure indicator
-48,RT,I2CfailurePSU1,1,-,17,Computer,2,4,0,PSU1 I2C,PSU2 I2C Bus failure indicator
-49,RT,I2CfailurePSU2,1,-,17,Computer,2,5,0,PSU2 I2C,PSU2 I2C Bus failure indicator
-50,RT,TLMresets,4,-,1,Computer,2,7,0,Ground Resets,Number of times command stations reset stored telemetry
-51,RT,RxAntDeploy,1,-,16,Radio,1,8,0,RX Antenna,2m Antenna status
-52,RT,TxAntDeploy,2,-,16,Radio,1,7,0,TX Antenna,70cm Antenna status
-53,RT,I2CfailureRF,1,-,17,Computer,2,6,0,RF I2C,RF I2C Bus failure indicator
+57,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,realTime,BATT_A_V,12,V,2,Battery,3,1,3,Cell A,Battery pair A voltage (0-2.5V scale)
+1,realTime,BATT_B_V,12,V,34,Battery,3,2,3,Cell A + B,Battery pairs A+B voltage (0-3.3V scale)
+2,realTime,BATT_C_V,12,V,4,Battery,3,3,3,Cell A + B + C,Battery pairs A+B+C voltage (0-5.0V scale)
+3,realTime,battAtemp,12,C,8,Battery,3,4,3,Temperature A,Battery pair A temperature
+4,realTime,battBtemp,12,C,8,Battery,3,5,3,Temperature B,Battery pair B temperature
+5,realTime,battCtemp,12,C,8,Battery,3,6,3,Temperature C,Battery pair C temperature
+6,realTime,battCurr,12,mA,9,Battery,3,7,3,Current,Total Battery DC current
+7,realTime,battCardTemp,12,C,8,Battery,3,8,3,Board Temp,Battery Card Temperature
+8,realTime,posXv,12,V,23,+X Panel,10,1,3,Voltage,+X solar Panel voltage
+9,realTime,posYv,12,V,23,+Y Panel,11,1,3,Voltage,+Y solar Panel voltage
+10,realTime,posZv,12,V,23,+Z Panel,12,1,3,Voltage,+Z solar Panel voltage
+11,realTime,negXv,12,V,23,-X Panel,13,1,3,Voltage,-X solar Panel voltage
+12,realTime,negYv,12,V,23,-Y Panel,14,1,3,Voltage,-Y solar Panel voltage
+13,realTime,negZv,12,V,23,-Z Panel,15,1,3,Voltage,-Z solar Panel voltage
+14,realTime,posXt,12,C,24,+X Panel,10,2,3,Temp,+X solar Panel temperature
+15,realTime,posYt,12,C,24,+Y Panel,11,2,3,Temp,+Y solar Panel temperature
+16,realTime,posZt,12,C,24,+Z Panel,12,2,3,Temp,+Z solar Panel temperature
+17,realTime,negXt,12,C,24,-X Panel,13,2,3,Temp,-X solar Panel temperature
+18,realTime,negYt,12,C,24,-Y Panel,14,2,3,Temp,-Y solar Panel temperature
+19,realTime,negZt,12,C,24,-Z Panel,15,2,3,Temp,-Z solar Panel temperature
+20,realTime,PSUTemp,12,C,8,PSU,4,2,3,Board Temp,Power Supply Card Temperature
+21,realTime,spin,12,rpm,12,Computer,2,2,3,Spacecraft Spin,Calculated spin rate using solar cells
+22,realTime,TxPAi,12,mA,10,Radio,1,2,3,PA Current,Transmit power amplifier current
+23,realTime,TxTemp,12,C,7,Radio,1,1,3,TX Temperature,Transmitter card temperature
+24,realTime,FwdPower,12,mW,0,Radio,1,4,3,Fwd Power,Receiver card temperature
+25,realTime,rssi,12,dBm,14,Radio,1,3,3,RSSI,Received Signal Strength Indication
+26,realTime,IHUcpuTemp,12,C,15,Computer,2,1,3,Temperature,Internal Temperature of IHU
+27,realTime,Xvelocity,12,dps,13,+X Panel,10,3,3,Rotation,Angular Veolcity around X Axis
+28,realTime,Yvelocity,12,dps,13,+Y Panel,11,3,3,Rotation,Angular Veolcity around Y Axis
+29,realTime,Zvelocity,12,dps,13,+Z Panel,12,3,3,Rotation,Angular Veolcity around Z Axis
+30,realTime,Exp4Temp,12,C,7,NONE,0,0,0,EXP4 Temp,Experiment 4 card temperature
+31,realTime,PSUCurrent,12,mA,22,PSU,4,1,3,Current,Power Supply DC Current
+32,realTime,ReflectedPwr,12,mW,0,Radio,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
+33,realTime,ICR3V,12,V,23,ICR,6,1,3,3V,ICR 3V
+34,realTime,ICR3VProt,12,V,23,ICR,6,2,3,3V Prot,ICR 3V Proteted
+35,realTime,ICR2dot5V,12,V,23,ICR,6,3,3,2.5V,ICR 2.5V
+36,realTime,ICR2dot5VProt,12,V,23,ICR,6,4,3,2.5V Prot,ICR 2.5V Protected
+37,realTime,rf6,12,-,0,NONE,0,0,0,None,None
+38,realTime,rf7,12,-,0,NONE,0,0,0,None,None
+39,realTime,MuxTest,12,V,23,ICR,6,5,3,MUX,Sensor Power Voltage at the ICR
+40,realTime,LtVGACtl,12,V,23,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+41,realTime,NumCmds,4,-,0,NONE,0,0,0,None,Number of commands sent since last reset
+42,realTime,IHUdiagData,32,-,18,Computer,2,8,0,Diagnostic Info,Diagnostic Data on IHU Performance
+43,realTime,expFailure0,1,-,17,Experiments,5,1,0,Vanderbilt Radiation,Vanderbilt University Vulcan Experiment Indicator
+44,realTime,expFailure1,1,-,17,Experiments,5,2,0,Exp 1,Experiment 1 Failure Indicator
+45,realTime,expFailure2,1,-,17,Experiments,5,3,0,Exp 2,Experiment 2 Failure Indicator
+46,realTime,expFailure3,1,-,17,Experiments,5,4,0,Exp 3,Experiment 3 Failure Indicator
+47,realTime,I2CfailureBatt,1,-,17,Computer,2,3,0,Battery I2C,Battery I2C Bus failure indicator
+48,realTime,I2CfailurePSU1,1,-,17,Computer,2,4,0,PSU1 I2C,PSU2 I2C Bus failure indicator
+49,realTime,I2CfailurePSU2,1,-,17,Computer,2,5,0,PSU2 I2C,PSU2 I2C Bus failure indicator
+50,realTime,TLMresets,4,-,1,Computer,2,7,0,Ground Resets,Number of times command stations reset stored telemetry
+51,realTime,RxAntDeploy,1,-,16,Radio,1,8,0,RX Antenna,2m Antenna status
+52,realTime,TxAntDeploy,2,-,16,Radio,1,7,0,TX Antenna,70cm Antenna status
+53,realTime,I2CfailureRF,1,-,17,Computer,2,6,0,RF I2C,RF I2C Bus failure indicator
+54,realTime,pad1,1,-,0,NONE,0,0,0,NONE,Filler
+55,realTime,wodSize,8,-,0,Computer,2,9,0,Number of WODs Kept,Number of WOD data kept for each of Science and Housekeeping.  In hundreds
+56,realTime,pad2,72,-,0,NONE,0,0,0,NONE,Filler
