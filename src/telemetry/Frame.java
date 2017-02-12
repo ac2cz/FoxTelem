@@ -71,18 +71,19 @@ public abstract class Frame implements Comparable<Frame> {
 			"E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
 
 	protected Header header = null;
-	FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
+	protected FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
 	public static final int DUV_FRAME = 0;
 	public static final int HIGH_SPEED_FRAME = 1;
+	public static final int PSK_FRAME = 0;
 	public static final String[][] SOURCES = {
 			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
 			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
 			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
 			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
 			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
-			{ "amsat.fox-1e.ihu.duv", "amsat.fox-1e.ihu.highspeed" } };
+			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" } };
 
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
 	public static final String NONE = "NONE";
@@ -105,7 +106,7 @@ public abstract class Frame implements Comparable<Frame> {
 												// just after TCA
 
 	int numberBytesAdded = 0;
-	byte[] bytes;
+	protected byte[] bytes;
 
 	// Store a reference to any measurements that were made at the same time as
 	// the Frame was downloaded, so we can pass them on to the server
@@ -257,8 +258,10 @@ public abstract class Frame implements Comparable<Frame> {
 
 		if (this instanceof SlowSpeedFrame) {
 			source = SOURCES[foxId][DUV_FRAME];
-		} else {
+		} else if (this instanceof HighSpeedFrame){
 			source = SOURCES[foxId][HIGH_SPEED_FRAME];
+		} else {
+			source = SOURCES[foxId][PSK_FRAME];
 		}
 
 	}

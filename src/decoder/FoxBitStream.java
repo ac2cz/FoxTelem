@@ -68,9 +68,11 @@ public abstract class FoxBitStream extends BitStream {
 	 * Initialize the array with enough room to hold 6 frames worth of bits
 	 * We should never reach this because we purge bits once we exceed 4 frames in length
 	 */
-	public FoxBitStream(int size, Decoder dec) {
+	public FoxBitStream(int size, int wordLength, int syncWordLength, Decoder dec) {
 		super(size, dec);
-		
+		SYNC_WORD_LENGTH = syncWordLength;
+		DATA_WORD_LENGTH = wordLength;
+		syncWord = new boolean[syncWordLength];
 	}
 	
 	/**
@@ -89,10 +91,10 @@ public abstract class FoxBitStream extends BitStream {
 				syncWordbitPosition = SYNC_WORD_LENGTH-1;
 				// Check the last SYNC_WORD_LENGTH bits in the bit stream for the end of frame market
 				int word = binToInt(syncWord);
-				if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
+				//if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
+				if ((findFramesWithPRN && (word == CodePRN.FRAME )) ||
 				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
-				!findFramesWithPRN && (word == CodePRN.FRAME )) {
-				//if (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME) {
+				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
 					found = true;
 					syncWords.add(i+1);
 					if (Config.debugFrames) {
@@ -332,10 +334,6 @@ public abstract class FoxBitStream extends BitStream {
 		}
 	}
 	
-	
-	
-
-
 	public boolean haveSyncWordAtBit(int b) {
 		for (int i=0; i< syncWords.size(); i++)
 			if (syncWords.get(i) == b) return true;

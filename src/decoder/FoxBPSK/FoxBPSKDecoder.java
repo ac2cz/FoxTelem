@@ -23,9 +23,13 @@ import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
 import telemetry.SlowSpeedFrame;
 import telemetry.SlowSpeedHeader;
+import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.FoxBPSK.FoxBPSKHeader;
 
 public class FoxBPSKDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
+	public static final int WORD_LENGTH = 10;
+	public static final int SYNC_WORD_LENGTH = 15;
 	private int clockOffset = 0;
 	private double[] cosTab;
 	private double[] sinTab;
@@ -37,7 +41,7 @@ public class FoxBPSKDecoder extends Decoder {
 	 * This holds the stream of bits that we have not decoded. Once we have several
 	 * SYNC words, this is flushed of processed bits.
 	 */
-	protected FoxBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
+	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
 
 	public FoxBPSKDecoder(SourceAudio as, int chan) {
 		super("1200bps BPSK", as, chan);
@@ -48,7 +52,7 @@ public class FoxBPSKDecoder extends Decoder {
 	protected void init() {
 		Log.println("Initializing 1200bps BPSK decoder: ");
 
-		bitStream = new SlowSpeedBitStream(this);
+		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 60;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
@@ -190,42 +194,16 @@ public class FoxBPSKDecoder extends Decoder {
 			eyeData.lastErrorsCount = bitStream.lastErrorsNumber;
 			//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
 			if (Config.storePayloads) {
-				if (decodedFrame instanceof SlowSpeedFrame) {
-					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FoxFramePart payload = ssf.getPayload();
-					SlowSpeedHeader header = ssf.getHeader();
-					if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
 
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
-				} else {
-					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
-					HighSpeedHeader header = hsf.getHeader();
-					PayloadRtValues payload = hsf.getRtPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-					PayloadMaxValues maxPayload = hsf.getMaxPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
-					PayloadMinValues minPayload = hsf.getMinPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
-					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
-					if (Config.satManager.hasCamera(header.getFoxId())) {
-						PayloadCameraData cameraData = hsf.getCameraPayload();
-						if (cameraData != null)
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
-					}
-					if (Config.satManager.hasHerci(header.getFoxId())) {
-						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
-						if (herciDataSet != null)
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
-					}
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder2();
-				}
+				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
+				FoxBPSKHeader header = hsf.getHeader();
+				hsf.savePayloads();;
+
+				// Capture measurements once per payload or every 5 seconds ish
+				addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
+				if (Config.autoDecodeSpeed)
+					MainWindow.inputTab.setViewDecoder2();
+
 
 			}
 			if (Config.uploadToServer)

@@ -31,8 +31,8 @@ import fec.RsCodeWord;
 public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	
-	public SlowSpeedBitStream(Decoder dec) {
-		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, dec);
+	public SlowSpeedBitStream(Decoder dec, int wordLength, int syncWordLength) {
+		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, wordLength, syncWordLength, dec);
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;
 	}

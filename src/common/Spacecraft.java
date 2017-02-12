@@ -49,6 +49,8 @@ public abstract class Spacecraft {
 	public static final String HERCI_HS_LAYOUT = "herciHSdata";
 	public static final String HERCI_HS_HEADER_LAYOUT = "herciHSheader";
 	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
+	public static final String WOD_LAYOUT = "wodtelemetry";
+	public static final String WOD_RAD_LAYOUT = "wodradtelemetry";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
