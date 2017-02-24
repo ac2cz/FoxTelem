@@ -620,7 +620,7 @@ public abstract class Frame implements Comparable<Frame> {
 		return true;
 	}
 
-	public static Frame importStpFile(File f, boolean delete) throws StpFileProcessException {
+	public static Frame importStpFile(PayloadDbStore payloadStore, File f, boolean delete) throws StpFileProcessException {
 		try {
 			Frame decodedFrame = Frame.loadStp(f.getPath());
 			if (decodedFrame != null && !decodedFrame.corrupt) {
@@ -636,41 +636,41 @@ public abstract class Frame implements Comparable<Frame> {
 					}
 				}
 				*/
-				if (!Config.payloadStore.addStpHeader(decodedFrame))
+				if (!payloadStore.addStpHeader(decodedFrame))
 					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
 					FoxFramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
+					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
 					//duvFrames++;
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
 					PayloadRtValues payload = hsf.getRtPayload();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
+					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RT to database");
 					PayloadMaxValues maxPayload = hsf.getMaxPayload();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload))
+					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS MAX to database");
 					PayloadMinValues minPayload = hsf.getMinPayload();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) 
+					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload)) 
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not HS MIN add to database");
 					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads))
+					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS RAD to database");
 					if (Config.satManager.hasCamera(header.getFoxId())) {
 						PayloadCameraData cameraData = hsf.getCameraPayload();
 						if (cameraData != null)
-							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
+							if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData))
 								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HS CAMERA data to database");
 
 					}
 					if (Config.satManager.hasHerci(header.getFoxId())) {
 						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
 						if (herciDataSet != null)
-							if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet))
+							if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet))
 								throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add HERCI HS data to database");
 					}
 			

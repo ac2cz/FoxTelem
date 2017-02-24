@@ -270,9 +270,9 @@ public class Config {
 		
 		satManager = new SatelliteManager();
 	}		
-	public static void serverInit(String u, String p, String db) {
+	public static void serverInit() {
 		basicInit();
-		initPayloadDB(u,p,db);
+		//initPayloadDB(u,p,db);
 		
 	}
 	
@@ -346,12 +346,7 @@ public class Config {
 		payloadStoreThread.start();
 	}
 
-	public static void initPayloadDB(String u, String p, String db) {	
-		payloadStore = new PayloadDbStore(u,p,db);
-		payloadStoreThread = new Thread(payloadStore);
-		payloadStoreThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		payloadStoreThread.start();
-	}
+	
 	
 	public static void initSequence() {
 		try {

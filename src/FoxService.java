@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import telemServer.WebServiceProcess;
+import telemetry.PayloadDbStore;
 import common.Config;
 import common.Log;
 
@@ -61,7 +62,7 @@ public class FoxService {
 		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
 		Log.println("Fox Webservice starting up on port " + port + ": " + WebServiceProcess.version);
 		Log.println("(press ctrl-c to exit)");
@@ -82,7 +83,7 @@ public class FoxService {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for WebService connection ...");
-        		pool.execute(new WebServiceProcess(serverSocket.accept(),port));
+        		pool.execute(new WebServiceProcess(initPayloadDB(u,p,db),serverSocket.accept(),port));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {
@@ -99,5 +100,10 @@ public class FoxService {
 			e.printStackTrace(Log.getWriter());
 		}
 
+	}
+	
+	public static PayloadDbStore initPayloadDB(String u, String p, String db) {	
+		return new PayloadDbStore(u,p,db);
+		
 	}
 }

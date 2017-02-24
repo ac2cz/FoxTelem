@@ -55,9 +55,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	@SuppressWarnings("unused")
 	private boolean done = false;
 	
-	private List<FramePart> payloadQueue;
+	//private List<FramePart> payloadQueue;
 	
-	private static Connection derby;
+	protected Connection derby;
 
 	static String url = "jdbc:mysql://localhost:3306/"; //FOXDB?autoReconnect=true";
     static String db = "FOXDB";
@@ -72,28 +72,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		db = database;
 		user = u;
 		password = pw;
-		payloadQueue = Collections.synchronizedList(new SortedFramePartArrayList(INITIAL_QUEUE_SIZE));
+		//payloadQueue = Collections.synchronizedList(new SortedFramePartArrayList(INITIAL_QUEUE_SIZE));
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		// Connect to the database and create it if it does not exist
-		/*
-		String driver = "org.apache.derby.jdbc.EmbeddedDriver";
-		try {
-			Class.forName(driver);
-		} catch(java.lang.ClassNotFoundException e) {
-			System.out.println(e);
-		}
-		String dbName="FOXDB";
-		String connectionURL = "jdbc:derby:" + dbName + ";create=true";
-		
-		try {
-			derby = DriverManager.getConnection(connectionURL);
-			System.out.println("Connected to FOXDB ..");
-		} catch (Throwable e) {
-			System.out.println("Exception(s) thrown");
-			errorPrint(e);
-			Log.errorDialog("FATAL", "Can not connect to the Payload Store.  Maybe another version of FoxTelem is running. Exiting..");
-		}
-		*/
 		
 	    Statement st = null;
 	    ResultSet rs = null;
@@ -146,7 +126,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
         payloadStore = new SatPayloadDbStore[sats.size()];
         //pictureStore = new SatPictureStore[sats.size()];
         for (int s=0; s<sats.size(); s++) {
-        	payloadStore[s] = new SatPayloadDbStore((FoxSpacecraft) sats.get(s));
+        	payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
 			//if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			
 		}
@@ -155,20 +135,26 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public void initRad2() {
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		for (int s=0; s<sats.size(); s++) {
-			payloadStore[s] = new SatPayloadDbStore((FoxSpacecraft) sats.get(s));
+			payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
 			payloadStore[s].initRad2();
 		}
 	}
 	
-	public static Connection getConnection() throws SQLException {
+	public Connection getConnection() throws SQLException {
 		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
             derby = DriverManager.getConnection(url + db + "?autoReconnect=true", user, password);
 		return derby;
 
 	}
+
+	public void closeConnection() throws SQLException {
+		if (derby != null) 
+            derby.close();
+	}
+
 	
 	public boolean hasQueuedFrames() {
-		if (payloadQueue.size() > 0) return true;
+		//if (payloadQueue.size() > 0) return true;
 		return false;
 	}
 	
@@ -450,10 +436,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		ResultSet select = null;
 		try {
 			derby = getConnection();
-			stmt = PayloadDbStore.derby.createStatement();
+			stmt = derby.createStatement();
 			select = stmt.executeQuery("select 1 from " + table + " LIMIT 1");
-			select.close();
-			stmt.close();
+			
 		} catch (SQLException e) {
 			
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
@@ -463,7 +448,6 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				Log.println ("Creating new DB table " + table);
 				try {
 					stmt.execute(createString);
-					stmt.close();
 				} catch (SQLException ex) {
 					PayloadDbStore.errorPrint("initStpHeaderTable", ex);
 					Log.alert("FATAL: Could not create STP HEADER table");
@@ -471,9 +455,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			} else {
 				PayloadDbStore.errorPrint("initStpHeaderTable", e);
 				Log.alert("FATAL: Could not access the STP HEADER table");
-				try { stmt.close(); } catch (SQLException e2) {};
+				
 			}
-		} 
+		} finally {
+			try { if (select != null) select.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
 	}
 
 	@Override
@@ -485,20 +472,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		//Log.println("SQL:" + update);
 		try {
 			derby = getConnection();
-			stmt = PayloadDbStore.derby.createStatement();
+			stmt = derby.createStatement();
 			@SuppressWarnings("unused")
 			int r = stmt.executeUpdate(update);
-			stmt.close();
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
-				try { stmt.close(); } catch (SQLException e2) {};
 				return true; // we consider this data added
 			} else {
 				PayloadDbStore.errorPrint("addStpHeader", e);
 			}
-			try { stmt.close(); } catch (SQLException e2) {};
 			return false;
+		} finally {
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
 		}
 		return true;
 	}
@@ -517,20 +503,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		//Log.println("SQL:" + update);
 		try {
 			derby = getConnection();
-			stmt = PayloadDbStore.derby.createStatement();
+			stmt = derby.createStatement();
 			int r = stmt.executeUpdate(update);
-			stmt.close();
 			if (r > 1) throw new StpFileProcessException("FOXDB","MULTIPLE ROWS UPDATED!");
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
-				try { stmt.close(); } catch (SQLException e2) {};
 				return true; // we consider this data added
 			} else {
 				PayloadDbStore.errorPrint("updateStpHeader", e);
 			}
-			try { stmt.close(); } catch (SQLException e2) {};
 			return false;
+		} finally {
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
 		}
 		return true;
 	}
@@ -569,7 +554,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 					Log.println("SQL ERROR with CAMERA DATA, line not written: " + id + " " + resets + " " + uptime);
 					e.printStackTrace(Log.getWriter());
 					return false; // we did not add the data
-				}
+				} 
 			}
 		}
 		return true;
