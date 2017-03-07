@@ -114,7 +114,7 @@ public abstract class FoxBitStream extends BitStream {
 		
 		Performance.startTimer("findFrames:checks");
 
-		if (Config.highSpeed)
+		if (Config.mode == SourceIQ.MODE_FSK_HS)
 			checkMissingStartSYNC(0, new HighSpeedHeader());
 		else
 			checkMissingStartSYNC(0, new SlowSpeedHeader()); 

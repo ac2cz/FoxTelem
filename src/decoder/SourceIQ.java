@@ -22,11 +22,11 @@ public class SourceIQ extends SourceAudio {
 	Thread upstreamAudioReadThread;
 	
 	public static final int MODE_WFM = 0;
-	public static final int MODE_FM = 1;
-	public static final int MODE_NFM = 2;
+	public static final int MODE_FSK_HS = 1;
+	public static final int MODE_FSK_DUV = 2;
 	public static final int MODE_PSK = 3;
 	
-	private int mode = MODE_NFM;
+	private int mode = MODE_FSK_DUV;
 	
 	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
 	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
@@ -257,7 +257,7 @@ public class SourceIQ extends SourceAudio {
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
-		if (mode == MODE_FM) {
+		if (mode == MODE_FSK_DUV) {
 			setFilterWidth(9600*2);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.

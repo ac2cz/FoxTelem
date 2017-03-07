@@ -56,7 +56,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.05e";
-	public static String VERSION = VERSION_NUM + " - 31 Jan 2017";
+	public static String VERSION = VERSION_NUM + " - 26 Feb 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -136,7 +136,7 @@ public class Config {
 	static public boolean realTimePlaybackOfFile = false;
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
-    public static boolean highSpeed = false; // true if we are running the decoder at 9600 bps
+    public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -475,7 +475,7 @@ public class Config {
 		properties.setProperty("realTimePlaybackOfFile", Boolean.toString(realTimePlaybackOfFile));
 		properties.setProperty("useFilterNumber", Integer.toString(useFilterNumber));
 		properties.setProperty("useLeftStereoChannel", Boolean.toString(useLeftStereoChannel));
-		properties.setProperty("highSpeed", Boolean.toString(highSpeed));
+		properties.setProperty("highSpeed", Integer.toString(mode));
 		properties.setProperty("iq", Boolean.toString(iq));
 		properties.setProperty("eliminateDC", Boolean.toString(eliminateDC));
 		properties.setProperty("viewFilteredAudio", Boolean.toString(viewFilteredAudio));
@@ -623,7 +623,7 @@ public class Config {
 		useRSerasures = Boolean.parseBoolean(getProperty("useRSerasures"));
 		realTimePlaybackOfFile = Boolean.parseBoolean(getProperty("realTimePlaybackOfFile"));
 		useLeftStereoChannel = Boolean.parseBoolean(getProperty("useLeftStereoChannel"));
-		highSpeed = Boolean.parseBoolean(getProperty("highSpeed"));
+		mode = Integer.parseInt(getProperty("highSpeed"));
 		iq = Boolean.parseBoolean(getProperty("iq"));
 		eliminateDC = Boolean.parseBoolean(getProperty("eliminateDC"));
 		viewFilteredAudio = Boolean.parseBoolean(getProperty("viewFilteredAudio"));
