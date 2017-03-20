@@ -438,15 +438,18 @@ public class SatPayloadTable {
 		FoxFramePart rt = null;
 		if (type == FoxFramePart.TYPE_REAL_TIME) {
 			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.REAL_TIME_LAYOUT));
-		} else
-			if (type == FoxFramePart.TYPE_MAX_VALUES) {
-				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_WOD) {
+			rt = new PayloadWOD(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_MAX_VALUES) {
+			rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
 
-			} else
-				if (type == FoxFramePart.TYPE_MIN_VALUES) {
-					rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_MIN_VALUES) {
+			rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
 
-				}
+		}
 		if (type == FoxFramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
 			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
@@ -455,8 +458,7 @@ public class SatPayloadTable {
 			rt = new PayloadRadExpData(id, resets, uptime, date, st);
 			rt.type = type; // make sure we get the right type
 			
-			
-			// hack to convert data
+			// hack to convert data - only used in testing
 			if (Config.generateSecondaryPayloads) {
 				PayloadRadExpData f = (PayloadRadExpData)rt; 
 				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
@@ -466,7 +468,10 @@ public class SatPayloadTable {
 				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
 				Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
 			}
-		}        			
+		}
+		if (type == FoxFramePart.TYPE_WOD_RAD) {
+			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
+		}
 		if (type == FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
 			rt.type = type; // make sure we get the right type

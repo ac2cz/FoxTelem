@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.util.Properties;
 
 import telemetry.BitArrayLayout;
-import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
 
@@ -105,7 +104,7 @@ public abstract class Spacecraft {
 	
 	public int numberOfFrameLayouts = 1;
 	public String[] frameLayoutFilename;
-	public FrameLayout[] frameLayout;
+	//public FrameLayout[] frameLayout;
 	
 	// User Config
 	public boolean track = true; // default is we track a satellite

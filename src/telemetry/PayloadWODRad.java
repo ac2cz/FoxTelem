@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.util.StringTokenizer;
+
 import decoder.FoxDecoder;
 
 public class PayloadWODRad extends FoxFramePart {
@@ -11,12 +13,23 @@ public class PayloadWODRad extends FoxFramePart {
 		// TODO Auto-generated constructor stub
 	}
 
+	public PayloadWODRad(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, date, st, lay);	
+	}
+	
 	@Override
 	protected void init() {
-		type = TYPE_WOD;
+		type = TYPE_WOD_RAD;
 		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 
+	@Override
+	public void captureHeaderInfo(int id, long uptime, int resets) {
+		copyBitsToFields();
+		this.id = id;
+		this.captureDate = fileDateStamp();
+	}
+	
 	@Override
 	public void copyBitsToFields() {
 		super.copyBitsToFields();

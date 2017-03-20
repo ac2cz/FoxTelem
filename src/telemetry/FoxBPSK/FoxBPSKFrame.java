@@ -173,9 +173,10 @@ import telemetry.RadiationTelemetry;
 		}
 
 		public void savePayloads() {
+			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
-				payload[i].copyBitsToFields(); // this makes sure that the timestamps are correct
-				Config.payloadStore.add(header.getFoxId(), payload[1].getUptime(), payload[1].getResets(), payload[i]);
+				payload[i].copyBitsToFields();
+				Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]);
 			}			
 		}
 		

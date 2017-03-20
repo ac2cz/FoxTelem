@@ -51,17 +51,8 @@ public class SatPayloadStore {
 	
 	private static final int INIT_SIZE = 1000;
 	//private boolean initRad2 = false;
-	
-
-		
+			
 	SatPayloadTable[] records;
-	//SatPayloadTable maxRecords;
-	//SatPayloadTable minRecords;
-	//SatPayloadTable radRecords;
-	//SatPayloadTable radTelemRecords;
-	//SatPayloadTable herciRecords;
-	//SatPayloadTable herciHeaderRecords;
-	//SatPayloadTable herciPacketRecords;
 	
 	public static final int MAX_RAD_DATA_LENGTH = 61;
 	public static final int MAX_HERCI_PACKET_DATA_LENGTH = 128;
