@@ -455,7 +455,7 @@ public class SatPayloadTable {
 			rt.type = type; // make sure we get the right type
 		}
 		if (type == FoxFramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-			rt = new PayloadRadExpData(id, resets, uptime, date, st);
+			rt = new PayloadRadExpData(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 			
 			// hack to convert data - only used in testing

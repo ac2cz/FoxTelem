@@ -561,7 +561,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	
-	
+	@Override
+	public FramePart getLatest(int id, String layout) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -944,6 +949,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		// TODO Auto-generated method stub
 		return 0;
 	}
+
 
 
 

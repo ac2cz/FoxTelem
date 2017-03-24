@@ -76,6 +76,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
+	public abstract FramePart getLatest(int id, String layout);
+
 	public abstract FramePart getLatestRt(int id);
 
 	public abstract FramePart getLatestMax(int id);

@@ -20,6 +20,7 @@ import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
 import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
+import uk.me.g4dpz.satellite.GroundStationPosition;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -95,6 +96,8 @@ public class Config {
 	public static double filterFrequency = 200;
 	
 	public static Sequence sequence;
+	
+	static public GroundStationPosition GROUND_STATION = new GroundStationPosition(40.703328, -73.980599, 20);
 	
 	/**
 	 * These flags can be set to change the output types and operation
@@ -234,6 +237,7 @@ public class Config {
 	static public int splitPaneHeight = 200;
 	public static boolean useDDEforFindSignal = false;
 	public static boolean showFilters = false; // Default this off
+	
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";

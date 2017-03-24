@@ -4,7 +4,7 @@ import java.util.StringTokenizer;
 
 import decoder.FoxDecoder;
 
-public class PayloadWODRad extends FoxFramePart {
+public class PayloadWODRad extends PayloadRadExpData {
 	public static final String WOD_RESETS = "WODTimestampReset";
 	public static final String WOD_UPTIME = "WODTimestampUptime";
 

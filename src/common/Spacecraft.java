@@ -7,9 +7,15 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import org.joda.time.DateTime;
+
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
+import uk.me.g4dpz.satellite.SatPos;
+import uk.me.g4dpz.satellite.Satellite;
+import uk.me.g4dpz.satellite.SatelliteFactory;
+import uk.me.g4dpz.satellite.TLE;
 
 public abstract class Spacecraft {
 	public Properties properties; // Java properties file for user defined values
@@ -109,6 +115,11 @@ public abstract class Spacecraft {
 	// User Config
 	public boolean track = true; // default is we track a satellite
 	
+	final String[] TLE = {
+            "AO-85",
+            "1 40967U 15058D   16111.35540844  .00000590  00000-0  79740-4 0 01029",
+            "2 40967 064.7791 061.1881 0209866 223.3946 135.0462 14.74939952014747"};
+	
 	public Spacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
 		propertiesFile = fileName;		
@@ -160,6 +171,14 @@ public abstract class Spacecraft {
 		return null;
 	}
 
+	public SatPos getSatellitePosition(DateTime timeNow) {
+		final TLE tle = new TLE(TLE);
+		final Satellite satellite = SatelliteFactory.createSatellite(tle);
+        final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
+		
+		return satellitePosition;
+	}
+	
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
 		try {

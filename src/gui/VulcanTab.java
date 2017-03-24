@@ -220,7 +220,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		return radioButton;
 	}
 
-	private void displayFramesDecoded(int u) {
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
 	

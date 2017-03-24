@@ -41,8 +41,8 @@ public class PayloadRadExpData extends FoxFramePart {
 		
 	}
 	
-	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st) {
-		super(id, resets, uptime, date, st, new BitArrayLayout());
+	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, date, st, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 

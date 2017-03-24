@@ -12,6 +12,8 @@ import java.util.Date;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -67,39 +69,10 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	// Calibration
 	public double BATTERY_CURRENT_ZERO = 0;
-	//public String rssiLookUpTableFileName = "";
-	//public String ihuTempLookUpTableFileName = "";
-	//public String ihuVBattLookUpTableFileName = "";
 
 	// layout flags
 	public boolean useIHUVBatt = false;
 
-	// layout filenames
-	//public String rtLayoutFileName;
-	//public String maxLayoutFileName;
-	//public String minLayoutFileName;
-	//public String radLayoutFileName;
-	//public String rad2LayoutFileName;
-	//public String herciHSLayoutFileName;
-	//public String herciHS2LayoutFileName;
-	
-
-	// Stored tables
-	//public LookUpTable rssiTable;
-	//public LookUpTable ihuTable;
-	//public LookUpTable ihuVBattTable;
-
-	//Telemetry layouts
-	//public BitArrayLayout rtLayout;
-	//public BitArrayLayout maxLayout;
-	//public BitArrayLayout minLayout;
-	//public BitArrayLayout radLayout;
-	//public BitArrayLayout rad2Layout;
-	//public BitArrayLayout herciHSLayout;
-	//public BitArrayLayout herciHS2Layout;
-
-		
-	
 	ArrayList<Long> timeZero = null;
 	
 	public FoxSpacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
@@ -115,33 +88,6 @@ public class FoxSpacecraft extends Spacecraft{
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
-		
-		//rtLayout = new BitArrayLayout(rtLayoutFileName);
-		//maxLayout = new BitArrayLayout(maxLayoutFileName);
-		//minLayout = new BitArrayLayout(minLayoutFileName);
-		//radLayout = new BitArrayLayout(radLayoutFileName);
-		//rad2Layout = new BitArrayLayout(rad2LayoutFileName);
-		//if (herciHSLayoutFileName != null)
-		//	herciHSLayout = new BitArrayLayout(herciHSLayoutFileName);
-		//else
-		//	if (this.hasHerci()) {
-		//		throw new LayoutLoadException(name + ": Cannot load satellite with HERCI experiment if herciHSLayoutFileName is not specified");
-		//	}
-		//if (herciHS2LayoutFileName != null)
-		//	herciHS2Layout = new BitArrayLayout(herciHS2LayoutFileName);
-		//else
-		//	if (this.hasHerci()) {
-		//		throw new LayoutLoadException(name + ": Cannot load satellite with HERCI science header file - herciHS2LayoutFileName is not specified");
-		//	}
-		
-		//if (!rssiLookUpTableFileName.equalsIgnoreCase(""))
-		//	rssiTable = new LookUpTable(rssiLookUpTableFileName);
-		//if (!ihuTempLookUpTableFileName.equalsIgnoreCase(""))
-		//	ihuTable = new LookUpTable(ihuTempLookUpTableFileName);
-		//if (!ihuVBattLookUpTableFileName.equalsIgnoreCase(""))
-		//	ihuVBattTable = new LookUpTable(ihuVBattLookUpTableFileName);
-		//if (ihuVBattLookUpTableFileName.equalsIgnoreCase("") && useIHUVBatt == true)
-		//	throw new LayoutLoadException("File: "+fileName + "\nCan't load a satellite that uses IHU VBatt if the ihuVBatt look-up table is missing");
 		
 	}
 
@@ -177,7 +123,7 @@ public class FoxSpacecraft extends Spacecraft{
 		if (reset >= timeZero.size()) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime*1000);
 		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String time = timeDateFormat.format(dt);
+		String time = timeDateFormat.format(dt); 
 		return time;
 	}
 
@@ -190,6 +136,13 @@ public class FoxSpacecraft extends Spacecraft{
 		return time;
 	}
 
+	public DateTime getUtcDateTimeForReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime*1000);
+		DateTime dateTime = new DateTime(dt); // FIXME - this date conversion is not working.  Need to understand how it works.
+		return dateTime;
+	}
 	
 	public void save() {
 		super.save();
@@ -198,30 +151,13 @@ public class FoxSpacecraft extends Spacecraft{
 			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
 		
 		properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(BATTERY_CURRENT_ZERO));
-	//	properties.setProperty("rssiLookUpTableFileName", rssiLookUpTableFileName);
-	//	properties.setProperty("ihuTempLookUpTableFileName", ihuTempLookUpTableFileName);
-	//	properties.setProperty("ihuVBattLookUpTableFileName", ihuVBattLookUpTableFileName);
 		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
-	//	properties.setProperty("rtLayoutFileName", rtLayoutFileName);
-	//	properties.setProperty("maxLayoutFileName", maxLayoutFileName);
-	//	properties.setProperty("minLayoutFileName", minLayoutFileName);
-	//	properties.setProperty("radLayoutFileName", radLayoutFileName);
-	//	properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		
-		
-		// Optional params
-	//	if (herciHSLayoutFileName != null)
-	//		properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
-	//		if (herciHS2LayoutFileName != null)
-	//		properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
-			
 		store();
 	
 	}
-	
-	
 	
 	public boolean loadTimeZeroSeries(String log) throws FileNotFoundException {
 		timeZero = new ArrayList<Long>(100);
@@ -275,21 +211,12 @@ public class FoxSpacecraft extends Spacecraft{
 				experiments[i] = Integer.parseInt(getProperty("EXP"+(i+1)));
 			
 			BATTERY_CURRENT_ZERO = Double.parseDouble(getProperty("BATTERY_CURRENT_ZERO"));
-	//		rssiLookUpTableFileName = getProperty("rssiLookUpTableFileName");
-	//		ihuTempLookUpTableFileName = getProperty("ihuTempLookUpTableFileName");
-	//		ihuVBattLookUpTableFileName = getProperty("ihuVBattLookUpTableFileName");			
+		
 			useIHUVBatt = Boolean.parseBoolean(getProperty("useIHUVBatt"));
-	//		rtLayoutFileName = getProperty("rtLayoutFileName");
-	//		maxLayoutFileName = getProperty("maxLayoutFileName");
-	//		minLayoutFileName = getProperty("minLayoutFileName");
-	//		radLayoutFileName = getProperty("radLayoutFileName");
-	//		rad2LayoutFileName = getProperty("rad2LayoutFileName");
+
 			measurementsFileName = getProperty("measurementsFileName");
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
 			
-			
-	//		herciHSLayoutFileName = getOptionalProperty("herciHSLayoutFileName");
-	//		herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );

@@ -279,7 +279,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblIdValue.setText(id);
 	}
 
-	private void displayFramesDecoded(int u) {
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecodedValue.setText(Integer.toString(u));
 	}
 	
@@ -326,7 +326,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		displayUptime(lblUptimeValue, realTime2.getUptime());
 		displayResets(lblResetsValue, realTime2.getResets());
 		displayCaptureDate(realTime2.getCaptureDate());
-		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+		
 		displayMode(0);
 	}
 
@@ -399,15 +399,18 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
-					if (maxPayload != null)
+					if (maxPayload != null) {
 						updateTabMax(maxPayload);
+						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
-					
 				}
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
-					if (minPayload != null)
+					if (minPayload != null) {
 						updateTabMin(minPayload);
+						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
 					
 				}
@@ -417,6 +420,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
 						updateTabRT(realTime);
+						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 						//System.out.println("UPDATED RT Data: ");
 					} else {
 						//System.out.println("NO new RT Data: ");
