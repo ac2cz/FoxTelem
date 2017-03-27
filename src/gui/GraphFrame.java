@@ -414,6 +414,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		cbAddVariable.removeAllItems();
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
+	
+	// FIXME - if we pass in the layout, then we would not need this lookup.  This logic SHOULD NOT BE HERE!
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FoxFramePart.TYPE_REAL_TIME)
@@ -430,6 +432,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			layout = fox.measurementLayout;
 		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
 			layout = fox.passMeasurementLayout;
+		else if (plType == FoxFramePart.TYPE_WOD)
+			layout = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_WOD_RAD)
+			layout = fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT);
 		return layout;
 	}
 	

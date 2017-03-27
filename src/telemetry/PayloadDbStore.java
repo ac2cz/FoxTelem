@@ -950,6 +950,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return 0;
 	}
 
+	@Override
+	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime,
+			String layout) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 

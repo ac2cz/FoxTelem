@@ -96,6 +96,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
+	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout);
+
 	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 
 	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);

@@ -411,9 +411,10 @@ public class SatPayloadTable {
         	dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-
+        	Log.println(e.getMessage());
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        	Log.println(n.getMessage());
         } finally {
         	dis.close();
         }

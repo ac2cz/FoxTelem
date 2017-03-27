@@ -43,22 +43,24 @@ public class PayloadWOD extends PayloadRtValues {
 	public void captureHeaderInfo(int id, long uptime, int resets) {
 		copyBitsToFields();
 		this.id = id;
-		this.captureDate = fileDateStamp();
-		
+		this.captureDate = fileDateStamp();	
+	}
+	
+	public void captureSatPosition() {
 		FoxSpacecraft sat = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
 		
 		// We need to construct a date for the historical time of this WOD record
 		DateTime timeNow = new DateTime(sat.getUtcDateTimeForReset(getRawValue(WOD_RESETS), getRawValue(WOD_UPTIME))); 
 		
-		// capture the satellite position so we can visualize the WOD
+		//capture the satellite position so we can visualize the WOD
 		SatPos pos = sat.getSatellitePosition(timeNow);
 		satLatitude = pos.getLatitude();
 		satLongitude = pos.getLongitude();
 		satAltitude = pos.getAltitude();
 		
 		if (Config.debugFrames)
-			Log.println("WOD HEADER captured : " + captureDate + " at " + satLatitude + " " + satLongitude);
-
+			Log.println("WOD POSITION captured : " + resets + ":" + uptime + " at " + satLatitude + " " + satLongitude);
+        
 	}
 	
 	@Override
@@ -93,7 +95,7 @@ public class PayloadWOD extends PayloadRtValues {
 	public String toFile() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + satLatitude + "," + satLongitude + "," + satAltitude + "," +  type + ",";
+		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," +  type + "," + satLatitude + "," + satLongitude + "," + satAltitude + "," ;
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
 		}
@@ -104,13 +106,13 @@ public class PayloadWOD extends PayloadRtValues {
 	public String getInsertStmt() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + " (captureDate,  id, resets, uptime, satLatitude, satLongitude, satAltitude, type, \n";
+		s = s + " (captureDate,  id, resets, uptime, type, satLatitude, satLongitude, satAltitude, \n";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
-		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + 
-				", " + satLatitude + ", " + satLongitude + ", " + satAltitude + ", " + this.type + ",\n";
+		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + 
+				", " + satLatitude + ", " + satLongitude + ", " + satAltitude + ",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + fieldValue[i] + ",\n";
 		}
