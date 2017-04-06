@@ -91,8 +91,8 @@ public abstract class FoxBitStream extends BitStream {
 				syncWordbitPosition = SYNC_WORD_LENGTH-1;
 				// Check the last SYNC_WORD_LENGTH bits in the bit stream for the end of frame market
 				int word = binToInt(syncWord);
-				//if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
-				if ((findFramesWithPRN && (word == CodePRN.FRAME )) ||
+				if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
+				//if ((findFramesWithPRN && (word == CodePRN.FRAME )) ||
 				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
 				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
 					found = true;

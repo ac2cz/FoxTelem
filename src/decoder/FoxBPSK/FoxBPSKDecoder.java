@@ -369,6 +369,7 @@ public class FoxBPSKDecoder extends Decoder {
 			if (energy2>100.0) {	// TODO: work out where these magic numbers come from!
 				boolean bit = di<0.0;	// is that a 1 or 0?
 				middleSample[bucketNumber] = bit;
+//				System.err.println(bit?1:0);
 				bitStream.addBit(bit);
 			}
 		}
