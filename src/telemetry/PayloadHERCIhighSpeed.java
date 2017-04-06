@@ -170,7 +170,7 @@ public class PayloadHERCIhighSpeed extends FoxFramePart {
 	 * @return
 	 */
 	public HerciHighspeedHeader calculateTelemetryPalyoad() {
-		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
+		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_HEADER_LAYOUT));
 		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
@@ -186,7 +186,7 @@ public class PayloadHERCIhighSpeed extends FoxFramePart {
 		boolean morePackets = true;
 		int packetDataStart = PayloadHERCIhighSpeed.MAX_HEADER_SIZE;
 		while (morePackets) {
-			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime, epoch, time);
+			HerciHighSpeedPacket radTelem = new HerciHighSpeedPacket(id, resets, uptime, epoch, time, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			for (int k=0; k<HerciHighSpeedPacket.MAX_PACKET_HEADER_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[packetDataStart+k]);  
 			}

@@ -32,6 +32,8 @@ import common.Log;
 public class Fox200bpsDecoder extends FoxDecoder {
 
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
+	public static final int WORD_LENGTH = 10;
+	public static final int SYNC_WORD_LENGTH = 10;
 	private int useFilterNumber;
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
@@ -79,7 +81,7 @@ public class Fox200bpsDecoder extends FoxDecoder {
 	
 	private void setSlowSpeedParameters() {
 		//decodedFrame = new SlowSpeedFrame();
-		foxBitStream = new SlowSpeedBitStream(this);
+		foxBitStream = new SlowSpeedBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
 		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;

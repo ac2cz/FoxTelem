@@ -3,7 +3,6 @@ package fcd;
 import java.io.IOException;
 import java.util.List;
 
-import common.Config;
 import common.Log;
 import device.Device;
 import device.DeviceException;

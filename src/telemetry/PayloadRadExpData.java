@@ -34,16 +34,16 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	public static final int MAX_PAYLOAD_RAD_SIZE = 58;
 	
-	PayloadRadExpData(BitArrayLayout lay) {
+	public PayloadRadExpData(BitArrayLayout lay) {
 		super(lay);
-		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
-		rawBits = new boolean[MAX_PAYLOAD_RAD_SIZE*8];
+//		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
+		rawBits = new boolean[MAX_BYTES*8];
 		
 	}
 	
-	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st) {
-		super(id, resets, uptime, date, st, new BitArrayLayout());
-		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
+	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, date, st, lay);
+//		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 
 	public PayloadRadExpData(ResultSet r, BitArrayLayout lay) throws SQLException {
@@ -155,7 +155,7 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	public boolean hasData() {
 		copyBitsToFields();
-		for (int i =0; i< MAX_BYTES; i++) {
+		for (int i =0; i< MAX_PAYLOAD_RAD_SIZE; i++) {
 			if (fieldValue[i] != 0) return true;
 		}
 		return false;
@@ -165,7 +165,7 @@ public class PayloadRadExpData extends FoxFramePart {
 		copyBitsToFields();
 		String s = new String();
 		s = s + "RADIATION EXPERIMENT DATA:\n";
-		for (int i =0; i< MAX_BYTES; i++) {
+		for (int i =0; i< MAX_PAYLOAD_RAD_SIZE; i++) {
 			s = s + FoxDecoder.hex(fieldValue[i]) + " ";
 			// Print 8 bytes in a row
 			if ((i+1)%8 == 0) s = s + "\n";

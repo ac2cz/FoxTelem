@@ -510,6 +510,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	
+	public FramePart getLatest(int id,  String lay) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(lay);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+	
 	public FramePart getLatestRt(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -637,6 +653,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 
+	
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
 	 * recent
@@ -645,6 +662,18 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
+	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout) {
+		SatPayloadStore store = getPayloadStoreById(fox.foxId);
+		if (store != null)
+			try {
+				return store.getGraphData(name, period, fox, fromReset, fromUptime, layout);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+				Log.println("ERROR getting graph data: " + e.getMessage());
+			}
+		return null;
+	}
 	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)

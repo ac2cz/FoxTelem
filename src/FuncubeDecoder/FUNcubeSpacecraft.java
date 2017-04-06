@@ -35,7 +35,7 @@ public class FUNcubeSpacecraft extends Spacecraft {
 	//public BitArrayLayout highResLayout;
 	//public BitArrayLayout fitterLayout;
 		
-	public FUNcubeSpacecraft(String fileName) throws FileNotFoundException, LayoutLoadException {
+	public FUNcubeSpacecraft(File fileName) throws FileNotFoundException, LayoutLoadException {
 		super(fileName);
 		load();
 		

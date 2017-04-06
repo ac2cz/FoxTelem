@@ -17,7 +17,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	
 	// These fields are updated when the Frame Part is stored in the PayloadStore
-	protected int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
+	public int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
 	public long uptime;  // The Uptime captured from the header.  Time in seconds from Reset.  For non Fox Spacecraft this is the UTC milliseconds since the date epoch
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
 	protected String captureDate; // the date/time that this was captured

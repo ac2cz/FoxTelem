@@ -3,6 +3,7 @@ package decoder;
 import common.Config;
 import common.Log;
 import fec.RsCodeWord;
+import telemetry.Frame;
 import telemetry.HighSpeedFrame;
 
 /**
@@ -34,16 +35,21 @@ import telemetry.HighSpeedFrame;
  * The data is fed into the High Speed Frame, which will then allocate the bits to the appropriate 
  * payloads
  * 
+ * This bit stream is used for any bitstream with multiple RS Codewords, including the 9600bps FSK and 1200bps PSK streams
  *
  */
 @SuppressWarnings("serial")
 public class HighSpeedBitStream extends FoxBitStream {
 	public static int HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;
+	protected int numberOfRsCodeWords = NUMBER_OF_RS_CODEWORDS;
 	public static final int[] RS_PADDING = {3,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4};
+	protected int[] rsPadding = RS_PADDING;
+	protected int maxBytes = HighSpeedFrame.getMaxBytes();
+	protected int frameSize = HighSpeedFrame.MAX_FRAME_SIZE;
 	
-	public HighSpeedBitStream(FoxDecoder dec) {
-		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, dec);
+	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength) {
+		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, dec);
 		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
 	}
@@ -57,19 +63,27 @@ public class HighSpeedBitStream extends FoxBitStream {
 	 * The corrected data is re-allocated, again round robin, into a rawFrame.  This frame should
 	 * then contain the data BACK in the original order, but with corrections made
 	 */
-	public HighSpeedFrame decodeFrame(int start, int end) {
-		RsCodeWord[] codeWords = new RsCodeWord[NUMBER_OF_RS_CODEWORDS];
+	public Frame decodeFrame(int start, int end) {
+		byte[] rawFrame = decodeBytes(start, end);
+		if (rawFrame == null) return null;
+		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
+		highSpeedFrame.addRawFrame(rawFrame);
+		return highSpeedFrame;
+	}
+	
+	protected byte[] decodeBytes(int start, int end) {
+		RsCodeWord[] codeWords = new RsCodeWord[numberOfRsCodeWords];
 	
 		int bytesInFrame = 0; 
 		
-		byte[] rawFrame = new byte[HighSpeedFrame.getMaxBytes()];
+		byte[] rawFrame = new byte[maxBytes];
 		
-		int[][] erasurePositions = new int[NUMBER_OF_RS_CODEWORDS][];
-		for (int q=0; q < NUMBER_OF_RS_CODEWORDS; q++) {
-			codeWords[q] = new RsCodeWord(RS_PADDING[q]);
+		int[][] erasurePositions = new int[numberOfRsCodeWords][];
+		for (int q=0; q < numberOfRsCodeWords; q++) {
+			codeWords[q] = new RsCodeWord(rsPadding[q]);
 			erasurePositions[q] = new int[RsCodeWord.DATA_BYTES];
 		}
-		int[] numberOfErasures = new int[NUMBER_OF_RS_CODEWORDS];
+		int[] numberOfErasures = new int[numberOfRsCodeWords];
 		
 		if (rawFrame.length != SYNC_WORD_DISTANCE/10-1)
 			Log.println("WARNING: Frame length " + rawFrame.length + " bytes is different to default SYNC word distance "+ (SYNC_WORD_DISTANCE/10-1));
@@ -77,12 +91,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 		// We have found a frame, so process it. start is the first bit of data
 		// end is the first bit after the second SYNC word.  We do not 
 		// want to pass the SYNC word to the FRAME, so we process all the 
-		// bits up to but not including end-10.
+		// bits up to but not including end-SYNC_WORD_LENGTH.
 		int f=0; // position in the Rs code words as we allocate bits to them
 		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
 		
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
-		for (int j=start; j< end-10; j+=10) {
+		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
 
 			byte b8 = -1;
 			try {
@@ -102,7 +116,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 			}
 			bytesInFrame++;
 
-			if (bytesInFrame == 4601) {  //FIXME - hard coded value
+			if (bytesInFrame == frameSize+1) {  
 				// first parity byte
 				//Log.println("parity");
 				// Reset to the first code word
@@ -116,7 +130,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 			} catch (ArrayIndexOutOfBoundsException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			if (rsNum == NUMBER_OF_RS_CODEWORDS) {
+			if (rsNum == numberOfRsCodeWords) {
 				rsNum=0;
 				f++;
 				if (f > RsCodeWord.NN)
@@ -132,7 +146,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		// Now Decode all of the RS words and put the bytes back into the 
 		// order we started with, but now with corrected data
 		//byte[] correctedBytes = new byte[RsCodeWord.DATA_BYTES];
-		for (int i=0; i < NUMBER_OF_RS_CODEWORDS; i++) {
+		for (int i=0; i < numberOfRsCodeWords; i++) {
 			if (numberOfErasures[i] < MAX_ERASURES) {
 //				lastErasureNumber += numberOfErasures[rsNum];
 				if (Config.useRSfec) {								
@@ -161,35 +175,61 @@ public class HighSpeedBitStream extends FoxBitStream {
 //		lastErrorsNumber = lastErrorsNumber / NUMBER_OF_RS_CODEWORDS;
 //		lastErasureNumber = lastErasureNumber /NUMBER_OF_RS_CODEWORDS;
 		// Consume all of the bits up to this point, but not the end SYNC word
-		removeBits(0, end-10);
+		removeBits(0, end-SYNC_WORD_LENGTH);
 
+		//// DEBUG ///
+//		System.out.println(codeWords[0]);
+//		System.out.println("Bytes in Frame: " + bytesInFrame);
 		f=0;
 		rsNum=0;
+
+		boolean readingParity = false;
 		// We have corrected the bytes, now allocate back to the rawFrame and add to the frame
 		for (int i=0; i < bytesInFrame; i++) {
 			try {
-				rawFrame[i] = codeWords[rsNum++].getByte(f);
+				if (i == frameSize) {
+				//	Log.println("PARITY");
+					readingParity=true;
+					rsNum=0;
+					f++;
+				}
+				
+				if (readingParity) {
+					if (rsNum==0) {
+				//		Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
+				//		Log.println(""+codeWords[rsNum].getByte(f));
+						rawFrame[i] = codeWords[rsNum++].getByte(f);
+					} else {
+				//		Log.print(i+ " RS: "+rsNum+ " - " + (f-1) + " :"); 
+				//		Log.println(""+codeWords[rsNum].getByte(f-1));
+						rawFrame[i] = codeWords[rsNum++].getByte(f-1);
+					}
+				} else {
+				//	Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
+				//	Log.println(""+codeWords[rsNum].getByte(f));
+					rawFrame[i] = codeWords[rsNum++].getByte(f);
+				}
+				
 			} catch (IndexOutOfBoundsException e) {
 				Log.println(e.getMessage());
-				if (Config.useRSfec)
+				//if (Config.useRSfec)
 					return null;
-				else {
+				//else {
 					// return what we have, this is a run to grab raw data for debugging
-					HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
-					highSpeedFrame.addRawFrame(rawFrame);
-					return highSpeedFrame;					
-				}
+				//	HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
+				//	highSpeedFrame.addRawFrame(rawFrame);
+				//	return highSpeedFrame;					
+				//}
 			}
-			if (rsNum == NUMBER_OF_RS_CODEWORDS) {
+			if (rsNum == numberOfRsCodeWords) {
 				rsNum=0;
 				f++;
 				if (f > RsCodeWord.NN)
 					Log.println("ERROR: Allocated more high speed data than fits in an RSCodeWord");
 			}
 		}
-		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
-		highSpeedFrame.addRawFrame(rawFrame);
-		return highSpeedFrame;
+		
+		return rawFrame;
 		
 	}
 

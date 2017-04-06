@@ -32,9 +32,10 @@ import common.Spacecraft;
  */
 public class HighSpeedFrame extends Frame {
 	
+	public static final int MAX_FRAME_SIZE = 4600;
 	public static final int MAX_HEADER_SIZE = 6;
 	public static final int PAYLOAD_SIZE = 60;
-	public static final int MAX_PAYLOAD_SIZE = 4600 - MAX_HEADER_SIZE; 
+	public static final int MAX_PAYLOAD_SIZE = MAX_FRAME_SIZE - MAX_HEADER_SIZE; 
 	public static final int MAX_CAMERA_PAYLOAD_SIZE = 4300;
 	public static final int MAX_TRAILER_SIZE = HighSpeedTrailer.MAX_BYTES; // Multiple RS Codewords with 32 FEC bytes each
 	
@@ -212,7 +213,7 @@ public class HighSpeedFrame extends Frame {
 	}
 	
 	public static int getMaxDataBytes() {
-		return MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE;
+		return MAX_HEADER_SIZE + MAX_FRAME_SIZE;
 	}
 	
 	public static int getMaxBytes() {

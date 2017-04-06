@@ -25,7 +25,6 @@ import org.usb4java.Transfer;
 import org.usb4java.TransferCallback;
 
 import common.Log;
-import decoder.ComplexBuffer;
 import decoder.SourceUSB;
 import device.DCRemovalFilter_RB;
 import device.DeviceException;
@@ -208,6 +207,8 @@ public class AirspyDevice extends device.TunerController
 					{
 					case AIRSPY:
 						return initAirspyTuner( device, descriptor );
+					default:
+						break;
 					}
 					//	TunerInitStatus status = initTuner( device, descriptor );
 					

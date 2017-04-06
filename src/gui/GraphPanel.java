@@ -102,9 +102,11 @@ public class GraphPanel extends GraphCanvas {
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
 		
+		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName[i]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
+			String name = graphFrame.fieldName[i].toLowerCase();
+			g2.drawString(name+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
 		}
@@ -114,7 +116,8 @@ public class GraphPanel extends GraphCanvas {
 		if (graphFrame.fieldName2 != null) {
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
+			String name = graphFrame.fieldName2[i].toLowerCase();
+			g2.drawString(name+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
 		}

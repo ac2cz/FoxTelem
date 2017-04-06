@@ -210,8 +210,8 @@ public class FcdProDevice extends FcdDevice {
 	public FcdProDevice(HidDeviceInfo fcdInfo) throws IOException, DeviceException {
 		super(fcdInfo);
 		SAMPLE_RATE = 96000;
-		MIN_FREQ = 150000;
-		MAX_FREQ = 2050000000;
+		MIN_FREQ = 64000;
+		MAX_FREQ = 1700000;
 		}
 
 	public int setLnaGain(int val) throws DeviceException {

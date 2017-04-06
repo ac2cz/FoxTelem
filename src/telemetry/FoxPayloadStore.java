@@ -76,6 +76,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
+	public abstract FramePart getLatest(int id, String layout);
+
 	public abstract FramePart getLatestRt(int id);
 
 	public abstract FramePart getLatestMax(int id);
@@ -94,6 +96,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
+	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout);
+
 	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
 
 	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);

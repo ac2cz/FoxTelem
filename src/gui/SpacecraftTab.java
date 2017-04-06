@@ -1,13 +1,10 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
-import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
@@ -17,7 +14,7 @@ import common.Spacecraft;
 * FOX 1 Telemetry Decoder
 * @author chris.e.thompson g0kla/ac2cz
 *
-* Copyright (C) 2015 amsat.org
+* Copyright (C) 2016 amsat.org
 *
 * This program is free software: you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -31,6 +28,9 @@ import common.Spacecraft;
 *
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+* 
+* The SpacecraftTab is a sub tab of the MainWindow.  It groups all of the tabs for a given spacecraft
+* including health, experiments and measurements.
 *
 */
 @SuppressWarnings("serial")
@@ -43,7 +43,9 @@ public class SpacecraftTab extends JPanel {
 	CameraTab cameraTab;
 	HerciHSTab herciTab;
 	MyMeasurementsTab measurementsTab;
-
+	ModuleTab wodRadiationTab;
+	HealthTab wodHealthTab;
+	
 	// We have one health thread per health tab
 	Thread healthThread;
 	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
@@ -51,6 +53,8 @@ public class SpacecraftTab extends JPanel {
 	Thread cameraThread;
 	Thread herciThread;
 	Thread measurementThread;
+	Thread wodHealthThread;
+	Thread wodRadiationThread;
 	
 	public SpacecraftTab(Spacecraft s) {
 		sat = s;
@@ -67,6 +71,8 @@ public class SpacecraftTab extends JPanel {
 		radiationTab.showGraphs();
 		herciTab.showGraphs();
 		measurementsTab.showGraphs();
+		wodHealthTab.showGraphs();
+		wodRadiationTab.showGraphs();
 	}
 
 	public void refreshTabs(boolean closeGraphs) {
@@ -83,7 +89,14 @@ public class SpacecraftTab extends JPanel {
 
 		if (cameraTab != null)
 			tabbedPane.remove(cameraTab);
+		
+		if (wodHealthTab != null)
+		if (closeGraphs) wodHealthTab.closeGraphs();
+		tabbedPane.remove(wodHealthTab);
 
+		if (wodRadiationTab != null)
+		if (closeGraphs) wodRadiationTab.closeGraphs();
+		tabbedPane.remove(wodRadiationTab);
 		addHealthTabs();
 		
 		if(closeGraphs)
@@ -97,7 +110,9 @@ public class SpacecraftTab extends JPanel {
 		stopThreads(radiationTab);
 		stopThreads(cameraTab);
 		stopThreads(herciTab);
-
+		stopThreads(wodHealthTab);
+		stopThreads(wodRadiationTab);
+		
 		healthTab = new HealthTab(sat);
 		healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -116,9 +131,31 @@ public class SpacecraftTab extends JPanel {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
 				}
-
 			}
 		}
+		if (sat.foxId == Spacecraft.FOX1E) {
+			addWodTabs((FoxSpacecraft)sat);
+		}
+	}
+
+	private void addWodTabs(FoxSpacecraft fox) {
+		
+		wodHealthTab = new WodHealthTab(sat);
+		wodHealthThread = new Thread(wodHealthTab);
+		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodHealthThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "WOD" + "</b></body></html>", wodHealthTab );
+		
+		wodRadiationTab = new WodVulcanTab(fox);
+		wodRadiationThread = new Thread((VulcanTab)wodRadiationTab);
+		wodRadiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodRadiationThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "VU Rad WOD" + "</b></body></html>", wodRadiationTab );
+
 	}
 
 	private void addExperimentTab(FoxSpacecraft fox) {
@@ -204,6 +241,10 @@ public class SpacecraftTab extends JPanel {
 		healthTab.closeGraphs();
 		if (radiationTab != null)
 			radiationTab.closeGraphs();
+		if (wodHealthTab != null)
+			wodHealthTab.closeGraphs();
+		if (wodRadiationTab != null)
+			wodRadiationTab.closeGraphs();
 		if (herciTab != null)
 			herciTab.closeGraphs();
 		

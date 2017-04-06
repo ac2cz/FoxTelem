@@ -25,14 +25,11 @@ import javax.swing.border.TitledBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
+import telemetry.PayloadWOD;
 import telemetry.RadiationPacket;
 
 /**
@@ -487,7 +484,10 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if ((moduleType == DisplayModule.DISPLAY_ALL || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, fox, showSkyChart);
+					if (rtPayload instanceof PayloadWOD)
+						graph[i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD, fox, showSkyChart);
+					else
+						graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, fox, showSkyChart);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);

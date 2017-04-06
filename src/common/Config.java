@@ -20,6 +20,7 @@ import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
 import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
+import uk.me.g4dpz.satellite.GroundStationPosition;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -55,8 +56,8 @@ public class Config {
 
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05c";
-	public static String VERSION = VERSION_NUM + " - 10 Oct 2016";
+	public static String VERSION_NUM = "1.05f";
+	public static String VERSION = VERSION_NUM + " - 26 Mar 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -95,6 +96,8 @@ public class Config {
 	public static double filterFrequency = 200;
 	
 	public static Sequence sequence;
+	
+	static public GroundStationPosition GROUND_STATION = new GroundStationPosition(40.703328, -73.980599, 20);
 	
 	/**
 	 * These flags can be set to change the output types and operation
@@ -136,7 +139,7 @@ public class Config {
 	static public boolean realTimePlaybackOfFile = false;
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
-    public static boolean highSpeed = false; // true if we are running the decoder at 9600 bps
+    public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -233,7 +236,8 @@ public class Config {
 	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
 	public static boolean useDDEforFindSignal = false;
-	public static boolean showFilters = true;
+	public static boolean showFilters = false; // Default this off
+	
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -270,9 +274,9 @@ public class Config {
 		
 		satManager = new SatelliteManager();
 	}		
-	public static void serverInit(String u, String p, String db) {
+	public static void serverInit() {
 		basicInit();
-		initPayloadDB(u,p,db);
+		//initPayloadDB(u,p,db);
 		
 	}
 	
@@ -292,6 +296,14 @@ public class Config {
 		initServerQueue();
 	}
 
+	public static String getLogFileDirectory() {
+		String toFileName = "";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toFileName = Config.logFileDirectory + File.separator;
+		}	
+		return toFileName;
+	}
+	
 	public static int getVersionMajor() {
 		return parseVersionMajor(VERSION_NUM);
 	}
@@ -338,12 +350,7 @@ public class Config {
 		payloadStoreThread.start();
 	}
 
-	public static void initPayloadDB(String u, String p, String db) {	
-		payloadStore = new PayloadDbStore(u,p,db);
-		payloadStoreThread = new Thread(payloadStore);
-		payloadStoreThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		payloadStoreThread.start();
-	}
+	
 	
 	public static void initSequence() {
 		try {
@@ -446,8 +453,8 @@ public class Config {
 	}
 
 	public static void save() {
-		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
-		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
+//		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
+//		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
 		properties.setProperty("recoverClock", Boolean.toString(recoverClock));
 		properties.setProperty("flipReceivedBits", Boolean.toString(flipReceivedBits));
 		properties.setProperty("filterData", Boolean.toString(filterData));
@@ -472,7 +479,7 @@ public class Config {
 		properties.setProperty("realTimePlaybackOfFile", Boolean.toString(realTimePlaybackOfFile));
 		properties.setProperty("useFilterNumber", Integer.toString(useFilterNumber));
 		properties.setProperty("useLeftStereoChannel", Boolean.toString(useLeftStereoChannel));
-		properties.setProperty("highSpeed", Boolean.toString(highSpeed));
+		properties.setProperty("highSpeed", Integer.toString(mode));
 		properties.setProperty("iq", Boolean.toString(iq));
 		properties.setProperty("eliminateDC", Boolean.toString(eliminateDC));
 		properties.setProperty("viewFilteredAudio", Boolean.toString(viewFilteredAudio));
@@ -596,8 +603,8 @@ public class Config {
 		}
 		try {
 		recoverClock = Boolean.parseBoolean(getProperty("recoverClock"));
-		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
-		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
+//		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
+//		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
 		flipReceivedBits = Boolean.parseBoolean(getProperty("flipReceivedBits"));
 		filterData = Boolean.parseBoolean(getProperty("filterData"));
 		filterIterations = Integer.parseInt(getProperty("filterIterations"));
@@ -620,7 +627,7 @@ public class Config {
 		useRSerasures = Boolean.parseBoolean(getProperty("useRSerasures"));
 		realTimePlaybackOfFile = Boolean.parseBoolean(getProperty("realTimePlaybackOfFile"));
 		useLeftStereoChannel = Boolean.parseBoolean(getProperty("useLeftStereoChannel"));
-		highSpeed = Boolean.parseBoolean(getProperty("highSpeed"));
+		mode = Integer.parseInt(getProperty("highSpeed"));
 		iq = Boolean.parseBoolean(getProperty("iq"));
 		eliminateDC = Boolean.parseBoolean(getProperty("eliminateDC"));
 		viewFilteredAudio = Boolean.parseBoolean(getProperty("viewFilteredAudio"));

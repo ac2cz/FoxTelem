@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
-import decoder.SourceAudio;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 
 /**

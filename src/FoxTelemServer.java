@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import telemServer.ImageProcess;
+import telemServer.ServerConfig;
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
@@ -41,11 +42,11 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.19a - 10 Sept 2016";
+	public static String version = "Version 0.21 - 12 Feb 2017";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
-	static int poolSize = 100; // max number of threads
+	static int poolSize = 8; // max number of threads
 	static final String usage = "FoxServer user database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
 			+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
 			+ "-f <dir> - Read the stp files in the specified directory and fix the STP_HEADER table db\n"
@@ -101,8 +102,10 @@ public class FoxTelemServer {
 		Log.println("Listening on port: " + port);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.serverInit(); // initialize and create the payload store.  
 
+		ServerConfig.init();
+		
 		if (args.length == 3) {
 			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");
@@ -119,7 +122,7 @@ public class FoxTelemServer {
 				String dir = args[3]; 
 
 				Log.println("AMSAT Fox Server. \nSTP FILE LOAD FROM DIR: " + dir);
-				importStp(dir, false);
+				importStp(dir, false, u,p,db);
 				System.exit(0);
 			} else
 
@@ -156,7 +159,7 @@ public class FoxTelemServer {
         //Thread processThread;
         
         // Start the background image processing thread
-        imageProcess = new ImageProcess();
+        imageProcess = new ImageProcess(initPayloadDB(u,p,db));
         imageThread = new Thread(imageProcess);
         imageThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
         imageThread.start();
@@ -165,7 +168,7 @@ public class FoxTelemServer {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
-        		pool.execute(new ServerProcess(serverSocket.accept(), sequence++));
+        		pool.execute(new ServerProcess(initPayloadDB(u,p,db), serverSocket.accept(), sequence++));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {
@@ -185,6 +188,10 @@ public class FoxTelemServer {
 		}
     }
 	
+	public static PayloadDbStore initPayloadDB(String u, String p, String db) {	
+		return new PayloadDbStore(u,p,db);
+		
+	}
 	public static void makeExceptionDir() throws IOException {
 		File aFile = new File("exception");
 		if(aFile.isDirectory()){
@@ -245,7 +252,8 @@ public class FoxTelemServer {
 /**
  * Get a list of all the files in the STP dir and import them
  */
-private static void importStp(String stpDir, boolean delete) {
+private static void importStp(String stpDir, boolean delete, String u, String p, String db) {
+	PayloadDbStore payload = initPayloadDB(u,p,db);
 	String dir = stpDir;
 	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 		dir = Config.logFileDirectory + File.separator + dir;
@@ -259,7 +267,7 @@ private static void importStp(String stpDir, boolean delete) {
 			if (listOfFiles[i].isFile() ) {
 				//Log.print("Loading STP data from: " + listOfFiles[i].getName());
 				try {
-					Frame f = Frame.importStpFile(listOfFiles[i], false);
+					Frame f = Frame.importStpFile(payload, listOfFiles[i], false);
 					if (f == null) {
 						// null data -  do nothing if we can not (so don't check the return code
 						//listOfFiles[i].delete();

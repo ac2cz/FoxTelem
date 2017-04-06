@@ -19,10 +19,6 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRtValues;
-
 import java.awt.Dimension;
 
 import javax.swing.border.EmptyBorder;
@@ -32,8 +28,6 @@ import javax.swing.border.BevelBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
-
 import java.awt.Color;
 import java.text.ParseException;
 import java.util.Date;
@@ -201,6 +195,19 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		BitArrayLayout max = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
 		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
+		if (rt == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else 	if (max == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else if (min == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else
 		try {
 			analyzeModules(rt, max, min, DisplayModule.DISPLAY_ALL);
 		} catch (LayoutLoadException e) {
@@ -249,8 +256,17 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	private void displayMode(int u) {
 		if (u == 1)
 			lblModeValue.setText("SAFE");
-		else
-			lblModeValue.setText("TRANSPONDER");
+		else {
+			// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
+			// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same
+			if (realTime != null && minPayload != null && maxPayload != null) {
+				if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+					lblModeValue.setText("DATA");
+				else
+					lblModeValue.setText("TRANSPONDER");
+			} else
+				lblModeValue.setText("TRANSPONDER");
+		}
 	}
 
 	/**
@@ -259,11 +275,11 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	 */
 	private void displayId(int u) {
 		String id = "??";
-		id = fox.toString() + "(" + fox.models[fox.model] + ")";
+		id = fox.toString() + "(" + Spacecraft.models[fox.model] + ")";
 		lblIdValue.setText(id);
 	}
 
-	private void displayFramesDecoded(int u) {
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecodedValue.setText(Integer.toString(u));
 	}
 	
@@ -310,7 +326,8 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		displayUptime(lblUptimeValue, realTime2.getUptime());
 		displayResets(lblResetsValue, realTime2.getResets());
 		displayCaptureDate(realTime2.getCaptureDate());
-		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+		
+		displayMode(0);
 	}
 
 	
@@ -382,15 +399,18 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
-					if (maxPayload != null)
+					if (maxPayload != null) {
 						updateTabMax(maxPayload);
+						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
-					
 				}
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
-					if (minPayload != null)
+					if (minPayload != null) {
 						updateTabMin(minPayload);
+						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
 					
 				}
@@ -400,6 +420,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
 						updateTabRT(realTime);
+						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 						//System.out.println("UPDATED RT Data: ");
 					} else {
 						//System.out.println("NO new RT Data: ");

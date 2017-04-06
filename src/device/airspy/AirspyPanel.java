@@ -1,31 +1,23 @@
 package device.airspy;
 
 import java.awt.BorderLayout;
-import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
-import java.text.DecimalFormat;
 import java.util.List;
 
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
 import javax.swing.JSlider;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -34,7 +26,6 @@ import javax.usb.UsbException;
 import org.usb4java.LibUsbException;
 
 import common.Log;
-import decoder.SourceIQ;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
@@ -56,11 +47,6 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 	private JComboBox<AirspySampleRate> mSampleRateCombo;
 	private JComboBox<Integer> cbDecimation;
 	AirspyTunerConfiguration config = new AirspyTunerConfiguration();
-	
-	private JTextField mConfigurationName;
-    private JButton mTunerInfo;
-
-    private JSpinner mFrequencyCorrection;
 
     private JComboBox<GainMode> mGainModeCombo;
 
@@ -78,9 +64,6 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 
     private JCheckBox mLNAAGC;
     private JCheckBox mMixerAGC;
-
-    //private AirspyDevice device;
-    private boolean mLoading;
 	
 	public AirspyPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Airspy", TitledBorder.LEADING, TitledBorder.TOP, null, null);
@@ -446,7 +429,6 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  // Allow startup to settle down first
 		//mSampleRateCombo.setSelectedItem("");

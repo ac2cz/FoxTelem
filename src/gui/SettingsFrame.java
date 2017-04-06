@@ -84,6 +84,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox storePayloads;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
+	private JCheckBox cbUseDDEAzEl;
+	private JCheckBox cbUseDDEFreq;
 	
 	boolean useUDP;
 	
@@ -239,9 +241,21 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//leftcolumnpanel2.add(cb);
 		//cbHtmlFormatting = addCheckBoxRow("Use HTML Formatting", Config.htmlFormatting, cb );
 		
-		leftcolumnpanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		//leftcolumnpanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 		
-		leftcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		//leftcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		
+		JPanel leftcolumnpanel3 = addColumn(leftcolumnpanel,6);
+		TitledBorder measureTitle = title("Measurements");
+		leftcolumnpanel3.setBorder(measureTitle);
+		if (Config.isWindowsOs()) {
+		cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32", "When tuning a radio from SatPC32 using its CAT interface, FoxTelem can store the frequency alongside other measurements",
+				Config.useDDEforFreq, leftcolumnpanel3 );
+		cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can read from SatPC32 and store the Azimuth and Elevation alongside other measurements",
+				Config.useDDEforAzEl, leftcolumnpanel3 );
+		}
+			
+		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		// Add a right column with two panels in it
 		JPanel rightcolumnpanel = new JPanel();
@@ -471,6 +485,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
+				
+				Config.useDDEforFreq = cbUseDDEFreq.isSelected();
+				Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;

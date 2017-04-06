@@ -7,6 +7,7 @@ import common.Log;
 import common.Performance;
 import decoder.FoxBitStream.SyncPair;
 
+@SuppressWarnings("serial")
 public class BitStream extends CircularBuffer {
 	protected int PURGE_THRESHOLD = 100000; // Remove bits if we have accumulated this many and not found a frame
 	protected int SYNC_WORD_DISTANCE = 0; // 10*(SlowSpeedFrame.getMaxBytes()+1);

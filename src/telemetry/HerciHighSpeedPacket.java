@@ -4,8 +4,6 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
 import common.Log;
-import common.Spacecraft;
-import common.FoxSpacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 /*
@@ -126,8 +124,8 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	long headerTime; // the experiment time from the header
 	long packetTimestamp; // the 32 bit timestamp when the packet was generated - calculated
 	
-	HerciHighSpeedPacket(int sat, int r, long u, int e, long t) {
-		super(new BitArrayLayout());
+	HerciHighSpeedPacket(int sat, int r, long u, int e, long t, BitArrayLayout lay) {
+		super(lay);
 		resets = r;
 		uptime = u;
 		epoch = e;
@@ -138,7 +136,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 		initFields();
 	}
 
-	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st) {
+	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(new BitArrayLayout());
 		this.id = id;
 		this.resets = resets;
@@ -211,6 +209,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 
 	public void initFields() {
 		layout = new BitArrayLayout(); // initialize a layout
+		layout.name = "herciHSpackets";
 		layout.fieldName = new String[NUMBER_OF_FIELDS];
 		//fieldValue = new int[NUMBER_OF_FIELDS];
 		fieldValue = new int[layout.fieldName.length];

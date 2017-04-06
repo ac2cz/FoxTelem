@@ -1,19 +1,14 @@
 package telemetry;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import common.Log;
 import common.Spacecraft;
 import common.FoxSpacecraft;
 import decoder.FoxBitStream;
-import decoder.FoxDecoder;
 import gui.GraphPanel;
 
 /**
@@ -58,6 +53,9 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_RAD_TELEM_DATA = 7; 
 	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
 	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
+	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
+	
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
@@ -215,7 +213,7 @@ longer send telemetry.
 	public static LookUpTableBatteryTemp batteryTempTable = new LookUpTableBatteryTemp();
 	public static LookUpTableSolarPanelTemp solarPanelTempTable = new LookUpTableSolarPanelTemp();
 	
-	protected int MAX_BYTES = 60;  // This provides enough storage to cover the zero filled bytes at the end of the Slow or High Speed frames
+	protected int MAX_BYTES = 78;  // This provides enough storage to cover the zero filled bytes at the end of the Slow, High Speed frames or 1E frames
 	
 	public FoxFramePart(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(lay);

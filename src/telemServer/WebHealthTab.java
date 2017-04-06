@@ -12,6 +12,7 @@ import gui.DisplayModule;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadDbStore;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
@@ -19,6 +20,7 @@ import telemetry.PayloadStore;
 
 public class WebHealthTab {
 	FoxSpacecraft fox;
+	PayloadDbStore payloadDbStore;
 	PayloadRtValues payloadRt;
 	PayloadMaxValues payloadMax;
 	PayloadMinValues payloadMin;
@@ -35,9 +37,10 @@ public class WebHealthTab {
 	int numOfBottomModules = 1;
 	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(FoxSpacecraft f, int p) throws LayoutLoadException {
+	public WebHealthTab(PayloadDbStore pdb, FoxSpacecraft f, int p) throws LayoutLoadException {
 		fox = f;
 		port = p;
+		payloadDbStore = pdb;
 		rtlayout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
 		maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
 		minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
@@ -55,7 +58,7 @@ public class WebHealthTab {
 		//s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		//s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
 		//		+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
-		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
+		double[][] graphData = payloadDbStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
 			//	s = s + "<tr>";
@@ -74,7 +77,7 @@ public class WebHealthTab {
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+" - " + fieldName +"</h1>"
 				+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
-		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
+		double[][] graphData = payloadDbStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
 				s = s + "<tr>";

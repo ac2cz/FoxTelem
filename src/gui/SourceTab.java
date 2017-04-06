@@ -49,11 +49,9 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.usb.UsbException;
 
-import FuncubeDecoder.FUNcubeDecoder;
 import common.Config;
 import common.Log;
 import common.PassManager;
-import decoder.FoxDecoder;
 import decoder.Decoder;
 import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
@@ -518,11 +516,14 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			auto.setSelected(true);
 			enableFilters(true);
 		} else
-		if (Config.highSpeed) {
+		if (Config.mode == SourceIQ.MODE_FSK_HS) {
 			highSpeed.setSelected(true);
 			enableFilters(false);
-		} else {
+		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
 			lowSpeed.setSelected(true);
+			enableFilters(true);
+		} else if (Config.mode == SourceIQ.MODE_PSK){
+			psk.setSelected(true);
 			enableFilters(true);
 		}
 		
@@ -938,23 +939,23 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		
 	
 		if (e.getSource() == highSpeed) { 
-				Config.highSpeed = true;
+				Config.mode = SourceIQ.MODE_FSK_HS;
 				Config.autoDecodeSpeed = false;
 				enableFilters(false);
 				autoViewpanel.setVisible(false);
-				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FM);
+				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
 				//Config.save();
 		}
 		if (e.getSource() == lowSpeed) { 
-			Config.highSpeed = false;
+			Config.mode = SourceIQ.MODE_FSK_DUV;
 			Config.autoDecodeSpeed = false;
 			enableFilters(true);
 			autoViewpanel.setVisible(false);
-			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_NFM);
+			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			//Config.save();
 		}
 		if (e.getSource() == psk) { 
-			Config.highSpeed = false;
+			Config.mode = SourceIQ.MODE_PSK;
 			Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
@@ -964,8 +965,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == auto) { 
 			Config.autoDecodeSpeed = true;
 			enableFilters(true);
-			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_NFM);
-			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FM);
+			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FSK_HS);
 	//		autoViewpanel.setVisible(true);
 			//Config.save();
 		}
@@ -1500,6 +1501,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				}
 
 				if (decoder1Thread != null) {
+					setMode();
 					try {
 						decoder1Thread.start();
 						//if (audioGraphThread != null) audioGraph.stopProcessing();
@@ -1540,14 +1542,13 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					try {
 						Thread.sleep(100); // wait to prevent race condition as decode starts
 					} catch (InterruptedException e) {
-						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
 					if (rfDevice != null) {
 						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 						setCenterFreq();
 					}
-					setMode();
+					
 				}
 			}
 		}
@@ -1575,7 +1576,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Log.errorDialog("ERROR", e1.getMessage());
 						e1.printStackTrace(Log.getWriter());
 					} catch (IOException e1) {
-						// TODO Auto-generated catch block
 						e1.printStackTrace(Log.getWriter());
 					}
 				}
@@ -1659,12 +1659,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private void setMode() {
 		if (iqSource1 != null) {
 			if (psk.isSelected()) iqSource1.setMode(SourceIQ.MODE_PSK);
-			if (lowSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_NFM);
-			if (highSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FM);
-			if (auto.isSelected()) iqSource1.setMode(SourceIQ.MODE_NFM);
+			if (lowSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+			if (highSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
+			if (auto.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 		}
 		if (iqSource2 != null) {
-			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FM);			
+			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FSK_HS);			
 		}
 	}
 	
@@ -1965,7 +1965,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 	@Override
 	public void focusGained(FocusEvent arg0) {
-		// TODO Auto-generated method stub
 		
 	}
 

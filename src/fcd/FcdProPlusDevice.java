@@ -44,8 +44,8 @@ public class FcdProPlusDevice extends FcdDevice {
 	public FcdProPlusDevice(HidDeviceInfo fcdInfo) throws IOException, DeviceException {
 		super(fcdInfo);
 		SAMPLE_RATE = 192000;
-		MIN_FREQ = 150000;
-		MAX_FREQ = 2050000000;
+		MIN_FREQ = 150;
+		MAX_FREQ = 2050000;
 	}
 
  //   public int setFcdFreq(long freq) throws FcdException {

@@ -29,7 +29,6 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
 
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
 import telemetry.FramePart;
@@ -142,6 +141,11 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 
 		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
+		if (rad == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.RAD2_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else 
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
 		} catch (LayoutLoadException e) {
@@ -216,7 +220,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		return radioButton;
 	}
 
-	private void displayFramesDecoded(int u) {
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
 	

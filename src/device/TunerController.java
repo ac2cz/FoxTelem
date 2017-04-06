@@ -1,14 +1,6 @@
 package device;
 
 import java.io.IOException;
-import java.util.List;
-
-import common.Config;
-import common.Log;
-import purejavahidapi.HidDevice;
-import purejavahidapi.HidDeviceInfo;
-import purejavahidapi.InputReportListener;
-import purejavahidapi.PureJavaHidApi;
 
 /**
  * 

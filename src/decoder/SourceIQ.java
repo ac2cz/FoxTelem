@@ -22,11 +22,11 @@ public class SourceIQ extends SourceAudio {
 	Thread upstreamAudioReadThread;
 	
 	public static final int MODE_WFM = 0;
-	public static final int MODE_FM = 1;
-	public static final int MODE_NFM = 2;
+	public static final int MODE_FSK_HS = 1;
+	public static final int MODE_FSK_DUV = 2;
 	public static final int MODE_PSK = 3;
 	
-	private int mode = MODE_NFM;
+	private int mode = MODE_FSK_DUV;
 	
 	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
 	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
@@ -78,7 +78,6 @@ public class SourceIQ extends SourceAudio {
 	// decimation filter params
 	private static final int NZEROS = 5;
 	private static final int NPOLES = 5;
-	private double GAIN = 9.197583870e+02;
 	private double[] xvi = new double[NZEROS+1];
 	private double[] yvi = new double[NPOLES+1];
 	private double[] xvq = new double[NZEROS+1];
@@ -246,7 +245,7 @@ public class SourceIQ extends SourceAudio {
 		setFFTsize();
 		fft = new DoubleFFT_1D(FFT_SAMPLES);
 		fm = new FmDemodulator();
-		blackmanWindow = initBlackmanWindow(FFT_SAMPLES); // FIXME - SHOULD BE FFT_SAMPLES +1????
+		blackmanWindow = initBlackmanWindow(FFT_SAMPLES); 
 
 		fftData = new double[FFT_SAMPLES*2];
 		psd = new double[FFT_SAMPLES*2+1];;
@@ -258,7 +257,7 @@ public class SourceIQ extends SourceAudio {
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
-		if (mode == MODE_FM) {
+		if (mode == MODE_FSK_DUV) {
 			setFilterWidth(9600*2);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
@@ -320,7 +319,6 @@ public class SourceIQ extends SourceAudio {
 				try {
 					Thread.sleep(10);
 				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 				*/
@@ -601,6 +599,7 @@ public class SourceIQ extends SourceAudio {
 			noise += sig;
 			noiseReading++;
 		}
+		
 		for (int n=end; n < noiseEnd; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
 			if (Config.fromBin*2 < n && n < Config.toBin*2) {

@@ -845,7 +845,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
 					try {
-						Frame.importStpFile(listOfFiles[i], true);
+						Frame.importStpFile(null, listOfFiles[i], true);
 					} catch (StpFileProcessException e) {
 						Log.println("Could not process STP file: " + listOfFiles[i]);
 						e.printStackTrace(Log.getWriter());

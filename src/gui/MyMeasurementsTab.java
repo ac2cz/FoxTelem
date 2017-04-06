@@ -6,10 +6,7 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
-
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -50,8 +47,6 @@ ItemListener {
 	Spacecraft sat;
 	RtMeasurement rtMeasurement;
 	PassMeasurement passMeasurement;
-	JCheckBox cbUseDDEAzEl;
-	JCheckBox cbUseDDEFreq;
 
 	MyMeasurementsTab(Spacecraft s) {
 		sat = s;
@@ -113,24 +108,6 @@ ItemListener {
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
-
-		cbUseDDEFreq = new JCheckBox("Read Freq from SatPC32",
-				Config.useDDEforFreq);
-		cbUseDDEFreq.setMinimumSize(new Dimension(100, 14));
-		bottomPanel.add(cbUseDDEFreq);
-		cbUseDDEFreq.addItemListener(this);
-		cbUseDDEFreq.setEnabled(false);
-		if (Config.isWindowsOs())
-			cbUseDDEFreq.setEnabled(true);
-
-		cbUseDDEAzEl = new JCheckBox("Read Az/El from SatPC32",
-				Config.useDDEforAzEl);
-		cbUseDDEAzEl.setMinimumSize(new Dimension(100, 14));
-		bottomPanel.add(cbUseDDEAzEl);
-		cbUseDDEAzEl.addItemListener(this);
-		cbUseDDEAzEl.setEnabled(false);
-		if (Config.isWindowsOs())
-			cbUseDDEAzEl.setEnabled(true);
 
 	}
 
@@ -210,23 +187,23 @@ ItemListener {
 					satellite.updateSingleValue(8,
 							Integer.toString(erase));
 				}
-
-				if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
-					passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
-					if (passMeasurement != null) {
-						Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
-
-						passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
-						passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
-						passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
-						passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
-						passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
-						passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
-						passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
-						passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
-					}
+			}
+			if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
+				passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
+				if (passMeasurement != null) {
+					Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
+					//Log.println("Updated Pass Params Table");
+					passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
+					passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
+					passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
+					passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
+					passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
+					passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
+					passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
+					passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
 				}
 			}
+
 			if (justStarted) {
 				openGraphs();
 				justStarted = false;
@@ -237,23 +214,6 @@ ItemListener {
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		Object source = e.getItemSelectable();
-
-		if (source == cbUseDDEFreq) {
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.useDDEforFreq = false;
-			} else {
-				Config.useDDEforFreq = true;
-			}
-		}
-		if (source == cbUseDDEAzEl) {
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.useDDEforAzEl = false;
-			} else {
-				Config.useDDEforAzEl = true;
-			}
-		}
+		
 	}
 }
