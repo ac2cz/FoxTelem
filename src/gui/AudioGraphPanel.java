@@ -191,7 +191,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if (foxDecoder instanceof FoxBPSKDecoder) {
+				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length) {
 					if (pskAudioData != null && pskAudioData.length > 0) {
 					g2.setColor(Color.BLACK);
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
