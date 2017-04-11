@@ -1,5 +1,6 @@
 package decoder;
 
+import filter.MatchedFilter;
 import filter.RaisedCosineFilter;
 import filter.WindowedSincFilter;
 import gui.FilterPanel;
@@ -67,9 +68,9 @@ public class Fox200bpsDecoder extends FoxDecoder {
 			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		} else if (useFilterNumber == FilterPanel.MATCHED) {
-			//filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 			// Experiments have determined that the optimal filter is the WS length 480
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
+			//filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, bucketSize*2);
 		}
 		

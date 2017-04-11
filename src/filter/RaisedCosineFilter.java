@@ -58,7 +58,7 @@ public class RaisedCosineFilter extends Filter {
 		int limit = (int)(0.5 / (alpha * Fc));
 		for (int i=0; i <= M; i++) {
 			double sinc = (Math.sin(2 * Math.PI * Fc * (i - M/2)))/ (i - M/2);
-			double cos = Math.cos(alpha * Math.PI * Fc * (i - M/2)) / ( 1 - ( 2 * Math.pow((alpha * Fc * (i - M/2)),2)));
+			double cos = Math.cos(alpha * Math.PI * Fc * (i - M/2)) / ( 1 - (Math.pow((2 * alpha * Fc * (i - M/2)),2)));
 			
 			if (i == M/2) {
 				xcoeffs[i] = 2 * Math.PI * Fc * cos;

@@ -238,6 +238,8 @@ public class Config {
 	public static boolean useDDEforFindSignal = false;
 	public static boolean showFilters = false; // Default this off
 	
+	// V1.05
+	static public int afSampleRate = 9600;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -572,6 +574,9 @@ public class Config {
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
 		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
 		properties.setProperty("showFilters", Boolean.toString(showFilters));
+		
+		// Version 1.05
+		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
 		store();
 	}
 	
@@ -732,6 +737,9 @@ public class Config {
 		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
 		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
 		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
+		
+		// Version 1.05
+		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

@@ -7,6 +7,9 @@ import org.jtransforms.fft.DoubleFFT_1D;
 import common.Config;
 import common.Log;
 import filter.DcRemoval;
+import filter.Filter;
+import filter.RaisedCosineFilter;
+import filter.WindowedSincFilter;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -31,7 +34,7 @@ public class SourceIQ extends SourceAudio {
 	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
 	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
 	private boolean highSpeed = false;
-	public static final int AF_SAMPLE_RATE = 48000;
+	public static int AF_SAMPLE_RATE = 0;
 	public AudioFormat upstreamAudioFormat;
 //	public static final int READ_BUFFER_SIZE = 512 * 4; // about 5 ms at 48k sample rate;
 	public int IQ_SAMPLE_RATE = 0;
@@ -96,7 +99,8 @@ public class SourceIQ extends SourceAudio {
 	DcRemoval iDcFilter;
 	DcRemoval qDcFilter;
 	
-	//Filter userAudioFilter;
+	Filter decimateFilter;
+	
 //	Filter audioFilterI;
 //	Filter audioFilterQ;
 	
@@ -116,6 +120,8 @@ public class SourceIQ extends SourceAudio {
 		super("IQ Source" + hs, circularDoubleBufferSize, chan, false);
 		highSpeed = hs;
 		channel = chan;
+		AF_SAMPLE_RATE = Config.afSampleRate;
+		if (highSpeed && AF_SAMPLE_RATE < 48000) AF_SAMPLE_RATE = 48000;
 		audioFormat = makeAudioFormat();
 		//initFftFilter();
 		// NCO
@@ -257,7 +263,8 @@ public class SourceIQ extends SourceAudio {
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
-		if (mode == MODE_FSK_DUV) {
+			
+		if (mode == MODE_FSK_HS) {
 			setFilterWidth(9600*2);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
@@ -284,6 +291,12 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
 		Log.println("Decimation Factor: " + decimationFactor);
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
+		
+		
+		decimateFilter = new RaisedCosineFilter(audioFormat, demodAudio.length);
+		decimateFilter.init(AF_SAMPLE_RATE, AF_SAMPLE_RATE/2, 16);
+		decimateFilter.setFilterDC(false);
+		decimateFilter.setAGC(false);
 		
 		audioDcFilter = new DcRemoval(0.9999d);
 
@@ -424,8 +437,11 @@ public class SourceIQ extends SourceAudio {
 		for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
-			else
-				antiAlias16kHzIIRFilter(demodAudio);
+			else {
+				//antiAlias16kHzIIRFilter(demodAudio);
+				decimateFilter.filter(demodAudio, demodAudio);
+				
+			}
 		
 		// Every 4th entry goes to the audio output to get us from 192k -> 48k
 		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
