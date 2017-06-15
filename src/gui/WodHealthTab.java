@@ -1,14 +1,52 @@
 package gui;
 
+import java.awt.Dimension;
+import java.awt.Font;
+import java.awt.event.ItemEvent;
+
+import javax.swing.Box;
+import javax.swing.JLabel;
+import javax.swing.border.EmptyBorder;
+
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import telemetry.PayloadWOD;
 
 public class WodHealthTab extends HealthTab {
 
+	JLabel lblSatLatitudeValue;
+	JLabel lblSatLongitudeValue;
+	
 	public WodHealthTab(Spacecraft spacecraft) {
-		super(spacecraft);
-		// TODO Auto-generated constructor stub
+		super(spacecraft, DisplayModule.DISPLAY_WOD);
+		
+		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
+
+		lblFramesDecoded = new JLabel(DECODED);
+		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
+		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
+		lblFramesDecoded.setForeground(textLblColor);
+		topPanel1.add(lblFramesDecoded);
+		lblFramesDecodedValue = new JLabel();
+		lblFramesDecodedValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
+		lblFramesDecodedValue.setBorder(new EmptyBorder(5, 2, 5, 5) );
+		lblFramesDecodedValue.setForeground(textColor);
+		topPanel1.add(lblFramesDecodedValue);
+		
+		lblResetsValue = addReset(topPanel2, "Last WOD:");
+		lblUptimeValue = addUptime(topPanel2, "");
+		
+	//	topPanel2.add(new Box.Filler(new Dimension(14,fonth), new Dimension(400,fonth), new Dimension(1600,fonth)));
+		
+		lblSatLatitudeValue = addTopPanelValue(topPanel2, "Footprint   Latitude:");
+		lblSatLongitudeValue = addTopPanelValue(topPanel2, "Longitude:");
+	}
+	
+	private void displayLatLong() {
+		PayloadWOD wod = (PayloadWOD)realTime;
+		lblSatLatitudeValue.setText(" " + wod.getSatLatitudeStr());
+		lblSatLongitudeValue.setText(" " + wod.getSatLongitudeStr());
 	}
 
 	@Override
@@ -33,6 +71,7 @@ public class WodHealthTab extends HealthTab {
 					realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
 					if (realTime != null) {
 						updateTabRT(realTime);
+						displayLatLong();
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT));
 						//System.out.println("UPDATED RT Data: ");
 					} else {
@@ -53,4 +92,5 @@ public class WodHealthTab extends HealthTab {
 		}
 		done = true;
 	}
+
 }

@@ -99,7 +99,7 @@ public class SourceIQ extends SourceAudio {
 	DcRemoval iDcFilter;
 	DcRemoval qDcFilter;
 	
-	Filter decimateFilter;
+//	Filter decimateFilter;
 	
 //	Filter audioFilterI;
 //	Filter audioFilterQ;
@@ -230,6 +230,13 @@ public class SourceIQ extends SourceAudio {
 	 */
 	private void setFFTsize() {
 	
+		boolean pi=false;
+		
+		if (pi) {
+			FFT_SAMPLES=2048;
+			samplesToRead = 3840 /2;
+			return;
+		}
 		for (int f=0; f<17; f++) {
 			int len = (int)Math.pow(2, f);
 			if (IQ_SAMPLE_RATE / len < 47) {
@@ -293,10 +300,10 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
 		
-		decimateFilter = new RaisedCosineFilter(audioFormat, demodAudio.length);
-		decimateFilter.init(AF_SAMPLE_RATE, AF_SAMPLE_RATE/2, 16);
-		decimateFilter.setFilterDC(false);
-		decimateFilter.setAGC(false);
+//		decimateFilter = new RaisedCosineFilter(audioFormat, demodAudio.length);
+//		decimateFilter.init(AF_SAMPLE_RATE, AF_SAMPLE_RATE/2, 16);
+//		decimateFilter.setFilterDC(false);
+//		decimateFilter.setAGC(false);
 		
 		audioDcFilter = new DcRemoval(0.9999d);
 
@@ -438,8 +445,8 @@ public class SourceIQ extends SourceAudio {
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
 			else {
-				//antiAlias16kHzIIRFilter(demodAudio);
-				decimateFilter.filter(demodAudio, demodAudio);
+				antiAlias16kHzIIRFilter(demodAudio);
+				//decimateFilter.filter(demodAudio, demodAudio);
 				
 			}
 		

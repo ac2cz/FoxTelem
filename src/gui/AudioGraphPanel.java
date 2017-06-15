@@ -197,7 +197,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
 
 					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y2 = 3*graphHeight/4+graphHeight/10*pskAudioData[i] + border;
+					double y2 = 3*graphHeight/4+graphHeight/6*pskAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
 					//int y = 100;
 					g2.drawLine(lastx2, lasty2, x2, (int)y2);
 					lastx2 = x2;

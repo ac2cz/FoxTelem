@@ -56,8 +56,8 @@ public class Config {
 
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05f";
-	public static String VERSION = VERSION_NUM + " - 26 Mar 2017";
+	public static String VERSION_NUM = "1.05g";
+	public static String VERSION = VERSION_NUM + " - 16 Apr 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -239,7 +239,7 @@ public class Config {
 	public static boolean showFilters = false; // Default this off
 	
 	// V1.05
-	static public int afSampleRate = 9600;
+	static public int afSampleRate = 48000;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";

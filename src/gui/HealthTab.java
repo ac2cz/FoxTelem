@@ -55,7 +55,7 @@ import java.util.TimeZone;
  *
  */
 @SuppressWarnings("serial")
-public class HealthTab extends ModuleTab implements ItemListener, ActionListener, Runnable {
+public abstract class HealthTab extends ModuleTab implements ItemListener, ActionListener, Runnable {
 	
 	JPanel centerPanel;
 	JPanel bottomPanel;
@@ -87,22 +87,30 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	FramePart maxPayload; // the max payload we are currently displaying
 	FramePart minPayload; // the min payload we are currently displaying
 		
-	private static final String ID = "Satellite ";
-	private static final String MODE = "  Mode: ";
+	protected static final String ID = "Satellite ";
+	protected static final String MODE = "  Mode: ";
 	private static final String UPTIME = "  Uptime: ";
 	private static final String RESETS = "  Resets: ";
-	private static final String DECODED = "Telemetry Payloads Decoded: ";
-	private static final String CAPTURE_DATE = "Captured: ";
+	protected static final String DECODED = "Telemetry Payloads Decoded: ";
+	protected static final String CAPTURE_DATE = "Captured: ";
 	
+	protected int fonth = 0;
 	
-	public HealthTab(Spacecraft spacecraft) {
+	protected JPanel topPanel;
+	protected JPanel topPanel1;
+	protected JPanel topPanel2;
+	
+	public HealthTab(Spacecraft spacecraft, int displayType) {
 		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
 		
-		JPanel topPanel = new JPanel();
-		JPanel topPanel1 = new JPanel();
-		JPanel topPanel2 = new JPanel();
+		// force the next labels to the right side of screen
+		fonth = (int)(Config.displayModuleFontSize * 14/11);
+		
+		topPanel = new JPanel();
+		topPanel1 = new JPanel();
+		topPanel2 = new JPanel();
 		topPanel.setMinimumSize(new Dimension((int)(Config.displayModuleFontSize * 10/11), 50));
 		add(topPanel, BorderLayout.NORTH);
 		
@@ -125,40 +133,6 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblIdValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblIdValue.setForeground(textColor);
 		topPanel1.add(lblIdValue);
-
-		
-		lblMode = new JLabel(MODE);
-		lblMode.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-		lblMode.setForeground(textLblColor);
-		topPanel1.add(lblMode);
-		lblModeValue = new JLabel();
-		lblModeValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-		lblModeValue.setForeground(textColor);
-		topPanel1.add(lblModeValue);
-		
-		// force the next labels to the right side of screen
-		int fonth = (int)(Config.displayModuleFontSize * 14/11);
-		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
-
-		lblFramesDecoded = new JLabel(DECODED);
-		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
-		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
-		lblFramesDecoded.setForeground(textLblColor);
-		topPanel1.add(lblFramesDecoded);
-		lblFramesDecodedValue = new JLabel();
-		lblFramesDecodedValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-		lblFramesDecodedValue.setBorder(new EmptyBorder(5, 2, 5, 5) );
-		lblFramesDecodedValue.setForeground(textColor);
-		topPanel1.add(lblFramesDecodedValue);
-		
-		lblResetsValue = addReset(topPanel2, "Last Realtime:");
-		lblUptimeValue = addUptime(topPanel2, "");
-
-		lblMaxResetsValue = addReset(topPanel2, "Max:");
-		lblMaxUptimeValue = addUptime(topPanel2, "");
-
-		lblMinResetsValue = addReset(topPanel2, "Min:");
-		lblMinUptimeValue = addUptime(topPanel2, "");
 		
 		centerPanel = new JPanel();
 		add(centerPanel, BorderLayout.CENTER);
@@ -209,7 +183,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 			System.exit(1);
 		} else
 		try {
-			analyzeModules(rt, max, min, DisplayModule.DISPLAY_ALL);
+			analyzeModules(rt, max, min, displayType);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -217,11 +191,9 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		}
 	}
 
-	private JLabel addReset(JPanel topPanel2, String type) {
+	protected JLabel addReset(JPanel topPanel2, String type) {
 		JLabel lblResets = new JLabel(type + " " + RESETS);
 		lblResets.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-//		lblResets.setMinimumSize(new Dimension(200, 14));
-//		lblResets.setMaximumSize(new Dimension(200, 14));
 		lblResets.setForeground(textLblColor);
 		topPanel2.add(lblResets);
 		JLabel lblResetsValue = new JLabel();
@@ -230,9 +202,13 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		topPanel2.add(lblResetsValue);
 		return lblResetsValue;
 	}
-	private JLabel addUptime(JPanel topPanel2, String type) {
+	protected JLabel addUptime(JPanel topPanel2, String type) {
+		return addTopPanelValue(topPanel2, UPTIME);
+	}
+	
+	protected JLabel addTopPanelValue(JPanel topPanel2, String name) {
 		int fonth = (int)(Config.displayModuleFontSize * 14/11);
-		JLabel lblUptime = new JLabel(UPTIME);
+		JLabel lblUptime = new JLabel(name);
 		lblUptime.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblUptime.setForeground(textLblColor);
 		topPanel2.add(lblUptime);
@@ -253,7 +229,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblResetsValue.setText("" + u);
 	}
 
-	private void displayMode(int u) {
+	protected void displayMode(int u) {
 		if (u == 1)
 			lblModeValue.setText("SAFE");
 		else {
@@ -327,7 +303,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		displayResets(lblResetsValue, realTime2.getResets());
 		displayCaptureDate(realTime2.getCaptureDate());
 		
-		displayMode(0);
+
 	}
 
 	
@@ -380,67 +356,6 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	}
 
 	
-	@Override
-	public void run() {
-		running = true;
-		done = false;
-		boolean justStarted = true;
-		while(running) {
-			try {
-				Thread.sleep(500); // refresh data once a second
-			} catch (InterruptedException e) {
-				Log.println("ERROR: HealthTab thread interrupted");
-				e.printStackTrace(Log.getWriter());
-			} 	
-			
-			if (Config.displayRawValues != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawValues);
-			}
-			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
-					maxPayload = Config.payloadStore.getLatestMax(foxId);
-					if (maxPayload != null) {
-						updateTabMax(maxPayload);
-						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
-					}
-					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
-				}
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
-					minPayload = Config.payloadStore.getLatestMin(foxId);
-					if (minPayload != null) {
-						updateTabMin(minPayload);
-						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
-					}
-					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
-					
-				}
-
-				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT)) {
-					realTime = Config.payloadStore.getLatestRt(foxId);
-					if (realTime != null) {
-						updateTabRT(realTime);
-						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
-						//System.out.println("UPDATED RT Data: ");
-					} else {
-						//System.out.println("NO new RT Data: ");
-
-					}
-					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
-					if (justStarted) {
-						openGraphs();
-						justStarted = false;
-					}
-				}
-				
-				MainWindow.setTotalDecodes();
-
-			}
-			//System.out.println("Health tab running: " + running);
-		}
-		done = true;
-	}
-
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();

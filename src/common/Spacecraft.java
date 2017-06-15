@@ -171,8 +171,13 @@ public abstract class Spacecraft {
 		return null;
 	}
 
-	public SatPos getSatellitePosition(DateTime timeNow) {
+	private TLE getTLEbyDate(DateTime dateTime) {
 		final TLE tle = new TLE(TLE);
+		return tle;
+	}
+	
+	public SatPos getSatellitePosition(DateTime timeNow) {
+		final TLE tle = getTLEbyDate(timeNow);
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
 		

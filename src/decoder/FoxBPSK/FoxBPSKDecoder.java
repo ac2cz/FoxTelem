@@ -54,7 +54,7 @@ public class FoxBPSKDecoder extends Decoder {
 
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 60;  
+		SAMPLE_WINDOW_LENGTH = 40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
