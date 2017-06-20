@@ -462,6 +462,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						"Missing Server Upload Settings",
 						JOptionPane.ERROR_MESSAGE);	
 				this.cbUploadToServer.setSelected(false);
+				Config.uploadToServer = cbUploadToServer.isSelected();
 			} else {
 				// grab all the latest settings
 				Config.callsign = txtCallsign.getText();
