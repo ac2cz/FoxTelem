@@ -57,7 +57,7 @@ import telemetry.RadiationTelemetry;
 		public static final int WOD_BEACON = 4;
 		public static final int TYPES_OF_FRAME = 5;
 
-		FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
+		public FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 		
 		HighSpeedTrailer trailer = null;
 
@@ -172,12 +172,14 @@ import telemetry.RadiationTelemetry;
 			}
 		}
 
-		public void savePayloads() {
+		public boolean savePayloads() {
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
 				payload[i].copyBitsToFields();
-				Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]);
-			}			
+				if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
+					return false;
+			}
+			return true;			
 		}
 		
 		public static int getMaxDataBytes() {

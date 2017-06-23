@@ -18,6 +18,7 @@ import java.util.TimeZone;
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.FoxBPSK.FoxBPSKHeader;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
@@ -26,6 +27,7 @@ import common.Sequence;
 import common.FoxSpacecraft;
 import common.TlmServer;
 import decoder.HighSpeedBitStream;
+import decoder.FoxBPSK.FoxBPSKBitStream;
 import fec.RsCodeWord;
 
 /**
@@ -78,6 +80,11 @@ public abstract class Frame implements Comparable<Frame> {
 	public static final int DUV_FRAME = 0; 
 	public static final int HIGH_SPEED_FRAME = 1;
 	public static final int PSK_FRAME = 2;
+	
+	public static final int DUV_FRAME_LEN = 768; 
+	public static final int HIGH_SPEED_FRAME_LEN = 42176;
+	public static final int PSK_FRAME_LEN = 4576;
+	
 	public static final String[][] SOURCES = {
 			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
 			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
@@ -413,7 +420,7 @@ public abstract class Frame implements Comparable<Frame> {
 				}
 				if ( (c == 13 || c == 10)) { // CR or LF
 					c = in.read(); // consume the lf
-					if ((length == 768 || length == 42176) && lineLen == 1) {
+					if ((length == DUV_FRAME_LEN || length == HIGH_SPEED_FRAME_LEN || length == PSK_FRAME_LEN) && lineLen == 1) {
 						// then we are ready to process
 						rawFrame = new byte[length/8];
 						for (int i=0; i<length/8; i++) {
@@ -503,7 +510,16 @@ public abstract class Frame implements Comparable<Frame> {
 		// Let's really check it is OK by running the RS decode!
 
 		byte[] frame = null;
-		if (length == 768) {
+		Frame frm;
+		if (length == DUV_FRAME_LEN) {
+			frm = new SlowSpeedFrame();
+		} else if (length == PSK_FRAME_LEN){
+			frm = new FoxBPSKFrame();
+		} else {
+			frm = new HighSpeedFrame();
+		}
+		
+		if (length == DUV_FRAME_LEN) {
 			if (ServerConfig.slowSpeedRsDecode) {
 				RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
 				if (!rs.validDecode()) {
@@ -511,23 +527,26 @@ public abstract class Frame implements Comparable<Frame> {
 					throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
 				}
 			}
-		} else {
+		} else if(length == PSK_FRAME_LEN) {
+			// High Speed Frame
+			// Log.println("RS Decode for: " + length/8 + " byte frame..");
+			if (false && ServerConfig.highSpeedRsDecode)
+				if (!highSpeedRsDecode(FoxBPSKFrame.MAX_FRAME_SIZE, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, FoxBPSKBitStream.RS_PADDING, rawFrame, demodulator)) {
+					Log.println("BPSK RS Decode Failed");
+					throw new StpFileProcessException(fileName, "ERROR: BPSK RS DECODE " + fileName);
+				}
+		} else if(length == HIGH_SPEED_FRAME_LEN) {
 			// High Speed Frame
 			// Log.println("RS Decode for: " + length/8 + " byte frame..");
 			if (ServerConfig.highSpeedRsDecode)
-				if (!highSpeedRsDecode(rawFrame, demodulator)) {
+				if (!highSpeedRsDecode(HighSpeedFrame.MAX_FRAME_SIZE, HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS, HighSpeedBitStream.RS_PADDING, rawFrame, demodulator)) {
 					Log.println("HIGH SPEED RS Decode Failed");
 					throw new StpFileProcessException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
 				}
 		}
 		frame = rawFrame; //rs.decode();
 
-		Frame frm;
-		if (length == 768) {
-			frm = new SlowSpeedFrame();
-		} else {
-			frm = new HighSpeedFrame();
-		}
+
 		frm.addRawFrame(frame);
 		frm.receiver = receiver;
 		frm.demodulator = demodulator;
@@ -560,7 +579,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @param rawFrame byte[]
 	 * @return boolean
 	 */
-	private static boolean highSpeedRsDecode(byte[] rawFrame, String demodulator) {
+	private static boolean highSpeedRsDecode(int maxFrameSize, int numOfCodewords, int[] padding, byte[] rawFrame, String demodulator) {
 		
 		String versionString[] = demodulator.split(" ");
 		int major = Config.parseVersionMajor(versionString[1]);
@@ -568,10 +587,10 @@ public abstract class Frame implements Comparable<Frame> {
 		String point = Config.parseVersionPoint(versionString[1]);
 		//Log.println("RS Decode for: " + demodulator + " "+ major +" "+ minor +" "+ point);
 		
-		RsCodeWord[] codeWords = new RsCodeWord[HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS];
+		RsCodeWord[] codeWords = new RsCodeWord[numOfCodewords];
 		 
-		for (int q=0; q < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; q++) {
-			codeWords[q] = new RsCodeWord(HighSpeedBitStream.RS_PADDING[q]);
+		for (int q=0; q < numOfCodewords; q++) {
+			codeWords[q] = new RsCodeWord(padding[q]);
 		}
 	
 		int bytesInFrame = 0;
@@ -580,7 +599,7 @@ public abstract class Frame implements Comparable<Frame> {
 		
 		for (byte b8 : rawFrame) {
 			bytesInFrame++;
-			if (bytesInFrame == HighSpeedFrame.MAX_FRAME_SIZE+1) {  
+			if (bytesInFrame == maxFrameSize+1) {  
 				// first parity byte.  All the checkbytes are at the end
 				//Log.println("parity");
 				if (major > 1 || (major == 1 && minor > 5) || (major == 1 && minor == 5 && point.equalsIgnoreCase("d"))) {
@@ -598,7 +617,7 @@ public abstract class Frame implements Comparable<Frame> {
 			} catch (ArrayIndexOutOfBoundsException e) {
 				e.printStackTrace(Log.getWriter());
 			}
-			if (rsNum == HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS) {
+			if (rsNum == numOfCodewords) {
 				rsNum=0;
 				f++;
 				if (f > RsCodeWord.NN)
@@ -610,7 +629,7 @@ public abstract class Frame implements Comparable<Frame> {
 	//		System.out.println(codeWords[0]);
 			
 		// Now Decode all of the RS words and fail if any do not pass
-		for (int i=0; i < HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS; i++) {
+		for (int i=0; i < numOfCodewords; i++) {
 			codeWords[i].decode();  
 			if (!codeWords[i].validDecode()) {
 				// We had a failure to decode, so the frame is corrupt
@@ -646,6 +665,13 @@ public abstract class Frame implements Comparable<Frame> {
 					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
 					//duvFrames++;
+				} if (decodedFrame instanceof FoxBPSKFrame) {
+					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
+					//System.out.println("Storing: " + hsf);
+					FoxBPSKHeader header = hsf.getHeader();
+					for (int i=0; i<FoxBPSKFrame.NUMBER_DEFAULT_PAYLOADS; i++ )
+						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), hsf.payload[i]))
+							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add PSK record to database");;
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
