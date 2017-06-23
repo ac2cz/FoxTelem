@@ -17,6 +17,7 @@ import java.util.TimeZone;
 
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
+import telemetry.FoxBPSK.FoxBPSKFrame;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
@@ -74,9 +75,9 @@ public abstract class Frame implements Comparable<Frame> {
 	protected FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
-	public static final int DUV_FRAME = 0;
+	public static final int DUV_FRAME = 0; 
 	public static final int HIGH_SPEED_FRAME = 1;
-	public static final int PSK_FRAME = 0;
+	public static final int PSK_FRAME = 2;
 	public static final String[][] SOURCES = {
 			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
 			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
@@ -261,7 +262,7 @@ public abstract class Frame implements Comparable<Frame> {
 		} else if (this instanceof HighSpeedFrame){
 			source = SOURCES[foxId][HIGH_SPEED_FRAME];
 		} else {
-			source = SOURCES[foxId][PSK_FRAME];
+			source = SOURCES[foxId][0]; // first value
 		}
 
 	}
@@ -755,6 +756,10 @@ public abstract class Frame implements Comparable<Frame> {
 			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
 					+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
 					+ SlowSpeedFrame.MAX_TRAILER_SIZE];
+		else if (this instanceof FoxBPSKFrame)
+			bytes = new byte[FoxBPSKFrame.MAX_HEADER_SIZE
+								+ FoxBPSKFrame.MAX_PAYLOAD_SIZE
+								+ FoxBPSKFrame.MAX_TRAILER_SIZE];
 		else
 			bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
 					+ HighSpeedFrame.MAX_PAYLOAD_SIZE

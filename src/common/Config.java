@@ -56,8 +56,8 @@ public class Config {
 
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05g";
-	public static String VERSION = VERSION_NUM + " - 16 Apr 2017";
+	public static String VERSION_NUM = "1.05h";
+	public static String VERSION = VERSION_NUM + " - 22 Jun 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -240,6 +240,7 @@ public class Config {
 	
 	// V1.05
 	static public int afSampleRate = 48000;
+	static public int totalFrames = 0;
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -577,6 +578,7 @@ public class Config {
 		
 		// Version 1.05
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
+		properties.setProperty("totalFrames", Integer.toString(totalFrames));
 		store();
 	}
 	
@@ -740,6 +742,7 @@ public class Config {
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
+		totalFrames = Integer.parseInt(getProperty("totalFrames"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

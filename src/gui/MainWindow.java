@@ -129,8 +129,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
 	static JLabel lblAudioMissed;
+	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
+	private static String TOTAL_RECEIVED_FRAMES = "Received: ";
 	private static String TOTAL_DECODES = "Decoded: ";
 	private static String TOTAL_QUEUED = "Queued: ";
 	private static String AUDIO_MISSED = "Audio missed: ";
@@ -201,6 +203,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblAudioMissed.setToolTipText("The number of audio buffers missed");
 		rightBottom.add(lblAudioMissed );
 
+		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
+		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblTotalFrames.setToolTipText("Total number of frames received from all satellites");
+		rightBottom.add(lblTotalFrames );
+		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
 		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
@@ -259,6 +267,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		inputTab.audioGraph.updateFont();
 		inputTab.eyePanel.updateFont();
+		setTotalDecodes();
 	}
 	
 	private static void addHealthTabs() {
@@ -283,11 +292,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		else
 			lblAudioMissed.setForeground(Color.BLACK);
 	}
-	
+
 	public static void setTotalDecodes() {
 		int total = 0;
 		total = Config.payloadStore.getTotalNumberOfFrames();
 		lblTotalDecodes.setText(TOTAL_DECODES + total);
+		lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
 	}
 
 	public static void setTotalQueued(int total) {
@@ -559,6 +569,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
+				Config.totalFrames = 0;
 				refreshTabs(true);
 			}
 		}

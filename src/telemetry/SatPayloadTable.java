@@ -65,7 +65,7 @@ public class SatPayloadTable {
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	private String getDir() {
+	public static String getDir() {
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator ;
