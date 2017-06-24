@@ -4,8 +4,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -19,17 +24,23 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.RadiationTelemetry;
+
 import java.awt.Dimension;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.plaf.SplitPaneUI;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.border.BevelBorder;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import java.awt.Color;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -57,8 +68,10 @@ import java.util.TimeZone;
 @SuppressWarnings("serial")
 public abstract class HealthTab extends ModuleTab implements ItemListener, ActionListener, Runnable {
 	
+	public final int DEFAULT_DIVIDER_LOCATION = 500;
+	public static final String HEALTHTAB = "HEALTHTAB";
+	
 	JPanel centerPanel;
-	JPanel bottomPanel;
 	
 	JLabel lblId;
 	JLabel lblIdValue;
@@ -100,6 +113,12 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	protected JPanel topPanel1;
 	protected JPanel topPanel2;
 	
+	int splitPaneHeight = 0;
+	JSplitPane splitPane;
+	
+	HealthTableModel healthTableModel;
+	JTable table;
+	
 	public HealthTab(Spacecraft spacecraft, int displayType) {
 		fox = spacecraft;
 		foxId = fox.foxId;
@@ -140,8 +159,39 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		centerPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		centerPanel.setBackground(Color.DARK_GRAY);
 		
+		JPanel healthPanel = new JPanel();
+		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.X_AXIS));
+		
 		initDisplayHalves(centerPanel);
 		
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HEALTHTAB, "splitPaneHeight");
+
+		
+		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+				centerPanel, healthPanel);
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setContinuousLayout(true); // repaint as we resize, otherwise we can not see the moved line against the dark background
+		if (splitPaneHeight != 0) 
+			splitPane.setDividerLocation(splitPaneHeight);
+		else
+			splitPane.setDividerLocation(DEFAULT_DIVIDER_LOCATION);
+		
+		SplitPaneUI spui = splitPane.getUI();
+	    if (spui instanceof BasicSplitPaneUI) {
+	      // Setting a mouse listener directly on split pane does not work, because no events are being received.
+	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
+	          public void mouseReleased(MouseEvent e) {
+	        	  splitPaneHeight = splitPane.getDividerLocation();
+	        	  Log.println("SplitPane: " + splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), HEALTHTAB, "splitPaneHeight", splitPaneHeight);
+	          }
+	      });
+	    }
+		//Provide minimum sizes for the two components in the split pane
+		Dimension minimumSize = new Dimension(100, 50);
+		healthPanel.setMinimumSize(minimumSize);
+		centerPanel.setMinimumSize(minimumSize);
+		add(splitPane, BorderLayout.CENTER);
 		bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
@@ -155,7 +205,9 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		showUTCtime = new JCheckBox("Display UTC Time", Config.displayUTCtime);
 		bottomPanel.add(showUTCtime );
 		showUTCtime.addItemListener(this);
-		
+
+		addBottomFilter();
+
 		// force the next labels to the right side of screen
 		bottomPanel.add(new Box.Filler(new Dimension(14,fonth), new Dimension(400,fonth), new Dimension(1600,fonth)));
 		
@@ -189,6 +241,23 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			e.printStackTrace(Log.getWriter());
 			System.exit(1);
 		}
+		
+		addTable(healthPanel, rt);
+	}
+	
+	private void addTable(JPanel centerPanel, BitArrayLayout rt) {
+		healthTableModel = new HealthTableModel(rt);
+		
+		table = new JTable(healthTableModel);
+		table.setAutoCreateRowSorter(true);
+		
+		scrollPane = new JScrollPane (table, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		table.setFillsViewportHeight(true);
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(scrollPane);
+		
 	}
 
 	protected JLabel addReset(JPanel topPanel2, String type) {
@@ -294,6 +363,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			if (mod != null)
 			mod.updateRtValues(realTime2);
 		}
+		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
 			mod.updateRtValues(realTime2);
@@ -303,10 +373,60 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		displayResets(lblResetsValue, realTime2.getResets());
 		displayCaptureDate(realTime2.getCaptureDate());
 		
-
+		
+		parseFrames();
+	}
+	
+	@Override
+	public void parseFrames() {
+		String[][] data = Config.payloadStore.getRtData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+		if (data.length > 0) {
+			parseTelemetry(data);
+			MainWindow.frame.repaint();
+		}		
 	}
 
-	
+	protected void parseTelemetry(String data[][]) {	
+//		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
+		
+		// try to decode any telemetry packets
+/*		for (int i=0; i<data.length; i++) {
+			RadiationTelemetry radTelem = null;
+			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
+			radTelem.rawBits = null; // otherwise we will overwrite the data we side load in
+			for (int k=2; k<this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).NUMBER_OF_FIELDS+2; k++) {  // Add 2 to skip past reset uptime
+				try {
+					int val = Integer.valueOf(data[i][k]);
+					radTelem.fieldValue[k-2] = val;
+				} catch (NumberFormatException e) {
+
+				}
+			}
+			if (radTelem != null) {
+				packets.add(radTelem);
+			}
+			
+		}
+*/	
+		// Now put the telemetry packets into the table data structure
+		String[][] packetData = new String[data.length][data[0].length];
+		for (int i=0; i < data.length; i++) { 
+			packetData[data.length-i-1][0] = ""+data[i][0];
+			packetData[data.length-i-1][1] = ""+data[i][1];
+			for (int j=2; j< data[0].length; j++) {
+				if (Config.displayRawRadData)
+					packetData[data.length-i-1][j] = ""+data[i][j];
+				else
+					packetData[data.length-i-1][j] = ""+data[i][j];
+			}
+		}
+
+		if (data.length > 0) {
+			healthTableModel.setData(packetData);
+		}
+		//(Config.payloadStore.getLatestRadTelem(foxId));
+		//updateTab(packets.get(packets.size()-1));
+	}
 	
 	public void updateTabMax(FramePart maxPayload2) {
 		
@@ -316,6 +436,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			if (mod != null)
 			mod.updateMaxValues(maxPayload2);
 		}
+		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
 			mod.updateMaxValues(maxPayload2);
@@ -337,6 +458,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			if (mod != null)
 			mod.updateMinValues(minPayload2);
 		}
+		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
 			mod.updateMinValues(minPayload2);
@@ -349,12 +471,6 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		displayMode(minPayload2.getRawValue("SafeModeIndication"));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
-	
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub	
-	}
-
 	
 	@Override
 	public void itemStateChanged(ItemEvent e) {

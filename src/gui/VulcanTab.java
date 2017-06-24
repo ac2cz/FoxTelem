@@ -333,8 +333,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	protected void parseRadiationFrames() {
 		
-
-
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 			if (data.length > 0)
@@ -347,7 +345,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
-					bottomHalf.setVisible(true);
+//					bottomHalf.setVisible(true);
 			
 			}
 			else {
@@ -374,7 +372,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	}
 	
 	
-	private void parseTelemetry(String data[][]) {
+	protected void parseTelemetry(String data[][]) {
 		
 		
 		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
@@ -416,7 +414,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		//updateTab(packets.get(packets.size()-1));
 	}
 	
-	private void parsePackets(String data[][]) {
+	protected void parsePackets(String data[][]) {
 		// We decode the radiation packets
 		// The data returned is a two dimensional array, one row per payload with the first two columns being reset and uptime and the next 58 being data
 		// These are in the order received, so we hope that data carries over from one packet to another, but it may not.
@@ -580,6 +578,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
@@ -684,6 +683,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void parseFrames() {
+		parseRadiationFrames();
 		
 	}
 

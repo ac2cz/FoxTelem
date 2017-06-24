@@ -2,6 +2,8 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
+import common.Config;
+import common.Spacecraft;
 import decoder.FoxDecoder;
 
 public class PayloadWODRad extends PayloadRadExpData {
@@ -40,6 +42,15 @@ public class PayloadWODRad extends PayloadRadExpData {
 	public boolean isValid() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+	
+	public WodRadiationTelemetry calculateTelemetryPalyoad() {
+		WodRadiationTelemetry radTelem = new WodRadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
+		for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+			radTelem.addNext8Bits(fieldValue[k]);
+		}
+		return radTelem;
+		
 	}
 
 	@Override

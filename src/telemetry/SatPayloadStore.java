@@ -187,6 +187,18 @@ public class SatPayloadStore {
 		return true;
 	}
 
+	private boolean addWODRadSecondaryRecord(PayloadWODRad f) throws IOException {
+		// Capture and store any secondary payloads
+		if (f.layout.name.equalsIgnoreCase(Spacecraft.HERCI_HS_LAYOUT) || f.isTelemetry()) {
+			WodRadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			if (f.type >= 400) // this is a high speed record
+				radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
+			add(radiationTelemetry);
+			//radTelemRecords.setUpdated(true);
+		}
+		return true;
+	}
 	/**
 	 * Add a HERCI High Speed payload record
 	 * @param f
@@ -231,7 +243,9 @@ public class SatPayloadStore {
 		if (i != Spacecraft.ERROR_IDX) {
 			ret = records[i].save(f); 
 			if (ret) {
-				if (f instanceof PayloadRadExpData) {
+				if (f instanceof PayloadWODRad) {
+					return addWODRadSecondaryRecord((PayloadWODRad)f);
+				} else if (f instanceof PayloadRadExpData) {
 					return addRadSecondaryRecord((PayloadRadExpData)f);				
 				} else if (f instanceof PayloadHERCIhighSpeed ) {
 					return addHerciSecondaryRecord((PayloadHERCIhighSpeed)f);				
@@ -334,6 +348,22 @@ public class SatPayloadStore {
 		
 	}
 
+	/**
+	 * Get a set of Realtime Telemetry records for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 * @throws IOException 
+	 */
+	public String[][] getRtData(int period, int id, int fromReset, long fromUptime) throws IOException {
+		int i = fox.getLayoutIdxByName(Spacecraft.REAL_TIME_LAYOUT);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH);  
+		return null;
+	}
+
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
@@ -357,6 +387,22 @@ public class SatPayloadStore {
 		return null;
 	}
 
+	/**
+	 * Get a set of Radiation Telemetry records for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 * @throws IOException 
+	 */
+	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
+		int i = fox.getLayoutIdxByName(Spacecraft.WOD_RAD2_LAYOUT);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_RAD_TELEM_BYTES); 
+		return null;
+	}
+	
 	/**
 	 * Get data for a single named field from the HERCI Science Header for the period given
 	 * @param name

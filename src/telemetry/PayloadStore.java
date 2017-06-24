@@ -621,6 +621,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	
+	
 	public PayloadHERCIhighSpeed getLatestHerci(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -711,6 +712,27 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	/**
+	 * Return an array of real time data with "period" entries for this sat id and from the given reset and
+	 * uptime.
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 */
+	public String[][] getRtData(int period, int id, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getRtData(period, id, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+
+	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.
 	 * @param period
@@ -730,7 +752,19 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-
+	
+	@Override
+	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getWodRadTelemData(period, id, fromReset, fromUptime);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	} 
 	
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
 		SatPayloadStore store = getPayloadStoreById(id);
@@ -885,8 +919,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		if (store != null)
 			return store.getPassMeasurementGraphData(name, period, fox, fromReset, fromUptime);
 		return null;
-	} 
+	}
 
+	
 
 	
 }

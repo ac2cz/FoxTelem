@@ -121,7 +121,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime);
 	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
 	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
-	
+	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME);
+	public abstract String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME);
 	public abstract String getRtUTCFromUptime(int id, int reset, long uptime);
 	
 	
@@ -131,4 +132,5 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract void deleteAll();	
 	
 	public abstract void initRad2();
+	
 }
