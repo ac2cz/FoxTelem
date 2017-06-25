@@ -45,7 +45,7 @@
 43,WOD,IHUdiagData,32,-,18,Computer Software,3,2,0,Diagnostic Data,Diagnostic Data on IHU Performance
 44,WOD,WODTimestampReset,16,-,1,NONE,0,0,0,WOD Timestamp Reset Count,Time Whole Orbit Data was collected
 45,WOD,WODTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Time Whole Orbit Data was collected
-46,WOD,SafeModeActive,1,-,21,Computer Software,3,3,0,Safe Mode,Are we in safe mode?
+46,WOD,SafeModeIndication,1,-,21,Computer Software,3,3,0,Safe Mode,Are we in safe mode?
 47,WOD,AutoSafeModeActive,1,-,21,Computer Software,3,4,0,Auto Safe Mode,Are we in safe mode?
 48,WOD,expFailure0,1,-,17,Experiments,6,2,0,Exp 1,Experiment 1 Failure Indicator
 49,WOD,expFailure1,1,-,17,Experiments,6,3,0,Exp 2,Experiment 2 Failure Indicator

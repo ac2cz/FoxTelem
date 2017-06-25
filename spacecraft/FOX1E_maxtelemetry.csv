@@ -44,7 +44,7 @@
 42,MAX,IHUhardError,32,-,19,Computer Hardware,2,7,0,IHU Hard Error Data,Reason for last reset
 43,MAX,maxTimestampReset,16,s,1,NONE,0,0,0,MAX Timestamp Reset Count,Timestamp of last max change
 44,MAX,maxTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Timestamp of last max change
-45,MAX,SafeModeActive,1,-,21,Computer Software,3,5,0,Safe Mode,In safe mode?
+45,MAX,SafeModeIndication,1,-,21,Computer Software,3,5,0,Safe Mode,In safe mode?
 46,MAX,AutoSafeModeActive,1,-,21,Computer Software,3,6,0,Auto Safe Mode,In Autosafe mode?
 47,MAX,AutoSafeModeAllowed,1,-,21,Computer Software,3,7,0,Auto Safe Allowed,Autosafe enabled?
 48,MAX,ScienceModeActive,1,-,21,Computer Software,3,8,0,Science Mode ,In Science Mode?

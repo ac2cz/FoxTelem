@@ -103,7 +103,7 @@ public class HealthTabRt extends HealthTab {
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
 						updateTabRT(realTime);
-						displayMode(0);
+						//displayMode(0);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 						//System.out.println("UPDATED RT Data: ");
 					} else {

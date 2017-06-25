@@ -44,7 +44,7 @@
 42,MIN,IHUsoftError,32,-,20,Computer Software,3,9,0,Soft Error,Diagnostic Data on IHU Software Errors
 43,MIN,minTimestampReset,16,s,1,NONE,0,0,0,NONE,Timestamp Resets
 44,MIN,minTimestampUptime,25,s,1,NONE,0,0,0,NONE,Timestamp uptime
-45,MIN,SafeModeActive,1,-,21,NONE,0,0,0,NONE,In safe mode?
+45,MIN,SafeModeIndication,1,-,21,NONE,0,0,0,NONE,In safe mode?
 46,MIN,AutoSafeModeActive,1,-,21,NONE,0,0,0,NONE,In Autosafe mode?
 47,MIN,AutoSafeModeAllowed,1,-,21,NONE,0,0,0,NONE,Autosafe enabled?
 48,MIN,ScienceModeActive,1,-,21,NONE,0,0,0,Science Mode ,In Science Mode?
