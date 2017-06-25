@@ -217,7 +217,11 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		lblCaptureDate.setForeground(textLblColor);
 		bottomPanel.add(lblCaptureDate );
 		
-		BitArrayLayout rt = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		BitArrayLayout rt = null;
+		if (displayType == DisplayModule.DISPLAY_WOD)
+			rt = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
+		else
+			rt = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
 		BitArrayLayout max = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
 		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 

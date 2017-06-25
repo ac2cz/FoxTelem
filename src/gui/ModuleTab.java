@@ -16,6 +16,7 @@ import javax.swing.border.EmptyBorder;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadWOD;
 
 /**
  * 
@@ -159,6 +160,9 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 				}
 			}
 		}
+		if (moduleType == DisplayModule.DISPLAY_WOD) {
+			System.out.println("STOP");
+		} else {
 		if (max != null)
 		for (int i=0; i<max.NUMBER_OF_FIELDS; i++) {
 			if (!max.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
@@ -196,7 +200,7 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 			}
 
 		}
-
+		}
 		topModules = new DisplayModule[numOfTopModules];
 		if (numOfBottomModules > 0)
 		bottomModules = new DisplayModule[numOfBottomModules];
@@ -205,8 +209,10 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		for (int i=1; i < numOfTopModules; i++) {
 			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], rt);
-			if (max != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], max);
-			if (min != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], min);
+			if (moduleType != DisplayModule.DISPLAY_WOD) {
+				if (max != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], max);
+				if (min != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], min);
+			}
 			topHalf.add(topModules[i]);
 		}
 
@@ -214,8 +220,10 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		for (int i=1; i < numOfBottomModules; i++) {
 			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, moduleType);
 			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], rt);
-			if (max != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], max);
-			if (min != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], min);
+			if (moduleType != DisplayModule.DISPLAY_WOD) {
+				if (max != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], max);
+				if (min != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], min);
+			}
 			bottomHalf.add(bottomModules[i]);
 		}
 		
@@ -229,6 +237,7 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 				".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				try {
+					if (rt.name.equals(Spacecraft.WOD_LAYOUT)) rt.moduleDisplayType[j] = DisplayModule.DISPLAY_WOD;
 					displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], rt.moduleDisplayType[j]);					
 				} catch (NullPointerException e) {
 					throw new LayoutLoadException("Found NULL item error in Layout File: "+ rt.fileName +

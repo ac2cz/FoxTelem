@@ -423,4 +423,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		// TODO Auto-generated method stub
 		
 	}
+
+	@Override
+	public void parseFrames() {
+		// TODO Auto-generated method stub
+		
+	}
 }

@@ -455,4 +455,10 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		}
 	}
 
+	@Override
+	public void parseFrames() {
+		// TODO Auto-generated method stub
+		
+	}
+
 }
