@@ -50,6 +50,15 @@ public class WodHealthTab extends HealthTab {
 	}
 
 	@Override
+	public void parseFrames() {
+		String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+		if (data.length > 0) {
+			parseTelemetry(data);
+			MainWindow.frame.repaint();
+		}		
+	}
+
+	@Override
 	public void run() {
 		running = true;
 		done = false;

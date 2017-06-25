@@ -161,7 +161,7 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 			}
 		}
 		if (moduleType == DisplayModule.DISPLAY_WOD) {
-			System.out.println("STOP");
+			; //System.out.println("STOP");
 		} else {
 		if (max != null)
 		for (int i=0; i<max.NUMBER_OF_FIELDS; i++) {

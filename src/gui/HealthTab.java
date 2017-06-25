@@ -381,14 +381,6 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		parseFrames();
 	}
 	
-	@Override
-	public void parseFrames() {
-		String[][] data = Config.payloadStore.getRtData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-		if (data.length > 0) {
-			parseTelemetry(data);
-			MainWindow.frame.repaint();
-		}		
-	}
 
 	protected void parseTelemetry(String data[][]) {	
 //		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);

@@ -488,7 +488,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if (rtValue[i].getText().equalsIgnoreCase(noValue))
 					;// dont open graph
 				else
-				;//	displayGraph(i, true);				
+					displayGraph(i, true);				
 			} 
 		}
 	}

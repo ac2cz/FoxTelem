@@ -364,6 +364,22 @@ public class SatPayloadStore {
 		return null;
 	}
 
+	/**
+	 * Get a set of WOD Telemetry records for the range given
+	 * @param period
+	 * @param id
+	 * @param fromReset
+	 * @param fromUptime
+	 * @return
+	 * @throws IOException 
+	 */
+	public String[][] getWODData(int period, int id, int fromReset, long fromUptime) throws IOException {
+		int i = fox.getLayoutIdxByName(Spacecraft.WOD_LAYOUT);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH);  
+		return null;
+	}
+
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
