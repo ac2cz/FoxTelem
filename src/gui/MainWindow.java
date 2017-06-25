@@ -287,20 +287,26 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	public static void setAudioMissed(int missed) {
-		double miss = missed / 10.0;
-		totalMissed += missed;
-		lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
-		if (missed > 2)
-			lblAudioMissed.setForeground(Color.RED);
-		else
-			lblAudioMissed.setForeground(Color.BLACK);
+		if (lblAudioMissed != null) { // just in case we are delayed starting up
+			double miss = missed / 10.0;
+			totalMissed += missed;
+			lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
+			if (missed > 2)
+				lblAudioMissed.setForeground(Color.RED);
+			else
+				lblAudioMissed.setForeground(Color.BLACK);
+		}
 	}
 
 	public static void setTotalDecodes() {
-		int total = 0;
-		total = Config.payloadStore.getTotalNumberOfFrames();
-		lblTotalDecodes.setText(TOTAL_DECODES + total);
-		lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+		if (lblTotalDecodes != null) { // make sure we have initialized before we try to update from another thread
+			int total = 0;
+			total = Config.payloadStore.getTotalNumberOfFrames();
+			lblTotalDecodes.setText(TOTAL_DECODES + total);
+		}
+		if (lblTotalFrames != null) { 
+			lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+		}
 	}
 
 	public static void setTotalQueued(int total) {
