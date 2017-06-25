@@ -558,6 +558,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 							Config.initPayloadStore();
 							Config.initSequence();
 							Config.initServerQueue();
+							Config.initSatelliteManager();
 
 							//MainWindow.refreshTabs(true);
 							refreshTabs = true;

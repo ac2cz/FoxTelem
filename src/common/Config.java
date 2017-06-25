@@ -291,8 +291,8 @@ public class Config {
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
-		
-		satManager = new SatelliteManager();
+
+		initSatelliteManager();
 		initPayloadStore();
 		initPassManager();
 		// Start this last or we get a null pointer exception if it tries to access the data before it is loaded
@@ -337,6 +337,9 @@ public class Config {
 		return version;		
 	}
 
+	public static void initSatelliteManager() {
+		satManager = new SatelliteManager();		
+	}
 	
 	public static void initPassManager() {	
 		passManager = new PassManager(satManager);
@@ -780,4 +783,5 @@ public class Config {
 			System.exit(1);
 
 	}
+
 }

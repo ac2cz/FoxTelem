@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 
 import common.Log;
 import common.Spacecraft;
+import common.Config;
 import common.FoxSpacecraft;
 
 /**
@@ -359,10 +360,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				}
 				sat.track = track.isSelected();
 
+				
+				sat.save();
+				Config.initSatelliteManager();
+				this.dispose();
 				if (refreshTabs)
 					MainWindow.refreshTabs(false);
-				sat.save();
-				this.dispose();
 			} catch (NumberFormatException Ex) {
 				Log.errorDialog("Invalid Paramaters", Ex.getMessage());
 			}

@@ -43,52 +43,61 @@ public class SatelliteManager {
 	ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	
 	public SatelliteManager()  {
+		init();
+	}
+	
+	public void init() {
 		File masterFolder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
 		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
 		loadSats(folder);
 	}
 	
+	private void copyDatFiles(File masterFolder, File folder) {
+		File[] listOfFiles = masterFolder.listFiles();
+		if (listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".MASTER")) {
+					Log.println("Checking spacecraft file: " + listOfFiles[i].getName());
+					String targetName = listOfFiles[i].getName().replace(".MASTER", ".dat");
+					File targetFile = new File(folder + File.separator + targetName);
+					if(!targetFile.exists()){
+						// Missing this file
+						Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
+						try {
+							SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+						} catch (IOException e) {
+							Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
+							e.printStackTrace();
+						}
+					} else {
+						Log.println("Leaving existing spacecraft file: " + targetFile.getName());
+					}
+				}
+			}
+		}
+
+	}
+	
 	private File getFolder(File masterFolder) {
 		File folder = new File(Config.getLogFileDirectory() + FoxSpacecraft.SPACECRAFT_DIR);
+		
 		if(!folder.isDirectory()){
 			folder.mkdir();
 			Log.infoDialog("NEW FILE LAYOUT", "The configuration files for the spacecraft have been copied to: \n" + folder.getAbsolutePath() + "\n"
 					+ "Delete any of the copied .dat files that you do not want to load when using this logfiles directory.\n"
 					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n"
 							+ "and can be copied back in later if needed.");
-			// Now copy in any missing files
-			File[] listOfFiles = masterFolder.listFiles();
-			if (listOfFiles != null) {
-				for (int i = 0; i < listOfFiles.length; i++) {
-					if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".MASTER")) {
-						Log.println("Checking spacecraft file: " + listOfFiles[i].getName());
-						String targetName = listOfFiles[i].getName().replace(".MASTER", ".dat");
-						File targetFile = new File(folder + File.separator + targetName);
-						if(!targetFile.exists()){
-							// Missing this file
-							Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
-							try {
-								SatPayloadStore.copyFile(listOfFiles[i], targetFile);
-							} catch (IOException e) {
-								Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
-								e.printStackTrace();
-							}
-						} else {
-							Log.println("Leaving existing spacecraft file: " + targetFile.getName());
-						}
-					}
-				}
-			}
 		}
 		if(!folder.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + folder.getAbsolutePath() +  
 					"\nFoxTelem needs to save the spacecraft settings in your logfile directroy.  It is either not accessible or not writable\n");
 		}
+		// Now copy in any missing files
+		copyDatFiles(masterFolder, folder);
 		
 		Log.println("Set Logfile Spacecraft directory to: " + folder);
-		
-		
+				
 		return folder;
 	}
 	

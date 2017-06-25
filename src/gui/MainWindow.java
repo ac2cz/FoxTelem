@@ -110,6 +110,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
+	JMenu mnSats;
+	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
@@ -253,6 +255,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	public static void refreshTabs(boolean closeGraphs) {
+		
 		for (SpacecraftTab tab : spacecraftTab) {
 			tab.refreshTabs(closeGraphs);
 		}
@@ -319,7 +322,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private void initMenu() {
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		
 		JMenu mnFile = new JMenu("File");
@@ -387,15 +390,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //		mnDecoder.add(mntmStopDecoder);
 //		mntmStopDecoder.addActionListener(this);
 		
-		JMenu mnSats = new JMenu("Spacecraft");
-		menuBar.add(mnSats);
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		mntmSat = new JMenuItem[sats.size()];
-		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem(sats.get(i).name);
-			mnSats.add(mntmSat[i]);
-			mntmSat[i].addActionListener(this);
-		}
+		initSatMenu();
 		
 		JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
@@ -441,6 +436,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		audioSource = a;
 	}
 
+	private void initSatMenu() {
+		mnSats = new JMenu("Spacecraft");
+		menuBar.add(mnSats);
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+		mntmSat = new JMenuItem[sats.size()];
+		for (int i=0; i<sats.size(); i++) {
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
+			mnSats.add(mntmSat[i]);
+			mntmSat[i].addActionListener(this);
+		}
+	}
+	
 	public void shutdownWindow() {
 		
 		if (Config.passManager.getState() == PassManager.FADED ||
