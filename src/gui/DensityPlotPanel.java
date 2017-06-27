@@ -106,6 +106,8 @@ public class DensityPlotPanel extends GraphCanvas {
 			if (graphData[0][PayloadStore.UPTIME_COL][i] != graphData2[1][PayloadStore.UPTIME_COL][i])
 				System.err.println("ERROR!!!!!!!!!");
 			
+			if (hor > maxHor) hor = hor % maxHor;
+			if (vert > maxVert) vert = vert % maxVert;
 			int vertBox = (int)Math.round((vert/vertStep));
 			int horBox = (int)Math.round((hor/horStep));
 			if (vertBox < 0) vertBox = 0;
