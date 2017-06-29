@@ -56,16 +56,21 @@ public class UpdateManager implements Runnable {
 	
 	private void updateServerParams() throws IOException {
 		if (Config.serverParamsUrl != null) {
-			Log.println("Reading server params from: "+ Config.serverParamsUrl);
-			URL server = new URL(Config.serverParamsUrl);
-			BufferedReader in = new BufferedReader(
-					new InputStreamReader(server.openStream()));
-
-			//String availableVersion;
-			//availableVersion = in.readLine(); // read the first line
+			BufferedReader in = null;
 			Properties serverProperties = new Properties();
-			serverProperties.load(in);
-			in.close();
+			try {
+				Log.println("Reading server params from: "+ Config.serverParamsUrl);
+				URL server = new URL(Config.serverParamsUrl);
+				in = new BufferedReader(
+						new InputStreamReader(server.openStream()));
+
+				//String availableVersion;
+				//availableVersion = in.readLine(); // read the first line
+
+				serverProperties.load(in);
+			} finally {
+				if (in != null) in.close();
+			}
 			
 			try {
 				Log.println("Setting server params to: ");
@@ -115,14 +120,16 @@ public class UpdateManager implements Runnable {
 		}
 		URL website;
 		FileOutputStream fos = null;
+		ReadableByteChannel rbc = null;
 		try {
 			website = new URL(urlString);
 
-			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			rbc = Channels.newChannel(website.openStream());
 			
 			fos = new FileOutputStream(file + ".tmp");
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
+			rbc.close();
 			if (sat.loadTimeZeroSeries(file + ".tmp")) {
 				// this is a good file so we can now use it as the default
 				SatPayloadStore.remove(file);
@@ -147,6 +154,7 @@ public class UpdateManager implements Runnable {
 		} finally {
 			try {
 				if (fos != null) fos.close();
+				if (rbc != null) rbc.close();
 			} catch (IOException e) {
 				// ignore
 			}
@@ -162,27 +170,30 @@ public class UpdateManager implements Runnable {
         availableVersion = in.readLine(); // read the first line
         String line;
         String notes = "";
-        while ((line = in.readLine()) != null) {
-        	notes = notes + line + "\n";
-        }
-        Log.println("LATEST VERSION: "+availableVersion);
         try {
-        int maj = Config.parseVersionMajor(availableVersion);
-        int min = Config.parseVersionMinor(availableVersion);
-        //String point = Config.parseVersionPoint(availableVersion);
-        //System.out.println("MAJ: "+maj);
-        //System.out.println("MIN: "+min);
-        //System.out.println("POINT: "+point);
-        
-        if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
-        if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
-        } catch (NumberFormatException e) {
-        	e.printStackTrace(Log.getWriter());
-        	Log.println("Error parsing the latest version information.  Abandoning the check");
+        	while ((line = in.readLine()) != null) {
+        		notes = notes + line + "\n";
+        	}
+        	Log.println("LATEST VERSION: "+availableVersion);
+        	try {
+        		int maj = Config.parseVersionMajor(availableVersion);
+        		int min = Config.parseVersionMinor(availableVersion);
+        		//String point = Config.parseVersionPoint(availableVersion);
+        		//System.out.println("MAJ: "+maj);
+        		//System.out.println("MIN: "+min);
+        		//System.out.println("POINT: "+point);
+
+        		if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
+        		if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
+        	} catch (NumberFormatException e) {
+        		e.printStackTrace(Log.getWriter());
+        		Log.println("Error parsing the latest version information.  Abandoning the check");
+        	} 
+        } finally {
+        	if (in != null) in.close();
         }
-        in.close();
 	}
-	
+
 	private void recommendUpgrade(String ver, String notes) {
 		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
 				+ "Release information:\n" + notes;
