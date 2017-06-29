@@ -355,7 +355,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 					topHalfPackets.setVisible(true);
 					bottomHalfPackets.setVisible(true);
 					topHalf.setVisible(false);
-					bottomHalf.setVisible(false);
+					//	bottomHalf.setVisible(false);
 			
 			}
 		}

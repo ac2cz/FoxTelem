@@ -320,6 +320,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);

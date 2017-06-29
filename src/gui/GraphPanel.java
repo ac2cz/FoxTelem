@@ -301,6 +301,9 @@ public class GraphPanel extends GraphCanvas {
 	 * @param zeroPoint
 	 * @param minValue
 	 * @param maxValue
+	 * @param minValue2
+	 * @param maxValue2
+	 * @param drawLabels - if false then no labels are drawn for this reset because it is too narrow
 	 */
 	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, 
 			int sideBorder, int zeroPoint, double minValue, double maxValue, double minValue2, double maxValue2, boolean drawLabels) {
