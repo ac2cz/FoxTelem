@@ -637,7 +637,7 @@ public class Config {
 		useRSerasures = Boolean.parseBoolean(getProperty("useRSerasures"));
 		realTimePlaybackOfFile = Boolean.parseBoolean(getProperty("realTimePlaybackOfFile"));
 		useLeftStereoChannel = Boolean.parseBoolean(getProperty("useLeftStereoChannel"));
-		mode = Integer.parseInt(getProperty("highSpeed"));
+		
 		iq = Boolean.parseBoolean(getProperty("iq"));
 		eliminateDC = Boolean.parseBoolean(getProperty("eliminateDC"));
 		viewFilteredAudio = Boolean.parseBoolean(getProperty("viewFilteredAudio"));
@@ -746,6 +746,7 @@ public class Config {
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
 		totalFrames = Integer.parseInt(getProperty("totalFrames"));
+		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		
 		} catch (NumberFormatException nf) {
 			catchException();
