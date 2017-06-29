@@ -665,7 +665,7 @@ public abstract class Frame implements Comparable<Frame> {
 					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
 					//duvFrames++;
-				} if (decodedFrame instanceof FoxBPSKFrame) {
+				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 					//System.out.println("Storing: " + hsf);
 					FoxBPSKHeader header = hsf.getHeader();
