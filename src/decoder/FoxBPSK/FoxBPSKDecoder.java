@@ -105,8 +105,13 @@ public class FoxBPSKDecoder extends Decoder {
 	private static final double RX_CARRIER_FREQ = 1200.0;
 	//private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)48000;
 	private static final int SINCOS_SIZE = 256;
-
+	double gain = 1.0;
+	
 	protected void sampleBuckets() {
+		int maxValue = 0;
+		int minValue = 0;
+		int DESIRED_RANGE =50000;
+		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
 				//sampleWithVCO(dataValues[i][s], i, s);
@@ -114,6 +119,9 @@ public class FoxBPSKDecoder extends Decoder {
 				//////					value = audioDcFilter.filter(value);		
 				RxDownSample(value, value, i);
 				int eyeValue = (int) (Math.sqrt(energy1)-32768.0/2);
+				if (eyeValue > maxValue) maxValue = eyeValue;
+				if (eyeValue < minValue) minValue = eyeValue;
+				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
 				pskAudioData[i*bucketSize+s] = eyeValue/32768.0;	
 				
 ///				pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
@@ -126,6 +134,8 @@ public class FoxBPSKDecoder extends Decoder {
 			else
 				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 		}
+		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		
 		int offset = recoverClockOffset();
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
