@@ -38,10 +38,10 @@
 36,realTime,ICR2dot5VProt,12,V,23,Command Receiver (ICR),7,4,3,2.5V Prot,ICR 2.5V Protected
 37,realTime,rf6,12,-,0,NONE,0,0,0,None,None
 38,realTime,rf7,12,-,0,NONE,0,0,0,None,None
-39,realTime,MuxTest,12,V,23,Command Receiver (ICR),7,5,3,MUX,Sensor Power Voltage at the ICR
+39,realTime,MuxTest,12,V,23,Command Receiver (ICR),7,5,3,Sensor Power,Sensor Power Voltage at the ICR
 40,realTime,LtVGACtl,12,V,23,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-41,realTime,NumCmds,4,-,0,NONE,0,0,0,None,Number of commands sent since last reset
-42,realTime,IHUdiagData,32,-,18,Computer Software,3,2,0,Diagnostic Info,Diagnostic Data on IHU Performance
+41,realTime,NumCmds,4,-,34,Command Receiver (ICR),7,6,3,Num of Commands,Number of commands sent since last reset
+42,realTime,IHUdiagData,32,-,36,Computer Software,3,2,0,Diagnostic Info,Diagnostic Data on IHU Performance
 43,realTime,expFailure0,1,-,17,Experiments,6,2,0,Vanderbilt Radiation,Vanderbilt University Vulcan Experiment Indicator
 44,realTime,expFailure1,1,-,17,Experiments,6,3,0,Exp 1,Experiment 1 Failure Indicator
 45,realTime,expFailure2,1,-,17,Experiments,6,4,0,Exp 2,Experiment 2 Failure Indicator
@@ -55,5 +55,5 @@
 53,realTime,I2CfailureRF,1,-,17,Computer Hardware,2,5,0,RF I2C,RF I2C Bus failure indicator
 54,realTime,pad1,1,-,0,NONE,0,0,0,NONE,Filler
 55,realTime,wodSize,8,000s,0,Computer Software,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
-56,realTime,swCmds,32,-,0,Computer Software,3,4,0,Software Command Ring,Software Command Ring
+56,realTime,swCmds,32,-,35,Command Receiver (ICR),7,7,0,Diagnostic,ICR Diagnostic information
 57,realTime,pad2,40,-,0,NONE,0,0,0,NONE,Filler

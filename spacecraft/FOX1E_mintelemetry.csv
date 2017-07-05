@@ -38,15 +38,15 @@
 36,MIN,ICR2dot5VProt,12,V,23,NONE,7,4,3,2.5V Prot,ICR 2.5V Protected
 37,MIN,rf6,12,-,0,NONE,0,0,0,None,None
 38,MIN,rf7,12,-,0,NONE,0,0,0,None,None
-39,MIN,MuxTest,12,V,23,NONE,7,5,3,MUX,Sensor Power Voltage at the ICR
+39,MIN,MuxTest,12,V,23,NONE,7,5,3,Sensor Power,Sensor Power Voltage at the ICR
 40,MIN,LtVGACtl,12,V,23,NONE,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-41,MIN,NumCmds,4,-,0,NONE,0,0,0,None,Number of commands sent since last reset
-42,MIN,IHUsoftError,32,-,20,Computer Software,3,9,0,Soft Error,Diagnostic Data on IHU Software Errors
+41,MIN,NumCmds,4,-,34,NONE,7,6,3,Num of Commands,Number of commands sent since last reset
+42,MIN,IHUsoftError,32,-,20,Computer Software,3,8,0,Soft Error,Diagnostic Data on IHU Software Errors
 43,MIN,minTimestampReset,16,s,1,NONE,0,0,0,NONE,Timestamp Resets
 44,MIN,minTimestampUptime,25,s,1,NONE,0,0,0,NONE,Timestamp uptime
-45,MIN,SafeModeIndication,1,-,21,NONE,0,0,0,NONE,In safe mode?
+45,MIN,SafeModeActive,1,-,21,NONE,0,0,0,NONE,In safe mode?
 46,MIN,AutoSafeModeActive,1,-,21,NONE,0,0,0,NONE,In Autosafe mode?
 47,MIN,AutoSafeModeAllowed,1,-,21,NONE,0,0,0,NONE,Autosafe enabled?
-48,MIN,ScienceModeActive,1,-,21,NONE,0,0,0,Science Mode ,In Science Mode?
+48,MIN,ScienceModeActive,1,-,21,NONE,0,0,0,Science Mode,In Science Mode?
 49,MIN,pad1,19,-,0,NONE,0,0,0,NONE,Make it even
 50,MIN,pad2,32,-,0,NONE,0,0,0,NONE,Make it even

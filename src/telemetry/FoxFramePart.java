@@ -330,6 +330,12 @@ longer send telemetry.
 			s = hardErrorString(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR) {
 			s = softErrorString(getRawValue(name), true);
+			
+		// NEED TO ADD 1E values for:
+		// ICR	COMMAND COUNT - 8 LSBs are hardware, next 8 are software, 8 MSB are ignored
+		// ICR DIAGNOSTIC
+		// Fox1E IHU DIAGNOSTIC with updated command count.  Call same routine as above	
+			
 		} else {
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {

@@ -38,22 +38,22 @@
 36,WOD,ICR2dot5VProt,12,V,23,Command Receiver (ICR),7,4,3,2.5V Prot,ICR 2.5V Protected
 37,WOD,rf6,12,-,0,NONE,0,0,0,None,None
 38,WOD,rf7,12,-,0,NONE,0,0,0,None,None
-39,WOD,MuxTest,12,V,23,Command Receiver (ICR),7,5,3,MUX,Sensor Power Voltage at the ICR
+39,WOD,MuxTest,12,V,23,Command Receiver (ICR),7,5,3,Sensor Power,Sensor Power Voltage at the ICR
 40,WOD,LtVGACtl,12,V,23,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-41,WOD,NumCmds,4,-,0,NONE,0,0,0,None,Number of commands sent since last reset
+41,WOD,NumCmds,4,-,0,Command Receiver (ICR),7,6,0,Num of Commands,Number of commands sent since last reset
 42,WOD,IHUhardError,32,-,19,Computer Hardware,2,2,0,IHU Hard Error Data,Reason for last reset
 43,WOD,IHUdiagData,32,-,18,Computer Software,3,2,0,Diagnostic Data,Diagnostic Data on IHU Performance
 44,WOD,WODTimestampReset,16,-,1,NONE,0,0,0,WOD Timestamp Reset Count,Time Whole Orbit Data was collected
 45,WOD,WODTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Time Whole Orbit Data was collected
-46,WOD,SafeModeIndication,1,-,21,Computer Software,3,3,0,Safe Mode,Are we in safe mode?
+46,WOD,SafeModeActive,1,-,21,Computer Software,3,3,0,Safe Mode,Are we in safe mode?
 47,WOD,AutoSafeModeActive,1,-,21,Computer Software,3,4,0,Auto Safe Mode,Are we in safe mode?
 48,WOD,expFailure0,1,-,17,Experiments,6,2,0,Exp 1,Experiment 1 Failure Indicator
 49,WOD,expFailure1,1,-,17,Experiments,6,3,0,Exp 2,Experiment 2 Failure Indicator
 50,WOD,expFailure2,1,-,17,Experiments,6,4,0,Exp 3,Experiment 3 Failure Indicator
-51,WOD,ScienceModeActive,1,-,17,Computer Software,3,5,0,Science Mode ,Are we in science mode?
+51,WOD,ScienceModeActive,1,-,17,Computer Software,3,5,0,Science Mode,Are we in science mode?
 52,WOD,I2CfailureBatt,1,-,17,Computer Hardware,2,3,0,Battery I2C,Battery I2C Bus failure indicator
 53,WOD,I2CfailurePSU1,1,-,17,Computer Hardware,2,4,0,PSU1 I2C,PSU2 I2C Bus failure indicator
 54,WOD,I2CfailurePSU2,1,-,17,Computer Hardware,2,5,0,PSU2 I2C,PSU2 I2C Bus failure indicator
 55,WOD,I2CfailureRF,1,-,17,Computer Hardware,2,6,0,RF I2C,RF I2C Bus failure indicator
 56,WOD,WodCRCError,1,-,0,Computer Software,3,6,0,CRC Error,CRC Error on this WOD entry
-57,WOD,vgaCntl,12,V,23,NONE,0,0,0,VGA_CNTL,Variable Gain Amp Ctl Voltage
+57,WOD,pad,12,-,0,NONE,0,0,0,pad,NONE
