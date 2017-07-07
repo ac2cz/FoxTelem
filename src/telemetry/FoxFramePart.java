@@ -588,31 +588,31 @@ longer send telemetry.
 		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
 		public static final String[] SWOpsCommands = {
 		"Unknown",
-		"SWCmdOpsSafeMode",
-		"SWCmdOpsTransponderMode",
-		"SWCmdOpsScienceMode",
-		"SWCmdOpsDisableAutosafe",
-		"SWCmdOpsEnableAutosafe",
-		"SWCmdOpsClearMinMax",
-		"SWCmdOpsNoop",
-		"SWCmdOpsForceOffExp1",
-		"SWCmdOpsConfirmCommand"
+		"SafeMode",
+		"TransponderMode",
+		"ScienceMode",
+		"DisableAutosafe",
+		"EnableAutosafe",
+		"ClearMinMax",
+		"OpsNoop",
+		"ForceOffExp1",
+		"ConfirmCommand"
 		};
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
 		public static final String[] SWTlmCommands = {
 		"Unknown",
-		"SWCmdTlmGain",
-		"SWCmdTlmWODSaveSize",
-		"SWCmdTlmEncoding",
-		"SWCmdTlmFrequency"
+		"Gain",
+		"WODSaveSize",
+		"Encoding",
+		"Frequency"
 		};
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
 		public static final String[] SWExp1Commands = {
 		"Unknown",
-		"SWCmdExp1CycleTiming",
-		"SWCmdExp1SetBoard"
+		"CycleTiming",
+		"SetBoard"
 		};
 	
 	/**
@@ -636,13 +636,22 @@ longer send telemetry.
 			switch (nameSpace) {
 
 			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
-				s[i] = s[i] + "Ops: " + SWOpsCommands[value];
+				if (shortString)
+					s[i] = s[i] + "Ops";
+				else
+					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
 				break;
 			case SWCmdNSTelemetry: // Telemetry Control
-				s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
+				if (shortString)
+					s[i] = s[i] + "Tlm";
+				else
+					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
 				break;
 			case SWCmdNSExperiment1: // Experiment 1
-				s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
+				if (shortString)
+					s[i] = s[i] + "Exp1";
+				else
+					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
 			break;
 			default:
 				s[i] = s[i] + "ERR:" + nameSpace;

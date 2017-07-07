@@ -31,10 +31,10 @@ class IcrDiagnosticTableModel extends AbstractTableModel {
 		columnNames = new String[6];
 		columnNames[0] = "Resets";
 		columnNames[1] = "Uptime";
-		columnNames[2] = "Last Command";
-		columnNames[3] = "Command -1";
-		columnNames[4] = "Command -2";
-		columnNames[5] = "Command -3";
+		columnNames[2] = "";
+		columnNames[3] = "";
+		columnNames[4] = "";
+		columnNames[5] = "";
 	}
 	
     public void setData(String[][] d) { 

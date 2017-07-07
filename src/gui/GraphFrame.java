@@ -175,7 +175,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			this.skyPlot = showSkyChart;
 		
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
-//		setIconImage(img);
+//		setIconImage(img);	
 		
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));

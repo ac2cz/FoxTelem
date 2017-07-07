@@ -1,7 +1,9 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -58,6 +60,9 @@ public class DiagnosticTable extends JPanel {
 		graphFrame = gf;
 		fox = sat;
 		this.setLayout(new BorderLayout());
+		JLabel titleLabel = new JLabel(title);
+		titleLabel.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize + 3));
+		add(titleLabel, BorderLayout.NORTH);
 		table = addErrorTable();
 		updateData();
 	}

@@ -246,13 +246,13 @@ public abstract class Spacecraft {
 				track = Boolean.parseBoolean(t);
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
+			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );		
+			throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("File not found loading Spacecraft file: " + propertiesFile.getAbsolutePath());
+			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
 		}
 	}
 	

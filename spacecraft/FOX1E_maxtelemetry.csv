@@ -40,11 +40,11 @@
 38,MAX,rf7,12,-,0,NONE,0,0,0,None,None
 39,MAX,MuxTest,12,V,23,NONE,7,5,3,Sensor Power,Sensor Power Voltage at the ICR
 40,MAX,LtVGACtl,12,V,23,NONE,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-41,MAX,NumCmds,4,-,34,NONE,7,6,3,Num of Commands,Number of commands sent since last reset
+41,MAX,pad,4,-,34,NONE,7,6,3,None,Unused
 42,MAX,IHUhardError,32,-,19,Computer Hardware,2,7,0,IHU Hard Error Data,Reason for last reset
 43,MAX,maxTimestampReset,16,s,1,NONE,0,0,0,MAX Timestamp Reset Count,Timestamp of last max change
 44,MAX,maxTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Timestamp of last max change
-45,MAX,SafeModeActive,1,-,21,Computer Software,3,4,0,Safe Mode,In safe mode?
+45,MAX,SafeModeIndication,1,-,21,Computer Software,3,4,0,Safe Mode,In safe mode?
 46,MAX,AutoSafeModeActive,1,-,21,Computer Software,3,5,0,Auto Safe Mode,In Autosafe mode?
 47,MAX,AutoSafeModeAllowed,1,-,21,Computer Software,3,6,0,Auto Safe Allowed,Autosafe enabled?
 48,MAX,ScienceModeActive,1,-,21,Computer Software,3,7,0,Science Mode,In Science Mode?
