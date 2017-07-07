@@ -95,7 +95,6 @@ public class BitArrayLayout {
 	public static final int CONVERT_JAVA_DATE = 33;
 	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
 	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
-	public static final int CONVERT_FOX1E_IHU_DIAGNOSTIC = 36; // with changed numCmds structure
 
 	/**
 	 * Create an empty layout for manual init

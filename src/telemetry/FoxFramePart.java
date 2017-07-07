@@ -109,6 +109,8 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int UNKNOWN = 15;
 	public static final int IHU_SW_VERSION = 14;
 	//public static final int BUS_VOLTAGE_OVER_2 = 15;
+
+	
 	
 	// Flattened C ENUM for IHU Errors
 	public static final String[] ihuErrorType = {
@@ -330,12 +332,10 @@ longer send telemetry.
 			s = hardErrorString(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR) {
 			s = softErrorString(getRawValue(name), true);
-			
-		// NEED TO ADD 1E values for:
-		// ICR	COMMAND COUNT - 8 LSBs are hardware, next 8 are software, 8 MSB are ignored
-		// ICR DIAGNOSTIC
-		// Fox1E IHU DIAGNOSTIC with updated command count.  Call same routine as above	
-			
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
+			s = icrCommandCount(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
+			s = icrDiagnosticString(getRawValue(name), true);			
 		} else {
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
@@ -353,9 +353,6 @@ longer send telemetry.
 		return s;
 	}
 		
-	
-	
-	
 	/**
 	 * Given a raw value, BitArrayLayout.CONVERT_it into the actual value that we can display based on the
 	 * conversion type passed.  Field name is also used in some conversions, e.g. the batteries
@@ -449,6 +446,10 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_SOFT_ERROR:
 			return rawValue;
+		case BitArrayLayout.CONVERT_ICR_COMMAND_COUNT:
+			return rawValue;
+		case BitArrayLayout.CONVERT_ICR_DIAGNOSTIC:
+			return rawValue;
 		}
 		
 		return ERROR_VALUE;
@@ -509,10 +510,14 @@ longer send telemetry.
 				+ Integer.toHexString(n4) + " "+ Integer.toHexString(n5) + " "+ Integer.toHexString(n6);
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
+			if (fox.foxId == Spacecraft.FOX1E) {
+				return icrCommandCount(value, shortString);
+			} else {
 			if (shortString)
 				return "Count: " + value;
 			else
 				return "Number of commands received since boot: " + value;
+			}
 		case I2C1_ERRORS: // I2C1Errors
 			int writeTimeout = (rawValue >> 8) & 0xff;
 			int busBusyTimeout = (rawValue >> 16) & 0xff;
@@ -572,6 +577,111 @@ longer send telemetry.
 		return "-----" + type;
 	}
 
+	// Flattened C ENUM for ICRDiagnostic aka swCmds - COMMAND NAME SPACE
+		public static final int SWCmdNSSpaceCraftOps = 1;
+		public static final int SWCmdNSTelemetry = 2;
+		public static final int SWCmdNSExperiment1 = 3;
+		public static final int SWCmdNSExperiment2 = 4;
+		public static final int SWCmdNSExperiment3 = 5;
+		public static final int SWCmdNSExperiment4 = 6;
+
+		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
+		public static final String[] SWOpsCommands = {
+		"Unknown",
+		"SWCmdOpsSafeMode",
+		"SWCmdOpsTransponderMode",
+		"SWCmdOpsScienceMode",
+		"SWCmdOpsDisableAutosafe",
+		"SWCmdOpsEnableAutosafe",
+		"SWCmdOpsClearMinMax",
+		"SWCmdOpsNoop",
+		"SWCmdOpsForceOffExp1",
+		"SWCmdOpsConfirmCommand"
+		};
+
+		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
+		public static final String[] SWTlmCommands = {
+		"Unknown",
+		"SWCmdTlmGain",
+		"SWCmdTlmWODSaveSize",
+		"SWCmdTlmEncoding",
+		"SWCmdTlmFrequency"
+		};
+
+		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
+		public static final String[] SWExp1Commands = {
+		"Unknown",
+		"SWCmdExp1CycleTiming",
+		"SWCmdExp1SetBoard"
+		};
+	
+	/**
+	 * The Diagnostic String for the Improved Command Receiver shows a ring of the last commands.  There are 32 bits holding up
+	 * to four commands.  Each byte has the top 3 bits that hold the namespace and 5 bits for the command name	
+	 * @param rawValue
+	 * @param shortString
+	 * @return
+	 */
+	public static String[] icrDiagnosticStringArray(int rawValue, boolean shortString) {
+		String[] s = new String[4];
+		for (int i=0; i<4; i++) {
+			s[i] = "";
+			int value = rawValue & 0x1f; // bottom 5 bits hold the command
+			rawValue = rawValue >> 5;
+			int nameSpace = rawValue & 0x7; // Top 3 bits of the byte hold the command namespace
+			
+			if ( nameSpace == 0)
+				s[i] = s[i] + "---";
+			else
+			switch (nameSpace) {
+
+			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
+				s[i] = s[i] + "Ops: " + SWOpsCommands[value];
+				break;
+			case SWCmdNSTelemetry: // Telemetry Control
+				s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
+				break;
+			case SWCmdNSExperiment1: // Experiment 1
+				s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
+			break;
+			default:
+				s[i] = s[i] + "ERR:" + nameSpace;
+			}
+			rawValue = rawValue >> 3; // move to the next byte
+		}
+		return s;
+	}
+
+	public static String icrDiagnosticString(int rawValue, boolean shortString) {
+		String[] s = icrDiagnosticStringArray(rawValue, shortString);
+		String result = "---";
+		if (s[0] != null)
+			result = s[0];
+		for (int i=1; i< s.length; i++)
+			if (s[i] != null)
+				result = result + ", " + s[i];
+		return result;
+	}
+	
+	public static String icrCommandCount(int rawValue, boolean shortString) {
+		String s = new String();
+		if (rawValue != ERROR_VALUE) {
+			// First 8 bits are the hardware commands 
+			int hardwareCmds = rawValue & 0xff ;
+
+			// 8 MSBs are software command number
+			int softwareCmds = (rawValue >> 8) & 0xff;
+			
+			if (shortString)
+				s = s + "hw " + hardwareCmds + " "
+						+ "sw " + softwareCmds;
+			else
+				s = s + "Number of Hardware Cmds: " + hardwareCmds  + " "
+				+ " Software Cmds: " + softwareCmds;
+		}
+		return s;
+		}
+
 	/**
 	 * Decode the IHU Hard Error bits
 	 * @param rawValue
@@ -580,42 +690,42 @@ longer send telemetry.
 	public static String hardErrorString(int rawValue, boolean shortString) {
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
-		// First 9 bits are the watch dog 
-		int watchDogReports = rawValue & 0x1ff ;
-		
-		// Error code is the next 5 bits
-		int errorCode = (rawValue >> 9) & 0x1f;
+			// First 9 bits are the watch dog 
+			int watchDogReports = rawValue & 0x1ff ;
 
-		// mramErrorCount is the next 3 bits
-		int mramErrorCount = (rawValue >> 14) & 0x07;
+			// Error code is the next 5 bits
+			int errorCode = (rawValue >> 9) & 0x1f;
 
-		// nonFatalErrorCount is the next 3 bits
-		int nonFatalErrorCount = (rawValue >> 17) & 0x07;
+			// mramErrorCount is the next 3 bits
+			int mramErrorCount = (rawValue >> 14) & 0x07;
 
-		// taskNumber is the next 4 bits
-		int taskNumber = (rawValue >> 20) & 0x0f;
+			// nonFatalErrorCount is the next 3 bits
+			int nonFatalErrorCount = (rawValue >> 17) & 0x07;
 
-		// alignment is the next 8 bits
-		int alignment = (rawValue >> 24) & 0xff;
+			// taskNumber is the next 4 bits
+			int taskNumber = (rawValue >> 20) & 0x0f;
 
-		if (shortString)
-			s = s + "wd " + Integer.toHexString(watchDogReports) + " "
-				+ "ec " + Integer.toHexString(errorCode) + " "
-				+ "mr " + Integer.toHexString(mramErrorCount) + " "
-				+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
-				+ "tn " + Integer.toHexString(taskNumber) + " "
-				+ "al " + Integer.toHexString(alignment);
-		else
-			s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
-					+ " Error Type: " + ihuErrorType[errorCode] + " "
-					+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
-					+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
-					+ " Task Number: " + taskNumber + "- ";
-		if (taskNumber < ihuTask.length)
-			s = s + ihuTask[taskNumber];
-		else
-			s = s + "Unknown";
-		s = s + " Alignment: " + alignment;
+			// alignment is the next 8 bits
+			int alignment = (rawValue >> 24) & 0xff;
+
+			if (shortString)
+				s = s + "wd " + Integer.toHexString(watchDogReports) + " "
+						+ "ec " + Integer.toHexString(errorCode) + " "
+						+ "mr " + Integer.toHexString(mramErrorCount) + " "
+						+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
+						+ "tn " + Integer.toHexString(taskNumber) + " "
+						+ "al " + Integer.toHexString(alignment);
+			else
+				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
+						+ " Error Type: " + ihuErrorType[errorCode] + " "
+						+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
+						+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
+						+ " Task Number: " + taskNumber + "- ";
+			if (taskNumber < ihuTask.length)
+				s = s + ihuTask[taskNumber];
+			else
+				s = s + "Unknown";
+			s = s + " Alignment: " + alignment;
 		}
 		return s;
 	}
@@ -626,7 +736,7 @@ longer send telemetry.
 	public static final int wdReportUplinkCommandRxTask = 0x08;
 	public static final int wdReportIdleTask = 0x10;
 	public static final int wdReportExpTask = 0x20;
-	
+
 	/**
 	 * Decode the IHU Hard Error bits
 	 * @param rawValue
@@ -635,42 +745,42 @@ longer send telemetry.
 	public static String[] hardErrorStringArray(int rawValue, boolean shortString) {
 		String[] s = new String[6];
 		if (rawValue != ERROR_VALUE) {
-		// First 9 bits are the watch dog 
-		int watchDogReports = rawValue & 0x1ff ;
-		
-		// Error code is the next 5 bits
-		int errorCode = (rawValue >> 9) & 0x1f;
+			// First 9 bits are the watch dog 
+			int watchDogReports = rawValue & 0x1ff ;
 
-		// mramErrorCount is the next 3 bits
-		int mramErrorCount = (rawValue >> 14) & 0x07;
+			// Error code is the next 5 bits
+			int errorCode = (rawValue >> 9) & 0x1f;
 
-		// nonFatalErrorCount is the next 3 bits
-		int nonFatalErrorCount = (rawValue >> 17) & 0x07;
+			// mramErrorCount is the next 3 bits
+			int mramErrorCount = (rawValue >> 14) & 0x07;
 
-		// taskNumber is the next 4 bits
-		int taskNumber = (rawValue >> 20) & 0x0f;
+			// nonFatalErrorCount is the next 3 bits
+			int nonFatalErrorCount = (rawValue >> 17) & 0x07;
 
-		// alignment is the next 8 bits
-		int alignment = (rawValue >> 24) & 0xff;
+			// taskNumber is the next 4 bits
+			int taskNumber = (rawValue >> 20) & 0x0f;
 
-		s[0] = errorCode + " - " + ihuErrorType[errorCode];
-		s[1] = Integer.toHexString(alignment);
-		
-		s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
-		s[3] = Integer.toHexString(taskNumber) + " - ";
-		if (taskNumber < ihuTask.length)
-			s[3] = s[3] + ihuTask[taskNumber];
-		else
-			s[3] = s[3] + "Unknown";
-		s[4] = Integer.toHexString(mramErrorCount);
-		s[5] = Integer.toHexString(nonFatalErrorCount);
-		
-		
+			// alignment is the next 8 bits
+			int alignment = (rawValue >> 24) & 0xff;
+
+			s[0] = errorCode + " - " + ihuErrorType[errorCode];
+			s[1] = Integer.toHexString(alignment);
+
+			s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
+			s[3] = Integer.toHexString(taskNumber) + " - ";
+			if (taskNumber < ihuTask.length)
+				s[3] = s[3] + ihuTask[taskNumber];
+			else
+				s[3] = s[3] + "Unknown";
+			s[4] = Integer.toHexString(mramErrorCount);
+			s[5] = Integer.toHexString(nonFatalErrorCount);
+
+
 		}
 		return s;
 	}
 
-	
+
 	/**
 	 * Decode the IHU Soft error bits
 	 * @param rawValue
