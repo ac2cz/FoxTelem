@@ -416,6 +416,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 	
 	// FIXME - if we pass in the layout, then we would not need this lookup.  This logic SHOULD NOT BE HERE!
+	// Need to pass layout into DisplayModule and then to here
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FoxFramePart.TYPE_REAL_TIME)
@@ -1012,7 +1013,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		double[][][] graphData2 = null;
 		
 		graphData = new double[fieldName.length][][];
-		
+
 		for (int j=0; j < fieldName.length; j++) {
 			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 				graphData[j] = Config.payloadStore.getRtGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
@@ -1028,7 +1029,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
 				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
-
+			else if  (payloadType == FoxFramePart.TYPE_WOD) 
+				graphData[j] = Config.payloadStore.getGraphData(fieldName[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_LAYOUT);
+			else if  (payloadType == FoxFramePart.TYPE_WOD_RAD) 
+				graphData[j] = Config.payloadStore.getGraphData(fieldName[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_RAD_LAYOUT);
+			
 		}
 		if (fieldName2 != null) {
 			graphData2 = new double[fieldName.length][][];
@@ -1047,6 +1052,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					graphData2[j] = Config.payloadStore.getMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
 					graphData2[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				else if (payloadType == FoxFramePart.TYPE_WOD)
+					graphData2[j] = Config.payloadStore.getGraphData(fieldName2[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_LAYOUT);
+				else if (payloadType == FoxFramePart.TYPE_WOD_RAD)
+					graphData2[j] = Config.payloadStore.getGraphData(fieldName2[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_RAD_LAYOUT);		
+	
 			}
 		}
 		if (graphData != null) {
