@@ -70,6 +70,8 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	
 	public final int DEFAULT_DIVIDER_LOCATION = 500;
 	public static final String HEALTHTAB = "HEALTHTAB";
+	public static final String SAFE_MODE_IND = "SafeModeIndication";
+	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
 	
 	JPanel centerPanel;
 	
@@ -302,8 +304,11 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		lblResetsValue.setText("" + u);
 	}
 
-	protected void displayMode(int u) {
-		if (u == 1)
+	protected void displayMode(int safeMode, int scienceMode) {
+		
+		if (scienceMode == 1)
+			lblModeValue.setText("SCIENCE");
+		else if (safeMode == 1)
 			lblModeValue.setText("SAFE");
 		else {
 			// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
@@ -442,7 +447,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		displayUptime(lblMaxUptimeValue, maxPayload2.getUptime());
 		displayResets(lblMaxResetsValue, maxPayload2.getResets());
 		displayCaptureDate(maxPayload2.getCaptureDate());
-		displayMode(maxPayload2.getRawValue("SafeModeIndication"));
+		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
@@ -464,7 +469,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		displayUptime(lblMinUptimeValue, minPayload2.getUptime());
 		displayResets(lblMinResetsValue, minPayload2.getResets());
 		displayCaptureDate(minPayload2.getCaptureDate());
-		displayMode(minPayload2.getRawValue("SafeModeIndication"));
+		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
 	

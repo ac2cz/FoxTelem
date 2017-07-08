@@ -139,6 +139,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			Log.println("ERROR: Too many fields: " + e.getMessage() + " Could not load field "+i+ " frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 		} catch (NumberFormatException n) {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 		}
 	}
 }
