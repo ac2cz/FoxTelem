@@ -190,12 +190,12 @@ public class PayloadRadExpData extends FoxFramePart {
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < fieldValue.length-1; i++) {
-			//s = s + Decoder.dec(fieldValue[i]) + ",";
-			s = s + FoxDecoder.hex(fieldValue[i]) + ",";
+			s = s + FoxDecoder.dec(fieldValue[i]) + ",";
+			//s = s + FoxDecoder.hex(fieldValue[i]) + ",";
 		}
 		// add the final field with no comma delimiter
-		//s = s + Decoder.dec(fieldValue[fieldValue.length-1]);
-		s = s + FoxDecoder.hex(fieldValue[fieldValue.length-1]);
+		s = s + FoxDecoder.dec(fieldValue[fieldValue.length-1]);
+		//s = s + FoxDecoder.hex(fieldValue[fieldValue.length-1]);
 		return s;
 	}
 	
