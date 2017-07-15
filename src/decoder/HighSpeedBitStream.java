@@ -138,42 +138,37 @@ public class HighSpeedBitStream extends FoxBitStream {
 			}
 		}
 
-		if (Config.debugFrames)
+		if (Config.debugFrames || Config.debugRS)
 			Log.println("CAPTURED " + bytesInFrame + " high speed bytes");
 		
+		lastErasureNumber = 0;
+		lastErrorsNumber = 0;
 		
-
 		// Now Decode all of the RS words and put the bytes back into the 
 		// order we started with, but now with corrected data
 		//byte[] correctedBytes = new byte[RsCodeWord.DATA_BYTES];
 		for (int i=0; i < numberOfRsCodeWords; i++) {
 			if (numberOfErasures[i] < MAX_ERASURES) {
-//				lastErasureNumber += numberOfErasures[rsNum];
+				lastErasureNumber += numberOfErasures[rsNum];
+				//Log.println("LAST ERASURE: " + lastErasureNumber);
 				if (Config.useRSfec) {								
 					if (Config.useRSerasures) codeWords[rsNum].setErasurePositions(erasurePositions[i], numberOfErasures[i]);
 					codeWords[i].decode();  
-//					lastErrorsNumber += codeWords[i].getNumberOfCorrections();
+					lastErrorsNumber += codeWords[i].getNumberOfCorrections();
+					//Log.println("LAST ERRORS: " + lastErrorsNumber);
 					if (!codeWords[i].validDecode()) {
 						// We had a failure to decode, so the frame is corrupt
 						Log.println("FAILED RS DECODE FOR HS WORD " + i);
-//						lastErrorsNumber = lastErrorsNumber / i;
-//						lastErasureNumber = lastErasureNumber /i;
 						return null;
 					} else {
 						//Log.println("RS Decoder Successful for HS Data");
-						// Consume all of the bits up to this point, but not the end SYNC word
-						//removeBits(0, end-10);
 					}
 				}
 			} else {
-				if (Config.debugFrames) Log.println("Too many erasures, failure to decode");
-//				lastErrorsNumber = lastErrorsNumber / i;
-//				lastErasureNumber = lastErasureNumber /i;
+				if (Config.debugFrames || Config.debugRS) Log.println("Too many erasures, failure to decode");
 				return null;
 			}
 		}
-//		lastErrorsNumber = lastErrorsNumber / NUMBER_OF_RS_CODEWORDS;
-//		lastErasureNumber = lastErasureNumber /NUMBER_OF_RS_CODEWORDS;
 		// Consume all of the bits up to this point, but not the end SYNC word
 		removeBits(0, end-SYNC_WORD_LENGTH);
 
