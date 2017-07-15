@@ -241,6 +241,7 @@ public class Config {
 	// V1.05
 	static public int afSampleRate = 48000;
 	static public int totalFrames = 0;
+	static public boolean debugRS = false; // not saved or on GUI
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
