@@ -79,7 +79,7 @@ public class RawFrameQueue implements Runnable {
 		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort);
 		rawSlowSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
 		rawHighSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
-		rawPSKFrames = new SortedFrameArrayList(INIT_SIZE);
+		rawPSKFrames = new SortedFrameArrayList(INIT_SIZE); // FIXME - this is wastefull.  We allocate three frame queues in all cases.
 		try {
 			load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
 			load(RAW_HIGH_SPEED_FRAMES_FILE, Frame.HIGH_SPEED_FRAME);

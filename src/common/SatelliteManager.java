@@ -103,19 +103,13 @@ public class SatelliteManager {
 	
 	private void loadSats(File folder) {
 		File[] listOfFiles = folder.listFiles();
-		Pattern pattern = Pattern.compile("AO-73");
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".dat")) {
 					Log.println("Loading spacecraft from: " + listOfFiles[i].getName());
 					Spacecraft satellite = null;
 					try {
-						//FIXME - HACK FOR FCUBE
-						Matcher matcher = pattern.matcher(listOfFiles[i].getName());
-						if (matcher.find())
-							satellite = new FUNcubeSpacecraft(listOfFiles[i]);
-						else
-							satellite = new FoxSpacecraft(listOfFiles[i]);
+						satellite = Spacecraft.makeSpacecraft(listOfFiles[i]);
 					} catch (FileNotFoundException e) {
 						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
 						e.printStackTrace(Log.getWriter());

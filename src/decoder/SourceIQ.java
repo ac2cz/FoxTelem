@@ -28,6 +28,7 @@ public class SourceIQ extends SourceAudio {
 	public static final int MODE_FSK_HS = 1;
 	public static final int MODE_FSK_DUV = 2;
 	public static final int MODE_PSK = 3;
+	public static final int MODE_RAW_9600 = 4;
 	
 	private int mode = MODE_FSK_DUV;
 	
@@ -271,7 +272,7 @@ public class SourceIQ extends SourceAudio {
 		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
 		
 			
-		if (mode == MODE_FSK_HS) {
+		if (mode == MODE_FSK_HS || mode == MODE_RAW_9600) {
 			setFilterWidth(9600*2);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.

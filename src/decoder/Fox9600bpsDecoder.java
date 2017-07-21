@@ -58,7 +58,7 @@ public class Fox9600bpsDecoder extends FoxDecoder {
 		//	System.out.println(i++ + "," + d);
 	}
 	
-	private void setHighSpeedParameters() {
+	protected void setHighSpeedParameters() {
 		//decodedFrame = new HighSpeedFrame();
 		foxBitStream = new HighSpeedBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = HIGH_SPEED_BITS_PER_SECOND;

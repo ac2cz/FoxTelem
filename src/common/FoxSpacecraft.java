@@ -14,6 +14,12 @@ import java.util.TimeZone;
 
 import org.joda.time.DateTime;
 
+import decoder.Decoder;
+import decoder.Fox200bpsDecoder;
+import decoder.Fox9600bpsDecoder;
+import decoder.SourceAudio;
+import decoder.SourceIQ;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -85,12 +91,18 @@ public class FoxSpacecraft extends Spacecraft{
 		} catch (IndexOutOfBoundsException e) {
 			timeZero = null;
 		}
-		measurementLayout = new BitArrayLayout(measurementsFileName);
-		if (passMeasurementsFileName != null)
-			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
 		
 	}
 
+	public Decoder getDecoder(String n, SourceAudio as, int chan, int mode) {
+		if (mode == SourceIQ.MODE_FSK_DUV)
+			return new Fox200bpsDecoder(as, chan);
+		else if (mode == SourceIQ.MODE_PSK)
+			return new FoxBPSKDecoder(as, chan);
+		else
+			return new Fox9600bpsDecoder(as, chan);
+	}
+	
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
 	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yy");
 	
@@ -152,8 +164,6 @@ public class FoxSpacecraft extends Spacecraft{
 		
 		properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(BATTERY_CURRENT_ZERO));
 		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
-		properties.setProperty("measurementsFileName", measurementsFileName);
-		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		
 		store();
 	
@@ -214,9 +224,6 @@ public class FoxSpacecraft extends Spacecraft{
 		
 			useIHUVBatt = Boolean.parseBoolean(getProperty("useIHUVBatt"));
 
-			measurementsFileName = getProperty("measurementsFileName");
-			passMeasurementsFileName = getProperty("passMeasurementsFileName");
-			
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );

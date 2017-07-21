@@ -6,6 +6,8 @@ import java.io.FileNotFoundException;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.Decoder;
+import decoder.SourceAudio;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -57,14 +59,9 @@ public class FUNcubeSpacecraft extends Spacecraft {
 	}
 
 	@Override
-	protected void load() throws LayoutLoadException {
-		super.load();
-		
-	}
-
-	@Override
-	protected void save() {
-		super.save();
+	public Decoder getDecoder(String n, SourceAudio as, int chan, int mode) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

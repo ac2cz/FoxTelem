@@ -80,8 +80,10 @@ public class SpacecraftTab extends JPanel {
 		if (closeGraphs) healthTab.closeGraphs();
 		tabbedPane.remove(healthTab);
 
-		if (closeGraphs) radiationTab.closeGraphs();
-		tabbedPane.remove(radiationTab);
+		if (closeGraphs && radiationTab != null) {
+			radiationTab.closeGraphs();
+			tabbedPane.remove(radiationTab);
+		}
 
 		if (herciTab != null)
 			if (closeGraphs) herciTab.closeGraphs();

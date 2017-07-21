@@ -61,6 +61,7 @@ import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
 import decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.KiwiSat.KiwiSatDecoder;
 import device.Device;
 import device.DeviceException;
 import device.DevicePanel;
@@ -143,6 +144,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JPanel SDRpanel;
 	JRadioButton highSpeed;
 	JRadioButton psk;
+	JRadioButton raw9600;
 	JRadioButton lowSpeed;
 	JRadioButton auto;
 	JRadioButton WFM;
@@ -492,22 +494,27 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		panel_2.setMinimumSize(new Dimension(10, 35));
 		panel_2.setLayout(new BoxLayout(panel_2, BoxLayout.X_AXIS));
 		
-		JLabel lblSource = new JLabel("Source");	
+		JLabel lblSource = new JLabel("Decoder");	
 		panel_2.add(lblSource);
 		lblSource.setAlignmentX(Component.LEFT_ALIGNMENT);
 		lblSource.setMinimumSize(new Dimension(180, 14));
 		lblSource.setMaximumSize(new Dimension(180, 14));
-		
-		lowSpeed = addRadioButton("DUV", panel_2 );
+
+		lowSpeed = addRadioButton("FOX DUV", panel_2 );
 		highSpeed = addRadioButton("High Speed", panel_2 );
-		psk = addRadioButton("PSK", panel_2 );
-//		highSpeed = addRadioButton("High Speed", panel_2 );
 		auto = addRadioButton("Auto", panel_2 );
+		JLabel lblDIV = new JLabel(" | ");	
+		panel_2.add(lblDIV);
+		psk = addRadioButton("PSK", panel_2 );
+		raw9600 = addRadioButton("9k6 RAW", panel_2 );
+//		highSpeed = addRadioButton("High Speed", panel_2 );
+		
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
 		group.add(psk);
 		group.add(auto);
+		group.add(raw9600);
 		
 		if (Config.autoDecodeSpeed) {
 			auto.setSelected(true);
@@ -522,6 +529,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		} else if (Config.mode == SourceIQ.MODE_PSK){
 			psk.setSelected(true);
 			enableFilters(true);
+		} else if (Config.mode == SourceIQ.MODE_RAW_9600){
+			raw9600.setSelected(true);
+			enableFilters(false);
 		}
 		
 		JPanel centerPanel = new JPanel();		
@@ -1288,8 +1298,10 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			}
 		} else if (this.psk.isSelected()) 
 			decoder1 = new FoxBPSKDecoder(audioSource, 0); // test PSK decoder
-		else if (highSpeed) {
-			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+		else if (this.raw9600.isSelected()) {
+			decoder1 = new KiwiSatDecoder(audioSource, 0);
+		} else if (highSpeed) {
+				decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}

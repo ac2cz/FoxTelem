@@ -14,7 +14,7 @@ public class BitStream extends CircularBuffer {
 	protected ArrayList<Integer> syncWords = new ArrayList<Integer>(); // The positions of all the SYNC words we have found
 	protected ArrayList<SyncPair> framesTried = new ArrayList<SyncPair>(); // keep track of the SYNC word combinations that we have already tried
 	
-	Decoder decoder;
+	protected Decoder decoder;
 	
 	public BitStream(int initialSize, Decoder decoder) {
 		super(initialSize);

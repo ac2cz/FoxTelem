@@ -9,6 +9,10 @@ import java.util.Properties;
 
 import org.joda.time.DateTime;
 
+import FuncubeDecoder.FUNcubeSpacecraft;
+import decoder.Decoder;
+import decoder.SourceAudio;
+import decoder.KiwiSat.KiwiSatSpacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
@@ -31,19 +35,8 @@ public abstract class Spacecraft {
 	public static final int FOX1E = 5;
 	public static final int FUN_CUBE1 = 100;
 	public static final int FUN_CUBE2 = 101;
+	public static final int KIWI_SAT = 102;
 	
-	// Primary Payloads
-//	public static String RT_LOG = "";
-//	public static String MAX_LOG = "";
-//	public static String MIN_LOG = "";
-//	public static String RAD_LOG = "";
-
-	// Secondary payloads - decoded from the primary payloads
-//	public static String RAD_TELEM_LOG = "";
-
-//	public static String HERCI_LOG = "";
-//	public static String HERCI_HEADER_LOG = "";
-//	public static String HERCI_PACKET_LOG = "";
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
 	public static final String REAL_TIME_LAYOUT = "rttelemetry";
@@ -121,10 +114,48 @@ public abstract class Spacecraft {
             "1 40967U 15058D   16111.35540844  .00000590  00000-0  79740-4 0 01029",
             "2 40967 064.7791 061.1881 0209866 223.3946 135.0462 14.74939952014747"};
 	
+	/**
+	 * Factory method to create the right Spacecraft given the spacecraft ID
+	 * @param fileName
+	 * @return
+	 * @throws FileNotFoundException
+	 * @throws LayoutLoadException
+	 */
+	public static Spacecraft makeSpacecraft(File fileName) throws FileNotFoundException, LayoutLoadException {
+		Properties properties = new Properties();
+		try {
+			FileInputStream f=new FileInputStream(fileName);
+			properties.load(f);
+		} catch (IOException e) {
+			throw new LayoutLoadException("Could not load spacecraft files: " + fileName.getAbsolutePath());
+		}
+		try {
+			int foxId = Integer.parseInt(properties.getProperty("foxId"));
+			switch (foxId) {
+			case FUN_CUBE1:
+				return new FUNcubeSpacecraft(fileName);
+			case FUN_CUBE2:
+				return new FUNcubeSpacecraft(fileName);
+			case KIWI_SAT:
+				return new KiwiSatSpacecraft(fileName);
+			default:
+				return new FoxSpacecraft(fileName);
+			}
+		} catch (NumberFormatException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + fileName.getAbsolutePath() );
+		} catch (NullPointerException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + fileName.getAbsolutePath() );		
+		}
+	}
+	
 	public Spacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
 		propertiesFile = fileName;		
 	}
+	
+	public abstract Decoder getDecoder(String n, SourceAudio as, int chan, int mode);
 	
 	public boolean isFox1() {
 		if (foxId < 10) return true;
@@ -202,6 +233,12 @@ public abstract class Spacecraft {
 			telemetryDownlinkFreqkHz = Integer.parseInt(getProperty("telemetryDownlinkFreqkHz"));			
 			minFreqBoundkHz = Integer.parseInt(getProperty("minFreqBoundkHz"));
 			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
+			measurementsFileName = getProperty("measurementsFileName");
+			passMeasurementsFileName = getProperty("passMeasurementsFileName");
+			
+			measurementLayout = new BitArrayLayout(measurementsFileName);
+			if (passMeasurementsFileName != null)
+				passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
 
 			
 			// Frame Layouts
@@ -294,6 +331,9 @@ public abstract class Spacecraft {
 		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
 		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
 		properties.setProperty("track", Boolean.toString(track));
+		properties.setProperty("measurementsFileName", measurementsFileName);
+		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
+
 	}
 	
 	public String getIdString() {

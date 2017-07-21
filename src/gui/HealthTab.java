@@ -231,11 +231,11 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
 					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
-		} else 	if (max == null ) {
+		} else 	if (fox.isFox1() && max == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
 					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
-		} else if (min == null ) {
+		} else if (fox.isFox1() && min == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
 					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
