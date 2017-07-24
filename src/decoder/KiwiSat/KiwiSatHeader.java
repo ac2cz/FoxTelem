@@ -30,9 +30,13 @@ import telemetry.SlowSpeedFrame;
  */
 public class KiwiSatHeader extends Header {
 	
+	String address;
+	int control;
+	int pid;
+	
 	protected KiwiSatHeader() {
 		super();
-		MAX_BYTES = SlowSpeedFrame.MAX_HEADER_SIZE;
+		MAX_BYTES = KiwiSatFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 		id = Spacecraft.KIWI_SAT;
 		resets = 0; // THIS IS A FOX CONCEPT AND LIKELY FIXED AT ZERO FOR NON FOX SPACECRAFT
@@ -44,7 +48,14 @@ public class KiwiSatHeader extends Header {
 	public void copyBitsToFields() {
 		// THE HEADER DOES NOT HAVE A LAYOUT FILE, SO WE SPECIFY THE BIT POSITIONS HERE
 		resetBitPosition();
-		uptime = nextbits(25);
+		char ch = 0;
+		for (int i=0; i<14; i++) {
+			ch = (char) nextbits(8);
+			address = address + ch;
+		}
+		control = nextbits(8);
+		pid = nextbits(8);
+		
 		
 	}
 
@@ -55,7 +66,9 @@ public class KiwiSatHeader extends Header {
 		
 		s = s + "AMSAT-NL KiwiSat Telemetry Captured at: " + reportDate() + "\n" 
 				+ "ID: " + FoxDecoder.dec(id) 
-				+ " UPTIME: " + FoxDecoder.dec(uptime);
+				+ " ADDRESS: " + address
+				+ " CONTROL: " + control
+				+ " PID: " + pid;
 		return s;
 	}
 

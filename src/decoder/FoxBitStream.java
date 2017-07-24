@@ -3,6 +3,7 @@ package decoder;
 import common.Config;
 import common.Log;
 import common.Performance;
+import decoder.KiwiSat.CodeHDLC;
 import telemetry.Frame;
 import telemetry.FoxFramePart;
 import telemetry.HighSpeedHeader;
@@ -92,9 +93,8 @@ public abstract class FoxBitStream extends BitStream {
 				// Check the last SYNC_WORD_LENGTH bits in the bit stream for the end of frame market
 				int word = binToInt(syncWord);
 				if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
-				//if ((findFramesWithPRN && (word == CodePRN.FRAME )) ||
-				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
-				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
+//////////////////////				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
+					!findFramesWithPRN && (word == CodeHDLC.FRAME || word == CodeHDLC.NOT_FRAME)) {
 					found = true;
 					syncWords.add(i+1);
 					if (Config.debugFrames) {
@@ -181,7 +181,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * @param end
 	 * @return
 	 */
-	private boolean newFrame(int start, int end) {
+	protected boolean newFrame(int start, int end) {
 		for (int i=0; i<framesTried.size(); i++) {
 			if (framesTried.get(i).equals(start, end))
 				return false;
@@ -296,9 +296,8 @@ public abstract class FoxBitStream extends BitStream {
 	 * @throws LookupException 
 	 */
 	protected byte processWord(int j) throws LookupException {
-		if (Config.debugBits) printBitArray(get10Bits(j));
-
-		int word = binToInt(get10Bits(j));
+		if (Config.debugBits) printBitArray(getNBitsFromPos(DATA_WORD_LENGTH, j));
+		int word = binToInt(getNBitsFromPos(DATA_WORD_LENGTH, j));
 		byte word8b;
 		try {
 			word8b = Code8b10b.decode(word, decoder.flipReceivedBits);
@@ -344,21 +343,22 @@ public abstract class FoxBitStream extends BitStream {
 	 * true if the bit stream has at least 10 bits in it
 	 * @return
 	 */
-	public boolean has10() {
-		if (this.size() > 9)
+	public boolean hasN(int N) {
+		if (this.size() > N - 1)
 			return true;
 		return false;
 	}
 
 	/**
-	 * Return 10 bits from n to n + 9
-	 * @param n
+	 * Return N bits from n to n + N - 1
+	 * @param N - The number of bits
+	 * @param n - The position in the bit stream
 	 * @return
 	 */
-	public boolean[] get10Bits(int n) {
-		if (this.size() > n + 9) {
-			boolean[] b = new boolean[10];
-			for (int j=0; j < 10; j++)
+	public boolean[] getNBitsFromPos(int N, int n) {
+		if (this.size() > n + N - 1) {
+			boolean[] b = new boolean[N];
+			for (int j=0; j < N; j++)
 				b[j] = this.get(n+j);
 			return b;
 		}
@@ -369,11 +369,11 @@ public abstract class FoxBitStream extends BitStream {
 	 * Returns the last 10 bits of the bitStream
 	 * @return
 	 */
-	public boolean[] last10() {
-		if (!has10()) return null;
-		boolean[] b = new boolean[10];
-		for (int j=0; j < 10; j++)
-			b[j] = this.get(this.size()-10+j);
+	public boolean[] lastN(int N) {
+		if (!hasN(N)) return null;
+		boolean[] b = new boolean[N];
+		for (int j=0; j < N; j++)
+			b[j] = this.get(this.size()-N+j);
 		return b;
 	}
 	
@@ -452,7 +452,7 @@ public abstract class FoxBitStream extends BitStream {
 	}
 	
 	public String toString() {
-		if (!has10()) return "";
+		if (!hasN(DATA_WORD_LENGTH)) return "";
 		String s = new String();
 		for (int i=this.size()-10; i< this.size(); i++)
 			s = s + this.get(i) + " ";
@@ -465,11 +465,11 @@ public abstract class FoxBitStream extends BitStream {
 		}
 	}
 	
-	class SyncPair {
+	public class SyncPair {
 		int word1;
 		int word2;
 		
-		SyncPair(int a, int b) {
+		public SyncPair(int a, int b) {
 			word1 = a;
 			word2 = b;
 		}

@@ -34,8 +34,8 @@ public abstract class Spacecraft {
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
 	public static final int FUN_CUBE1 = 100;
-	public static final int FUN_CUBE2 = 101;
-	public static final int KIWI_SAT = 102;
+	public static final int FUN_CUBE2 = 102;
+	public static final int KIWI_SAT = 101;
 	
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";

@@ -144,7 +144,7 @@ public class SatelliteManager {
 	 */
 	public BitArrayLayout getLayoutByName(int sat, String name) {
 		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.getLayoutByName(name);
 		return null;
 	}
@@ -243,6 +243,7 @@ public class SatelliteManager {
 	
 	public boolean validFoxId(int id) {
 		if (id > 0 && id < 6) return true;
+		if (id == Spacecraft.KIWI_SAT) return true;
 		return false;
 	}
 	

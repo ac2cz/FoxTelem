@@ -264,12 +264,16 @@ public abstract class Frame implements Comparable<Frame> {
 		foxId = header.getFoxId();
 		length = Integer.toString(byteLen * 8);
 
+		if (foxId < 10) {
 		if (this instanceof SlowSpeedFrame) {
 			source = SOURCES[foxId][DUV_FRAME];
 		} else if (this instanceof HighSpeedFrame){
 			source = SOURCES[foxId][HIGH_SPEED_FRAME];
 		} else {
 			source = SOURCES[foxId][0]; // first value
+		}
+		} else {
+			source = "test";
 		}
 
 	}

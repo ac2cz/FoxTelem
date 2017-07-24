@@ -42,14 +42,16 @@ import telemetry.RadiationTelemetry;
 	 */
 	public class KiwiSatFrame extends Frame {
 		
-		public static final int MAX_FRAME_SIZE = 221;
-		public static final int MAX_HEADER_SIZE = 17;
-		public static final int PAYLOAD_SIZE = 202;
-		public static final int MAX_PAYLOAD_SIZE = MAX_FRAME_SIZE - MAX_HEADER_SIZE; 
-		public static final int MAX_TRAILER_SIZE = 2;
+		public static final int MAX_HEADER_SIZE = 16; // HDLC Header is 14 bytes address 1 byte control 1 byte PID
+		public static final int PAYLOAD_SIZE = 203; // The whole KISS RAW Frame is 221 bytes plus two start/end bytes
+		public static final int MAX_TRAILER_SIZE = 2; // This is the error check number
+		
+		public static final int MAX_FRAME_SIZE = MAX_HEADER_SIZE + PAYLOAD_SIZE + MAX_TRAILER_SIZE;
+		public static final int MAX_PAYLOAD_SIZE = PAYLOAD_SIZE; 
+		
 		
 		// MAKING THIS A REAL TIME LAYOUT MEANS THAT THE LAYOUT DETAILS GO IN THE LAYOUT FILE ATTACHED TO rttelemetry
-		public KiwiSatTelemetryPayload payload = new KiwiSatTelemetryPayload(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+		public KiwiSatTelemetryPayload payload = new KiwiSatTelemetryPayload(Config.satManager.getLayoutByName(Spacecraft.KIWI_SAT, Spacecraft.REAL_TIME_LAYOUT));
 		
 		HighSpeedTrailer trailer = null;
 
@@ -84,8 +86,10 @@ import telemetry.RadiationTelemetry;
 				}
 				// WE ADD THE BYTES TO THE PAYLOAD(S) HERE. ADD ANY LOGIC TO POPULATE THE PAYLOADS
 				payload.addNext8Bits(b);
-			} else
+			} else {
 				Log.println("ERROR: attempt to add byte past end of frame");
+				corrupt = true;
+			}
 
 			bytes[numberBytesAdded] = b;
 			numberBytesAdded++;

@@ -41,8 +41,8 @@ import telemetry.FoxBPSK.FoxBPSKHeader;
  */
 public class KiwiSatDecoder extends Fox9600bpsDecoder {
 	public static final int HIGH_SPEED_BITS_PER_SECOND = 9600;
-	public static final int WORD_LENGTH = 10; // 8 data bits 1 stop bit No parity.  Start is 0, then 8 data bits, then Stop is 1 - https://en.wikipedia.org/wiki/Asynchronous_serial_communication
-	public static final int SYNC_WORD_LENGTH = 10;  // This will be the KISS FRAME Start/End
+	public static final int WORD_LENGTH = 8; // 8 data bits 1 stop bit No parity.  Start is 0, then 8 data bits, then Stop is 1 - https://en.wikipedia.org/wiki/Asynchronous_serial_communication
+	public static final int SYNC_WORD_LENGTH = 8;  // This will be the KISS FRAME Start/End
 	
 	public KiwiSatDecoder(SourceAudio as, int chan) {
 		super(as, chan);
@@ -100,6 +100,49 @@ public class KiwiSatDecoder extends Fox9600bpsDecoder {
 			Performance.endTimer("Store");
 		} else {
 			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
+		}
+	}
+	
+	int dCount = 0;
+	boolean lastState = true;
+	Scrambler scrambler = new Scrambler();
+	/**
+	 * KiwiSAT uses HDLC framing.  This is NRX-I encoded such that a logical zero is marked by a change of state. No change of state means
+	 * a 1.
+	 * The bits are also run through a scrambler per the G3RUH spec.  
+	 */
+	protected void sampleBuckets() {
+		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
+			sampleNumber++;
+			int sampleSum = 0;
+			int samples = 0;
+			for (int s=bucketSize/2-SAMPLE_WIDTH; s <= bucketSize/2+SAMPLE_WIDTH; s++) {
+				sampleSum = sampleSum + dataValues[i][s];
+				samples++;				
+			}
+			sampleSum = sampleSum/samples; // get the average value
+			boolean currentState;
+			
+			if (sampleSum >= zeroValue) {
+				currentState = true;
+				eyeData.setHigh(sampleSum);
+			} else {
+				currentState = false;
+				eyeData.setLow(sampleSum);
+			}
+			
+			if (currentState == lastState) {
+				middleSample[i] = scrambler.decode(true);
+			} else {
+				middleSample[i] = scrambler.decode(false);
+			}
+			lastState = currentState;
+			
+			//DEBUG
+			//if (middleSample[i]) System.out.print(1); else System.out.print(0);
+			//dCount++;
+			//if (dCount % 40 == 0) System.out.println();
+			//if (dCount > 2048) System.exit(0);
 		}
 	}
 	

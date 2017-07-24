@@ -29,9 +29,11 @@ import decoder.LookupException;
  * 
  *
  */
-public class Code8N1 {
+public class CodeHDLC {
 	
-	
+	// Both frame markers are the same because HDLC is NRZ-I, so the sense of the bits does not matter, only the transitions matter
+	public static final int NOT_FRAME = /* 07e */ 0x7e & 0xff;
+	public static final int FRAME = /* 07e */ 0x7e & 0xff;
 	/**
 	 * Given a 10 bit word, return the 8 bit value
 	 * @param word - the 10 bit word
@@ -40,7 +42,7 @@ public class Code8N1 {
 	 * 
 	 */
 	public static byte decode(int word, boolean flip) throws LookupException {
-		if (flip) word = ~word & 0xff;
+		if (flip) word = ~word & 0x3ff;
 		// Is the start bit 0
 		int start = 0x1 & word;
 		//if (start != 0) throw new LookupException();

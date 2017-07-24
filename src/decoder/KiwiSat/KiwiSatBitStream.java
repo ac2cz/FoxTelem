@@ -2,15 +2,20 @@ package decoder.KiwiSat;
 
 import common.Config;
 import common.Log;
+import common.Performance;
 import decoder.Code8b10b;
 import decoder.Decoder;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import decoder.HighSpeedBitStream;
 import decoder.LookupException;
+import decoder.SourceIQ;
+import decoder.FoxBitStream.SyncPair;
 import telemetry.Frame;
 import telemetry.HighSpeedFrame;
+import telemetry.HighSpeedHeader;
 import telemetry.SlowSpeedFrame;
+import telemetry.SlowSpeedHeader;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import fec.RsCodeWord;
 
@@ -74,29 +79,87 @@ It could also form the basis of an asynchronous amateur packet radio link protoc
 
  */
 @SuppressWarnings("serial")
-public class KiwiSatBitStream extends HighSpeedBitStream {
-	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5735;   // NEED TO SET THIS TO THE TOTAL LENGTH OF KIWI-SAT FRAME
+public class KiwiSatBitStream extends FoxBitStream {
+	public static int HIGH_SPEED_SYNC_WORD_DISTANCE = 1760; //8*(KiwiSatFrame.MAX_FRAME_SIZE+2);   // NEED TO SET THIS TO THE TOTAL LENGTH OF KIWI-SAT HDLC FRAME
 	public static int NUMBER_OF_RS_CODEWORDS = 3; // WONT NEED THIS
+
+	// KISS Frame control characters
 	public static int FEND = 0xC0; // Frame  End                         C0  
 	public static int FESC = 0xDB; // Frame  Escape                      DB 
 	public static int TFEND = 0xDC; // Transposed Frame End               DC 
 	public static int TFESC = 0xDD; // Transposed Frame Escape            DD
-	
-	public KiwiSatBitStream(Decoder dec, int wordLength, int syncWordLnegth) {
-		super(dec, wordLength, syncWordLnegth);
-		SYNC_WORD_LENGTH = syncWordLnegth;
-		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
+
+	public KiwiSatBitStream(Decoder dec, int wordLength, int syncWordLength) {
+		super(HIGH_SPEED_SYNC_WORD_DISTANCE*8, wordLength,syncWordLength, dec);
+		SYNC_WORD_LENGTH = syncWordLength;
+		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
-		maxBytes = FoxBPSKFrame.getMaxBytes();
-		frameSize = FoxBPSKFrame.MAX_FRAME_SIZE;
-		numberOfRsCodeWords = 0; // WE WONT USE RS DECODER
-		rsPadding = new int[0]; // NO PADDING OF RS WORDS
-		findFramesWithPRN = true; // ASSUME WE CAN SPOT FRAMES WITH A STRING OF BITS
+		//maxBytes = FoxBPSKFrame.getMaxBytes();
+		//frameSize = FoxBPSKFrame.MAX_FRAME_SIZE;
+		//numberOfRsCodeWords = 0; // WE WONT USE RS DECODER
+		//rsPadding = new int[0]; // NO PADDING OF RS WORDS
+		findFramesWithPRN = false; // ASSUME WE CAN SPOT FRAMES WITH A STRING OF BITS
 	}
-	
+
+	int bitStuffCount = 0;
+	/**
+	 * Adds a bit at the end remove bit stuffing.
+	 * If the Tx sees 5 1s in a row then it adds a 0.  If we see 5 1s in a row and the next value is a 0, then 
+	 * it should be removed.  If it is a 1, then it is a SYNC word and it should be left.
+	 * @param n
+	 */
+	public void addBit(boolean n) {
+		if (bitStuffCount == 5 && n == false) {
+			bitStuffCount = 0;
+			return; // we don't add the bit
+		}
+		if (bitStuffCount == 7) {
+			//System.err.println("FRAME ERROR: 7 1 bits");
+			bitStuffCount = 0; // we should abort the frame, but this might have been noise and perhaps we can recover?
+			purgeBits();
+		}
+		if (n == true) bitStuffCount++;
+		super.addBit(n);
+	}
+
+	public Frame findFrames() {
+
+		Performance.startTimer("findFrames:decode");
+
+		// For HDLC frames we do not rely on the distance between frames, instead we check all sync words that are at least a certain threshold apart.
+		int start;
+		int end;
+		// We have no expensive RS Decode so we can check as many as we like
+		for (int i=0; i<syncWords.size()-1; i++ ) {
+			start = syncWords.get(i);
+			for (int e=i+1; e<syncWords.size(); e++) {
+				end = syncWords.get(e);
+				if (start != FRAME_PROCESSED) {
+					if (end-start >= 8*200 && end-start <= 8*(KiwiSatFrame.MAX_FRAME_SIZE+10)) { // at least this long surely!
+
+						if (newFrame(start, end)) {
+							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/DATA_WORD_LENGTH + " bytes");
+							Frame frame = decodeFrame(start,end);
+
+							if (frame == null) {
+								framesTried.add(new SyncPair(start,end));
+								return null;
+
+							}
+							return frame;
+						}
+					}
+				}
+			}
+		}
+		Performance.endTimer("findFrames:decode");
+
+		return null;
+	}
+
 	/**
 	 * Attempt to decode the PSK 1200bps Speed Frame
-	 * 
+	 *
 	 */
 	public Frame decodeFrame(int start, int end) {
 		byte[] rawFrame = decodeBytes(start, end);
@@ -105,30 +168,98 @@ public class KiwiSatBitStream extends HighSpeedBitStream {
 		kiwiFrame.addRawFrame(rawFrame);
 		return kiwiFrame;
 	}
-	
+
 	/**
-	 * Decode the 8N1 10 bit word that starts at position j and extends to j+9
+	 * Decode the HDLC 8 bit word that starts at position j and extends to j+9
 	 * @param j
-	 * @return - an array containing the 8 bits
+	 * @return - an byte containing the 8 bits
 	 * @throws LookupException 
 	 */
 	protected byte processWord(int j) throws LookupException {
-		if (Config.debugBits) printBitArray(get10Bits(j));
+		int word = binToInt(getNBitsFromPos(DATA_WORD_LENGTH, j));
+		char ch = (char)word;
+		if (Config.debugBits) Log.print(word + ":" + ch + " ");
+		if (Config.debugBits) printBitArray(getNBitsFromPos(DATA_WORD_LENGTH, j));
 
-		int word = binToInt(get10Bits(j));
-		byte word8b;
-		try {
-			word8b = Code8N1.decode(word, decoder.flipReceivedBits);
+		byte word8b = (byte) (word & 0xFF);
+		return word8b;
+	}
 
-			if (Config.debugBits) Log.print(j + ": 10b:" + FoxDecoder.hex(word));	
-			if (Config.debugBits) Log.print(" 8b:" + FoxDecoder.hex(word8b) + "\n");
-			if (Config.debugBits) printBitArray(intToBin8(word8b));
-			return word8b;
-		} catch (LookupException e) {
-			if (Config.debugBits) Log.print(j + ": 10b:" + FoxDecoder.hex(word));	
-			if (Config.debugBits) Log.print(" 8b: -1" + "\n\n");
-			
-			throw e;
+
+	protected byte[] decodeBytes(int start, int end) {
+		Log.println("TRIED KIWI FRAME from: "+start + " to " + end);
+
+		int bytesInFrame = 0; 
+
+		byte[] rawFrame = new byte[KiwiSatFrame.MAX_FRAME_SIZE];
+
+		if (rawFrame.length != SYNC_WORD_DISTANCE/10-1)
+			Log.println("WARNING: Frame length " + rawFrame.length + " bytes is different to default SYNC word distance "+ (SYNC_WORD_DISTANCE/10-1));
+
+		// We have found a frame, so process it. start is the first bit of data
+		// end is the first bit after the second SYNC word.  We do not 
+		// want to pass the SYNC word to the FRAME, so we process all the 
+		// bits up to but not including end-SYNC_WORD_LENGTH.
+		int f=0; // position in the Rs code words as we allocate bits to them
+		//int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
+
+		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
+		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
+
+			byte b8 = -1;
+			try {
+				b8 = processWord(j);
+			} catch (LookupException e) {
+
+			}
+			rawFrame[bytesInFrame++] = b8;
+
+			if (bytesInFrame == KiwiSatFrame.MAX_FRAME_SIZE-2) {  
+				// first parity byte
+				//Log.println("parity");
+				// Reset to the first code word
+
+				//Next byte position in the codewords
+				f++;
+			}
+
+
 		}
+
+		if (Config.debugFrames || Config.debugRS)
+			Log.println("CAPTURED " + bytesInFrame + " high speed bytes");
+
+		lastErasureNumber = 0;
+		lastErrorsNumber = 0;
+
+
+		// Consume all of the bits up to this point, but not the end SYNC word
+		removeBits(0, end-SYNC_WORD_LENGTH);
+
+		f=0;
+
+		boolean readingParity = false;
+		// We have corrected the bytes, now allocate back to the rawFrame and add to the frame
+
+		return rawFrame;
+
+	}
+
+	/**
+	 * Given a set of bits, convert it into an integer
+	 * The LEAST significant bit is in the lowest index of the array. e.g. 1 0 0 will have the value 1, with the 1 in array position 0
+	 * We therefore start from the lowest array index, 
+	 * @param word10
+	 * @return
+	 */
+	public static int binToInt(boolean[] word10) {
+		int d = 0;
+
+		for (int i=0; i<word10.length; i++) {
+			int value = 0;
+			if (word10[i]) value = 1;
+			d = d + (value << i);
+		}
+		return d;
 	}
 }

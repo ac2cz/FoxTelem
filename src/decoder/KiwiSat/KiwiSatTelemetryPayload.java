@@ -39,6 +39,7 @@ public class KiwiSatTelemetryPayload extends FoxFramePart {
 	
 	public KiwiSatTelemetryPayload(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);
+		MAX_BYTES = KiwiSatFrame.MAX_PAYLOAD_SIZE;
 	}
 
 	public KiwiSatTelemetryPayload(ResultSet r, BitArrayLayout lay) throws SQLException {
@@ -47,6 +48,7 @@ public class KiwiSatTelemetryPayload extends FoxFramePart {
 	
 	protected void init() {
 		type = 0;  // PROBABLLY NEED TO SET THIS TO A SUIABLE TYPE.  TYPE 0 IS DEBUG	
+		MAX_BYTES = KiwiSatFrame.MAX_PAYLOAD_SIZE;
 		fieldValue = new int[layout.fieldName.length];
 	}
 
