@@ -487,8 +487,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
 				
-				Config.useDDEforFreq = cbUseDDEFreq.isSelected();
-				Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
+				if (Config.isWindowsOs()) {
+					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
+					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
+				}
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
