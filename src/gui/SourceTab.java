@@ -131,6 +131,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JTextField avgLevel;
 	JTextField bitLevel;
 	
+	JButton btnFftZoomIn;
+	JButton btnFftZoomOut;
+	
 	//JCheckBox rdbtnUseNco;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
@@ -341,6 +344,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		optionsPanel.add(rdbtnUseNco);
 		*/
 
+		btnFftZoomIn = new JButton("+");
+		btnFftZoomIn.addActionListener(this);
+		btnFftZoomOut = new JButton("-");
+		btnFftZoomOut.addActionListener(this);
+		//optionsPanel.add(btnFftZoomIn);
+		//optionsPanel.add(btnFftZoomOut);
 	}
 	
 	private void buildBottomPanel(JPanel parent, String layout, JPanel bottomPanel) {
@@ -1061,7 +1070,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == btnStartButton) {
 			processStartButtonClick();
 		}
-
+		if (e.getSource() == btnFftZoomIn) {
+			this.fftPanel.zoomIn();
+		}
+		if (e.getSource() == btnFftZoomOut) {
+			this.fftPanel.zoomOut();
+		}
 		
 	}
 

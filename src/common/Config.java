@@ -4,11 +4,13 @@ import gui.MainWindow;
 import gui.ProgressPanel;
 
 import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -63,6 +65,7 @@ public class Config {
 	public static final String WINDOWS = "win";
 	public static final String MACOS = "mac";
 	public static final String LINUX = "lin";
+	public static final String RASPBERRY_PI = "pi";
 	
 	public static final Color AMSAT_BLUE = new Color(0,0,116);
 	public static final Color AMSAT_RED = new Color(224,0,0);
@@ -388,6 +391,23 @@ public class Config {
 		} else {
 			OS = LINUX;
 		}
+		 if (isLinuxOs()) {
+		        final File file = new File("/etc", "os-release");
+		        try (FileInputStream fis = new FileInputStream(file);
+		             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis))) {
+		            String string;
+		            while ((string = bufferedReader.readLine()) != null) {
+		                if (string.toLowerCase().contains("raspbian")) {
+		                    if (string.toLowerCase().contains("name")) {
+		                        OS = RASPBERRY_PI;;
+		                        Log.println("Raspberry Pi Detected");;
+		                    }
+		                }
+		            }
+		        } catch (final Exception e) {
+		            e.printStackTrace();
+		        }
+		    }
 	}
 	
 	public static boolean isWindowsOs() {
@@ -398,7 +418,14 @@ public class Config {
 	}
 
 	public static boolean isLinuxOs() {
-		if (OS == LINUX) {
+		if (OS == LINUX || OS == RASPBERRY_PI) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isRasperryPi() {
+		if (OS == RASPBERRY_PI) {
 			return true;
 		}
 		return false;

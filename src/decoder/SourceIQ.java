@@ -229,10 +229,8 @@ public class SourceIQ extends SourceAudio {
 	 * power of 2 that gives that resolution, given a sampleRate, up to a maximum of 2^16
 	 */
 	private void setFFTsize() {
-	
-		boolean pi=false;
 		
-		if (pi) {
+		if (Config.isRasperryPi()) {
 			FFT_SAMPLES=2048;
 			samplesToRead = 3840 /2;
 			return;
