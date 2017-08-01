@@ -977,7 +977,8 @@ public class SourceIQ extends SourceAudio {
 	private double ncoBFO(double i, double q) {
 		int ssbOffset = 0;
 		// offset by 1200Hz if this is PSK
-			ssbOffset = (int)(1200.0/(192000.0/4096.0)); // 1200 / binBandwidth = number of bins for 1200 Hz
+		 	ssbOffset = (int)(1200.0/(IQ_SAMPLE_RATE/FFT_SAMPLES)); // 1200 / binBandwidth = number of bins for 1200 Hz
+			//ssbOffset = (int)(1200.0/(192000.0/4096.0)); // 1200 / binBandwidth = number of bins for 1200 Hz
 			//System.err.println("OFF: " + ssbOffset);
 		double mi = ncoMixerI(i,q, ssbOffset);
 		double mq = ncoMixerQ(i,q, ssbOffset);
