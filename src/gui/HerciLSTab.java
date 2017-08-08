@@ -332,6 +332,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
