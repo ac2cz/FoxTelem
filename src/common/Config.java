@@ -100,17 +100,18 @@ public class Config {
 	
 	public static Sequence sequence;
 	
-	static public GroundStationPosition GROUND_STATION = new GroundStationPosition(40.703328, -73.980599, 20);
+	static public GroundStationPosition GROUND_STATION = null;
+	public static final String NONE = "NONE";
 	
 	/**
 	 * These flags can be set to change the output types and operation
 	 */
 	public static int wavSampleRate = 48000; //44100; //192000;
 	public static int scSampleRate = 48000; //44100; //192000;
-	public static final String NO_SOUND_CARD_SELECTED = "NONE";
-	public static final String DEFAULT_CALLSIGN = "NONE";
-	public static final String DEFAULT_STATION = "NONE";
-	public static final String DEFAULT_ALTITUDE = "NONE";
+	public static final String NO_SOUND_CARD_SELECTED = NONE;
+	public static final String DEFAULT_CALLSIGN = NONE;
+	public static final String DEFAULT_STATION = NONE;
+	public static final String DEFAULT_ALTITUDE = NONE;
 	public static final String DEFAULT_LATITUDE = "0.0";
 	public static final String DEFAULT_LONGITUDE = "0.0";
 	public static final String DEFAULT_LOCATOR = "XX00xx";
@@ -287,6 +288,19 @@ public class Config {
 		
 	}
 	
+	public static void storeGroundStation() {
+		try {
+			int h = 0;
+			float lat = Float.parseFloat(Config.latitude);
+			float lon = Float.parseFloat(Config.longitude);
+			if (Config.altitude.equalsIgnoreCase(Config.NONE)) h = 0;
+			h = Integer.parseInt(Config.altitude);
+			GROUND_STATION = new GroundStationPosition(lat, lon, h);
+			} catch (NumberFormatException e) {
+				// not much to do.  Just leave GROUND_STATION as NULL;
+			}
+	}
+	
 	public static void init() {
 		properties = new Properties();
 		load();
@@ -296,6 +310,8 @@ public class Config {
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
 
+		storeGroundStation();
+		
 		initSatelliteManager();
 		initPayloadStore();
 		initPassManager();

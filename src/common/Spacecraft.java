@@ -1,14 +1,21 @@
 package common;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
 
+import predict.FoxTLE;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
@@ -116,14 +123,18 @@ public abstract class Spacecraft {
 	// User Config
 	public boolean track = true; // default is we track a satellite
 	
-	final String[] TLE = {
+	private FoxTLE tle; // this is the latest TLE, but not necessarily the TLE we want for a historical calc
+	private List<FoxTLE> tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
+	
+	final String[] testTLE = {
             "AO-85",
             "1 40967U 15058D   16111.35540844  .00000590  00000-0  79740-4 0 01029",
             "2 40967 064.7791 061.1881 0209866 223.3946 135.0462 14.74939952014747"};
 	
 	public Spacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
 		properties = new Properties();
-		propertiesFile = fileName;		
+		propertiesFile = fileName;	
+		tleList = new ArrayList<FoxTLE>();
 	}
 	
 	public boolean isFox1() {
@@ -172,8 +183,42 @@ public abstract class Spacecraft {
 		return null;
 	}
 
+	/**
+	 * TLEs are stored in the spacecraft directory in the logFileDirectory.
+	 */
+	private void loadTLEHistory() {
+		
+	}
+	
+	private void saveTLEHistory() throws IOException {
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;		
+		}
+		File f = new File(file);
+		Writer output = new BufferedWriter(new FileWriter(f, true));
+		for (FoxTLE tle : tleList) {
+			Log.println("Saving TLE to file: " + tle.toString() + ": " + tle.getEpoch());
+			output.write(tle.toFileString());
+		}
+		output.flush();
+		output.close();
+	}
+	
+	/**
+	 * We are passed a new TLE for this spacecarft.  We want to store it in the file if it is a TLE that we do not already have.
+	 * @param tle
+	 * @return
+	 * @throws IOException 
+	 */
+	public boolean addTLE(TLE tle) throws IOException {
+		this.tle = tle;
+		tleList.add(tle);
+		saveTLEHistory();
+		return false;
+	}
+	
 	private TLE getTLEbyDate(DateTime dateTime) {
-		final TLE tle = new TLE(TLE);
 		return tle;
 	}
 	
