@@ -346,7 +346,7 @@ public class Config {
 	}
 	
 	public static void initPassManager() {	
-		passManager = new PassManager(satManager);
+		passManager = new PassManager();
 		passManagerThread = new Thread(passManager);
 		passManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		passManagerThread.start();
