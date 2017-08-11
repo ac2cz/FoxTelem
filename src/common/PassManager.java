@@ -593,7 +593,7 @@ public class PassManager implements Runnable {
 			}
 			if (pp1.foxDecoder != null && Config.findSignal)
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
-					Log.println("Looking for: " + Config.satManager.spacecraftList.get(s).name);
+					if (Config.debugSignalFinder) Log.println("Looking for: " + Config.satManager.spacecraftList.get(s).name);
 					if (Config.satManager.spacecraftList.get(s).track) 
 						if (Config.useDDEforFindSignal) {
 							if (satString != null && satString.equalsIgnoreCase(Config.satManager.spacecraftList.get(s).name))
