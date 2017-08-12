@@ -197,8 +197,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		else
 			decodePacket.setSelected(true);
 		
-	//	decodeTelem.setMinimumSize(new Dimension(1600, 14));
-	//	decodeTelem.setMaximumSize(new Dimension(1600, 14));
+		// Hide the choice between Telem and Packets to disable the packet decode feature.  This is not used on the live spacecraft
+		decodeTelem.setVisible(false);
+		decodePacket.setVisible(false);
 
 		addBottomFilter();
 		

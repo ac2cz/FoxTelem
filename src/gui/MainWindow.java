@@ -134,8 +134,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
-	private static String TOTAL_RECEIVED_FRAMES = "Received: ";
-	private static String TOTAL_DECODES = "Decoded: ";
+	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
+	private static String TOTAL_DECODES = "Payloads: ";
 	private static String TOTAL_QUEUED = "Queued: ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
@@ -208,13 +208,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
 		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalFrames.setToolTipText("Total number of frames received from all satellites");
+		lblTotalFrames.setToolTipText("Total number of frames received from all satellites (including duplicates)");
 		rightBottom.add(lblTotalFrames );
 		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
 		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalDecodes.setToolTipText("Total number of payloads decoded from all satellites");
+		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
