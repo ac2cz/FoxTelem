@@ -42,7 +42,7 @@ import gui.MainWindow;
  */
 public class SatPayloadTable {
 
-	public static final int MAX_DATA_LENGTH = 61;
+	public static final int MAX_DATA_LENGTH = 62;
 	public static final int MAX_SEGMENT_SIZE = 1000;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
@@ -65,7 +65,7 @@ public class SatPayloadTable {
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	private String getDir() {
+	public static String getDir() {
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator ;

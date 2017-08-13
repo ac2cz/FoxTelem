@@ -54,7 +54,7 @@ public class FoxBPSKDecoder extends Decoder {
 
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 60;  
+		SAMPLE_WINDOW_LENGTH = 40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -105,16 +105,27 @@ public class FoxBPSKDecoder extends Decoder {
 	private static final double RX_CARRIER_FREQ = 1200.0;
 	//private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)48000;
 	private static final int SINCOS_SIZE = 256;
-
+	double gain = 1.0;
+	
 	protected void sampleBuckets() {
+		int maxValue = 0;
+		int minValue = 0;
+		int DESIRED_RANGE =50000;
+		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
 				//sampleWithVCO(dataValues[i][s], i, s);
 				double value = dataValues[i][s]/ 32768.0;
 				//////					value = audioDcFilter.filter(value);		
 				RxDownSample(value, value, i);
-				pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
-				int eyeValue = (int)(32768*(energy1/dmEnergy[dmPeakPos]-1));
+				int eyeValue = (int) (Math.sqrt(energy1)-32768.0/2);
+				if (eyeValue > maxValue) maxValue = eyeValue;
+				if (eyeValue < minValue) minValue = eyeValue;
+				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
+				pskAudioData[i*bucketSize+s] = eyeValue/32768.0;	
+				
+///				pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
+///				int eyeValue = (int)(32768*(energy1/dmEnergy[dmPeakPos]-1));
 				eyeData.setData(i,s,eyeValue);
 			}
 			int offset = recoverClockOffset();
@@ -123,6 +134,8 @@ public class FoxBPSKDecoder extends Decoder {
 			else
 				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 		}
+		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		
 		int offset = recoverClockOffset();
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
@@ -206,6 +219,7 @@ public class FoxBPSKDecoder extends Decoder {
 
 
 			}
+			Config.totalFrames++;
 			if (Config.uploadToServer)
 				try {
 					Config.rawFrameQueue.add(decodedFrame);
@@ -326,6 +340,8 @@ public class FoxBPSKDecoder extends Decoder {
 	private int[] dmHalfTable = {4,5,6,7,0,1,2,3};
 	private double dmBitPhase = 0.0;
 	private double[] dmLastIQ = new double[2];
+	
+	private int debugCount = 0;
 
 	/**
 	 * Demodulate the DBPSK signal, adjust the clock if needed to stay in sync.  Populate the bit buffer
@@ -351,10 +367,8 @@ public class FoxBPSKDecoder extends Decoder {
 		if (dmPos<0)
 			dmPos=MATCHED_FILTER_SIZE-1;
 
-
 		// store smoothed bit energy
 		energy1 = fi*fi+fq*fq;
-
 		dmEnergy[dmBitPos] = (dmEnergy[dmBitPos]*(1.0-BIT_SMOOTH1))+(energy1*BIT_SMOOTH1);
 
 		// at peak bit energy? decode 
@@ -367,9 +381,13 @@ public class FoxBPSKDecoder extends Decoder {
 			energy2 = Math.sqrt(di*di+dq*dq);
 
 			if (energy2>100.0) {	// TODO: work out where these magic numbers come from!
-				boolean bit = di<0.0;	// is that a 1 or 0?
+				boolean bit = di<0.0;	// is that a 1 or 0 based on if we changed phase.  If it looks like the last bit, its a 1
 				middleSample[bucketNumber] = bit;
-//				System.err.println(bit?1:0);
+				/*System.err.print(bit?1:0);
+				if (debugCount++ == 80) {
+					System.err.println("");
+					debugCount=0;
+				} */
 				bitStream.addBit(bit);
 			}
 		}
@@ -377,13 +395,14 @@ public class FoxBPSKDecoder extends Decoder {
 		if (dmBitPos==dmHalfTable[dmPeakPos]) {
 			dmPeakPos = dmNewPeak;
 			clockOffset = 4*(dmNewPeak-6); // store the clock offset so we can display the eye diagram "triggered" correctly
+			// = 4*(dmBitPos-6); // store the clock offset so we can display the eye diagram "triggered" correctly
 		}
 		dmBitPos = (dmBitPos+1) % SAMPLES_PER_BIT;
-		// advance phase of bit position
+		// advance phase of bit position and get ready for the next bit
 		dmBitPhase += BIT_PHASE_INC;
 		if (dmBitPhase>=BIT_TIME) {
 			dmBitPhase-=BIT_TIME;
-			dmBitPos=0;	// TODO: Is this a kludge?
+			dmBitPos=0;	
 			// rolled round another bit, measure new peak energy position
 			double eMax = -1.0e10F;
 			for (int n=0; n<SAMPLES_PER_BIT; n++) {
@@ -392,6 +411,7 @@ public class FoxBPSKDecoder extends Decoder {
 					eMax=dmEnergy[n];
 				}
 			}
+			
 		}
 	}
 

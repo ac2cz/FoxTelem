@@ -320,6 +320,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
@@ -420,6 +421,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 	@Override
 	public void valueChanged(ListSelectionEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void parseFrames() {
 		// TODO Auto-generated method stub
 		
 	}

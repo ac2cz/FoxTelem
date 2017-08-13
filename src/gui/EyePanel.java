@@ -284,7 +284,7 @@ public class EyePanel extends JPanel implements Runnable {
 
 		double r = GraphPanel.roundToSignificantFigures(bitSNR,2);
 		String s = Double.toString(r) + "";
-		g.drawString("SNR:"+s, graphWidth/2 + 10  + border, graphHeight/2 + 10  );
+		g.drawString(s+"   SNR", graphWidth/2 -20  + border, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
 
 		//debug
 		//g.drawString("HIGH:"+avgHigh, graphWidth/2 + 10  + border, 10  );

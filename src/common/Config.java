@@ -4,11 +4,13 @@ import gui.MainWindow;
 import gui.ProgressPanel;
 
 import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -56,13 +58,14 @@ public class Config {
 
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05f";
-	public static String VERSION = VERSION_NUM + " - 26 Mar 2017";
+	public static String VERSION_NUM = "1.05o"; //"1.05n";
+	public static String VERSION = VERSION_NUM + " - 9 Aug 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
 	public static final String MACOS = "mac";
 	public static final String LINUX = "lin";
+	public static final String RASPBERRY_PI = "pi";
 	
 	public static final Color AMSAT_BLUE = new Color(0,0,116);
 	public static final Color AMSAT_RED = new Color(224,0,0);
@@ -238,6 +241,10 @@ public class Config {
 	public static boolean useDDEforFindSignal = false;
 	public static boolean showFilters = false; // Default this off
 	
+	// V1.05
+	static public int afSampleRate = 48000;
+	static public int totalFrames = 0;
+	static public boolean debugRS = false; // not saved or on GUI
 	
 	public static boolean missing() { 
 		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
@@ -288,8 +295,8 @@ public class Config {
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
-		
-		satManager = new SatelliteManager();
+
+		initSatelliteManager();
 		initPayloadStore();
 		initPassManager();
 		// Start this last or we get a null pointer exception if it tries to access the data before it is loaded
@@ -334,9 +341,12 @@ public class Config {
 		return version;		
 	}
 
+	public static void initSatelliteManager() {
+		satManager = new SatelliteManager();		
+	}
 	
 	public static void initPassManager() {	
-		passManager = new PassManager(satManager);
+		passManager = new PassManager();
 		passManagerThread = new Thread(passManager);
 		passManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		passManagerThread.start();
@@ -381,6 +391,23 @@ public class Config {
 		} else {
 			OS = LINUX;
 		}
+		 if (isLinuxOs()) {
+		        final File file = new File("/etc", "os-release");
+		        try (FileInputStream fis = new FileInputStream(file);
+		             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis))) {
+		            String string;
+		            while ((string = bufferedReader.readLine()) != null) {
+		                if (string.toLowerCase().contains("raspbian")) {
+		                    if (string.toLowerCase().contains("name")) {
+		                        OS = RASPBERRY_PI;;
+		                        Log.println("Raspberry Pi Detected");;
+		                    }
+		                }
+		            }
+		        } catch (final Exception e) {
+		            e.printStackTrace();
+		        }
+		    }
 	}
 	
 	public static boolean isWindowsOs() {
@@ -391,7 +418,14 @@ public class Config {
 	}
 
 	public static boolean isLinuxOs() {
-		if (OS == LINUX) {
+		if (OS == LINUX || OS == RASPBERRY_PI) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isRasperryPi() {
+		if (OS == RASPBERRY_PI) {
 			return true;
 		}
 		return false;
@@ -572,6 +606,10 @@ public class Config {
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
 		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
 		properties.setProperty("showFilters", Boolean.toString(showFilters));
+		
+		// Version 1.05
+		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
+		properties.setProperty("totalFrames", Integer.toString(totalFrames));
 		store();
 	}
 	
@@ -627,7 +665,7 @@ public class Config {
 		useRSerasures = Boolean.parseBoolean(getProperty("useRSerasures"));
 		realTimePlaybackOfFile = Boolean.parseBoolean(getProperty("realTimePlaybackOfFile"));
 		useLeftStereoChannel = Boolean.parseBoolean(getProperty("useLeftStereoChannel"));
-		mode = Integer.parseInt(getProperty("highSpeed"));
+		
 		iq = Boolean.parseBoolean(getProperty("iq"));
 		eliminateDC = Boolean.parseBoolean(getProperty("eliminateDC"));
 		viewFilteredAudio = Boolean.parseBoolean(getProperty("viewFilteredAudio"));
@@ -733,6 +771,11 @@ public class Config {
 		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
 		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
 		
+		// Version 1.05
+		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
+		totalFrames = Integer.parseInt(getProperty("totalFrames"));
+		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
+		
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {
@@ -769,4 +812,5 @@ public class Config {
 			System.exit(1);
 
 	}
+
 }

@@ -957,6 +957,24 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 

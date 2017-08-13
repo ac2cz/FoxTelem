@@ -68,15 +68,18 @@ public class PayloadRadExpData extends FoxFramePart {
 	 * For Fox 1-A and Fox-1C If byte 21 onwards is zero then this is telemetry.  Zeros are not allowed in the packet format because of the
 	 * COBS routine.  So if we find zeros, this is telemetry
 	 * To be sure we check for 3 zeros in a row
-	 * Fox-1D has no telemetry
+	 * Fox-1D has Housekeeping telemetry
 	 * Fox-1B fields 11 - 20 are zero (because there is no VUC Exp 1
 	 * @return
 	 */
 	public boolean isTelemetry() {
-		if (id == 2) {
+		if (id == Spacecraft.FOX1D) {
+			return true;
+		} else
+		if (id == Spacecraft.FOX1B) {
 			for (int i=11; i < 20; i++)
 				if (fieldValue[i] != 0) return false;
-		} else // id = 1 or 
+		} else // id = 1 or 3
 			for (int i=21; i < 25; i++)
 				if (fieldValue[i] != 0) return false;
 		
@@ -190,12 +193,12 @@ public class PayloadRadExpData extends FoxFramePart {
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < fieldValue.length-1; i++) {
-			//s = s + Decoder.dec(fieldValue[i]) + ",";
-			s = s + FoxDecoder.hex(fieldValue[i]) + ",";
+			s = s + FoxDecoder.dec(fieldValue[i]) + ",";
+			//s = s + FoxDecoder.hex(fieldValue[i]) + ",";
 		}
 		// add the final field with no comma delimiter
-		//s = s + Decoder.dec(fieldValue[fieldValue.length-1]);
-		s = s + FoxDecoder.hex(fieldValue[fieldValue.length-1]);
+		s = s + FoxDecoder.dec(fieldValue[fieldValue.length-1]);
+		//s = s + FoxDecoder.hex(fieldValue[fieldValue.length-1]);
 		return s;
 	}
 	

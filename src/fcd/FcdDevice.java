@@ -3,6 +3,7 @@ package fcd;
 import java.io.IOException;
 import java.util.List;
 
+import common.Config;
 import common.Log;
 import device.Device;
 import device.DeviceException;
@@ -91,8 +92,10 @@ public abstract class FcdDevice extends Device {
 
 	public void cleanup() throws IOException, DeviceException {
 		if (dev != null) {
-			dev.close();
-			Log.println("Closed RF device");
+			if (!Config.isLinuxOs()) {
+				dev.close();  // This causes a hang on Linux!
+				Log.println("Closed RF device");
+			}
 		}
 		dev = null;
 	}

@@ -110,6 +110,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
+	JMenu mnSats;
+	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
@@ -129,9 +131,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
 	static JLabel lblAudioMissed;
+	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
-	private static String TOTAL_DECODES = "Decoded: ";
+	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
+	private static String TOTAL_DECODES = "Payloads: ";
 	private static String TOTAL_QUEUED = "Queued: ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
@@ -201,10 +205,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblAudioMissed.setToolTipText("The number of audio buffers missed");
 		rightBottom.add(lblAudioMissed );
 
+		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
+		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblTotalFrames.setToolTipText("Total number of frames received from all satellites (including duplicates)");
+		rightBottom.add(lblTotalFrames );
+		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
 		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalDecodes.setToolTipText("Total number of payloads decoded from all satellites");
+		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
@@ -245,6 +255,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	public static void refreshTabs(boolean closeGraphs) {
+		
 		for (SpacecraftTab tab : spacecraftTab) {
 			tab.refreshTabs(closeGraphs);
 		}
@@ -259,6 +270,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		inputTab.audioGraph.updateFont();
 		inputTab.eyePanel.updateFont();
+		setTotalDecodes();
 	}
 	
 	private static void addHealthTabs() {
@@ -275,19 +287,26 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	public static void setAudioMissed(int missed) {
-		double miss = missed / 10.0;
-		totalMissed += missed;
-		lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
-		if (missed > 2)
-			lblAudioMissed.setForeground(Color.RED);
-		else
-			lblAudioMissed.setForeground(Color.BLACK);
+		if (lblAudioMissed != null) { // just in case we are delayed starting up
+			double miss = missed / 10.0;
+			totalMissed += missed;
+			lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
+			if (missed > 2)
+				lblAudioMissed.setForeground(Color.RED);
+			else
+				lblAudioMissed.setForeground(Color.BLACK);
+		}
 	}
-	
+
 	public static void setTotalDecodes() {
-		int total = 0;
-		total = Config.payloadStore.getTotalNumberOfFrames();
-		lblTotalDecodes.setText(TOTAL_DECODES + total);
+		if (lblTotalDecodes != null) { // make sure we have initialized before we try to update from another thread
+			int total = 0;
+			total = Config.payloadStore.getTotalNumberOfFrames();
+			lblTotalDecodes.setText(TOTAL_DECODES + total);
+		}
+		if (lblTotalFrames != null) { 
+			lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+		}
 	}
 
 	public static void setTotalQueued(int total) {
@@ -309,7 +328,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private void initMenu() {
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		
 		JMenu mnFile = new JMenu("File");
@@ -377,15 +396,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //		mnDecoder.add(mntmStopDecoder);
 //		mntmStopDecoder.addActionListener(this);
 		
-		JMenu mnSats = new JMenu("Spacecraft");
-		menuBar.add(mnSats);
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		mntmSat = new JMenuItem[sats.size()];
-		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem(sats.get(i).name);
-			mnSats.add(mntmSat[i]);
-			mntmSat[i].addActionListener(this);
-		}
+		initSatMenu();
 		
 		JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
@@ -431,6 +442,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		audioSource = a;
 	}
 
+	private void initSatMenu() {
+		mnSats = new JMenu("Spacecraft");
+		menuBar.add(mnSats);
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+		mntmSat = new JMenuItem[sats.size()];
+		for (int i=0; i<sats.size(); i++) {
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
+			mnSats.add(mntmSat[i]);
+			mntmSat[i].addActionListener(this);
+		}
+	}
+	
 	public void shutdownWindow() {
 		
 		if (Config.passManager.getState() == PassManager.FADED ||
@@ -559,6 +582,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
+				Config.totalFrames = 0;
 				refreshTabs(true);
 			}
 		}

@@ -93,6 +93,8 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
 	public static final int CONVERT_JAVA_DATE = 33;
+	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
+	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
 
 	/**
 	 * Create an empty layout for manual init
@@ -227,9 +229,12 @@ public class BitArrayLayout {
 
 	}
 	
-	public String getTableCreateStmt() {
+	public String getTableCreateStmt(boolean wod) {
 		String s = new String();
-		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (wod)
+			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, satLatitude float, satLongitude float, satAltitude float,";
+		else
+			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
 		for (int i=0; i < fieldName.length; i++) {
 			s = s + fieldName[i] + " int,\n";
 		}

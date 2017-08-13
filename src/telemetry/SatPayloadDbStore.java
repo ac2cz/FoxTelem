@@ -64,6 +64,8 @@ public class SatPayloadDbStore {
 	public static String HERCI_HS_PACKET_LOG = "HERCI_HS_PACKET";
 	public static String JPG_IDX = "JPG_IDX";
 	public static String PICTURE_LINES = "PICTURE_LINES_IDX";
+	public static String WOD_LOG = "WODTELEMETRY";
+	public static String WOD_RAD_LOG = "WODRADTELEMETRY";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -75,6 +77,8 @@ public class SatPayloadDbStore {
 	public String herciHSPacketTableName;
 	public String jpgIdxTableName;
 	public String pictureLinesTableName;
+	public String wodTableName;
+	public String wodRadTableName;
 	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
@@ -85,6 +89,8 @@ public class SatPayloadDbStore {
 	boolean updatedHerciHeader = true;
 	boolean updatedHerciPacket = true;
 	boolean updatedCamera = true;
+	boolean updatedWod = true;
+	boolean updatedWodRad = true;
 	
 	PayloadDbStore payloadDbStore;
 	
@@ -106,6 +112,8 @@ public class SatPayloadDbStore {
 		herciHSPacketTableName = "Fox"+foxId+HERCI_HS_PACKET_LOG;
 		jpgIdxTableName = "Fox"+foxId+JPG_IDX;
 		pictureLinesTableName = "Fox"+foxId+PICTURE_LINES;
+		wodTableName = "Fox"+foxId+WOD_LOG;
+		wodRadTableName = "Fox"+foxId+WOD_RAD_LOG;
 		initPayloadFiles();
 	}
 	
@@ -115,30 +123,34 @@ public class SatPayloadDbStore {
 		
 		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
 		//
-		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
-		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
-		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
-		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
+		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), false);
+		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), false);
+		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), false);
+		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT), false);
+		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), false);
 		if (fox.hasHerci()) {
 			initHerciTables();
 		}
 		if (fox.hasCamera()) {
 			initCameraTables();
 		}
+		if (fox.foxId == Spacecraft.FOX1E) {
+			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), true);
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), true);
+		}
 	}
 
 	/** 
 	 *  create the tables if they do not exist
 	 */
-	private void initPayloadTable(String table, BitArrayLayout layout) {
-		String createStmt = layout.getTableCreateStmt();
+	private void initPayloadTable(String table, BitArrayLayout layout, boolean wod) {
+		String createStmt = layout.getTableCreateStmt(wod);
 		createTable(table, createStmt);
 	}
 
 	private void initHerciTables() {
-		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
-		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT));
+		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT), false);
+		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT), false);
 		String table = herciHSPacketTableName;
 		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
 		createTable(table, createStmt);
@@ -454,7 +466,9 @@ public class SatPayloadDbStore {
 	 * @throws IOException 
 	 */
 	private boolean add(FramePart f) {
-		if (f instanceof PayloadRtValues ) {
+		if (f instanceof PayloadWOD ) {
+			return insert(wodTableName, (PayloadWOD)f);
+		} else if (f instanceof PayloadRtValues ) {
 			setUpdatedRt(true);
 			return insert(rtTableName,f);
 		} else if (f instanceof PayloadMaxValues  ) {
@@ -463,6 +477,8 @@ public class SatPayloadDbStore {
 		} else if (f instanceof PayloadMinValues ) {
 			setUpdatedMin(true);
 			return insert(minTableName,f);
+		} else if (f instanceof PayloadWODRad ) {
+			return insert(wodRadTableName, (PayloadWODRad)f);			
 		} else if (f instanceof PayloadRadExpData ) {
 			setUpdatedRad(true);
 			return addRadRecord((PayloadRadExpData)f);
@@ -475,7 +491,6 @@ public class SatPayloadDbStore {
 			return insert(herciHSHeaderTableName, f);
 		} else if (f instanceof HerciHighSpeedPacket ) {
 			return insert(herciHSPacketTableName, (HerciHighSpeedPacket)f);
-			
 		}
 		return false;
 	}

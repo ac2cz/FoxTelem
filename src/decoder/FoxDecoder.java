@@ -163,6 +163,7 @@ public abstract class FoxDecoder extends Decoder {
 				}
 
 			}
+			Config.totalFrames++;
 			if (Config.uploadToServer)
 				try {
 					Config.rawFrameQueue.add(decodedFrame);

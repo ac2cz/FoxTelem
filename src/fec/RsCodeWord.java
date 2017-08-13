@@ -134,7 +134,7 @@ public class RsCodeWord  {
 	 */
 	public byte[] decode() {
 		numberOfCorrections = decode_rs_8(rsCodeWord,erasurePositions,numberOfErasures);
-		if (Config.debugFrames) Log.println("RS ERASURES: " + numberOfErasures + " ERRORS CORRECTED:" + numberOfCorrections);
+		if (Config.debugFrames || Config.debugRS) Log.println("RS ERASURES: " + numberOfErasures + " ERRORS CORRECTED:" + numberOfCorrections);
 
 		byte[] rawFrame = new byte[NN-RSPAD];
 		for(int i = 0; i < rawFrame.length; i++){

@@ -144,10 +144,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_HERCI = 20;
 	public static final int DISPLAY_HERCI_HK = 21;
 	public static final int DISPLAY_HERCI_MICRO_PKT = 22;
+	public static final int DISPLAY_WOD = 23;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
 	public static Color herciFontColor = new Color(240,154,21);
-	//public static Color herciFontColor = new Color(244,193,4);
+	public static Color wodFontColor = new Color(70,146,32);
 	
 	int moduleType = DISPLAY_ALL; // default this to a module that displays normal RT MAX MIN telem
 
@@ -169,12 +170,16 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		setDefaultSizes();
 		moduleType = modType;
 		
-		if (moduleType >= DISPLAY_HERCI) {
+		if (moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));
 			border.setTitleColor(herciFontColor);
 		} else if (moduleType == DISPLAY_MEASURES) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
 			border.setTitleColor(vulcanFontColor);
+			minValue = new JButton[size];
+		} else if (moduleType >= DISPLAY_WOD) {
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
+			border.setTitleColor(wodFontColor);
 			minValue = new JButton[size];
 		} else if (moduleType >= DISPLAY_VULCAN) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
@@ -221,13 +226,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			w = SINGLE_VAL_WIDTH;			
 		} else 	if (display == DISPLAY_MAX_ONLY || display == DISPLAY_MIN_ONLY || display == DISPLAY_MIN_AND_MAX_ONLY) {
 			w = 0;
-		} else if (display == DISPLAY_MEASURES ) {
+		} else if (display == DISPLAY_MEASURES || display == DISPLAY_WOD ) {
 			w= MEASUREMENT_WIDTH;
 		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX ) {
 			w= VAL_WIDTH;
 		} else if ( display >= DISPLAY_VULCAN && display < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_WIDTH;
-		} else if ( display >= DISPLAY_HERCI_MICRO_PKT) {
+		} else if ( display == DISPLAY_HERCI || display == DISPLAY_HERCI_HK || display == DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_NAME_WIDTH;
 			// Fix the name size as this is tied to module type and not line type
 			// FIXME - ideally this would flow through and not be "fixed" here
@@ -372,11 +377,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		
 		// Setup the width for the NAME column
 		int w = NAME_WIDTH;
-		if ( moduleType == DISPLAY_MEASURES) {
+		if ( moduleType == DISPLAY_MEASURES || moduleType == DISPLAY_WOD) {
 			w = MEASUREMENT_NAME_WIDTH;
 		} else if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_NAME_WIDTH;
-		} else if ( moduleType >= DISPLAY_HERCI_MICRO_PKT) {
+		} else if (moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_NAME_WIDTH;
 		}
 
@@ -390,11 +395,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 		// Setup the width for the Value Column
 		w = VAL_WIDTH;
-		if ( moduleType == DISPLAY_MEASURES) {
+		if ( moduleType == DISPLAY_MEASURES || moduleType == DISPLAY_WOD) {
 			w = MEASUREMENT_WIDTH;
 		} else if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_WIDTH;
-		} else if ( moduleType >= DISPLAY_HERCI_MICRO_PKT) {
+		} else if ( moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_VALUE_WIDTH;
 		}
 
@@ -427,6 +432,19 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			for (int i=1; i < size; i++) {
 				minValue[i] = createIconButton("/images/skyPlot.png","Sky","Plot sky chart");
 				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
+				row[i].add(minValue[i]);
+			}
+		}
+		
+		if (moduleType == DISPLAY_WOD) {
+			// We want to add a button for a sky plot.  This goes in the min column
+			for (int i=1; i < size; i++) {
+				minValue[i] = new JButton();
+				((JButton)minValue[i]).addActionListener(this);
+				((JButton)minValue[i]).setBackground(wodFontColor);
+//				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
+//				minValue[i] = createIconButton("/images/skyPlot.png","Sky","Plot sky chart");
+//				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 				row[i].add(minValue[i]);
 			}
 		}
@@ -466,7 +484,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		for (int i=1; i< size; i++) {
-			if (moduleType == DISPLAY_MEASURES && e.getSource() == minValue[i]) {
+			if ((moduleType == DISPLAY_WOD || moduleType == DISPLAY_MEASURES) && e.getSource() == minValue[i]) {
 				if (rtValue[i].getText().equalsIgnoreCase(noValue))
 					;// dont open graph
 				else
@@ -481,7 +499,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				String units = "";
 				
-				if ((moduleType == DisplayModule.DISPLAY_ALL || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
+				if ((moduleType == DisplayModule.DISPLAY_ALL  || moduleType == DisplayModule.DISPLAY_WOD || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
 					if (rtPayload instanceof PayloadWOD)

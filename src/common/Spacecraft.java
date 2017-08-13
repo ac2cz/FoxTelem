@@ -56,6 +56,7 @@ public abstract class Spacecraft {
 	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
 	public static final String WOD_LAYOUT = "wodtelemetry";
 	public static final String WOD_RAD_LAYOUT = "wodradtelemetry";
+	public static final String WOD_RAD2_LAYOUT = "wodradtelemetry2";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
@@ -171,8 +172,13 @@ public abstract class Spacecraft {
 		return null;
 	}
 
-	public SatPos getSatellitePosition(DateTime timeNow) {
+	private TLE getTLEbyDate(DateTime dateTime) {
 		final TLE tle = new TLE(TLE);
+		return tle;
+	}
+	
+	public SatPos getSatellitePosition(DateTime timeNow) {
+		final TLE tle = getTLEbyDate(timeNow);
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
 		
@@ -240,13 +246,13 @@ public abstract class Spacecraft {
 				track = Boolean.parseBoolean(t);
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Corrupt data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
+			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );		
+			throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("File not found loading Spacecraft file: " + propertiesFile.getAbsolutePath());
+			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
 		}
 	}
 	

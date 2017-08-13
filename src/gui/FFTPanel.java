@@ -81,6 +81,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	int topBorder = Config.graphAxisFontSize;
 	int labelWidth = 4 * Config.graphAxisFontSize;
 
+	int zoomFactor = 1;
+	public static final int MAX_ZOOM_FACTOR = 10;
+	public static final int MIN_ZOOM_FACTOR = 1;
+	
 	int graphWidth;
 	int graphHeight;
 	
@@ -128,6 +132,20 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	         //       printBin();
 	        }
 	    });
+	}
+	
+	public void zoomIn() {
+		zoomFactor++;
+		if (zoomFactor > MAX_ZOOM_FACTOR)
+			zoomFactor = MAX_ZOOM_FACTOR;
+		System.err.println(zoomFactor);
+	}
+	
+	public void zoomOut() {
+		zoomFactor--;
+		if (zoomFactor < MIN_ZOOM_FACTOR)
+			zoomFactor = MIN_ZOOM_FACTOR;
+		System.err.println(zoomFactor);
 	}
 	
 	@SuppressWarnings("unused")
@@ -293,6 +311,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int numberOfTimeLabels = graphWidth/labelWidth;
 		int zeroPoint = graphHeight;
 		
+		if (zoomFactor != 1) {
+			// we zoom around the tuned frequency
+			
+		}
 		
 		float maxValue = 10;
 		float minValue = -100;

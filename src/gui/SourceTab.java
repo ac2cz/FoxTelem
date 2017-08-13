@@ -133,6 +133,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JTextField avgLevel;
 	JTextField bitLevel;
 	
+	JButton btnFftZoomIn;
+	JButton btnFftZoomOut;
+	
 	//JCheckBox rdbtnUseNco;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
@@ -344,6 +347,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		optionsPanel.add(rdbtnUseNco);
 		*/
 
+		btnFftZoomIn = new JButton("+");
+		btnFftZoomIn.addActionListener(this);
+		btnFftZoomOut = new JButton("-");
+		btnFftZoomOut.addActionListener(this);
+		//optionsPanel.add(btnFftZoomIn);
+		//optionsPanel.add(btnFftZoomOut);
 	}
 	
 	private void buildBottomPanel(JPanel parent, String layout, JPanel bottomPanel) {
@@ -859,7 +868,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private void setIQVisible(boolean b) {
 		setFFTVisible(b);
 		rdbtnShowFFT.setVisible(b);
-		rdbtnShowIF.setVisible(b);
+		//rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
 		if (Config.isWindowsOs())
@@ -1079,7 +1088,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		if (e.getSource() == btnStartButton) {
 			processStartButtonClick();
 		}
-
+		if (e.getSource() == btnFftZoomIn) {
+			this.fftPanel.zoomIn();
+		}
+		if (e.getSource() == btnFftZoomOut) {
+			this.fftPanel.zoomOut();
+		}
 		
 	}
 
@@ -1214,6 +1228,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				if (rfDevice == null) {
 					rfDevice = FcdDevice.makeDevice();	
 					if (rfDevice == null) return false; // FIXME this is an issue because we found the description but not the HID device
+				}
+				if (panelFcd == null)
 					try {
 						if (rfDevice instanceof FcdProPlusDevice)
 							panelFcd = new FcdProPlusPanel();
@@ -1225,8 +1241,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					} catch (DeviceException e) {
 						e.printStackTrace(Log.getWriter());
 					}
-					SDRpanel.add(panelFcd, BorderLayout.CENTER);
-				}
+				SDRpanel.add(panelFcd, BorderLayout.CENTER);
+
 				SDRpanel.setVisible(true);
 				if (rfDevice.isConnected()) {
 					panelFcd.setEnabled(true);
@@ -1366,7 +1382,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					}
 				} else if (position == SourceAudio.AIRSPY_SOURCE) {
 					SourceAudio audioSource;
-					if (rfDevice == null) {
+					if (rfDevice == null || !(rfDevice instanceof AirspyDevice) ) {
 						Log.println("Airspy Source Selected");
 						try {
 							rfDevice = AirspyDevice.makeDevice();
@@ -1376,18 +1392,19 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 							stopButton();
 						}
 					}
-					try {
-						panelFcd = new AirspyPanel();
+					if (panelFcd == null || !(panelFcd instanceof AirspyPanel))
+						try {
+							panelFcd = new AirspyPanel();
 
-					} catch (IOException e) {
-						Log.errorDialog("AIRSPY Panel Error", e.getMessage());
-						e.printStackTrace(Log.getWriter());
-						stopButton();
-					} catch (DeviceException e) {
-						Log.errorDialog("AIRSPY Device Error", e.getMessage());
-						e.printStackTrace(Log.getWriter());
-						stopButton();
-					}
+						} catch (IOException e) {
+							Log.errorDialog("AIRSPY Panel Error", e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							stopButton();
+						} catch (DeviceException e) {
+							Log.errorDialog("AIRSPY Device Error", e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							stopButton();
+						}
 
 					if (rfDevice == null) {
 						Log.errorDialog("Missing AIRSPY device", "Insert the device or choose anther source");

@@ -57,7 +57,7 @@ import telemetry.RadiationTelemetry;
 		public static final int WOD_BEACON = 4;
 		public static final int TYPES_OF_FRAME = 5;
 
-		FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
+		public FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 		
 		HighSpeedTrailer trailer = null;
 
@@ -118,15 +118,15 @@ import telemetry.RadiationTelemetry;
 		/**
 		 *  Here is how the frames are defined in the IHU:
 		 *  
-            // ALL_WOD_FRAME
+            // 0 ALL_WOD_FRAME
             {WOD_SCI_PAYLOAD6, WOD_HK_PAYLOAD5,  WOD_SCI_PAYLOAD6,WOD_HK_PAYLOAD5,  WOD_SCI_PAYLOAD6, WOD_HK_PAYLOAD5},
-            // REALTIME_FRAME (Realtime plus WOD, actually)
+            // 1 REALTIME_FRAME (Realtime plus WOD, actually)
             {WOD_SCI_PAYLOAD6,WOD_HK_PAYLOAD5,WOD_SCI_PAYLOAD6, WOD_HK_PAYLOAD5, REALTIME_PAYLOAD1,RAD_EXP_PAYLOAD4},
-            // MINMAX_FRAME (Min/Max plus WOD)
+            // 2 MINMAX_FRAME (Min/Max plus WOD)
             {WOD_SCI_PAYLOAD6,WOD_HK_PAYLOAD5,WOD_SCI_PAYLOAD6, WOD_HK_PAYLOAD5,MAX_VALS_PAYLOAD2,MIN_VALS_PAYLOAD3},
-            // REALTIME_BEACON
+            // 3 REALTIME_BEACON
             {REALTIME_PAYLOAD1, WOD_HK_PAYLOAD5,  WOD_HK_PAYLOAD5, WOD_HK_PAYLOAD5,  WOD_HK_PAYLOAD5, REALTIME_PAYLOAD1},
-            // WOD_BEACON
+            // 4 WOD_BEACON
             {WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5, WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5}
 		 *
 		 * @param type
@@ -172,12 +172,14 @@ import telemetry.RadiationTelemetry;
 			}
 		}
 
-		public void savePayloads() {
+		public boolean savePayloads() {
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
 				payload[i].copyBitsToFields();
-				Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]);
-			}			
+				if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
+					return false;
+			}
+			return true;			
 		}
 		
 		public static int getMaxDataBytes() {

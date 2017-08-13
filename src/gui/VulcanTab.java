@@ -197,8 +197,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		else
 			decodePacket.setSelected(true);
 		
-	//	decodeTelem.setMinimumSize(new Dimension(1600, 14));
-	//	decodeTelem.setMaximumSize(new Dimension(1600, 14));
+		// Hide the choice between Telem and Packets to disable the packet decode feature.  This is not used on the live spacecraft
+		decodeTelem.setVisible(false);
+		decodePacket.setVisible(false);
 
 		addBottomFilter();
 		
@@ -333,31 +334,29 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	protected void parseRadiationFrames() {
 		
-
-
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-			if (data.length > 0)
+			if (data != null && data.length > 0)
 				radTableModel.setData(parseRawBytes(data));
 		} else {
 			if (displayTelem) {
 				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				if (data != null && data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
-					bottomHalf.setVisible(true);
+//					bottomHalf.setVisible(true);
 			
 			}
 			else {
 				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				if (data !=null && data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);
 					bottomHalfPackets.setVisible(true);
 					topHalf.setVisible(false);
-					bottomHalf.setVisible(false);
+					//	bottomHalf.setVisible(false);
 			
 			}
 		}
@@ -374,7 +373,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	}
 	
 	
-	private void parseTelemetry(String data[][]) {
+	protected void parseTelemetry(String data[][]) {
 		
 		
 		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
@@ -416,7 +415,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		//updateTab(packets.get(packets.size()-1));
 	}
 	
-	private void parsePackets(String data[][]) {
+	protected void parsePackets(String data[][]) {
 		// We decode the radiation packets
 		// The data returned is a two dimensional array, one row per payload with the first two columns being reset and uptime and the next 58 being data
 		// These are in the order received, so we hope that data carries over from one packet to another, but it may not.
@@ -580,6 +579,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
@@ -684,6 +684,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
 		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void parseFrames() {
+		parseRadiationFrames();
 		
 	}
 

@@ -113,7 +113,7 @@ public class SpacecraftTab extends JPanel {
 		stopThreads(wodHealthTab);
 		stopThreads(wodRadiationTab);
 		
-		healthTab = new HealthTab(sat);
+		healthTab = new HealthTabRt(sat);
 		healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();

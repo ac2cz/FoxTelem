@@ -462,6 +462,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						"Missing Server Upload Settings",
 						JOptionPane.ERROR_MESSAGE);	
 				this.cbUploadToServer.setSelected(false);
+				Config.uploadToServer = cbUploadToServer.isSelected();
 			} else {
 				// grab all the latest settings
 				Config.callsign = txtCallsign.getText();
@@ -486,8 +487,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
 				
-				Config.useDDEforFreq = cbUseDDEFreq.isSelected();
-				Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
+				if (Config.isWindowsOs()) {
+					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
+					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
+				}
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
@@ -557,6 +560,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 							Config.initPayloadStore();
 							Config.initSequence();
 							Config.initServerQueue();
+							Config.initSatelliteManager();
 
 							//MainWindow.refreshTabs(true);
 							refreshTabs = true;
