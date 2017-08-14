@@ -2,6 +2,8 @@ package device;
 
 import java.io.IOException;
 
+import decoder.SourceUSB;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -50,5 +52,12 @@ public abstract class TunerController {
 
 	public int getMinFreq() { return MIN_FREQ; }
 	public int getMaxFreq() { return MAX_FREQ; }
+
+	public abstract DevicePanel getDevicePanel() throws IOException, DeviceException;
+	
+	public void setUsbSource(SourceUSB audioSource) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

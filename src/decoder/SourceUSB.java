@@ -71,7 +71,7 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 		boolean signed = true;
 		boolean bigEndian = false;
 		//Decoder.bigEndian = false;
-		sampleRate = AirspyDevice.DEFAULT_SAMPLE_RATE.getRate();
+//		sampleRate = AirspyDevice.DEFAULT_SAMPLE_RATE.getRate();
 		AudioFormat af = new AudioFormat(sampleRate,sampleSizeInBits,channels,signed,bigEndian); 
 		//System.out.println("Using standard format");
 		Log.println("SC Format " + af);

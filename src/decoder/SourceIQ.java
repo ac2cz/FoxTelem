@@ -270,7 +270,8 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (mode == MODE_FSK_HS) {
-			setFilterWidth(9600*2);
+		//	setFilterWidth(9600*2);
+			setFilterWidth(75000);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		} else {

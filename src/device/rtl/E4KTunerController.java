@@ -17,29 +17,26 @@
  ******************************************************************************/
 package device.rtl;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.usb.UsbException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
 import org.usb4java.DeviceHandle;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
-import source.SourceException;
-import source.tuner.TunerType;
-import source.tuner.configuration.TunerConfiguration;
-import source.tuner.rtl.RTL2832TunerController;
-import controller.ThreadPoolManager;
+import common.Log;
+import device.DeviceException;
+import device.DevicePanel;
+import device.ThreadPoolManager;
+import device.TunerConfiguration;
+import device.TunerType;
 
 public class E4KTunerController extends RTL2832TunerController
 {
-	private final static Logger mLog = 
-			LoggerFactory.getLogger( E4KTunerController.class );
-
 	public static final long MIN_FREQUENCY = 52000000;
 	public static final long MAX_FREQUENCY = 2200000000l;
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.95;
@@ -111,7 +108,7 @@ public class E4KTunerController extends RTL2832TunerController
 	public E4KTunerController( Device device, 
 							   DeviceDescriptor deviceDescriptor,
 							   ThreadPoolManager threadPoolManager ) 
-									   throws SourceException
+									   throws DeviceException
 	{
 		super( device, deviceDescriptor, threadPoolManager, MIN_FREQUENCY, 
 				MAX_FREQUENCY, DC_SPIKE_AVOID_BUFFER, USABLE_BANDWIDTH_PERCENT );
@@ -122,9 +119,10 @@ public class E4KTunerController extends RTL2832TunerController
     {
 	    return TunerType.ELONICS_E4000;
     }
-	
+
+	/*
 	@Override
-    public void apply( TunerConfiguration config ) throws SourceException
+    public void apply( TunerConfiguration config ) throws DeviceException
     {
 		if( config != null && config instanceof E4KTunerConfiguration )
 		{
@@ -157,15 +155,15 @@ public class E4KTunerController extends RTL2832TunerController
 				{
 					setFrequency( e4kConfig.getFrequency() );
 				}
-				catch( SourceException se )
+				catch( DeviceException se )
 				{
 					//Do nothing, we couldn't set the frequency
 				}
 			}
 			catch( UsbException e )
 			{
-				throw new SourceException( "E4KTunerController - usb error "
-						+ "while applying tuner config", e );
+				throw new DeviceException( "E4KTunerController - usb error "
+						+ "while applying tuner config: " + e );
 			}
 			
 		}
@@ -177,8 +175,8 @@ public class E4KTunerController extends RTL2832TunerController
 		}
 	    
     }
-
-	public void init() throws SourceException
+*/
+	public void init() throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 		
@@ -188,7 +186,7 @@ public class E4KTunerController extends RTL2832TunerController
 		{
 			mDeviceHandle = null;
 			
-			throw new SourceException( "libusb couldn't open RTL2832 usb "
+			throw new DeviceException( "libusb couldn't open RTL2832 usb "
 					+ "device [" + LibUsb.errorName( result ) + "]" );
 		}
 
@@ -203,7 +201,7 @@ public class E4KTunerController extends RTL2832TunerController
 		}
 		catch( Exception e )
 		{
-			mLog.error( "error while reading the EEPROM device descriptor", e );
+			Log.println( "error while reading the EEPROM device descriptor:" + e );
 		}
 		
 		try
@@ -212,15 +210,15 @@ public class E4KTunerController extends RTL2832TunerController
 
 			if( eeprom == null )
 			{
-				mLog.error( "eeprom byte array was null - constructed "
+				Log.println( "eeprom byte array was null - constructed "
 						+ "empty descriptor object" );
 			}
 		}
 		catch( Exception e )
 		{
-			mLog.error( "error while constructing device descriptor using "
+			Log.println( "error while constructing device descriptor using "
 				+ "descriptor byte array " + 
-				( eeprom == null ? "[null]" : Arrays.toString( eeprom )), e );
+				( eeprom == null ? "[null]" : Arrays.toString( eeprom )+ ": ")+ e );
 		}
 
 		try
@@ -245,16 +243,16 @@ public class E4KTunerController extends RTL2832TunerController
 			}
 			catch( Exception e )
 			{
-				throw new SourceException( "RTL2832 Tuner Controller - couldn't "
-					+ "set default sample rate", e );
+				throw new DeviceException( "RTL2832 Tuner Controller - couldn't "
+					+ "set default sample rate: " + e );
 			}
 
 		}
 		catch( UsbException e )
 		{
 			e.printStackTrace();
-			throw new SourceException( "E4K Tuner Controller - error during "
-					+ "init()", e );
+			throw new DeviceException( "E4K Tuner Controller - error during "
+					+ "init():" + e );
 		}
 	}
 	
@@ -263,7 +261,7 @@ public class E4KTunerController extends RTL2832TunerController
 	 * for the selected bandwidth/sample rate
 	 */
 	@Override
-    public void setSampleRateFilters( int bandwidth ) throws SourceException
+    public void setSampleRateFilters( int bandwidth ) throws DeviceException
     {
 		/* Determine repeater state so we can restore it when done */
 		boolean i2CRepeaterEnabled = isI2CRepeaterEnabled();
@@ -290,8 +288,7 @@ public class E4KTunerController extends RTL2832TunerController
 		}
     }
 
-	@Override
-    public long getTunedFrequency() throws SourceException
+    public long getTunedFrequency() throws DeviceException
     {
 		try
 		{
@@ -325,13 +322,12 @@ public class E4KTunerController extends RTL2832TunerController
 		}
 		catch( LibUsbException e )
 		{
-			throw new SourceException( "E4K tuner controller - couldn't get "
-					+ "tuned frequency", e );
+			throw new DeviceException( "E4K tuner controller - couldn't get "
+					+ "tuned frequency:" + e );
 		}
     }
 
-	@Override
-    public void setTunedFrequency( long frequency ) throws SourceException
+    public void setTunedFrequency( long frequency ) throws DeviceException
     {
 		/* Get the phase locked loop setting */ 
 		PLL pll = PLL.fromFrequency( frequency );
@@ -356,7 +352,7 @@ public class E4KTunerController extends RTL2832TunerController
 		 * to rounding errors, 52 mhz becomes 51.999993, so we need to adjust
 		 * x to get 52.000003 mhz ... otherwise the PLL won't lock on the freq 
 		 */
-		if( actualFrequency < getMinFrequency() )
+		if( actualFrequency < 52000000 ) //getMinFrequency() )   ///// FIXME: We dont have this function
 		{
 			x++;
 			actualFrequency = calculateActualFrequency( pll, z, x );
@@ -394,7 +390,7 @@ public class E4KTunerController extends RTL2832TunerController
 			
 			if( !( ( lock & 0x1 ) == 0x1 ) )
 			{
-				throw new SourceException( "E4K tuner controller - couldn't "
+				throw new DeviceException( "E4K tuner controller - couldn't "
 						+ "achieve PLL lock for frequency [" + 
 						actualFrequency + "] lock value [" + lock + "]" );
 			}
@@ -403,8 +399,8 @@ public class E4KTunerController extends RTL2832TunerController
 		}
 		catch( UsbException e )
 		{
-			throw new SourceException( "E4K tuner controller - error tuning "
-					+ "frequency [" + frequency + "]", e );
+			throw new DeviceException( "E4K tuner controller - error tuning "
+					+ "frequency [" + frequency + "]: " + e );
 		}
     }
 	
@@ -2507,4 +2503,18 @@ public class E4KTunerController extends RTL2832TunerController
 			return (byte)mValue;
 		}
 	}
+
+	@Override
+	public int setFrequency(long freq) throws DeviceException {
+		setTunedFrequency(freq);
+		return 0;
+	}
+
+	@Override
+	public boolean isConnected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	
 }

@@ -33,9 +33,11 @@ import device.rtl.E4KTunerController;
 import device.rtl.R820TTunerController;
 import device.rtl.RTL2832TunerController;
 
-public class TunerManager
-{
+public class TunerManager {
 
+	ArrayList<String> deviceNames;
+	ArrayList<TunerController> tunerControllerList;
+	
 	//private MixerManager mMixerManager;
 	//private TunerModel mTunerModel;
 	private ThreadPoolManager mThreadPoolManager;
@@ -60,7 +62,8 @@ public class TunerManager
      * @throws UsbException 
      */
     public <String>ArrayList makeDeviceList() throws UsbException	{
-    	ArrayList<String> deviceNames = new ArrayList<String>();
+    	deviceNames = new ArrayList();
+    	tunerControllerList = new ArrayList<TunerController>();
     	DeviceList deviceList = new DeviceList();
     	int result = LibUsb.init( null );
     	if( result != LibUsb.SUCCESS ){
@@ -89,8 +92,8 @@ public class TunerManager
     		} else {
     			TunerController dev = initTuner( device, descriptor );
     			if (dev !=null) {
-    				deviceNames.add((String) dev.name);
-
+    				deviceNames.add((java.lang.String) dev.name);
+    				tunerControllerList.add(dev);
     				StringBuilder sb = new StringBuilder();
 
     				sb.append( "usb device [" );
@@ -109,6 +112,10 @@ public class TunerManager
     	return deviceNames;
     }
 
+    public TunerController getTunerControllerById(int id) {
+    	return tunerControllerList.get(id);
+    }
+    
     private device.TunerController initTuner( Device device, 
     		DeviceDescriptor descriptor ) throws UsbException
     {
@@ -155,7 +162,7 @@ public class TunerManager
 				case TERRATEC_T_STICK_PLUS:
 				case TWINTECH_UT40:
 				case ZAAPA_ZTMINDVBZP:
-			//		return initRTL2832Tuner( tunerClass, device, descriptor );
+					return initRTL2832Tuner( tunerClass, device, descriptor );
 				case UNKNOWN:
 				default:
 					break;
@@ -297,8 +304,8 @@ public class TunerManager
 	}
 */
 	
-	/*
-	private TunerInitStatus initRTL2832Tuner( TunerClass tunerClass,
+	
+	private device.TunerController initRTL2832Tuner( TunerClass tunerClass,
 											  Device device, 
 											  DeviceDescriptor deviceDescriptor )
 	{
@@ -314,7 +321,7 @@ public class TunerManager
 			}
 			catch( DeviceException e )
 			{
-				Log.println( "couldn't determine RTL2832 tuner type", e );
+				Log.println( "couldn't determine RTL2832 tuner type: " + e );
 				tunerType = TunerType.UNKNOWN;
 			}
 		}
@@ -330,15 +337,18 @@ public class TunerManager
 					
 					controller.init();
 					
-					RTL2832Tuner rtlTuner = 
-						new RTL2832Tuner( tunerClass, controller );
+	//				RTL2832Tuner rtlTuner = 
+	//					new RTL2832Tuner( tunerClass, controller );
 					
-					return new TunerInitStatus( rtlTuner, "LOADED" );
+					//return new TunerInitStatus( rtlTuner, "LOADED" );
+					return controller;
 				}
 				catch( DeviceException se )
 				{
-					return new TunerInitStatus( null, "Error constructing E4K tuner "
-						+ "controller - " + se.getLocalizedMessage() );
+					//return new TunerInitStatus( null, "Error constructing E4K tuner "
+					//	+ "controller - " + se.getLocalizedMessage() );
+					Log.println( "error constructing tuner: " + se );
+					return null;
 				}
 			case RAFAELMICRO_R820T:
 				try
@@ -349,17 +359,19 @@ public class TunerManager
 					
 					controller.init();
 					
-					RTL2832Tuner rtlTuner = 
-						new RTL2832Tuner( tunerClass, controller );
+	//				RTL2832Tuner rtlTuner = 
+	//					new RTL2832Tuner( tunerClass, controller );
 					
-					return new TunerInitStatus( rtlTuner, "LOADED" );
+					//return new TunerInitStatus( rtlTuner, "LOADED" );
+					return controller;
 				}
 				catch( DeviceException se )
 				{
-					Log.println( "error constructing tuner", se );
+					Log.println( "error constructing tuner: " + se );
 					
-					return new TunerInitStatus( null, "Error constructing R820T "
-						+ "tuner controller - " + se.getLocalizedMessage() );
+					//return new TunerInitStatus( null, "Error constructing R820T "
+					//	+ "tuner controller - " + se.getLocalizedMessage() );
+					return null;
 				}
 			case FITIPOWER_FC0012:
 			case FITIPOWER_FC0013:
@@ -372,9 +384,13 @@ public class TunerManager
 				break;
 		}
 		
-		return new TunerInitStatus( null, reason );
+//		return new TunerInitStatus( null, reason );
+		Log.println( "error constructing tuner: " + reason );
+
+		return null;
+		
 	}
-*/
+
 	
     /**
      * Gets the first tuner mixer dataline that corresponds to the tuner class.

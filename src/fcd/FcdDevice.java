@@ -5,14 +5,14 @@ import java.util.List;
 
 import common.Config;
 import common.Log;
-import device.Device;
 import device.DeviceException;
+import device.TunerController;
 import purejavahidapi.HidDevice;
 import purejavahidapi.HidDeviceInfo;
 import purejavahidapi.InputReportListener;
 import purejavahidapi.PureJavaHidApi;
 
-public abstract class FcdDevice extends Device {
+public abstract class FcdDevice extends TunerController {
 	byte[] lastReport;
 	//static boolean commandMUX = false;
 
@@ -45,7 +45,7 @@ public abstract class FcdDevice extends Device {
 	}
 	public boolean isConnected() { if (dev != null) return true; return false; }
 
-	public static Device makeDevice() throws IOException, DeviceException {
+	public static TunerController makeDevice() throws IOException, DeviceException {
 		try {
 			List<HidDeviceInfo> devList = PureJavaHidApi.enumerateDevices();
 

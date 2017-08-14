@@ -28,6 +28,7 @@ import common.Log;
 import decoder.SourceUSB;
 import device.DCRemovalFilter_RB;
 import device.DeviceException;
+import device.DevicePanel;
 import device.HilbertTransform;
 import device.ThreadPoolManager;
 import device.TunerClass;
@@ -1595,5 +1596,10 @@ public class AirspyDevice extends device.TunerController
 	public boolean isConnected() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		return new AirspyPanel();
 	}
 }

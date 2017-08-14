@@ -22,28 +22,27 @@
  ******************************************************************************/
 package device.rtl;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 
 import javax.swing.JPanel;
 import javax.usb.UsbException;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
 import org.usb4java.LibUsbException;
 
-import source.SourceException;
-import source.tuner.TunerType;
-import source.tuner.configuration.TunerConfiguration;
-import source.tuner.rtl.RTL2832TunerController;
-import controller.ThreadPoolManager;
+import common.Log;
+import device.DeviceException;
+import device.DevicePanel;
+import device.ThreadPoolManager;
+import device.TunerConfiguration;
+import device.TunerType;
+
 
 public class R820TTunerController extends RTL2832TunerController
 {
-	private final static Logger mLog = 
-			LoggerFactory.getLogger( R820TTunerController.class );
-
+	
 	public static final long MIN_FREQUENCY =  3180000;
 	public static final long MAX_FREQUENCY = 1782030000;
 	public static final double USABLE_BANDWIDTH_PERCENT = 1.0;
@@ -78,7 +77,7 @@ public class R820TTunerController extends RTL2832TunerController
 	public R820TTunerController( Device device, 
 								 DeviceDescriptor deviceDescriptor, 
 								 ThreadPoolManager threadPoolManager )
-								 		 throws SourceException
+								 		 throws DeviceException
 	{
 	    super( device, deviceDescriptor, threadPoolManager, MIN_FREQUENCY, 
 	    		MAX_FREQUENCY, DC_SPIKE_AVOID_BUFFER, USABLE_BANDWIDTH_PERCENT );
@@ -96,8 +95,9 @@ public class R820TTunerController extends RTL2832TunerController
 		//TODO: why is this being forced as an abstract method on sub classes?
     }
 	
+	/*
 	@Override
-    public void apply( TunerConfiguration tunerConfig ) throws SourceException
+    public void apply( TunerConfiguration tunerConfig ) throws DeviceException
     {
 		if( tunerConfig != null && 
 			tunerConfig instanceof R820TTunerConfiguration )
@@ -131,24 +131,25 @@ public class R820TTunerController extends RTL2832TunerController
 				{
 					setFrequency( config.getFrequency() );
 				}
-				catch( SourceException se )
+				catch( DeviceException se )
 				{
 					//Do nothing, we couldn't set the frequency
 				}
 			}
 			catch( UsbException e )
 			{
-				throw new SourceException( "R820TTunerController - usb error "
+				throw new DeviceException( "R820TTunerController - usb error "
 						+ "while applying tuner config", e );
 			}
 		}
     }
-
+*/
+	
 	/**
 	 * Not implemented.
 	 */
-	@Override
-    public long getTunedFrequency() throws SourceException
+
+    public long getTunedFrequency() throws DeviceException
     {
 		return 0;
     }
@@ -157,8 +158,7 @@ public class R820TTunerController extends RTL2832TunerController
 	 * Sets the center frequency.  Setting the frequency is a two-part process
 	 * of setting the multiplexer and then setting the Oscillator (PLL).
 	 */
-	@Override
-    public void setTunedFrequency( long frequency ) throws SourceException
+    public void setTunedFrequency( long frequency ) throws DeviceException
     {
 		try
 		{
@@ -176,7 +176,7 @@ public class R820TTunerController extends RTL2832TunerController
 		}
 		catch( UsbException e )
 		{
-			throw new SourceException( "R820TTunerController - exception "
+			throw new DeviceException( "R820TTunerController - exception "
 					+ "while setting frequency [" + frequency + "] - " + 
 					e.getLocalizedMessage() );
 		}
@@ -244,7 +244,7 @@ public class R820TTunerController extends RTL2832TunerController
 	/**
 	 * Initializes the tuner for use.
 	 */
-	public void init() throws SourceException
+	public void init() throws DeviceException
 	{
 		/* Initialize the super class to open and claim the usb interface*/
 		super.init();
@@ -263,7 +263,7 @@ public class R820TTunerController extends RTL2832TunerController
 		}
 		catch( UsbException e )
 		{
-			throw new SourceException( "error during init()", e );
+			throw new DeviceException( "error during init():" + e );
 		}
 	}
 
@@ -346,7 +346,7 @@ public class R820TTunerController extends RTL2832TunerController
             
             if( !calibrationSuccessful( calibrationCode ) )
             {
-            	mLog.error( "Calibration NOT successful - code: " + 
+            	Log.println( "Calibration NOT successful - code: " + 
             			calibrationCode );
             }
         }
@@ -1298,4 +1298,19 @@ public class R820TTunerController extends RTL2832TunerController
 					"] must be in the range 0 - 31");
 		}
 	}
+
+	@Override
+	public int setFrequency(long freq) throws DeviceException {
+		setTunedFrequency(freq);
+		return 0;
+	}
+
+
+	@Override
+	public boolean isConnected() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+
 }
