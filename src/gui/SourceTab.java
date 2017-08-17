@@ -137,7 +137,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JButton btnFftZoomIn;
 	JButton btnFftZoomOut;
 	
-	//JCheckBox rdbtnUseNco;
+	JCheckBox rdbtnUseNco;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
 	JComboBox<String> soundCardComboBox;
@@ -346,12 +346,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		
 		findSignalPanel.setVisible(Config.findSignal);
 	
-		/*
-		rdbtnUseNco = new JCheckBox("Use NCO carrier");
+		
+		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
 		rdbtnUseNco.setSelected(SourceIQ.useNCO);
 		optionsPanel.add(rdbtnUseNco);
-		*/
+		
 
 		btnFftZoomIn = new JButton("+");
 		btnFftZoomIn.addActionListener(this);
@@ -1400,18 +1400,18 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 					SourceAudio audioSource;
 					rfDevice = tunerManager.getTunerControllerById(position-soundcardSources.length);
 					Log.println("USB Source Selected: " + rfDevice.name);
-					if (panelFcd == null)
-						try {
-							panelFcd = rfDevice.getDevicePanel();
-						} catch (IOException e) {
-							Log.errorDialog("USB Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("USB Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						}
+					panelFcd = null; // get rid of any existing panel
+					try {
+						panelFcd = rfDevice.getDevicePanel();
+					} catch (IOException e) {
+						Log.errorDialog("USB Panel Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
+					} catch (DeviceException e) {
+						Log.errorDialog("USB Device Error", e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
+					}
 							
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
@@ -1450,7 +1450,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						}
 						iqSource1 = new SourceIQ(rate*2, 0,decoder1HS); 
 						iqSource1.setAudioSource(audioSource,0);
-						setCenterFreq();
 						setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 						setupAudioSink(decoder1);
 						Config.passManager.setDecoder1(decoder1, iqSource1, this);
@@ -1858,18 +1857,17 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	        	
 	        }
 		}
-		/*
+		
 		if (e.getSource() == rdbtnUseNco) {
 			if (fftPanel != null)
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				if (iqSource != null)
 					SourceIQ.useNCO = false;
 	        } else {
-	        	if (iqSource != null)
 	        		SourceIQ.useNCO = true;
 	        	
 	        }
 		}
+		/*
 		if (e.getSource() == rdbtnUseLimiter) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				

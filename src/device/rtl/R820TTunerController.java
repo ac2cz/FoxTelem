@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     SDR Trunk 
+ *     Based on the port for SDR Trunk 
  *     Copyright (C) 2014-2016 Dennis Sheirer
  *     
  *     Java port of librtlsdr <https://github.com/steve-m/librtlsdr>

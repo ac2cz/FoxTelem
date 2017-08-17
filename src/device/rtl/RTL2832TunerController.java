@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     SDR Trunk 
+ *     Based on the port for SDR Trunk 
  *     Copyright (C) 2014 Dennis Sheirer
  *     
  *     Java version based on librtlsdr
@@ -2002,7 +2002,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 
 	@Override
 	public void cleanup() throws IOException, DeviceException {
-		release();
+		// Don't call release() as that causes a crash on exit
+		
 	}
 
 	

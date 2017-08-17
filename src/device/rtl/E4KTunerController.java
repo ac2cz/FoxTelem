@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     SDR Trunk 
+ *     Based on the port for SDR Trunk 
  *     Copyright (C) 2014 Dennis Sheirer
  * 
  *     This program is free software: you can redistribute it and/or modify

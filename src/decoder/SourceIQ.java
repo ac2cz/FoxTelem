@@ -9,7 +9,7 @@ import common.Log;
 import filter.DcRemoval;
 import filter.Filter;
 import filter.RaisedCosineFilter;
-import filter.WindowedSincFilter;
+import decoder.Complex;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -99,7 +99,7 @@ public class SourceIQ extends SourceAudio {
 	DcRemoval iDcFilter;
 	DcRemoval qDcFilter;
 	
-//	Filter decimateFilter;
+	Filter decimateFilter;
 	
 //	Filter audioFilterI;
 //	Filter audioFilterQ;
@@ -165,6 +165,13 @@ public class SourceIQ extends SourceAudio {
 	public int getCenterFreqkHz() { return centerFreq; }
 	public void setCenterFreqkHz(int freq) { 
 		centerFreq = freq; 
+		long frequencyOffset = getFrequencyFromBin(Config.selectedBin);
+		frequencyOffset = frequencyOffset-centerFreq*1000;
+		//Log.println("Cener: " + centerFreq);
+		//Log.println("Osc: " + frequencyOffset);
+		mMixer = new Oscillator( frequencyOffset, 
+				IQ_SAMPLE_RATE );
+		mMixer.setFrequency(frequencyOffset);
 	}
 	
 	public long getFrequencyFromBin(int bin) {
@@ -270,8 +277,8 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (mode == MODE_FSK_HS) {
-		//	setFilterWidth(9600*2);
-			setFilterWidth(75000);
+			setFilterWidth(9600*2);
+		//	setFilterWidth(2*75000);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		} else {
@@ -299,10 +306,10 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
 		
-//		decimateFilter = new RaisedCosineFilter(audioFormat, demodAudio.length);
-//		decimateFilter.init(AF_SAMPLE_RATE, AF_SAMPLE_RATE/2, 16);
-//		decimateFilter.setFilterDC(false);
-//		decimateFilter.setAGC(false);
+		decimateFilter = new RaisedCosineFilter(audioFormat, fcdData.length);
+		decimateFilter.init(IQ_SAMPLE_RATE, 15000, 512);
+		decimateFilter.setFilterDC(false);
+		decimateFilter.setAGC(false);
 		
 		audioDcFilter = new DcRemoval(0.9999d);
 
@@ -428,10 +435,17 @@ public class SourceIQ extends SourceAudio {
 			inverseFFT(fftData);
 
 		int d=0;		
+		if (useNCO) {
+			fcdData = ncoDecimate(fcdData);
+			decimateFilter.filter(fcdData, fcdData);
+		}
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-			if (mode != MODE_PSK)	
-				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
+			if (mode != MODE_PSK)
+				if (useNCO)
+					demodAudio[d++] = fm.demodulate(fcdData[j], fcdData[j+1]);	
+				else
+					demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
 			else	
 				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
 		}
@@ -975,6 +989,13 @@ public class SourceIQ extends SourceAudio {
 	}//end getAudioFormat
 
 
+	
+	/**
+	 * BFO translates to baseband and gives audio for a SSB signal
+	 * @param i
+	 * @param q
+	 * @return
+	 */
 	private double ncoBFO(double i, double q) {
 		int ssbOffset = 0;
 		// offset by 1200Hz if this is PSK
@@ -1019,6 +1040,30 @@ public class SourceIQ extends SourceAudio {
 		} else {
 			return q;
 		}
+	}
+	
+	private Oscillator mMixer;
+	
+	private double [] ncoDecimate(double[] samples) {
+
+		/* We make a copy of the buffer so that we don't affect
+		 * anyone else that is using the same buffer, like other
+		 * channels or the spectral display */
+		double[] translated = new double[ samples.length ];
+		
+		/* Perform frequency translation */
+		for( int x = 0; x < samples.length; x += 2 )
+		{
+			mMixer.rotate();
+			
+			translated[ x ] = Complex.multiplyInphase( 
+				samples[ x ], samples[ x + 1 ], mMixer.inphase(), mMixer.quadrature() );
+
+			translated[ x + 1 ] = Complex.multiplyQuadrature( 
+					samples[ x ], samples[ x + 1 ], mMixer.inphase(), mMixer.quadrature() );
+		}
+		
+		return translated;
 	}
 
 }
