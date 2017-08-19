@@ -4,10 +4,14 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
+
 import FuncubeDecoder.FUNcubeSpacecraft;
+import gui.MainWindow;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
@@ -71,7 +75,38 @@ public class SatelliteManager {
 							e.printStackTrace();
 						}
 					} else {
-						Log.println("Leaving existing spacecraft file: " + targetFile.getName());
+						// It exists, but maybe it is not the latest.  Check the timestamp and warn the user if we have a later one
+						if (targetFile.lastModified() < listOfFiles[i].lastModified()) {
+							Date targetDate = new Date(targetFile.lastModified());
+							Date masterDate = new Date(listOfFiles[i].lastModified());
+							Object[] options = {"Yes",
+					        "No"};
+							int n = JOptionPane.showOptionDialog(
+									MainWindow.frame,
+									"There is a newer spacecraft file available in the installation directory. Do you want to replace your local file?\n"
+									+ "The local file contains any changes you have made to the spacecraft, such as Freqency Bounds.\n"
+									+ "Existing File ("+targetDate+"): " + targetFile.getPath() +"\nwill be replaced with\n"
+									+ "Master Copy ("+masterDate+"): " + listOfFiles[i].getPath(),
+									"Overwrite Existing spacecraft config file",
+								    JOptionPane.YES_NO_OPTION, 
+								    JOptionPane.QUESTION_MESSAGE,
+								    null,
+								    options,
+								    options[1]);
+										
+							if (n == JOptionPane.NO_OPTION) {
+								Log.println("Leaving existing spacecraft file: " + targetFile.getName());
+							} else {
+								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
+								try {
+									SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+								} catch (IOException e) {
+									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
+									e.printStackTrace();
+								}							
+							}
+						} else
+							Log.println("Leaving existing spacecraft file: " + targetFile.getName());
 					}
 				}
 			}

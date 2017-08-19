@@ -468,7 +468,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					+ "Do you want to exit?",
 					"Exit while pass in progress?",
 				    JOptionPane.YES_NO_OPTION, 
-				    JOptionPane.ERROR_MESSAGE,
+				    JOptionPane.QUESTION_MESSAGE,
 				    null,
 				    options,
 				    options[1]);

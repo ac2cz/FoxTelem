@@ -58,8 +58,8 @@ public class Config {
 
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05o"; //"1.05n";
-	public static String VERSION = VERSION_NUM + " - 9 Aug 2017";
+	public static String VERSION_NUM = "1.05p"; //"1.05n";
+	public static String VERSION = VERSION_NUM + " - 18 Aug 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -247,7 +247,6 @@ public class Config {
 	static public boolean debugRS = false; // not saved or on GUI
 	
 	public static boolean missing() { 
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
 			return true;
@@ -256,7 +255,6 @@ public class Config {
 	}
 	
 	public static void setHome() {
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory);
 		if(!aFile.isDirectory()){
 			
@@ -266,7 +264,7 @@ public class Config {
 		}
 		if(!aFile.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
-					"\nFoxTelem needs to save the program settings in your home directroy.  It is either not accessible or not writable\n");
+					"\nFoxTelem needs to save the program settings.  The directory is either not accessible or not writable\n");
 		}
 		
 		System.out.println("Set Home to: " + homeDirectory);
