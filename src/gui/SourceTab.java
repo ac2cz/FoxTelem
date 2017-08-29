@@ -292,7 +292,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		optionsPanel.add(rdbtnShowIF);
 		rdbtnShowIF.addItemListener(this);
 		rdbtnShowIF.setSelected(Config.showIF);
-		rdbtnShowIF.setVisible(false);
+		rdbtnShowIF.setVisible(true);
 		 
 		rdbtnTrackSignal = new JCheckBox("Track Doppler");
 		options1.add(rdbtnTrackSignal);
@@ -1184,7 +1184,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			}
 		} else if (position >= this.soundcardSources.length) { // then this is a USB device IQ
 			btnStartButton.setEnabled(true);
-			cbSoundCardRate.setVisible(true);
+			cbSoundCardRate.setVisible(false);
 			panelFile.setVisible(false);
 			auto.setEnabled(true);
 			setIQVisible(true);

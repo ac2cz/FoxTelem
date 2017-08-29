@@ -9,6 +9,7 @@ import common.Log;
 import filter.DcRemoval;
 import filter.Filter;
 import filter.RaisedCosineFilter;
+import filter.WindowedSincFilter;
 import decoder.Complex;
 
 /**
@@ -100,6 +101,7 @@ public class SourceIQ extends SourceAudio {
 	DcRemoval qDcFilter;
 	
 	Filter decimateFilter;
+	Filter decimateFilter2;
 	
 //	Filter audioFilterI;
 //	Filter audioFilterQ;
@@ -306,11 +308,16 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
 		
-		decimateFilter = new RaisedCosineFilter(audioFormat, fcdData.length);
-		decimateFilter.init(IQ_SAMPLE_RATE, 15000, 512);
+		decimateFilter = new WindowedSincFilter(audioFormat, fcdData.length);
+		decimateFilter.init(IQ_SAMPLE_RATE, 4000, 256);
 		decimateFilter.setFilterDC(false);
 		decimateFilter.setAGC(false);
-		
+
+		decimateFilter2 = new WindowedSincFilter(audioFormat, fcdData.length);
+		decimateFilter2.init(IQ_SAMPLE_RATE, 4000, 256);
+		decimateFilter2.setFilterDC(false);
+		decimateFilter2.setAGC(false);
+
 		audioDcFilter = new DcRemoval(0.9999d);
 
 		iDcFilter = new DcRemoval(0.9999d);
@@ -387,6 +394,8 @@ public class SourceIQ extends SourceAudio {
 	// local variables that I want to allocate only once
 	byte[] ib = new byte[2];
 	byte[] qb = new byte[2];
+	
+	double[] fcdData2;
 
 	/**
 	 * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
@@ -402,15 +411,29 @@ public class SourceIQ extends SourceAudio {
 		zeroFFT();
 		int i = 0;
 		
-		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
+		// DC Filter the incoming data
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
-			
 			id = fcdData[j];
 			qd = fcdData[j+1];
 			// filter out any DC from I/Q signals
-			id = iDcFilter.filter(id);
-			qd = qDcFilter.filter(qd);
+			fcdData[j] = iDcFilter.filter(id);
+			fcdData[j+1] = qDcFilter.filter(qd);
+		}
+		
+		if (useNCO) {
+				fcdData2 = ncoDecimate(fcdData);
+		}
+		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
+		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+			double id, qd;
+			if (useNCO) {
+			}
+			id = fcdData[j];
+			qd = fcdData[j+1];
+			// filter out any DC from I/Q signals
+//			id = iDcFilter.filter(id);
+//			qd = qDcFilter.filter(qd);
 
 			// i and q go into consecutive spaces in the complex FFT data input
 			if (Config.swapIQ) {
@@ -424,26 +447,22 @@ public class SourceIQ extends SourceAudio {
 		}
 	
 		runFFT(fftData); // results back in fftData
-
+	
 		if (!Config.showIF) calcPsd();
-		
+
 		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
-		
+ 		
 		if (Config.showIF) calcPsd();
 
-		if (mode != MODE_PSK)
+		if (!useNCO && mode != MODE_PSK)
 			inverseFFT(fftData);
-
 		int d=0;		
-		if (useNCO) {
-			fcdData = ncoDecimate(fcdData);
-			decimateFilter.filter(fcdData, fcdData);
-		}
+		
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
 			if (mode != MODE_PSK)
 				if (useNCO)
-					demodAudio[d++] = fm.demodulate(fcdData[j], fcdData[j+1]);	
+					demodAudio[d++] = fm.demodulate(fcdData2[j], fcdData2[j+1]);	
 				else
 					demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
 			else	
@@ -454,13 +473,13 @@ public class SourceIQ extends SourceAudio {
 		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
+		// No needed with NCO as we have already filtered to 3kHz
+		if (!useNCO)
 		for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
 			else {
-				antiAlias16kHzIIRFilter(demodAudio);
-				//decimateFilter.filter(demodAudio, demodAudio);
-				
+				antiAlias16kHzIIRFilter(demodAudio);				
 			}
 		
 		// Every 4th entry goes to the audio output to get us from 192k -> 48k
@@ -683,8 +702,8 @@ public class SourceIQ extends SourceAudio {
 			avgSig += sig;
 			sigReading++;
 
-			iAvg = newData[k];
-			qAvg = newData[k+1];
+			iAvg += newData[k];
+			qAvg += newData[k+1];
 			k+=2;
 		}
 		
@@ -1034,7 +1053,7 @@ public class SourceIQ extends SourceAudio {
 			qPhase-=2.0*Math.PI;
 		// mix with input signal (unless negative)
 		if (qPhase>0.0) {
-			double mq=q*cosTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE] -
+			double mq=q*cosTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE] -
 					i*sinTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
 			return mq; //sinTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
 		} else {
@@ -1042,9 +1061,27 @@ public class SourceIQ extends SourceAudio {
 		}
 	}
 	
-	private Oscillator mMixer;
-	
+	double gain = 50;
 	private double [] ncoDecimate(double[] samples) {
+		int ssbOffset = 0;
+		double id, qd;
+		double[] translated = new double[ samples.length ];
+		for( int x = 0; x < samples.length; x += 2 ) {
+			id = gain*samples[x];
+			qd = gain*samples[x+1];
+			translated[x] = ncoMixerI(id,qd, ssbOffset);
+			translated[x+1] = ncoMixerQ(id,qd, ssbOffset);
+			translated[x] = decimateFilter.filterDouble(translated[x]);
+			translated[x+1] = decimateFilter2.filterDouble(translated[x+1]);
+
+		}
+		return translated;
+
+	}
+	
+	private Oscillator mMixer;	
+	
+	private double [] ncoDecimateOLD(double[] samples) {
 
 		/* We make a copy of the buffer so that we don't affect
 		 * anyone else that is using the same buffer, like other
