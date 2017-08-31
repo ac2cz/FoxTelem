@@ -64,6 +64,8 @@ public class SourceIQ extends SourceAudio {
 	
 	double[] outputData = null;
 	double[] fcdData = null; //new double[samplesToRead];
+	double[] fcdData2 = null;
+
 	double[] audioData = null;
 	double[] demodAudio = null; //new double[samplesToRead/4];
 
@@ -171,9 +173,6 @@ public class SourceIQ extends SourceAudio {
 		frequencyOffset = frequencyOffset-centerFreq*1000;
 		//Log.println("Cener: " + centerFreq);
 		//Log.println("Osc: " + frequencyOffset);
-		mMixer = new Oscillator( frequencyOffset, 
-				IQ_SAMPLE_RATE );
-		mMixer.setFrequency(frequencyOffset);
 	}
 	
 	public long getFrequencyFromBin(int bin) {
@@ -244,6 +243,14 @@ public class SourceIQ extends SourceAudio {
 			samplesToRead = 3840 /2;
 			return;
 		}
+
+/*  TEST ROUTINE to force the sample rate to low value
+		if (true) {
+			FFT_SAMPLES = 4096;
+			samplesToRead = 3840;
+			return;
+		}
+*/			
 		for (int f=0; f<17; f++) {
 			int len = (int)Math.pow(2, f);
 			if (IQ_SAMPLE_RATE / len < 47) {
@@ -299,6 +306,7 @@ public class SourceIQ extends SourceAudio {
 		overlap = new double[2*FFT_SAMPLES - (samplesToRead)]; // we only use part of this, but this is the maximum it could be
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
+		fcdData2 = new double[samplesToRead]; // copy of the data once mixed with NCO
 		demodAudio = new double[samplesToRead/2];
 		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
 
@@ -395,8 +403,7 @@ public class SourceIQ extends SourceAudio {
 	byte[] ib = new byte[2];
 	byte[] qb = new byte[2];
 	
-	double[] fcdData2;
-
+	
 	/**
 	 * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
 	 * We cache the read bytes in case we need to adjust for the clock
@@ -412,7 +419,7 @@ public class SourceIQ extends SourceAudio {
 		int i = 0;
 		
 		// DC Filter the incoming data
-		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+/*		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
 			id = fcdData[j];
 			qd = fcdData[j+1];
@@ -422,8 +429,9 @@ public class SourceIQ extends SourceAudio {
 		}
 		
 		if (useNCO) {
-				fcdData2 = ncoDecimate(fcdData);
+				ncoDecimate(fcdData, fcdData2 );
 		}
+		*/
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
@@ -432,8 +440,8 @@ public class SourceIQ extends SourceAudio {
 			id = fcdData[j];
 			qd = fcdData[j+1];
 			// filter out any DC from I/Q signals
-//			id = iDcFilter.filter(id);
-//			qd = qDcFilter.filter(qd);
+			id = iDcFilter.filter(id);
+			qd = qDcFilter.filter(qd);
 
 			// i and q go into consecutive spaces in the complex FFT data input
 			if (Config.swapIQ) {
@@ -447,15 +455,20 @@ public class SourceIQ extends SourceAudio {
 		}
 	
 		runFFT(fftData); // results back in fftData
+		if (useNCO) {
+			ncoDecimate(fcdData, fcdData2 );
+		}
 	
 		if (!Config.showIF) calcPsd();
 
+		if (!useNCO)
 		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
  		
 		if (Config.showIF) calcPsd();
 
-		if (!useNCO && mode != MODE_PSK)
+		if (!useNCO && mode != MODE_PSK) {
 			inverseFFT(fftData);
+		}
 		int d=0;		
 		
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
@@ -1062,10 +1075,10 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	double gain = 50;
-	private double [] ncoDecimate(double[] samples) {
+	private void ncoDecimate(double[] samples, double[] translated) {
 		int ssbOffset = 0;
 		double id, qd;
-		double[] translated = new double[ samples.length ];
+		
 		for( int x = 0; x < samples.length; x += 2 ) {
 			id = gain*samples[x];
 			qd = gain*samples[x+1];
@@ -1075,32 +1088,7 @@ public class SourceIQ extends SourceAudio {
 			translated[x+1] = decimateFilter2.filterDouble(translated[x+1]);
 
 		}
-		return translated;
 
 	}
 	
-	private Oscillator mMixer;	
-	
-	private double [] ncoDecimateOLD(double[] samples) {
-
-		/* We make a copy of the buffer so that we don't affect
-		 * anyone else that is using the same buffer, like other
-		 * channels or the spectral display */
-		double[] translated = new double[ samples.length ];
-		
-		/* Perform frequency translation */
-		for( int x = 0; x < samples.length; x += 2 )
-		{
-			mMixer.rotate();
-			
-			translated[ x ] = Complex.multiplyInphase( 
-				samples[ x ], samples[ x + 1 ], mMixer.inphase(), mMixer.quadrature() );
-
-			translated[ x + 1 ] = Complex.multiplyQuadrature( 
-					samples[ x ], samples[ x + 1 ], mMixer.inphase(), mMixer.quadrature() );
-		}
-		
-		return translated;
-	}
-
 }
