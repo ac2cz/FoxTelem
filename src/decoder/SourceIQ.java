@@ -99,6 +99,7 @@ public class SourceIQ extends SourceAudio {
 	
 	// DC balance filters
 	DcRemoval audioDcFilter;
+	DcRemoval audioDcFilter2;
 	DcRemoval iDcFilter;
 	DcRemoval qDcFilter;
 	
@@ -317,16 +318,17 @@ public class SourceIQ extends SourceAudio {
 		
 		
 		decimateFilter = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter.init(IQ_SAMPLE_RATE, 4000, 256);
+		decimateFilter.init(IQ_SAMPLE_RATE, 4000, 128);
 		decimateFilter.setFilterDC(false);
 		decimateFilter.setAGC(false);
 
 		decimateFilter2 = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter2.init(IQ_SAMPLE_RATE, 4000, 256);
+		decimateFilter2.init(IQ_SAMPLE_RATE, 4000, 128);
 		decimateFilter2.setFilterDC(false);
 		decimateFilter2.setAGC(false);
 
 		audioDcFilter = new DcRemoval(0.9999d);
+		audioDcFilter2 = new DcRemoval(0.9999d);
 
 		iDcFilter = new DcRemoval(0.9999d);
 		qDcFilter = new DcRemoval(0.9999d);
@@ -435,14 +437,28 @@ public class SourceIQ extends SourceAudio {
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
-			if (useNCO) {
-			}
 			id = fcdData[j];
 			qd = fcdData[j+1];
 			// filter out any DC from I/Q signals
-			id = iDcFilter.filter(id);
-			qd = qDcFilter.filter(qd);
+			fcdData[j] = iDcFilter.filter(id);
+			fcdData[j+1] = qDcFilter.filter(qd);
+		}
 
+		if (useNCO) {
+			ncoDecimate(fcdData, fcdData2 );
+		}
+
+		// two halves are inefficient but allow showIF for testing
+		
+		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+			double id, qd;
+			if (Config.showIF && useNCO) {
+				id = fcdData2[j];
+				qd = fcdData2[j+1];
+			} else {
+				id = fcdData[j];
+				qd = fcdData[j+1];
+			}
 			// i and q go into consecutive spaces in the complex FFT data input
 			if (Config.swapIQ) {
 				fftData[i+dist] = qd;
@@ -453,16 +469,12 @@ public class SourceIQ extends SourceAudio {
 			}
 			i+=2;
 		}
-	
+		
 		runFFT(fftData); // results back in fftData
-		if (useNCO) {
-			ncoDecimate(fcdData, fcdData2 );
-		}
-	
+
 		if (!Config.showIF) calcPsd();
 
-		if (!useNCO)
-		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
+		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR and is not CPU intensive
  		
 		if (Config.showIF) calcPsd();
 
@@ -494,19 +506,39 @@ public class SourceIQ extends SourceAudio {
 			else {
 				antiAlias16kHzIIRFilter(demodAudio);				
 			}
-		
-		// Every 4th entry goes to the audio output to get us from 192k -> 48k
-		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
-			// scaling and conversion to integer
-			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
-	// FUDGE - safety factor because the decimation is not exact
-			if (k >= audioData.length ) {
-				//Log.println("k:" + k);
-				break;
+
+		if (false && useNCO) {
+			// Every 4th entry goes to the audio output to get us from 192k -> 48k
+			for (int j=0; j < fcdData2.length; j+=decimationFactor*2 ) { // data size is 1 decimate by factor of 4 to get to audio format size
+				double value = decimateFilter.filterDouble(fcdData2[j]);
+				double value2 = decimateFilter2.filterDouble(fcdData2[j+1]);
+				//value = audioDcFilter.filter(value);
+				//value2 = audioDcFilter.filter(value2);
+				double finalValue = fm.demodulate(value, value2);	
+				//		double finalValue = audioDcFilter.filter(audioValue); // remove DC.  Only need to do this to the values we want to keep
+				// FUDGE - safety factor because the decimation is not exact
+				if (k >= audioData.length ) {
+					//Log.println("k:" + k);
+					break;
+				}
+				audioData[k] = finalValue;
+				k+=1;			
 			}
-			audioData[k] = value;
-			k+=1;			
-		 }
+
+		} else {
+			// Every 4th entry goes to the audio output to get us from 192k -> 48k
+			for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
+				// scaling and conversion to integer
+				double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
+				// FUDGE - safety factor because the decimation is not exact
+				if (k >= audioData.length ) {
+					//Log.println("k:" + k);
+					break;
+				}
+				audioData[k] = value;
+				k+=1;			
+			}
+		}
 		return audioData; 
 	}
 
@@ -1074,7 +1106,7 @@ public class SourceIQ extends SourceAudio {
 		}
 	}
 	
-	double gain = 50;
+	double gain = 20;
 	private void ncoDecimate(double[] samples, double[] translated) {
 		int ssbOffset = 0;
 		double id, qd;
