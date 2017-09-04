@@ -2002,7 +2002,13 @@ public abstract class RTL2832TunerController extends device.TunerController
 
 	@Override
 	public void cleanup() throws IOException, DeviceException {
-		// Don't call release() as that causes a crash on exit
+		// Don't call release() as that causes a crash on exit - need to see if a later version of the USB Lib fixes this
+		//release();
+		// But must stop the USB transfers by the buffer processor
+		if( mBufferProcessor.isRunning() )
+		{
+			mBufferProcessor.stop();
+		}
 		
 	}
 

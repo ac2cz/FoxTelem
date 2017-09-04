@@ -73,6 +73,7 @@ public class SourceIQ extends SourceAudio {
 	
 	double binBandwidth = 0;
 	int filterWidth = 0 ; //We filter +- this number of bins 64 bins is 3000 Hz for 4096 FFT samples, Normal FM channel is 16kHz = +-8kHz = 170
+	int filterWidthHz = 0 ; //The filter width in Hz
 		
 	double[] blackmanWindow = null; //new double[FFT_SAMPLES+1];
 	double[] blackmanFilterShape;
@@ -110,7 +111,7 @@ public class SourceIQ extends SourceAudio {
 //	Filter audioFilterQ;
 	
 	boolean fftDataFresh = false;
-	public static boolean useNCO = false;
+	public static boolean useNCO = true;
 	public boolean offsetFFT = true;
 	int dist = 0; // the offset distance
 	
@@ -143,6 +144,7 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	public void setFilterWidth(int freq) {
+		filterWidthHz = freq;
 		if (freq == 0 || binBandwidth == 0) return;
 		filterWidth = (int) (freq/binBandwidth);
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
@@ -288,7 +290,7 @@ public class SourceIQ extends SourceAudio {
 			
 		if (mode == MODE_FSK_HS) {
 			setFilterWidth(9600*2);
-		//	setFilterWidth(2*75000);
+//			setFilterWidth(2*75000);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
 		} else {
@@ -318,12 +320,12 @@ public class SourceIQ extends SourceAudio {
 		
 		
 		decimateFilter = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter.init(IQ_SAMPLE_RATE, 4000, 128);
+		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 256);
 		decimateFilter.setFilterDC(false);
 		decimateFilter.setAGC(false);
 
 		decimateFilter2 = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter2.init(IQ_SAMPLE_RATE, 4000, 128);
+		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 256);
 		decimateFilter2.setFilterDC(false);
 		decimateFilter2.setAGC(false);
 
@@ -444,7 +446,7 @@ public class SourceIQ extends SourceAudio {
 			fcdData[j+1] = qDcFilter.filter(qd);
 		}
 
-		if (useNCO) {
+		if (mode != MODE_PSK && useNCO) {
 			ncoDecimate(fcdData, fcdData2 );
 		}
 
@@ -452,7 +454,7 @@ public class SourceIQ extends SourceAudio {
 		
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
-			if (Config.showIF && useNCO) {
+			if (Config.showIF && mode != MODE_PSK && useNCO) {
 				id = fcdData2[j];
 				qd = fcdData2[j+1];
 			} else {
@@ -485,13 +487,12 @@ public class SourceIQ extends SourceAudio {
 		
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-			if (mode != MODE_PSK)
-				if (useNCO)
+			if (mode == MODE_PSK)
+				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+			else if (useNCO)
 					demodAudio[d++] = fm.demodulate(fcdData2[j], fcdData2[j+1]);	
 				else
-					demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
-			else	
-				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+					demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);		
 		}
 		
 		int k = 0;
@@ -499,7 +500,7 @@ public class SourceIQ extends SourceAudio {
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
 		// No needed with NCO as we have already filtered to 3kHz
-		if (!useNCO)
+		if (!useNCO || mode == MODE_PSK)
 		for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
