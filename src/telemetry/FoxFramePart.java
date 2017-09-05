@@ -450,6 +450,8 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_ICR_DIAGNOSTIC:
 			return rawValue;
+		case BitArrayLayout.CONVERT_WOD_STORED:
+			return rawValue * 4;
 		}
 		
 		return ERROR_VALUE;
@@ -587,16 +589,19 @@ longer send telemetry.
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
 		public static final String[] SWOpsCommands = {
-		"Unknown",
-		"SafeMode",
-		"TransponderMode",
-		"ScienceMode",
-		"DisableAutosafe",
-		"EnableAutosafe",
-		"ClearMinMax",
-		"OpsNoop",
-		"ForceOffExp1",
-		"ConfirmCommand"
+		"Unknown", //0
+		"SafeMode", //1
+		"TransponderMode", //2
+		"ScienceMode", //3
+		"DisableAutosafe", //4
+		"EnableAutosafe", //5
+		"ClearMinMax", //6
+		"OpsNoop", //7
+		"ForceOffExp1", //8
+		"ConfirmCommand", //9
+		"ForceDeployRx",
+		"ForceDeployTx",
+		"ResetIHU"
 		};
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
