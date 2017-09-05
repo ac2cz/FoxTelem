@@ -598,10 +598,9 @@ longer send telemetry.
 		"ClearMinMax", //6
 		"OpsNoop", //7
 		"ForceOffExp1", //8
-		"ConfirmCommand", //9
-		"ForceDeployRx",
-		"ForceDeployTx",
-		"ResetIHU"
+		"ForceDeployRx", //9
+		"ForceDeployTx", //0xA
+		"ResetIHU" //0xB
 		};
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
