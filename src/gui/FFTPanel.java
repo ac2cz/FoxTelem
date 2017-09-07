@@ -317,7 +317,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		}
 		
 		float maxValue = 10;
-		float minValue = -100;
+		float minValue = -120;
 
 		int labelHeight = 14;
 		int sideLabel = 3;
@@ -482,7 +482,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
-			y=graphHeight-y-topBorder;
+			y=graphHeight-y+topBorder;
 			if (i == 1) {
 				lastx=x;
 				lasty=y;
@@ -505,7 +505,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
-			y=graphHeight-y-topBorder;
+			y=graphHeight-y+topBorder;
 			if (i == 1) {
 				lastx=x;
 				lasty=y;
