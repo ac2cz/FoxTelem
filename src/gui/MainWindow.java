@@ -208,7 +208,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
 		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalFrames.setToolTipText("Total number of frames received from all satellites (including duplicates)");
+		lblTotalFrames.setToolTipText("Total number of frames received since FoxTelem restart (including duplicates)");
 		rightBottom.add(lblTotalFrames );
 		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);

@@ -557,6 +557,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						if (n == JOptionPane.YES_OPTION) {
 							Config.logFileDirectory = txtLogFileDirectory.getText();
 							Log.println("Setting log file directory to: " + Config.logFileDirectory);
+							Config.totalFrames = 0;
 							Config.initPayloadStore();
 							Config.initSequence();
 							Config.initServerQueue();

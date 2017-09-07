@@ -607,7 +607,6 @@ public class Config {
 		
 		// Version 1.05
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
-		properties.setProperty("totalFrames", Integer.toString(totalFrames));
 		store();
 	}
 	
@@ -771,7 +770,6 @@ public class Config {
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
-		totalFrames = Integer.parseInt(getProperty("totalFrames"));
 		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		
 		} catch (NumberFormatException nf) {
