@@ -324,13 +324,25 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 			this.dispose();
 		}
 		if (e.getSource() == btnSave) {
+			boolean dispose = true;
+			int downlinkFreq = 0;
+			int minFreq = 0;
+			int maxFreq = 0;
 			try {
 				try {
-					sat.telemetryDownlinkFreqkHz = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
-					sat.minFreqBoundkHz = Integer.parseInt(minFreqBoundkHz.getText());
-					sat.maxFreqBoundkHz = Integer.parseInt(maxFreqBoundkHz.getText());
+					downlinkFreq = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
+					minFreq = Integer.parseInt(minFreqBoundkHz.getText());
+					maxFreq = Integer.parseInt(maxFreqBoundkHz.getText());
 				} catch (NumberFormatException ex) {
 					throw new NumberFormatException("The Frequency fields must contain a valid number");
+				}
+				if (minFreq < maxFreq) {
+					sat.telemetryDownlinkFreqkHz = downlinkFreq;
+					sat.minFreqBoundkHz = minFreq;
+					sat.maxFreqBoundkHz = maxFreq;
+				} else {
+					Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
+					dispose = false;
 				}
 	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
 	//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
@@ -360,12 +372,13 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				}
 				sat.track = track.isSelected();
 
-				
-				sat.save();
-				Config.initSatelliteManager();
-				this.dispose();
-				if (refreshTabs)
-					MainWindow.refreshTabs(false);
+				if (dispose) {
+					sat.save();
+					Config.initSatelliteManager();
+					this.dispose();
+					if (refreshTabs)
+						MainWindow.refreshTabs(false);
+				}
 			} catch (NumberFormatException Ex) {
 				Log.errorDialog("Invalid Paramaters", Ex.getMessage());
 			}

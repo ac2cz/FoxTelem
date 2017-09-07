@@ -470,13 +470,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				if (validLatLong()) {
 					Config.latitude = txtLatitude.getText();
 					Config.longitude = txtLongitude.getText();
-				}
+				} else dispose = false;
 				if (validLocator()) {
 					Config.maidenhead = txtMaidenhead.getText();
-				}
+				} else dispose = false;
 				if (validAltitude()) {
 					Config.altitude = txtAltitude.getText();
-				}
+				} else dispose = false;
 				Config.stationDetails = txtStation.getText();
 				Config.primaryServer = txtPrimaryServer.getText();
 				Config.secondaryServer = txtSecondaryServer.getText();
