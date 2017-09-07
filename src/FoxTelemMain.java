@@ -624,9 +624,9 @@ public class FoxTelemMain {
 				}
 
 				try {
-					MainWindow window = new MainWindow();
-					window.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg")));
-					window.setVisible(true);
+					Config.mainWindow = new MainWindow();
+					Config.mainWindow.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg")));
+					Config.mainWindow.setVisible(true);
 				} catch (Exception e) {
 					Log.println("SERIOUS ERROR - Uncaught and thrown from GUI");
 					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the spacecraft files then\n"

@@ -57,8 +57,28 @@ public class SatelliteManager {
 		loadSats(folder);
 	}
 	
+	/**
+	 * We check to see if we already have .dat files in the local directory.  If we have none, then all are copied from the MASTER
+	 * installation folder.  If we already have some then the timestamps on those files are checked and the user is warned if there are newer files
+	 * in the spacecraft folder.  This would typically only be the case the first time FoxTelem is run after a new installation.
+	 * 
+	 * @param masterFolder
+	 * @param folder
+	 */
 	private void copyDatFiles(File masterFolder, File folder) {
 		File[] listOfFiles = masterFolder.listFiles();
+		// First check to see if we have local .dat files
+		boolean haveDatFiles = false;
+		File[] targetFiles = folder.listFiles();
+		if (targetFiles != null) {
+			for (int i = 0; i < targetFiles.length; i++) {
+				if (targetFiles[i].isFile() && targetFiles[i].getName().endsWith(".dat")) {
+					haveDatFiles = true;
+				}
+			}
+		}
+		
+		
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".MASTER")) {
@@ -67,12 +87,14 @@ public class SatelliteManager {
 					File targetFile = new File(folder + File.separator + targetName);
 					if(!targetFile.exists()){
 						// Missing this file
-						Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
-						try {
-							SatPayloadStore.copyFile(listOfFiles[i], targetFile);
-						} catch (IOException e) {
-							Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
-							e.printStackTrace();
+						if (!haveDatFiles) {
+							Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
+							try {
+								SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+							} catch (IOException e) {
+								Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
+								e.printStackTrace();
+							}
 						}
 					} else {
 						// It exists, but maybe it is not the latest.  Check the timestamp and warn the user if we have a later one

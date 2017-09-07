@@ -562,9 +562,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 							Config.initSequence();
 							Config.initServerQueue();
 							Config.initSatelliteManager();
-
-							//MainWindow.refreshTabs(true);
-							refreshTabs = true;
+							Config.mainWindow.initSatMenu();
+							
+							MainWindow.addHealthTabs();
+							refreshTabs = false; // we just did that in line above, which also takes new sats into account
 							refreshGraphs = true;
 
 						}

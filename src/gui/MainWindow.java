@@ -110,6 +110,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
+	static ArrayList<Spacecraft> sats;
 	JMenu mnSats;
 	JMenuBar menuBar;
 	JMenuItem mntmSettings;
@@ -273,8 +274,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		setTotalDecodes();
 	}
 	
-	private static void addHealthTabs() {
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+	public static void addHealthTabs() {
+		if (spacecraftTab != null) {
+			for (int s=0; s<spacecraftTab.length; s++) {
+				tabbedPane.remove(spacecraftTab[s]);
+				spacecraftTab[s] = null;
+			}
+		}
+		sats = Config.satManager.getSpacecraftList();
 		spacecraftTab = new SpacecraftTab[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
 			spacecraftTab[s] = new SpacecraftTab(sats.get(s));
@@ -442,10 +449,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		audioSource = a;
 	}
 
-	private void initSatMenu() {
+	void initSatMenu() {
+		if (sats !=null && mnSats != null) {
+			for (int i=0; i<sats.size(); i++) {
+				if (mntmSat[i] != null)
+				mnSats.remove(mntmSat[i]);
+				mntmSat[i] = null;
+			}
+			menuBar.remove(mnSats);
+			
+		}
 		mnSats = new JMenu("Spacecraft");
 		menuBar.add(mnSats);
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+
+		sats = Config.satManager.getSpacecraftList();
+
 		mntmSat = new JMenuItem[sats.size()];
 		for (int i=0; i<sats.size(); i++) {
 			mntmSat[i] = new JMenuItem(sats.get(i).name);
