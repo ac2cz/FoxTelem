@@ -470,13 +470,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				if (validLatLong()) {
 					Config.latitude = txtLatitude.getText();
 					Config.longitude = txtLongitude.getText();
-				}
+				} else dispose = false;
 				if (validLocator()) {
 					Config.maidenhead = txtMaidenhead.getText();
-				}
+				} else dispose = false;
 				if (validAltitude()) {
 					Config.altitude = txtAltitude.getText();
-				}
+				} else dispose = false;
 				Config.stationDetails = txtStation.getText();
 				Config.primaryServer = txtPrimaryServer.getText();
 				Config.secondaryServer = txtSecondaryServer.getText();
@@ -557,13 +557,15 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						if (n == JOptionPane.YES_OPTION) {
 							Config.logFileDirectory = txtLogFileDirectory.getText();
 							Log.println("Setting log file directory to: " + Config.logFileDirectory);
+							Config.totalFrames = 0;
 							Config.initPayloadStore();
 							Config.initSequence();
 							Config.initServerQueue();
 							Config.initSatelliteManager();
-
-							//MainWindow.refreshTabs(true);
-							refreshTabs = true;
+							Config.mainWindow.initSatMenu();
+							
+							MainWindow.addHealthTabs();
+							refreshTabs = false; // we just did that in line above, which also takes new sats into account
 							refreshGraphs = true;
 
 						}

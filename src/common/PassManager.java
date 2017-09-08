@@ -59,8 +59,8 @@ import decoder.SourceIQ;
 public class PassManager implements Runnable {
 	
 	SourceTab inputTab; // the source tab that called this.  For callbacks when decoder live
-	SatelliteManager satelliteManager;
-	ArrayList<Spacecraft> foxSpacecraft;
+	//SatelliteManager satelliteManager;
+	//ArrayList<Spacecraft> foxSpacecraft;
 	boolean running = true;
 	boolean done = false;
 	PassMeasurement passMeasurement; // the paramaters we have measured about the current pass
@@ -97,9 +97,9 @@ public class PassManager implements Runnable {
 	
 	static final int MIN_FREQ_READINGS_FOR_TCA = 10;
 	
-	public PassManager(SatelliteManager satMan ) {
-		satelliteManager = satMan;
-		foxSpacecraft = satMan.spacecraftList;
+	public PassManager( ) {
+		//satelliteManager = satMan;
+		//foxSpacecraft = satMan.spacecraftList;
 		pp1 = new PassParams();
 		pp2 = new PassParams();
 	}
@@ -592,14 +592,16 @@ public class PassManager implements Runnable {
 				}
 			}
 			if (pp1.foxDecoder != null && Config.findSignal)
-				for (int s=0; s < foxSpacecraft.size(); s++) {
-					//Log.println("Looking for: " + spacecraft.get(s).name);
-					if (foxSpacecraft.get(s).track) 
+				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+					
+					if (Config.satManager.spacecraftList.get(s).track) {
+						if (Config.debugSignalFinder) Log.println("Looking for: " + Config.satManager.spacecraftList.get(s).name);
 						if (Config.useDDEforFindSignal) {
-							if (satString != null && satString.equalsIgnoreCase(foxSpacecraft.get(s).name))
-								stateMachine(foxSpacecraft.get(s));
+							if (satString != null && satString.equalsIgnoreCase(Config.satManager.spacecraftList.get(s).name))
+								stateMachine(Config.satManager.spacecraftList.get(s));
 						} else
-							stateMachine(foxSpacecraft.get(s));
+							stateMachine(Config.satManager.spacecraftList.get(s));
+					}
 				}
 			else {
 				//Log.println("Waiting for decoder");

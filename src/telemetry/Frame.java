@@ -602,8 +602,9 @@ public abstract class Frame implements Comparable<Frame> {
 			if (bytesInFrame == maxFrameSize+1) {  
 				// first parity byte.  All the checkbytes are at the end
 				//Log.println("parity");
-				if (major > 1 || (major == 1 && minor > 5) || (major == 1 && minor == 5 && point.equalsIgnoreCase("d"))) {
-					// FoxTelem 1.05d and later - use correct RS Decode
+				if (major > 1 || 
+					(major == 1 && minor >= 5)) {
+					// FoxTelem 1.05d and later (but a-d were not released externally) - use correct RS Decode
 					// Reset to the first code word and Next byte position in the codewords
 					rsNum = 0;
 					f++;

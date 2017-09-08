@@ -503,43 +503,65 @@ import common.Log;
 public class FoxTelemMain {
 
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
-			+ "Usage: FoxTelem [-version][-s] [fileName.wav]\n"
-			+ "-s automatically start the decoder\n\n";
+			+ "Usage: FoxTelem [-h][-v][-s] [logFileDir]\n"
+			+ "-h show this help\n"
+			+ "-v display version information\n"
+			+ "-s automatically start the decoder\n"
+			+ "logFileDir - Start the decoder in this directory and use the settings stored there\n\n";
 	static String seriousErrorMsg;
+	static String logFileDir = null;
 	
 	public static void main(String[] args) {
+		int arg = 0;
+		while (arg < args.length) {
+			if (args[arg].startsWith("-") || args[arg].startsWith("/")) { // this is a switch
+			if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("-help")) || (args[arg].equalsIgnoreCase("--help"))) {
+				System.out.println(HELP);
+				System.exit(0);
+			}
+			if ((args[arg].equalsIgnoreCase("-v")) || (args[arg].equalsIgnoreCase("-version"))) {
+				System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
+				System.exit(0);
+			}
+			if (args[arg].equalsIgnoreCase("-s")) {
+				Log.println("Command Line Switch: STARTED");
+				Config.startButtonPressed = true;
+			}
+			
+			} else {
+				// we have no more switches, so start reading command line paramaters
+				Log.println("Command Line Param LogFileDir: " + args[arg]);
+				logFileDir = args[arg];
+			}
+			arg++;
+		}
 		
+		if (logFileDir == null)
+			Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
+		else
+			Config.homeDirectory = logFileDir;
+
+		if (logFileDir != null)
+			Config.logFileDirectory = logFileDir; // force these to be the same even if we loaded a different value, as it was passed in.  Allows properties to be copied and works for inital run
+
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
 			// Then this is the first time we have run FoxTelem on this computer
 			Config.setHome();
-			m.initialRun();
+			if (logFileDir == null)
+				m.initialRun();
 		}
 		
 		Log.init("FoxTelemDecoder");
-		
+	
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
-		Config.init(); // initialize, load properties and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.init(); // initialize, create properties if needed, load properties and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 		Log.println("************************************************************");
-		Log.println("AMSAT Fox 1A Telemetry Decoder. " + Config.VERSION + "\nIn: " + Config.currentDir);
+		Log.println("AMSAT Fox 1A Telemetry Decoder. " + Config.VERSION + "\nCurrentDir is: " + Config.currentDir);
 		Log.println("************************************************************");
-		Log.println("CurrentDir is:" + Config.currentDir);
-
 		
-		if (args.length > 0) {
-			if ((args[0].equalsIgnoreCase("-h")) || (args[0].equalsIgnoreCase("-help")) || (args[0].equalsIgnoreCase("--help"))) {
-				System.out.println(HELP);
-				System.exit(0);
-			}
-			if (args[0].equalsIgnoreCase("-version")) {
-				System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
-				System.exit(0);
-			}
-			if (args[0].equalsIgnoreCase("-s"))
-				Config.startButtonPressed = true;
-					
-		}
+		Log.println("LogFileDir is:" + Config.logFileDirectory);
 
 		invokeGUI();
 	}
@@ -602,9 +624,9 @@ public class FoxTelemMain {
 				}
 
 				try {
-					MainWindow window = new MainWindow();
-					window.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg")));
-					window.setVisible(true);
+					Config.mainWindow = new MainWindow();
+					Config.mainWindow.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg")));
+					Config.mainWindow.setVisible(true);
 				} catch (Exception e) {
 					Log.println("SERIOUS ERROR - Uncaught and thrown from GUI");
 					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the spacecraft files then\n"

@@ -55,11 +55,12 @@ import uk.me.g4dpz.satellite.GroundStationPosition;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
-
+	public static MainWindow mainWindow;
+	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05l";
-	public static String VERSION = VERSION_NUM + " - 7 Jul 2017";
+	public static String VERSION_NUM = "1.05p"; //"1.05n";
+	public static String VERSION = VERSION_NUM + " - 18 Aug 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -248,7 +249,6 @@ public class Config {
 	static public boolean debugRS = false; // not saved or on GUI
 	
 	public static boolean missing() { 
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
 			return true;
@@ -257,7 +257,6 @@ public class Config {
 	}
 	
 	public static void setHome() {
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory);
 		if(!aFile.isDirectory()){
 			
@@ -267,7 +266,7 @@ public class Config {
 		}
 		if(!aFile.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
-					"\nFoxTelem needs to save the program settings in your home directroy.  It is either not accessible or not writable\n");
+					"\nFoxTelem needs to save the program settings.  The directory is either not accessible or not writable\n");
 		}
 		
 		System.out.println("Set Home to: " + homeDirectory);
@@ -362,7 +361,7 @@ public class Config {
 	}
 	
 	public static void initPassManager() {	
-		passManager = new PassManager(satManager);
+		passManager = new PassManager();
 		passManagerThread = new Thread(passManager);
 		passManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		passManagerThread.start();
@@ -625,7 +624,6 @@ public class Config {
 		
 		// Version 1.05
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
-		properties.setProperty("totalFrames", Integer.toString(totalFrames));
 		store();
 	}
 	
@@ -789,7 +787,6 @@ public class Config {
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
-		totalFrames = Integer.parseInt(getProperty("totalFrames"));
 		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		
 		} catch (NumberFormatException nf) {

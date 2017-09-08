@@ -206,7 +206,8 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		} finally {
 			out.close();
 		}
-		makeServerThumbnail(CameraTab.THUMB_X);
+		// This does not work because the thumbnail calculation requires a screen, which we do not have on the server.  Needs more thought
+		//makeServerThumbnail(CameraTab.THUMB_X);
 	}
 	
 	

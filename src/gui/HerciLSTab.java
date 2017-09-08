@@ -272,11 +272,11 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		
 			if (Config.displayRawRadData) {
 				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				if (data != null && data.length > 0)
 					radTableModel.setData(parseRawBytes(data));
 			} else {
 				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0) {
+				if (data != null && data.length > 0) {
 					parseTelemetry(data);
 				}
 			//		topHalfPackets.setVisible(false);
@@ -332,6 +332,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);

@@ -197,8 +197,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		else
 			decodePacket.setSelected(true);
 		
-	//	decodeTelem.setMinimumSize(new Dimension(1600, 14));
-	//	decodeTelem.setMaximumSize(new Dimension(1600, 14));
+		// Hide the choice between Telem and Packets to disable the packet decode feature.  This is not used on the live spacecraft
+		decodeTelem.setVisible(false);
+		decodePacket.setVisible(false);
 
 		addBottomFilter();
 		
@@ -335,12 +336,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-			if (data.length > 0)
+			if (data != null && data.length > 0)
 				radTableModel.setData(parseRawBytes(data));
 		} else {
 			if (displayTelem) {
 				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				if (data != null && data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
@@ -350,7 +351,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			}
 			else {
 				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				if (data !=null && data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);
 					bottomHalfPackets.setVisible(true);
