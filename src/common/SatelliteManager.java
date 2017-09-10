@@ -20,6 +20,8 @@ import javax.swing.JOptionPane;
 
 import FuncubeDecoder.FUNcubeSpacecraft;
 import gui.MainWindow;
+import predict.FoxTLE;
+import predict.SortedTleList;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
@@ -53,12 +55,13 @@ import uk.me.g4dpz.satellite.TLE;
  */
 public class SatelliteManager {
 	
-	public static final String AMSAT_NASA_ALL = "http://www.amsat.org/tle/nasa.all";
+	public static final String AMSAT_NASA_ALL = "http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt";
 	
 	ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	
 	public SatelliteManager()  {
 		init();
+		fetchTLEFile();
 	}
 	
 	public void init() {
@@ -66,7 +69,6 @@ public class SatelliteManager {
 		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
 		loadSats(folder);
-		loadTLE();
 	}
 	
 	/**
@@ -193,6 +195,9 @@ public class SatelliteManager {
 						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
 						e.printStackTrace(Log.getWriter());
 						satellite = null;
+					} catch (IOException e) {
+						Log.errorDialog("IO ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
+						e.printStackTrace(Log.getWriter());
 					}
 					if (satellite != null)
 						if (getSpacecraft(satellite.foxId) != null)
@@ -223,58 +228,6 @@ public class SatelliteManager {
 		if (sc != null) return sc.getLayoutByName(name);
 		return null;
 	}
-
-	/*
-	public BitArrayLayout getMaxLayout(int sat) {
-		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) return sc.maxLayout;
-		return null;
-	}
-
-	public BitArrayLayout getMinLayout(int sat) {
-		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) return sc.minLayout;
-		return null;
-	}
-
-	public BitArrayLayout getRadLayout(int sat) {
-		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) return sc.radLayout;
-		return null;
-	}
-
-	public BitArrayLayout getRadTelemLayout(int sat) {
-		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) return sc.rad2Layout;
-		return null;
-	}
-
-	
-	public BitArrayLayout getHerciHSLayout(int sat) {
-		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) {
-			if (sc.hasHerci())
-				return sc.herciHSLayout;
-		}
-		return null;
-	}
-
-	public BitArrayLayout getHerciHSHeaderLayout(int sat) {
-		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) {
-			if (sc.hasHerci())
-				return sc.herciHS2Layout;
-		}
-		return null;
-	}
-
-	*/
 	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		if (!validFoxId(sat)) return null;
@@ -340,56 +293,70 @@ public class SatelliteManager {
 	/*
 	 * We Fetch a TLE file from amsat.org.  We then see if it contains TLEs for the Spacecraft we are interested in. If it does we
 	 * check if there is a later TLE than the one we have.  If it is, then we append it to the TLE store for the given sat.
-	 * We then load the TLEs for each Sat and store then in the spacecraft class.  This can then be used to find the position of the spacecraft at 
+	 * We then load the TLEs for each Sat and store the, in the spacecraft class.  This can then be used to find the position of the spacecraft at 
 	 * any time since launch
 	 */
 
 	public void fetchTLEFile() {
+		Log.println("Checking for new Keps");
 		String urlString = AMSAT_NASA_ALL;
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasa.all";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasa.all";		
+			file = Config.logFileDirectory + File.separator + FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";		
 		}
-		URL website;
-		FileOutputStream fos = null;
-		ReadableByteChannel rbc = null;
-		try {
-			website = new URL(urlString);
-
-			rbc = Channels.newChannel(website.openStream());
-
-			fos = new FileOutputStream(file + ".tmp");
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-			rbc.close();
-			// Now lets see if we got a good file.  If we did not, it will throw an exception
-			List<TLE> TLEs = parseTleFile(file + ".tmp");
-			// this is a good file so we can now use it as the default
-			SatPayloadStore.remove(file);
-			File f1 = new File(file + ".tmp");
-			File f2 = new File(file);
-			SatPayloadStore.copyFile(f1, f2);
-			SatPayloadStore.remove(file + ".tmp");
-			return;
-		} catch (MalformedURLException e) {
-			Log.println("Invalid location for T0 file: " + file);
-			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
-		} catch (IOException e) {
-			Log.println("Could not write T0 file: " + file);
-			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
-		} catch (IndexOutOfBoundsException e) {
-			Log.println("T0 file is corrupt - likely missing reset in sequence or duplicate reset: " + file);
-			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
-		} finally {
+		File f1 = new File(file + ".tmp");
+		File f2 = new File(file);
+		Date lm = new Date(f2.lastModified());
+		Date now = new Date();
+		if (now.getTime() - lm.getTime() <= UpdateManager.KEP_UPDATE_PERIOD) { // then dont try to update it
+			Log.println(".. keps are current");
+		} else {
+			Log.println(".. downloading keps");
+			URL website;
+			FileOutputStream fos = null;
+			ReadableByteChannel rbc = null;
 			try {
-				if (fos != null) fos.close();
-				if (rbc != null) rbc.close();
+				website = new URL(urlString);
+				rbc = Channels.newChannel(website.openStream());
+				fos = new FileOutputStream(file + ".tmp");
+				fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+				fos.close();
+				rbc.close();
+				// Now lets see if we got a good file.  If we did not, it will throw an exception
+				parseTleFile(file + ".tmp");
+				// this is a good file so we can now use it as the default
+				SatPayloadStore.remove(file);
+
+				SatPayloadStore.copyFile(f1, f2);
+				try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				SatPayloadStore.remove(file + ".tmp");
+				return;
+			} catch (MalformedURLException e) {
+				Log.println("Invalid location for Keps file: " + file);
+				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
 			} catch (IOException e) {
-				// ignore
+				Log.println("Could not write Keps file: " + file);
+				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
+			} catch (IndexOutOfBoundsException e) {
+				Log.println("Keps file is corrupt: " + file);
+				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
+			} finally {
+				try {
+					if (fos != null) fos.close();
+					if (rbc != null) rbc.close();
+				} catch (IOException e) {
+					// ignore
+				}
 			}
 		}
 	}
 
+	/*
 	private void loadTLE() {
 		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasa.all";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -410,12 +377,32 @@ public class SatelliteManager {
 			e.printStackTrace(Log.getWriter());
 		}
 	}
+	*/
 	
-	private List<TLE> parseTleFile(String filename) throws IOException {
+	/**
+	 * Parse the nasabare.txt file and make a list
+	 * @param filename
+	 * @return
+	 * @throws IOException
+	 */
+	private SortedTleList parseTleFile(String filename) throws IOException {
 		File f = new File(filename);
 		InputStream is = new FileInputStream(f);
-		List<TLE> tles = TLE.importSat(is);
-		return tles;
+		try {
+			SortedTleList tles = FoxTLE.importFoxSat(is);
+			is.close();
+			for (FoxTLE ftle : tles) {
+				String name = ftle.getName();
+				Spacecraft spacecraft = this.getSpacecraftByName(name);
+				if (spacecraft != null) {
+					Log.println("Stored TLE for: " + name);
+					spacecraft.addTLE(ftle);
+				}
+			}
+			return tles;
+		} finally {
+			is.close();
+		}
 	}
 	
 }

@@ -75,7 +75,7 @@ public class FoxSpacecraft extends Spacecraft{
 
 	ArrayList<Long> timeZero = null;
 	
-	public FoxSpacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
+	public FoxSpacecraft(File fileName ) throws LayoutLoadException, IOException {
 		super(fileName);
 		load(); // don't call load until this constructor has started and the variables have been initialized
 		try {
@@ -88,7 +88,7 @@ public class FoxSpacecraft extends Spacecraft{
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
-		
+		loadTleHistory(); // DOnt call this until the Name and FoxId are set
 	}
 
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");

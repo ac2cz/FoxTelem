@@ -80,12 +80,14 @@ public class PayloadWOD extends PayloadRtValues {
 		
 		//capture the satellite position so we can visualize the WOD
 		SatPos pos = sat.getSatellitePosition(timeNow);
-		satLatitude = pos.getLatitude();
-		satLongitude = pos.getLongitude();
-		satAltitude = pos.getAltitude();
-		
-		if (Config.debugFrames)
-			Log.println("WOD POSITION captured : " + resets + ":" + uptime + " at " + radToDeg(satLatitude) + " " + radToDeg(satLongitude));
+		if (pos != null) {
+			satLatitude = pos.getLatitude();
+			satLongitude = pos.getLongitude();
+			satAltitude = pos.getAltitude();
+
+			if (Config.debugFrames)
+				Log.println("WOD POSITION captured : " + resets + ":" + uptime + " at " + radToDeg(satLatitude) + " " + radToDeg(satLongitude));
+		}
 	}
 	
 	public static double radToDeg(Double rad) {
