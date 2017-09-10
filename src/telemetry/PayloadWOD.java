@@ -23,12 +23,15 @@ public class PayloadWOD extends PayloadRtValues {
 	public static final String WOD_UPTIME = "WODTimestampUptime";
 	public static final double NO_POSITION_DATA = -999.0;
 	
-	double satLatitude = NO_POSITION_DATA;
-	double satLongitude = NO_POSITION_DATA;
-	double satAltitude = NO_POSITION_DATA;
+	double satLatitude;
+	double satLongitude;
+	double satAltitude;
 	
 	public PayloadWOD(BitArrayLayout lay) {
 		super(lay);
+		defaultValue(satLatitude);
+		defaultValue(satLongitude);
+		defaultValue(satAltitude);
 	}
 	
 	public PayloadWOD(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
@@ -39,6 +42,10 @@ public class PayloadWOD extends PayloadRtValues {
 	public double getSatLongitude() { return radToDeg(satLongitude); }
 	public double getSatAltitude() { return satAltitude; }
 
+	private void defaultValue(double val) {
+		val = NO_POSITION_DATA;
+	}
+	
 	public String getSatLatitudeStr() { 
 		DecimalFormat d = new DecimalFormat("00.00");
 		if (satLatitude == NO_POSITION_DATA)
