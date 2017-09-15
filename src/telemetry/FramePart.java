@@ -67,7 +67,6 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			satLatitude = NO_T0;
 			satLongitude = NO_T0;
 			satAltitude = NO_T0;
-
 		}
 	}
 

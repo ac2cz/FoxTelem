@@ -48,6 +48,7 @@ public class SatMeasurementStore {
 	// These types need to be unique compared to the Type in FramePart so that we can graph things in different ways
 	public static final int RT_MEASUREMENT_TYPE = -1;
 	public static final int PASS_MEASUREMENT_TYPE = -2;
+	public static final int UTC_COL = 3;
 	
 	public int foxId;
 	
@@ -232,7 +233,7 @@ public class SatMeasurementStore {
 		resultSet[PayloadStore.DATA_COL][i-j-1] = results[i];
 		resultSet[PayloadStore.UPTIME_COL][i-j-1] = upTime[i];
 		resultSet[PayloadStore.RESETS_COL][i-j-1] = resets[i];
-		resultSet[PayloadStore.UTC_COL][i-j-1] = dates[i];
+		resultSet[SatMeasurementStore.UTC_COL][i-j-1] = dates[i];
 		}
 //		System.out.println("ResultSet:" + resultSet[PayloadStore.DATA_COL].length);
 		return resultSet;
