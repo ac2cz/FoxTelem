@@ -250,6 +250,7 @@ public abstract class Spacecraft {
 	
 	public SatPos getSatellitePosition(DateTime timeNow) {
 		final TLE tle = getTLEbyDate(timeNow);
+//		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
 		if (tle == null) return null; // We have no keps
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
