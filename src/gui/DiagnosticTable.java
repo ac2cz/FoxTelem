@@ -148,7 +148,7 @@ public class DiagnosticTable extends JPanel {
 	}
 	
 	public void updateDiagnosticData() {
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		String[][] tableData = new String[graphData[0].length][7];
 		
 		if (graphData[0].length > 0) {
@@ -188,7 +188,7 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateHardErrorData() {
-		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		String[][] tableData = new String[graphData[0].length][8];
 		
 		if (graphData[0].length > 0) {
@@ -227,7 +227,7 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateSoftErrorData() {
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		String[][] tableData = new String[graphData[0].length][6];
 		
 		if (graphData[0].length > 0) {
@@ -267,7 +267,7 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateIcrDiagnosticData() {
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		String[][] tableData = new String[graphData[0].length][7];
 
 		if (graphData[0].length > 0) {

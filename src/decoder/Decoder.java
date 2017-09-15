@@ -8,16 +8,21 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JOptionPane;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import common.Config;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.Header;
+import uk.me.g4dpz.satellite.SatPos;
 
 /**
  * 
@@ -661,6 +666,15 @@ public abstract class Decoder implements Runnable {
 					rtMeasurement.setElevation(satPC.elevation);
 				}
 
+			}
+		} else {
+			// We use FoxTelem Predict calculation
+			DateTime timeNow = new DateTime(DateTimeZone.UTC);
+			Spacecraft sat = Config.satManager.getSpacecraft(header.id);
+			SatPos pos = sat.getSatellitePosition(timeNow);
+			if (pos != null) {
+				rtMeasurement.setAzimuth(pos.getAzimuth());
+				rtMeasurement.setElevation(pos.getElevation());
 			}
 		}
 		if (this.audioSource instanceof SourceIQ) {

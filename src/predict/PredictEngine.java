@@ -33,7 +33,7 @@ public class PredictEngine implements Runnable {
             "1 40967U 15058D   16111.35540844  .00000590  00000-0  79740-4 0 01029",
             "2 40967 064.7791 061.1881 0209866 223.3946 135.0462 14.74939952014747"};
 	
-	 static final GroundStationPosition GROUND_STATION = new GroundStationPosition(40.703328, -73.980599, 20);
+	static final GroundStationPosition GROUND_STATION = new GroundStationPosition(40.703328, -73.980599, 20);
 	static final TimeZone TZ = TimeZone.getTimeZone("UTC:UTC");
 	private DateTime timeNow;
 	

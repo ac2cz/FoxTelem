@@ -1,14 +1,24 @@
 package common;
 
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
 
+import predict.FoxTLE;
+import predict.SortedTleList;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
@@ -116,14 +126,19 @@ public abstract class Spacecraft {
 	// User Config
 	public boolean track = true; // default is we track a satellite
 	
-	final String[] TLE = {
+	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
+	
+	/*
+	final String[] testTLE = {
             "AO-85",
             "1 40967U 15058D   16111.35540844  .00000590  00000-0  79740-4 0 01029",
             "2 40967 064.7791 061.1881 0209866 223.3946 135.0462 14.74939952014747"};
+	*/
 	
-	public Spacecraft(File fileName ) throws FileNotFoundException, LayoutLoadException {
+	public Spacecraft(File fileName ) throws LayoutLoadException, IOException {
 		properties = new Properties();
-		propertiesFile = fileName;		
+		propertiesFile = fileName;	
+		tleList = new SortedTleList(10);
 	}
 	
 	public boolean isFox1() {
@@ -172,13 +187,71 @@ public abstract class Spacecraft {
 		return null;
 	}
 
+	/**
+	 * TLEs are stored in the spacecraft directory in the logFileDirectory.
+	 * @throws IOException 
+	 */
+	protected void loadTleHistory() {
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;		
+		}
+		
+		File f = new File(file);
+		InputStream is = null;
+		try {
+			is = new FileInputStream(f);
+			tleList = FoxTLE.importFoxSat(is);
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter()); // No TLE, but this is not viewed as fatal.  It should be fixed by Kep check
+		} finally {
+			try {
+				if (is != null) is.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		
+	}
+	
+	private void saveTleHistory() throws IOException {
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;		
+		}
+		File f = new File(file);
+		Writer output = new BufferedWriter(new FileWriter(f, false));
+		for (FoxTLE tle : tleList) {
+			Log.println("Saving TLE to file: " + tle.toString() + ": " + tle.getEpoch());
+			output.write(tle.toFileString());
+		}
+		output.flush();
+		output.close();
+	}
+	
+	/**
+	 * We are passed a new TLE for this spacecarft.  We want to store it in the file if it is a TLE that we do not already have.
+	 * @param tle
+	 * @return
+	 * @throws IOException 
+	 */
+	public boolean addTLE(FoxTLE tle) throws IOException {
+		tleList.add(tle);
+		saveTleHistory();
+		return true;
+	}
+	
 	private TLE getTLEbyDate(DateTime dateTime) {
-		final TLE tle = new TLE(TLE);
-		return tle;
+		if (tleList == null) return null;
+		TLE t = tleList.getTleByDate(dateTime);
+		return t;
 	}
 	
 	public SatPos getSatellitePosition(DateTime timeNow) {
 		final TLE tle = getTLEbyDate(timeNow);
+//		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
+		if (tle == null) return null; // We have no keps
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
 		
@@ -203,7 +276,6 @@ public abstract class Spacecraft {
 			minFreqBoundkHz = Integer.parseInt(getProperty("minFreqBoundkHz"));
 			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
 
-			
 			// Frame Layouts
 			/**
 			numberOfFrameLayouts = Integer.parseInt(getProperty("numberOfFrameLayouts"));

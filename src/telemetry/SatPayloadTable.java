@@ -172,10 +172,16 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
+	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
 		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
+		
+		int COLUMNS = 3;
+		double[] lat = null;
+		double[] lon = null;
+		if (positionData)
+			COLUMNS = 5;
 		
 		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
 			start = rtRecords.size()-period;
@@ -193,7 +199,10 @@ public class SatPayloadTable {
 		double[] results = new double[end-start];
 		double[] upTime = new double[end-start];
 		double[] resets = new double[end-start];
-		
+		if (positionData) {
+			lat = new double[end-start];
+			lon = new double[end-start];
+		}
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
@@ -201,15 +210,23 @@ public class SatPayloadTable {
 				results[j] = rtRecords.get(i).getRawValue(name);
 			else
 				results[j] = rtRecords.get(i).getDoubleValue(name, id);
+			if (positionData) {
+				lat[j] = rtRecords.get(i).satLatitude;
+				lon[j] = rtRecords.get(i).satLongitude;
+			}
 			upTime[j] = rtRecords.get(i).getUptime();
 			resets[j--] = rtRecords.get(i).getResets();
 		}
 		
-		double[][] resultSet = new double[3][end-start];
+		double[][] resultSet = new double[COLUMNS][end-start];
 		resultSet[PayloadStore.DATA_COL] = results;
 		resultSet[PayloadStore.UPTIME_COL] = upTime;
 		resultSet[PayloadStore.RESETS_COL] = resets;
-		
+		if (positionData) {
+			resultSet[PayloadStore.LAT_COL] = lat;
+			resultSet[PayloadStore.LON_COL] = lon;
+			
+		}
 		return resultSet;
 	}
 	
