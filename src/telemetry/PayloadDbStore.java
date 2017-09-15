@@ -627,7 +627,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -639,7 +639,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -651,7 +651,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -858,7 +858,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getRadTelemGraphData(String name, int period,
-			FoxSpacecraft fox, int fromReset, long fromUptime) {
+			FoxSpacecraft fox, int fromReset, long fromUptime, boolean plot) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -880,7 +880,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
-			long fromUptime) {
+			long fromUptime, boolean plot) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -952,7 +952,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime,
-			String layout) {
+			String layout, boolean plot) {
 		// TODO Auto-generated method stub
 		return null;
 	}
