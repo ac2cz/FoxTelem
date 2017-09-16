@@ -21,6 +21,7 @@ import common.Spacecraft;
 import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
+import telemetry.FramePart;
 import telemetry.Header;
 import uk.me.g4dpz.satellite.SatPos;
 
@@ -657,8 +658,12 @@ public abstract class Decoder implements Runnable {
 		rtMeasurement.setBitSNR(eyeData.bitSNR);
 		rtMeasurement.setErrors(lastErrorsNumber);
 		rtMeasurement.setErasures(lastErasureNumber);
+		SatPc32DDE satPC = null;
+		DateTime timeNow = new DateTime(DateTimeZone.UTC);
+		Spacecraft sat = Config.satManager.getSpacecraft(header.id);
+		SatPos pos = null;
 		if (Config.useDDEforAzEl) {
-			SatPc32DDE satPC = new SatPc32DDE();
+			satPC = new SatPc32DDE();
 			boolean connected = satPC.connect();
 			if (connected) {
 				if (Config.useDDEforAzEl) {
@@ -669,12 +674,12 @@ public abstract class Decoder implements Runnable {
 			}
 		} else {
 			// We use FoxTelem Predict calculation
-			DateTime timeNow = new DateTime(DateTimeZone.UTC);
-			Spacecraft sat = Config.satManager.getSpacecraft(header.id);
-			SatPos pos = sat.getSatellitePosition(timeNow);
+			timeNow = new DateTime(DateTimeZone.UTC);
+			sat = Config.satManager.getSpacecraft(header.id);
+			pos = sat.getSatellitePosition(timeNow);
 			if (pos != null) {
-				rtMeasurement.setAzimuth(pos.getAzimuth());
-				rtMeasurement.setElevation(pos.getElevation());
+				rtMeasurement.setAzimuth(FramePart.radToDeg(pos.getAzimuth()));
+				rtMeasurement.setElevation(FramePart.radToDeg(pos.getElevation()));
 			}
 		}
 		if (this.audioSource instanceof SourceIQ) {
@@ -684,20 +689,33 @@ public abstract class Decoder implements Runnable {
 			rtMeasurement.setCarrierFrequency(freq);
 			rtMeasurement.setRfPower(sig);
 			rtMeasurement.setRfSNR(rfSnr);
+		} else {
+			if (Config.useDDEforFreq) {
+				if (satPC == null)
+					satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected)
+					rtMeasurement.setCarrierFrequency(satPC.downlinkFrequency);
+			} else {
+				// Do nothing for now.  Need to work out how to get doppler from predict
+				/* Use Fox Predict calcualtion for frequency in AF mode
+				if (pos == null) {
+					timeNow = new DateTime(DateTimeZone.UTC);
+					sat = Config.satManager.getSpacecraft(header.id);
+					pos = sat.getSatellitePosition(timeNow);
+				}
+				if (pos != null) {
+					rtMeasurement.setCarrierFrequency(pos.FREQ);
+					
+				}
+				*/
+
+			}
 		}
+		
 		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
 		frame.setMeasurement(rtMeasurement);
 	}	
-	
-
-	
-	
-	
-	
-
-	
-	
-
 	
 	/**
 	 * Print the data for debug purposes so that we can graph it in excel

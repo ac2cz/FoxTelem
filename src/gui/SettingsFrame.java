@@ -249,15 +249,15 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		TitledBorder measureTitle = title("Measurements");
 		leftcolumnpanel3.setBorder(measureTitle);
 		if (Config.isWindowsOs()) {
-			cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can calculate the frequency of the satellite or it can read it from SatPC32.  It is stored alongside other measurements",
+			cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
 					Config.useDDEforFreq, leftcolumnpanel3 );
 			cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can calculate the Azimuth and Elevation of the satellite or it can read it from SatPC32.  It is stored alongside other measurements",
 					Config.useDDEforAzEl, leftcolumnpanel3 );
 		} else {
-			JLabel f = new JLabel("Calculate the frequency in AF mode");
-			leftcolumnpanel3.add(f);
-			JLabel g = new JLabel("Calculate Az/El");
-			leftcolumnpanel3.add(g);
+			//JLabel f = new JLabel("Calculate the frequency in AF mode");
+			//leftcolumnpanel3.add(f);
+			//JLabel g = new JLabel("Store Az/El");
+			//leftcolumnpanel3.add(g);
 		}
 			
 		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
