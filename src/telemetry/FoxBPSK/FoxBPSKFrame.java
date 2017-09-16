@@ -86,10 +86,24 @@ import telemetry.RadiationTelemetry;
 					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 					if (fox != null) {
 						initPayloads(header.getType());
+						if (payload[0] == null) {
+							if (Config.debugFrames)
+								Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
+										+ "Turn off Debug Frames to prevent this message in future.");
+							else
+								Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.");
+
+							corrupt = true;
+							return;
+						}
 						if (Config.debugFrames)
 							Log.println(header.toString());
 					} else {
-						Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
+						if (Config.debugFrames)
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.\n"
+									+ "Turn off Debug Frames to prevent this message in future.");
+						else
+							Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");							
 						corrupt = true;
 						return;
 					}
