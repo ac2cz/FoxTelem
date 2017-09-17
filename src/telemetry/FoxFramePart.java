@@ -452,6 +452,13 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_WOD_STORED:
 			return rawValue * 4;
+		case BitArrayLayout.CONVERT_FOX1E_TXRX_TEMP:
+			double volts = rawValue * VOLTAGE_STEP_FOR_3V_SENSORS;
+			return 100 * volts - 50; // TMP36 sensor conversion graph is a straight line where 0.5V is 0C and 0.01V rise is 1C increase.  So 0.75 is 25C
+		case BitArrayLayout.CONVERT_FOX1E_PA_CURRENT:
+			double voltspa = rawValue * VOLTAGE_STEP_FOR_3V_SENSORS;
+			double pacurrent = voltspa/PA_CURRENT_INA194_FACTOR/0.1; 
+			return 1000* pacurrent;
 		}
 		
 		return ERROR_VALUE;
