@@ -497,7 +497,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 	public void displayGraph(int i, int plotType) {
 		try {
-			if (graph[i] == null || graph[i].plotType != GraphFrame.SKY_PLOT) {
+			if (graph[i] == null || graph[i].plotType != plotType) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				String units = "";
 				
