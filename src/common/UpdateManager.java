@@ -48,9 +48,9 @@ import javax.swing.JOptionPane;
 
 public class UpdateManager implements Runnable {
 
-	private final static long CHECK_PERIOD = 1*60*1000; //1*60*60*1000; // check every hourly for changes
-	private final static long SERVER_UPDATE_PERIOD = 4*60*1000; //4*60*60*1000; // check every 4 hours for server changes
-	public final static long KEP_UPDATE_PERIOD = 1*60*1000; //7*24*60*60*1000; // check every 7 days for TLE changes
+	private final static long CHECK_PERIOD = 1*60*60*1000; // check every hourly for changes
+	private final static long SERVER_UPDATE_PERIOD = 4*60*60*1000; // check every 4 hours for server changes
+	public final static long KEP_UPDATE_PERIOD = 7*24*60*60*1000; // check every 7 days for TLE changes
 	
 	public UpdateManager() {
 		
