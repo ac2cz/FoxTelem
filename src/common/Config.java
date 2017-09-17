@@ -280,6 +280,7 @@ public class Config {
 		setOs();
 		
 		satManager = new SatelliteManager();
+		GROUND_STATION = new GroundStationPosition(0,0,0);; // needed for any Predict Calculations.
 	}		
 	public static void serverInit() {
 		basicInit();
