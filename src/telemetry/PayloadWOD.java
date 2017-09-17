@@ -108,6 +108,11 @@ public class PayloadWOD extends PayloadRtValues {
 	
 	public String getInsertStmt() {
 		copyBitsToFields();
+		/*
+		 * The server does not rely on the position data sent by ground stations.  It calculates the position based on known good keps
+		 * and overwrites any position data sent by the station
+		 */
+		captureSatPosition();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, satLatitude, satLongitude, satAltitude, \n";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
