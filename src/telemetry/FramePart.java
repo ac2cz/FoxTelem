@@ -30,6 +30,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	protected int type; // the type of this payload. Zero if the spacecraft does not use types
 	public static final double NO_POSITION_DATA = -999.0;
 	public static final double NO_T0 = -998.0;
+	public static final double NO_TLE = -997.0;
 	
 	double satLatitude = NO_POSITION_DATA;
 	double satLongitude = NO_POSITION_DATA;
@@ -76,6 +77,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return "UNK";
 		else if (satLatitude == NO_T0)
 			return "T0 NOT SET";
+		else if (satLatitude == NO_TLE)
+			return "NO TLE";
 		else
 			return d.format(radToDeg(satLatitude)); 
 	}
@@ -86,6 +89,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return "UNK";
 		else if (satLongitude == NO_T0)
 			return "T0 NOT SET";
+		else if (satLongitude == NO_TLE)
+			return "NO TLE";
 		else
 			return d.format(radToDeg(satLongitude)); 
 	}

@@ -14,6 +14,7 @@ import org.joda.time.DateTimeZone;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
+import predict.PositionCalcException;
 import common.Config;
 import common.Log;
 import common.Performance;
@@ -672,15 +673,29 @@ public abstract class Decoder implements Runnable {
 				}
 
 			}
-		} else {
-			// We use FoxTelem Predict calculation
-			timeNow = new DateTime(DateTimeZone.UTC);
-			sat = Config.satManager.getSpacecraft(header.id);
-			pos = sat.getSatellitePosition(timeNow);
-			if (pos != null) {
-				rtMeasurement.setAzimuth(FramePart.radToDeg(pos.getAzimuth()));
-				rtMeasurement.setElevation(FramePart.radToDeg(pos.getElevation()));
-			}
+		} else if (Config.foxTelemCalcsPosition){
+			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
+			if (Config.GROUND_STATION != null)
+				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
+					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
+				} else {
+					timeNow = new DateTime(DateTimeZone.UTC);
+					sat = Config.satManager.getSpacecraft(header.id);
+					try {
+						pos = sat.getSatellitePosition(timeNow);
+					} catch (PositionCalcException e) {
+						// We wont get NO T0 as we are using the current time, but we may have missing keps
+						if (e.errorCode == FramePart.NO_TLE)
+						Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the satellite position, but no TLE was found.  Make sure\n"
+								+ "the name of the spacecraft matches the name of the satellite in the nasabare.tle file from amsat.  This file is\n"
+								+ "automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+								+ "To turn off this feature go to the settings panel and uncheck 'Fox Telem calculates position'.");
+					}	
+					if (pos != null) {
+						rtMeasurement.setAzimuth(FramePart.radToDeg(pos.getAzimuth()));
+						rtMeasurement.setElevation(FramePart.radToDeg(pos.getElevation()));
+					}
+				}
 		}
 		if (this.audioSource instanceof SourceIQ) {
 			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);

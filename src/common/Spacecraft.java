@@ -18,8 +18,10 @@ import java.util.Properties;
 import org.joda.time.DateTime;
 
 import predict.FoxTLE;
+import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
 import uk.me.g4dpz.satellite.SatPos;
@@ -242,16 +244,17 @@ public abstract class Spacecraft {
 		return true;
 	}
 	
-	private TLE getTLEbyDate(DateTime dateTime) {
+	private TLE getTLEbyDate(DateTime dateTime) throws PositionCalcException {
 		if (tleList == null) return null;
 		TLE t = tleList.getTleByDate(dateTime);
+		if (t==null) throw new PositionCalcException(FramePart.NO_TLE);
 		return t;
 	}
 	
-	public SatPos getSatellitePosition(DateTime timeNow) {
+	public SatPos getSatellitePosition(DateTime timeNow) throws PositionCalcException {
 		final TLE tle = getTLEbyDate(timeNow);
 //		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
-		if (tle == null) return null; // We have no keps
+		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
 		

@@ -8,6 +8,7 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
+import predict.PositionCalcException;
 import uk.me.g4dpz.satellite.SatPos;
 
 public class PayloadWODRad extends PayloadRadExpData {
@@ -22,7 +23,8 @@ public class PayloadWODRad extends PayloadRadExpData {
 	public PayloadWODRad(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);	
 		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
-			captureSatPosition();
+			if (Config.foxTelemCalcsPosition)
+				captureSatPosition();
 		}
 	}
 	
@@ -38,7 +40,8 @@ public class PayloadWODRad extends PayloadRadExpData {
 		this.id = id;
 		this.captureDate = fileDateStamp();
 		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
-			captureSatPosition();
+			if (Config.foxTelemCalcsPosition)
+				captureSatPosition();
 		}
 	}
 	
@@ -58,10 +61,19 @@ public class PayloadWODRad extends PayloadRadExpData {
 			//DateTime timeNow = new DateTime(wodTime); 
 
 			//capture the satellite position so we can visualize the WOD
-			pos = sat.getSatellitePosition(wodTime);
+			try {
+				pos = sat.getSatellitePosition(wodTime);
+			} catch (PositionCalcException e) {
+				if (e.errorCode == FramePart.NO_TLE) {
+					satLatitude = NO_TLE;
+					satLongitude = NO_TLE;
+					satAltitude = NO_TLE;
+				}
+			}	
 			
-		} 		
-		setSatPosition(pos);
+		}
+		if (satLatitude != NO_TLE)
+			setSatPosition(pos);
 	}
 	
 	@Override

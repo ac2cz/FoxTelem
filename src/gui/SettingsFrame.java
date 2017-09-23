@@ -86,6 +86,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox swapIQ;
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;
+	private JCheckBox cbFoxTelemCalcsPosition;
 	
 	boolean useUDP;
 	
@@ -248,6 +249,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		JPanel leftcolumnpanel3 = addColumn(leftcolumnpanel,6);
 		TitledBorder measureTitle = title("Measurements");
 		leftcolumnpanel3.setBorder(measureTitle);
+		if (Config.useDDEforAzEl) Config.foxTelemCalcsPosition = false;
 		if (Config.isWindowsOs()) {
 			cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
 					Config.useDDEforFreq, leftcolumnpanel3 );
@@ -259,6 +261,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			//JLabel g = new JLabel("Store Az/El");
 			//leftcolumnpanel3.add(g);
 		}
+		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculats Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
+				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
 			
 		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
 		
@@ -475,7 +479,12 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				if (validLatLong()) {
 					Config.latitude = txtLatitude.getText();
 					Config.longitude = txtLongitude.getText();
-				} else dispose = false;
+				} else {
+					if (txtLatitude.getText().equalsIgnoreCase(Config.DEFAULT_LATITUDE) && txtLongitude.getText().equalsIgnoreCase(Config.DEFAULT_LONGITUDE))
+							dispose = true;
+					else 
+						dispose = false;
+				}
 				if (validLocator()) {
 					Config.maidenhead = txtMaidenhead.getText();
 				} else dispose = false;
@@ -496,6 +505,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
 					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
 				}
+				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
@@ -582,6 +592,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				MainWindow.refreshTabs(refreshGraphs);
 			if (dispose) {
 				Config.save();
+				Config.storeGroundStation();
 				this.dispose();
 			}
 			// We are fully up, remove the database loading message
@@ -667,9 +678,16 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			}
 		}
 		
+		if (source == cbUseDDEAzEl) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				this.cbFoxTelemCalcsPosition.setSelected(false);
+			}
+		}
 		
-		if (source == cbUseUDP) { 
-
+		if (source == cbFoxTelemCalcsPosition) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				cbUseDDEAzEl.setSelected(false);
+			}
 		}
 	}
 

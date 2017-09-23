@@ -247,6 +247,8 @@ public class Config {
 	static public int afSampleRate = 48000;
 	static public int totalFrames = 0;
 	static public boolean debugRS = false; // not saved or on GUI
+	static public boolean foxTelemCalcsPosition = false;
+    
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -289,18 +291,24 @@ public class Config {
 	}
 	
 	public static void storeGroundStation() {
+		int h = 0;
 		try {
-			int h = 0;
+			if (Config.altitude.equalsIgnoreCase(Config.NONE)) 
+				h = 0;
+			else
+				h = Integer.parseInt(Config.altitude);
+		} catch (NumberFormatException e) {
+			// not much to do.  Just leave h as 0;
+		}
+		try {
 			float lat = Float.parseFloat(Config.latitude);
 			float lon = Float.parseFloat(Config.longitude);
-			if (Config.altitude.equalsIgnoreCase(Config.NONE)) h = 0;
-			h = Integer.parseInt(Config.altitude);
 			GROUND_STATION = new GroundStationPosition(lat, lon, h);
-			} catch (NumberFormatException e) {
-				// not much to do.  Just leave GROUND_STATION as NULL;
-			}
+		} catch (NumberFormatException e) {
+			GROUND_STATION = new GroundStationPosition(0, 0, 0); // Dummy ground station.  This works for position calculations but not for Az/El
+		}
 	}
-	
+
 	public static void init() {
 		properties = new Properties();
 		load();
@@ -625,6 +633,9 @@ public class Config {
 		
 		// Version 1.05
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
+		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
+		
+		
 		store();
 	}
 	
@@ -789,6 +800,7 @@ public class Config {
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
 		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
+		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

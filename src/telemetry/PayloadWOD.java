@@ -12,6 +12,7 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxDecoder;
+import predict.PositionCalcException;
 import uk.me.g4dpz.satellite.GroundStationPosition;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
@@ -30,7 +31,8 @@ public class PayloadWOD extends PayloadRtValues {
 	public PayloadWOD(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);	
 		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
-			captureSatPosition();
+			if (Config.foxTelemCalcsPosition)
+				captureSatPosition();
 		}
 	}
 
@@ -46,7 +48,8 @@ public class PayloadWOD extends PayloadRtValues {
 		this.id = id;
 		this.captureDate = fileDateStamp();	
 		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
-			captureSatPosition();
+			if (Config.foxTelemCalcsPosition)
+				captureSatPosition();
 		}
 	}
 	
@@ -59,10 +62,18 @@ public class PayloadWOD extends PayloadRtValues {
 			//DateTime timeNow = new DateTime(wodTime); 
 
 			//capture the satellite position so we can visualize the WOD
-			pos = sat.getSatellitePosition(wodTime);
-			
-		} 		
-		setSatPosition(pos);
+			try {
+				pos = sat.getSatellitePosition(wodTime);
+			} catch (PositionCalcException e) {
+				if (e.errorCode == FramePart.NO_TLE) {
+					satLatitude = NO_TLE;
+					satLongitude = NO_TLE;
+					satAltitude = NO_TLE;
+				}
+			}	
+		} 	
+		if (satLatitude != NO_TLE)
+			setSatPosition(pos);
 	}
 	
 	
