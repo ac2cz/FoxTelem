@@ -132,17 +132,21 @@ public class UpdateManager implements Runnable {
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
 			rbc.close();
+			File f1 = new File(file + ".tmp");
+			File f2 = new File(file);
 			if (sat.loadTimeZeroSeries(file + ".tmp")) {
 				// this is a good file so we can now use it as the default
 				SatPayloadStore.remove(file);
-				File f1 = new File(file + ".tmp");
-				File f2 = new File(file);
+				
 				SatPayloadStore.copyFile(f1, f2);
 				SatPayloadStore.remove(file + ".tmp");
 				return;
 			} else {
 				SatPayloadStore.remove(file + ".tmp");
-				sat.loadTimeZeroSeries(null); // load the default
+				if (f2.exists()) 
+					sat.loadTimeZeroSeries(file); // load the existing
+				else
+					sat.loadTimeZeroSeries(null); // load the default
 			}
 		} catch (MalformedURLException e) {
 			Log.println("Invalid location for T0 file: " + file);

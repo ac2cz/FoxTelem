@@ -32,8 +32,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final double NO_T0 = -998.0;
 	public static final double NO_TLE = -997.0;
 	
-	double satLatitude = NO_POSITION_DATA;
-	double satLongitude = NO_POSITION_DATA;
+	// lat lon are stored in degrees
+	double satLatitude = NO_POSITION_DATA;  // from -90 to 90
+	double satLongitude = NO_POSITION_DATA; // from -180 to 180
 	double satAltitude = NO_POSITION_DATA;
 	
 	protected FramePart(BitArrayLayout l) {
@@ -48,8 +49,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		this.captureDate = fileDateStamp();
 	}
 	
-	public double getSatLatitude() { return radToDeg(satLatitude); }
-	public double getSatLongitude() { return radToDeg(satLongitude); }
+	public double getSatLatitude() { return satLatitude; }
+	public double getSatLongitude() { return satLongitude; }
 	public double getSatAltitude() { return satAltitude; }
 
 	/**
@@ -58,12 +59,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 */
 	public void setSatPosition(SatPos pos) {
 		if (pos != null) {
-			satLatitude = pos.getLatitude();
-			satLongitude = pos.getLongitude();
+			satLatitude = latRadToDeg (pos.getLatitude());
+			satLongitude = lonRadToDeg(pos.getLongitude());
 			satAltitude = pos.getAltitude();
 
 			if (Config.debugFrames)
-				Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + radToDeg(satLatitude) + " " + radToDeg(satLongitude));
+				Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + satLatitude + " " + satLongitude);
 		} else {
 			satLatitude = NO_T0;
 			satLongitude = NO_T0;
@@ -80,7 +81,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		else if (satLatitude == NO_TLE)
 			return "NO TLE";
 		else
-			return d.format(radToDeg(satLatitude)); 
+			return d.format(satLatitude); 
 	}
 	
 	public String getSatLongitudeStr() { 
@@ -92,13 +93,24 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		else if (satLongitude == NO_TLE)
 			return "NO TLE";
 		else
-			return d.format(radToDeg(satLongitude)); 
+			return d.format (satLongitude); 
 	}
 	
 	public static double radToDeg(Double rad) {
 		return 180 * (rad / Math.PI);
 	}
-	
+	public static double latRadToDeg(Double rad) {
+		return radToDeg(rad);
+	}
+
+	public static double lonRadToDeg(Double rad) {
+		double lon = radToDeg(rad);
+		if (lon > 180)
+			return lon -360;
+		else
+			return lon;
+	}
+
 	private void defaultValue(double val) {
 		val = NO_POSITION_DATA;
 	}

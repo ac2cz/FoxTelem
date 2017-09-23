@@ -462,49 +462,49 @@ public class Config {
 		return false;
 	}
 	
-	public static void saveGraphParam(String sat, String fieldName, String key, String value) {
-		properties.setProperty("Graph" + sat + fieldName + key, value);
+	public static void saveGraphParam(String sat, int plotType, String fieldName, String key, String value) {
+		properties.setProperty("Graph" + sat + plotType + fieldName + key, value);
 		//store();
 	}
 	
-	public static String loadGraphValue(String sat, String fieldName, String key) {
-		return properties.getProperty("Graph" + sat + fieldName + key);
+	public static String loadGraphValue(String sat, int plotType, String fieldName, String key) {
+		return properties.getProperty("Graph" + sat + plotType + fieldName + key);
 	}
 	
-	public static void saveGraphIntParam(String sat, String fieldName, String key, int value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Integer.toString(value));
+	public static void saveGraphIntParam(String sat, int plotType, String fieldName, String key, int value) {
+		properties.setProperty("Graph" + sat + plotType + fieldName + key, Integer.toString(value));
 		//store();
 	}
 
-	public static void saveGraphLongParam(String sat, String fieldName, String key, long value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Long.toString(value));
+	public static void saveGraphLongParam(String sat, int plotType, String fieldName, String key, long value) {
+		properties.setProperty("Graph" + sat + plotType + fieldName + key, Long.toString(value));
 		//store();
 	}
 
-	public static void saveGraphBooleanParam(String sat, String fieldName, String key, boolean value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Boolean.toString(value));
+	public static void saveGraphBooleanParam(String sat, int plotType, String fieldName, String key, boolean value) {
+		properties.setProperty("Graph" + sat + plotType + fieldName + key, Boolean.toString(value));
 		//store();
 	}
 	
-	public static int loadGraphIntValue(String sat, String fieldName, String key) {
+	public static int loadGraphIntValue(String sat, int plotType, String fieldName, String key) {
 		try {
-			return Integer.parseInt(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Integer.parseInt(properties.getProperty("Graph" + sat + plotType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
 
-	public static long loadGraphLongValue(String sat, String fieldName, String key) {
+	public static long loadGraphLongValue(String sat, int plotType, String fieldName, String key) {
 		try {
-			return Long.parseLong(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Long.parseLong(properties.getProperty("Graph" + sat + plotType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
 
-	public static boolean loadGraphBooleanValue(String sat, String fieldName, String key) {
+	public static boolean loadGraphBooleanValue(String sat, int plotType, String fieldName, String key) {
 		try {
-			return Boolean.parseBoolean(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Boolean.parseBoolean(properties.getProperty("Graph" + sat + plotType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return false;
 		}

@@ -137,7 +137,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		foxId = fox.foxId;
 		loadProperties();
 		NAME = fox.toString() + " Virginia Tech Camera";
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), CAMERATAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, CAMERATAB, "splitPaneHeight");
 		
 		setLayout(new BorderLayout(0, 0));
 	
@@ -209,7 +209,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), CAMERATAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, CAMERATAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -457,23 +457,23 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 
 	public void saveProperties() {
 
-		Config.saveGraphIntParam(fox.getIdString(), "CameraTab", "maxThumbnails", maxThumbnails);
-		Config.saveGraphIntParam(fox.getIdString(), "CameraTab", "fromReset", this.START_RESET);
-		Config.saveGraphLongParam(fox.getIdString(), "CameraTab", "fromUptime", this.START_UPTIME);
-		Config.saveGraphIntParam(fox.getIdString(), "CameraTab", "selectedThumb", this.selectedThumb);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "maxThumbnails", maxThumbnails);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "fromUptime", this.START_UPTIME);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "selectedThumb", this.selectedThumb);
 	}
 	
 	public void loadProperties() {
 
-		maxThumbnails = Config.loadGraphIntValue(fox.getIdString(), "CameraTab", "maxThumbnails");
+		maxThumbnails = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "maxThumbnails");
 		if (maxThumbnails == 0) maxThumbnails = DEFAULT_THUMBNAILS;
 		if (maxThumbnails > MAX_THUMBNAILS_LIMIT) {
 			maxThumbnails = MAX_THUMBNAILS_LIMIT;
 		}
 			
-		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), "CameraTab", "fromReset");
-		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), "CameraTab", "fromUptime");
-		this.selectedThumb = Config.loadGraphIntValue(fox.getIdString(), "CameraTab", "selectedThumb");
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "fromUptime");
+		this.selectedThumb = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, "CameraTab", "selectedThumb");
 
 	}
 	

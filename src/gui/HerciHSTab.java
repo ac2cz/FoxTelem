@@ -82,7 +82,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		fox = sat;
 		foxId = fox.foxId;
 
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HERCITAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, HERCITAB, "splitPaneHeight");
 		
 		JLabel lblId = new JLabel("University of Iowa High Energy Radiation CubeSat Instrument (HERCI)");
 		lblId.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -142,7 +142,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), HERCITAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, HERCITAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }

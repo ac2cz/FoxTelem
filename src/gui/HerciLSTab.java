@@ -100,7 +100,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		foxId = fox.foxId;
 		NAME = fox.toString() + " IOWA HERCI Housekeeping";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HERCITAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, HERCITAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -157,7 +157,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), HERCITAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, HERCITAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }

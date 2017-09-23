@@ -683,6 +683,8 @@ public abstract class Decoder implements Runnable {
 					sat = Config.satManager.getSpacecraft(header.id);
 					try {
 						pos = sat.getSatellitePosition(timeNow);
+						if (Config.debugFrames)
+							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
 					} catch (PositionCalcException e) {
 						// We wont get NO T0 as we are using the current time, but we may have missing keps
 						if (e.errorCode == FramePart.NO_TLE)

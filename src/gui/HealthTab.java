@@ -166,7 +166,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		
 		initDisplayHalves(centerPanel);
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HEALTHTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, HEALTHTAB, "splitPaneHeight");
 
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
@@ -185,7 +185,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), HEALTHTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }

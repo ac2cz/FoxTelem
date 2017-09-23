@@ -644,10 +644,16 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 	public void openGraphs() {
 		for (int i=0; i < fieldName.length; i++) {
-			boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[i], "open");
-			if (open) {
-				displayGraph(i, GraphFrame.SAVED_PLOT);
-			}
+			openPlot(i, GraphFrame.GRAPH_PLOT);
+			openPlot(i, GraphFrame.SKY_PLOT);
+			openPlot(i, GraphFrame.EARTH_PLOT);
+		}
+	}
+	
+	private void openPlot(int i, int plotType) {
+		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[i], "open");
+		if (open) {
+			displayGraph(i, plotType);
 		}
 	}
 	

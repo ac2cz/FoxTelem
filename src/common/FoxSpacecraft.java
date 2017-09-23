@@ -161,7 +161,7 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	public boolean loadTimeZeroSeries(String log) throws FileNotFoundException {
 		timeZero = new ArrayList<Long>(100);
-        String line;
+        String line = null;
         if (log == null) { // then use the default
         	log = "FOX"+ foxId + Config.t0UrlFile;
         	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -170,7 +170,7 @@ public class FoxSpacecraft extends Spacecraft{
         	}
         }
         //File aFile = new File(log );
-
+        boolean hasContent = false;
         
         BufferedReader dis = new BufferedReader(new FileReader(log));
 
@@ -181,9 +181,10 @@ public class FoxSpacecraft extends Spacecraft{
         			int reset = Integer.valueOf(st.nextToken()).intValue();
         			long uptime = Long.valueOf(st.nextToken()).longValue();
         			//Log.println("Loaded T0: " + reset + ": " + uptime);
-        			if (reset == timeZero.size())
+        			if (reset == timeZero.size()) {
         				timeZero.add(uptime);
-        			else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);
+        				hasContent = true;
+        			} else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);
         		}
         	}
 			dis.close();
@@ -200,7 +201,7 @@ public class FoxSpacecraft extends Spacecraft{
 				// ignore error
 			}
         }
-		return true;
+		return hasContent;
 	}
 	
 	protected void load() throws LayoutLoadException {
