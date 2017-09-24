@@ -152,6 +152,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public final static int SKY_PLOT = 1;
 	public final static int EARTH_PLOT = 2;
 	public final static int SAVED_PLOT = 99;
+	public final static int MAX_PLOT_TYPES = 3;
 	
 	public int plotType = SAVED_PLOT;
 	
@@ -174,11 +175,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
-		loadProperties();
+		
 		
 		if (plot != SAVED_PLOT) // take the value, otherwise we use what was loaded from the save
 			plotType = plot;
-		
+		loadProperties();
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
 //		setIconImage(img);	
 		
@@ -514,83 +515,83 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public void saveProperties(boolean open) {
 		//Log.println("Saving graph properties: " + fieldName);
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "windowHeight", this.getHeight());
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "windowWidth", this.getWidth());
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "windowX", this.getX());
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "windowY", this.getY());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowHeight", this.getHeight());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth", this.getWidth());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowX", this.getX());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY", this.getY());
 		
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "numberOfSamples", this.SAMPLES);
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "fromReset", this.START_RESET);
-		Config.saveGraphLongParam(fox.getIdString(), plotType, fieldName[0], "fromUptime", this.START_UPTIME);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "open", open);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "numberOfSamples", this.SAMPLES);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUptime", this.START_UPTIME);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "open", open);
 		
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "hideMain", hideMain);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "hideLines", hideLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "hidePoints", hidePoints);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "plotDerivative", plotDerivative);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "dspAvg", dspAvg);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "showVerticalLines", showVerticalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "showHorizontalLines", showHorizontalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "showUTCtime", showUTCtime);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "hideUptime", hideUptime);
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "plotType", plotType);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain", hideMain);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideLines", hideLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hidePoints", hidePoints);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotDerivative", plotDerivative);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "dspAvg", dspAvg);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showVerticalLines", showVerticalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showHorizontalLines", showHorizontalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime", showUTCtime);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime", hideUptime);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType", plotType);
 		
-		Config.saveGraphIntParam(fox.getIdString(), plotType, fieldName[0], "AVG_PERIOD", AVG_PERIOD);
-		Config.saveGraphBooleanParam(fox.getIdString(), plotType, fieldName[0], "showContinuous", showContinuous);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD", AVG_PERIOD);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous", showContinuous);
 		
 		String fields1 = "";
 		for (String s : fieldName)
 			fields1 += s + ";";
-		Config.saveGraphParam(fox.getIdString(), plotType, fieldName[0], "fieldName", fields1);
+		Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName", fields1);
 		String fields2 = "";
 		if (fieldName2 != null) {
 			for (String s : fieldName2)
 				fields2 += s + ";";
-			Config.saveGraphParam(fox.getIdString(), plotType, fieldName[0], "fieldName2", fields2);
+			Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName2", fields2);
 		} else {
-			Config.saveGraphParam(fox.getIdString(), plotType, fieldName[0], "fieldName2", fields2); // make sure it is saved as blank
+			Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName2", fields2); // make sure it is saved as blank
 		}
 	}
 
 	public boolean loadProperties() {
-		int windowX = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "windowX");
-		int windowY = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "windowY");
-		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "windowWidth");
-		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "windowHeight");
+		int windowX = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowX");
+		int windowY = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY");
+		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth");
+		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0)
 			setBounds(100, 100, 740, 400);
 		else
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 
-		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "numberOfSamples");
+		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "numberOfSamples");
 		if (SAMPLES == 0) SAMPLES = DEFAULT_SAMPLES;
 		if (SAMPLES > MAX_SAMPLES) {
 			SAMPLES = MAX_SAMPLES;
 		}
 			
-		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "fromReset");
-		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), plotType, fieldName[0], "fromUptime");
-		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "open");
-		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "hideMain");
-		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "hideLines");
-		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "hidePoints");
-		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "plotDerivative");
-		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "dspAvg");
-		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "showVerticalLines");
-		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "showHorizontalLines");
-		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "showUTCtime");
-		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "hideUptime");
-		plotType = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "plotType");
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUptime");
+		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "open");
+		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain");
+		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideLines");
+		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hidePoints");
+		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "plotDerivative");
+		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "dspAvg");
+		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showVerticalLines");
+		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showHorizontalLines");
+		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime");
+		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime");
+		//plotType = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType");
 		
-		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), plotType, fieldName[0], "AVG_PERIOD");
+		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD");
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
-		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), plotType, fieldName[0], "showContinuous");
+		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 		
-		String fields1 = Config.loadGraphValue(fox.getIdString(), plotType, fieldName[0], "fieldName");
+		String fields1 = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName");
 		if (fields1 != null)
 			fieldName = fields1.split(";");
-		String fields2 = Config.loadGraphValue(fox.getIdString(), plotType, fieldName[0], "fieldName2");
+		String fields2 = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName2");
 		if (fields2 != null && !fields2.equalsIgnoreCase("")) {
 			fieldName2 = fields2.split(";");
 			fieldUnits2 = layout.getUnitsByName(fieldName2[0]);

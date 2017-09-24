@@ -298,16 +298,16 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 	
 	}
 	
-	public void openGraphs() {
+	public void openGraphs(int payloadType) {
 		if (topModules != null)
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.openGraphs();
+			mod.openGraphs(payloadType);
 		}
 		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.openGraphs();
+			mod.openGraphs(payloadType);
 		}
 	
 	}

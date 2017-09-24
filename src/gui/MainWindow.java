@@ -508,8 +508,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.shutdown();
 		Log.println("Window Closed");
 		Log.close();
-		this.dispose();
 		saveProperties();
+		this.dispose();
 		System.exit(0);
 	}
 	

@@ -166,7 +166,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		
 		initDisplayHalves(centerPanel);
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, HEALTHTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight");
 
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
@@ -185,7 +185,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -243,7 +243,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		try {
 			analyzeModules(rt, max, min, displayType);
 		} catch (LayoutLoadException e) {
-			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			Log.errorDialog("FATAL - Health Tab Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			System.exit(1);
 		}

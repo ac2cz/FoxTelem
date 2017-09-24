@@ -4,12 +4,12 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
+import telemetry.FoxFramePart;
 
 public class WodVulcanTab extends VulcanTab {
 
 	public WodVulcanTab(FoxSpacecraft sat) {
-		super(sat);
-		// TODO Auto-generated constructor stub
+		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
 	}
 
 	
@@ -79,7 +79,7 @@ public class WodVulcanTab extends VulcanTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs();
+							openGraphs(FoxFramePart.TYPE_WOD_RAD);
 							justStarted = false;
 						}
 					}

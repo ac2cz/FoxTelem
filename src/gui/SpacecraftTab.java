@@ -160,7 +160,7 @@ public class SpacecraftTab extends JPanel {
 
 	private void addExperimentTab(FoxSpacecraft fox) {
 		
-		radiationTab = new VulcanTab(fox);
+		radiationTab = new VulcanTab(fox, DisplayModule.DISPLAY_VULCAN);
 		radiationThread = new Thread((VulcanTab)radiationTab);
 		radiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		radiationThread.start();

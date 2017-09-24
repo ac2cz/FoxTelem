@@ -13,6 +13,7 @@ import javax.swing.JScrollPane;
 
 import measure.PassMeasurement;
 import measure.RtMeasurement;
+import measure.SatMeasurementStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -123,9 +124,9 @@ ItemListener {
 
 	public void openGraphs() {
 		if (satellite != null)
-			satellite.openGraphs();
+			satellite.openGraphs(SatMeasurementStore.RT_MEASUREMENT_TYPE);
 		if (passes != null)
-			passes.openGraphs();
+			passes.openGraphs(SatMeasurementStore.RT_MEASUREMENT_TYPE);
 	}
 
 	public void closeGraphs() {

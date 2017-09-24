@@ -19,6 +19,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
 import telemetry.LayoutLoadException;
 
 public class HealthTabRt extends HealthTab {
@@ -122,7 +123,7 @@ public class HealthTabRt extends HealthTab {
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
 					if (justStarted) {
-						openGraphs();
+						openGraphs(FoxFramePart.TYPE_REAL_TIME);
 						justStarted = false;
 					}
 				}
