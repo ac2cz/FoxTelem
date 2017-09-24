@@ -126,7 +126,7 @@ ItemListener {
 		if (satellite != null)
 			satellite.openGraphs(SatMeasurementStore.RT_MEASUREMENT_TYPE);
 		if (passes != null)
-			passes.openGraphs(SatMeasurementStore.RT_MEASUREMENT_TYPE);
+			passes.openGraphs(SatMeasurementStore.PASS_MEASUREMENT_TYPE);
 	}
 
 	public void closeGraphs() {
