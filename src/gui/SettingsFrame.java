@@ -261,7 +261,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			//JLabel g = new JLabel("Store Az/El");
 			//leftcolumnpanel3.add(g);
 		}
-		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculats Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
+		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
 				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
 			
 		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
