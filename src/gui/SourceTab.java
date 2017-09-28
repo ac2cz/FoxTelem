@@ -1458,7 +1458,8 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 						//Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store the name
 					}
-				} else if (position == SourceAudio.AIRSPY_SOURCE) {
+				} 
+/*				else if (position == SourceAudio.AIRSPY_SOURCE) {
 					SourceAudio audioSource;
 					if (rfDevice == null || !(rfDevice instanceof AirspyDevice) ) {
 						Log.println("Airspy Source Selected");
@@ -1529,7 +1530,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store the name
 					}
 
-				} else { // soundcard - fcd or normal
+				} 
+*/	
+				else { // soundcard - fcd or normal
 					SourceAudio audioSource;
 					boolean fcdSelected = false;
 					try {
@@ -1701,11 +1704,17 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
-		if (rfDevice != null)
-			if (rfDevice instanceof AirspyDevice) {
-				((AirspyDevice)rfDevice).stop();
-				//rfDevice = null;
+		if (rfDevice != null) {
+			try {
+				rfDevice.cleanup();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (DeviceException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
 			}
+		}
 		if (this.soundCardComboBox.getSelectedIndex() == SourceAudio.AIRSPY_SOURCE) {
 			SDRpanel.setVisible(true);	
 			if (panelFcd != null)

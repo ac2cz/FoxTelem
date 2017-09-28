@@ -116,7 +116,9 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	            }
 	        } );	
 	        Log.println("SELECTED ITEM:" + sampleRate);
-	        mComboSampleRate.setSelectedIndex(2);
+	        SampleRate s = SampleRate.getClosest(sampleRate);
+	        if (s != null)
+	        mComboSampleRate.setSelectedItem(s);
 		//top.add(mComboSampleRate);
 		top.add( new JLabel( "Sample Rate:" ) );
         top.add( mComboSampleRate );
