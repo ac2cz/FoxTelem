@@ -82,8 +82,8 @@ public class PassManager implements Runnable {
 	int lastReset;
 	long lastUptime;
 	
-	final int SCAN_PERIOD = 200; //ms - we always do this
-	final int ANALYZE_PERIOD = 600; //ms - we pause for this if strongest signal > scan signal threshold 
+	final int SCAN_PERIOD = 100; //ms - we always do this
+	final int ANALYZE_PERIOD = 300; //ms - we pause for this if strongest signal > scan signal threshold 
 	final int SNR_PERIOD = 1500; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR
 	final int DECODE_PERIOD = 5000; //ms
 	final int FADE_PERIOD = 125 * 1000; //ms - need to wait for the length of a beacon to see if this is still a pass
