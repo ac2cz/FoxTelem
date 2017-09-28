@@ -55,7 +55,8 @@ import uk.me.g4dpz.satellite.GroundStationPosition;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
-
+	public static MainWindow mainWindow;
+	
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.05oRTL"; //"1.05n";
@@ -100,17 +101,18 @@ public class Config {
 	
 	public static Sequence sequence;
 	
-	static public GroundStationPosition GROUND_STATION = new GroundStationPosition(40.703328, -73.980599, 20);
+	static public GroundStationPosition GROUND_STATION = null;
+	public static final String NONE = "NONE";
 	
 	/**
 	 * These flags can be set to change the output types and operation
 	 */
 	public static int wavSampleRate = 48000; //44100; //192000;
 	public static int scSampleRate = 48000; //44100; //192000;
-	public static final String NO_SOUND_CARD_SELECTED = "NONE";
-	public static final String DEFAULT_CALLSIGN = "NONE";
-	public static final String DEFAULT_STATION = "NONE";
-	public static final String DEFAULT_ALTITUDE = "NONE";
+	public static final String NO_SOUND_CARD_SELECTED = NONE;
+	public static final String DEFAULT_CALLSIGN = NONE;
+	public static final String DEFAULT_STATION = NONE;
+	public static final String DEFAULT_ALTITUDE = NONE;
 	public static final String DEFAULT_LATITUDE = "0.0";
 	public static final String DEFAULT_LONGITUDE = "0.0";
 	public static final String DEFAULT_LOCATOR = "XX00xx";
@@ -245,9 +247,10 @@ public class Config {
 	static public int afSampleRate = 48000;
 	static public int totalFrames = 0;
 	static public boolean debugRS = false; // not saved or on GUI
+	static public boolean foxTelemCalcsPosition = false;
+    
 	
 	public static boolean missing() { 
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
 			return true;
@@ -256,7 +259,6 @@ public class Config {
 	}
 	
 	public static void setHome() {
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory);
 		if(!aFile.isDirectory()){
 			
@@ -266,7 +268,7 @@ public class Config {
 		}
 		if(!aFile.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
-					"\nFoxTelem needs to save the program settings in your home directroy.  It is either not accessible or not writable\n");
+					"\nFoxTelem needs to save the program settings.  The directory is either not accessible or not writable\n");
 		}
 		
 		System.out.println("Set Home to: " + homeDirectory);
@@ -280,6 +282,7 @@ public class Config {
 		setOs();
 		
 		satManager = new SatelliteManager();
+		GROUND_STATION = new GroundStationPosition(0,0,0);; // needed for any Predict Calculations.
 	}		
 	public static void serverInit() {
 		basicInit();
@@ -287,6 +290,25 @@ public class Config {
 		
 	}
 	
+	public static void storeGroundStation() {
+		int h = 0;
+		try {
+			if (Config.altitude.equalsIgnoreCase(Config.NONE)) 
+				h = 0;
+			else
+				h = Integer.parseInt(Config.altitude);
+		} catch (NumberFormatException e) {
+			// not much to do.  Just leave h as 0;
+		}
+		try {
+			float lat = Float.parseFloat(Config.latitude);
+			float lon = Float.parseFloat(Config.longitude);
+			GROUND_STATION = new GroundStationPosition(lat, lon, h);
+		} catch (NumberFormatException e) {
+			GROUND_STATION = new GroundStationPosition(0, 0, 0); // Dummy ground station.  This works for position calculations but not for Az/El
+		}
+	}
+
 	public static void init() {
 		properties = new Properties();
 		load();
@@ -296,6 +318,8 @@ public class Config {
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
 
+		storeGroundStation();
+		
 		initSatelliteManager();
 		initPayloadStore();
 		initPassManager();
@@ -438,49 +462,49 @@ public class Config {
 		return false;
 	}
 	
-	public static void saveGraphParam(String sat, String fieldName, String key, String value) {
-		properties.setProperty("Graph" + sat + fieldName + key, value);
+	public static void saveGraphParam(String sat, int plotType, int payloadType, String fieldName, String key, String value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, value);
 		//store();
 	}
 	
-	public static String loadGraphValue(String sat, String fieldName, String key) {
-		return properties.getProperty("Graph" + sat + fieldName + key);
+	public static String loadGraphValue(String sat, int plotType, int payloadType, String fieldName, String key) {
+		return properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key);
 	}
 	
-	public static void saveGraphIntParam(String sat, String fieldName, String key, int value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Integer.toString(value));
+	public static void saveGraphIntParam(String sat, int plotType, int payloadType, String fieldName, String key, int value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, Integer.toString(value));
 		//store();
 	}
 
-	public static void saveGraphLongParam(String sat, String fieldName, String key, long value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Long.toString(value));
+	public static void saveGraphLongParam(String sat, int plotType, int payloadType, String fieldName, String key, long value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, Long.toString(value));
 		//store();
 	}
 
-	public static void saveGraphBooleanParam(String sat, String fieldName, String key, boolean value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Boolean.toString(value));
+	public static void saveGraphBooleanParam(String sat, int plotType, int payloadType, String fieldName, String key, boolean value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, Boolean.toString(value));
 		//store();
 	}
 	
-	public static int loadGraphIntValue(String sat, String fieldName, String key) {
+	public static int loadGraphIntValue(String sat, int plotType, int payloadType, String fieldName, String key) {
 		try {
-			return Integer.parseInt(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Integer.parseInt(properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
 
-	public static long loadGraphLongValue(String sat, String fieldName, String key) {
+	public static long loadGraphLongValue(String sat, int plotType, int payloadType, String fieldName, String key) {
 		try {
-			return Long.parseLong(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Long.parseLong(properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
 
-	public static boolean loadGraphBooleanValue(String sat, String fieldName, String key) {
+	public static boolean loadGraphBooleanValue(String sat, int plotType, int payloadType, String fieldName, String key) {
 		try {
-			return Boolean.parseBoolean(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Boolean.parseBoolean(properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return false;
 		}
@@ -609,7 +633,9 @@ public class Config {
 		
 		// Version 1.05
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
-		properties.setProperty("totalFrames", Integer.toString(totalFrames));
+		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
+		
+		
 		store();
 	}
 	
@@ -773,8 +799,8 @@ public class Config {
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
-		totalFrames = Integer.parseInt(getProperty("totalFrames"));
 		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
+		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

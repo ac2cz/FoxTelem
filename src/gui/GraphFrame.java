@@ -148,7 +148,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean showContinuous = false;
 	
 	public boolean add = false;
-	public boolean skyPlot = false;
+	public final static int GRAPH_PLOT = 0;
+	public final static int SKY_PLOT = 1;
+	public final static int EARTH_PLOT = 2;
+	public final static int SAVED_PLOT = 99;
+	public final static int MAX_PLOT_TYPES = 3;
+	
+	public int plotType = SAVED_PLOT;
 	
 	boolean textDisplay = false;
 	
@@ -156,7 +162,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft fox2, Boolean showSkyChart) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -169,11 +175,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		addWindowListener(this);
+		
+		
+		if (plot != SAVED_PLOT) // take the value, otherwise we use what was loaded from the save
+			plotType = plot;
 		loadProperties();
-		
-		if (showSkyChart != null) // take the value, otherwise we use what was loaded from the save
-			this.skyPlot = showSkyChart;
-		
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
 //		setIconImage(img);	
 		
@@ -200,16 +206,19 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, (FoxSpacecraft)fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
-		} else if (skyPlot){
+		} else if (plotType == SKY_PLOT){
 			initSkyPlotFields();
 			panel = new DensityPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
+			contentPane.add(panel, BorderLayout.CENTER);
+		} else if (plotType == EARTH_PLOT){
+			panel = new EarthPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
 			panel = new GraphPanel(title, conversionType, payloadType, this, fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
-		if (!(textDisplay || skyPlot)) {
+		if (!(textDisplay || plotType == SKY_PLOT)) {
 			btnAdd = new JButton("+ ");
 			titlePanelLeft.add(btnAdd);
 			btnAdd.addActionListener(this);
@@ -231,34 +240,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnLines.setToolTipText("Draw lines between data points");
 		btnLines.addActionListener(this);
 		titlePanelRight.add(btnLines);
-		if (this.textDisplay || skyPlot) btnLines.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnLines.setVisible(false);
 
 		btnPoints = new JButton("Points");
 		btnPoints.setMargin(new Insets(0,0,0,0));
 		btnPoints.setToolTipText("Show data points");
 		btnPoints.addActionListener(this);
 		titlePanelRight.add(btnPoints);
-		if (this.textDisplay || skyPlot) btnPoints.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnPoints.setVisible(false);
 
 		
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
 		titlePanelRight.add(btnHorizontalLines);
-		if (this.textDisplay || skyPlot) btnHorizontalLines.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnHorizontalLines.setVisible(false);
 
 		btnVerticalLines = createIconButton("/images/verticalLines.png","Verrtical","Show Vertical Lines");
 		titlePanelRight.add(btnVerticalLines);
-		if (this.textDisplay || skyPlot) btnVerticalLines.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnVerticalLines.setVisible(false);
 
 		btnMain = new JButton("Hide");
 		btnMain.setMargin(new Insets(0,0,0,0));
 		btnMain.setToolTipText("Hide the first trace (useful if the derivative or average has been plotted)");
 		btnMain.addActionListener(this);
 		titlePanelRight.add(btnMain);
-		if (this.textDisplay || skyPlot) btnMain.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnMain.setVisible(false);
 
 		btnDerivative = createIconButton("/images/derivSmall.png","Deriv","Plot 1st Derivative (1st difference)");
 		titlePanelRight.add(btnDerivative);
-		if (this.textDisplay || skyPlot) btnDerivative.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnDerivative.setVisible(false);
 
 		btnAvg = new JButton("AVG");
 		btnAvg.setMargin(new Insets(0,0,0,0));
@@ -266,7 +275,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnAvg.addActionListener(this);
 		
 		titlePanelRight.add(btnAvg);
-		if (this.textDisplay || skyPlot) btnAvg.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT) btnAvg.setVisible(false);
 
 		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA || 
 				conversionType == BitArrayLayout.CONVERT_BOOLEAN ) {
@@ -304,7 +313,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
-		if (!skyPlot) {
+		if (!(plotType == SKY_PLOT)) {
 			cbUptime = new JCheckBox("Show Uptime");
 			cbUptime.setSelected(!hideUptime);
 			cbUptime.addItemListener(this);
@@ -376,7 +385,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 		
-		if (!(skyPlot || textDisplay)) {
+		if (!(plotType == SKY_PLOT || textDisplay)) {
 			chckbxPlotAllUptime = new JCheckBox("Continuous");
 			chckbxPlotAllUptime.setToolTipText("");
 			footerPanelLeft.add(chckbxPlotAllUptime);
@@ -396,6 +405,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.fieldName[0] = s;
 	}
 
+	private void initEarthPlotFields() {
+		String s = this.fieldName[0];
+		this.fieldName2 = new String[2];
+		this.fieldName2[0] = "LAT";
+		this.fieldName2[1] = "LONG";
+		this.fieldName[0] = s;
+	}
+
+	
 	private boolean textDisplay(int conversionType) {
 		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
 				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR || conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
@@ -442,7 +460,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	private void calcTitle() {
 		//BitArrayLayout layout = getLayout(payloadType);
-		if (!skyPlot && (fieldName.length > 1 || fieldName2 != null))
+		if (!(plotType == SKY_PLOT) && (fieldName.length > 1 || fieldName2 != null))
 			displayTitle = fox.name;
 		else {
 			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
@@ -497,83 +515,83 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public void saveProperties(boolean open) {
 		//Log.println("Saving graph properties: " + fieldName);
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowHeight", this.getHeight());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowWidth", this.getWidth());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowX", this.getX());
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "windowY", this.getY());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowHeight", this.getHeight());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth", this.getWidth());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowX", this.getX());
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY", this.getY());
 		
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "numberOfSamples", this.SAMPLES);
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "fromReset", this.START_RESET);
-		Config.saveGraphLongParam(fox.getIdString(), fieldName[0], "fromUptime", this.START_UPTIME);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "open", open);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "numberOfSamples", this.SAMPLES);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUptime", this.START_UPTIME);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "open", open);
 		
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideMain", hideMain);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideLines", hideLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hidePoints", hidePoints);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "plotDerivative", plotDerivative);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "dspAvg", dspAvg);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showVerticalLines", showVerticalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showHorizontalLines", showHorizontalLines);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showUTCtime", showUTCtime);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "hideUptime", hideUptime);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "skyPlot", skyPlot);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain", hideMain);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideLines", hideLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hidePoints", hidePoints);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotDerivative", plotDerivative);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "dspAvg", dspAvg);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showVerticalLines", showVerticalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showHorizontalLines", showHorizontalLines);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime", showUTCtime);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime", hideUptime);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType", plotType);
 		
-		Config.saveGraphIntParam(fox.getIdString(), fieldName[0], "AVG_PERIOD", AVG_PERIOD);
-		Config.saveGraphBooleanParam(fox.getIdString(), fieldName[0], "showContinuous", showContinuous);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD", AVG_PERIOD);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous", showContinuous);
 		
 		String fields1 = "";
 		for (String s : fieldName)
 			fields1 += s + ";";
-		Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName", fields1);
+		Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName", fields1);
 		String fields2 = "";
 		if (fieldName2 != null) {
 			for (String s : fieldName2)
 				fields2 += s + ";";
-			Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName2", fields2);
+			Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName2", fields2);
 		} else {
-			Config.saveGraphParam(fox.getIdString(), fieldName[0], "fieldName2", fields2); // make sure it is saved as blank
+			Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName2", fields2); // make sure it is saved as blank
 		}
 	}
 
 	public boolean loadProperties() {
-		int windowX = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowX");
-		int windowY = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowY");
-		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowWidth");
-		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "windowHeight");
+		int windowX = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowX");
+		int windowY = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY");
+		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth");
+		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0)
 			setBounds(100, 100, 740, 400);
 		else
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 
-		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "numberOfSamples");
+		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "numberOfSamples");
 		if (SAMPLES == 0) SAMPLES = DEFAULT_SAMPLES;
 		if (SAMPLES > MAX_SAMPLES) {
 			SAMPLES = MAX_SAMPLES;
 		}
 			
-		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "fromReset");
-		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), fieldName[0], "fromUptime");
-		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "open");
-		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideMain");
-		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideLines");
-		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hidePoints");
-		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "plotDerivative");
-		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "dspAvg");
-		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showVerticalLines");
-		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showHorizontalLines");
-		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showUTCtime");
-		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "hideUptime");
-		skyPlot = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "skyPlot");
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUptime");
+		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "open");
+		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain");
+		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideLines");
+		hidePoints = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hidePoints");
+		plotDerivative = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "plotDerivative");
+		dspAvg = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "dspAvg");
+		showVerticalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showVerticalLines");
+		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showHorizontalLines");
+		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime");
+		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime");
+		//plotType = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType");
 		
-		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), fieldName[0], "AVG_PERIOD");
+		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD");
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
-		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[0], "showContinuous");
+		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 		
-		String fields1 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName");
+		String fields1 = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName");
 		if (fields1 != null)
 			fieldName = fields1.split(";");
-		String fields2 = Config.loadGraphValue(fox.getIdString(), fieldName[0], "fieldName2");
+		String fields2 = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName2");
 		if (fields2 != null && !fields2.equalsIgnoreCase("")) {
 			fieldName2 = fields2.split(";");
 			fieldUnits2 = layout.getUnitsByName(fieldName2[0]);
@@ -817,7 +835,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				parseAvgPeriod();
 		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
 			if (!textDisplay) {
-				if (skyPlot)
+				if (plotType == SKY_PLOT)
 					initSkyPlotFields();
 				else {
 					fieldUnits2 = "";
@@ -826,7 +844,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					fieldName = new String[1];
 					fieldName[0] = name;
 				}
-				if (!skyPlot) {
+				if (!(plotType == SKY_PLOT)) {
 					initVarlist();
 					add = false;
 					cbAddVariable.setVisible(add);
@@ -838,7 +856,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
 			
 			parseTextFields();
-			if (!skyPlot) {
+			if (!(plotType == SKY_PLOT)) {
 				txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
 				parseAvgPeriod();
 			}
@@ -1016,46 +1034,46 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		for (int j=0; j < fieldName.length; j++) {
 			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
-				graphData[j] = Config.payloadStore.getRtGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getRtGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME, false);
 			else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
-				graphData[j] = Config.payloadStore.getMaxGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getMaxGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME, false);
 			else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
-				graphData[j] = Config.payloadStore.getMinGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getMinGraphData(fieldName[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME, false);
 			else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
-				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getRadTelemGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME, false);
 			else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
-				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+				graphData[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME, false);
 			else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
 				graphData[j] = Config.payloadStore.getMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 			else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
 				graphData[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 			else if  (payloadType == FoxFramePart.TYPE_WOD) 
-				graphData[j] = Config.payloadStore.getGraphData(fieldName[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_LAYOUT);
+				graphData[j] = Config.payloadStore.getGraphData(fieldName[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_LAYOUT, true);
 			else if  (payloadType == FoxFramePart.TYPE_WOD_RAD) 
-				graphData[j] = Config.payloadStore.getGraphData(fieldName[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_RAD_LAYOUT);
+				graphData[j] = Config.payloadStore.getGraphData(fieldName[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false);
 			
 		}
 		if (fieldName2 != null) {
 			graphData2 = new double[fieldName.length][][];
 			for (int j=0; j < fieldName2.length; j++) {
 				if (payloadType == FoxFramePart.TYPE_REAL_TIME)
-					graphData2[j] = Config.payloadStore.getRtGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getRtGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME, false);
 				else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
-					graphData2[j] = Config.payloadStore.getMaxGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getMaxGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME, false);
 				else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
-					graphData2[j] = Config.payloadStore.getMinGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getMinGraphData(fieldName2[j], this.SAMPLES, fox, this.START_RESET, this.START_UPTIME, false);
 				else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
-					graphData2[j] = Config.payloadStore.getRadTelemGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getRadTelemGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME, false);
 				else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
-					graphData2[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
+					graphData2[j] = Config.payloadStore.getHerciScienceHeaderGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME, false);
 				else if  (payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
 					graphData2[j] = Config.payloadStore.getMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 				else if  (payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
 					graphData2[j] = Config.payloadStore.getPassMeasurementGraphData(fieldName2[j], this.SAMPLES, (FoxSpacecraft)this.fox, this.START_RESET, this.START_UPTIME);
 				else if (payloadType == FoxFramePart.TYPE_WOD)
-					graphData2[j] = Config.payloadStore.getGraphData(fieldName2[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_LAYOUT);
+					graphData2[j] = Config.payloadStore.getGraphData(fieldName2[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_LAYOUT, true);
 				else if (payloadType == FoxFramePart.TYPE_WOD_RAD)
-					graphData2[j] = Config.payloadStore.getGraphData(fieldName2[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_RAD_LAYOUT);		
+					graphData2[j] = Config.payloadStore.getGraphData(fieldName2[j], SAMPLES, fox, START_RESET, START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false);		
 	
 			}
 		}

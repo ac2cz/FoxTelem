@@ -96,13 +96,13 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
-	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout);
+	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout, boolean positionData);
 
-	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData);
 
-	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData);
 
-	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData);
 
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
@@ -116,8 +116,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getRadData(int period, int id, int fromReset, long fromUptime);
 
 	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime);
-	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
-	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData);
+	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData);
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime);
 	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
 	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);

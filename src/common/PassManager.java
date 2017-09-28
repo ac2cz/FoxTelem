@@ -525,7 +525,7 @@ public class PassManager implements Runnable {
 					// we found a maximum at an inflection point, rather than it being at one end or the other
 					// Interpolate between the two frequencies to find the actual frequency at the max slope
 					long up = (long) (graphData[PayloadStore.UPTIME_COL][max] + graphData[PayloadStore.UPTIME_COL][max-1])/2;
-					long date = (long) (graphData[PayloadStore.UTC_COL][max] + graphData[PayloadStore.UTC_COL][max-1])/2;
+					long date = (long) (graphData[SatMeasurementStore.UTC_COL][max] + graphData[SatMeasurementStore.UTC_COL][max-1])/2;
 
 					long tca = (long) linearInterpolation(up, graphData[PayloadStore.UPTIME_COL][max], graphData[PayloadStore.UPTIME_COL][max-1],
 							graphData[PayloadStore.DATA_COL][max], graphData[PayloadStore.DATA_COL][max-1]);

@@ -450,6 +450,17 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_ICR_DIAGNOSTIC:
 			return rawValue;
+		case BitArrayLayout.CONVERT_WOD_STORED:
+			return rawValue * 4;
+		case BitArrayLayout.CONVERT_FOX1E_TXRX_TEMP:
+			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			volts = volts / 2;
+			return 100 * volts - 50; // TMP36 sensor conversion graph is a straight line where 0.5V is 0C and 0.01V rise is 1C increase.  So 0.75V is 25C
+		case BitArrayLayout.CONVERT_FOX1E_PA_CURRENT:
+			double voltspa = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			voltspa = voltspa / 2;
+			double pacurrent = voltspa/PA_CURRENT_INA194_FACTOR/0.1; 
+			return 1000* pacurrent;
 		}
 		
 		return ERROR_VALUE;
@@ -587,16 +598,18 @@ longer send telemetry.
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
 		public static final String[] SWOpsCommands = {
-		"Unknown",
-		"SafeMode",
-		"TransponderMode",
-		"ScienceMode",
-		"DisableAutosafe",
-		"EnableAutosafe",
-		"ClearMinMax",
-		"OpsNoop",
-		"ForceOffExp1",
-		"ConfirmCommand"
+		"Unknown", //0
+		"SafeMode", //1
+		"TransponderMode", //2
+		"ScienceMode", //3
+		"DisableAutosafe", //4
+		"EnableAutosafe", //5
+		"ClearMinMax", //6
+		"OpsNoop", //7
+		"ForceOffExp1", //8
+		"ForceDeployRx", //9
+		"ForceDeployTx", //0xA
+		"ResetIHU" //0xB
 		};
 
 		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace

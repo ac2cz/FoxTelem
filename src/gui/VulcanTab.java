@@ -31,6 +31,7 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.RadiationPacket;
@@ -100,14 +101,14 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	boolean displayTelem = true;
 	
-	public VulcanTab(FoxSpacecraft sat)  {
+	public VulcanTab(FoxSpacecraft sat, int displayType)  {
 		
 		super();
 		fox = (FoxSpacecraft)sat;
 		foxId = fox.foxId;
 		NAME = fox.toString() + " Vanderbilt University Radiation Experiments";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), VULCANTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight");
 		
 		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
@@ -139,7 +140,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+		BitArrayLayout rad = null;
+
+		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+			rad = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
+		else
+			rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
 		if (rad == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
@@ -147,7 +153,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			System.exit(1);
 		} else 
 		try {
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
+			analyzeModules(rad, none, none, displayType);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -170,7 +176,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), VULCANTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -264,12 +270,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	private DisplayModule addVulcanExpModule(String title, String number) {
 		DisplayModule mod;
-		mod = new DisplayModule(fox, title, 4, DisplayModule.DISPLAY_VULCAN_EXP);
+		mod = new DisplayModule(fox, title, 4, DisplayModule.DISPLAY_VULCAN);
 		
 		bottomHalfPackets.add(mod);
-		mod.addName(1, "Drift", "EXP" + number + " DRIFT" , DisplayModule.DISPLAY_VULCAN_EXP);
-		mod.addName(2, "Power (mW) ", "EXP" + number + " POWER", DisplayModule.DISPLAY_VULCAN_EXP);
-		mod.addName(3, "State", "EXP" + number + " STATE", DisplayModule.DISPLAY_VULCAN_EXP);
+		mod.addName(1, "Drift", "EXP" + number + " DRIFT" , DisplayModule.DISPLAY_VULCAN);
+		mod.addName(2, "Power (mW) ", "EXP" + number + " POWER", DisplayModule.DISPLAY_VULCAN);
+		mod.addName(3, "State", "EXP" + number + " STATE", DisplayModule.DISPLAY_VULCAN);
 		return mod;
 	}
 	
@@ -624,7 +630,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs();
+							openGraphs(FoxFramePart.TYPE_RAD_TELEM_DATA);
 							justStarted = false;
 						}
 					}

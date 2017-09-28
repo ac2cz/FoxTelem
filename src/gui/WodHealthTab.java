@@ -11,6 +11,7 @@ import javax.swing.border.EmptyBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import telemetry.FoxFramePart;
 import telemetry.PayloadWOD;
 
 public class WodHealthTab extends HealthTab {
@@ -89,7 +90,7 @@ public class WodHealthTab extends HealthTab {
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_LAYOUT, false);
 					if (justStarted) {
-						openGraphs();
+						openGraphs(FoxFramePart.TYPE_WOD);
 						justStarted = false;
 					}
 				}

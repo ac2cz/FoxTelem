@@ -8,16 +8,23 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JOptionPane;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
+import predict.PositionCalcException;
 import common.Config;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
+import telemetry.FramePart;
 import telemetry.Header;
+import uk.me.g4dpz.satellite.SatPos;
 
 /**
  * 
@@ -652,8 +659,12 @@ public abstract class Decoder implements Runnable {
 		rtMeasurement.setBitSNR(eyeData.bitSNR);
 		rtMeasurement.setErrors(lastErrorsNumber);
 		rtMeasurement.setErasures(lastErasureNumber);
+		SatPc32DDE satPC = null;
+		DateTime timeNow = new DateTime(DateTimeZone.UTC);
+		Spacecraft sat = Config.satManager.getSpacecraft(header.id);
+		SatPos pos = null;
 		if (Config.useDDEforAzEl) {
-			SatPc32DDE satPC = new SatPc32DDE();
+			satPC = new SatPc32DDE();
 			boolean connected = satPC.connect();
 			if (connected) {
 				if (Config.useDDEforAzEl) {
@@ -662,6 +673,31 @@ public abstract class Decoder implements Runnable {
 				}
 
 			}
+		} else if (Config.foxTelemCalcsPosition){
+			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
+			if (Config.GROUND_STATION != null)
+				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
+					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
+				} else {
+					timeNow = new DateTime(DateTimeZone.UTC);
+					sat = Config.satManager.getSpacecraft(header.id);
+					try {
+						pos = sat.getSatellitePosition(timeNow);
+						if (Config.debugFrames)
+							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
+					} catch (PositionCalcException e) {
+						// We wont get NO T0 as we are using the current time, but we may have missing keps
+						if (e.errorCode == FramePart.NO_TLE)
+						Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the satellite position, but no TLE was found.  Make sure\n"
+								+ "the name of the spacecraft matches the name of the satellite in the nasabare.tle file from amsat.  This file is\n"
+								+ "automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+								+ "To turn off this feature go to the settings panel and uncheck 'Fox Telem calculates position'.");
+					}	
+					if (pos != null) {
+						rtMeasurement.setAzimuth(FramePart.radToDeg(pos.getAzimuth()));
+						rtMeasurement.setElevation(FramePart.radToDeg(pos.getElevation()));
+					}
+				}
 		}
 		if (this.audioSource instanceof SourceIQ) {
 			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
@@ -670,20 +706,33 @@ public abstract class Decoder implements Runnable {
 			rtMeasurement.setCarrierFrequency(freq);
 			rtMeasurement.setRfPower(sig);
 			rtMeasurement.setRfSNR(rfSnr);
+		} else {
+			if (Config.useDDEforFreq) {
+				if (satPC == null)
+					satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected)
+					rtMeasurement.setCarrierFrequency(satPC.downlinkFrequency);
+			} else {
+				// Do nothing for now.  Need to work out how to get doppler from predict
+				/* Use Fox Predict calcualtion for frequency in AF mode
+				if (pos == null) {
+					timeNow = new DateTime(DateTimeZone.UTC);
+					sat = Config.satManager.getSpacecraft(header.id);
+					pos = sat.getSatellitePosition(timeNow);
+				}
+				if (pos != null) {
+					rtMeasurement.setCarrierFrequency(pos.FREQ);
+					
+				}
+				*/
+
+			}
 		}
+		
 		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
 		frame.setMeasurement(rtMeasurement);
 	}	
-	
-
-	
-	
-	
-	
-
-	
-	
-
 	
 	/**
 	 * Print the data for debug purposes so that we can graph it in excel

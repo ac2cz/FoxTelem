@@ -123,6 +123,8 @@ public class HelpAbout extends JDialog implements ActionListener {
 		addUrl("- Purejavahid library developed by ", "https://github.com/nyholku/purejavahidapi", "<b>Kustaa Nyholm / SpareTimeLabs</b>", ", released under the BSD license", northApanel);
 		addUrl("- JTransforms FFT library developed by ", "https://sites.google.com/site/piotrwendykier/software/jtransforms", "<b>Piotr Wendykier</b>", ", released under the BSD license", northApanel);
 		addUrl("- Java DDE developed by ", "http://jdde.pretty-tools.com/", "<b>Pretty Tools</b>", ", released as free and opensource", northApanel);
+		addUrl("- Java Predict Port by ", "https://github.com/badgersoftdotcom/predict4java", "<b>G4DPZ</b>", ", released under GPL", northApanel);
+		addUrl("- Predict is by", "http://www.qsl.net/kd2bd/predict.html", "<b>KD2BD</b>", ", released under GPL", northApanel);
 		
 		JScrollPane scrollPane = new JScrollPane (centerPanel, 
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);

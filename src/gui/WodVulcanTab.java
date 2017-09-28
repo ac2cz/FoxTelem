@@ -4,12 +4,12 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
+import telemetry.FoxFramePart;
 
 public class WodVulcanTab extends VulcanTab {
 
 	public WodVulcanTab(FoxSpacecraft sat) {
-		super(sat);
-		// TODO Auto-generated constructor stub
+		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
 	}
 
 	
@@ -67,17 +67,10 @@ public class WodVulcanTab extends VulcanTab {
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
-			if (Config.payloadStore.initialized()) {
-				if (Config.displayRawRadData != showRawBytes.isSelected()) {
-					showRawBytes.setSelected(Config.displayRawRadData);
-					parseRadiationFrames();
-				}
-				if (Config.displayRawValues != showRawValues.isSelected()) {
-					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD_LAYOUT));
-				}
-
-				if (foxId != 0)
+			if (Config.displayRawValues != showRawValues.isSelected()) {
+				showRawValues.setSelected(Config.displayRawValues);
+			}
+			if (foxId != 0 && Config.payloadStore.initialized()) {
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
@@ -86,7 +79,7 @@ public class WodVulcanTab extends VulcanTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs();
+							openGraphs(FoxFramePart.TYPE_WOD_RAD);
 							justStarted = false;
 						}
 					}

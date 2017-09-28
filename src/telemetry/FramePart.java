@@ -1,6 +1,7 @@
 package telemetry;
 
 import java.text.DateFormat;
+import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -8,9 +9,14 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+
+import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxDecoder;
+import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
@@ -22,7 +28,15 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
 	protected String captureDate; // the date/time that this was captured
 	protected int type; // the type of this payload. Zero if the spacecraft does not use types
-
+	public static final double NO_POSITION_DATA = -999.0;
+	public static final double NO_T0 = -998.0;
+	public static final double NO_TLE = -997.0;
+	
+	// lat lon are stored in degrees
+	double satLatitude = NO_POSITION_DATA;  // from -90 to 90
+	double satLongitude = NO_POSITION_DATA; // from -180 to 180
+	double satAltitude = NO_POSITION_DATA;
+	
 	protected FramePart(BitArrayLayout l) {
 		super(l);
 		// TODO Auto-generated constructor stub
@@ -35,6 +49,71 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		this.captureDate = fileDateStamp();
 	}
 	
+	public double getSatLatitude() { return satLatitude; }
+	public double getSatLongitude() { return satLongitude; }
+	public double getSatAltitude() { return satAltitude; }
+
+	/**
+	 * Store the satellite position. If T0 is not available and the satellite position can not be calculated then pass null for the position
+	 * @param pos
+	 */
+	public void setSatPosition(SatPos pos) {
+		if (pos != null) {
+			satLatitude = latRadToDeg (pos.getLatitude());
+			satLongitude = lonRadToDeg(pos.getLongitude());
+			satAltitude = pos.getAltitude();
+
+			if (Config.debugFrames)
+				Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + satLatitude + " " + satLongitude);
+		} else {
+			satLatitude = NO_T0;
+			satLongitude = NO_T0;
+			satAltitude = NO_T0;
+		}
+	}
+
+	public String getSatLatitudeStr() { 
+		DecimalFormat d = new DecimalFormat("00.00");
+		if (satLatitude == NO_POSITION_DATA)
+			return "UNK";
+		else if (satLatitude == NO_T0)
+			return "T0 NOT SET";
+		else if (satLatitude == NO_TLE)
+			return "NO TLE";
+		else
+			return d.format(satLatitude); 
+	}
+	
+	public String getSatLongitudeStr() { 
+		DecimalFormat d = new DecimalFormat("00.00");
+		if (satLongitude == NO_POSITION_DATA)
+			return "UNK";
+		else if (satLongitude == NO_T0)
+			return "T0 NOT SET";
+		else if (satLongitude == NO_TLE)
+			return "NO TLE";
+		else
+			return d.format (satLongitude); 
+	}
+	
+	public static double radToDeg(Double rad) {
+		return 180 * (rad / Math.PI);
+	}
+	public static double latRadToDeg(Double rad) {
+		return radToDeg(rad);
+	}
+
+	public static double lonRadToDeg(Double rad) {
+		double lon = radToDeg(rad);
+		if (lon > 180)
+			return lon -360;
+		else
+			return lon;
+	}
+
+	private void defaultValue(double val) {
+		val = NO_POSITION_DATA;
+	}
 	public int getFoxId() { return id; }
 	public long getUptime() { return uptime; }
 	public int getResets() { return resets; }

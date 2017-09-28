@@ -86,6 +86,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox swapIQ;
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;
+	private JCheckBox cbFoxTelemCalcsPosition;
 	
 	boolean useUDP;
 	
@@ -248,12 +249,20 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		JPanel leftcolumnpanel3 = addColumn(leftcolumnpanel,6);
 		TitledBorder measureTitle = title("Measurements");
 		leftcolumnpanel3.setBorder(measureTitle);
+		if (Config.useDDEforAzEl) Config.foxTelemCalcsPosition = false;
 		if (Config.isWindowsOs()) {
-		cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32", "When tuning a radio from SatPC32 using its CAT interface, FoxTelem can store the frequency alongside other measurements",
-				Config.useDDEforFreq, leftcolumnpanel3 );
-		cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can read from SatPC32 and store the Azimuth and Elevation alongside other measurements",
-				Config.useDDEforAzEl, leftcolumnpanel3 );
+			cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
+					Config.useDDEforFreq, leftcolumnpanel3 );
+			cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can calculate the Azimuth and Elevation of the satellite or it can read it from SatPC32.  It is stored alongside other measurements",
+					Config.useDDEforAzEl, leftcolumnpanel3 );
+		} else {
+			//JLabel f = new JLabel("Calculate the frequency in AF mode");
+			//leftcolumnpanel3.add(f);
+			//JLabel g = new JLabel("Store Az/El");
+			//leftcolumnpanel3.add(g);
 		}
+		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
+				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
 			
 		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
 		
@@ -470,13 +479,18 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				if (validLatLong()) {
 					Config.latitude = txtLatitude.getText();
 					Config.longitude = txtLongitude.getText();
+				} else {
+					if (txtLatitude.getText().equalsIgnoreCase(Config.DEFAULT_LATITUDE) && txtLongitude.getText().equalsIgnoreCase(Config.DEFAULT_LONGITUDE))
+							dispose = true;
+					else 
+						dispose = false;
 				}
 				if (validLocator()) {
 					Config.maidenhead = txtMaidenhead.getText();
-				}
+				} else dispose = false;
 				if (validAltitude()) {
 					Config.altitude = txtAltitude.getText();
-				}
+				} else dispose = false;
 				Config.stationDetails = txtStation.getText();
 				Config.primaryServer = txtPrimaryServer.getText();
 				Config.secondaryServer = txtSecondaryServer.getText();
@@ -491,6 +505,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
 					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
 				}
+				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
@@ -557,13 +572,15 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						if (n == JOptionPane.YES_OPTION) {
 							Config.logFileDirectory = txtLogFileDirectory.getText();
 							Log.println("Setting log file directory to: " + Config.logFileDirectory);
+							Config.totalFrames = 0;
 							Config.initPayloadStore();
 							Config.initSequence();
 							Config.initServerQueue();
 							Config.initSatelliteManager();
-
-							//MainWindow.refreshTabs(true);
-							refreshTabs = true;
+							Config.mainWindow.initSatMenu();
+							
+							MainWindow.addHealthTabs();
+							refreshTabs = false; // we just did that in line above, which also takes new sats into account
 							refreshGraphs = true;
 
 						}
@@ -575,6 +592,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				MainWindow.refreshTabs(refreshGraphs);
 			if (dispose) {
 				Config.save();
+				Config.storeGroundStation();
 				this.dispose();
 			}
 			// We are fully up, remove the database loading message
@@ -660,9 +678,16 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			}
 		}
 		
+		if (source == cbUseDDEAzEl) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				this.cbFoxTelemCalcsPosition.setSelected(false);
+			}
+		}
 		
-		if (source == cbUseUDP) { 
-
+		if (source == cbFoxTelemCalcsPosition) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				cbUseDDEAzEl.setSelected(false);
+			}
 		}
 	}
 

@@ -248,6 +248,12 @@ public class SourceIQ extends SourceAudio {
 			int len = (int)Math.pow(2, f);
 			if (IQ_SAMPLE_RATE / len < 47) {
 				int factor = len / 4096;
+				if (factor == 0 ) {
+					// Set to default
+					FFT_SAMPLES=4096;
+					samplesToRead = 3840;
+					return;
+				}
 				FFT_SAMPLES = len; 
 				samplesToRead = 3840 * factor/2;
 				return;

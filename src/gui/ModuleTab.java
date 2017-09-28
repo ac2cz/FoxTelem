@@ -7,6 +7,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -74,8 +75,8 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		JLabel displayNumber1 = new JLabel("Displaying last");
 		displayNumber2 = new JTextField();
 		JLabel displayNumber3 = new JLabel("payloads decoded");
-		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
+		displayNumber1.setFont(new Font("SansSerif", Font.PLAIN, 10));
+		displayNumber3.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
 		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
 		displayNumber2.setMinimumSize(new Dimension(50, 14));
@@ -91,6 +92,8 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		bottomPanel.add(lblFromReset);
 		
 		textFromReset = new JTextField();
+		textFromReset.setMinimumSize(new Dimension(40, 14));
+		textFromReset.setMaximumSize(new Dimension(40, 14));
 		bottomPanel.add(textFromReset);
 		textFromReset.setText(Integer.toString(START_RESET));
 
@@ -102,6 +105,8 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		bottomPanel.add(lblFromUptime);
 		
 		textFromUptime = new JTextField();
+		textFromUptime.setMinimumSize(new Dimension(70, 14));
+		textFromUptime.setMaximumSize(new Dimension(70, 14));
 		bottomPanel.add(textFromUptime);
 
 		textFromUptime.setText(Long.toString(START_UPTIME));
@@ -293,16 +298,16 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 	
 	}
 	
-	public void openGraphs() {
+	public void openGraphs(int payloadType) {
 		if (topModules != null)
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.openGraphs();
+			mod.openGraphs(payloadType);
 		}
 		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.openGraphs();
+			mod.openGraphs(payloadType);
 		}
 	
 	}

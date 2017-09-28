@@ -12,6 +12,7 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxDecoder;
+import predict.PositionCalcException;
 import uk.me.g4dpz.satellite.GroundStationPosition;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
@@ -21,11 +22,7 @@ import uk.me.g4dpz.satellite.TLE;
 public class PayloadWOD extends PayloadRtValues {
 	public static final String WOD_RESETS = "WODTimestampReset";
 	public static final String WOD_UPTIME = "WODTimestampUptime";
-	public static final double NO_POSITION_DATA = -999.0;
 	
-	double satLatitude = NO_POSITION_DATA;
-	double satLongitude = NO_POSITION_DATA;
-	double satAltitude = NO_POSITION_DATA;
 	
 	public PayloadWOD(BitArrayLayout lay) {
 		super(lay);
@@ -33,29 +30,12 @@ public class PayloadWOD extends PayloadRtValues {
 	
 	public PayloadWOD(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);	
+		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
+			if (Config.foxTelemCalcsPosition)
+				captureSatPosition();
+		}
 	}
 
-	public double getSatLatitude() { return radToDeg(satLatitude); }
-	public double getSatLongitude() { return radToDeg(satLongitude); }
-	public double getSatAltitude() { return satAltitude; }
-
-	public String getSatLatitudeStr() { 
-		DecimalFormat d = new DecimalFormat("00.00");
-		if (satLatitude == NO_POSITION_DATA)
-			return "UNK";
-		else
-			return d.format(radToDeg(satLatitude)); 
-	}
-	
-	public String getSatLongitudeStr() { 
-		DecimalFormat d = new DecimalFormat("00.00");
-		if (satLatitude == NO_POSITION_DATA)
-			return "UNK";
-		else
-			return d.format(radToDeg(satLongitude)); 
-	}
-
-	
 	@Override
 	protected void init() {
 		type = TYPE_WOD;
@@ -67,30 +47,35 @@ public class PayloadWOD extends PayloadRtValues {
 		copyBitsToFields();
 		this.id = id;
 		this.captureDate = fileDateStamp();	
-		if (satLatitude == NO_POSITION_DATA) {
-			captureSatPosition();
+		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
+			if (Config.foxTelemCalcsPosition)
+				captureSatPosition();
 		}
 	}
 	
 	public void captureSatPosition() {
 		FoxSpacecraft sat = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
-		
+		SatPos pos = null;
 		// We need to construct a date for the historical time of this WOD record
-		DateTime timeNow = new DateTime(sat.getUtcDateTimeForReset(getRawValue(WOD_RESETS), getRawValue(WOD_UPTIME))); 
-		
-		//capture the satellite position so we can visualize the WOD
-		SatPos pos = sat.getSatellitePosition(timeNow);
-		satLatitude = pos.getLatitude();
-		satLongitude = pos.getLongitude();
-		satAltitude = pos.getAltitude();
-		
-		if (Config.debugFrames)
-			Log.println("WOD POSITION captured : " + resets + ":" + uptime + " at " + radToDeg(satLatitude) + " " + radToDeg(satLongitude));
+		DateTime wodTime = sat.getUtcDateTimeForReset(getRawValue(WOD_RESETS), getRawValue(WOD_UPTIME));
+		if (wodTime != null) {
+			//DateTime timeNow = new DateTime(wodTime); 
+
+			//capture the satellite position so we can visualize the WOD
+			try {
+				pos = sat.getSatellitePosition(wodTime);
+			} catch (PositionCalcException e) {
+				if (e.errorCode == FramePart.NO_TLE) {
+					satLatitude = NO_TLE;
+					satLongitude = NO_TLE;
+					satAltitude = NO_TLE;
+				}
+			}	
+		} 	
+		if (satLatitude != NO_TLE)
+			setSatPosition(pos);
 	}
 	
-	public static double radToDeg(Double rad) {
-		return 180 * (rad / Math.PI);
-	}
 	
 	@Override
 	public void copyBitsToFields() {
@@ -134,6 +119,11 @@ public class PayloadWOD extends PayloadRtValues {
 	
 	public String getInsertStmt() {
 		copyBitsToFields();
+		/*
+		 * The server does not rely on the position data sent by ground stations.  It calculates the position based on known good keps
+		 * and overwrites any position data sent by the station
+		 */
+		captureSatPosition();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, satLatitude, satLongitude, satAltitude, \n";
 		for (int i=0; i < layout.fieldName.length-1; i++) {

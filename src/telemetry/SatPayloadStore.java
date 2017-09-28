@@ -309,27 +309,28 @@ public class SatPayloadStore {
 	 * 
 	 * @param name
 	 * @param period
+	 * @param positionData - returns lat/lon with data if available
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout) throws IOException {
+	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout, boolean positionData) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getGraphData(name, period, id, fromReset, fromUptime);
+			return records[i].getGraphData(name, period, id, fromReset, fromUptime, positionData);
 		return null;
 	}
 
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.REAL_TIME_LAYOUT);
+	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.REAL_TIME_LAYOUT, positionData);
 	}
 	
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime) throws IOException {
-		return getGraphData(name, period, fox2, fromReset, fromUptime, Spacecraft.MAX_LAYOUT);
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, boolean positionData) throws IOException {
+		return getGraphData(name, period, fox2, fromReset, fromUptime, Spacecraft.MAX_LAYOUT, positionData);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.MIN_LAYOUT);
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.MIN_LAYOUT, positionData);
 		
 	}
 
@@ -343,8 +344,8 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT);
+	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData);
 		
 	}
 
@@ -429,8 +430,8 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT);
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData);
 		
 	}
 

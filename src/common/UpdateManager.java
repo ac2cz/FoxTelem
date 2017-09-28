@@ -48,7 +48,9 @@ import javax.swing.JOptionPane;
 
 public class UpdateManager implements Runnable {
 
-	private final long SERVER_UPDATE_PERIOD = 4*60*60*1000; //1*24*60*60*1000; // check every 4 hours for server changes
+	private final static long CHECK_PERIOD = 1*60*60*1000; // check every hourly for changes
+	private final static long SERVER_UPDATE_PERIOD = 4*60*60*1000; // check every 4 hours for server changes
+	public final static long KEP_UPDATE_PERIOD = 7*24*60*60*1000; // check every 7 days for TLE changes
 	
 	public UpdateManager() {
 		
@@ -130,17 +132,21 @@ public class UpdateManager implements Runnable {
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
 			rbc.close();
+			File f1 = new File(file + ".tmp");
+			File f2 = new File(file);
 			if (sat.loadTimeZeroSeries(file + ".tmp")) {
 				// this is a good file so we can now use it as the default
 				SatPayloadStore.remove(file);
-				File f1 = new File(file + ".tmp");
-				File f2 = new File(file);
+				
 				SatPayloadStore.copyFile(f1, f2);
 				SatPayloadStore.remove(file + ".tmp");
 				return;
 			} else {
 				SatPayloadStore.remove(file + ".tmp");
-				sat.loadTimeZeroSeries(null); // load the default
+				if (f2.exists()) 
+					sat.loadTimeZeroSeries(file); // load the existing
+				else
+					sat.loadTimeZeroSeries(null); // load the default
 			}
 		} catch (MalformedURLException e) {
 			Log.println("Invalid location for T0 file: " + file);
@@ -250,6 +256,10 @@ public class UpdateManager implements Runnable {
 		}
 	}
 
+	private void updateKeps() {
+		Config.satManager.fetchTLEFile();
+	}
+	
 	boolean worldHasNotEnded = true;
 	
 	@Override
@@ -262,7 +272,9 @@ public class UpdateManager implements Runnable {
 			Log.println("Can not read the server paramaters, skipping");
 			e1.printStackTrace(Log.getWriter());
 		}
-
+		
+		// Update Keps is called at startup by the SatelliteManager.  This just calls it periodically if FoxTelem left running.
+		
 		if (Config.downloadT0FromServer) {
 			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 			for (int i=0; i<sats.size(); i++) {
@@ -277,20 +289,27 @@ public class UpdateManager implements Runnable {
 			Log.println("Can not read the latest version, skipping");
 			e1.printStackTrace(Log.getWriter());
 		}
-	
+
+		long elapsed = 0;
 		while (worldHasNotEnded) {
 			try {
-				Thread.sleep(SERVER_UPDATE_PERIOD);
+				Thread.sleep(CHECK_PERIOD);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
-			try {
-				updateServerParams();
-			} catch (IOException e1) {
-				Log.println("Can not read the server paramaters, skipping");
-				e1.printStackTrace(Log.getWriter());
-			}
+			elapsed = elapsed + CHECK_PERIOD;
+			if (elapsed % SERVER_UPDATE_PERIOD == 0)
+				try {
+					updateServerParams();
+				} catch (IOException e1) {
+					Log.println("Can not read the server paramaters, skipping");
+					e1.printStackTrace(Log.getWriter());
+				}
+			
+			if (elapsed % KEP_UPDATE_PERIOD == 0)
+				updateKeps();
+				elapsed = 0;
 		}
 	}
 
