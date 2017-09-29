@@ -64,6 +64,7 @@ public class SourceIQ extends SourceAudio {
 	
 	double[] outputData = null;
 	double[] fcdData = null; //new double[samplesToRead];
+	double[] fcdData2 = null; //new double[samplesToRead];
 	double[] audioData = null;
 	double[] demodAudio = null; //new double[samplesToRead/4];
 
@@ -107,7 +108,7 @@ public class SourceIQ extends SourceAudio {
 //	Filter audioFilterQ;
 	
 	boolean fftDataFresh = false;
-	public static boolean useNCO = false;
+	public static boolean useNCO = true;
 	public boolean offsetFFT = true;
 	int dist = 0; // the offset distance
 	
@@ -169,11 +170,6 @@ public class SourceIQ extends SourceAudio {
 		centerFreq = freq; 
 		long frequencyOffset = getFrequencyFromBin(Config.selectedBin);
 		frequencyOffset = frequencyOffset-centerFreq*1000;
-		//Log.println("Cener: " + centerFreq);
-		//Log.println("Osc: " + frequencyOffset);
-		mMixer = new Oscillator( frequencyOffset, 
-				IQ_SAMPLE_RATE );
-		mMixer.setFrequency(frequencyOffset);
 	}
 	
 	public long getFrequencyFromBin(int bin) {
@@ -305,6 +301,7 @@ public class SourceIQ extends SourceAudio {
 		overlap = new double[2*FFT_SAMPLES - (samplesToRead)]; // we only use part of this, but this is the maximum it could be
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
+		fcdData2 = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
 		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
 
@@ -401,8 +398,6 @@ public class SourceIQ extends SourceAudio {
 	byte[] ib = new byte[2];
 	byte[] qb = new byte[2];
 	
-	double[] fcdData2;
-
 	/**
 	 * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
 	 * We cache the read bytes in case we need to adjust for the clock
@@ -428,7 +423,7 @@ public class SourceIQ extends SourceAudio {
 		}
 		
 		if (useNCO) {
-				fcdData2 = ncoDecimate(fcdData);
+				 ncoDecimate(fcdData, fcdData2);
 		}
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
@@ -468,7 +463,7 @@ public class SourceIQ extends SourceAudio {
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
 			if (mode != MODE_PSK)
 				if (useNCO)
-					demodAudio[d++] = fm.demodulate(fcdData2[j], fcdData2[j+1]);	
+					;//demodAudio[d++] = fm.demodulate(fcdData2[j], fcdData2[j+1]);	
 				else
 					demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
 			else	
@@ -487,7 +482,21 @@ public class SourceIQ extends SourceAudio {
 			else {
 				antiAlias16kHzIIRFilter(demodAudio);				
 			}
-		
+		if (useNCO) {
+			// Every 4th entry goes to the audio output to get us from 192k -> 48k
+			for (int j=0; j < fcdData2.length; j+=decimationFactor*2 ) { // data size is 1 decimate by factor of 4 to get to audio format size
+				double finalValue = fm.demodulate(fcdData2[j], fcdData2[j+1]);
+				//              double finalValue = audioDcFilter.filter(audioValue); // remove DC.  Only need to do this to the values we want to keep
+				// FUDGE - safety factor because the decimation is not exact
+				if (k >= audioData.length ) {
+					//Log.println("k:" + k);
+					break;
+				}
+				audioData[k] = finalValue;
+				k+=1;
+			}
+
+		} else
 		// Every 4th entry goes to the audio output to get us from 192k -> 48k
 		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
 			// scaling and conversion to integer
@@ -1068,10 +1077,13 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	double gain = 50;
-	private double [] ncoDecimate(double[] samples) {
+	private double [] ncoDecimate(double[] samples, double[] translated) {
 		int ssbOffset = 0;
 		double id, qd;
-		double[] translated = new double[ samples.length ];
+
+		decimateFilter.setDecimationFactor(decimationFactor);
+		decimateFilter2.setDecimationFactor(decimationFactor);
+
 		for( int x = 0; x < samples.length; x += 2 ) {
 			id = gain*samples[x];
 			qd = gain*samples[x+1];
@@ -1085,28 +1097,5 @@ public class SourceIQ extends SourceAudio {
 
 	}
 	
-	private Oscillator mMixer;	
-	
-	private double [] ncoDecimateOLD(double[] samples) {
-
-		/* We make a copy of the buffer so that we don't affect
-		 * anyone else that is using the same buffer, like other
-		 * channels or the spectral display */
-		double[] translated = new double[ samples.length ];
-		
-		/* Perform frequency translation */
-		for( int x = 0; x < samples.length; x += 2 )
-		{
-			mMixer.rotate();
-			
-			translated[ x ] = Complex.multiplyInphase( 
-				samples[ x ], samples[ x + 1 ], mMixer.inphase(), mMixer.quadrature() );
-
-			translated[ x + 1 ] = Complex.multiplyQuadrature( 
-					samples[ x ], samples[ x + 1 ], mMixer.inphase(), mMixer.quadrature() );
-		}
-		
-		return translated;
-	}
 
 }
