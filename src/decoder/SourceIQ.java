@@ -71,8 +71,9 @@ public class SourceIQ extends SourceAudio {
 	int centerFreq; // The frequency that the dongle is set to
 	
 	double binBandwidth = 0;
-	int filterWidth = 0 ; //We filter +- this number of bins 64 bins is 3000 Hz for 4096 FFT samples, Normal FM channel is 16kHz = +-8kHz = 170
-		
+	int filterWidth = 0 ; //We FFT filter +- this number of bins 64 bins is 3000 Hz for 4096 FFT samples, Normal FM channel is 16kHz = +-8kHz = 170
+	int filterWidthHz = 4000; //If we use NCO, this is the width of the IF in Hz
+	
 	double[] blackmanWindow = null; //new double[FFT_SAMPLES+1];
 	double[] blackmanFilterShape;
 	double[] tukeyFilterShape;
@@ -108,7 +109,7 @@ public class SourceIQ extends SourceAudio {
 //	Filter audioFilterQ;
 	
 	boolean fftDataFresh = false;
-	public static boolean useNCO = true;
+	public static boolean useNCO = false;
 	public boolean offsetFFT = true;
 	int dist = 0; // the offset distance
 	
@@ -141,6 +142,7 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	public void setFilterWidth(int freq) {
+		filterWidthHz = freq;
 		if (freq == 0 || binBandwidth == 0) return;
 		filterWidth = (int) (freq/binBandwidth);
 		blackmanFilterShape = initBlackmanWindow(filterWidth*2); 
@@ -281,7 +283,7 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (mode == MODE_FSK_HS) {
-			setFilterWidth(9600*2);
+			setFilterWidth(2*9600); //9600);
 		//	setFilterWidth(2*75000);
 			//mode = MODE_FM;
 			//filterWidth = (int) (9600*2/binBandwidth) ; // Slightly wider band needed, 15kHz seems to work well.
@@ -290,11 +292,7 @@ public class SourceIQ extends SourceAudio {
 			//mode = MODE_NFM;
 			//filterWidth = (int) (10000/binBandwidth) ; // For +/- 5KHz deviation
 		}
-/////////////// FUDGE - NEED TO WORK OUT WHY THE BANDWIDTH IS COMING OUT WRONG.... * 4 for Airspy
-	 //filterWidth = (int) (75000/binBandwidth);
-	//	filterWidth = filterWidth*4;
-		//decimationFactor = decimationFactor/2;
-		
+
 		if (offsetFFT) 
 			dist = 128*FFT_SAMPLES/4096; // offset puts the data outside the taper of the window function and gives better audio, but at the expense of dynamic range
 
@@ -312,12 +310,12 @@ public class SourceIQ extends SourceAudio {
 		
 		
 		decimateFilter = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter.init(IQ_SAMPLE_RATE, 4000, 256);
+		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 256);
 		decimateFilter.setFilterDC(false);
 		decimateFilter.setAGC(false);
 
 		decimateFilter2 = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter2.init(IQ_SAMPLE_RATE, 4000, 256);
+		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 256);
 		decimateFilter2.setFilterDC(false);
 		decimateFilter2.setAGC(false);
 
