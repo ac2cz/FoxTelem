@@ -92,8 +92,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 	};
 	
 	public static final SampleRate DEFAULT_SAMPLE_RATE = 
-							SampleRate.RATE_0_960MHZ;
-
+							//SampleRate.RATE_0_960MHZ;
+							SampleRate.RATE_0_240MHZ;	
 	protected Device mDevice;
 	protected DeviceDescriptor mDeviceDescriptor;
 	protected DeviceHandle mDeviceHandle;
