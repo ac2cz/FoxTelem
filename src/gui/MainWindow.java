@@ -256,7 +256,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	public static void refreshTabs(boolean closeGraphs) {
-		
+		ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Refreshing tabs, please wait ...", false);
+		fileProgress.setVisible(true);
+
 		for (SpacecraftTab tab : spacecraftTab) {
 			tab.refreshTabs(closeGraphs);
 		}
@@ -272,6 +274,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.audioGraph.updateFont();
 		inputTab.eyePanel.updateFont();
 		setTotalDecodes();
+		fileProgress.updateProgress(100);
 	}
 	
 	public static void addHealthTabs() {
@@ -597,11 +600,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				    options[1]);
 						
 			if (n == JOptionPane.YES_OPTION) {
+				ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Clearing saved data, please wait ...", false);
+				fileProgress.setVisible(true);
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
 				Config.totalFrames = 0;
 				refreshTabs(true);
+				fileProgress.updateProgress(100);
 			}
 		}
 		

@@ -353,7 +353,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	
 	private boolean validLocator() {
 		if (txtMaidenhead.getText().equalsIgnoreCase(Config.DEFAULT_LOCATOR) || 
-				txtMaidenhead.getText().equals("")) return false;
+				txtMaidenhead.getText().equals("")) {
+			JOptionPane.showMessageDialog(this,
+					"Enter a latitude/longitude or set the locator to a valid value",
+					"Format Error\n",
+					JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
 		return true;
 	}
 	
@@ -408,7 +414,14 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 
 	private boolean validAltitude() {
 		int alt = 0;
-		if (!txtAltitude.getText().equalsIgnoreCase(Config.DEFAULT_ALTITUDE))
+		if (txtAltitude.getText().equalsIgnoreCase(Config.DEFAULT_ALTITUDE)) {
+			JOptionPane.showMessageDialog(this,
+					"Set the altitude to a valid value",
+					"Format Error\n",
+					JOptionPane.ERROR_MESSAGE);
+			return false;
+	
+		} else
 			try {
 				alt = Integer.parseInt(txtAltitude.getText());
 			} catch (NumberFormatException n) {
@@ -481,7 +494,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.longitude = txtLongitude.getText();
 				} else {
 					if (txtLatitude.getText().equalsIgnoreCase(Config.DEFAULT_LATITUDE) && txtLongitude.getText().equalsIgnoreCase(Config.DEFAULT_LONGITUDE))
-							dispose = true;
+						dispose = true;
 					else 
 						dispose = false;
 				}
@@ -588,13 +601,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				} 
 			}
 			
-			if (refreshTabs)
-				MainWindow.refreshTabs(refreshGraphs);
 			if (dispose) {
 				Config.save();
 				Config.storeGroundStation();
 				this.dispose();
 			}
+			if (refreshTabs)
+				MainWindow.refreshTabs(refreshGraphs);
 			// We are fully up, remove the database loading message
 			Config.fileProgress.updateProgress(100);
 		}
