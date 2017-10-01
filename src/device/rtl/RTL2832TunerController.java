@@ -1,5 +1,5 @@
 /*******************************************************************************
- *     SDR Trunk 
+ *     Based on the port for SDR Trunk 
  *     Copyright (C) 2014 Dennis Sheirer
  *     
  *     Java version based on librtlsdr
@@ -21,6 +21,7 @@
  ******************************************************************************/
 package device.rtl;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
@@ -47,16 +48,20 @@ import org.usb4java.TransferCallback;
 
 import common.Log;
 import decoder.Broadcaster;
-import decoder.ByteSampleAdapter;
 import decoder.ComplexBuffer;
 import decoder.FloatAveragingBuffer;
 import decoder.Listener;
+import decoder.SourceUSB;
+import device.ByteSampleAdapter;
 import device.DeviceException;
+import device.DevicePanel;
 import device.ThreadPoolManager;
 import device.ThreadPoolManager.ThreadType;
+import device.airspy.AirspyDevice.BufferProcessor;
+import device.airspy.AirspyPanel;
 import device.TunerType;
 
-public abstract class RTL2832TunerController extends device.Device
+public abstract class RTL2832TunerController extends device.TunerController
 {
 	public final static int INT_NULL_VALUE = -1;
 	public final static long LONG_NULL_VALUE = -1l;
@@ -87,8 +92,8 @@ public abstract class RTL2832TunerController extends device.Device
 	};
 	
 	public static final SampleRate DEFAULT_SAMPLE_RATE = 
-							SampleRate.RATE_0_960MHZ;
-
+							//SampleRate.RATE_0_960MHZ;
+							SampleRate.RATE_0_240MHZ;	
 	protected Device mDevice;
 	protected DeviceDescriptor mDeviceDescriptor;
 	protected DeviceHandle mDeviceHandle;
@@ -116,6 +121,8 @@ public abstract class RTL2832TunerController extends device.Device
 
 	protected Descriptor mDescriptor;
 	private ThreadPoolManager mThreadPoolManager;
+	
+	SourceUSB usbSource;
 	
 	/**
 	 * Abstract tuner controller device.  Use the static getTunerClass() method
@@ -196,6 +203,7 @@ public abstract class RTL2832TunerController extends device.Device
 				+ "descriptor byte array " + 
 				( eeprom == null ? "[null]" : Arrays.toString( eeprom )), e.getMessage() );
 		}
+		name = "RTL R820T";
 	}
 	
 	/**
@@ -964,6 +972,7 @@ public abstract class RTL2832TunerController extends device.Device
 
 	public int getCurrentSampleRate() throws DeviceException 
 	{
+		Log.println("RTL sampling at: " + mSampleRate.getRate());
 		return mSampleRate.getRate();
 	}
 	
@@ -1325,6 +1334,30 @@ public abstract class RTL2832TunerController extends device.Device
 	}
 
 	/**
+	 * This is like a listener
+	 * @param audioSource
+	 */
+	public void setUsbSource(SourceUSB audioSource) {
+		usbSource = audioSource;
+		if( mBufferProcessor == null || !mBufferProcessor.isRunning() )
+		{
+			if( mBufferProcessor == null )
+    		{
+    			mBufferProcessor = new BufferProcessor( mThreadPoolManager );
+    		}
+    		
+    		if( !mBufferProcessor.isRunning() )
+    		{
+    			Thread thread = new Thread( mBufferProcessor );
+    			thread.setDaemon( true );
+    			thread.setName( "RTL2832 Sample Processor" );
+
+    			thread.start();
+    		}
+		}
+	}
+	
+	/**
 	 * Adds a sample listener.  If the buffer processing thread is
 	 * not currently running, starts it running in a new thread.
 	 */
@@ -1590,6 +1623,8 @@ public abstract class RTL2832TunerController extends device.Device
 					float[] samples = mSampleAdapter.convert( buffer );
 					
 			    	mComplexBufferBroadcaster.broadcast( new ComplexBuffer( samples ) );
+			    	if (usbSource != null)
+						usbSource.receive(samples);
 				}
 			}
 			catch( Exception e )
@@ -1958,5 +1993,24 @@ public abstract class RTL2832TunerController extends device.Device
 			return sb.toString();
 		}
 	}
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		// TODO Auto-generated method stub
+		return new RTLPanel();
+	}
+
+	@Override
+	public void cleanup() throws IOException, DeviceException {
+		// Don't call release() as that causes a crash on exit - need to see if a later version of the USB Lib fixes this
+		//release();
+		// But must stop the USB transfers by the buffer processor
+		if( mBufferProcessor.isRunning() )
+		{
+			mBufferProcessor.stop();
+		}
+		
+	}
+
 	
 }

@@ -59,8 +59,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05p"; //"1.05n";
-	public static String VERSION = VERSION_NUM + " - 24 Sep 2017";
+	public static String VERSION_NUM = "1.05q"; //"1.05n";
+	public static String VERSION = VERSION_NUM + " - 26 Sept 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -219,9 +219,9 @@ public class Config {
 	static public boolean useNativeFileChooser = true;
 	
 	static public boolean showSNR = true;
-	static public double SCAN_SIGNAL_THRESHOLD = 15d; // This is peak signal to average noise.  Strongest signal needs to be above this
-	static public double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
-	static public double BIT_SNR_THRESHOLD = 1.8d; 
+	static public double SCAN_SIGNAL_THRESHOLD = 10d; // This is peak signal to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 4.5d; // This is average signal in the pass band to average noise outside the passband
+	static public double BIT_SNR_THRESHOLD = 1.5d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";

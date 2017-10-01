@@ -2,6 +2,8 @@ package device;
 
 import java.io.IOException;
 
+import decoder.SourceUSB;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -25,15 +27,15 @@ import java.io.IOException;
  * This class wraps the HID Device and holds the commands that we pass to the Funcube Dongle.
  * 
  */
-public abstract class Device {
+public abstract class TunerController {
 	
 	public int MIN_FREQ = 1500;
 	public int MAX_FREQ = 2050000000;
 	public int SAMPLE_RATE = 192000;
 	
-	
+	public String name;
 
-	public Device() {
+	public TunerController() {
 
 	}
 
@@ -50,5 +52,12 @@ public abstract class Device {
 
 	public int getMinFreq() { return MIN_FREQ; }
 	public int getMaxFreq() { return MAX_FREQ; }
+
+	public abstract DevicePanel getDevicePanel() throws IOException, DeviceException;
+	
+	public void setUsbSource(SourceUSB audioSource) {
+		// TODO Auto-generated method stub
+		
+	}
 	
 }

@@ -28,6 +28,7 @@ import common.Log;
 import decoder.SourceUSB;
 import device.DCRemovalFilter_RB;
 import device.DeviceException;
+import device.DevicePanel;
 import device.HilbertTransform;
 import device.ThreadPoolManager;
 import device.TunerClass;
@@ -73,7 +74,7 @@ import device.ThreadPoolManager.ThreadType;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class AirspyDevice extends device.Device
+public class AirspyDevice extends device.TunerController
 {
 	public static final Gain LINEARITY_GAIN_DEFAULT = Gain.LINEARITY_14;
 	public static final Gain SENSITIVITY_GAIN_DEFAULT = Gain.SENSITIVITY_10;
@@ -136,6 +137,7 @@ public class AirspyDevice extends device.Device
 		//super( FREQUENCY_MIN, FREQUENCY_MAX, 0, USABLE_BANDWIDTH_PERCENT );
 		
 		mDevice = device;
+		name = "USBAirspy";
 			mThreadPoolManager = threadPoolManager;
 	}
 	
@@ -1594,5 +1596,10 @@ public class AirspyDevice extends device.Device
 	public boolean isConnected() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		return new AirspyPanel();
 	}
 }

@@ -1,10 +1,12 @@
 package decoder;
 
 import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.LineUnavailableException;
 
 import common.Config;
 import common.Log;
 import device.airspy.AirspyDevice;
+import gui.MainWindow;
 
 public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnable {
 
@@ -19,6 +21,9 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 
 	//byte[] readBuffer;
 	float a,b,c,d;
+	int lastErrorCount = 0;
+	int audioBufferPeriodCounter = 0;
+	int audioBufferPeriod = 100; // After this many loops, average the audio buffer errors
 	public void receive(float[] realSamples) {
 		try {
 			int bytesPerSample = 2;
@@ -57,6 +62,13 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 				}
 			}
 		}
+		audioBufferPeriodCounter++;
+		if (audioBufferPeriodCounter == audioBufferPeriod) {
+			audioBufferPeriodCounter = 0;
+			MainWindow.setAudioMissed(10*(errorCount + lastErrorCount) / 2);  // divide by 2 to average and 10 to get to %
+			lastErrorCount = errorCount;
+			errorCount = 0;
+		}
 	}
 	
 	/**
@@ -71,7 +83,7 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 		boolean signed = true;
 		boolean bigEndian = false;
 		//Decoder.bigEndian = false;
-		sampleRate = AirspyDevice.DEFAULT_SAMPLE_RATE.getRate();
+//		sampleRate = AirspyDevice.DEFAULT_SAMPLE_RATE.getRate();
 		AudioFormat af = new AudioFormat(sampleRate,sampleSizeInBits,channels,signed,bigEndian); 
 		//System.out.println("Using standard format");
 		Log.println("SC Format " + af);
@@ -81,15 +93,16 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 	
 	@Override
 	public void run() {
-		// Nothing to run.  The thread runs in the USB Device and writes data here
+		done = false;
+		running = false;
+		// nothing to run as the USB device is a thread
 		
 	}
 
 	@Override
 	public void stop() {
-		// Nothing to stop
+		running = false;
 		done = true;
-		
 	}
 
 }

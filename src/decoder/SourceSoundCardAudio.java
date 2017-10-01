@@ -150,7 +150,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		    String[] result = new String[device];
 		    result[0] = "Select audio source here then press start";
 		    result[FILE_SOURCE] = FILE_SOURCE_NAME;
-		    result[AIRSPY_SOURCE] = AIRSPY_SOURCE_NAME;
+		    //result[AIRSPY_SOURCE] = AIRSPY_SOURCE_NAME;
 		 //   result[BIT_FILE_SOURCE] = BIT_FILE_SOURCE_NAME;
 		    for (int i=OFFSET; i< device; i++)
 		    	result[i] = devices[i];
@@ -163,13 +163,13 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	}
 	
 	public static String getDeviceName(int position) {
-		if (position == SourceAudio.AIRSPY_SOURCE) return SourceAudio.AIRSPY_SOURCE_NAME;
+//		if (position == SourceAudio.AIRSPY_SOURCE) return SourceAudio.AIRSPY_SOURCE_NAME;
 		Mixer appMixer = mixerList[position];
 		return getMixerIdString(appMixer);
 	}
 	
 	public static int getDeviceIdByName(String name) {
-		if (name.equalsIgnoreCase(SourceAudio.AIRSPY_SOURCE_NAME)) return SourceAudio.AIRSPY_SOURCE;
+//		if (name.equalsIgnoreCase(SourceAudio.AIRSPY_SOURCE_NAME)) return SourceAudio.AIRSPY_SOURCE;
 		for (int i=1; i< mixerList.length; i++) {
 			if (mixerList[i] != null)
 				if (name.equalsIgnoreCase(getMixerIdString(mixerList[i]))) {
