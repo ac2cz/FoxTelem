@@ -83,7 +83,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	String title; // the title of the module, e.g. Computer - passed in
 	BitArrayLayout layout;
 	private int payloadType;
-	private int conversionType;
+	int conversionType;
 	int conversionType2;
 	private JPanel contentPane;
 	private GraphCanvas panel;

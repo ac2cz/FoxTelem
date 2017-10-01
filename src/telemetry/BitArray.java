@@ -33,7 +33,7 @@ import decoder.FoxBitStream;
  */
 public abstract class BitArray {
 
-	protected static final double ERROR_VALUE = 9999;
+	public static final double ERROR_VALUE = 9999;
 	protected static final String PAD = "pad";
 
 	public boolean[] rawBits = null;

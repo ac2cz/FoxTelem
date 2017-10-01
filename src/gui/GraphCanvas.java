@@ -12,6 +12,7 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
+import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
@@ -79,6 +80,7 @@ public abstract class GraphCanvas extends JPanel {
 				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false);
 			
 		}
+
 		graphData2 = null;
 		if (graphFrame.fieldName2 != null && graphFrame.fieldName2.length > 0) {
 			graphData2 = new double[graphFrame.fieldName2.length][][];
@@ -150,6 +152,10 @@ public abstract class GraphCanvas extends JPanel {
 
 				for (int j=0; j < graphData.length; j++)
 					for (int i=0; i < graphData[j][0].length; i++) {
+						if (graphFrame.conversionType == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP && graphData[j][PayloadStore.DATA_COL][i] == BitArray.ERROR_VALUE) {
+							// do not treat as the maximum.  Set to a default value
+							graphData[j][PayloadStore.DATA_COL][i] = FoxFramePart.MPPT_DEFAULT_TEMP;
+						}
 						if (graphData[j][PayloadStore.DATA_COL][i] >= maxValue) maxValue = graphData[j][PayloadStore.DATA_COL][i];
 						if (graphData[j][PayloadStore.DATA_COL][i] <= minValue) minValue = graphData[j][PayloadStore.DATA_COL][i];
 					}
