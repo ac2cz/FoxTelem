@@ -12,6 +12,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JOptionPane;
 
@@ -55,9 +57,9 @@ public class RawFrameQueue implements Runnable {
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVframes.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSframes.log";
 	public static String RAW_PSK_FRAMES_FILE = "rawPSKframes.log";
-	SortedFrameArrayList rawSlowSpeedFrames;
-	SortedFrameArrayList rawHighSpeedFrames;
-	SortedFrameArrayList rawPSKFrames;
+	ConcurrentLinkedQueue<Frame> rawSlowSpeedFrames;
+	ConcurrentLinkedQueue<Frame> rawHighSpeedFrames;
+	ConcurrentLinkedQueue<Frame> rawPSKFrames;
 	@SuppressWarnings("unused")
 	private boolean updatedSlowQueue = false;
 	@SuppressWarnings("unused")
@@ -77,9 +79,9 @@ public class RawFrameQueue implements Runnable {
 	public void init() {
 		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort);
 		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort);
-		rawSlowSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
-		rawHighSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
-		rawPSKFrames = new SortedFrameArrayList(INIT_SIZE);
+		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
+		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
+		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
 		try {
 			load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
 			load(RAW_HIGH_SPEED_FRAMES_FILE, Frame.HIGH_SPEED_FRAME);
@@ -101,35 +103,22 @@ public class RawFrameQueue implements Runnable {
 
 	public boolean add(Frame f) throws IOException {
 		if (f instanceof SlowSpeedFrame ) {
-			if (!rawSlowSpeedFrames.hasFrame(f)) {
 				updatedSlowQueue = true;
 				save(f, RAW_SLOW_SPEED_FRAMES_FILE);
 				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
 				return rawSlowSpeedFrames.add(f);
-			} else {
-				Log.println("DUPLICATE FRAME, not loaded");
-			}
+			
 		} else if (f instanceof FoxBPSKFrame ) {
-			if (!rawPSKFrames.hasFrame(f)) {
 				updatedPSKQueue = true;
 				save(f, RAW_PSK_FRAMES_FILE);
 				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 				return rawPSKFrames.add(f);
-			} else {
-				Log.println("DUPLICATE FRAME, not loaded");
-			}
 		} else {
-			if (!rawHighSpeedFrames.hasFrame(f)) {
 				updatedHSQueue = true;
 				save(f, RAW_HIGH_SPEED_FRAMES_FILE);
 				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 				return rawHighSpeedFrames.add(f);
-			} else {
-				Log.println("DUPLICATE FRAME, not loaded");
-			}
-		}
-		
-		return false;
+		}		
 	}
 
 	
@@ -208,12 +197,12 @@ public class RawFrameQueue implements Runnable {
 	}
 
 	/**
-	 * Remove the first record in the queue
+	 * Remove the first record in the queue.  Save all of the records to the file as a backup
 	 * @throws IOException 
 	 */
-	private void deleteAndSave(SortedFrameArrayList frames, String log) throws IOException {
+	private void deleteAndSave(ConcurrentLinkedQueue<Frame> frames, String log) throws IOException {
 		
-		frames.remove(0);
+		frames.poll(); // remove the head of the queue
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 		} 
@@ -225,8 +214,8 @@ public class RawFrameQueue implements Runnable {
 		FileOutputStream dis = new FileOutputStream(log, false);
 		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
 		try {
-			for (int i=0; i< frames.size(); i++) {
-				frames.get(i).save(writer);
+			for (Frame f : frames) {
+				f.save(writer);
 			}
 		} finally {
 			writer.flush();
@@ -320,12 +309,14 @@ public class RawFrameQueue implements Runnable {
 		Log.println("Server Queue thread ended");
 	}
 
-	private boolean sendFrame(SortedFrameArrayList frames, String file) {
+	private boolean sendFrame(ConcurrentLinkedQueue<Frame> frames, String file) {
 		boolean success = false;
 		if (Config.passManager.hasTCA()) {
 			PassMeasurement passMeasurement = Config.passManager.getPassMeasurement(); 
-			frames.get(0).setPassMeasurement(passMeasurement);
-			Config.passManager.sentTCA();
+			if (frames.peek() != null) {
+				frames.peek().setPassMeasurement(passMeasurement);
+				Config.passManager.sentTCA();
+			}
 		}
 		
 		// Make sure these are up to date
@@ -337,8 +328,10 @@ public class RawFrameQueue implements Runnable {
 			protocol = "tcp";
 		Log.println("Trying Primary Server: " + protocol + "://" + Config.primaryServer + ":" + Config.serverPort);
 		try {
-			frames.get(0).sendToServer(primaryServer, Config.serverProtocol);
-			success = true;
+			if (frames.peek() != null) {
+				frames.peek().sendToServer(primaryServer, Config.serverProtocol);
+				success = true;
+			}
 		} catch (UnknownHostException e) {
 			Log.println("Could not connect to primary server");
 			//e.printStackTrace(Log.getWriter());
@@ -350,13 +343,10 @@ public class RawFrameQueue implements Runnable {
 			if (Config.sendToBothServers || !success) // We send to the secondary if we failed or if we are sending to both servers
 			try {
 				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
-				frames.get(0).sendToServer(secondaryServer, Config.serverProtocol);
-				//String primary = Config.primaryServer;
-				//Config.primaryServer = Config.secondaryServer;
-				//Config.secondaryServer = primary;
-				//primaryServer.setHostName(Config.primaryServer);
-				//secondaryServer.setHostName(Config.secondaryServer);
-				success = true;
+				if (frames.peek() != null) {
+					frames.peek().sendToServer(secondaryServer, Config.serverProtocol);
+					success = true;
+				}
 			} catch (UnknownHostException e) {
 				Log.println("Could not connect to secondary server");
 				//e.printStackTrace(Log.getWriter());
