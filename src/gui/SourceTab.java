@@ -292,7 +292,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		optionsPanel.add(rdbtnShowIF);
 		rdbtnShowIF.addItemListener(this);
 		rdbtnShowIF.setSelected(Config.showIF);
-		rdbtnShowIF.setVisible(true);
+		rdbtnShowIF.setVisible(false);
 		 
 		rdbtnTrackSignal = new JCheckBox("Track Doppler");
 		options1.add(rdbtnTrackSignal);
@@ -350,6 +350,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
 		rdbtnUseNco.setSelected(SourceIQ.useNCO);
+		rdbtnUseNco.setVisible(false);
 		optionsPanel.add(rdbtnUseNco);
 		
 
@@ -882,7 +883,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	private void setIQVisible(boolean b) {
 		setFFTVisible(b);
 		rdbtnShowFFT.setVisible(b);
-		//rdbtnShowIF.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
 		if (Config.isWindowsOs())
