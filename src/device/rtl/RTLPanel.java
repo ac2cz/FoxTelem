@@ -122,7 +122,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		//top.add(mComboSampleRate);
 		top.add( new JLabel( "Sample Rate:" ) );
         top.add( mComboSampleRate );
-
+        mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
         /**
          * Frequency Correction
          
