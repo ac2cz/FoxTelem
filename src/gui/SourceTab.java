@@ -769,7 +769,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		panelCombo.add(speakerComboBox);
 		
 		if (Config.soundCard != null && !Config.soundCard.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
-			soundCardComboBox.setSelectedIndex(SourceSoundCardAudio.getDeviceIdByName(Config.soundCard));
+			soundCardComboBox.setSelectedItem(Config.soundCard);
 		}
 
 		if (Config.audioSink != null && !Config.audioSink.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
@@ -894,7 +894,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		showLevel.setVisible(b);
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
-		if (this.soundCardComboBox.getSelectedIndex() == SourceAudio.AIRSPY_SOURCE) {
+		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
 				cbSoundCardRate.setVisible(!b);
 			}
 	}
@@ -1197,8 +1197,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
 			}
 			
-			if (position < soundcardSources.length)
-				Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
+
 			btnStartButton.setEnabled(true);
 			cbSoundCardRate.setVisible(true);
 			panelFile.setVisible(false);
@@ -1208,6 +1207,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				setIQVisible(false);
 			}
 		}
+		Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
 
 	}
 
@@ -1440,7 +1440,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						int channels = 0;
 						if (Config.autoDecodeSpeed)
 							channels = 2;
-						audioSource = new SourceUSB("Airspy USB Source", rate, rate*2, channels); 
+						audioSource = new SourceUSB("USB Source", rate, rate*2, channels); 
 						rfDevice.setUsbSource((SourceUSB)audioSource);
 						boolean decoder1HS = highSpeed.isSelected();
 						if (Config.autoDecodeSpeed) {
@@ -1456,82 +1456,9 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 						if (Config.autoDecodeSpeed)
 							Config.passManager.setDecoder2(decoder2, iqSource2, this);
 
-						//Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store the name
+						Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
 					}
 				} 
-/*				else if (position == SourceAudio.AIRSPY_SOURCE) {
-					SourceAudio audioSource;
-					if (rfDevice == null || !(rfDevice instanceof AirspyDevice) ) {
-						Log.println("Airspy Source Selected");
-						try {
-							rfDevice = AirspyDevice.makeDevice();
-						} catch (UsbException e1) {
-							Log.errorDialog("AIRSPY Start Error", e1.getMessage());
-							e1.printStackTrace(Log.getWriter());
-							stopButton();
-						}
-					}
-					if (panelFcd == null || !(panelFcd instanceof AirspyPanel))
-						try {
-							panelFcd = new AirspyPanel();
-
-						} catch (IOException e) {
-							Log.errorDialog("AIRSPY Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("AIRSPY Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						}
-
-					if (rfDevice == null) {
-						Log.errorDialog("Missing AIRSPY device", "Insert the device or choose anther source");
-						stopButton();
-					} else {
-						try {
-							panelFcd.setDevice(rfDevice);
-						} catch (IOException e) {
-							Log.errorDialog("AIRSPY Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("AIRSPY Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						}
-						SDRpanel.add(panelFcd, BorderLayout.CENTER);
-						SDRpanel.setVisible(true);
-						panelFcd.setEnabled(false); // this is just the rate change params for the Airspy panel
-						Config.iq = true;
-						iqAudio.setSelected(true);
-						setIQVisible(true);
-						int rate = panelFcd.getSampleRate();
-						//int decmimation = panelFcd.getDecimationRate();
-						int channels = 0;
-						if (Config.autoDecodeSpeed)
-							channels = 2;
-						audioSource = new SourceUSB("Airspy USB Source", rate, rate*2, channels); 
-						((AirspyDevice)rfDevice).setUsbSource((SourceUSB)audioSource);
-						boolean decoder1HS = highSpeed.isSelected();
-						if (Config.autoDecodeSpeed) {
-							iqSource2 = new SourceIQ(rate*2, 0,true);
-							iqSource2.setAudioSource(audioSource,1); 
-							decoder1HS = false;
-						}
-						iqSource1 = new SourceIQ(rate*2, 0,decoder1HS); 
-						iqSource1.setAudioSource(audioSource,0);
-						setCenterFreq();
-						setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
-						setupAudioSink(decoder1);
-						Config.passManager.setDecoder1(decoder1, iqSource1, this);
-						if (Config.autoDecodeSpeed)
-							Config.passManager.setDecoder2(decoder2, iqSource2, this);
-						Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store the name
-					}
-
-				} 
-*/	
 				else { // soundcard - fcd or normal
 					SourceAudio audioSource;
 					boolean fcdSelected = false;
@@ -1543,9 +1470,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 							Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
 						}
 
-						if (position < soundcardSources.length)
-							Config.soundCard = SourceSoundCardAudio.getDeviceName(position); // store this so it gets saved
-
+						Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
 						audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
 						if (audioSource != null)
 							if (fcdSelected || Config.iq) {
@@ -1715,7 +1640,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 				e.printStackTrace();
 			}
 		}
-		if (this.soundCardComboBox.getSelectedIndex() == SourceAudio.AIRSPY_SOURCE) {
+		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) {
 			SDRpanel.setVisible(true);	
 			if (panelFcd != null)
 				panelFcd.setEnabled(true);
