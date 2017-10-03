@@ -69,6 +69,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField ihuTempLookUpTableFileName;
 	JTextField ihuVBattLookUpTableFileName;
 	JTextField BATTERY_CURRENT_ZERO;
+	JTextField mpptResistanceError;
+	JTextField mpptSensorOffThreshold;
 	JTextField[] T0;
 	
 	JCheckBox useIHUVBatt;
@@ -90,7 +92,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
-		setBounds(100, 100, 600, 550);
+		setBounds(100, 100, 600, 600);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -112,7 +114,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 		//JLabel lName = new JLabel("Name: " + sat.name);
 		name = addSettingsRow(titlePanel, 15, "Name", 
-				"The name must be the same as the name in SatPC32 if you want to automaticaly check if it is above the horizon", ""+sat.name);
+				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.name);
 		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
@@ -220,7 +222,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		
 		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
 				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
-		
+		if (sat.hasMpptSettings) {
+			mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
+					"The extra resistance in the RTD temperature measurement circuit", ""+sat.mpptResistanceError);
+			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
+					"The ADC value when the temperature sensor is considered off", ""+sat.mpptSensorOffThreshold);
+		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		
@@ -361,7 +368,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
 					refreshTabs=true;
 				}
-
+				
+				if (sat.mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+					sat.mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+					refreshTabs=true;
+				}
+				
+				if (sat.mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+					sat.mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+					refreshTabs=true;
+				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;

@@ -1,5 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Thu Feb 09 21:13:22 EST 2017
+mpptSensorOffThreshold=1600
+mpptResistanceError=6.58
 useIHUVBatt=false
 numberOfLookupTables=3
 measurementsFileName=measurements.csv

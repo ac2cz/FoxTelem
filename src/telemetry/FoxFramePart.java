@@ -197,8 +197,8 @@ public abstract class FoxFramePart extends FramePart {
 	private static final double MPPT_RTD_CONSTANT_CURERNT = 0.001; // Constant current driver for the MPPT RTD is 1mA
 	private static final double MPPT_RTD_AMP_GAIN = -8.14228; // RTD conditioning amplifier Vout = -8.14228 * Vin +2.0523 
 	private static final double MPPT_RTD_AMP_FACTOR = 2.0523; // 
-	private static final double MPPT_RTD_EXTRA_RESISTANCE = 6.58; // This is an error resistance in the RTD line, as calculated for MinusX plane from Jerry's measurements of Panel Temperatures
-	private static final int MPPT_TEMP_OFF_VALUE = 1600;
+//	private static final double MPPT_RTD_EXTRA_RESISTANCE = 6.58; // This is an error resistance in the RTD line, as calculated for MinusX plane from Jerry's measurements of Panel Temperatures
+//	private static final int MPPT_TEMP_OFF_VALUE = 1600;
 	public static final int MPPT_DEFAULT_TEMP = 0; // plot this value when the raw is below the OFF VALUE
 	private static final double PA_CURRENT_INA194_FACTOR = 50; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor and the shunt value
 	private static final double PA_CURRENT_SHUNT_RESISTOR_FACTOR = 0.2; // Multiply the PSU current reading by the 3V Sensor step and then divide by the IN914 factor and this factor
@@ -355,7 +355,10 @@ longer send telemetry.
 				s = " " + s;
 		return s;
 	}
-		
+	
+	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
+		return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
+	}
 	/**
 	 * Given a raw value, BitArrayLayout.CONVERT_it into the actual value that we can display based on the
 	 * conversion type passed.  Field name is also used in some conversions, e.g. the batteries
@@ -364,7 +367,7 @@ longer send telemetry.
 	 * @param conversion
 	 * @return
 	 */
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
 		
 	//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 		switch (conversion) {
@@ -408,11 +411,11 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
 			return solarPanelTempTable.lookupValue(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
-			if (rawValue < MPPT_TEMP_OFF_VALUE) return ERROR_VALUE;
+			if (rawValue < fox.mpptSensorOffThreshold) return ERROR_VALUE;
 			double raw = (double)rawValue;
 			double vadc = raw * VOLTAGE_STEP_FOR_2V5_SENSORS;
 			double v =  (vadc - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
-			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - MPPT_RTD_EXTRA_RESISTANCE;
+			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - fox.mpptResistanceError;
 			
 			// Cubic fit using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
 			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);

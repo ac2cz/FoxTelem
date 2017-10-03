@@ -75,7 +75,9 @@ public class SpacecraftTab extends JPanel {
 		wodRadiationTab.showGraphs();
 	}
 
-	public void refreshTabs(boolean closeGraphs) {
+	public void refreshTabs(Spacecraft fox, boolean closeGraphs) {
+		
+		sat = fox;
 		
 		if (closeGraphs) healthTab.closeGraphs();
 		tabbedPane.remove(healthTab);

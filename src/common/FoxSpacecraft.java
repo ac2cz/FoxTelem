@@ -69,7 +69,10 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	// Calibration
 	public double BATTERY_CURRENT_ZERO = 0;
-
+	public double mpptResistanceError = 6.58d;
+	public int mpptSensorOffThreshold = 1600;
+	public boolean hasMpptSettings = false;
+	
 	// layout flags
 	public boolean useIHUVBatt = false;
 
@@ -155,6 +158,11 @@ public class FoxSpacecraft extends Spacecraft{
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		
+		if (this.hasMpptSettings) {
+			properties.setProperty("mpptResistanceError", Double.toString(mpptResistanceError));
+			properties.setProperty("mpptSensorOffThreshold", Integer.toString(mpptSensorOffThreshold));
+		}
+		
 		store();
 	
 	}
@@ -217,7 +225,16 @@ public class FoxSpacecraft extends Spacecraft{
 
 			measurementsFileName = getProperty("measurementsFileName");
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
-			
+			String error = getOptionalProperty("mpptResistanceError");
+			if (error != null) {
+				mpptResistanceError = Double.parseDouble(error);
+				hasMpptSettings = true;
+			}
+			String threshold = getOptionalProperty("mpptSensorOffThreshold");
+			if (threshold != null) {
+				mpptSensorOffThreshold = Integer.parseInt(threshold);
+				hasMpptSettings = true;
+			}
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
