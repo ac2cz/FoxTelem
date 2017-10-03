@@ -83,9 +83,11 @@ public class RawFrameQueue implements Runnable {
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
 		try {
-			load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
-			load(RAW_HIGH_SPEED_FRAMES_FILE, Frame.HIGH_SPEED_FRAME);
-			load(RAW_PSK_FRAMES_FILE, Frame.PSK_FRAME);
+			synchronized(this) { // lock will be load the files
+				load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
+				load(RAW_HIGH_SPEED_FRAMES_FILE, Frame.HIGH_SPEED_FRAME);
+				load(RAW_PSK_FRAMES_FILE, Frame.PSK_FRAME);
+			}
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
@@ -176,24 +178,26 @@ public class RawFrameQueue implements Runnable {
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 		} 
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
-		//Log.println("Saving: " + log);
-		//use buffering and append to the existing file
-		FileOutputStream dis = new FileOutputStream(log, true);
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
+		synchronized(this) { // make sure we have exlusive access to the file on disk, otherwise a removed frame can clash with this
+			File aFile = new File(log );
+			if(!aFile.exists()){
+				aFile.createNewFile();
+			}
+			//Log.println("Saving: " + log);
+			//use buffering and append to the existing file
+			FileOutputStream dis = new FileOutputStream(log, true);
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
 
-		try {
-			frame.save(writer);
-		} finally {
-			writer.flush();
+			try {
+				frame.save(writer);
+			} finally {
+				writer.flush();
+				writer.close();
+			}
+
 			writer.close();
+			dis.close();
 		}
-		
-		writer.close();
-		dis.close();
 	}
 
 	/**
@@ -201,28 +205,29 @@ public class RawFrameQueue implements Runnable {
 	 * @throws IOException 
 	 */
 	private void deleteAndSave(ConcurrentLinkedQueue<Frame> frames, String log) throws IOException {
-		
-		frames.poll(); // remove the head of the queue
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-		} 
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
-		//use buffering and OVERWRITE the existing file
-		FileOutputStream dis = new FileOutputStream(log, false);
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
-		try {
-			for (Frame f : frames) {
-				f.save(writer);
+		synchronized(this) {  // make sure we have exclusive access to the file on disk, otherwise a frame being added can clash with this
+			frames.poll(); // remove the head of the queue
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				log = Config.logFileDirectory + File.separator + log;
+			} 
+			File aFile = new File(log );
+			if(!aFile.exists()){
+				aFile.createNewFile();
 			}
-		} finally {
-			writer.flush();
-			writer.close();
-		}
+			//use buffering and OVERWRITE the existing file
+			FileOutputStream dis = new FileOutputStream(log, false);
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
+			try {
+				for (Frame f : frames) {
+					f.save(writer);
+				}
+			} finally {
+				writer.flush();
+				writer.close();
+			}
 
 		}
+	}
 	
 	public void delete() {
 		try {
@@ -359,8 +364,8 @@ public class RawFrameQueue implements Runnable {
 				//Log.println("Sent frame " + frames.get(0).header.toString());
 				deleteAndSave(frames, file);
 			} catch (IOException e) {
-				Log.errorDialog("ERROR", "Could not remove raw frames from the queue file:\n" + file + "\n, you may"
-						+ " need to delete it manually or they will be sent again");
+				Log.errorDialog("ERROR", "Could not remove raw frames from the queue file:\n" + file + "\n"
+						+ " The frame will be sent again.  If this error repeats you may need to remove the queue file manually");
 				e.printStackTrace(Log.getWriter());
 			}
 		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
