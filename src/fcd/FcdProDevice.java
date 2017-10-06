@@ -4,6 +4,7 @@ import java.io.IOException;
 
 import common.Log;
 import device.DeviceException;
+import device.DevicePanel;
 import purejavahidapi.HidDeviceInfo;
 
 public class FcdProDevice extends FcdDevice {
@@ -328,6 +329,11 @@ public int setRFFilter(int filter) throws DeviceException {
     		throw new DeviceException("Get RF Filter Command not executed: ");
     	return 99;
     }
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		return new FcdProPanel();
+	}
 
   //  public int setFcdFreq(long freq) throws FcdException {
    // 	super.setFcdFreq(freq);

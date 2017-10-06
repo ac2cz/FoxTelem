@@ -1588,7 +1588,7 @@ public class AirspyDevice extends device.TunerController
 
 	@Override
 	public void cleanup() throws IOException, DeviceException {
-		// TODO Auto-generated method stub
+		this.stop();
 		
 	}
 
