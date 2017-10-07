@@ -72,7 +72,7 @@ public class SatelliteManager {
 	}
 	
 	/**
-	 * We check to see if we already have .dat files in the local directory.  If we have none, then all are copied from the MASTER
+	 * We check to see if we already have .dat files in the local directory.  If we have none, then we ask if each should be installed from the MASTER
 	 * installation folder.  If we already have some then the timestamps on those files are checked and the user is warned if there are newer files
 	 * in the spacecraft folder.  This would typically only be the case the first time FoxTelem is run after a new installation.
 	 * 
@@ -81,7 +81,7 @@ public class SatelliteManager {
 	 */
 	private void copyDatFiles(File masterFolder, File folder) {
 		File[] listOfFiles = masterFolder.listFiles();
-		// First check to see if we have local .dat files
+		// First check to see if we have any local .dat files
 		boolean haveDatFiles = false;
 		File[] targetFiles = folder.listFiles();
 		if (targetFiles != null) {
@@ -102,12 +102,27 @@ public class SatelliteManager {
 					if(!targetFile.exists()){
 						// Missing this file
 						if (!haveDatFiles) {
-							Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
-							try {
-								SatPayloadStore.copyFile(listOfFiles[i], targetFile);
-							} catch (IOException e) {
-								Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
-								e.printStackTrace();
+							// And we are doing a new install, so as the user what to do
+							Object[] options = {"Yes",
+							"No"};
+							int n = JOptionPane.showOptionDialog(
+									MainWindow.frame,
+									"Do you want to install the spacecraft file for: " + targetFile,
+									"\nHit yes to install or No to skip?",
+									JOptionPane.YES_NO_OPTION, 
+									JOptionPane.QUESTION_MESSAGE,
+									null,
+									options,
+									options[1]);
+
+							if (n == JOptionPane.YES_OPTION) {
+								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
+								try {
+									SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+								} catch (IOException e) {
+									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
+									e.printStackTrace();
+								}
 							}
 						}
 					} else {
@@ -155,10 +170,10 @@ public class SatelliteManager {
 		
 		if(!folder.isDirectory()){
 			folder.mkdir();
-			Log.infoDialog("NEW FILE LAYOUT", "The configuration files for the spacecraft have been copied to: \n" + folder.getAbsolutePath() + "\n"
-					+ "Delete any of the copied .dat files that you do not want to load when using this logfiles directory.\n"
-					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n"
-							+ "and can be copied back in later if needed.");
+			Log.infoDialog("SPACECRAFT FILES INSTALLATION", "The configuration files for the spacecraft will be copied to: \n" + folder.getAbsolutePath() + "\n"
+					+ "You will be promted to install each file.  If you are running multiple copies of FoxTelem, then only install the "
+					+ "file(s) you need.\n\n You can also delete or add '.dat' files later for this logfiles directory.\n"
+					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n");
 		}
 		if(!folder.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + folder.getAbsolutePath() +  

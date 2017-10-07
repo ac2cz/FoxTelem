@@ -546,7 +546,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 							"Are you sure you want to change the font size? It will close any open graphs.",
 							"Do you want to continue?",
 							JOptionPane.YES_NO_OPTION, 
-							JOptionPane.ERROR_MESSAGE,
+							JOptionPane.QUESTION_MESSAGE,
 							null,
 							options,
 							options[1]);
@@ -581,7 +581,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 								"Do you want to switch log file directories? It will close any open graphs.",
 								"Do you want to continue?",
 								JOptionPane.YES_NO_OPTION, 
-								JOptionPane.ERROR_MESSAGE,
+								JOptionPane.QUESTION_MESSAGE,
 								null,
 								options,
 								options[1]);
