@@ -61,7 +61,8 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 	JLabel title;
 	JLabel lab;
 	JLabel lab2;
-//	JLabel lab3;
+	JLabel lab3;
+	JLabel lab4;
 	
 	JButton btnContinue;
 	JButton btnCancel;
@@ -88,11 +89,15 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		title = new JLabel();
 		lab = new JLabel();
 		lab2 = new JLabel();
+		lab3 = new JLabel();
+		lab4 = new JLabel();
 		title.setFont(new Font("SansSerif", Font.BOLD, 14));
 		
 		title.setText("AMSAT Fox Satellite Decoder");
 		lab.setText("It looks like this is the first time you have run the FoxTelem program. You must choose a directory to store the the decoded data.");
-		lab2.setText("Also note that configuration settings have been saved in:" + Config.homeDirectory);
+		lab2.setText("Also note that configuration settings will be saved in:  " + Config.homeDirectory);
+		lab3.setText("If you want to run multiple copies of FoxTelem, using different settings, then hit cancel and rerun passing the ");
+		lab4.setText("logFile directory name as a paramater.  Otherwise choose a logFile directory below.  See the manual for details.");
 		
 		JPanel titlePanel = new JPanel();
 		top.setLayout(new BorderLayout(0, 0));
@@ -103,6 +108,8 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		top.add(textPanel, BorderLayout.CENTER);
 		textPanel.add(lab);
 		textPanel.add(lab2);
+		textPanel.add(lab3);
+		textPanel.add(lab4);
 		directories = FilesPanel();
 		directories.setVisible(true);
 		center.add(directories);
