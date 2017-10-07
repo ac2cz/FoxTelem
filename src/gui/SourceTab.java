@@ -246,7 +246,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			        "Wav files", "wav", "wave");
 			fc.setFileFilter(filter);
 		//}
-		if (Config.startButtonPressed) processStartButtonClick();
+		if (soundCardComboBox.getSelectedIndex() != 0)
+			if (Config.startButtonPressed) processStartButtonClick();
 	}
 	
 	public void showFilters(boolean b) { 
