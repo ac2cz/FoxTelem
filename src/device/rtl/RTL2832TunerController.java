@@ -1399,6 +1399,8 @@ public abstract class RTL2832TunerController extends device.TunerController
     		}
     	}
     }
+    
+    boolean devicePulled; // set a flag if the device was pulled out
 
 	/**
 	 * Buffer processing thread.  Fetches samples from the RTL2832 Tuner and 
@@ -1458,6 +1460,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 				
             	while( mRunning.get() )
 				{
+            		if (devicePulled) return;
             		mAvailableTransfers.drainTo( transfers );
             		
             		for( Transfer transfer: transfers )
@@ -1566,6 +1569,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 					Log.errorDialog( "ERROR", "transfer error [" + 
 						getTransferStatus( transfer.status() ) + 
 						"] transferred actual: " + transfer.actualLength() );
+					devicePulled = true;
+					return;
 			}
 			
 			mAvailableTransfers.add( transfer );
