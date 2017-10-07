@@ -42,9 +42,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 	
 	public void setEnabled(boolean b) {
 		cbMixerGain.setEnabled(b);
-		cbLnaGain.setEnabled(b);
-		bandValue.setEnabled(b);
-		
+		cbLnaGain.setEnabled(b);		
 	}
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public void initializeGui() throws IOException, DeviceException {
