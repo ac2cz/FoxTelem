@@ -251,7 +251,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	public void showFilters(boolean b) { 
 		filterPanel.setVisible(b);
-		audioOptionsFiller.setVisible(!b);}
+//		audioOptionsFiller.setVisible(!b);
+	}
 	public boolean getShowFilterState() {
 		return filterPanel.isVisible();
 	}
@@ -491,8 +492,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnShowFFT.setSelected(true);
 		optionsPanel.add(rdbtnShowFFT);
 		rdbtnShowFFT.setVisible(false);
-		audioOptionsFiller = new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500));
-		optionsPanel.add(audioOptionsFiller);
+//		audioOptionsFiller = new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500));
+//		optionsPanel.add(audioOptionsFiller);
 		
 	//	rdbtnUseLimiter = new JCheckBox("Use FM Limiter");
 	//	optionsPanel.add(rdbtnUseLimiter);
@@ -2037,15 +2038,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 	}
 
-	private boolean startDecoder = false;
-	private boolean stopDecoder = false;
+	private boolean aboveHorizon = false;
 	
 	public void startDecoding() {
-		startDecoder = true;
+		aboveHorizon = true;
 	}
 	
 	public void stopDecoding() {
-		stopDecoder = true;
+		aboveHorizon = false;
 	}
 	
 	/**
@@ -2065,12 +2065,19 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 				Spacecraft sat = Config.satManager.spacecraftList.get(s);
+				if (aboveHorizon && sat.track)
+					satPosition[s].setForeground(Config.AMSAT_RED);
+				else
+					satPosition[s].setForeground(Config.AMSAT_BLUE);
+
 				if (Config.foxTelemCalcsPosition && sat.track) {
 					double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 					double el = FramePart.radToDeg(sat.satPos.getElevation());
-					satPosition[s].setText("Az: " + String.format("%2.1f", az) + " El: " + String.format("%2.1f", el));
-				} else
-					if (sat.track) satPosition[s].setText("Tracked");
+					satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+				} else if (Config.useDDEforAzEl && sat.track) {
+					satPosition[s].setText("Tracked via SATPC32");
+				} else if (sat.track) 
+					satPosition[s].setText("Tracked");
 			}
 
 			if (soundCardComboBox.getSelectedIndex() == 0) {
@@ -2079,13 +2086,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					rdbtnFindSignal.setEnabled(false);
 					btnStartButton.setEnabled(false);
 					lblWhenAboveHorizon.setVisible(true);
-					if (startDecoder && !STARTED) {
+					if (aboveHorizon && !STARTED) {
 						processStartButtonClick();
-						startDecoder = false;
 					}
-					if (stopDecoder && STARTED) {
+					if (!aboveHorizon && STARTED) {
 						processStartButtonClick();
-						stopDecoder = false;
 					}
 			} else {
 				rdbtnFindSignal.setEnabled(true);
