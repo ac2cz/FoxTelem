@@ -240,7 +240,6 @@ public class Config {
 	// V1.04
 	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
-	public static boolean useDDEforFindSignal = false;
 	public static boolean showFilters = false; // Default this off
 	
 	// V1.05
@@ -248,7 +247,8 @@ public class Config {
 	static public int totalFrames = 0;
 	static public boolean debugRS = false; // not saved or on GUI
 	static public boolean foxTelemCalcsPosition = false;
-    
+	static public boolean whenAboveHorizon = false;
+	
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -628,12 +628,12 @@ public class Config {
 		// Version 1.04
 		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
-		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
 		properties.setProperty("showFilters", Boolean.toString(showFilters));
 		
 		// Version 1.05
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
 		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
+		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
 		
 		
 		store();
@@ -794,13 +794,13 @@ public class Config {
 		// Version 1.04
 		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
 		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
-		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
 		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
 		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
+		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

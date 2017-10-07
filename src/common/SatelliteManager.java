@@ -57,7 +57,7 @@ public class SatelliteManager {
 	
 	public static final String AMSAT_NASA_ALL = "http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt";
 	
-	ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
+	public ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	
 	public SatelliteManager()  {
 		init();

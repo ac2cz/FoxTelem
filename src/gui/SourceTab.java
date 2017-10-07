@@ -52,6 +52,7 @@ import javax.usb.UsbException;
 import common.Config;
 import common.Log;
 import common.PassManager;
+import common.Spacecraft;
 import decoder.Decoder;
 import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
@@ -73,6 +74,7 @@ import fcd.FcdDevice;
 import fcd.FcdProPanel;
 import fcd.FcdProPlusDevice;
 import fcd.FcdProPlusPanel;
+import telemetry.FramePart;
 
 import javax.swing.JProgressBar;
 import javax.swing.event.PopupMenuListener;
@@ -103,7 +105,7 @@ import javax.swing.event.PopupMenuEvent;
  *
  */
 @SuppressWarnings("serial")
-public class SourceTab extends JPanel implements ItemListener, ActionListener, PropertyChangeListener, FocusListener {
+public class SourceTab extends JPanel implements Runnable, ItemListener, ActionListener, PropertyChangeListener, FocusListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
 	//Thread fcdPanelThread;
@@ -125,7 +127,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	JCheckBox rdbtnShowIF;
 	JCheckBox rdbtnTrackSignal;
 	JCheckBox rdbtnFindSignal;
-	JCheckBox rdbtnWhenAboveHorizon;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
@@ -198,8 +199,12 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 	
 	public static boolean STARTED = false;
 	//private JPanel leftPanel_1;
+	JLabel lblWhenAboveHorizon;
 	JLabel lblFreq;
 	JLabel lblkHz;
+	
+	JLabel satPosition[];
+	
 	private JTextField txtFreq;
 	MainWindow mainWindow;
 	private JProgressBar progressBar;
@@ -310,14 +315,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnFindSignal.setVisible(true);
 
 		optionsPanel.add(findSignalPanel);
-		
-		rdbtnWhenAboveHorizon = new JCheckBox("when above horizon  ");
-		rdbtnWhenAboveHorizon.setToolTipText("Find Signal is executed when the Satellite is above the horizon according to SatPC32, which must be running");
-		findSignalPanel.add(rdbtnWhenAboveHorizon);
-		rdbtnWhenAboveHorizon.addItemListener(this);
-		rdbtnWhenAboveHorizon.setSelected(Config.useDDEforFindSignal);
-		
-		
+				
 		JLabel when = new JLabel ("when peak over ");
 		findSignalPanel.add(when);
 		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
@@ -437,6 +435,27 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		JPanel opts = new JPanel();
 		rightPanel.add(opts);
 		opts.setLayout(new BorderLayout());
+
+		JPanel satPanel = new JPanel();
+		satPanel.setBorder(new TitledBorder(null, "Spacecraft Tracked", TitledBorder.LEADING, TitledBorder.TOP, null, null));
+		opts.add(satPanel, BorderLayout.NORTH);
+		satPanel.setLayout(new BoxLayout(satPanel, BoxLayout.Y_AXIS));
+///  THIS NEEDS TO BE DYNAMIC IF SPACECRAFT CAN BE ADDED WITHOUT RESTART.  OTHERWISE IT IS FINE		
+		JPanel satRows[] = new JPanel[Config.satManager.spacecraftList.size()];
+		JLabel satName[] = new JLabel[Config.satManager.spacecraftList.size()];
+		satPosition = new JLabel[Config.satManager.spacecraftList.size()];
+		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+			Spacecraft sat = Config.satManager.spacecraftList.get(s);
+			satRows[s] = new JPanel();
+			satRows[s].setLayout(new FlowLayout(FlowLayout.LEFT));
+			satPanel.add(satRows[s]);
+			satName[s] = new JLabel(sat.name + ":   ");
+			satPosition[s] = new JLabel("Not Tracked");
+			if (sat.track) satPosition[s].setText("Tracked");
+			satRows[s].add(satName[s]);
+			satRows[s].add(satPosition[s]);
+		}
+
 		
 		JPanel optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(null, "Audio Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
@@ -444,7 +463,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
 		
 		filterPanel = new FilterPanel();
-		opts.add(filterPanel, BorderLayout.NORTH);
+		opts.add(filterPanel, BorderLayout.SOUTH);
 		
 		rdbtnViewFilteredAudio = new JCheckBox("View Filtered Audio");
 		optionsPanel.add(rdbtnViewFilteredAudio);
@@ -611,18 +630,26 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		group2.add(iqAudio);
 		
 		JPanel panel_c = new JPanel();
-		centerPanel.add(panel_c);
+		centerPanel.add(panel_c, BorderLayout.CENTER);
 		panel_c.setLayout(new BoxLayout(panel_c, BoxLayout.Y_AXIS));
 		
+		JPanel panelHorizon = new JPanel();
+		panel_c.add(panelHorizon);
+		lblWhenAboveHorizon = new JLabel("Decoder will start when spacecraft above horizon ");
+		lblWhenAboveHorizon.setForeground(Config.AMSAT_RED);
+		lblWhenAboveHorizon.setVisible(false);
+		panelHorizon.add(lblWhenAboveHorizon);
 
-		JPanel panelSDR = new JPanel();
-		panel_c.add(panelSDR);
+		JPanel panelSDRtop = new JPanel();
+		panel_c.add(panelSDRtop);
 		//panelSDR.setLayout(new BoxLayout(panelSDR, BoxLayout.Y_AXIS));
-		panelSDR.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		panelSDRtop.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
+		
 		
 		JPanel panelFreq = new JPanel();
-		panelSDR.add(panelFreq, BorderLayout.CENTER);
+		panelSDRtop.add(panelFreq, BorderLayout.CENTER);
 		panelFreq.setLayout(new BoxLayout(panelFreq, BoxLayout.X_AXIS));
+
 		
 		lblFreq = new JLabel("Center Frequency ");
 		panelFreq.add(lblFreq);
@@ -670,7 +697,7 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 		SDRpanel = new JPanel();
 		//	leftPanel.add(panelFile, BorderLayout.SOUTH);	
-		panel_c.add(SDRpanel, BorderLayout.CENTER);
+		panel_c.add(SDRpanel, BorderLayout.SOUTH);
 		SDRpanel.setLayout(new BorderLayout());
 		SDRpanel.setVisible(false);
 		
@@ -885,10 +912,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 		rdbtnShowFFT.setVisible(b);
 		rdbtnTrackSignal.setVisible(b);
 		rdbtnFindSignal.setVisible(b);
-		if (Config.isWindowsOs())
-			rdbtnWhenAboveHorizon.setVisible(b);
-		else
-			rdbtnWhenAboveHorizon.setVisible(false);
 		findSignalPanel.setVisible(b&&Config.findSignal);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
@@ -1853,18 +1876,6 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 
 		}
 		
-		if (e.getSource() == rdbtnWhenAboveHorizon) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				
-	            Config.useDDEforFindSignal=false;
-	            //Config.save();
-	        } else {
-	        	Config.useDDEforFindSignal=true;
-	        	
-	        	//Config.save();
-	        }
-
-		}
 		if (e.getSource() == rdbtnShowLog) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				logScrollPane.setVisible(false);
@@ -2023,6 +2034,65 @@ public class SourceTab extends JPanel implements ItemListener, ActionListener, P
 			}
 		}
 
+		
+	}
+
+	private boolean startDecoder = false;
+	private boolean stopDecoder = false;
+	
+	public void startDecoding() {
+		startDecoder = true;
+	}
+	
+	public void stopDecoding() {
+		stopDecoder = true;
+	}
+	
+	/**
+	 * Method that checks to see if the decoder should be started or stopped.  The start/stop methods can be called from the pass manager.
+	 * 
+	 */
+	@Override
+	public void run() {
+		// Runs until we exit
+		while(true) {
+			// Sleep first to avoid race conditions at start up
+			try {
+				Thread.sleep(500);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+				Spacecraft sat = Config.satManager.spacecraftList.get(s);
+				if (Config.foxTelemCalcsPosition && sat.track) {
+					double az = FramePart.radToDeg(sat.satPos.getAzimuth());
+					double el = FramePart.radToDeg(sat.satPos.getElevation());
+					satPosition[s].setText("Az: " + String.format("%2.1f", az) + " El: " + String.format("%2.1f", el));
+				} else
+					if (sat.track) satPosition[s].setText("Tracked");
+			}
+
+			if (soundCardComboBox.getSelectedIndex() == 0) {
+				btnStartButton.setEnabled(false);
+			} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
+					rdbtnFindSignal.setEnabled(false);
+					btnStartButton.setEnabled(false);
+					lblWhenAboveHorizon.setVisible(true);
+					if (startDecoder && !STARTED) {
+						processStartButtonClick();
+						startDecoder = false;
+					}
+					if (stopDecoder && STARTED) {
+						processStartButtonClick();
+						stopDecoder = false;
+					}
+			} else {
+				rdbtnFindSignal.setEnabled(true);
+				btnStartButton.setEnabled(true);
+				lblWhenAboveHorizon.setVisible(false);
+			}
+		}
 		
 	}
 

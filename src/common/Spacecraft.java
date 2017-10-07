@@ -127,6 +127,7 @@ public abstract class Spacecraft {
 	
 	// User Config
 	public boolean track = true; // default is we track a satellite
+	public SatPos satPos; // cache the position when it gets calculated so others can read it
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
 	
@@ -257,7 +258,7 @@ public abstract class Spacecraft {
 		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
-		
+		satPos = satellitePosition;
 		return satellitePosition;
 	}
 	

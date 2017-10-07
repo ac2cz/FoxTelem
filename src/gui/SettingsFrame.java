@@ -87,6 +87,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;
 	private JCheckBox cbFoxTelemCalcsPosition;
+	private JCheckBox cbWhenAboveHorizon;
 	
 	boolean useUDP;
 	
@@ -106,7 +107,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		setTitle("Settings");
 //		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 650, 600);
+		setBounds(100, 100, 650, 630);
 		//this.setResizable(false);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -263,6 +264,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
 				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
+		cbWhenAboveHorizon = addCheckBoxRow("Start Decoder when above horizon", "FoxTelem can start/stop the decoder when the spacecraft is above/below the horizon",
+				Config.whenAboveHorizon, leftcolumnpanel3 );
 			
 		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
 		
@@ -433,7 +436,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			}
 		if ((alt < 0) ||(alt > 8484)) {
 			JOptionPane.showMessageDialog(this,
-					"Invalid altitude.  Must be between 0 and 8484.",
+					"Invalid altitude.  Must be between 0 and 8484m.",
 					"Format Error\n",
 					JOptionPane.ERROR_MESSAGE);
 			return false;
@@ -480,7 +483,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						"You need to specify a Groundstation name to upload to the server.\n"
 						+ "Use an amateur radio callsign or something like 'Sunnytown Primary School'.\n"
 						+ "You also need to specify a valid latitude and longitude or a Maidenhead locator.\n"
-						+ "If you specify an altitude, then it needs to be a valid value or NONE.",
+						+ "If you specify an altitude, then it needs to be a valid value.",
 						"Missing Server Upload Settings",
 						JOptionPane.ERROR_MESSAGE);	
 				this.cbUploadToServer.setSelected(false);
@@ -519,6 +522,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
 				}
 				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
+				Config.whenAboveHorizon = cbWhenAboveHorizon.isSelected();
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
@@ -692,13 +696,19 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		
 		if (source == cbUseDDEAzEl) { 
 			if (e.getStateChange() == ItemEvent.SELECTED) {
-				this.cbFoxTelemCalcsPosition.setSelected(false);
+				cbFoxTelemCalcsPosition.setSelected(false);
 			}
 		}
 		
 		if (source == cbFoxTelemCalcsPosition) { 
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				cbUseDDEAzEl.setSelected(false);
+			}
+		}
+		if (source == cbWhenAboveHorizon) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (!cbFoxTelemCalcsPosition.isSelected() && !cbUseDDEAzEl.isSelected())
+					cbFoxTelemCalcsPosition.setSelected(true);
 			}
 		}
 	}

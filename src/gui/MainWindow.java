@@ -125,7 +125,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// GUI components
 	static JTabbedPane tabbedPane;
 	public static SourceTab inputTab;
-
+	Thread inputTabThread;
 	// We have a radiation tab and a health tab per satellite
 	static SpacecraftTab[] spacecraftTab;
 	
@@ -235,6 +235,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread = new Thread(updateManager);
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
+		
+		inputTabThread = new Thread(inputTab);
+		inputTabThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		inputTabThread.start();
 		
 		// We are fully up, remove the database loading message
 		Config.fileProgress.updateProgress(100);

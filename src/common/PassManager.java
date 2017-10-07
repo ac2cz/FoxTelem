@@ -5,11 +5,17 @@ import gui.SourceTab;
 
 import java.util.ArrayList;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
+import telemetry.FramePart;
 import telemetry.PayloadStore;
+import uk.me.g4dpz.satellite.SatPos;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
+import predict.PositionCalcException;
 import decoder.Decoder;
 import decoder.SourceIQ;
 
@@ -583,36 +589,73 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String satString = null;
-			if (Config.useDDEforFindSignal) {
-				SatPc32DDE satPC = new SatPc32DDE();
-				boolean connected = satPC.connect();
-				if (connected) {
-						satString = satPC.satellite;
-				}
-			}
-			if (pp1.foxDecoder != null && Config.findSignal)
+			if (Config.findSignal) {
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
-					
-					if (Config.satManager.spacecraftList.get(s).track) {
-						if (Config.debugSignalFinder) Log.println("Looking for: " + Config.satManager.spacecraftList.get(s).name);
-						if (Config.useDDEforFindSignal) {
-							if (satString != null && satString.equalsIgnoreCase(Config.satManager.spacecraftList.get(s).name))
-								stateMachine(Config.satManager.spacecraftList.get(s));
-						} else
-							stateMachine(Config.satManager.spacecraftList.get(s));
+					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (MainWindow.inputTab != null && sat.track) {
+						if (aboveHorizon(sat)) {
+							MainWindow.inputTab.startDecoding();
+							stateMachine(sat);
+						} else {
+							MainWindow.inputTab.stopDecoding();
+						}
 					}
 				}
-			else {
-				//Log.println("Waiting for decoder");
-				//Config.toBin = Config.DEFAULT_TO_BIN;
-				//Config.fromBin = Config.DEFAULT_FROM_BIN;
-
 			}
 		}
 		Log.println("Pass Manager DONE");
 		done = true;
 	}
 	
-	
+	/**
+	 * Returns true if we are not tracking the sattelite, if aboveHorizon is not set or if the sat is actually above the horizon with our chosen method
+	 * @return
+	 */
+	private boolean aboveHorizon(Spacecraft sat) {
+		if (Config.useDDEforAzEl) {
+			String satString = null;
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				satString = satPC.satellite;
+				//Log.println("SATPC32: " + satString);
+				if (satString != null && satString.equalsIgnoreCase(sat.name)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		if (Config.foxTelemCalcsPosition) {
+			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
+			if (Config.GROUND_STATION != null)
+				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
+					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
+				} else {
+					DateTime timeNow = new DateTime(DateTimeZone.UTC);
+					SatPos pos = null;
+					try {
+						pos = sat.getSatellitePosition(timeNow);
+						if (Config.debugSignalFinder)
+							Log.println("Fox at: " + FramePart.latRadToDeg(pos.getAzimuth()) + " : " + FramePart.lonRadToDeg(pos.getElevation()));
+					} catch (PositionCalcException e) {
+						// We wont get NO T0 as we are using the current time, but we may have missing keps
+						if (e.errorCode == FramePart.NO_TLE)
+							Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the spacecraft position, but no TLE was found for\n"
+									+ sat.name +".  Make sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
+									+ "file from amsat.  This file is automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+									+ "Tracking will be disabled for this spacecraft.");
+						sat.track = false;
+						sat.save();
+						return false;
+					}	
+					if (pos != null) {
+						if (FramePart.radToDeg(pos.getElevation()) >= 0) {
+							return true;
+						}
+					}
+					return false;
+				}
+		}
+		return true;
+	}
 }
