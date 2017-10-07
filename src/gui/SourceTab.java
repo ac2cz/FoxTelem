@@ -920,8 +920,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
-				cbSoundCardRate.setVisible(!b);
+			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
+			auto.setEnabled(false);
+			if (Config.autoDecodeSpeed = true) {
+				Config.mode = SourceIQ.MODE_FSK_DUV;
+				Config.autoDecodeSpeed = false;
+				enableFilters(true);
+				autoViewpanel.setVisible(false);
+				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			}
+		} else {
+			auto.setEnabled(false);
+		}
 	}
 	
 	private void setFreqVisible(boolean b) {
