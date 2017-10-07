@@ -368,15 +368,17 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
 					refreshTabs=true;
 				}
-				
-				if (sat.mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
-					sat.mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
-					refreshTabs=true;
-				}
-				
-				if (sat.mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
-					sat.mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
-					refreshTabs=true;
+
+				if (sat.hasMpptSettings) {
+					if (sat.mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+						sat.mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+						refreshTabs=true;
+					}
+
+					if (sat.mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+						sat.mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+						refreshTabs=true;
+					}
 				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
