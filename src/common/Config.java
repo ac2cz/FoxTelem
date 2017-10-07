@@ -221,7 +221,7 @@ public class Config {
 	static public boolean showSNR = true;
 	static public double SCAN_SIGNAL_THRESHOLD = 10d; // This is peak signal to average noise.  Strongest signal needs to be above this
 	static public double ANALYZE_SNR_THRESHOLD = 4.5d; // This is average signal in the pass band to average noise outside the passband
-	static public double BIT_SNR_THRESHOLD = 1.5d; 
+	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
