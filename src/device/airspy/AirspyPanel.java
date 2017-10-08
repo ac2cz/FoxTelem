@@ -73,7 +73,7 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
 	
 	public void setEnabled(boolean b) {
 		if (mSampleRateCombo != null)
-			mSampleRateCombo.setEnabled(b);
+			mSampleRateCombo.setEnabled(false);
 		if (cbDecimation != null)
 			cbDecimation.setEnabled(b);
 	}
