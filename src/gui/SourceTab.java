@@ -2076,15 +2076,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 				Spacecraft sat = Config.satManager.spacecraftList.get(s);
-				if (aboveHorizon && sat.track)
+				if (Config.whenAboveHorizon && aboveHorizon && sat.track)
 					satPosition[s].setForeground(Config.AMSAT_RED);
 				else
 					satPosition[s].setForeground(Config.AMSAT_BLUE);
 
 				if (Config.foxTelemCalcsPosition && sat.track) {
-					double az = FramePart.radToDeg(sat.satPos.getAzimuth());
-					double el = FramePart.radToDeg(sat.satPos.getElevation());
-					satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+					if (sat.satPos != null) {
+						double az = FramePart.radToDeg(sat.satPos.getAzimuth());
+						double el = FramePart.radToDeg(sat.satPos.getElevation());
+						satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+					}
 				} else if (Config.useDDEforAzEl && sat.track) {
 					satPosition[s].setText("Tracked via SATPC32");
 				} else if (sat.track) 
