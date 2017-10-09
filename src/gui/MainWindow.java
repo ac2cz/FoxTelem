@@ -670,43 +670,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
-	private void replaceServerData() {
-
-		if (Config.logFileDirectory.equalsIgnoreCase("")) {
-			Log.errorDialog("CAN'T EXTRACT SERVER DATA INTO CURRENT DIRECTORY", "You can not replace the log files in the current directory.  "
-					+ "Pick another directory from the settings menu\n");
-			return;
-					
-		}
-		String message = "Do you want to download server data to REPLACE your existing data?\n"
-				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
-				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
-		Object[] options = {"Yes",
-		"No"};
-		int n = JOptionPane.showOptionDialog(
-				MainWindow.frame,
-				message,
-				"Do you want to continue?",
-				JOptionPane.YES_NO_OPTION, 
-				JOptionPane.ERROR_MESSAGE,
-				null,
-				options,
-				options[1]);
-
-		if (n == JOptionPane.NO_OPTION) {
-			return;
-		}
-
-		//String file = "serverlogs.tar.gz";
+	private void downloadServerData(String dir) {
 		String file = "FOXDB.tar.gz";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
 		}
 		// We have the dir, so pull down the file
-		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading " + dir + " data, please wait ...", false);
 		fileProgress.setVisible(true);
 
-		String urlString = Config.webSiteUrl + "/ao85/FOXDB.tar.gz";
+		String urlString = Config.webSiteUrl + "/" + dir + "/FOXDB.tar.gz";
 		try {
 			URL website = new URL(urlString);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
@@ -735,7 +708,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 		fileProgress.updateProgress(100);
 
-		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
+		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing " + dir + " data ...", false);
 		decompressProgress.setVisible(true);
 
 		// Now decompress it and expand
@@ -760,19 +733,79 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 
 		decompressProgress.updateProgress(100);
+
+
+	}
+	
+	private String getFoxServerDir(int id) {
+		if (id == 1) return "ao85";
+		if (id == 2) return "radfxsat";
+		if (id == 3) return "fox1c";
+		if (id == 4) return "fox1d";
+		if (id == 5) return "fox1e";
+		return null;
+	}
+	
+	private void replaceServerData() {
+
+		if (Config.logFileDirectory.equalsIgnoreCase("")) {
+			Log.errorDialog("CAN'T EXTRACT SERVER DATA INTO CURRENT DIRECTORY", "You can not replace the log files in the current directory.  "
+					+ "Pick another directory from the settings menu\n");
+			return;
+					
+		}
+		String message = "Do you want to download server data to REPLACE your existing data?\n"
+				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
+				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"Do you want to continue?",
+				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.ERROR_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.NO_OPTION) {
+			return;
+		}
+
+		// Get the server data for each spacecraft we have
+		sats = Config.satManager.getSpacecraftList();
+		int i=0;
+		for (Spacecraft sat : sats) {
+			// We can not rely on the name of the spacecraft being the same as the directory name on the server
+			// because the user can change it.  So we have a hard coded routine to look it up
+			String dir = getFoxServerDir(sat.foxId);
+			if (dir == null) {
+				// no server data for this satellite.  Skip
+			} else {
+				downloadServerData(dir);
+			}
+		}
+
+		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
+		refreshProgress.setVisible(true);
+		
 		Config.save(); // make sure any changed settings saved
 		Config.initPayloadStore();
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
 		
+		refreshProgress.updateProgress(100);
+		
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);
+		
 	}
 
 	
 	@SuppressWarnings("unused")
-	private void importServerData() {
+	private void importServerData_OLD() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"
 				+ "To import into into a different set of log files select NO, then choose a new log file directory";
