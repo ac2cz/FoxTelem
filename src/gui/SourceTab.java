@@ -126,7 +126,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	//JCheckBox rdbtnUseLimiter;
 	JCheckBox rdbtnShowIF;
 	JCheckBox rdbtnTrackSignal;
-	JCheckBox rdbtnFindSignal;
+	public JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
@@ -2086,6 +2086,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 						double el = FramePart.radToDeg(sat.satPos.getElevation());
 						satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+					} else {
+						satPosition[s].setText("No Position Data");
 					}
 				} else if (Config.useDDEforAzEl && sat.track) {
 					satPosition[s].setText("Tracked via SATPC32");

@@ -251,16 +251,16 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		TitledBorder measureTitle = title("Measurements");
 		leftcolumnpanel3.setBorder(measureTitle);
 		if (Config.useDDEforAzEl) Config.foxTelemCalcsPosition = false;
+		cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
+				Config.useDDEforFreq, leftcolumnpanel3 );
+		cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can calculate read the Azimuth and Elevation of the satellite from SatPC32.  It is stored alongside other measurements",
+				Config.useDDEforAzEl, leftcolumnpanel3 );
 		if (Config.isWindowsOs()) {
-			cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
-					Config.useDDEforFreq, leftcolumnpanel3 );
-			cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can calculate the Azimuth and Elevation of the satellite or it can read it from SatPC32.  It is stored alongside other measurements",
-					Config.useDDEforAzEl, leftcolumnpanel3 );
+			cbUseDDEFreq.setVisible(true);
+			cbUseDDEAzEl.setVisible(true);
 		} else {
-			//JLabel f = new JLabel("Calculate the frequency in AF mode");
-			//leftcolumnpanel3.add(f);
-			//JLabel g = new JLabel("Store Az/El");
-			//leftcolumnpanel3.add(g);
+			cbUseDDEFreq.setVisible(false);
+			cbUseDDEAzEl.setVisible(false);
 		}
 		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
 				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
@@ -304,6 +304,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		cbUseUDP.setEnabled(false);
 		txtPrimaryServer.setEnabled(false);
 		txtSecondaryServer.setEnabled(false);
+		
+		enableDependentParams();
 	}
 
 
@@ -366,9 +368,14 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		return true;
 	}
 	
-	private boolean validServerParams() {
+	private boolean validCallsign() {
 		if (txtCallsign.getText().equalsIgnoreCase(Config.DEFAULT_CALLSIGN) || 
 				txtCallsign.getText().equals("")) return false;
+		return true;
+	}
+	
+	private boolean validServerParams() {
+		if (!validCallsign()) return false;
 		if (!validLocator()) return false;
 		if (!validLatLong()) return false;
 		if (!validAltitude()) return false;
@@ -458,6 +465,22 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 	}
 
+	private void enableDependentParams() {
+		if (validLatLong() && validAltitude()) {
+			if (validCallsign())
+				cbUploadToServer.setEnabled(true);
+			else
+				cbUploadToServer.setEnabled(false);
+			cbFoxTelemCalcsPosition.setEnabled(true);
+			cbWhenAboveHorizon.setEnabled(true);
+			
+		} else {
+			cbUploadToServer.setEnabled(false);
+			cbFoxTelemCalcsPosition.setEnabled(false);
+			cbWhenAboveHorizon.setEnabled(false);
+		}
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnCancel) {
@@ -465,12 +488,16 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == txtLatitude || e.getSource() == txtLongitude ) {
 			updateLocator();
+			enableDependentParams();
 		}
 		if (e.getSource() == txtMaidenhead) {
 			updateLatLong();
+			enableDependentParams();
+			
 		}
 		if (e.getSource() == txtAltitude) {
 			validAltitude();
+			enableDependentParams();
 		}
 		if (e.getSource() == btnSave) {
 			boolean dispose = true;
@@ -709,7 +736,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				if (!cbFoxTelemCalcsPosition.isSelected() && !cbUseDDEAzEl.isSelected())
 					cbFoxTelemCalcsPosition.setSelected(true);
+				MainWindow.inputTab.rdbtnFindSignal.setSelected(true);
 			}
+			
 		}
 	}
 
@@ -724,6 +753,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		if (e.getSource() == txtCallsign) {
 			if (txtCallsign.getText().length() > MAX_CALLSIGN_LEN) 
 				txtCallsign.setText(txtCallsign.getText().substring(0, MAX_CALLSIGN_LEN));
+			enableDependentParams();
 		}
 		if (e.getSource() == txtStation) {
 			if (txtStation.getText().length() > MAX_STATION_LEN) 
@@ -731,12 +761,15 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == txtLatitude || e.getSource() == txtLongitude ) {
 			updateLocator();
+			enableDependentParams();
 		}
 		if (e.getSource() == txtMaidenhead) {
 			updateLatLong();
+			enableDependentParams();
 		}
 		if (e.getSource() == txtAltitude) {
 			validAltitude();
+			enableDependentParams();
 		}
 		
 	}		

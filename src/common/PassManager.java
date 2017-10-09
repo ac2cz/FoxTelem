@@ -590,8 +590,10 @@ public class PassManager implements Runnable {
 				e.printStackTrace();
 			}
 			if (Config.findSignal) {
+				boolean atLeastOneTracked = false;;
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (sat.track) atLeastOneTracked = true;
 					if (MainWindow.inputTab != null && sat.track) {
 						if (aboveHorizon(sat)) {
 							MainWindow.inputTab.startDecoding();
@@ -601,6 +603,16 @@ public class PassManager implements Runnable {
 						}
 					}
 				}
+				if (Config.whenAboveHorizon && Config.findSignal && !atLeastOneTracked) {
+					if (MainWindow.inputTab != null) {
+						MainWindow.inputTab.rdbtnFindSignal.setSelected(false);
+						Config.whenAboveHorizon = false;
+						Log.errorDialog("NO SPACECRAFT TRACKED", "You have turned on find signal and paused the decoder waiting for a spacecraft above\n"
+								+ "the horizon, but no spacecraft are being tracked.  Go to the spacecraft menu, pick a spacecraft\n"
+								+ "and check 'Track when Find Signal Enabled'\n"
+								+ "'Start Decoder when Above Horizon' and 'Find Signal' will be disabled.");
+					}
+				}
 			}
 		}
 		Log.println("Pass Manager DONE");
@@ -608,11 +620,12 @@ public class PassManager implements Runnable {
 	}
 	
 	/**
-	 * Returns true if we are not tracking the sattelite, if aboveHorizon is not set or if the sat is actually above the horizon with our chosen method
+	 * Returns true if we are not tracking the sat, if aboveHorizon is not set or if the sat is actually above the horizon with our chosen method
+	 * We run the position calculations regardless so the sat position can be displayed if the user has selected that option.
 	 * @return
 	 */
 	private boolean aboveHorizon(Spacecraft sat) {
-		if (Config.useDDEforAzEl) {
+		if (Config.whenAboveHorizon && Config.useDDEforAzEl) {
 			String satString = null;
 			SatPc32DDE satPC = new SatPc32DDE();
 			boolean connected = satPC.connect();
@@ -630,6 +643,12 @@ public class PassManager implements Runnable {
 			if (Config.GROUND_STATION != null)
 				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
 					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
+					sat.track = false;
+					sat.save();
+					Log.errorDialog("MISSING GROUND STATION", "FoxTelem is configured to calculate the spacecraft position, but your ground station\n"
+							+ "is not defined.  Go to the settings tab and setup the ground station position or turn of calculation of the spacecraft position.\n"
+							+ "Tracking will be disabled for " + sat.name + ".");
+					return false;
 				} else {
 					DateTime timeNow = new DateTime(DateTimeZone.UTC);
 					SatPos pos = null;
@@ -640,15 +659,17 @@ public class PassManager implements Runnable {
 					} catch (PositionCalcException e) {
 						// We wont get NO T0 as we are using the current time, but we may have missing keps
 						if (e.errorCode == FramePart.NO_TLE)
-							Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the spacecraft position, but no TLE was found for\n"
-									+ sat.name +".  Make sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
+							sat.track = false;
+							sat.save();
+							Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the spacecraft position, but no TLE was found for "
+									+ sat.name +".\nMake sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
 									+ "file from amsat.  This file is automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
 									+ "Tracking will be disabled for this spacecraft.");
-						sat.track = false;
-						sat.save();
 						return false;
-					}	
-					if (pos != null) {
+					}
+					if (!Config.whenAboveHorizon)
+						return true;
+					else if (pos != null) {
 						if (FramePart.radToDeg(pos.getElevation()) >= 0) {
 							return true;
 						}
