@@ -2075,6 +2075,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			try {
 			for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 				Spacecraft sat = Config.satManager.spacecraftList.get(s);
 				if (Config.whenAboveHorizon && aboveHorizon && sat.track)
@@ -2094,6 +2095,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					satPosition[s].setText("Tracked via SATPC32");
 				} else if (sat.track) 
 					satPosition[s].setText("Tracked");
+			}
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 			}
 
 			if (soundCardComboBox.getSelectedIndex() == 0) {
