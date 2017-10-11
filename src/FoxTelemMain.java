@@ -541,9 +541,6 @@ public class FoxTelemMain {
 		else
 			Config.homeDirectory = logFileDir;
 
-		if (logFileDir != null)
-			Config.logFileDirectory = logFileDir; // force these to be the same even if we loaded a different value, as it was passed in.  Allows properties to be copied and works for inital run
-
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
 			// Then this is the first time we have run FoxTelem on this computer
@@ -556,7 +553,7 @@ public class FoxTelemMain {
 	
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
-		Config.init(); // initialize, create properties if needed, load properties and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.init(logFileDir); // initialize, create properties if needed, load properties and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 		Log.println("************************************************************");
 		Log.println("AMSAT Fox 1A Telemetry Decoder. " + Config.VERSION + "\nCurrentDir is: " + Config.currentDir);
 		Log.println("************************************************************");

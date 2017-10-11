@@ -185,6 +185,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		btnBrowse = new JButton("Browse");
 		btnBrowse.addActionListener(this);
 		northpanel2.add(btnBrowse, BorderLayout.EAST);
+		
+		if (Config.logDirFromPassedParam) {
+			txtLogFileDirectory.setEnabled(false);
+			btnBrowse.setVisible(false);
+			JLabel lblPassedParam = new JLabel("  (Fixed at Startup)");
+			northpanel2.add(lblPassedParam, BorderLayout.EAST);
+		}
 //		TitledBorder eastTitle1 = new TitledBorder(null, "<html><body> <h3>Files and Directories</h3></body></html>", TitledBorder.LEADING, TitledBorder.TOP, null, null); 
 		TitledBorder eastTitle1 = title("Files and Directories");
 		northpanel.setBorder(eastTitle1);

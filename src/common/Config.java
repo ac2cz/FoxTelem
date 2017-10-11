@@ -57,10 +57,12 @@ public class Config {
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 	public static MainWindow mainWindow;
 	
+	public static boolean logDirFromPassedParam = false; // true if we started up with a logFile dir passed in on the command line
+	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05r";
-	public static String VERSION = VERSION_NUM + " - 10 Oct 2017";
+	public static String VERSION_NUM = "1.05s";
+	public static String VERSION = VERSION_NUM + " - 11 Oct 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -201,7 +203,7 @@ public class Config {
 	public static String windowCurrentDirectory = "";
 	public static String csvCurrentDirectory = "";
 	public static String logFileDirectory = ""; // This is the directory that we write the decoded data into and any other log files
-	public static String homeDirectory = ""; // This is the directory we write the properties in.  This allows us to find the other directories.
+	public static String homeDirectory = ""; // This is the directory we write the properties in.  This allows us to find the other directories.  We don't save it.  It is the location of the properties file
 	public static String serverFileDirectory = ""; 
 	static public boolean displayRawValues = false;
 	static public boolean showLatestImage = false;
@@ -309,9 +311,13 @@ public class Config {
 		}
 	}
 
-	public static void init() {
+	public static void init(String setLogFileDir) {
 		properties = new Properties();
 		load();
+		if (setLogFileDir != null ) {
+			Config.logFileDirectory = setLogFileDir;
+			logDirFromPassedParam = true;
+		}
 		initSequence();
 		
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
@@ -586,7 +592,7 @@ public class Config {
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
 		properties.setProperty("logFileDirectory", logFileDirectory);
-		properties.setProperty("homeDirectory", homeDirectory);
+//		properties.setProperty("homeDirectory", homeDirectory);
 		properties.setProperty("windowFcHeight", Integer.toString(windowFcHeight));
 		properties.setProperty("windowFcWidth", Integer.toString(windowFcWidth));
 		properties.setProperty("displayRawValues", Boolean.toString(displayRawValues));
@@ -747,7 +753,7 @@ public class Config {
 		if (csvCurrentDirectory == null) csvCurrentDirectory = "";
 		logFileDirectory = getProperty("logFileDirectory");
 		if (logFileDirectory == null) logFileDirectory = "";
-		homeDirectory = getProperty("homeDirectory");
+//		homeDirectory = getProperty("homeDirectory");
 		if (homeDirectory == null) homeDirectory = "";
 		windowFcHeight = Integer.parseInt(getProperty("windowFcHeight"));
 		windowFcWidth = Integer.parseInt(getProperty("windowFcWidth"));
