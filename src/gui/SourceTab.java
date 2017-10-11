@@ -233,8 +233,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		JPanel rightPanel = new JPanel();	
 		buildRightPanel(topPanel, BorderLayout.EAST, rightPanel);
 
-		JPanel leftPanel_1 = new JPanel();
-		buildLeftPanel(topPanel,  BorderLayout.CENTER, leftPanel_1);
 
 		//if (Config.useNativeFileChooser) {
 			fd = new FileDialog(MainWindow.frame, "Select Wav file",FileDialog.LOAD);
@@ -246,6 +244,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			        "Wav files", "wav", "wave");
 			fc.setFileFilter(filter);
 		//}
+		JPanel leftPanel_1 = new JPanel();
+		buildLeftPanel(topPanel,  BorderLayout.CENTER, leftPanel_1);
+
 		if (soundCardComboBox.getSelectedIndex() != 0)
 			if (Config.startButtonPressed) processStartButtonClick();
 	}
