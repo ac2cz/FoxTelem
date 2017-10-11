@@ -1427,6 +1427,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						} else {
 							setupDecoder(highSpeed.isSelected(), wav, wav);
 						}
+						Config.soundCard = "";  // We don't want to restart with File selected
 						progressThread.start(); // need to start after the audio source wav is created
 					} else {
 						stopButton();
