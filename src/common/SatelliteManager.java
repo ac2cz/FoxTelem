@@ -171,7 +171,7 @@ public class SatelliteManager {
 		if(!folder.isDirectory()){
 			folder.mkdir();
 			Log.infoDialog("SPACECRAFT FILES INSTALLATION", "The configuration files for the spacecraft will be copied to: \n" + folder.getAbsolutePath() + "\n"
-					+ "You will be promted to install each file.  If you are running multiple copies of FoxTelem, then only install the "
+					+ "You will be prompted to install each file.  If you are running multiple copies of FoxTelem, then only install the "
 					+ "file(s) you need.\n\n You can also delete or add '.dat' files later for this logfiles directory.\n"
 					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n");
 		}
