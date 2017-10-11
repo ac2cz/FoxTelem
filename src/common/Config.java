@@ -114,7 +114,7 @@ public class Config {
 	public static final String NO_SOUND_CARD_SELECTED = NONE;
 	public static final String DEFAULT_CALLSIGN = NONE;
 	public static final String DEFAULT_STATION = NONE;
-	public static final String DEFAULT_ALTITUDE = NONE;
+	public static final String DEFAULT_ALTITUDE = "0";
 	public static final String DEFAULT_LATITUDE = "0.0";
 	public static final String DEFAULT_LONGITUDE = "0.0";
 	public static final String DEFAULT_LOCATOR = "XX00xx";
@@ -295,9 +295,10 @@ public class Config {
 	public static void storeGroundStation() {
 		int h = 0;
 		try {
-			if (Config.altitude.equalsIgnoreCase(Config.NONE)) 
+			if (Config.altitude.equalsIgnoreCase(Config.NONE)) {
+				Config.altitude = "0";
 				h = 0;
-			else
+			} else
 				h = Integer.parseInt(Config.altitude);
 		} catch (NumberFormatException e) {
 			// not much to do.  Just leave h as 0;
@@ -727,6 +728,7 @@ public class Config {
 		callsign = getProperty("callsign");
 		stationDetails = getProperty("stationDetails");
 		altitude = getProperty("altitude");
+		if (altitude.equalsIgnoreCase("NONE")) altitude = "0";
 		latitude = getProperty("latitude");
 		longitude = getProperty("longitude");
 		maidenhead = getProperty("maidenhead");

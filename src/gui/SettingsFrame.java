@@ -431,14 +431,6 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 
 	private boolean validAltitude() {
 		int alt = 0;
-		if (txtAltitude.getText().equalsIgnoreCase(Config.DEFAULT_ALTITUDE)) {
-			JOptionPane.showMessageDialog(this,
-					"Set the altitude to a valid value",
-					"Format Error\n",
-					JOptionPane.ERROR_MESSAGE);
-			return false;
-	
-		} else
 			try {
 				alt = Integer.parseInt(txtAltitude.getText());
 			} catch (NumberFormatException n) {
