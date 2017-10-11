@@ -47,7 +47,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 	AudioInputStream audioStream = null; // The object used to read the stream of data from the wave file
 	
 	public SourceWav(String f) throws UnsupportedAudioFileException, IOException {
-		super("WavFile", 67200*3,0, false);
+		super("WavFile", 67200*3,0, true);
 		fileName = f;;
 		initWav();
 
@@ -61,7 +61,10 @@ public class SourceWav extends SourceAudio implements Runnable {
         soundFile = new File(fileName);
         audioStream = AudioSystem.getAudioInputStream(soundFile);
         audioFormat = audioStream.getFormat();
-
+        if (audioFormat.getChannels() == 2)
+        	storeStereo = true;
+        else
+        	storeStereo = false;
         Config.wavSampleRate = (int) audioFormat.getSampleRate();
         Log.println("Format: " + audioFormat);
         totalFrames = audioStream.getFrameLength();
