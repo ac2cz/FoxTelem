@@ -263,12 +263,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Refreshing tabs, please wait ...", false);
 		fileProgress.setVisible(true);
 
-		sats = Config.satManager.getSpacecraftList();
+		// Close tabs according to the old list
 		int i=0;
 		for (SpacecraftTab tab : spacecraftTab) {
 			tab.refreshTabs(sats.get(i++), closeGraphs);
 		}
-
+		
+		// now grab the sats (incase the list changed) and refresh
+		sats = Config.satManager.getSpacecraftList();
 		
 		Config.payloadStore.setUpdatedAll();
 
