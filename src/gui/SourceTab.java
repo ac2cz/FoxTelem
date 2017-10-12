@@ -922,17 +922,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		setFreqVisible(b);
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
 			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
-			auto.setEnabled(false);
-//			if (Config.autoDecodeSpeed = true) {
-//				Config.mode = SourceIQ.MODE_FSK_DUV;
-//				Config.autoDecodeSpeed = false;
-//				enableFilters(true);
-//			//	autoViewpanel.setVisible(false);
-//				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
-//			}
-		} else {
-			auto.setEnabled(false);
-		}
+		} 
 	}
 	
 	private void setFreqVisible(boolean b) {
@@ -1222,8 +1212,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			btnStartButton.setEnabled(true);
 			cbSoundCardRate.setVisible(false);
 			panelFile.setVisible(false);
-			auto.setEnabled(true);
+			auto.setEnabled(false);
 			setIQVisible(true);
+			if (auto.isSelected()) { 
+				lowSpeed.setSelected(true);
+				highSpeed.setSelected(false);
+				psk.setSelected(false);
+				Config.autoDecodeSpeed = false;
+			}
 		} else { // its not a file so its a sound card or FCD that was picked
 			boolean fcdSelected = fcdSelected();
 			auto.setEnabled(true);
@@ -1742,7 +1738,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		lowSpeed.setEnabled(t);
 		psk.setEnabled(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
-		if (position == SourceAudio.FILE_SOURCE)
+		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)
 			auto.setEnabled(false);
 		else
 			auto.setEnabled(t);
