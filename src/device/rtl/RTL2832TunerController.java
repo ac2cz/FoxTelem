@@ -1540,6 +1540,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 		@Override
 		public void processTransfer( Transfer transfer )
 	    {
+			if (devicePulled) return;
 			mTransfersInProgress.remove( transfer );
 			
 			switch( transfer.status() )
@@ -1566,9 +1567,9 @@ public abstract class RTL2832TunerController extends device.TunerController
 					break;
 				default:
 					/* unexpected error */
-					Log.errorDialog( "ERROR", "transfer error [" + 
+					Log.errorDialog( "ERROR, perhaps device removed?", "USB data transfer error [" + 
 						getTransferStatus( transfer.status() ) + 
-						"] transferred actual: " + transfer.actualLength() );
+						"] transferred actual: " + transfer.actualLength() + "\nYou will probablly need to restart FoxTelem to reactivate this device." );
 					devicePulled = true;
 					return;
 			}

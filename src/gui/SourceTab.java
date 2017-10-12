@@ -49,6 +49,8 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.usb.UsbException;
 
+import org.usb4java.LibUsbException;
+
 import common.Config;
 import common.Log;
 import common.PassManager;
@@ -1634,6 +1636,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e1.printStackTrace(Log.getWriter());
 					} catch (IOException e1) {
 						e1.printStackTrace(Log.getWriter());
+					} catch (LibUsbException e2) {
+						e2.printStackTrace(Log.getWriter());
 					}
 				}
 			} else {
