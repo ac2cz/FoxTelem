@@ -251,12 +251,12 @@ public class AirspyDevice extends device.TunerController
 
 		if( result != 0 )
 		{
-			if( result == LibUsb.ERROR_ACCESS )
-			{
-				Log.errorDialog( "ERROR","Unable to access Airspy - insufficient permissions."
-						+ "  If you are running a Linux OS, have you installed the "
-						+ "airspy rules file in \\etc\\udev\\rules.d ??" );
-			}
+			//if( result == LibUsb.ERROR_ACCESS )
+			//{
+			//	Log.errorDialog( "ERROR","Unable to access Airspy - insufficient permissions."
+			//			+ "  If you are running a Linux OS, have you installed the "
+			//			+ "airspy rules file in \\etc\\udev\\rules.d ??" );
+			//}
 
 			throw new DeviceException( "Couldn't open airspy device - " +
 					LibUsb.strError( result ) );

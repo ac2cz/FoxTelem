@@ -187,7 +187,7 @@ public class TunerManager {
 			return airspyController;
 		}
 		catch( DeviceException se ) {
-			Log.errorDialog("couldn't construct Airspy controller/tuner", se.getMessage() );
+			Log.println("Couldn't construct Airspy controller/tuner.  It is probablly in use");
 
 			return null;
 		}
