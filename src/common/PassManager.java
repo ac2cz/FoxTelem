@@ -425,6 +425,11 @@ public class PassManager implements Runnable {
 		long fadeTime = 0;
 		while (fadeTime < FADE_PERIOD) {
 			try {
+				calcSatPosition(spacecraft);
+			} catch (PositionCalcException e1) {
+				// Do nothing here.  The user gets an error when find signal enabled if the TLE missing
+			}
+			try {
 				Thread.sleep(SNR_PERIOD);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
@@ -589,7 +594,7 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			if (Config.findSignal) {
+			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false;;
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
@@ -597,7 +602,8 @@ public class PassManager implements Runnable {
 					if (MainWindow.inputTab != null && sat.track) {
 						if (aboveHorizon(sat)) {
 							MainWindow.inputTab.startDecoding();
-							stateMachine(sat);
+							if (Config.findSignal)
+								stateMachine(sat);
 						} else {
 							MainWindow.inputTab.stopDecoding();
 						}
@@ -613,7 +619,7 @@ public class PassManager implements Runnable {
 								+ "'Start Decoder when Above Horizon' and 'Find Signal' will be disabled.");
 					}
 				}
-			}
+			//}
 		}
 		Log.println("Pass Manager DONE");
 		done = true;
@@ -653,9 +659,7 @@ public class PassManager implements Runnable {
 					DateTime timeNow = new DateTime(DateTimeZone.UTC);
 					SatPos pos = null;
 					try {
-						pos = sat.getSatellitePosition(timeNow);
-						if (Config.debugSignalFinder)
-							Log.println("Fox at: " + FramePart.latRadToDeg(pos.getAzimuth()) + " : " + FramePart.lonRadToDeg(pos.getElevation()));
+						pos = calcSatPosition(sat);
 					} catch (PositionCalcException e) {
 						// We wont get NO T0 as we are using the current time, but we may have missing keps
 						if (e.errorCode == FramePart.NO_TLE)
@@ -678,5 +682,14 @@ public class PassManager implements Runnable {
 				}
 		}
 		return true;
+	}
+	
+	private SatPos calcSatPosition(Spacecraft sat) throws PositionCalcException {
+		DateTime timeNow = new DateTime(DateTimeZone.UTC);
+		SatPos pos = null;
+			pos = sat.getSatellitePosition(timeNow);
+			if (Config.debugSignalFinder)
+				Log.println("Fox at: " + FramePart.latRadToDeg(pos.getAzimuth()) + " : " + FramePart.lonRadToDeg(pos.getElevation()));
+			return pos;
 	}
 }

@@ -2077,26 +2077,31 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				e.printStackTrace();
 			}
 			try {
-			for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
-				Spacecraft sat = Config.satManager.spacecraftList.get(s);
-				if (Config.whenAboveHorizon && aboveHorizon && sat.track)
-					satPosition[s].setForeground(Config.AMSAT_RED);
-				else
-					satPosition[s].setForeground(Config.AMSAT_BLUE);
+				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (Config.whenAboveHorizon && aboveHorizon && sat.track)
+						satPosition[s].setForeground(Config.AMSAT_RED);
+					else
+						satPosition[s].setForeground(Config.AMSAT_BLUE);
 
-				if (Config.foxTelemCalcsPosition && sat.track) {
-					if (sat.satPos != null) {
-						double az = FramePart.radToDeg(sat.satPos.getAzimuth());
-						double el = FramePart.radToDeg(sat.satPos.getElevation());
-						satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+					if (Config.foxTelemCalcsPosition && sat.track) {
+						if (sat.satPos != null) {
+							double az = FramePart.radToDeg(sat.satPos.getAzimuth());
+							double el = FramePart.radToDeg(sat.satPos.getElevation());
+							satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+						} else {
+							satPosition[s].setText("No Position Data");
+						}
+					} else if (Config.useDDEforAzEl && sat.track) {
+						satPosition[s].setText("Tracked via SATPC32");
 					} else {
-						satPosition[s].setText("No Position Data");
+						if (sat.track)
+							satPosition[s].setText("Tracked");
+						else
+							satPosition[s].setText("Not Tracked");
 					}
-				} else if (Config.useDDEforAzEl && sat.track) {
-					satPosition[s].setText("Tracked via SATPC32");
-				} else if (sat.track) 
-					satPosition[s].setText("Tracked");
-			}
+						
+				}
 			} catch (ArrayIndexOutOfBoundsException e) {
 				// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 			}
