@@ -371,28 +371,42 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			g2.drawLine(lower+sideBorder, topBorder, lower+sideBorder, zeroPoint);
 			g2.drawLine(upper+sideBorder, topBorder, upper+sideBorder, zeroPoint);
 
-			// draw the upper and lower freq bounds
-			/*  FIXME THIS BREAKS THE WAV IQ DECODER....
-			 * 
-			 */ 
+			
 			if (Config.findSignal) {
+
 				if (fox != null) {
 					g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
 				} else
 					g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
-				g2.setColor(Config.PURPLE);
+				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (sat.track) {
+						int fromSatBin = iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
+						int toSatBin = iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
+					
+						if (fromSatBin > SourceIQ.FFT_SAMPLES/2 && toSatBin < SourceIQ.FFT_SAMPLES/2) {
+							toSatBin = 0;
+						}
+						
+						g2.setColor(Config.PURPLE);
 
-				int upperSelection = getSelectionFromBin(Config.toBin);
-				int lowerSelection = getSelectionFromBin(Config.fromBin);
+						int upperSelection = getSelectionFromBin(toSatBin);
+						int lowerSelection = getSelectionFromBin(fromSatBin);
 
-				if (upperSelection != lowerSelection) {
-				c = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
-				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
-				c = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
-				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
+						if (upperSelection != lowerSelection) {
+							int c1 = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
+							g2.drawLine(c1+sideBorder, topBorder, c1+sideBorder, zeroPoint);
+							int c2 = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
+							g2.drawLine(c2+sideBorder, topBorder, c2+sideBorder, zeroPoint);
+							int c3 = (c1 + c2)/2;
+							c3 = c3 - sat.name.length()/3*Config.graphAxisFontSize;
+							g.drawString(sat.name, c3+sideBorder, topBorder + 10 );
+						}
+					}
 				}
 			}
+			
 			
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);
