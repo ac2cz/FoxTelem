@@ -13,12 +13,12 @@
 11,realTime,negXv,12,V,23,-X Panel,11,1,3,Voltage,-X solar Panel voltage
 12,realTime,negYv,12,V,23,-Y Panel,12,1,3,Voltage,-Y solar Panel voltage
 13,realTime,negZv,12,V,23,-Z Panel,13,1,3,Voltage,-Z solar Panel voltage
-14,realTime,posXt,12,C,24,+X Panel,8,2,3,Temp,+X solar Panel temperature
-15,realTime,posYt,12,C,24,+Y Panel,9,2,3,Temp,+Y solar Panel temperature
-16,realTime,posZt,12,C,24,+Z Panel,10,2,3,Temp,+Z solar Panel temperature
-17,realTime,negXt,12,C,24,-X Panel,11,2,3,Temp,-X solar Panel temperature
-18,realTime,negYt,12,C,24,-Y Panel,12,2,3,Temp,-Y solar Panel temperature
-19,realTime,negZt,12,C,24,-Z Panel,13,2,3,Temp,-Z solar Panel temperature
+14,realTime,posXt,12,C,24,+X Panel,8,2,4,Temp,+X solar Panel temperature
+15,realTime,posYt,12,C,24,+Y Panel,9,2,4,Temp,+Y solar Panel temperature
+16,realTime,posZt,12,C,24,+Z Panel,10,2,4,Temp,+Z solar Panel temperature
+17,realTime,negXt,12,C,24,-X Panel,11,2,4,Temp,-X solar Panel temperature
+18,realTime,negYt,12,C,24,-Y Panel,12,2,4,Temp,-Y solar Panel temperature
+19,realTime,negZt,12,C,24,-Z Panel,13,2,4,Temp,-Z solar Panel temperature
 20,realTime,PSUTemp,12,C,8,MPPT,5,2,3,Board Temp,Power Supply Card Temperature
 21,realTime,spin,12,rpm,12,Computer Software,3,1,3,Spacecraft Spin,Calculated spin rate using solar cells
 22,realTime,TxPAi,12,mA,38,Radio,1,2,3,PA Current,Transmit power amplifier current
