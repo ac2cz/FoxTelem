@@ -544,6 +544,11 @@ public class SourceIQ extends SourceAudio {
 		for (int s=0; s<fftData.length-1; s+=2) {
 			psd[s/2] = psd(fftData[s], fftData[s+1]);
 			
+			if (Double.isInfinite(psd[s/2]))
+				psd[s/2] = 0;
+			if (Double.isNaN(psd[s/2]))
+				psd[s/2] = 0;
+			
 			if (psdAvgCount >= PSD_AVG_LEN) {
 				psdSum[s/2] = psdSum[s/2]/(double)PSD_AVG_LEN;
 				psdAvg[s/2] = psdSum[s/2];
