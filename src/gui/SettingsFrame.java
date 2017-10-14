@@ -260,7 +260,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		if (Config.useDDEforAzEl) Config.foxTelemCalcsPosition = false;
 		cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
 				Config.useDDEforFreq, leftcolumnpanel3 );
-		cbUseDDEAzEl = addCheckBoxRow("Read Az/El from SatPC32", "FoxTelem can calculate read the Azimuth and Elevation of the satellite from SatPC32.  It is stored alongside other measurements",
+		cbUseDDEAzEl = addCheckBoxRow("Read position from SatPC32", "FoxTelem can read the position of the satellite from SatPC32.  It is stored alongside other measurements",
 				Config.useDDEforAzEl, leftcolumnpanel3 );
 		if (Config.isWindowsOs()) {
 			cbUseDDEFreq.setVisible(true);

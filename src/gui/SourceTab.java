@@ -562,14 +562,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		lowSpeed = addRadioButton("DUV", panel_2 );
 		highSpeed = addRadioButton("High Speed", panel_2 );
+		auto = addRadioButton("Auto", panel_2 );
+		JLabel bar = new JLabel("  |  ");
+		panel_2.add(bar);
 		psk = addRadioButton("PSK", panel_2 );
 //		highSpeed = addRadioButton("High Speed", panel_2 );
-		auto = addRadioButton("Auto", panel_2 );
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
-		group.add(psk);
 		group.add(auto);
+		group.add(psk);
 		
 		if (Config.autoDecodeSpeed) {
 			auto.setSelected(true);
