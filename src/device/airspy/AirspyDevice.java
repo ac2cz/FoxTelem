@@ -243,7 +243,7 @@ public class AirspyDevice extends device.TunerController
 		}
 	}
 
-	public void init() throws DeviceException, UsbException
+	public void init() throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 
@@ -311,6 +311,8 @@ public class AirspyDevice extends device.TunerController
 		catch ( IllegalArgumentException e) {
 			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
 		} catch (LibUsbException e) {
+			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
+		} catch (UsbException e) {
 			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
 		}
 	}
