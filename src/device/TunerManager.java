@@ -127,7 +127,7 @@ public class TunerManager {
 			switch( tunerClass )
 			{
 				case AIRSPY:
-					return initAirspyTuner( device, descriptor );
+					//return initAirspyTuner( device, descriptor );
 				case ETTUS_USRP_B100:
 					//return initEttusB100Tuner( device, descriptor );
 				case FUNCUBE_DONGLE_PRO:
