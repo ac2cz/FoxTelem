@@ -1,5 +1,6 @@
 package decoder;
 
+import filter.MatchedFilter;
 import filter.RaisedCosineFilter;
 import filter.WindowedSincFilter;
 import gui.FilterPanel;
@@ -29,9 +30,11 @@ import common.Log;
  *
  * This is the DUV Decoder
  */
-public class Fox200bpsDecoder extends Decoder {
+public class Fox200bpsDecoder extends FoxDecoder {
 
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
+	public static final int WORD_LENGTH = 10;
+	public static final int SYNC_WORD_LENGTH = 10;
 	private int useFilterNumber;
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
@@ -59,15 +62,15 @@ public class Fox200bpsDecoder extends Decoder {
 		currentFilterFreq = Config.filterFrequency;
 		useFilterNumber = Config.useFilterNumber;
 		if (useFilterNumber == FilterPanel.RAISED_COSINE) {
-			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		} else if (useFilterNumber == FilterPanel.WINDOWED_SINC) {
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		} else if (useFilterNumber == FilterPanel.MATCHED) {
-			//filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 			// Experiments have determined that the optimal filter is the WS length 480
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			//filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, bucketSize*2);
 		}
 		
@@ -79,7 +82,7 @@ public class Fox200bpsDecoder extends Decoder {
 	
 	private void setSlowSpeedParameters() {
 		//decodedFrame = new SlowSpeedFrame();
-		bitStream = new SlowSpeedBitStream(this);
+		foxBitStream = new SlowSpeedBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
 		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;

@@ -1,7 +1,7 @@
 package telemetry;
 
 import common.Spacecraft;
-import decoder.BitStream;
+import decoder.FoxBitStream;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -33,7 +33,8 @@ import decoder.BitStream;
  */
 public abstract class BitArray {
 
-	protected static final double ERROR_VALUE = 9999;
+	public static final double ERROR_VALUE = 9999;
+	protected static final String PAD = "pad";
 
 	public boolean[] rawBits = null;
 	protected int bitPosition = 0; // position in the raw bits as we allocate them to the fields
@@ -53,7 +54,7 @@ public abstract class BitArray {
 //	public String[] getFieldNames() { return fieldName; }
 	public int[] getFieldValues() { return fieldValue; }
 
-	BitArray(BitArrayLayout l) {
+	protected BitArray(BitArrayLayout l) {
 		layout = l;
 	}
 	
@@ -95,10 +96,14 @@ public abstract class BitArray {
 	 */
 	public void copyBitsToFields() {
 		if (rawBits != null) { // only convert if we actually have a raw binary array.  Otherwise this was loaded from a file and we do not want to convert
-		resetBitPosition();
-		for (int i=0; i < layout.fieldName.length; i++) {
-			fieldValue[i] = nextbits(layout.fieldBitLength[i]);
-		}
+			resetBitPosition();
+			for (int i=0; i < layout.fieldName.length; i++) {
+				if (layout.fieldName[i].startsWith(PAD)) {  // ignore pad values and set the results to zero
+					nextbits(layout.fieldBitLength[i]);
+					fieldValue[i] = 0;
+				} else
+					fieldValue[i] = nextbits(layout.fieldBitLength[i]);
+			}
 		}
 	}
 
@@ -116,7 +121,7 @@ public abstract class BitArray {
 			
 		}
 		bitPosition = bitPosition + n;
-		field = BitStream.binToInt(b);
+		field = FoxBitStream.binToInt(b);
 		return field;
 		
 	}
@@ -160,4 +165,6 @@ public abstract class BitArray {
 	}
 
 	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
+	
+	
 }

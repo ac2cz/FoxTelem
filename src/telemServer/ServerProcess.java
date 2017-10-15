@@ -14,16 +14,20 @@ import java.util.TimeZone;
 
 import common.Log;
 import telemetry.Frame;
+import telemetry.PayloadDbStore;
 
 public class ServerProcess implements Runnable {
-
+	PayloadDbStore payloadStore;
 	private Socket socket = null;
 	private int sequence = 0;
-	public ServerProcess(Socket socket, int seq) {
+	public ServerProcess(PayloadDbStore db, Socket socket, int seq) {
 		sequence = seq;
 		this.socket = socket;
+		payloadStore = db;
 	}
 
+
+	
 	public static final DateFormat fileDateName = new SimpleDateFormat("yyyyMMddHHmmss");
 	public static final DateFormat yearDirName = new SimpleDateFormat("yyyy");
 	public static final DateFormat monthDirName = new SimpleDateFormat("MM");
@@ -72,6 +76,8 @@ public class ServerProcess implements Runnable {
 			
 	}
 	
+
+	
 	/**
 	 * This is started when we have a TCP connection.  We read the data until the connection is closed
 	 * This could be one or more STP files.
@@ -103,7 +109,7 @@ public class ServerProcess implements Runnable {
 			
 			// Import it into the database
 			// null return means the file can not be recognized as an STP file or was test data
-			Frame frm = Frame.importStpFile(stp, false);
+			Frame frm = Frame.importStpFile(payloadStore, stp, false);
 			if (frm != null) {
 				Log.println("Processed: " + b + " bytes from " + frm.receiver + " for " 
 						+ frm.getHeader().getFoxId() + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
@@ -143,6 +149,7 @@ public class ServerProcess implements Runnable {
 				in.close();
 				socket.close();
 				f.close();
+				payloadStore.closeConnection();
 			} catch (Exception ex) { /*ignore*/} 
 		}
 	}

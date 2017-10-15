@@ -32,12 +32,12 @@ import decoder.SourceIQ;
  */
 public class PassParams {
 	public SourceIQ iqSource;
-	public Decoder decoder;
+	public Decoder foxDecoder;
 	public RfData rfData;
 	public EyeData eyeData;
 	
 	public void resetEyeData() {
-		eyeData = decoder.eyeData;
+		eyeData = foxDecoder.eyeData;
 		if (eyeData != null)
 			eyeData.reset();
 //	

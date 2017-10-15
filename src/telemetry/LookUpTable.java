@@ -44,6 +44,7 @@ import common.Log;
  */
 public class LookUpTable {
 	
+	public String name; // the name, which is stored in the spacecraft file and used to index the tables
 	protected Map<Integer, Double> table = new LinkedHashMap<Integer, Double>();
 
 	/**
@@ -97,7 +98,7 @@ public class LookUpTable {
 		Entry<Integer, Double> pairs = null;
 		int key;
 		boolean firstKey = true;
-		double value = FramePart.ERROR_VALUE;
+		double value = FoxFramePart.ERROR_VALUE;
 	    while (it.hasNext()) {
 	        pairs = it.next();
 	        key = (Integer)pairs.getKey();
@@ -146,7 +147,7 @@ public class LookUpTable {
 		Entry<Integer, Double> pairs = null;
 		double key;
 		boolean firstKey = true;
-		int value = (int)FramePart.ERROR_VALUE;
+		int value = (int)FoxFramePart.ERROR_VALUE;
 	    while (it.hasNext()) {
 	        pairs = it.next();
 	        value = (Integer)pairs.getKey();
@@ -210,7 +211,7 @@ public class LookUpTable {
 			e.printStackTrace(Log.getWriter());
 
 		} catch (NumberFormatException n) {
-			Log.errorDialog("NUMBER FORMAT EXCEPTION", n.getMessage());
+			Log.errorDialog("NUMBER FORMAT EXCEPTION", "Loading Lookup table " + fileName + " " + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 
 		} catch (NoSuchElementException n) {

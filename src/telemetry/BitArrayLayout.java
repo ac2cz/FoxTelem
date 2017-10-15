@@ -42,6 +42,8 @@ public class BitArrayLayout {
 	public int NUMBER_OF_FIELDS = 0;
 	
 	public String fileName;
+	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
+	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
 	
 	public static final String NONE = "NONE";
 	
@@ -91,11 +93,16 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
 	public static final int CONVERT_JAVA_DATE = 33;
-
+	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
+	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
+	public static final int CONVERT_WOD_STORED = 36;
+	public static final int CONVERT_FOX1E_TXRX_TEMP = 37;
+	public static final int CONVERT_FOX1E_PA_CURRENT = 38;
+	
 	/**
 	 * Create an empty layout for manual init
 	 */
-	BitArrayLayout() {
+	public BitArrayLayout() {
 		
 	}
 	
@@ -107,6 +114,11 @@ public class BitArrayLayout {
 	 */
 	public BitArrayLayout(String f) throws FileNotFoundException, LayoutLoadException {
 		load(f);
+	}
+	
+	public boolean isSecondaryPayload() {
+		if (parentLayout != null) return true;
+		return false;
 	}
 	
 	public boolean hasFieldName(String name) {
@@ -220,9 +232,12 @@ public class BitArrayLayout {
 
 	}
 	
-	public String getTableCreateStmt() {
+	public String getTableCreateStmt(boolean wod) {
 		String s = new String();
-		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (wod)
+			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, satLatitude float, satLongitude float, satAltitude float,";
+		else
+			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
 		for (int i=0; i < fieldName.length; i++) {
 			s = s + fieldName[i] + " int,\n";
 		}

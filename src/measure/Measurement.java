@@ -3,7 +3,7 @@ package measure;
 import java.util.Date;
 
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 
 /**
  * 
@@ -59,7 +59,7 @@ public abstract class Measurement implements Comparable<Measurement> {
 	 */
 	public String toFile() {
 		String s = new String();
-		String captureDate = FramePart.fileDateFormat.format(date);
+		String captureDate = FoxFramePart.fileDateFormat.format(date);
 		s = s + captureDate + "," + id + "," + reset + "," + uptime + "," + type + ",";
 		for (int i=0; i < layout.NUMBER_OF_FIELDS-1; i++)
 			s = s + fieldValue[i] + ",";

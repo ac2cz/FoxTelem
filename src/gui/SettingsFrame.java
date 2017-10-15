@@ -84,6 +84,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox storePayloads;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
+	private JCheckBox cbUseDDEAzEl;
+	private JCheckBox cbUseDDEFreq;
+	private JCheckBox cbFoxTelemCalcsPosition;
+	private JCheckBox cbWhenAboveHorizon;
 	
 	boolean useUDP;
 	
@@ -103,7 +107,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		setTitle("Settings");
 //		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 650, 600);
+		setBounds(100, 100, 650, 630);
 		//this.setResizable(false);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -181,6 +185,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		btnBrowse = new JButton("Browse");
 		btnBrowse.addActionListener(this);
 		northpanel2.add(btnBrowse, BorderLayout.EAST);
+		
+		if (Config.logDirFromPassedParam) {
+			txtLogFileDirectory.setEnabled(false);
+			btnBrowse.setVisible(false);
+			JLabel lblPassedParam = new JLabel("  (Fixed at Startup)");
+			northpanel2.add(lblPassedParam, BorderLayout.EAST);
+		}
 //		TitledBorder eastTitle1 = new TitledBorder(null, "<html><body> <h3>Files and Directories</h3></body></html>", TitledBorder.LEADING, TitledBorder.TOP, null, null); 
 		TitledBorder eastTitle1 = title("Files and Directories");
 		northpanel.setBorder(eastTitle1);
@@ -239,9 +250,31 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//leftcolumnpanel2.add(cb);
 		//cbHtmlFormatting = addCheckBoxRow("Use HTML Formatting", Config.htmlFormatting, cb );
 		
-		leftcolumnpanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		//leftcolumnpanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 		
-		leftcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		//leftcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		
+		JPanel leftcolumnpanel3 = addColumn(leftcolumnpanel,6);
+		TitledBorder measureTitle = title("Measurements");
+		leftcolumnpanel3.setBorder(measureTitle);
+		if (Config.useDDEforAzEl) Config.foxTelemCalcsPosition = false;
+		cbUseDDEFreq = addCheckBoxRow("Log Freq from SatPC32 in AF mode", "In AF mode FoxTelem can read the CAT frequency from SatPC32.  It is stored alongside other measurements",
+				Config.useDDEforFreq, leftcolumnpanel3 );
+		cbUseDDEAzEl = addCheckBoxRow("Read position from SatPC32", "FoxTelem can read the position of the satellite from SatPC32.  It is stored alongside other measurements",
+				Config.useDDEforAzEl, leftcolumnpanel3 );
+		if (Config.isWindowsOs()) {
+			cbUseDDEFreq.setVisible(true);
+			cbUseDDEAzEl.setVisible(true);
+		} else {
+			cbUseDDEFreq.setVisible(false);
+			cbUseDDEAzEl.setVisible(false);
+		}
+		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
+				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
+		cbWhenAboveHorizon = addCheckBoxRow("Start Decoder when above horizon", "FoxTelem can start/stop the decoder when the spacecraft is above/below the horizon",
+				Config.whenAboveHorizon, leftcolumnpanel3 );
+			
+		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		// Add a right column with two panels in it
 		JPanel rightcolumnpanel = new JPanel();
@@ -278,6 +311,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		cbUseUDP.setEnabled(false);
 		txtPrimaryServer.setEnabled(false);
 		txtSecondaryServer.setEnabled(false);
+		
+		enableDependentParams();
 	}
 
 
@@ -330,13 +365,24 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	
 	private boolean validLocator() {
 		if (txtMaidenhead.getText().equalsIgnoreCase(Config.DEFAULT_LOCATOR) || 
-				txtMaidenhead.getText().equals("")) return false;
+				txtMaidenhead.getText().equals("")) {
+			JOptionPane.showMessageDialog(this,
+					"Enter a latitude/longitude or set the locator to a valid value",
+					"Format Error\n",
+					JOptionPane.ERROR_MESSAGE);
+			return false;
+		}
+		return true;
+	}
+	
+	private boolean validCallsign() {
+		if (txtCallsign.getText().equalsIgnoreCase(Config.DEFAULT_CALLSIGN) || 
+				txtCallsign.getText().equals("")) return false;
 		return true;
 	}
 	
 	private boolean validServerParams() {
-		if (txtCallsign.getText().equalsIgnoreCase(Config.DEFAULT_CALLSIGN) || 
-				txtCallsign.getText().equals("")) return false;
+		if (!validCallsign()) return false;
 		if (!validLocator()) return false;
 		if (!validLatLong()) return false;
 		if (!validAltitude()) return false;
@@ -385,7 +431,6 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 
 	private boolean validAltitude() {
 		int alt = 0;
-		if (!txtAltitude.getText().equalsIgnoreCase(Config.DEFAULT_ALTITUDE))
 			try {
 				alt = Integer.parseInt(txtAltitude.getText());
 			} catch (NumberFormatException n) {
@@ -397,7 +442,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			}
 		if ((alt < 0) ||(alt > 8484)) {
 			JOptionPane.showMessageDialog(this,
-					"Invalid altitude.  Must be between 0 and 8484.",
+					"Invalid altitude.  Must be between 0 and 8484m.",
 					"Format Error\n",
 					JOptionPane.ERROR_MESSAGE);
 			return false;
@@ -419,6 +464,22 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 	}
 
+	private void enableDependentParams() {
+		if (validLatLong() && validAltitude()) {
+			if (validCallsign())
+				cbUploadToServer.setEnabled(true);
+			else
+				cbUploadToServer.setEnabled(false);
+			cbFoxTelemCalcsPosition.setEnabled(true);
+			cbWhenAboveHorizon.setEnabled(true);
+			
+		} else {
+			cbUploadToServer.setEnabled(false);
+			cbFoxTelemCalcsPosition.setEnabled(false);
+			cbWhenAboveHorizon.setEnabled(false);
+		}
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnCancel) {
@@ -426,12 +487,16 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == txtLatitude || e.getSource() == txtLongitude ) {
 			updateLocator();
+			enableDependentParams();
 		}
 		if (e.getSource() == txtMaidenhead) {
 			updateLatLong();
+			enableDependentParams();
+			
 		}
 		if (e.getSource() == txtAltitude) {
 			validAltitude();
+			enableDependentParams();
 		}
 		if (e.getSource() == btnSave) {
 			boolean dispose = true;
@@ -444,10 +509,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						"You need to specify a Groundstation name to upload to the server.\n"
 						+ "Use an amateur radio callsign or something like 'Sunnytown Primary School'.\n"
 						+ "You also need to specify a valid latitude and longitude or a Maidenhead locator.\n"
-						+ "If you specify an altitude, then it needs to be a valid value or NONE.",
+						+ "If you specify an altitude, then it needs to be a valid value.",
 						"Missing Server Upload Settings",
 						JOptionPane.ERROR_MESSAGE);	
 				this.cbUploadToServer.setSelected(false);
+				Config.uploadToServer = cbUploadToServer.isSelected();
 			} else {
 				// grab all the latest settings
 				Config.callsign = txtCallsign.getText();
@@ -455,13 +521,18 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				if (validLatLong()) {
 					Config.latitude = txtLatitude.getText();
 					Config.longitude = txtLongitude.getText();
+				} else {
+					if (txtLatitude.getText().equalsIgnoreCase(Config.DEFAULT_LATITUDE) && txtLongitude.getText().equalsIgnoreCase(Config.DEFAULT_LONGITUDE))
+						dispose = true;
+					else 
+						dispose = false;
 				}
 				if (validLocator()) {
 					Config.maidenhead = txtMaidenhead.getText();
-				}
+				} else dispose = false;
 				if (validAltitude()) {
 					Config.altitude = txtAltitude.getText();
-				}
+				} else dispose = false;
 				Config.stationDetails = txtStation.getText();
 				Config.primaryServer = txtPrimaryServer.getText();
 				Config.secondaryServer = txtSecondaryServer.getText();
@@ -471,6 +542,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
+				
+				if (Config.isWindowsOs()) {
+					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
+					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
+				}
+				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
+				Config.whenAboveHorizon = cbWhenAboveHorizon.isSelected();
 				
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
@@ -494,7 +572,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 							"Are you sure you want to change the font size? It will close any open graphs.",
 							"Do you want to continue?",
 							JOptionPane.YES_NO_OPTION, 
-							JOptionPane.ERROR_MESSAGE,
+							JOptionPane.QUESTION_MESSAGE,
 							null,
 							options,
 							options[1]);
@@ -529,7 +607,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 								"Do you want to switch log file directories? It will close any open graphs.",
 								"Do you want to continue?",
 								JOptionPane.YES_NO_OPTION, 
-								JOptionPane.ERROR_MESSAGE,
+								JOptionPane.QUESTION_MESSAGE,
 								null,
 								options,
 								options[1]);
@@ -537,11 +615,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 						if (n == JOptionPane.YES_OPTION) {
 							Config.logFileDirectory = txtLogFileDirectory.getText();
 							Log.println("Setting log file directory to: " + Config.logFileDirectory);
+							Config.totalFrames = 0;
 							Config.initPayloadStore();
 							Config.initSequence();
 							Config.initServerQueue();
-
-							//MainWindow.refreshTabs(true);
+							Config.initSatelliteManager();
+							Config.mainWindow.initSatMenu();
+							
 							refreshTabs = true;
 							refreshGraphs = true;
 
@@ -550,12 +630,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				} 
 			}
 			
-			if (refreshTabs)
-				MainWindow.refreshTabs(refreshGraphs);
 			if (dispose) {
 				Config.save();
+				Config.storeGroundStation();
 				this.dispose();
 			}
+			if (refreshTabs)
+				MainWindow.refreshTabs(refreshGraphs);
 			// We are fully up, remove the database loading message
 			Config.fileProgress.updateProgress(100);
 		}
@@ -639,9 +720,24 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			}
 		}
 		
+		if (source == cbUseDDEAzEl) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				cbFoxTelemCalcsPosition.setSelected(false);
+			}
+		}
 		
-		if (source == cbUseUDP) { 
-
+		if (source == cbFoxTelemCalcsPosition) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				cbUseDDEAzEl.setSelected(false);
+			}
+		}
+		if (source == cbWhenAboveHorizon) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				if (!cbFoxTelemCalcsPosition.isSelected() && !cbUseDDEAzEl.isSelected())
+					cbFoxTelemCalcsPosition.setSelected(true);
+				MainWindow.inputTab.rdbtnFindSignal.setSelected(true);
+			}
+			
 		}
 	}
 
@@ -656,6 +752,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		if (e.getSource() == txtCallsign) {
 			if (txtCallsign.getText().length() > MAX_CALLSIGN_LEN) 
 				txtCallsign.setText(txtCallsign.getText().substring(0, MAX_CALLSIGN_LEN));
+			enableDependentParams();
 		}
 		if (e.getSource() == txtStation) {
 			if (txtStation.getText().length() > MAX_STATION_LEN) 
@@ -663,12 +760,15 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == txtLatitude || e.getSource() == txtLongitude ) {
 			updateLocator();
+			enableDependentParams();
 		}
 		if (e.getSource() == txtMaidenhead) {
 			updateLatLong();
+			enableDependentParams();
 		}
 		if (e.getSource() == txtAltitude) {
 			validAltitude();
+			enableDependentParams();
 		}
 		
 	}		

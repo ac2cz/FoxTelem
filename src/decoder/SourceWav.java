@@ -38,6 +38,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 	int frameSize = 0;
 	long bytesRead = 0;
 	long framesProcessed = 0;
+	double a, b;
 
 	//boolean fileDone = false;
 	byte[] readBuffer;
@@ -46,7 +47,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 	AudioInputStream audioStream = null; // The object used to read the stream of data from the wave file
 	
 	public SourceWav(String f) throws UnsupportedAudioFileException, IOException {
-		super("WavFile", 67200*3,0);
+		super("WavFile", 67200*3,0, true);
 		fileName = f;;
 		initWav();
 
@@ -54,13 +55,16 @@ public class SourceWav extends SourceAudio implements Runnable {
 
 	private void initWav() throws UnsupportedAudioFileException, IOException {
 		readBuffer = new byte[DEFAULT_READ_BUFFER_SIZE];
-//		circularBuffer = new CircularByteBuffer(67200*3);
+//		circularDoubleBuffer = new CircularByteBuffer(67200*3);
 	    Log.println("Wavefile: " + fileName);
 		File soundFile = null;
         soundFile = new File(fileName);
         audioStream = AudioSystem.getAudioInputStream(soundFile);
         audioFormat = audioStream.getFormat();
-
+        if (audioFormat.getChannels() == 2)
+        	storeStereo = true;
+        else
+        	storeStereo = false;
         Config.wavSampleRate = (int) audioFormat.getSampleRate();
         Log.println("Format: " + audioFormat);
         totalFrames = audioStream.getFrameLength();
@@ -84,7 +88,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 			e.printStackTrace(Log.getWriter());
 		}
 		// Give the decoder time to finish - not sure this makes any difference though??
-		if (circularBuffer[0].size() > 0) {
+		if (circularDoubleBuffer[0].size() > 0) {
 			try {
 				Thread.sleep(100);
 			} catch (InterruptedException e) {
@@ -116,7 +120,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 //			Log.println("wav running");
 			if (audioStream != null) {
 					int nBytesRead = 0;
-					if (circularBuffer[0].getCapacity() > readBuffer.length) {
+					if (circularDoubleBuffer[0].getCapacity() > readBuffer.length) {
 						try {
 							nBytesRead = audioStream.read(readBuffer, 0, readBuffer.length);
 							bytesRead = bytesRead + nBytesRead;
@@ -136,9 +140,35 @@ public class SourceWav extends SourceAudio implements Runnable {
 						}
 						//Log.println("No room in Buffer");
 					}
-					for(int i=0; i< nBytesRead; i+=2) {
-						//circularBuffer.add(readBuffer[i]);
-						circularBuffer[0].add(readBuffer[i],readBuffer[i+1]);
+					for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
+						//circularDoubleBuffer.add(readBuffer[i]);
+						if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
+							byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
+							if (audioFormat.isBigEndian()) {
+								b = Decoder.bigEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							} else {
+								b = Decoder.littleEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+							}
+						}
+						byte[] ia = {readBuffer[i],readBuffer[i+1]};
+						if (audioFormat.isBigEndian()) {
+							a = Decoder.bigEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						} else {
+							a = Decoder.littleEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+						}
+						if (audioFormat.getFrameSize() == 4 && storeStereo) {
+							if (channels == 0)
+								circularDoubleBuffer[0].add(a,b);
+							else
+								for (int chan=0; chan < channels; chan++)
+									circularDoubleBuffer[chan].add(a,b);
+						} else {
+							if (channels == 0)
+								circularDoubleBuffer[0].add(a);
+							else
+								for (int chan=0; chan < channels; chan++)
+									circularDoubleBuffer[chan].add(a);
+						}
 					}
 
 			}

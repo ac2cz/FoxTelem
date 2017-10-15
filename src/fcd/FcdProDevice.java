@@ -3,6 +3,8 @@ package fcd;
 import java.io.IOException;
 
 import common.Log;
+import device.DeviceException;
+import device.DevicePanel;
 import purejavahidapi.HidDeviceInfo;
 
 public class FcdProDevice extends FcdDevice {
@@ -206,14 +208,14 @@ public class FcdProDevice extends FcdDevice {
 			  TIG6E_P15_0DB=4;
 	
 	
-	public FcdProDevice(HidDeviceInfo fcdInfo) throws IOException, FcdException {
+	public FcdProDevice(HidDeviceInfo fcdInfo) throws IOException, DeviceException {
 		super(fcdInfo);
 		SAMPLE_RATE = 96000;
-		MIN_FREQ = 150000;
-		MAX_FREQ = 2050000000;
+		MIN_FREQ = 64000;
+		MAX_FREQ = 1700000;
 		}
 
-	public int setLnaGain(int val) throws FcdException {
+	public int setLnaGain(int val) throws DeviceException {
 
 		try {
 			int FCD_CMD_LEN = 2;
@@ -229,7 +231,7 @@ public class FcdProDevice extends FcdDevice {
 			if (report[0] == APP_SET_LNA_GAIN)
 				return 0;
 			else
-				throw new FcdException("Set LNA Command not executed: ");
+				throw new DeviceException("Set LNA Command not executed: ");
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -237,7 +239,7 @@ public class FcdProDevice extends FcdDevice {
 			return -1;
 		}
 	}
-	public int getLnaGain() throws IOException, FcdException {
+	public int getLnaGain() throws IOException, DeviceException {
 
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -251,10 +253,10 @@ public class FcdProDevice extends FcdDevice {
 				report[2] = (byte) (report[2] - 2);
 			return report[2];
 		} else
-			throw new FcdException("Get LNA Command not executed: ");
+			throw new DeviceException("Get LNA Command not executed: ");
 	}
 	
-public int setRFFilter(int filter) throws FcdException {
+public int setRFFilter(int filter) throws DeviceException {
     	
     	try {
     		int FCD_CMD_LEN = 2;
@@ -267,7 +269,7 @@ public int setRFFilter(int filter) throws FcdException {
     		if (report[0] == APP_SET_RF_FILTER)
     			return 0;
     		else
-    			throw new FcdException("Set RF Filter Command not executed: ");
+    			throw new DeviceException("Set RF Filter Command not executed: ");
     	} catch (IOException e) {
     		// TODO Auto-generated catch block
     		e.printStackTrace();
@@ -276,7 +278,7 @@ public int setRFFilter(int filter) throws FcdException {
     	}
     }
     
-    public String getRfFilter() throws IOException, FcdException {
+    public String getRfFilter() throws IOException, DeviceException {
 		int band = getBandInt();
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
@@ -301,18 +303,18 @@ public int setRFFilter(int filter) throws FcdException {
 			} else
 				return "";
 		} else
-			throw new FcdException("Get RF Filter Command not executed: ");
+			throw new DeviceException("Get RF Filter Command not executed: ");
 		return "";
     }
 
-    public String getBand() throws IOException, FcdException {
+    public String getBand() throws IOException, DeviceException {
     	int ret = getBandInt();
     	if (ret > -1 && ret < band.length)
     	return band[ret];
     	else
     		return "";
     }
-    public int getBandInt() throws IOException, FcdException {
+    public int getBandInt() throws IOException, DeviceException {
     	int FCD_CMD_LEN = 3;
     	byte[] report = new byte[FCD_CMD_LEN];
     	report[1] = 0;
@@ -324,9 +326,14 @@ public int setRFFilter(int filter) throws FcdException {
     		if (report[2] > -1 && report[2] < band.length)
     			return report[2];
     	} else
-    		throw new FcdException("Get RF Filter Command not executed: ");
+    		throw new DeviceException("Get RF Filter Command not executed: ");
     	return 99;
     }
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		return new FcdProPanel();
+	}
 
   //  public int setFcdFreq(long freq) throws FcdException {
    // 	super.setFcdFreq(freq);

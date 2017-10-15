@@ -10,7 +10,7 @@ import java.util.TimeZone;
 import common.Config;
 import common.Log;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 
 /**
  * 
@@ -63,7 +63,7 @@ public class PassMeasurement extends Measurement {
 		this.uptime = uptime;
 		this.type = type;
 		try {
-			this.date = FramePart.fileDateFormat.parse(dt);
+			this.date = FoxFramePart.fileDateFormat.parse(dt);
 		} catch (ParseException e) {
 			e.printStackTrace(Log.getWriter());
 		}
@@ -104,8 +104,8 @@ public class PassMeasurement extends Measurement {
 	}
 	
 	public String getDateFromLong(long dt) {
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String date = FramePart.fileDateFormat.format(dt);
+		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String date = FoxFramePart.fileDateFormat.format(dt);
 		return date;
 	}
 	
@@ -229,8 +229,8 @@ public class PassMeasurement extends Measurement {
 
 	private void loadDate(StringTokenizer st, int i) throws ParseException {
 		String dt1 = st.nextToken();
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		Date date1 = FramePart.fileDateFormat.parse(dt1);
+		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		Date date1 = FoxFramePart.fileDateFormat.parse(dt1);
 		fieldValue[i] = date1.getTime();
 
 	}
@@ -244,8 +244,8 @@ public class PassMeasurement extends Measurement {
 	 */
 	public String toFile() {
 		String s = new String();
-		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String captureDate = FramePart.fileDateFormat.format(date);
+		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String captureDate = FoxFramePart.fileDateFormat.format(date);
 		s = s + captureDate + "," + id + "," + reset + "," + uptime + "," + type + ",";
 		for (int i=0; i < layout.NUMBER_OF_FIELDS-1; i++)
 			s = s + fieldValue[i] + ",";

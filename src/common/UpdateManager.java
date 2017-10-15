@@ -48,7 +48,9 @@ import javax.swing.JOptionPane;
 
 public class UpdateManager implements Runnable {
 
-	private final long SERVER_UPDATE_PERIOD = 4*60*60*1000; //1*24*60*60*1000; // check every 4 hours for server changes
+	private final static long CHECK_PERIOD = 1*60*60*1000; // check every hourly for changes
+	private final static long SERVER_UPDATE_PERIOD = 4*60*60*1000; // check every 4 hours for server changes
+	public final static long KEP_UPDATE_PERIOD = 7*24*60*60*1000; // check every 7 days for TLE changes
 	
 	public UpdateManager() {
 		
@@ -56,16 +58,21 @@ public class UpdateManager implements Runnable {
 	
 	private void updateServerParams() throws IOException {
 		if (Config.serverParamsUrl != null) {
-			Log.println("Reading server params from: "+ Config.serverParamsUrl);
-			URL server = new URL(Config.serverParamsUrl);
-			BufferedReader in = new BufferedReader(
-					new InputStreamReader(server.openStream()));
-
-			//String availableVersion;
-			//availableVersion = in.readLine(); // read the first line
+			BufferedReader in = null;
 			Properties serverProperties = new Properties();
-			serverProperties.load(in);
-			in.close();
+			try {
+				Log.println("Reading server params from: "+ Config.serverParamsUrl);
+				URL server = new URL(Config.serverParamsUrl);
+				in = new BufferedReader(
+						new InputStreamReader(server.openStream()));
+
+				//String availableVersion;
+				//availableVersion = in.readLine(); // read the first line
+
+				serverProperties.load(in);
+			} finally {
+				if (in != null) in.close();
+			}
 			
 			try {
 				Log.println("Setting server params to: ");
@@ -107,7 +114,7 @@ public class UpdateManager implements Runnable {
 		}
 	}
 		
-	public void updateT0(Spacecraft sat) {
+	public void updateT0(FoxSpacecraft sat) {
 		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
 		String file = "FOX" + sat.foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -115,25 +122,31 @@ public class UpdateManager implements Runnable {
 		}
 		URL website;
 		FileOutputStream fos = null;
+		ReadableByteChannel rbc = null;
 		try {
 			website = new URL(urlString);
 
-			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			rbc = Channels.newChannel(website.openStream());
 			
 			fos = new FileOutputStream(file + ".tmp");
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
+			rbc.close();
+			File f1 = new File(file + ".tmp");
+			File f2 = new File(file);
 			if (sat.loadTimeZeroSeries(file + ".tmp")) {
 				// this is a good file so we can now use it as the default
 				SatPayloadStore.remove(file);
-				File f1 = new File(file + ".tmp");
-				File f2 = new File(file);
+				
 				SatPayloadStore.copyFile(f1, f2);
 				SatPayloadStore.remove(file + ".tmp");
 				return;
 			} else {
 				SatPayloadStore.remove(file + ".tmp");
-				sat.loadTimeZeroSeries(null); // load the default
+				if (f2.exists()) 
+					sat.loadTimeZeroSeries(file); // load the existing
+				else
+					sat.loadTimeZeroSeries(null); // load the default
 			}
 		} catch (MalformedURLException e) {
 			Log.println("Invalid location for T0 file: " + file);
@@ -147,6 +160,7 @@ public class UpdateManager implements Runnable {
 		} finally {
 			try {
 				if (fos != null) fos.close();
+				if (rbc != null) rbc.close();
 			} catch (IOException e) {
 				// ignore
 			}
@@ -162,27 +176,30 @@ public class UpdateManager implements Runnable {
         availableVersion = in.readLine(); // read the first line
         String line;
         String notes = "";
-        while ((line = in.readLine()) != null) {
-        	notes = notes + line + "\n";
-        }
-        Log.println("LATEST VERSION: "+availableVersion);
         try {
-        int maj = Config.parseVersionMajor(availableVersion);
-        int min = Config.parseVersionMinor(availableVersion);
-        //String point = Config.parseVersionPoint(availableVersion);
-        //System.out.println("MAJ: "+maj);
-        //System.out.println("MIN: "+min);
-        //System.out.println("POINT: "+point);
-        
-        if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
-        if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
-        } catch (NumberFormatException e) {
-        	e.printStackTrace(Log.getWriter());
-        	Log.println("Error parsing the latest version information.  Abandoning the check");
+        	while ((line = in.readLine()) != null) {
+        		notes = notes + line + "\n";
+        	}
+        	Log.println("LATEST VERSION: "+availableVersion);
+        	try {
+        		int maj = Config.parseVersionMajor(availableVersion);
+        		int min = Config.parseVersionMinor(availableVersion);
+        		//String point = Config.parseVersionPoint(availableVersion);
+        		//System.out.println("MAJ: "+maj);
+        		//System.out.println("MIN: "+min);
+        		//System.out.println("POINT: "+point);
+
+        		if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
+        		if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
+        	} catch (NumberFormatException e) {
+        		e.printStackTrace(Log.getWriter());
+        		Log.println("Error parsing the latest version information.  Abandoning the check");
+        	} 
+        } finally {
+        	if (in != null) in.close();
         }
-        in.close();
 	}
-	
+
 	private void recommendUpgrade(String ver, String notes) {
 		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
 				+ "Release information:\n" + notes;
@@ -239,6 +256,10 @@ public class UpdateManager implements Runnable {
 		}
 	}
 
+	private void updateKeps() {
+		Config.satManager.fetchTLEFile();
+	}
+	
 	boolean worldHasNotEnded = true;
 	
 	@Override
@@ -251,11 +272,14 @@ public class UpdateManager implements Runnable {
 			Log.println("Can not read the server paramaters, skipping");
 			e1.printStackTrace(Log.getWriter());
 		}
-
+		
+		// Update Keps is called at startup by the SatelliteManager.  This just calls it periodically if FoxTelem left running.
+		
 		if (Config.downloadT0FromServer) {
 			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 			for (int i=0; i<sats.size(); i++) {
-				updateT0(sats.get(i));
+				if (sats.get(i).isFox1())
+					updateT0((FoxSpacecraft)sats.get(i));
 			}
 		}
 
@@ -265,20 +289,27 @@ public class UpdateManager implements Runnable {
 			Log.println("Can not read the latest version, skipping");
 			e1.printStackTrace(Log.getWriter());
 		}
-	
+
+		long elapsed = 0;
 		while (worldHasNotEnded) {
 			try {
-				Thread.sleep(SERVER_UPDATE_PERIOD);
+				Thread.sleep(CHECK_PERIOD);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
-			try {
-				updateServerParams();
-			} catch (IOException e1) {
-				Log.println("Can not read the server paramaters, skipping");
-				e1.printStackTrace(Log.getWriter());
-			}
+			elapsed = elapsed + CHECK_PERIOD;
+			if (elapsed % SERVER_UPDATE_PERIOD == 0)
+				try {
+					updateServerParams();
+				} catch (IOException e1) {
+					Log.println("Can not read the server paramaters, skipping");
+					e1.printStackTrace(Log.getWriter());
+				}
+			
+			if (elapsed % KEP_UPDATE_PERIOD == 0)
+				updateKeps();
+				elapsed = 0;
 		}
 	}
 

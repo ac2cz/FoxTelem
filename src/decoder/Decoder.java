@@ -8,28 +8,23 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JOptionPane;
 
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
+
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
+import predict.PositionCalcException;
 import common.Config;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import filter.Filter;
-import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.FramePart;
 import telemetry.Header;
-import telemetry.HighSpeedHeader;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.HighSpeedFrame;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
+import uk.me.g4dpz.satellite.SatPos;
 
 /**
  * 
@@ -83,6 +78,7 @@ public abstract class Decoder implements Runnable {
 	private int bitsPerSample = 16;
 	protected int bytesPerSample = 4; // 4 bytes for stereo.  Updated by the program if file is mono
 	private int channels = 2; // one for mono two for stereo
+	boolean stereo; // true if both audio channels are used.  Otherwise the source is mono
 	public static final int MONO = 1;
 	public static final int STEREO = 2;
 	protected int currentSampleRate = 48000;
@@ -103,25 +99,21 @@ public abstract class Decoder implements Runnable {
 	public static final int MAX_VOLUME = 32000;
 	public static final int MIN_VOLUME = 600;// Use low value for 736R audio e.g. 100 ***** 600;
 	public static final int MIN_BIT_SNR = 2;// Above this threshold we unsquelch the audio
-	public static final int BIT_DISTANCE_THRESHOLD_PERCENT = 15; // use 20 for 736R audio *****15; // Distance that bits need to be apart to change the bit decision as % of average BIT HEIGHT
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
-	private byte[] abData;
-	private byte[] filteredData;
 	private double[] abBufferDouble;
 	private double[] abBufferDoubleFiltered; 
-	protected int currentFilterLength = 0;
-	protected double currentFilterFreq = 0d;
-	private boolean dataFresh = false; // true if we have just written new data for the GUI to read
+	
+	protected boolean dataFresh = false; // true if we have just written new data for the GUI to read
 	
 	
-    private int[][] dataValues = null;
+    protected int[][] dataValues = null;
     public EyeData eyeData;
     private int[] maxValue = null;
     private int[] minValue = null;
     private int[] firstZero = null;
     private int[] secondZero = null;
-    private boolean[] middleSample = null; // The sampled bit for the entire bucket
+    public boolean[] middleSample = null; // The sampled bit for the entire bucket
     
     /**
      * This holds the stream of bits that we have not decoded. Once we have several
@@ -129,39 +121,26 @@ public abstract class Decoder implements Runnable {
      */
     protected BitStream bitStream = null;  // Hold bits until we turn them into decoded frames
     
-    private int averageMax;
-    private int averageMin;
-    private int zeroValue;
+    protected int averageMax;
+    protected int averageMin;
+    protected int zeroValue;
 	
-    private int sampleNumber = 0;;
+    protected int sampleNumber = 0;;
    // private int windowNumber = 0;
     
-    private int framesDecoded = 0;
+    protected int framesDecoded = 0;
 
     private boolean squelch = true;
     private boolean tooLoud = false;
     private boolean clockLocked = false; // set to true when we have decoded a frame. Not reset until decode fails
     private boolean processing = true; // called to end the thread from the GUI
     private boolean done = true; // true when we have dropped out of the loop or when not running the loop
-	
-    private int lastBitValue = 0; // store the value of the last bit for use in the bit detection algorithm
-    private boolean lastBit = false;
-	
-  //  private boolean frameMarkerFound = false;
-  //  private int missedSyncWords = 0;
-  //  private int frameByteCount = 0;
-    
-    private long lastLoopTime = 0; // loop timer to slow down execution if we want to simulate decoding from a file
-    private long OPTIMAL_TIME = 0; // scaling factor for loop timer
-    private Frame decodedFrame = null;
     
     protected Filter filter = null;
     public Filter monitorFilter = null;
-//    private AGCFilter agcFilter = null;
     
     private SinkAudio sink = null; // The audio output device that we copy bytes to if we are monitoring the audio
     private boolean monitorAudio = false; // true if we are monitoring the audio
-	//protected boolean monitorFiltered; // try if we are monitoring audio after it is filtered
     
     /**
      * Given an audio source, decode the data in it,
@@ -184,19 +163,27 @@ public abstract class Decoder implements Runnable {
 	public int getFramesDecoded() { return framesDecoded; }
 	public int getBitsPerSample() { return bitsPerSample; }
 	public int getSampleWindowLength() { return SAMPLE_WINDOW_LENGTH; }
+	
+	
+	abstract protected void init();
+	abstract protected void sampleBuckets(); // the routine that samples the buckets and caches the binary data for analysis by clock recovery
+	abstract protected int recoverClockOffset(); // the routine that calculates how many samples to pull the audio so that the clock is aligned
+	abstract protected void processBitsWindow(); // add the bits to the bitStream and process them into frames
 	public Filter getFilter() { return filter; }
 	public boolean getBigEndian() { return bigEndian; }
 	public int getBucketSize() { return bucketSize; }
 	/**
 	 * This is called each time the decoder is started from the GUI
 	 */
+	
+	/* now in FoxDecoder
 	public void init() {
 		Performance.setEnabled(Config.debugPerformance);  // enable performance logging (or not)
 		
 		processing = true;
 		done = false;
 		
-		BUFFER_SIZE = bytesPerSample * SAMPLE_WINDOW_LENGTH * bucketSize;
+		BUFFER_SIZE = SAMPLE_WINDOW_LENGTH * bucketSize;
 
 		// Timing for each loop in milli seconds
 		OPTIMAL_TIME = 500*SAMPLE_WINDOW_LENGTH/BITS_PER_SECOND;
@@ -210,10 +197,10 @@ public abstract class Decoder implements Runnable {
 		
 		initWindowData();
 //		agcFilter = new AGCFilter();
-		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
 		monitorFilter.init(currentSampleRate, 3000, 256);
 	}
-
+    */
 	/**
 	 * This is once when the decoder is started
 	 */
@@ -332,20 +319,20 @@ public abstract class Decoder implements Runnable {
 	public int getAudioBufferSize() { return audioSource.getAudioBufferSize(); }
 	public int getAudioBufferCapacity() { return audioSource.getAudioBufferCapacity(); }
 	
-	public byte[] getAudioData() {
+	public double[] getAudioData() {
 		if (dataFresh==false) {
 			return null;
 		} else {
 			dataFresh=false;
-			return abData;
+			return abBufferDouble;
 		}
 	}
-	public byte[] getFilteredData() {
+	public double[] getFilteredData() {
 		if (dataFresh==false) 
 			return null;
 		else {
 			dataFresh=false;
-			return filteredData;
+			return abBufferDoubleFiltered;
 		}
 	}
 	
@@ -402,22 +389,26 @@ public abstract class Decoder implements Runnable {
 		Log.println("DECODER Exit");
 	}
 	
-	protected int readBytes(byte[] abData) {
+	protected int read(double[] abData) {
 		int nBytesRead = 0;
 		//Log.println("Reading bytes from channel: " + audioChannel);
-		nBytesRead = audioSource.readBytes(abData, audioChannel);	
+		nBytesRead = audioSource.read(abData, audioChannel);	
 		return nBytesRead;
 	}
 
 	
 	public void process() throws UnsupportedAudioFileException, IOException {
-		boolean stereo = true;
+		Log.println("Decoder using sample rate: " + currentSampleRate);
+		Log.println("Decoder using bucketSize: " + bucketSize);
+		Log.println("Decoder using SAMPLE_WIDTH: " + SAMPLE_WIDTH);
+		Log.println("Decoder using BUFFER_SIZE: " + BUFFER_SIZE);
+		Log.println("Decoder using BITS_PER_SECOND: " + BITS_PER_SECOND);
+		Log.println("Decoder CHANNELS: " + channels);
+		stereo = true;
 		if (audioSource.audioFormat.getChannels() == Decoder.MONO) stereo = false;
         int nBytesRead = 0;
-        abData = new byte[BUFFER_SIZE];  
-        filteredData = new byte[BUFFER_SIZE];  
-		abBufferDouble = new double[BUFFER_SIZE /bytesPerSample];
-		abBufferDoubleFiltered = new double[BUFFER_SIZE /bytesPerSample];
+ 		abBufferDouble = new double[BUFFER_SIZE];
+		abBufferDoubleFiltered = new double[BUFFER_SIZE];
 		
  /*       if (Config.writeDebugWavFile) {
         	WavDecoder.initDebugWav();
@@ -430,38 +421,37 @@ public abstract class Decoder implements Runnable {
         	//else
         	Log.println("FILTER: " + filter.toString()); //filters[Config.useFilterNumber].toString());
         Log.println("BUFFER: " + BUFFER_SIZE);
-        Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
+        //Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
         
 		startAudioThread();
-        
-        int count=0;
+
         while (nBytesRead != -1 && processing) {
         	Performance.startTimer("Setup");
     		resetWindowData();
     		Performance.endTimer("Setup");
         	if (nBytesRead >= 0) {
         		Performance.startTimer("Read");
-                nBytesRead = readBytes(abData);
+                nBytesRead = read(abBufferDouble);
                 if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
                 	if (sink != null)
-                		sink.write(abData, abData.length);
+                		sink.write(abBufferDouble);
                 }
                 if (Config.debugBytes) 
-                	if (nBytesRead != abData.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
+                	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
         		Performance.endTimer("Read");
         		Performance.startTimer("Filter");
 
                 if (Config.filterData) { // && !Config.highSpeed) {
-                	SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
+                	//SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
                 	/**
                 	 * Note that the filter converts the byte values to doubles and then back, so that
                 	 * we can play the filtered audio back to the user if requested.
                 	 */
                 	//filteredData = filter.filter(abData); //filters[Config.useFilterNumber].filter(abData);
                 	filter.filter(abBufferDouble, abBufferDoubleFiltered);
-                	SourceAudio.getBytesFromDoubles(abBufferDoubleFiltered, abBufferDoubleFiltered.length, stereo, filteredData);
+                	//SourceAudio.getBytesFromDoubles(abBufferDoubleFiltered, abBufferDoubleFiltered.length, stereo, filteredData);
                 } else
-                	filteredData = abData;
+                	abBufferDoubleFiltered = abBufferDouble;
                 if (Config.filterOutputAudio) {
 //                	monitorFilter.filter(abBufferDouble, abBufferDouble);
  //               	SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, abData);
@@ -469,14 +459,13 @@ public abstract class Decoder implements Runnable {
                 Performance.endTimer("Filter");
                 Performance.startTimer("Monitor");
 
-                dataFresh = true;
                 if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
-        			sink.write(filteredData, abData.length);
+        			sink.write(abBufferDoubleFiltered);
                 }
                 Performance.endTimer("Monitor");
                 Performance.startTimer("Bucket");
 
-                bucketData(filteredData);
+                bucketData(abBufferDoubleFiltered);
                 Performance.endTimer("Bucket");
 
         	}
@@ -489,10 +478,10 @@ public abstract class Decoder implements Runnable {
         	Performance.startTimer("ClockSync");
 
         	if (!clockLocked) {
-        		byte[] clockAdvance;
+        		double[] clockAdvance;
         		clockAdvance = recoverClock(1);
         		if (clockAdvance != null && Config.recoverClock ) {
-        			rebucketData(filteredData, clockAdvance);    				
+        			rebucketData(abBufferDoubleFiltered, clockAdvance);    				
         		}
         	}
         	eyeData.calcAverages();
@@ -512,6 +501,7 @@ public abstract class Decoder implements Runnable {
     		} else {
     			squelch = false;
     		}
+            dataFresh = true;
 
         	eyeData.setFreshData(true);
         	Performance.endTimer("ClockSync");
@@ -523,49 +513,6 @@ public abstract class Decoder implements Runnable {
 
         	Performance.endTimer("BitsWindow");
 
-        	Performance.startTimer("debugValues");
-
-        	if (Config.debugValues /*&& framesDecoded == writeAfterFrame*/) {
-        		if (Config.debugBytes) printBytes(abData);
-        		//    			if (debugBytes) printBuckets();
-        		//if (frameMarkerFound)  
-        		printBucketsValues();
-        		//printByteValues();
-        	}
-        	if (Config.debugValues) count ++;
-        	if (count == 3) System.exit(0); /// DROP OUT FOR TEST PURPOSES
-        	if (Config.DEBUG_COUNT != -1 && count > Config.DEBUG_COUNT)
-        		nBytesRead = -1; /// DROP OUT FOR TEST PURPOSES
-
-        	Performance.endTimer("debugValues");
-
-        	Performance.startTimer("findSync");
-        	boolean found = bitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
-        	Performance.endTimer("findSync");
-        	if (found) {
-        		processPossibleFrame();
-        	}
-        	//windowNumber++;
-
-        	
-            Performance.startTimer("Yield");
-        	if (Config.realTimePlaybackOfFile) {
-        		long now = System.nanoTime()/1000000;
-        		long sleepTime = (lastLoopTime-now + OPTIMAL_TIME);
-        		lastLoopTime = now;
-        		if (sleepTime > 0)
-        			try {
-        				Thread.sleep( sleepTime );
-        			} catch (InterruptedException e) {
-        				Log.println("Mainloop Sleep Interrupted!");
-        			} 
-        		else {
-        			Thread.yield();
-        		}
-        		
-        	}
-        	
-    		Performance.endTimer("Yield");
         }
         if (sink != null)
         	sink.closeOutput();
@@ -574,146 +521,29 @@ public abstract class Decoder implements Runnable {
         Log.println("Frames Decoded: " + framesDecoded);
         cleanup();
         done = true;
-		Performance.printResults();
-		
+		Performance.printResults();		
 
     }
 	
-	protected void processPossibleFrame() {
-		
-		/*
-		 * Cause the audio to glitch for testing
-		 *
-		if (Config.debugAudioGlitches)
-			try {
-				Thread.sleep(400);
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
-		*/
-		
-		//Performance.startTimer("findFrames");
-		decodedFrame = bitStream.findFrames();
-		//Performance.endTimer("findFrames");
-		if (decodedFrame != null && !decodedFrame.corrupt) {
-			Performance.startTimer("Store");
-			// Successful frame
-			eyeData.lastErasureCount = bitStream.lastErasureNumber;
-			eyeData.lastErrorsCount = bitStream.lastErrorsNumber;
-			//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
-			if (Config.storePayloads) {
-				if (decodedFrame instanceof SlowSpeedFrame) {
-					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FramePart payload = ssf.getPayload();
-					SlowSpeedHeader header = ssf.getHeader();
-					if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-					
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
-				} else {
-					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
-					HighSpeedHeader header = hsf.getHeader();
-					PayloadRtValues payload = hsf.getRtPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-					PayloadMaxValues maxPayload = hsf.getMaxPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
-					PayloadMinValues minPayload = hsf.getMinPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
-					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
-					if (Config.satManager.hasCamera(header.getFoxId())) {
-						PayloadCameraData cameraData = hsf.getCameraPayload();
-						if (cameraData != null)
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
-					}
-					if (Config.satManager.hasHerci(header.getFoxId())) {
-						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
-						if (herciDataSet != null)
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
-					}
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder2();
-				}
-
-			}
-			if (Config.uploadToServer)
-				try {
-					Config.rawFrameQueue.add(decodedFrame);
-				} catch (IOException e) {
-					// Don't pop up a dialog here or the user will get one for every frame decoded.
-					// Write to the log only
-					e.printStackTrace(Log.getWriter());
-				}
-			framesDecoded++;
-			Performance.endTimer("Store");
-		} else {
-			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
-			clockLocked = false;
-		}
-	}
-		
-
-	private void addMeasurements(Header header, Frame frame) {
-		// Pass Measurements
-		if (Config.passManager.isNewPass()) {
-			Log.println("Setting reset/uptime for new pass");
-			Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
-		} else {
-			Config.passManager.setLastResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
-		}
-
-		// Real time measurements
-		RtMeasurement rtMeasurement = new RtMeasurement(header.getFoxId(), header.getResets(), header.getUptime(), SatMeasurementStore.RT_MEASUREMENT_TYPE);
-		rtMeasurement.setBitSNR(eyeData.bitSNR);
-		rtMeasurement.setErrors(bitStream.lastErrorsNumber);
-		rtMeasurement.setErasures(bitStream.lastErasureNumber);
-		SatPc32DDE satPC = new SatPc32DDE();
-
-		if (Config.useDDEforAzEl) {
-			boolean connected = satPC.connect();
-			if (connected) {
-					rtMeasurement.setAzimuth(satPC.azimuth);
-					rtMeasurement.setElevation(satPC.elevation);
-			}
-		}
-		if (this.audioSource instanceof SourceIQ) {
-			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
-			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK);
-			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNR;
-			rtMeasurement.setCarrierFrequency(freq);
-			rtMeasurement.setRfPower(sig);
-			rtMeasurement.setRfSNR(rfSnr);
-		} else {
-			if (Config.useDDEforFreq) {
-				rtMeasurement.setCarrierFrequency(satPC.downlinkFrequency);
-			}
-		}
-		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
-		frame.setMeasurement(rtMeasurement);
-	}
+	
 	
 	/**
 	 * calculate the clock offset from the data.  Use the offset to pull the clock forward for the next period.  Reprocess the
 	 * current window if the clock offset was large
 	 */
-	protected byte[] recoverClock(int factor) {
+	protected double[] recoverClock(int factor) {
     	int transitionPoint = 0; // The average offset of the start/end of a pulse in each bucket
     	transitionPoint = recoverClockOffset();
     	
     	// There are 240 samples in a slow speed bucket, so if we are within 24 samples, then the start/end is in the first 10% and we do nothing
     	// There are 5 samples in high speed bucket, so we need to transition between sample 0 and 1.
     	if (transitionPoint > bucketSize/CLOCK_TOLERANCE && transitionPoint < bucketSize-bucketSize/CLOCK_TOLERANCE) {
-    		int clockAdvance = (transitionPoint-bucketSize/CLOCK_TOLERANCE)*bytesPerSample;  // We must consume a multiple of BYTES_PER_SAMPLE (4), otherwise we offset from the byte order of the samples
-    		byte[] clockData = new byte[clockAdvance * factor];;
+    		int clockAdvance = (transitionPoint-bucketSize/CLOCK_TOLERANCE);  // We must consume a multiple of BYTES_PER_SAMPLE (4), otherwise we offset from the byte order of the samples
+    		double[] clockData = new double[clockAdvance * factor];;
     		if (Config.debugClock) Log.println("Advancing clock " + clockAdvance/bytesPerSample + " samples");
    // 		if (Config.debugValues)
    // 			System.out.println(-60000); // clock change marker
-    		int nBytesRead = readBytes(clockData);
+    		int nBytesRead = read(clockData);
     		if (nBytesRead != (clockAdvance * factor)) {
     			if (Config.debugClock) Log.println("ERROR: Could not advance clock");
     		} else {
@@ -735,7 +565,7 @@ public abstract class Decoder implements Runnable {
 	 * 
 	 * @param clockAdvance
 	 */
-	protected void rebucketData(byte[] abData, byte[] clippedData) {
+	protected void rebucketData(double[] abData, double[] clippedData) {
 		appendClippedData(abData, clippedData);
     	resetWindowData();
 		bucketData(abData);
@@ -750,7 +580,7 @@ public abstract class Decoder implements Runnable {
 	 * @param abData
 	 * @param clippedData
 	 */
-	protected void appendClippedData(byte[] data, byte[] clippedData) {
+	protected void appendClippedData(double[] data, double[] clippedData) {
 		// Pull the data back in the abByte array
 		for (int i=clippedData.length; i<data.length; i++) {
 			data[i-clippedData.length] = data[i];
@@ -781,55 +611,24 @@ public abstract class Decoder implements Runnable {
 	 * Divide the sampled data into buckets, based on the perfect clock
 	 * @param abData
 	 */
-	protected void bucketData(byte[] abData) {
+	protected void bucketData(double[] abData) {
 		int k = 0; // position in the data stream where we read data
 		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			minValue[i] = 256*256;
 			
-			if (channels == STEREO) {
-				for (int j=0; j < bucketSize; j++ ) { // sample size is 4, 2 bytes per channel 				
-					byte[] by = new byte[2];
-					if (Config.useLeftStereoChannel) {     // THIS PROBABLLY SHOULD BE PASSED IN AS PART OF INIT, BUT WE WILL ALLOW IT TO BE CHANGED LIVE BY THE USER IN THE GUI
-						by[0] = abData[k];
-						by[1] = abData[k+1];
-					} else {
-						by[0] = abData[k+2];  
-						by[1] = abData[k+3];
-					}
-					int value;
-					if (bigEndian)
-						value = bigEndian2(by, bitsPerSample);
-					else
-						value = littleEndian2(by, bitsPerSample);
-					dataValues[i][j] = value; 
-					eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
-
-					if (value > maxValue[i]) maxValue[i] = value;
-					if (value < minValue[i]) minValue[i] = value;
-					k=k+4; // move forward 4 to skip the next two bytes on the other stereo channel
-				}
-			} else {
-				// MONO
+				// AT THIS POINT ASSUME MONO STREAM OF DOUBLES that we need to convert to
+				// integer samples in the buckets
+				// Doubles are from +/-1.  The samples are from +/- 32k
 				for (int j=0; j < bucketSize; j++ ) { // sample size is 2, 2 bytes per channel 				
-					byte[] by = new byte[2];
-					by[0] = abData[k];
-					by[1] = abData[k+1];
-					int value;
-					if (bigEndian)
-						value = bigEndian2(by, bitsPerSample);
-					else
-						value = littleEndian2(by, bitsPerSample);
+					int value = (int)(abData[k] * 32768.0);
 					dataValues[i][j] = value; 
 					eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
 
 					if (value > maxValue[i]) maxValue[i] = value;
 					if (value < minValue[i]) minValue[i] = value;
-					k=k+2; // move forward 2
-				
+					k=k+1; // move forward 1
 				}
-			}
-		
 			averageMax = averageMax + maxValue[i];
 			averageMin = averageMin + minValue[i];
 		}
@@ -846,224 +645,94 @@ public abstract class Decoder implements Runnable {
 		
 	}
 	
-	protected void sampleBuckets() {
-		if (this instanceof Fox9600bpsDecoder) 
-			sampleBucketsAgainstZeroCrossover();
-		else
-			sampleBucketsVsDistanceToLastBit();
-		//sampleBucketsAgainstThresholdChanges();
-	}
-	
-	/**
-	 * This algorithm samples the bit at the center and compares it to the zero crossing.  It also calculates the level
-	 * change from the previous bit.  If the bit has  not changed a sufficient amount, then we determine this is still
-	 * the same value as the previous bit, even if we have passed the zero level.  This compensates for deteriation of 
-	 * long bit streams.
-	 * 
-	 * THIS SHOULD BE UPDATED TO ONLY COMPENSATE IF IT IS THE 4TH BIT IN A ROW WITH THE SAME VALUE AND IF THE SEQUENCE LOOKS
-	 * LIKE A SYNC WORD.....
-	 * 
-	 * THIS CAN ALSO BE IN CONJUNCTION WITH THE 10b BEST GUESS ALGORITHM THAT I NEED TO IMPLEMENT.
-	 * 
-	 */
-	protected void sampleBucketsVsDistanceToLastBit() {
-				
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			sampleNumber++;
-			int sampleSum = 0;
-			int samples = 0;
-			// Making upper limit <= means we decode 1 less frame in test set.... Need to investigate
-			// because this is needed for HS frames and should not make a difference for LS.
-//			for (int s=BUCKET_SIZE/2-SAMPLE_WIDTH; s < BUCKET_SIZE/2+SAMPLE_WIDTH; s++) {
-			for (int s=bucketSize/2-SAMPLE_WIDTH; s <= bucketSize/2+SAMPLE_WIDTH; s++) {
-				sampleSum = sampleSum + dataValues[i][s];
-				samples++;
-			}
-			sampleSum = sampleSum/samples; // get the average value for this bit
-	
-			
-			// NOTE THAT THE BIT DISTANCE DOES NOT WORK IF WE ARE RE-PROCESSING DUE TO CLOCK MOVE
-			int bitDistance = Math.abs(lastBitValue-sampleSum);
-			int bitHeight = averageMax-averageMin;
-			if (bitHeight == 0) bitHeight = 1; // avoid divide by zero error
-			int movePercent = bitDistance*100/bitHeight;
-			
-			if (sampleSum >= zeroValue) {
-				// We are above the zero threshold.  Decide on "1" unless the last value was "0" and we moved less
-				// than threshold
-				
-				if (lastBit == false) {
-					if ( movePercent < BIT_DISTANCE_THRESHOLD_PERCENT) {
-						middleSample[i] = false; // we did not move far enough, stay at "0"
-						eyeData.setLow(sampleSum);
-					} else {
-						middleSample[i] = true;
-						eyeData.setHigh(sampleSum);
-					}
-				} else {
-					middleSample[i] = true;
-					eyeData.setHigh(sampleSum);
-				}
-				
-			} else { 
-				// We are below the zero threshold.  Decide on "0" unless the last value was "1" and we moved less
-				// than threshold
-				if (lastBit == true) {
-					if (movePercent < BIT_DISTANCE_THRESHOLD_PERCENT) {
-						middleSample[i] = true; // we did not move far enough, stay at "1"
-						eyeData.setHigh(sampleSum);
-					} else {
-						middleSample[i] = false;
-						eyeData.setLow(sampleSum);
-					}
-				} else {
-					middleSample[i] = false;
-					eyeData.setLow(sampleSum);
-				}
-			}
-			
-			lastBitValue = sampleSum;
-			lastBit = middleSample[i];
+	protected void addMeasurements(Header header, Frame frame, int lastErrorsNumber, int lastErasureNumber) {
+		// Pass Measurements
+		if (Config.passManager.isNewPass()) {
+			Log.println("Setting reset/uptime for new pass");
+			Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+		} else {
+			Config.passManager.setLastResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
 		}
-	}
 
-	/**
-	 * Use the zerovalue that we have calculated for this window of data to determine if each bucket is a 1 or a zero
-	 * 
-	 */
-	protected void sampleBucketsAgainstZeroCrossover() {
-				
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			sampleNumber++;
-			int sampleSum = 0;
-			int samples = 0;
-			// Making upper limit <= means we decode 1 less frame in test set.... Need to investigate
-			// because this is needed for HS frames and should not make a difference for LS.
-//			for (int s=BUCKET_SIZE/2-SAMPLE_WIDTH; s < BUCKET_SIZE/2+SAMPLE_WIDTH; s++) {
-			for (int s=bucketSize/2-SAMPLE_WIDTH; s <= bucketSize/2+SAMPLE_WIDTH; s++) {
-				sampleSum = sampleSum + dataValues[i][s];
-				samples++;
-				
+		// Real time measurements
+		RtMeasurement rtMeasurement = new RtMeasurement(header.getFoxId(), header.getResets(), header.getUptime(), SatMeasurementStore.RT_MEASUREMENT_TYPE);
+		rtMeasurement.setBitSNR(eyeData.bitSNR);
+		rtMeasurement.setErrors(lastErrorsNumber);
+		rtMeasurement.setErasures(lastErasureNumber);
+		SatPc32DDE satPC = null;
+		DateTime timeNow = new DateTime(DateTimeZone.UTC);
+		Spacecraft sat = Config.satManager.getSpacecraft(header.id);
+		SatPos pos = null;
+		if (Config.useDDEforAzEl) {
+			satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				if (Config.useDDEforAzEl) {
+					rtMeasurement.setAzimuth(satPC.azimuth);
+					rtMeasurement.setElevation(satPC.elevation);
+				}
+
 			}
-			sampleSum = sampleSum/samples; // get the average value
-			
-			if (sampleSum >= zeroValue) {
-				middleSample[i] = true;
-				eyeData.setHigh(sampleSum);
+		} else if (Config.foxTelemCalcsPosition){
+			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
+			if (Config.GROUND_STATION != null)
+				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
+					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
+				} else {
+					timeNow = new DateTime(DateTimeZone.UTC);
+					sat = Config.satManager.getSpacecraft(header.id);
+					try {
+						pos = sat.getSatellitePosition(timeNow);
+						if (Config.debugFrames)
+							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
+					} catch (PositionCalcException e) {
+						// We wont get NO T0 as we are using the current time, but we may have missing keps
+						if (e.errorCode == FramePart.NO_TLE)
+						Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the satellite position, but no TLE was found.  Make sure\n"
+								+ "the name of the spacecraft matches the name of the satellite in the nasabare.tle file from amsat.  This file is\n"
+								+ "automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+								+ "To turn off this feature go to the settings panel and uncheck 'Fox Telem calculates position'.");
+					}	
+					if (pos != null) {
+						rtMeasurement.setAzimuth(FramePart.radToDeg(pos.getAzimuth()));
+						rtMeasurement.setElevation(FramePart.radToDeg(pos.getElevation()));
+					}
+				}
+		}
+		if (this.audioSource instanceof SourceIQ) {
+			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
+			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK);
+			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNR;
+			rtMeasurement.setCarrierFrequency(freq);
+			rtMeasurement.setRfPower(sig);
+			rtMeasurement.setRfSNR(rfSnr);
+		} else {
+			if (Config.useDDEforFreq) {
+				if (satPC == null)
+					satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected)
+					rtMeasurement.setCarrierFrequency(satPC.downlinkFrequency);
 			} else {
-				middleSample[i] = false;
-				eyeData.setLow(sampleSum);
-			}
-		}
-	}
-
-
-	
-	protected void processBitsWindow() {
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			bitStream.addBit(middleSample[i]);
-		}
-	}
-
-	int rd = 0;
-	int nextRd = 0;
-	protected void debugBitsWindow() {
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i+=10) {
-			boolean[] b = new boolean[10];
-			boolean[] b8 = new boolean[8];
-			for (int k=0; k<10; k++)
-				b[k] = middleSample[i+k];
-			
-			int word = BitStream.binToInt(b);
-			rd = Code8b10b.getRdSense10b(word, flipReceivedBits);
-			BitStream.printBitArray(b);
-			System.out.println("Expected: " + nextRd + " rd: " + rd);
-			nextRd = Code8b10b.getNextRd(word, flipReceivedBits);
-			byte word8b;
-			try {
-				word8b = Code8b10b.decode(word, flipReceivedBits);
-				Log.print(i+ ": 10b:" + Decoder.hex(word));	
-				
-				Log.print(" 8b:" + Decoder.hex(word8b));
-				Log.println("");
-				b8 = BitStream.intToBin8(word8b);
-				BitStream.printBitArray(b8);
-			} catch (LookupException e) {
-				Log.print(i+ ": 10b:" + Decoder.hex(word));	
-				Log.print(" 8b: -1");
-				Log.println("");
-			}
-		}
-	}
-	
-	
-	
-	
-
-	/**
-	 * Check the correlation between the clock and the data.  Determine if we should move the clock forward or backwards
-	 * The clock will then be adjusted for the next window
-	 * 
-	 * If the clock is perfectly aligned, then the rise of fall would happen in the first and last samples of the bucket.  We will define sync when
-	 * the transition happens in the first 10% of the bucket.  This will guarantee that the middle of the bucket is stable
-	 * 
-	 * If we calculate that we are offset from that position then we will move the clock halfway to the right position.  It should then sync over a few samples.
-	 * If it is inside the 10%, on average, then we do nothing.
-	 * 
-	 * @return
-	 */
-	public int recoverClockOffset() {
-		int transitionPoint[] = new int[SAMPLE_WINDOW_LENGTH];
-		int averageTransition = 0;
-		int numberOfTransitions = 0;
-		boolean foundTransition = false;
-		int threshold = (averageMax - averageMin) / CLOCK_REOVERY_ZERO_THRESHOLD;  // 10 better for High Speed?
-	//	int threshold = (averageMax - averageMin) / 20 ; // Use 5% of the distance between max and min as a threhold value to avoid noise
-		int initialValue = 0; // This holds the logic value while we are scanning, to see if it changes
-		
-		// run through the whole sample window, looking in each bucket for a clock change
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			if (i>0) {
-				if (dataValues[i-1][bucketSize-1] >= zeroValue + threshold) initialValue = 1; else initialValue = 0;  // default the initial value based on last sample in the previous bucket
-		//		if (dataValues[i][0] >= zeroValue) initialValue = 1; else initialValue = 0;  // default the initial value based on last sample in the previous bucket
-			}
-			foundTransition = false; // reset the flag at the start of each bucket
-			for (int j=0; j<bucketSize; j++) {
-				
-				if (dataValues[i][j] > (zeroValue + threshold) && initialValue == 0) {
-					if (!foundTransition) {
-						transitionPoint[i] = j;
-						initialValue = 1;
-						foundTransition = true;
-						numberOfTransitions ++;
-					}
-					else
-						;//System.out.println("Multiple LOW-HIGHTransitions in window/bucket: " + i + " " + j);
-					
-				} 
-				if (dataValues[i][j] < (zeroValue - threshold) && initialValue == 1) {
-					if (!foundTransition) {			
-						transitionPoint[i] = j;
-						initialValue = 0;
-						foundTransition = true;
-						numberOfTransitions ++;
-					}
-					else
-						;//System.out.println("Multiple HIGH-LOW Transitions in window/bucket: " + i + " " + j);
+				// Do nothing for now.  Need to work out how to get doppler from predict
+				/* Use Fox Predict calcualtion for frequency in AF mode
+				if (pos == null) {
+					timeNow = new DateTime(DateTimeZone.UTC);
+					sat = Config.satManager.getSpacecraft(header.id);
+					pos = sat.getSatellitePosition(timeNow);
+				}
+				if (pos != null) {
+					rtMeasurement.setCarrierFrequency(pos.FREQ);
 					
 				}
-			}
-			averageTransition = averageTransition + transitionPoint[i];
-			
-		}
-		if (numberOfTransitions > 0)
-			averageTransition = averageTransition/numberOfTransitions;
-		if (Config.debugClock) Log.println("CLOCK: Average First Transition at: " + averageTransition);
-		
-		return averageTransition;
-	}
-	
+				*/
 
+			}
+		}
+		
+		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
+		frame.setMeasurement(rtMeasurement);
+	}	
 	
 	/**
 	 * Print the data for debug purposes so that we can graph it in excel
@@ -1105,37 +774,6 @@ public abstract class Decoder implements Runnable {
 //		System.out.println("Zero: " + zeroValue);
 	}
 
-	/**
-	 * Print the data for debug purposes so that we can graph it in excel
-	 * Include markers for the start and end of buckets and for the value of the mid point sample
-	 */
-	protected void printByteValues() {
-		byte[] by = new byte[2];
-		int k = 0;
-	//		System.out.println(-40000); // start of window
-		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
-//			for (int m=0; m<4; m++)
-	//			System.out.println(40000); // start of bucket marker
-			int step = 10;
-			if (this instanceof Fox9600bpsDecoder) {
-				step = 1;
-			}
-			
-			for (int j=0; j<bucketSize; j+=step) { // 20) {
-				//if (j== BUCKET_SIZE/4) System.out.print("** ");
-				//if (j==BUCKET_SIZE/2 && Config.debugBits) {
-				
-//				by[0] = filteredData[k];
-//				by[1] = filteredData[k+1];
-				by[0] = abData[k];
-				by[1] = abData[k+1];
-				System.out.println(littleEndian2(by, bitsPerSample));
-				//if (j== BUCKET_SIZE/4) System.out.print(" ** ");
-				k +=4;
-			}
-		}
-	}
 	
 	public static void printBytes(byte b[]) {
 		for (int i=0; i < b.length; i++) {

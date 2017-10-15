@@ -42,7 +42,7 @@ import gui.MainWindow;
  */
 public class SatPayloadTable {
 
-	public static final int MAX_DATA_LENGTH = 61;
+	public static final int MAX_DATA_LENGTH = 62;
 	public static final int MAX_SEGMENT_SIZE = 1000;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
@@ -65,7 +65,7 @@ public class SatPayloadTable {
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	private String getDir() {
+	public static String getDir() {
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator ;
@@ -166,23 +166,29 @@ public class SatPayloadTable {
 	 * Return a single field so that it can be graphed or analyzed
 	 * @param name
 	 * @param period
-	 * @param fox
+	 * @param id
 	 * @param fromReset
 	 * @param fromUptime
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime) throws IOException {
+	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
 		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
+		
+		int COLUMNS = 3;
+		double[] lat = null;
+		double[] lon = null;
+		if (positionData)
+			COLUMNS = 5;
 		
 		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {
 			// we need to find the start point
-			start = rtRecords.getNearestFrameIndex(fox.foxId, fromUptime, fromReset);
+			start = rtRecords.getNearestFrameIndex(id.foxId, fromUptime, fromReset);
 			if (start == -1 ) start = rtRecords.size()-period;
 			end = start + period;
 		}
@@ -193,23 +199,34 @@ public class SatPayloadTable {
 		double[] results = new double[end-start];
 		double[] upTime = new double[end-start];
 		double[] resets = new double[end-start];
-		
+		if (positionData) {
+			lat = new double[end-start];
+			lon = new double[end-start];
+		}
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
 			if (Config.displayRawValues)
 				results[j] = rtRecords.get(i).getRawValue(name);
 			else
-				results[j] = rtRecords.get(i).getDoubleValue(name, fox);
+				results[j] = rtRecords.get(i).getDoubleValue(name, id);
+			if (positionData) {
+				lat[j] = rtRecords.get(i).satLatitude;
+				lon[j] = rtRecords.get(i).satLongitude;
+			}
 			upTime[j] = rtRecords.get(i).getUptime();
 			resets[j--] = rtRecords.get(i).getResets();
 		}
 		
-		double[][] resultSet = new double[3][end-start];
+		double[][] resultSet = new double[COLUMNS][end-start];
 		resultSet[PayloadStore.DATA_COL] = results;
 		resultSet[PayloadStore.UPTIME_COL] = upTime;
 		resultSet[PayloadStore.RESETS_COL] = resets;
-		
+		if (positionData) {
+			resultSet[PayloadStore.LAT_COL] = lat;
+			resultSet[PayloadStore.LON_COL] = lon;
+			
+		}
 		return resultSet;
 	}
 	
@@ -411,16 +428,17 @@ public class SatPayloadTable {
         	dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-
+        	Log.println(e.getMessage());
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        	Log.println(n.getMessage());
         } finally {
         	dis.close();
         }
 
 	}
 
-	private FramePart addLine(String line) {
+	private FoxFramePart addLine(String line) {
 		StringTokenizer st = new StringTokenizer(line, ",");
 		String date = st.nextToken();
 		int id = Integer.valueOf(st.nextToken()).intValue();
@@ -435,28 +453,30 @@ public class SatPayloadTable {
 					+ "\nProgram will now exit");
 			System.exit(1);
 		}
-		FramePart rt = null;
-		if (type == FramePart.TYPE_REAL_TIME) {
-			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getRtLayout(id));
-		} else
-			if (type == FramePart.TYPE_MAX_VALUES) {
-				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getMaxLayout(id));
+		FoxFramePart rt = null;
+		if (type == FoxFramePart.TYPE_REAL_TIME) {
+			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.REAL_TIME_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_WOD) {
+			rt = new PayloadWOD(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_MAX_VALUES) {
+			rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
 
-			} else
-				if (type == FramePart.TYPE_MIN_VALUES) {
-					rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getMinLayout(id));
+		}
+		if (type == FoxFramePart.TYPE_MIN_VALUES) {
+			rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
 
-				}
-		if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getRadTelemLayout(id));
+		}
+		if (type == FoxFramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
-		if (type == FramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-			rt = new PayloadRadExpData(id, resets, uptime, date, st);
+		if (type == FoxFramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
+			rt = new PayloadRadExpData(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 			
-			
-			// hack to convert data
+			// hack to convert data - only used in testing
 			if (Config.generateSecondaryPayloads) {
 				PayloadRadExpData f = (PayloadRadExpData)rt; 
 				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
@@ -464,11 +484,14 @@ public class SatPayloadTable {
 				if (f.type >= 400) // this is a high speed record
 					radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
 				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
-				Config.payloadStore.setUpdatedRad(id, true);			
+				Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
 			}
-		}        			
-		if (type == FramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
-			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getHerciHSLayout(id));
+		}
+		if (type == FoxFramePart.TYPE_WOD_RAD) {
+			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
+			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
 			rt.type = type; // make sure we get the right type
 			if (Config.generateSecondaryPayloads) {
 				// Test routine that generates the secondary payloads
@@ -493,12 +516,12 @@ public class SatPayloadTable {
 				}
 			}
 		}
-		if (type == FramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
-			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getHerciHSHeaderLayout(id));
+		if (type == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
+			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_HEADER_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
-		if (type == FramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
-			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st);
+		if (type == FoxFramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
+			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 
@@ -523,7 +546,7 @@ public class SatPayloadTable {
 			try {
 				while ((line = dis.readLine()) != null) {
 					if (line != null) {
-						FramePart rt = addLine(line);
+						FoxFramePart rt = addLine(line);
 						if (rt != null) {
 							if (linesAdded == SatPayloadTable.MAX_SEGMENT_SIZE) {
 								linesAdded = 0;
@@ -585,11 +608,11 @@ public class SatPayloadTable {
 
 	/**
 	 * Save a payload to the a file
-	 * @param frame
+	 * @param f
 	 * @param log
 	 * @throws IOException
 	 */
-	private void save(FramePart frame, String log) throws IOException {
+	private void save(FramePart f, String log) throws IOException {
 
 		createNewFile(log);
 		//Log.println("Saving: " + log);
@@ -597,7 +620,7 @@ public class SatPayloadTable {
 		File aFile = new File(log );
 		Writer output = new BufferedWriter(new FileWriter(aFile, true));
 		try {
-			output.write( frame.toFile() + "\n" );
+			output.write( f.toFile() + "\n" );
 			output.flush();
 		} finally {
 			// Make sure it is closed even if we hit an error

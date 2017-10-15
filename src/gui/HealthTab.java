@@ -4,8 +4,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTable;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -16,24 +21,26 @@ import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRtValues;
+import telemetry.RadiationTelemetry;
 
 import java.awt.Dimension;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
+import javax.swing.plaf.SplitPaneUI;
+import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.border.BevelBorder;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-
 import java.awt.Color;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -59,10 +66,14 @@ import java.util.TimeZone;
  *
  */
 @SuppressWarnings("serial")
-public class HealthTab extends ModuleTab implements ItemListener, ActionListener, Runnable {
+public abstract class HealthTab extends ModuleTab implements ItemListener, ActionListener, Runnable {
+	
+	public final int DEFAULT_DIVIDER_LOCATION = 500;
+	public static final String HEALTHTAB = "HEALTHTAB";
+	public static final String SAFE_MODE_IND = "SafeModeIndication";
+	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
 	
 	JPanel centerPanel;
-	JPanel bottomPanel;
 	
 	JLabel lblId;
 	JLabel lblIdValue;
@@ -87,26 +98,40 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 	
 	JCheckBox showRawValues;
 	JCheckBox showUTCtime;
-	PayloadRtValues realTime; // the RT payload we are currently displaying
-	PayloadMaxValues maxPayload; // the max payload we are currently displaying
-	PayloadMinValues minPayload; // the min payload we are currently displaying
+	FramePart realTime; // the RT payload we are currently displaying
+	FramePart maxPayload; // the max payload we are currently displaying
+	FramePart minPayload; // the min payload we are currently displaying
 		
-	private static final String ID = "Satellite ";
-	private static final String MODE = "  Mode: ";
+	protected static final String ID = "Satellite ";
+	protected static final String MODE = "  Mode: ";
 	private static final String UPTIME = "  Uptime: ";
 	private static final String RESETS = "  Resets: ";
-	private static final String DECODED = "Telemetry Payloads Decoded: ";
-	private static final String CAPTURE_DATE = "Captured: ";
+	protected static final String DECODED = "Telemetry Payloads Decoded: ";
+	protected static final String CAPTURE_DATE = "Captured: ";
 	
+	protected int fonth = 0;
 	
-	public HealthTab(Spacecraft f) {
-		fox = f;
+	protected JPanel topPanel;
+	protected JPanel topPanel1;
+	protected JPanel topPanel2;
+	
+	int splitPaneHeight = 0;
+	JSplitPane splitPane;
+	
+	HealthTableModel healthTableModel;
+	JTable table;
+	
+	public HealthTab(Spacecraft spacecraft, int displayType) {
+		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
 		
-		JPanel topPanel = new JPanel();
-		JPanel topPanel1 = new JPanel();
-		JPanel topPanel2 = new JPanel();
+		// force the next labels to the right side of screen
+		fonth = (int)(Config.displayModuleFontSize * 14/11);
+		
+		topPanel = new JPanel();
+		topPanel1 = new JPanel();
+		topPanel2 = new JPanel();
 		topPanel.setMinimumSize(new Dimension((int)(Config.displayModuleFontSize * 10/11), 50));
 		add(topPanel, BorderLayout.NORTH);
 		
@@ -129,40 +154,6 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblIdValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblIdValue.setForeground(textColor);
 		topPanel1.add(lblIdValue);
-
-		
-		lblMode = new JLabel(MODE);
-		lblMode.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-		lblMode.setForeground(textLblColor);
-		topPanel1.add(lblMode);
-		lblModeValue = new JLabel();
-		lblModeValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-		lblModeValue.setForeground(textColor);
-		topPanel1.add(lblModeValue);
-		
-		// force the next labels to the right side of screen
-		int fonth = (int)(Config.displayModuleFontSize * 14/11);
-		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
-
-		lblFramesDecoded = new JLabel(DECODED);
-		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
-		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
-		lblFramesDecoded.setForeground(textLblColor);
-		topPanel1.add(lblFramesDecoded);
-		lblFramesDecodedValue = new JLabel();
-		lblFramesDecodedValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-		lblFramesDecodedValue.setBorder(new EmptyBorder(5, 2, 5, 5) );
-		lblFramesDecodedValue.setForeground(textColor);
-		topPanel1.add(lblFramesDecodedValue);
-		
-		lblResetsValue = addReset(topPanel2, "Last Realtime:");
-		lblUptimeValue = addUptime(topPanel2, "");
-
-		lblMaxResetsValue = addReset(topPanel2, "Max:");
-		lblMaxUptimeValue = addUptime(topPanel2, "");
-
-		lblMinResetsValue = addReset(topPanel2, "Min:");
-		lblMinUptimeValue = addUptime(topPanel2, "");
 		
 		centerPanel = new JPanel();
 		add(centerPanel, BorderLayout.CENTER);
@@ -170,8 +161,39 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		centerPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		centerPanel.setBackground(Color.DARK_GRAY);
 		
+		JPanel healthPanel = new JPanel();
+		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.X_AXIS));
+		
 		initDisplayHalves(centerPanel);
 		
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight");
+
+		
+		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
+				centerPanel, healthPanel);
+		splitPane.setOneTouchExpandable(true);
+		splitPane.setContinuousLayout(true); // repaint as we resize, otherwise we can not see the moved line against the dark background
+		if (splitPaneHeight != 0) 
+			splitPane.setDividerLocation(splitPaneHeight);
+		else
+			splitPane.setDividerLocation(DEFAULT_DIVIDER_LOCATION);
+		
+		SplitPaneUI spui = splitPane.getUI();
+	    if (spui instanceof BasicSplitPaneUI) {
+	      // Setting a mouse listener directly on split pane does not work, because no events are being received.
+	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
+	          public void mouseReleased(MouseEvent e) {
+	        	  splitPaneHeight = splitPane.getDividerLocation();
+	        	  Log.println("SplitPane: " + splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
+	          }
+	      });
+	    }
+		//Provide minimum sizes for the two components in the split pane
+		Dimension minimumSize = new Dimension(100, 50);
+		healthPanel.setMinimumSize(minimumSize);
+		centerPanel.setMinimumSize(minimumSize);
+		add(splitPane, BorderLayout.CENTER);
 		bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
@@ -185,7 +207,9 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		showUTCtime = new JCheckBox("Display UTC Time", Config.displayUTCtime);
 		bottomPanel.add(showUTCtime );
 		showUTCtime.addItemListener(this);
-		
+
+		addBottomFilter();
+
 		// force the next labels to the right side of screen
 		bottomPanel.add(new Box.Filler(new Dimension(14,fonth), new Dimension(400,fonth), new Dimension(1600,fonth)));
 		
@@ -195,24 +219,56 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblCaptureDate.setForeground(textLblColor);
 		bottomPanel.add(lblCaptureDate );
 		
-		BitArrayLayout rt = fox.rtLayout;
-		BitArrayLayout max = fox.maxLayout;
-		BitArrayLayout min = fox.minLayout;
+		BitArrayLayout rt = null;
+		if (displayType == DisplayModule.DISPLAY_WOD)
+			rt = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
+		else
+			rt = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		BitArrayLayout max = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
+		if (rt == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else 	if (max == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else if (min == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else
 		try {
-			analyzeModules(rt, max, min, DisplayModule.DISPLAY_ALL);
+			analyzeModules(rt, max, min, displayType);
 		} catch (LayoutLoadException e) {
-			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			Log.errorDialog("FATAL - Health Tab Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			System.exit(1);
 		}
+		
+		addTable(healthPanel, rt);
+	}
+	
+	private void addTable(JPanel centerPanel, BitArrayLayout rt) {
+		healthTableModel = new HealthTableModel(rt);
+		
+		table = new JTable(healthTableModel);
+		table.setAutoCreateRowSorter(true);
+		
+		scrollPane = new JScrollPane (table, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		table.setFillsViewportHeight(true);
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(scrollPane);
+		
 	}
 
-	private JLabel addReset(JPanel topPanel2, String type) {
+	protected JLabel addReset(JPanel topPanel2, String type) {
 		JLabel lblResets = new JLabel(type + " " + RESETS);
 		lblResets.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
-//		lblResets.setMinimumSize(new Dimension(200, 14));
-//		lblResets.setMaximumSize(new Dimension(200, 14));
 		lblResets.setForeground(textLblColor);
 		topPanel2.add(lblResets);
 		JLabel lblResetsValue = new JLabel();
@@ -221,9 +277,13 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		topPanel2.add(lblResetsValue);
 		return lblResetsValue;
 	}
-	private JLabel addUptime(JPanel topPanel2, String type) {
+	protected JLabel addUptime(JPanel topPanel2, String type) {
+		return addTopPanelValue(topPanel2, UPTIME);
+	}
+	
+	protected JLabel addTopPanelValue(JPanel topPanel2, String name) {
 		int fonth = (int)(Config.displayModuleFontSize * 14/11);
-		JLabel lblUptime = new JLabel(UPTIME);
+		JLabel lblUptime = new JLabel(name);
 		lblUptime.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblUptime.setForeground(textLblColor);
 		topPanel2.add(lblUptime);
@@ -244,11 +304,23 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblResetsValue.setText("" + u);
 	}
 
-	private void displayMode(int u) {
-		if (u == 1)
+	protected void displayMode(int safeMode, int scienceMode) {
+		
+		if (scienceMode == 1)
+			lblModeValue.setText("SCIENCE");
+		else if (safeMode == 1)
 			lblModeValue.setText("SAFE");
-		else
-			lblModeValue.setText("TRANSPONDER");
+		else {
+			// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
+			// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same
+			if (realTime != null && minPayload != null && maxPayload != null) {
+				if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+					lblModeValue.setText("DATA");
+				else
+					lblModeValue.setText("TRANSPONDER");
+			} else
+				lblModeValue.setText("TRANSPONDER");
+		}
 	}
 
 	/**
@@ -261,7 +333,7 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		lblIdValue.setText(id);
 	}
 
-	private void displayFramesDecoded(int u) {
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecodedValue.setText(Integer.toString(u));
 	}
 	
@@ -273,13 +345,13 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 		    Date result = null;
 		    String reportDate = null;
 			try {
-				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				result = FramePart.fileDateFormat.parse(u);
+				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				result = FoxFramePart.fileDateFormat.parse(u);
 				if (showUTCtime.isSelected())
-					FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				else 
-					FramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
-				reportDate = FramePart.reportDateFormat.format(result);
+					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
+				reportDate = FoxFramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
 				reportDate = "unknown";				
@@ -292,133 +364,115 @@ public class HealthTab extends ModuleTab implements ItemListener, ActionListener
 			lblCaptureDate.setText(CAPTURE_DATE + reportDate);
 	}
 	
-	public void updateTabRT(PayloadRtValues rt) {
+	public void updateTabRT(FramePart realTime2) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.updateRtValues(rt);
+			mod.updateRtValues(realTime2);
 		}
+		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.updateRtValues(rt);
+			mod.updateRtValues(realTime2);
 		}
-		displayId(rt.getFoxId());
-		displayUptime(lblUptimeValue, rt.getUptime());
-		displayResets(lblResetsValue, rt.getResets());
-		displayCaptureDate(rt.getCaptureDate());
-		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+		displayId(realTime2.getFoxId());
+		displayUptime(lblUptimeValue, realTime2.getUptime());
+		displayResets(lblResetsValue, realTime2.getResets());
+		displayCaptureDate(realTime2.getCaptureDate());
+		
+		
+		parseFrames();
 	}
+	
 
+	protected void parseTelemetry(String data[][]) {	
+//		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
+		
+		// try to decode any telemetry packets
+/*		for (int i=0; i<data.length; i++) {
+			RadiationTelemetry radTelem = null;
+			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
+			radTelem.rawBits = null; // otherwise we will overwrite the data we side load in
+			for (int k=2; k<this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).NUMBER_OF_FIELDS+2; k++) {  // Add 2 to skip past reset uptime
+				try {
+					int val = Integer.valueOf(data[i][k]);
+					radTelem.fieldValue[k-2] = val;
+				} catch (NumberFormatException e) {
+
+				}
+			}
+			if (radTelem != null) {
+				packets.add(radTelem);
+			}
+			
+		}
+*/	
+		// Now put the telemetry packets into the table data structure
+		String[][] packetData = new String[data.length][data[0].length];
+		for (int i=0; i < data.length; i++) { 
+			packetData[data.length-i-1][0] = ""+data[i][0];
+			packetData[data.length-i-1][1] = ""+data[i][1];
+			for (int j=2; j< data[0].length; j++) {
+				if (Config.displayRawRadData)
+					packetData[data.length-i-1][j] = ""+data[i][j];
+				else
+					packetData[data.length-i-1][j] = ""+data[i][j];
+			}
+		}
+
+		if (data.length > 0) {
+			healthTableModel.setData(packetData);
+		}
+		//(Config.payloadStore.getLatestRadTelem(foxId));
+		//updateTab(packets.get(packets.size()-1));
+	}
 	
-	
-	public void updateTabMax(PayloadMaxValues max) {
+	public void updateTabMax(FramePart maxPayload2) {
 		
 	//	System.out.println("GOT MAX PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.updateMaxValues(max);
+			mod.updateMaxValues(maxPayload2);
 		}
+		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.updateMaxValues(max);
+			mod.updateMaxValues(maxPayload2);
 		}
 	
-		displayId(max.getFoxId());
-		displayUptime(lblMaxUptimeValue, max.getUptime());
-		displayResets(lblMaxResetsValue, max.getResets());
-		displayCaptureDate(max.getCaptureDate());
-		displayMode(max.getRawValue("SafeModeIndication"));
+		displayId(maxPayload2.getFoxId());
+		displayUptime(lblMaxUptimeValue, maxPayload2.getUptime());
+		displayResets(lblMaxResetsValue, maxPayload2.getResets());
+		displayCaptureDate(maxPayload2.getCaptureDate());
+		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
-	public void updateTabMin(PayloadMinValues min) {
+	public void updateTabMin(FramePart minPayload2) {
 		
 	//	System.out.println("GOT MIN PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 
 		for (DisplayModule mod : topModules) {
 			if (mod != null)
-			mod.updateMinValues(min);
+			mod.updateMinValues(minPayload2);
 		}
+		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
 			if (mod != null)
-			mod.updateMinValues(min);
+			mod.updateMinValues(minPayload2);
 		}
 	
-		displayId(min.getFoxId());
-		displayUptime(lblMinUptimeValue, min.getUptime());
-		displayResets(lblMinResetsValue, min.getResets());
-		displayCaptureDate(min.getCaptureDate());
-		displayMode(min.getRawValue("SafeModeIndication"));
+		displayId(minPayload2.getFoxId());
+		displayUptime(lblMinUptimeValue, minPayload2.getUptime());
+		displayResets(lblMinResetsValue, minPayload2.getResets());
+		displayCaptureDate(minPayload2.getCaptureDate());
+		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
 	
-	@Override
-	public void actionPerformed(ActionEvent arg0) {
-		// TODO Auto-generated method stub	
-	}
-
-	
-	@Override
-	public void run() {
-		running = true;
-		done = false;
-		boolean justStarted = true;
-		while(running) {
-			try {
-				Thread.sleep(500); // refresh data once a second
-			} catch (InterruptedException e) {
-				Log.println("ERROR: HealthTab thread interrupted");
-				e.printStackTrace(Log.getWriter());
-			} 	
-			
-			if (Config.displayRawValues != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawValues);
-			}
-			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdatedMax(foxId)) {
-					maxPayload = Config.payloadStore.getLatestMax(foxId);
-					if (maxPayload != null)
-						updateTabMax(maxPayload);
-					Config.payloadStore.setUpdatedMax(foxId, false);
-					
-				}
-				if (Config.payloadStore.getUpdatedMin(foxId)) {
-					minPayload = Config.payloadStore.getLatestMin(foxId);
-					if (minPayload != null)
-						updateTabMin(minPayload);
-					Config.payloadStore.setUpdatedMin(foxId, false);
-					
-				}
-
-				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				if (Config.payloadStore.getUpdatedRt(foxId)) {
-					realTime = Config.payloadStore.getLatestRt(foxId);
-					if (realTime != null) {
-						updateTabRT(realTime);
-						//System.out.println("UPDATED RT Data: ");
-					} else {
-						//System.out.println("NO new RT Data: ");
-
-					}
-					Config.payloadStore.setUpdatedRt(foxId, false);
-					if (justStarted) {
-						openGraphs();
-						justStarted = false;
-					}
-				}
-				
-				
-				MainWindow.setTotalDecodes();
-
-			}
-			//System.out.println("Health tab running: " + running);
-		}
-		done = true;
-	}
-
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();

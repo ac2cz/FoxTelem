@@ -10,9 +10,12 @@ import javax.swing.JPanel;
 
 import common.Config;
 import common.Log;
+import decoder.FoxDecoder;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
+import gui.GraphCanvas;
 
 /** 
  * FOX 1 Telemetry Decoder
@@ -50,25 +53,25 @@ public class EyePanel extends JPanel implements Runnable {
 	int zeroValue;
 	//double[] snr;
 	int[][] buffer;
-	
-	
+
+
 	public double avgHigh;
 	public double avgLow;
 	public double sdHigh;
 	public double sdLow;
-	
+
 	private double bitSNR;
 	private int errors;
 	private int erasures;
 	//private double bitErrorRate;
-	
+
 	EyeData eyeData;
 	JLabel title;
 	Color GRAPH_COLOR;
 	int border = 5;
 	//int snrSample=0;
 	//int snrAvgLen = 10;
-	
+
 	public static int NUMBER_OF_BITS = 50;  // We draw this many bits on the screen each time we refresh the eye diagram
 	public static int SAMPLES = 120; // We draw this many pixels for each bit
 	public EyePanel() {
@@ -79,9 +82,11 @@ public class EyePanel extends JPanel implements Runnable {
 		//snr = new double[snrAvgLen];
 		//snrSample = 0;
 	}
-		
+
 	private void init() {
-		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; else SAMPLES = 120;
+		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; 
+		else if (decoder instanceof FoxBPSKDecoder) SAMPLES = 8;
+		else SAMPLES = decoder.getBucketSize()/2;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
 			buffer[i] = new int[SAMPLES];
@@ -96,7 +101,7 @@ public class EyePanel extends JPanel implements Runnable {
 		Log.println("STARTING EYE PANEL THREAD");
 		int[][] data = null;
 		while(running) {
-//			Log.println("eye running");
+			//			Log.println("eye running");
 			try {
 				Thread.sleep(1000/50); // approx 1/50 sec refresh
 			} catch (InterruptedException e) {
@@ -106,7 +111,7 @@ public class EyePanel extends JPanel implements Runnable {
 			//Log.println("RUNNING EYE THREAD FOR: " + decoder.name);
 			//if (decoder.name.equalsIgnoreCase("High Speed"))
 			//	Log.println("STOP");
-		
+
 			if (decoder != null) {
 				// We get the eye data, which is a copy of the bucket data
 
@@ -122,15 +127,39 @@ public class EyePanel extends JPanel implements Runnable {
 					bitSNR = eyeData.bitSNR;
 					errors = eyeData.lastErrorsCount;
 					erasures = eyeData.lastErasureCount;
-					
+
 				}
 			}
 			if (decoder != null && data != null ) { 
 				init();
 				int a=0; 
 				int b=0;
-				
 				try {
+
+					if (false && decoder instanceof FoxBPSKDecoder)
+						NUMBER_OF_BITS = data.length;
+
+					/*
+						int offset = ((FoxBPSKDecoder) decoder).recoverClockOffset();
+
+						for (int i=0; i < NUMBER_OF_BITS; i++) {
+							for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
+								if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
+									if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+										buffer[a][b++] = data[i-1][j+decoder.getBucketSize()+offset];
+									else if (offset > 0 && j + offset >= decoder.getBucketSize() && i < NUMBER_OF_BITS-1) // copy from next
+										buffer[a][b++] = data[i+1][decoder.getBucketSize()-1-j+offset];
+									else if (j+offset >=0 && j+offset < decoder.getBucketSize())
+										buffer[a][b++] = data[i][j+offset];
+								}
+							}
+							b=0;
+							a++;
+						}
+
+
+					} else {
+					 */
 					if (NUMBER_OF_BITS > data.length) NUMBER_OF_BITS = data.length;
 					for (int i=0; i < NUMBER_OF_BITS; i++) {
 						for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
@@ -141,9 +170,10 @@ public class EyePanel extends JPanel implements Runnable {
 						b=0;
 						a++;
 					}
+					//			}
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// nothing to do at run time.  We switched decoders and the array length changed underneath us
-					//Log.println("Ran off end of eye diagram data");	
+					Log.println("Ran off end of eye diagram data: a:" + a + " b:" + b);	
 				}
 
 			} else {
@@ -157,19 +187,19 @@ public class EyePanel extends JPanel implements Runnable {
 	public void updateFont() {
 		title.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 	}
-	
-	public void startProcessing(Decoder d) {
+
+	public void startProcessing(Decoder decoder1) {
 		if (decoder != null) {
 			// we were already live and we are swapping to a new decoder
 		}
-		decoder = d;
+		decoder = decoder1;
 		running = true;
 	}
-	
-//	public void stopProcessing() { 
-//		running = false;
-//	}
-	
+
+	//	public void stopProcessing() { 
+	//		running = false;
+	//	}
+
 	/*
 	 * Draw on a panel, where x is horizontal from left to right and y is vertical from top to bottom
 	 * Draw a line segment for each sample, from the previous sample
@@ -182,74 +212,83 @@ public class EyePanel extends JPanel implements Runnable {
 		// Have 5 pix border
 		int graphHeight = getHeight() - border;
 		int graphWidth = getWidth() - border*2;
-		
+
 		// Draw baseline with enough space for text under it
 		g2.drawLine(0, graphHeight-border, graphWidth+border*2, graphHeight-border);
 		// Draw vertical axis
 		g2.drawLine(border*2, getHeight()-border, border*2, border*4);
 		// Draw vertical end axis
 		g2.drawLine(graphWidth, getHeight()-border, graphWidth, border*4);
-	
+
 		int lastx = border*2+1; 
 		int lasty = graphHeight/2;
 		int x = border*2+1;
-		
+
 		g2.setColor(GRAPH_COLOR);
-		
+
 		//int step = 20;
 		//if (Config.highSpeed)
 		//	step = 1;
 		//int spaceSize = 1;
-		
+		int maxValue = (int)(Decoder.MAX_VOLUME/1.5);
+		int minValue = (int)(-1*Decoder.MAX_VOLUME/1.5);
+		if (decoder instanceof FoxBPSKDecoder) {
+			maxValue = (int)(Decoder.MAX_VOLUME);
+			minValue = (int)(-1*Decoder.MAX_VOLUME);
+		}
 		// Check that buffer has been populated all the way to the end
 		if (buffer != null && buffer[NUMBER_OF_BITS-1] != null) {
-
 			try {
-			for (int i=0; i < NUMBER_OF_BITS; i++) {
-				for (int j=0; j < SAMPLES; j++) {
-					x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
-					double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/Decoder.MAX_VOLUME + border;
-					if (j==0) {
+				for (int i=0; i < NUMBER_OF_BITS; i++) {
+					for (int j=0; j < SAMPLES; j++) {
+						x = border*2 + j*(graphWidth-border*2)/(SAMPLES-1);
+						//double y = graphHeight/2+graphHeight/2.5*buffer[i][j]/FoxDecoder.MAX_VOLUME + border;
+						double y = GraphCanvas.getRatioPosition(minValue, maxValue, buffer[i][j]*0.5, graphHeight);
+						if (j==0) {
+							lastx = x;
+							lasty = (int)y;
+						}
+						g2.drawLine(lastx, lasty, x, (int)y);
 						lastx = x;
 						lasty = (int)y;
 					}
-					g2.drawLine(lastx, lasty, x, (int)y);
-					lastx = x;
-					lasty = (int)y;
 				}
-			}
 			} catch (NullPointerException e) {
 				// this means the buffer was changed while we were drawing it
 				//Log.println("Eye Data buffer changed while drawing it");
 			}
-			
+
 		} else {
 			//Log.println("Eye Data truncated");
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		double h = graphHeight/2+graphHeight/3*zeroValue/Decoder.MAX_VOLUME+border;
+		double h = graphHeight/2+graphHeight/3*zeroValue/FoxDecoder.MAX_VOLUME+border;
 		g2.drawLine(0, (int)h, graphWidth, (int)h);
-		
+
 		//sample.setText("sample: " + s++);
-		
+
 		// Draw the eye facts
 		g2.setColor(Config.AMSAT_RED);
 
 		int width = 30;
-		
-		double low = scaleSample(graphHeight, avgLow);
+
+		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow*0.5, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)low, graphWidth/2+width + border, (int)low);
 
 
-		double high = scaleSample(graphHeight, avgHigh);
+		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh*0.5, graphHeight);
 		g2.drawLine(graphWidth/2-width + border, (int)high, graphWidth/2+width + border, (int)high);
 
 		g2.drawLine(graphWidth/2 + border , (int)high, graphWidth/2 + border, (int)low);
-		
+
 		double r = GraphPanel.roundToSignificantFigures(bitSNR,2);
 		String s = Double.toString(r) + "";
-		g.drawString("SNR:"+s, graphWidth/2 + 10  + border, graphHeight/2 + 10  );
+		g.drawString(s+"   SNR", graphWidth/2 -20  + border, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
+
+		//debug
+		//g.drawString("HIGH:"+avgHigh, graphWidth/2 + 10  + border, 10  );
+		//g.drawString("LOW:"+avgLow, graphWidth/2 + 10  + border, graphHeight - 30  );
 
 		g2.setColor(Color.GRAY);
 		g.drawString("Errors  "+errors, graphWidth/2 - 70  + border, graphHeight - 10  );
@@ -258,8 +297,4 @@ public class EyePanel extends JPanel implements Runnable {
 		//erasures++;  // test to see if the window is updating
 	}
 
-	private double scaleSample(int graphHeight, double h) {
-		double y = graphHeight/2+graphHeight/2.5*h/Decoder.MAX_VOLUME + border;
-		return y;
-	}
 }

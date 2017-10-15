@@ -7,17 +7,20 @@ import java.util.TimeZone;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import gui.DisplayModule;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.FoxFramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadDbStore;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
 
 public class WebHealthTab {
-	Spacecraft fox;
+	FoxSpacecraft fox;
+	PayloadDbStore payloadDbStore;
 	PayloadRtValues payloadRt;
 	PayloadMaxValues payloadMax;
 	PayloadMinValues payloadMin;
@@ -34,13 +37,16 @@ public class WebHealthTab {
 	int numOfBottomModules = 1;
 	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(Spacecraft f, int p) throws LayoutLoadException {
+	public WebHealthTab(PayloadDbStore pdb, FoxSpacecraft f, int p) throws LayoutLoadException {
 		fox = f;
 		port = p;
-		rtlayout = fox.rtLayout;
-		maxlayout = fox.maxLayout;
-		minlayout = fox.minLayout;
-		analyzeModules(fox.rtLayout, fox.maxLayout, fox.minLayout, 0);
+		payloadDbStore = pdb;
+		rtlayout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+		minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		analyzeModules(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), 
+				fox.getLayoutByName(Spacecraft.MAX_LAYOUT), 
+				fox.getLayoutByName(Spacecraft.MIN_LAYOUT), 0);
 	}
 	
 	public void setRtPayload(PayloadRtValues rt) {payloadRt = rt;}
@@ -52,7 +58,7 @@ public class WebHealthTab {
 		//s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		//s = s + "<h3>Fox "+ fox.getIdString()+" - " + fieldName +"</h3>"
 		//		+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
-		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
+		double[][] graphData = payloadDbStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime, false);
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
 			//	s = s + "<tr>";
@@ -71,7 +77,7 @@ public class WebHealthTab {
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+" - " + fieldName +"</h1>"
 				+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
-		double[][] graphData = Config.payloadStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime);
+		double[][] graphData = payloadDbStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime, false);
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
 				s = s + "<tr>";
@@ -238,10 +244,10 @@ public class WebHealthTab {
 		Date result = null;
 		String reportDate = null;
 		try {
-			FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			result = FramePart.fileDateFormat.parse(u);	
-			FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			reportDate = FramePart.reportDateFormat.format(result);
+			FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			result = FoxFramePart.fileDateFormat.parse(u);	
+			FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			reportDate = FoxFramePart.reportDateFormat.format(result);
 
 		} catch (ParseException e) {
 			reportDate = "unknown";				

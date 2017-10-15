@@ -23,6 +23,9 @@ package decoder;
  *
  * Bit Measurements that can be dsiplayed on an eye diagram
  * 
+ * We have a copy of the audio buckets,which we store so that the eye diagram can be drawn without the data changing mid draw. The
+ * averages are calculated to display stats on the eye diagram.
+ * 
  *
  */
 public class EyeData extends DataMeasure {
@@ -82,4 +85,56 @@ public class EyeData extends DataMeasure {
     	setValue(LOW,value);
     }
 
+    public void setOffsetLow(int i, int width, int offset) {
+    	int value = 0;
+    	for (int w=-width; w<width; w++)
+    		value += getOffsetValue(i, bucketSize/2+w, offset);
+        setValue(LOW,value/(width*2));
+    }
+    public void setOffsetHigh(int i, int width, int offset) {
+    	int value = 0;
+    	for (int w=-width; w<width; w++)
+    		value += getOffsetValue(i, bucketSize/2+w, offset);
+    	setValue(HIGH,value/(width*2));
+    }
+    
+    private int getOffsetValue(int i, int j, int offset) {
+    	int value = 0;
+    	if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+    		value = eyeData[i-1][j+bucketSize+offset];
+		else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
+			value = eyeData[i+1][bucketSize-1-j+offset];
+		else if (j+offset >=0 && j+offset < bucketSize)
+			value = eyeData[i][j+offset];
+    	return value;
+    }
+    /*
+	 * Tricky to make the eye diagram work for the PSK decoder because we do not move the clock.  Instead we have an offset, so 
+	 * we need to work out where each bucket starts.  We get the offset from the decoder and use that the shuffle the samples
+	 * backwards or forwards.  Then we can draw the eye diagram in the normal way.
+	 * However, we sampled at 9600, vs 48000.  So we have 4 identical samples in a row.
+	 */
+    public void offsetEyeData(int offset) {
+    	int[][] buffer = new int[SAMPLE_WINDOW_LENGTH][];
+		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
+			buffer[i] = new int[bucketSize];
+		}
+    	int a=0; 
+		int b=0;
+		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
+			for (int j=0; j < bucketSize; j+=1) {
+				if (eyeData !=null && a < SAMPLE_WINDOW_LENGTH && b < bucketSize) {
+					if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+						buffer[a][b++] = eyeData[i-1][j+bucketSize+offset];
+					else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
+						buffer[a][b++] = eyeData[i+1][bucketSize-1-j+offset];
+					else if (j+offset >=0 && j+offset < bucketSize)
+						buffer[a][b++] = eyeData[i][j+offset];
+				}
+			}
+			b=0;
+			a++;
+		}
+    	eyeData = buffer;
+    }
 }

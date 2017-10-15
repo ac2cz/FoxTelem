@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.PayloadStore;
@@ -59,9 +60,9 @@ public class GraphPanel extends GraphCanvas {
 	
 	
 	
-	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
-		super(t, conversionType, plType, gf, sat);
-		freqOffset = sat.telemetryDownlinkFreqkHz * 1000;
+	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft fox2) {
+		super(t, conversionType, plType, gf, fox2);
+		freqOffset = fox2.telemetryDownlinkFreqkHz * 1000;
 		updateGraphData("GrapPanel.new");
 	}
 
@@ -101,9 +102,11 @@ public class GraphPanel extends GraphCanvas {
 		g2.setColor(Color.LIGHT_GRAY);
 		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
 		
+		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName[i]+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
+			String name = graphFrame.fieldName[i].toLowerCase();
+			g2.drawString(name+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
 		}
@@ -113,7 +116,8 @@ public class GraphPanel extends GraphCanvas {
 		if (graphFrame.fieldName2 != null) {
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			g2.drawString(graphFrame.fieldName2[i]+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
+			String name = graphFrame.fieldName2[i].toLowerCase();
+			g2.drawString(name+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
 		}
@@ -297,6 +301,9 @@ public class GraphPanel extends GraphCanvas {
 	 * @param zeroPoint
 	 * @param minValue
 	 * @param maxValue
+	 * @param minValue2
+	 * @param maxValue2
+	 * @param drawLabels - if false then no labels are drawn for this reset because it is too narrow
 	 */
 	private void drawGraphForSingleReset(int start, int end, int graphWidth, int graphHeight, 
 			int sideBorder, int zeroPoint, double minValue, double maxValue, double minValue2, double maxValue2, boolean drawLabels) {
@@ -401,9 +408,12 @@ public class GraphPanel extends GraphCanvas {
 
 						}
 						if (graphFrame.showUTCtime) {
-							if (fox.hasTimeZero(resets)) {
-								g2.drawString(fox.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
-								g2.drawString(""+fox.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+							if (fox.isFox1()) {
+								FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+							if (fox2.hasTimeZero(resets)) {
+								g2.drawString(fox2.getUtcTimeForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+								g2.drawString(""+fox2.getUtcDateForReset(resets, (long)timelabels[v]), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+							}
 							}
 						}
 						g2.setColor(graphAxisColor);

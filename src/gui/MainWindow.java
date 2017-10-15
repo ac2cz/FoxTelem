@@ -46,6 +46,7 @@ import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
+import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
@@ -88,17 +89,7 @@ import com.apple.eawt.Application;
 public class MainWindow extends JFrame implements ActionListener, ItemListener, WindowListener, WindowStateListener {
 	
 	static Application macApplication;
-
-	static // We have one health thread per health tab
-	Thread[] healthThread;
-	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
-	static Thread[] radiationThread;
-	static Thread[] cameraThread;
-	static Thread[] herciThread;
-	// We have one FTP Thread for the whole application
-//	Thread ftpThread;
-//	FtpLogs ftpLogs;
-
+	
 	static UpdateManager updateManager;
 	Thread updateManagerThread;
 	
@@ -119,6 +110,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
+	static ArrayList<Spacecraft> sats;
+	JMenu mnSats;
+	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
@@ -131,20 +125,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// GUI components
 	static JTabbedPane tabbedPane;
 	public static SourceTab inputTab;
-	static MyMeasurementsTab measurementsTab;
-	static Thread measurementThread;
+	Thread inputTabThread;
 	// We have a radiation tab and a health tab per satellite
-	static ModuleTab[] radiationTab;
-	static HealthTab[] healthTab;
-	static CameraTab[] cameraTab;
-	static HerciHSTab[] herciTab;
+	static SpacecraftTab[] spacecraftTab;
 	
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
 	static JLabel lblAudioMissed;
+	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
-	private static String TOTAL_DECODES = "Decoded: ";
+	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
+	private static String TOTAL_DECODES = "Payloads: ";
 	private static String TOTAL_QUEUED = "Queued: ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
@@ -156,19 +148,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	 */
 	public MainWindow() {
 
-//		ftpLogs = new FtpLogs();
-//		if (ftpThread != null) { ftpLogs.stopProcessing(); }		
-//		ftpThread = new Thread(ftpLogs);
-//		ftpThread.start();
-
-		//decoder = d;
 		frame = this; // a handle for error dialogues
 		frame.addWindowFocusListener(new WindowAdapter() {
 		    public void windowGainedFocus(WindowEvent e) {
 		        //frame.requestFocusInWindow();
 		        //System.err.println("FOCUS!");
-		    	// THIS DOES NOT QUITE WORK. We get an oscillation.  And the event fires every window interaction
-		    	
+		    	// THIS DOES NOT QUITE WORK. We get an oscillation.  And the event fires every window interaction		    	
 		        //showGraphs();
 		    }
 		});
@@ -221,10 +206,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblAudioMissed.setToolTipText("The number of audio buffers missed");
 		rightBottom.add(lblAudioMissed );
 
+		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
+		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblTotalFrames.setToolTipText("Total number of frames received since FoxTelem restart (including duplicates)");
+		rightBottom.add(lblTotalFrames );
+		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
 		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalDecodes.setToolTipText("Total number of payloads decoded from all satellites");
+		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
@@ -236,9 +227,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		addHealthTabs();
 		
-		addMeasurementsTab();
-		
-		
 		initialize();
 		//pack(); // pack all in as tight as possible
 
@@ -248,11 +236,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
 		
-		
+		inputTabThread = new Thread(inputTab);
+		inputTabThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		inputTabThread.start();
 		
 		// We are fully up, remove the database loading message
 		Config.fileProgress.updateProgress(100);
-
 	}
 
 	public static void enableSourceSelection(boolean t) {
@@ -264,42 +253,25 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	public static void showGraphs() {
-		for (HealthTab tab : healthTab) {
+		for (SpacecraftTab tab : spacecraftTab) {
 			tab.showGraphs();
 		}
-		for (ModuleTab tab : radiationTab) {
-			tab.showGraphs();
-		}
-		for (ModuleTab tab : herciTab) {
-			tab.showGraphs();
-		}
-		measurementsTab.showGraphs();
 		frame.toFront();
 	}
 	
 	public static void refreshTabs(boolean closeGraphs) {
-		for (HealthTab tab : healthTab) {
-			if (closeGraphs) tab.closeGraphs();
-			tabbedPane.remove(tab);
+		ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Refreshing tabs, please wait ...", false);
+		fileProgress.setVisible(true);
+
+		// Close tabs according to the old list
+		int i=0;
+		for (SpacecraftTab tab : spacecraftTab) {
+			tab.refreshTabs(sats.get(i++), closeGraphs);
 		}
-		if (closeGraphs) measurementsTab.closeGraphs();
-		tabbedPane.remove(measurementsTab);
 		
-
-		for (ModuleTab tab : radiationTab) {
-			if (closeGraphs) tab.closeGraphs();
-			tabbedPane.remove(tab);
-		}
-		for (ModuleTab tab : herciTab) {
-			if (tab != null)
-			if (closeGraphs) tab.closeGraphs();
-			tabbedPane.remove(tab);
-		}
-		for (CameraTab tab : cameraTab)
-			tabbedPane.remove(tab);
-
-		addHealthTabs();
-		addMeasurementsTab();
+		// now grab the sats (incase the list changed) and refresh
+		sats = Config.satManager.getSpacecraftList();
+		
 		Config.payloadStore.setUpdatedAll();
 
 		if (Config.logFileDirectory.equals(""))
@@ -309,150 +281,50 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		inputTab.audioGraph.updateFont();
 		inputTab.eyePanel.updateFont();
+		setTotalDecodes();
+		fileProgress.updateProgress(100);
 	}
 	
-	private static void addHealthTabs() {
-		stopThreads(healthTab);
-		stopThreads(radiationTab);
-		stopThreads(cameraTab);
-		stopThreads(herciTab);
-		
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		healthTab = new HealthTab[sats.size()];
-		healthThread = new Thread[sats.size()];
-		// FIXME - this is inefficient.  We do not need to reserve space for all these tabs.  Not all sats have a camera
-		radiationTab = new ModuleTab[sats.size()];
-		radiationThread = new Thread[sats.size()];
-		cameraTab = new CameraTab[sats.size()];
-		herciTab = new HerciHSTab[sats.size()];
-		cameraThread = new Thread[sats.size()];
-		herciThread = new Thread[sats.size()];
-		for (int s=0; s<sats.size(); s++) {
-			healthTab[s] = new HealthTab(sats.get(s));
-			healthThread[s] = new Thread(healthTab[s]);
-			healthThread[s].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-			healthThread[s].start();
-			
-			tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-//			tabbedPane.addTab( ""  
-			+ sats.get(s).toString() + "</b></body></html>", healthTab[s] );
-//			+" Health", healthTab );
-			
-			for (int exp : sats.get(s).experiments) {
-				if (exp == Spacecraft.EXP_VULCAN)
-					addExperimentTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_VT_CAMERA || exp == Spacecraft.EXP_VT_CAMERA_LOW_RES)
-					addCameraTab(sats.get(s), s);
-				if (exp == Spacecraft.EXP_IOWA_HERCI) {
-					addHerciHSTab(sats.get(s), s);
-					addHerciLSTab(sats.get(s), s);
-				}
-					
+	public static void addHealthTabs() {
+		if (spacecraftTab != null) {
+			for (int s=0; s<spacecraftTab.length; s++) {
+				tabbedPane.remove(spacecraftTab[s]);
+				spacecraftTab[s] = null;
 			}
-			
 		}
-	}
+		sats = Config.satManager.getSpacecraftList();
+		spacecraftTab = new SpacecraftTab[sats.size()];
+		for (int s=0; s<sats.size(); s++) {
+			spacecraftTab[s] = new SpacecraftTab(sats.get(s));
 
-	private static void addMeasurementsTab() {
-		if (measurementsTab != null) {
-			measurementsTab.stopProcessing();
-			while (!measurementsTab.isDone())
-				try {
-					Thread.sleep(5);
-				} catch (InterruptedException e) {
-					e.printStackTrace(Log.getWriter());
-				}
+				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+						//			tabbedPane.addTab( ""  
+						+ sats.get(s).toString() + "</b></body></html>", spacecraftTab[s] );
+				//			+" Health", healthTab );
 		}
-		measurementsTab = new MyMeasurementsTab();
-		measurementsTab.setBorder(new EmptyBorder(5, 5, 5, 5));
-		tabbedPane.addTab( "<html><body leftmargin=5 topmargin=8 marginwidth=5 marginheight=5>Measurements</body></html>", measurementsTab );
-		measurementThread = new Thread(measurementsTab);
-		measurementThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		measurementThread.start();
-		
-	}
-	
-	private static void stopThreads(FoxTelemTab[] tabs) {
-		if (tabs != null)
-			for (FoxTelemTab thread : tabs)
-				if (thread != null) { 
-					thread.stopProcessing(); 
-
-					while (!thread.isDone())
-						try {
-							Thread.sleep(5);
-						} catch (InterruptedException e) {
-							e.printStackTrace(Log.getWriter());
-						}
-
-				}
-
-	}
-	private static void addExperimentTab(Spacecraft fox, int num) {
-		
-		radiationTab[num] = new VulcanTab(fox);
-		radiationThread[num] = new Thread((VulcanTab)radiationTab[num]);
-		radiationThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		radiationThread[num].start();
-
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" VU Rad ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
-
-	}
-
-	private static void addHerciLSTab(Spacecraft fox, int num) {
-
-		radiationTab[num] = new HerciLSTab(fox);
-		radiationThread[num] = new Thread((HerciLSTab)radiationTab[num]);
-		radiationThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		radiationThread[num].start();
-
-		
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" HERCI HK ("+ fox.getIdString() + ")</body></html>", radiationTab[num] );
-
-	}
-	
-	private static void addHerciHSTab(Spacecraft fox, int num) {
-		herciTab[num] = new HerciHSTab(fox);
-		herciThread[num] = new Thread(herciTab[num]);
-			
-		herciThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		herciThread[num].start();
-
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" HERCI ("+ fox.getIdString() + ")</body></html>", herciTab[num] );
-
-	}
-	
-	private static void addCameraTab(Spacecraft fox, int num) {
-
-		cameraTab[num] = new CameraTab(fox);
-		cameraThread[num] = new Thread(cameraTab[num]);
-		cameraThread[num].setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		cameraThread[num].start();
-
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" Camera ("+ fox.getIdString() + ")</body></html>", cameraTab[num] );
-//		tabbedPane.addTab( ""+ fox.toString()+
-//				" Experiment", radiationTab );
-
 	}
 
 	public static void setAudioMissed(int missed) {
-		double miss = missed / 10.0;
-		totalMissed += missed;
-		lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
-		if (missed > 2)
-			lblAudioMissed.setForeground(Color.RED);
-		else
-			lblAudioMissed.setForeground(Color.BLACK);
+		if (lblAudioMissed != null) { // just in case we are delayed starting up
+			double miss = missed / 10.0;
+			totalMissed += missed;
+			lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
+			if (missed > 2)
+				lblAudioMissed.setForeground(Color.RED);
+			else
+				lblAudioMissed.setForeground(Color.BLACK);
+		}
 	}
-	
+
 	public static void setTotalDecodes() {
-		int total = 0;
-		total = Config.payloadStore.getTotalNumberOfFrames();
-		lblTotalDecodes.setText(TOTAL_DECODES + total);
+		if (lblTotalDecodes != null) { // make sure we have initialized before we try to update from another thread
+			int total = 0;
+			total = Config.payloadStore.getTotalNumberOfFrames();
+			lblTotalDecodes.setText(TOTAL_DECODES + total);
+		}
+		if (lblTotalFrames != null) { 
+			lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+		}
 	}
 
 	public static void setTotalQueued(int total) {
@@ -474,7 +346,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private void initMenu() {
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		
 		JMenu mnFile = new JMenu("File");
@@ -542,15 +414,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //		mnDecoder.add(mntmStopDecoder);
 //		mntmStopDecoder.addActionListener(this);
 		
-		JMenu mnSats = new JMenu("Spacecraft");
-		menuBar.add(mnSats);
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		mntmSat = new JMenuItem[sats.size()];
-		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem(sats.get(i).name);
-			mnSats.add(mntmSat[i]);
-			mntmSat[i].addActionListener(this);
-		}
+		initSatMenu();
 		
 		JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
@@ -596,6 +460,29 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		audioSource = a;
 	}
 
+	void initSatMenu() {
+		if (sats !=null && mnSats != null) {
+			for (int i=0; i<sats.size(); i++) {
+				if (mntmSat[i] != null)
+				mnSats.remove(mntmSat[i]);
+				mntmSat[i] = null;
+			}
+			menuBar.remove(mnSats);
+			
+		}
+		mnSats = new JMenu("Spacecraft");
+		menuBar.add(mnSats);
+
+		sats = Config.satManager.getSpacecraftList();
+
+		mntmSat = new JMenuItem[sats.size()];
+		for (int i=0; i<sats.size(); i++) {
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
+			mnSats.add(mntmSat[i]);
+			mntmSat[i].addActionListener(this);
+		}
+	}
+	
 	public void shutdownWindow() {
 		
 		if (Config.passManager.getState() == PassManager.FADED ||
@@ -610,7 +497,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					+ "Do you want to exit?",
 					"Exit while pass in progress?",
 				    JOptionPane.YES_NO_OPTION, 
-				    JOptionPane.ERROR_MESSAGE,
+				    JOptionPane.QUESTION_MESSAGE,
 				    null,
 				    options,
 				    options[1]);
@@ -632,8 +519,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.shutdown();
 		Log.println("Window Closed");
 		Log.close();
-		this.dispose();
 		saveProperties();
+		this.dispose();
 		System.exit(0);
 	}
 	
@@ -721,10 +608,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				    options[1]);
 						
 			if (n == JOptionPane.YES_OPTION) {
+				ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Clearing saved data, please wait ...", false);
+				fileProgress.setVisible(true);
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
+				Config.totalFrames = 0;
 				refreshTabs(true);
+				fileProgress.updateProgress(100);
 			}
 		}
 		
@@ -732,8 +623,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
-				SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
-				f.setVisible(true);
+				if (sats.get(i).isFox1()) {
+					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
+					f.setVisible(true);
+				}
 			}
 		}
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
@@ -779,43 +672,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
-	private void replaceServerData() {
-
-		if (Config.logFileDirectory.equalsIgnoreCase("")) {
-			Log.errorDialog("CAN'T EXTRACT SERVER DATA INTO CURRENT DIRECTORY", "You can not replace the log files in the current directory.  "
-					+ "Pick another directory from the settings menu\n");
-			return;
-					
-		}
-		String message = "Do you want to download server data to REPLACE your existing data?\n"
-				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
-				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
-		Object[] options = {"Yes",
-		"No"};
-		int n = JOptionPane.showOptionDialog(
-				MainWindow.frame,
-				message,
-				"Do you want to continue?",
-				JOptionPane.YES_NO_OPTION, 
-				JOptionPane.ERROR_MESSAGE,
-				null,
-				options,
-				options[1]);
-
-		if (n == JOptionPane.NO_OPTION) {
-			return;
-		}
-
-		//String file = "serverlogs.tar.gz";
+	private void downloadServerData(String dir) {
 		String file = "FOXDB.tar.gz";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
 		}
 		// We have the dir, so pull down the file
-		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading " + dir + " data, please wait ...", false);
 		fileProgress.setVisible(true);
 
-		String urlString = Config.webSiteUrl + "/ao85/FOXDB.tar.gz";
+		String urlString = Config.webSiteUrl + "/" + dir + "/FOXDB.tar.gz";
 		try {
 			URL website = new URL(urlString);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
@@ -844,7 +710,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 		fileProgress.updateProgress(100);
 
-		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
+		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing " + dir + " data ...", false);
 		decompressProgress.setVisible(true);
 
 		// Now decompress it and expand
@@ -869,19 +735,79 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 
 		decompressProgress.updateProgress(100);
+
+
+	}
+	
+	private String getFoxServerDir(int id) {
+		if (id == 1) return "ao85";
+		if (id == 2) return "radfxsat";
+		if (id == 3) return "fox1c";
+		if (id == 4) return "fox1d";
+		if (id == 5) return "fox1e";
+		return null;
+	}
+	
+	private void replaceServerData() {
+
+		if (Config.logFileDirectory.equalsIgnoreCase("")) {
+			Log.errorDialog("CAN'T EXTRACT SERVER DATA INTO CURRENT DIRECTORY", "You can not replace the log files in the current directory.  "
+					+ "Pick another directory from the settings menu\n");
+			return;
+					
+		}
+		String message = "Do you want to download server data to REPLACE your existing data?\n"
+				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
+				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
+		Object[] options = {"Yes",
+		"No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message,
+				"Do you want to continue?",
+				JOptionPane.YES_NO_OPTION, 
+				JOptionPane.ERROR_MESSAGE,
+				null,
+				options,
+				options[1]);
+
+		if (n == JOptionPane.NO_OPTION) {
+			return;
+		}
+
+		// Get the server data for each spacecraft we have
+		sats = Config.satManager.getSpacecraftList();
+		int i=0;
+		for (Spacecraft sat : sats) {
+			// We can not rely on the name of the spacecraft being the same as the directory name on the server
+			// because the user can change it.  So we have a hard coded routine to look it up
+			String dir = getFoxServerDir(sat.foxId);
+			if (dir == null) {
+				// no server data for this satellite.  Skip
+			} else {
+				downloadServerData(dir);
+			}
+		}
+
+		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
+		refreshProgress.setVisible(true);
+		
 		Config.save(); // make sure any changed settings saved
 		Config.initPayloadStore();
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
 		
+		refreshProgress.updateProgress(100);
+		
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);
+		
 	}
 
 	
 	@SuppressWarnings("unused")
-	private void importServerData() {
+	private void importServerData_OLD() {
 
 		String message = "Do you want to merge the downloaded server data with your existing data?\n"
 				+ "To import into into a different set of log files select NO, then choose a new log file directory";
@@ -1008,7 +934,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				if (listOfFiles[i].isFile() ) {
 					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
 					try {
-						Frame.importStpFile(listOfFiles[i], true);
+						Frame.importStpFile(null, listOfFiles[i], true);
 					} catch (StpFileProcessException e) {
 						Log.println("Could not process STP file: " + listOfFiles[i]);
 						e.printStackTrace(Log.getWriter());
@@ -1042,14 +968,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.windowX = this.getX();
 		Config.windowY = this.getY();
 
-		for (HealthTab tab : healthTab)
+		for (SpacecraftTab tab : spacecraftTab)
 			tab.closeGraphs();
-		for (ModuleTab tab : radiationTab)
-			tab.closeGraphs();
-		for (ModuleTab tab : herciTab)
-			if (tab != null)
-			tab.closeGraphs();
-		measurementsTab.closeGraphs();
+
 		Config.save();
 	}
 

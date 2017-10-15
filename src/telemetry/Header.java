@@ -21,14 +21,14 @@ package telemetry;
  *
  *
  */
-public abstract class Header extends FramePart {
+public abstract class Header extends FoxFramePart {
 	//int id = 0; // unsigned 3 bit int
 	//int resetCount = 0; // unsigned 16 bit integer
 	//long uptime = 0;  // unsigned 25 bit integer, max value 33554431
 	
 	public abstract String toString();
 
-	Header() {
+	protected Header() {
 		super(new BitArrayLayout());
 	}
 	

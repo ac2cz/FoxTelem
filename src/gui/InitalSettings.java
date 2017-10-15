@@ -51,25 +51,22 @@ import common.Log;
 public class InitalSettings extends JDialog implements ActionListener, WindowListener {
 
 	private JPanel contentPane;
-	private JPanel buttons;
+//	private JPanel buttons;
 	private JPanel directories;
 	
-	JRadioButton typical;
-	JRadioButton custom;
+	//JRadioButton typical;
+	//JRadioButton custom;
 
 	private JTextField txtLogFileDirectory;
 	JLabel title;
 	JLabel lab;
 	JLabel lab2;
 	JLabel lab3;
+	JLabel lab4;
 	
 	JButton btnContinue;
 	JButton btnCancel;
 	JButton btnBrowse;
-	
-	private static final int SETUP_TYPE = 1;
-	private static final int CUSTOM = 2;
-	private int state = SETUP_TYPE;
 	
 	public InitalSettings(JFrame owner, boolean modal) {
 		super(owner, modal);
@@ -93,12 +90,14 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		lab = new JLabel();
 		lab2 = new JLabel();
 		lab3 = new JLabel();
+		lab4 = new JLabel();
 		title.setFont(new Font("SansSerif", Font.BOLD, 14));
 		
 		title.setText("AMSAT Fox Satellite Decoder");
-		lab.setText("It looks like this is the first time you have run the FoxTelem program. You can use a simple setup where the decoded data");
-		lab2.setText("is written into the same directory as the installed program, or you can customize the location of the log files.");
-		lab3.setText("If the installation directory is not writable, then choose 'Custom'");
+		lab.setText("It looks like this is the first time you have run the FoxTelem program. You must choose a directory to store the the decoded data.");
+		lab2.setText("Also note that configuration settings will be saved in:  " + Config.homeDirectory);
+		lab3.setText("If you want to run multiple copies of FoxTelem, using different settings, then hit cancel and rerun passing the ");
+		lab4.setText("logFile directory name as a paramater.  Otherwise choose a logFile directory below.  See the manual for details.");
 		
 		JPanel titlePanel = new JPanel();
 		top.setLayout(new BorderLayout(0, 0));
@@ -110,17 +109,9 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		textPanel.add(lab);
 		textPanel.add(lab2);
 		textPanel.add(lab3);
-		buttons = new JPanel();
-		typical = addRadioButton("Simple", buttons );
-		custom = addRadioButton("Custom", buttons );
-		ButtonGroup group = new ButtonGroup();
-		group.add(typical);
-		group.add(custom);
-		center.add(buttons);
-		typical.setSelected(true);
-
+		textPanel.add(lab4);
 		directories = FilesPanel();
-		directories.setVisible(false);
+		directories.setVisible(true);
 		center.add(directories);
 		
 		bottom.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
@@ -179,22 +170,8 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 			System.exit(1);
 		}
 		if (e.getSource() == btnContinue) {
-			if (state == SETUP_TYPE) {
-				if (typical.isSelected()) {
-					// We are done
-					saveAndExit();					
-				} else {
-					buttons.setVisible(false);
-					directories.setVisible(true);
-					lab.setText("The log files directory is where the decoded telemetry will be saved. Leave it blank to use ");
-					lab2.setText("the 'current directory', which is typically the installation directory.");
-					lab3.setText("Also note that configuration settings have been saved in:" + Config.homeDirectory);
-					state = CUSTOM;
-				}
-			} else {
 				// We are done
 				saveAndExit();
-			}
 		}
 
 		if (e.getSource() == btnBrowse) {

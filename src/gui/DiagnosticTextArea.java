@@ -3,7 +3,8 @@ package gui;
 import javax.swing.JTextArea;
 
 import common.Config;
-import telemetry.FramePart;
+import common.FoxSpacecraft;
+import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
 
 /**
@@ -55,14 +56,14 @@ public class DiagnosticTextArea extends JTextArea {
 	}
 
 	public void updateDiagnosticData() {
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		this.setText(null);
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
 				
-				display = FramePart.ihuDiagnosticString(value, false, graphFrame.fox);
+				display = FoxFramePart.ihuDiagnosticString(value, false, (FoxSpacecraft)graphFrame.fox);
 				if (display != null) { 	
 					this.append((int)graphData[PayloadStore.RESETS_COL][i] + " " + (int)graphData[PayloadStore.UPTIME_COL][i] + " " +
 							display + "\n");
@@ -73,14 +74,14 @@ public class DiagnosticTextArea extends JTextArea {
 	}
 
 	public void updateHardErrorData() {
-		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		this.setText(null);
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 			//for (int i=0; i < graphData[0].length; i++) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
-				display = FramePart.hardErrorString(value, false);
+				display = FoxFramePart.hardErrorString(value, false);
 				
 				if (display != null) { 	
 					this.append((int)graphData[PayloadStore.RESETS_COL][i] + " " + (int)graphData[PayloadStore.UPTIME_COL][i] + " " +
@@ -92,14 +93,14 @@ public class DiagnosticTextArea extends JTextArea {
 	}
 
 	public void updateSoftErrorData() {
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 		this.setText(null);
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 			//for (int i=0; i < graphData[0].length; i++) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
-				display = FramePart.softErrorString(value, false);
+				display = FoxFramePart.softErrorString(value, false);
 				
 				if (display != null) { 	
 					this.append((int)graphData[PayloadStore.RESETS_COL][i] + " " + (int)graphData[PayloadStore.UPTIME_COL][i] + " " +

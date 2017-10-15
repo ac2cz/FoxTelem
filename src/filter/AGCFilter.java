@@ -28,6 +28,7 @@ public class AGCFilter extends Filter {
 	
 	public AGCFilter(AudioFormat af, int size) {
 		super(af, size);
+		name = "AGC ONLY";
 	}
 	@Override
 	public double filterDouble(double abBuffer) {

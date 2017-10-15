@@ -88,6 +88,15 @@ public class RsCodeWord  {
 		nextByte = pad;
 		numberOfCorrections = 0;
 	}
+	
+	public String toString() {
+		String s = "RS SIZE: " + DATA_BYTES + "/" + NN + " PAD:" + RSPAD + "\n";
+		for(int i = 0; i < NN; i++){
+			s = s + i+ ": " + rsCodeWord[i] + " " ;
+			if (i % 16 == 15) s = s + "\n";
+		}
+		return s;
+	}
 
 	public void addByte(byte b) throws ArrayIndexOutOfBoundsException {
 		rsCodeWord[nextByte++] = b;
@@ -125,7 +134,7 @@ public class RsCodeWord  {
 	 */
 	public byte[] decode() {
 		numberOfCorrections = decode_rs_8(rsCodeWord,erasurePositions,numberOfErasures);
-		if (Config.debugFrames) Log.println("RS ERASURES: " + numberOfErasures + " ERRORS CORRECTED:" + numberOfCorrections);
+		if (Config.debugFrames || Config.debugRS) Log.println("RS ERASURES: " + numberOfErasures + " ERRORS CORRECTED:" + numberOfCorrections);
 
 		byte[] rawFrame = new byte[NN-RSPAD];
 		for(int i = 0; i < rawFrame.length; i++){

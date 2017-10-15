@@ -6,7 +6,7 @@ import java.awt.Graphics;
 import java.text.DecimalFormat;
 
 import common.Config;
-import common.Spacecraft;
+import common.FoxSpacecraft;
 import telemetry.PayloadStore;
 
 /**
@@ -20,7 +20,7 @@ import telemetry.PayloadStore;
 public class DensityPlotPanel extends GraphCanvas {
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
 
-	DensityPlotPanel(String t, int conversionType, int plType, GraphFrame gf, Spacecraft sat) {
+	DensityPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
 		updateGraphData("DensityPlotPanel.new");
 	}
@@ -106,6 +106,8 @@ public class DensityPlotPanel extends GraphCanvas {
 			if (graphData[0][PayloadStore.UPTIME_COL][i] != graphData2[1][PayloadStore.UPTIME_COL][i])
 				System.err.println("ERROR!!!!!!!!!");
 			
+			if (hor > maxHor) hor = hor % maxHor;  // if greater than 360 we start again at 0
+			if (vert > maxVert) vert = maxVert - (vert - maxVert); // if greater than 90 we start to count back down to zero.
 			int vertBox = (int)Math.round((vert/vertStep));
 			int horBox = (int)Math.round((hor/horStep));
 			if (vertBox < 0) vertBox = 0;

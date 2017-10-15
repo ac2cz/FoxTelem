@@ -5,8 +5,8 @@ import java.util.StringTokenizer;
 
 import common.Config;
 import common.Log;
-import decoder.BitStream;
-import decoder.Decoder;
+import decoder.FoxBitStream;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -40,7 +40,7 @@ import decoder.Decoder;
  * 
  *
  */
-public class PayloadCameraData extends FramePart {
+public class PayloadCameraData extends FoxFramePart {
 	//public static final int TYPE = TYPE_CAMERA_DATA;
 	public static final byte END_OF_JPEG_DATA = -86; //0xaa;
 	public static final int LINE_HEADER_BYTES = 9; // include pre-amble 3; // bytes 0, 1, 2
@@ -119,7 +119,7 @@ public class PayloadCameraData extends FramePart {
 				int scanLineNumber = descriptor >> 2; // we want the 6 msbs
 				
 				int[] scanLineData = new int[scanLineLength];				
-				currentScanLine = new PictureScanLine(FramePart.fileDateStamp(), pictureCounter, scanLineNumber, scanLineLength, scanLineData);
+				currentScanLine = new PictureScanLine(FoxFramePart.fileDateStamp(), pictureCounter, scanLineNumber, scanLineLength, scanLineData);
 				pictureLines.add(currentScanLine);
 				lineByte = 0;
 
@@ -142,8 +142,8 @@ public class PayloadCameraData extends FramePart {
 		}
 		
 		if (Config.debugCameraFrames) {
-			Log.print(Decoder.hex(b) + ": ");
-			BitStream.printBitArray(BitStream.intToBin8(b));
+			Log.print(FoxDecoder.hex(b) + ": ");
+			FoxBitStream.printBitArray(FoxBitStream.intToBin8(b));
 		}
 		if (numberBytesAdded == HighSpeedFrame.MAX_CAMERA_PAYLOAD_SIZE) {
 			foundEndOfJpegData = true;

@@ -39,28 +39,10 @@ import telemetry.SatPayloadStore;
  *
  */
 @SuppressWarnings("serial")
-public abstract class RadiationTab extends ModuleTab implements ActionListener {
+public abstract class RadiationTab extends ModuleTab  {
 
-	public int SAMPLES = 100;
-	public int MAX_SAMPLES = 9999;
-	public int MIN_SAMPLES = 1;
-	public long START_UPTIME = 0;
-	public int START_RESET = 0;
-	
-	public static final int DEFAULT_START_RESET = 0;
-	public static final int DEFAULT_START_UPTIME = 0;
-	
 	JPanel topPanel;
-	JPanel bottomPanel;
 	JPanel centerPanel;
-
-	JLabel lblFromReset;
-	JTextField textFromReset;
-	JLabel lblFromUptime;
-	JTextField textFromUptime;
-	
-	JTextField displayNumber2;
-
 	PayloadRadExpData radPayload;
 
 	int splitPaneHeight = 0;
@@ -98,48 +80,7 @@ public abstract class RadiationTab extends ModuleTab implements ActionListener {
 		
 	}
 	*/
-	protected void addBottomFilter() {
-		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1500,10)));
-		JLabel displayNumber1 = new JLabel("Displaying last");
-		displayNumber2 = new JTextField();
-		JLabel displayNumber3 = new JLabel("payloads decoded");
-		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber2.setMinimumSize(new Dimension(50, 14));
-		displayNumber2.setMaximumSize(new Dimension(50, 14));
-		displayNumber2.setText(Integer.toString(SAMPLES));
-		displayNumber2.addActionListener(this);
-		bottomPanel.add(displayNumber1);
-		bottomPanel.add(displayNumber2);
-		bottomPanel.add(displayNumber3);
-		
-		lblFromReset = new JLabel("   from Reset  ");
-		lblFromReset.setFont(new Font("SansSerif", Font.PLAIN, 10));
-		bottomPanel.add(lblFromReset);
-		
-		textFromReset = new JTextField();
-		bottomPanel.add(textFromReset);
-		textFromReset.setText(Integer.toString(START_RESET));
-
-		textFromReset.setColumns(8);
-		textFromReset.addActionListener(this);
-		
-		lblFromUptime = new JLabel("   from Uptime  ");
-		lblFromUptime.setFont(new Font("SansSerif", Font.PLAIN, 10));
-		bottomPanel.add(lblFromUptime);
-		
-		textFromUptime = new JTextField();
-		bottomPanel.add(textFromUptime);
-
-		textFromUptime.setText(Long.toString(START_UPTIME));
-		textFromUptime.setColumns(8);
-//		textFromUptime.setPreferredSize(new Dimension(50,14));
-		textFromUptime.addActionListener(this);
-
-		
-	}
+	
 	
 	protected abstract void parseRadiationFrames();
 	
@@ -162,69 +103,8 @@ public abstract class RadiationTab extends ModuleTab implements ActionListener {
 
 	}
 	
-	private void parseTextFields() {
-		String text = displayNumber2.getText();
-		try {
-			SAMPLES = Integer.parseInt(text);
-			if (SAMPLES > MAX_SAMPLES) {
-				SAMPLES = MAX_SAMPLES;
-				text = Integer.toString(MAX_SAMPLES);
-			}
-			if (SAMPLES < MIN_SAMPLES) {
-				SAMPLES = MIN_SAMPLES;
-				text = Integer.toString(MIN_SAMPLES);
-			}
-		} catch (NumberFormatException ex) {
-			
-		}
-		displayNumber2.setText(text);
-		text = textFromReset.getText();
-		try {
-			START_RESET = Integer.parseInt(text);
-			if (START_RESET < 0) START_RESET = 0;
-			
-		} catch (NumberFormatException ex) {
-			if (text.equals("")) {
-				START_RESET = DEFAULT_START_RESET;
-				
-			}
-		}
-		textFromReset.setText(text);
-		
-		text = textFromUptime.getText();
-		try {
-			START_UPTIME = Integer.parseInt(text);
-			if (START_UPTIME < 0) START_UPTIME = 0;
-			
-		} catch (NumberFormatException ex) {
-			if (text.equals("")) {
-				START_UPTIME = DEFAULT_START_UPTIME;
-				
-			}
-		}
-		textFromUptime.setText(text);
+	
 
-		repaint();
-	}
-
-	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.displayNumber2 ||
-				e.getSource() == this.textFromReset ||
-				e.getSource() == this.textFromUptime) {
-			try {
-				parseTextFields();
-				//System.out.println(SAMPLES);
-				
-				//lblActual.setText("("+text+")");
-				//txtPeriod.setText("");
-			} catch (NumberFormatException ex) {
-				
-			}
-			
-			parseRadiationFrames();
-		}
-
-	}
+	
 
 }

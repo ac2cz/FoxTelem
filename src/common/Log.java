@@ -179,7 +179,7 @@ public class Log {
 		dialog(title, message, JOptionPane.INFORMATION_MESSAGE );
 	}
 	
-	public static void dialog(String title, String message, int type) {
+	private static void dialog(String title, String message, int type) {
 		try {
 		if (showGuiDialogs)
 		JOptionPane.showMessageDialog(MainWindow.frame,

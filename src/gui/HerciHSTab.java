@@ -23,14 +23,16 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.TableColumn;
 
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadHERCIhighSpeed;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import decoder.Decoder;
+import common.FoxSpacecraft;
+import decoder.FoxDecoder;
 
 /**
  * 
@@ -76,12 +78,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
-	public HerciHSTab(Spacecraft sat) {
+	public HerciHSTab(FoxSpacecraft sat) {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
 
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HERCITAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight");
 		
 		JLabel lblId = new JLabel("University of Iowa High Energy Radiation CubeSat Instrument (HERCI)");
 		lblId.setFont(new Font("SansSerif", Font.BOLD, 14));
@@ -114,7 +116,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 		initDisplayHalves(healthPanel);
 
-		BitArrayLayout rad = fox.herciHS2Layout;
+		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI);
@@ -141,7 +143,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), HERCITAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -261,12 +263,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 			data[rawData.length-k-1][4] = rawData[k][6];
 			data[rawData.length-k-1][5] = ""+Integer.parseInt(rawData[k][7])/40+":"+Integer.parseInt(rawData[k][7])%40; //rti
 			for (int j=8; j<12; j++) {
-				data[rawData.length-k-1][j-2] = Decoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
+				data[rawData.length-k-1][j-2] = FoxDecoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
 			}
 			data[rawData.length-k-1][10] = "";
 			for (int j=13; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
-					data[rawData.length-k-1][10] = data[rawData.length-k-1][10] + Decoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
+					data[rawData.length-k-1][10] = data[rawData.length-k-1][10] + FoxDecoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
 		}
 		
@@ -280,7 +282,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 			rawData[i][1] = Long.toString(hsPayload.getUptime());
 
 			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-				rawData[i][k+2] = Decoder.plainhex(hsPayload.fieldValue[k] & 0xff);
+				rawData[i][k+2] = FoxDecoder.plainhex(hsPayload.fieldValue[k] & 0xff);
 			}
 		}
 		
@@ -311,7 +313,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 	
 	
-	public void updateTab(BitArray rad) {
+	public void updateTab(FramePart rad) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
@@ -319,6 +321,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
@@ -352,17 +355,17 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 					showRawValues.setSelected(Config.displayRawValues);
 					updateTab(Config.payloadStore.getLatestHerciHeader(foxId));
 				}
-				if (Config.payloadStore.getUpdatedHerci(foxId)) {
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT)) {
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
-					Config.payloadStore.setUpdatedHerci(foxId, false);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT, false);
 
 					if (hsPayload != null)
 						parseRadiationFrames();
 					
-					displayFramesDecoded(Config.payloadStore.getNumberOfHerciFrames(foxId));
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.HERCI_HS_LAYOUT));
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs();
+						openGraphs(FoxFramePart.TYPE_REAL_TIME);
 						justStarted = false;
 					}
 				}
@@ -419,6 +422,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 	@Override
 	public void valueChanged(ListSelectionEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void parseFrames() {
 		// TODO Auto-generated method stub
 		
 	}

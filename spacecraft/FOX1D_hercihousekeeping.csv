@@ -13,11 +13,11 @@
 11,HERCI_HK,SHK_CMD_COUNT3,16,NONE,1,DPU,3,3,20,Validation Errors,Command errors
 12,HERCI_HK,DPU_TEMP,8,C,0,DPU,3,4,20,Temperature,Temperature of the DPU
 13,HERCI_HK,DETECTOR_TEMP,8,C,0,Detector,2,3,20,Temperature,Temperature of the detector
-14,HERCI_HK,PK1_SRC,4,NONE,31,Micro Packet 1,10,1,22,Source,Micro Packet 1 Source - the task that generated this
-15,HERCI_HK,PK1_TYP,4,NONE,30,Micro Packet 1,10,2,22,Type,Micro Packet 1 Type
-16,HERCI_HK,PK1_SEQ,8,NONE,1,Micro Packet 1,10,3,22,Sequence,Micro Packet 1 Packet Sequence
-17,HERCI_HK,PK1_RTI_TIME,16,s,1,Micro Packet 1,10,4,22,RTI Time,Micro Packet 1 Time in seconds
-18,HERCI_HK,PK1_DATA,8,NONE,32,Micro Packet 1,10,5,22,Data,Micro Packet 1 Data
+14,HERCI_HK,PK1_SRC,4,NONE,31,Micro Packet 1,4,1,22,Source,Micro Packet 1 Source - the task that generated this
+15,HERCI_HK,PK1_TYP,4,NONE,30,Micro Packet 1,4,2,22,Type,Micro Packet 1 Type
+16,HERCI_HK,PK1_SEQ,8,NONE,1,Micro Packet 1,4,3,22,Sequence,Micro Packet 1 Packet Sequence
+17,HERCI_HK,PK1_RTI_TIME,16,s,1,Micro Packet 1,4,4,22,RTI Time,Micro Packet 1 Time in seconds
+18,HERCI_HK,PK1_DATA,8,NONE,32,Micro Packet 1,4,5,22,Data,Micro Packet 1 Data
 19,HERCI_HK,PK1_DATA2,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
 20,HERCI_HK,PK1_DATA3,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
 21,HERCI_HK,PK1_DATA4,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
@@ -29,11 +29,11 @@
 27,HERCI_HK,PK1_DATA10,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
 28,HERCI_HK,PK1_DATA11,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
 29,HERCI_HK,PK1_DATA12,8,NONE,32,None,0,0,0,Data,Micro Packet 1 Data
-30,HERCI_HK,PK2_SRC,4,NONE,31,Micro Packet 2,11,1,22,Source,Micro Packet 2 Source - the task that generated this
-31,HERCI_HK,PK2_TYP,4,NONE,30,Micro Packet 2,11,2,22,Type,Micro Packet 2 Type
-32,HERCI_HK,PK2_SEQ,8,NONE,1,Micro Packet 2,11,3,22,Sequence,Micro Packet 2 Packet Sequence
-33,HERCI_HK,PK2_RTI_TIME,16,s,1,Micro Packet 2,11,4,22,RTI Time,Micro Packet 2 Time in seconds
-34,HERCI_HK,PK2_DATA,8,NONE,32,Micro Packet 2,11,5,22,Data,Micro Packet 2 Data
+30,HERCI_HK,PK2_SRC,4,NONE,31,Micro Packet 2,5,1,22,Source,Micro Packet 2 Source - the task that generated this
+31,HERCI_HK,PK2_TYP,4,NONE,30,Micro Packet 2,5,2,22,Type,Micro Packet 2 Type
+32,HERCI_HK,PK2_SEQ,8,NONE,1,Micro Packet 2,5,3,22,Sequence,Micro Packet 2 Packet Sequence
+33,HERCI_HK,PK2_RTI_TIME,16,s,1,Micro Packet 2,5,4,22,RTI Time,Micro Packet 2 Time in seconds
+34,HERCI_HK,PK2_DATA,8,NONE,32,Micro Packet 2,5,5,22,Data,Micro Packet 2 Data
 35,HERCI_HK,PK2_DATA2,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
 36,HERCI_HK,PK2_DATA3,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
 37,HERCI_HK,PK2_DATA4,8,NONE,32,None,0,0,0,Data,Micro Packet 2 Data
