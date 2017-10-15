@@ -38,8 +38,6 @@ public abstract class TunerController {
 	public TunerController() {
 
 	}
-	
-	public abstract void init() throws DeviceException;
 
 	public abstract int setFrequency(long freq) throws DeviceException;
 	
