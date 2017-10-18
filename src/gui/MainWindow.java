@@ -709,33 +709,36 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 
 		fileProgress.updateProgress(100);
-
-		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing " + dir + " data ...", false);
-		decompressProgress.setVisible(true);
-
-		// Now decompress it and expand
 		File archive = new File(file);
-		File destination = new File(Config.logFileDirectory);
 
-		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
-		try {
-			archiver.extract(archive, destination);
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
+		if (archive.length() == 0) {
+			// No data in file, so we skip
+		} else {
+			ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing " + dir + " data ...", false);
+			decompressProgress.setVisible(true);
+
+			// Now decompress it and expand
+			File destination = new File(Config.logFileDirectory);
+
+			Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
+			try {
+				archiver.extract(archive, destination);
+			} catch (IOException e) {
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+						+ e.getMessage() );
+				e.printStackTrace(Log.getWriter());
+				decompressProgress.updateProgress(100);
+				return;
+			} catch (IllegalArgumentException e) {
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+						+ e.getMessage() );
+				e.printStackTrace(Log.getWriter());
+				decompressProgress.updateProgress(100);
+				return;
+			}
+
 			decompressProgress.updateProgress(100);
-			return;
-		} catch (IllegalArgumentException e) {
-			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			decompressProgress.updateProgress(100);
-			return;
 		}
-
-		decompressProgress.updateProgress(100);
-
 
 	}
 	
