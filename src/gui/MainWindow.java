@@ -264,16 +264,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		fileProgress.setVisible(true);
 
 		// Close tabs according to the old list
-		int i=0;
-		for (SpacecraftTab tab : spacecraftTab) {
-			tab.refreshTabs(sats.get(i++), closeGraphs);
-		}
+		removeTabs();
+		Config.payloadStore.setUpdatedAll(); // mark everything as new so that we display the results on the new tabs
+		addHealthTabs(); // add them back again, could be a new list of sats this time
 		
-		// now grab the sats (incase the list changed) and refresh
-		sats = Config.satManager.getSpacecraftList();
-		
-		Config.payloadStore.setUpdatedAll();
-
 		if (Config.logFileDirectory.equals(""))
 			lblLogFileDir.setText("Logs: Current Directory");
 		else
@@ -282,16 +276,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.audioGraph.updateFont();
 		inputTab.eyePanel.updateFont();
 		setTotalDecodes();
+		
 		fileProgress.updateProgress(100);
 	}
 	
-	public static void addHealthTabs() {
+	public static void removeTabs() {
 		if (spacecraftTab != null) {
 			for (int s=0; s<spacecraftTab.length; s++) {
+				spacecraftTab[s].stop(); // stop any running threads
 				tabbedPane.remove(spacecraftTab[s]);
 				spacecraftTab[s] = null;
 			}
 		}
+		spacecraftTab = null;
+	}
+	public static void addHealthTabs() {
 		sats = Config.satManager.getSpacecraftList();
 		spacecraftTab = new SpacecraftTab[sats.size()];
 		for (int s=0; s<sats.size(); s++) {

@@ -75,8 +75,12 @@ public class SpacecraftTab extends JPanel {
 		wodRadiationTab.showGraphs();
 	}
 
-	public void refreshTabs(Spacecraft fox, boolean closeGraphs) {
-		
+	public void refreshXTabs(Spacecraft fox, boolean closeGraphs) {
+		closeTabs(fox, closeGraphs);
+		createTabs(fox);
+	}
+	
+	public void closeTabs(Spacecraft fox, boolean closeGraphs) {
 		sat = fox;
 		
 		if (closeGraphs) healthTab.closeGraphs();
@@ -99,21 +103,30 @@ public class SpacecraftTab extends JPanel {
 		if (wodRadiationTab != null)
 		if (closeGraphs) wodRadiationTab.closeGraphs();
 		tabbedPane.remove(wodRadiationTab);
-		addHealthTabs();
-		
+
 		if(closeGraphs)
 			measurementsTab.closeGraphs();
 		tabbedPane.remove(measurementsTab);
+
+	}
+	
+	public void createTabs(Spacecraft fox) {
+		addHealthTabs();		
 		addMeasurementsTab(sat);
 	}
 
-	private void addHealthTabs() {
+	public void stop() {
 		stopThreads(healthTab);
 		stopThreads(radiationTab);
 		stopThreads(cameraTab);
 		stopThreads(herciTab);
 		stopThreads(wodHealthTab);
 		stopThreads(wodRadiationTab);
+		stopThreads (measurementsTab);
+	}
+	
+	private void addHealthTabs() {
+		stop();
 		
 		healthTab = new HealthTabRt(sat);
 		healthThread = new Thread(healthTab);

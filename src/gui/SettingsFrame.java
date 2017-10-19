@@ -616,10 +616,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 							Config.logFileDirectory = txtLogFileDirectory.getText();
 							Log.println("Setting log file directory to: " + Config.logFileDirectory);
 							Config.totalFrames = 0;
+							Config.initSatelliteManager();
 							Config.initPayloadStore();
+							Config.initPassManager();
 							Config.initSequence();
 							Config.initServerQueue();
-							Config.initSatelliteManager();
 							Config.mainWindow.initSatMenu();
 							
 							refreshTabs = true;
