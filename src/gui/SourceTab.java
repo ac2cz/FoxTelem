@@ -212,7 +212,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JSplitPane splitPane;
 	
 	// Management of the devices and soundcards
-	ArrayList<String> usbSources;
+//	ArrayList<String> usbSources;
 	String[] soundcardSources;
 	String[] allSources;
 	
@@ -524,9 +524,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private String[] getSources() {
 		soundcardSources = SourceSoundCardAudio.getAudioSources();
+/*
 		usbSources = null;
 		try {
-			usbSources = tunerManager.makeDeviceList();
+//			usbSources = tunerManager.makeDeviceList();
 		} catch (UsbException e) {
 			Log.println("ERROR GETTING USB SOURCES");
 			e.printStackTrace();
@@ -538,6 +539,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			for (String s : usbSources) allSources[j++] = s;
 
 		return allSources;
+		*/
+		return soundcardSources;
 	}
 
 	
