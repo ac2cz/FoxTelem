@@ -70,12 +70,18 @@ public class RfData extends DataMeasure {
 			if (getAvg(AVGSIG) != 0 && getAvg(NOISE) != 0) {
 				double p = getAvg(AVGSIG);
 				double n = getAvg(NOISE);
-				rfSNR = (p - n);  // these are in dB so subtract rather than divide
+				if (p < -10 && p > -150)
+					if (n < -10 && n > -150)
+						if (p > n) // we don't store negative values as the signal we are after has to be above the noise
+							rfSNR = (p - n);  // these are in dB so subtract rather than divide
 			}
 			if (getAvg(STRONGEST_SIG) != 0 && getAvg(NOISE) != 0) {
 				double p = getAvg(STRONGEST_SIG);
 				double n = getAvg(NOISE);
-				strongestSigRfSNR = (p - n);  // these are in dB so subtract rather than divide
+				if (p < -10 && p > -150)
+					if (n < -10 && n > -150)
+						if (p > n)
+							strongestSigRfSNR = (p - n);  // these are in dB so subtract rather than divide
 			}
     		reset();
     	}

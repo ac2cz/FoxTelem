@@ -223,11 +223,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay = 0;
 				// move half the distance to the bin
 				int targetBin = 0;
-				if (Config.findSignal && !(Config.passManager.getState() == PassManager.DECODE  ||
-					Config.passManager.getState() == PassManager.ANALYZE))
-					targetBin = rfData.getBinOfStrongestSignal();
+				if (Config.findSignal)
+					targetBin = rfData.getBinOfPeakSignal();  // peak is the best signal in the decode band for the current sat
 				else
-					targetBin = rfData.getBinOfPeakSignal();
+					targetBin = rfData.getBinOfStrongestSignal(); // strongest is the best signal across the whole spectrum
 				/*
 				if (Config.findSignal)
 					targetBin = rfData.getBinOfStrongestSignal();
@@ -396,12 +395,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 						if (upperSelection != lowerSelection) {
 							int c1 = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
-							g2.drawLine(c1+sideBorder, topBorder, c1+sideBorder, zeroPoint);
+							g2.drawLine(c1+sideBorder, topBorder+5, c1+sideBorder, zeroPoint);
 							int c2 = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
-							g2.drawLine(c2+sideBorder, topBorder, c2+sideBorder, zeroPoint);
+							g2.drawLine(c2+sideBorder, topBorder+5, c2+sideBorder, zeroPoint);
 							int c3 = (c1 + c2)/2;
 							c3 = c3 - sat.name.length()/3*Config.graphAxisFontSize;
-							g.drawString(sat.name, c3+sideBorder, topBorder + 10 );
+							g.drawString(sat.name, c3+sideBorder, topBorder + 15 );
 						}
 					}
 				}
