@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.List;
 
+import common.Log;
 import uk.me.g4dpz.satellite.TLE;
 
 /**
@@ -23,7 +24,7 @@ import uk.me.g4dpz.satellite.TLE;
 public class FoxTLE extends TLE implements Comparable<FoxTLE> {
 	String[] tleText = new String[3]; // The oritinal text so we can resave to file
 	
-	public FoxTLE(String[] tle) throws IllegalArgumentException {
+	public FoxTLE(String[] tle) throws IllegalArgumentException, StringIndexOutOfBoundsException, NumberFormatException {
 		super(tle);
 		for (int i=0; i<3; i++) 
 			tleText[i] = new String(tle[i]);
@@ -60,7 +61,13 @@ public class FoxTLE extends TLE implements Comparable<FoxTLE> {
                 case 2:
                     lines[j] = readString;
                     j = 0;
-                    importedSats.add(new FoxTLE(lines));
+                    try {
+                    	importedSats.add(new FoxTLE(lines));
+                    } catch (StringIndexOutOfBoundsException e) {
+                   	Log.println("ERROR PROCESSING KEPS: " + e.getMessage());
+                    } catch (NumberFormatException e) {
+                    	Log.println("ERROR PROCESSING KEPS: " + e.getMessage());
+                    }
                     break;
                 default:
                     break;

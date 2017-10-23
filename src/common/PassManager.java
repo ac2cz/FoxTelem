@@ -3,8 +3,6 @@ package common;
 import gui.MainWindow;
 import gui.SourceTab;
 
-import java.util.ArrayList;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
@@ -656,7 +654,6 @@ public class PassManager implements Runnable {
 							+ "Tracking will be disabled for " + sat.name + ".");
 					return false;
 				} else {
-					DateTime timeNow = new DateTime(DateTimeZone.UTC);
 					SatPos pos = null;
 					try {
 						pos = calcSatPosition(sat);
@@ -665,9 +662,11 @@ public class PassManager implements Runnable {
 						if (e.errorCode == FramePart.NO_TLE)
 							sat.track = false;
 							sat.save();
+							String scd = Config.getLogFileDirectory() + "spacecraft\\";
 							Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the spacecraft position, but no TLE was found for "
 									+ sat.name +".\nMake sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
-									+ "file from amsat.  This file is automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+									+ "file from amsat.  This file is automatically downloaded from: \nhttp://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+									+ "TLE for this spacecraft is copied from nasabare.txt into the file:\n"+scd+"FOX"+ sat.foxId + ".tle.  It may be missing or corrupt.\n"
 									+ "Tracking will be disabled for this spacecraft.");
 						return false;
 					}
