@@ -9,6 +9,7 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
@@ -201,6 +202,9 @@ public class FoxSpacecraft extends Spacecraft{
         	return false;
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        	return false;
+        } catch (NoSuchElementException m) {
+        	// This was likely a blank file because we have no internet connection
         	return false;
         } finally {
         	try {
