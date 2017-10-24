@@ -171,6 +171,23 @@ public class Log {
 
 	}
 	
+	public static int optionYNdialog(String title, String message) {
+		if (!showGuiDialogs)
+			return 1; // Default is no if a dialog is called from server
+		Object[] options = {"Yes",
+        "No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message.toString(),
+				title,
+				JOptionPane.YES_NO_OPTION, 
+			    JOptionPane.QUESTION_MESSAGE,
+			    null,
+			    options,
+			    options[1]);
+		return n;
+	}
+	
 	public static void errorDialog(String title, String message) {
 		dialog(title, message, JOptionPane.ERROR_MESSAGE );
 	}

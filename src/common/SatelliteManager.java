@@ -105,15 +105,8 @@ public class SatelliteManager {
 							// And we are doing a new install, so as the user what to do
 							Object[] options = {"Yes",
 							"No"};
-							int n = JOptionPane.showOptionDialog(
-									MainWindow.frame,
-									"Do you want to install the spacecraft file for: " + targetFile,
-									"\nHit yes to install or No to skip?",
-									JOptionPane.YES_NO_OPTION, 
-									JOptionPane.QUESTION_MESSAGE,
-									null,
-									options,
-									options[1]);
+							int n = Log.optionYNdialog("Hit yes to install or No to skip?",
+									"Do you want to install the spacecraft file for: " + targetFile);
 
 							if (n == JOptionPane.YES_OPTION) {
 								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
@@ -132,18 +125,11 @@ public class SatelliteManager {
 							Date masterDate = new Date(listOfFiles[i].lastModified());
 							Object[] options = {"Yes",
 					        "No"};
-							int n = JOptionPane.showOptionDialog(
-									MainWindow.frame,
+							int n = Log.optionYNdialog("Overwrite Existing spacecraft config file",
 									"There is a newer spacecraft file available in the installation directory. Do you want to replace your local file?\n"
 									+ "The local file contains any changes you have made to the spacecraft, such as Freqency Bounds.\n"
 									+ "Existing File ("+targetDate+"): " + targetFile.getPath() +"\nwill be replaced with\n"
-									+ "Master Copy ("+masterDate+"): " + listOfFiles[i].getPath(),
-									"Overwrite Existing spacecraft config file",
-								    JOptionPane.YES_NO_OPTION, 
-								    JOptionPane.QUESTION_MESSAGE,
-								    null,
-								    options,
-								    options[1]);
+									+ "Master Copy ("+masterDate+"): " + listOfFiles[i].getPath());
 										
 							if (n == JOptionPane.NO_OPTION) {
 								Log.println("Leaving existing spacecraft file: " + targetFile.getName());
