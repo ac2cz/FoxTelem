@@ -22,13 +22,17 @@ import common.Log;
  */
 public class FoxService {
 
-	
+	public static String version = "Version 0.24a - 24 Oct 2017";
 	public static int port = 8080;
 	int poolSize = 100;
 	
 	public static void main(String args[]) throws IOException {
 		FoxService ws = new FoxService();
 		String u,p, db;
+		if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
+			System.out.println("AMSAT Fox Web Service. Version " + version);
+			System.exit(0);
+		}
 		if (args.length == 3) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		    p = in.readLine();
@@ -58,6 +62,7 @@ public class FoxService {
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
 		Log.init("FoxWebService");
+		Log.alertsAreFatal = false;
 		Log.showGuiDialogs = false;
 		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 		

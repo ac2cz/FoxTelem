@@ -13,6 +13,8 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
+import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
+
 import telemetry.Frame;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
@@ -154,7 +156,9 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (raw.startsWith("C"))
 								convert = false;
+							
 							out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+							
 							} else {
 								out.println("FOX SAT Requested invalid\n");
 							}
