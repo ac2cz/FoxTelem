@@ -15,6 +15,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -104,7 +105,7 @@ import javax.swing.event.PopupMenuEvent;
  *
  */
 @SuppressWarnings("serial")
-public class SourceTab extends JPanel implements Runnable, ItemListener, ActionListener, PropertyChangeListener, FocusListener {
+public class SourceTab extends JPanel implements Runnable, ItemListener, ActionListener, PropertyChangeListener, FocusListener, MouseListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
 	//Thread fcdPanelThread;
@@ -454,6 +455,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satName[s] = new JLabel(sat.name + ":   ");
 			satPosition[s] = new JLabel("Not Tracked");
 			if (sat.track) satPosition[s].setText("Tracked");
+			satPosition[s].addMouseListener(this);
 			satRows[s].add(satName[s]);
 			satRows[s].add(satPosition[s]);
 		}
@@ -2126,6 +2128,41 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				lblWhenAboveHorizon.setVisible(false);
 			}
 		}
+		
+	}
+
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+			if (e.getSource() == satPosition[s]) {
+				System.out.println("Clicked: " + Config.satManager.spacecraftList.get(s).name);
+				Config.satManager.spacecraftList.get(s).track = !Config.satManager.spacecraftList.get(s).track;
+			}
+		}
+		
+	}
+
+	@Override
+	public void mouseEntered(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
 		
 	}
 
