@@ -53,6 +53,7 @@ import javax.usb.UsbException;
 import org.usb4java.LibUsbException;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
@@ -2083,7 +2084,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			try {
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
-					if (Config.whenAboveHorizon && aboveHorizon && sat.track)
+					if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
 						satPosition[s].setForeground(Config.AMSAT_RED);
 					else
 						satPosition[s].setForeground(Config.AMSAT_BLUE);
@@ -2137,6 +2138,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (e.getSource() == satPosition[s]) {
 				System.out.println("Clicked: " + Config.satManager.spacecraftList.get(s).name);
 				Config.satManager.spacecraftList.get(s).track = !Config.satManager.spacecraftList.get(s).track;
+				((FoxSpacecraft)Config.satManager.spacecraftList.get(s)).save();
 			}
 		}
 		

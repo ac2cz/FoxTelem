@@ -660,7 +660,6 @@ public abstract class Decoder implements Runnable {
 		rtMeasurement.setErrors(lastErrorsNumber);
 		rtMeasurement.setErasures(lastErasureNumber);
 		SatPc32DDE satPC = null;
-		DateTime timeNow = new DateTime(DateTimeZone.UTC);
 		Spacecraft sat = Config.satManager.getSpacecraft(header.id);
 		SatPos pos = null;
 		if (Config.useDDEforAzEl) {
@@ -679,10 +678,9 @@ public abstract class Decoder implements Runnable {
 				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
 					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
 				} else {
-					timeNow = new DateTime(DateTimeZone.UTC);
 					sat = Config.satManager.getSpacecraft(header.id);
 					try {
-						pos = sat.getSatellitePosition(timeNow);
+						pos = sat.getCurrentPosition();
 						if (Config.debugFrames)
 							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
 					} catch (PositionCalcException e) {

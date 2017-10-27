@@ -423,7 +423,7 @@ public class PassManager implements Runnable {
 		long fadeTime = 0;
 		while (fadeTime < FADE_PERIOD) {
 			try {
-				calcSatPosition(spacecraft);
+				spacecraft.getCurrentPosition();
 			} catch (PositionCalcException e1) {
 				// Do nothing here.  The user gets an error when find signal enabled if the TLE missing
 			}
@@ -593,19 +593,22 @@ public class PassManager implements Runnable {
 				e.printStackTrace();
 			}
 			//if (Config.findSignal) {
-				boolean atLeastOneTracked = false;;
+				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
+				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) atLeastOneTracked = true;
 					if (MainWindow.inputTab != null && sat.track) {
 						if (aboveHorizon(sat)) {
+							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
 							if (Config.findSignal)
 								stateMachine(sat);
-						} else {
-							MainWindow.inputTab.stopDecoding();
-						}
+						} 
 					}
+				}
+				if (MainWindow.inputTab != null && !oneSatUp) {
+					MainWindow.inputTab.stopDecoding();
 				}
 				if (Config.whenAboveHorizon && Config.findSignal && !atLeastOneTracked) {
 					if (MainWindow.inputTab != null) {
@@ -656,7 +659,7 @@ public class PassManager implements Runnable {
 				} else {
 					SatPos pos = null;
 					try {
-						pos = calcSatPosition(sat);
+						pos = sat.getCurrentPosition();
 					} catch (PositionCalcException e) {
 						// We wont get NO T0 as we are using the current time, but we may have missing keps
 						if (e.errorCode == FramePart.NO_TLE)
@@ -673,7 +676,7 @@ public class PassManager implements Runnable {
 					if (!Config.whenAboveHorizon)
 						return true;
 					else if (pos != null) {
-						if (FramePart.radToDeg(pos.getElevation()) >= 0) {
+						if (sat.aboveHorizon()) {
 							return true;
 						}
 					}
@@ -683,12 +686,4 @@ public class PassManager implements Runnable {
 		return true;
 	}
 	
-	private SatPos calcSatPosition(Spacecraft sat) throws PositionCalcException {
-		DateTime timeNow = new DateTime(DateTimeZone.UTC);
-		SatPos pos = null;
-			pos = sat.getSatellitePosition(timeNow);
-			if (Config.debugSignalFinder)
-				Log.println("Fox at: " + FramePart.latRadToDeg(pos.getAzimuth()) + " : " + FramePart.lonRadToDeg(pos.getElevation()));
-			return pos;
-	}
 }

@@ -16,6 +16,7 @@ import java.util.List;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
 import predict.FoxTLE;
 import predict.PositionCalcException;
@@ -258,8 +259,27 @@ public abstract class Spacecraft {
 		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
-		satPos = satellitePosition;
 		return satellitePosition;
+	}
+
+	/**
+	 * Calculate the current position and cache it
+	 * @return
+	 * @throws PositionCalcException
+	 */
+	public SatPos getCurrentPosition() throws PositionCalcException {
+		DateTime timeNow = new DateTime(DateTimeZone.UTC);
+		SatPos pos = null;
+		pos = getSatellitePosition(timeNow);
+		satPos = pos;
+		if (Config.debugSignalFinder)
+			Log.println("Fox at: " + FramePart.latRadToDeg(pos.getAzimuth()) + " : " + FramePart.lonRadToDeg(pos.getElevation()));
+		return pos;
+	}
+
+	
+	public boolean aboveHorizon() {
+		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
 	}
 	
 	protected void load() throws LayoutLoadException {
