@@ -89,6 +89,7 @@ public class Config {
 	public static Color GRAPH12 = new Color(153,153,255); // purple
 	
 	public static SatelliteManager satManager;
+	static Thread satManagerThread;
 	public static PassManager passManager;
 	static Thread passManagerThread;
 	
@@ -279,7 +280,7 @@ public class Config {
 	public static void basicInit() {
 		initSequence();
 		
-		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
+		// Work out the OS but dont save in the properties.  It might be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
 		
@@ -373,7 +374,12 @@ public class Config {
 	}
 
 	public static void initSatelliteManager() {
-		satManager = new SatelliteManager();		
+		if (satManager != null)
+			satManager.stop();
+		satManager = new SatelliteManager();
+		satManagerThread = new Thread(satManager);
+		satManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		satManagerThread.start();
 	}
 	
 	public static void initPassManager() {	

@@ -16,6 +16,7 @@ import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
 import common.Spacecraft;
@@ -680,7 +681,14 @@ public abstract class Decoder implements Runnable {
 				} else {
 					sat = Config.satManager.getSpacecraft(header.id);
 					try {
-						pos = sat.getCurrentPosition();
+						DateTime satTime = null;
+						//if (sat.isFox1())
+						//	satTime = ((FoxSpacecraft) sat).getUtcDateTimeForReset(header.resets, header.uptime);
+						//if (satTime != null) {
+						//	pos = sat.getSatellitePosition(satTime); // if we get the spacecraft time, use that for position, as this works for historical recordings
+						//} else {
+							pos = sat.getCurrentPosition();
+						//}
 						if (Config.debugFrames)
 							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
 					} catch (PositionCalcException e) {

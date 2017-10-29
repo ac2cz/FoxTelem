@@ -422,11 +422,7 @@ public class PassManager implements Runnable {
 		long startTime = System.nanoTime()/1000000; // get time in ms
 		long fadeTime = 0;
 		while (fadeTime < FADE_PERIOD) {
-			try {
-				spacecraft.getCurrentPosition();
-			} catch (PositionCalcException e1) {
-				// Do nothing here.  The user gets an error when find signal enabled if the TLE missing
-			}
+			
 			try {
 				Thread.sleep(SNR_PERIOD);
 			} catch (InterruptedException e) {
@@ -647,30 +643,12 @@ public class PassManager implements Runnable {
 		}
 		if (Config.foxTelemCalcsPosition) {
 			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
-			if (Config.GROUND_STATION != null)
-				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
-					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
-					sat.track = false;
-					sat.save();
-					Log.errorDialog("MISSING GROUND STATION", "FoxTelem is configured to calculate the spacecraft position, but your ground station\n"
-							+ "is not defined.  Go to the settings tab and setup the ground station position or turn of calculation of the spacecraft position.\n"
-							+ "Tracking will be disabled for " + sat.name + ".");
-					return false;
-				} else {
+			
 					SatPos pos = null;
 					try {
 						pos = sat.getCurrentPosition();
 					} catch (PositionCalcException e) {
-						// We wont get NO T0 as we are using the current time, but we may have missing keps
-						if (e.errorCode == FramePart.NO_TLE)
-							sat.track = false;
-							sat.save();
-							String scd = Config.getLogFileDirectory() + "spacecraft\\";
-							Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the spacecraft position, but no TLE was found for "
-									+ sat.name +".\nMake sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
-									+ "file from amsat.  This file is automatically downloaded from: \nhttp://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
-									+ "TLE for this spacecraft is copied from nasabare.txt into the file:\n"+scd+"FOX"+ sat.foxId + ".tle.  It may be missing or corrupt.\n"
-									+ "Tracking will be disabled for this spacecraft.");
+						// The error will get shown to the user in the satManager thread
 						return false;
 					}
 					if (!Config.whenAboveHorizon)
@@ -681,7 +659,7 @@ public class PassManager implements Runnable {
 						}
 					}
 					return false;
-				}
+				
 		}
 		return true;
 	}

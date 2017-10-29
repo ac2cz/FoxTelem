@@ -267,7 +267,7 @@ public abstract class Spacecraft {
 	 * @return
 	 * @throws PositionCalcException
 	 */
-	public SatPos getCurrentPosition() throws PositionCalcException {
+	protected SatPos calcualteCurrentPosition() throws PositionCalcException {
 		DateTime timeNow = new DateTime(DateTimeZone.UTC);
 		SatPos pos = null;
 		pos = getSatellitePosition(timeNow);
@@ -277,6 +277,10 @@ public abstract class Spacecraft {
 		return pos;
 	}
 
+	public SatPos getCurrentPosition() throws PositionCalcException {
+		if (satPos == null) throw new PositionCalcException(FramePart.NO_POSITION_DATA);
+		return satPos;
+	}
 	
 	public boolean aboveHorizon() {
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);

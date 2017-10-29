@@ -204,6 +204,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblFreq;
 	JLabel lblkHz;
 	
+	JPanel opts, satPanel;  // this list of right hand options panel where we put the sats we track
 	JLabel satPosition[];
 	
 	private JTextField txtFreq;
@@ -433,18 +434,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 	}
 	
-	private void buildRightPanel(JPanel parent, String layout, JPanel rightPanel) {
-		parent.add(rightPanel, layout);
-			
-		JPanel opts = new JPanel();
-		rightPanel.add(opts);
-		opts.setLayout(new BorderLayout());
-
-		JPanel satPanel = new JPanel();
+	public void buildTrackedSpacecraftList() {
+		if (satPanel != null)
+			opts.remove(satPanel);
+		satPanel = new JPanel();
 		satPanel.setBorder(new TitledBorder(null, "Spacecraft Tracked", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		opts.add(satPanel, BorderLayout.NORTH);
 		satPanel.setLayout(new BoxLayout(satPanel, BoxLayout.Y_AXIS));
-///  THIS NEEDS TO BE DYNAMIC IF SPACECRAFT CAN BE ADDED WITHOUT RESTART.  OTHERWISE IT IS FINE		
 		JPanel satRows[] = new JPanel[Config.satManager.spacecraftList.size()];
 		JLabel satName[] = new JLabel[Config.satManager.spacecraftList.size()];
 		satPosition = new JLabel[Config.satManager.spacecraftList.size()];
@@ -460,6 +456,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s].add(satName[s]);
 			satRows[s].add(satPosition[s]);
 		}
+	}
+	
+	private void buildRightPanel(JPanel parent, String layout, JPanel rightPanel) {
+		parent.add(rightPanel, layout);
+			
+		opts = new JPanel();
+		rightPanel.add(opts);
+		opts.setLayout(new BorderLayout());
+
+		
+		//buildTrackedSpacecraftList();
 
 		
 		JPanel optionsPanel = new JPanel();
@@ -2082,6 +2089,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				e.printStackTrace();
 			}
 			try {
+				if (Config.satManager.updated) {
+					buildTrackedSpacecraftList();
+					Config.satManager.updated = false;
+				}
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())

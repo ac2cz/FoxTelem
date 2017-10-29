@@ -21,10 +21,13 @@ import javax.swing.JOptionPane;
 import FuncubeDecoder.FUNcubeSpacecraft;
 import gui.MainWindow;
 import predict.FoxTLE;
+import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
+import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.TLE;
 
 /**
@@ -53,9 +56,10 @@ import uk.me.g4dpz.satellite.TLE;
  * 
  * 
  */
-public class SatelliteManager {
+public class SatelliteManager implements Runnable {
 	
 	public static final String AMSAT_NASA_ALL = "http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt";
+	public boolean updated = true; // true when we have first been created or the sats have been updated and layout needs to change
 	
 	public ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	
@@ -405,5 +409,73 @@ public class SatelliteManager {
 			is.close();
 		}
 	}
+
+	boolean running = true;
+	boolean done = false;
 	
+	public void stop() {
+		running = false;
+		while (!done) {
+			try {
+				Thread.sleep(10);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	@Override
+	public void run() {
+		// Runs until we exit
+		while(running) {
+			// Sleep first to avoid race conditions at start up
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
+			if (Config.foxTelemCalcsPosition) {
+				// Calculate the sat positions, which caches them in each sat
+				for (int s=0; s < spacecraftList.size(); s++) {
+					Spacecraft sat = spacecraftList.get(s);
+					if (sat.track) {
+						if (Config.GROUND_STATION != null)
+							if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
+								// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
+								sat.track = false;
+								sat.save();
+								Log.errorDialog("MISSING GROUND STATION", "FoxTelem is configured to calculate the spacecraft position, but your ground station\n"
+										+ "is not defined.  Go to the settings tab and setup the ground station position or turn of calculation of the spacecraft position.\n"
+										+ "Tracking will be disabled for " + sat.name + ".");
+								sat.satPos = null;
+							} else {
+								SatPos pos = null;
+								try {
+									pos = sat.calcualteCurrentPosition();
+								} catch (PositionCalcException e) {
+									// We wont get NO T0 as we are using the current time, but we may have missing keps
+									if (running) { // otherwise we reset the sats and another copy of this thread will deal with the issue
+										sat.track = false;
+										sat.save();
+										String scd = Config.getLogFileDirectory() + "spacecraft\\";
+										Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the spacecraft position, but no TLE was found for "
+												+ sat.name +".\nMake sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
+												+ "file from amsat.  This file is automatically downloaded from: \nhttp://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
+												+ "TLE for this spacecraft is copied from nasabare.txt into the file:\n"+scd+"FOX"+ sat.foxId + ".tle.  It may be missing or corrupt.\n"
+												+ "Tracking will be disabled for this spacecraft.");
+										sat.satPos = null;
+									}
+								}
+							}
+					}
+				}
+			}
+
+		}
+		done = true;
+	}
+
 }
