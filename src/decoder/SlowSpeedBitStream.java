@@ -40,7 +40,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 	/**
 	 * Given a section of the bit stream between two sync words, attempt to decode it
 	 */
-	public SlowSpeedFrame decodeFrame(int start, int end) {
+	public SlowSpeedFrame decodeFrame(int start, int end, int missedBits, int repairPosition ) {
 		//SlowSpeedFrame slowSpeedFrame = null;
 		byte[] rawFrame = new byte[SlowSpeedFrame.getMaxBytes()]; // The decoded 8b bytes ready to be passed to the fec decoder
 		int[] erasurePositions = new int[SlowSpeedFrame.getMaxBytes()];
