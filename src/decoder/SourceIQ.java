@@ -344,7 +344,7 @@ public class SourceIQ extends SourceAudio {
 			if (circularDoubleBuffer[channel].getCapacity() > fcdData.length) {
 				nBytesRead = upstreamAudioSource.read(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
-					Log.println("ERROR: IQ Source could not read sufficient data from audio source");
+					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
 				outputData = processBytes(fcdData, false);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 

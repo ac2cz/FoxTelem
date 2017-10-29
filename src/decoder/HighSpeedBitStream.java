@@ -63,17 +63,25 @@ public class HighSpeedBitStream extends FoxBitStream {
 	 * The corrected data is re-allocated, again round robin, into a rawFrame.  This frame should
 	 * then contain the data BACK in the original order, but with corrections made
 	 */
-	public Frame decodeFrame(int start, int end) {
-		byte[] rawFrame = decodeBytes(start, end);
+	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition) {
+		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
 		highSpeedFrame.addRawFrame(rawFrame);
 		return highSpeedFrame;
 	}
 	
-	protected byte[] decodeBytes(int start, int end) {
+	/**
+	 * 
+	 * @param start - the circularBuffer pointer for the start of the bits in this frame
+	 * @param end - end of frame bit pointer
+	 * @param missedBits - a non zero value means we have to insert missed bits at this position
+	 * @param repairPosition - the position that missed bits should be inserted
+	 * @return
+	 */
+	protected byte[] decodeBytes(int start, int end, int missedBits, int repairPosition) {
 		RsCodeWord[] codeWords = new RsCodeWord[numberOfRsCodeWords];
-	
+		boolean insertedMissedBits = false;
 		int bytesInFrame = 0; 
 		
 		byte[] rawFrame = new byte[maxBytes];
@@ -97,7 +105,11 @@ public class HighSpeedBitStream extends FoxBitStream {
 		
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
 		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
-
+			if (!insertedMissedBits && missedBits > 0 && j >= repairPosition) {
+				Log.println("INSERTED "+ missedBits + " at " + repairPosition);
+				j = j-missedBits;
+				insertedMissedBits = true;
+			}
 			byte b8 = -1;
 			try {
 				b8 = processWord(j);

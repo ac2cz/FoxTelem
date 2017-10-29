@@ -58,8 +58,8 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 	 * Attempt to decode the PSK 1200bps Speed Frame
 	 * 
 	 */
-	public Frame decodeFrame(int start, int end) {
-		byte[] rawFrame = decodeBytes(start, end);
+	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition) {
+		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		// ADD in the next SYNC WORD to help the decoder
 		// This is a nice idea and even works sometimes, but we need to make sure it does not cause a crash if it is off the end of the data.
