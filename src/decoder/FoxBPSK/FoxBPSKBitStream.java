@@ -43,6 +43,7 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		super(dec, wordLength, syncWordLnegth);
 		SYNC_WORD_LENGTH = syncWordLnegth;
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
+		SYNC_WORD_BIT_TOLERANCE = 6;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
 		maxBytes = FoxBPSKFrame.getMaxBytes();
 		frameSize = FoxBPSKFrame.MAX_FRAME_SIZE;

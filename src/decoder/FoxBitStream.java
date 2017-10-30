@@ -53,7 +53,7 @@ public abstract class FoxBitStream extends BitStream {
 	protected static final int MAX_ERASURES = 16; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
 	protected static final int FRAME_PROCESSED = -999;
 	
-	protected static final int SYNC_WORD_BIT_TOLERANCE = 6; // if we are within this many bits, then try to decode the frame 
+	protected static int SYNC_WORD_BIT_TOLERANCE = 0; // if we are within this many bits, then try to decode the frame.  Set by Constructor
 	
 	protected int syncWordbitPosition = 0; // The position in the 10 bit word when we are searching for SYNC words bit by bit
 	protected boolean[] syncWord = new boolean[SYNC_WORD_LENGTH]; // The SYNC_WORD_LENGTH bit word used to find SYNC words, selected from the end of the bitStream

@@ -52,6 +52,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, dec);
 		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
+		SYNC_WORD_BIT_TOLERANCE = 0; // this is too CPU intensive for large frames
 	}
 
 	/**
