@@ -106,8 +106,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 		
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
 		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
-			if (!insertedMissedBits && missedBits > 0 && j >= repairPosition) {
-				Log.println("INSERTED "+ missedBits + " at " + repairPosition);
+			if (Config.insertMissingBits && !insertedMissedBits && missedBits > 0 && j >= repairPosition) {
+				if (Config.debugFrames) {
+					Log.println("INSERTED "+ missedBits + " missed bits at " + repairPosition);
+					Log.println("RS Codeword: "+ rsNum + " byte: " + f);
+					Log.println("Byte num: "+ bytesInFrame);
+				}
 				j = j-missedBits;
 				insertedMissedBits = true;
 			}

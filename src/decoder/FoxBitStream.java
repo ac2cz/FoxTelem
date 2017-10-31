@@ -136,11 +136,15 @@ public abstract class FoxBitStream extends BitStream {
 				if (start != FRAME_PROCESSED) {
 					int missedBits = 0;
 					int repairPosition = 0;
-					if (end-start >= SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE && end-start <= SYNC_WORD_DISTANCE) {
+					int shortLen = SYNC_WORD_DISTANCE;
+					if (Config.insertMissingBits)
+						shortLen = SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE;
+					
+					if (end-start >= shortLen && end-start <= SYNC_WORD_DISTANCE) {
 						missedBits = SYNC_WORD_DISTANCE - (end-start);
-						if (missedBits > 0) {
+						if (Config.insertMissingBits && missedBits > 0) {
 							repairPosition = checkShortFrame();
-							Log.println("Ready to insert "+missedBits+ " at " + repairPosition);
+							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition);
 						}
 						if (newFrame(start, end)) {
 							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");

@@ -84,6 +84,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox storePayloads;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
+	private JCheckBox insertMissingBits;
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;
 	private JCheckBox cbFoxTelemCalcsPosition;
@@ -299,6 +300,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.useLeftStereoChannel, rightcolumnpanel0 );
 		swapIQ = addCheckBoxRow("Swap IQ", "Swap the I and Q channels in IQ deocder mode",
 				Config.swapIQ, rightcolumnpanel0 );
+		insertMissingBits = addCheckBoxRow("Fix Dropped Bits", "Fix bits dropped in the audio channel (may fix frames but use more CPU)",
+				Config.insertMissingBits, rightcolumnpanel0 );
 		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		//JPanel rightcolumnpanel1 = addColumn(rightcolumnpanel,3);
@@ -542,6 +545,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.storePayloads = storePayloads.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
+				Config.insertMissingBits = insertMissingBits.isSelected();
 				
 				if (Config.isWindowsOs()) {
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();

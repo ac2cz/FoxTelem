@@ -2147,7 +2147,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	public void mouseClicked(MouseEvent e) {
 		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 			if (e.getSource() == satPosition[s]) {
-				System.out.println("Clicked: " + Config.satManager.spacecraftList.get(s).name);
 				Config.satManager.spacecraftList.get(s).track = !Config.satManager.spacecraftList.get(s).track;
 				((FoxSpacecraft)Config.satManager.spacecraftList.get(s)).save();
 			}

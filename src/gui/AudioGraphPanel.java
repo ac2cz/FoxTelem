@@ -122,7 +122,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	
 	public void startProcessing(Decoder decoder1) {
 		foxDecoder = decoder1;
-		title.setText("Sample rate: " + Integer.toString(foxDecoder.getCurrentSampleRate()) + " | Samples: " + foxDecoder.getSampleWindowLength());
+		if (foxDecoder != null)
+			title.setText("Sample rate: " + Integer.toString(foxDecoder.getCurrentSampleRate()) + " | Samples: " + foxDecoder.getSampleWindowLength());
 		
 		running = true;
 	}
