@@ -1296,12 +1296,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							panelFcd = new FcdProPlusPanel();
 						else
 							panelFcd = new FcdProPanel();
-						panelFcd.setDevice(rfDevice);
+						
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					} catch (DeviceException e) {
 						e.printStackTrace(Log.getWriter());
 					}
+				panelFcd.setDevice(rfDevice);
 				SDRpanel.add(panelFcd, BorderLayout.CENTER);
 
 				SDRpanel.setVisible(true);
@@ -1678,7 +1679,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
-		if (rfDevice != null) {
+	/*	if (rfDevice != null) {
 			try {
 				rfDevice.cleanup();
 			} catch (IOException e) {
@@ -1688,7 +1689,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			rfDevice = null;
 		}
+		*/
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) {
 			SDRpanel.setVisible(true);	
 			if (panelFcd != null)
