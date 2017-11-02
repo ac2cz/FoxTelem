@@ -86,7 +86,7 @@ public class Fox200bpsDecoder extends FoxDecoder {
 		//decodedFrame = new SlowSpeedFrame();
 		foxBitStream = new SlowSpeedBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
-		SAMPLE_WINDOW_LENGTH = 70;//70; 
+		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;
 		SAMPLE_WIDTH = bucketSize*SAMPLE_WIDTH_PERCENT/100;
 		if (SAMPLE_WIDTH < 1) SAMPLE_WIDTH = 1;
