@@ -187,7 +187,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 			}
 		}
 		// Consume all of the bits up to this point, but not the end SYNC word
-		removeBits(0, end-SYNC_WORD_LENGTH);
+//		removeBits(0, end-SYNC_WORD_LENGTH);  // this is now done in the calling routine
 
 		//// DEBUG ///
 //		System.out.println(codeWords[0]);

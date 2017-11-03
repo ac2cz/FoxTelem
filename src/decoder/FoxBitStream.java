@@ -1,5 +1,7 @@
 package decoder;
 
+import java.util.ArrayList;
+
 import common.Config;
 import common.Log;
 import common.Performance;
@@ -96,11 +98,13 @@ public abstract class FoxBitStream extends BitStream {
 				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
 				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
 					found = true;
-					syncWords.add(i+1);
-					if (Config.debugFrames) {
-						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1));
-						printBitArray(syncWord);
-					}
+					//if (!haveSyncWordAtBit(i+1)) {
+						syncWords.add(i+1);
+						if (Config.debugFrames) {
+							Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1));
+							printBitArray(syncWord);
+						}
+					//}
 				} 
 				// now shift the bits and continue looking for frame marker
 				for (int k=1; k<SYNC_WORD_LENGTH; k++)
@@ -133,6 +137,7 @@ public abstract class FoxBitStream extends BitStream {
 			start = syncWords.get(i);
 			for (int e=i+1; e<syncWords.size(); e++) {
 				end = syncWords.get(e);
+				if (end >= this.size()) end = start; // this is off the end of the array, so we don't want to process it
 				if (start != FRAME_PROCESSED) {
 					int missedBits = 0;
 					int repairPosition = 0;
@@ -174,6 +179,15 @@ public abstract class FoxBitStream extends BitStream {
 									return null;
 								}
 							}
+							// We have a successful frame, so we now know the position of the two SYNC words was good
+							// We should ALWAYS try to decode exactly the frame after this, so we ADD a SYNCWORD if one does not already exist
+				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE)) syncWords.add(end+SYNC_WORD_DISTANCE);
+				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*2)) syncWords.add(end+SYNC_WORD_DISTANCE*2);
+				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*3))syncWords.add(end+SYNC_WORD_DISTANCE*3);
+				//			Log.println("AUTO ADDED NEXT SYNC WORD AT: "+ (int)(end+SYNC_WORD_DISTANCE));
+							// Consume all of the bits up to this point, but not the end SYNC word
+							removeBits(0, end-SYNC_WORD_LENGTH);
+							framesTried = new ArrayList<SyncPair>(); // reset this, which is only supposed to stop us iterative retrying same frame
 							return frame;
 						}
 					}
@@ -288,8 +302,8 @@ public abstract class FoxBitStream extends BitStream {
 				header.addNext8Bits(b8);
 			}
 			
-			if (header.isValid() && !loopUpError) {
-				syncWords.add(n, start-SYNC_WORD_DISTANCE);
+			if (true || header.isValid() && !loopUpError) {
+				if (!haveSyncWordAtBit(start-SYNC_WORD_DISTANCE)) syncWords.add(n, start-SYNC_WORD_DISTANCE);
 				if (Config.debugFrames) Log.println("SYNC WORD MISSING, but found Header");
 				//System.out.println(slowSpeedheader);
 			} else {
@@ -532,19 +546,5 @@ public abstract class FoxBitStream extends BitStream {
 		}
 	}
 	
-	class SyncPair {
-		int word1;
-		int word2;
-		
-		SyncPair(int a, int b) {
-			word1 = a;
-			word2 = b;
-		}
-		
-		public boolean equals(int x, int y) {
-			if (word1 == x && word2 == y) return true;
-			if (word2 == x && word1 == y) return true;
-			return false;
-		}
-	}
+	
 }

@@ -80,6 +80,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 					}
 				} 
 			else {
+				if (Config.debugFrames) Log.println(".. abandonded, too many erasures");
 				return null;		
 			}
 			rawFrame[f++] = b8;
@@ -99,10 +100,10 @@ public class SlowSpeedBitStream extends FoxBitStream {
 				SlowSpeedFrame slowSpeedFrame = new SlowSpeedFrame();
 
 				slowSpeedFrame.addRawFrame(rawFrame);
-				// Consume all of the bits up to this point, but not the end SYNC word
-				removeBits(0, end-SYNC_WORD_LENGTH);
+
 				return slowSpeedFrame;
 			} else {
+				if (Config.debugFrames) Log.println(".. abandonded, failed RS decode");
 				return null;
 			}
 		} else {
