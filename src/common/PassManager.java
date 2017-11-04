@@ -598,8 +598,13 @@ public class PassManager implements Runnable {
 						if (aboveHorizon(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
-							if (Config.findSignal)
+							if (Config.findSignal) {
 								stateMachine(sat);
+							} else {
+								// we don't have find signal on. set full range or signals calculated incorrectly
+								Config.fromBin = 0; 
+								Config.toBin = SourceIQ.FFT_SAMPLES;
+							}
 						} 
 					}
 				}

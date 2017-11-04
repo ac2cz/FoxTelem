@@ -209,7 +209,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	private void retune() {
 		// auto tune
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK) > TRACK_SIGNAL_THRESHOLD) {
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIG) > TRACK_SIGNAL_THRESHOLD) {
 			if (Config.passManager.getState() == PassManager.DECODE  ||
 					Config.passManager.getState() == PassManager.ANALYZE) {
 				tuneDelay++;
