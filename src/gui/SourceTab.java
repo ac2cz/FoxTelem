@@ -190,9 +190,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	// Variables
 	public static final String FUNCUBE = "FUNcube";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
-	Decoder decoder1;
+	public Decoder decoder1;
 	Decoder decoder2;
-	SourceIQ iqSource1;
+	public SourceIQ iqSource1;
 	SourceIQ iqSource2;
 	//SourceAudio audioSource = null; // this is the source of the audio for the decoder.  We select it in the GUI and pass it to the decoder to use
 	SinkAudio sink = null;
