@@ -283,6 +283,8 @@ public abstract class Spacecraft {
 	}
 	
 	public boolean aboveHorizon() {
+		if (satPos == null)
+			return false;
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
 	}
 	
