@@ -689,7 +689,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
 		} catch (FileNotFoundException e) {
-			Log.errorDialog("ERROR", "ERROR writing the server data to: " + file + "\n" +
+			// The file was not found on the server.  This is probablly because there was no data for this spacecraft
+			
+			Log.println("ERROR reading/writing the server data to: " + file + "\n" +
 					e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
@@ -700,7 +702,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fileProgress.updateProgress(100);
 			return;
 		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + file  + "\n+"
+			Log.errorDialog("ERROR", "ERROR reading/writing the server data from server: " + file  + "\n+"
 					+ e.getMessage() );
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
