@@ -26,12 +26,14 @@ import javax.swing.table.AbstractTableModel;
 @SuppressWarnings("serial")
 public class RadiationPacketTableModel extends AbstractTableModel {
 	String[] columnNames = {"RESET", "UPTIME", "TYPE", "SEQUENCE", "DATA" };
+    private long[][] keyData = null;
     private String[][] data = null;
-
+    
     RadiationPacketTableModel() {
 	}
 	
-    public void setData(String[][] d) { 
+    public void setData(long[][] kd, String[][] d) { 
+    	keyData = kd;
     	data = d;
     	fireTableDataChanged();
     }
@@ -51,10 +53,16 @@ public class RadiationPacketTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-    	if (data != null && data.length > 0)
-    		return data[row][col];
-    	else 
-    		return null;
+    	if (col < 2)
+    		if (keyData != null && keyData.length > 0)
+    			return keyData[row][col];
+    		else 
+    			return null;
+    	else 		
+    		if (data != null && data.length > 0)
+    			return data[row][col-2];
+    		else 
+    			return null;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

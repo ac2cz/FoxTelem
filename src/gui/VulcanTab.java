@@ -343,7 +343,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 			if (data != null && data.length > 0)
-				radTableModel.setData(parseRawBytes(data));
+				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
 				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
@@ -404,18 +404,19 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		}
 	
 		// Now put the telemetry packets into the table data structure
-		String[][] packetData = new String[packets.size()][5];
+		long[][] keyPacketData = new long[packets.size()][2];
+		String[][] packetData = new String[packets.size()][3];
 		for (int i=0; i < packets.size(); i++) { 
-			packetData[packets.size()-i-1][0] = ""+packets.get(i).resets;
-			packetData[packets.size()-i-1][1] = ""+packets.get(i).uptime;
-			packetData[packets.size()-i-1][2] = "TELEMETRY";
-			packetData[packets.size()-i-1][3] = ""+packets.get(i).fieldValue[3]; // UPTIME
+			keyPacketData[packets.size()-i-1][0] = packets.get(i).resets;
+			keyPacketData[packets.size()-i-1][1] = packets.get(i).uptime;
+			packetData[packets.size()-i-1][0] = "TELEMETRY";
+			packetData[packets.size()-i-1][1] = ""+packets.get(i).fieldValue[3]; // UPTIME
 			String telem = packets.get(i).toDataString((FoxSpacecraft)fox);
-			packetData[packets.size()-i-1][4] = telem; 
+			packetData[packets.size()-i-1][2] = telem; 
 		}
 
 		if (data.length > 0) {
-			radPacketTableModel.setData(packetData);
+			radPacketTableModel.setData(keyPacketData, packetData);
 		}
 		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 		//updateTab(packets.get(packets.size()-1));
@@ -523,22 +524,23 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		int lastExpStart = -1;
 		int lastExpEnd = -1;
 		int lastStateChange = -1;
-		String[][] packetData = new String[packets.size()][5];
+		long[][] keyPacketData = new long[packets.size()][2];
+		String[][] packetData = new String[packets.size()][3];
 		for (i=0; i < packets.size(); i++) { 
 			try {
 				packets.get(i).parseRawBytes();
 			} catch (CobsDecodeException e) {
 ///////						Log.println("ERROR: parsing radition bytes in reset: " + packets.get(i).reset + " uptime: " + packets.get(i).uptime + " seq: " + packets.get(i).getSequence());
 			}
-			packetData[packets.size()-i-1][0] = ""+packets.get(i).reset;
-			packetData[packets.size()-i-1][1] = ""+packets.get(i).uptime;
+			keyPacketData[packets.size()-i-1][0] = packets.get(i).reset;
+			keyPacketData[packets.size()-i-1][1] = packets.get(i).uptime;
 			String type = "";
 			type = packets.get(i).getTypeString();
 
-			packetData[packets.size()-i-1][2] = type;
-			packetData[packets.size()-i-1][3] = ""+packets.get(i).fieldValue[1]; // sequence
+			packetData[packets.size()-i-1][0] = type;
+			packetData[packets.size()-i-1][1] = ""+packets.get(i).fieldValue[1]; // sequence
 			String bytes = packets.get(i).getDataString();
-			packetData[packets.size()-i-1][4] = bytes; 
+			packetData[packets.size()-i-1][2] = bytes; 
 			if (packets.get(i).getType() == RadiationPacket.TELEM)
 				lastTelem = i;
 			if (packets.get(i).getType() == RadiationPacket.LEP_START )
@@ -549,7 +551,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				lastStateChange = i;
 		}
 		if (packetData.length > 0) {
-			radPacketTableModel.setData(packetData);
+			radPacketTableModel.setData(keyPacketData,packetData);
 
 			// Now update the modules with the latest packets of each type
 			if (lastTelem != -1) {
@@ -571,8 +573,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			MainWindow.frame.repaint();
 
 		} else {
+			long[][] emptyKey =  {{0,0} };
 			String[][] empty =  {{"","","","",""} };
-			radPacketTableModel.setData(empty);
+			radPacketTableModel.setData(emptyKey, empty);
 		}
 
 	}

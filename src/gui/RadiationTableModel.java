@@ -25,6 +25,7 @@ import javax.swing.table.AbstractTableModel;
 @SuppressWarnings("serial")
 class RadiationTableModel extends AbstractTableModel {
 	String[] columnNames = null;
+	private long[][] keyData = null;
     private String[][] data = null;
 
 	RadiationTableModel() {
@@ -35,7 +36,8 @@ class RadiationTableModel extends AbstractTableModel {
 			columnNames[k+2] = ""+k;
 	}
 	
-    public void setData(String[][] d) { 
+    public void setData(long[][] kd, String[][] d) { 
+    	keyData = kd;
     	data = d;
     	fireTableDataChanged();
     }
@@ -56,7 +58,16 @@ class RadiationTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-        return data[row][col];
+    	if (col < 2)
+    		if (keyData != null && keyData.length > 0)
+    			return keyData[row][col];
+    		else 
+    			return null;
+    	else 		
+    		if (data != null && data.length > 0)
+    			return data[row][col-2];
+    		else 
+    			return null;
     }
 
     @SuppressWarnings({ "unchecked", "rawtypes" })

@@ -388,37 +388,18 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	
 
 	protected void parseTelemetry(String data[][]) {	
-//		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
-		
-		// try to decode any telemetry packets
-/*		for (int i=0; i<data.length; i++) {
-			RadiationTelemetry radTelem = null;
-			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
-			radTelem.rawBits = null; // otherwise we will overwrite the data we side load in
-			for (int k=2; k<this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).NUMBER_OF_FIELDS+2; k++) {  // Add 2 to skip past reset uptime
-				try {
-					int val = Integer.valueOf(data[i][k]);
-					radTelem.fieldValue[k-2] = val;
-				} catch (NumberFormatException e) {
 
-				}
-			}
-			if (radTelem != null) {
-				packets.add(radTelem);
-			}
-			
-		}
-*/	
 		// Now put the telemetry packets into the table data structure
-		String[][] packetData = new String[data.length][data[0].length];
+		long[][] packetData = new long[data.length][data[0].length];
 		for (int i=0; i < data.length; i++) { 
-			packetData[data.length-i-1][0] = ""+data[i][0];
-			packetData[data.length-i-1][1] = ""+data[i][1];
+			packetData[data.length-i-1][0] = Long.parseLong(data[i][0]);
+			packetData[data.length-i-1][1] = Long.parseLong(data[i][1]);
 			for (int j=2; j< data[0].length; j++) {
-				if (Config.displayRawRadData)
-					packetData[data.length-i-1][j] = ""+data[i][j];
-				else
-					packetData[data.length-i-1][j] = ""+data[i][j];
+				if ((data[i][j]) != null)
+					if (Config.displayRawRadData)
+						packetData[data.length-i-1][j] = Long.parseLong(data[i][j]);
+					else
+						packetData[data.length-i-1][j] = Long.parseLong(data[i][j]);
 			}
 		}
 

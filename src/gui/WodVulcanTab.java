@@ -19,7 +19,7 @@ public class WodVulcanTab extends VulcanTab {
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 			if (data != null && data.length > 0)
-				radTableModel.setData(parseRawBytes(data));
+				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
 				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);

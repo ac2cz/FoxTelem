@@ -6,7 +6,7 @@ import telemetry.BitArrayLayout;
 
 public class HealthTableModel  extends AbstractTableModel {
 	String[] columnNames = null;
-    private String[][] data = null;
+    private long[][] data = null;
 
     HealthTableModel(BitArrayLayout lay) {
 		columnNames = new String[lay.fieldName.length+2];
@@ -16,7 +16,7 @@ public class HealthTableModel  extends AbstractTableModel {
 			columnNames[k+2] = lay.fieldName[k];
 	}
 	
-    public void setData(String[][] d) { 
+    public void setData(long[][] d) { 
     	data = d;
     	fireTableDataChanged();
     }
@@ -42,7 +42,8 @@ public class HealthTableModel  extends AbstractTableModel {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public Class getColumnClass(int c) {
-        return getValueAt(0, c).getClass();
+        return Integer.class; // make sure we sort by int vs string    
+        //return getValueAt(0, c).getClass();
     }
 
     /*
@@ -60,10 +61,10 @@ public class HealthTableModel  extends AbstractTableModel {
     /*
      * Don't need to implement this method unless your table's
      * data can change.
-     */
+     
     public void setValueAt(String value, int row, int col) {
         data[row][col] = value;
         fireTableCellUpdated(row, col);
     }
-    
+    */
 }

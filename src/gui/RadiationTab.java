@@ -13,6 +13,7 @@ import javax.swing.JPanel;
 import javax.swing.JSplitPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.AbstractTableModel;
 
 import telemetry.PayloadRadExpData;
 import telemetry.SatPayloadStore;
@@ -84,21 +85,20 @@ public abstract class RadiationTab extends ModuleTab  {
 	
 	protected abstract void parseRadiationFrames();
 	
-	protected String[][] parseRawBytes(String data[][]) {
-		String[][] rawData = new String[data.length][SatPayloadStore.MAX_RAD_DATA_LENGTH];
+	protected void parseRawBytes(String data[][], RadiationTableModel radTableModel) {
+		long[][] keyRawData = new long[data.length][2];
+		String[][] rawData = new String[data.length][SatPayloadStore.MAX_RAD_DATA_LENGTH-2];
 		for (int i=0; i<data.length; i++)
 			for (int k=0; k<SatPayloadStore.MAX_RAD_DATA_LENGTH; k++)
 				try {
 					if (k<=1)
-						rawData[i][k] = data[data.length-i-1][k];
+						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
 					else
-						rawData[i][k] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
+						rawData[i][k-2] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
 				} catch (NumberFormatException e) {
 
 				}
-		return rawData;
-		//table.repaint();
-		//scrollPane.repaint();
+		radTableModel.setData(keyRawData, rawData);
 		
 
 	}

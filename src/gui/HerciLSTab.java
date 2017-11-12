@@ -274,7 +274,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 			if (Config.displayRawRadData) {
 				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 				if (data != null && data.length > 0)
-					radTableModel.setData(parseRawBytes(data));
+					parseRawBytes(data,radTableModel);
 			} else {
 				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
 				if (data != null && data.length > 0) {
@@ -303,22 +303,23 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		
 		// Now put the telemetry data into the table data structure
 		int len = data.length;
-		String[][] packetData = new String[len][5];
+		long[][] keyPacketData = new long[len][2];
+		String[][] packetData = new String[len][3];
 		for (int i=0; i < len; i++) { 
-			packetData[len-i-1][0] = ""+data[i][0];
-			packetData[len-i-1][1] = ""+data[i][1];
-			packetData[len-i-1][2] = "TELEMETRY";
-			packetData[len-i-1][3] = ""+data[i][2];
+			keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
+			keyPacketData[len-i-1][1] = Long.parseLong(data[i][1]);
+			packetData[len-i-1][0] = "TELEMETRY";
+			packetData[len-i-1][1] = ""+data[i][2];
 			String telem = "";
 			for (int j=2; j< fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
 				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
-			packetData[len-i-1][4] = telem;
+			packetData[len-i-1][2] = telem;
 		}
 
 		if (packetData.length > 0) {
-			radPacketTableModel.setData(packetData);
+			radPacketTableModel.setData(keyPacketData, packetData);
 		}
 		updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME));
 		//updateTab(data.get(packets.size()-1));
