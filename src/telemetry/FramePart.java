@@ -63,8 +63,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			satLongitude = lonRadToDeg(pos.getLongitude());
 			satAltitude = pos.getAltitude();
 
-			if (Config.debugFrames)
-				Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + satLatitude + " " + satLongitude);
+			//if (Config.debugFrames)
+			//	Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + satLatitude + " " + satLongitude);
 		} else {
 			satLatitude = NO_T0;
 			satLongitude = NO_T0;

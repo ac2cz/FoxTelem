@@ -35,13 +35,14 @@ public class SlowSpeedBitStream extends FoxBitStream {
 		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, wordLength, syncWordLength, dec);
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;
+		SYNC_WORD_BIT_TOLERANCE = 10;
 	}
 	
 	/**
 	 * Given a section of the bit stream between two sync words, attempt to decode it
 	 */
-	public SlowSpeedFrame decodeFrame(int start, int end) {
-		//SlowSpeedFrame slowSpeedFrame = null;
+	public SlowSpeedFrame decodeFrame(int start, int end, int missedBits, int repairPosition ) {
+		boolean insertedMissedBits = false;
 		byte[] rawFrame = new byte[SlowSpeedFrame.getMaxBytes()]; // The decoded 8b bytes ready to be passed to the fec decoder
 		int[] erasurePositions = new int[SlowSpeedFrame.getMaxBytes()];
 		int numberOfErasures = 0;
@@ -57,7 +58,14 @@ public class SlowSpeedBitStream extends FoxBitStream {
 		int f=0; // position in the frame as we decode it
 
 		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
-
+			if (Config.insertMissingBits && !insertedMissedBits && missedBits > 0 && j >= repairPosition) {
+				if (Config.debugFrames) {
+					Log.println("INSERTED "+ missedBits + " missed bits at " + repairPosition);
+					Log.println("RS Codeword byte: " + f);
+				}
+				j = j-missedBits;
+				insertedMissedBits = true;
+			}
 			byte b8 = -1;
 			lastErasureNumber = numberOfErasures;
 			if (numberOfErasures < MAX_ERASURES) // otherwise we can fast forward to end of this frame, it is bad
@@ -72,6 +80,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 					}
 				} 
 			else {
+				if (Config.debugFrames) Log.println(".. abandonded, too many erasures");
 				return null;		
 			}
 			rawFrame[f++] = b8;
@@ -91,10 +100,10 @@ public class SlowSpeedBitStream extends FoxBitStream {
 				SlowSpeedFrame slowSpeedFrame = new SlowSpeedFrame();
 
 				slowSpeedFrame.addRawFrame(rawFrame);
-				// Consume all of the bits up to this point, but not the end SYNC word
-				removeBits(0, end-SYNC_WORD_LENGTH);
+
 				return slowSpeedFrame;
 			} else {
+				if (Config.debugFrames) Log.println(".. abandonded, failed RS decode");
 				return null;
 			}
 		} else {

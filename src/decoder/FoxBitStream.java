@@ -1,5 +1,7 @@
 package decoder;
 
+import java.util.ArrayList;
+
 import common.Config;
 import common.Log;
 import common.Performance;
@@ -53,7 +55,7 @@ public abstract class FoxBitStream extends BitStream {
 	protected static final int MAX_ERASURES = 16; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
 	protected static final int FRAME_PROCESSED = -999;
 	
-	protected static final int SYNC_WORD_BIT_TOLERANCE = 0; // if we are within this many bits, then try to decode the frame - hey, you never know..
+	protected static int SYNC_WORD_BIT_TOLERANCE = 0; // if we are within this many bits, then try to decode the frame.  Set by Constructor
 	
 	protected int syncWordbitPosition = 0; // The position in the 10 bit word when we are searching for SYNC words bit by bit
 	protected boolean[] syncWord = new boolean[SYNC_WORD_LENGTH]; // The SYNC_WORD_LENGTH bit word used to find SYNC words, selected from the end of the bitStream
@@ -96,11 +98,13 @@ public abstract class FoxBitStream extends BitStream {
 				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
 				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
 					found = true;
-					syncWords.add(i+1);
-					if (Config.debugFrames) {
-						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1));
-						printBitArray(syncWord);
-					}
+					//if (!haveSyncWordAtBit(i+1)) {
+						syncWords.add(i+1);
+						if (Config.debugFrames) {
+							Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1));
+							printBitArray(syncWord);
+						}
+					//}
 				} 
 				// now shift the bits and continue looking for frame marker
 				for (int k=1; k<SYNC_WORD_LENGTH; k++)
@@ -113,7 +117,7 @@ public abstract class FoxBitStream extends BitStream {
 	public Frame findFrames() {
 		
 		Performance.startTimer("findFrames:checks");
-
+		
 		if (Config.mode == SourceIQ.MODE_FSK_HS)
 			checkMissingStartSYNC(0, new HighSpeedHeader());
 		else
@@ -133,20 +137,31 @@ public abstract class FoxBitStream extends BitStream {
 			start = syncWords.get(i);
 			for (int e=i+1; e<syncWords.size(); e++) {
 				end = syncWords.get(e);
+				if (end >= this.size()) end = start; // this is off the end of the array, so we don't want to process it
 				if (start != FRAME_PROCESSED) {
-					if (end-start >= SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE && end-start <= SYNC_WORD_DISTANCE+SYNC_WORD_BIT_TOLERANCE) {
-
+					int missedBits = 0;
+					int repairPosition = 0;
+					int shortLen = SYNC_WORD_DISTANCE;
+					if (Config.insertMissingBits)
+						shortLen = SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE;
+					
+					if (end-start >= shortLen && end-start <= SYNC_WORD_DISTANCE) {
+						missedBits = SYNC_WORD_DISTANCE - (end-start);
+						if (Config.insertMissingBits && missedBits > 0) {
+							repairPosition = checkShortFrame(start, end);
+							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition);
+						}
 						if (newFrame(start, end)) {
 							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");
 							alreadyTriedToFlipBits = false; // reset the flag, in case we need to flip the bit stream
-							Frame frame = decodeFrame(start,end);
+							Frame frame = decodeFrame(start,end, missedBits, repairPosition);	
 
 							if (frame == null) {
 								if (!alreadyTriedToFlipBits) {
 									alreadyTriedToFlipBits = true;
 									decoder.flipReceivedBits = !decoder.flipReceivedBits;
 									//Log.println("..trying Flipped bits");
-									Frame flipFrame = decodeFrame(start, end); 
+									Frame flipFrame = decodeFrame(start, end, missedBits, repairPosition); 
 									if (flipFrame != null) {
 										// it worked, so flip the whole bitstream and we carry on
 										Log.println("DECODER: Flipped bits");
@@ -164,6 +179,15 @@ public abstract class FoxBitStream extends BitStream {
 									return null;
 								}
 							}
+							// We have a successful frame, so we now know the position of the two SYNC words was good
+							// We should ALWAYS try to decode exactly the frame after this, so we ADD a SYNCWORD if one does not already exist
+				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE)) syncWords.add(end+SYNC_WORD_DISTANCE);
+				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*2)) syncWords.add(end+SYNC_WORD_DISTANCE*2);
+				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*3))syncWords.add(end+SYNC_WORD_DISTANCE*3);
+				//			Log.println("AUTO ADDED NEXT SYNC WORD AT: "+ (int)(end+SYNC_WORD_DISTANCE));
+							// Consume all of the bits up to this point, but not the end SYNC word
+							removeBits(0, end-SYNC_WORD_LENGTH);
+							framesTried = new ArrayList<SyncPair>(); // reset this, which is only supposed to stop us iterative retrying same frame
 							return frame;
 						}
 					}
@@ -196,7 +220,53 @@ public abstract class FoxBitStream extends BitStream {
 	 * of data that follows them.
 	 * 
 	 */
-	public abstract Frame decodeFrame(int start, int end);
+	public abstract Frame decodeFrame(int start, int end, int missedBits, int repairPosition);
+
+
+	protected int checkShortFrame(int start, int end) {
+
+		int SYNC_WORD_BIT_TOLERANCE = 6; // look for frames that might be short by up to this amount
+
+		int firstMinErasures = 0;
+		int shortBits = 0;
+		shortBits = SYNC_WORD_DISTANCE - (end-start);
+		int minErasures = 999;
+
+		if (Config.debugFrames) Log.println("**** SHORT FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits, " + shortBits + " short");
+		// We have a short frame, which means some bits were dropped.  The question is, where do we insert them	
+		// We insert the missing bits in each 10b code word and check which gives the least erasures.  This is a brute force approach
+		// The insertion is achieved by using that last few bits of the previous 10b word.  We move the pointer backwards
+		// This leaves the data unchanged while we analyze it
+		int totalBytes = SYNC_WORD_DISTANCE/10;
+		int[] erasureCount = new int[totalBytes]; // count how many erasures if we insert the bits at this point
+		for (int a=0; a < totalBytes; a++) {
+			int currentErasureCount=0;
+			int currentWord=0;
+			for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
+				if (a == currentWord++) // This is where we insert
+					j=j-shortBits;
+				byte b8 = -1;
+				try {
+					b8 = processWord(j);
+				} catch (LookupException er) {
+					// erasure
+					currentErasureCount++;
+				}
+			}
+			erasureCount[a] = currentErasureCount;
+			//Log.println("Byte: "+ a + " erasurse: " + currentErasureCount);
+			if (currentErasureCount < minErasures ) {
+				minErasures = currentErasureCount;
+				firstMinErasures = a;
+			}
+		}
+
+		if (shortBits > 0) {
+			int position = start + firstMinErasures * 10;
+			return position;
+		}
+		return 0;
+	}
 
 	/**
 	 * Search to see if there is a header before this SYNC word indicating that we missed a SYNC
@@ -221,8 +291,8 @@ public abstract class FoxBitStream extends BitStream {
 				header.addNext8Bits(b8);
 			}
 			
-			if (header.isValid() && !loopUpError) {
-				syncWords.add(n, start-SYNC_WORD_DISTANCE);
+			if (true || header.isValid() && !loopUpError) {
+				if (!haveSyncWordAtBit(start-SYNC_WORD_DISTANCE)) syncWords.add(n, start-SYNC_WORD_DISTANCE);
 				if (Config.debugFrames) Log.println("SYNC WORD MISSING, but found Header");
 				//System.out.println(slowSpeedheader);
 			} else {
@@ -465,19 +535,5 @@ public abstract class FoxBitStream extends BitStream {
 		}
 	}
 	
-	class SyncPair {
-		int word1;
-		int word2;
-		
-		SyncPair(int a, int b) {
-			word1 = a;
-			word2 = b;
-		}
-		
-		public boolean equals(int x, int y) {
-			if (word1 == x && word2 == y) return true;
-			if (word2 == x && word1 == y) return true;
-			return false;
-		}
-	}
+	
 }

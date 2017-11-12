@@ -61,8 +61,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05x";
-	public static String VERSION = VERSION_NUM + " - 30 Oct 2017";
+	public static String VERSION_NUM = "1.06b";
+	public static String VERSION = VERSION_NUM + " - 3 Nov 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -252,6 +252,8 @@ public class Config {
 	static public boolean foxTelemCalcsPosition = false;
 	static public boolean whenAboveHorizon = false;
 	
+	// V1.06
+	static public boolean insertMissingBits = true;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -647,6 +649,7 @@ public class Config {
 		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
 		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
 		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
+		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
 		
 		
 		store();
@@ -815,6 +818,7 @@ public class Config {
 		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
+		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

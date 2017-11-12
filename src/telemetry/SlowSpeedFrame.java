@@ -81,7 +81,7 @@ public class SlowSpeedFrame extends Frame {
 		if (numberBytesAdded == MAX_HEADER_SIZE) {
 			// Then we 
 			header.copyBitsToFields();
-			if (Config.debugFrames) Log.println("DECODING PAYLOAD TYPE: " + header.type);
+			if (Config.debugFrames) Log.println(header.toString());
 			int type = header.type;
 			fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 			if (fox != null) {
