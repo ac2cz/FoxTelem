@@ -42,9 +42,13 @@ import telemetry.PayloadStore;
 @SuppressWarnings("serial")
 public class GraphPanel extends GraphCanvas {
 	
+	public static final int NO_TIME_VALUE = -999;
 	double[] firstDifference = null;
 	double[] dspData = null;
 
+	int[] plottedXreset;
+	long[] plottedXuptime;
+	
 	public static final int MAX_VARIABLES = 13;
 	Color[] graphColor = {Color.BLUE, Config.GRAPH1, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
 			Config.GRAPH7, Config.GRAPH8, Config.GRAPH9, Config.GRAPH10 , Config.GRAPH11 , Config.GRAPH12};
@@ -157,6 +161,13 @@ public class GraphPanel extends GraphCanvas {
 		
 		int graphHeight = getHeight() - topBorder - bottomBorder;
 		int graphWidth = getWidth() - sideBorder*2; // width of entire graph
+		plottedXreset = new int[graphWidth+1];
+		plottedXuptime = new long[graphWidth+1];
+		
+		for (int j=0; j<graphWidth+1; j++) {
+			plottedXreset[j] = NO_TIME_VALUE;
+			plottedXuptime[j] = NO_TIME_VALUE; 
+		}
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
@@ -255,6 +266,7 @@ public class GraphPanel extends GraphCanvas {
 		int maxLabels = (int)(graphWidth/(labelWidth*2));
 		int resetLabelFreq = (int) Math.ceil(resetPosition.size() / (double)maxLabels); // reduce the number of labels if we have too many resets
 		int resetLabelCount = 0;
+
 		boolean drawLabels = false; // set to false if we want to skip labels on the reset we are going to plot
 		for (int r=0; r < resetPosition.size(); r++) {
 //			int resets = (int) graphData[PayloadStore.RESETS_COL][resetPosition.get(r)];
@@ -280,12 +292,82 @@ public class GraphPanel extends GraphCanvas {
 			} else {
 				drawLabels = false;
 			}
+
+			if (!graphFrame.roundLabels)
+				drawLabels = false;
+
 			drawGraphForSingleReset(start, end, width, graphHeight, startScreenPos, zeroPoint, axisPoints[1], axisPoints[2], 
 					axisPoints2[1], axisPoints2[2], drawLabels);
 		}
-				
+
+		if (!graphFrame.roundLabels)
+			plotAlternateLabels(zeroPoint, graphHeight);
+
 	}
-	
+
+	private void plotAlternateLabels(int zeroPoint, int graphHeight) {
+
+		//		int numberOfTimeLabels = plottedXreset.length/labelWidth;
+
+		// calculate the label step size
+		//		double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, true);
+		//		numberOfTimeLabels = timelabels.length;
+		//		int resets = (int) graphData[0][PayloadStore.RESETS_COL][start];
+
+		int prevReset = -1;
+		DecimalFormat d = new DecimalFormat("0");
+		int w = 0;
+		for (int v=0; v < plottedXuptime.length; v++) {
+			int resets = plottedXreset[v];
+			long uptime = plottedXuptime[v];
+
+			if (w++ >= labelWidth && plottedXuptime[v] != NO_TIME_VALUE) {
+				w=0;
+				int timepos = v;
+
+				String s = d.format(uptime);
+				int offset = 0;
+				if (!graphFrame.hideUptime) {
+					offset = Config.graphAxisFontSize;	
+				}
+				if (resets != prevReset)
+				{
+					g2.setColor(graphTextColor);
+					if (!graphFrame.showUTCtime)
+						g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset );
+					//else
+					//	g2.drawString(""+fox.getUtcDateforReset(resets, timepos), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize );	
+
+				}
+
+				g2.setColor(graphTextColor);
+
+				if (!graphFrame.hideUptime) {
+					g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
+
+				}
+				if (graphFrame.showUTCtime) {
+					if (fox.isFox1()) {
+						FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+						if (fox2.hasTimeZero(resets)) {
+							g2.drawString(fox2.getUtcTimeForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+							g2.drawString(""+fox2.getUtcDateForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
+						}
+					}
+				}
+				g2.setColor(graphAxisColor);
+				if (graphFrame.showVerticalLines) {
+					g2.setColor(Color.GRAY);
+					g.drawLine(timepos+sideBorder, graphHeight + topBorder+5, timepos+sideBorder, topBorder);
+				} else
+					g.drawLine(timepos+sideBorder, zeroPoint-5, timepos+sideBorder, zeroPoint+5);
+				prevReset = resets;
+			}
+		}
+
+
+
+	}
 	
 	/**
 	 * Draw a graph from sideBorder to graphWidth.  This is for a single reset.  If the graph has more than one reset
@@ -469,7 +551,12 @@ public class GraphPanel extends GraphCanvas {
 
 					// calculate the horizontal position of this point based on the number of points and the width
 					x = getRatioPosition(minTimeValue, maxTimeValue, graphData[j][PayloadStore.UPTIME_COL][i], graphWidth);
-					x = x + sideBorder;
+					
+					x = x + sideBorder; // sideborder is the position of this reset, unless its the first one, which is equal to this.sideBorder
+
+					plottedXreset[x-this.sideBorder] = (int) graphData[j][PayloadStore.RESETS_COL][i];
+					plottedXuptime[x-this.sideBorder] = (long) graphData[j][PayloadStore.UPTIME_COL][i];
+
 					x2 = (x + lastx)/2; // position for the first deriv
 					//				System.out.println(x + " graphData " + graphData[i]);
 

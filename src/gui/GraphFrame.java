@@ -102,6 +102,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnPoints;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
+	private JCheckBox cbRoundLabels;
 	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
@@ -143,6 +144,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean hideMain = true;
 	public boolean showUTCtime = false;
 	public boolean hideUptime = true;
+	public boolean roundLabels = true;
 	public boolean hidePoints = true;
 	public boolean hideLines = true;
 	public boolean showContinuous = false;
@@ -314,6 +316,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
 		if (!(plotType == SKY_PLOT)) {
+			cbRoundLabels = new JCheckBox("Round Labels");
+			cbRoundLabels.setSelected(roundLabels);
+			cbRoundLabels.addItemListener(this);
+			footerPanelLeft.add(cbRoundLabels);
+			
 			cbUptime = new JCheckBox("Show Uptime");
 			cbUptime.setSelected(!hideUptime);
 			cbUptime.addItemListener(this);
@@ -534,6 +541,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showHorizontalLines", showHorizontalLines);
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime", showUTCtime);
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime", hideUptime);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "roundLabels", roundLabels);
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType", plotType);
 		
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD", AVG_PERIOD);
@@ -581,6 +589,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		showHorizontalLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showHorizontalLines");
 		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime");
 		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime");
+		roundLabels = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "roundLabels");
 		//plotType = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType");
 		
 		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD");
@@ -1011,6 +1020,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				diagnosticTable.updateData();
 			else
 				panel.updateGraphData("GraphFrame:stateChange:UTC");
+		}
+		
+		if (e.getSource() == cbRoundLabels) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				roundLabels = false;
+			} else {
+				roundLabels = true;
+			}
+			if (textDisplay)
+				diagnosticTable.updateData();
+			else
+				panel.updateGraphData("GraphFrame:stateChange:altLabels");
 		}
 		if (e.getSource() == cbUptime) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
