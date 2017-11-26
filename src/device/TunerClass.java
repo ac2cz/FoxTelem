@@ -254,7 +254,7 @@ public enum TunerClass
 		
 		return retVal;
 	}
-
+	
 	public String getVendorID()
 	{
 		return mVendorID;

@@ -70,6 +70,7 @@ import decoder.FoxBPSK.FoxBPSKDecoder;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
+import device.TunerClass;
 import device.TunerManager;
 import fcd.FcdDevice;
 import fcd.FcdProPanel;
@@ -215,7 +216,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JSplitPane splitPane;
 	
 	// Management of the devices and soundcards
-//	ArrayList<String> usbSources;
+	ArrayList<String> usbSources;
 	String[] soundcardSources;
 	String[] allSources;
 	
@@ -534,6 +535,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private String[] getSources() {
 		soundcardSources = SourceSoundCardAudio.getAudioSources();
+		usbSources = new ArrayList<String>();
+		usbSources.add("AirSpy");
+		usbSources.add("RTL SDR");
 /*
 		usbSources = null;
 		try {
@@ -542,6 +546,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Log.println("ERROR GETTING USB SOURCES");
 			e.printStackTrace();
 		}
+		*/
 		String[] allSources = new String[soundcardSources.length + usbSources.size()];
 		int j = 0;
 		for (String s : soundcardSources) allSources[j++] = s;
@@ -549,8 +554,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			for (String s : usbSources) allSources[j++] = s;
 
 		return allSources;
-		*/
-		return soundcardSources;
+		
+		//return soundcardSources;
 	}
 
 	
@@ -1445,26 +1450,41 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 				} else if (position >= soundcardSources.length) {
 					// USB Sound card
+					// Ids should be looked up from TunerClass, but the implementation is a mess.  FIXME
 					SourceAudio audioSource;
-					rfDevice = tunerManager.getTunerControllerById(position-soundcardSources.length);
-					Log.println("USB Source Selected: " + rfDevice.name);
-					panelFcd = null; // get rid of any existing panel
+					short vendorId = 0;
+					short deviceId = 0;
+			//		if (position-soundcardSources.length == 0) { // airspy
+			//			vendorId = (short)0x1D50;
+			//			deviceId = (short)0x60A1;
+			//		} else if (position-soundcardSources.length == 1) { // rtlsdr
+						vendorId = (short)0x0BDA;
+						deviceId = (short)0x2838;
+			//		}
 					try {
-						panelFcd = rfDevice.getDevicePanel();
-					} catch (IOException e) {
-						Log.errorDialog("USB Panel Error", e.getMessage());
-						e.printStackTrace(Log.getWriter());
-						stopButton();
-					} catch (DeviceException e) {
-						Log.errorDialog("USB Device Error", e.getMessage());
-						e.printStackTrace(Log.getWriter());
-						stopButton();
+						rfDevice = tunerManager.findDevice(vendorId, deviceId);
+					} catch (UsbException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
 					}
-							
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
 						stopButton();
 					} else {
+						Log.println("USB Source Selected: " + rfDevice.name);
+						panelFcd = null; // get rid of any existing panel
+						try {
+							panelFcd = rfDevice.getDevicePanel();
+						} catch (IOException e) {
+							Log.errorDialog("USB Panel Error", e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							stopButton();
+						} catch (DeviceException e) {
+							Log.errorDialog("USB Device Error", e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							stopButton();
+						}
+
 						try {
 							panelFcd.setDevice(rfDevice);
 						} catch (IOException e) {

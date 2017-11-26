@@ -59,6 +59,8 @@ public class TunerManager {
 
     /**
      * Loads all USB tuners and USB/Mixer tuner devices
+     * This locks each USB device that it finds.  It's nice that we build the list of the actual devices, but not good that they are
+     * all locked by FoxTelem
      * @throws UsbException 
      */
     public <String>ArrayList makeDeviceList() throws UsbException	{
@@ -112,7 +114,59 @@ public class TunerManager {
     	return deviceNames;
     }
 
-    public TunerController getTunerControllerById(int id) {
+    
+    public TunerController findDevice(short vendor, short product) throws UsbException	{
+    	DeviceList deviceList = new DeviceList();
+    	int result = LibUsb.init( null );
+    	if( result != LibUsb.SUCCESS ){
+    		Log.println( "unable to initialize libusb [" + 
+    				LibUsb.errorName( result ) + "]" );
+    	} else {
+    		Log.println( "LibUSB API Version: " + LibUsb.getApiVersion() );
+    		Log.println( "LibUSB Version: " + LibUsb.getVersion() );
+
+    		result = LibUsb.getDeviceList( null, deviceList );
+
+    		if( result < 0 ) {
+    			Log.println( "unable to get device list from libusb [" + result + " / " + 
+    					LibUsb.errorName( result ) + "]" );
+    		} else {
+    			Log.println( "discovered [" + result + "] attached USB devices" );
+    		}
+    	}
+
+    	for( Device device: deviceList ) {
+    		DeviceDescriptor descriptor = new DeviceDescriptor();
+    		result = LibUsb.getDeviceDescriptor( device, descriptor );
+    		if( result != LibUsb.SUCCESS ) {
+    			Log.println( "unable to read device descriptor [" + 
+    					LibUsb.errorName( result ) + "]" );
+    		} else {
+    			if (descriptor.idVendor() == vendor && descriptor.idProduct() == product) {
+    				TunerController dev = initTuner( device, descriptor );
+    				if (dev !=null) {
+    					StringBuilder sb = new StringBuilder();
+
+    					sb.append( "usb device [" );
+    					sb.append( descriptor.idVendor() );
+    					//    				sb.append( String.format( "%04X", descriptor.idVendor() ) );
+    					sb.append( ":" );
+    					//   				sb.append( String.format( "%04X", descriptor.idProduct() ) );
+    					sb.append( descriptor.idProduct() );
+
+    					Log.println( sb.toString() );
+    					LibUsb.freeDeviceList( deviceList, true );
+    					return dev;
+    				}
+    			}
+    		}
+    	}
+
+    	LibUsb.freeDeviceList( deviceList, true );
+    	return null;
+    }
+    
+    public TunerController DEPRECIATED_getTunerControllerById(int id) {
     	return tunerControllerList.get(id);
     }
     
@@ -127,7 +181,7 @@ public class TunerManager {
 			switch( tunerClass )
 			{
 				case AIRSPY:
-					//return initAirspyTuner( device, descriptor );
+					return initAirspyTuner( device, descriptor );
 				case ETTUS_USRP_B100:
 					//return initEttusB100Tuner( device, descriptor );
 				case FUNCUBE_DONGLE_PRO:
