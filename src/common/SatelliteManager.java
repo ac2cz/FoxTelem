@@ -20,6 +20,7 @@ import javax.swing.JOptionPane;
 
 import FuncubeDecoder.FUNcubeSpacecraft;
 import gui.MainWindow;
+import gui.ProgressPanel;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
@@ -316,7 +317,10 @@ public class SatelliteManager implements Runnable {
 		if (now.getTime() - lm.getTime() <= UpdateManager.KEP_UPDATE_PERIOD) { // then dont try to update it
 			Log.println(".. keps are current");
 		} else {
-			Log.println(".. downloading keps");
+			String msg = "Downloading new keps ...                 ";
+			ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, msg, false);
+			initProgress.setVisible(true);
+			Log.println("Downloading new keps ..");
 			URL website;
 			FileOutputStream fos = null;
 			ReadableByteChannel rbc = null;
@@ -351,6 +355,7 @@ public class SatelliteManager implements Runnable {
 				Log.println("Keps file is corrupt: " + file);
 				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
 			} finally {
+				initProgress.updateProgress(100);
 				try {
 					if (fos != null) fos.close();
 					if (rbc != null) rbc.close();

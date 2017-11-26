@@ -1,6 +1,8 @@
 
 import gui.InitalSettings;
 import gui.MainWindow;
+import gui.ProgressPanel;
+
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
@@ -512,6 +514,8 @@ public class FoxTelemMain {
 	static String logFileDir = null;
 	
 	public static void main(String[] args) {
+		ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, "Initializing AMSAT FoxTelem, please wait ...", false);
+		initProgress.setVisible(true);
 		int arg = 0;
 		while (arg < args.length) {
 			if (args[arg].startsWith("-") || args[arg].startsWith("/")) { // this is a switch
@@ -560,7 +564,9 @@ public class FoxTelemMain {
 		
 		Log.println("LogFileDir is:" + Config.logFileDirectory);
 
+		
 		invokeGUI();
+		initProgress.updateProgress(100);
 	}
 
 	public void initialRun() {
