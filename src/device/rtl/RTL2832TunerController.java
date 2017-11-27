@@ -2015,7 +2015,15 @@ public abstract class RTL2832TunerController extends device.TunerController
 		{
 			mBufferProcessor.stop();
 		}
-		
+		/*
+		try {
+			Thread.sleep(300);  // give it time to stop otherwise we crash
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		release();
+		*/
 	}
 
 	

@@ -1449,18 +1449,19 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						stopButton();
 					}
 				} else if (position >= soundcardSources.length) {
-					// USB Sound card
+					// USB Sound card - this is not pretty and needs to be fixed
 					// Ids should be looked up from TunerClass, but the implementation is a mess.  FIXME
 					SourceAudio audioSource;
 					short vendorId = 0;
 					short deviceId = 0;
-			//		if (position-soundcardSources.length == 0) { // airspy
-			//			vendorId = (short)0x1D50;
-			//			deviceId = (short)0x60A1;
-			//		} else if (position-soundcardSources.length == 1) { // rtlsdr
+					if (position-soundcardSources.length == 0) { // airspy
+						vendorId = (short)0x1D50;
+						deviceId = (short)0x60A1;
+					} else if (position-soundcardSources.length == 1) { // rtlsdr
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
-			//		}
+					}
+					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 					try {
 						rfDevice = tunerManager.findDevice(vendorId, deviceId);
 					} catch (UsbException e1) {
@@ -1699,9 +1700,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
-	/*	if (rfDevice != null) {
+		
+		if (rfDevice != null) {
 			try {
-				rfDevice.cleanup();
+				rfDevice.cleanup();  // Must call this to stop the buffer copy routines.  If exiting the USB device causes issues then don't exit in the called routine
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1709,9 +1711,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			rfDevice = null;
+		//	rfDevice = null;
+			
 		}
-		*/
+		
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) {
 			SDRpanel.setVisible(true);	
 			if (panelFcd != null)
