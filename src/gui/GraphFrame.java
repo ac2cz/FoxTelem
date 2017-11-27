@@ -218,7 +218,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
-		if (!(textDisplay || plotType == SKY_PLOT)) {
+		if (!(textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 			btnAdd = new JButton("+ ");
 			titlePanelLeft.add(btnAdd);
 			btnAdd.addActionListener(this);
@@ -240,14 +240,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnLines.setToolTipText("Draw lines between data points");
 		btnLines.addActionListener(this);
 		titlePanelRight.add(btnLines);
-		if (this.textDisplay || plotType == SKY_PLOT) btnLines.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnLines.setVisible(false);
 
 		btnPoints = new JButton("Points");
 		btnPoints.setMargin(new Insets(0,0,0,0));
 		btnPoints.setToolTipText("Show data points");
 		btnPoints.addActionListener(this);
 		titlePanelRight.add(btnPoints);
-		if (this.textDisplay || plotType == SKY_PLOT) btnPoints.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnPoints.setVisible(false);
 
 		
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
@@ -263,11 +263,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnMain.setToolTipText("Hide the first trace (useful if the derivative or average has been plotted)");
 		btnMain.addActionListener(this);
 		titlePanelRight.add(btnMain);
-		if (this.textDisplay || plotType == SKY_PLOT) btnMain.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnMain.setVisible(false);
 
 		btnDerivative = createIconButton("/images/derivSmall.png","Deriv","Plot 1st Derivative (1st difference)");
 		titlePanelRight.add(btnDerivative);
-		if (this.textDisplay || plotType == SKY_PLOT) btnDerivative.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnDerivative.setVisible(false);
 
 		btnAvg = new JButton("AVG");
 		btnAvg.setMargin(new Insets(0,0,0,0));
@@ -275,7 +275,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnAvg.addActionListener(this);
 		
 		titlePanelRight.add(btnAvg);
-		if (this.textDisplay || plotType == SKY_PLOT) btnAvg.setVisible(false);
+		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnAvg.setVisible(false);
 
 		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA || 
 				conversionType == BitArrayLayout.CONVERT_BOOLEAN ) {
@@ -313,7 +313,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
 		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
 
-		if (!(plotType == SKY_PLOT)) {
+		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 			cbUptime = new JCheckBox("Show Uptime");
 			cbUptime.setSelected(!hideUptime);
 			cbUptime.addItemListener(this);
@@ -385,7 +385,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 		
-		if (!(plotType == SKY_PLOT || textDisplay)) {
+		if (!(plotType == SKY_PLOT || textDisplay || plotType == EARTH_PLOT)) {
 			chckbxPlotAllUptime = new JCheckBox("Continuous");
 			chckbxPlotAllUptime.setToolTipText("");
 			footerPanelLeft.add(chckbxPlotAllUptime);
@@ -844,7 +844,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					fieldName = new String[1];
 					fieldName[0] = name;
 				}
-				if (!(plotType == SKY_PLOT)) {
+				if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 					initVarlist();
 					add = false;
 					cbAddVariable.setVisible(add);
@@ -856,7 +856,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
 			
 			parseTextFields();
-			if (!(plotType == SKY_PLOT)) {
+			if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 				txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
 				parseAvgPeriod();
 			}

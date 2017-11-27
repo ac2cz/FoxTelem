@@ -15,6 +15,9 @@ public class EarthPlotPanel extends GraphCanvas {
 
 	public static final double MAX_LATITUDE = 81;
 	public static final double MIN_LATITUDE = 85;
+	public static final int RECTANGULAR_PROJECTION = 0;
+	public static final int MERCATOR_PROJECTION = 1;
+	public int mapProjection = RECTANGULAR_PROJECTION;
 	
 	EarthPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
@@ -82,6 +85,9 @@ public class EarthPlotPanel extends GraphCanvas {
      */
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
+		
+		topBorder = 0;
+		bottomBorder = 0;
 		
 		if (!checkDataExists()) return;
 		boolean noLatLonReadings = true;	
@@ -291,11 +297,18 @@ public class EarthPlotPanel extends GraphCanvas {
 	}
 
 	int latToY(double lat, int mapWidth, int mapHeight) {
-		int y = (int)(lat*mapHeight/180);
-		return mapHeight/2+y;
-//		return mercatorLatToY(lat,mapWidth, mapHeight);
+		if (mapProjection == RECTANGULAR_PROJECTION)
+			return rectangularLatToY(lat, mapWidth, mapHeight);
+		else
+			return mercatorLatToY(lat,mapWidth, mapHeight);
 	}
 
+	int rectangularLatToY(double lat, int mapWidth, int mapHeight) {
+		int y = (int)(lat*mapHeight/180);
+		return mapHeight/2+y;
+	}
+
+	
 	   /**
      * Convert the longitude to the x coordinate of the Mercator projection
      * 0 is in the center 180 is the mapWidth. -180 is at the left edge of the map
