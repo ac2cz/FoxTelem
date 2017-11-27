@@ -62,8 +62,22 @@ public abstract class GraphCanvas extends JPanel {
 	}
 
 	public void updateGraphData(String by) {
+		int showDialogThreshold = 999999;
+		ProgressPanel fileProgress = null;
+		if (graphFrame.SAMPLES > showDialogThreshold) {
+			fileProgress = new ProgressPanel(Config.mainWindow, "Loading Spacecraft data, please wait ...", false);
+			fileProgress.setVisible(true);
+		}
+		
+		int totalFields = graphFrame.fieldName.length;
+		if (graphFrame.fieldName2 != null)
+			totalFields += graphFrame.fieldName2.length;
+		
 		graphData = new double[graphFrame.fieldName.length][][];
 		for (int i=0; i<graphFrame.fieldName.length; i++) {
+			if (graphFrame.SAMPLES > showDialogThreshold)
+				fileProgress.updateProgress((int)(100*i/totalFields));
+			
 			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 				graphData[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 			else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
@@ -83,13 +97,16 @@ public abstract class GraphCanvas extends JPanel {
 			else if  (payloadType == FoxFramePart.TYPE_WOD_RAD) 
 				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false);
 			
-			graphData[i] = addPositionData(graphData[i]);
+			if (graphFrame.plotType == GraphFrame.EARTH_PLOT)
+				graphData[i] = addPositionData(graphData[i]);
 		}
 
 		graphData2 = null;
 		if (graphFrame.fieldName2 != null && graphFrame.fieldName2.length > 0) {
 			graphData2 = new double[graphFrame.fieldName2.length][][];
 			for (int i=0; i<graphFrame.fieldName2.length; i++) {
+				if (graphFrame.SAMPLES > showDialogThreshold)
+					fileProgress.updateProgress((int)(100*i+graphFrame.fieldName.length/totalFields));
 				if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 					graphData2[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
 				else if (payloadType == FoxFramePart.TYPE_MAX_VALUES)
@@ -110,9 +127,15 @@ public abstract class GraphCanvas extends JPanel {
 					graphData2[i] = Config.payloadStore.getGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false);		
 			}
 		}
+		
+		
+		if (graphFrame.SAMPLES > showDialogThreshold)
+			fileProgress.updateProgress(100);
+		
 		//System.err.println("-repaint by: " + by);
 		if (graphData != null && graphData[0] != null && graphData[0][0].length > 0)
 			this.repaint();
+	
 	}
 	
 	/**
@@ -121,6 +144,13 @@ public abstract class GraphCanvas extends JPanel {
 	 */
 	private double[][] addPositionData(double[][] coreGraphData) {
 		Log.println("ADDING position data to graph");
+		int showDialogThreshold = 9999;
+		ProgressPanel fileProgress = null;
+		if (graphFrame.SAMPLES > showDialogThreshold) {
+			fileProgress = new ProgressPanel(graphFrame, "Calculating Spacecraft positions, please wait ...", false);
+			fileProgress.setVisible(true);
+		}
+
 		double[][] newGraphData = new double[PayloadStore.LON_COL+1][]; // make room for the lat/lon	
 		newGraphData[PayloadStore.RESETS_COL] = coreGraphData[PayloadStore.RESETS_COL];
 		newGraphData[PayloadStore.UPTIME_COL] = coreGraphData[PayloadStore.UPTIME_COL];
@@ -129,12 +159,15 @@ public abstract class GraphCanvas extends JPanel {
 		newGraphData[PayloadStore.LON_COL] = new double[coreGraphData[PayloadStore.RESETS_COL].length];
 		for (int i=0; i< coreGraphData[PayloadStore.RESETS_COL].length; i++) {
 			// Calculate the position
-			
+			if (graphFrame.SAMPLES > showDialogThreshold)
+				fileProgress.updateProgress((int)(100*i/coreGraphData[PayloadStore.RESETS_COL].length));
 			SatPos pos = null;
 			try {
 				pos = fox.getSatellitePosition((int)newGraphData[PayloadStore.RESETS_COL][i], (long)newGraphData[PayloadStore.UPTIME_COL][i]);
 				double satLatitude = FramePart.latRadToDeg (pos.getLatitude());
 				double satLongitude = FramePart.lonRadToDeg(pos.getLongitude());
+//				Log.println("POS: " + (int)newGraphData[PayloadStore.RESETS_COL][i] + "," + (long)newGraphData[PayloadStore.UPTIME_COL][i] + " at "
+//						+ satLatitude + ", " + satLongitude) ;
 				newGraphData[PayloadStore.LAT_COL][i] = satLatitude;
 				newGraphData[PayloadStore.LON_COL][i] = satLongitude;
 				
@@ -147,6 +180,8 @@ public abstract class GraphCanvas extends JPanel {
 				return newGraphData;
 			}	
 		}
+		if (graphFrame.SAMPLES > showDialogThreshold)
+				fileProgress.updateProgress(100);
 		
 		return newGraphData;
 	}

@@ -73,7 +73,7 @@ public class EarthPlotPanel extends GraphCanvas {
      * lat is stored in degrees from -90 to +90
      * lon is stored in degrees from -180 to +180
      * We store averaged values in a grid where lat is mapped to 0-180 and lon is map to 0-360
-     * The values are then plotted on a mercator projection of the earth
+     * The values are then plotted on a projection of the earth
      * The map is defined by graphHeight and graphWidth.  
      * x is plotted left to right from 0 to graphWidth.  0 is the sideBorder
      * y is plotted vertically with 0 at the top and graphHeight at the bottom.  0 is the topBorder
@@ -172,6 +172,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		drawLegend(graphHeight, graphWidth, minValue, maxValue, graphFrame.fieldUnits);
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+		
 		// Draw vertical axis - always in the same place
 		g2.setColor(graphAxisColor);
 		g2.drawLine(sideBorder, getHeight()-bottomBorder, sideBorder, topBorder);
@@ -187,11 +188,12 @@ public class EarthPlotPanel extends GraphCanvas {
 			
 			//int pos = getRatioPosition(minVert, maxVert, labels[v], graphHeight);
 			int pos = latToY(labels[v], graphWidth, graphHeight);
+			pos = graphHeight-pos+topBorder;
 			if (labels[v] == 0) zeroPoint = pos+topBorder;
 		//	pos = graphHeight-pos;
 			String s = f2.format(labels[v]);
 
-			g2.drawString(s, sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); 
+			g2.drawString(s, sideLabelOffset, pos+(int)(Config.graphAxisFontSize/2)); 
 		}
 		g2.setColor(graphAxisColor);
 		
@@ -206,7 +208,9 @@ public class EarthPlotPanel extends GraphCanvas {
 		// Draw the title
 		g2.setColor(Color.BLACK);
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
-		String title = graphFrame.displayTitle + " (Mercator Projection)";
+//		String title = graphFrame.displayTitle + " (Mercator Projection)";
+		String title = graphFrame.displayTitle + " (Rectangular Projection)";
+		
 		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight-Config.graphAxisFontSize/2);
 
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
@@ -282,6 +286,16 @@ public class EarthPlotPanel extends GraphCanvas {
 		
 	}
 	
+	int lonToX(double lon, int mapWidth) {
+		return mercatorLonToX(lon,mapWidth);
+	}
+
+	int latToY(double lat, int mapWidth, int mapHeight) {
+		int y = (int)(lat*mapHeight/180);
+		return mapHeight/2+y;
+//		return mercatorLatToY(lat,mapWidth, mapHeight);
+	}
+
 	   /**
      * Convert the longitude to the x coordinate of the Mercator projection
      * 0 is in the center 180 is the mapWidth. -180 is at the left edge of the map
@@ -290,7 +304,7 @@ public class EarthPlotPanel extends GraphCanvas {
      * @param mapWidth
      * @return
      */
-    int lonToX(double lon, int mapWidth) {
+    int mercatorLonToX(double lon, int mapWidth) {
 		int x = 0;
 	
 		x = (int) (lon*mapWidth/360);
@@ -306,7 +320,7 @@ public class EarthPlotPanel extends GraphCanvas {
      * @param mapHeight
      * @return
      */
-    int latToY(double lat, int mapWidth, int mapHeight) {
+    int mercatorLatToY(double lat, int mapWidth, int mapHeight) {
     	// squash vertically to meet the map projection
 /*
     	if (lat > 0)
