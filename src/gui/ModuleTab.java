@@ -14,6 +14,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import common.FoxSpacecraft;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
@@ -59,7 +60,7 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 	public static final int DEFAULT_START_RESET = 0;
 	public static final int DEFAULT_START_UPTIME = 0;
 	
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId = 0;
 
 	DisplayModule[] topModules;

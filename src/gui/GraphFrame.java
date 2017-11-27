@@ -106,7 +106,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
 	
-	public Spacecraft fox;
+	public FoxSpacecraft fox;
 	public static int DEFAULT_SAMPLES = 180;
 	public int SAMPLES = DEFAULT_SAMPLES;
 	public static long DEFAULT_START_UPTIME = 0;
@@ -162,7 +162,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, Spacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, FoxSpacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -203,7 +203,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		titlePanelcenter.add(lblTitle);
 
 		if (textDisplay(conversionType) ) {   
-			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, (FoxSpacecraft)fox);
+			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
 		} else if (plotType == SKY_PLOT){

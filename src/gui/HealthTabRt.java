@@ -1,30 +1,25 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ItemEvent;
-
 import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.SoftBevelBorder;
-
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
-import telemetry.LayoutLoadException;
 
 public class HealthTabRt extends HealthTab {
 
-	public HealthTabRt(Spacecraft spacecraft) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public HealthTabRt(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_ALL);
 		
 		lblMode = new JLabel(MODE);

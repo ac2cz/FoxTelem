@@ -121,7 +121,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	HealthTableModel healthTableModel;
 	JTable table;
 	
-	public HealthTab(Spacecraft spacecraft, int displayType) {
+	public HealthTab(FoxSpacecraft spacecraft, int displayType) {
 		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));

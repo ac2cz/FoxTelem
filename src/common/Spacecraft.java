@@ -246,14 +246,23 @@ public abstract class Spacecraft {
 		return true;
 	}
 	
-	private TLE getTLEbyDate(DateTime dateTime) throws PositionCalcException {
+	protected TLE getTLEbyDate(DateTime dateTime) throws PositionCalcException {
 		if (tleList == null) return null;
 		TLE t = tleList.getTleByDate(dateTime);
 		if (t==null) throw new PositionCalcException(FramePart.NO_TLE);
 		return t;
 	}
 	
-	public SatPos getSatellitePosition(DateTime timeNow) throws PositionCalcException {
+	
+	
+	/**
+	 * Calculate the position at a historical data/time
+	 * Typically we don't call this directly.  Instead we call with the reset/uptime and hope that the value is already cached
+	 * @param timeNow
+	 * @return
+	 * @throws PositionCalcException
+	 */
+	public SatPos calcSatellitePosition(DateTime timeNow) throws PositionCalcException {
 		final TLE tle = getTLEbyDate(timeNow);
 //		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
 		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
@@ -270,7 +279,7 @@ public abstract class Spacecraft {
 	protected SatPos calcualteCurrentPosition() throws PositionCalcException {
 		DateTime timeNow = new DateTime(DateTimeZone.UTC);
 		SatPos pos = null;
-		pos = getSatellitePosition(timeNow);
+		pos = calcSatellitePosition(timeNow);
 		satPos = pos;
 		if (Config.debugSignalFinder)
 			Log.println("Fox at: " + FramePart.latRadToDeg(pos.getAzimuth()) + " : " + FramePart.lonRadToDeg(pos.getElevation()));

@@ -2,13 +2,12 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ItemEvent;
-
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.FoxFramePart;
@@ -16,10 +15,14 @@ import telemetry.PayloadWOD;
 
 public class WodHealthTab extends HealthTab {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	JLabel lblSatLatitudeValue;
 	JLabel lblSatLongitudeValue;
 	
-	public WodHealthTab(Spacecraft spacecraft) {
+	public WodHealthTab(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_WOD);
 		
 		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));

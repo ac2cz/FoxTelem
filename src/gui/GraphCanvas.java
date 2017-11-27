@@ -10,17 +10,21 @@ import javax.swing.JPanel;
 
 import common.Config;
 import common.FoxSpacecraft;
+import common.Log;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
+import predict.PositionCalcException;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.PayloadStore;
 import telemetry.RadiationPacket;
+import uk.me.g4dpz.satellite.SatPos;
 
 @SuppressWarnings("serial")
 public abstract class GraphCanvas extends JPanel {
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	double[][][] graphData = null;
 	double[][][] graphData2 = null;
 	String title = "Test Graph";
@@ -46,7 +50,7 @@ public abstract class GraphCanvas extends JPanel {
 	Graphics2D g2;
 	Graphics g;
 
-	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, Spacecraft fox2) {
+	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft fox2) {
 		title = t;
 		payloadType = plType;
 		this.conversionType = conversionType;
@@ -79,6 +83,7 @@ public abstract class GraphCanvas extends JPanel {
 			else if  (payloadType == FoxFramePart.TYPE_WOD_RAD) 
 				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false);
 			
+			graphData[i] = addPositionData(graphData[i]);
 		}
 
 		graphData2 = null;
@@ -109,12 +114,50 @@ public abstract class GraphCanvas extends JPanel {
 		if (graphData != null && graphData[0] != null && graphData[0][0].length > 0)
 			this.repaint();
 	}
+	
+	/**
+	 * Add Lat Lon from stored data or by calculation if needed
+	 * Ask the user if its a lot of data
+	 */
+	private double[][] addPositionData(double[][] coreGraphData) {
+		Log.println("ADDING position data to graph");
+		double[][] newGraphData = new double[PayloadStore.LON_COL+1][]; // make room for the lat/lon	
+		newGraphData[PayloadStore.RESETS_COL] = coreGraphData[PayloadStore.RESETS_COL];
+		newGraphData[PayloadStore.UPTIME_COL] = coreGraphData[PayloadStore.UPTIME_COL];
+		newGraphData[PayloadStore.DATA_COL] = coreGraphData[PayloadStore.DATA_COL];
+		newGraphData[PayloadStore.LAT_COL] = new double[coreGraphData[PayloadStore.RESETS_COL].length];
+		newGraphData[PayloadStore.LON_COL] = new double[coreGraphData[PayloadStore.RESETS_COL].length];
+		for (int i=0; i< coreGraphData[PayloadStore.RESETS_COL].length; i++) {
+			// Calculate the position
+			
+			SatPos pos = null;
+			try {
+				pos = fox.getSatellitePosition((int)newGraphData[PayloadStore.RESETS_COL][i], (long)newGraphData[PayloadStore.UPTIME_COL][i]);
+				double satLatitude = FramePart.latRadToDeg (pos.getLatitude());
+				double satLongitude = FramePart.lonRadToDeg(pos.getLongitude());
+				newGraphData[PayloadStore.LAT_COL][i] = satLatitude;
+				newGraphData[PayloadStore.LON_COL][i] = satLongitude;
+				
+			} catch (PositionCalcException e) {
+				if (e.errorCode == FramePart.NO_TLE) {
+					Log.println("NO TLE");
+					return newGraphData;
+				}
+				Log.println("NO POSITION");
+				return newGraphData;
+			}	
+		}
+		
+		return newGraphData;
+	}
 
 	public boolean checkDataExists() {
 		if (graphData == null) return false;
 		if (graphData[0] == null) return false;
 		if (graphData[0][0] == null) return false;
 		if (graphData[0][0].length == 0) return false;
+		if (graphData[0][PayloadStore.RESETS_COL] == null) return false;
+		if (graphData[0][PayloadStore.UPTIME_COL] == null) return false;
 
 		drawGraph2 = true;
 		if (graphData2 == null) drawGraph2 = false;

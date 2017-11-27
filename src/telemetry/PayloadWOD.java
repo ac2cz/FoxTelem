@@ -56,22 +56,16 @@ public class PayloadWOD extends PayloadRtValues {
 	public void captureSatPosition() {
 		FoxSpacecraft sat = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
 		SatPos pos = null;
-		// We need to construct a date for the historical time of this WOD record
-		DateTime wodTime = sat.getUtcDateTimeForReset(getRawValue(WOD_RESETS), getRawValue(WOD_UPTIME));
-		if (wodTime != null) {
-			//DateTime timeNow = new DateTime(wodTime); 
-
-			//capture the satellite position so we can visualize the WOD
-			try {
-				pos = sat.getSatellitePosition(wodTime);
-			} catch (PositionCalcException e) {
-				if (e.errorCode == FramePart.NO_TLE) {
-					satLatitude = NO_TLE;
-					satLongitude = NO_TLE;
-					satAltitude = NO_TLE;
-				}
-			}	
-		} 	
+		//capture the satellite position so we can visualize the WOD
+		try {
+			pos = sat.getSatellitePosition(getRawValue(WOD_RESETS), getRawValue(WOD_UPTIME));
+		} catch (PositionCalcException e) {
+			if (e.errorCode == FramePart.NO_TLE) {
+				satLatitude = NO_TLE;
+				satLongitude = NO_TLE;
+				satAltitude = NO_TLE;
+			}
+		}	
 		if (satLatitude != NO_TLE)
 			setSatPosition(pos);
 	}
