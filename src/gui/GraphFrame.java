@@ -29,6 +29,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -119,6 +120,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private static final String RANGE_TEXT = "Range";
 	private static final String NEXT_TEXT = "Next";
 	public static String NOW = "now";
+	public static String YESTERDAY = "yesterday";
 	public static String LAUNCH = "launch";
 	public static int DEFAULT_SAMPLES = 180;
 	public int SAMPLES = DEFAULT_SAMPLES;
@@ -405,7 +407,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 //		lblPlot = new JLabel("Plot");
 		txtSamplePeriod = new JTextField();
-		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
+//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtSamplePeriod.addActionListener(this);
 		txtSamplePeriod.addFocusListener(this);
 		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
@@ -415,7 +417,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		lblSamplePeriod = new JLabel("samples");
 		footerPanel1.add(lblSamplePeriod);
 		txtSamplePeriod.setText(Integer.toString(SAMPLES));
-//		txtSamplePeriod.setColumns(6);
+		txtSamplePeriod.setColumns(6);
 		//lblActual = new JLabel("(180)");
 		//footerPanel.add(lblActual);
 
@@ -888,13 +890,30 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		return date;
 	}
-	private FoxTime parseUTCField(String strDate) {
+	private FoxTime parseUTCField(JTextField field, String strDate) {
 		if (strDate.equalsIgnoreCase(NOW)) {
 			Date currentDate = new Date();
 			FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String time = dateFormat2.format(currentDate);
+			field.setText(time);
+			return foxTime;
+		} 
+		if (strDate.equalsIgnoreCase(YESTERDAY)) {
+			final Calendar cal = Calendar.getInstance();
+		    cal.add(Calendar.DATE, -1);
+		    Date currentDate = new Date(cal.getTimeInMillis());
+			FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String time = dateFormat2.format(currentDate);
+			field.setText(time);
 			return foxTime;
 		} 
 		if (strDate.equalsIgnoreCase(LAUNCH)) {
+			Date date = fox.getUtcForReset(0, 0);
+			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String time = dateFormat2.format(date);
+			field.setText(time);
 			return new FoxTime(0,0);
 		} 
 		Date dateFrom = parseDate(strDate);
@@ -907,14 +926,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 	private void parseUTCFields() {
 		String strDate = textFromUtc.getText();
-		FoxTime foxTime = parseUTCField(strDate);
+		FoxTime foxTime = parseUTCField(textFromUtc, strDate);
 		if (foxTime != null) {
 			START_RESET = foxTime.getReset();
 			START_UPTIME = foxTime.getUptime();
 		//	Log.println("From Reset: " + foxTime.getReset() + " Uptime: " + foxTime.getUptime());
 		}
 		strDate = textToUtc.getText();
-		FoxTime foxTime2 = parseUTCField(strDate);
+		FoxTime foxTime2 = parseUTCField(textToUtc, strDate);
 		if (foxTime2 != null) {
 			END_RESET = foxTime2.getReset();
 			END_UPTIME = foxTime2.getUptime();
@@ -1176,6 +1195,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (showLatest > SHOW_RANGE)
 				showLatest = SHOW_LIVE;
 			showRangeSearch(showLatest);
+			if (textDisplay)
+				diagnosticTable.updateData();
+			else
+				panel.updateGraphData("GraphFrame.btnLatest");
 			
 		} else if (e.getSource() == btnDefault) { // This is now called reset on the graph and also resets the averaging
 			if (!textDisplay) {

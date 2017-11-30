@@ -134,7 +134,7 @@ public abstract class GraphCanvas extends JPanel {
 			fileProgress.updateProgress(100);
 		
 		//System.err.println("-repaint by: " + by);
-		if (graphData != null && graphData[0] != null && graphData[0][0].length > 0)
+		if (graphData != null && graphData[0] != null)
 			this.repaint();
 	
 	}
