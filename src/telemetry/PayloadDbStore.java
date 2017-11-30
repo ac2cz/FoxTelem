@@ -975,6 +975,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 
 
 

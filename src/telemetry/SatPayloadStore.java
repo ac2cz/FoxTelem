@@ -313,24 +313,24 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout, boolean positionData) throws IOException {
+	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout, boolean positionData, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getGraphData(name, period, id, fromReset, fromUptime, positionData);
+			return records[i].getGraphData(name, period, id, fromReset, fromUptime, positionData, reverse);
 		return null;
 	}
 
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.REAL_TIME_LAYOUT, positionData);
+	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.REAL_TIME_LAYOUT, positionData, reverse);
 	}
 	
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, fox2, fromReset, fromUptime, Spacecraft.MAX_LAYOUT, positionData);
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, fox2, fromReset, fromUptime, Spacecraft.MAX_LAYOUT, positionData, reverse);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.MIN_LAYOUT, positionData);
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.MIN_LAYOUT, positionData, reverse);
 		
 	}
 
@@ -344,8 +344,8 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData);
+	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData, reverse);
 		
 	}
 
@@ -430,8 +430,8 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData);
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData, reverse);
 		
 	}
 
@@ -547,5 +547,16 @@ public class SatPayloadStore {
 		}
 	}
 
+	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		int i = fox.getLayoutIdxByName(payloadType);
+		if (i != Spacecraft.ERROR_IDX)
+			try {
+				return records[i].getNumberOfPayloadsBetweenTimestamps(reset, uptime, toReset, toUptime);
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+				return 0;
+			} 
+		return 0;
+	}
 }
 

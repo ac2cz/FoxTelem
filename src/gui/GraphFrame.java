@@ -25,7 +25,13 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
 
 import javax.imageio.ImageIO;
 import javax.swing.DefaultComboBoxModel;
@@ -49,6 +55,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import common.FoxSpacecraft;
+import common.FoxTime;
 import measure.SatMeasurementStore;
 
 /**
@@ -90,7 +97,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JPanel titlePanel;
 	private JPanel footerPanel;
 	
-	private JButton btnLatest;
+	private JButton btnDefault;
 	private JButton btnVerticalLines;
 	private JButton btnHorizontalLines;
 	private JButton btnCSV;
@@ -100,6 +107,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnAvg;
 	private JButton btnLines;
 	private JButton btnPoints;
+	private JButton btnLatest;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
 	@SuppressWarnings("rawtypes")
@@ -107,16 +115,29 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private ArrayList<String> variables;
 	
 	public FoxSpacecraft fox;
+	private static final String LIVE_TEXT = "Live";
+	private static final String RANGE_TEXT = "Range";
+	private static final String NEXT_TEXT = "Next";
+	public static String NOW = "now";
+	public static String LAUNCH = "launch";
 	public static int DEFAULT_SAMPLES = 180;
 	public int SAMPLES = DEFAULT_SAMPLES;
 	public static long DEFAULT_START_UPTIME = 0;
 	public static int DEFAULT_START_RESET = 0;
 	public long START_UPTIME = DEFAULT_START_UPTIME;
 	public int START_RESET = DEFAULT_START_RESET;
+	public int END_RESET = DEFAULT_START_RESET;
+	public long END_UPTIME = DEFAULT_START_UPTIME;
+	public static String DEFAULT_START_UTC = NOW;
+	public static String DEFAULT_END_UTC = NOW;
+	public String START_UTC = DEFAULT_START_UTC;
+	public String END_UTC = DEFAULT_END_UTC;	
 	public static final int MAX_SAMPLES = 999999;
 	public static final int MAX_AVG_SAMPLES = 999;
 	public static int DEFAULT_AVG_PERIOD = 12;
 	public int AVG_PERIOD = DEFAULT_AVG_PERIOD;
+	public Date fromUtcDate;
+	public Date toUtcDate;
 	//private JLabel lblActual;
 	public static final int DEFAULT_UPTIME_THRESHOLD = 60*60*1;// plot continuous uptime unless more than 1 hour gap
 	public static final int CONTINUOUS_UPTIME_THRESHOLD = -1;
@@ -124,7 +145,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JCheckBox chckbxPlotAllUptime;
 	private JLabel lblFromUptime;
 	private JTextField textFromUptime;
-	private JLabel lblPlot;
+//	private JLabel lblPlot;
 	JLabel lblSamplePeriod; // The number of samples to grab for each graph
 	private JTextField txtSamplePeriod;
 	private JLabel lblAvg;
@@ -132,6 +153,26 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JTextField txtAvgPeriod;
 	private JLabel lblFromReset;
 	private JTextField textFromReset;
+	
+	private JLabel lblToReset;
+	private JLabel lblToUptime;
+	private JTextField textToReset;
+	private JTextField textToUptime;
+
+	JLabel lblFromUTC;
+	JLabel lblToUTC;
+	
+	private static final String FROM_RESET = "        from Reset";
+	private static final String BEFORE_RESET = "        before Reset";
+	private static final String FROM_UTC = "        from UTC";
+	private static final String BEFORE_UTC = "        before UTC";
+	
+	private JTextField textFromUtc;
+	private JTextField textToUtc;
+
+	JPanel footerPanel2uptime = new JPanel();
+	JPanel footerPanel2utc = new JPanel();
+	
 	//private DiagnosticTextArea textArea;
 	private DiagnosticTable diagnosticTable;
 	JButton btnAdd;
@@ -146,6 +187,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean hidePoints = true;
 	public boolean hideLines = true;
 	public boolean showContinuous = false;
+	public int showLatest = 0;
+	public static final int SHOW_LIVE = 0;
+	public static final int SHOW_RANGE = 2;
+	public static final int SHOW_NEXT = 1;
 	
 	public boolean add = false;
 	public final static int GRAPH_PLOT = 0;
@@ -291,8 +336,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		setRedOutline(btnHorizontalLines, showHorizontalLines);
 		setRedOutline(btnVerticalLines, showVerticalLines);
 
-		btnLatest = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
-		titlePanelRight.add(btnLatest);
+		btnDefault = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
+		titlePanelRight.add(btnDefault);
 		//if (this.textDisplay) btnLatest.setEnabled(false);
 		
 		btnCSV = createIconButton("/images/saveSmall.png","CSV","Save this data to a CSV file");
@@ -307,60 +352,79 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		contentPane.add(footerPanel, BorderLayout.SOUTH);
 		footerPanel.setLayout(new BorderLayout(0,0));
 		JPanel footerPanelLeft = new JPanel();
-		JPanel footerPanelFarLeft = new JPanel();
-		JPanel footerPanelRight = new JPanel();
+		JPanel footerPanel1 = new JPanel();
+		JPanel footerPanel2 = new JPanel();
+
+		JPanel footerPanel3 = new JPanel();
 		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
-		footerPanel.add(footerPanelRight, BorderLayout.CENTER);
-		footerPanel.add(footerPanelFarLeft, BorderLayout.WEST);
+		footerPanelLeft.setLayout(new BorderLayout(0,0));
+		footerPanelLeft.add(footerPanel1, BorderLayout.WEST);
+		footerPanelLeft.add(footerPanel2, BorderLayout.CENTER);
+		footerPanel2.setLayout(new BorderLayout(0,0));
+		footerPanel2.add(footerPanel2uptime, BorderLayout.EAST);
+		footerPanel2.add(footerPanel2utc, BorderLayout.WEST);
+		footerPanelLeft.add(footerPanel3, BorderLayout.EAST);
 
 		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 			cbUptime = new JCheckBox("Show Uptime");
 			cbUptime.setSelected(!hideUptime);
 			cbUptime.addItemListener(this);
-			footerPanelLeft.add(cbUptime);
-
+			footerPanel1.add(cbUptime);
+		}
+//		if (!(plotType == SKY_PLOT)) {
+		
 			cbUTC = new JCheckBox("UTC Time   |");
 			cbUTC.setSelected(showUTCtime);
 			cbUTC.addItemListener(this);
-			footerPanelLeft.add(cbUTC);
+			footerPanel1.add(cbUTC);
+//		}
+		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 
 			lblAvg = new JLabel("Avg");
 			txtAvgPeriod = new JTextField();
-			//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 			txtAvgPeriod.addActionListener(this);
 			txtAvgPeriod.addFocusListener(this);
 			lblAvgPeriod = new JLabel("samples  ");
 
 			setAvgVisible(dspAvg);
 
-			footerPanelLeft.add(lblAvg);
-			footerPanelLeft.add(txtAvgPeriod);
-			footerPanelLeft.add(lblAvgPeriod);
+			footerPanel1.add(lblAvg);
+			footerPanel1.add(txtAvgPeriod);
+			footerPanel1.add(lblAvgPeriod);
 			txtAvgPeriod.setText(Integer.toString(AVG_PERIOD));
 			txtAvgPeriod.setColumns(3);
 		}
-		lblPlot = new JLabel("Plot");
+		
+		btnLatest = new JButton(LIVE_TEXT);
+		btnLatest.setForeground(Config.AMSAT_RED);
+		btnLatest.setMargin(new Insets(0,0,0,0));
+		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
+		btnLatest.addActionListener(this);
+		
+		footerPanel1.add(btnLatest);
+
+//		lblPlot = new JLabel("Plot");
 		txtSamplePeriod = new JTextField();
-//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
+		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtSamplePeriod.addActionListener(this);
 		txtSamplePeriod.addFocusListener(this);
 		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
 
-		
-		footerPanelLeft.add(lblPlot);
-		footerPanelLeft.add(txtSamplePeriod);
+//		footerPanel1.add(lblPlot);
+		footerPanel1.add(txtSamplePeriod);
 		lblSamplePeriod = new JLabel("samples");
-		footerPanelLeft.add(lblSamplePeriod);
+		footerPanel1.add(lblSamplePeriod);
 		txtSamplePeriod.setText(Integer.toString(SAMPLES));
-		txtSamplePeriod.setColumns(6);
+//		txtSamplePeriod.setColumns(6);
 		//lblActual = new JLabel("(180)");
 		//footerPanel.add(lblActual);
-		
-		lblFromReset = new JLabel("        from Reset");
-		footerPanelLeft.add(lblFromReset);
+
+		// Now footerPanel2 for Uptime
+		lblFromReset = new JLabel(FROM_RESET);
+		footerPanel2uptime.add(lblFromReset);
 		
 		textFromReset = new JTextField();
-		footerPanelLeft.add(textFromReset);
+		footerPanel2uptime.add(textFromReset);
 //		if (START_RESET == 0)
 //			textFromReset.setText("Last");
 //		else
@@ -371,11 +435,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromReset.addActionListener(this);
 		textFromReset.addFocusListener(this);
 		
-		lblFromUptime = new JLabel(" from Uptime");
-		footerPanelLeft.add(lblFromUptime);
+		lblFromUptime = new JLabel(" and Uptime");
+		footerPanel2uptime.add(lblFromUptime);
 		
 		textFromUptime = new JTextField();
-		footerPanelLeft.add(textFromUptime);
+		footerPanel2uptime.add(textFromUptime);
 //		if (START_UPTIME == 0)
 //			textFromUptime.setText("Last");
 //		else
@@ -384,17 +448,139 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
+
+		lblToReset = new JLabel("  to Reset");
+		footerPanel2uptime.add(lblToReset);
+		
+		textToReset = new JTextField();
+		footerPanel2uptime.add(textToReset);
+
+		textToReset.setText(Integer.toString(END_RESET));
+
+		textToReset.setColumns(8);
+//		textFromReset.setPreferredSize(new Dimension(50,14));
+		textToReset.addActionListener(this);
+		textToReset.addFocusListener(this);
+		
+		lblToUptime = new JLabel(" and Uptime");
+		footerPanel2uptime.add(lblToUptime);
+		
+		textToUptime = new JTextField();
+		footerPanel2uptime.add(textToUptime);
+
+		textToUptime.setText(Long.toString(END_UPTIME));
+		textToUptime.setColumns(8);
+//		textFromUptime.setPreferredSize(new Dimension(50,14));
+		textToUptime.addActionListener(this);
+		textToUptime.addFocusListener(this);
+
+
+		
+		// Now footerPanel2 for Utc
+		lblFromUTC = new JLabel(FROM_UTC);
+		footerPanel2utc.add(lblFromUTC);
+		
+		textFromUtc = new JTextField();
+		footerPanel2utc.add(textFromUtc);
+		textFromUtc.setText(START_UTC);
+
+		textFromUtc.setColumns(16);
+//		textFromReset.setPreferredSize(new Dimension(50,14));
+		textFromUtc.addActionListener(this);
+		textFromUtc.addFocusListener(this);
+		
+		lblToUTC = new JLabel(" to UTC");
+		footerPanel2utc.add(lblToUTC);
+		
+		textToUtc = new JTextField();
+		footerPanel2utc.add(textToUtc);
+//		if (START_UPTIME == 0)
+//			textFromUptime.setText("Last");
+//		else
+		textToUtc.setText(END_UTC);
+		textToUtc.setColumns(16);
+//		textFromUptime.setPreferredSize(new Dimension(50,14));
+		textToUtc.addActionListener(this);
+		textToUtc.addFocusListener(this);
+		
+		showRangeSearch(showLatest);
+		showUptimeQuery(!cbUTC.isSelected());
 		
 		if (!(plotType == SKY_PLOT || textDisplay || plotType == EARTH_PLOT)) {
 			chckbxPlotAllUptime = new JCheckBox("Continuous");
 			chckbxPlotAllUptime.setToolTipText("");
-			footerPanelLeft.add(chckbxPlotAllUptime);
+			footerPanel3.add(chckbxPlotAllUptime);
 			chckbxPlotAllUptime.setSelected(showContinuous);
 
 			chckbxPlotAllUptime.addItemListener(this);
 			chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
 			
 		}
+	}
+	
+	private void showRangeSearch(int showLive) {
+		boolean show = false;
+		if (showLive == SHOW_RANGE) {
+			btnLatest.setText(RANGE_TEXT);
+			lblFromUTC.setText(FROM_UTC);
+			lblFromReset.setText(FROM_RESET);
+			show = true;
+			btnLatest.setForeground(Color.DARK_GRAY);
+			lblFromReset.setVisible(show);
+			textFromReset.setVisible(show);
+			lblFromUptime.setVisible(show);
+			textFromUptime.setVisible(show);
+			textFromUtc.setVisible(show);
+			
+			lblFromUTC.setVisible(show);
+			lblToUTC.setVisible(show);
+		} 
+		if (showLive == SHOW_LIVE) {
+			lblFromUTC.setText(BEFORE_UTC);
+			lblFromReset.setText(BEFORE_RESET);
+			btnLatest.setText(LIVE_TEXT);
+			btnLatest.setForeground(Config.AMSAT_RED);
+			lblFromReset.setVisible(show);
+			textFromReset.setVisible(show);
+			lblFromUptime.setVisible(show);
+			textFromUptime.setVisible(show);
+			textFromUtc.setVisible(show);
+			lblFromUTC.setVisible(show);
+			lblToUTC.setVisible(show);
+		}
+		if (showLive == SHOW_NEXT) {
+			btnLatest.setText(NEXT_TEXT);
+			lblFromUTC.setText(FROM_UTC);
+			lblFromReset.setText(FROM_RESET);
+			btnLatest.setForeground(Color.DARK_GRAY);
+			lblFromReset.setVisible(!show);
+			textFromReset.setVisible(!show);
+			lblFromUptime.setVisible(!show);
+			textFromUptime.setVisible(!show);
+			textFromUtc.setVisible(!show);
+			lblFromUTC.setVisible(!show);
+			lblToUTC.setVisible(!show);
+		}
+		
+		
+		lblToReset.setVisible(show);
+		textToReset.setVisible(show);
+		lblToUptime.setVisible(show);
+		textToUptime.setVisible(show);
+		txtSamplePeriod.setEnabled(!show);
+		textToUtc.setVisible(show);
+
+	}
+	
+	private void showUptimeQuery(boolean up) {
+		if (up) {
+			footerPanel2uptime.setVisible(true);
+			footerPanel2utc.setVisible(false);
+		} else {
+			footerPanel2uptime.setVisible(false);
+			footerPanel2utc.setVisible(true);
+		}
+		
 	}
 	
 	private void initSkyPlotFields() {
@@ -515,14 +701,21 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public void saveProperties(boolean open) {
 		//Log.println("Saving graph properties: " + fieldName);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showLatest", showLatest);
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowHeight", this.getHeight());
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth", this.getWidth());
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowX", this.getX());
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY", this.getY());
 		
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "numberOfSamples", this.SAMPLES);
+		
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromReset", this.START_RESET);
 		Config.saveGraphLongParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUptime", this.START_UPTIME);
+		Config.saveGraphLongParam(fox.getIdString(), plotType, payloadType, fieldName[0], "toUptime", this.END_UPTIME);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "toReset", this.END_RESET);
+		
+		Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUtc", this.START_UTC);
+		Config.saveGraphParam(fox.getIdString(), plotType, payloadType, fieldName[0], "toUtc", this.END_UTC);
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "open", open);
 		
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain", hideMain);
@@ -554,6 +747,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 
 	public boolean loadProperties() {
+		showLatest = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showLatest");
 		int windowX = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowX");
 		int windowY = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY");
 		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth");
@@ -571,6 +765,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromReset");
 		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUptime");
+		this.END_RESET = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "toReset");
+		this.END_UPTIME = Config.loadGraphLongValue(fox.getIdString(), plotType, payloadType, fieldName[0], "toUptime");
+		
+		this.START_UTC = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUtc");
+		this.END_UTC = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "toUtc");
+
 		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "open");
 		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain");
 		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideLines");
@@ -664,8 +864,123 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			panel.updateGraphData("GraphFrame.parseAvgPeriod");
 	}
 	
+	public static final DateFormat dateFormat = new SimpleDateFormat(
+			"yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
+	public static final DateFormat dateFormat2 = new SimpleDateFormat(
+			"yyyyMMdd HHmmss", Locale.ENGLISH);
+	
+	private Date parseDate(String strDate) {
+		Date date = null;
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+		try {
+			date = dateFormat.parse(strDate);
+		} catch (ParseException e) {
+			try {
+				date = dateFormat2.parse(strDate);
+			} catch (ParseException e2) {
+				// We don't do anything in this case, the date will be null
+				Log.errorDialog("Invalid Date", "Try a date in one of the following formats: \n YYYYMMDD HHMMSS\nYYYY/MM/DD HH:MM:SS\nnow\nlaunch");
+
+				date = null;
+			}
+		}
+
+		return date;
+	}
+	private FoxTime parseUTCField(String strDate) {
+		if (strDate.equalsIgnoreCase(NOW)) {
+			Date currentDate = new Date();
+			FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+			return foxTime;
+		} 
+		if (strDate.equalsIgnoreCase(LAUNCH)) {
+			return new FoxTime(0,0);
+		} 
+		Date dateFrom = parseDate(strDate);
+		if (dateFrom != null) {
+			FoxTime foxTime = fox.getUptimeForUtcDate(dateFrom);
+			return foxTime;
+		}
+		return null;
+	}
+
+	private void parseUTCFields() {
+		String strDate = textFromUtc.getText();
+		FoxTime foxTime = parseUTCField(strDate);
+		if (foxTime != null) {
+			START_RESET = foxTime.getReset();
+			START_UPTIME = foxTime.getUptime();
+		//	Log.println("From Reset: " + foxTime.getReset() + " Uptime: " + foxTime.getUptime());
+		}
+		strDate = textToUtc.getText();
+		FoxTime foxTime2 = parseUTCField(strDate);
+		if (foxTime2 != null) {
+			END_RESET = foxTime2.getReset();
+			END_UPTIME = foxTime2.getUptime();
+		//	Log.println("To Reset" + foxTime2.getReset() + " Uptime: " + foxTime2.getUptime());
+		}
+		
+	}
+	
 	private void parseTextFields() {
-		String text = txtSamplePeriod.getText();
+		String text = textFromReset.getText();
+		try {
+			START_RESET = Integer.parseInt(text);
+			if (START_RESET < 0) START_RESET = 0;
+
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				START_RESET = DEFAULT_START_RESET;
+
+			}
+		}
+		text = textFromUptime.getText();
+		try {
+			START_UPTIME = Integer.parseInt(text);
+			if (START_UPTIME < 0) START_UPTIME = 0;
+
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				START_UPTIME = DEFAULT_START_UPTIME;
+
+			}
+		}
+		
+		text = textToReset.getText();
+		try {
+			END_RESET = Integer.parseInt(text);
+			if (END_RESET < 0) END_RESET = 0;
+
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				END_RESET = DEFAULT_START_RESET;
+
+			}
+		}
+		text = textToUptime.getText();
+		try {
+			END_UPTIME = Integer.parseInt(text);
+			if (END_UPTIME < 0) END_UPTIME = 0;
+
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				END_UPTIME = DEFAULT_START_UPTIME;
+			}
+		}
+
+		// Now back populate into the UTC fields in case the user switches
+		
+	}
+
+	private void parseFields() {
+		String text = null;
+		if (cbUTC.isSelected()) {
+			convertToUptime();
+		} else {
+			convertToUtc();
+		}
+		text = txtSamplePeriod.getText();
 		try {
 			SAMPLES = Integer.parseInt(text);
 			if (SAMPLES > MAX_SAMPLES) {
@@ -673,45 +988,57 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				text = Integer.toString(MAX_SAMPLES);
 			}
 			//System.out.println(SAMPLES);
-			
+
 			//lblActual.setText("("+text+")");
 			//txtSamplePeriod.setText("");
 		} catch (NumberFormatException ex) {
-			
+
 		}
-		text = textFromReset.getText();
-		try {
-			START_RESET = Integer.parseInt(text);
-			if (START_RESET < 0) START_RESET = 0;
-			
-		} catch (NumberFormatException ex) {
-			if (text.equals("")) {
-				START_RESET = DEFAULT_START_RESET;
-				
-			}
-		}
-		text = textFromUptime.getText();
-		try {
-			START_UPTIME = Integer.parseInt(text);
-			if (START_UPTIME < 0) START_UPTIME = 0;
-			
-		} catch (NumberFormatException ex) {
-			if (text.equals("")) {
-				START_UPTIME = DEFAULT_START_UPTIME;
-				
-			}
-		}
+
 		if (textDisplay)
 			diagnosticTable.updateData();
 		else
 			panel.updateGraphData("GraphFrame.parseTextFields");
+
 	}
-	
+
 	private void setRedOutline(JButton but, boolean red) {
 		if (red) {	
 			but.setBackground(Color.RED);
 		} else
 			but.setBackground(Color.GRAY);
+	}
+
+	private void convertToUtc() {
+		parseTextFields();
+		Date date = fox.getUtcForReset(START_RESET, START_UPTIME);
+		dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String time = dateFormat2.format(date);
+		textFromUtc.setText(time);
+		START_UTC = time;
+		textFromUtc.setText(time);
+		Date date2 = fox.getUtcForReset(END_RESET, END_UPTIME);
+		dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+		String time2 = dateFormat2.format(date2);
+		textToUtc.setText(time2);
+		END_UTC = time2;
+		textToUtc.setText(time2);
+		if (showLatest == SHOW_RANGE) {
+			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, layout.name);
+			txtSamplePeriod.setText(Integer.toString(SAMPLES));
+		}
+	}
+	
+	private void convertToUptime() {
+		parseUTCFields();
+		textFromReset.setText(Integer.toString(START_RESET));
+		textFromUptime.setText(Long.toString(START_UPTIME));
+		textToReset.setText(Integer.toString(END_RESET));
+		textToUptime.setText(Long.toString(END_UPTIME));
+		if (showLatest == SHOW_RANGE) {
+			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, layout.name);
+			txtSamplePeriod.setText(Integer.toString(SAMPLES));
+		}
 	}
 	
 	@SuppressWarnings("unchecked")
@@ -721,7 +1048,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			add = !add;
 			cbAddVariable.setVisible(add);
 		} else
-		if (e.getSource() == cbAddVariable) {
+			if (e.getSource() == cbAddVariable) {
 			// Add or remove a variable to be plotted on the graph
 			int position = cbAddVariable.getSelectedIndex();
 			if (position == -1) return;
@@ -823,17 +1150,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			panel.updateGraphData("GraphFrame:stateChange:addVariable");
 		}
 		else if (e.getSource() == this.txtSamplePeriod) {
-			parseTextFields();
+			parseFields();
 			
 		} else if (e.getSource() == this.textFromReset) {
-			parseTextFields();
+			parseFields();
 			
 		} else if (e.getSource() == this.textFromUptime) {
-			parseTextFields();
+			parseFields();
+		} else if (e.getSource() == this.textToReset) {
+			parseFields();
+			
+		} else if (e.getSource() == this.textToUptime) {
+			parseFields();
+
+		} else if (e.getSource() == this.textFromUtc) {
+			parseFields();
+
+		} else if (e.getSource() == this.textToUtc) {
+			parseFields();
 			
 		} else if (e.getSource() == this.txtAvgPeriod) {
 				parseAvgPeriod();
-		} else if (e.getSource() == btnLatest) { // This is now called reset on the graph and also resets the averaging
+		} else if (e.getSource() == this.btnLatest) {
+			showLatest++;
+			if (showLatest > SHOW_RANGE)
+				showLatest = SHOW_LIVE;
+			showRangeSearch(showLatest);
+			
+		} else if (e.getSource() == btnDefault) { // This is now called reset on the graph and also resets the averaging
 			if (!textDisplay) {
 				if (plotType == SKY_PLOT)
 					initSkyPlotFields();
@@ -851,11 +1195,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				}
 				calcTitle();
 			}
-			textFromReset.setText(Long.toString(DEFAULT_START_UPTIME));
-			textFromUptime.setText(Integer.toString(DEFAULT_START_RESET));
+			showLatest = SHOW_LIVE;
+			showRangeSearch(showLatest);
+			//textFromReset.setText(Integer.toString(DEFAULT_START_RESET));
+			//textFromUptime.setText(Long.toString(DEFAULT_START_UPTIME));
+			//textToReset.setText(Integer.toString(DEFAULT_START_RESET));
+			//textToUptime.setText(Long.toString(DEFAULT_START_UPTIME));
+			textFromUtc.setText(DEFAULT_START_UTC);
+			textToUtc.setText(DEFAULT_END_UTC);
 			txtSamplePeriod.setText(Integer.toString(DEFAULT_SAMPLES));
-			
-			parseTextFields();
+			parseFields();
 			if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 				txtAvgPeriod.setText(Integer.toString(DEFAULT_AVG_PERIOD));
 				parseAvgPeriod();
@@ -1004,9 +1353,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (e.getSource() == cbUTC) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				showUTCtime = false;
+				parseUTCFields();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			} else {
 				showUTCtime = true;
+				parseTextFields();
+				//textToUtc.setText();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			}
+			showUptimeQuery(!cbUTC.isSelected());
+
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else

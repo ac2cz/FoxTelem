@@ -96,13 +96,13 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
-	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout, boolean positionData);
+	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout, boolean positionData, boolean reverse);
 
-	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData);
+	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 
-	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData);
+	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 
-	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData);
+	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
@@ -116,17 +116,18 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getRadData(int period, int id, int fromReset, long fromUptime);
 
 	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime);
-	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData);
-	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData);
+	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime);
-	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
-	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
 	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME);
 	public abstract String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME);
 	public abstract String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME);
 	
 	public abstract String getRtUTCFromUptime(int id, int reset, long uptime);
 	
+	public abstract int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType);
 	
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user

@@ -169,10 +169,12 @@ public class SatPayloadTable {
 	 * @param id
 	 * @param fromReset
 	 * @param fromUptime
+	 * @param positionData
+	 * @param reverse - return the data from the end of the table in reverse order,such as when monitoring a live graph
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
+	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		loadSegments(fromReset, fromUptime, period);
 		int start = 0;
 		int end = 0;
@@ -183,7 +185,7 @@ public class SatPayloadTable {
 		if (positionData)
 			COLUMNS = 5;
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
+		if (reverse) { // then we take records nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {
@@ -256,6 +258,132 @@ public class SatPayloadTable {
 	}
 	
 	/**
+	 * Load all of the segments needed between two timestamps and return the number of records in that range
+	 * Our first challenge is that either or both timestamps may be outside of a file.
+	 * 
+	 * @param reset
+	 * @param uptime
+	 * @param toReset
+	 * @param toUptime
+	 * @return the number of records in the range
+	 * @throws IOException
+	 */
+	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
+		int fromSeg = findFirstSeg(reset, uptime);
+		int toSeg = findFirstSeg(toReset, toUptime);
+		int number = 0;
+		// Then we need to load segment at i and start counting from here, until we find the toReset and toUptime
+		//System.err.println("Loading from seg: "+i);
+
+		int i = fromSeg;
+		while(i <= toSeg && i < tableIdx.size()) {
+			if (!tableIdx.get(i).isLoaded())
+				load(tableIdx.get(i));
+			i++;
+		}
+		int id = rtRecords.get(0).id; // id is the same for all records in this table
+		// Now all the segments are loaded that contain the data we want, so find the nearest records and count the distance between
+		int start = rtRecords.getNearestFrameIndex(id, uptime, reset);
+		int end = rtRecords.getNearestFrameIndex(id, toUptime, toReset);
+		if (start < end)
+			number = end - start;
+
+		return number;
+	}
+	
+	/**
+	 * Search forwards through the segments to find the Segment with this reset/uptime
+	 * We search from the earliest index records looking for the first instance where the reset or uptime is greater than the search point.
+	 * We would then start loading from the previous record.
+	 * @param reset
+	 * @param uptime
+	 * @return
+	 */
+	private int findFirstSeg(int reset, long uptime) {
+		// load forwards from the relevant reset/uptime
+		/* Logic is like this:
+			reset x
+			uptime y
+			
+			idx
+			fromR	fromU
+			0		100
+			1		50
+			2		900
+			3		55
+			
+			case 1: 
+			reset=1
+			uptime=100
+			We want to load 2/900 onwards
+			So:
+			reset < fromR, uptime then irrelevant
+			
+			case 2: - special case at the start
+			reset = 0
+			uptime = 1
+			We want to load 0/100 onwards because we DO NOT HAVE data before it, otherwise it is case 4
+			So: reset = fromR, y < fromU
+							
+			case 3: - special case at the end
+			x=3
+			y=100
+			We want to load 3/55
+			x = fromR, y > fromU - load current
+			
+			case 4: 
+			reset=1
+			uptime=0
+			We want to load 0/100 because the data could be at the end
+			x > fromR, y is irrelevent
+			AND (x < next fromR OR (x = next from R AND y < uptime) )
+		 * 
+		 */
+		
+		boolean loadnow = false;
+		for (int i=0; i< tableIdx.size(); i++) {
+			if (!loadnow) { // we test the cases
+				//case 1:
+				if (tableIdx.get(i).fromReset > reset ) { // situation where the data is for a higher reset, so load from here always by default
+					loadnow = true;
+					//System.out.println("Case 1: " + i);
+				} 
+				// case 2:
+				if (i == 0) 
+					if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
+						loadnow = true;
+					}
+				//case 4:
+				if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
+						(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and high uptime
+					loadnow = true;
+					//System.out.println("Case 4: " + i);
+				}
+				//case 4b:
+				if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime < uptime && // this record has the same reset and uptime is less than the target
+						(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and uptime higher
+					loadnow = true;
+					//System.out.println("Case 4b: " + i);
+
+				}
+				//case 3:
+				if (i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset) { // load this.  It might have the data we need and its the last segment
+					loadnow = true;
+					//System.out.println("Case 3: " + i);
+
+				}
+			}
+			if (loadnow) return i;
+		}
+		return -99;
+		
+	}
+	
+	private int findLastSeg(int reset, long uptime) {
+		return 0;
+	}
+	
+	/**
 	 * Load all of the segments needed so that "number" of records is available.  Used for plotting graphs.  If segments are missing then
 	 * we do not create them
 	 * @param reset
@@ -287,94 +415,17 @@ public class SatPayloadTable {
 			}
 			//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
 		} else {
-			// load forwards from the relevant reset/uptime
-			// We search from the earliest index records looking for the first instance where the reset or uptime is greater than the search point.
-			// We start loading from the previous record.
-			
-			/* Logic is like this:
-				reset x
-				uptime y
-				
-				idx
-				fromR	fromU
-				0		100
-				1		50
-				2		900
-				3		55
-				
-				case 1: 
-				reset=1
-				uptime=100
-				We want to load 2/900 onwards
-				So:
-				reset < fromR, uptime then irrelevant
-				
-				case 2: - special case at the start
-				reset = 0
-				uptime = 1
-				We want to load 0/100 onwards because we DO NOT HAVE data before it, otherwise it is case 4
-				So: reset = fromR, y < fromU
-								
-				case 3: - special case at the end
-				x=3
-				y=100
-				We want to load 3/55
-				x = fromR, y > fromU - load current
-				
-				case 4: 
-				reset=1
-				uptime=0
-				We want to load 0/100 because the data could be at the end
-				x > fromR, y is irrelevent
-				AND (x < next fromR OR (x = next from R AND y < uptime) )
-			 * 
-			 */
-			
-			boolean loadnow = false;
-			for (int i=0; i< tableIdx.size(); i++) {
-				if (!loadnow) { // we test the cases
-					//case 1:
-					if (tableIdx.get(i).fromReset > reset ) { // situation where the data is for a higher reset, so load from here always by default
-						loadnow = true;
-						//System.out.println("Case 1: " + i);
-					} 
-					// case 2:
-					if (i == 0) 
-						if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
-							loadnow = true;
-						}
-					//case 4:
-					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
-							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and high uptime
-						loadnow = true;
-						//System.out.println("Case 4: " + i);
-					}
-					//case 4b:
-					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime < uptime && // this record has the same reset and uptime is less than the target
-							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and uptime higher
-						loadnow = true;
-						//System.out.println("Case 4b: " + i);
-
-					}
-					//case 3:
-					if (i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset) { // load this.  It might have the data we need and its the last segment
-						loadnow = true;
-						//System.out.println("Case 3: " + i);
-
-					}
+			int i = findFirstSeg(reset, uptime);
+			// Then we need to load segment at i and start counting from here
+			//System.err.println("Loading from seg: "+i);
+			if (i >= 0)
+				while(i < tableIdx.size()) {
+					if (!tableIdx.get(i).isLoaded())
+						load(tableIdx.get(i));
+					total += tableIdx.get(i++).records;
+					if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 				}
-				if (loadnow){
-					// Then we need to load segment at i and start counting from here
-					//System.err.println("Loading from seg: "+i);
-					while(i < tableIdx.size()) {
-						if (!tableIdx.get(i).isLoaded())
-							load(tableIdx.get(i));
-						total += tableIdx.get(i++).records;
-						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
-					}
-					break;
-				}
-			}
+
 		}
 	}
 	

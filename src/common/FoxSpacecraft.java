@@ -146,6 +146,13 @@ public class FoxSpacecraft extends Spacecraft{
 		return time;
 	}
 
+	public Date getUtcForReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime*1000);
+		return dt;
+	}
+	
 	public DateTime getUtcDateTimeForReset(int reset, long uptime) {
 		if (timeZero == null) return null;
 		if (reset >= timeZero.size()) return null;
@@ -153,6 +160,44 @@ public class FoxSpacecraft extends Spacecraft{
 		DateTime dateTime = new DateTime(dt); // FIXME - this date conversion is not working.  Need to understand how it works.
 		return dateTime;
 	}
+
+	/**
+	 * Given a date, what is the reset and uptime
+	 * @param fromDate
+	 * @return a FoxTime object with the reset and uptime
+	 */
+	public FoxTime getUptimeForUtcDate(Date fromDate) {
+		if (timeZero == null) return null;
+		if (fromDate == null) return null;
+		long dateTime = fromDate.getTime();
+		long T0 = -1;
+		int reset = 0;
+		long uptime = 0;
+		// Search T0.  It's short so we can scan the whole list
+		for (int i=0; i<timeZero.size(); i++) {
+			if (timeZero.get(i) > dateTime) {
+				// then we want the previous value
+				if (i==0) break; 
+				reset = i-1;
+				T0 = timeZero.get(reset);
+				break;
+			}
+			
+		}
+		if (T0 == -1) {
+			// return the last reset, we scanned the whole list
+			reset = timeZero.size()-1;
+			T0 = timeZero.get(reset);
+		}
+		
+		// Otherwise we have a valid reset, so calc the uptime, which is seconds from the T0 to the passed dateTime
+		uptime = dateTime - T0; // milliseconds
+		uptime = uptime / 1000; // seconds;
+		
+		FoxTime ft = new FoxTime(reset, uptime);
+		return ft;
+	}
+
 	
 	public SatPos getSatellitePosition(int reset, long uptime) throws PositionCalcException {
 		// We need to construct a date for the historical time of this WOD record

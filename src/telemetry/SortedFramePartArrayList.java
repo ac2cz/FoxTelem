@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.util.Collections;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -77,17 +79,12 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets) {
-    	// start searching from the beginning where reset and uptime should be the lowest
-    	for (int i=0; i<this.size(); i++) { 
-    		FramePart f = this.get(i);
-            if (compare(f, id, uptime, resets, 0) <= 0)
-            	return i;
-    	}
-        return -1;
+    	return getNearestFrameIndex(id, uptime, resets, 0);
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets, int type) {
     	// start searching from the beginning where reset and uptime should be the lowest
+    	// could probablly optimize this with binary search aglo but needs to be implement from scatch as not an exact match
     	for (int i=0; i<this.size(); i++) { 
     		FramePart f = this.get(i);
     		if (compare(f, id, uptime, resets, type) <= 0)
@@ -95,7 +92,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     	}
         return -1;
     }
-
+    
     private int compare(FramePart p, int id, long uptime, int resets, int type) {
     	if (resets == p.resets && uptime == p.uptime && type == p.type) 
     		return 0;
