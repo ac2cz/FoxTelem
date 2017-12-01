@@ -122,6 +122,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public static String NOW = "now";
 	public static String YESTERDAY = "yesterday";
 	public static String LAUNCH = "launch";
+	public String dateFormatsToolTip = "formats:YYYYMMDD HHMMSS, YYYY/MM/DD HH:MM:SS, "
+			+ "dd MMM yy HH:mm:ss, now, yesterday, launch";
 	public static int DEFAULT_SAMPLES = 180;
 	public int SAMPLES = DEFAULT_SAMPLES;
 	public static long DEFAULT_START_UPTIME = 0;
@@ -480,18 +482,22 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		// Now footerPanel2 for Utc
 		lblFromUTC = new JLabel(FROM_UTC);
+		lblFromUTC.setToolTipText(dateFormatsToolTip);
+
 		footerPanel2utc.add(lblFromUTC);
 		
 		textFromUtc = new JTextField();
 		footerPanel2utc.add(textFromUtc);
 		textFromUtc.setText(START_UTC);
-
+		textFromUtc.setToolTipText(dateFormatsToolTip);
 		textFromUtc.setColumns(16);
 //		textFromReset.setPreferredSize(new Dimension(50,14));
 		textFromUtc.addActionListener(this);
 		textFromUtc.addFocusListener(this);
 		
 		lblToUTC = new JLabel(" to UTC");
+		lblToUTC.setToolTipText(dateFormatsToolTip);
+
 		footerPanel2utc.add(lblToUTC);
 		
 		textToUtc = new JTextField();
@@ -501,6 +507,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		else
 		textToUtc.setText(END_UTC);
 		textToUtc.setColumns(16);
+		textToUtc.setToolTipText(dateFormatsToolTip);
 //		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textToUtc.addActionListener(this);
 		textToUtc.addFocusListener(this);
@@ -548,7 +555,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			textFromUptime.setVisible(show);
 			textFromUtc.setVisible(show);
 			lblFromUTC.setVisible(show);
-			lblToUTC.setVisible(show);
+	
 		}
 		if (showLive == SHOW_NEXT) {
 			btnLatest.setText(NEXT_TEXT);
@@ -561,7 +568,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			textFromUptime.setVisible(!show);
 			textFromUtc.setVisible(!show);
 			lblFromUTC.setVisible(!show);
-			lblToUTC.setVisible(!show);
+			
 		}
 		
 		
@@ -570,6 +577,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		lblToUptime.setVisible(show);
 		textToUptime.setVisible(show);
 		txtSamplePeriod.setEnabled(!show);
+		lblToUTC.setVisible(show);
 		textToUtc.setVisible(show);
 
 	}
@@ -872,6 +880,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			"yyyy/MM/dd HH:mm:ss", Locale.ENGLISH);
 	public static final DateFormat dateFormat2 = new SimpleDateFormat(
 			"yyyyMMdd HHmmss", Locale.ENGLISH);
+	public static final DateFormat dateFormat3 = new SimpleDateFormat(
+			"dd MMM yy HH:mm:ss", Locale.ENGLISH);
 	
 	private Date parseDate(String strDate) {
 		Date date = null;
@@ -883,10 +893,15 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			try {
 				date = dateFormat2.parse(strDate);
 			} catch (ParseException e2) {
-				// We don't do anything in this case, the date will be null
-				Log.errorDialog("Invalid Date", "Try a date in one of the following formats: \n YYYYMMDD HHMMSS\nYYYY/MM/DD HH:MM:SS\nnow\nlaunch");
+				try {
+					date = dateFormat3.parse(strDate);
+				} catch (ParseException e3) {
+					// We don't do anything in this case, the date will be null
+					Log.errorDialog("Invalid Date", "Try a date in one of the following formats: \nYYYYMMDD HHMMSS\nYYYY/MM/DD HH:MM:SS\n"
+							+ "dd MMM yy HH:mm:ss\nnow\nyesterday\nlaunch");
 
-				date = null;
+					date = null;
+				}
 			}
 		}
 
