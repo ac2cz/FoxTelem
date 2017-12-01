@@ -3,10 +3,12 @@ package gui;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 import javax.swing.Box;
+import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -14,6 +16,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
+import common.Config;
 import common.FoxSpacecraft;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
@@ -46,6 +49,8 @@ import telemetry.PayloadWOD;
 public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 
 	public int SAMPLES = 100;
+	public int showLatest = GraphFrame.SHOW_LIVE;
+	public boolean reverse = true;
 	public int MAX_SAMPLES = 9999;
 	public int MIN_SAMPLES = 1;
 	public long START_UPTIME = 0;
@@ -70,12 +75,20 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 	JPanel bottomHalf;
 	JScrollPane scrollPane;
 	JPanel bottomPanel;
+	JButton btnLatest;
 
 	protected void addBottomFilter() {
 		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1500,10)));
-		JLabel displayNumber1 = new JLabel("Displaying last");
+		btnLatest = new JButton(GraphFrame.LIVE_TEXT);
+		btnLatest.setForeground(Config.AMSAT_RED);
+		btnLatest.setMargin(new Insets(0,0,0,0));
+		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
+		btnLatest.addActionListener(this);
+		
+		bottomPanel.add(btnLatest);
+		JLabel displayNumber1 = new JLabel(" ");
 		displayNumber2 = new JTextField();
-		JLabel displayNumber3 = new JLabel("payloads decoded");
+		JLabel displayNumber3 = new JLabel("payloads");
 		displayNumber1.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		displayNumber3.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
@@ -115,6 +128,7 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 //		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textFromUptime.addActionListener(this);
 
+		showRangeSearch(GraphFrame.SHOW_LIVE);
 		
 	}
 	protected void initDisplayHalves(JPanel centerPanel) {
@@ -151,19 +165,13 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		// First get a quick list of all the modules names and sort them into top/bottom
 		for (int i=0; i<rt.NUMBER_OF_FIELDS; i++) {
 			if (!rt.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				if (true || rt.moduleNum[i] > 0 && rt.moduleNum[i] < 10) {
+				
 					if (!containedIn(topModuleNames, rt.module[i])) {
 						topModuleNames[rt.moduleNum[i]] = rt.module[i];
 						numOfTopModules++;
 					}
 					topModuleLines[rt.moduleNum[i]]++;
-				} else if (rt.moduleNum[i] >= 10 && rt.moduleNum[i] < 20) {
-					if (!containedIn(bottomModuleNames,rt.module[i])) {
-						bottomModuleNames[rt.moduleNum[i]-9] = rt.module[i];
-						numOfBottomModules++;
-					}
-					bottomModuleLines[rt.moduleNum[i]-9]++;		
-				}
+				
 			}
 		}
 		if (moduleType == DisplayModule.DISPLAY_WOD) {
@@ -172,37 +180,25 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		if (max != null)
 		for (int i=0; i<max.NUMBER_OF_FIELDS; i++) {
 			if (!max.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				if (true || max.moduleNum[i] > 0 && max.moduleNum[i] < 10) {
+				
 					if (!containedIn(topModuleNames, max.module[i])) {
 						topModuleNames[max.moduleNum[i]] = max.module[i];
 						numOfTopModules++;
 					}
 					topModuleLines[max.moduleNum[i]]++;
-				} else if (max.moduleNum[i] >= 10 && max.moduleNum[i] < 20) {
-					if (!containedIn(bottomModuleNames,max.module[i])) {
-						bottomModuleNames[max.moduleNum[i]-9] = max.module[i];
-						numOfBottomModules++;
-					}
-					bottomModuleLines[max.moduleNum[i]-9]++;		
-				}
+				
 			}
 		}
 		if (min != null)
 		for (int i=0; i<min.NUMBER_OF_FIELDS; i++) {
 			if (!min.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				if (true || min.moduleNum[i] > 0 && min.moduleNum[i] < 10) {
+				
 					if (!containedIn(topModuleNames, min.module[i])) {
 						topModuleNames[min.moduleNum[i]] = min.module[i];
 						numOfTopModules++;
 					}
 					topModuleLines[min.moduleNum[i]]++;
-				} else if (min.moduleNum[i] >= 10 && min.moduleNum[i] < 20) {
-					if (!containedIn(bottomModuleNames,min.module[i])) {
-						bottomModuleNames[min.moduleNum[i]-9] = min.module[i];
-						numOfBottomModules++;
-					}
-					bottomModuleLines[min.moduleNum[i]-9]++;		
-				}
+				
 			}
 
 		}
@@ -358,6 +354,63 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 		repaint();
 	}
 	
+	private void showRangeSearch(int showLive) {
+		boolean show = false;
+		if (showLive == GraphFrame.SHOW_RANGE) {
+			reverse=false;
+			btnLatest.setText(GraphFrame.RANGE_TEXT);
+//			lblFromUTC.setText(FROM_UTC);
+			lblFromReset.setText(GraphFrame.FROM_RESET);
+			show = true;
+			btnLatest.setForeground(Color.DARK_GRAY);
+			lblFromReset.setVisible(show);
+			textFromReset.setVisible(show);
+			lblFromUptime.setVisible(show);
+			textFromUptime.setVisible(show);
+//			textFromUtc.setVisible(show);
+			
+//			lblFromUTC.setVisible(show);
+//			lblToUTC.setVisible(show);
+		} 
+		if (showLive == GraphFrame.SHOW_LIVE) {
+			reverse=true;
+//			lblFromUTC.setText(BEFORE_UTC);
+			lblFromReset.setText(GraphFrame.BEFORE_RESET);
+			btnLatest.setText(GraphFrame.LIVE_TEXT);
+			btnLatest.setForeground(Config.AMSAT_RED);
+			lblFromReset.setVisible(show);
+			textFromReset.setVisible(show);
+			lblFromUptime.setVisible(show);
+			textFromUptime.setVisible(show);
+//			textFromUtc.setVisible(show);
+//			lblFromUTC.setVisible(show);
+//			lblToUTC.setVisible(show);
+		}
+		if (showLive == GraphFrame.SHOW_NEXT) {
+			reverse=false;
+			btnLatest.setText(GraphFrame.NEXT_TEXT);
+//			lblFromUTC.setText(FROM_UTC);
+			lblFromReset.setText(GraphFrame.FROM_RESET);
+			btnLatest.setForeground(Color.DARK_GRAY);
+			lblFromReset.setVisible(!show);
+			textFromReset.setVisible(!show);
+			lblFromUptime.setVisible(!show);
+			textFromUptime.setVisible(!show);
+//			textFromUtc.setVisible(!show);
+//			lblFromUTC.setVisible(!show);
+//			lblToUTC.setVisible(!show);
+		}
+		
+		
+//		lblToReset.setVisible(show);
+//		textToReset.setVisible(show);
+//		lblToUptime.setVisible(show);
+//		textToUptime.setVisible(show);
+//		txtSamplePeriod.setEnabled(!show);
+//		textToUtc.setVisible(show);
+
+	}
+
 	public abstract void parseFrames();
 	
 	@Override
@@ -377,6 +430,12 @@ public abstract class ModuleTab extends FoxTelemTab implements ActionListener {
 			
 			parseFrames();
 		}
-
+		else if (e.getSource() == this.btnLatest) {
+			showLatest++;
+			if (showLatest > GraphFrame.SHOW_NEXT)
+				showLatest = GraphFrame.SHOW_LIVE;
+			showRangeSearch(showLatest);
+			parseFrames();
+		}
 	}
 }

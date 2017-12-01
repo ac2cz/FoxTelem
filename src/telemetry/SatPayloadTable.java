@@ -101,11 +101,21 @@ public class SatPayloadTable {
 		return null;
 	}
 	
+	/**
+	 * Return the nearest frame part to the passed reset and uptime.  We search from low uptime to high.  We return the first record that is 
+	 * equal to or greater than the uptime
+	 * @param id
+	 * @param uptime
+	 * @param resets
+	 * @return
+	 * @throws IOException
+	 */
 	public FramePart getFrame(int id, long uptime, int resets) throws IOException { 
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
 		TableSeg seg = loadSeg(resets, uptime);
 		int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
+		if (i == -1) return null;
 		return rtRecords.get(i);
 	}
 	
@@ -119,13 +129,13 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length) throws IOException {
+	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
-		loadSegments(fromReset, fromUptime, period);
+		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
 		int end = 0;
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
+		if (reverse) { // then we take records nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {
@@ -175,7 +185,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
-		loadSegments(fromReset, fromUptime, period);
+		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
 		int end = 0;
 		
@@ -391,9 +401,9 @@ public class SatPayloadTable {
 	 * @param number
 	 * @throws IOException
 	 */
-	private void loadSegments(int reset, long uptime, int number) throws IOException {
+	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
 		int total = 0;
-		if (reset == 0 && uptime == 0) {
+		if (reverse) {
 			// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
 			// So we first calculate where to start
 			int startIdx = 0;

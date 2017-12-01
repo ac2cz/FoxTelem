@@ -282,6 +282,9 @@ public abstract class GraphCanvas extends JPanel {
 			//	if (graphType == BitArrayLayout.CONVERT_FREQ) {
 
 //				} else {
+				
+				// FIXME - SCALE - Should be based on a percentage of the range
+				
 				if (maxValue < 0)
 					maxValue = maxValue - maxValue * 0.20;
 				else

@@ -86,6 +86,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     	// start searching from the beginning where reset and uptime should be the lowest
     	// could probablly optimize this with binary search aglo but needs to be implement from scatch as not an exact match
     	// First check special case where we have value off the end
+    	if (this.size() == 0) return -1;
     	if (resets > this.get(size()-1).resets) return size()-1;
     	if (resets == this.get(size()-1).resets && uptime > this.get(size()-1).uptime) return size()-1;
     	

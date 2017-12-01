@@ -511,6 +511,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+
+	@Override
+	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(id, reset, uptime, layout);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
 	
 	public FramePart getLatest(int id,  String lay) {
 		SatPayloadStore store = getPayloadStoreById(id);
@@ -721,11 +737,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getRtData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRtData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getRtData(period, id, fromReset, fromUptime);
+				return store.getRtData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -742,11 +758,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getWODData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getWODData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getWODData(period, id, fromReset, fromUptime);
+				return store.getWODData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -763,11 +779,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getRadData(period, id, fromReset, fromUptime);
+				return store.getRadData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -776,11 +792,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 	
 	@Override
-	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getWodRadTelemData(period, id, fromReset, fromUptime);
+				return store.getWodRadTelemData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -788,22 +804,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	} 
 	
-	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getRadTelemData(period, id, fromReset, fromUptime);
+				return store.getRadTelemData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getHerciPacketData(period, id, fromReset, fromUptime);
+				return store.getHerciPacketData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -950,6 +966,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
 		return 0;
 	}
+
 
 
 	

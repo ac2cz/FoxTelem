@@ -116,9 +116,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private ArrayList<String> variables;
 	
 	public FoxSpacecraft fox;
-	private static final String LIVE_TEXT = "Live";
-	private static final String RANGE_TEXT = "Range";
-	private static final String NEXT_TEXT = "Next";
+	public static final String LIVE_TEXT = "Live";
+	public static final String RANGE_TEXT = "Range";
+	public static final String NEXT_TEXT = "Next";
 	public static String NOW = "now";
 	public static String YESTERDAY = "yesterday";
 	public static String LAUNCH = "launch";
@@ -164,10 +164,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	JLabel lblFromUTC;
 	JLabel lblToUTC;
 	
-	private static final String FROM_RESET = "        from Reset";
-	private static final String BEFORE_RESET = "        before Reset";
-	private static final String FROM_UTC = "        from UTC";
-	private static final String BEFORE_UTC = "        before UTC";
+	public static final String FROM_RESET = "  from Reset";
+	public static final String BEFORE_RESET = "  before Reset";
+	public static final String FROM_UTC = "  from UTC";
+	public static final String BEFORE_UTC = "  before UTC";
 	
 	private JTextField textFromUtc;
 	private JTextField textToUtc;
@@ -527,7 +527,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			lblFromUTC.setText(FROM_UTC);
 			lblFromReset.setText(FROM_RESET);
 			show = true;
-			btnLatest.setForeground(Color.DARK_GRAY);
+			btnLatest.setForeground(Color.BLACK);
 			lblFromReset.setVisible(show);
 			textFromReset.setVisible(show);
 			lblFromUptime.setVisible(show);
@@ -554,7 +554,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			btnLatest.setText(NEXT_TEXT);
 			lblFromUTC.setText(FROM_UTC);
 			lblFromReset.setText(FROM_RESET);
-			btnLatest.setForeground(Color.DARK_GRAY);
+			btnLatest.setForeground(Color.BLACK);
 			lblFromReset.setVisible(!show);
 			textFromReset.setVisible(!show);
 			lblFromUptime.setVisible(!show);
@@ -771,8 +771,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.END_UPTIME = Config.loadGraphLongValue(fox.getIdString(), plotType, payloadType, fieldName[0], "toUptime");
 		
 		this.START_UTC = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fromUtc");
+		if (START_UTC == null) START_UTC = DEFAULT_START_UTC;
 		this.END_UTC = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "toUtc");
-
+		if (END_UTC == null) END_UTC = DEFAULT_END_UTC;
+		
 		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "open");
 		hideMain = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideMain");
 		hideLines = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideLines");
@@ -903,17 +905,19 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			final Calendar cal = Calendar.getInstance();
 		    cal.add(Calendar.DATE, -1);
 		    Date currentDate = new Date(cal.getTimeInMillis());
-			FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
-			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
-			String time = dateFormat2.format(currentDate);
-			field.setText(time);
-			return foxTime;
+		    FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+		    dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+		    String time = dateFormat2.format(currentDate);
+		    field.setText(time);
+		    return foxTime;
 		} 
 		if (strDate.equalsIgnoreCase(LAUNCH)) {
 			Date date = fox.getUtcForReset(0, 0);
-			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
-			String time = dateFormat2.format(date);
-			field.setText(time);
+			if (date != null) {
+				dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+				String time = dateFormat2.format(date);
+				field.setText(time);
+			}
 			return new FoxTime(0,0);
 		} 
 		Date dateFrom = parseDate(strDate);
@@ -1031,17 +1035,21 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private void convertToUtc() {
 		parseTextFields();
 		Date date = fox.getUtcForReset(START_RESET, START_UPTIME);
-		dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String time = dateFormat2.format(date);
-		textFromUtc.setText(time);
-		START_UTC = time;
-		textFromUtc.setText(time);
+		if (date != null) {
+			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String time = dateFormat2.format(date);
+			textFromUtc.setText(time);
+			START_UTC = time;
+			textFromUtc.setText(time);
+		}
 		Date date2 = fox.getUtcForReset(END_RESET, END_UPTIME);
-		dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String time2 = dateFormat2.format(date2);
-		textToUtc.setText(time2);
-		END_UTC = time2;
-		textToUtc.setText(time2);
+		if (date2 != null) {
+			dateFormat2.setTimeZone(TimeZone.getTimeZone("UTC"));
+			String time2 = dateFormat2.format(date2);
+			textToUtc.setText(time2);
+			END_UTC = time2;
+			textToUtc.setText(time2);
+		}
 		if (showLatest == SHOW_RANGE) {
 			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, layout.name);
 			txtSamplePeriod.setText(Integer.toString(SAMPLES));

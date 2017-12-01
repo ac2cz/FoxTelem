@@ -577,7 +577,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
 				} else
-					if (e.isControlDown())
+					if (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)
 						displayGraph(i, GraphFrame.EARTH_PLOT);
 					else
 						displayGraph(i, GraphFrame.GRAPH_PLOT);

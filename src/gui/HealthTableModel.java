@@ -1,17 +1,23 @@
 package gui;
 
+import javax.swing.ListSelectionModel;
+import javax.swing.event.ListSelectionEvent;
+import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
+import common.Log;
 import telemetry.BitArrayLayout;
 
 public class HealthTableModel  extends AbstractTableModel {
 	String[] columnNames = null;
     private String[][] data = null;
+	public static final int RESET_COL = 0;
+	public static final int UPTIME_COL = 1;
 
     HealthTableModel(BitArrayLayout lay) {
 		columnNames = new String[lay.fieldName.length+2];
-		columnNames[0] = "RESET";
-		columnNames[1] = "UPTIME";
+		columnNames[RESET_COL] = "RESET";
+		columnNames[UPTIME_COL] = "UPTIME";
 		for (int k=0; k<columnNames.length-2; k++) 
 			columnNames[k+2] = lay.fieldName[k];
 	}
@@ -65,5 +71,6 @@ public class HealthTableModel  extends AbstractTableModel {
         data[row][col] = value;
         fireTableCellUpdated(row, col);
     }
+ 
     
 }

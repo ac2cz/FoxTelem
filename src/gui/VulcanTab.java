@@ -341,12 +341,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	protected void parseRadiationFrames() {
 		
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 			if (data != null && data.length > 0)
 				radTableModel.setData(parseRawBytes(data));
 		} else {
 			if (displayTelem) {
-				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
@@ -356,7 +356,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			
 			}
 			else {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data !=null && data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);

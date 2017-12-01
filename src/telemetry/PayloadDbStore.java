@@ -627,7 +627,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot) {
+	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -639,7 +639,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot) {
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -651,7 +651,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot) {
+	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse) {
 		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -673,7 +673,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	 * @return
 	 * @throws SQLException 
 	 */
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -851,21 +851,21 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public String[][] getRadTelemData(int period, int id, int fromReset,
-			long fromUptime) {
+			long fromUptime, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public double[][] getRadTelemGraphData(String name, int period,
-			FoxSpacecraft fox, int fromReset, long fromUptime, boolean plot) {
+			FoxSpacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public double[][] getMeasurementGraphData(String name, int period,
-			FoxSpacecraft fox, int fromReset, long fromUptime) {
+			FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -880,7 +880,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
-			long fromUptime, boolean plot) {
+			long fromUptime, boolean plot, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -900,7 +900,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -921,7 +921,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
-			long fromUptime) {
+			long fromUptime, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	} 
@@ -952,25 +952,25 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime,
-			String layout, boolean plot) {
+			String layout, boolean plot, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME) {
+	public String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME) {
+	public String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME) {
+	public String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -979,6 +979,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 
