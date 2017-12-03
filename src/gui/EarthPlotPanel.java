@@ -30,9 +30,12 @@ public class EarthPlotPanel extends GraphCanvas {
 	}
 	
 	private void setImage() {
-//		setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Equirectangular_projection_SW.jpg");
-		setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\WorldCoastLine_EquiRectangular.jpg");
-		
+		if (graphFrame.mapType == GraphFrame.COLOR_MAP_EQUIRECTANGULAR)
+			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Equirectangular_projection_SW.jpg");
+//		else if (graphFrame.mapType == GraphFrame.COLOR_MAP_MERCATOR)
+//			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Mercator_projection_SW.jpg");	
+		else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR)
+			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\WorldCoastLine_EquiRectangular.jpg");	
 	}
 	
 	private void drawLegend(int graphHeight, int graphWidth, double minValue, double maxValue, String units) {
@@ -123,8 +126,10 @@ public class EarthPlotPanel extends GraphCanvas {
 		int boxWidth = 2 * boxHeight;
 		graphWidth = 2 * graphHeight;;
 //		Log.println("DISPLAY RATIO:" + (double)graphHeight/(double)graphWidth);
-		setImage();
-		paintMap(gr, sideBorder, 0, graphHeight, graphWidth);
+		if (graphFrame.mapType > GraphFrame.NO_MAP_EQUIRECTANGULAR) {
+			setImage();
+			paintMap(gr, sideBorder, 0, graphHeight, graphWidth);
+		}
 
 		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; 
 		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; 

@@ -112,6 +112,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnLines;
 	private JButton btnPoints;
 	private JButton btnLatest;
+	private JButton btnMapType;
 	private JCheckBox cbUTC;
 	private JCheckBox cbUptime;
 	@SuppressWarnings("rawtypes")
@@ -205,8 +206,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public final static int EARTH_PLOT = 2;
 	public final static int SAVED_PLOT = 99;
 	public final static int MAX_PLOT_TYPES = 3;
-	
 	public int plotType = SAVED_PLOT;
+	
+
+	public final static int NO_MAP_EQUIRECTANGULAR = 0;
+//	public final static int NO_MAP_MERCATOR = 1;
+	public final static int LINE_MAP_EQUIRECTANGULAR = 1;
+	public final static int COLOR_MAP_EQUIRECTANGULAR = 2;
+//	public final static int COLOR_MAP_MERCATOR = 4;
+	public int mapType = LINE_MAP_EQUIRECTANGULAR;
+	
 	
 	boolean textDisplay = false;
 	
@@ -302,7 +311,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		titlePanelRight.add(btnPoints);
 		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnPoints.setVisible(false);
 
-		
+
+		btnMapType = createIconButton("/images/mapButton.jpg","Map Type","Toggle background map type and projection");
+		titlePanelRight.add(btnMapType);
+		if (plotType != EARTH_PLOT) btnMapType.setVisible(false);
+
 		btnHorizontalLines = createIconButton("/images/horizontalLines.png","Horizontal","Show Horizontal Lines");
 		titlePanelRight.add(btnHorizontalLines);
 		if (this.textDisplay || plotType == SKY_PLOT) btnHorizontalLines.setVisible(false);
@@ -743,6 +756,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType", plotType);
 		
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD", AVG_PERIOD);
+		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "mapType", mapType);
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous", showContinuous);
 		
 		String fields1 = "";
@@ -810,6 +824,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (AVG_PERIOD == 0) AVG_PERIOD = DEFAULT_AVG_PERIOD;
 		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
+		mapType = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "mapType");
 		
 		String fields1 = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName");
 		if (fields1 != null)
@@ -1387,7 +1402,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				btnPoints.setBackground(Color.GRAY);
 
 			panel.updateGraphData("GraphFrame.actionPerformed:points");
+		}  else if (e.getSource() == btnMapType) {
+			mapType = mapType + 1;
+			if (mapType > COLOR_MAP_EQUIRECTANGULAR)
+				mapType = NO_MAP_EQUIRECTANGULAR;
+			panel.updateGraphData("GraphFrame.actionPerformed:points");
 		} 
+		
 
 	}
 
