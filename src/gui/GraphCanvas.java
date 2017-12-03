@@ -23,7 +23,7 @@ import telemetry.RadiationPacket;
 import uk.me.g4dpz.satellite.SatPos;
 
 @SuppressWarnings("serial")
-public abstract class GraphCanvas extends JPanel {
+public abstract class GraphCanvas extends MapPanel {
 	FoxSpacecraft fox;
 	double[][][] graphData = null;
 	double[][][] graphData2 = null;

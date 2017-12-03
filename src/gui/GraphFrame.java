@@ -7,12 +7,15 @@ import java.awt.FileDialog;
 import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Insets;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentEvent;
+import java.awt.event.ComponentListener;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
@@ -81,7 +84,7 @@ import measure.SatMeasurementStore;
  *
  */
 @SuppressWarnings("serial")
-public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener, FocusListener {
+public class GraphFrame extends JFrame implements WindowListener, ActionListener, ItemListener, FocusListener, ComponentListener {
 
 	public String[] fieldName;
 	public String[] fieldName2;
@@ -223,8 +226,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		addWindowListener(this);
 		
+		addWindowListener(this);
+		addComponentListener(this);
 		
 		if (plot != SAVED_PLOT) // take the value, otherwise we use what was loaded from the save
 			plotType = plot;
@@ -362,8 +366,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		JPanel footerPanel3 = new JPanel();
 		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
 		footerPanelLeft.setLayout(new BorderLayout(0,0));
-		footerPanelLeft.add(footerPanel1, BorderLayout.WEST);
-		footerPanelLeft.add(footerPanel2, BorderLayout.CENTER);
+		footerPanelLeft.add(footerPanel1, BorderLayout.CENTER);
+		footerPanelLeft.add(footerPanel2, BorderLayout.WEST);
 		footerPanel2.setLayout(new BorderLayout(0,0));
 		footerPanel2.add(footerPanel2uptime, BorderLayout.EAST);
 		footerPanel2.add(footerPanel2utc, BorderLayout.WEST);
@@ -399,30 +403,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			txtAvgPeriod.setColumns(3);
 		}
 		
-		btnLatest = new JButton(LIVE_TEXT);
-		btnLatest.setForeground(Config.AMSAT_RED);
-		btnLatest.setMargin(new Insets(0,0,0,0));
-		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
-		btnLatest.addActionListener(this);
-		
-		footerPanel1.add(btnLatest);
-
-//		lblPlot = new JLabel("Plot");
-		txtSamplePeriod = new JTextField();
-//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
-		txtSamplePeriod.addActionListener(this);
-		txtSamplePeriod.addFocusListener(this);
-		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
-
-//		footerPanel1.add(lblPlot);
-		footerPanel1.add(txtSamplePeriod);
-		lblSamplePeriod = new JLabel("samples");
-		footerPanel1.add(lblSamplePeriod);
-		txtSamplePeriod.setText(Integer.toString(SAMPLES));
-		txtSamplePeriod.setColumns(6);
-		//lblActual = new JLabel("(180)");
-		//footerPanel.add(lblActual);
-
 		// Now footerPanel2 for Uptime
 		lblFromReset = new JLabel(FROM_RESET);
 		footerPanel2uptime.add(lblFromReset);
@@ -477,8 +457,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textToUptime.addActionListener(this);
 		textToUptime.addFocusListener(this);
-
-
 		
 		// Now footerPanel2 for Utc
 		lblFromUTC = new JLabel(FROM_UTC);
@@ -511,10 +489,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textToUtc.addActionListener(this);
 		textToUtc.addFocusListener(this);
+				
+		btnLatest = new JButton(LIVE_TEXT);
+		btnLatest.setForeground(Config.AMSAT_RED);
+		btnLatest.setMargin(new Insets(0,0,0,0));
+		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
+		btnLatest.addActionListener(this);
 		
+		footerPanel1.add(btnLatest);
+
+//		lblPlot = new JLabel("Plot");
+		txtSamplePeriod = new JTextField();
+//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
+		txtSamplePeriod.addActionListener(this);
+		txtSamplePeriod.addFocusListener(this);
+		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
+
+//		footerPanel1.add(lblPlot);
+		footerPanel1.add(txtSamplePeriod);
+		lblSamplePeriod = new JLabel("samples");
+		footerPanel1.add(lblSamplePeriod);
+		txtSamplePeriod.setText(Integer.toString(SAMPLES));
+		txtSamplePeriod.setColumns(6);
+		//lblActual = new JLabel("(180)");
+		//footerPanel.add(lblActual);
+
 		showRangeSearch(showLatest);
 		showUptimeQuery(!cbUTC.isSelected());
-		
+
 		if (!(plotType == SKY_PLOT || textDisplay || plotType == EARTH_PLOT)) {
 			chckbxPlotAllUptime = new JCheckBox("Continuous");
 			chckbxPlotAllUptime.setToolTipText("");
@@ -526,6 +528,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 		}
 	}
+	
 	
 	private void showRangeSearch(int showLive) {
 		boolean show = false;
@@ -762,10 +765,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		int windowY = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowY");
 		int windowWidth = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowWidth");
 		int windowHeight = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "windowHeight");
-		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0)
-			setBounds(100, 100, 740, 400);
-		else
-			setBounds(windowX, windowY, windowWidth, windowHeight);
+		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
+			if (plotType == GraphFrame.EARTH_PLOT)
+				setBounds(100, 100, 1000, 500);
+			else
+				setBounds(100, 100, 740, 400);
+		} else {
+			if (plotType == GraphFrame.EARTH_PLOT)
+				setBounds(windowX, windowY, windowWidth, (int)windowWidth/2);
+			else
+				setBounds(windowX, windowY, windowWidth, windowHeight);
+
+		}
 
 		this.SAMPLES = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "numberOfSamples");
 		if (SAMPLES == 0) SAMPLES = DEFAULT_SAMPLES;
@@ -1567,6 +1578,36 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		} else if (e.getSource() == this.txtAvgPeriod) {
 		//		parseAvgPeriod();
 		}
+		
+	}
+
+	
+	@Override
+	public void componentHidden(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void componentMoved(ComponentEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+	
+	@Override
+	public void componentResized(ComponentEvent arg0) {
+		if (plotType == EARTH_PLOT){
+			int W = 4;  
+			int H = 2;  
+			Rectangle b = arg0.getComponent().getBounds();
+			arg0.getComponent().setBounds(b.x, b.y, b.width, b.width*H/W);
+		}
+	    
+	}
+
+	@Override
+	public void componentShown(ComponentEvent arg0) {
+
 		
 	}
 

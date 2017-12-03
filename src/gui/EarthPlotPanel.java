@@ -3,10 +3,13 @@ package gui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 
 import common.Config;
 import common.FoxSpacecraft;
+import common.Log;
+import telemetry.CameraJpeg;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 
@@ -21,8 +24,17 @@ public class EarthPlotPanel extends GraphCanvas {
 	
 	EarthPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
+		sideBorder = sideBorder + 50;
+		sideLabelOffset = sideLabelOffset + 50;
 		updateGraphData("EarthPlotPanel.new");
 	}
+	
+	private void setImage() {
+//		setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Equirectangular_projection_SW.jpg");
+		setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\WorldCoastLine_EquiRectangular.jpg");
+		
+	}
+	
 	private void drawLegend(int graphHeight, int graphWidth, double minValue, double maxValue, String units) {
 		
 		int verticalOffset = 60;
@@ -94,6 +106,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		int graphHeight = getHeight() - topBorder - bottomBorder;
 		int graphWidth = getWidth() - sideBorder*2; // width of entire graph
 		
+		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
 		// Create the Data Grid and the Horizontal Axis and a new version of graphData that will hold the data for the axis themselves, so the
@@ -103,12 +116,15 @@ public class EarthPlotPanel extends GraphCanvas {
 		double maxHor = 180.0;
 		double minHor = -180.0;
 		
-		
-
 		int boxHeight = graphHeight / maxVertBoxes;
 		graphHeight = boxHeight * maxVertBoxes; // fix rounding issues
-		int boxWidth = graphWidth / maxHorBoxes;
-		graphWidth = boxWidth * maxHorBoxes;
+//		int boxWidth = graphWidth / maxHorBoxes;
+//		graphWidth = boxWidth * maxHorBoxes;
+		int boxWidth = 2 * boxHeight;
+		graphWidth = 2 * graphHeight;;
+//		Log.println("DISPLAY RATIO:" + (double)graphHeight/(double)graphWidth);
+		setImage();
+		paintMap(gr, sideBorder, 0, graphHeight, graphWidth);
 
 		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; 
 		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; 
@@ -215,7 +231,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		g2.setColor(Color.BLACK);
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
 //		String title = graphFrame.displayTitle + " (Mercator Projection)";
-		String title = graphFrame.displayTitle + " (Rectangular Projection)";
+		String title = graphFrame.displayTitle + " (Equirectangular Projection)";
 		
 		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight-Config.graphAxisFontSize/2);
 
