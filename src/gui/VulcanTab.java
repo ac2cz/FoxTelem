@@ -73,7 +73,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	private String NAME;
 	JLabel lblFramesDecoded;
 		
-	JCheckBox showRawValues;
+//	JCheckBox showRawValues;
 	JCheckBox showRawBytes;
 
 	RadiationTableModel radTableModel;
@@ -185,10 +185,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		healthPanel.setMinimumSize(minimumSize);
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
-				
+	
+		/*
 		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
 				bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
+		*/
 		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
 		bottomPanel.add(showRawBytes );
 		showRawBytes.addItemListener(this);
@@ -661,6 +663,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			parseRadiationFrames();
 			
 		}
+		
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -672,6 +675,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 			
 		}
+		
 	}
 
 	@Override

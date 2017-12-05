@@ -113,8 +113,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnPoints;
 	private JButton btnLatest;
 	private JButton btnMapType;
-	private JCheckBox cbUTC;
-	private JCheckBox cbUptime;
+	private JButton cbUTC;
+	private JButton cbUptime;
 	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
@@ -150,7 +150,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public static final int DEFAULT_UPTIME_THRESHOLD = 60*60*1;// plot continuous uptime unless more than 1 hour gap
 	public static final int CONTINUOUS_UPTIME_THRESHOLD = -1;
 	public double UPTIME_THRESHOLD =DEFAULT_UPTIME_THRESHOLD; 
-	private JCheckBox chckbxPlotAllUptime;
+	private JButton chckbxPlotAllUptime;
 	private JLabel lblFromUptime;
 	private JTextField textFromUptime;
 //	private JLabel lblPlot;
@@ -170,10 +170,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	JLabel lblFromUTC;
 	JLabel lblToUTC;
 	
-	public static final String FROM_RESET = "  from Reset";
-	public static final String BEFORE_RESET = "  before Reset";
-	public static final String FROM_UTC = "  from UTC";
-	public static final String BEFORE_UTC = "  before UTC";
+	public static final String FROM_RESET = "From Reset";
+	public static final String BEFORE_RESET = " before Reset";
+	public static final String FROM_UTC = "From UTC";
+	public static final String BEFORE_UTC = " before UTC";
 	
 	private JTextField textFromUtc;
 	private JTextField textToUtc;
@@ -297,6 +297,30 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		
 		// Toolbar buttons
+		cbUTC = new JButton("UTC");
+		cbUTC.setMargin(new Insets(0,0,0,0));
+		cbUTC.addActionListener(this);
+		cbUTC.setToolTipText("Toggle between UTC time and spacecraft reset/uptime");
+		titlePanelRight.add(cbUTC);
+		
+		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
+			cbUptime = new JButton("Uptime");
+			cbUptime.setMargin(new Insets(0,0,0,0));
+			cbUptime.setToolTipText("Toggle display of uptime on the horizontal axis");
+			//cbUptime.setSelected(!hideUptime);
+			cbUptime.addActionListener(this);
+			titlePanelRight.add(cbUptime);
+		}
+		if (!(plotType == SKY_PLOT || textDisplay || plotType == EARTH_PLOT)) {
+			chckbxPlotAllUptime = new JButton("Continuous");
+			chckbxPlotAllUptime.setMargin(new Insets(0,0,0,0));
+			titlePanelRight.add(chckbxPlotAllUptime);
+			//chckbxPlotAllUptime.setSelected(showContinuous);
+			chckbxPlotAllUptime.addActionListener(this);
+			chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
+			
+		}
+		
 		btnLines = new JButton("Lines");
 		btnLines.setMargin(new Insets(0,0,0,0));
 		btnLines.setToolTipText("Draw lines between data points");
@@ -372,33 +396,20 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel = new JPanel();
 		contentPane.add(footerPanel, BorderLayout.SOUTH);
 		footerPanel.setLayout(new BorderLayout(0,0));
-		JPanel footerPanelLeft = new JPanel();
+		JPanel footerPanelRight = new JPanel();
 		JPanel footerPanel1 = new JPanel();
 		JPanel footerPanel2 = new JPanel();
 
 		JPanel footerPanel3 = new JPanel();
-		footerPanel.add(footerPanelLeft, BorderLayout.EAST);
-		footerPanelLeft.setLayout(new BorderLayout(0,0));
-		footerPanelLeft.add(footerPanel1, BorderLayout.CENTER);
-		footerPanelLeft.add(footerPanel2, BorderLayout.WEST);
+		footerPanel.add(footerPanelRight, BorderLayout.EAST);
+		footerPanelRight.setLayout(new BorderLayout(0,0));
+		footerPanelRight.add(footerPanel1, BorderLayout.WEST);
+		footerPanelRight.add(footerPanel2, BorderLayout.CENTER);
 		footerPanel2.setLayout(new BorderLayout(0,0));
 		footerPanel2.add(footerPanel2uptime, BorderLayout.EAST);
 		footerPanel2.add(footerPanel2utc, BorderLayout.WEST);
-		footerPanelLeft.add(footerPanel3, BorderLayout.EAST);
+		footerPanelRight.add(footerPanel3, BorderLayout.EAST);
 
-		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
-			cbUptime = new JCheckBox("Show Uptime");
-			cbUptime.setSelected(!hideUptime);
-			cbUptime.addItemListener(this);
-			footerPanel1.add(cbUptime);
-		}
-//		if (!(plotType == SKY_PLOT)) {
-		
-			cbUTC = new JCheckBox("UTC Time   |");
-			cbUTC.setSelected(showUTCtime);
-			cbUTC.addItemListener(this);
-			footerPanel1.add(cbUTC);
-//		}
 		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 
 			lblAvg = new JLabel("Avg");
@@ -422,13 +433,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		textFromReset = new JTextField();
 		footerPanel2uptime.add(textFromReset);
-//		if (START_RESET == 0)
-//			textFromReset.setText("Last");
-//		else
-			textFromReset.setText(Integer.toString(START_RESET));
+		textFromReset.setText(Integer.toString(START_RESET));
 
 		textFromReset.setColumns(8);
-//		textFromReset.setPreferredSize(new Dimension(50,14));
 		textFromReset.addActionListener(this);
 		textFromReset.addFocusListener(this);
 		
@@ -437,12 +444,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		textFromUptime = new JTextField();
 		footerPanel2uptime.add(textFromUptime);
-//		if (START_UPTIME == 0)
-//			textFromUptime.setText("Last");
-//		else
-			textFromUptime.setText(Long.toString(START_UPTIME));
+		textFromUptime.setText(Long.toString(START_UPTIME));
 		textFromUptime.setColumns(8);
-//		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 
@@ -455,7 +458,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textToReset.setText(Integer.toString(END_RESET));
 
 		textToReset.setColumns(8);
-//		textFromReset.setPreferredSize(new Dimension(50,14));
 		textToReset.addActionListener(this);
 		textToReset.addFocusListener(this);
 		
@@ -467,7 +469,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		textToUptime.setText(Long.toString(END_UPTIME));
 		textToUptime.setColumns(8);
-//		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textToUptime.addActionListener(this);
 		textToUptime.addFocusListener(this);
 		
@@ -482,7 +483,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUtc.setText(START_UTC);
 		textFromUtc.setToolTipText(dateFormatsToolTip);
 		textFromUtc.setColumns(16);
-//		textFromReset.setPreferredSize(new Dimension(50,14));
 		textFromUtc.addActionListener(this);
 		textFromUtc.addFocusListener(this);
 		
@@ -493,13 +493,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		textToUtc = new JTextField();
 		footerPanel2utc.add(textToUtc);
-//		if (START_UPTIME == 0)
-//			textFromUptime.setText("Last");
-//		else
 		textToUtc.setText(END_UTC);
 		textToUtc.setColumns(16);
 		textToUtc.setToolTipText(dateFormatsToolTip);
-//		textFromUptime.setPreferredSize(new Dimension(50,14));
 		textToUtc.addActionListener(this);
 		textToUtc.addFocusListener(this);
 				
@@ -507,39 +503,23 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		btnLatest.setForeground(Config.AMSAT_RED);
 		btnLatest.setMargin(new Insets(0,0,0,0));
 		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
-		btnLatest.addActionListener(this);
-		
-		footerPanel1.add(btnLatest);
+		btnLatest.addActionListener(this);		
+		footerPanel3.add(btnLatest);
 
-//		lblPlot = new JLabel("Plot");
 		txtSamplePeriod = new JTextField();
-//		txtSamplePeriod.setPreferredSize(new Dimension(30,14));
 		txtSamplePeriod.addActionListener(this);
 		txtSamplePeriod.addFocusListener(this);
 		txtSamplePeriod.setToolTipText("The number of data samples to plot.  The latest samples are returned unless a from reset/uptime is specified");
 
-//		footerPanel1.add(lblPlot);
-		footerPanel1.add(txtSamplePeriod);
+		footerPanel3.add(txtSamplePeriod);
 		lblSamplePeriod = new JLabel("samples");
-		footerPanel1.add(lblSamplePeriod);
+		footerPanel3.add(lblSamplePeriod);
 		txtSamplePeriod.setText(Integer.toString(SAMPLES));
 		txtSamplePeriod.setColumns(6);
-		//lblActual = new JLabel("(180)");
-		//footerPanel.add(lblActual);
 
 		showRangeSearch(showLatest);
-		showUptimeQuery(!cbUTC.isSelected());
+		showUptimeQuery(!showUTCtime);
 
-		if (!(plotType == SKY_PLOT || textDisplay || plotType == EARTH_PLOT)) {
-			chckbxPlotAllUptime = new JCheckBox("Continuous");
-			chckbxPlotAllUptime.setToolTipText("");
-			footerPanel3.add(chckbxPlotAllUptime);
-			chckbxPlotAllUptime.setSelected(showContinuous);
-
-			chckbxPlotAllUptime.addItemListener(this);
-			chckbxPlotAllUptime.setToolTipText("Show all uptime values, even if there is no data to plot");
-			
-		}
 	}
 	
 	
@@ -1039,7 +1019,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 	private void parseFields() {
 		String text = null;
-		if (cbUTC.isSelected()) {
+		if (showUTCtime) {
 			convertToUptime();
 		} else {
 			convertToUtc();
@@ -1408,19 +1388,19 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				mapType = NO_MAP_EQUIRECTANGULAR;
 			panel.updateGraphData("GraphFrame.actionPerformed:points");
 		} 
-		
-
-	}
-
-	@Override
-	public void itemStateChanged(ItemEvent e) {
+		if (e.getSource() == cbUptime) {
+				hideUptime = !hideUptime;
+			if (textDisplay)
+				diagnosticTable.updateData();
+			else
+				panel.updateGraphData("GraphFrame:stateChange:Uptime");
+		}
 		if (e.getSource() == chckbxPlotAllUptime) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				showContinuous = false;
-				UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
-			} else {
-				showContinuous = true;
+			showContinuous = !showContinuous;
+			if (showContinuous) {
 				UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD;
+			} else {
+				UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;				
 			}
 			if (textDisplay)
 				diagnosticTable.updateData();
@@ -1429,34 +1409,31 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}
 		
 		if (e.getSource() == cbUTC) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				showUTCtime = false;
-				parseUTCFields();
-				txtSamplePeriod.setText(Integer.toString(SAMPLES));
-			} else {
-				showUTCtime = true;
+			showUTCtime = !showUTCtime;
+			if (showUTCtime) {
 				parseTextFields();
 				//textToUtc.setText();
 				txtSamplePeriod.setText(Integer.toString(SAMPLES));
+				
+			} else {
+				parseUTCFields();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			}
-			showUptimeQuery(!cbUTC.isSelected());
+			showUptimeQuery(!showUTCtime);
 
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
 				panel.updateGraphData("GraphFrame:stateChange:UTC");
 		}
-		if (e.getSource() == cbUptime) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				hideUptime = true;
-			} else {
-				hideUptime = false;
-			}
-			if (textDisplay)
-				diagnosticTable.updateData();
-			else
-				panel.updateGraphData("GraphFrame:stateChange:Uptime");
-		}
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		
+		
+		
+
 		
 	}
 

@@ -108,8 +108,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	JLabel lblCaptureDate;
 	JLabel lblCaptureDateValue;
 	
-	JCheckBox showRawValues;
-	JCheckBox showUTCtime;
+
 	FramePart realTime; // the RT payload we are currently displaying
 	FramePart maxPayload; // the max payload we are currently displaying
 	FramePart minPayload; // the min payload we are currently displaying
@@ -120,8 +119,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	private static final String RESETS = "  Resets: ";
 	protected static final String DECODED = "Telemetry Payloads Decoded: ";
 	protected static final String CAPTURE_DATE = "Captured: ";
-	
-	protected int fonth = 0;
 	
 	protected JPanel topPanel;
 	protected JPanel topPanel1;
@@ -140,7 +137,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		setLayout(new BorderLayout(0, 0));
 		
 		// force the next labels to the right side of screen
-		fonth = (int)(Config.displayModuleFontSize * 14/11);
 		
 		topPanel = new JPanel();
 		topPanel1 = new JPanel();
@@ -171,7 +167,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		lblLive = new JLabel(LIVE);
 		lblLive.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblLive.setForeground(Config.AMSAT_RED);
-		topPanel2.add(lblLive);
+//		topPanel2.add(lblLive);
 		
 		centerPanel = new JPanel();
 		add(centerPanel, BorderLayout.CENTER);
@@ -216,20 +212,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 		
-		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
-		showRawValues.setMinimumSize(new Dimension(100, fonth));
-		//showRawValues.setMaximumSize(new Dimension(100, 14));
-		bottomPanel.add(showRawValues );
-		showRawValues.addItemListener(this);
-
-		showUTCtime = new JCheckBox("Display UTC Time", Config.displayUTCtime);
-		bottomPanel.add(showUTCtime );
-		showUTCtime.addItemListener(this);
-
 		addBottomFilter();
 
 		// force the next labels to the right side of screen
-		bottomPanel.add(new Box.Filler(new Dimension(14,fonth), new Dimension(400,fonth), new Dimension(1600,fonth)));
+		
 		
 		lblCaptureDate = new JLabel(CAPTURE_DATE);
 		lblCaptureDate.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 10/11)));
@@ -395,7 +381,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			try {
 				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				result = FoxFramePart.fileDateFormat.parse(u);
-				if (showUTCtime.isSelected())
+				if (this.showUTCtime)
 					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				else 
 					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
@@ -527,21 +513,34 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			if (minPayload != null)
 				updateTabMin(minPayload);
 		}
-		if (source == showUTCtime) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayUTCtime = false;
+		if (source == cbUTC) {
+
+			showUTCtime = !showUTCtime;
+			if (showUTCtime) {
+				parseTextFields();
+				//textToUtc.setText();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
+				
 			} else {
-				Config.displayUTCtime = true;
+				parseUTCFields();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			}
-//			Config.save();
+			showUptimeQuery(!showUTCtime);
+			parseFrames();
+			/*
 			if (realTime != null)
 				updateTabRT(realTime, false);
 			if (maxPayload != null)
 				updateTabMax(maxPayload);
 			if (minPayload != null)
 				updateTabMin(minPayload);
+				*/
 		}
+		
+		
 	}
+	
+	
 	
 	protected abstract void displayRow(int row);
 	

@@ -84,6 +84,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public boolean useIHUVBatt = false;
 
 	ArrayList<Long> timeZero = null;
+	SpacecraftPositionCache positionCache;
 	
 	public FoxSpacecraft(File fileName ) throws LayoutLoadException, IOException {
 		super(fileName);
@@ -99,6 +100,7 @@ public class FoxSpacecraft extends Spacecraft{
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
 		loadTleHistory(); // DOnt call this until the Name and FoxId are set
+		positionCache = new SpacecraftPositionCache(foxId);
 	}
 
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -203,11 +205,17 @@ public class FoxSpacecraft extends Spacecraft{
 		// We need to construct a date for the historical time of this WOD record
 		DateTime timeNow = getUtcDateTimeForReset(reset, uptime);
 		if (timeNow == null) return null;
+		SatPos satellitePosition = positionCache.getPosition(timeNow.getMillis());
+		if (satellitePosition != null) {
+			return satellitePosition;
+		}
 		final TLE tle = getTLEbyDate(timeNow);
 //		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
 		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
-        final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
+        satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
+//        Log.println("Cache value");
+        positionCache.storePosition(timeNow.getMillis(), satellitePosition);
 		return satellitePosition;
 	}
 	

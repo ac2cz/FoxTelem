@@ -61,26 +61,6 @@ public abstract class RadiationTab extends ModuleTab  {
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 	}
 	
-	/*
-	protected void addBottomFilter() {
-		JLabel displayNumber1 = new JLabel("Displaying last");
-		displayNumber2 = new JTextField();
-		JLabel displayNumber3 = new JLabel("payloads decoded");
-		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber2.setMinimumSize(new Dimension(50, 14));
-		displayNumber2.setMaximumSize(new Dimension(50, 14));
-		displayNumber2.setText(Integer.toString(SAMPLES));
-		displayNumber2.addActionListener(this);
-		bottomPanel.add(displayNumber1);
-		bottomPanel.add(displayNumber2);
-		bottomPanel.add(displayNumber3);
-		
-	}
-	*/
-	
 	
 	protected abstract void parseRadiationFrames();
 	
@@ -97,14 +77,6 @@ public abstract class RadiationTab extends ModuleTab  {
 
 				}
 		return rawData;
-		//table.repaint();
-		//scrollPane.repaint();
-		
-
 	}
-	
-	
-
-	
 
 }
