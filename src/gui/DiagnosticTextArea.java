@@ -56,7 +56,10 @@ public class DiagnosticTextArea extends JTextArea {
 	}
 
 	public void updateDiagnosticData() {
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		this.setText(null);
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
@@ -74,7 +77,10 @@ public class DiagnosticTextArea extends JTextArea {
 	}
 
 	public void updateHardErrorData() {
-		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		this.setText(null);
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
@@ -93,7 +99,10 @@ public class DiagnosticTextArea extends JTextArea {
 	}
 
 	public void updateSoftErrorData() {
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false);
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		this.setText(null);
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {

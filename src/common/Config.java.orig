@@ -62,12 +62,12 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 <<<<<<< HEAD
-	public static String VERSION_NUM = "1.06b";
-	public static String VERSION = VERSION_NUM + " - 3 Nov 2017";
+	public static String VERSION_NUM = "1.06c";
+	public static String VERSION = VERSION_NUM + " - 13 Nov 2017";
 =======
-	public static String VERSION_NUM = "1.05y";
-	public static String VERSION = VERSION_NUM + " - 5 Nov 2017";
->>>>>>> master
+	public static String VERSION_NUM = "1.05z";
+	public static String VERSION = VERSION_NUM + " - 27 Nov 2017";
+>>>>>>> earthPlot
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";

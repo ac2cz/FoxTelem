@@ -2,13 +2,12 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ItemEvent;
-
 import javax.swing.Box;
 import javax.swing.JLabel;
 import javax.swing.border.EmptyBorder;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.FoxFramePart;
@@ -16,10 +15,14 @@ import telemetry.PayloadWOD;
 
 public class WodHealthTab extends HealthTab {
 
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
 	JLabel lblSatLatitudeValue;
 	JLabel lblSatLongitudeValue;
 	
-	public WodHealthTab(Spacecraft spacecraft) {
+	public WodHealthTab(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_WOD);
 		
 		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
@@ -50,9 +53,20 @@ public class WodHealthTab extends HealthTab {
 		lblSatLongitudeValue.setText(" " + wod.getSatLongitudeStr());
 	}
 
+	protected void displayRow(int row) {
+		int reset = Integer.parseInt((String) table.getValueAt(row, HealthTableModel.RESET_COL));
+    	long uptime = Long.parseLong((String) table.getValueAt(row, HealthTableModel.UPTIME_COL));
+    	Log.println("RESET: " + reset);
+    	Log.println("UPTIME: " + uptime);
+    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT);
+    	if (realTime != null)
+    		updateTabRT(realTime, false);
+    	table.setRowSelectionInterval(row, row);
+	}
+	
 	@Override
 	public void parseFrames() {
-		String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+		String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 		if (data.length > 0) {
 			parseTelemetry(data);
 			MainWindow.frame.repaint();
@@ -80,8 +94,10 @@ public class WodHealthTab extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_LAYOUT)) {
 					realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
 					if (realTime != null) {
-						updateTabRT(realTime);
-						displayLatLong();
+						if (showLatest == GraphFrame.SHOW_LIVE) {
+							updateTabRT(realTime, true);
+							displayLatLong();
+						}
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT));
 						//System.out.println("UPDATED RT Data: ");
 					} else {

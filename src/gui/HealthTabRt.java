@@ -1,30 +1,25 @@
 package gui;
 
-import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ItemEvent;
-
 import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.SoftBevelBorder;
-
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
-import telemetry.LayoutLoadException;
 
 public class HealthTabRt extends HealthTab {
 
-	public HealthTabRt(Spacecraft spacecraft) {
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+
+
+	public HealthTabRt(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_ALL);
 		
 		lblMode = new JLabel(MODE);
@@ -49,7 +44,7 @@ public class HealthTabRt extends HealthTab {
 		lblFramesDecodedValue.setForeground(textColor);
 		topPanel1.add(lblFramesDecodedValue);
 		
-		lblResetsValue = addReset(topPanel2, "Last Realtime:");
+		lblResetsValue = addReset(topPanel2, "Realtime:");
 		lblUptimeValue = addUptime(topPanel2, "");
 
 		lblMaxResetsValue = addReset(topPanel2, "Max:");
@@ -65,8 +60,26 @@ public class HealthTabRt extends HealthTab {
 	}
 	
 	@Override
+	protected void displayRow(int row) {
+		int reset = Integer.parseInt((String) table.getValueAt(row, HealthTableModel.RESET_COL));
+    	long uptime = Long.parseLong((String) table.getValueAt(row, HealthTableModel.UPTIME_COL));
+    	//Log.println("RESET: " + reset);
+    	//Log.println("UPTIME: " + uptime);
+    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.REAL_TIME_LAYOUT);
+    	if (realTime != null)
+    		updateTabRT(realTime, false);
+    	maxPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MAX_LAYOUT);
+    	if (maxPayload != null)
+    		updateTabMax(maxPayload);
+    	minPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MIN_LAYOUT);
+    	if (minPayload != null)
+    		updateTabMin(minPayload);
+    	table.setRowSelectionInterval(row, row);
+	}
+	
+	@Override
 	public void parseFrames() {
-		String[][] data = Config.payloadStore.getRtData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+		String[][] data = Config.payloadStore.getRtData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 		if (data.length > 0) {
 			parseTelemetry(data);
 			MainWindow.frame.repaint();
@@ -94,7 +107,8 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null) {
-						updateTabMax(maxPayload);
+						if (showLatest == GraphFrame.SHOW_LIVE)
+							updateTabMax(maxPayload);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
@@ -102,7 +116,8 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
 					if (minPayload != null) {
-						updateTabMin(minPayload);
+						if (showLatest == GraphFrame.SHOW_LIVE)
+							updateTabMin(minPayload);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
@@ -113,7 +128,8 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT)) {
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
-						updateTabRT(realTime);
+						if (showLatest == GraphFrame.SHOW_LIVE)
+							updateTabRT(realTime, true);
 						//displayMode(0);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 						//System.out.println("UPDATED RT Data: ");

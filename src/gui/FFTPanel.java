@@ -106,7 +106,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		addMouseListener(this);
 		String TUNE_LEFT = "left";
 		String TUNE_RIGHT = "right";
-		InputMap inMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap inMap = this.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		inMap.put(KeyStroke.getKeyStroke("LEFT"), TUNE_LEFT);
 		inMap.put(KeyStroke.getKeyStroke("RIGHT"), TUNE_RIGHT);
 		ActionMap actMap = this.getActionMap();

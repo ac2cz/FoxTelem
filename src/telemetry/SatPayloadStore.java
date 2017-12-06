@@ -256,6 +256,12 @@ public class SatPayloadStore {
 		
 	}
 		
+	public FramePart getLatest(int id, int reset, long uptime, String layout) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getFrame(id, uptime, reset); 
+		return null;
+	}
 
 	public FramePart getLatest(String layout) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
@@ -313,24 +319,24 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout, boolean positionData) throws IOException {
+	public double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, String layout, boolean positionData, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getGraphData(name, period, id, fromReset, fromUptime, positionData);
+			return records[i].getGraphData(name, period, id, fromReset, fromUptime, positionData, reverse);
 		return null;
 	}
 
-	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.REAL_TIME_LAYOUT, positionData);
+	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.REAL_TIME_LAYOUT, positionData, reverse);
 	}
 	
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, fox2, fromReset, fromUptime, Spacecraft.MAX_LAYOUT, positionData);
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, fox2, fromReset, fromUptime, Spacecraft.MAX_LAYOUT, positionData, reverse);
 		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.MIN_LAYOUT, positionData);
+	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.MIN_LAYOUT, positionData, reverse);
 		
 	}
 
@@ -344,8 +350,8 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData);
+	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData, reverse);
 		
 	}
 
@@ -358,10 +364,10 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getRtData(int period, int id, int fromReset, long fromUptime) throws IOException {
+	public String[][] getRtData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.REAL_TIME_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH);  
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH, reverse);  
 		return null;
 	}
 
@@ -374,17 +380,17 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getWODData(int period, int id, int fromReset, long fromUptime) throws IOException {
+	public String[][] getWODData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.WOD_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH);  
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH, reverse);  
 		return null;
 	}
 
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) throws IOException {
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH);
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH, reverse);
 		return null;
 	}
 	
@@ -397,10 +403,10 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD2_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_HERCI_HK_DATA_LENGTH+2); 
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_HERCI_HK_DATA_LENGTH+2, reverse); 
 		return null;
 	}
 
@@ -413,10 +419,10 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime) throws IOException {
+	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.WOD_RAD2_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_RAD_TELEM_BYTES); 
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_RAD_TELEM_BYTES, reverse); 
 		return null;
 	}
 	
@@ -430,8 +436,8 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData) throws IOException {
-		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData);
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData, reverse);
 		
 	}
 
@@ -444,10 +450,10 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) throws IOException {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.HERCI_HS_PKT_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH); // FIXME - LENGTH NOT CORECT
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH, reverse); // FIXME - LENGTH NOT CORECT
 		return null;
 	}
 
@@ -547,5 +553,16 @@ public class SatPayloadStore {
 		}
 	}
 
+	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		int i = fox.getLayoutIdxByName(payloadType);
+		if (i != Spacecraft.ERROR_IDX)
+			try {
+				return records[i].getNumberOfPayloadsBetweenTimestamps(reset, uptime, toReset, toUptime);
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+				return 0;
+			} 
+		return 0;
+	}
 }
 

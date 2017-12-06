@@ -10,9 +10,13 @@ import telemetry.BitArrayLayout;
 
 public class HealthTableModel  extends AbstractTableModel {
 	String[] columnNames = null;
+<<<<<<< HEAD
     private long[][] data = null;
+=======
+    private String[][] data = null;
 	public static final int RESET_COL = 0;
 	public static final int UPTIME_COL = 1;
+>>>>>>> earthPlot
 
     HealthTableModel(BitArrayLayout lay) {
 		columnNames = new String[lay.fieldName.length+2];
@@ -72,6 +76,10 @@ public class HealthTableModel  extends AbstractTableModel {
         data[row][col] = value;
         fireTableCellUpdated(row, col);
     }
- 
+<<<<<<< HEAD
     */
+=======
+ 
+    
+>>>>>>> earthPlot
 }

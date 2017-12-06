@@ -111,11 +111,16 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton btnAvg;
 	private JButton btnLines;
 	private JButton btnPoints;
+<<<<<<< HEAD
+	private JCheckBox cbUTC;
+	private JCheckBox cbUptime;
+	private JCheckBox cbRoundLabels;
+=======
 	private JButton btnLatest;
 	private JButton btnMapType;
 	private JButton cbUTC;
 	private JButton cbUptime;
-	private JCheckBox cbRoundLabels;
+>>>>>>> earthPlot
 	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
@@ -402,7 +407,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		JPanel footerPanel1 = new JPanel();
 		JPanel footerPanel2 = new JPanel();
 
-		
+<<<<<<< HEAD
+		if (!(plotType == SKY_PLOT)) {
+			cbRoundLabels = new JCheckBox("Round Labels");
+			cbRoundLabels.setSelected(roundLabels);
+			cbRoundLabels.addItemListener(this);
+			footerPanelLeft.add(cbRoundLabels);
+			
+			cbUptime = new JCheckBox("Show Uptime");
+			cbUptime.setSelected(!hideUptime);
+			cbUptime.addItemListener(this);
+			footerPanelLeft.add(cbUptime);
+=======
 		JPanel footerPanel3 = new JPanel();
 		footerPanel.add(footerPanelRight, BorderLayout.EAST);
 		footerPanelRight.setLayout(new BorderLayout(0,0));
@@ -412,13 +428,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel2.add(footerPanel2uptime, BorderLayout.EAST);
 		footerPanel2.add(footerPanel2utc, BorderLayout.WEST);
 		footerPanelRight.add(footerPanel3, BorderLayout.EAST);
+>>>>>>> earthPlot
 
-		if (!(plotType == SKY_PLOT)) {
-			cbRoundLabels = new JCheckBox("Round Labels");
-			cbRoundLabels.setSelected(roundLabels);
-			cbRoundLabels.addItemListener(this);
-			footerPanel1.add(cbRoundLabels);
-		}
 		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 
 			lblAvg = new JLabel("Avg");
@@ -1437,12 +1448,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			else
 				panel.updateGraphData("GraphFrame:stateChange:UTC");
 		}
+<<<<<<< HEAD
 		
-		
-	}
-
-	@Override
-	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() == cbRoundLabels) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				roundLabels = false;
@@ -1464,7 +1471,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				diagnosticTable.updateData();
 			else
 				panel.updateGraphData("GraphFrame:stateChange:Uptime");
-		}		
+		}
+=======
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		
+		
+		
+
+>>>>>>> earthPlot
+		
 	}
 
 	private void saveToCSV(File aFile) throws IOException {

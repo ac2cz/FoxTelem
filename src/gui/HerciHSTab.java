@@ -251,7 +251,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 
 	private String[][] parseMiniPackets() {
-		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0);
+		String[][] rawData = Config.payloadStore.getHerciPacketData(this.SAMPLES, this.foxId, 0, 0, reverse);
 		String[][] data = new String[rawData.length][11];
 		
 		//for (int k =0; k < rawData.length; k++) {

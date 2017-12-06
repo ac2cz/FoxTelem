@@ -78,9 +78,13 @@ public abstract class RadiationTab extends ModuleTab  {
 				} catch (NumberFormatException e) {
 
 				}
+<<<<<<< HEAD
 		radTableModel.setData(keyRawData, rawData);
 		
 
+=======
+		return rawData;
+>>>>>>> earthPlot
 	}
 
 }

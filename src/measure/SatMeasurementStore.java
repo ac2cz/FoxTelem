@@ -171,20 +171,20 @@ public class SatMeasurementStore {
 		return (PassMeasurement) passRecords.get(passRecords.size()-1);
 	}
 
-	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
-		return getGraphData(rtRecords, name, period, fox, fromReset, fromUptime);
+	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
+		return getGraphData(rtRecords, name, period, fox, fromReset, fromUptime, reverse);
 	}
 	
-	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
-		return getGraphData(passRecords, name, period, fox, fromReset, fromUptime);
+	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
+		return getGraphData(passRecords, name, period, fox, fromReset, fromUptime, reverse);
 	}
 	
-	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 
 		int start = 0;
 		int end = 0;
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take rtRecords nearest the end
+		if (reverse) { // then we take rtRecords nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {

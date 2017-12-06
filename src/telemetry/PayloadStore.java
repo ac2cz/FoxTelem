@@ -511,6 +511,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+
+	@Override
+	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(id, reset, uptime, layout);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
 	
 	public FramePart getLatest(int id,  String lay) {
 		SatPayloadStore store = getPayloadStoreById(id);
@@ -664,11 +680,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
-	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout, boolean positionData) {
+	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
-				return store.getGraphData(name, period, fox, fromReset, fromUptime, layout, positionData);
+				return store.getGraphData(name, period, fox, fromReset, fromUptime, layout, positionData, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -676,11 +692,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData) {
+	public double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
-				return store.getRtGraphData(name, period, fox, fromReset, fromUptime, positionData);
+				return store.getRtGraphData(name, period, fox, fromReset, fromUptime, positionData, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -688,11 +704,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData) {
+	public double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
-				return store.getMaxGraphData(name, period, fox, fromReset, fromUptime, positionData);
+				return store.getMaxGraphData(name, period, fox, fromReset, fromUptime, positionData, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -700,11 +716,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;		
 	}
 
-	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData) {
+	public double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
-				return store.getMinGraphData(name, period, fox, fromReset, fromUptime, positionData);
+				return store.getMinGraphData(name, period, fox, fromReset, fromUptime, positionData, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -721,11 +737,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getRtData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRtData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getRtData(period, id, fromReset, fromUptime);
+				return store.getRtData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -742,11 +758,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getWODData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getWODData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getWODData(period, id, fromReset, fromUptime);
+				return store.getWODData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -763,11 +779,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public String[][] getRadData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getRadData(period, id, fromReset, fromUptime);
+				return store.getRadData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -776,11 +792,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 	
 	@Override
-	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getWodRadTelemData(period, id, fromReset, fromUptime);
+				return store.getWodRadTelemData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -788,54 +804,54 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	} 
 	
-	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getRadTelemData(period, id, fromReset, fromUptime);
+				return store.getRadTelemData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getHerciPacketData(period, id, fromReset, fromUptime);
+				return store.getHerciPacketData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData) {
+	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
-				return store.getRadTelemGraphData(name, period, fox, fromReset, fromUptime, positionData);
+				return store.getRadTelemGraphData(name, period, fox, fromReset, fromUptime, positionData, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData) {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
-				return store.getHerciScienceHeaderGraphData(name, period, fox, fromReset, fromUptime, positionData);
+				return store.getHerciScienceHeaderGraphData(name, period, fox, fromReset, fromUptime, positionData, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
 			}
 		return null;
 	}
-	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
-			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime);
+			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime, reverse);
 		return null;
 	}
 	
@@ -936,12 +952,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
-			long fromUptime) {
+			long fromUptime, boolean reverse) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
-			return store.getPassMeasurementGraphData(name, period, fox, fromReset, fromUptime);
+			return store.getPassMeasurementGraphData(name, period, fox, fromReset, fromUptime, reverse);
 		return null;
 	}
+
+	@Override
+	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
+		return 0;
+	}
+
+
 
 	
 

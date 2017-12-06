@@ -23,6 +23,7 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
@@ -30,7 +31,6 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.PayloadWOD;
-import telemetry.PayloadWODRad;
 import telemetry.RadiationPacket;
 
 /**
@@ -72,7 +72,7 @@ import telemetry.RadiationPacket;
 public class DisplayModule extends JPanel implements ActionListener, MouseListener {
 
 	int size = 0;
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId;
 	double scale; // amount to scale the modules by given the Font size
 	String[] fieldName = null;  // string used to lookup new values
@@ -160,7 +160,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	 * @param title
 	 * @param size
 	 */
-	public DisplayModule(Spacecraft fox2, String title, int size, int modType) {
+	public DisplayModule(FoxSpacecraft fox2, String title, int size, int modType) {
 		fox = fox2;
 		foxId = fox.foxId;
 		this.size = size;
@@ -447,9 +447,6 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				minValue[i] = new JButton();
 				((JButton)minValue[i]).addActionListener(this);
 				((JButton)minValue[i]).setBackground(wodFontColor);
-//				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
-//				minValue[i] = createIconButton("/images/skyPlot.png","Sky","Plot sky chart");
-//				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 				row[i].add(minValue[i]);
 			}
 		}
@@ -562,7 +559,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				
 				graph[plotType][i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 			}
-			graph[plotType][i].updateGraphData("DisplayModule.displayGraph");
+//			graph[plotType][i].updateGraphData("DisplayModule.displayGraph");  // This is also called from new, probably don't need to call it here?
 			graph[plotType][i].setVisible(true);
 		} catch (Exception ex) {
 			Log.println("MOUSE CLICKED EXCEPTION");
@@ -574,12 +571,17 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
 				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
 				} else
-					displayGraph(i, GraphFrame.GRAPH_PLOT);
+					if (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)
+						displayGraph(i, GraphFrame.EARTH_PLOT);
+					else
+						displayGraph(i, GraphFrame.GRAPH_PLOT);
+
 			}
 		}
 	}

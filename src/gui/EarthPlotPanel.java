@@ -3,10 +3,13 @@ package gui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
+import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 
 import common.Config;
 import common.FoxSpacecraft;
+import common.Log;
+import telemetry.CameraJpeg;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 
@@ -15,11 +18,26 @@ public class EarthPlotPanel extends GraphCanvas {
 
 	public static final double MAX_LATITUDE = 81;
 	public static final double MIN_LATITUDE = 85;
+	public static final int RECTANGULAR_PROJECTION = 0;
+	public static final int MERCATOR_PROJECTION = 1;
+	public int mapProjection = RECTANGULAR_PROJECTION;
 	
 	EarthPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
+		sideBorder = sideBorder + 50;
+		sideLabelOffset = sideLabelOffset + 50;
 		updateGraphData("EarthPlotPanel.new");
 	}
+	
+	private void setImage() {
+		if (graphFrame.mapType == GraphFrame.COLOR_MAP_EQUIRECTANGULAR)
+			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Equirectangular_projection_SW.jpg");
+//		else if (graphFrame.mapType == GraphFrame.COLOR_MAP_MERCATOR)
+//			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Mercator_projection_SW.jpg");	
+		else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR)
+			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\WorldCoastLine_EquiRectangular.jpg");	
+	}
+	
 	private void drawLegend(int graphHeight, int graphWidth, double minValue, double maxValue, String units) {
 		
 		int verticalOffset = 60;
@@ -73,7 +91,7 @@ public class EarthPlotPanel extends GraphCanvas {
      * lat is stored in degrees from -90 to +90
      * lon is stored in degrees from -180 to +180
      * We store averaged values in a grid where lat is mapped to 0-180 and lon is map to 0-360
-     * The values are then plotted on a mercator projection of the earth
+     * The values are then plotted on a projection of the earth
      * The map is defined by graphHeight and graphWidth.  
      * x is plotted left to right from 0 to graphWidth.  0 is the sideBorder
      * y is plotted vertically with 0 at the top and graphHeight at the bottom.  0 is the topBorder
@@ -83,10 +101,14 @@ public class EarthPlotPanel extends GraphCanvas {
 	public void paintComponent(Graphics gr) {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		
+		topBorder = 0;
+		bottomBorder = 0;
+		
 		if (!checkDataExists()) return;
 		boolean noLatLonReadings = true;	
 		int graphHeight = getHeight() - topBorder - bottomBorder;
 		int graphWidth = getWidth() - sideBorder*2; // width of entire graph
+		
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
@@ -97,12 +119,17 @@ public class EarthPlotPanel extends GraphCanvas {
 		double maxHor = 180.0;
 		double minHor = -180.0;
 		
-		
-
 		int boxHeight = graphHeight / maxVertBoxes;
 		graphHeight = boxHeight * maxVertBoxes; // fix rounding issues
-		int boxWidth = graphWidth / maxHorBoxes;
-		graphWidth = boxWidth * maxHorBoxes;
+//		int boxWidth = graphWidth / maxHorBoxes;
+//		graphWidth = boxWidth * maxHorBoxes;
+		int boxWidth = 2 * boxHeight;
+		graphWidth = 2 * graphHeight;;
+//		Log.println("DISPLAY RATIO:" + (double)graphHeight/(double)graphWidth);
+		if (graphFrame.mapType > GraphFrame.NO_MAP_EQUIRECTANGULAR) {
+			setImage();
+			paintMap(gr, sideBorder, 0, graphHeight, graphWidth);
+		}
 
 		double[][] dataGrid = new double[maxVertBoxes][maxHorBoxes]; 
 		int[][] dataGridCount = new int[maxVertBoxes][maxHorBoxes]; 
@@ -172,6 +199,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		drawLegend(graphHeight, graphWidth, minValue, maxValue, graphFrame.fieldUnits);
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+		
 		// Draw vertical axis - always in the same place
 		g2.setColor(graphAxisColor);
 		g2.drawLine(sideBorder, getHeight()-bottomBorder, sideBorder, topBorder);
@@ -187,11 +215,12 @@ public class EarthPlotPanel extends GraphCanvas {
 			
 			//int pos = getRatioPosition(minVert, maxVert, labels[v], graphHeight);
 			int pos = latToY(labels[v], graphWidth, graphHeight);
+			pos = graphHeight-pos+topBorder;
 			if (labels[v] == 0) zeroPoint = pos+topBorder;
 		//	pos = graphHeight-pos;
 			String s = f2.format(labels[v]);
 
-			g2.drawString(s, sideLabelOffset, pos+topBorder+(int)(Config.graphAxisFontSize/2)); 
+			g2.drawString(s, sideLabelOffset, pos+(int)(Config.graphAxisFontSize/2)); 
 		}
 		g2.setColor(graphAxisColor);
 		
@@ -206,7 +235,9 @@ public class EarthPlotPanel extends GraphCanvas {
 		// Draw the title
 		g2.setColor(Color.BLACK);
 		g.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize+3));
-		String title = graphFrame.displayTitle + " (Mercator Projection)";
+//		String title = graphFrame.displayTitle + " (Mercator Projection)";
+		String title = graphFrame.displayTitle + " (Equirectangular Projection)";
+		
 		g2.drawString(title, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight-Config.graphAxisFontSize/2);
 
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
@@ -282,6 +313,23 @@ public class EarthPlotPanel extends GraphCanvas {
 		
 	}
 	
+	int lonToX(double lon, int mapWidth) {
+		return mercatorLonToX(lon,mapWidth);
+	}
+
+	int latToY(double lat, int mapWidth, int mapHeight) {
+		if (mapProjection == RECTANGULAR_PROJECTION)
+			return rectangularLatToY(lat, mapWidth, mapHeight);
+		else
+			return mercatorLatToY(lat,mapWidth, mapHeight);
+	}
+
+	int rectangularLatToY(double lat, int mapWidth, int mapHeight) {
+		int y = (int)(lat*mapHeight/180);
+		return mapHeight/2+y;
+	}
+
+	
 	   /**
      * Convert the longitude to the x coordinate of the Mercator projection
      * 0 is in the center 180 is the mapWidth. -180 is at the left edge of the map
@@ -290,7 +338,7 @@ public class EarthPlotPanel extends GraphCanvas {
      * @param mapWidth
      * @return
      */
-    int lonToX(double lon, int mapWidth) {
+    int mercatorLonToX(double lon, int mapWidth) {
 		int x = 0;
 	
 		x = (int) (lon*mapWidth/360);
@@ -306,7 +354,7 @@ public class EarthPlotPanel extends GraphCanvas {
      * @param mapHeight
      * @return
      */
-    int latToY(double lat, int mapWidth, int mapHeight) {
+    int mercatorLatToY(double lat, int mapWidth, int mapHeight) {
     	// squash vertically to meet the map projection
 /*
     	if (lat > 0)

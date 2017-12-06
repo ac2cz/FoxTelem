@@ -17,12 +17,12 @@ public class WodVulcanTab extends VulcanTab {
 	protected void parseRadiationFrames() {
 		
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 			if (data != null && data.length > 0)
 				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
-				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
@@ -32,7 +32,7 @@ public class WodVulcanTab extends VulcanTab {
 			
 			}
 			else {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);

@@ -6,18 +6,25 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
+import javax.swing.ListSelectionModel;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import telemetry.BitArrayLayout;
@@ -38,6 +45,8 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
+import decoder.SourceIQ;
+
 import java.awt.Color;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -66,12 +75,14 @@ import java.util.TimeZone;
  *
  */
 @SuppressWarnings("serial")
-public abstract class HealthTab extends ModuleTab implements ItemListener, ActionListener, Runnable {
+public abstract class HealthTab extends ModuleTab implements MouseListener, ItemListener, ActionListener, Runnable {
 	
 	public final int DEFAULT_DIVIDER_LOCATION = 500;
 	public static final String HEALTHTAB = "HEALTHTAB";
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+	private static final String LIVE = "Live ";
+	private static final String DISPLAY = "Selected ";
 	
 	JPanel centerPanel;
 	
@@ -79,6 +90,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	JLabel lblIdValue;
 	JLabel lblMode;
 	JLabel lblModeValue;
+	JLabel lblLive;
 	JLabel lblResets;
 	JLabel lblResetsValue;
 	JLabel lblMaxResets;
@@ -96,8 +108,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	JLabel lblCaptureDate;
 	JLabel lblCaptureDateValue;
 	
-	JCheckBox showRawValues;
-	JCheckBox showUTCtime;
+
 	FramePart realTime; // the RT payload we are currently displaying
 	FramePart maxPayload; // the max payload we are currently displaying
 	FramePart minPayload; // the min payload we are currently displaying
@@ -109,8 +120,6 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	protected static final String DECODED = "Telemetry Payloads Decoded: ";
 	protected static final String CAPTURE_DATE = "Captured: ";
 	
-	protected int fonth = 0;
-	
 	protected JPanel topPanel;
 	protected JPanel topPanel1;
 	protected JPanel topPanel2;
@@ -119,15 +128,15 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 	JSplitPane splitPane;
 	
 	HealthTableModel healthTableModel;
+	ListSelectionModel listSelectionModel;
 	JTable table;
 	
-	public HealthTab(Spacecraft spacecraft, int displayType) {
+	public HealthTab(FoxSpacecraft spacecraft, int displayType) {
 		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
 		
 		// force the next labels to the right side of screen
-		fonth = (int)(Config.displayModuleFontSize * 14/11);
 		
 		topPanel = new JPanel();
 		topPanel1 = new JPanel();
@@ -154,6 +163,11 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		lblIdValue.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblIdValue.setForeground(textColor);
 		topPanel1.add(lblIdValue);
+		
+		lblLive = new JLabel(LIVE);
+		lblLive.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
+		lblLive.setForeground(Config.AMSAT_RED);
+//		topPanel2.add(lblLive);
 		
 		centerPanel = new JPanel();
 		add(centerPanel, BorderLayout.CENTER);
@@ -198,20 +212,10 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 		
-		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
-		showRawValues.setMinimumSize(new Dimension(100, fonth));
-		//showRawValues.setMaximumSize(new Dimension(100, 14));
-		bottomPanel.add(showRawValues );
-		showRawValues.addItemListener(this);
-
-		showUTCtime = new JCheckBox("Display UTC Time", Config.displayUTCtime);
-		bottomPanel.add(showUTCtime );
-		showUTCtime.addItemListener(this);
-
 		addBottomFilter();
 
 		// force the next labels to the right side of screen
-		bottomPanel.add(new Box.Filler(new Dimension(14,fonth), new Dimension(400,fonth), new Dimension(1600,fonth)));
+		
 		
 		lblCaptureDate = new JLabel(CAPTURE_DATE);
 		lblCaptureDate.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 10/11)));
@@ -256,14 +260,44 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		
 		table = new JTable(healthTableModel);
 		table.setAutoCreateRowSorter(true);
+//		listSelectionModel = table.getSelectionModel();
+ //       listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
+ //       table.setSelectionModel(listSelectionModel);
+		table.addMouseListener(this);
 		
 		scrollPane = new JScrollPane (table, 
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		table.setFillsViewportHeight(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(scrollPane);
 		
+		String PREV = "prev";
+		String NEXT = "next";
+		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = table.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = table.getSelectedRow();
+				if (row > 0)
+					displayRow(row-1);
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = table.getSelectedRow();
+				if (row < table.getRowCount()-1)
+					displayRow(row+1);        
+			}
+		});
+		centerPanel.add(scrollPane);
+
 	}
 
 	protected JLabel addReset(JPanel topPanel2, String type) {
@@ -347,7 +381,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			try {
 				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				result = FoxFramePart.fileDateFormat.parse(u);
-				if (showUTCtime.isSelected())
+				if (this.showUTCtime)
 					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				else 
 					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
@@ -364,7 +398,7 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			lblCaptureDate.setText(CAPTURE_DATE + reportDate);
 	}
 	
-	public void updateTabRT(FramePart realTime2) {
+	public void updateTabRT(FramePart realTime2, boolean refreshTable) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
@@ -382,8 +416,15 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 		displayResets(lblResetsValue, realTime2.getResets());
 		displayCaptureDate(realTime2.getCaptureDate());
 		
-		
-		parseFrames();
+		if (refreshTable)
+			parseFrames();
+		if (refreshTable) {
+			lblLive.setForeground(Config.AMSAT_RED);
+			lblLive.setText(LIVE);
+		} else {
+			lblLive.setForeground(Color.BLACK);
+			lblLive.setText(DISPLAY);
+		}
 	}
 	
 
@@ -467,25 +508,72 @@ public abstract class HealthTab extends ModuleTab implements ItemListener, Actio
 			}
 //			Config.save();
 			if (realTime != null)
-				updateTabRT(realTime);
+				updateTabRT(realTime, false);
 			if (maxPayload != null)
 				updateTabMax(maxPayload);
 			if (minPayload != null)
 				updateTabMin(minPayload);
 		}
-		if (source == showUTCtime) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayUTCtime = false;
+		if (source == cbUTC) {
+
+			showUTCtime = !showUTCtime;
+			if (showUTCtime) {
+				parseTextFields();
+				//textToUtc.setText();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
+				
 			} else {
-				Config.displayUTCtime = true;
+				parseUTCFields();
+				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			}
-//			Config.save();
+			showUptimeQuery(!showUTCtime);
+			parseFrames();
+			/*
 			if (realTime != null)
-				updateTabRT(realTime);
+				updateTabRT(realTime, false);
 			if (maxPayload != null)
 				updateTabMax(maxPayload);
 			if (minPayload != null)
 				updateTabMin(minPayload);
+				*/
 		}
+		
+		
+	}
+	
+	
+	
+	protected abstract void displayRow(int row);
+	
+	@Override
+	public void mouseClicked(MouseEvent e) {
+		
+		int row = table.rowAtPoint(e.getPoint());
+        int col = table.columnAtPoint(e.getPoint());
+        if (row >= 0 && col >= 0) {
+        	//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+        	displayRow(row);
+        }
+	}
+	@Override
+	public void mouseEntered(MouseEvent e) {
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 }

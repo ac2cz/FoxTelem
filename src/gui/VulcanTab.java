@@ -73,7 +73,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	private String NAME;
 	JLabel lblFramesDecoded;
 		
-	JCheckBox showRawValues;
+//	JCheckBox showRawValues;
 	JCheckBox showRawBytes;
 
 	RadiationTableModel radTableModel;
@@ -185,10 +185,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		healthPanel.setMinimumSize(minimumSize);
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
-				
+	
+		/*
 		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
 				bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
+		*/
 		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
 		bottomPanel.add(showRawBytes );
 		showRawBytes.addItemListener(this);
@@ -341,12 +343,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	protected void parseRadiationFrames() {
 		
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 			if (data != null && data.length > 0)
 				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
-				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
@@ -356,7 +358,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			
 			}
 			else {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data !=null && data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);
@@ -664,6 +666,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			parseRadiationFrames();
 			
 		}
+		
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -675,6 +678,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
 			
 		}
+		
 	}
 
 	@Override
