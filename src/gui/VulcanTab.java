@@ -9,6 +9,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
 import javax.swing.BoxLayout;
@@ -34,6 +35,7 @@ import telemetry.CobsDecodeException;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadRadExpData;
 import telemetry.RadiationPacket;
 import telemetry.RadiationTelemetry;
 import common.Config;
@@ -63,7 +65,7 @@ import common.FoxSpacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class VulcanTab extends RadiationTab implements ItemListener, Runnable, ListSelectionListener {
+public class VulcanTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String VULCANTAB = "VULCANTAB";
 	private static final String DECODED = "Radiation Payloads Decoded: ";
@@ -287,6 +289,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		
 		table = new JTable(radTableModel);
 		table.setAutoCreateRowSorter(true);
+		table.addMouseListener(this);
 		
 		radPacketTableModel = new RadiationPacketTableModel();
 		packetTable = new JTable(radPacketTableModel);
@@ -307,6 +310,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		//table.setMinimumSize(new Dimension(6200, 6000));
 		centerPanel.add(packetScrollPane);
 
+		packetTable.addMouseListener(this);
 		
 		TableColumn column = null;
 		column = table.getColumnModel().getColumn(0);
@@ -383,7 +387,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	protected void parseTelemetry(String data[][]) {
 		
-		
 		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
 		
 		// try to decode any telemetry packets
@@ -420,7 +423,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		if (data.length > 0) {
 			radPacketTableModel.setData(keyPacketData, packetData);
 		}
-		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+		//updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 		//updateTab(packets.get(packets.size()-1));
 	}
 	
@@ -582,9 +585,10 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 
 	}
 	
-	public void updateTab(FramePart rad) {
+	public void updateTab(FramePart rad, boolean refreshTable) {
 		
-	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
+	//	if (rad != null)
+	//	System.out.println("DISPLAY PAYLOAD FROM payloadStore: Resets " + rad.getResets() + " Uptime: " + rad.getUptime() + "\n" + rad + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
 				if (mod != null)
@@ -596,10 +600,14 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 					mod.updateRtValues(rad);
 			}
 		}
-//		displayId(rad.getFoxId());
-//		displayUptime(rad.getUptime());
-//		displayResets(rad.getResets());
-//		displayCaptureDate(rad.getCaptureDate());
+
+		if (refreshTable) {
+			//lblLive.setForeground(Config.AMSAT_RED);
+			//lblLive.setText(LIVE);
+		} else {
+			//lblLive.setForeground(Color.BLACK);
+			//lblLive.setText(DISPLAY);
+		}
 	}
 
 	
@@ -623,15 +631,15 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+					updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 				}
 
 				if (foxId != 0)
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
-
-						parseRadiationFrames();
+						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
+						parseFrames();
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
@@ -675,11 +683,23 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				Config.displayRawValues = true;
 			}
 
-			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 			
 		}
 		
 	}
+	
+	protected void displayRow(JTable table, int row) {
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+    	//Log.println("RESET: " + reset);
+    	//Log.println("UPTIME: " + uptime);
+    	int reset = (int)reset_l;
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT), false);
+    	
+    	table.setRowSelectionInterval(row, row);
+	}
+	
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -695,14 +715,51 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	}
 
 	@Override
-	public void valueChanged(ListSelectionEvent e) {
+	public void parseFrames() {
+		parseRadiationFrames();
+		
+	}
+
+	public void mouseClicked(MouseEvent e) {
+
+		if (showRawBytes.isSelected()) {
+			int row = table.rowAtPoint(e.getPoint());
+			int col = table.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(table, row);
+			}
+		} else {
+			int row = packetTable.rowAtPoint(e.getPoint());
+			int col = packetTable.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(packetTable, row);
+			}
+		}
+	}
+
+		@Override
+	public void mouseEntered(MouseEvent e) {
 		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
-	public void parseFrames() {
-		parseRadiationFrames();
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
 		
 	}
 
