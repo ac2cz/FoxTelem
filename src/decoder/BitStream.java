@@ -53,12 +53,15 @@ public class BitStream extends CircularBuffer {
 	 */
 	public void removeBits(int start, int end) {
 		if (Config.debugFrames) Log.println("Purging " + (end - start) + " bits");
-		if (Config.debugFrames) Log.println("Pass State: " + Config.passManager.getState() + ""
+/*		if (Config.debugFrames) {
+			if (Config.iq)
+			Log.println("Pass State: " + Config.passManager.getState() + ""
 				+ " at Bin: " + Config.selectedBin
 				+ " Strongest (dB): " + MainWindow.inputTab.iqSource1.rfData.getAvg(RfData.STRONGEST_SIG)
 				+ " Bin: " + MainWindow.inputTab.iqSource1.rfData.getBinOfStrongestSignal()
 				+ " Peak (dB): " + MainWindow.inputTab.iqSource1.rfData.getAvg(RfData.PEAK)
 				+ " Bin: " + MainWindow.inputTab.iqSource1.rfData.getBinOfPeakSignal()	);
+		}*/
 		int distance = end - start;
 //		for (int c=start; c < end; c++) {
 //			this.remove(0); // Remove the bits in this range

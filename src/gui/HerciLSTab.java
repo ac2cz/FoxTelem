@@ -435,6 +435,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 
 	@Override
 	public void valueChanged(ListSelectionEvent e) {
+		/*
 		Object source = e.getSource();
 		if (source == packetTable.getSelectionModel() ) {
 			int r = packetTable.getSelectedRow();
@@ -456,6 +457,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				parseRadiationFrames();
 			}
 		}
+		*/
 	}
 
 	@Override

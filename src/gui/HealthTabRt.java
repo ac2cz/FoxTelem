@@ -61,10 +61,11 @@ public class HealthTabRt extends HealthTab {
 	
 	@Override
 	protected void displayRow(int row) {
-		int reset = Integer.parseInt((String) table.getValueAt(row, HealthTableModel.RESET_COL));
-    	long uptime = Long.parseLong((String) table.getValueAt(row, HealthTableModel.UPTIME_COL));
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
+    	int reset = (int)reset_l;
     	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.REAL_TIME_LAYOUT);
     	if (realTime != null)
     		updateTabRT(realTime, false);
