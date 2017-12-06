@@ -335,8 +335,8 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(600);
 
-		packetTable.getSelectionModel().addListSelectionListener(this);
-		table.getSelectionModel().addListSelectionListener(this);
+		//packetTable.getSelectionModel().addListSelectionListener(this);
+		//table.getSelectionModel().addListSelectionListener(this);
 				
 	}
 	
