@@ -238,7 +238,7 @@ public class Config {
 	// V1.03
 	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
-	static public boolean generateSecondaryPayloads = true;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
+	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
 	// V1.04
 	static public boolean startButtonPressed = false;
