@@ -90,13 +90,37 @@ public class PayloadRadExpData extends FoxFramePart {
 	 */
 	public RadiationTelemetry calculateTelemetryPalyoad() {
 		//if (isTelemetry()) {
+		if (id == Spacecraft.FOX1E) {
+			// We cheat because the layout has each experiment 10 bytes appart but the 10 comes in the same 10 bytes.  This is in contrast to 1A and 1B
+			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
+			for (int k=0; k<10; k++) { // add the first 10 bytes 
+				radTelem.addNext8Bits(fieldValue[k]);
+			}
+			radTelem.copyBitsToFields();
+			int offset=0;
+			if (radTelem.getRawValue("State2") == 3)  // 3 = Active
+				offset=10;
+			else if (radTelem.getRawValue("State3") == 3)
+				offset=20;
+			else if (radTelem.getRawValue("State4") == 3)
+				offset=30;
+
+			// Pretend there is a gap, so that the layout works like Fox-1B
+			for (int k=10; k<10+offset; k++) { 
+				radTelem.addNext8Bits(0);
+			}
+			// Now flow the rest of the data in
+			for (int k=10; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+				radTelem.addNext8Bits(fieldValue[k]);
+			}
+			return radTelem;
+		} else {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;
-		//}
-		//return null;
+		}
 	}
 
 	/**

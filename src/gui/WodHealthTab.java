@@ -54,8 +54,9 @@ public class WodHealthTab extends HealthTab {
 	}
 
 	protected void displayRow(int row) {
-		int reset = Integer.parseInt((String) table.getValueAt(row, HealthTableModel.RESET_COL));
-    	long uptime = Long.parseLong((String) table.getValueAt(row, HealthTableModel.UPTIME_COL));
+		long reset_l = (long)table.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+    	int reset = (int)reset_l;
     	Log.println("RESET: " + reset);
     	Log.println("UPTIME: " + uptime);
     	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT);

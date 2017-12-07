@@ -12,15 +12,20 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.InputMap;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
@@ -300,6 +305,31 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
 		table.setFillsViewportHeight(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		String PREV = "prev";
+		String NEXT = "next";
+		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = table.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = table.getSelectedRow();
+				if (row > 0)
+					displayRow(table,row-1);
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = table.getSelectedRow();
+				if (row < table.getRowCount()-1)
+					displayRow(table,row+1);        
+			}
+		});
 		//table.setMinimumSize(new Dimension(6200, 6000));
 		centerPanel.add(scrollPane);
 
@@ -312,6 +342,29 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 
 		packetTable.addMouseListener(this);
 		
+		InputMap packetinMap = packetTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		packetinMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		packetinMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap packetactMap = packetTable.getActionMap();
+
+		packetactMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = packetTable.getSelectedRow();
+				if (row > 0)
+					displayRow(packetTable, row-1);
+			}
+		});
+		packetactMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = packetTable.getSelectedRow();
+				if (row < packetTable.getRowCount()-1)
+					displayRow(packetTable, row+1);        
+			}
+		});
 		TableColumn column = null;
 		column = table.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);

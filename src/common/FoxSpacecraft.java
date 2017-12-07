@@ -52,7 +52,7 @@ import uk.me.g4dpz.satellite.TLE;
 public class FoxSpacecraft extends Spacecraft{
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1; // This is the LEP experiment
+	public static final int EXP_VULCAN = 1; // This is the 1A LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
