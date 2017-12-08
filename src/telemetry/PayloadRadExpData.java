@@ -110,7 +110,7 @@ public class PayloadRadExpData extends FoxFramePart {
 				radTelem.addNext8Bits(0);
 			}
 			// Now flow the rest of the data in
-			for (int k=10; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+			for (int k=10+offset; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;
