@@ -72,11 +72,11 @@ public class EarthPlotPanel extends GraphCanvas {
 				
 				g2.setColor(new Color(shade,shade,shade));
 	*/
-				g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + i * boxHeight, legendWidth, boxHeight);
+				g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + (rows-1-i) * boxHeight, legendWidth, boxHeight);
 				if (shade > 127) g2.setColor(Color.BLACK);
 				else g2.setColor(Color.WHITE);
 				
-				g2.drawString(""+labels[i], sideBorder + graphWidth + leftOffset+5, verticalOffset + i * boxHeight + (int)(boxHeight*0.8));
+				g2.drawString(""+labels[i], sideBorder + graphWidth + leftOffset+5, verticalOffset + (rows-1-i) * boxHeight + (int)(boxHeight*0.8));
 
 			}
 		}
