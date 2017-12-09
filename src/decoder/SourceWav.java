@@ -46,8 +46,8 @@ public class SourceWav extends SourceAudio implements Runnable {
 	
 	AudioInputStream audioStream = null; // The object used to read the stream of data from the wave file
 	
-	public SourceWav(String f) throws UnsupportedAudioFileException, IOException {
-		super("WavFile", 67200*3,0, true);
+	public SourceWav(String f, boolean IQ) throws UnsupportedAudioFileException, IOException {
+		super("WavFile", 67200*3,0, IQ);
 		fileName = f;;
 		initWav();
 
@@ -61,10 +61,11 @@ public class SourceWav extends SourceAudio implements Runnable {
         soundFile = new File(fileName);
         audioStream = AudioSystem.getAudioInputStream(soundFile);
         audioFormat = audioStream.getFormat();
-        if (audioFormat.getChannels() == 2)
-        	storeStereo = true;
-        else
-        	storeStereo = false;
+        // DANGER here
+        // If we take a regular stereo wave file and store it as stereo, then we will half the playback speed when it is processed
+        // We must ONLY store stereo if this is an IQ file.  This was already set from the constructor
+        // So we do not check audiostream channels
+       
         Config.wavSampleRate = (int) audioFormat.getSampleRate();
         Log.println("Format: " + audioFormat);
         totalFrames = audioStream.getFrameLength();
