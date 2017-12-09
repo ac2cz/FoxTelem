@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.channels.Channels;
@@ -20,6 +21,7 @@ import javax.swing.JOptionPane;
 
 import FuncubeDecoder.FUNcubeSpacecraft;
 import gui.MainWindow;
+import gui.ProgressPanel;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
@@ -306,59 +308,78 @@ public class SatelliteManager implements Runnable {
 		Log.println("Checking for new Keps");
 		String urlString = AMSAT_NASA_ALL;
 		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
+		String filetmp = file + ".tmp";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";		
 		}
-		File f1 = new File(file + ".tmp");
+		File f1 = new File(filetmp);
 		File f2 = new File(file);
 		Date lm = new Date(f2.lastModified());
-		Date now = new Date();
-		if (now.getTime() - lm.getTime() <= UpdateManager.KEP_UPDATE_PERIOD) { // then dont try to update it
-			Log.println(".. keps are current");
-		} else {
-			Log.println(".. downloading keps");
-			URL website;
-			FileOutputStream fos = null;
-			ReadableByteChannel rbc = null;
-			try {
-				website = new URL(urlString);
+		//Date now = new Date();
+
+		String msg = "Downloading new keps ...                 ";
+		ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, msg, false);
+		initProgress.setVisible(true);
+		Log.println("Downloading new keps ..");
+		URL website;
+		FileOutputStream fos = null;
+		ReadableByteChannel rbc = null;
+		try {
+			website = new URL(urlString);
+			HttpURLConnection httpCon = (HttpURLConnection) website.openConnection();
+			long date = httpCon.getLastModified();
+			httpCon.disconnect();
+			Date kepsDate = new Date(date);
+			if (kepsDate.getTime() <= lm.getTime()) { // then dont try to update it
+				Log.println(".. keps are current");
+				filetmp = file;
+			} else {
+
 				rbc = Channels.newChannel(website.openStream());
-				fos = new FileOutputStream(file + ".tmp");
+				fos = new FileOutputStream(filetmp);
 				fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 				fos.close();
 				rbc.close();
-				// Now lets see if we got a good file.  If we did not, it will throw an exception
-				parseTleFile(file + ".tmp");
-				// this is a good file so we can now use it as the default
+			}
+			// Always process the file because it is quick and the user may have changed the name of a spacecraft
+			// The code throws away duplicate keps with the same epoch
+			// Now lets see if we have a good file.  If we did not, it will throw an exception
+			parseTleFile(filetmp);
+			// this is a good file so we can now use it as the default
+			if (!file.equalsIgnoreCase(filetmp)) {
+				// We downloaded a new file so rename tmp as the new file
 				SatPayloadStore.remove(file);
-
 				SatPayloadStore.copyFile(f1, f2);
-				try {
-					Thread.sleep(20);
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
+			}
+			try {
+				Thread.sleep(20);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			if (!file.equalsIgnoreCase(filetmp))
 				SatPayloadStore.remove(file + ".tmp");
-				return;
-			} catch (MalformedURLException e) {
-				Log.println("Invalid location for Keps file: " + file);
-				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
+			return;
+
+		} catch (MalformedURLException e) {
+			Log.println("Invalid location for Keps file: " + file);
+			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
+		} catch (IOException e) {
+			Log.println("Could not write Keps file: " + file);
+			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("Keps file is corrupt: " + file);
+			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
+		} finally {
+			initProgress.updateProgress(100);
+			try {
+				if (fos != null) fos.close();
+				if (rbc != null) rbc.close();
 			} catch (IOException e) {
-				Log.println("Could not write Keps file: " + file);
-				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
-			} catch (IndexOutOfBoundsException e) {
-				Log.println("Keps file is corrupt: " + file);
-				try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
-			} finally {
-				try {
-					if (fos != null) fos.close();
-					if (rbc != null) rbc.close();
-				} catch (IOException e) {
-					// ignore
-				}
+				// ignore
 			}
 		}
+
 	}
 
 	/*
