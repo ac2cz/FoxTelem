@@ -262,7 +262,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		
 		if (noLatLonReadings) {
 			g2.setColor(Color.BLACK);
-			g2.drawString("No Latitude and Longitude Data Available for plot", graphWidth/2-50, graphHeight/2);
+			g2.drawString("No Latitude and Longitude Data Available for plot", graphWidth/2-50, graphHeight/3);
 			return;
 		}
 

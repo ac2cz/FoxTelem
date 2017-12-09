@@ -230,7 +230,7 @@ public abstract class Spacecraft {
 		File f = new File(file);
 		Writer output = new BufferedWriter(new FileWriter(f, false));
 		for (FoxTLE tle : tleList) {
-			Log.println("Saving TLE to file: " + tle.toString() + ": " + tle.getEpoch());
+			//Log.println("Saving TLE to file: " + tle.toString() + ": " + tle.getEpoch());
 			output.write(tle.toFileString());
 		}
 		output.flush();

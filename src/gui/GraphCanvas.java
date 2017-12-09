@@ -172,22 +172,19 @@ public abstract class GraphCanvas extends MapPanel {
 					satLongitude = FramePart.lonRadToDeg(pos.getLongitude());
 				}
 				//Log.println("POS: " + (int)newGraphData[PayloadStore.RESETS_COL][i] + "," + (long)newGraphData[PayloadStore.UPTIME_COL][i] + " at "
-//						+ satLatitude + ", " + satLongitude) ;
-				newGraphData[PayloadStore.LAT_COL][i] = satLatitude;
-				newGraphData[PayloadStore.LON_COL][i] = satLongitude;
-				
+				//						+ satLatitude + ", " + satLongitude) ;
 			} catch (PositionCalcException e) {
 				if (e.errorCode == FramePart.NO_TLE) {
-					Log.println("NO TLE");
-					return newGraphData;
+					// we just store the default values for NO_TLE
 				}
-				Log.println("NO POSITION");
-				return newGraphData;
 			}	
+			newGraphData[PayloadStore.LAT_COL][i] = satLatitude;
+			newGraphData[PayloadStore.LON_COL][i] = satLongitude;
+
 		}
 		if (graphFrame.SAMPLES > showDialogThreshold)
-				fileProgress.updateProgress(100);
-		
+			fileProgress.updateProgress(100);
+
 		return newGraphData;
 	}
 
