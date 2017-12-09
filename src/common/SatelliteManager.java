@@ -486,7 +486,9 @@ public class SatelliteManager implements Runnable {
 												+ sat.name +".\nMake sure the name of the spacecraft matches the name of the satellite in the nasabare.tle\n "
 												+ "file from amsat.  This file is automatically downloaded from: \nhttp://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
 												+ "TLE for this spacecraft is copied from nasabare.txt into the file:\n"+scd+"FOX"+ sat.foxId + ".tle.  It may be missing or corrupt.\n"
-												+ "Tracking will be disabled for this spacecraft.");
+												+ "Tracking will be disabled for this spacecraft. \n\n "
+												+ "You can still use 'Find Signal' for this spacecraft if you turn off position calculation on the settings panel and \n"
+												+ "uncheck 'Fox Telem calculates position'.  Then re-enable tracking.");
 										sat.satPos = null;
 									}
 								}

@@ -80,7 +80,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JTextField txtSecondaryServer;
 	
 	private JCheckBox cbUploadToServer;
-	private JCheckBox cbUseUDP;
+	private JCheckBox rdbtnTrackSignal;
+//	private JCheckBox cbUseUDP;
 	private JCheckBox storePayloads;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
@@ -289,11 +290,13 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel0.setBorder(eastTitle4);
 		cbUploadToServer = addCheckBoxRow("Upload to Server", "Select this if you want to send your collected data to the AMSAT telemetry server",
 				Config.uploadToServer, rightcolumnpanel0 );
+		rdbtnTrackSignal = addCheckBoxRow("Track Doppler","Leave this on except in a test situation.  It allows FoxTelem to follow the spacecraft downllink signal",
+				Config.trackSignal, rightcolumnpanel0);
 		useUDP = true;
 		if (Config.serverProtocol == TlmServer.TCP)
 			useUDP = false;
-		cbUseUDP = addCheckBoxRow("Use UDP", "Use UDP (vs TCP) to send data to the AMSAT telemetry server",
-				useUDP, rightcolumnpanel0 );
+//		cbUseUDP = addCheckBoxRow("Use UDP", "Use UDP (vs TCP) to send data to the AMSAT telemetry server",
+//				useUDP, rightcolumnpanel0 );
 		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
 		useLeftStereoChannel = addCheckBoxRow("Use Left Stereo Channel", "The default is for FoxTelem to read audio from the left stereo channel of your soundcard.  "
 				+ "If you uncheck this it will read from the right",
@@ -311,7 +314,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		setServerPanelEnabled(Config.uploadToServer);
-		cbUseUDP.setEnabled(false);
+//		cbUseUDP.setEnabled(false);
 		txtPrimaryServer.setEnabled(false);
 		txtSecondaryServer.setEnabled(false);
 		
@@ -553,7 +556,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				}
 				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
 				Config.whenAboveHorizon = cbWhenAboveHorizon.isSelected();
-				
+				Config.trackSignal = rdbtnTrackSignal.isSelected();
+				/*
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
 					Config.serverProtocol = TlmServer.UDP;
@@ -561,7 +565,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.serverPort = Config.tcpPort;
 					Config.serverProtocol = TlmServer.TCP;
 				}
-
+				*/
 				if (Config.displayModuleFontSize != parseIntTextField(txtDisplayModuleFontSize)) {
 					Config.displayModuleFontSize = parseIntTextField(txtDisplayModuleFontSize);
 					Log.println("Setting Health Tab font to: " + Config.displayModuleFontSize);
@@ -734,6 +738,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		if (source == cbFoxTelemCalcsPosition) { 
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				cbUseDDEAzEl.setSelected(false);
+			} else {
+				if (cbWhenAboveHorizon.isSelected())
+					cbWhenAboveHorizon.setSelected(false);
 			}
 		}
 		if (source == cbWhenAboveHorizon) { 
@@ -743,6 +750,17 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				MainWindow.inputTab.rdbtnFindSignal.setSelected(true);
 			}
 			
+		}
+		if (e.getSource() == rdbtnTrackSignal) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				
+	            Config.trackSignal=false;
+	            //Config.save();
+	        } else {
+	        	Config.trackSignal=true;
+	        	
+	        	//Config.save();
+	        }
 		}
 	}
 

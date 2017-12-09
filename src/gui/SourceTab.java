@@ -127,7 +127,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	//JCheckBox rdbtnApplyBlackmanWindow;
 	//JCheckBox rdbtnUseLimiter;
 	JCheckBox rdbtnShowIF;
-	JCheckBox rdbtnTrackSignal;
 	public JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
 	JCheckBox rdbtnShowFFT;
@@ -305,11 +304,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnShowIF.setSelected(Config.showIF);
 		rdbtnShowIF.setVisible(false);
 		 
-		rdbtnTrackSignal = new JCheckBox("Track Doppler");
-		options1.add(rdbtnTrackSignal);
-		rdbtnTrackSignal.addItemListener(this);
-		rdbtnTrackSignal.setSelected(Config.trackSignal);
-		rdbtnTrackSignal.setVisible(true);
+		
 
 		findSignalPanel = new JPanel();
 		findSignalPanel.setLayout(new BoxLayout(findSignalPanel, BoxLayout.X_AXIS));
@@ -318,11 +313,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
 		rdbtnFindSignal.setSelected(Config.findSignal);
-		rdbtnFindSignal.setVisible(true);
+		rdbtnFindSignal.setVisible(false);
 
 		optionsPanel.add(findSignalPanel);
 				
-		JLabel when = new JLabel ("when peak over ");
+		JLabel when = new JLabel ("|  Find Signal when peak over ");
 		findSignalPanel.add(when);
 		peakLevel = new JTextField(Double.toString(Config.SCAN_SIGNAL_THRESHOLD));
 		peakLevel.setMinimumSize(new Dimension(30,1));
@@ -435,7 +430,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 	}
 	
-	public void buildTrackedSpacecraftList() {
+	/**
+	 * Build the list of tracked spacecraft.  Return true if at least one spacecraft is tracked
+	 * 
+	 * @return
+	 */
+	public boolean buildTrackedSpacecraftList() {
+		boolean oneTracked = false;
 		if (satPanel != null)
 			opts.remove(satPanel);
 		satPanel = new JPanel();
@@ -452,11 +453,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satPanel.add(satRows[s]);
 			satName[s] = new JLabel(sat.name + ":   ");
 			satPosition[s] = new JLabel("Not Tracked");
-			if (sat.track) satPosition[s].setText("Tracked");
+			if (sat.track) {
+				satPosition[s].setText("Tracked");
+				oneTracked = true;
+			}
 			satPosition[s].addMouseListener(this);
 			satRows[s].add(satName[s]);
 			satRows[s].add(satPosition[s]);
 		}
+		return oneTracked;
 	}
 	
 	private void buildRightPanel(JPanel parent, String layout, JPanel rightPanel) {
@@ -932,8 +937,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void setIQVisible(boolean b) {
 		setFFTVisible(b);
 		rdbtnShowFFT.setVisible(b);
-		rdbtnTrackSignal.setVisible(b);
-		rdbtnFindSignal.setVisible(b);
+		rdbtnFindSignal.setVisible(false);
+		rdbtnFindSignal.setEnabled(false);
 		findSignalPanel.setVisible(b&&Config.findSignal);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
@@ -1903,17 +1908,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        }
 		}
 		
-		if (e.getSource() == rdbtnTrackSignal) {
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				
-	            Config.trackSignal=false;
-	            //Config.save();
-	        } else {
-	        	Config.trackSignal=true;
-	        	
-	        	//Config.save();
-	        }
-		}
+		
 		if (e.getSource() == rdbtnFindSignal) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				
@@ -2107,6 +2102,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	public void run() {
 		// Runs until we exit
 		while(true) {
+			boolean atLeastOneTracked = false;
 			// Sleep first to avoid race conditions at start up
 			try {
 				Thread.sleep(500);
@@ -2116,11 +2112,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			try {
 				if (Config.satManager.updated) {
-					buildTrackedSpacecraftList();
+					atLeastOneTracked = buildTrackedSpacecraftList();		
 					Config.satManager.updated = false;
 				}
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (sat.track)
+						atLeastOneTracked = true;
 					if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
 						satPosition[s].setForeground(Config.AMSAT_RED);
 					else
@@ -2161,7 +2159,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						processStartButtonClick();
 					}
 			} else {
-				rdbtnFindSignal.setEnabled(true);
+				if (atLeastOneTracked) {
+					//rdbtnFindSignal.setEnabled(true);
+					rdbtnFindSignal.setSelected(true);
+				} else {
+					rdbtnFindSignal.setEnabled(false);
+					rdbtnFindSignal.setSelected(false);
+				}
 				btnStartButton.setEnabled(true);
 				lblWhenAboveHorizon.setVisible(false);
 			}
