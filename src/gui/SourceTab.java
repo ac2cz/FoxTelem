@@ -1180,12 +1180,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	}
 
-	private SourceWav setWavFile() {
+	private SourceWav setWavFile(boolean IQ) {
 		SourceWav audioSource = null;
 		//if (audioSource != null)
 		//	audioSource.stop();
 		try {
-			audioSource = new SourceWav(Config.windowCurrentDirectory + File.separator + lblFileName.getText());
+			audioSource = new SourceWav(Config.windowCurrentDirectory + File.separator + lblFileName.getText(), IQ);
 		} catch (UnsupportedAudioFileException e) {
 			Log.errorDialog("ERROR With Audio File", e.toString());
 			e.printStackTrace(Log.getWriter());
@@ -1418,7 +1418,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// we don't have a selection
 			} else {
 				if (position == SourceAudio.FILE_SOURCE) { // || position == SourceAudio.IQ_FILE_SOURCE) {
-					SourceWav wav = setWavFile();
+					SourceWav wav = setWavFile(Config.iq);
 					if (wav != null) {
 						if (task != null) {
 							task.end();
