@@ -30,12 +30,15 @@ public class EarthPlotPanel extends GraphCanvas {
 	}
 	
 	private void setImage() {
-		if (graphFrame.mapType == GraphFrame.COLOR_MAP_EQUIRECTANGULAR)
-			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Equirectangular_projection_SW.jpg");
+		if (graphFrame.mapType == GraphFrame.COLOR_MAP_EQUIRECTANGULAR) {
+			mapProjection = RECTANGULAR_PROJECTION;
+			setImage(this.getClass().getResource("/images/Equirectangular_projection_SW.jpg").getFile());
 //		else if (graphFrame.mapType == GraphFrame.COLOR_MAP_MERCATOR)
 //			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Mercator_projection_SW.jpg");	
-		else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR)
-			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\WorldCoastLine_EquiRectangular.jpg");	
+		} else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR) {
+			mapProjection = RECTANGULAR_PROJECTION;
+			setImage(this.getClass().getResource("/images/WorldCoastLine_EquiRectangular.jpg").getFile());	
+		}
 	}
 	
 	private void drawLegend(int graphHeight, int graphWidth, double minValue, double maxValue, String units) {

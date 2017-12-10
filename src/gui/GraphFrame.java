@@ -211,10 +211,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public int plotType = SAVED_PLOT;
 	
 
-	public final static int NO_MAP_EQUIRECTANGULAR = 0;
+	public final static int NO_MAP_EQUIRECTANGULAR = 1;
 //	public final static int NO_MAP_MERCATOR = 1;
-	public final static int LINE_MAP_EQUIRECTANGULAR = 1;
-	public final static int COLOR_MAP_EQUIRECTANGULAR = 2;
+	public final static int LINE_MAP_EQUIRECTANGULAR = 2;
+	public final static int COLOR_MAP_EQUIRECTANGULAR = 3;
 //	public final static int COLOR_MAP_MERCATOR = 4;
 	public int mapType = LINE_MAP_EQUIRECTANGULAR;
 	
@@ -413,7 +413,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		footerPanel2.add(footerPanel2utc, BorderLayout.WEST);
 		footerPanelRight.add(footerPanel3, BorderLayout.EAST);
 
-		if (!(plotType == SKY_PLOT)) {
+		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 			cbRoundLabels = new JCheckBox("Round Labels");
 			cbRoundLabels.setSelected(roundLabels);
 			cbRoundLabels.addItemListener(this);
@@ -816,6 +816,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		showContinuous = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showContinuous");
 		if (showContinuous) UPTIME_THRESHOLD = CONTINUOUS_UPTIME_THRESHOLD; else UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;
 		mapType = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "mapType");
+		if (mapType == 0) // 0 is not a valid value
+			mapType = LINE_MAP_EQUIRECTANGULAR;
 		
 		String fields1 = Config.loadGraphValue(fox.getIdString(), plotType, payloadType, fieldName[0], "fieldName");
 		if (fields1 != null)
