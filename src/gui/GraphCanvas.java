@@ -144,7 +144,7 @@ public abstract class GraphCanvas extends MapPanel {
 	 * Ask the user if its a lot of data
 	 */
 	private double[][] addPositionData(double[][] coreGraphData) {
-		Log.println("ADDING position data to graph");
+		//Log.println("ADDING position data to graph");
 		int showDialogThreshold = 9999;
 		ProgressPanel fileProgress = null;
 		if (graphFrame.SAMPLES > showDialogThreshold) {
