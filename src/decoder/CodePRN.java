@@ -4,7 +4,7 @@ public class CodePRN {
 	public static final int FRAME = 0x5647 & 0x7fff;  //101011001000111
 	static boolean[] FRAME_PRN = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
 	static boolean[] NOT_FRAME_PRN = {false,true,false,true,false,false,true,true,false,true,true,true,false,false,false};
-	public static final int CORRELATION_THRESHOLD = 12;  // Accept the SYNC VECTOR if this many bits match
+	public static final int CORRELATION_THRESHOLD = 13;  // Accept the SYNC VECTOR if this many bits match
 	public static final int FAIL = -99999;
 	
 	/**
