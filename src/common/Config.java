@@ -253,7 +253,7 @@ public class Config {
 	static public boolean whenAboveHorizon = false;
 	
 	// V1.06
-	static public boolean insertMissingBits = true;
+	static public boolean insertMissingBits = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
