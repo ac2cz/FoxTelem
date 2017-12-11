@@ -291,8 +291,10 @@ public abstract class FoxBitStream extends BitStream {
 				header.addNext8Bits(b8);
 			}
 			
-			if (true || header.isValid() && !loopUpError) {
-				if (!haveSyncWordAtBit(start-SYNC_WORD_DISTANCE)) syncWords.add(n, start-SYNC_WORD_DISTANCE);
+			if (header.isValid() && !loopUpError) {
+				syncWords.add(n, start-SYNC_WORD_DISTANCE);
+			//if (true || header.isValid() && !loopUpError) {
+//				if (!haveSyncWordAtBit(start-SYNC_WORD_DISTANCE)) syncWords.add(n, start-SYNC_WORD_DISTANCE);
 				if (Config.debugFrames) Log.println("SYNC WORD MISSING, but found Header");
 				//System.out.println(slowSpeedheader);
 			} else {
