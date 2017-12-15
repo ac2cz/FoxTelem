@@ -1,51 +1,66 @@
-50,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,RAD,BATT_A_V,12,V,2,Battery,4,1,3,Cell A,Battery pair A voltage (0-2.5V scale)
-1,RAD,BATT_B_V,12,V,34,Battery,4,2,3,Cell A + B,Battery pairs A+B voltage (0-3.3V scale)
-2,RAD,BATT_C_V,12,V,4,Battery,4,3,3,Cell A + B + C,Battery pairs A+B+C voltage (0-5.0V scale)
-3,RAD,battAtemp,12,C,8,Battery,4,4,3,Temperature A,Battery pair A temperature
-4,RAD,battBtemp,12,C,8,Battery,4,5,3,Temperature B,Battery pair B temperature
-5,RAD,battCtemp,12,C,8,Battery,4,6,3,Temperature C,Battery pair C temperature
-6,RAD,battCurr,12,mA,9,Battery,4,7,3,Current,Total Battery DC current
-7,RAD,battCardTemp,12,C,8,Battery,4,8,3,Board Temp,Battery Card Temperature
-8,RAD,posXv,12,V,23,+X Panel,8,1,3,Voltage,+X solar Panel voltage
-9,RAD,posYv,12,V,23,+Y Panel,9,1,3,Voltage,+Y solar Panel voltage
-10,RAD,posZv,12,V,23,+Z Panel,10,1,3,Voltage,+Z solar Panel voltage
-11,RAD,negXv,12,V,23,-X Panel,11,1,3,Voltage,-X solar Panel voltage
-12,RAD,negYv,12,V,23,-Y Panel,12,1,3,Voltage,-Y solar Panel voltage
-13,RAD,negZv,12,V,23,-Z Panel,13,1,3,Voltage,-Z solar Panel voltage
-14,RAD,posXt,12,C,24,+X Panel,8,2,3,Temp,+X solar Panel temperature
-15,RAD,posYt,12,C,24,+Y Panel,9,2,3,Temp,+Y solar Panel temperature
-16,RAD,posZt,12,C,24,+Z Panel,10,2,3,Temp,+Z solar Panel temperature
-17,RAD,negXt,12,C,24,-X Panel,11,2,3,Temp,-X solar Panel temperature
-18,RAD,negYt,12,C,24,-Y Panel,12,2,3,Temp,-Y solar Panel temperature
-19,RAD,negZt,12,C,24,-Z Panel,13,2,3,Temp,-Z solar Panel temperature
-20,RAD,PSUTemp,12,C,8,MPPT,5,2,3,Board Temp,Power Supply Card Temperature
-21,RAD,spin,12,rpm,12,Computer Software,3,1,3,Spacecraft Spin,Calculated spin rate using solar cells
-22,RAD,TxPAi,12,mA,10,Radio,1,2,3,PA Current,Transmit power amplifier current
-23,RAD,TxTemp,12,C,7,Radio,1,1,3,TX Temperature,Transmitter card temperature
-24,RAD,FwdPower,12,mW,0,Radio,1,4,3,Fwd Power,Receiver card temperature
-25,RAD,rssi,12,dBm,14,Radio,1,3,3,RSSI,Received Signal Strength Indication
-26,RAD,IHUcpuTemp,12,C,15,Computer Hardware,2,1,3,Temperature,Internal Temperature of IHU
-27,RAD,Xvelocity,12,dps,13,+X Panel,8,3,3,Rotation,Angular Veolcity around X Axis
-28,RAD,Yvelocity,12,dps,13,+Y Panel,9,3,3,Rotation,Angular Veolcity around Y Axis
-29,RAD,Zvelocity,12,dps,13,+Z Panel,10,3,3,Rotation,Angular Veolcity around Z Axis
-30,RAD,Exp4Temp,12,C,7,Experiments,6,1,3,EXP4 Temp,Experiment 4 card temperature
-31,RAD,PSUCurrent,12,mA,22,MPPT,5,1,3,Current,Power Supply DC Current
-32,RAD,ReflectedPwr,12,mW,0,Radio,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
-33,RAD,ICR3V,12,V,23,Command Receiver (ICR),7,1,3,3V,ICR 3V
-34,RAD,ICR3VProt,12,V,23,Command Receiver (ICR),7,2,3,3V Prot,ICR 3V Proteted
-35,RAD,ICR2dot5V,12,V,23,Command Receiver (ICR),7,3,3,2.5V,ICR 2.5V
-36,RAD,ICR2dot5VProt,12,V,23,Command Receiver (ICR),7,4,3,2.5V Prot,ICR 2.5V Protected
-37,RAD,rf6,12,-,0,NONE,0,0,0,None,None
-38,RAD,rf7,12,-,0,NONE,0,0,0,None,None
-39,RAD,MuxTest,12,V,23,Command Receiver (ICR),7,5,3,MUX,Sensor Power Voltage at the ICR
-40,RAD,LtVGACtl,12,V,23,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-41,RAD,NumCmds,4,-,0,NONE,0,0,0,None,Number of commands sent since last reset
-42,RAD,data,464,-,0,NONE,0,0,0,NONE,0x01 specifies Fox-1A (each Fox satellite will have a unique ID)
-43,RAD,pad1,104,-,0,NONE,0,0,0,NONE,Room for optional more science data
-44,RAD,pad2,6,-,-,NONE,0,0,0,NONE,Even it up
-45,RAD,exp1BoardNum,2,-,-,NONE,0,0,0,Exp1 Board Number,Experiment Board Active
-46,RAD,WODTimestampReset,16,-,1,NONE,0,0,0,WOD Timestamp Reset Count,Time Whole Orbit Data was collected  (WOD only)
-47,RAD,WODTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Time Whole Orbit Data was collected (WOD only)
-48,RAD,WodCRCError,1,-,0,NONE,0,0,0,CRC Error on this WOD entry,Memory error (WOD only)
-49,RAD,pad3,6,-,-,NONE,0,0,0,Pad1,Make it even
+65,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,RAD,BYTE0,8,NONE,0,NONE,0,0,0,Byte 1,None
+1,RAD,BYTE1,8,NONE,0,NONE,0,0,0,Byte 2,None
+2,RAD,BYTE2,8,NONE,0,NONE,0,0,0,Byte 3,None
+3,RAD,BYTE3,8,NONE,0,NONE,0,0,0,Byte 4,None
+4,RAD,BYTE4,8,NONE,0,NONE,0,0,0,Byte 5,None
+5,RAD,BYTE5,8,NONE,0,NONE,0,0,0,Byte 6,None
+6,RAD,BYTE6,8,NONE,0,NONE,0,0,0,Byte 7,None
+7,RAD,BYTE7,8,NONE,0,NONE,0,0,0,Byte 8,None
+8,RAD,BYTE8,8,NONE,0,NONE,0,0,0,Byte 9,None
+9,RAD,BYTE9,8,NONE,0,NONE,0,0,0,Byte 10,None
+10,RAD,BYTE10,8,NONE,0,NONE,0,0,0,Byte 11,None
+11,RAD,BYTE11,8,NONE,0,NONE,0,0,0,Byte 12,None
+12,RAD,BYTE12,8,NONE,0,NONE,0,0,0,Byte 13,None
+13,RAD,BYTE13,8,NONE,0,NONE,0,0,0,Byte 14,None
+14,RAD,BYTE14,8,NONE,0,NONE,0,0,0,Byte 15,None
+15,RAD,BYTE15,8,NONE,0,NONE,0,0,0,Byte 16,None
+16,RAD,BYTE16,8,NONE,0,NONE,0,0,0,Byte 17,None
+17,RAD,BYTE17,8,NONE,0,NONE,0,0,0,Byte 18,None
+18,RAD,BYTE18,8,NONE,0,NONE,0,0,0,Byte 19,None
+19,RAD,BYTE19,8,NONE,0,NONE,0,0,0,Byte 20,None
+20,RAD,BYTE20,8,NONE,0,NONE,0,0,0,Byte 21,None
+21,RAD,BYTE21,8,NONE,0,NONE,0,0,0,Byte 22,None
+22,RAD,BYTE22,8,NONE,0,NONE,0,0,0,Byte 23,None
+23,RAD,BYTE23,8,NONE,0,NONE,0,0,0,Byte 24,None
+24,RAD,BYTE24,8,NONE,0,NONE,0,0,0,Byte 25,None
+25,RAD,BYTE25,8,NONE,0,NONE,0,0,0,Byte 26,None
+26,RAD,BYTE26,8,NONE,0,NONE,0,0,0,Byte 27,None
+27,RAD,BYTE27,8,NONE,0,NONE,0,0,0,Byte 28,None
+28,RAD,BYTE28,8,NONE,0,NONE,0,0,0,Byte 29,None
+29,RAD,BYTE29,8,NONE,0,NONE,0,0,0,Byte 30,None
+30,RAD,BYTE30,8,NONE,0,NONE,0,0,0,Byte 31,None
+31,RAD,BYTE31,8,NONE,0,NONE,0,0,0,Byte 32,None
+32,RAD,BYTE32,8,NONE,0,NONE,0,0,0,Byte 33,None
+33,RAD,BYTE33,8,NONE,0,NONE,0,0,0,Byte 34,None
+34,RAD,BYTE34,8,NONE,0,NONE,0,0,0,Byte 35,None
+35,RAD,BYTE35,8,NONE,0,NONE,0,0,0,Byte 36,None
+36,RAD,BYTE36,8,NONE,0,NONE,0,0,0,Byte 37,None
+37,RAD,BYTE37,8,NONE,0,NONE,0,0,0,Byte 38,None
+38,RAD,BYTE38,8,NONE,0,NONE,0,0,0,Byte 39,None
+39,RAD,BYTE39,8,NONE,0,NONE,0,0,0,Byte 40,None
+40,RAD,BYTE40,8,NONE,0,NONE,0,0,0,Byte 41,None
+41,RAD,BYTE41,8,NONE,0,NONE,0,0,0,Byte 42,None
+42,RAD,BYTE42,8,NONE,0,NONE,0,0,0,Byte 43,None
+43,RAD,BYTE43,8,NONE,0,NONE,0,0,0,Byte 44,None
+44,RAD,BYTE44,8,NONE,0,NONE,0,0,0,Byte 45,None
+45,RAD,BYTE45,8,NONE,0,NONE,0,0,0,Byte 46,None
+46,RAD,BYTE46,8,NONE,0,NONE,0,0,0,Byte 47,None
+47,RAD,BYTE47,8,NONE,0,NONE,0,0,0,Byte 48,None
+48,RAD,BYTE48,8,NONE,0,NONE,0,0,0,Byte 49,None
+49,RAD,BYTE49,8,NONE,0,NONE,0,0,0,Byte 50,None
+50,RAD,BYTE50,8,NONE,0,NONE,0,0,0,Byte 51,None
+51,RAD,BYTE51,8,NONE,0,NONE,0,0,0,Byte 52,None
+52,RAD,BYTE52,8,NONE,0,NONE,0,0,0,Byte 53,None
+53,RAD,BYTE53,8,NONE,0,NONE,0,0,0,Byte 54,None
+54,RAD,BYTE54,8,NONE,0,NONE,0,0,0,Byte 55,None
+55,RAD,BYTE55,8,NONE,0,NONE,0,0,0,Byte 56,None
+56,RAD,BYTE56,8,NONE,0,NONE,0,0,0,Byte 57,None
+57,RAD,BYTE57,8,NONE,0,NONE,0,0,0,Byte 58,None
+58,RAD,pad1,104,NONE,0,NONE,0,0,0,Byte 59,None
+59,RAD,pad2,5,NONE,0,NONE,0,0,0,Byte 60,None
+60,RAD,exp1BoardNum,3,NONE,0,NONE,0,0,0,Byte 61,None
+61,RAD,WODTimestampReset,16,NONE,0,NONE,0,0,0,Byte 62,None
+62,RAD,WODTimestampUptime,25,NONE,0,NONE,0,0,0,Byte 63,None
+63,RAD,WodCRCError,1,NONE,0,NONE,0,0,0,Byte 64,None
+64,RAD,pad3,6,NONE,0,NONE,0,0,0,Byte 65,None
