@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,6 +18,7 @@ import java.util.TimeZone;
 
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
+import telemServer.StpFileRsDecodeException;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
 import measure.PassMeasurement;
@@ -502,8 +504,8 @@ public abstract class Frame implements Comparable<Frame> {
 
 		if (rawFrame == null) {
 			// We failed to process the file
-			Log.println("Failed to Process STP file");
-			throw new StpFileProcessException(fileName, "Failed to process file: rawFrame is null " + fileName);
+			Log.println("Failed to Process STP file. RAW FRAME is null.  No content.  Likely SPAM or broken connection.");
+			return null;
 			
 		}
 
@@ -524,7 +526,7 @@ public abstract class Frame implements Comparable<Frame> {
 				RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
 				if (!rs.validDecode()) {
 					Log.println("RS Decode Failed");
-					throw new StpFileProcessException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED RS DECODE " + fileName);
 				}
 			}
 		} else if(length == PSK_FRAME_LEN) {
@@ -533,7 +535,7 @@ public abstract class Frame implements Comparable<Frame> {
 			if (false && ServerConfig.highSpeedRsDecode)
 				if (!highSpeedRsDecode(FoxBPSKFrame.MAX_FRAME_SIZE, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, FoxBPSKBitStream.RS_PADDING, rawFrame, demodulator)) {
 					Log.println("BPSK RS Decode Failed");
-					throw new StpFileProcessException(fileName, "ERROR: BPSK RS DECODE " + fileName);
+					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
 				}
 		} else if(length == HIGH_SPEED_FRAME_LEN) {
 			// High Speed Frame
@@ -541,7 +543,7 @@ public abstract class Frame implements Comparable<Frame> {
 			if (ServerConfig.highSpeedRsDecode)
 				if (!highSpeedRsDecode(HighSpeedFrame.MAX_FRAME_SIZE, HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS, HighSpeedBitStream.RS_PADDING, rawFrame, demodulator)) {
 					Log.println("HIGH SPEED RS Decode Failed");
-					throw new StpFileProcessException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
+					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
 				}
 		}
 		frame = rawFrame; //rs.decode();
@@ -641,7 +643,8 @@ public abstract class Frame implements Comparable<Frame> {
 		return true;
 	}
 
-	public static Frame importStpFile(PayloadDbStore payloadStore, File f, boolean delete) throws StpFileProcessException {
+	public static Frame importStpFile(String u, String p, String db, File f, boolean delete) throws StpFileProcessException {
+		PayloadDbStore payloadStore = null;
 		try {
 			Frame decodedFrame = Frame.loadStp(f.getPath());
 			if (decodedFrame != null && !decodedFrame.corrupt) {
@@ -657,6 +660,7 @@ public abstract class Frame implements Comparable<Frame> {
 					}
 				}
 				*/
+				payloadStore = new PayloadDbStore(u,p,db);
 				if (!payloadStore.addStpHeader(decodedFrame))
 					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 				if (decodedFrame instanceof SlowSpeedFrame) {
@@ -713,6 +717,8 @@ public abstract class Frame implements Comparable<Frame> {
 			Log.println(e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			throw new StpFileProcessException(f.getName(), "IO Exception processing file");
+		} finally {
+			try { payloadStore.closeConnection(); } catch (Exception e) {	}
 		}
 	}
 	

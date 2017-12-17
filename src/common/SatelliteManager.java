@@ -318,8 +318,11 @@ public class SatelliteManager implements Runnable {
 		//Date now = new Date();
 
 		String msg = "Downloading new keps ...                 ";
-		ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, msg, false);
-		initProgress.setVisible(true);
+		ProgressPanel initProgress = null;
+		if (Log.showGuiDialogs) {
+			initProgress = new ProgressPanel(MainWindow.frame, msg, false);
+			initProgress.setVisible(true);
+		}
 		Log.println("Downloading new keps ..");
 		URL website;
 		FileOutputStream fos = null;
@@ -371,7 +374,8 @@ public class SatelliteManager implements Runnable {
 			Log.println("Keps file is corrupt: " + file);
 			try { SatPayloadStore.remove(file + ".tmp"); } catch (IOException e1) {e1.printStackTrace();}
 		} finally {
-			initProgress.updateProgress(100);
+			if (Log.showGuiDialogs) 
+				initProgress.updateProgress(100);
 			try {
 				if (fos != null) fos.close();
 				if (rbc != null) rbc.close();

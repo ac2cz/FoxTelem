@@ -570,9 +570,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == mntmLoadWavFile) {
 			inputTab.chooseFile();
 		}
-		if (e.getSource() == mntmImportStp) {
-			importStp("stp", false);
-		}
 		if (e.getSource() == mntmGetServerData) {
 			replaceServerData();
 		}
@@ -808,159 +805,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.fileProgress.updateProgress(100);
 		
 	}
-
-	
-	@SuppressWarnings("unused")
-	private void importServerData_OLD() {
-
-		String message = "Do you want to merge the downloaded server data with your existing data?\n"
-				+ "To import into into a different set of log files select NO, then choose a new log file directory";
-		Object[] options = {"Yes",
-		"No"};
-		int n = JOptionPane.showOptionDialog(
-				MainWindow.frame,
-				message,
-				"Do you want to continue?",
-				JOptionPane.YES_NO_OPTION, 
-				JOptionPane.ERROR_MESSAGE,
-				null,
-				options,
-				options[1]);
-
-		if (n == JOptionPane.NO_OPTION) {
-			return;
-		}
-
-		// Make sure we have an STP directory
-		String serverData = "serverData";
-		String dir = serverData;
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + serverData;			
-		}
-	
-		File aFile = new File(dir);
-		if(aFile.isDirectory()){
-			mntmImportStp.setVisible(true);
-			mntmImportStp.addActionListener(this);
-		} else {
-			aFile.mkdir();
-		}
-		if(!aFile.isDirectory()){
-			Log.errorDialog("ERROR", "ERROR can't create the import directory: " + aFile.getAbsolutePath() +  
-					"\nFoxTelem needs to download the stp files to your logfiles dir.  It is either not accessible or not writable\n"
-					+ "Try changing the log files directory");
-			return;
-		}
-		
-		// We have the dir, so pull down the file
-		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
-		fileProgress.setVisible(true);
-		
-		String urlString = "http://www.amsat.org/tlm/ao85/stp.tar.gz";
-		try {
-		URL website = new URL(urlString);
-		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-		FileOutputStream fos;
-			fos = new FileOutputStream(dir + File.separator + "stp.tar.gz");
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-		} catch (FileNotFoundException e) {
-			Log.errorDialog("ERROR", "ERROR writing the server data to: " + dir + File.separator + "stp.tar.gz\n" +
-					e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		} catch (MalformedURLException e) {
-			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + dir + File.separator + "stp.tar.gz\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		}
-		
-		fileProgress.updateProgress(100);
-
-		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
-		decompressProgress.setVisible(true);
-
-		// Now decompress it and expand
-		File archive = new File(dir + File.separator + "stp.tar.gz");
-		File destination = new File(dir + File.separator);
-
-		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
-		try {
-			archiver.extract(archive, destination);
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			decompressProgress.updateProgress(100);
-			return;
-		}
-
-		decompressProgress.updateProgress(100);
-
-		// import the data
-		importProgress = new ProgressPanel(this, "importing and merging into log files ...", false);
-		importProgress.setVisible(true);
-
-		importStp(serverData, true);
-		
-		// now cleanup the files
-		importProgress.updateProgress(100);
-
-		
-	}
-	
-	/**
-	 * Get a list of all the files in the STP dir and import them
-	 */
-	private void importStp(String stpDir, boolean delete) {
-		String dir = stpDir;
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + dir;
-
-		}
-		Log.println("IMPORT STP from " + dir);
-		File folder = new File(dir);
-		File[] listOfFiles = folder.listFiles();
-		int version1 = 0;
-		int version101 = 0;
-		HashMap<String, Integer> callsigns = new HashMap<String, Integer>();
-		HashMap<String, String> versions = new HashMap<String, String>();
-		if (listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (listOfFiles[i].isFile() ) {
-					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-					try {
-						Frame.importStpFile(null, listOfFiles[i], true);
-					} catch (StpFileProcessException e) {
-						Log.println("Could not process STP file: " + listOfFiles[i]);
-						e.printStackTrace(Log.getWriter());
-					}
-					if (importProgress != null)
-						importProgress.updateProgress((100 * i)/listOfFiles.length);
-				}
-			}
-			Log.println("Files Processed: " + listOfFiles.length);
-			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
-			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
-			
-			Iterator<?> it = callsigns.entrySet().iterator();
-		    while (it.hasNext()) {
-		        @SuppressWarnings("rawtypes")
-				Map.Entry pair = (Map.Entry)it.next();
-		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
-		    }
-		}
-	}
-	
-	
 	
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
@@ -981,9 +825,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		
-	}
-
-	
+	}	
 
 	@Override
 	public void windowStateChanged(WindowEvent e) {

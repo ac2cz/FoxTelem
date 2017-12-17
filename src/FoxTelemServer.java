@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.24a - 24 Oct 2017";
+	public static String version = "Version 0.25 - 17 Dec 2017";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -168,7 +168,7 @@ public class FoxTelemServer {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
-        		pool.execute(new ServerProcess(initPayloadDB(u,p,db), serverSocket.accept(), sequence++));
+        		pool.execute(new ServerProcess(u,p,db, serverSocket.accept(), sequence++));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {
@@ -253,7 +253,7 @@ public class FoxTelemServer {
  * Get a list of all the files in the STP dir and import them
  */
 private static void importStp(String stpDir, boolean delete, String u, String p, String db) {
-	PayloadDbStore payload = initPayloadDB(u,p,db);
+	//PayloadDbStore payload = initPayloadDB(u,p,db);
 	String dir = stpDir;
 	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 		dir = Config.logFileDirectory + File.separator + dir;
@@ -267,7 +267,7 @@ private static void importStp(String stpDir, boolean delete, String u, String p,
 			if (listOfFiles[i].isFile() ) {
 				//Log.print("Loading STP data from: " + listOfFiles[i].getName());
 				try {
-					Frame f = Frame.importStpFile(payload, listOfFiles[i], false);
+					Frame f = Frame.importStpFile(u,p,db, listOfFiles[i], false);
 					if (f == null) {
 						// null data -  do nothing if we can not (so don't check the return code
 						//listOfFiles[i].delete();

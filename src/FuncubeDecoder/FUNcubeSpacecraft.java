@@ -2,6 +2,7 @@ package FuncubeDecoder;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 
 import common.Config;
 import common.Log;
@@ -35,7 +36,7 @@ public class FUNcubeSpacecraft extends Spacecraft {
 	//public BitArrayLayout highResLayout;
 	//public BitArrayLayout fitterLayout;
 		
-	public FUNcubeSpacecraft(File fileName) throws FileNotFoundException, LayoutLoadException {
+	public FUNcubeSpacecraft(File fileName) throws LayoutLoadException, IOException {
 		super(fileName);
 		load();
 		

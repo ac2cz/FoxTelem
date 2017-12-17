@@ -191,10 +191,6 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	 * @throws IOException
 	 */
 	public void writeAllLines() throws IOException {
-	//	if (toUptime < line.uptime)
-	//		toUptime = line.uptime;
-	//	pictureLines.add(line);
-	//	savePictureLinesFile(line);
 		fileName = createJpegFile(id, resets, fromUptime, pictureCounter, true);
 		String toFileName = getFileName();
 		
@@ -206,8 +202,6 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 		} finally {
 			out.close();
 		}
-		// This does not work because the thumbnail calculation requires a screen, which we do not have on the server.  Needs more thought
-		//makeServerThumbnail(CameraTab.THUMB_X);
 	}
 	
 	

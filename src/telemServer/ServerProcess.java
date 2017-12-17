@@ -17,13 +17,19 @@ import telemetry.Frame;
 import telemetry.PayloadDbStore;
 
 public class ServerProcess implements Runnable {
-	PayloadDbStore payloadStore;
+	//PayloadDbStore payloadStoreX;
+	String u;
+	String p;
+	String db;
 	private Socket socket = null;
 	private int sequence = 0;
-	public ServerProcess(PayloadDbStore db, Socket socket, int seq) {
+	
+	public ServerProcess(String u, String p, String db, Socket socket, int seq) {
 		sequence = seq;
 		this.socket = socket;
-		payloadStore = db;
+		this.u = u;
+		this.p = p;
+		this.db = db;
 	}
 
 
@@ -109,7 +115,7 @@ public class ServerProcess implements Runnable {
 			
 			// Import it into the database
 			// null return means the file can not be recognized as an STP file or was test data
-			Frame frm = Frame.importStpFile(payloadStore, stp, false);
+			Frame frm = Frame.importStpFile(u, p, db, stp, false);
 			if (frm != null) {
 				Log.println("Processed: " + b + " bytes from " + frm.receiver + " for " 
 						+ frm.getHeader().getFoxId() + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
@@ -138,7 +144,13 @@ public class ServerProcess implements Runnable {
 			////ALERT
 			Log.alert("FATAL: " + e.getMessage());
 		
-
+		} catch (StpFileRsDecodeException rs) {
+			Log.println("STP FILE Could not be decoded: " + rs.getMessage());
+			File toFile = new File(stp.getPath()+".null");
+			if (stp.renameTo(toFile))
+				;
+			else
+				Log.println("ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -149,7 +161,7 @@ public class ServerProcess implements Runnable {
 				in.close();
 				socket.close();
 				f.close();
-				payloadStore.closeConnection();
+				
 			} catch (Exception ex) { /*ignore*/} 
 		}
 	}
