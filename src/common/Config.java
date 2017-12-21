@@ -432,8 +432,9 @@ public class Config {
 		}
 		 if (isLinuxOs()) {
 		        final File file = new File("/etc", "os-release");
-		        try (FileInputStream fis = new FileInputStream(file);
-		             BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis))) {
+		        try {
+		        	FileInputStream fis = new FileInputStream(file);
+		            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
 		            String string;
 		            while ((string = bufferedReader.readLine()) != null) {
 		                if (string.toLowerCase().contains("raspbian")) {
@@ -444,7 +445,8 @@ public class Config {
 		                }
 		            }
 		        } catch (final Exception e) {
-		            e.printStackTrace();
+		           // e.printStackTrace();
+		        	Log.println("Linux but not Raspberry Pi");
 		        }
 		    }
 	}

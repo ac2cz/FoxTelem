@@ -62,7 +62,8 @@ public class FoxTLE extends TLE implements Comparable<FoxTLE> {
                     lines[j] = readString;
                     j = 0;
                     try {
-                    	importedSats.add(new FoxTLE(lines));
+                    	if (!(lines[0].isEmpty() || lines[1].isEmpty() || lines[2].isEmpty()))
+                    		importedSats.add(new FoxTLE(lines));
                     } catch (StringIndexOutOfBoundsException e) {
                    	Log.println("ERROR PROCESSING KEPS: " + e.getMessage());
                     } catch (NumberFormatException e) {
