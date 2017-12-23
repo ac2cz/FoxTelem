@@ -171,6 +171,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public FoxTime getUptimeForUtcDate(Date fromDate) {
 		if (timeZero == null) return null;
 		if (fromDate == null) return null;
+		if (timeZero.size() == 0) return null;
 		long dateTime = fromDate.getTime();
 		long T0 = -1;
 		int reset = 0;

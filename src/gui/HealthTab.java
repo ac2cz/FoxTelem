@@ -128,7 +128,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	JSplitPane splitPane;
 	
 	HealthTableModel healthTableModel;
-	ListSelectionModel listSelectionModel;
 	JTable table;
 	
 	public HealthTab(FoxSpacecraft spacecraft, int displayType) {

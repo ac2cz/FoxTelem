@@ -33,6 +33,7 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
@@ -80,16 +81,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	private String NAME;
 	JLabel lblFramesDecoded;
 		
-//	JCheckBox showRawValues;
-	JCheckBox showRawBytes;
-
-	RadiationTableModel radTableModel;
-	RadiationPacketTableModel radPacketTableModel;
-	JTable table;
-	JTable packetTable;
-	JScrollPane packetScrollPane;
-	JScrollPane scrollPane;
-	
 	JPanel healthPanel;
 	JPanel topHalfPackets;
 	JPanel bottomHalfPackets;
@@ -107,6 +98,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	JRadioButton decodeTelem;
 	
 	boolean displayTelem = true;
+	
+	RadiationTableModel radTableModel;
+	RadiationPacketTableModel radPacketTableModel;
 	
 	public VulcanTab(FoxSpacecraft sat, int displayType)  {
 		
@@ -217,8 +211,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 		decodePacket.setVisible(false);
 
 		addBottomFilter();
-		
-		addTables();
+		radTableModel = new RadiationTableModel();
+		radPacketTableModel = new RadiationPacketTableModel();
+		addTables(radTableModel,radPacketTableModel);
 
 		addPacketModules();
 		topHalfPackets.setVisible(false);
@@ -234,6 +229,37 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 		radioButton.addActionListener(this);
 		panel.add(radioButton);
 		return radioButton;
+	}
+	
+	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel) {
+		super.addTables(radTableModel, radPacketTableModel);
+		TableColumn column = null;
+		column = table.getColumnModel().getColumn(0);
+		column.setPreferredWidth(45);
+		
+		column = table.getColumnModel().getColumn(1);
+		column.setPreferredWidth(55);
+		
+		for (int i=0; i<58; i++) {
+			column = table.getColumnModel().getColumn(i+2);
+			column.setPreferredWidth(25);
+		}
+
+		column = packetTable.getColumnModel().getColumn(0);
+		column.setPreferredWidth(45);
+		
+		column = packetTable.getColumnModel().getColumn(1);
+		column.setPreferredWidth(55);
+
+		column = packetTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(80);
+
+		column = packetTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(70);
+
+		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(600);
+				
 	}
 
 	protected void displayFramesDecoded(int u) {
@@ -289,113 +315,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	}
 	
 	
-	private void addTables() {
-		radTableModel = new RadiationTableModel();
-		
-		table = new JTable(radTableModel);
-		table.setAutoCreateRowSorter(true);
-		table.addMouseListener(this);
-		
-		radPacketTableModel = new RadiationPacketTableModel();
-		packetTable = new JTable(radPacketTableModel);
-		packetTable.setAutoCreateRowSorter(true);
-		
-		//JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane = new JScrollPane (table, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		table.setFillsViewportHeight(true);
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		String PREV = "prev";
-		String NEXT = "next";
-		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
-		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
-		ActionMap actMap = table.getActionMap();
-
-		actMap.put(PREV, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// System.out.println("PREV");
-				int row = table.getSelectedRow();
-				if (row > 0)
-					displayRow(table,row-1);
-			}
-		});
-		actMap.put(NEXT, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//    System.out.println("NEXT");
-				int row = table.getSelectedRow();
-				if (row < table.getRowCount()-1)
-					displayRow(table,row+1);        
-			}
-		});
-		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(scrollPane);
-
-		packetScrollPane = new JScrollPane (packetTable, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		packetTable.setFillsViewportHeight(true);
-		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(packetScrollPane);
-
-		packetTable.addMouseListener(this);
-		
-		InputMap packetinMap = packetTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		packetinMap.put(KeyStroke.getKeyStroke("UP"), PREV);
-		packetinMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
-		ActionMap packetactMap = packetTable.getActionMap();
-
-		packetactMap.put(PREV, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// System.out.println("PREV");
-				int row = packetTable.getSelectedRow();
-				if (row > 0)
-					displayRow(packetTable, row-1);
-			}
-		});
-		packetactMap.put(NEXT, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//    System.out.println("NEXT");
-				int row = packetTable.getSelectedRow();
-				if (row < packetTable.getRowCount()-1)
-					displayRow(packetTable, row+1);        
-			}
-		});
-		TableColumn column = null;
-		column = table.getColumnModel().getColumn(0);
-		column.setPreferredWidth(45);
-		
-		column = table.getColumnModel().getColumn(1);
-		column.setPreferredWidth(55);
-		
-		for (int i=0; i<58; i++) {
-			column = table.getColumnModel().getColumn(i+2);
-			column.setPreferredWidth(25);
-		}
-
-		column = packetTable.getColumnModel().getColumn(0);
-		column.setPreferredWidth(45);
-		
-		column = packetTable.getColumnModel().getColumn(1);
-		column.setPreferredWidth(55);
-
-		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(80);
-
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
-
-		column = packetTable.getColumnModel().getColumn(4);
-		column.setPreferredWidth(600);
-
-		//packetTable.getSelectionModel().addListSelectionListener(this);
-		//table.getSelectionModel().addListSelectionListener(this);
-				
-	}
+	
 	
 	protected void parseRadiationFrames() {
 		
@@ -707,26 +627,8 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
 		Object source = e.getItemSelectable();
-		
-		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayRawRadData = false;
-			} else {
-				Config.displayRawRadData = true;
-			}
-			if (showRawBytes.isSelected()) {
-				packetScrollPane.setVisible(false); 
-				scrollPane.setVisible(true);
-			} else { 
-				packetScrollPane.setVisible(true);
-				scrollPane.setVisible(false);
-			}
-
-			parseRadiationFrames();
-			
-		}
 		
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
 
@@ -773,47 +675,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 		
 	}
 
-	public void mouseClicked(MouseEvent e) {
 
-		if (showRawBytes.isSelected()) {
-			int row = table.rowAtPoint(e.getPoint());
-			int col = table.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(table, row);
-			}
-		} else {
-			int row = packetTable.rowAtPoint(e.getPoint());
-			int col = packetTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(packetTable, row);
-			}
-		}
-	}
-
-		@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
 
 }

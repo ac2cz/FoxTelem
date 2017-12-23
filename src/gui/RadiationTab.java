@@ -5,16 +5,29 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 
+import common.Config;
 import telemetry.PayloadRadExpData;
 import telemetry.SatPayloadStore;
 
@@ -40,12 +53,17 @@ import telemetry.SatPayloadStore;
  *
  */
 @SuppressWarnings("serial")
-public abstract class RadiationTab extends ModuleTab  {
+public abstract class RadiationTab extends ModuleTab implements MouseListener {
 
 	JPanel topPanel;
 	JPanel centerPanel;
 	PayloadRadExpData radPayload;
-
+	JTable table;
+	JTable packetTable;
+	JScrollPane packetScrollPane;
+	JScrollPane scrollPane;
+	JCheckBox showRawBytes;
+	
 	int splitPaneHeight = 0;
 	JSplitPane splitPane;
 	
@@ -62,8 +80,87 @@ public abstract class RadiationTab extends ModuleTab  {
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 	}
 	
+	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel ) {
+		
+		
+		table = new JTable(radTableModel);
+		table.setAutoCreateRowSorter(true);
+		table.addMouseListener(this);
+		
+		
+		packetTable = new JTable(radPacketTableModel);
+		packetTable.setAutoCreateRowSorter(true);
+		
+		//JScrollPane scrollPane = new JScrollPane(table);
+		scrollPane = new JScrollPane (table, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		table.setFillsViewportHeight(true);
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		String PREV = "prev";
+		String NEXT = "next";
+		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = table.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = table.getSelectedRow();
+				if (row > 0)
+					displayRow(table,row-1);
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = table.getSelectedRow();
+				if (row < table.getRowCount()-1)
+					displayRow(table,row+1);        
+			}
+		});
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(scrollPane);
+
+		packetScrollPane = new JScrollPane (packetTable, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		packetTable.setFillsViewportHeight(true);
+		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(packetScrollPane);
+
+		packetTable.addMouseListener(this);
+		
+		InputMap packetinMap = packetTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		packetinMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		packetinMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap packetactMap = packetTable.getActionMap();
+
+		packetactMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = packetTable.getSelectedRow();
+				if (row > 0)
+					displayRow(packetTable, row-1);
+			}
+		});
+		packetactMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = packetTable.getSelectedRow();
+				if (row < packetTable.getRowCount()-1)
+					displayRow(packetTable, row+1);        
+			}
+		});
+		
+	}
 	
-	protected abstract void parseRadiationFrames();
+	protected abstract void displayRow(JTable packetTable, int row); // When we click on a row in the table we call this function to update the top part of the display
+	protected abstract void parseRadiationFrames(); // When we get new data we call this function to display it
 	
 	protected void parseRawBytes(String data[][], RadiationTableModel radTableModel) {
 		long[][] keyRawData = new long[data.length][2];
@@ -81,6 +178,73 @@ public abstract class RadiationTab extends ModuleTab  {
 		radTableModel.setData(keyRawData, rawData);
 		
 
+	}
+	
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
+		Object source = e.getItemSelectable();
+		
+		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawRadData = false;
+			} else {
+				Config.displayRawRadData = true;
+			}
+			if (showRawBytes.isSelected()) {
+				packetScrollPane.setVisible(false); 
+				scrollPane.setVisible(true);
+			} else { 
+				packetScrollPane.setVisible(true);
+				scrollPane.setVisible(false);
+			}
+
+			parseRadiationFrames();
+			
+		}
+	}
+	public void mouseClicked(MouseEvent e) {
+
+		if (showRawBytes.isSelected()) {
+			int row = table.rowAtPoint(e.getPoint());
+			int col = table.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(table, row);
+			}
+		} else {
+			int row = packetTable.rowAtPoint(e.getPoint());
+			int col = packetTable.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(packetTable, row);
+			}
+		}
+	}
+
+		@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

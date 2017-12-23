@@ -745,23 +745,6 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	public void itemStateChanged(ItemEvent e) {
 		Object source = e.getItemSelectable();
 		
-		/*
-		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayRawValues = false;
-			} else {
-				Config.displayRawValues = true;
-			}
-//			Config.save();
-			if (realTime != null)
-				updateTabRT(realTime, false);
-			if (maxPayload != null)
-				updateTabMax(maxPayload);
-			if (minPayload != null)
-				updateTabMin(minPayload);
-		}
-		*/
 		if (source == cbUTC) {
 
 			showUTCtime = !showUTCtime;

@@ -25,13 +25,16 @@ import javax.swing.table.AbstractTableModel;
 @SuppressWarnings("serial")
 abstract class FoxTelemTableModel extends AbstractTableModel {
 	String[] columnNames = null;
+	private long[][] keyData = null;
     private String[][] data = null;
 
 	
-    public void setData(String[][] d) { 
+    public void setData(long[][] kd, String[][] d) { 
+    	keyData = kd;
     	data = d;
     	fireTableDataChanged();
     }
+    
     
     public int getColumnCount() {
         return columnNames.length;
@@ -49,8 +52,18 @@ abstract class FoxTelemTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-        return data[row][col];
+    	if (col < 2)
+    		if (keyData != null && keyData.length > 0)
+    			return keyData[row][col];
+    		else 
+    			return null;
+    	else 		
+    		if (data != null && data.length > 0)
+    			return data[row][col-2];
+    		else 
+    			return null;
     }
+
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public Class getColumnClass(int c) {
