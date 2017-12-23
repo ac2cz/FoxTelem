@@ -252,6 +252,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 
 	private void parseRawBytes() {
+		if (hsPayload == null) return;
 		String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
 		long[][] keydata = new long[1][2];
 		for (int i = 0; i < rawData.length; i ++) {
@@ -288,6 +289,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	
 	
 	public void updateTab(FramePart rad,boolean refreshTable) {
+		if (rad == null) return;
 		lblHSpayload.setText("HERCI EXPERIMENT PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + rad.getResets() + " Uptime:" + rad.getUptime() );
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");

@@ -30,10 +30,7 @@ public class PayloadWOD extends PayloadRtValues {
 	
 	public PayloadWOD(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);	
-		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
-			if (Config.foxTelemCalcsPosition)
-				captureSatPosition();
-		}
+
 	}
 
 	@Override
@@ -47,27 +44,6 @@ public class PayloadWOD extends PayloadRtValues {
 		copyBitsToFields();
 		this.id = id;
 		this.captureDate = fileDateStamp();	
-		if (satLatitude == NO_POSITION_DATA || satLatitude == NO_T0) {
-			if (Config.foxTelemCalcsPosition)
-				captureSatPosition();
-		}
-	}
-	
-	public void captureSatPosition() {
-		FoxSpacecraft sat = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
-		SatPos pos = null;
-		//capture the satellite position so we can visualize the WOD
-		try {
-			pos = sat.getSatellitePosition(getRawValue(WOD_RESETS), getRawValue(WOD_UPTIME));
-		} catch (PositionCalcException e) {
-			if (e.errorCode == FramePart.NO_TLE) {
-				satLatitude = NO_TLE;
-				satLongitude = NO_TLE;
-				satAltitude = NO_TLE;
-			}
-		}	
-		if (satLatitude != NO_TLE)
-			setSatPosition(pos);
 	}
 	
 	
@@ -113,19 +89,13 @@ public class PayloadWOD extends PayloadRtValues {
 	
 	public String getInsertStmt() {
 		copyBitsToFields();
-		/*
-		 * The server does not rely on the position data sent by ground stations.  It calculates the position based on known good keps
-		 * and overwrites any position data sent by the station
-		 */
-		captureSatPosition();
 		String s = new String();
-		s = s + " (captureDate,  id, resets, uptime, type, satLatitude, satLongitude, satAltitude, \n";
+		s = s + " (captureDate,  id, resets, uptime, type, \n";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
-		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + 
-				", " + satLatitude + ", " + satLongitude + ", " + satAltitude + ",\n";
+		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + fieldValue[i] + ",\n";
 		}
@@ -133,16 +103,4 @@ public class PayloadWOD extends PayloadRtValues {
 		return s;
 	}
 	
-	/**
-	 * Load this framePart from a file, which has been opened by a calling method.  The string tokenizer contains a 
-	 * set of tokens that represent the raw values to be loaded into the fields.
-	 * The framePart header has already been loaded by the calling routine, which had to work out the type first
-	 * @param st
-	 */
-	protected void load(StringTokenizer st) {
-		satLatitude = Double.valueOf(st.nextToken()).doubleValue();
-		satLongitude = Double.valueOf(st.nextToken()).doubleValue();
-		satAltitude = Double.valueOf(st.nextToken()).doubleValue();
-		super.load(st);
-	}
 }
