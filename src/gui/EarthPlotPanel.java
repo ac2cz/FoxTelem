@@ -37,7 +37,8 @@ public class EarthPlotPanel extends GraphCanvas {
 //			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Mercator_projection_SW.jpg");	
 		} else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR) {
 			mapProjection = RECTANGULAR_PROJECTION;
-			setImage(this.getClass().getResource("/images/WorldCoastLine_EquiRectangular.jpg").getFile());	
+			setImage(this.getClass().getResource("/images/1280px-World_V2.0.jpg").getFile());	
+			//setImage(this.getClass().getResource("/images/WorldCoastLine_EquiRectangular.jpg").getFile());	
 		}
 	}
 	
@@ -294,6 +295,7 @@ public class EarthPlotPanel extends GraphCanvas {
 	}
 
 	private Color getColorGradient(double minValue, double maxValue, double val, int range) {
+		int alpha = 160; // 50% transparent
 		int shade = getRatioPosition(minValue, maxValue, val, 255);
 		if (shade > 255) shade = 255;
 		if (shade <0) shade = 0;
@@ -312,7 +314,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		int b = (int) ((1.0-p) * b1 + p * b2 + 0.5);
 		
 		//g2.setColor(new Color(shade,shade,shade));
-		return new Color(255-shade,0,shade);
+		return new Color(255-shade,0,shade, alpha);
 		
 	}
 	

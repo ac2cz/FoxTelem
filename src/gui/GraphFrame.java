@@ -1626,11 +1626,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	@Override
 	public void componentResized(ComponentEvent arg0) {
+		int MAX_WIDTH = 1486;
 		if (plotType == EARTH_PLOT){
 			int W = 4;  
 			int H = 2;  
+			int width = 0;
 			Rectangle b = arg0.getComponent().getBounds();
-			arg0.getComponent().setBounds(b.x, b.y, b.width, b.width*H/W);
+			width = b.width;
+			if (width > MAX_WIDTH)
+				width = MAX_WIDTH;
+			arg0.getComponent().setBounds(b.x, b.y, width, width*H/W);
+			Log.println("WH:" + b.width + " " + b.height);
 		}
 	    
 	}
