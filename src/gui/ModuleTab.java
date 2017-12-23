@@ -266,6 +266,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		txtSamplePeriod.setColumns(6);
 		
 		showRangeSearch(GraphFrame.SHOW_LIVE);
+		showUTCtime = Config.displayUTCtime;
 		showUptimeQuery(!showUTCtime);
 		
 	}
@@ -668,7 +669,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		}
 		if (showLatest == SHOW_RANGE) {
 			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, FoxSpacecraft.REAL_TIME_LAYOUT);
-			
+			txtSamplePeriod.setText(Integer.toString(SAMPLES));
 		}
 	}
 	
@@ -680,7 +681,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		textToUptime.setText(Long.toString(END_UPTIME));
 		if (showLatest == SHOW_RANGE) {
 			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, FoxSpacecraft.REAL_TIME_LAYOUT);
-			
+			txtSamplePeriod.setText(Integer.toString(SAMPLES));
 		}
 	}
 
@@ -746,7 +747,6 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		Object source = e.getItemSelectable();
 		
 		if (source == cbUTC) {
-
 			showUTCtime = !showUTCtime;
 			if (showUTCtime) {
 				parseTextFields();
@@ -765,6 +765,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			}
 			showUptimeQuery(!showUTCtime);
+			Config.displayUTCtime = showUTCtime;
 		}
 		
 	}
