@@ -120,12 +120,14 @@ public class HelpAbout extends JDialog implements ActionListener {
 		addLine(" ", northApanel);
 		addLine("This software also includes:", northApanel);
 		addUrl("- Phil Karn (KA9Q) RS Decoder, ported to Java by ", "https://github.com/phlash/java-sdr", "<b>Phil Ashby M6IPX</b>", ", (part of the FUNcube team) released under the CC Non-Commercial Share Alike license", northApanel);
+		addUrl("- Portions of SdrTrunk DSP code for AirSpy and RTL USB by ", "https://github.com/DSheirer/sdrtrunk", "<b>DSheirer</b>", ", released underGPL", northApanel);
 		addUrl("- Purejavahid library developed by ", "https://github.com/nyholku/purejavahidapi", "<b>Kustaa Nyholm / SpareTimeLabs</b>", ", released under the BSD license", northApanel);
 		addUrl("- JTransforms FFT library developed by ", "https://sites.google.com/site/piotrwendykier/software/jtransforms", "<b>Piotr Wendykier</b>", ", released under the BSD license", northApanel);
 		addUrl("- Java DDE developed by ", "http://jdde.pretty-tools.com/", "<b>Pretty Tools</b>", ", released as free and opensource", northApanel);
 		addUrl("- Java Predict Port by ", "https://github.com/badgersoftdotcom/predict4java", "<b>G4DPZ</b>", ", released under GPL", northApanel);
 		addUrl("- Predict is by", "http://www.qsl.net/kd2bd/predict.html", "<b>KD2BD</b>", ", released under GPL", northApanel);
-		addUrl("- Equidistant Map ", "https://commons.wikimedia.org/wiki/File:World_V2.0.svg", "<b>By Myvolcano/b>", ", released under CC0 1.0", northApanel);
+		addUrl("- Equidistant Map by ", "https://commons.wikimedia.org/wiki/File:World_V2.0.svg", "<b>Myvolcano</b>", ", released under CC0 1.0", northApanel);
+		addUrl("- Color Equidistant Map by ", "https://commons.wikimedia.org/wiki/File:Equirectangular_projection_SW.jpg", "<b>Strebe</b>", ", released under CC BY-SA 3.0", northApanel);
 		
 		JScrollPane scrollPane = new JScrollPane (centerPanel, 
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
