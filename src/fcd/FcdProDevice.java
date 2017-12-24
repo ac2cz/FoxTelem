@@ -240,7 +240,6 @@ public class FcdProDevice extends FcdDevice {
 		}
 	}
 	public int getLnaGain() throws IOException, DeviceException {
-
 		int FCD_CMD_LEN = 3;
 		byte[] report = new byte[FCD_CMD_LEN];
 		report[1] = 0;

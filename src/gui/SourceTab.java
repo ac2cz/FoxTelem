@@ -1312,7 +1312,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} catch (DeviceException e) {
 						e.printStackTrace(Log.getWriter());
 					}
-				panelFcd.setDevice(rfDevice);
+				try {
+					panelFcd.setDevice(rfDevice);
+				} catch (DeviceException e) {
+					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
+				}
 				SDRpanel.add(panelFcd, BorderLayout.CENTER);
 
 				SDRpanel.setVisible(true);
@@ -1568,6 +1572,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
 							}	
 					} catch (IOException e) {
+						// This is a more serious error because we could not read audio data.  Need to halt decoder.
 						Log.errorDialog("FCD Start Error", e.getMessage());
 						e.printStackTrace(Log.getWriter());
 						stopButton();
