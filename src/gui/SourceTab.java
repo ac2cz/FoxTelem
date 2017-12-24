@@ -1706,7 +1706,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
 		
-		if (rfDevice != null) {
+		if (rfDevice != null && !(rfDevice instanceof FcdDevice)) {
 			try {
 				rfDevice.cleanup();  // Must call this to stop the buffer copy routines.  If exiting the USB device causes issues then don't exit in the called routine
 			} catch (IOException e) {
