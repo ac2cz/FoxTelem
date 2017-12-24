@@ -85,6 +85,11 @@ public class PassMeasurement extends Measurement {
 		//FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		//String captureDate = FramePart.fileDateFormat.format(date);
 		layout = Config.satManager.getPassMeasurementLayout(foxid);
+		if (layout == null) { 
+			// This sat is not setup in the measurement store
+			Log.println("FoxId: " + id + " is not setup in the measurement store.  Can not create pass measurement");
+			return;
+		}
 		fieldValue = new long[layout.NUMBER_OF_FIELDS];
 
 		setRawValue(AOS, date.getTime());
@@ -110,6 +115,11 @@ public class PassMeasurement extends Measurement {
 	}
 	
 	public long getRawValue(String name) {
+		if (layout == null) { 
+			// This sat is not setup in the measurement store
+			Log.println("FoxId: " + id + " is not setup in the measurement store.  Can not create pass measurement");
+			return 0;
+		}
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
 				return fieldValue[i];
@@ -119,6 +129,11 @@ public class PassMeasurement extends Measurement {
 	
 	
 	public String getStringValue(String name) {
+		if (layout == null) { 
+			// This sat is not setup in the measurement store
+			Log.println("FoxId: " + id + " is not setup in the measurement store.  Can not create pass measurement");
+			return null;
+		}
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i])) {
 				if (layout.conversion[i] == BitArrayLayout.CONVERT_JAVA_DATE) {
@@ -143,6 +158,11 @@ public class PassMeasurement extends Measurement {
 	}
 	
 	public void setRawValue(String name, long value) {
+		if (layout == null) { 
+			// This sat is not setup in the measurement store
+			Log.println("FoxId: " + id + " is not setup in the measurement store.  Can not create pass measurement");
+			return;
+		}
 		for (int i=0; i < layout.fieldName.length; i++) {
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
 				fieldValue[i] = value;

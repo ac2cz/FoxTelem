@@ -345,11 +345,12 @@ public class PassManager implements Runnable {
 		if (Config.useDDEforAzEl) {
 			SatPc32DDE satPC = new SatPc32DDE();
 			boolean connected = satPC.connect();
-			if (connected) {
+			if (connected && passMeasurement != null) {
 				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
 			}
 		}
 
+		if (passMeasurement != null)
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
 				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
@@ -408,16 +409,18 @@ public class PassManager implements Runnable {
 	 */
 	private int faded(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
-		if (Config.useDDEforAzEl) { // store end Azimuth too
-			SatPc32DDE satPC = new SatPc32DDE();
-			boolean connected = satPC.connect();
-			if (connected) {
-				passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+		if (passMeasurement != null) {
+			passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
+			if (Config.useDDEforAzEl) { // store end Azimuth too
+				SatPc32DDE satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected) {
+					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+				}
 			}
+			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 		}
 		faded = true;
-		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 
 		long startTime = System.nanoTime()/1000000; // get time in ms
 		long fadeTime = 0;
@@ -469,10 +472,12 @@ public class PassManager implements Runnable {
 	 */
 	private int endPass(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		calculateTCA(spacecraft);
-		calculateMaxEl(spacecraft);
-		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
-		Config.payloadStore.add(spacecraft.foxId, passMeasurement);
+		if (passMeasurement != null) {
+			calculateTCA(spacecraft);
+			calculateMaxEl(spacecraft);
+			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
+			Config.payloadStore.add(spacecraft.foxId, passMeasurement);
+		}
 		return EXIT;
 	}
 
