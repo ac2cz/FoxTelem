@@ -20,7 +20,7 @@ public class WodVulcanTab extends VulcanTab {
 	protected void parseRadiationFrames() {
 		
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+			String[][] data = Config.payloadStore.getWODRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 			if (data != null && data.length > 0)
 				parseRawBytes(data, radTableModel);
 		} else {
@@ -85,9 +85,8 @@ public class WodVulcanTab extends VulcanTab {
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
-						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
-
+						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
 						parseRadiationFrames();
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
 						MainWindow.setTotalDecodes();

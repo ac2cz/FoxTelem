@@ -124,6 +124,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	public abstract String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	public abstract String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
+	public abstract String[][] getWODRadData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	
 	public abstract String getRtUTCFromUptime(int id, int reset, long uptime);
 	

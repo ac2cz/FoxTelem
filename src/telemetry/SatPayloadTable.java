@@ -161,7 +161,8 @@ public class SatPayloadTable {
 			resets[j--] = ""+rtRecords.get(i).getResets();
 		}
 		
-		String[][] resultSet = new String[end-start][length];
+		// Create a results set, with reset, uptime and the data on the same line
+		String[][] resultSet = new String[end-start][length+3];
 		for (int r=0; r< end-start; r++) {
 			resultSet[r][0] = resets[r];
 			resultSet[r][1] = upTime[r];

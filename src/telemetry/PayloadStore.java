@@ -791,6 +791,18 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 	
+	public String[][] getWODRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getWODRadData(period, id, fromReset, fromUptime, reverse);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+	
 	@Override
 	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);

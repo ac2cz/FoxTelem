@@ -365,10 +365,7 @@ public class SatPayloadStore {
 	 * @throws IOException 
 	 */
 	public String[][] getRtData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
-		int i = fox.getLayoutIdxByName(Spacecraft.REAL_TIME_LAYOUT);
-		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH, reverse);  
-		return null;
+		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.REAL_TIME_LAYOUT);
 	}
 
 	/**
@@ -381,17 +378,15 @@ public class SatPayloadStore {
 	 * @throws IOException 
 	 */
 	public String[][] getWODData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
-		int i = fox.getLayoutIdxByName(Spacecraft.WOD_LAYOUT);
-		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, records[0].MAX_DATA_LENGTH, reverse);  
-		return null;
+		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_LAYOUT);
 	}
 
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
-		int i = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
-		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_RAD_DATA_LENGTH, reverse);
-		return null;
+			return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.RAD_LAYOUT);
+	}
+	
+	public String[][] getWODRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
+		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_RAD_LAYOUT);
 	}
 	
 	/**
@@ -404,10 +399,7 @@ public class SatPayloadStore {
 	 * @throws IOException 
 	 */
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
-		int i = fox.getLayoutIdxByName(Spacecraft.RAD2_LAYOUT);
-		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_HERCI_HK_DATA_LENGTH+2, reverse); 
-		return null;
+		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.RAD2_LAYOUT);
 	}
 
 	/**
@@ -420,10 +412,15 @@ public class SatPayloadStore {
 	 * @throws IOException 
 	 */
 	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
-		int i = fox.getLayoutIdxByName(Spacecraft.WOD_RAD2_LAYOUT);
+		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_RAD2_LAYOUT);
+	}
+	
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		BitArrayLayout l = fox.getLayoutByName(layout);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, WodRadiationTelemetry.MAX_RAD_TELEM_BYTES, reverse); 
-		return null;
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, l.fieldName.length, reverse);
+		return null;	
 	}
 	
 	/**

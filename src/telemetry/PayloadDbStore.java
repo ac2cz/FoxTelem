@@ -987,6 +987,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public String[][] getWODRadData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 

@@ -609,7 +609,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 
 				if (foxId != 0)
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 						parseFrames();
