@@ -68,6 +68,9 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 				
 		FoxBPSKFrame bpskFrame = new FoxBPSKFrame();
 		bpskFrame.addRawFrame(rawFrame);
+//		String os = System.getProperty("os.name").toLowerCase();
+//		boolean b = Frame.highSpeedRsDecode(frameSize, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, "FoxTelem " + Config.VERSION + " (" + os + ")");
+//		Log.println("SELF RS CHECK:" + b);
 		return bpskFrame;
 	}
 }

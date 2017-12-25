@@ -207,13 +207,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 				}
 				
 				if (readingParity) {
-					if (rsNum==0) {
-				//		Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
-				//		Log.println(""+codeWords[rsNum].getByte(f));
+					// Need to offset the parity bytes according to the padding.
+					// This is different for Fox-1E vs others with HS
+					// The first pad is the standard.  Any with larger pad need offset
+					if (rsPadding[0] == rsPadding[rsNum] ) { // we have the same padding
 						rawFrame[i] = codeWords[rsNum++].getByte(f);
-					} else {
-				//		Log.print(i+ " RS: "+rsNum+ " - " + (f-1) + " :"); 
-				//		Log.println(""+codeWords[rsNum].getByte(f-1));
+					} else { // we have 1 bit of extra pad
 						rawFrame[i] = codeWords[rsNum++].getByte(f-1);
 					}
 				} else {

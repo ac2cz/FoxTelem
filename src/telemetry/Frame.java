@@ -532,8 +532,12 @@ public abstract class Frame implements Comparable<Frame> {
 		} else if(length == PSK_FRAME_LEN) {
 			// High Speed Frame
 			// Log.println("RS Decode for: " + length/8 + " byte frame..");
-			if (false && ServerConfig.highSpeedRsDecode)
-				if (!highSpeedRsDecode(FoxBPSKFrame.MAX_FRAME_SIZE, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, FoxBPSKBitStream.RS_PADDING, rawFrame, demodulator)) {
+			int[] rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
+			rsPadding[0] = 64;
+			rsPadding[1] = 64;
+			rsPadding[2] = 65;
+			if (ServerConfig.highSpeedRsDecode)
+				if (!highSpeedRsDecode(FoxBPSKFrame.MAX_FRAME_SIZE, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
 					Log.println("BPSK RS Decode Failed");
 					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
 				}
