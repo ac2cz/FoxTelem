@@ -528,8 +528,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
 					if (moduleType == DisplayModule.DISPLAY_WOD_VULCAN) {
-						Log.errorDialog("NOT YET IMPLEMENTED", "Need to define TELEM layout for WOD RAD and pass to the graph");
-						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD_RAD, fox, plotType);
+					//	Log.errorDialog("NOT YET IMPLEMENTED", "Need to define TELEM layout for WOD RAD and pass to the graph");
+						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD_RAD_TELEM_DATA, fox, plotType);
 					} else
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, plotType);
 				}

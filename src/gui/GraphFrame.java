@@ -656,6 +656,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			layout = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
 		else if (plType == FoxFramePart.TYPE_WOD_RAD)
 			layout = fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA)
+			layout = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
 		return layout;
 	}
 	
