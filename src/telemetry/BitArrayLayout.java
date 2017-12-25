@@ -40,6 +40,7 @@ import common.Log;
  */
 public class BitArrayLayout {
 	public int NUMBER_OF_FIELDS = 0;
+	public static int ERROR_POSITION = -1;
 	
 	public String fileName;
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
@@ -130,12 +131,12 @@ public class BitArrayLayout {
 	}
 	
 	public int getConversionByName(String name) {
-		int pos = -1;
+		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
-		if (pos == -1) {
+		if (pos == ERROR_POSITION) {
 			return BitArrayLayout.CONVERT_NONE;
 		} else {
 			return (conversion[pos]);
@@ -143,25 +144,38 @@ public class BitArrayLayout {
 	}
 
 	public String getUnitsByName(String name) {
-		int pos = -1;
+		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
-		if (pos == -1) {
+		if (pos == ERROR_POSITION) {
 			return "";
 		} else {
 			return (fieldUnits[pos]);
 		}
 	}
 	
-	public String getShortNameByName(String name) {
-		int pos = -1;
+	public int getPositionByName(String name) {
+		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
-		if (pos == -1) {
+		if (pos == ERROR_POSITION) {
+			return ERROR_POSITION;
+		} else {
+			return pos;
+		}
+	}
+	
+	public String getShortNameByName(String name) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == ERROR_POSITION) {
 			return "";
 		} else {
 			return (shortName[pos]);

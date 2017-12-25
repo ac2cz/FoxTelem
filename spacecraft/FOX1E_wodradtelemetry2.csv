@@ -25,7 +25,7 @@
 23,RAD,REM_UPSETS,16,NONE,1,REM (Experiment 3),4,5,5,Memory Errors,Cumulative number of memory upsets in REM3 Experiment
 24,RAD,pad1,253,NONE,0,NONE,0,0,0,pad1,None
 25,RAD,exp1BoardNum,3,NONE,0,VU Controller,1,4,0,Active Board,Which Experiment Board is Active
-26,RAD,WODTimestampReset,16,NONE,0,NONE,0,0,0,None,None
-27,RAD,WODTimestampUptime,25,s,0,NONE,0,0,0,None,None
-28,RAD,WodCRCError,1,NONE,0,NONE,0,0,0,None,None
+26,RAD,WODTimestampReset,16,NONE,0,VU Controller,1,5,0,Fox WOD Resets,Reset when this WOD record was captured
+27,RAD,WODTimestampUptime,25,s,0,VU Controller,1,6,0,Fox WOD Uptime,Uptime when this WOD record was captured
+28,RAD,WodCRCError,1,NONE,0,VU Controller,1,7,0,CRC Error,Memory error (WOD only)
 29,RAD,pad3,6,NONE,0,NONE,0,0,0,Byte 65,None

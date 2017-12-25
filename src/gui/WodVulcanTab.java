@@ -1,10 +1,13 @@
 package gui;
 
+import javax.swing.JTable;
+
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.FoxFramePart;
+import telemetry.RadiationTelemetry;
 
 public class WodVulcanTab extends VulcanTab {
 
@@ -53,6 +56,16 @@ public class WodVulcanTab extends VulcanTab {
 		MainWindow.frame.repaint();
 	}
 	
+	protected void displayRow(JTable table, int row) {
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+    	//Log.println("RESET: " + reset);
+    	//Log.println("UPTIME: " + uptime);
+    	int reset = (int)reset_l;
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD2_LAYOUT), false);
+    	
+    	table.setRowSelectionInterval(row, row);
+	}
 	
 	@Override
 	public void run() {

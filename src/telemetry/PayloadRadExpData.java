@@ -34,6 +34,11 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	public static final int MAX_PAYLOAD_RAD_SIZE = 58;
 	
+	public static final String EXP1_BOARD_NUM = "exp1BoardNum";
+	public static final String WOD_RESETS = "WODTimestampReset";
+	public static final String WOD_UPTIME = "WODTimestampUptime";
+	public static final String WOD_CRC_ERROR = "WodCRCError";
+	
 	public PayloadRadExpData(BitArrayLayout lay) {
 		super(lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
@@ -51,7 +56,7 @@ public class PayloadRadExpData extends FoxFramePart {
 	}
 	
 	protected void init() {
-		fieldValue = new int[MAX_PAYLOAD_RAD_SIZE];
+		fieldValue = new int[layout.fieldName.length];
 		type = TYPE_RAD_EXP_DATA;
 	}
 	
@@ -68,11 +73,14 @@ public class PayloadRadExpData extends FoxFramePart {
 	 * For Fox 1-A and Fox-1C If byte 21 onwards is zero then this is telemetry.  Zeros are not allowed in the packet format because of the
 	 * COBS routine.  So if we find zeros, this is telemetry
 	 * Fox-1D has Housekeeping telemetry.  We can never confuse this with packets.  So return true.
+	 * Fox-1E does not use packets.  All payloads are telemetry
 	 * Fox-1B fields 11 - 20 are zero (because there is no VUC Exp 1.  We also have not tested or used packets, so assume true
 	 * @return
 	 */
 	public boolean isTelemetry() {
-		if (id == Spacecraft.FOX1D) {
+		if (id == Spacecraft.FOX1E) {
+			return true;
+		} else if (id == Spacecraft.FOX1D) {
 			return true;
 		} else
 		if (id == Spacecraft.FOX1B) {
@@ -84,6 +92,45 @@ public class PayloadRadExpData extends FoxFramePart {
 		return true;
 	}
 	
+	protected void calcFox1ETelemetry(RadiationTelemetry radTelem) {
+		for (int k=0; k<10; k++) { // add the first 10 bytes 
+			radTelem.addNext8Bits(fieldValue[k]);
+		}
+		radTelem.copyBitsToFields();
+		int offset=0;
+		if (radTelem.getRawValue("State2") == 3)  // 3 = Active
+			offset=10;
+		else if (radTelem.getRawValue("State3") == 3)
+			offset=20;
+		else if (radTelem.getRawValue("State4") == 3)
+			offset=30;
+
+		// Pretend there is a gap, so that the layout works like Fox-1B
+		for (int k=10; k<10+offset; k++) { 
+			radTelem.addNext8Bits(0);
+		}
+		// Now flow the rest of the data in
+		for (int k=10+offset; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+			radTelem.addNext8Bits(fieldValue[k]);
+		}
+		radTelem.copyBitsToFields();
+		// Now we copy the extra Fox Fields at the end, but we put them directly in the fields.  Fox computer is little endian, but the data so far
+		// was big endian.  We could remember that and convert each part correctly, or we can leverage the fact that the extra Fox Fields we already
+		// converted correctly in the core radiation  record.
+		// Note that subsequently calling copyBitsToFields will eradicate this copy, so we add a BLOCK COPY BITS boolean
+		radTelem.blockCopyBits = true;
+		copyFieldValue(EXP1_BOARD_NUM, radTelem);
+		copyFieldValue(WOD_RESETS, radTelem);
+		copyFieldValue(WOD_UPTIME, radTelem);
+		copyFieldValue(WOD_CRC_ERROR, radTelem);
+	}
+	
+	private void copyFieldValue(String field, RadiationTelemetry radTelem) {
+		int pos = radTelem.layout.getPositionByName(field);
+		int val = getRawValue(field);
+		if (pos != BitArrayLayout.ERROR_POSITION && val != BitArrayLayout.ERROR_POSITION) radTelem.fieldValue[pos] = val;
+	}
+	
 	/**
 	 * Calculate the telemetry and return it
 	 * @return
@@ -93,26 +140,7 @@ public class PayloadRadExpData extends FoxFramePart {
 		if (id == Spacecraft.FOX1E) {
 			// We cheat because the layout has each experiment 10 bytes appart but the 10 comes in the same 10 bytes.  This is in contrast to 1A and 1B
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
-			for (int k=0; k<10; k++) { // add the first 10 bytes 
-				radTelem.addNext8Bits(fieldValue[k]);
-			}
-			radTelem.copyBitsToFields();
-			int offset=0;
-			if (radTelem.getRawValue("State2") == 3)  // 3 = Active
-				offset=10;
-			else if (radTelem.getRawValue("State3") == 3)
-				offset=20;
-			else if (radTelem.getRawValue("State4") == 3)
-				offset=30;
-
-			// Pretend there is a gap, so that the layout works like Fox-1B
-			for (int k=10; k<10+offset; k++) { 
-				radTelem.addNext8Bits(0);
-			}
-			// Now flow the rest of the data in
-			for (int k=10+offset; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
-				radTelem.addNext8Bits(fieldValue[k]);
-			}
+			calcFox1ETelemetry(radTelem);
 			return radTelem;
 		} else {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));

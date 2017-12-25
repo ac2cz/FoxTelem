@@ -422,7 +422,7 @@ public class SatPayloadStore {
 	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.WOD_RAD2_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, RadiationTelemetry.MAX_RAD_TELEM_BYTES, reverse); 
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, WodRadiationTelemetry.MAX_RAD_TELEM_BYTES, reverse); 
 		return null;
 	}
 	

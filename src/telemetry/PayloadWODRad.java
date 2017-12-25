@@ -12,9 +12,8 @@ import predict.PositionCalcException;
 import uk.me.g4dpz.satellite.SatPos;
 
 public class PayloadWODRad extends PayloadRadExpData {
-	public static final String WOD_RESETS = "WODTimestampReset";
-	public static final String WOD_UPTIME = "WODTimestampUptime";
 
+	
 	public PayloadWODRad(BitArrayLayout lay) {
 		super(lay);
 		// TODO Auto-generated constructor stub
@@ -53,12 +52,27 @@ public class PayloadWODRad extends PayloadRadExpData {
 	
 	public WodRadiationTelemetry calculateTelemetryPalyoad() {
 		WodRadiationTelemetry radTelem = new WodRadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
+		calcFox1ETelemetry(radTelem);
+		/*
 		for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
+		radTelem.copyBitsToFields();
+		// Now we copy the extra Fox Fields at the end, but we put them directly in the fields.  Fox computer is little endian, but the data so far
+		// was big endian.  We could remember that and convert each part correctly, or we can leverage the fact that the extra Fox Fields we already
+		// converted correctly in the core radiation  record.
+		// Note that subsequently calling copyBitsToFields will eradicate this copy, so we add a BLOCK COPY BITS boolean
+		radTelem.blockCopyBits = true;
+		copyFieldValue(EXP1_BOARD_NUM, radTelem);
+		copyFieldValue(WOD_RESETS, radTelem);
+		copyFieldValue(WOD_UPTIME, radTelem);
+		copyFieldValue(WOD_CRC_ERROR, radTelem);
+		*/
 		return radTelem;
 		
 	}
+	
+	
 
 	@Override
 	public String toString() {
@@ -74,38 +88,6 @@ public class PayloadWODRad extends PayloadRadExpData {
 			s = s + layout.fieldName[i] + ": " + fieldValue[i] + ",   ";
 			if ((i+1)%6 == 0) s = s + "\n";
 		}
-		return s;
-	}
-
-	/**
-	 * Output the set of fields in this framePart as a set of comma separated values in a string.  This 
-	 * can then be written to a file
-	 * @return
-	 */
-	public String toFile() {
-		copyBitsToFields();
-		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," +  type + "," ;
-		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
-		}
-		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
-		return s;
-	}
-	
-	public String getInsertStmt() {
-		copyBitsToFields();
-		String s = new String();
-		s = s + " (captureDate,  id, resets, uptime, type, \n";
-		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + layout.fieldName[i] + ",\n";
-		}
-		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
-		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
-		for (int i=0; i < fieldValue.length-1; i++) {
-			s = s + fieldValue[i] + ",\n";
-		}
-		s = s + fieldValue[fieldValue.length-1] + ")\n";
 		return s;
 	}
 	

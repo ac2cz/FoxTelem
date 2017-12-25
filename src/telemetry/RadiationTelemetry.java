@@ -324,7 +324,8 @@ public class RadiationTelemetry extends FoxFramePart {
 	public static final int TELEM_BYTES = 20;
 	public static final int MAX_HERCI_HK_DATA_LENGTH = 46;
 	public static final int MAX_RAD_TELEM_BYTES = 58;
-	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
+	//public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;
+	boolean blockCopyBits = false;
 	
 	public static final String[] herciSource = {
 			"PANIC",
@@ -520,6 +521,11 @@ public class RadiationTelemetry extends FoxFramePart {
 		
 		}
 		return s;
+	}
+	
+	public void copyBitsToFields() {
+		if (blockCopyBits) return;
+		super.copyBitsToFields();
 	}
 
 	@Override

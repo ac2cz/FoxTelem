@@ -50,11 +50,12 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_CAMERA_DATA = 5;
 	public static final int TYPE_RAD_EXP_DATA = 4; // This is both Vulcan and HERCI
 	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
-	public static final int TYPE_RAD_TELEM_DATA = 7; 
+	public static final int TYPE_RAD_TELEM_DATA = 7;  // Translated both Vulcan and HERCI HK
 	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
 	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
 	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
 	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
 	
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
