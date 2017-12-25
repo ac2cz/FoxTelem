@@ -66,6 +66,7 @@ public class SatPayloadDbStore {
 	public static String PICTURE_LINES = "PICTURE_LINES_IDX";
 	public static String WOD_LOG = "WODTELEMETRY";
 	public static String WOD_RAD_LOG = "WODRADTELEMETRY";
+	public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -79,6 +80,7 @@ public class SatPayloadDbStore {
 	public String pictureLinesTableName;
 	public String wodTableName;
 	public String wodRadTableName;
+	public String wodRadTelemTableName;
 	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
@@ -91,6 +93,7 @@ public class SatPayloadDbStore {
 	boolean updatedCamera = true;
 	boolean updatedWod = true;
 	boolean updatedWodRad = true;
+	boolean updatedWodRadTelem = true;
 	
 	PayloadDbStore payloadDbStore;
 	
@@ -114,6 +117,7 @@ public class SatPayloadDbStore {
 		pictureLinesTableName = "Fox"+foxId+PICTURE_LINES;
 		wodTableName = "Fox"+foxId+WOD_LOG;
 		wodRadTableName = "Fox"+foxId+WOD_RAD_LOG;
+		wodRadTelemTableName = "Fox"+foxId+WOD_RAD_TELEM_LOG;
 		initPayloadFiles();
 	}
 	
@@ -137,6 +141,7 @@ public class SatPayloadDbStore {
 		if (fox.foxId == Spacecraft.FOX1E) {
 			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), true);
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), true);
+			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), true);
 		}
 	}
 
@@ -283,6 +288,16 @@ public class SatPayloadDbStore {
 			return false;
 		}
 		return true;
+	}
+
+	private boolean addWodRadRecord(PayloadWODRad f)  {
+		if (insert(wodRadTableName,f)) {
+			WodRadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+			return add(radiationTelemetry);
+		} else {
+			return false;
+		}
 	}
 
 	/**
@@ -478,10 +493,12 @@ public class SatPayloadDbStore {
 			setUpdatedMin(true);
 			return insert(minTableName,f);
 		} else if (f instanceof PayloadWODRad ) {
-			return insert(wodRadTableName, (PayloadWODRad)f);			
+			return addWodRadRecord((PayloadWODRad)f);			
 		} else if (f instanceof PayloadRadExpData ) {
 			setUpdatedRad(true);
 			return addRadRecord((PayloadRadExpData)f);
+		} else if (f instanceof WodRadiationTelemetry ) {
+			return insert(wodRadTelemTableName, f);
 		} else if (f instanceof RadiationTelemetry ) {
 			setUpdatedRadTelem(true);
 			return insert(radTelemTableName, f);
