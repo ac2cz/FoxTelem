@@ -335,7 +335,9 @@ longer send telemetry.
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HARD_ERROR) {
 			s = hardErrorString(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR) {
-			s = softErrorString(getRawValue(name), true);
+			s = softErrorStringFox1A(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
+			s = softErrorString84488(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
 			s = icrCommandCount(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
@@ -453,6 +455,8 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_HARD_ERROR:
 			return rawValue;
 		case BitArrayLayout.CONVERT_SOFT_ERROR:
+			return rawValue;
+		case BitArrayLayout.CONVERT_SOFT_ERROR_84488:
 			return rawValue;
 		case BitArrayLayout.CONVERT_ICR_COMMAND_COUNT:
 			return rawValue;
@@ -816,14 +820,14 @@ longer send telemetry.
 	 * @param rawValue
 	 * @return
 	 */
-	public static String softErrorString(int rawValue, boolean shortString) {
+	public static String softErrorStringFox1A(int rawValue, boolean shortString) {
 		// Soft error is 4 8 bit numbers 
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
 			int DACoverflows = rawValue & 0xff;
 			int I2CRetries = (rawValue >> 8) & 0xff;
 			int SPIRetries = (rawValue >> 16) & 0xff;
-			int MramCRCs = (rawValue >> 20) & 0xff;
+			int MramCRCs = (rawValue >> 24) & 0xff;
 
 			if (shortString)
 				s = s + "dac " + DACoverflows + " i2c " + I2CRetries + " spi " + SPIRetries + " mr " + MramCRCs;
@@ -832,20 +836,57 @@ longer send telemetry.
 		}
 		return s;
 	}
+	
+	public static String softErrorString84488(int rawValue, boolean shortString) {
+		// Soft error is 4 8 bit numbers 
+		String s = new String();
+		if (rawValue != ERROR_VALUE) {
+			int DACoverflows = rawValue & 0xff;
+			int I2C1Retries = (rawValue >> 4) & 0x0f;
+			int I2C2Retries = (rawValue >> 4) & 0x0f;
+			int SPIRetries = (rawValue >> 16) & 0xff;
+			int MramCRCs = (rawValue >> 24) & 0xff;
 
-	public static String[] softErrorStringArray(int rawValue, boolean shortString) {
+			if (shortString)
+				s = s + "dac " + DACoverflows + " i2c1 " + I2C1Retries + " i2c2 " + I2C2Retries + " spi " + SPIRetries + " mr " + MramCRCs;
+			else
+				s = s + "DAC Overflows: " + DACoverflows + "  I2C1 Retries: " + I2C1Retries + "  I2C2 Retries: " + I2C2Retries+ "  SPI Retries: " + SPIRetries + "  MRAM CRCs: " + MramCRCs;
+		}
+		return s;
+	}
+
+	public static String[] softErrorStringArrayFox1A(int rawValue, boolean shortString) {
 		// Soft error is 4 8 bit numbers 
 		String[] s = new String[4];
 		if (rawValue != ERROR_VALUE) {
 			int DACoverflows = rawValue & 0xff;
 			int I2CRetries = (rawValue >> 8) & 0xff;
 			int SPIRetries = (rawValue >> 16) & 0xff;
-			int MramCRCs = (rawValue >> 20) & 0xff;
+			int MramCRCs = (rawValue >> 24) & 0xff;
 
 			s[0] = Integer.toString(DACoverflows); 
 			s[1] = Integer.toString(I2CRetries);
 			s[2] = Integer.toString(SPIRetries);
 			s[3] = Integer.toString(MramCRCs);
+		}
+		return s;
+	}
+	
+	public static String[] softErrorStringArray84488(int rawValue, boolean shortString) {
+		// Soft error is 5 numbers 
+		String[] s = new String[5];
+		if (rawValue != ERROR_VALUE) {
+			int DACoverflows = rawValue & 0xff;
+			int I2C1Retries = (rawValue >> 4) & 0x0f;
+			int I2C2Retries = (rawValue >> 4) & 0x0f;
+			int SPIRetries = (rawValue >> 8) & 0xff;
+			int MramCRCs = (rawValue >> 8) & 0xff;
+
+			s[0] = Integer.toString(DACoverflows); 
+			s[1] = Integer.toString(I2C1Retries);
+			s[2] = Integer.toString(I2C2Retries);
+			s[3] = Integer.toString(SPIRetries);
+			s[4] = Integer.toString(MramCRCs);
 		}
 		return s;
 	}

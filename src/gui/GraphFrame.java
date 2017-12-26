@@ -617,7 +617,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	private boolean textDisplay(int conversionType) {
 		if (conversionType == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC || conversionType == BitArrayLayout.CONVERT_HARD_ERROR || 
-				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR || conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
+				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR || conversionType == BitArrayLayout.CONVERT_SOFT_ERROR_84488 ||conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
 			return true;
 		return false;
 	}

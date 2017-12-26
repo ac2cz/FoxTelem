@@ -99,6 +99,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_WOD_STORED = 36;
 	public static final int CONVERT_FOX1E_TXRX_TEMP = 37;
 	public static final int CONVERT_FOX1E_PA_CURRENT = 38;
+	public static final int CONVERT_SOFT_ERROR_84488 = 39;
 	
 	/**
 	 * Create an empty layout for manual init
