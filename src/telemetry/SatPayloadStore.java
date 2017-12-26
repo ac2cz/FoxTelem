@@ -467,16 +467,8 @@ public class SatPayloadStore {
 	*/
 	
 	public void offloadSegments() {
-		rtRecords.offloadSegments();
-		maxRecords.offloadSegments();
-		minRecords.offloadSegments();
-		radRecords.offloadSegments();
-		radTelemRecords.offloadSegments();
-		if (fox.hasHerci()) {
-			herciRecords.offloadSegments();
-			herciHeaderRecords.offloadSegments();
-			herciPacketRecords.offloadSegments();
-		}
+		for (int i=0; i<fox.numberOfLayouts; i++)
+			records[i].offloadSegments();
 	}
 
 	/**
