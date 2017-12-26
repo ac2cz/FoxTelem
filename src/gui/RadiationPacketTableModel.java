@@ -24,67 +24,14 @@ import javax.swing.table.AbstractTableModel;
  *
  */
 @SuppressWarnings("serial")
-public class RadiationPacketTableModel extends AbstractTableModel {
-	String[] columnNames = {"RESET", "UPTIME", "TYPE", "SEQUENCE", "DATA" };
-    private String[][] data = null;
-
-    RadiationPacketTableModel() {
+public class RadiationPacketTableModel extends FoxTelemTableModel {
+ 
+	RadiationPacketTableModel() {
+		columnNames = new String[5];
+		columnNames[0] = "RESET";
+		columnNames[1] = "UPTIME";
+		columnNames[2] = "TYPE";
+		columnNames[3] = "SEQUENCE";
+		columnNames[4] = "DATA";
 	}
-	
-    public void setData(String[][] d) { 
-    	data = d;
-    	fireTableDataChanged();
-    }
-    
-    public int getColumnCount() {
-        return columnNames.length;
-    }
-
-    public int getRowCount() {
-    	if (data != null)
-    		return data.length;
-    	else 
-    		return 0;
-    }
-    public String getColumnName(int col) {
-        return columnNames[col];
-    }
-
-    public Object getValueAt(int row, int col) {
-    	if (data != null && data.length > 0)
-    		return data[row][col];
-    	else 
-    		return null;
-    }
-
-    @SuppressWarnings({ "unchecked", "rawtypes" })
-	public Class getColumnClass(int c) {
-    	Object o = getValueAt(0, c);
-    	if (o != null)
-    		return o.getClass();
-    	else 
-    		return null;
-    }
-
-    /*
-     * Don't need to implement this method unless your table's
-     * editable.
-     */
-    public boolean isCellEditable(int row, int col) {
-        //Note that the data/cell address is constant,
-        //no matter where the cell appears onscreen.
-        
-        return false;
-        
-    }
-
-    /*
-     * Don't need to implement this method unless your table's
-     * data can change.
-     */
-    public void setValueAt(String value, int row, int col) {
-        data[row][col] = value;
-        fireTableCellUpdated(row, col);
-    }
-    
 }

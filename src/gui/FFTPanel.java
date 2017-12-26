@@ -17,7 +17,6 @@ import common.Config;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
 
@@ -82,6 +81,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	int topBorder = Config.graphAxisFontSize;
 	int labelWidth = 4 * Config.graphAxisFontSize;
 
+	int zoomFactor = 1;
+	public static final int MAX_ZOOM_FACTOR = 10;
+	public static final int MIN_ZOOM_FACTOR = 1;
+	
 	int graphWidth;
 	int graphHeight;
 	
@@ -103,7 +106,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		addMouseListener(this);
 		String TUNE_LEFT = "left";
 		String TUNE_RIGHT = "right";
-		InputMap inMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		InputMap inMap = this.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		inMap.put(KeyStroke.getKeyStroke("LEFT"), TUNE_LEFT);
 		inMap.put(KeyStroke.getKeyStroke("RIGHT"), TUNE_RIGHT);
 		ActionMap actMap = this.getActionMap();
@@ -129,6 +132,20 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	         //       printBin();
 	        }
 	    });
+	}
+	
+	public void zoomIn() {
+		zoomFactor++;
+		if (zoomFactor > MAX_ZOOM_FACTOR)
+			zoomFactor = MAX_ZOOM_FACTOR;
+		System.err.println(zoomFactor);
+	}
+	
+	public void zoomOut() {
+		zoomFactor--;
+		if (zoomFactor < MIN_ZOOM_FACTOR)
+			zoomFactor = MIN_ZOOM_FACTOR;
+		System.err.println(zoomFactor);
 	}
 	
 	@SuppressWarnings("unused")
@@ -192,7 +209,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	private void retune() {
 		// auto tune
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK) > TRACK_SIGNAL_THRESHOLD) {
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIG) > TRACK_SIGNAL_THRESHOLD) {
 			if (Config.passManager.getState() == PassManager.DECODE  ||
 					Config.passManager.getState() == PassManager.ANALYZE) {
 				tuneDelay++;
@@ -206,11 +223,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay = 0;
 				// move half the distance to the bin
 				int targetBin = 0;
-				if (Config.findSignal && !(Config.passManager.getState() == PassManager.DECODE  ||
-					Config.passManager.getState() == PassManager.ANALYZE))
-					targetBin = rfData.getBinOfStrongestSignal();
+				if (Config.findSignal)
+					targetBin = rfData.getBinOfPeakSignal();  // peak is the best signal in the decode band for the current sat
 				else
-					targetBin = rfData.getBinOfPeakSignal();
+					targetBin = rfData.getBinOfStrongestSignal(); // strongest is the best signal across the whole spectrum
 				/*
 				if (Config.findSignal)
 					targetBin = rfData.getBinOfStrongestSignal();
@@ -276,7 +292,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		super.paintComponent( g ); // call superclass's paintComponent  
 		if (iqSource == null) return;
 		
-		sideBorder = 2 * Config.graphAxisFontSize;
+		sideBorder = 3 * Config.graphAxisFontSize;
 		topBorder = Config.graphAxisFontSize;
 		labelWidth = 4 * Config.graphAxisFontSize;
 
@@ -294,9 +310,13 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int numberOfTimeLabels = graphWidth/labelWidth;
 		int zeroPoint = graphHeight;
 		
+		if (zoomFactor != 1) {
+			// we zoom around the tuned frequency
+			
+		}
 		
 		float maxValue = 10;
-		float minValue = -100;
+		float minValue = -120;
 
 		int labelHeight = 14;
 		int sideLabel = 3;
@@ -350,28 +370,42 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			g2.drawLine(lower+sideBorder, topBorder, lower+sideBorder, zeroPoint);
 			g2.drawLine(upper+sideBorder, topBorder, upper+sideBorder, zeroPoint);
 
-			// draw the upper and lower freq bounds
-			/*  FIXME THIS BREAKS THE WAV IQ DECODER....
-			 * 
-			 */ 
+			
 			if (Config.findSignal) {
+
 				if (fox != null) {
 					g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
 				} else
 					g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
-				g2.setColor(Config.PURPLE);
+				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (sat.track) {
+						int fromSatBin = iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
+						int toSatBin = iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
+					
+						if (fromSatBin > SourceIQ.FFT_SAMPLES/2 && toSatBin < SourceIQ.FFT_SAMPLES/2) {
+							toSatBin = 0;
+						}
+						
+						g2.setColor(Config.PURPLE);
 
-				int upperSelection = getSelectionFromBin(Config.toBin);
-				int lowerSelection = getSelectionFromBin(Config.fromBin);
+						int upperSelection = getSelectionFromBin(toSatBin);
+						int lowerSelection = getSelectionFromBin(fromSatBin);
 
-				if (upperSelection != lowerSelection) {
-				c = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
-				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
-				c = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
-				g2.drawLine(c+sideBorder, topBorder, c+sideBorder, zeroPoint);
+						if (upperSelection != lowerSelection) {
+							int c1 = getRatioPosition(0, fftSamples, upperSelection, graphWidth);
+							g2.drawLine(c1+sideBorder, topBorder+5, c1+sideBorder, zeroPoint);
+							int c2 = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
+							g2.drawLine(c2+sideBorder, topBorder+5, c2+sideBorder, zeroPoint);
+							int c3 = (c1 + c2)/2;
+							c3 = c3 - sat.name.length()/3*Config.graphAxisFontSize;
+							g.drawString(sat.name, c3+sideBorder, topBorder + 15 );
+						}
+					}
 				}
 			}
+			
 			
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);
@@ -461,7 +495,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
-			y=graphHeight-y-topBorder;
+			y=graphHeight-y+topBorder;
 			if (i == 1) {
 				lastx=x;
 				lasty=y;
@@ -484,7 +518,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			y = getRatioPosition(minValue, maxValue, psd[i], graphHeight);
 			
 			// psd 
-			y=graphHeight-y-topBorder;
+			y=graphHeight-y+topBorder;
 			if (i == 1) {
 				lastx=x;
 				lasty=y;

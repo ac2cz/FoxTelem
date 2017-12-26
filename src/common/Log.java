@@ -51,6 +51,8 @@ public class Log {
 	public static String logFile = "FoxTelemDecoder";
 	public static Thread.UncaughtExceptionHandler uncaughtExHandler;
 	public static boolean showGuiDialogs = true;  // if true popup windows are shown for serious errors.  If false ALERTs are written.
+	public static boolean alertsAreFatal = true;
+	
 	/**
 	 * Initialise the logger and create a logfile with the passed name
 	 * @param file
@@ -117,7 +119,8 @@ public class Log {
 			out.write(fileDateStamp() + message + System.getProperty("line.separator") );
 			out.flush();
 			out.close();
-			System.exit(9);
+			if (alertsAreFatal)
+				System.exit(9);
 		} catch (Exception e) { // catch all exceptions at this point, otherwise we can go into a loop
 			System.err.println("FATAL ERROR: Cannot write log file: FoxTelemDecoder.log\n"
 					+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory);
@@ -127,7 +130,8 @@ public class Log {
 	        		+ "Perhaps the disk is full or the directory is not writable:\n" + Config.logFileDirectory + "\n\n"
 	        				+ "You can reset FoxTelem by deleting the settings file (might want to back it up first):\n"
 	        				+ Config.homeDirectory+ File.separator+"FoxTelem.properties");
-	        System.exit(1);
+	        if (alertsAreFatal)
+	        	System.exit(1);
 		}
 	}
 	
@@ -171,6 +175,23 @@ public class Log {
 
 	}
 	
+	public static int optionYNdialog(String title, String message) {
+		if (!showGuiDialogs)
+			return 1; // Default is no if a dialog is called from server
+		Object[] options = {"Yes",
+        "No"};
+		int n = JOptionPane.showOptionDialog(
+				MainWindow.frame,
+				message.toString(),
+				title,
+				JOptionPane.YES_NO_OPTION, 
+			    JOptionPane.QUESTION_MESSAGE,
+			    null,
+			    options,
+			    options[1]);
+		return n;
+	}
+	
 	public static void errorDialog(String title, String message) {
 		dialog(title, message, JOptionPane.ERROR_MESSAGE );
 	}
@@ -179,7 +200,7 @@ public class Log {
 		dialog(title, message, JOptionPane.INFORMATION_MESSAGE );
 	}
 	
-	public static void dialog(String title, String message, int type) {
+	private static void dialog(String title, String message, int type) {
 		try {
 		if (showGuiDialogs)
 		JOptionPane.showMessageDialog(MainWindow.frame,

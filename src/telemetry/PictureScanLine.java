@@ -103,28 +103,36 @@ public class PictureScanLine implements Comparable<PictureScanLine> {
 	}
 	*/
 	
+	/**
+	 * We are comparing this to another Scanline p
+	 * We return +1 if this comes before p, -1 of it comes after
+	 * if reset is greater than p then this comes after
+	 * if uptime is greater than p uptime then this comes after
+	 * if scanline or picture counter greater then this comes after
+	 * 
+	 */
 	public int compareTo(PictureScanLine p) {
 		if (resets == p.resets && uptime == p.uptime && pictureCounter == p.pictureCounter 
 				&& scanLineNumber == p.scanLineNumber) 
 			return 0;
-		else if (resets < p.resets)
-			return +1;
 		else if (resets > p.resets)
+			return +1;
+		else if (resets < p.resets)
 			return -1;
 		else if (resets == p.resets)	
-			if (uptime < p.uptime)
+			if (uptime > p.uptime)
 				return +1;
-			else if (uptime > p.uptime)
+			else if (uptime < p.uptime)
 				return -1;
 			else if (uptime == p.uptime)
-				if (pictureCounter < p.pictureCounter)
+				if (pictureCounter > p.pictureCounter)
 					return +1;
-				else if (pictureCounter > p.pictureCounter)
+				else if (pictureCounter < p.pictureCounter)
 					return -1;
 				else if (pictureCounter == p.pictureCounter)
-					if (scanLineNumber < p.scanLineNumber)
+					if (scanLineNumber > p.scanLineNumber)
 						return +1;
-					else if (scanLineNumber > p.scanLineNumber)
+					else if (scanLineNumber < p.scanLineNumber)
 						return -1;
 							
 		return -1;

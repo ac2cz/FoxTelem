@@ -1,5 +1,6 @@
 package decoder;
 
+import filter.MatchedFilter;
 import filter.RaisedCosineFilter;
 import filter.WindowedSincFilter;
 import gui.FilterPanel;
@@ -32,6 +33,8 @@ import common.Log;
 public class Fox200bpsDecoder extends FoxDecoder {
 
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
+	public static final int WORD_LENGTH = 10;
+	public static final int SYNC_WORD_LENGTH = 10;
 	private int useFilterNumber;
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
@@ -65,10 +68,12 @@ public class Fox200bpsDecoder extends FoxDecoder {
 			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, Config.filterLength);
 		} else if (useFilterNumber == FilterPanel.MATCHED) {
-			//filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+			filter = new MatchedFilter(audioSource.audioFormat, BUFFER_SIZE);
 			// Experiments have determined that the optimal filter is the WS length 480
-			filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
+			//filter = new WindowedSincFilter(audioSource.audioFormat, BUFFER_SIZE);
 			filter.init(currentSampleRate, Config.filterFrequency, bucketSize*2);
+			Config.filterLength = bucketSize*2;
+			currentFilterLength = Config.filterLength;
 		}
 		
 		//double[] coef = filter.getKernal();
@@ -79,7 +84,7 @@ public class Fox200bpsDecoder extends FoxDecoder {
 	
 	private void setSlowSpeedParameters() {
 		//decodedFrame = new SlowSpeedFrame();
-		foxBitStream = new SlowSpeedBitStream(this);
+		foxBitStream = new SlowSpeedBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
 		BITS_PER_SECOND = SLOW_SPEED_BITS_PER_SECOND;
 		SAMPLE_WINDOW_LENGTH = 70; 
 		bucketSize = currentSampleRate / BITS_PER_SECOND;

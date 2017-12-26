@@ -37,7 +37,7 @@ import telemetry.CameraJpeg;
 @SuppressWarnings("serial")
 public class ImagePanel extends JPanel{
 
-    private BufferedImage image;
+    protected BufferedImage image;
 
     public ImagePanel() {
     	super();

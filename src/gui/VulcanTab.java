@@ -9,17 +9,23 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.InputMap;
 import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
@@ -27,13 +33,15 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadRadExpData;
 import telemetry.RadiationPacket;
 import telemetry.RadiationTelemetry;
 import common.Config;
@@ -63,7 +71,7 @@ import common.FoxSpacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class VulcanTab extends RadiationTab implements ItemListener, Runnable, ListSelectionListener {
+public class VulcanTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String VULCANTAB = "VULCANTAB";
 	private static final String DECODED = "Radiation Payloads Decoded: ";
@@ -73,16 +81,6 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	private String NAME;
 	JLabel lblFramesDecoded;
 		
-	JCheckBox showRawValues;
-	JCheckBox showRawBytes;
-
-	RadiationTableModel radTableModel;
-	RadiationPacketTableModel radPacketTableModel;
-	JTable table;
-	JTable packetTable;
-	JScrollPane packetScrollPane;
-	JScrollPane scrollPane;
-	
 	JPanel healthPanel;
 	JPanel topHalfPackets;
 	JPanel bottomHalfPackets;
@@ -101,14 +99,17 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	boolean displayTelem = true;
 	
-	public VulcanTab(FoxSpacecraft sat)  {
+	RadiationTableModel radTableModel;
+	RadiationPacketTableModel radPacketTableModel;
+	
+	public VulcanTab(FoxSpacecraft sat, int displayType)  {
 		
 		super();
 		fox = (FoxSpacecraft)sat;
 		foxId = fox.foxId;
 		NAME = fox.toString() + " Vanderbilt University Radiation Experiments";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), VULCANTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight");
 		
 		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
@@ -140,10 +141,20 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+		BitArrayLayout rad = null;
+
+		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+			rad = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
+		else
+			rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
+		if (rad == null ) {
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+					+ "" + Spacecraft.RAD2_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			System.exit(1);
+		} else 
 		try {
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_VULCAN);
+			analyzeModules(rad, none, none, displayType);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -166,7 +177,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), VULCANTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -175,10 +186,12 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		healthPanel.setMinimumSize(minimumSize);
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
-				
+	
+		/*
 		showRawValues = new JCheckBox("Display Raw Values", Config.displayRawValues);
 				bottomPanel.add(showRawValues );
 		showRawValues.addItemListener(this);
+		*/
 		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
 		bottomPanel.add(showRawBytes );
 		showRawBytes.addItemListener(this);
@@ -193,12 +206,14 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		else
 			decodePacket.setSelected(true);
 		
-	//	decodeTelem.setMinimumSize(new Dimension(1600, 14));
-	//	decodeTelem.setMaximumSize(new Dimension(1600, 14));
+		// Hide the choice between Telem and Packets to disable the packet decode feature.  This is not used on the live spacecraft
+		decodeTelem.setVisible(false);
+		decodePacket.setVisible(false);
 
 		addBottomFilter();
-		
-		addTables();
+		radTableModel = new RadiationTableModel();
+		radPacketTableModel = new RadiationPacketTableModel();
+		addTables(radTableModel,radPacketTableModel);
 
 		addPacketModules();
 		topHalfPackets.setVisible(false);
@@ -215,8 +230,39 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		panel.add(radioButton);
 		return radioButton;
 	}
+	
+	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel) {
+		super.addTables(radTableModel, radPacketTableModel);
+		TableColumn column = null;
+		column = table.getColumnModel().getColumn(0);
+		column.setPreferredWidth(45);
+		
+		column = table.getColumnModel().getColumn(1);
+		column.setPreferredWidth(55);
+		
+		for (int i=0; i<58; i++) {
+			column = table.getColumnModel().getColumn(i+2);
+			column.setPreferredWidth(25);
+		}
 
-	private void displayFramesDecoded(int u) {
+		column = packetTable.getColumnModel().getColumn(0);
+		column.setPreferredWidth(45);
+		
+		column = packetTable.getColumnModel().getColumn(1);
+		column.setPreferredWidth(55);
+
+		column = packetTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(80);
+
+		column = packetTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(70);
+
+		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(600);
+				
+	}
+
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
 	
@@ -259,101 +305,43 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	
 	private DisplayModule addVulcanExpModule(String title, String number) {
 		DisplayModule mod;
-		mod = new DisplayModule(fox, title, 4, DisplayModule.DISPLAY_VULCAN_EXP);
+		mod = new DisplayModule(fox, title, 4, DisplayModule.DISPLAY_VULCAN);
 		
 		bottomHalfPackets.add(mod);
-		mod.addName(1, "Drift", "EXP" + number + " DRIFT" , DisplayModule.DISPLAY_VULCAN_EXP);
-		mod.addName(2, "Power (mW) ", "EXP" + number + " POWER", DisplayModule.DISPLAY_VULCAN_EXP);
-		mod.addName(3, "State", "EXP" + number + " STATE", DisplayModule.DISPLAY_VULCAN_EXP);
+		mod.addName(1, "Drift", "EXP" + number + " DRIFT" , DisplayModule.DISPLAY_VULCAN);
+		mod.addName(2, "Power (mW) ", "EXP" + number + " POWER", DisplayModule.DISPLAY_VULCAN);
+		mod.addName(3, "State", "EXP" + number + " STATE", DisplayModule.DISPLAY_VULCAN);
 		return mod;
 	}
 	
 	
-	private void addTables() {
-		radTableModel = new RadiationTableModel();
-		
-		table = new JTable(radTableModel);
-		table.setAutoCreateRowSorter(true);
-		
-		radPacketTableModel = new RadiationPacketTableModel();
-		packetTable = new JTable(radPacketTableModel);
-		packetTable.setAutoCreateRowSorter(true);
-		
-		//JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane = new JScrollPane (table, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		table.setFillsViewportHeight(true);
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(scrollPane);
-
-		packetScrollPane = new JScrollPane (packetTable, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		packetTable.setFillsViewportHeight(true);
-		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(packetScrollPane);
-
-		
-		TableColumn column = null;
-		column = table.getColumnModel().getColumn(0);
-		column.setPreferredWidth(45);
-		
-		column = table.getColumnModel().getColumn(1);
-		column.setPreferredWidth(55);
-		
-		for (int i=0; i<58; i++) {
-			column = table.getColumnModel().getColumn(i+2);
-			column.setPreferredWidth(25);
-		}
-
-		column = packetTable.getColumnModel().getColumn(0);
-		column.setPreferredWidth(45);
-		
-		column = packetTable.getColumnModel().getColumn(1);
-		column.setPreferredWidth(55);
-
-		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(80);
-
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
-
-		column = packetTable.getColumnModel().getColumn(4);
-		column.setPreferredWidth(600);
-
-		packetTable.getSelectionModel().addListSelectionListener(this);
-		table.getSelectionModel().addListSelectionListener(this);
-				
-	}
+	
 	
 	protected void parseRadiationFrames() {
 		
-
-
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-			if (data.length > 0)
-				radTableModel.setData(parseRawBytes(data));
+			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+			if (data != null && data.length > 0)
+				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
-				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				if (data != null && data.length > 0)
 					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
-					bottomHalf.setVisible(true);
+//					bottomHalf.setVisible(true);
 			
 			}
 			else {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				if (data !=null && data.length > 0)
 					parsePackets(data);
 					topHalfPackets.setVisible(true);
 					bottomHalfPackets.setVisible(true);
 					topHalf.setVisible(false);
-					bottomHalf.setVisible(false);
+					//	bottomHalf.setVisible(false);
 			
 			}
 		}
@@ -370,8 +358,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	}
 	
 	
-	private void parseTelemetry(String data[][]) {
-		
+	protected void parseTelemetry(String data[][]) {
 		
 		ArrayList<RadiationTelemetry> packets = new ArrayList<RadiationTelemetry>(20);
 		
@@ -395,24 +382,25 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		}
 	
 		// Now put the telemetry packets into the table data structure
-		String[][] packetData = new String[packets.size()][5];
+		long[][] keyPacketData = new long[packets.size()][2];
+		String[][] packetData = new String[packets.size()][3];
 		for (int i=0; i < packets.size(); i++) { 
-			packetData[packets.size()-i-1][0] = ""+packets.get(i).resets;
-			packetData[packets.size()-i-1][1] = ""+packets.get(i).uptime;
-			packetData[packets.size()-i-1][2] = "TELEMETRY";
-			packetData[packets.size()-i-1][3] = ""+packets.get(i).fieldValue[3]; // UPTIME
+			keyPacketData[packets.size()-i-1][0] = packets.get(i).resets;
+			keyPacketData[packets.size()-i-1][1] = packets.get(i).uptime;
+			packetData[packets.size()-i-1][0] = "TELEMETRY";
+			packetData[packets.size()-i-1][1] = ""+packets.get(i).fieldValue[3]; // UPTIME
 			String telem = packets.get(i).toDataString((FoxSpacecraft)fox);
-			packetData[packets.size()-i-1][4] = telem; 
+			packetData[packets.size()-i-1][2] = telem; 
 		}
 
 		if (data.length > 0) {
-			radPacketTableModel.setData(packetData);
+			radPacketTableModel.setData(keyPacketData, packetData);
 		}
-		updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+		//updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 		//updateTab(packets.get(packets.size()-1));
 	}
 	
-	private void parsePackets(String data[][]) {
+	protected void parsePackets(String data[][]) {
 		// We decode the radiation packets
 		// The data returned is a two dimensional array, one row per payload with the first two columns being reset and uptime and the next 58 being data
 		// These are in the order received, so we hope that data carries over from one packet to another, but it may not.
@@ -514,22 +502,23 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 		int lastExpStart = -1;
 		int lastExpEnd = -1;
 		int lastStateChange = -1;
-		String[][] packetData = new String[packets.size()][5];
+		long[][] keyPacketData = new long[packets.size()][2];
+		String[][] packetData = new String[packets.size()][3];
 		for (i=0; i < packets.size(); i++) { 
 			try {
 				packets.get(i).parseRawBytes();
 			} catch (CobsDecodeException e) {
 ///////						Log.println("ERROR: parsing radition bytes in reset: " + packets.get(i).reset + " uptime: " + packets.get(i).uptime + " seq: " + packets.get(i).getSequence());
 			}
-			packetData[packets.size()-i-1][0] = ""+packets.get(i).reset;
-			packetData[packets.size()-i-1][1] = ""+packets.get(i).uptime;
+			keyPacketData[packets.size()-i-1][0] = packets.get(i).reset;
+			keyPacketData[packets.size()-i-1][1] = packets.get(i).uptime;
 			String type = "";
 			type = packets.get(i).getTypeString();
 
-			packetData[packets.size()-i-1][2] = type;
-			packetData[packets.size()-i-1][3] = ""+packets.get(i).fieldValue[1]; // sequence
+			packetData[packets.size()-i-1][0] = type;
+			packetData[packets.size()-i-1][1] = ""+packets.get(i).fieldValue[1]; // sequence
 			String bytes = packets.get(i).getDataString();
-			packetData[packets.size()-i-1][4] = bytes; 
+			packetData[packets.size()-i-1][2] = bytes; 
 			if (packets.get(i).getType() == RadiationPacket.TELEM)
 				lastTelem = i;
 			if (packets.get(i).getType() == RadiationPacket.LEP_START )
@@ -540,7 +529,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				lastStateChange = i;
 		}
 		if (packetData.length > 0) {
-			radPacketTableModel.setData(packetData);
+			radPacketTableModel.setData(keyPacketData,packetData);
 
 			// Now update the modules with the latest packets of each type
 			if (lastTelem != -1) {
@@ -562,29 +551,36 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 			MainWindow.frame.repaint();
 
 		} else {
+			long[][] emptyKey =  {{0,0} };
 			String[][] empty =  {{"","","","",""} };
-			radPacketTableModel.setData(empty);
+			radPacketTableModel.setData(emptyKey, empty);
 		}
 
 	}
 	
-	public void updateTab(FramePart rad) {
+	public void updateTab(FramePart rad, boolean refreshTable) {
 		
-	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
+	//	if (rad != null)
+	//	System.out.println("DISPLAY PAYLOAD FROM payloadStore: Resets " + rad.getResets() + " Uptime: " + rad.getUptime() + "\n" + rad + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
 		}
-//		displayId(rad.getFoxId());
-//		displayUptime(rad.getUptime());
-//		displayResets(rad.getResets());
-//		displayCaptureDate(rad.getCaptureDate());
+
+		if (refreshTable) {
+			//lblLive.setForeground(Config.AMSAT_RED);
+			//lblLive.setText(LIVE);
+		} else {
+			//lblLive.setForeground(Color.BLACK);
+			//lblLive.setText(DISPLAY);
+		}
 	}
 
 	
@@ -608,19 +604,18 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+					updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 				}
 
 				if (foxId != 0)
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
-
-						parseRadiationFrames();
+						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
+						parseFrames();
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs();
+							openGraphs(FoxFramePart.TYPE_RAD_TELEM_DATA);
 							justStarted = false;
 						}
 					}
@@ -631,26 +626,9 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
 		Object source = e.getItemSelectable();
 		
-		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayRawRadData = false;
-			} else {
-				Config.displayRawRadData = true;
-			}
-			if (showRawBytes.isSelected()) {
-				packetScrollPane.setVisible(false); 
-				scrollPane.setVisible(true);
-			} else { 
-				packetScrollPane.setVisible(true);
-				scrollPane.setVisible(false);
-			}
-
-			parseRadiationFrames();
-			
-		}
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -659,10 +637,23 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 				Config.displayRawValues = true;
 			}
 
-			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 			
 		}
+		
 	}
+	
+	protected void displayRow(JTable table, int row) {
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+    	//Log.println("RESET: " + reset);
+    	//Log.println("UPTIME: " + uptime);
+    	int reset = (int)reset_l;
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT), false);
+    	
+    	table.setRowSelectionInterval(row, row);
+	}
+	
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -678,9 +669,11 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, L
 	}
 
 	@Override
-	public void valueChanged(ListSelectionEvent e) {
-		// TODO Auto-generated method stub
+	public void parseFrames() {
+		parseRadiationFrames();
 		
 	}
+
+
 
 }

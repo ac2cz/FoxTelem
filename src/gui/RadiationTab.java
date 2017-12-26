@@ -5,15 +5,29 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
+import javax.swing.JCheckBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
+import javax.swing.table.AbstractTableModel;
+import javax.swing.table.TableColumn;
 
+import common.Config;
 import telemetry.PayloadRadExpData;
 import telemetry.SatPayloadStore;
 
@@ -39,30 +53,17 @@ import telemetry.SatPayloadStore;
  *
  */
 @SuppressWarnings("serial")
-public abstract class RadiationTab extends ModuleTab implements ActionListener {
+public abstract class RadiationTab extends ModuleTab implements MouseListener {
 
-	public int SAMPLES = 100;
-	public int MAX_SAMPLES = 9999;
-	public int MIN_SAMPLES = 1;
-	public long START_UPTIME = 0;
-	public int START_RESET = 0;
-	
-	public static final int DEFAULT_START_RESET = 0;
-	public static final int DEFAULT_START_UPTIME = 0;
-	
 	JPanel topPanel;
-	JPanel bottomPanel;
 	JPanel centerPanel;
-
-	JLabel lblFromReset;
-	JTextField textFromReset;
-	JLabel lblFromUptime;
-	JTextField textFromUptime;
-	
-	JTextField displayNumber2;
-
 	PayloadRadExpData radPayload;
-
+	JTable table;
+	JTable packetTable;
+	JScrollPane packetScrollPane;
+	JScrollPane scrollPane;
+	JCheckBox showRawBytes;
+	
 	int splitPaneHeight = 0;
 	JSplitPane splitPane;
 	
@@ -79,152 +80,171 @@ public abstract class RadiationTab extends ModuleTab implements ActionListener {
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 	}
 	
-	/*
-	protected void addBottomFilter() {
-		JLabel displayNumber1 = new JLabel("Displaying last");
-		displayNumber2 = new JTextField();
-		JLabel displayNumber3 = new JLabel("payloads decoded");
-		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber2.setMinimumSize(new Dimension(50, 14));
-		displayNumber2.setMaximumSize(new Dimension(50, 14));
-		displayNumber2.setText(Integer.toString(SAMPLES));
-		displayNumber2.addActionListener(this);
-		bottomPanel.add(displayNumber1);
-		bottomPanel.add(displayNumber2);
-		bottomPanel.add(displayNumber3);
+	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel ) {
 		
-	}
-	*/
-	protected void addBottomFilter() {
-		bottomPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1500,10)));
-		JLabel displayNumber1 = new JLabel("Displaying last");
-		displayNumber2 = new JTextField();
-		JLabel displayNumber3 = new JLabel("payloads decoded");
-		displayNumber1.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber3.setFont(new Font("SansSerif", Font.BOLD, 10));
-		displayNumber1.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber3.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
-		displayNumber2.setMinimumSize(new Dimension(50, 14));
-		displayNumber2.setMaximumSize(new Dimension(50, 14));
-		displayNumber2.setText(Integer.toString(SAMPLES));
-		displayNumber2.addActionListener(this);
-		bottomPanel.add(displayNumber1);
-		bottomPanel.add(displayNumber2);
-		bottomPanel.add(displayNumber3);
 		
-		lblFromReset = new JLabel("   from Reset  ");
-		lblFromReset.setFont(new Font("SansSerif", Font.PLAIN, 10));
-		bottomPanel.add(lblFromReset);
+		table = new JTable(radTableModel);
+		table.setAutoCreateRowSorter(true);
+		table.addMouseListener(this);
 		
-		textFromReset = new JTextField();
-		bottomPanel.add(textFromReset);
-		textFromReset.setText(Integer.toString(START_RESET));
+		
+		packetTable = new JTable(radPacketTableModel);
+		packetTable.setAutoCreateRowSorter(true);
+		
+		//JScrollPane scrollPane = new JScrollPane(table);
+		scrollPane = new JScrollPane (table, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		table.setFillsViewportHeight(true);
+		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		String PREV = "prev";
+		String NEXT = "next";
+		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = table.getActionMap();
 
-		textFromReset.setColumns(8);
-		textFromReset.addActionListener(this);
-		
-		lblFromUptime = new JLabel("   from Uptime  ");
-		lblFromUptime.setFont(new Font("SansSerif", Font.PLAIN, 10));
-		bottomPanel.add(lblFromUptime);
-		
-		textFromUptime = new JTextField();
-		bottomPanel.add(textFromUptime);
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = table.getSelectedRow();
+				if (row > 0)
+					displayRow(table,row-1);
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = table.getSelectedRow();
+				if (row < table.getRowCount()-1)
+					displayRow(table,row+1);        
+			}
+		});
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(scrollPane);
 
-		textFromUptime.setText(Long.toString(START_UPTIME));
-		textFromUptime.setColumns(8);
-//		textFromUptime.setPreferredSize(new Dimension(50,14));
-		textFromUptime.addActionListener(this);
+		packetScrollPane = new JScrollPane (packetTable, 
+				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		packetTable.setFillsViewportHeight(true);
+		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		//table.setMinimumSize(new Dimension(6200, 6000));
+		centerPanel.add(packetScrollPane);
 
+		packetTable.addMouseListener(this);
+		
+		InputMap packetinMap = packetTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		packetinMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		packetinMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap packetactMap = packetTable.getActionMap();
+
+		packetactMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = packetTable.getSelectedRow();
+				if (row > 0)
+					displayRow(packetTable, row-1);
+			}
+		});
+		packetactMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = packetTable.getSelectedRow();
+				if (row < packetTable.getRowCount()-1)
+					displayRow(packetTable, row+1);        
+			}
+		});
 		
 	}
 	
-	protected abstract void parseRadiationFrames();
+	protected abstract void displayRow(JTable packetTable, int row); // When we click on a row in the table we call this function to update the top part of the display
+	protected abstract void parseRadiationFrames(); // When we get new data we call this function to display it
 	
-	protected String[][] parseRawBytes(String data[][]) {
-		String[][] rawData = new String[data.length][SatPayloadStore.MAX_RAD_DATA_LENGTH];
+	protected void parseRawBytes(String data[][], RadiationTableModel radTableModel) {
+		long[][] keyRawData = new long[data.length][2];
+		String[][] rawData = new String[data.length][SatPayloadStore.MAX_RAD_DATA_LENGTH-2];
 		for (int i=0; i<data.length; i++)
 			for (int k=0; k<SatPayloadStore.MAX_RAD_DATA_LENGTH; k++)
 				try {
 					if (k<=1)
-						rawData[i][k] = data[data.length-i-1][k];
+						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
 					else
-						rawData[i][k] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
+						rawData[i][k-2] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
 				} catch (NumberFormatException e) {
 
 				}
-		return rawData;
-		//table.repaint();
-		//scrollPane.repaint();
+		radTableModel.setData(keyRawData, rawData);
 		
 
 	}
 	
-	private void parseTextFields() {
-		String text = displayNumber2.getText();
-		try {
-			SAMPLES = Integer.parseInt(text);
-			if (SAMPLES > MAX_SAMPLES) {
-				SAMPLES = MAX_SAMPLES;
-				text = Integer.toString(MAX_SAMPLES);
-			}
-			if (SAMPLES < MIN_SAMPLES) {
-				SAMPLES = MIN_SAMPLES;
-				text = Integer.toString(MIN_SAMPLES);
-			}
-		} catch (NumberFormatException ex) {
-			
-		}
-		displayNumber2.setText(text);
-		text = textFromReset.getText();
-		try {
-			START_RESET = Integer.parseInt(text);
-			if (START_RESET < 0) START_RESET = 0;
-			
-		} catch (NumberFormatException ex) {
-			if (text.equals("")) {
-				START_RESET = DEFAULT_START_RESET;
-				
-			}
-		}
-		textFromReset.setText(text);
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
+		Object source = e.getItemSelectable();
 		
-		text = textFromUptime.getText();
-		try {
-			START_UPTIME = Integer.parseInt(text);
-			if (START_UPTIME < 0) START_UPTIME = 0;
+		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawRadData = false;
+			} else {
+				Config.displayRawRadData = true;
+			}
+			if (showRawBytes.isSelected()) {
+				packetScrollPane.setVisible(false); 
+				scrollPane.setVisible(true);
+			} else { 
+				packetScrollPane.setVisible(true);
+				scrollPane.setVisible(false);
+			}
+
+			parseRadiationFrames();
 			
-		} catch (NumberFormatException ex) {
-			if (text.equals("")) {
-				START_UPTIME = DEFAULT_START_UPTIME;
-				
+		}
+	}
+	public void mouseClicked(MouseEvent e) {
+
+		if (showRawBytes.isSelected()) {
+			int row = table.rowAtPoint(e.getPoint());
+			int col = table.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(table, row);
+			}
+		} else {
+			int row = packetTable.rowAtPoint(e.getPoint());
+			int col = packetTable.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(packetTable, row);
 			}
 		}
-		textFromUptime.setText(text);
+	}
 
-		repaint();
+		@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == this.displayNumber2 ||
-				e.getSource() == this.textFromReset ||
-				e.getSource() == this.textFromUptime) {
-			try {
-				parseTextFields();
-				//System.out.println(SAMPLES);
-				
-				//lblActual.setText("("+text+")");
-				//txtPeriod.setText("");
-			} catch (NumberFormatException ex) {
-				
-			}
-			
-			parseRadiationFrames();
-		}
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
 
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

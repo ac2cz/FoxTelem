@@ -213,7 +213,7 @@ public class HighSpeedFrame extends Frame {
 	}
 	
 	public static int getMaxDataBytes() {
-		return MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE;
+		return MAX_HEADER_SIZE + MAX_FRAME_SIZE;
 	}
 	
 	public static int getMaxBytes() {

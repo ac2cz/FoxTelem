@@ -12,10 +12,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.UnknownHostException;
+import java.util.Iterator;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JOptionPane;
 
 import measure.PassMeasurement;
+import telemetry.FoxBPSK.FoxBPSKFrame;
 import common.Config;
 import common.Log;
 import common.TlmServer;
@@ -53,12 +56,16 @@ public class RawFrameQueue implements Runnable {
 	private static final int INIT_SIZE = 1000;
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVframes.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSframes.log";
-	SortedFrameArrayList rawSlowSpeedFrames;
-	SortedFrameArrayList rawHighSpeedFrames;
+	public static String RAW_PSK_FRAMES_FILE = "rawPSKframes.log";
+	ConcurrentLinkedQueue<Frame> rawSlowSpeedFrames;
+	ConcurrentLinkedQueue<Frame> rawHighSpeedFrames;
+	ConcurrentLinkedQueue<Frame> rawPSKFrames;
 	@SuppressWarnings("unused")
 	private boolean updatedSlowQueue = false;
 	@SuppressWarnings("unused")
 	private boolean updatedHSQueue = false;
+	@SuppressWarnings("unused")
+	private boolean updatedPSKQueue = false;
 	
 	TlmServer primaryServer;
 	TlmServer secondaryServer;
@@ -69,14 +76,18 @@ public class RawFrameQueue implements Runnable {
 		init();
 	}
 	
-	private void init() {
+	public void init() {
 		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort);
 		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort);
-		rawSlowSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
-		rawHighSpeedFrames = new SortedFrameArrayList(INIT_SIZE);
+		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
+		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
+		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
 		try {
-			load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
-			load(RAW_HIGH_SPEED_FRAMES_FILE, Frame.HIGH_SPEED_FRAME);
+			synchronized(this) { // lock will be load the files
+				load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
+				load(RAW_HIGH_SPEED_FRAMES_FILE, Frame.HIGH_SPEED_FRAME);
+				load(RAW_PSK_FRAMES_FILE, Frame.PSK_FRAME);
+			}
 		} catch (FileNotFoundException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
@@ -94,26 +105,22 @@ public class RawFrameQueue implements Runnable {
 
 	public boolean add(Frame f) throws IOException {
 		if (f instanceof SlowSpeedFrame ) {
-			if (!rawSlowSpeedFrames.hasFrame(f)) {
 				updatedSlowQueue = true;
 				save(f, RAW_SLOW_SPEED_FRAMES_FILE);
-				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
+				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
 				return rawSlowSpeedFrames.add(f);
-			} else {
-				Log.println("DUPLICATE FRAME, not loaded");
-			}
+			
+		} else if (f instanceof FoxBPSKFrame ) {
+				updatedPSKQueue = true;
+				save(f, RAW_PSK_FRAMES_FILE);
+				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+				return rawPSKFrames.add(f);
 		} else {
-			if (!rawHighSpeedFrames.hasFrame(f)) {
 				updatedHSQueue = true;
 				save(f, RAW_HIGH_SPEED_FRAMES_FILE);
-				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
+				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 				return rawHighSpeedFrames.add(f);
-			} else {
-				Log.println("DUPLICATE FRAME, not loaded");
-			}
-		}
-		
-		return false;
+		}		
 	}
 
 	
@@ -140,11 +147,13 @@ public class RawFrameQueue implements Runnable {
 				rawSlowSpeedFrames.add(frame);
 			}
 			updatedSlowQueue = true;
-			
-
-		}
-
-		if (type == Frame.HIGH_SPEED_FRAME) {
+		} else if (type == Frame.PSK_FRAME) {
+			while (reader.ready()) {
+				frame = new FoxBPSKFrame(reader);
+				rawPSKFrames.add(frame);
+			}
+			updatedPSKQueue = true;
+		} else if (type == Frame.HIGH_SPEED_FRAME) {
 			//size = HighSpeedFrame.MAX_HEADER_SIZE + HighSpeedFrame.MAX_PAYLOAD_SIZE 
 			//		+ HighSpeedFrame.MAX_TRAILER_SIZE;
 			while (reader.ready()) {
@@ -155,7 +164,7 @@ public class RawFrameQueue implements Runnable {
 		}
 
 		dis.close();
-		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
+		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 
 	}
 
@@ -169,64 +178,69 @@ public class RawFrameQueue implements Runnable {
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 		} 
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
-		//Log.println("Saving: " + log);
-		//use buffering and append to the existing file
-		FileOutputStream dis = new FileOutputStream(log, true);
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
+		synchronized(this) { // make sure we have exlusive access to the file on disk, otherwise a removed frame can clash with this
+			File aFile = new File(log );
+			if(!aFile.exists()){
+				aFile.createNewFile();
+			}
+			//Log.println("Saving: " + log);
+			//use buffering and append to the existing file
+			FileOutputStream dis = new FileOutputStream(log, true);
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
 
-		try {
-			frame.save(writer);
-		} finally {
-			writer.flush();
+			try {
+				frame.save(writer);
+			} finally {
+				writer.flush();
+				writer.close();
+			}
+
 			writer.close();
+			dis.close();
 		}
-		
-		writer.close();
-		dis.close();
 	}
 
 	/**
-	 * Remove the first record in the queue
+	 * Remove the first record in the queue.  Save all of the records to the file as a backup
 	 * @throws IOException 
 	 */
-	private void deleteAndSave(SortedFrameArrayList frames, String log) throws IOException {
-		
-		frames.remove(0);
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-		} 
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
-		//use buffering and OVERWRITE the existing file
-		FileOutputStream dis = new FileOutputStream(log, false);
-		BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
-		try {
-			for (int i=0; i< frames.size(); i++) {
-				frames.get(i).save(writer);
+	private void deleteAndSave(ConcurrentLinkedQueue<Frame> frames, String log) throws IOException {
+		synchronized(this) {  // make sure we have exclusive access to the file on disk, otherwise a frame being added can clash with this
+			frames.poll(); // remove the head of the queue
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				log = Config.logFileDirectory + File.separator + log;
+			} 
+			File aFile = new File(log );
+			if(!aFile.exists()){
+				aFile.createNewFile();
 			}
-		} finally {
-			writer.flush();
-			writer.close();
-		}
+			//use buffering and OVERWRITE the existing file
+			FileOutputStream dis = new FileOutputStream(log, false);
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
+			try {
+				for (Frame f : frames) {
+					f.save(writer);
+				}
+			} finally {
+				writer.flush();
+				writer.close();
+			}
 
 		}
+	}
 	
 	public void delete() {
 		try {
-			SatPayloadStore.remove(RAW_SLOW_SPEED_FRAMES_FILE);
-			SatPayloadStore.remove(RAW_HIGH_SPEED_FRAMES_FILE);
+			SatPayloadStore.remove(SatPayloadTable.getDir() + RAW_SLOW_SPEED_FRAMES_FILE);
+			SatPayloadStore.remove(SatPayloadTable.getDir() + RAW_HIGH_SPEED_FRAMES_FILE);
+			SatPayloadStore.remove(SatPayloadTable.getDir() + RAW_PSK_FRAMES_FILE);
 			init();
 		} catch (IOException ex) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					ex.toString(),
 					"Error Deleting Server Upload Queues, check permissions on files:\n" +
 					RAW_SLOW_SPEED_FRAMES_FILE + "\n" +
+					RAW_PSK_FRAMES_FILE + "\n" +
 					RAW_HIGH_SPEED_FRAMES_FILE,
 					JOptionPane.ERROR_MESSAGE) ;
 		}
@@ -251,7 +265,7 @@ public class RawFrameQueue implements Runnable {
 				Log.println("ERROR: server frame queue thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 			
-			MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
+			MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 			if (Config.uploadToServer) {
 				if (!success) {
 					// We failed the last time we tried to connect, so wait until we retry
@@ -271,7 +285,7 @@ public class RawFrameQueue implements Runnable {
 					try {
 						Thread.sleep(100); // pause so that the server can keep up
 					} catch (InterruptedException e) {
-						Log.println("ERROR: server frame queue thread interrupted");
+						Log.println("ERROR: server DUV frame queue thread interrupted");
 						e.printStackTrace(Log.getWriter());
 					} 	
 				}
@@ -281,7 +295,17 @@ public class RawFrameQueue implements Runnable {
 					try {
 						Thread.sleep(100); // pause so that the server can keep up
 					} catch (InterruptedException e) {
-						Log.println("ERROR: server frame queue thread interrupted");
+						Log.println("ERROR: server HS frame queue thread interrupted");
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+				while (rawPSKFrames.size() > 0 && success) {
+					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawPSKFrames.size() > 1))
+						success = sendFrame(rawPSKFrames, RAW_PSK_FRAMES_FILE);
+					try {
+						Thread.sleep(100); // pause so that the server can keep up
+					} catch (InterruptedException e) {
+						Log.println("ERROR: server PSK frame queue thread interrupted");
 						e.printStackTrace(Log.getWriter());
 					}
 				}
@@ -290,12 +314,14 @@ public class RawFrameQueue implements Runnable {
 		Log.println("Server Queue thread ended");
 	}
 
-	private boolean sendFrame(SortedFrameArrayList frames, String file) {
+	private boolean sendFrame(ConcurrentLinkedQueue<Frame> frames, String file) {
 		boolean success = false;
 		if (Config.passManager.hasTCA()) {
 			PassMeasurement passMeasurement = Config.passManager.getPassMeasurement(); 
-			frames.get(0).setPassMeasurement(passMeasurement);
-			Config.passManager.sentTCA();
+			if (frames.peek() != null) {
+				frames.peek().setPassMeasurement(passMeasurement);
+				Config.passManager.sentTCA();
+			}
 		}
 		
 		// Make sure these are up to date
@@ -307,8 +333,10 @@ public class RawFrameQueue implements Runnable {
 			protocol = "tcp";
 		Log.println("Trying Primary Server: " + protocol + "://" + Config.primaryServer + ":" + Config.serverPort);
 		try {
-			frames.get(0).sendToServer(primaryServer, Config.serverProtocol);
-			success = true;
+			if (frames.peek() != null) {
+				frames.peek().sendToServer(primaryServer, Config.serverProtocol);
+				success = true;
+			}
 		} catch (UnknownHostException e) {
 			Log.println("Could not connect to primary server");
 			//e.printStackTrace(Log.getWriter());
@@ -320,13 +348,10 @@ public class RawFrameQueue implements Runnable {
 			if (Config.sendToBothServers || !success) // We send to the secondary if we failed or if we are sending to both servers
 			try {
 				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
-				frames.get(0).sendToServer(secondaryServer, Config.serverProtocol);
-				//String primary = Config.primaryServer;
-				//Config.primaryServer = Config.secondaryServer;
-				//Config.secondaryServer = primary;
-				//primaryServer.setHostName(Config.primaryServer);
-				//secondaryServer.setHostName(Config.secondaryServer);
-				success = true;
+				if (frames.peek() != null) {
+					frames.peek().sendToServer(secondaryServer, Config.serverProtocol);
+					success = true;
+				}
 			} catch (UnknownHostException e) {
 				Log.println("Could not connect to secondary server");
 				//e.printStackTrace(Log.getWriter());
@@ -339,11 +364,11 @@ public class RawFrameQueue implements Runnable {
 				//Log.println("Sent frame " + frames.get(0).header.toString());
 				deleteAndSave(frames, file);
 			} catch (IOException e) {
-				Log.errorDialog("ERROR", "Could not remove raw frames from the queue file:\n" + file + "\n, you may"
-						+ " need to delete it manually or they will be sent again");
+				Log.errorDialog("ERROR", "Could not remove raw frames from the queue file:\n" + file + "\n"
+						+ " The frame will be sent again.  If this error repeats you may need to remove the queue file manually");
 				e.printStackTrace(Log.getWriter());
 			}
-		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size());
+		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
 		return success; // return true if one succeeded
 	}
 }

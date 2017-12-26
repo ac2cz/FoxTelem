@@ -110,6 +110,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStartDecoder;
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
+	static ArrayList<Spacecraft> sats;
+	JMenu mnSats;
+	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
 	JMenuItem mntmManual;
@@ -122,16 +125,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	// GUI components
 	static JTabbedPane tabbedPane;
 	public static SourceTab inputTab;
-
+	Thread inputTabThread;
 	// We have a radiation tab and a health tab per satellite
 	static SpacecraftTab[] spacecraftTab;
 	
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
 	static JLabel lblAudioMissed;
+	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
-	private static String TOTAL_DECODES = "Decoded: ";
+	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
+	private static String TOTAL_DECODES = "Payloads: ";
 	private static String TOTAL_QUEUED = "Queued: ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
@@ -201,10 +206,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblAudioMissed.setToolTipText("The number of audio buffers missed");
 		rightBottom.add(lblAudioMissed );
 
+		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
+		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblTotalFrames.setToolTipText("Total number of frames received since FoxTelem restart (including duplicates)");
+		rightBottom.add(lblTotalFrames );
+		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
 		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalDecodes.setToolTipText("Total number of payloads decoded from all satellites");
+		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
@@ -224,6 +235,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		updateManagerThread = new Thread(updateManager);
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
+		
+		inputTabThread = new Thread(inputTab);
+		inputTabThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		inputTabThread.start();
 		
 		// We are fully up, remove the database loading message
 		Config.fileProgress.updateProgress(100);
@@ -245,13 +260,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	public static void refreshTabs(boolean closeGraphs) {
-		for (SpacecraftTab tab : spacecraftTab) {
-			tab.refreshTabs(closeGraphs);
-		}
+		ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Refreshing tabs, please wait ...", false);
+		fileProgress.setVisible(true);
 
+		// Close tabs according to the old list
+		removeTabs();
+		Config.payloadStore.setUpdatedAll(); // mark everything as new so that we display the results on the new tabs
+		addHealthTabs(); // add them back again, could be a new list of sats this time
 		
-		Config.payloadStore.setUpdatedAll();
-
 		if (Config.logFileDirectory.equals(""))
 			lblLogFileDir.setText("Logs: Current Directory");
 		else
@@ -259,10 +275,23 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		inputTab.audioGraph.updateFont();
 		inputTab.eyePanel.updateFont();
+		setTotalDecodes();
+		
+		fileProgress.updateProgress(100);
 	}
 	
-	private static void addHealthTabs() {
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+	public static void removeTabs() {
+		if (spacecraftTab != null) {
+			for (int s=0; s<spacecraftTab.length; s++) {
+				spacecraftTab[s].stop(); // stop any running threads
+				tabbedPane.remove(spacecraftTab[s]);
+				spacecraftTab[s] = null;
+			}
+		}
+		spacecraftTab = null;
+	}
+	public static void addHealthTabs() {
+		sats = Config.satManager.getSpacecraftList();
 		spacecraftTab = new SpacecraftTab[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
 			spacecraftTab[s] = new SpacecraftTab(sats.get(s));
@@ -275,19 +304,26 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	public static void setAudioMissed(int missed) {
-		double miss = missed / 10.0;
-		totalMissed += missed;
-		lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
-		if (missed > 2)
-			lblAudioMissed.setForeground(Color.RED);
-		else
-			lblAudioMissed.setForeground(Color.BLACK);
+		if (lblAudioMissed != null) { // just in case we are delayed starting up
+			double miss = missed / 10.0;
+			totalMissed += missed;
+			lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
+			if (missed > 2)
+				lblAudioMissed.setForeground(Color.RED);
+			else
+				lblAudioMissed.setForeground(Color.BLACK);
+		}
 	}
-	
+
 	public static void setTotalDecodes() {
-		int total = 0;
-		total = Config.payloadStore.getTotalNumberOfFrames();
-		lblTotalDecodes.setText(TOTAL_DECODES + total);
+		if (lblTotalDecodes != null) { // make sure we have initialized before we try to update from another thread
+			int total = 0;
+			total = Config.payloadStore.getTotalNumberOfFrames();
+			lblTotalDecodes.setText(TOTAL_DECODES + total);
+		}
+		if (lblTotalFrames != null) { 
+			lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+		}
 	}
 
 	public static void setTotalQueued(int total) {
@@ -309,7 +345,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private void initMenu() {
-		JMenuBar menuBar = new JMenuBar();
+		menuBar = new JMenuBar();
 		setJMenuBar(menuBar);
 		
 		JMenu mnFile = new JMenu("File");
@@ -377,15 +413,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 //		mnDecoder.add(mntmStopDecoder);
 //		mntmStopDecoder.addActionListener(this);
 		
-		JMenu mnSats = new JMenu("Spacecraft");
-		menuBar.add(mnSats);
-		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-		mntmSat = new JMenuItem[sats.size()];
-		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem(sats.get(i).name);
-			mnSats.add(mntmSat[i]);
-			mntmSat[i].addActionListener(this);
-		}
+		initSatMenu();
 		
 		JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
@@ -431,6 +459,29 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		audioSource = a;
 	}
 
+	void initSatMenu() {
+		if (sats !=null && mnSats != null) {
+			for (int i=0; i<sats.size(); i++) {
+				if (mntmSat[i] != null)
+				mnSats.remove(mntmSat[i]);
+				mntmSat[i] = null;
+			}
+			menuBar.remove(mnSats);
+			
+		}
+		mnSats = new JMenu("Spacecraft");
+		menuBar.add(mnSats);
+
+		sats = Config.satManager.getSpacecraftList();
+
+		mntmSat = new JMenuItem[sats.size()];
+		for (int i=0; i<sats.size(); i++) {
+			mntmSat[i] = new JMenuItem(sats.get(i).name);
+			mnSats.add(mntmSat[i]);
+			mntmSat[i].addActionListener(this);
+		}
+	}
+	
 	public void shutdownWindow() {
 		
 		if (Config.passManager.getState() == PassManager.FADED ||
@@ -445,7 +496,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					+ "Do you want to exit?",
 					"Exit while pass in progress?",
 				    JOptionPane.YES_NO_OPTION, 
-				    JOptionPane.ERROR_MESSAGE,
+				    JOptionPane.QUESTION_MESSAGE,
 				    null,
 				    options,
 				    options[1]);
@@ -467,8 +518,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.shutdown();
 		Log.println("Window Closed");
 		Log.close();
-		this.dispose();
 		saveProperties();
+		this.dispose();
 		System.exit(0);
 	}
 	
@@ -519,9 +570,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == mntmLoadWavFile) {
 			inputTab.chooseFile();
 		}
-		if (e.getSource() == mntmImportStp) {
-			importStp("stp", false);
-		}
 		if (e.getSource() == mntmGetServerData) {
 			replaceServerData();
 		}
@@ -556,10 +604,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				    options[1]);
 						
 			if (n == JOptionPane.YES_OPTION) {
+				ProgressPanel fileProgress = new ProgressPanel(Config.mainWindow, "Clearing saved data, please wait ...", false);
+				fileProgress.setVisible(true);
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
+				Config.totalFrames = 0;
 				refreshTabs(true);
+				fileProgress.updateProgress(100);
 			}
 		}
 		
@@ -616,6 +668,87 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 	}
 
+	private void downloadServerData(String dir) {
+		String file = "FOXDB.tar.gz";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
+		}
+		// We have the dir, so pull down the file
+		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading " + dir + " data, please wait ...", false);
+		fileProgress.setVisible(true);
+
+		String urlString = Config.webSiteUrl + "/" + dir + "/FOXDB.tar.gz";
+		try {
+			URL website = new URL(urlString);
+			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
+			FileOutputStream fos;
+			fos = new FileOutputStream(file);
+			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+			fos.close();
+		} catch (FileNotFoundException e) {
+			// The file was not found on the server.  This is probablly because there was no data for this spacecraft
+			
+			Log.println("ERROR reading/writing the server data to: " + file + "\n" +
+					e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (MalformedURLException e) {
+			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		} catch (IOException e) {
+			Log.errorDialog("ERROR", "ERROR reading/writing the server data from server: " + file  + "\n+"
+					+ e.getMessage() );
+			e.printStackTrace(Log.getWriter());
+			fileProgress.updateProgress(100);
+			return;
+		}
+
+		fileProgress.updateProgress(100);
+		File archive = new File(file);
+
+		if (archive.length() == 0) {
+			// No data in file, so we skip
+		} else {
+			ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing " + dir + " data ...", false);
+			decompressProgress.setVisible(true);
+
+			// Now decompress it and expand
+			File destination = new File(Config.logFileDirectory);
+
+			Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
+			try {
+				archiver.extract(archive, destination);
+			} catch (IOException e) {
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+						+ e.getMessage() );
+				e.printStackTrace(Log.getWriter());
+				decompressProgress.updateProgress(100);
+				return;
+			} catch (IllegalArgumentException e) {
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
+						+ e.getMessage() );
+				e.printStackTrace(Log.getWriter());
+				decompressProgress.updateProgress(100);
+				return;
+			}
+
+			decompressProgress.updateProgress(100);
+		}
+
+	}
+	
+	private String getFoxServerDir(int id) {
+		if (id == 1) return "ao85";
+		if (id == 2) return "radfxsat";
+		if (id == 3) return "fox1c";
+		if (id == 4) return "fox1d";
+		if (id == 5) return "fox1e";
+		return null;
+	}
+	
 	private void replaceServerData() {
 
 		if (Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -643,231 +776,35 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			return;
 		}
 
-		//String file = "serverlogs.tar.gz";
-		String file = "FOXDB.tar.gz";
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
-		}
-		// We have the dir, so pull down the file
-		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
-		fileProgress.setVisible(true);
-
-		String urlString = Config.webSiteUrl + "/ao85/FOXDB.tar.gz";
-		try {
-			URL website = new URL(urlString);
-			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-			FileOutputStream fos;
-			fos = new FileOutputStream(file);
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-		} catch (FileNotFoundException e) {
-			Log.errorDialog("ERROR", "ERROR writing the server data to: " + file + "\n" +
-					e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		} catch (MalformedURLException e) {
-			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + file  + "\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
+		// Get the server data for each spacecraft we have
+		sats = Config.satManager.getSpacecraftList();
+		int i=0;
+		for (Spacecraft sat : sats) {
+			// We can not rely on the name of the spacecraft being the same as the directory name on the server
+			// because the user can change it.  So we have a hard coded routine to look it up
+			String dir = getFoxServerDir(sat.foxId);
+			if (dir == null) {
+				// no server data for this satellite.  Skip
+			} else {
+				downloadServerData(dir);
+			}
 		}
 
-		fileProgress.updateProgress(100);
-
-		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
-		decompressProgress.setVisible(true);
-
-		// Now decompress it and expand
-		File archive = new File(file);
-		File destination = new File(Config.logFileDirectory);
-
-		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
-		try {
-			archiver.extract(archive, destination);
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			decompressProgress.updateProgress(100);
-			return;
-		} catch (IllegalArgumentException e) {
-			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			decompressProgress.updateProgress(100);
-			return;
-		}
-
-		decompressProgress.updateProgress(100);
+		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
+		refreshProgress.setVisible(true);
+		
 		Config.save(); // make sure any changed settings saved
 		Config.initPayloadStore();
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
 		
+		refreshProgress.updateProgress(100);
+		
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);
-	}
-
-	
-	@SuppressWarnings("unused")
-	private void importServerData() {
-
-		String message = "Do you want to merge the downloaded server data with your existing data?\n"
-				+ "To import into into a different set of log files select NO, then choose a new log file directory";
-		Object[] options = {"Yes",
-		"No"};
-		int n = JOptionPane.showOptionDialog(
-				MainWindow.frame,
-				message,
-				"Do you want to continue?",
-				JOptionPane.YES_NO_OPTION, 
-				JOptionPane.ERROR_MESSAGE,
-				null,
-				options,
-				options[1]);
-
-		if (n == JOptionPane.NO_OPTION) {
-			return;
-		}
-
-		// Make sure we have an STP directory
-		String serverData = "serverData";
-		String dir = serverData;
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + serverData;			
-		}
-	
-		File aFile = new File(dir);
-		if(aFile.isDirectory()){
-			mntmImportStp.setVisible(true);
-			mntmImportStp.addActionListener(this);
-		} else {
-			aFile.mkdir();
-		}
-		if(!aFile.isDirectory()){
-			Log.errorDialog("ERROR", "ERROR can't create the import directory: " + aFile.getAbsolutePath() +  
-					"\nFoxTelem needs to download the stp files to your logfiles dir.  It is either not accessible or not writable\n"
-					+ "Try changing the log files directory");
-			return;
-		}
-		
-		// We have the dir, so pull down the file
-		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading data, please wait ...", false);
-		fileProgress.setVisible(true);
-		
-		String urlString = "http://www.amsat.org/tlm/ao85/stp.tar.gz";
-		try {
-		URL website = new URL(urlString);
-		ReadableByteChannel rbc = Channels.newChannel(website.openStream());
-		FileOutputStream fos;
-			fos = new FileOutputStream(dir + File.separator + "stp.tar.gz");
-			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
-			fos.close();
-		} catch (FileNotFoundException e) {
-			Log.errorDialog("ERROR", "ERROR writing the server data to: " + dir + File.separator + "stp.tar.gz\n" +
-					e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		} catch (MalformedURLException e) {
-			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR reading the server data from server: " + dir + File.separator + "stp.tar.gz\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
-			return;
-		}
-		
-		fileProgress.updateProgress(100);
-
-		ProgressPanel decompressProgress = new ProgressPanel(this, "decompressing the data ...", false);
-		decompressProgress.setVisible(true);
-
-		// Now decompress it and expand
-		File archive = new File(dir + File.separator + "stp.tar.gz");
-		File destination = new File(dir + File.separator);
-
-		Archiver archiver = ArchiverFactory.createArchiver("tar", "gz");
-		try {
-			archiver.extract(archive, destination);
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-					+ e.getMessage() );
-			e.printStackTrace(Log.getWriter());
-			decompressProgress.updateProgress(100);
-			return;
-		}
-
-		decompressProgress.updateProgress(100);
-
-		// import the data
-		importProgress = new ProgressPanel(this, "importing and merging into log files ...", false);
-		importProgress.setVisible(true);
-
-		importStp(serverData, true);
-		
-		// now cleanup the files
-		importProgress.updateProgress(100);
-
 		
 	}
-	
-	/**
-	 * Get a list of all the files in the STP dir and import them
-	 */
-	private void importStp(String stpDir, boolean delete) {
-		String dir = stpDir;
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = Config.logFileDirectory + File.separator + dir;
-
-		}
-		Log.println("IMPORT STP from " + dir);
-		File folder = new File(dir);
-		File[] listOfFiles = folder.listFiles();
-		int version1 = 0;
-		int version101 = 0;
-		HashMap<String, Integer> callsigns = new HashMap<String, Integer>();
-		HashMap<String, String> versions = new HashMap<String, String>();
-		if (listOfFiles != null) {
-			for (int i = 0; i < listOfFiles.length; i++) {
-				if (listOfFiles[i].isFile() ) {
-					//Log.println("Loading STP data from: " + listOfFiles[i].getName());
-					try {
-						Frame.importStpFile(listOfFiles[i], true);
-					} catch (StpFileProcessException e) {
-						Log.println("Could not process STP file: " + listOfFiles[i]);
-						e.printStackTrace(Log.getWriter());
-					}
-					if (importProgress != null)
-						importProgress.updateProgress((100 * i)/listOfFiles.length);
-				}
-			}
-			Log.println("Files Processed: " + listOfFiles.length);
-			Log.println("Version 1.00: " + version1 + " " + version1/(version1+version101));
-			Log.println("Version 1.01i: " + version101 + " " + version101/(version1+version101));
-			
-			Iterator<?> it = callsigns.entrySet().iterator();
-		    while (it.hasNext()) {
-		        @SuppressWarnings("rawtypes")
-				Map.Entry pair = (Map.Entry)it.next();
-		        System.out.println(pair.getKey() + " = " + pair.getValue() + " " + versions.get(pair.getKey()));
-		    }
-		}
-	}
-	
-	
 	
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
@@ -888,9 +825,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
 		
-	}
-
-	
+	}	
 
 	@Override
 	public void windowStateChanged(WindowEvent e) {

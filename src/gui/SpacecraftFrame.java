@@ -30,6 +30,7 @@ import javax.swing.JLabel;
 
 import common.Log;
 import common.Spacecraft;
+import common.Config;
 import common.FoxSpacecraft;
 
 /**
@@ -68,6 +69,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField ihuTempLookUpTableFileName;
 	JTextField ihuVBattLookUpTableFileName;
 	JTextField BATTERY_CURRENT_ZERO;
+	JTextField mpptResistanceError;
+	JTextField mpptSensorOffThreshold;
 	JTextField[] T0;
 	
 	JCheckBox useIHUVBatt;
@@ -89,7 +92,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
-		setBounds(100, 100, 600, 550);
+		setBounds(100, 100, 600, 600);
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -111,7 +114,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 		//JLabel lName = new JLabel("Name: " + sat.name);
 		name = addSettingsRow(titlePanel, 15, "Name", 
-				"The name must be the same as the name in SatPC32 if you want to automaticaly check if it is above the horizon", ""+sat.name);
+				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.name);
 		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
@@ -131,7 +134,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading = title("Fixed Paramaters");
 		leftFixedPanel.setBorder(heading);
 		
-		JLabel lModel = new JLabel("Model: " + sat.modelNames[sat.model]);
+		JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
@@ -219,7 +222,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		
 		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
 				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
-		
+		if (sat.hasMpptSettings) {
+			mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
+					"The extra resistance in the RTD temperature measurement circuit", ""+sat.mpptResistanceError);
+			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
+					"The ADC value when the temperature sensor is considered off", ""+sat.mpptSensorOffThreshold);
+		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		
@@ -323,13 +331,25 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 			this.dispose();
 		}
 		if (e.getSource() == btnSave) {
+			boolean dispose = true;
+			int downlinkFreq = 0;
+			int minFreq = 0;
+			int maxFreq = 0;
 			try {
 				try {
-					sat.telemetryDownlinkFreqkHz = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
-					sat.minFreqBoundkHz = Integer.parseInt(minFreqBoundkHz.getText());
-					sat.maxFreqBoundkHz = Integer.parseInt(maxFreqBoundkHz.getText());
+					downlinkFreq = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
+					minFreq = Integer.parseInt(minFreqBoundkHz.getText());
+					maxFreq = Integer.parseInt(maxFreqBoundkHz.getText());
 				} catch (NumberFormatException ex) {
 					throw new NumberFormatException("The Frequency fields must contain a valid number");
+				}
+				if (minFreq < maxFreq) {
+					sat.telemetryDownlinkFreqkHz = downlinkFreq;
+					sat.minFreqBoundkHz = minFreq;
+					sat.maxFreqBoundkHz = maxFreq;
+				} else {
+					Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
+					dispose = false;
 				}
 	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
 	//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
@@ -349,6 +369,17 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					refreshTabs=true;
 				}
 
+				if (sat.hasMpptSettings) {
+					if (sat.mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+						sat.mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+						refreshTabs=true;
+					}
+
+					if (sat.mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+						sat.mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+						refreshTabs=true;
+					}
+				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
@@ -359,10 +390,13 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				}
 				sat.track = track.isSelected();
 
-				if (refreshTabs)
-					MainWindow.refreshTabs(false);
-				sat.save();
-				this.dispose();
+				if (dispose) {
+					sat.save();
+					Config.initSatelliteManager();
+					this.dispose();
+					if (refreshTabs)
+						MainWindow.refreshTabs(false);
+				}
 			} catch (NumberFormatException Ex) {
 				Log.errorDialog("Invalid Paramaters", Ex.getMessage());
 			}

@@ -188,70 +188,16 @@ public class PayloadRtValues extends FoxFramePart {
 	}
 	
 	
+	@Override
 	public String toString() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + "REAL TIME Telemetry:\n" 
-				+ "BATT_A_V: " + FoxDecoder.dec(getRawValue("BATT_A_V")) 
-				+ " BATT_B_V: " + FoxDecoder.dec(getRawValue("BATT_B_V")) 
-				+ " BATT_C_V: " + FoxDecoder.dec(getRawValue("BATT_C_V"))
-				+ "\n"
-				+ "BATT_A_T: " + FoxDecoder.dec(getRawValue("BATT_A_T")) 
-				+ " BATT_B_T: " + FoxDecoder.dec(getRawValue("BATT_B_T"))
-				+ " BATT_C_T: " + FoxDecoder.dec(getRawValue("BATT_C_T"))
-				+ "\n"
-				+ "TOTAL_BATT_I: " + FoxDecoder.dec(getRawValue("TOTAL_BATT_I")) 
-				+ " BATTBoardTemperature: " + FoxDecoder.dec(getRawValue("BATTBoardTemperature"))
-				+ "\n"
-				+ "PANEL_PLUS_X_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_X_V")) 
-				+ " PANEL_MINUS_X_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_X_V"))
-				+ " PANEL_PLUS_Y_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Y_V"))
-				+ " PANEL_MINUS_Y_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Y_V"))
-				+ " PANEL_PLUS_Z_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Z_V"))
-				+ " PANEL_MINUS_Z_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Z_V"))
-				+ "\n"
-				+ "PANEL_PLUS_X_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_X_T")) 
-				+ " PANEL_MINUS_X_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_X_T"))
-				+ " PANEL_PLUS_Y_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Y_T"))
-				+ " PANEL_MINUS_Y_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Y_T"))
-				+ " PANEL_PLUS_Z_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Z_T"))
-				+ " PANEL_MINUS_Z_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Z_T"))
-				+ "\n"
-				+ "PSUTemperature: " + FoxDecoder.dec(getRawValue("PSUTemperature")) 
-				+ " SPIN: " + (getRawValue("SPIN"))
-				+ "\n"
-				+ "TXPACurrent: " + FoxDecoder.dec(getRawValue("TXPACurrent")) 
-				+ " TXTemperature: " + FoxDecoder.dec(getRawValue("TXTemperature"))
-				+ "\n"
-				+ "RXTemperature: " + FoxDecoder.dec(getRawValue("RXTemperature")) 
-				+ " RSSI: " + FoxDecoder.dec(getRawValue("RSSI"))
-				+ "\n"
-				+ "IHUTemperature: " + FoxDecoder.dec(getRawValue("IHUTemperature")) 
-				+ " AntennaDeploySensors: " + (int)(getRawValue("RXAntenna")) + " "
-				+ (int)(getRawValue("TXAntenna"))
-				+ "\n"
-				+ "SatelliteXAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteXAxisAngularVelocity")) + " "
-				+ " SatelliteYAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteYAxisAngularVelocity"))+ " "
-				+ " SatelliteZAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteZAxisAngularVelocity"))+ " "
-				+ "\n"
-				+ "EXP4Temp: " + FoxDecoder.dec(getRawValue("EXP4Temperature")) 
-				+ " PSUCurrent: " + FoxDecoder.dec(getRawValue("PSUCurrent"))
-				+ "\n"
-				+ "IHUDiagnosticData: " + FoxDecoder.dec(getRawValue("IHUDiagnosticData"))
-				+ "\n"
-				+ "ExperimentFailureIndication: " + (int)(getRawValue("Experiment1FailureIndication")) + " "
-				+ (int)(getRawValue("Experiment2FailureIndication")) + " "
-				+ (int)(getRawValue("Experiment3FailureIndication")) + " "
-				+ (int)(getRawValue("Experiment4FailureIndication"))+ " "
-				+ "\n"
-				+ "SystemI2CFailureIndications: " + (int)(getRawValue("BATTI2CFailureIndications")) + " "
-				+ (int)(getRawValue("PSU1I2CFailureIndications")) + " "
-				+ (int)(getRawValue("PSU2I2CFailureIndications")) + " "
-				+ "\n"
-				+ "NumberofGroundCommandedTLMResets: " + FoxDecoder.dec(getRawValue("NumberofGroundCommandedTLMResets"))
-				;
+		s = s + "REAL TIME Telemetry:\n";
+		for (int i=0; i < layout.fieldName.length; i++) {
+			s = s + layout.fieldName[i] + ": " + fieldValue[i] + ",   ";
+			if ((i+1)%6 == 0) s = s + "\n";
+		}
 		return s;
-		
 	}
 	
 	@Override

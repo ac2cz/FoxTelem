@@ -1,7 +1,9 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Font;
 
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -58,6 +60,9 @@ public class DiagnosticTable extends JPanel {
 		graphFrame = gf;
 		fox = sat;
 		this.setLayout(new BorderLayout());
+		JLabel titleLabel = new JLabel(title);
+		titleLabel.setFont(new Font("SansSerif", Font.BOLD, Config.graphAxisFontSize + 3));
+		add(titleLabel, BorderLayout.NORTH);
 		table = addErrorTable();
 		updateData();
 	}
@@ -69,6 +74,10 @@ public class DiagnosticTable extends JPanel {
 			tableModel = new HardErrorTableModel();
 		else if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR)
 			tableModel = new SoftErrorTableModel();
+		else if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR_84488)
+			tableModel = new SoftError84488TableModel();
+		else if (conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
+			tableModel = new IcrDiagnosticTableModel();
 		
 		JTable table = new JTable(tableModel);
 		table.setAutoCreateRowSorter(true);
@@ -97,13 +106,30 @@ public class DiagnosticTable extends JPanel {
 				column = table.getColumnModel().getColumn(i+2);
 				column.setPreferredWidth(60);
 				column.setCellRenderer(centerRenderer);
+				column.setHeaderRenderer(centerRenderer);
 			}
-		else if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR)
+		else if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR) {
 			for (int i=0; i<4; i++) {
 				column = table.getColumnModel().getColumn(i+2);
 				column.setPreferredWidth(60);
 				column.setCellRenderer(centerRenderer);
+				column.setHeaderRenderer(centerRenderer);
 			}
+			if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
+				column = table.getColumnModel().getColumn(6);
+				column.setPreferredWidth(60);
+				column.setCellRenderer(centerRenderer);
+				column.setHeaderRenderer(centerRenderer);
+			}
+		}
+		else if (conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
+			for (int i=0; i<4; i++) {
+				column = table.getColumnModel().getColumn(i+2);
+				column.setPreferredWidth(60);
+				column.setCellRenderer(centerRenderer);
+				column.setHeaderRenderer(centerRenderer);
+			}
+		}
 		
 		return table;
 	}
@@ -117,6 +143,10 @@ public class DiagnosticTable extends JPanel {
 			updateHardErrorData();
 		else if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR)
 			updateSoftErrorData();
+		else if (conversionType == BitArrayLayout.CONVERT_SOFT_ERROR_84488)
+			updateSoftErrorData84488();
+		else if (conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
+			updateIcrDiagnosticData();
 
 	}
 
@@ -127,8 +157,12 @@ public class DiagnosticTable extends JPanel {
 		table.getTableHeader().repaint();
 
 	}
+	
 	public void updateDiagnosticData() {
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][7];
 		
 		if (graphData[0].length > 0) {
@@ -168,7 +202,10 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateHardErrorData() {
-		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][8];
 		
 		if (graphData[0].length > 0) {
@@ -207,14 +244,17 @@ public class DiagnosticTable extends JPanel {
 	}
 
 	public void updateSoftErrorData() {
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME);
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][6];
 		
 		if (graphData[0].length > 0) {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FoxFramePart.softErrorStringArray(value, false);
+				display = FoxFramePart.softErrorStringArrayFox1A(value, false);
 				
 				if (display != null) { 	
 					if (graphFrame.showUTCtime) {
@@ -244,6 +284,93 @@ public class DiagnosticTable extends JPanel {
 		}
 		MainWindow.frame.repaint();	
 			
+	}
+	
+	public void updateSoftErrorData84488() {
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		String[][] tableData = new String[graphData[0].length][7];
+		
+		if (graphData[0].length > 0) {
+			for (int i=graphData[0].length-1; i >=0 ; i--) {
+				int value = (int) graphData[PayloadStore.DATA_COL][i];
+				String[] display = null;
+				display = FoxFramePart.softErrorStringArray84488(value, false);
+				
+				if (display != null) { 	
+					if (graphFrame.showUTCtime) {
+						setColumnName(0, "Date");
+						setColumnName(1, "Time (UTC)");
+						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
+						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
+						if (fox.hasTimeZero(resets)) {
+							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
+							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
+						} else {
+							tableData[i][1] = "";
+							tableData[i][0] = "";
+						}
+					} else {
+						setColumnName(0, "Reset");
+						setColumnName(1, "Uptime");
+						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
+						tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
+					}
+					for (int j=2; j<7; j++)
+						tableData[i][j] = display[j-2];
+				}
+			}
+		
+			((SoftError84488TableModel) tableModel).setData(tableData);
+		}
+		MainWindow.frame.repaint();	
+			
+	}
+
+	public void updateIcrDiagnosticData() {
+		boolean reverse = false;
+		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
+			reverse=true;
+		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		String[][] tableData = new String[graphData[0].length][7];
+
+		if (graphData[0].length > 0) {
+			for (int i=graphData[0].length-1; i >=0 ; i--) {
+				int value = (int) graphData[PayloadStore.DATA_COL][i];
+				String[] display = null;
+
+				display = FoxFramePart.icrDiagnosticStringArray(value, false);
+				if (display != null) { 	
+					if (graphFrame.showUTCtime) {
+						setColumnName(0, "Date");
+						setColumnName(1, "Time (UTC)");
+
+						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
+						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
+						if (fox.hasTimeZero(resets)) {
+							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
+							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
+						} else {
+							tableData[i][1] = "";
+							tableData[i][0] = "";
+						}
+					} else {
+						setColumnName(0, "Reset");
+						setColumnName(1, "Uptime");
+						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
+						tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);
+					}
+					for (int j=2; j<6; j++)
+						tableData[i][j] = display[j-2];
+				}
+			}
+
+			((IcrDiagnosticTableModel) tableModel).setData(tableData);
+		}
+		MainWindow.frame.repaint();	
+
 	}
 
 }

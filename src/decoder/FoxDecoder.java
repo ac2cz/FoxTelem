@@ -1,14 +1,6 @@
 package decoder;
 import java.io.IOException;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.LineUnavailableException;
-import javax.sound.sampled.UnsupportedAudioFileException;
-import javax.swing.JOptionPane;
-
-import measure.RtMeasurement;
-import measure.SatMeasurementStore;
-import measure.SatPc32DDE;
 import common.Config;
 import common.Log;
 import common.Performance;
@@ -17,7 +9,6 @@ import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.FoxFramePart;
-import telemetry.Header;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;
 import telemetry.PayloadHERCIhighSpeed;
@@ -77,15 +68,10 @@ public abstract class FoxDecoder extends Decoder {
 	public static final int BIT_DISTANCE_THRESHOLD_PERCENT = 15; // use 20 for 736R audio *****15; // Distance that bits need to be apart to change the bit decision as % of average BIT HEIGHT
 														
 	protected int currentFilterLength = 0;
-	protected double currentFilterFreq = 0d;
-    
+	protected double currentFilterFreq = 0d;   
     private int lastBitValue = 0; // store the value of the last bit for use in the bit detection algorithm
     private boolean lastBit = false;
-	    
-    private long lastLoopTime = 0; // loop timer to slow down execution if we want to simulate decoding from a file
-    private long OPTIMAL_TIME = 0; // scaling factor for loop timer
     private Frame decodedFrame = null;
-    
     public Filter monitorFilter = null;
     
     /**
@@ -104,11 +90,6 @@ public abstract class FoxDecoder extends Decoder {
 		Performance.setEnabled(Config.debugPerformance);  // enable performance logging (or not)
 		
 		BUFFER_SIZE = SAMPLE_WINDOW_LENGTH * bucketSize;
-
-//		BUFFER_SIZE = bytesPerSample * SAMPLE_WINDOW_LENGTH * bucketSize;
-
-		// Timing for each loop in milli seconds
-		OPTIMAL_TIME = 500*SAMPLE_WINDOW_LENGTH/BITS_PER_SECOND;	
 		
 		initWindowData();
 //		agcFilter = new AGCFilter();
@@ -182,6 +163,7 @@ public abstract class FoxDecoder extends Decoder {
 				}
 
 			}
+			Config.totalFrames++;
 			if (Config.uploadToServer)
 				try {
 					Config.rawFrameQueue.add(decodedFrame);

@@ -166,7 +166,9 @@ public class RtMeasurement extends Measurement {
 		}
 	}
 	
-	
+	public String toString() {
+		return "FOX RT Measurement: Fox-Id: " + id;
+	}
 
 
 }

@@ -68,6 +68,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 	}
 	
 	public boolean add(T img) throws NullPointerException {
+		if (img == null) return false;
 		int pos = Collections.binarySearch(this, img);
 	    if (pos < 0) {
 	        add(-pos-1, img);

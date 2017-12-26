@@ -74,10 +74,13 @@ public class WindowedSincFilter extends Filter {
 		for (i = 0; i < M; i++) 
 			xv[i] = xv[i+1];
 		xv[M] = in * GAIN;
-		sum = 0.0;
-		for (i = 0; i <= M; i++) 
-			sum += (xcoeffs[i] * xv[i]);
-		return sum;
+		if (calculateNow()) {
+			sum = 0.0;
+			for (i = 0; i <= M; i++) 
+				sum += (xcoeffs[i] * xv[i]);
+			return sum;
+		}
+		return 0;  // return zero for all the values we don't need when decimating.  Ignored after decimation
 	}
 
 	@Override

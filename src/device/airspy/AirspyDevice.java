@@ -25,10 +25,10 @@ import org.usb4java.Transfer;
 import org.usb4java.TransferCallback;
 
 import common.Log;
-import decoder.ComplexBuffer;
 import decoder.SourceUSB;
 import device.DCRemovalFilter_RB;
 import device.DeviceException;
+import device.DevicePanel;
 import device.HilbertTransform;
 import device.ThreadPoolManager;
 import device.TunerClass;
@@ -74,7 +74,7 @@ import device.ThreadPoolManager.ThreadType;
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-public class AirspyDevice extends device.Device
+public class AirspyDevice extends device.TunerController
 {
 	public static final Gain LINEARITY_GAIN_DEFAULT = Gain.LINEARITY_14;
 	public static final Gain SENSITIVITY_GAIN_DEFAULT = Gain.SENSITIVITY_10;
@@ -137,6 +137,7 @@ public class AirspyDevice extends device.Device
 		//super( FREQUENCY_MIN, FREQUENCY_MAX, 0, USABLE_BANDWIDTH_PERCENT );
 		
 		mDevice = device;
+		name = "USBAirspy";
 			mThreadPoolManager = threadPoolManager;
 	}
 	
@@ -207,6 +208,8 @@ public class AirspyDevice extends device.Device
 					{
 					case AIRSPY:
 						return initAirspyTuner( device, descriptor );
+					default:
+						break;
 					}
 					//	TunerInitStatus status = initTuner( device, descriptor );
 					
@@ -240,7 +243,7 @@ public class AirspyDevice extends device.Device
 		}
 	}
 
-	public void init() throws DeviceException, UsbException
+	public void init() throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 
@@ -248,12 +251,12 @@ public class AirspyDevice extends device.Device
 
 		if( result != 0 )
 		{
-			if( result == LibUsb.ERROR_ACCESS )
-			{
-				Log.errorDialog( "ERROR","Unable to access Airspy - insufficient permissions."
-						+ "  If you are running a Linux OS, have you installed the "
-						+ "airspy rules file in \\etc\\udev\\rules.d ??" );
-			}
+			//if( result == LibUsb.ERROR_ACCESS )
+			//{
+			//	Log.errorDialog( "ERROR","Unable to access Airspy - insufficient permissions."
+			//			+ "  If you are running a Linux OS, have you installed the "
+			//			+ "airspy rules file in \\etc\\udev\\rules.d ??" );
+			//}
 
 			throw new DeviceException( "Couldn't open airspy device - " +
 					LibUsb.strError( result ) );
@@ -308,6 +311,8 @@ public class AirspyDevice extends device.Device
 		catch ( IllegalArgumentException e) {
 			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
 		} catch (LibUsbException e) {
+			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
+		} catch (UsbException e) {
 			Log.errorDialog( "Setting sample rate is not supported by firmware", e.getMessage() );
 		}
 	}
@@ -1585,7 +1590,7 @@ public class AirspyDevice extends device.Device
 
 	@Override
 	public void cleanup() throws IOException, DeviceException {
-		// TODO Auto-generated method stub
+		this.stop();
 		
 	}
 
@@ -1593,5 +1598,10 @@ public class AirspyDevice extends device.Device
 	public boolean isConnected() {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		return new AirspyPanel();
 	}
 }

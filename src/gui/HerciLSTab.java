@@ -9,6 +9,8 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -24,12 +26,14 @@ import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
+import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -58,7 +62,7 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciLSTab extends RadiationTab implements ItemListener, ListSelectionListener, Runnable {
+public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	private static final String DECODED = "Housekeeping Payloads Decoded: ";
@@ -68,31 +72,14 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	private String NAME;
 	JLabel lblFramesDecoded;
 		
-	JCheckBox showRawValues;
-	JCheckBox showRawBytes;
+	//JCheckBox showRawBytes;
 	RadiationTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
-	JTable table;
-	JTable packetTable;
-	JScrollPane packetScrollPane;
-	JScrollPane scrollPane;
-	
+
 	JPanel healthPanel;
 	JPanel topHalfPackets;
 	JPanel bottomHalfPackets;
-	DisplayModule vucModule;
-	DisplayModule lepModule;
-	DisplayModule lastExposure;
-	DisplayModule lastState;
-	
-	DisplayModule vulcanExp1;
-	DisplayModule vulcanExp2;
-	DisplayModule vulcanExp3;
-	DisplayModule vulcanExp4;
-	
-	JRadioButton decodePacket;
-	JRadioButton decodeTelem;
-	
+
 	boolean displayTelem = true;
 	
 	public HerciLSTab(FoxSpacecraft sat)  {
@@ -101,7 +88,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		foxId = fox.foxId;
 		NAME = fox.toString() + " IOWA HERCI Housekeeping";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), HERCITAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -158,7 +145,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), HERCITAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -168,9 +155,9 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 				
-		showRawValues = new JCheckBox("Dislay Raw Values", Config.displayRawValues);
-		bottomPanel.add(showRawValues );
-		showRawValues.addItemListener(this);
+//		showRawValues = new JCheckBox("Dislay Raw Values", Config.displayRawValues);
+//		bottomPanel.add(showRawValues );
+//		showRawValues.addItemListener(this);
 		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
 		bottomPanel.add(showRawBytes );
 		showRawBytes.addItemListener(this);
@@ -191,7 +178,9 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 
 		addBottomFilter();
 		
-		addTables();
+		radTableModel = new RadiationTableModel();
+		radPacketTableModel = new RadiationPacketTableModel();
+		addTables(radTableModel,radPacketTableModel);
 
 		addPacketModules();
 		topHalfPackets.setVisible(false);
@@ -210,31 +199,8 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	}
 	
 	
-	private void addTables() {
-		radTableModel = new RadiationTableModel();
-		
-		table = new JTable(radTableModel);
-		table.setAutoCreateRowSorter(true);
-		
-		radPacketTableModel = new RadiationPacketTableModel();
-		packetTable = new JTable(radPacketTableModel);
-		packetTable.setAutoCreateRowSorter(true);
-		
-		//JScrollPane scrollPane = new JScrollPane(table);
-		scrollPane = new JScrollPane (table, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		table.setFillsViewportHeight(true);
-		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(scrollPane);
-
-		packetScrollPane = new JScrollPane (packetTable, 
-				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		packetTable.setFillsViewportHeight(true);
-		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(packetScrollPane);
-
+	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel) {
+		super.addTables(radTableModel, radPacketTableModel);
 		
 		TableColumn column = null;
 		column = table.getColumnModel().getColumn(0);
@@ -272,12 +238,12 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 	protected void parseRadiationFrames() {
 		
 			if (Config.displayRawRadData) {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0)
-					radTableModel.setData(parseRawBytes(data));
+				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				if (data != null && data.length > 0)
+					parseRawBytes(data,radTableModel);
 			} else {
-				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME);
-				if (data.length > 0) {
+				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				if (data != null && data.length > 0) {
 					parseTelemetry(data);
 				}
 			//		topHalfPackets.setVisible(false);
@@ -303,29 +269,30 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 		
 		// Now put the telemetry data into the table data structure
 		int len = data.length;
-		String[][] packetData = new String[len][5];
+		long[][] keyPacketData = new long[len][2];
+		String[][] packetData = new String[len][3];
 		for (int i=0; i < len; i++) { 
-			packetData[len-i-1][0] = ""+data[i][0];
-			packetData[len-i-1][1] = ""+data[i][1];
-			packetData[len-i-1][2] = "TELEMETRY";
-			packetData[len-i-1][3] = ""+data[i][2];
+			keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
+			keyPacketData[len-i-1][1] = Long.parseLong(data[i][1]);
+			packetData[len-i-1][0] = "TELEMETRY";
+			packetData[len-i-1][1] = ""+data[i][2];
 			String telem = "";
 			for (int j=2; j< fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
 				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
-			packetData[len-i-1][4] = telem;
+			packetData[len-i-1][2] = telem;
 		}
 
 		if (packetData.length > 0) {
-			radPacketTableModel.setData(packetData);
+			radPacketTableModel.setData(keyPacketData, packetData);
 		}
-		updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME));
+		
 		//updateTab(data.get(packets.size()-1));
 	}
 	
 	
-	public void updateTab(FramePart rad) {
+	public void updateTab(FramePart rad, boolean refreshTable) {
 		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
@@ -333,6 +300,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				if (mod != null)
 					mod.updateRtValues(rad);
 			}
+			if (bottomModules != null)
 			for (DisplayModule mod : bottomModules) {
 				if (mod != null)
 					mod.updateRtValues(rad);
@@ -358,10 +326,12 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
+					updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+					updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
+					
 				}
 
 				if (foxId != 0)
@@ -370,10 +340,11 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 
 						parseRadiationFrames();
+						updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME), true);
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs();
+							openGraphs(FoxFramePart.TYPE_REAL_TIME);
 							justStarted = false;
 						}
 					}
@@ -385,26 +356,9 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
 		Object source = e.getItemSelectable();
-		
-		if (source == showRawBytes) { //updateProperty(e, decoder.flipReceivedBits); }
 
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayRawRadData = false;
-			} else {
-				Config.displayRawRadData = true;
-			}
-			if (showRawBytes.isSelected()) {
-				packetScrollPane.setVisible(false); 
-				scrollPane.setVisible(true);
-			} else { 
-				packetScrollPane.setVisible(true);
-				scrollPane.setVisible(false);
-			}
-
-			parseRadiationFrames();
-			
-		}
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -413,47 +367,69 @@ public class HerciLSTab extends RadiationTab implements ItemListener, ListSelect
 				Config.displayRawValues = true;
 			}
 
-			updateTab(Config.payloadStore.getLatestRadTelem(foxId));
+			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 			
 		}
 	}
 
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		super.actionPerformed(e);
-		if (e.getSource() == decodePacket) { 
-			displayTelem=false;
-			parseRadiationFrames();
-		}
-		if (e.getSource() == decodeTelem) {
-			displayTelem=true;
-			parseRadiationFrames();
+	public void parseFrames() {
+		parseRadiationFrames();
+		
+	}
+	
+	protected void displayRow(JTable table, int row) {
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+    	//Log.println("RESET: " + reset);
+    	//Log.println("UPTIME: " + uptime);
+    	int reset = (int)reset_l;
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT), false);
+    	
+    	table.setRowSelectionInterval(row, row);
+	}
+	
+	public void mouseClicked(MouseEvent e) {
+
+		if (showRawBytes.isSelected()) {
+			int row = table.rowAtPoint(e.getPoint());
+			int col = table.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(table, row);
+			}
+		} else {
+			int row = packetTable.rowAtPoint(e.getPoint());
+			int col = packetTable.columnAtPoint(e.getPoint());
+			if (row >= 0 && col >= 0) {
+				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+				displayRow(packetTable, row);
+			}
 		}
 	}
 
 	@Override
-	public void valueChanged(ListSelectionEvent e) {
-		Object source = e.getSource();
-		if (source == packetTable.getSelectionModel() ) {
-			int r = packetTable.getSelectedRow();
-			if (r >=0 && r <= packetTable.getRowCount()) {
-				int reset = Integer.parseInt( (String) packetTable.getValueAt(r, 0));
-				long uptime = Long.parseLong( (String) packetTable.getValueAt(r, 1));
-				textFromReset.setText(""+reset);
-				textFromUptime.setText(""+uptime);
-				System.out.println(reset + " " + uptime);
-				parseRadiationFrames();
-			}
-		}
-		if (source == table.getSelectionModel() ) {
-			int r = table.getSelectedRow();
-			if (r >=0 && r <= table.getRowCount()) {
-				int reset = Integer.parseInt( (String) table.getValueAt(r, 0));
-				long uptime = Long.parseLong( (String) table.getValueAt(r, 1));
-				System.out.println(reset + " " + uptime);
-				parseRadiationFrames();
-			}
-		}
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

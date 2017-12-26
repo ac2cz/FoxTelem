@@ -23,16 +23,14 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import measure.SatMeasurementStore;
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
+import telemetry.PayloadWOD;
 import telemetry.RadiationPacket;
 
 /**
@@ -74,7 +72,7 @@ import telemetry.RadiationPacket;
 public class DisplayModule extends JPanel implements ActionListener, MouseListener {
 
 	int size = 0;
-	Spacecraft fox;
+	FoxSpacecraft fox;
 	int foxId;
 	double scale; // amount to scale the modules by given the Font size
 	String[] fieldName = null;  // string used to lookup new values
@@ -85,7 +83,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	JPanel[] row = null;      // a panel that stores the whole row
 	int[] display;           // an array that stores how each row is displayed RT, MAX. MIN, ALL
 	String title = null;
-	GraphFrame[] graph = null;
+	GraphFrame[][] graph = null; // Array of graphs by plotType
 	//GridBagConstraints layoutConstraints;
 	String noValue = "0000";
 	FramePart rtPayload;
@@ -140,17 +138,18 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_VULCAN = 5;
 	public static final int DISPLAY_LEP = 6;
 	public static final int DISPLAY_LEP_EXPOSURE = 7;
-	public static final int DISPLAY_VULCAN_EXP = 8;
+	public static final int DISPLAY_WOD_VULCAN = 8;
 	public static final int DISPLAY_MEASURES = 9;
 	public static final int DISPLAY_PASS_MEASURES = 10;
 	public static final int DISPLAY_MIN_AND_MAX_ONLY = 15;
 	public static final int DISPLAY_HERCI = 20;
 	public static final int DISPLAY_HERCI_HK = 21;
 	public static final int DISPLAY_HERCI_MICRO_PKT = 22;
+	public static final int DISPLAY_WOD = 23;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
 	public static Color herciFontColor = new Color(240,154,21);
-	//public static Color herciFontColor = new Color(244,193,4);
+	public static Color wodFontColor = new Color(70,146,32);
 	
 	int moduleType = DISPLAY_ALL; // default this to a module that displays normal RT MAX MIN telem
 
@@ -161,7 +160,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	 * @param title
 	 * @param size
 	 */
-	public DisplayModule(Spacecraft fox2, String title, int size, int modType) {
+	public DisplayModule(FoxSpacecraft fox2, String title, int size, int modType) {
 		fox = fox2;
 		foxId = fox.foxId;
 		this.size = size;
@@ -172,12 +171,16 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		setDefaultSizes();
 		moduleType = modType;
 		
-		if (moduleType >= DISPLAY_HERCI) {
+		if (moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));
 			border.setTitleColor(herciFontColor);
 		} else if (moduleType == DISPLAY_MEASURES) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
 			border.setTitleColor(vulcanFontColor);
+			minValue = new JButton[size];
+		} else if (moduleType >= DISPLAY_WOD) {
+			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
+			border.setTitleColor(wodFontColor);
 			minValue = new JButton[size];
 		} else if (moduleType >= DISPLAY_VULCAN) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/10)));
@@ -195,7 +198,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		rtValue = new JLabel[size];
 		label = new JLabel[size];
 		row = new JPanel[size];
-		graph = new GraphFrame[size];
+		graph = new GraphFrame[GraphFrame.MAX_PLOT_TYPES][size];
 		display = new int[size];
 		initGui();
 		
@@ -224,13 +227,13 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			w = SINGLE_VAL_WIDTH;			
 		} else 	if (display == DISPLAY_MAX_ONLY || display == DISPLAY_MIN_ONLY || display == DISPLAY_MIN_AND_MAX_ONLY) {
 			w = 0;
-		} else if (display == DISPLAY_MEASURES ) {
+		} else if (display == DISPLAY_MEASURES || display == DISPLAY_WOD ) {
 			w= MEASUREMENT_WIDTH;
 		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX ) {
 			w= VAL_WIDTH;
 		} else if ( display >= DISPLAY_VULCAN && display < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_WIDTH;
-		} else if ( display >= DISPLAY_HERCI_MICRO_PKT) {
+		} else if ( display == DISPLAY_HERCI || display == DISPLAY_HERCI_HK || display == DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_NAME_WIDTH;
 			// Fix the name size as this is tied to module type and not line type
 			// FIXME - ideally this would flow through and not be "fixed" here
@@ -283,7 +286,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						rtValue[i].setText(Integer.toString(rt.getRawValue(fieldName[i])));
 					else
 						rtValue[i].setText(rt.getStringValue(fieldName[i],fox));
-					if (graph[i] != null) graph[i].updateGraphData("DisplayModule.updateRtValues");
+					for (int p=0; p < GraphFrame.MAX_PLOT_TYPES; p++)
+						if (graph[p][i] != null) graph[p][i].updateGraphData("DisplayModule.updateRtValues");
 				}
 			}
 		}
@@ -308,7 +312,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						((JLabel)minValue[i]).setText(maxPayload2.getStringValue(fieldName[i],fox));
 					else
 						maxValue[i].setText(maxPayload2.getStringValue(fieldName[i],fox));
-					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMaxValues");
+					for (int p=0; p < GraphFrame.MAX_PLOT_TYPES; p++)
+					if (display[i] == DISPLAY_RT_ONLY && graph[p][i] != null) graph[p][i].updateGraphData("DisplayModule.updateMaxValues");
 				}
 			}
 		}
@@ -333,7 +338,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						maxValue[i].setText(minPayload2.getStringValue(fieldName[i],fox));
 					else
 						((JLabel)minValue[i]).setText(minPayload2.getStringValue(fieldName[i],fox));
-					if (display[i] == DISPLAY_RT_ONLY && graph[i] != null) graph[i].updateGraphData("DisplayModule.updateMinValues");
+					for (int p=0; p < GraphFrame.MAX_PLOT_TYPES; p++)
+						if (display[i] == DISPLAY_RT_ONLY && graph[p][i] != null) graph[p][i].updateGraphData("DisplayModule.updateMinValues");
 				}
 			}
 		}
@@ -355,7 +361,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void updateSingleValue(int line, String value) {
 		rtValue[line].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 		rtValue[line].setText(value);
-		if (graph[line] != null) graph[line].updateGraphData("DisplayModule.updateSingleValue");
+		for (int p=0; p < GraphFrame.MAX_PLOT_TYPES; p++)
+		if (graph[p][line] != null) graph[p][line].updateGraphData("DisplayModule.updateSingleValue");
 	}
 	
 	private void initGui() {
@@ -375,11 +382,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		
 		// Setup the width for the NAME column
 		int w = NAME_WIDTH;
-		if ( moduleType == DISPLAY_MEASURES) {
+		if ( moduleType == DISPLAY_MEASURES || moduleType == DISPLAY_WOD) {
 			w = MEASUREMENT_NAME_WIDTH;
 		} else if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_NAME_WIDTH;
-		} else if ( moduleType >= DISPLAY_HERCI_MICRO_PKT) {
+		} else if (moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_NAME_WIDTH;
 		}
 
@@ -393,11 +400,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 
 		// Setup the width for the Value Column
 		w = VAL_WIDTH;
-		if ( moduleType == DISPLAY_MEASURES) {
+		if ( moduleType == DISPLAY_MEASURES || moduleType == DISPLAY_WOD) {
 			w = MEASUREMENT_WIDTH;
 		} else if ( moduleType >= DISPLAY_VULCAN && moduleType < DISPLAY_HERCI_MICRO_PKT ) {
 			w = VULCAN_WIDTH;
-		} else if ( moduleType >= DISPLAY_HERCI_MICRO_PKT) {
+		} else if ( moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			w = HERCI_MICRO_PKT_VALUE_WIDTH;
 		}
 
@@ -430,6 +437,16 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			for (int i=1; i < size; i++) {
 				minValue[i] = createIconButton("/images/skyPlot.png","Sky","Plot sky chart");
 				minValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
+				row[i].add(minValue[i]);
+			}
+		}
+		
+		if (moduleType == DISPLAY_WOD) {
+			// We want to add a button for a sky plot.  This goes in the min column
+			for (int i=1; i < size; i++) {
+				minValue[i] = new JButton();
+				((JButton)minValue[i]).addActionListener(this);
+				((JButton)minValue[i]).setBackground(wodFontColor);
 				row[i].add(minValue[i]);
 			}
 		}
@@ -469,73 +486,82 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		for (int i=1; i< size; i++) {
-			if (moduleType == DISPLAY_MEASURES && e.getSource() == minValue[i]) {
-				if (rtValue[i].getText().equalsIgnoreCase(noValue))
-					;// dont open graph
-				else
-					displayGraph(i, true);				
-			} 
+			if (rtValue[i].getText().equalsIgnoreCase(noValue))
+				;// dont open graph
+			else {
+				if (moduleType == DISPLAY_MEASURES && e.getSource() == minValue[i])
+					displayGraph(i, GraphFrame.SKY_PLOT);				
+				else if (moduleType == DISPLAY_WOD && e.getSource() == minValue[i])
+						displayGraph(i, GraphFrame.EARTH_PLOT);				
+			}
 		}
 	}
 
-	public void displayGraph(int i, Boolean showSkyChart) {
+	public void displayGraph(int i, int plotType) {
 		try {
-			if (graph[i] == null || graph[i].skyPlot != showSkyChart) {
+			if (graph[plotType][i] == null) {
 				int conversion = BitArrayLayout.CONVERT_NONE;
 				String units = "";
 				
-				if ((moduleType == DisplayModule.DISPLAY_ALL || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
+				if ((moduleType == DisplayModule.DISPLAY_ALL  || moduleType == DisplayModule.DISPLAY_WOD || moduleType == DisplayModule.DISPLAY_ALL_SWAP_MINMAX ) && rtPayload!=null && rtPayload.hasFieldName(fieldName[i])) {
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, fox, showSkyChart);
+					if (rtPayload instanceof PayloadWOD)
+						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD, fox, plotType);
+					else
+						graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
 					units = fox.passMeasurementLayout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox, showSkyChart);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox, plotType);
 				} 
 				else if (moduleType == DISPLAY_MEASURES) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					conversion = fox.measurementLayout.getConversionByName(fieldName[i]);
 					units = fox.measurementLayout.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox, showSkyChart);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox, plotType);
 				}
-				else if (moduleType == DISPLAY_VULCAN) {
+				else if (moduleType == DISPLAY_VULCAN  || moduleType == DisplayModule.DISPLAY_WOD_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
+					if (moduleType == DisplayModule.DISPLAY_WOD_VULCAN) {
+					//	Log.errorDialog("NOT YET IMPLEMENTED", "Need to define TELEM layout for WOD RAD and pass to the graph");
+						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD_RAD_TELEM_DATA, fox, plotType);
+					} else
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_HERCI_SCIENCE_HEADER, fox, showSkyChart);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_HERCI_SCIENCE_HEADER, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, showSkyChart);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, plotType);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionByName(fieldName[i]);
 					units = minPayload.getUnitsByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MIN_VALUES, fox, showSkyChart);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MIN_VALUES, fox, plotType);
 				}
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
 					conversion = maxPayload.getConversionByName(fieldName[i]);
 					conversion = maxPayload.getConversionByName(fieldName[i]);
-					graph[i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MAX_VALUES, fox, showSkyChart);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MAX_VALUES, fox, plotType);
 				} else return;
 				
-				graph[i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
+				graph[plotType][i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 			}
-			graph[i].updateGraphData("DisplayModule.displayGraph");
-			graph[i].setVisible(true);
+//			graph[plotType][i].updateGraphData("DisplayModule.displayGraph");  // This is also called from new, probably don't need to call it here?
+			graph[plotType][i].setVisible(true);
 		} catch (Exception ex) {
 			Log.println("MOUSE CLICKED EXCEPTION");
 			ex.printStackTrace();
@@ -546,12 +572,17 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
 				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
 				} else
-					displayGraph(i, false);
+					if (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)
+						displayGraph(i, GraphFrame.EARTH_PLOT);
+					else
+						displayGraph(i, GraphFrame.GRAPH_PLOT);
+
 			}
 		}
 	}
@@ -604,30 +635,38 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	}
 
 	public void closeGraphs() {
-		for (int i=0; i < graph.length; i++) {
-			if (graph[i] != null) {
-				if (graph[i].isVisible())
-					graph[i].saveProperties(true);
-				graph[i].dispose();
+		for (int p=0; p<GraphFrame.MAX_PLOT_TYPES; p++)
+			for (int i=0; i < graph[p].length; i++) {
+				if (graph[p][i] != null) {
+					if (graph[p][i].isVisible())
+						graph[p][i].saveProperties(true);
+					graph[p][i].dispose();
+				}
 			}
-		}
 	}
 
 	public void showGraphs() {
-		for (int i=0; i < graph.length; i++) {
-			if (graph[i] != null) {
-				if (graph[i].isVisible())
-					graph[i].toFront();
+		for (int p=0; p<GraphFrame.MAX_PLOT_TYPES; p++)
+			for (int i=0; i < graph[p].length; i++) {
+				if (graph[p][i] != null) {
+					if (graph[p][i].isVisible())
+						graph[p][i].toFront();
+				}
 			}
-		}
 	}
 
-	public void openGraphs() {
+	public void openGraphs(int payloadType) {
 		for (int i=0; i < fieldName.length; i++) {
-			boolean open = Config.loadGraphBooleanValue(fox.getIdString(), fieldName[i], "open");
-			if (open) {
-				displayGraph(i, null);
-			}
+			openPlot(i, GraphFrame.GRAPH_PLOT, payloadType);
+			openPlot(i, GraphFrame.SKY_PLOT, payloadType);
+			openPlot(i, GraphFrame.EARTH_PLOT, payloadType);
+		}
+	}
+	
+	private void openPlot(int i, int plotType, int payloadType) {
+		boolean open = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[i], "open");
+		if (open) {
+			displayGraph(i, plotType);
 		}
 	}
 	

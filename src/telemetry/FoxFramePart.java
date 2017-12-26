@@ -1,19 +1,14 @@
 package telemetry;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import common.Log;
 import common.Spacecraft;
 import common.FoxSpacecraft;
 import decoder.FoxBitStream;
-import decoder.FoxDecoder;
 import gui.GraphPanel;
 
 /**
@@ -55,9 +50,13 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_CAMERA_DATA = 5;
 	public static final int TYPE_RAD_EXP_DATA = 4; // This is both Vulcan and HERCI
 	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
-	public static final int TYPE_RAD_TELEM_DATA = 7; 
+	public static final int TYPE_RAD_TELEM_DATA = 7;  // Translated both Vulcan and HERCI HK
 	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
 	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
+	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
+	
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
@@ -111,6 +110,8 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int UNKNOWN = 15;
 	public static final int IHU_SW_VERSION = 14;
 	//public static final int BUS_VOLTAGE_OVER_2 = 15;
+
+	
 	
 	// Flattened C ENUM for IHU Errors
 	public static final String[] ihuErrorType = {
@@ -197,6 +198,9 @@ public abstract class FoxFramePart extends FramePart {
 	private static final double MPPT_RTD_CONSTANT_CURERNT = 0.001; // Constant current driver for the MPPT RTD is 1mA
 	private static final double MPPT_RTD_AMP_GAIN = -8.14228; // RTD conditioning amplifier Vout = -8.14228 * Vin +2.0523 
 	private static final double MPPT_RTD_AMP_FACTOR = 2.0523; // 
+//	private static final double MPPT_RTD_EXTRA_RESISTANCE = 6.58; // This is an error resistance in the RTD line, as calculated for MinusX plane from Jerry's measurements of Panel Temperatures
+//	private static final int MPPT_TEMP_OFF_VALUE = 1600;
+	public static final int MPPT_DEFAULT_TEMP = 0; // plot this value when the raw is below the OFF VALUE
 	private static final double PA_CURRENT_INA194_FACTOR = 50; // Multiply the PSU current reading by the 3V Sensor step and then divide by this factor and the shunt value
 	private static final double PA_CURRENT_SHUNT_RESISTOR_FACTOR = 0.2; // Multiply the PSU current reading by the 3V Sensor step and then divide by the IN914 factor and this factor
 	private static final double MEMS_ZERO_VALUE_VOLTS = 1.51; // Updated from datasheet value of 1.51 following observation of Vref in the diagnostics
@@ -215,7 +219,7 @@ longer send telemetry.
 	public static LookUpTableBatteryTemp batteryTempTable = new LookUpTableBatteryTemp();
 	public static LookUpTableSolarPanelTemp solarPanelTempTable = new LookUpTableSolarPanelTemp();
 	
-	protected int MAX_BYTES = 60;  // This provides enough storage to cover the zero filled bytes at the end of the Slow or High Speed frames
+	protected int MAX_BYTES = 78;  // This provides enough storage to cover the zero filled bytes at the end of the Slow, High Speed frames or 1E frames
 	
 	public FoxFramePart(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(lay);
@@ -331,7 +335,13 @@ longer send telemetry.
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HARD_ERROR) {
 			s = hardErrorString(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR) {
-			s = softErrorString(getRawValue(name), true);
+			s = softErrorStringFox1A(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
+			s = softErrorString84488(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
+			s = icrCommandCount(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
+			s = icrDiagnosticString(getRawValue(name), true);			
 		} else {
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
@@ -348,10 +358,10 @@ longer send telemetry.
 				s = " " + s;
 		return s;
 	}
-		
 	
-	
-	
+	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
+		return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
+	}
 	/**
 	 * Given a raw value, BitArrayLayout.CONVERT_it into the actual value that we can display based on the
 	 * conversion type passed.  Field name is also used in some conversions, e.g. the batteries
@@ -360,7 +370,7 @@ longer send telemetry.
 	 * @param conversion
 	 * @return
 	 */
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
 		
 	//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 		switch (conversion) {
@@ -404,10 +414,11 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
 			return solarPanelTempTable.lookupValue(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
-			double v = (double)rawValue;
-			v = v * VOLTAGE_STEP_FOR_2V5_SENSORS;
-			v =  (v - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
-			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT;
+			if (rawValue < fox.mpptSensorOffThreshold) return ERROR_VALUE;
+			double raw = (double)rawValue;
+			double vadc = raw * VOLTAGE_STEP_FOR_2V5_SENSORS;
+			double v =  (vadc - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
+			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - fox.mpptResistanceError;
 			
 			// Cubic fit using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
 			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);
@@ -445,6 +456,23 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_SOFT_ERROR:
 			return rawValue;
+		case BitArrayLayout.CONVERT_SOFT_ERROR_84488:
+			return rawValue;
+		case BitArrayLayout.CONVERT_ICR_COMMAND_COUNT:
+			return rawValue;
+		case BitArrayLayout.CONVERT_ICR_DIAGNOSTIC:
+			return rawValue;
+		case BitArrayLayout.CONVERT_WOD_STORED:
+			return rawValue * 4;
+		case BitArrayLayout.CONVERT_FOX1E_TXRX_TEMP:
+			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			volts = volts / 2;
+			return 100 * volts - 50; // TMP36 sensor conversion graph is a straight line where 0.5V is 0C and 0.01V rise is 1C increase.  So 0.75V is 25C
+		case BitArrayLayout.CONVERT_FOX1E_PA_CURRENT:
+			double voltspa = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			voltspa = voltspa / 2;
+			double pacurrent = voltspa/PA_CURRENT_INA194_FACTOR/0.1; 
+			return 1000* pacurrent;
 		}
 		
 		return ERROR_VALUE;
@@ -505,10 +533,14 @@ longer send telemetry.
 				+ Integer.toHexString(n4) + " "+ Integer.toHexString(n5) + " "+ Integer.toHexString(n6);
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
+			if (fox.foxId == Spacecraft.FOX1E) {
+				return icrCommandCount(value, shortString);
+			} else {
 			if (shortString)
 				return "Count: " + value;
 			else
 				return "Number of commands received since boot: " + value;
+			}
 		case I2C1_ERRORS: // I2C1Errors
 			int writeTimeout = (rawValue >> 8) & 0xff;
 			int busBusyTimeout = (rawValue >> 16) & 0xff;
@@ -568,6 +600,122 @@ longer send telemetry.
 		return "-----" + type;
 	}
 
+	// Flattened C ENUM for ICRDiagnostic aka swCmds - COMMAND NAME SPACE
+		public static final int SWCmdNSSpaceCraftOps = 1;
+		public static final int SWCmdNSTelemetry = 2;
+		public static final int SWCmdNSExperiment1 = 3;
+		public static final int SWCmdNSExperiment2 = 4;
+		public static final int SWCmdNSExperiment3 = 5;
+		public static final int SWCmdNSExperiment4 = 6;
+
+		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
+		public static final String[] SWOpsCommands = {
+		"Unknown", //0
+		"SafeMode", //1
+		"TransponderMode", //2
+		"ScienceMode", //3
+		"DisableAutosafe", //4
+		"EnableAutosafe", //5
+		"ClearMinMax", //6
+		"OpsNoop", //7
+		"ForceOffExp1", //8
+		"ForceDeployRx", //9
+		"ForceDeployTx", //0xA
+		"ResetIHU" //0xB
+		};
+
+		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
+		public static final String[] SWTlmCommands = {
+		"Unknown",
+		"Gain",
+		"WODSaveSize",
+		"Encoding",
+		"Frequency"
+		};
+
+		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
+		public static final String[] SWExp1Commands = {
+		"Unknown",
+		"CycleTiming",
+		"SetBoard"
+		};
+	
+	/**
+	 * The Diagnostic String for the Improved Command Receiver shows a ring of the last commands.  There are 32 bits holding up
+	 * to four commands.  Each byte has the top 3 bits that hold the namespace and 5 bits for the command name	
+	 * @param rawValue
+	 * @param shortString
+	 * @return
+	 */
+	public static String[] icrDiagnosticStringArray(int rawValue, boolean shortString) {
+		String[] s = new String[4];
+		for (int i=0; i<4; i++) {
+			s[i] = "";
+			int value = rawValue & 0x1f; // bottom 5 bits hold the command
+			rawValue = rawValue >> 5;
+			int nameSpace = rawValue & 0x7; // Top 3 bits of the byte hold the command namespace
+			
+			if ( nameSpace == 0)
+				s[i] = s[i] + "---";
+			else
+			switch (nameSpace) {
+
+			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
+				if (shortString)
+					s[i] = s[i] + "Ops";
+				else
+					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
+				break;
+			case SWCmdNSTelemetry: // Telemetry Control
+				if (shortString)
+					s[i] = s[i] + "Tlm";
+				else
+					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
+				break;
+			case SWCmdNSExperiment1: // Experiment 1
+				if (shortString)
+					s[i] = s[i] + "Exp1";
+				else
+					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
+			break;
+			default:
+				s[i] = s[i] + "ERR:" + nameSpace;
+			}
+			rawValue = rawValue >> 3; // move to the next byte
+		}
+		return s;
+	}
+
+	public static String icrDiagnosticString(int rawValue, boolean shortString) {
+		String[] s = icrDiagnosticStringArray(rawValue, shortString);
+		String result = "---";
+		if (s[0] != null)
+			result = s[0];
+		for (int i=1; i< s.length; i++)
+			if (s[i] != null)
+				result = result + ", " + s[i];
+		return result;
+	}
+	
+	public static String icrCommandCount(int rawValue, boolean shortString) {
+		String s = new String();
+		if (rawValue != ERROR_VALUE) {
+			// First 8 bits are the hardware commands 
+			int hardwareCmds = rawValue & 0xff ;
+
+			// 8 MSBs are software command number
+			int softwareCmds = (rawValue >> 8) & 0xff;
+			
+			if (shortString)
+				s = s + "hw " + hardwareCmds + " "
+						+ "sw " + softwareCmds;
+			else
+				s = s + "Number of Hardware Cmds: " + hardwareCmds  + " "
+				+ " Software Cmds: " + softwareCmds;
+		}
+		return s;
+		}
+
 	/**
 	 * Decode the IHU Hard Error bits
 	 * @param rawValue
@@ -576,42 +724,42 @@ longer send telemetry.
 	public static String hardErrorString(int rawValue, boolean shortString) {
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
-		// First 9 bits are the watch dog 
-		int watchDogReports = rawValue & 0x1ff ;
-		
-		// Error code is the next 5 bits
-		int errorCode = (rawValue >> 9) & 0x1f;
+			// First 9 bits are the watch dog 
+			int watchDogReports = rawValue & 0x1ff ;
 
-		// mramErrorCount is the next 3 bits
-		int mramErrorCount = (rawValue >> 14) & 0x07;
+			// Error code is the next 5 bits
+			int errorCode = (rawValue >> 9) & 0x1f;
 
-		// nonFatalErrorCount is the next 3 bits
-		int nonFatalErrorCount = (rawValue >> 17) & 0x07;
+			// mramErrorCount is the next 3 bits
+			int mramErrorCount = (rawValue >> 14) & 0x07;
 
-		// taskNumber is the next 4 bits
-		int taskNumber = (rawValue >> 20) & 0x0f;
+			// nonFatalErrorCount is the next 3 bits
+			int nonFatalErrorCount = (rawValue >> 17) & 0x07;
 
-		// alignment is the next 8 bits
-		int alignment = (rawValue >> 24) & 0xff;
+			// taskNumber is the next 4 bits
+			int taskNumber = (rawValue >> 20) & 0x0f;
 
-		if (shortString)
-			s = s + "wd " + Integer.toHexString(watchDogReports) + " "
-				+ "ec " + Integer.toHexString(errorCode) + " "
-				+ "mr " + Integer.toHexString(mramErrorCount) + " "
-				+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
-				+ "tn " + Integer.toHexString(taskNumber) + " "
-				+ "al " + Integer.toHexString(alignment);
-		else
-			s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
-					+ " Error Type: " + ihuErrorType[errorCode] + " "
-					+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
-					+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
-					+ " Task Number: " + taskNumber + "- ";
-		if (taskNumber < ihuTask.length)
-			s = s + ihuTask[taskNumber];
-		else
-			s = s + "Unknown";
-		s = s + " Alignment: " + alignment;
+			// alignment is the next 8 bits
+			int alignment = (rawValue >> 24) & 0xff;
+
+			if (shortString)
+				s = s + "wd " + Integer.toHexString(watchDogReports) + " "
+						+ "ec " + Integer.toHexString(errorCode) + " "
+						+ "mr " + Integer.toHexString(mramErrorCount) + " "
+						+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
+						+ "tn " + Integer.toHexString(taskNumber) + " "
+						+ "al " + Integer.toHexString(alignment);
+			else
+				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
+						+ " Error Type: " + ihuErrorType[errorCode] + " "
+						+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
+						+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
+						+ " Task Number: " + taskNumber + "- ";
+			if (taskNumber < ihuTask.length)
+				s = s + ihuTask[taskNumber];
+			else
+				s = s + "Unknown";
+			s = s + " Alignment: " + alignment;
 		}
 		return s;
 	}
@@ -622,7 +770,7 @@ longer send telemetry.
 	public static final int wdReportUplinkCommandRxTask = 0x08;
 	public static final int wdReportIdleTask = 0x10;
 	public static final int wdReportExpTask = 0x20;
-	
+
 	/**
 	 * Decode the IHU Hard Error bits
 	 * @param rawValue
@@ -631,55 +779,55 @@ longer send telemetry.
 	public static String[] hardErrorStringArray(int rawValue, boolean shortString) {
 		String[] s = new String[6];
 		if (rawValue != ERROR_VALUE) {
-		// First 9 bits are the watch dog 
-		int watchDogReports = rawValue & 0x1ff ;
-		
-		// Error code is the next 5 bits
-		int errorCode = (rawValue >> 9) & 0x1f;
+			// First 9 bits are the watch dog 
+			int watchDogReports = rawValue & 0x1ff ;
 
-		// mramErrorCount is the next 3 bits
-		int mramErrorCount = (rawValue >> 14) & 0x07;
+			// Error code is the next 5 bits
+			int errorCode = (rawValue >> 9) & 0x1f;
 
-		// nonFatalErrorCount is the next 3 bits
-		int nonFatalErrorCount = (rawValue >> 17) & 0x07;
+			// mramErrorCount is the next 3 bits
+			int mramErrorCount = (rawValue >> 14) & 0x07;
 
-		// taskNumber is the next 4 bits
-		int taskNumber = (rawValue >> 20) & 0x0f;
+			// nonFatalErrorCount is the next 3 bits
+			int nonFatalErrorCount = (rawValue >> 17) & 0x07;
 
-		// alignment is the next 8 bits
-		int alignment = (rawValue >> 24) & 0xff;
+			// taskNumber is the next 4 bits
+			int taskNumber = (rawValue >> 20) & 0x0f;
 
-		s[0] = errorCode + " - " + ihuErrorType[errorCode];
-		s[1] = Integer.toHexString(alignment);
-		
-		s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
-		s[3] = Integer.toHexString(taskNumber) + " - ";
-		if (taskNumber < ihuTask.length)
-			s[3] = s[3] + ihuTask[taskNumber];
-		else
-			s[3] = s[3] + "Unknown";
-		s[4] = Integer.toHexString(mramErrorCount);
-		s[5] = Integer.toHexString(nonFatalErrorCount);
-		
-		
+			// alignment is the next 8 bits
+			int alignment = (rawValue >> 24) & 0xff;
+
+			s[0] = errorCode + " - " + ihuErrorType[errorCode];
+			s[1] = Integer.toHexString(alignment);
+
+			s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
+			s[3] = Integer.toHexString(taskNumber) + " - ";
+			if (taskNumber < ihuTask.length)
+				s[3] = s[3] + ihuTask[taskNumber];
+			else
+				s[3] = s[3] + "Unknown";
+			s[4] = Integer.toHexString(mramErrorCount);
+			s[5] = Integer.toHexString(nonFatalErrorCount);
+
+
 		}
 		return s;
 	}
 
-	
+
 	/**
 	 * Decode the IHU Soft error bits
 	 * @param rawValue
 	 * @return
 	 */
-	public static String softErrorString(int rawValue, boolean shortString) {
+	public static String softErrorStringFox1A(int rawValue, boolean shortString) {
 		// Soft error is 4 8 bit numbers 
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
 			int DACoverflows = rawValue & 0xff;
 			int I2CRetries = (rawValue >> 8) & 0xff;
 			int SPIRetries = (rawValue >> 16) & 0xff;
-			int MramCRCs = (rawValue >> 20) & 0xff;
+			int MramCRCs = (rawValue >> 24) & 0xff;
 
 			if (shortString)
 				s = s + "dac " + DACoverflows + " i2c " + I2CRetries + " spi " + SPIRetries + " mr " + MramCRCs;
@@ -688,20 +836,57 @@ longer send telemetry.
 		}
 		return s;
 	}
+	
+	public static String softErrorString84488(int rawValue, boolean shortString) {
+		// Soft error is 4 8 bit numbers 
+		String s = new String();
+		if (rawValue != ERROR_VALUE) {
+			int DACoverflows = rawValue & 0xff;
+			int I2C1Retries = (rawValue >> 4) & 0x0f;
+			int I2C2Retries = (rawValue >> 4) & 0x0f;
+			int SPIRetries = (rawValue >> 16) & 0xff;
+			int MramCRCs = (rawValue >> 24) & 0xff;
 
-	public static String[] softErrorStringArray(int rawValue, boolean shortString) {
+			if (shortString)
+				s = s + "dac " + DACoverflows + " i2c1 " + I2C1Retries + " i2c2 " + I2C2Retries + " spi " + SPIRetries + " mr " + MramCRCs;
+			else
+				s = s + "DAC Overflows: " + DACoverflows + "  I2C1 Retries: " + I2C1Retries + "  I2C2 Retries: " + I2C2Retries+ "  SPI Retries: " + SPIRetries + "  MRAM CRCs: " + MramCRCs;
+		}
+		return s;
+	}
+
+	public static String[] softErrorStringArrayFox1A(int rawValue, boolean shortString) {
 		// Soft error is 4 8 bit numbers 
 		String[] s = new String[4];
 		if (rawValue != ERROR_VALUE) {
 			int DACoverflows = rawValue & 0xff;
 			int I2CRetries = (rawValue >> 8) & 0xff;
 			int SPIRetries = (rawValue >> 16) & 0xff;
-			int MramCRCs = (rawValue >> 20) & 0xff;
+			int MramCRCs = (rawValue >> 24) & 0xff;
 
 			s[0] = Integer.toString(DACoverflows); 
 			s[1] = Integer.toString(I2CRetries);
 			s[2] = Integer.toString(SPIRetries);
 			s[3] = Integer.toString(MramCRCs);
+		}
+		return s;
+	}
+	
+	public static String[] softErrorStringArray84488(int rawValue, boolean shortString) {
+		// Soft error is 5 numbers 
+		String[] s = new String[5];
+		if (rawValue != ERROR_VALUE) {
+			int DACoverflows = rawValue & 0xff;
+			int I2C1Retries = (rawValue >> 4) & 0x0f;
+			int I2C2Retries = (rawValue >> 4) & 0x0f;
+			int SPIRetries = (rawValue >> 8) & 0xff;
+			int MramCRCs = (rawValue >> 8) & 0xff;
+
+			s[0] = Integer.toString(DACoverflows); 
+			s[1] = Integer.toString(I2C1Retries);
+			s[2] = Integer.toString(I2C2Retries);
+			s[3] = Integer.toString(SPIRetries);
+			s[4] = Integer.toString(MramCRCs);
 		}
 		return s;
 	}

@@ -7,6 +7,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 import telemServer.WebServiceProcess;
+import telemetry.PayloadDbStore;
 import common.Config;
 import common.Log;
 
@@ -21,13 +22,17 @@ import common.Log;
  */
 public class FoxService {
 
-	
+	public static String version = "Version 0.26 - 25 Dec 2017";
 	public static int port = 8080;
 	int poolSize = 100;
 	
 	public static void main(String args[]) throws IOException {
 		FoxService ws = new FoxService();
 		String u,p, db;
+		if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
+			System.out.println("AMSAT Fox Web Service. Version " + version);
+			System.exit(0);
+		}
 		if (args.length == 3) {
 			BufferedReader in = new BufferedReader(new InputStreamReader(System.in));
 		    p = in.readLine();
@@ -57,11 +62,12 @@ public class FoxService {
 		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
 		Config.logging = true;
 		Log.init("FoxWebService");
+		Log.alertsAreFatal = false;
 		Log.showGuiDialogs = false;
 		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(u,p,db); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
+		Config.serverInit(); // initialize and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 
 		Log.println("Fox Webservice starting up on port " + port + ": " + WebServiceProcess.version);
 		Log.println("(press ctrl-c to exit)");
@@ -78,14 +84,11 @@ public class FoxService {
             System.exit(-1);
         }
 
-        WebServiceProcess process = null;
-        Thread processThread;
-        
         while (listening) {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for WebService connection ...");
-        		pool.execute(new WebServiceProcess(serverSocket.accept(),port));
+        		pool.execute(new WebServiceProcess(initPayloadDB(u,p,db),serverSocket.accept(),port));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {
@@ -102,5 +105,10 @@ public class FoxService {
 			e.printStackTrace(Log.getWriter());
 		}
 
+	}
+	
+	public static PayloadDbStore initPayloadDB(String u, String p, String db) {	
+		return new PayloadDbStore(u,p,db);
+		
 	}
 }

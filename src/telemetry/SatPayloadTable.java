@@ -15,7 +15,6 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import gui.MainWindow;
 
 /**
@@ -43,7 +42,7 @@ import gui.MainWindow;
  */
 public class SatPayloadTable {
 
-	public static final int MAX_DATA_LENGTH = 61;
+	public static final int MAX_DATA_LENGTH = 62;
 	public static final int MAX_SEGMENT_SIZE = 1000;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
@@ -66,7 +65,7 @@ public class SatPayloadTable {
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
-	private String getDir() {
+	public static String getDir() {
 		String dir = "";
         if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			dir = Config.logFileDirectory + File.separator ;
@@ -104,11 +103,21 @@ public class SatPayloadTable {
 		return null;
 	}
 	
+	/**
+	 * Return the nearest frame part to the passed reset and uptime.  We search from low uptime to high.  We return the first record that is 
+	 * equal to or greater than the uptime
+	 * @param id
+	 * @param uptime
+	 * @param resets
+	 * @return
+	 * @throws IOException
+	 */
 	public FramePart getFrame(int id, long uptime, int resets) throws IOException { 
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
 		TableSeg seg = loadSeg(resets, uptime);
 		int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
+		if (i == -1) return null;
 		return rtRecords.get(i);
 	}
 	
@@ -122,13 +131,13 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length) throws IOException {
+	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
-		loadSegments(fromReset, fromUptime, period);
+		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
 		int end = 0;
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
+		if (reverse) { // then we take records nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {
@@ -154,7 +163,8 @@ public class SatPayloadTable {
 			resets[j--] = ""+rtRecords.get(i).getResets();
 		}
 		
-		String[][] resultSet = new String[end-start][length];
+		// Create a results set, with reset, uptime and the data on the same line
+		String[][] resultSet = new String[end-start][length+3];
 		for (int r=0; r< end-start; r++) {
 			resultSet[r][0] = resets[r];
 			resultSet[r][1] = upTime[r];
@@ -172,15 +182,23 @@ public class SatPayloadTable {
 	 * @param id
 	 * @param fromReset
 	 * @param fromUptime
+	 * @param positionData
+	 * @param reverse - return the data from the end of the table in reverse order,such as when monitoring a live graph
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws IOException {
-		loadSegments(fromReset, fromUptime, period);
+	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
 		int end = 0;
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take records nearest the end
+		int COLUMNS = 3;
+		double[] lat = null;
+		double[] lon = null;
+		if (positionData)
+			COLUMNS = 5;
+		
+		if (reverse) { // then we take records nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {
@@ -196,7 +214,10 @@ public class SatPayloadTable {
 		double[] results = new double[end-start];
 		double[] upTime = new double[end-start];
 		double[] resets = new double[end-start];
-		
+		if (positionData) {
+			lat = new double[end-start];
+			lon = new double[end-start];
+		}
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
@@ -204,15 +225,23 @@ public class SatPayloadTable {
 				results[j] = rtRecords.get(i).getRawValue(name);
 			else
 				results[j] = rtRecords.get(i).getDoubleValue(name, id);
+			if (positionData) {
+				lat[j] = rtRecords.get(i).satLatitude;
+				lon[j] = rtRecords.get(i).satLongitude;
+			}
 			upTime[j] = rtRecords.get(i).getUptime();
 			resets[j--] = rtRecords.get(i).getResets();
 		}
 		
-		double[][] resultSet = new double[3][end-start];
+		double[][] resultSet = new double[COLUMNS][end-start];
 		resultSet[PayloadStore.DATA_COL] = results;
 		resultSet[PayloadStore.UPTIME_COL] = upTime;
 		resultSet[PayloadStore.RESETS_COL] = resets;
-		
+		if (positionData) {
+			resultSet[PayloadStore.LAT_COL] = lat;
+			resultSet[PayloadStore.LON_COL] = lon;
+			
+		}
 		return resultSet;
 	}
 	
@@ -243,6 +272,132 @@ public class SatPayloadTable {
 	}
 	
 	/**
+	 * Load all of the segments needed between two timestamps and return the number of records in that range
+	 * Our first challenge is that either or both timestamps may be outside of a file.
+	 * 
+	 * @param reset
+	 * @param uptime
+	 * @param toReset
+	 * @param toUptime
+	 * @return the number of records in the range
+	 * @throws IOException
+	 */
+	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
+		int fromSeg = findFirstSeg(reset, uptime);
+		int toSeg = findFirstSeg(toReset, toUptime);
+		int number = 0;
+		// Then we need to load segment at i and start counting from here, until we find the toReset and toUptime
+		//System.err.println("Loading from seg: "+i);
+
+		int i = fromSeg;
+		while(i <= toSeg && i < tableIdx.size()) {
+			if (!tableIdx.get(i).isLoaded())
+				load(tableIdx.get(i));
+			i++;
+		}
+		int id = rtRecords.get(0).id; // id is the same for all records in this table
+		// Now all the segments are loaded that contain the data we want, so find the nearest records and count the distance between
+		int start = rtRecords.getNearestFrameIndex(id, uptime, reset);
+		int end = rtRecords.getNearestFrameIndex(id, toUptime, toReset);
+		if (start < end)
+			number = end - start;
+
+		return number;
+	}
+	
+	/**
+	 * Search forwards through the segments to find the Segment with this reset/uptime
+	 * We search from the earliest index records looking for the first instance where the reset or uptime is greater than the search point.
+	 * We would then start loading from the previous record.
+	 * @param reset
+	 * @param uptime
+	 * @return
+	 */
+	private int findFirstSeg(int reset, long uptime) {
+		// load forwards from the relevant reset/uptime
+		/* Logic is like this:
+			reset x
+			uptime y
+			
+			idx
+			fromR	fromU
+			0		100
+			1		50
+			2		900
+			3		55
+			
+			case 1: 
+			reset=1
+			uptime=100
+			We want to load 2/900 onwards
+			So:
+			reset < fromR, uptime then irrelevant
+			
+			case 2: - special case at the start
+			reset = 0
+			uptime = 1
+			We want to load 0/100 onwards because we DO NOT HAVE data before it, otherwise it is case 4
+			So: reset = fromR, y < fromU
+							
+			case 3: - special case at the end
+			x=3
+			y=100
+			We want to load 3/55
+			x = fromR, y > fromU - load current
+			
+			case 4: 
+			reset=1
+			uptime=0
+			We want to load 0/100 because the data could be at the end
+			x > fromR, y is irrelevent
+			AND (x < next fromR OR (x = next from R AND y < uptime) )
+		 * 
+		 */
+		
+		boolean loadnow = false;
+		for (int i=0; i< tableIdx.size(); i++) {
+			if (!loadnow) { // we test the cases
+				//case 1:
+				if (tableIdx.get(i).fromReset > reset ) { // situation where the data is for a higher reset, so load from here always by default
+					loadnow = true;
+					//System.out.println("Case 1: " + i);
+				} 
+				// case 2:
+				if (i == 0) 
+					if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
+						loadnow = true;
+					}
+				//case 4:
+				if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
+						(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and high uptime
+					loadnow = true;
+					//System.out.println("Case 4: " + i);
+				}
+				//case 4b:
+				if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime < uptime && // this record has the same reset and uptime is less than the target
+						(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and uptime higher
+					loadnow = true;
+					//System.out.println("Case 4b: " + i);
+
+				}
+				//case 3:
+				if (i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset) { // load this.  It might have the data we need and its the last segment
+					loadnow = true;
+					//System.out.println("Case 3: " + i);
+
+				}
+			}
+			if (loadnow) return i;
+		}
+		return -99;
+		
+	}
+	
+	private int findLastSeg(int reset, long uptime) {
+		return 0;
+	}
+	
+	/**
 	 * Load all of the segments needed so that "number" of records is available.  Used for plotting graphs.  If segments are missing then
 	 * we do not create them
 	 * @param reset
@@ -250,9 +405,9 @@ public class SatPayloadTable {
 	 * @param number
 	 * @throws IOException
 	 */
-	private void loadSegments(int reset, long uptime, int number) throws IOException {
+	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
 		int total = 0;
-		if (reset == 0 && uptime == 0) {
+		if (reverse) {
 			// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
 			// So we first calculate where to start
 			int startIdx = 0;
@@ -276,97 +431,17 @@ public class SatPayloadTable {
 			}
 			//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
 		} else {
-			// load forwards from the relevant reset/uptime
-			// We search from the earliest index records looking for the first instance where the reset or uptime is greater than the search point.
-			// We start loading from the previous record.
-			
-			/* Logic is like this:
-				reset x
-				uptime y
-				
-				idx
-				fromR	fromU
-				0		100
-				1		50
-				2		900
-				3		55
-				
-				case 1: 
-				reset=1
-				uptime=100
-				We want to load 2/900 onwards
-				So:
-				reset < fromR, uptime then irrelevant
-				
-				case 2: - special case at the start
-				reset = 0
-				uptime = 1
-				We want to load 0/100 onwards because we DO NOT HAVE data before it, otherwise it is case 4
-				So: reset = fromR, y < fromU
-								
-				case 3: - special case at the end
-				x=3
-				y=100
-				We want to load 3/55
-				x = fromR, y > fromU - load current
-				
-				case 4: 
-				reset=1
-				uptime=0
-				We want to load 0/100 because the data could be at the end
-				x > fromR, y is irrelevent
-				AND (x < next fromR OR (x = next from R AND y < uptime) )
-			 * 
-			 */
-			
-			boolean loadnow = false;
-			for (int i=0; i< tableIdx.size(); i++) {
-				if (!loadnow) { // we test the cases
-					//case 1:
-					if (tableIdx.get(i).fromReset > reset ) { // situation where the data is for a higher reset, so load from here always by default
-						loadnow = true;
-						//System.out.println("Case 1: " + i);
-					} 
-					// case 2:
-					if (i == 0) 
-						if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
-							loadnow = true;
-						}
-					//case 4:
-					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset < reset && // this record has a lower reset
-							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and high uptime
-						loadnow = true;
-						//System.out.println("Case 4: " + i);
-					}
-					//case 4b:
-					if (i < tableIdx.size()-1 &&  tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime < uptime && // this record has the same reset and uptime is less than the target
-							(tableIdx.get(i+1).fromReset > reset || (tableIdx.get(i+1).fromReset == reset && tableIdx.get(i+1).fromUptime > uptime))) { // but the next record has higher reset or same reset and uptime higher
-						loadnow = true;
-						//System.out.println("Case 4b: " + i);
-
-					}
-					//case 3:
-					if (i == tableIdx.size()-1 && tableIdx.get(i).fromReset <= reset) { // load this.  It might have the data we need and its the last segment
-						loadnow = true;
-						//System.out.println("Case 3: " + i);
-
-					}
+			int i = findFirstSeg(reset, uptime);
+			// Then we need to load segment at i and start counting from here
+			//System.err.println("Loading from seg: "+i);
+			if (i >= 0)
+				while(i < tableIdx.size()) {
+					if (!tableIdx.get(i).isLoaded())
+						load(tableIdx.get(i));
+					total += tableIdx.get(i++).records;
+					if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 				}
-				if (loadnow){
-					// Then we need to load segment at i and start counting from here
-					//System.err.println("Loading from seg: "+i);
-					while(i < tableIdx.size()) {
-						if (!tableIdx.get(i).isLoaded())
-							load(tableIdx.get(i));
-						else {
-							tableIdx.get(i).accessed();
-						}
-						total += tableIdx.get(i).records;
-						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
-					}
-					break;
-				}
-			}
+
 		}
 	}
 	
@@ -456,9 +531,10 @@ public class SatPayloadTable {
         	dis.close();
         } catch (IOException e) {
         	e.printStackTrace(Log.getWriter());
-
+        	Log.println(e.getMessage());
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
+        	Log.println(n.getMessage());
         } finally {
         	dis.close();
         }
@@ -483,25 +559,31 @@ public class SatPayloadTable {
 		FoxFramePart rt = null;
 		if (type == FoxFramePart.TYPE_REAL_TIME) {
 			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.REAL_TIME_LAYOUT));
-		} else
-			if (type == FoxFramePart.TYPE_MAX_VALUES) {
-				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_WOD) {
+			rt = new PayloadWOD(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_MAX_VALUES) {
+			rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
 
-			} else
-				if (type == FoxFramePart.TYPE_MIN_VALUES) {
-					rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
+		}
+		if (type == FoxFramePart.TYPE_MIN_VALUES) {
+			rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
 
-				}
+		}
 		if (type == FoxFramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
 			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
+		if (type == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA ) {
+			rt = new WodRadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		}
 		if (type == FoxFramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-			rt = new PayloadRadExpData(id, resets, uptime, date, st);
+			rt = new PayloadRadExpData(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 			
-			
-			// hack to convert data
+			// hack to convert data - only used in testing
 			if (Config.generateSecondaryPayloads) {
 				PayloadRadExpData f = (PayloadRadExpData)rt; 
 				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
@@ -511,7 +593,10 @@ public class SatPayloadTable {
 				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
 				Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
 			}
-		}        			
+		}
+		if (type == FoxFramePart.TYPE_WOD_RAD) {
+			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
+		}
 		if (type == FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
 			rt.type = type; // make sure we get the right type

@@ -6,16 +6,14 @@ import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.util.ArrayList;
-
 import javax.swing.BoxLayout;
-import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 
 import measure.PassMeasurement;
 import measure.RtMeasurement;
+import measure.SatMeasurementStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -126,9 +124,9 @@ ItemListener {
 
 	public void openGraphs() {
 		if (satellite != null)
-			satellite.openGraphs();
+			satellite.openGraphs(SatMeasurementStore.RT_MEASUREMENT_TYPE);
 		if (passes != null)
-			passes.openGraphs();
+			passes.openGraphs(SatMeasurementStore.PASS_MEASUREMENT_TYPE);
 	}
 
 	public void closeGraphs() {

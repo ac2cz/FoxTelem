@@ -2,8 +2,6 @@ package gui;
 
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.border.TitledBorder;
-
 import common.Spacecraft;
 
 /**
@@ -52,6 +50,7 @@ import common.Spacecraft;
 * config.
 * 
 */
+@SuppressWarnings("serial")
 public class SpacecraftPanel extends JPanel {
 	Spacecraft fox;
 	

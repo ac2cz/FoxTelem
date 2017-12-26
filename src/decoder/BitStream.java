@@ -5,8 +5,9 @@ import java.util.ArrayList;
 import common.Config;
 import common.Log;
 import common.Performance;
-import decoder.FoxBitStream.SyncPair;
+import gui.MainWindow;
 
+@SuppressWarnings("serial")
 public class BitStream extends CircularBuffer {
 	protected int PURGE_THRESHOLD = 100000; // Remove bits if we have accumulated this many and not found a frame
 	protected int SYNC_WORD_DISTANCE = 0; // 10*(SlowSpeedFrame.getMaxBytes()+1);
@@ -52,6 +53,15 @@ public class BitStream extends CircularBuffer {
 	 */
 	public void removeBits(int start, int end) {
 		if (Config.debugFrames) Log.println("Purging " + (end - start) + " bits");
+/*		if (Config.debugFrames) {
+			if (Config.iq)
+			Log.println("Pass State: " + Config.passManager.getState() + ""
+				+ " at Bin: " + Config.selectedBin
+				+ " Strongest (dB): " + MainWindow.inputTab.iqSource1.rfData.getAvg(RfData.STRONGEST_SIG)
+				+ " Bin: " + MainWindow.inputTab.iqSource1.rfData.getBinOfStrongestSignal()
+				+ " Peak (dB): " + MainWindow.inputTab.iqSource1.rfData.getAvg(RfData.PEAK)
+				+ " Bin: " + MainWindow.inputTab.iqSource1.rfData.getBinOfPeakSignal()	);
+		}*/
 		int distance = end - start;
 //		for (int c=start; c < end; c++) {
 //			this.remove(0); // Remove the bits in this range
@@ -66,6 +76,29 @@ public class BitStream extends CircularBuffer {
 			} else
 				syncWords.set(j,  marker);
 		}
+		for (int j=0; j< framesTried.size(); j++) {
+			int marker = framesTried.get(j).word1 - distance;
+			if (marker < 0) { 
+				framesTried.remove(j);
+				j=j-1;
+			} else
+				framesTried.set(j, new SyncPair(marker, marker+SYNC_WORD_DISTANCE));
+		}
 	}
 	
+	protected class SyncPair {
+		int word1;
+		int word2;
+		
+		SyncPair(int a, int b) {
+			word1 = a;
+			word2 = b;
+		}
+		
+		public boolean equals(int x, int y) {
+			if (word1 == x && word2 == y) return true;
+			if (word2 == x && word1 == y) return true;
+			return false;
+		}
+	}
 }

@@ -48,6 +48,7 @@ public class SatMeasurementStore {
 	// These types need to be unique compared to the Type in FramePart so that we can graph things in different ways
 	public static final int RT_MEASUREMENT_TYPE = -1;
 	public static final int PASS_MEASUREMENT_TYPE = -2;
+	public static final int UTC_COL = 3;
 	
 	public int foxId;
 	
@@ -170,20 +171,20 @@ public class SatMeasurementStore {
 		return (PassMeasurement) passRecords.get(passRecords.size()-1);
 	}
 
-	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
-		return getGraphData(rtRecords, name, period, fox, fromReset, fromUptime);
+	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
+		return getGraphData(rtRecords, name, period, fox, fromReset, fromUptime, reverse);
 	}
 	
-	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
-		return getGraphData(passRecords, name, period, fox, fromReset, fromUptime);
+	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
+		return getGraphData(passRecords, name, period, fox, fromReset, fromUptime, reverse);
 	}
 	
-	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime) {
+	public double[][] getGraphData(SortedMeasurementArrayList rtRecords, String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 
 		int start = 0;
 		int end = 0;
 		
-		if (fromReset == 0.0 && fromUptime == 0.0) { // then we take rtRecords nearest the end
+		if (reverse) { // then we take rtRecords nearest the end
 			start = rtRecords.size()-period;
 			end = rtRecords.size();
 		} else {
@@ -232,7 +233,7 @@ public class SatMeasurementStore {
 		resultSet[PayloadStore.DATA_COL][i-j-1] = results[i];
 		resultSet[PayloadStore.UPTIME_COL][i-j-1] = upTime[i];
 		resultSet[PayloadStore.RESETS_COL][i-j-1] = resets[i];
-		resultSet[PayloadStore.UTC_COL][i-j-1] = dates[i];
+		resultSet[SatMeasurementStore.UTC_COL][i-j-1] = dates[i];
 		}
 //		System.out.println("ResultSet:" + resultSet[PayloadStore.DATA_COL].length);
 		return resultSet;

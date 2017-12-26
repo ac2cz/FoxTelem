@@ -2,7 +2,6 @@ package decoder;
 
 import javax.sound.sampled.AudioFormat;
 
-import common.Config;
 import common.Log;
 
 /**
@@ -49,9 +48,9 @@ public abstract class SourceAudio implements Runnable {
 	public static final int FILE_SOURCE = 1;
 //	public static final int BIT_FILE_SOURCE = 3;
 	public static final int AIRSPY_SOURCE = 2;
-	public static final int OFFSET = 3;
+	public static final int OFFSET = 2;
 	public static final String FILE_SOURCE_NAME = "Load Wav File";
-	public static final String AIRSPY_SOURCE_NAME = "Airspy";
+//	public static final String AIRSPY_SOURCE_NAME = "Airspy";
 //	public static final String BIT_FILE_SOURCE_NAME = "Load Bit File";
 
 	protected String name="unknown";

@@ -14,16 +14,26 @@ import java.util.TimeZone;
 
 import common.Log;
 import telemetry.Frame;
+import telemetry.PayloadDbStore;
 
 public class ServerProcess implements Runnable {
-
+	//PayloadDbStore payloadStoreX;
+	String u;
+	String p;
+	String db;
 	private Socket socket = null;
 	private int sequence = 0;
-	public ServerProcess(Socket socket, int seq) {
+	
+	public ServerProcess(String u, String p, String db, Socket socket, int seq) {
 		sequence = seq;
 		this.socket = socket;
+		this.u = u;
+		this.p = p;
+		this.db = db;
 	}
 
+
+	
 	public static final DateFormat fileDateName = new SimpleDateFormat("yyyyMMddHHmmss");
 	public static final DateFormat yearDirName = new SimpleDateFormat("yyyy");
 	public static final DateFormat monthDirName = new SimpleDateFormat("MM");
@@ -72,6 +82,8 @@ public class ServerProcess implements Runnable {
 			
 	}
 	
+
+	
 	/**
 	 * This is started when we have a TCP connection.  We read the data until the connection is closed
 	 * This could be one or more STP files.
@@ -103,7 +115,7 @@ public class ServerProcess implements Runnable {
 			
 			// Import it into the database
 			// null return means the file can not be recognized as an STP file or was test data
-			Frame frm = Frame.importStpFile(stp, false);
+			Frame frm = Frame.importStpFile(u, p, db, stp, false);
 			if (frm != null) {
 				Log.println("Processed: " + b + " bytes from " + frm.receiver + " for " 
 						+ frm.getHeader().getFoxId() + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
@@ -132,7 +144,13 @@ public class ServerProcess implements Runnable {
 			////ALERT
 			Log.alert("FATAL: " + e.getMessage());
 		
-
+		} catch (StpFileRsDecodeException rs) {
+			Log.println("STP FILE Could not be decoded: " + rs.getMessage());
+			File toFile = new File(stp.getPath()+".null");
+			if (stp.renameTo(toFile))
+				;
+			else
+				Log.println("ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -143,6 +161,7 @@ public class ServerProcess implements Runnable {
 				in.close();
 				socket.close();
 				f.close();
+				
 			} catch (Exception ex) { /*ignore*/} 
 		}
 	}

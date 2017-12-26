@@ -1,13 +1,10 @@
 package gui;
 
 import java.awt.BorderLayout;
-import java.util.ArrayList;
-
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
 
-import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
@@ -46,7 +43,9 @@ public class SpacecraftTab extends JPanel {
 	CameraTab cameraTab;
 	HerciHSTab herciTab;
 	MyMeasurementsTab measurementsTab;
-
+	ModuleTab wodRadiationTab;
+	HealthTab wodHealthTab;
+	
 	// We have one health thread per health tab
 	Thread healthThread;
 	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
@@ -54,6 +53,8 @@ public class SpacecraftTab extends JPanel {
 	Thread cameraThread;
 	Thread herciThread;
 	Thread measurementThread;
+	Thread wodHealthThread;
+	Thread wodRadiationThread;
 	
 	public SpacecraftTab(Spacecraft s) {
 		sat = s;
@@ -70,9 +71,17 @@ public class SpacecraftTab extends JPanel {
 		radiationTab.showGraphs();
 		herciTab.showGraphs();
 		measurementsTab.showGraphs();
+		wodHealthTab.showGraphs();
+		wodRadiationTab.showGraphs();
 	}
 
-	public void refreshTabs(boolean closeGraphs) {
+	public void refreshXTabs(FoxSpacecraft fox, boolean closeGraphs) {
+		closeTabs(fox, closeGraphs);
+		createTabs(fox);
+	}
+	
+	public void closeTabs(FoxSpacecraft fox, boolean closeGraphs) {
+		sat = fox;
 		
 		if (closeGraphs) healthTab.closeGraphs();
 		tabbedPane.remove(healthTab);
@@ -86,23 +95,40 @@ public class SpacecraftTab extends JPanel {
 
 		if (cameraTab != null)
 			tabbedPane.remove(cameraTab);
-
-		addHealthTabs();
 		
+		if (wodHealthTab != null)
+		if (closeGraphs) wodHealthTab.closeGraphs();
+		tabbedPane.remove(wodHealthTab);
+
+		if (wodRadiationTab != null)
+		if (closeGraphs) wodRadiationTab.closeGraphs();
+		tabbedPane.remove(wodRadiationTab);
+
 		if(closeGraphs)
 			measurementsTab.closeGraphs();
 		tabbedPane.remove(measurementsTab);
+
+	}
+	
+	public void createTabs(Spacecraft fox) {
+		addHealthTabs();		
 		addMeasurementsTab(sat);
 	}
 
-	private void addHealthTabs() {
+	public void stop() {
 		stopThreads(healthTab);
 		stopThreads(radiationTab);
 		stopThreads(cameraTab);
 		stopThreads(herciTab);
+		stopThreads(wodHealthTab);
+		stopThreads(wodRadiationTab);
+		stopThreads (measurementsTab);
+	}
+	
+	private void addHealthTabs() {
+		stop();
 		
-
-		healthTab = new HealthTab(sat);
+		healthTab = new HealthTabRt((FoxSpacecraft)sat);
 		healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
@@ -120,14 +146,36 @@ public class SpacecraftTab extends JPanel {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
 				}
-
 			}
 		}
+		if (sat.foxId == Spacecraft.FOX1E) {
+			addWodTabs((FoxSpacecraft)sat);
+		}
+	}
+
+	private void addWodTabs(FoxSpacecraft fox) {
+		
+		wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
+		wodHealthThread = new Thread(wodHealthTab);
+		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodHealthThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "WOD" + "</b></body></html>", wodHealthTab );
+		
+		wodRadiationTab = new WodVulcanTab(fox);
+		wodRadiationThread = new Thread((VulcanTab)wodRadiationTab);
+		wodRadiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodRadiationThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "VU Rad WOD" + "</b></body></html>", wodRadiationTab );
+
 	}
 
 	private void addExperimentTab(FoxSpacecraft fox) {
 		
-		radiationTab = new VulcanTab(fox);
+		radiationTab = new VulcanTab(fox, DisplayModule.DISPLAY_VULCAN);
 		radiationThread = new Thread((VulcanTab)radiationTab);
 		radiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		radiationThread.start();
@@ -208,6 +256,10 @@ public class SpacecraftTab extends JPanel {
 		healthTab.closeGraphs();
 		if (radiationTab != null)
 			radiationTab.closeGraphs();
+		if (wodHealthTab != null)
+			wodHealthTab.closeGraphs();
+		if (wodRadiationTab != null)
+			wodRadiationTab.closeGraphs();
 		if (herciTab != null)
 			herciTab.closeGraphs();
 		

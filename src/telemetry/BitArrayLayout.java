@@ -40,6 +40,7 @@ import common.Log;
  */
 public class BitArrayLayout {
 	public int NUMBER_OF_FIELDS = 0;
+	public static int ERROR_POSITION = -1;
 	
 	public String fileName;
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
@@ -93,7 +94,13 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
 	public static final int CONVERT_JAVA_DATE = 33;
-
+	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
+	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
+	public static final int CONVERT_WOD_STORED = 36;
+	public static final int CONVERT_FOX1E_TXRX_TEMP = 37;
+	public static final int CONVERT_FOX1E_PA_CURRENT = 38;
+	public static final int CONVERT_SOFT_ERROR_84488 = 39;
+	
 	/**
 	 * Create an empty layout for manual init
 	 */
@@ -125,12 +132,12 @@ public class BitArrayLayout {
 	}
 	
 	public int getConversionByName(String name) {
-		int pos = -1;
+		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
-		if (pos == -1) {
+		if (pos == ERROR_POSITION) {
 			return BitArrayLayout.CONVERT_NONE;
 		} else {
 			return (conversion[pos]);
@@ -138,25 +145,38 @@ public class BitArrayLayout {
 	}
 
 	public String getUnitsByName(String name) {
-		int pos = -1;
+		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
-		if (pos == -1) {
+		if (pos == ERROR_POSITION) {
 			return "";
 		} else {
 			return (fieldUnits[pos]);
 		}
 	}
 	
-	public String getShortNameByName(String name) {
-		int pos = -1;
+	public int getPositionByName(String name) {
+		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
-		if (pos == -1) {
+		if (pos == ERROR_POSITION) {
+			return ERROR_POSITION;
+		} else {
+			return pos;
+		}
+	}
+	
+	public String getShortNameByName(String name) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == ERROR_POSITION) {
 			return "";
 		} else {
 			return (shortName[pos]);
@@ -227,9 +247,12 @@ public class BitArrayLayout {
 
 	}
 	
-	public String getTableCreateStmt() {
+	public String getTableCreateStmt(boolean wod) {
 		String s = new String();
-		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (wod)
+			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, satLatitude float, satLongitude float, satAltitude float,";
+		else
+			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
 		for (int i=0; i < fieldName.length; i++) {
 			s = s + fieldName[i] + " int,\n";
 		}

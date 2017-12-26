@@ -5,6 +5,7 @@ import java.io.IOException;
 import purejavahidapi.HidDeviceInfo;
 import common.Log;
 import device.DeviceException;
+import device.DevicePanel;
 
 public class FcdProPlusDevice extends FcdDevice {
 
@@ -233,6 +234,11 @@ public class FcdProPlusDevice extends FcdDevice {
 		} else
 			throw new DeviceException("Get LNA Command not executed: ");
 		return 0;
+	}
+
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		return new FcdProPlusPanel();
 	}
     
 

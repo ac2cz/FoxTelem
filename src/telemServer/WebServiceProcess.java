@@ -13,6 +13,8 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
+import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
+
 import telemetry.Frame;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
@@ -24,14 +26,15 @@ import common.FoxSpacecraft;
 import common.Log;
 
 public class WebServiceProcess implements Runnable {
-
-	public static String version = "Version 0.19a - 10 Sept 2016";
+	PayloadDbStore payloadDbStore;
+	public static String version = "Version 0.21 - 12 Feb 2017";
 	private Socket socket = null;
 	int port = 8080;
 	
-	public WebServiceProcess(Socket socket, int p) {
+	public WebServiceProcess(PayloadDbStore db, Socket socket, int p) {
 		this.socket = socket;
 		port = p;
+		payloadDbStore = db;
 	}
 
 
@@ -104,15 +107,15 @@ public class WebServiceProcess implements Runnable {
 							try {
 								sat = Integer.parseInt(path[2]);
 								type = Integer.parseInt(path[3]);
-								rt = Config.payloadStore.getLatestRt(sat);
+								rt = (PayloadRtValues) payloadDbStore.getLatestRt(sat);
 							} catch (NumberFormatException e) {
 								out.println("Invalid sat or type");
 							}
-							PayloadMaxValues max = Config.payloadStore.getLatestMax(sat);
-							PayloadMinValues min = Config.payloadStore.getLatestMin(sat);
+							PayloadMaxValues max = (PayloadMaxValues) payloadDbStore.getLatestMax(sat);
+							PayloadMinValues min = (PayloadMinValues) payloadDbStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore, (FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -147,13 +150,15 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat != 0) {
 							try {
-								fox1Atab = new WebHealthTab((FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+								fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
 							} catch (LayoutLoadException e1) {
 								e1.printStackTrace(Log.getWriter());
 							}
 							if (raw.startsWith("C"))
 								convert = false;
+							
 							out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+							
 							} else {
 								out.println("FOX SAT Requested invalid\n");
 							}
@@ -199,7 +204,7 @@ public class WebServiceProcess implements Runnable {
 		s = s + "<table><tr><th>STP Date</th><th>Uptime</th><th>Estimated T0</th></tr>";
 		
 		try {
-			Connection derby = PayloadDbStore.getConnection();
+			Connection derby = payloadDbStore.getConnection();
 			stmt = derby.createStatement();
 			//Log.println(update);
 			ResultSet r = stmt.executeQuery(update);
@@ -239,7 +244,7 @@ public class WebServiceProcess implements Runnable {
 			
 			return s;
 		} catch (SQLException e) {
-			PayloadDbStore.errorPrint(e);
+			PayloadDbStore.errorPrint("calculateT0", e);
 			return e.toString();
 		}
 		

@@ -76,11 +76,13 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
+	public abstract FramePart getLatest(int id, String layout);
 	public abstract FramePart getLatestRt(int id);
-
 	public abstract FramePart getLatestMax(int id);
-
 	public abstract FramePart getLatestMin(int id);
+
+	public abstract FramePart getFramePart(int id, int reset, long uptime, String layout);
+
 	public abstract PayloadRadExpData getLatestRad(int id);
 	public abstract RadiationTelemetry getLatestRadTelem(int id);
 	public abstract RadiationTelemetry getRadTelem(int id, int resets, long uptime);
@@ -94,11 +96,13 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param period
 	 * @return
 	 */
-	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, String layout, boolean positionData, boolean reverse);
 
-	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getRtGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 
-	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime);
+	public abstract double[][] getMaxGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+
+	public abstract double[][] getMinGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
@@ -109,17 +113,22 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
-	public abstract String[][] getRadData(int period, int id, int fromReset, long fromUptime);
+	public abstract String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse);
 
-	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime);
-	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
-	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
-	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime);
-	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
-	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime);
+	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
+	public abstract String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
+	public abstract String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
+	public abstract String[][] getWODRadData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	
 	public abstract String getRtUTCFromUptime(int id, int reset, long uptime);
 	
+	public abstract int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType);
 	
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
@@ -127,4 +136,5 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract void deleteAll();	
 	
 	public abstract void initRad2();
+
 }

@@ -3,13 +3,17 @@ package common;
 import gui.MainWindow;
 import gui.SourceTab;
 
-import java.util.ArrayList;
+import org.joda.time.DateTime;
+import org.joda.time.DateTimeZone;
 
+import telemetry.FramePart;
 import telemetry.PayloadStore;
+import uk.me.g4dpz.satellite.SatPos;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
+import predict.PositionCalcException;
 import decoder.Decoder;
 import decoder.SourceIQ;
 
@@ -59,8 +63,8 @@ import decoder.SourceIQ;
 public class PassManager implements Runnable {
 	
 	SourceTab inputTab; // the source tab that called this.  For callbacks when decoder live
-	SatelliteManager satelliteManager;
-	ArrayList<Spacecraft> foxSpacecraft;
+	//SatelliteManager satelliteManager;
+	//ArrayList<Spacecraft> foxSpacecraft;
 	boolean running = true;
 	boolean done = false;
 	PassMeasurement passMeasurement; // the paramaters we have measured about the current pass
@@ -97,9 +101,9 @@ public class PassManager implements Runnable {
 	
 	static final int MIN_FREQ_READINGS_FOR_TCA = 10;
 	
-	public PassManager(SatelliteManager satMan ) {
-		satelliteManager = satMan;
-		foxSpacecraft = satMan.spacecraftList;
+	public PassManager( ) {
+		//satelliteManager = satMan;
+		//foxSpacecraft = satMan.spacecraftList;
 		pp1 = new PassParams();
 		pp2 = new PassParams();
 	}
@@ -341,11 +345,12 @@ public class PassManager implements Runnable {
 		if (Config.useDDEforAzEl) {
 			SatPc32DDE satPC = new SatPc32DDE();
 			boolean connected = satPC.connect();
-			if (connected) {
+			if (connected && passMeasurement != null) {
 				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
 			}
 		}
 
+		if (passMeasurement != null)
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
 				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin);
 		newPass = true;
@@ -404,20 +409,23 @@ public class PassManager implements Runnable {
 	 */
 	private int faded(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
-		if (Config.useDDEforAzEl) { // store end Azimuth too
-			SatPc32DDE satPC = new SatPc32DDE();
-			boolean connected = satPC.connect();
-			if (connected) {
-				passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+		if (passMeasurement != null) {
+			passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
+			if (Config.useDDEforAzEl) { // store end Azimuth too
+				SatPc32DDE satPC = new SatPc32DDE();
+				boolean connected = satPC.connect();
+				if (connected) {
+					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+				}
 			}
+			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 		}
 		faded = true;
-		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 
 		long startTime = System.nanoTime()/1000000; // get time in ms
 		long fadeTime = 0;
 		while (fadeTime < FADE_PERIOD) {
+			
 			try {
 				Thread.sleep(SNR_PERIOD);
 			} catch (InterruptedException e) {
@@ -464,10 +472,12 @@ public class PassManager implements Runnable {
 	 */
 	private int endPass(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
-		calculateTCA(spacecraft);
-		calculateMaxEl(spacecraft);
-		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
-		Config.payloadStore.add(spacecraft.foxId, passMeasurement);
+		if (passMeasurement != null) {
+			calculateTCA(spacecraft);
+			calculateMaxEl(spacecraft);
+			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
+			Config.payloadStore.add(spacecraft.foxId, passMeasurement);
+		}
 		return EXIT;
 	}
 
@@ -479,7 +489,7 @@ public class PassManager implements Runnable {
 			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, 0);
 		} else {
 			long maxEl = -180; // just in case we have a pass that is theoretically below the horizon but we still manage to track it, allow negatives
-			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime());
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime(), false);
 			for (int i=1; i < graphData[0].length; i++) {
 				long value = (long)graphData[PayloadStore.DATA_COL][i];
 				if (value > maxEl) maxEl = value;
@@ -497,7 +507,7 @@ public class PassManager implements Runnable {
 			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, 0);
 			passMeasurement.setEndResetUptime(0, 0);
 		} else {
-			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime());
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime(), false);
 
 			// if we have enough readings, calculate the first derivative
 			if (graphData[0].length > MIN_FREQ_READINGS_FOR_TCA) {
@@ -525,7 +535,7 @@ public class PassManager implements Runnable {
 					// we found a maximum at an inflection point, rather than it being at one end or the other
 					// Interpolate between the two frequencies to find the actual frequency at the max slope
 					long up = (long) (graphData[PayloadStore.UPTIME_COL][max] + graphData[PayloadStore.UPTIME_COL][max-1])/2;
-					long date = (long) (graphData[PayloadStore.UTC_COL][max] + graphData[PayloadStore.UTC_COL][max-1])/2;
+					long date = (long) (graphData[SatMeasurementStore.UTC_COL][max] + graphData[SatMeasurementStore.UTC_COL][max-1])/2;
 
 					long tca = (long) linearInterpolation(up, graphData[PayloadStore.UPTIME_COL][max], graphData[PayloadStore.UPTIME_COL][max-1],
 							graphData[PayloadStore.DATA_COL][max], graphData[PayloadStore.DATA_COL][max-1]);
@@ -583,34 +593,85 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			String satString = null;
-			if (Config.useDDEforFindSignal) {
-				SatPc32DDE satPC = new SatPc32DDE();
-				boolean connected = satPC.connect();
-				if (connected) {
-						satString = satPC.satellite;
+			//if (Config.findSignal) {
+				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
+				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
+				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+					Spacecraft sat = Config.satManager.spacecraftList.get(s);
+					if (sat.track) atLeastOneTracked = true;
+					if (MainWindow.inputTab != null && sat.track) {
+						if (aboveHorizon(sat)) {
+							oneSatUp = true;
+							MainWindow.inputTab.startDecoding();
+							if (Config.findSignal) {
+								stateMachine(sat);
+							} else {
+								// we don't have find signal on. set full range or signals calculated incorrectly
+								Config.fromBin = 0; 
+								Config.toBin = SourceIQ.FFT_SAMPLES;
+							}
+						} 
+					}
 				}
-			}
-			if (pp1.foxDecoder != null && Config.findSignal)
-				for (int s=0; s < foxSpacecraft.size(); s++) {
-					//Log.println("Looking for: " + spacecraft.get(s).name);
-					if (foxSpacecraft.get(s).track) 
-						if (Config.useDDEforFindSignal) {
-							if (satString != null && satString.equalsIgnoreCase(foxSpacecraft.get(s).name))
-								stateMachine(foxSpacecraft.get(s));
-						} else
-							stateMachine(foxSpacecraft.get(s));
+				if (MainWindow.inputTab != null && !oneSatUp) {
+					MainWindow.inputTab.stopDecoding();
 				}
-			else {
-				//Log.println("Waiting for decoder");
-				//Config.toBin = Config.DEFAULT_TO_BIN;
-				//Config.fromBin = Config.DEFAULT_FROM_BIN;
-
-			}
+				if (Config.whenAboveHorizon && Config.findSignal && !atLeastOneTracked) {
+					if (MainWindow.inputTab != null) {
+						MainWindow.inputTab.rdbtnFindSignal.setSelected(false);
+						Config.whenAboveHorizon = false;
+						Log.errorDialog("NO SPACECRAFT TRACKED", "You have turned on find signal and paused the decoder waiting for a spacecraft above\n"
+								+ "the horizon, but no spacecraft are being tracked.  Go to the spacecraft menu, pick a spacecraft\n"
+								+ "and check 'Track when Find Signal Enabled'\n"
+								+ "'Start Decoder when Above Horizon' and 'Find Signal' will be disabled.");
+					}
+				}
+			//}
 		}
 		Log.println("Pass Manager DONE");
 		done = true;
 	}
 	
+	/**
+	 * Returns true if we are not tracking the sat, if aboveHorizon is not set or if the sat is actually above the horizon with our chosen method
+	 * We run the position calculations regardless so the sat position can be displayed if the user has selected that option.
+	 * @return
+	 */
+	private boolean aboveHorizon(Spacecraft sat) {
+		if (Config.whenAboveHorizon && Config.useDDEforAzEl) {
+			String satString = null;
+			SatPc32DDE satPC = new SatPc32DDE();
+			boolean connected = satPC.connect();
+			if (connected) {
+				satString = satPC.satellite;
+				//Log.println("SATPC32: " + satString);
+				if (satString != null && satString.equalsIgnoreCase(sat.name)) {
+					return true;
+				}
+			}
+			return false;
+		}
+		if (Config.foxTelemCalcsPosition) {
+			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
+			
+					SatPos pos = null;
+					try {
+						pos = sat.getCurrentPosition();
+					} catch (PositionCalcException e) {
+						// The error will get shown to the user in the satManager thread
+						return false;
+					}
+					if (!Config.whenAboveHorizon)
+						return true;
+					else if (pos != null) {
+						if (sat.aboveHorizon()) {
+							return true;
+						}
+					}
+					return false;
+				
+		}
+		return true;
+	}
 	
 }

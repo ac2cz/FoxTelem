@@ -2,22 +2,27 @@ package common;
 
 import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
-import java.util.Properties;
+import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import org.joda.time.DateTime;
+
+import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.LookUpTable;
+import uk.me.g4dpz.satellite.SatPos;
+import uk.me.g4dpz.satellite.Satellite;
+import uk.me.g4dpz.satellite.SatelliteFactory;
+import uk.me.g4dpz.satellite.TLE;
 
 /**
  * 
@@ -47,7 +52,7 @@ import telemetry.LookUpTable;
 public class FoxSpacecraft extends Spacecraft{
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1; // This is the LEP experiment
+	public static final int EXP_VULCAN = 1; // This is the 1A LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
@@ -71,42 +76,17 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	// Calibration
 	public double BATTERY_CURRENT_ZERO = 0;
-	//public String rssiLookUpTableFileName = "";
-	//public String ihuTempLookUpTableFileName = "";
-	//public String ihuVBattLookUpTableFileName = "";
-
+	public double mpptResistanceError = 6.58d;
+	public int mpptSensorOffThreshold = 1600;
+	public boolean hasMpptSettings = false;
+	
 	// layout flags
 	public boolean useIHUVBatt = false;
 
-	// layout filenames
-	//public String rtLayoutFileName;
-	//public String maxLayoutFileName;
-	//public String minLayoutFileName;
-	//public String radLayoutFileName;
-	//public String rad2LayoutFileName;
-	//public String herciHSLayoutFileName;
-	//public String herciHS2LayoutFileName;
-	
-
-	// Stored tables
-	//public LookUpTable rssiTable;
-	//public LookUpTable ihuTable;
-	//public LookUpTable ihuVBattTable;
-
-	//Telemetry layouts
-	//public BitArrayLayout rtLayout;
-	//public BitArrayLayout maxLayout;
-	//public BitArrayLayout minLayout;
-	//public BitArrayLayout radLayout;
-	//public BitArrayLayout rad2Layout;
-	//public BitArrayLayout herciHSLayout;
-	//public BitArrayLayout herciHS2Layout;
-
-		
-	
 	ArrayList<Long> timeZero = null;
+	SpacecraftPositionCache positionCache;
 	
-	public FoxSpacecraft(String fileName ) throws FileNotFoundException, LayoutLoadException {
+	public FoxSpacecraft(File fileName ) throws LayoutLoadException, IOException {
 		super(fileName);
 		load(); // don't call load until this constructor has started and the variables have been initialized
 		try {
@@ -119,34 +99,8 @@ public class FoxSpacecraft extends Spacecraft{
 		measurementLayout = new BitArrayLayout(measurementsFileName);
 		if (passMeasurementsFileName != null)
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
-		
-		//rtLayout = new BitArrayLayout(rtLayoutFileName);
-		//maxLayout = new BitArrayLayout(maxLayoutFileName);
-		//minLayout = new BitArrayLayout(minLayoutFileName);
-		//radLayout = new BitArrayLayout(radLayoutFileName);
-		//rad2Layout = new BitArrayLayout(rad2LayoutFileName);
-		//if (herciHSLayoutFileName != null)
-		//	herciHSLayout = new BitArrayLayout(herciHSLayoutFileName);
-		//else
-		//	if (this.hasHerci()) {
-		//		throw new LayoutLoadException(name + ": Cannot load satellite with HERCI experiment if herciHSLayoutFileName is not specified");
-		//	}
-		//if (herciHS2LayoutFileName != null)
-		//	herciHS2Layout = new BitArrayLayout(herciHS2LayoutFileName);
-		//else
-		//	if (this.hasHerci()) {
-		//		throw new LayoutLoadException(name + ": Cannot load satellite with HERCI science header file - herciHS2LayoutFileName is not specified");
-		//	}
-		
-		//if (!rssiLookUpTableFileName.equalsIgnoreCase(""))
-		//	rssiTable = new LookUpTable(rssiLookUpTableFileName);
-		//if (!ihuTempLookUpTableFileName.equalsIgnoreCase(""))
-		//	ihuTable = new LookUpTable(ihuTempLookUpTableFileName);
-		//if (!ihuVBattLookUpTableFileName.equalsIgnoreCase(""))
-		//	ihuVBattTable = new LookUpTable(ihuVBattLookUpTableFileName);
-		//if (ihuVBattLookUpTableFileName.equalsIgnoreCase("") && useIHUVBatt == true)
-		//	throw new LayoutLoadException("File: "+fileName + "\nCan't load a satellite that uses IHU VBatt if the ihuVBatt look-up table is missing");
-		
+		loadTleHistory(); // DOnt call this until the Name and FoxId are set
+		positionCache = new SpacecraftPositionCache(foxId);
 	}
 
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
@@ -181,7 +135,7 @@ public class FoxSpacecraft extends Spacecraft{
 		if (reset >= timeZero.size()) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime*1000);
 		timeDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String time = timeDateFormat.format(dt);
+		String time = timeDateFormat.format(dt); 
 		return time;
 	}
 
@@ -194,6 +148,77 @@ public class FoxSpacecraft extends Spacecraft{
 		return time;
 	}
 
+	public Date getUtcForReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime*1000);
+		return dt;
+	}
+	
+	public DateTime getUtcDateTimeForReset(int reset, long uptime) {
+		if (timeZero == null) return null;
+		if (reset >= timeZero.size()) return null;
+		Date dt = new Date(timeZero.get(reset) + uptime*1000);
+		DateTime dateTime = new DateTime(dt); // FIXME - this date conversion is not working.  Need to understand how it works.
+		return dateTime;
+	}
+
+	/**
+	 * Given a date, what is the reset and uptime
+	 * @param fromDate
+	 * @return a FoxTime object with the reset and uptime
+	 */
+	public FoxTime getUptimeForUtcDate(Date fromDate) {
+		if (timeZero == null) return null;
+		if (fromDate == null) return null;
+		if (timeZero.size() == 0) return null;
+		long dateTime = fromDate.getTime();
+		long T0 = -1;
+		int reset = 0;
+		long uptime = 0;
+		// Search T0.  It's short so we can scan the whole list
+		for (int i=0; i<timeZero.size(); i++) {
+			if (timeZero.get(i) > dateTime) {
+				// then we want the previous value
+				if (i==0) break; 
+				reset = i-1;
+				T0 = timeZero.get(reset);
+				break;
+			}
+			
+		}
+		if (T0 == -1) {
+			// return the last reset, we scanned the whole list
+			reset = timeZero.size()-1;
+			T0 = timeZero.get(reset);
+		}
+		
+		// Otherwise we have a valid reset, so calc the uptime, which is seconds from the T0 to the passed dateTime
+		uptime = dateTime - T0; // milliseconds
+		uptime = uptime / 1000; // seconds;
+		
+		FoxTime ft = new FoxTime(reset, uptime);
+		return ft;
+	}
+
+	
+	public SatPos getSatellitePosition(int reset, long uptime) throws PositionCalcException {
+		// We need to construct a date for the historical time of this WOD record
+		DateTime timeNow = getUtcDateTimeForReset(reset, uptime);
+		if (timeNow == null) return null;
+		SatPos satellitePosition = positionCache.getPosition(timeNow.getMillis());
+		if (satellitePosition != null) {
+			return satellitePosition;
+		}
+		final TLE tle = getTLEbyDate(timeNow);
+//		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
+		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
+		final Satellite satellite = SatelliteFactory.createSatellite(tle);
+        satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
+//        Log.println("Cache value");
+        positionCache.storePosition(timeNow.getMillis(), satellitePosition);
+		return satellitePosition;
+	}
 	
 	public void save() {
 		super.save();
@@ -202,34 +227,22 @@ public class FoxSpacecraft extends Spacecraft{
 			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
 		
 		properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(BATTERY_CURRENT_ZERO));
-	//	properties.setProperty("rssiLookUpTableFileName", rssiLookUpTableFileName);
-	//	properties.setProperty("ihuTempLookUpTableFileName", ihuTempLookUpTableFileName);
-	//	properties.setProperty("ihuVBattLookUpTableFileName", ihuVBattLookUpTableFileName);
 		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
-	//	properties.setProperty("rtLayoutFileName", rtLayoutFileName);
-	//	properties.setProperty("maxLayoutFileName", maxLayoutFileName);
-	//	properties.setProperty("minLayoutFileName", minLayoutFileName);
-	//	properties.setProperty("radLayoutFileName", radLayoutFileName);
-	//	properties.setProperty("rad2LayoutFileName", rad2LayoutFileName);
 		properties.setProperty("measurementsFileName", measurementsFileName);
 		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
 		
+		if (this.hasMpptSettings) {
+			properties.setProperty("mpptResistanceError", Double.toString(mpptResistanceError));
+			properties.setProperty("mpptSensorOffThreshold", Integer.toString(mpptSensorOffThreshold));
+		}
 		
-		// Optional params
-	//	if (herciHSLayoutFileName != null)
-	//		properties.setProperty("herciHSLayoutFileName", herciHSLayoutFileName);
-	//		if (herciHS2LayoutFileName != null)
-	//		properties.setProperty("herciHS2LayoutFileName", herciHS2LayoutFileName);
-			
 		store();
 	
 	}
 	
-	
-	
 	public boolean loadTimeZeroSeries(String log) throws FileNotFoundException {
 		timeZero = new ArrayList<Long>(100);
-        String line;
+        String line = null;
         if (log == null) { // then use the default
         	log = "FOX"+ foxId + Config.t0UrlFile;
         	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -238,7 +251,7 @@ public class FoxSpacecraft extends Spacecraft{
         	}
         }
         //File aFile = new File(log );
-
+        boolean hasContent = false;
         
         BufferedReader dis = new BufferedReader(new FileReader(log));
 
@@ -249,9 +262,10 @@ public class FoxSpacecraft extends Spacecraft{
         			int reset = Integer.valueOf(st.nextToken()).intValue();
         			long uptime = Long.valueOf(st.nextToken()).longValue();
         			//Log.println("Loaded T0: " + reset + ": " + uptime);
-        			if (reset == timeZero.size())
+        			if (reset == timeZero.size()) {
         				timeZero.add(uptime);
-        			else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);
+        				hasContent = true;
+        			} else throw new IndexOutOfBoundsException("Reset in T0 file is missing or out of sequence: " + reset);
         		}
         	}
 			dis.close();
@@ -261,6 +275,9 @@ public class FoxSpacecraft extends Spacecraft{
         } catch (NumberFormatException n) {
         	n.printStackTrace(Log.getWriter());
         	return false;
+        } catch (NoSuchElementException m) {
+        	// This was likely a blank file because we have no internet connection
+        	return false;
         } finally {
         	try {
 				dis.close();
@@ -268,7 +285,7 @@ public class FoxSpacecraft extends Spacecraft{
 				// ignore error
 			}
         }
-		return true;
+		return hasContent;
 	}
 	
 	protected void load() throws LayoutLoadException {
@@ -279,27 +296,27 @@ public class FoxSpacecraft extends Spacecraft{
 				experiments[i] = Integer.parseInt(getProperty("EXP"+(i+1)));
 			
 			BATTERY_CURRENT_ZERO = Double.parseDouble(getProperty("BATTERY_CURRENT_ZERO"));
-	//		rssiLookUpTableFileName = getProperty("rssiLookUpTableFileName");
-	//		ihuTempLookUpTableFileName = getProperty("ihuTempLookUpTableFileName");
-	//		ihuVBattLookUpTableFileName = getProperty("ihuVBattLookUpTableFileName");			
+		
 			useIHUVBatt = Boolean.parseBoolean(getProperty("useIHUVBatt"));
-	//		rtLayoutFileName = getProperty("rtLayoutFileName");
-	//		maxLayoutFileName = getProperty("maxLayoutFileName");
-	//		minLayoutFileName = getProperty("minLayoutFileName");
-	//		radLayoutFileName = getProperty("radLayoutFileName");
-	//		rad2LayoutFileName = getProperty("rad2LayoutFileName");
+
 			measurementsFileName = getProperty("measurementsFileName");
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
-			
-			
-	//		herciHSLayoutFileName = getOptionalProperty("herciHSLayoutFileName");
-	//		herciHS2LayoutFileName = getOptionalProperty("herciHS2LayoutFileName");
+			String error = getOptionalProperty("mpptResistanceError");
+			if (error != null) {
+				mpptResistanceError = Double.parseDouble(error);
+				hasMpptSettings = true;
+			}
+			String threshold = getOptionalProperty("mpptSensorOffThreshold");
+			if (threshold != null) {
+				mpptSensorOffThreshold = Integer.parseInt(threshold);
+				hasMpptSettings = true;
+			}
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );
+			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + Config.currentDir + File.separator + SPACECRAFT_DIR + File.separator +propertiesFileName );		
+			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath());		
 		}
 
 	}

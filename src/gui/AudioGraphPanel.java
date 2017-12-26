@@ -11,7 +11,6 @@ import javax.swing.JLabel;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
-import decoder.SourceAudio;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 
 /**
@@ -123,7 +122,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	
 	public void startProcessing(Decoder decoder1) {
 		foxDecoder = decoder1;
-		title.setText("Sample rate: " + Integer.toString(foxDecoder.getCurrentSampleRate()) + " | Samples: " + foxDecoder.getSampleWindowLength());
+		if (foxDecoder != null)
+			title.setText("Sample rate: " + Integer.toString(foxDecoder.getCurrentSampleRate()) + " | Samples: " + foxDecoder.getSampleWindowLength());
 		
 		running = true;
 	}
@@ -148,7 +148,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		int graphWidth = getWidth() - border*2;
 		
 		// Draw baseline with enough space for text under it
-		g2.drawLine(0, graphHeight-border, graphWidth, graphHeight-border);
+		//g2.drawLine(0, graphHeight-border, graphWidth, graphHeight-border);
 		// Draw vertical axis
 		g2.drawLine(border*2, getHeight()-border, border*2, border*4);
 	
@@ -192,13 +192,13 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if (foxDecoder instanceof FoxBPSKDecoder) {
+				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length) {
 					if (pskAudioData != null && pskAudioData.length > 0) {
 					g2.setColor(Color.BLACK);
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
 
 					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y2 = 3*graphHeight/4+graphHeight/5*pskAudioData[i] + border;
+					double y2 = 3*graphHeight/4+graphHeight/6*pskAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
 					//int y = 100;
 					g2.drawLine(lastx2, lasty2, x2, (int)y2);
 					lastx2 = x2;
@@ -210,9 +210,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		if (foxDecoder instanceof FoxBPSKDecoder)
+		if (foxDecoder instanceof FoxBPSKDecoder) {
+			g2.drawLine(0, graphHeight/4+border, graphWidth, graphHeight/4+border);
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
-		else
+		} else
 			g2.drawLine(0, graphHeight/2+border, graphWidth, graphHeight/2+border);
 		if (Config.debugAudioGlitches) {
 			Runtime rt = Runtime.getRuntime();

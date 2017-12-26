@@ -4,11 +4,13 @@ import gui.MainWindow;
 import gui.ProgressPanel;
 
 import java.awt.Color;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.Properties;
 
 import javax.swing.JOptionPane;
@@ -20,6 +22,7 @@ import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
 import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
+import uk.me.g4dpz.satellite.GroundStationPosition;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -52,16 +55,20 @@ import telemetry.RawFrameQueue;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
-
+	public static MainWindow mainWindow;
+	
+	public static boolean logDirFromPassedParam = false; // true if we started up with a logFile dir passed in on the command line
+	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.05d";
-	public static String VERSION = VERSION_NUM + " - 28 Dec 2016";
+	public static String VERSION_NUM = "1.06f";
+	public static String VERSION = VERSION_NUM + " - 25 Dec 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
 	public static final String MACOS = "mac";
 	public static final String LINUX = "lin";
+	public static final String RASPBERRY_PI = "pi";
 	
 	public static final Color AMSAT_BLUE = new Color(0,0,116);
 	public static final Color AMSAT_RED = new Color(224,0,0);
@@ -82,6 +89,7 @@ public class Config {
 	public static Color GRAPH12 = new Color(153,153,255); // purple
 	
 	public static SatelliteManager satManager;
+	static Thread satManagerThread;
 	public static PassManager passManager;
 	static Thread passManagerThread;
 	
@@ -96,15 +104,18 @@ public class Config {
 	
 	public static Sequence sequence;
 	
+	static public GroundStationPosition GROUND_STATION = null;
+	public static final String NONE = "NONE";
+	
 	/**
 	 * These flags can be set to change the output types and operation
 	 */
 	public static int wavSampleRate = 48000; //44100; //192000;
 	public static int scSampleRate = 48000; //44100; //192000;
-	public static final String NO_SOUND_CARD_SELECTED = "NONE";
-	public static final String DEFAULT_CALLSIGN = "NONE";
-	public static final String DEFAULT_STATION = "NONE";
-	public static final String DEFAULT_ALTITUDE = "NONE";
+	public static final String NO_SOUND_CARD_SELECTED = NONE;
+	public static final String DEFAULT_CALLSIGN = NONE;
+	public static final String DEFAULT_STATION = NONE;
+	public static final String DEFAULT_ALTITUDE = "0";
 	public static final String DEFAULT_LATITUDE = "0.0";
 	public static final String DEFAULT_LONGITUDE = "0.0";
 	public static final String DEFAULT_LOCATOR = "XX00xx";
@@ -136,7 +147,7 @@ public class Config {
 	static public boolean realTimePlaybackOfFile = false;
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
-    public static boolean highSpeed = false; // true if we are running the decoder at 9600 bps
+    public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -193,7 +204,7 @@ public class Config {
 	public static String windowCurrentDirectory = "";
 	public static String csvCurrentDirectory = "";
 	public static String logFileDirectory = ""; // This is the directory that we write the decoded data into and any other log files
-	public static String homeDirectory = ""; // This is the directory we write the properties in.  This allows us to find the other directories.
+	public static String homeDirectory = ""; // This is the directory we write the properties in.  This allows us to find the other directories.  We don't save it.  It is the location of the properties file
 	public static String serverFileDirectory = ""; 
 	static public boolean displayRawValues = false;
 	static public boolean showLatestImage = false;
@@ -211,8 +222,8 @@ public class Config {
 	static public boolean useNativeFileChooser = true;
 	
 	static public boolean showSNR = true;
-	static public double SCAN_SIGNAL_THRESHOLD = 15d; // This is peak signal to average noise.  Strongest signal needs to be above this
-	static public double ANALYZE_SNR_THRESHOLD = 6d; // This is average signal in the pass band to average noise outside the passband
+	static public double SCAN_SIGNAL_THRESHOLD = 10d; // This is peak signal to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 4.5d; // This is average signal in the pass band to average noise outside the passband
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
@@ -232,11 +243,19 @@ public class Config {
 	// V1.04
 	static public boolean startButtonPressed = false;
 	static public int splitPaneHeight = 200;
-	public static boolean useDDEforFindSignal = false;
-	public static boolean showFilters = true;
+	public static boolean showFilters = false; // Default this off
+	
+	// V1.05
+	static public int afSampleRate = 48000;
+	static public int totalFrames = 0;
+	static public boolean debugRS = false; // not saved or on GUI
+	static public boolean foxTelemCalcsPosition = false;
+	static public boolean whenAboveHorizon = false;
+	
+	// V1.06
+	static public boolean insertMissingBits = false;
 	
 	public static boolean missing() { 
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
 			return true;
@@ -245,7 +264,6 @@ public class Config {
 	}
 	
 	public static void setHome() {
-		Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		File aFile = new File(Config.homeDirectory);
 		if(!aFile.isDirectory()){
 			
@@ -255,7 +273,7 @@ public class Config {
 		}
 		if(!aFile.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + aFile.getAbsolutePath() +  
-					"\nFoxTelem needs to save the program settings in your home directroy.  It is either not accessible or not writable\n");
+					"\nFoxTelem needs to save the program settings.  The directory is either not accessible or not writable\n");
 		}
 		
 		System.out.println("Set Home to: " + homeDirectory);
@@ -264,34 +282,69 @@ public class Config {
 	public static void basicInit() {
 		initSequence();
 		
-		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
+		// Work out the OS but dont save in the properties.  It might be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
 		
 		satManager = new SatelliteManager();
+		GROUND_STATION = new GroundStationPosition(0,0,0);; // needed for any Predict Calculations.
 	}		
-	public static void serverInit(String u, String p, String db) {
+	public static void serverInit() {
 		basicInit();
-		initPayloadDB(u,p,db);
+		//initPayloadDB(u,p,db);
 		
 	}
 	
-	public static void init() {
+	public static void storeGroundStation() {
+		int h = 0;
+		try {
+			if (Config.altitude.equalsIgnoreCase(Config.NONE)) {
+				Config.altitude = "0";
+				h = 0;
+			} else
+				h = Integer.parseInt(Config.altitude);
+		} catch (NumberFormatException e) {
+			// not much to do.  Just leave h as 0;
+		}
+		try {
+			float lat = Float.parseFloat(Config.latitude);
+			float lon = Float.parseFloat(Config.longitude);
+			GROUND_STATION = new GroundStationPosition(lat, lon, h);
+		} catch (NumberFormatException e) {
+			GROUND_STATION = new GroundStationPosition(0, 0, 0); // Dummy ground station.  This works for position calculations but not for Az/El
+		}
+	}
+
+	public static void init(String setLogFileDir) {
 		properties = new Properties();
 		load();
+		if (setLogFileDir != null ) {
+			Config.logFileDirectory = setLogFileDir;
+			logDirFromPassedParam = true;
+		}
 		initSequence();
 		
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
+
+		storeGroundStation();
 		
-		satManager = new SatelliteManager();
+		initSatelliteManager();
 		initPayloadStore();
 		initPassManager();
 		// Start this last or we get a null pointer exception if it tries to access the data before it is loaded
 		initServerQueue();
 	}
 
+	public static String getLogFileDirectory() {
+		String toFileName = "";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toFileName = Config.logFileDirectory + File.separator;
+		}	
+		return toFileName;
+	}
+	
 	public static int getVersionMajor() {
 		return parseVersionMajor(VERSION_NUM);
 	}
@@ -322,9 +375,17 @@ public class Config {
 		return version;		
 	}
 
+	public static void initSatelliteManager() {
+		if (satManager != null)
+			satManager.stop();
+		satManager = new SatelliteManager();
+		satManagerThread = new Thread(satManager);
+		satManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		satManagerThread.start();
+	}
 	
 	public static void initPassManager() {	
-		passManager = new PassManager(satManager);
+		passManager = new PassManager();
 		passManagerThread = new Thread(passManager);
 		passManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		passManagerThread.start();
@@ -338,12 +399,7 @@ public class Config {
 		payloadStoreThread.start();
 	}
 
-	public static void initPayloadDB(String u, String p, String db) {	
-		payloadStore = new PayloadDbStore(u,p,db);
-		payloadStoreThread = new Thread(payloadStore);
-		payloadStoreThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
-		payloadStoreThread.start();
-	}
+	
 	
 	public static void initSequence() {
 		try {
@@ -374,6 +430,25 @@ public class Config {
 		} else {
 			OS = LINUX;
 		}
+		 if (isLinuxOs()) {
+		        final File file = new File("/etc", "os-release");
+		        try {
+		        	FileInputStream fis = new FileInputStream(file);
+		            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+		            String string;
+		            while ((string = bufferedReader.readLine()) != null) {
+		                if (string.toLowerCase().contains("raspbian")) {
+		                    if (string.toLowerCase().contains("name")) {
+		                        OS = RASPBERRY_PI;;
+		                        Log.println("Raspberry Pi Detected");;
+		                    }
+		                }
+		            }
+		        } catch (final Exception e) {
+		           // e.printStackTrace();
+		        	Log.println("Linux but not Raspberry Pi");
+		        }
+		    }
 	}
 	
 	public static boolean isWindowsOs() {
@@ -384,7 +459,14 @@ public class Config {
 	}
 
 	public static boolean isLinuxOs() {
-		if (OS == LINUX) {
+		if (OS == LINUX || OS == RASPBERRY_PI) {
+			return true;
+		}
+		return false;
+	}
+	
+	public static boolean isRasperryPi() {
+		if (OS == RASPBERRY_PI) {
 			return true;
 		}
 		return false;
@@ -397,57 +479,57 @@ public class Config {
 		return false;
 	}
 	
-	public static void saveGraphParam(String sat, String fieldName, String key, String value) {
-		properties.setProperty("Graph" + sat + fieldName + key, value);
+	public static void saveGraphParam(String sat, int plotType, int payloadType, String fieldName, String key, String value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, value);
 		//store();
 	}
 	
-	public static String loadGraphValue(String sat, String fieldName, String key) {
-		return properties.getProperty("Graph" + sat + fieldName + key);
+	public static String loadGraphValue(String sat, int plotType, int payloadType, String fieldName, String key) {
+		return properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key);
 	}
 	
-	public static void saveGraphIntParam(String sat, String fieldName, String key, int value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Integer.toString(value));
+	public static void saveGraphIntParam(String sat, int plotType, int payloadType, String fieldName, String key, int value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, Integer.toString(value));
 		//store();
 	}
 
-	public static void saveGraphLongParam(String sat, String fieldName, String key, long value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Long.toString(value));
+	public static void saveGraphLongParam(String sat, int plotType, int payloadType, String fieldName, String key, long value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, Long.toString(value));
 		//store();
 	}
 
-	public static void saveGraphBooleanParam(String sat, String fieldName, String key, boolean value) {
-		properties.setProperty("Graph" + sat +  fieldName + key, Boolean.toString(value));
+	public static void saveGraphBooleanParam(String sat, int plotType, int payloadType, String fieldName, String key, boolean value) {
+		properties.setProperty("Graph" + sat + plotType + payloadType + fieldName + key, Boolean.toString(value));
 		//store();
 	}
 	
-	public static int loadGraphIntValue(String sat, String fieldName, String key) {
+	public static int loadGraphIntValue(String sat, int plotType, int payloadType, String fieldName, String key) {
 		try {
-			return Integer.parseInt(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Integer.parseInt(properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
 
-	public static long loadGraphLongValue(String sat, String fieldName, String key) {
+	public static long loadGraphLongValue(String sat, int plotType, int payloadType, String fieldName, String key) {
 		try {
-			return Long.parseLong(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Long.parseLong(properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return 0;
 		}
 	}
 
-	public static boolean loadGraphBooleanValue(String sat, String fieldName, String key) {
+	public static boolean loadGraphBooleanValue(String sat, int plotType, int payloadType, String fieldName, String key) {
 		try {
-			return Boolean.parseBoolean(properties.getProperty("Graph" + sat +  fieldName + key));
+			return Boolean.parseBoolean(properties.getProperty("Graph" + sat + plotType + payloadType + fieldName + key));
 		} catch (NumberFormatException e) {
 			return false;
 		}
 	}
 
 	public static void save() {
-		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
-		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
+//		properties.setProperty("slowSpeedSyncWordSperation", Integer.toString(SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE));
+//		properties.setProperty("highSpeedSyncWordSperation", Integer.toString(HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE));
 		properties.setProperty("recoverClock", Boolean.toString(recoverClock));
 		properties.setProperty("flipReceivedBits", Boolean.toString(flipReceivedBits));
 		properties.setProperty("filterData", Boolean.toString(filterData));
@@ -472,7 +554,7 @@ public class Config {
 		properties.setProperty("realTimePlaybackOfFile", Boolean.toString(realTimePlaybackOfFile));
 		properties.setProperty("useFilterNumber", Integer.toString(useFilterNumber));
 		properties.setProperty("useLeftStereoChannel", Boolean.toString(useLeftStereoChannel));
-		properties.setProperty("highSpeed", Boolean.toString(highSpeed));
+		properties.setProperty("highSpeed", Integer.toString(mode));
 		properties.setProperty("iq", Boolean.toString(iq));
 		properties.setProperty("eliminateDC", Boolean.toString(eliminateDC));
 		properties.setProperty("viewFilteredAudio", Boolean.toString(viewFilteredAudio));
@@ -521,7 +603,7 @@ public class Config {
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
 		properties.setProperty("logFileDirectory", logFileDirectory);
-		properties.setProperty("homeDirectory", homeDirectory);
+//		properties.setProperty("homeDirectory", homeDirectory);
 		properties.setProperty("windowFcHeight", Integer.toString(windowFcHeight));
 		properties.setProperty("windowFcWidth", Integer.toString(windowFcWidth));
 		properties.setProperty("displayRawValues", Boolean.toString(displayRawValues));
@@ -563,8 +645,15 @@ public class Config {
 		// Version 1.04
 		properties.setProperty("startButtonPressed", Boolean.toString(startButtonPressed));
 		properties.setProperty("splitPaneHeight", Integer.toString(splitPaneHeight));
-		properties.setProperty("useDDEforFindSignal", Boolean.toString(useDDEforFindSignal));
 		properties.setProperty("showFilters", Boolean.toString(showFilters));
+		
+		// Version 1.05
+		properties.setProperty("afSampleRate", Integer.toString(afSampleRate));
+		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
+		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
+		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
+		
+		
 		store();
 	}
 	
@@ -596,8 +685,8 @@ public class Config {
 		}
 		try {
 		recoverClock = Boolean.parseBoolean(getProperty("recoverClock"));
-		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
-		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
+//		SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("slowSpeedSyncWordSperation"));
+//		HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE = Integer.parseInt(getProperty("highSpeedSyncWordSperation"));
 		flipReceivedBits = Boolean.parseBoolean(getProperty("flipReceivedBits"));
 		filterData = Boolean.parseBoolean(getProperty("filterData"));
 		filterIterations = Integer.parseInt(getProperty("filterIterations"));
@@ -620,7 +709,7 @@ public class Config {
 		useRSerasures = Boolean.parseBoolean(getProperty("useRSerasures"));
 		realTimePlaybackOfFile = Boolean.parseBoolean(getProperty("realTimePlaybackOfFile"));
 		useLeftStereoChannel = Boolean.parseBoolean(getProperty("useLeftStereoChannel"));
-		highSpeed = Boolean.parseBoolean(getProperty("highSpeed"));
+		
 		iq = Boolean.parseBoolean(getProperty("iq"));
 		eliminateDC = Boolean.parseBoolean(getProperty("eliminateDC"));
 		viewFilteredAudio = Boolean.parseBoolean(getProperty("viewFilteredAudio"));
@@ -650,6 +739,7 @@ public class Config {
 		callsign = getProperty("callsign");
 		stationDetails = getProperty("stationDetails");
 		altitude = getProperty("altitude");
+		if (altitude.equalsIgnoreCase("NONE")) altitude = "0";
 		latitude = getProperty("latitude");
 		longitude = getProperty("longitude");
 		maidenhead = getProperty("maidenhead");
@@ -676,7 +766,7 @@ public class Config {
 		if (csvCurrentDirectory == null) csvCurrentDirectory = "";
 		logFileDirectory = getProperty("logFileDirectory");
 		if (logFileDirectory == null) logFileDirectory = "";
-		homeDirectory = getProperty("homeDirectory");
+//		homeDirectory = getProperty("homeDirectory");
 		if (homeDirectory == null) homeDirectory = "";
 		windowFcHeight = Integer.parseInt(getProperty("windowFcHeight"));
 		windowFcWidth = Integer.parseInt(getProperty("windowFcWidth"));
@@ -723,8 +813,14 @@ public class Config {
 		// Version 1.04
 		startButtonPressed = Boolean.parseBoolean(getProperty("startButtonPressed"));
 		splitPaneHeight = Integer.parseInt(getProperty("splitPaneHeight"));
-		useDDEforFindSignal = Boolean.parseBoolean(getProperty("useDDEforFindSignal"));
 		showFilters = Boolean.parseBoolean(getProperty("showFilters"));
+		
+		// Version 1.05
+		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
+		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
+		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
+		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
+		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -762,4 +858,5 @@ public class Config {
 			System.exit(1);
 
 	}
+
 }

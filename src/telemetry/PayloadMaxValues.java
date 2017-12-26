@@ -48,64 +48,16 @@ public class PayloadMaxValues extends FoxFramePart {
 }
 
 
+	@Override
 	public String toString() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + "MAXIMUM VALUES:\n"
-				+ "BATT_A_V: " + FoxDecoder.dec(getRawValue("BATT_A_V")) 
-				+ " BATT_B_V: " + FoxDecoder.dec(getRawValue("BATT_B_V")) 
-				+ " BATT_C_V: " + FoxDecoder.dec(getRawValue("BATT_C_V"))
-				+ "\n"
-				+ "BATT_A_T: " + FoxDecoder.dec(getRawValue("BATT_A_T")) 
-				+ " BATT_B_T: " + FoxDecoder.dec(getRawValue("BATT_B_T"))
-				+ " BATT_C_T: " + FoxDecoder.dec(getRawValue("BATT_C_T"))
-				+ "\n"
-				+ "TOTAL_BATT_I: " + FoxDecoder.dec(getRawValue("TOTAL_BATT_I")) 
-				+ " BATTBoardTemperature: " + FoxDecoder.dec(getRawValue("BATTBoardTemperature"))
-				+ "\n"
-				+ "PANEL_PLUS_X_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_X_V")) 
-				+ " PANEL_MINUS_X_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_X_V"))
-				+ " PANEL_PLUS_Y_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Y_V"))
-				+ " PANEL_MINUS_Y_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Y_V"))
-				+ " PANEL_PLUS_Z_V: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Z_V"))
-				+ " PANEL_MINUS_Z_V: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Z_V"))
-				+ "\n"
-				+ "PANEL_PLUS_X_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_X_T")) 
-				+ " PANEL_MINUS_X_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_X_T"))
-				+ " PANEL_PLUS_Y_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Y_T"))
-				+ " PANEL_MINUS_Y_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Y_T"))
-				+ " PANEL_PLUS_Z_T: " + FoxDecoder.dec(getRawValue("PANEL_PLUS_Z_T"))
-				+ " PANEL_MINUS_Z_T: " + FoxDecoder.dec(getRawValue("PANEL_MINUS_Z_T"))
-				+ "\n"
-				+ "PSUTemperature: " + FoxDecoder.dec(getRawValue("PSUTemperature")) 
-				+ " SPIN: " + (getRawValue("SPIN"))
-				+ "\n"
-				+ "TXPACurrent: " + FoxDecoder.dec(getRawValue("TXPACurrent")) 
-				+ " TXTemperature: " + FoxDecoder.dec(getRawValue("TXTemperature"))
-				+ "\n"
-				+ "RXTemperature: " + FoxDecoder.dec(getRawValue("RXTemperature")) 
-				+ " RSSI: " + FoxDecoder.dec(getRawValue("RSSI"))
-				+ "\n"
-				+ "IHUTemperature: " + FoxDecoder.dec(getRawValue("IHUTemperature")) 
-				+ " SafeModeIndicator: " + (int)(getRawValue("SafeModeIndication"))
-				+ " AutoSafeModeActive : " + (int)(getRawValue("AutoSafeModeActive"))
-				+ " AutoSafeModeAllowed: " + (int)(getRawValue("AutoSafeModeAllowed"))
-				+ "\n"
-				+ "SatelliteXAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteXAxisAngularVelocity")) + " "
-				+ " SatelliteYAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteYAxisAngularVelocity"))+ " "
-				+ " SatelliteZAxisAngularVelocity: " + FoxDecoder.dec(getRawValue("SatelliteZAxisAngularVelocity"))+ " "
-				+ "\n"
-				+ "EXP4Temp: " + FoxDecoder.dec(getRawValue("EXP4Temperature")) 
-				+ " PSUCurrent: " + FoxDecoder.dec(getRawValue("PSUCurrent"))
-				+ "\n"
-				+ "MaxTimeStampResetCount: " + FoxDecoder.dec(getRawValue("MaxTimeStampResetCount"))
-				+ "\n"
-				+ "MaxTimestampUptime: " + FoxDecoder.dec(getRawValue("MaxTimestampUptime"))
-				+ "\n"
-				+ "IHUHardErrorData: " + FoxDecoder.dec(getRawValue("IHUHardErrorData"))
-				;
+		s = s + "MAXIMUM VALUES:\n";
+		for (int i=0; i < layout.fieldName.length; i++) {
+			s = s + layout.fieldName[i] + ": " + fieldValue[i] + ",   ";
+			if ((i+1)%6 == 0) s = s + "\n";
+		}
 		return s;
-		
 	}
 
 	

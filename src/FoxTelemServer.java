@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.19a - 10 Sept 2016";
+	public static String version = "Version 0.26 - 25 Dec 2017";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -102,7 +102,7 @@ public class FoxTelemServer {
 		Log.println("Listening on port: " + port);
 
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		Config.serverInit(u,p,db); // initialize and create the payload store.  
+		Config.serverInit(); // initialize and create the payload store.  
 
 		ServerConfig.init();
 		
@@ -122,7 +122,7 @@ public class FoxTelemServer {
 				String dir = args[3]; 
 
 				Log.println("AMSAT Fox Server. \nSTP FILE LOAD FROM DIR: " + dir);
-				importStp(dir, false);
+				importStp(dir, false, u,p,db);
 				System.exit(0);
 			} else
 
@@ -159,7 +159,7 @@ public class FoxTelemServer {
         //Thread processThread;
         
         // Start the background image processing thread
-        imageProcess = new ImageProcess();
+        imageProcess = new ImageProcess(initPayloadDB(u,p,db));
         imageThread = new Thread(imageProcess);
         imageThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
         imageThread.start();
@@ -168,7 +168,7 @@ public class FoxTelemServer {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
-        		pool.execute(new ServerProcess(serverSocket.accept(), sequence++));
+        		pool.execute(new ServerProcess(u,p,db, serverSocket.accept(), sequence++));
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
         	} catch (IOException e) {
@@ -188,6 +188,10 @@ public class FoxTelemServer {
 		}
     }
 	
+	public static PayloadDbStore initPayloadDB(String u, String p, String db) {	
+		return new PayloadDbStore(u,p,db);
+		
+	}
 	public static void makeExceptionDir() throws IOException {
 		File aFile = new File("exception");
 		if(aFile.isDirectory()){
@@ -248,7 +252,8 @@ public class FoxTelemServer {
 /**
  * Get a list of all the files in the STP dir and import them
  */
-private static void importStp(String stpDir, boolean delete) {
+private static void importStp(String stpDir, boolean delete, String u, String p, String db) {
+	//PayloadDbStore payload = initPayloadDB(u,p,db);
 	String dir = stpDir;
 	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 		dir = Config.logFileDirectory + File.separator + dir;
@@ -262,7 +267,7 @@ private static void importStp(String stpDir, boolean delete) {
 			if (listOfFiles[i].isFile() ) {
 				//Log.print("Loading STP data from: " + listOfFiles[i].getName());
 				try {
-					Frame f = Frame.importStpFile(listOfFiles[i], false);
+					Frame f = Frame.importStpFile(u,p,db, listOfFiles[i], false);
 					if (f == null) {
 						// null data -  do nothing if we can not (so don't check the return code
 						//listOfFiles[i].delete();

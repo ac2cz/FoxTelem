@@ -4,7 +4,6 @@ import javax.sound.sampled.AudioFormat;
 
 import common.Config;
 import decoder.FoxDecoder;
-import decoder.SourceAudio;
 
 /**
  * 
@@ -45,6 +44,10 @@ public abstract class Filter {
 	int doubleBufferSize;
 	private double gain = 1;
 	double[] abBufferDouble;  // temp buffer used in the filter to hold the overlap and the data
+	boolean decimationFilter = false; // true if we are decimating, in which case decimation factor is set
+	int decimationFactor = 0;
+	int decimationCount = 0;
+	
 	
 	public Filter(AudioFormat af, int bufferSize) {	
 		audioFormat = af;
@@ -52,6 +55,24 @@ public abstract class Filter {
 	}
 	
 	public double getGain() {return gain;}
+	public void setDecimationFactor(int f) {
+		decimationFactor = f;
+		decimationCount = f; // so we start from the first value
+		decimationFilter = true;
+	}
+	
+	protected boolean calculateNow() {
+		if (decimationFilter) {
+			if (decimationCount == decimationFactor) {
+				decimationCount--;
+				return true;
+			}
+			decimationCount--;
+			if (decimationCount == 0) decimationCount = decimationFactor;	
+			return false;
+		} else
+			return true;
+	}
 	
 	protected void coreInit() {
 		if (audioFormat.getChannels() == FoxDecoder.MONO) stereo = false;
