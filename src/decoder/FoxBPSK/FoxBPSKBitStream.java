@@ -36,7 +36,8 @@ import fec.RsCodeWord;
  */
 @SuppressWarnings("serial")
 public class FoxBPSKBitStream extends HighSpeedBitStream {
-	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5735; 
+//	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5735; 
+	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5751; 
 	public static int NUMBER_OF_RS_CODEWORDS = 3;
 	
 	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLnegth) {

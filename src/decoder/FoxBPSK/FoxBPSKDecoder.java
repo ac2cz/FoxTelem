@@ -29,7 +29,8 @@ import telemetry.FoxBPSK.FoxBPSKHeader;
 public class FoxBPSKDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
-	public static final int SYNC_WORD_LENGTH = 15;
+//	public static final int SYNC_WORD_LENGTH = 15;
+	public static final int SYNC_WORD_LENGTH = 31;
 	private int clockOffset = 0;
 	private double[] cosTab;
 	private double[] sinTab;

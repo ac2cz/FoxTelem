@@ -2,9 +2,13 @@ package decoder;
 
 public class CodePRN {
 	public static final int FRAME = 0x5647 & 0x7fff;  //101011001000111
-	static boolean[] FRAME_PRN = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
+	public static final int LONG_FRAME_SYNC = 0x47cd215d;//
+	//static boolean[] FRAME_PRN = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
 	static boolean[] NOT_FRAME_PRN = {false,true,false,true,false,false,true,true,false,true,true,true,false,false,false};
-	public static final int CORRELATION_THRESHOLD = 13;  // Accept the SYNC VECTOR if this many bits match
+	static boolean[] FRAME_PRN = {true,false,false,false,true,true,true,true,true,false,false,true,true,false,true,false,
+			false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
+//	public static final int CORRELATION_THRESHOLD = 13;  // Accept the SYNC VECTOR if this many bits match
+	public static final int CORRELATION_THRESHOLD = 27;  // Accept the SYNC VECTOR if this correlation
 	public static final int FAIL = -99999;
 	
 	/**
@@ -59,10 +63,26 @@ public class CodePRN {
 		return false;
 	}
 	
-	/*public static void main(String[] args) {
-		boolean[] w1 = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
+	
+	
+	public static void main(String[] args) {
+		boolean[] w1 = {false,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
 		boolean[] w2 = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
-		System.out.println(simpleBinaryCorrelation(w1,w2));
+		boolean[] w4 = {false,true,false,false,true,true,true,true,true,false,false,true,true,false,true,false,false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
+		boolean[] w3 = new boolean[31];
+		for (int i=0; i<w3.length; i++) {
+			int f = (LONG_FRAME_SYNC >>i) & 0x1;
+//			System.out.println(f);
+			if ( (f) == 0)
+				w3[w3.length-1-i] = false;
+			else
+				w3[w3.length-1-i] = true;
+		}
+		System.out.println(simpleBinaryCorrelation(FRAME_PRN,w4));
+//		for (int i=0; i<w3.length; i++) {
+//			System.out.print(w3[i] + ",");
+//		}
 	}
-	*/
+	
+	
 }
