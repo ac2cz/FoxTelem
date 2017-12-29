@@ -53,21 +53,6 @@ public class PayloadWODRad extends PayloadRadExpData {
 	public WodRadiationTelemetry calculateTelemetryPalyoad() {
 		WodRadiationTelemetry radTelem = new WodRadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
 		calcFox1ETelemetry(radTelem);
-		/*
-		for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
-			radTelem.addNext8Bits(fieldValue[k]);
-		}
-		radTelem.copyBitsToFields();
-		// Now we copy the extra Fox Fields at the end, but we put them directly in the fields.  Fox computer is little endian, but the data so far
-		// was big endian.  We could remember that and convert each part correctly, or we can leverage the fact that the extra Fox Fields we already
-		// converted correctly in the core radiation  record.
-		// Note that subsequently calling copyBitsToFields will eradicate this copy, so we add a BLOCK COPY BITS boolean
-		radTelem.blockCopyBits = true;
-		copyFieldValue(EXP1_BOARD_NUM, radTelem);
-		copyFieldValue(WOD_RESETS, radTelem);
-		copyFieldValue(WOD_UPTIME, radTelem);
-		copyFieldValue(WOD_CRC_ERROR, radTelem);
-		*/
 		return radTelem;
 		
 	}
