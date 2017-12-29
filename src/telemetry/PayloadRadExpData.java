@@ -39,6 +39,13 @@ public class PayloadRadExpData extends FoxFramePart {
 	public static final String WOD_UPTIME = "WODTimestampUptime";
 	public static final String WOD_CRC_ERROR = "WodCRCError";
 	
+	// Fox-1E Radiation constants
+	public static final int ACTIVE = 3;
+	public static final String STATE2 = "State2";
+	public static final String STATE3 = "State3";
+	public static final String STATE4 = "State4";
+	
+	
 	public PayloadRadExpData(BitArrayLayout lay) {
 		super(lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
@@ -92,17 +99,26 @@ public class PayloadRadExpData extends FoxFramePart {
 		return true;
 	}
 	
+	/**
+	 * We have two peculiarities for the Fox-1E radiation telemetry.  The VUC telemetry is the first 10 bytes, as it is for the other
+	 * spacecraft.  The next ten bytes are then the telemetry for the active experiment.  The layout file has the telemetry layout
+	 * for each experiment in 10 byte chunks, as for Fox-1B.  We use the State of the experiments to determine which telemetry
+	 * layout to use.  The layouts are ten bytes appart, so we offset by an approproate amount and then artificially put the telemetry bytes
+	 * into that part of the RadiationTelemetry layout.  It is then converted and formatted according to the layout for that section.
+	 *
+	 * @param radTelem
+	 */
 	protected void calcFox1ETelemetry(RadiationTelemetry radTelem) {
 		for (int k=0; k<10; k++) { // add the first 10 bytes 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
 		radTelem.copyBitsToFields();
-		int offset=0;
-		if (radTelem.getRawValue("State2") == 3)  // 3 = Active
+		int offset=0;  // Default is that we display the next 10 bytes
+		if (radTelem.getRawValue(STATE2) == ACTIVE)  // 3 = Active
 			offset=10;
-		else if (radTelem.getRawValue("State3") == 3)
+		else if (radTelem.getRawValue(STATE3) == ACTIVE)
 			offset=20;
-		else if (radTelem.getRawValue("State4") == 3)
+		else if (radTelem.getRawValue(STATE4) == ACTIVE)
 			offset=30;
 
 		// Pretend there is a gap, so that the layout works like Fox-1B
