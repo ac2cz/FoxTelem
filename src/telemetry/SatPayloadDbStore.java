@@ -127,11 +127,11 @@ public class SatPayloadDbStore {
 		
 		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
 		//
-		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), false);
-		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), false);
-		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), false);
-		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT), false);
-		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), false);
+		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
+		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
+		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
+		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
 		if (fox.hasHerci()) {
 			initHerciTables();
 		}
@@ -139,23 +139,23 @@ public class SatPayloadDbStore {
 			initCameraTables();
 		}
 		if (fox.foxId == Spacecraft.FOX1E) {
-			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), true);
-			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), true);
-			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), true);
+			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT));
+			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT));
 		}
 	}
 
 	/** 
 	 *  create the tables if they do not exist
 	 */
-	private void initPayloadTable(String table, BitArrayLayout layout, boolean wod) {
-		String createStmt = layout.getTableCreateStmt(wod);
+	private void initPayloadTable(String table, BitArrayLayout layout) {
+		String createStmt = layout.getTableCreateStmt();
 		createTable(table, createStmt);
 	}
 
 	private void initHerciTables() {
-		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT), false);
-		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT), false);
+		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
+		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT));
 		String table = herciHSPacketTableName;
 		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
 		createTable(table, createStmt);

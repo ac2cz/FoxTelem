@@ -247,12 +247,9 @@ public class BitArrayLayout {
 
 	}
 	
-	public String getTableCreateStmt(boolean wod) {
+	public String getTableCreateStmt() {
 		String s = new String();
-		if (wod)
-			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, satLatitude float, satLongitude float, satAltitude float,";
-		else
-			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
 		for (int i=0; i < fieldName.length; i++) {
 			s = s + fieldName[i] + " int,\n";
 		}
