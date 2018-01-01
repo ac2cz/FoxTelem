@@ -257,7 +257,7 @@ public class Config {
 	
 	// V1.06
 	static public boolean insertMissingBits = false;
-	static public boolean useLongPRN = false;
+	static public boolean useLongPRN = true;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
