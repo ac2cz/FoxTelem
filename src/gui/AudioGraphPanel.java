@@ -173,7 +173,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			}
 			
 			if (stepSize <= 0) stepSize = 1;
+			int bucketPositionCount = 0;
+			int bitCount = 0;
 			for (int i=0; i < audioData.length-stepSize; i+=stepSize*2) {
+				
 				// data is stereo, but we want to decimate before display
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
@@ -181,6 +184,19 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
 				x = border*2 + i*(graphWidth-border*2)/audioData.length;
 
+				if (Config.debugValues && foxDecoder != null) {
+					// If we are on a bucket boundry, draw a line and label the bit
+					// We have foxDecoder.SAMPLE_WINDOW_LENGTH buckets
+					// The audio data has decoder.bucketSize samples per bucket
+					bucketPositionCount +=stepSize*2;
+					if (bucketPositionCount >= foxDecoder.getBucketSize()) {
+						g2.setColor(Color.BLACK);
+						g2.drawLine(x, 0, x, graphHeight);
+						g.drawString(""+((Config.windowsProcessed)*foxDecoder.getSampleWindowLength()+bitCount), x-40, graphHeight-20 );
+						bucketPositionCount = 0;
+						bitCount++;
+					}
+				}
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
 				if (foxDecoder instanceof FoxBPSKDecoder)
@@ -198,7 +214,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
 
 					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y2 = 3*graphHeight/4+graphHeight/6*pskAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
+					double y2 = 3*graphHeight/4-graphHeight/6*pskAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
 					//int y = 100;
 					g2.drawLine(lastx2, lasty2, x2, (int)y2);
 					lastx2 = x2;
@@ -215,6 +231,12 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
 		} else
 			g2.drawLine(0, graphHeight/2+border, graphWidth, graphHeight/2+border);
+		
+		if (Config.debugValues) {
+			if (foxDecoder !=null)
+				g.drawString("Window: "+Config.windowsProcessed, 20, 20 );
+		}
+		
 		if (Config.debugAudioGlitches) {
 			Runtime rt = Runtime.getRuntime();
 			long usedMB = (rt.totalMemory() - rt.freeMemory()) / 1024 / 1024;

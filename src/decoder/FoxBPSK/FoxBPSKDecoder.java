@@ -4,6 +4,7 @@ import java.io.IOException;
 import common.Config;
 import common.Log;
 import common.Performance;
+import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.FoxBitStream;
 import decoder.SlowSpeedBitStream;
@@ -30,7 +31,7 @@ public class FoxBPSKDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
 //	public static final int SYNC_WORD_LENGTH = 15;
-	public static final int SYNC_WORD_LENGTH = 31;
+//	public static final int SYNC_WORD_LENGTH = 31;
 	private int clockOffset = 0;
 	private double[] cosTab;
 	private double[] sinTab;
@@ -52,10 +53,9 @@ public class FoxBPSKDecoder extends Decoder {
 	@Override
 	protected void init() {
 		Log.println("Initializing 1200bps BPSK decoder: ");
-
-		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
+		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 40;  
+		SAMPLE_WINDOW_LENGTH = 20; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -135,6 +135,7 @@ public class FoxBPSKDecoder extends Decoder {
 			else
 				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 		}
+		
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		
 		int offset = recoverClockOffset();
@@ -143,6 +144,7 @@ public class FoxBPSKDecoder extends Decoder {
 		//	Scanner scanner = new Scanner(System.in);
 		//		System.out.println("Press enter");
 		//	String username = scanner.next();
+		
 	}
 
 

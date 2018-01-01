@@ -20,6 +20,7 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
 import common.Spacecraft;
+import decoder.FoxBPSK.FoxBPSKDecoder;
 import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
@@ -513,7 +514,22 @@ public abstract class Decoder implements Runnable {
         	processBitsWindow();
 
         	Performance.endTimer("BitsWindow");
-
+        	//printBucketsValues();
+        	if (Config.debugValues) {
+        		if (Config.decoderPlay) {
+        			//System.out.println("PLAY");
+        		} else
+        			while (Config.decoderPaused && !Config.decoderPlay) {
+        				try {
+        					Thread.sleep(10);
+        				} catch (InterruptedException e) {
+        					// TODO Auto-generated catch block
+        					e.printStackTrace();
+        				}
+        			}
+        		Config.decoderPaused = true;
+        		Config.windowsProcessed++;
+        	}
         }
         if (sink != null)
         	sink.closeOutput();
@@ -740,23 +756,29 @@ public abstract class Decoder implements Runnable {
 		frame.setMeasurement(rtMeasurement);
 	}	
 	
+	int debugWindowCount = 0;
 	/**
 	 * Print the data for debug purposes so that we can graph it in excel
 	 * Include markers for the start and end of buckets and for the value of the mid point sample
 	 */
 	protected void printBucketsValues() {
-		
-//		for (int m=0; m<2; m++)
-	//		System.out.println(-40000); // start of window
+		debugWindowCount++;
+		if (debugWindowCount > 16) System.exit(1);
+		for (int m=0; m<2; m++)
+			System.out.println(-40000); // start of window
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			//System.out.print("BUCKET" + i + " MIN: " + minValue[i] + " MAX: " + maxValue[i] + " - ");
 //			for (int m=0; m<4; m++)
 	//			System.out.println(40000); // start of bucket marker
-			int step = 10;
+			int step = 10; // means 20 samples per bit
 			int middle = 120;
 			if (this instanceof Fox9600bpsDecoder) {
 				step = 1;
 				middle = 3;
+			}
+			if (this instanceof FoxBPSKDecoder) {
+				step = 4; // 10 samples per bit
+				middle = 9999; // don't plot the middle bit value
 			}
 			
 			for (int j=0; j<bucketSize; j+=step) { // 20) {

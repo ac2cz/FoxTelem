@@ -94,7 +94,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		}
 		int[] numberOfErasures = new int[numberOfRsCodeWords];
 		
-		if (rawFrame.length != SYNC_WORD_DISTANCE/10-1)
+		if (rawFrame.length != (SYNC_WORD_DISTANCE-this.SYNC_WORD_LENGTH)/10)
 			Log.println("WARNING: Frame length " + rawFrame.length + " bytes is different to default SYNC word distance "+ (SYNC_WORD_DISTANCE/10-1));
 
 		// We have found a frame, so process it. start is the first bit of data
@@ -175,7 +175,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 					//Log.println("LAST ERRORS: " + lastErrorsNumber);
 					if (!codeWords[i].validDecode()) {
 						// We had a failure to decode, so the frame is corrupt
-						Log.println("FAILED RS DECODE FOR HS WORD " + i);
+						if (Config.debugFrames) Log.println("FAILED RS DECODE FOR HS WORD " + i);
 						return null;
 					} else {
 						//Log.println("RS Decoder Successful for HS Data");

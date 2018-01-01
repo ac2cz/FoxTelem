@@ -1,16 +1,25 @@
 package decoder;
 
+import common.Config;
+
 public class CodePRN {
 	public static final int FRAME = 0x5647 & 0x7fff;  //101011001000111
 	public static final int LONG_FRAME_SYNC = 0x47cd215d;//
-	//static boolean[] FRAME_PRN = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
+	public static boolean[] SHORT_FRAME_PRN = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
 	static boolean[] NOT_FRAME_PRN = {false,true,false,true,false,false,true,true,false,true,true,true,false,false,false};
-	static boolean[] FRAME_PRN = {true,false,false,false,true,true,true,true,true,false,false,true,true,false,true,false,
+	public static boolean[] LONG_FRAME_PRN = {true,false,false,false,true,true,true,true,true,false,false,true,true,false,true,false,
 			false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
-//	public static final int CORRELATION_THRESHOLD = 13;  // Accept the SYNC VECTOR if this many bits match
-	public static final int CORRELATION_THRESHOLD = 27;  // Accept the SYNC VECTOR if this correlation
+//	public static final int CORRELATION_THRESHOLD = 13;  // Accept the SYNC VECTOR if this many bits match 13 = 1 bit missed 11 = 2
+	public static final int LONG_CORRELATION_THRESHOLD = 27;  // Accept the SYNC VECTOR if this correlation - 27 = 2 bits missed, 23 = 4
+	public static final int SHORT_CORRELATION_THRESHOLD = 11;  // Accept the SYNC VECTOR if this correlation - 13 = 1 bit missed 11 = 2, 9 = 3 missed, 7 = 4
 	public static final int FAIL = -99999;
 	
+	public static final int getSyncWordLength() {
+		int len = SHORT_FRAME_PRN.length;
+		if (Config.useLongPRN)
+			len = LONG_FRAME_PRN.length;
+		return len;
+	}
 	/**
 	 * We treat each binary zero as -1 and each one as 1 and then multiply the two numbers bit wise. We sum
 	 * the result to get a correlation.
@@ -38,7 +47,9 @@ public class CodePRN {
 	 * @return
 	 */
 	public static boolean equals(boolean[] word1) {
-		
+		boolean[] FRAME_PRN = SHORT_FRAME_PRN;
+		if (Config.useLongPRN)
+			FRAME_PRN = LONG_FRAME_PRN;
 		if (word1.length != FRAME_PRN.length) {
 			System.err.println("PRN FRAME MARKER WRONG LENGTH");
 			return false;
@@ -56,7 +67,13 @@ public class CodePRN {
 	 * @return
 	 */
 	public static final boolean probabllyFrameMarker(boolean[] word) {
-		if (simpleBinaryCorrelation(word, FRAME_PRN) > CORRELATION_THRESHOLD) 
+		boolean[] FRAME_PRN = SHORT_FRAME_PRN;
+		int threshold = SHORT_CORRELATION_THRESHOLD;
+		if (Config.useLongPRN) {
+			FRAME_PRN = LONG_FRAME_PRN;
+			threshold = LONG_CORRELATION_THRESHOLD;
+		}
+		if (simpleBinaryCorrelation(word, FRAME_PRN) > threshold) 
 			return true;
 	//	if (simpleBinaryCorrelation(word, NOT_FRAME_PRN) > CORRELATION_THRESHOLD) 
 	//		return true;
@@ -66,9 +83,9 @@ public class CodePRN {
 	
 	
 	public static void main(String[] args) {
-		boolean[] w1 = {false,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
+		boolean[] w1 = {false,true,false,true,true,true,false,false,true,false,false,false,true,true,false};
 		boolean[] w2 = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
-		boolean[] w4 = {false,true,false,false,true,true,true,true,true,false,false,true,true,false,true,false,false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
+		boolean[] w4 = {true,true,true,true,true,true,true,true,true,false,false,true,true,false,true,false,false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
 		boolean[] w3 = new boolean[31];
 		for (int i=0; i<w3.length; i++) {
 			int f = (LONG_FRAME_SYNC >>i) & 0x1;
@@ -78,7 +95,9 @@ public class CodePRN {
 			else
 				w3[w3.length-1-i] = true;
 		}
-		System.out.println(simpleBinaryCorrelation(FRAME_PRN,w4));
+		boolean[] FRAME_PRN = SHORT_FRAME_PRN;
+		
+		System.out.println(simpleBinaryCorrelation(FRAME_PRN,w1));
 //		for (int i=0; i<w3.length; i++) {
 //			System.out.print(w3[i] + ",");
 //		}

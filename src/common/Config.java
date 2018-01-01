@@ -62,7 +62,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.06f";
-	public static String VERSION = VERSION_NUM + " - 25 Dec 2017";
+	public static String VERSION = VERSION_NUM + " - 29 Dec 2017";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -126,7 +126,10 @@ public class Config {
 	static public boolean flipReceivedBits2 = false; // FIXME - Quick Hack to see if this is an issue.  If this stays MUST go at end of config
 	static public boolean recoverClock = true;
 	static public boolean writeDebugWavFile = false;
-	static public boolean debugValues = false;
+	static public boolean debugValues = true;
+	static public boolean decoderPaused = false;
+	static public boolean decoderPlay = false;
+	static public int windowsProcessed = 0;
 	static public boolean debugPerformance = false;
 	static public boolean debugClock = false;
 	static public boolean debugBits = false;
@@ -254,6 +257,7 @@ public class Config {
 	
 	// V1.06
 	static public boolean insertMissingBits = false;
+	static public boolean useLongPRN = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -652,6 +656,7 @@ public class Config {
 		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
 		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
 		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
+		properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
 		
 		
 		store();
@@ -821,6 +826,7 @@ public class Config {
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
+		useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

@@ -101,7 +101,7 @@ public abstract class FoxBitStream extends BitStream {
 					//if (!haveSyncWordAtBit(i+1)) {
 						syncWords.add(i+1);
 						if (Config.debugFrames) {
-							Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1));
+							Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1) + " total:" + (totalBits + i + 1));
 							printBitArray(syncWord);
 						}
 					//}
@@ -149,7 +149,7 @@ public abstract class FoxBitStream extends BitStream {
 						missedBits = SYNC_WORD_DISTANCE - (end-start);
 						if (Config.insertMissingBits && missedBits > 0) {
 							repairPosition = checkShortFrame(start, end);
-							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition);
+							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition +  " total: " + (totalBits + repairPosition));
 						}
 						if (newFrame(start, end)) {
 							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");

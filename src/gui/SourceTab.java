@@ -165,6 +165,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JRadioButton showLevel;
 	JRadioButton viewHighSpeed;
 	JRadioButton viewLowSpeed;
+	JButton unpause;
+	JButton play;
 	JPanel findSignalPanel;
 	JPanel autoViewpanel;
 	Box.Filler audioOptionsFiller;
@@ -509,6 +511,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnShowFFT.setSelected(true);
 		optionsPanel.add(rdbtnShowFFT);
 		rdbtnShowFFT.setVisible(false);
+		play = new JButton(">");
+		play.addActionListener(this);
+		optionsPanel.add(play);
+		unpause = new JButton("||");
+		unpause.addActionListener(this);
+		optionsPanel.add(unpause);
+		if (Config.debugValues) {
+			play.setVisible(true);
+			unpause.setVisible(true);
+		}
 //		audioOptionsFiller = new Box.Filler(new Dimension(10,10), new Dimension(100,80), new Dimension(100,500));
 //		optionsPanel.add(audioOptionsFiller);
 		
@@ -1009,7 +1021,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		
+		if (e.getSource() == unpause) {
+			Config.decoderPaused = false;
+			Config.decoderPlay = false;
+		}
+		if (e.getSource() == play) {
+			Config.decoderPlay = true;
+		}
 	
 		if (e.getSource() == highSpeed) { 
 				Config.mode = SourceIQ.MODE_FSK_HS;
@@ -2173,6 +2191,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				}
 				btnStartButton.setEnabled(true);
 				lblWhenAboveHorizon.setVisible(false);
+			}
+			if (Config.debugValues && !unpause.isVisible()) {
+				unpause.setVisible(true);
+				play.setVisible(true);
+			}
+			if (!Config.debugValues && unpause.isVisible()) {
+				unpause.setVisible(false);
+				play.setVisible(false);
 			}
 		}
 		

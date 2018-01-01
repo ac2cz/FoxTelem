@@ -37,13 +37,13 @@ import fec.RsCodeWord;
 @SuppressWarnings("serial")
 public class FoxBPSKBitStream extends HighSpeedBitStream {
 //	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5735; 
-	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5751; 
+	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5720; 
 	public static int NUMBER_OF_RS_CODEWORDS = 3;
 	
-	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLnegth) {
-		super(dec, wordLength, syncWordLnegth);
-		SYNC_WORD_LENGTH = syncWordLnegth;
-		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
+	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLength) {
+		super(dec, wordLength, syncWordLength);
+		SYNC_WORD_LENGTH = syncWordLength;
+		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
 		SYNC_WORD_BIT_TOLERANCE = 10;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
 		maxBytes = FoxBPSKFrame.getMaxBytes();

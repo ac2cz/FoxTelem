@@ -86,6 +86,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
 	private JCheckBox insertMissingBits;
+	private JCheckBox useLongPRN;
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;
 	private JCheckBox cbFoxTelemCalcsPosition;
@@ -305,6 +306,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.swapIQ, rightcolumnpanel0 );
 		insertMissingBits = addCheckBoxRow("Fix Dropped Bits", "Fix bits dropped in the audio channel (may fix frames but use more CPU)",
 				Config.insertMissingBits, rightcolumnpanel0 );
+		useLongPRN = addCheckBoxRow("Use Long PRN", "Use a 31 bit SYNC word between frames",
+				Config.useLongPRN, rightcolumnpanel0 );
+		insertMissingBits.setForeground(Config.AMSAT_RED);
+		useLongPRN.setForeground(Config.AMSAT_RED);
 		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		//JPanel rightcolumnpanel1 = addColumn(rightcolumnpanel,3);
@@ -549,6 +554,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
 				Config.insertMissingBits = insertMissingBits.isSelected();
+				if (Config.useLongPRN != useLongPRN.isSelected())
+					Log.errorDialog("CHANGED PRN LENGTH", "If you changed the length of the PRN then the decoder needs to be stopped and restarted.  "
+							+ "You do not\n need to exit FoxTelem.");
+				Config.useLongPRN = useLongPRN.isSelected();
 				
 				if (Config.isWindowsOs()) {
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
