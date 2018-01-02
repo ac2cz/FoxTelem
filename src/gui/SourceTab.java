@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
@@ -2119,13 +2120,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	/**
 	 * Method that checks to see if the decoder should be started or stopped.  The start/stop methods can be called from the pass manager.
+	 * Note that this new thread is no longer part of the Event Dispatch thread.  Any changes to the GUI must be passed back to that thread.
 	 * 
 	 */
 	@Override
 	public void run() {
 		// Runs until we exit
 		while(true) {
-			boolean atLeastOneTracked = false;
+
 			// Sleep first to avoid race conditions at start up
 			try {
 				Thread.sleep(500);
@@ -2133,75 +2135,83 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-			try {
-				if (Config.satManager.updated) {
-					atLeastOneTracked = buildTrackedSpacecraftList();		
-					Config.satManager.updated = false;
-				}
-				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
-					Spacecraft sat = Config.satManager.spacecraftList.get(s);
-					if (sat.track)
-						atLeastOneTracked = true;
-					if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
-						satPosition[s].setForeground(Config.AMSAT_RED);
-					else
-						satPosition[s].setForeground(Config.AMSAT_BLUE);
+			EventQueue.invokeLater(new Runnable() {
+				public void run() {
+					boolean atLeastOneTracked = false;
+					try {
+						if (Config.satManager.updated) {
 
-					if (Config.foxTelemCalcsPosition && sat.track) {
-						if (sat.satPos != null) {
-							double az = FramePart.radToDeg(sat.satPos.getAzimuth());
-							double el = FramePart.radToDeg(sat.satPos.getElevation());
-							satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
-						} else {
-							satPosition[s].setText("No Position Data");
+							atLeastOneTracked = buildTrackedSpacecraftList();	
+							Config.satManager.updated = false;
 						}
-					} else if (Config.useDDEforAzEl && sat.track) {
-						satPosition[s].setText("Tracked via SATPC32");
-					} else {
-						if (sat.track)
-							satPosition[s].setText("Tracked");
-						else
-							satPosition[s].setText("Not Tracked");
-					}
-						
-				}
-			} catch (ArrayIndexOutOfBoundsException e) {
-				// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
-			}
 
-			if (soundCardComboBox.getSelectedIndex() == 0) {
-				btnStartButton.setEnabled(false);
-			} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
-					rdbtnFindSignal.setEnabled(false);
-					btnStartButton.setEnabled(false);
-					lblWhenAboveHorizon.setVisible(true);
-					if (aboveHorizon && !STARTED) {
-						processStartButtonClick();
+
+						for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+							Spacecraft sat = Config.satManager.spacecraftList.get(s);
+							if (sat.track)
+								atLeastOneTracked = true;
+							if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
+								satPosition[s].setForeground(Config.AMSAT_RED);
+							else
+								satPosition[s].setForeground(Config.AMSAT_BLUE);
+
+							if (Config.foxTelemCalcsPosition && sat.track) {
+								if (sat.satPos != null) {
+									double az = FramePart.radToDeg(sat.satPos.getAzimuth());
+									double el = FramePart.radToDeg(sat.satPos.getElevation());
+									satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+								} else {
+									satPosition[s].setText("No Position Data");
+								}
+							} else if (Config.useDDEforAzEl && sat.track) {
+								satPosition[s].setText("Tracked via SATPC32");
+							} else {
+								if (sat.track)
+									satPosition[s].setText("Tracked");
+								else
+									satPosition[s].setText("Not Tracked");
+							}
+
+						}
+					} catch (ArrayIndexOutOfBoundsException e) {
+						// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 					}
-					if (!aboveHorizon && STARTED) {
-						processStartButtonClick();
+
+					if (soundCardComboBox.getSelectedIndex() == 0) {
+						btnStartButton.setEnabled(false);
+					} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
+						rdbtnFindSignal.setEnabled(false);
+						btnStartButton.setEnabled(false);
+						lblWhenAboveHorizon.setVisible(true);
+						if (aboveHorizon && !STARTED) {
+							processStartButtonClick();
+						}
+						if (!aboveHorizon && STARTED) {
+							processStartButtonClick();
+						}
+					} else {
+						if (atLeastOneTracked) {
+							//rdbtnFindSignal.setEnabled(true);
+							rdbtnFindSignal.setSelected(true);
+						} else {
+							rdbtnFindSignal.setEnabled(false);
+							rdbtnFindSignal.setSelected(false);
+						}
+						btnStartButton.setEnabled(true);
+						lblWhenAboveHorizon.setVisible(false);
 					}
-			} else {
-				if (atLeastOneTracked) {
-					//rdbtnFindSignal.setEnabled(true);
-					rdbtnFindSignal.setSelected(true);
-				} else {
-					rdbtnFindSignal.setEnabled(false);
-					rdbtnFindSignal.setSelected(false);
+					if (Config.debugValues && !unpause.isVisible()) {
+						unpause.setVisible(true);
+						play.setVisible(true);
+					}
+					if (!Config.debugValues && unpause.isVisible()) {
+						unpause.setVisible(false);
+						play.setVisible(false);
+					}
 				}
-				btnStartButton.setEnabled(true);
-				lblWhenAboveHorizon.setVisible(false);
-			}
-			if (Config.debugValues && !unpause.isVisible()) {
-				unpause.setVisible(true);
-				play.setVisible(true);
-			}
-			if (!Config.debugValues && unpause.isVisible()) {
-				unpause.setVisible(false);
-				play.setVisible(false);
-			}
+			});
 		}
-		
+
 	}
 
 	@Override
@@ -2212,31 +2222,31 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				((FoxSpacecraft)Config.satManager.spacecraftList.get(s)).save();
 			}
 		}
-		
+
 	}
 
 	@Override
 	public void mouseEntered(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseExited(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mousePressed(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void mouseReleased(MouseEvent arg0) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 
