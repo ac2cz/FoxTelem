@@ -4,7 +4,11 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
 import java.text.DecimalFormat;
+
+import javax.imageio.ImageIO;
 
 import common.Config;
 import common.FoxSpacecraft;
@@ -30,15 +34,21 @@ public class EarthPlotPanel extends GraphCanvas {
 	}
 	
 	private void setImage() {
+		try {
 		if (graphFrame.mapType == GraphFrame.COLOR_MAP_EQUIRECTANGULAR) {
 			mapProjection = RECTANGULAR_PROJECTION;
-			setImage(this.getClass().getResource("/images/Equirectangular_projection_SW.jpg").getFile());
+				image = ImageIO.read(this.getClass().getResource("/images/Equirectangular_projection_SW.jpg"));
+			//setImage(this.getClass().getResource());
 //		else if (graphFrame.mapType == GraphFrame.COLOR_MAP_MERCATOR)
 //			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Mercator_projection_SW.jpg");	
 		} else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR) {
 			mapProjection = RECTANGULAR_PROJECTION;
-			setImage(this.getClass().getResource("/images/1280px-World_V2.0.jpg").getFile());	
+			image = ImageIO.read(this.getClass().getResource("/images/map_outline.jpg"));
+			//setImage(this.getClass().getResource("/images/map_outline.jpg"));	
 			//setImage(this.getClass().getResource("/images/WorldCoastLine_EquiRectangular.jpg").getFile());	
+		}
+		} catch (IOException e) {
+			 Log.errorDialog("ERROR", "Could not set map image: " + "\n" + e.getMessage());
 		}
 	}
 	
