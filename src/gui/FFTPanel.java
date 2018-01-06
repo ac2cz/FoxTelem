@@ -97,7 +97,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	RfData rfData;
 	boolean liveData = false; // true if we have not received a NULL buffer from the decoder.
 	int tuneDelay = 0;
-	final int TUNE_THRESHOLD = 100;
+	final int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
 	JLabel title;
 	
 	FFTPanel() {
@@ -106,14 +106,14 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		addMouseListener(this);
 		String TUNE_LEFT = "left";
 		String TUNE_RIGHT = "right";
-		InputMap inMap = this.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		InputMap inMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
 		inMap.put(KeyStroke.getKeyStroke("LEFT"), TUNE_LEFT);
 		inMap.put(KeyStroke.getKeyStroke("RIGHT"), TUNE_RIGHT);
 		ActionMap actMap = this.getActionMap();
 		actMap.put(TUNE_LEFT, new AbstractAction() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	         //       System.out.println("TUNE LEFT");
+	          //      System.out.println("TUNE LEFT");
 	                selectedBin = selectedBin-1;
 	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
 	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
@@ -124,7 +124,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		actMap.put(TUNE_RIGHT, new AbstractAction() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	         //       System.out.println("TUNE RIGHT");
+	          //      System.out.println("TUNE RIGHT");
 	                selectedBin = selectedBin+1;
 	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
 	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
@@ -209,30 +209,24 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	private void retune() {
 		// auto tune
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIG) > TRACK_SIGNAL_THRESHOLD) {
-			if (Config.passManager.getState() == PassManager.DECODE  ||
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
+			if (Config.passManager.getState() == PassManager.DECODE  || 
 					Config.passManager.getState() == PassManager.ANALYZE) {
 				tuneDelay++;
-			} else if (Config.passManager.getState() == PassManager.FADED) {
-				// don't tune, just wait, it does not move far enough in the fade period
-				// it is more likely that we get distracted by another signal and wander off
+			} else if (Config.passManager.getState() != PassManager.FADED) {
+				// Don't tune
 			} else {
+				// Tune at maximum speed
 				tuneDelay = TUNE_THRESHOLD;
-			}
+			} 
 			if (tuneDelay == TUNE_THRESHOLD) {
 				tuneDelay = 0;
 				// move half the distance to the bin
 				int targetBin = 0;
-				if (Config.findSignal)
-					targetBin = rfData.getBinOfPeakSignal();  // peak is the best signal in the decode band for the current sat
+				if (Config.passManager.getState() == PassManager.DECODE || Config.passManager.getState() == PassManager.FADED)
+					targetBin = rfData.getBinOfPeakSignalInFilterWidth();  // peak is the strongest signal in the filter width
 				else
-					targetBin = rfData.getBinOfStrongestSignal(); // strongest is the best signal across the whole spectrum
-				/*
-				if (Config.findSignal)
-					targetBin = rfData.getBinOfStrongestSignal();
-				else
-					targetBin = rfData.getBinOfPeakSignal();
-				*/
+					targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
 				
 				int move = targetBin - selectedBin;
 				//System.out.println("MOVE: "+ move);
@@ -241,7 +235,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						selectedBin -= 50;
 					else
 						if (move < -25)
-							selectedBin -= 5;
+							selectedBin -= 12;
 						else if (move < -5)
 							selectedBin -= 5;
 						else if (move < -2)
@@ -253,7 +247,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					if (move > 100)
 						selectedBin += 50;
 					else if (move > 25)
-						selectedBin += 5;
+						selectedBin += 12;
 					else if (move > 5)
 						selectedBin += 5;
 					else if (move > 2)
@@ -410,61 +404,46 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);
 				//int width = 10;
-				int peak = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.PEAK), graphHeight);
-				peak=graphHeight-peak-topBorder;
+				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH), graphHeight);
+				peakSignalInFilterWidth=graphHeight-peakSignalInFilterWidth-topBorder;
 				
-				int peakBin = 0;
-				if (rfData.getBinOfPeakSignal() < fftSamples/2) {
-					peakBin = getRatioPosition(0, fftSamples/2, rfData.getBinOfPeakSignal(), graphWidth/2);
-					peakBin = peakBin + sideBorder + graphWidth/2;
+				int binOfPeakSignalInFilterWidth = 0;
+				if (rfData.getBinOfPeakSignalInFilterWidth() < fftSamples/2) {
+					binOfPeakSignalInFilterWidth = getRatioPosition(0, fftSamples/2, rfData.getBinOfPeakSignalInFilterWidth(), graphWidth/2);
+					binOfPeakSignalInFilterWidth = binOfPeakSignalInFilterWidth + sideBorder + graphWidth/2;
 				} else {
-					peakBin = getRatioPosition(0, fftSamples/2, rfData.getBinOfPeakSignal()-fftSamples/2, graphWidth/2);
-					peakBin = peakBin + sideBorder;
+					binOfPeakSignalInFilterWidth = getRatioPosition(0, fftSamples/2, rfData.getBinOfPeakSignalInFilterWidth()-fftSamples/2, graphWidth/2);
+					binOfPeakSignalInFilterWidth = binOfPeakSignalInFilterWidth + sideBorder;
 				}
 	
-	
-//				System.out.println("BIN:" + peakBin +" "+ rfData.getBinOfPeakSignal());
-				
-				
-//				g2.drawLine(graphWidth/2-width , (int)peak, graphWidth/2+width, (int)peak);
-				//g2.drawLine(peakBin , (int)peak, peakBin, (int)peak);
-
-				double r = GraphPanel.roundToSignificantFigures(rfData.strongestSigRfSNR,3);
-				//double n = GraphPanel.roundToSignificantFigures(rfData.getAvg(RfData.NOISE),3);
-				double snr = GraphPanel.roundToSignificantFigures(rfData.rfSNR,3);
-				//String pk = Double.toString(r) + "";
-				//String noise = Double.toString(n) + "";
+				double snrStrongestSigInSatBand = GraphPanel.roundToSignificantFigures(rfData.rfStrongestSigSNRInSatBand,3);
+				double snr = GraphPanel.roundToSignificantFigures(rfData.rfSNRInFilterWidth,3);
 				String s = Double.toString(snr) + "";
-				String ss = Double.toString(r) + "";
+				String ss = Double.toString(snrStrongestSigInSatBand) + "";
 				long f = iqSource.getFrequencyFromBin(Config.selectedBin);  //rfData.getPeakFrequency();
-				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , peakBin, peak  );
+				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , binOfPeakSignalInFilterWidth, peakSignalInFilterWidth  );
 
-				g2.drawLine(peakBin-5 , (int)peak-3, peakBin+5, (int)peak-3);
+				g2.drawLine(binOfPeakSignalInFilterWidth-5 , (int)peakSignalInFilterWidth-3, binOfPeakSignalInFilterWidth+5, (int)peakSignalInFilterWidth-3);
 				if (Config.showSNR) 
-					g.drawString("snr: " + s + "dB", peakBin+10, peak  );
+					g.drawString("snr: " + s + "dB", binOfPeakSignalInFilterWidth+10, peakSignalInFilterWidth  );
 				else
-					g.drawString("" + ss + "dB", peakBin+10, peak  );
+					g.drawString("" + ss + "dB", binOfPeakSignalInFilterWidth+10, peakSignalInFilterWidth  );
 				g.drawString("Freq:"+f, graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
 
 				if (Config.findSignal) {
-					int strongestpeak = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.STRONGEST_SIG), graphHeight);
-					strongestpeak=graphHeight-strongestpeak-topBorder;
+					int strongestSigInSatBand = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND), graphHeight);
+					strongestSigInSatBand=graphHeight-strongestSigInSatBand-topBorder;
 					
-					int strongestBin = 0;
-					if (rfData.getBinOfStrongestSignal() < fftSamples/2) {
-						strongestBin = getRatioPosition(0, fftSamples/2, rfData.getBinOfStrongestSignal(), graphWidth/2);
-						strongestBin = strongestBin + sideBorder + graphWidth/2;
+					int binOfStrongestSigInSatBand = 0;
+					if (rfData.getBinOfStrongestSignalInSatBand() < fftSamples/2) {
+						binOfStrongestSigInSatBand = getRatioPosition(0, fftSamples/2, rfData.getBinOfStrongestSignalInSatBand(), graphWidth/2);
+						binOfStrongestSigInSatBand = binOfStrongestSigInSatBand + sideBorder + graphWidth/2;
 					} else {
-						strongestBin = getRatioPosition(0, fftSamples/2, rfData.getBinOfStrongestSignal()-fftSamples/2, graphWidth/2);
-						strongestBin = strongestBin + sideBorder;
+						binOfStrongestSigInSatBand = getRatioPosition(0, fftSamples/2, rfData.getBinOfStrongestSignalInSatBand()-fftSamples/2, graphWidth/2);
+						binOfStrongestSigInSatBand = binOfStrongestSigInSatBand + sideBorder;
 					}
 
-					//double strongsnr = GraphPanel.roundToSignificantFigures(rfData.strongestSigRfSNR,3);
-					//				double strongsnr = GraphPanel.roundToSignificantFigures(rfData.getAvg(RfData.STRONGEST_SIG),5);
-					//String strong = Double.toString(strongsnr) + "";
-
-					g.drawString("* " , strongestBin, strongestpeak - 5  );
-					//				g.drawString("* " + strong + "dB" , strongestBin, strongestpeak - 10  );
+					g.drawString("^ " , binOfStrongestSigInSatBand, strongestSigInSatBand - 5  );
 				}
 				
 			} else {

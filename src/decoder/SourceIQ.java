@@ -604,7 +604,11 @@ public class SourceIQ extends SourceAudio {
 	 * due to the gibbs effect and cause issues.  However, we are also limited because we can only make a course move otherwise phase
 	 * discontinuities give us issues:
 	 * 
-	 * We also calculate the RF Measurements, the bin of the strongest signal in the pass band is set as the peak Signal, the average signal
+	 * We also calculate the RF Measurements:
+	 * As of v1.06g we have clarified the names and meanings of the values as follows:
+	 * 
+	 * PEAK_SIGNAL_IN_FILTER_WIDTH: the bin of the strongest signal in the pass band is set as the peak Signal, 
+	 * the average signal
 	 * in the passband and the noise in an equivalent bandwidth just outside the pass band is also measured so we can calculate the RF SNR
 	 *  
 	 * @param fftData
@@ -612,10 +616,10 @@ public class SourceIQ extends SourceAudio {
 	private void filterFFTWindow(double[] fftData) {
 		for (int z=0; z<fftData.length; z++) newData[z] = 0.0;
 		
-		int peakSignalBin = 0;  // the peak signal bin
-		double peak = -999999;
-		double strongest = -999999;
-		int strongestBin = 0;
+		int binOfPeakSignalInFilterWidth = 0;  // the peak signal bin
+		double peakSignalInFilterWidth = -999999;
+		double strongestSigInSatBand = -999999;
+		int binOfStrongestSigInSatBand = 0;
 		
 		// We break the spectrum into chunks, so that we pass through it only once, but can analyze the different sections in different ways
 		// 0 - noiseStart
@@ -624,8 +628,8 @@ public class SourceIQ extends SourceAudio {
 		// pass band to noiseEnd
 		// noiseEnd to end of spectrum
 		
-		double noise = 0;
-		double avgSig = 0;
+		double noiseOutsideFilterWidth = 0;
+		double avgSigInFilterWidth = 0;
 		int noiseReading = 0;
 		int sigReading = 0;
 
@@ -651,15 +655,21 @@ public class SourceIQ extends SourceAudio {
 		int noiseEnd = end + filterBins;
 		if (noiseEnd > fftData.length-2) noiseEnd = fftData.length - 2;
 		
-		// Here we start the analysis of the spectrum
-
+		/* Here we start the analysis of the spectrum.  We use our knowledge of the sat band, which is fromBin toBin.
+		 * We split it into the following chunks:
+		 * 0 - noiseStart: This is outside the filter width and beyond the point we measure noise
+		 * noiseStart - start: This is just outside the filter width and is the place we measure the noise level
+		 * start - end: This is the fitler width where we decode the signal.  This is where we want the signal to be
+		 * end - noiseEnd: This is just outside the filter width and is the place we measure the noise level
+		 * noiseEnd - length of FFT data: This is outside the filter width and beyond the point we measure noise
+		 */
 		double sig = 0;
 		for (int n=0; n < noiseStart; n+=2) {
 			if (Config.fromBin*2 < n && n < Config.toBin*2) {
 				sig = psd(fftData[n], fftData[n+1]);
-				if (sig > strongest) {
-					strongest = sig;
-					strongestBin = n/2;
+				if (sig > strongestSigInSatBand) {
+					strongestSigInSatBand = sig;
+					binOfStrongestSigInSatBand = n/2;
 				}
 			}
 		}
@@ -667,37 +677,13 @@ public class SourceIQ extends SourceAudio {
 		for (int n=noiseStart; n< start; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
 			if (Config.fromBin*2 < n && n < Config.toBin*2) {
-				if (sig > strongest) {
-					strongest = sig;
-					strongestBin = n/2;
+				if (sig > strongestSigInSatBand) {
+					strongestSigInSatBand = sig;
+					binOfStrongestSigInSatBand = n/2;
 				}
 			}			
-			noise += sig;
+			noiseOutsideFilterWidth += sig;
 			noiseReading++;
-		}
-		
-		for (int n=end; n < noiseEnd; n+=2) {
-			sig = psd(fftData[n], fftData[n+1]);
-			if (Config.fromBin*2 < n && n < Config.toBin*2) {
-
-				if (sig > strongest) {
-					strongest = sig;
-					strongestBin = n/2;
-				}
-			}			
-			noise += sig;
-			noiseReading++;
-		}
-
-		for (int n=noiseEnd; n < fftData.length-2; n+=2) {
-			if (Config.fromBin*2 < n && n < Config.toBin*2) {
-
-				sig = psd(fftData[n], fftData[n+1]);
-				if (sig > strongest) {
-					strongest = sig;
-					strongestBin = n/2;
-				}
-			}
 		}
 
 		for (int i = start; i <= end; i+=2) {
@@ -710,23 +696,45 @@ public class SourceIQ extends SourceAudio {
 			}
 			sig = psd(fftData[i], fftData[i+1]);
 			if (Config.fromBin*2 < i && i < Config.toBin*2) {
-				if (sig > strongest) {
-					strongest = sig;
-					strongestBin = i/2;
+				if (sig > strongestSigInSatBand) {
+					strongestSigInSatBand = sig;
+					binOfStrongestSigInSatBand = i/2;
 				}
 			}
 			
-			if (sig > peak) { 
-				peak = sig;
-				peakSignalBin = i/2;
+			if (sig > peakSignalInFilterWidth) { 
+				peakSignalInFilterWidth = sig;
+				binOfPeakSignalInFilterWidth = i/2;
 			}
-			avgSig += sig;
+			avgSigInFilterWidth += sig;
 			sigReading++;
 
 			iAvg += newData[k];
 			qAvg += newData[k+1];
 			k+=2;
 		}
+		for (int n=end; n < noiseEnd; n+=2) {
+			sig = psd(fftData[n], fftData[n+1]);
+			if (Config.fromBin*2 < n && n < Config.toBin*2) {
+				if (sig > strongestSigInSatBand) {
+					strongestSigInSatBand = sig;
+					binOfStrongestSigInSatBand = n/2;
+				}
+			}			
+			noiseOutsideFilterWidth += sig;
+			noiseReading++;
+		}
+
+		for (int n=noiseEnd; n < fftData.length-2; n+=2) {
+			if (Config.fromBin*2 < n && n < Config.toBin*2) {
+				sig = psd(fftData[n], fftData[n+1]);
+				if (sig > strongestSigInSatBand) {
+					strongestSigInSatBand = sig;
+					binOfStrongestSigInSatBand = n/2;
+				}
+			}
+		}
+
 		
 //		fftData[0] = 0;
 //		fftData[1] = 0;
@@ -735,15 +743,18 @@ public class SourceIQ extends SourceAudio {
 			newData[0] = iAvg / (filterBins * 2);
 			newData[1] = qAvg / (filterBins * 2);
 		}
-		avgSig = avgSig / (double)sigReading;
-		noise = noise / (double)noiseReading;
-		//Log.println("Sig: " + avgSig + " from " + sigReading + " Noise: " + noise + " from readings: " + noiseReading);
-		//Log.println("peak bin: " + peakSignalBin);
-		// store the peak signal
-		rfData.setPeakSignal(peak, peakSignalBin, avgSig, noise);
+		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
+		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
+		if (Config.debugSignalFinder) {
+			Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);
+			Log.println("peak signal in filter width bin: " + binOfPeakSignalInFilterWidth);
+		}
+		
+		// store the peak signal - PEAK_SIGNAL_IN_FILTER_WIDTH
+		rfData.setPeakSignalInFilterWidth(peakSignalInFilterWidth, binOfPeakSignalInFilterWidth, avgSigInFilterWidth, noiseOutsideFilterWidth);
 
-		// store the strongest sigs
-		rfData.setStrongestSignal(strongest, strongestBin);
+		// store the strongest sigs - STRONGEST_SIGNAL_IN_SAT_BAND
+		rfData.setStrongestSignal(strongestSigInSatBand, binOfStrongestSigInSatBand);
 		
 		for (int i = 0; i < fftData.length; i+=1) {
 			fftData[i] = newData[i];			

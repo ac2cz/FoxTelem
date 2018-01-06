@@ -43,10 +43,9 @@ public class EyeData extends DataMeasure {
     public static final int HIGH = 0;
     public static final int LOW = 1;
     
-    protected long AVERAGE_PERIOD = 700; // 1000 = 1 sec average time
-   
     public EyeData(int l, int b) {
     	MEASURES = 2;
+    	AVERAGE_PERIOD = 500; // 1000 = 1 sec average time
     	init();
     	
     	SAMPLE_WINDOW_LENGTH = l;

@@ -723,8 +723,8 @@ public abstract class Decoder implements Runnable {
 		}
 		if (this.audioSource instanceof SourceIQ) {
 			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
-			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK);
-			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNR;
+			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH);
+			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNRInFilterWidth;
 			rtMeasurement.setCarrierFrequency(freq);
 			rtMeasurement.setRfPower(sig);
 			rtMeasurement.setRfSNR(rfSnr);

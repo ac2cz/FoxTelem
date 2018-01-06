@@ -251,10 +251,10 @@ public class PassManager implements Runnable {
 			// the average has not completed.  If we line all of the timings up, this should not happen.
 			if (pp1.rfData != null) {
 				//System.out.println("..Checking RF Data");
-				if (Config.fromBin < pp1.rfData.getBinOfStrongestSignal() && Config.toBin > pp1.rfData.getBinOfStrongestSignal()) {
+				if (Config.fromBin < pp1.rfData.getBinOfStrongestSignalInSatBand() && Config.toBin > pp1.rfData.getBinOfStrongestSignalInSatBand()) {
 					//double strongestSignal = pp1.rfData.getAvg(RfData.STRONGEST_SIG);
-					if (Config.debugSignalFinder) Log.println(sat.getIdString() + " STRONG SIG:" + pp1.rfData.strongestSigRfSNR);
-					if (pp1.rfData != null && pp1.rfData.strongestSigRfSNR > Config.SCAN_SIGNAL_THRESHOLD) {
+					if (Config.debugSignalFinder) Log.println(sat.getIdString() + " STRONG SIG:" + pp1.rfData.rfStrongestSigSNRInSatBand);
+					if (pp1.rfData != null && pp1.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
 						return ANALYZE;
 					}
 				}
@@ -273,8 +273,8 @@ public class PassManager implements Runnable {
 		if (!Config.findSignal) return EXIT;
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering ANALYZE state");
 		MainWindow.inputTab.fftPanel.setFox(spacecraft);
-		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignal());
-		Config.selectedBin = pp1.rfData.getBinOfStrongestSignal();
+		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignalInSatBand());
+		Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
 		pp1.rfData.reset(); // because we changed frequency
 
 		if (pp1.rfData != null) {
@@ -296,10 +296,10 @@ public class PassManager implements Runnable {
 
 	private boolean foundRfSignal(Spacecraft spacecraft, PassParams pp) {
 		//System.out.println(sat.getIdString() + " RF SIG:" + rfData.rfSNR);
-		if (pp.rfData != null && pp.rfData.rfSNR > Config.ANALYZE_SNR_THRESHOLD) {
+		if (pp.rfData != null && pp.rfData.rfSNRInFilterWidth > Config.ANALYZE_SNR_THRESHOLD) {
 			// We have a signal
 			if (Config.debugSignalFinder) Log.println("Found Candiate Signal from " + spacecraft.getIdString());
-			Config.selectedBin = pp.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly
+			Config.selectedBin = pp.rfData.getBinOfStrongestSignalInSatBand(); // make sure we are on frequency for it quickly
 			
 			return true;
 		}
@@ -439,7 +439,7 @@ public class PassManager implements Runnable {
 				//if (foundRfSignal(sat))
 				if (foundFoxSignal(spacecraft, pp1)) {
 					// We have a signal
-					Config.selectedBin = pp1.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly, in case we were slightly off
+					Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand(); // make sure we are on frequency for it quickly, in case we were slightly off
 					pp1.rfData.reset();
 					faded = false;
 					inputTab.setViewDecoder1();
@@ -448,7 +448,7 @@ public class PassManager implements Runnable {
 				if (pp2 != null)
 				if (foundFoxSignal(spacecraft, pp2)) {
 					// We have a signal
-					Config.selectedBin = pp2.rfData.getBinOfStrongestSignal(); // make sure we are on frequency for it quickly, in case we were slightly off
+					Config.selectedBin = pp2.rfData.getBinOfStrongestSignalInSatBand(); // make sure we are on frequency for it quickly, in case we were slightly off
 					pp2.rfData.reset();
 					faded = false;
 					inputTab.setViewDecoder2();
