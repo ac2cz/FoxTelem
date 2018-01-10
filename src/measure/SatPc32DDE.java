@@ -3,6 +3,8 @@ package measure;
 import com.pretty_tools.dde.DDEException;
 import com.pretty_tools.dde.DDEMLException;
 import com.pretty_tools.dde.client.DDEClientConversation;
+
+import common.Config;
 import common.Log;
 
 /**
@@ -79,11 +81,26 @@ public class SatPc32DDE {
 		    Log.println("DDEMLException: 0x" + Integer.toHexString(e.getErrorCode())
 		                       + " " + e.getMessage());
 		    return false;
-		}
-		catch (DDEException e)
-		{
+		}		
+		catch (DDEException e) {
 		    Log.println("DDEException: " + e.getMessage());
 		    return false;
+		}
+		catch (UnsatisfiedLinkError e) {
+			Log.errorDialog("MISSING DDE DLLs", "FoxTelem could not find the JavaDDE.dll or JavaDDEx64.dll files.  They need to be in the same\n"
+					+ "folder as the jar file and should have been part of the installation.\n"
+					+ "The DDE connection to SatPC32 has been disabled.");
+			Config.useDDEforAzEl = false;
+			Config.useDDEforFreq = false;
+			return false;
+		}
+		catch (NoClassDefFoundError e) {
+			Log.errorDialog("MISSING DDE DLLs", "FoxTelem could not find the JavaDDE.dll or JavaDDEx64.dll files.  They need to be in the same\n"
+					+ "folder as the jar file and should have been part of the installation.\n"
+					+ "The DDE connection to SatPC32 has been disabled.");
+			Config.useDDEforAzEl = false;
+			Config.useDDEforFreq = false;
+			return false;
 		}
 	}
 }

@@ -97,7 +97,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	RfData rfData;
 	boolean liveData = false; // true if we have not received a NULL buffer from the decoder.
 	int tuneDelay = 0;
-	final int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
+	final int TUNE_THRESHOLD = 60; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
 	JLabel title;
 	
 	FFTPanel() {

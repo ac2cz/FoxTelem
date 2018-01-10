@@ -89,8 +89,8 @@ public class PassManager implements Runnable {
 	
 	final int SCAN_PERIOD = 250; //ms - we always do this
 	final int ANALYZE_PERIOD = 350; //ms - we pause for this if strongest signal > scan signal threshold 
-	final int SNR_PERIOD = 1000; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR
-	final int DECODE_PERIOD = 5000; //ms
+	final int SNR_PERIOD = 1750; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR.  Needs to be long enough to wait for swoop
+	final int DECODE_PERIOD = 2000; //ms
 	final int FADE_PERIOD = 125 * 1000; //ms - need to wait for the length of a beacon to see if this is still a pass
 	
 	private int state = INIT;
@@ -396,7 +396,8 @@ public class PassManager implements Runnable {
 			
 			//Log.println("Getting eye data");
 			pp.eyeData = pp.foxDecoder.eyeData;
-			System.out.println(spacecraft.getIdString() + " BIT SNR:" + pp.eyeData.bitSNR);
+			if (Config.debugSignalFinder)
+				Log.println(spacecraft.getIdString() + " BIT SNR:" + pp.eyeData.bitSNR);
 			if (pp.eyeData != null && pp.eyeData.bitSNR > Config.BIT_SNR_THRESHOLD) {
 				// We have a signal
 				return true;
