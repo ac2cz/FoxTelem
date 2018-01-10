@@ -73,7 +73,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	boolean running = true;
 	boolean done = false;
 	int centerFreqX = 145950;
-	int selectedBin = 0; // this is the actual FFT bin, with negative and positve freq flipped
+	//int selectedBin = 0; // this is the actual FFT bin, with negative and positve freq flipped
 	int selection = 0; // this is the bin that the user clicked on, which runs from left to right
 	boolean showFilteredAudio = false;
 
@@ -114,6 +114,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
 	          //      System.out.println("TUNE LEFT");
+	        	int selectedBin = Config.selectedBin;
 	                selectedBin = selectedBin-1;
 	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
 	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
@@ -125,6 +126,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
 	          //      System.out.println("TUNE RIGHT");
+	        	int selectedBin = Config.selectedBin;
+
 	                selectedBin = selectedBin+1;
 	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
 	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
@@ -151,6 +154,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	@SuppressWarnings("unused")
 	private void printBin() {
 		int freq=0;
+    	int selectedBin = Config.selectedBin;
+
 		 if (selectedBin < SourceIQ.FFT_SAMPLES/2)
          	freq= 192000*selectedBin/SourceIQ.FFT_SAMPLES;
          else
@@ -186,7 +191,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				}
 				buffer = iqSource.getPowerSpectralDensity();
 				centerFreqX = iqSource.getCenterFreqkHz();
-				selectedBin = Config.selectedBin;
+				//selectedBin = Config.selectedBin;
 				rfData = iqSource.getRfData();
 			}
 			try {
@@ -209,57 +214,104 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	private void retune() {
 		// auto tune
+    	int selectedBin = Config.selectedBin;
+
 		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
-			if (Config.passManager.getState() == PassManager.DECODE  || 
-					Config.passManager.getState() == PassManager.ANALYZE) {
+			if (Config.passManager.getState() == PassManager.DECODE ) {
 				tuneDelay++;
-			} else if (Config.passManager.getState() != PassManager.FADED) {
+			} else if (Config.passManager.getState() == PassManager.FADED) {
 				// Don't tune
+				tuneDelay = 0;
 			} else {
 				// Tune at maximum speed
+				//tuneDelay = TUNE_THRESHOLD;
 				tuneDelay = TUNE_THRESHOLD;
 			} 
-			if (tuneDelay == TUNE_THRESHOLD) {
+			if (tuneDelay >= TUNE_THRESHOLD) {
 				tuneDelay = 0;
 				// move half the distance to the bin
 				int targetBin = 0;
-				if (Config.passManager.getState() == PassManager.DECODE || Config.passManager.getState() == PassManager.FADED)
+				if (Config.passManager.getState() == PassManager.DECODE || 
+						Config.passManager.getState() == PassManager.ANALYZE ||
+						Config.passManager.getState() == PassManager.FADED)
 					targetBin = rfData.getBinOfPeakSignalInFilterWidth();  // peak is the strongest signal in the filter width
 				else
 					targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
 				
-				int move = targetBin - selectedBin;
-				//System.out.println("MOVE: "+ move);
-				if (targetBin < selectedBin) {
+				if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
+
+					int move = targetBin - selectedBin;
+					//System.out.println("MOVE: "+ move);
+
+					/*
+				// THIS NEEDS TO UNDERSTAND THE WRAP OF THE BINS AROUND ZERO!
+				// PERHAPS CONVERT BIN TO FREQ.  ADJUST FREQ.  THEN CONVERT BACK...
+				long targetFreq = iqSource.getFrequencyFromBin(targetBin);
+				long currentFreq = iqSource.getFrequencyFromBin(selectedBin);
+
+				long move = currentFreq-targetFreq;
+				Log.println("MOVE: "+ move);
+				if (targetFreq < currentFreq) {
 					if (move < -100)
-						selectedBin -= 50;
+						currentFreq -= 50;
 					else
 						if (move < -25)
-							selectedBin -= 12;
+							currentFreq -= 12;
 						else if (move < -5)
-							selectedBin -= 5;
+							currentFreq -= 5;
 						else if (move < -2)
-							selectedBin -= 2;
+							currentFreq -= 2;
 						else
-							selectedBin--;
+							currentFreq--;
 				}
-				if (targetBin > selectedBin) {
+				if (targetFreq > currentFreq) {
 					if (move > 100)
-						selectedBin += 50;
+						currentFreq += 50;
 					else if (move > 25)
-						selectedBin += 12;
+						currentFreq += 12;
 					else if (move > 5)
-						selectedBin += 5;
+						currentFreq += 5;
 					else if (move > 2)
-						selectedBin += 2;
+						currentFreq += 2;
 					else
-						selectedBin++;
+						currentFreq++;
 				}
-				if (Config.findSignal) {
-					if (selectedBin > Config.fromBin && selectedBin < Config.toBin)
+				selectedBin = iqSource.getBinFromFreqHz(currentFreq);
+					 */
+					if (targetBin < selectedBin) {
+						if (move < -100)
+							selectedBin -= 50;
+						else
+							if (move < -25)
+								selectedBin -= 12;
+							else if (move < -5)
+								selectedBin -= 5;
+							else if (move < -2)
+								selectedBin -= 2;
+							else
+								selectedBin--;
+					}
+					if (targetBin > selectedBin) {
+						if (move > 100)
+							selectedBin += 50;
+						else if (move > 25)
+							selectedBin += 12;
+						else if (move > 5)
+							selectedBin += 5;
+						else if (move > 2)
+							selectedBin += 2;
+						else
+							selectedBin++;
+					}
+
+					//			Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+					if (Config.findSignal) {
+						if (targetBin > Config.fromBin && targetBin < Config.toBin)
+							Config.selectedBin = targetBin;
+							//Config.selectedBin = selectedBin;
+					} else
 						Config.selectedBin = selectedBin;
-				} else
-					Config.selectedBin = selectedBin;
+				}
 			}
 		}
 	}
@@ -405,6 +457,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				g2.setColor(Config.AMSAT_BLUE);
 				//int width = 10;
 				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH), graphHeight);
+//				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, -60, graphHeight);
 				peakSignalInFilterWidth=graphHeight-peakSignalInFilterWidth-topBorder;
 				
 				int binOfPeakSignalInFilterWidth = 0;
@@ -417,6 +470,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				}
 	
 				double snrStrongestSigInSatBand = GraphPanel.roundToSignificantFigures(rfData.rfStrongestSigSNRInSatBand,3);
+//				double valueOfpeakSignalInFilterWidth = GraphPanel.roundToSignificantFigures(rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH),3);
+
 				double snr = GraphPanel.roundToSignificantFigures(rfData.rfSNRInFilterWidth,3);
 				String s = Double.toString(snr) + "";
 				String ss = Double.toString(snrStrongestSigInSatBand) + "";
@@ -430,7 +485,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					g.drawString("" + ss + "dB", binOfPeakSignalInFilterWidth+10, peakSignalInFilterWidth  );
 				g.drawString("Freq:"+f, graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
 
-				if (Config.findSignal) {
+				if (Config.findSignal && Config.debugSignalFinder) {
 					int strongestSigInSatBand = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND), graphHeight);
 					strongestSigInSatBand=graphHeight-strongestSigInSatBand-topBorder;
 					
@@ -442,7 +497,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						binOfStrongestSigInSatBand = getRatioPosition(0, fftSamples/2, rfData.getBinOfStrongestSignalInSatBand()-fftSamples/2, graphWidth/2);
 						binOfStrongestSigInSatBand = binOfStrongestSigInSatBand + sideBorder;
 					}
-
+					
 					g.drawString("^ " , binOfStrongestSigInSatBand, strongestSigInSatBand - 5  );
 				}
 				
@@ -563,6 +618,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	}
 
 	private double getCycles() {
+    	int selectedBin = Config.selectedBin;
+
 		double binBW = 192000f / 2 / SourceIQ.FFT_SAMPLES; // nyquist freq / fft length
 		double freq = (double)selectedBin * binBW;
 		double samples = 192000f / freq; // number of samples in one period of this freq
@@ -573,11 +630,11 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	@SuppressWarnings("unused")
 	private int getRequiredBin(int bin) {
 		double binBW = 192000f / 2 / SourceIQ.FFT_SAMPLES; // nyquist freq / fft length
-		double freq = (double)selectedBin * binBW;
+		double freq = (double)bin * binBW;
 		
 		//int actBin = (int) (Math.round(SourceIQ.FFT_SAMPLES * freq / (30 * 192000)) * 30);
 		int dc = 0;
-		if (selectedBin < SourceIQ.FFT_SAMPLES/2) dc = +2; else dc = -1;
+		if (bin < SourceIQ.FFT_SAMPLES/2) dc = +2; else dc = -1;
 		int actBin = (int) (Math.round(bin / 30) * 30 + dc) ; // -1 because we translate to the first bin after DC??
 		return actBin;
 	}
@@ -585,6 +642,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+    	int selectedBin = Config.selectedBin;
+
 		int x=e.getX();
 	    //int y=e.getY();
 	    x = x - sideBorder;

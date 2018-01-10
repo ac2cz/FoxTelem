@@ -127,7 +127,6 @@ public class EyePanel extends JPanel implements Runnable {
 					bitSNR = eyeData.bitSNR;
 					errors = eyeData.lastErrorsCount;
 					erasures = eyeData.lastErasureCount;
-
 				}
 			}
 			if (decoder != null && data != null ) { 

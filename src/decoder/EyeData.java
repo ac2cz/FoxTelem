@@ -1,5 +1,7 @@
 package decoder;
 
+import common.Log;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -45,7 +47,7 @@ public class EyeData extends DataMeasure {
     
     public EyeData(int l, int b) {
     	MEASURES = 2;
-    	AVERAGE_PERIOD = 500; // 1000 = 1 sec average time
+    	AVERAGE_PERIOD = 400; // 350ms to measure a window of 70 bits. 1000 = 1 sec average time
     	init();
     	
     	SAMPLE_WINDOW_LENGTH = l;
@@ -57,15 +59,19 @@ public class EyeData extends DataMeasure {
 
     }
     
+	@Override
+	public void run() {
+		// No thread, sychronous with the decoder windows
+	}
     public void calcAverages() {
     	if (readyToAverage()) {
+    		runAverage();
 			double noise = sd[LOW] + sd[HIGH];
 			double signal = avg[HIGH] - avg[LOW];
 			if (signal != 0 && noise != 0) {
 				bitSNR = (signal/noise);
 			}
-			reset();
-			
+			reset();	
 		}
     }
     

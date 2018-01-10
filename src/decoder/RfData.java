@@ -1,5 +1,7 @@
 package decoder;
 
+import common.Log;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -40,7 +42,7 @@ public class RfData extends DataMeasure {
     SourceIQ iqSource;
     
     public RfData(SourceIQ iq) {
-    	AVERAGE_PERIOD = 500; //1000 = 1 sec average time.  Each FFT window is processed in 2ms
+    	AVERAGE_PERIOD = 100; //1000 = 1 sec average time.  Each FFT window is processed in 2ms
     	MEASURES = 6;
     	iqSource = iq;
     	init();
@@ -62,10 +64,25 @@ public class RfData extends DataMeasure {
 	public long getFrequencyOfStrongestSignalInSatBand() {
 		return iqSource.getFrequencyFromBin(getBinOfStrongestSignalInSatBand());
 	}
+	
+	@Override
+	public void run() {
+		while(running) {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				Log.println(e.getMessage());
+			}
+			if (readyToAverage()) {
+				runAverage();
+				calcAverages();
+			}
+		}
+		
+	}
 
-	protected void calcAverages() {
-    	if (readyToAverage()) {
-    		
+	private void calcAverages() {    		
 			if (getAvg(AVGSIG_IN_FILTER_WIDTH) != 0 && getAvg(NOISE_OUTSIDE_FILTER_WIDTH) != 0) {
 				double p = getAvg(AVGSIG_IN_FILTER_WIDTH);
 				double n = getAvg(NOISE_OUTSIDE_FILTER_WIDTH);
@@ -75,15 +92,14 @@ public class RfData extends DataMeasure {
 							rfSNRInFilterWidth = (p - n);  // these are in dB so subtract rather than divide
 			}
 			if (getAvg(STRONGEST_SIGNAL_IN_SAT_BAND) != 0 && getAvg(NOISE_OUTSIDE_FILTER_WIDTH) != 0) {
-				double p = getAvg(STRONGEST_SIGNAL_IN_SAT_BAND);
+				double p = getAvg(STRONGEST_SIGNAL_IN_SAT_BAND); 
 				double n = getAvg(NOISE_OUTSIDE_FILTER_WIDTH);
+				
 				if (p < -10 && p > -150)
 					if (n < -10 && n > -150)
 						if (p > n)
 							rfStrongestSigSNRInSatBand = (p - n);  // these are in dB so subtract rather than divide
 			}
-    		reset();
-    	}
     }
 
     /**
@@ -105,6 +121,8 @@ public class RfData extends DataMeasure {
 		setValue(BIN_OF_STRONGEST_SIGNAL_IN_SAT_BAND, b);
 		
 	}
+
+
 
 	
 }

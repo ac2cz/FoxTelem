@@ -281,9 +281,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		options1.setLayout(new FlowLayout(FlowLayout.LEFT));
 		optionsPanel.add(options1);
 		
-
-		showSNR = addRadioButton("Show Avg SNR", options1 );
-		showLevel = addRadioButton("Peak SNR", options1 );
+		JLabel l = new JLabel ("Show");
+		options1.add(l);
+		showLevel = addRadioButton("Peak", options1 );
+		showSNR = addRadioButton("SNR", options1 );
 		ButtonGroup group = new ButtonGroup();
 		group.add(showLevel);
 		group.add(showSNR);
@@ -327,7 +328,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		peakLevel.addActionListener(this);
 		peakLevel.addFocusListener(this);
 		findSignalPanel.add(peakLevel);
-		JLabel rf = new JLabel ("dB, avg over ");
+		JLabel rf = new JLabel ("dB, SNR over ");
 		findSignalPanel.add(rf);
 		avgLevel = new JTextField(Double.toString(Config.ANALYZE_SNR_THRESHOLD));
 		avgLevel.setMinimumSize(new Dimension(30,1));

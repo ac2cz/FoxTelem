@@ -119,6 +119,7 @@ public class SourceIQ extends SourceAudio {
 	private double[] cosTab = new double[SINCOS_SIZE];
 
 	RfData rfData;
+	Thread rfDataThread;
 	
 	public SourceIQ(int circularDoubleBufferSize, int chan, boolean hs) {
 		super("IQ Source" + hs, circularDoubleBufferSize, chan, false);
@@ -157,7 +158,6 @@ public class SourceIQ extends SourceAudio {
 	
 	public RfData getRfData() {
 		if (rfData != null) {
-			rfData.calcAverages();
 			return rfData; 
 		}
 //		Log.println("RF DATA NULL");
@@ -324,6 +324,9 @@ public class SourceIQ extends SourceAudio {
 		iDcFilter = new DcRemoval(0.9999d);
 		qDcFilter = new DcRemoval(0.9999d);
 		rfData = new RfData(this);
+		rfDataThread = new Thread(rfData);
+		rfDataThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		rfDataThread.start();
 		zeroPsdAvg();
 	}
 	
@@ -745,10 +748,11 @@ public class SourceIQ extends SourceAudio {
 		}
 		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
-		if (Config.debugSignalFinder) {
-			Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);
-			Log.println("peak signal in filter width bin: " + binOfPeakSignalInFilterWidth);
-		}
+//		if (Config.debugSignalFinder) {
+//			Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);
+//			Log.println("peak signal in filter width bin: " + binOfPeakSignalInFilterWidth);
+//			Log.println("strong signal in filter width bin: " + binOfStrongestSigInSatBand);
+//		}
 		
 		// store the peak signal - PEAK_SIGNAL_IN_FILTER_WIDTH
 		rfData.setPeakSignalInFilterWidth(peakSignalInFilterWidth, binOfPeakSignalInFilterWidth, avgSigInFilterWidth, noiseOutsideFilterWidth);
