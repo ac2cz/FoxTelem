@@ -482,7 +482,7 @@ public class SatelliteManager implements Runnable {
 									pos = sat.calcualteCurrentPosition();
 								} catch (PositionCalcException e) {
 									// We wont get NO T0 as we are using the current time, but we may have missing keps
-									if (running) { // otherwise we reset the sats and another copy of this thread will deal with the issue
+							/*		if (running) { // otherwise we reset the sats and another copy of this thread will deal with the issue
 										sat.track = false;
 										sat.save();
 										String scd = Config.getLogFileDirectory() + "spacecraft\\";
@@ -493,8 +493,11 @@ public class SatelliteManager implements Runnable {
 												+ "Tracking will be disabled for this spacecraft. \n\n "
 												+ "You can still use 'Find Signal' for this spacecraft if you turn off position calculation on the settings panel and \n"
 												+ "uncheck 'Fox Telem calculates position'.  Then re-enable tracking.");
+												
 										sat.satPos = null;
 									}
+									*/
+									sat.satPos = null;
 								}
 							}
 					}

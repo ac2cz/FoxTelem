@@ -132,6 +132,7 @@ public abstract class Spacecraft {
 	// User Config
 	public boolean track = true; // default is we track a satellite
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
+	public double satPosErrorCode; // Store the error code when we return null for the position
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
 	
@@ -252,7 +253,10 @@ public abstract class Spacecraft {
 	protected TLE getTLEbyDate(DateTime dateTime) throws PositionCalcException {
 		if (tleList == null) return null;
 		TLE t = tleList.getTleByDate(dateTime);
-		if (t==null) throw new PositionCalcException(FramePart.NO_TLE);
+		if (t==null) {
+			satPosErrorCode = FramePart.NO_TLE;
+			throw new PositionCalcException(FramePart.NO_TLE);
+		}
 		return t;
 	}
 	
@@ -268,7 +272,10 @@ public abstract class Spacecraft {
 	public SatPos calcSatellitePosition(DateTime timeNow) throws PositionCalcException {
 		final TLE tle = getTLEbyDate(timeNow);
 //		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
-		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
+		if (tle == null) {
+			satPosErrorCode = FramePart.NO_TLE;
+			throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
+		}
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
 		return satellitePosition;
@@ -290,7 +297,9 @@ public abstract class Spacecraft {
 	}
 
 	public SatPos getCurrentPosition() throws PositionCalcException {
-		if (satPos == null) throw new PositionCalcException(FramePart.NO_POSITION_DATA);
+		if (satPos == null) {
+			throw new PositionCalcException(FramePart.NO_POSITION_DATA);
+		}
 		return satPos;
 	}
 	

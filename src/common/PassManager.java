@@ -604,7 +604,7 @@ public class PassManager implements Runnable {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) atLeastOneTracked = true;
 					if (MainWindow.inputTab != null && sat.track) {
-						if (aboveHorizon(sat)) {
+						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
 							if (Config.findSignal) {
@@ -641,7 +641,7 @@ public class PassManager implements Runnable {
 	 * We run the position calculations regardless so the sat position can be displayed if the user has selected that option.
 	 * @return
 	 */
-	private boolean aboveHorizon(Spacecraft sat) {
+	private boolean trackSpacecraft(Spacecraft sat) {
 		if (Config.whenAboveHorizon && Config.useDDEforAzEl) {
 			String satString = null;
 			SatPc32DDE satPC = new SatPc32DDE();
@@ -663,7 +663,10 @@ public class PassManager implements Runnable {
 						pos = sat.getCurrentPosition();
 					} catch (PositionCalcException e) {
 						// The error will get shown to the user in the satManager thread
-						return false;
+						if (Config.whenAboveHorizon)
+							return false; // a sat with no T0 or TLE will never be considered above horizon
+						else
+							return true; // if we are not checking if above horizon, then track
 					}
 					if (!Config.whenAboveHorizon)
 						return true;

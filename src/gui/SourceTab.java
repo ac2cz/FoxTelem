@@ -461,6 +461,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				satPosition[s].setText("Tracked");
 				oneTracked = true;
 			}
+			satPosition[s].setToolTipText("Click to Toggle Tracking on/off");
 			satPosition[s].addMouseListener(this);
 			satRows[s].add(satName[s]);
 			satRows[s].add(satPosition[s]);
@@ -2162,15 +2163,28 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 									double el = FramePart.radToDeg(sat.satPos.getElevation());
 									satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
 								} else {
-									satPosition[s].setText("No Position Data");
+									String msg = "Tracked / ";
+									if (Config.whenAboveHorizon) {
+										msg = "Not " + msg;
+										satPosition[s].setForeground(Color.GRAY);
+									}
+									if (sat.satPosErrorCode == FramePart.NO_T0)
+										msg = msg + "No T0";
+									else if (sat.satPosErrorCode == FramePart.NO_TLE)
+										msg = msg + "No TLE";
+									else
+										msg = msg + "No Position";
+									satPosition[s].setText(msg);
 								}
 							} else if (Config.useDDEforAzEl && sat.track) {
 								satPosition[s].setText("Tracked via SATPC32");
 							} else {
 								if (sat.track)
 									satPosition[s].setText("Tracked");
-								else
+								else {
 									satPosition[s].setText("Not Tracked");
+									satPosition[s].setForeground(Color.GRAY);
+								}
 							}
 
 						}

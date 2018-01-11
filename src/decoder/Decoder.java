@@ -708,12 +708,13 @@ public abstract class Decoder implements Runnable {
 						if (Config.debugFrames)
 							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
 					} catch (PositionCalcException e) {
-						// We wont get NO T0 as we are using the current time, but we may have missing keps
-						if (e.errorCode == FramePart.NO_TLE)
+						// We wont get NO T0 as we are using the current time, but we may have missing keps.  We ignore as the user knows from the GUI
+/*						if (e.errorCode == FramePart.NO_TLE)
 						Log.errorDialog("MISSING TLE", "FoxTelem is configured to calculate the satellite position, but no TLE was found.  Make sure\n"
 								+ "the name of the spacecraft matches the name of the satellite in the nasabare.tle file from amsat.  This file is\n"
 								+ "automatically downloaded from: http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt\n"
 								+ "To turn off this feature go to the settings panel and uncheck 'Fox Telem calculates position'.");
+								*/
 					}	
 					if (pos != null) {
 						rtMeasurement.setAzimuth(FramePart.radToDeg(pos.getAzimuth()));
