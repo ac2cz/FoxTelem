@@ -126,7 +126,7 @@ public class Config {
 	static public boolean flipReceivedBits2 = false; // FIXME - Quick Hack to see if this is an issue.  If this stays MUST go at end of config
 	static public boolean recoverClock = true;
 	static public boolean writeDebugWavFile = false;
-	static public boolean debugValues = true;
+	static public boolean debugValues = false;
 	static public boolean decoderPaused = false;
 	static public boolean decoderPlay = false;
 	static public int windowsProcessed = 0;
@@ -225,8 +225,8 @@ public class Config {
 	static public boolean useNativeFileChooser = true;
 	
 	static public boolean showSNR = true; // toggles if we are looking at SNR of strongest signal or Avg
-	static public double SCAN_SIGNAL_THRESHOLD = 10d; // This is peak signal to average noise.  Strongest signal needs to be above this
-	static public double ANALYZE_SNR_THRESHOLD = 4.5d; // This is average signal in the pass band to average noise outside the passband
+	static public double SCAN_SIGNAL_THRESHOLD = 12d; // This is peak signal to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 2.5d; // This is average signal in the pass band to average noise outside the passband
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
