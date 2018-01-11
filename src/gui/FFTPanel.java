@@ -211,14 +211,29 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		}
 		done = true;
 	}
-	
+
+	int avgBin = 0;
+	int avgNum = 0;
 	private void retune() {
 		// auto tune
     	int selectedBin = Config.selectedBin;
+		int targetBin = 0;
 
 		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
+			if (Config.passManager.getState() == PassManager.DECODE || 
+					Config.passManager.getState() == PassManager.ANALYZE ||
+					Config.passManager.getState() == PassManager.FADED)
+				targetBin = rfData.getBinOfPeakSignalInFilterWidth();  // peak is the strongest signal in the filter width
+			else
+				targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
+
+			avgBin = avgBin + targetBin;
+			avgNum++;
+			
 			if (Config.passManager.getState() == PassManager.DECODE ) {
 				tuneDelay++;
+			} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
+					tuneDelay += 10;
 			} else if (Config.passManager.getState() == PassManager.FADED) {
 				// Don't tune
 				tuneDelay = 0;
@@ -228,15 +243,11 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				tuneDelay = TUNE_THRESHOLD;
 			} 
 			if (tuneDelay >= TUNE_THRESHOLD) {
+				targetBin = avgBin/avgNum;
+				avgNum = 0;
+				avgBin = 0;
 				tuneDelay = 0;
 				// move half the distance to the bin
-				int targetBin = 0;
-				if (Config.passManager.getState() == PassManager.DECODE || 
-						Config.passManager.getState() == PassManager.ANALYZE ||
-						Config.passManager.getState() == PassManager.FADED)
-					targetBin = rfData.getBinOfPeakSignalInFilterWidth();  // peak is the strongest signal in the filter width
-				else
-					targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
 				
 				if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
 

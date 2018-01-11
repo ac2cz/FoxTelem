@@ -225,8 +225,8 @@ public class Config {
 	static public boolean useNativeFileChooser = true;
 	
 	static public boolean showSNR = true; // toggles if we are looking at SNR of strongest signal or Avg
-	static public double SCAN_SIGNAL_THRESHOLD = 12d; // This is peak signal to average noise.  Strongest signal needs to be above this
-	static public double ANALYZE_SNR_THRESHOLD = 2.5d; // This is average signal in the pass band to average noise outside the passband
+	static public double SCAN_SIGNAL_THRESHOLD = 12d; // This is strongest signal in sat band to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 2.5d; // This is average signal in the filter band to average noise outside the filter
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";

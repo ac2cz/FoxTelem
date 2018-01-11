@@ -763,8 +763,8 @@ public abstract class Decoder implements Runnable {
 	 * Include markers for the start and end of buckets and for the value of the mid point sample
 	 */
 	protected void printBucketsValues() {
-		debugWindowCount++;
-		if (debugWindowCount > 16) System.exit(1);
+//		debugWindowCount++;
+//		if (debugWindowCount > 16) System.exit(1);
 		for (int m=0; m<2; m++)
 			System.out.println(-40000); // start of window
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
