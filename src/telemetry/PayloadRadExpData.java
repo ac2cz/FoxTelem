@@ -101,9 +101,10 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	/**
 	 * We have two peculiarities for the Fox-1E radiation telemetry.  The VUC telemetry is the first 10 bytes, as it is for the other
-	 * spacecraft.  The next ten bytes are then the telemetry for the active experiment.  The layout file has the telemetry layout
-	 * for each experiment in 10 byte chunks, as for Fox-1B.  We use the State of the experiments to determine which telemetry
-	 * layout to use.  The layouts are ten bytes appart, so we offset by an approproate amount and then artificially put the telemetry bytes
+	 * spacecraft.  The next ten to sixteen bytes are then the telemetry for the active experiment.  It is not in chunks like Fox-1B.
+	 * However, the layout file has the telemetry layout for each experiment in chunks anyway, so we can pick which layout we want without 
+	 * having lots of additional layout files.  We use the State of the experiments to determine which telemetry
+	 * layout to use.  The layouts start at fixed positions, so we offset by an appropriate amount and then artificially put the telemetry bytes
 	 * into that part of the RadiationTelemetry layout.  It is then converted and formatted according to the layout for that section.
 	 *
 	 * @param radTelem
@@ -113,26 +114,31 @@ public class PayloadRadExpData extends FoxFramePart {
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
 		radTelem.copyBitsToFields();
-		int offset=0;  // Default is that we display the next 10 bytes
-		if (radTelem.getRawValue(STATE2) == ACTIVE)  // 3 = Active
-			offset=10;
-		else if (radTelem.getRawValue(STATE3) == ACTIVE)
-			offset=20;
-		else if (radTelem.getRawValue(STATE4) == ACTIVE)
-			offset=30;
-
+		int offset=0;  
+		int length=16; // Default is that we display 16 bytes
+		if (radTelem.getRawValue(STATE2) == ACTIVE) { // LEPF is 2
+			offset=0;
+			length = 16;
+		} else if (radTelem.getRawValue(STATE3) == ACTIVE) {// LEP is 3
+			offset=16;
+			length = 10;
+		} else if (radTelem.getRawValue(STATE4) == ACTIVE) { // REM is 4
+			offset=26;
+			length = 16;
+		}
 		// Pretend there is a gap, so that the layout works like Fox-1B
 		for (int k=10; k<10+offset; k++) { 
 			radTelem.addNext8Bits(0);
 		}
-		// Now flow the rest of the data in
-		for (int k=10+offset; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+		// Now flow the rest of the data in, 
+		for (int k=10+offset; k<10+offset+length; k++) { 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
 		radTelem.copyBitsToFields();
+		
 		// Now we copy the extra Fox Fields at the end, but we put them directly in the fields.  Fox computer is little endian, but the data so far
 		// was big endian.  We could remember that and convert each part correctly, or we can leverage the fact that the extra Fox Fields we already
-		// converted correctly in the core radiation  record.
+		// converted correctly in the core radiation record.
 		// Note that subsequently calling copyBitsToFields will eradicate this copy, so we add a BLOCK COPY BITS boolean
 		radTelem.blockCopyBits = true;
 		copyFieldValue(EXP1_BOARD_NUM, radTelem);
