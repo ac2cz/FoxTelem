@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Properties;
 
@@ -30,7 +31,7 @@ import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
 import uk.me.g4dpz.satellite.TLE;
 
-public abstract class Spacecraft {
+public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;
 	
@@ -428,6 +429,11 @@ public abstract class Spacecraft {
 	
 	public String toString() {
 		return name;
+	}
+	
+	@Override
+	public int compareTo(Spacecraft s2) {
+		return name.compareToIgnoreCase(s2.name);
 	}
 	
 }
