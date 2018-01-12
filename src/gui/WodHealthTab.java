@@ -27,8 +27,8 @@ public class WodHealthTab extends HealthTab {
 		
 		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
 
-		lblFramesDecoded = new JLabel(DECODED);
-		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, fonth));
+		lblFramesDecoded = new JLabel("WOD Payloads Decoded:");
+		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		lblFramesDecoded.setForeground(textLblColor);
 		topPanel1.add(lblFramesDecoded);
