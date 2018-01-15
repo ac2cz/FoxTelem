@@ -10,8 +10,12 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
+import predict.PositionCalcException;
 import telemetry.FoxFramePart;
+import telemetry.FramePart;
+import telemetry.PayloadStore;
 import telemetry.PayloadWOD;
+import uk.me.g4dpz.satellite.SatPos;
 
 public class WodHealthTab extends HealthTab {
 
@@ -49,8 +53,26 @@ public class WodHealthTab extends HealthTab {
 	
 	private void displayLatLong() {
 		PayloadWOD wod = (PayloadWOD)realTime;
-		lblSatLatitudeValue.setText(" " + wod.getSatLatitudeStr());
-		lblSatLongitudeValue.setText(" " + wod.getSatLongitudeStr());
+		SatPos pos = null;
+		try {
+			pos = fox.getSatellitePosition(wod.getResets(), wod.getUptime());
+		} catch (PositionCalcException e) {
+			if (e.errorCode == FramePart.NO_TLE) {
+				lblSatLatitudeValue.setText(" NO TLE");
+				lblSatLongitudeValue.setText(" NO TLE");
+			} else if (e.errorCode == FramePart.NO_T0) {
+				lblSatLatitudeValue.setText(" T0 NOT SET");
+				lblSatLongitudeValue.setText(" T0 NOT SET");
+			}
+		}
+		if (pos != null) {
+			wod.setSatPosition(pos);
+			lblSatLatitudeValue.setText(" " + wod.getSatLatitudeStr());
+			lblSatLongitudeValue.setText(" " + wod.getSatLongitudeStr());
+		} else {
+			lblSatLatitudeValue.setText(" T0 NOT SET");
+			lblSatLongitudeValue.setText(" T0 NOT SET");
+		}
 	}
 
 	protected void displayRow(int row) {

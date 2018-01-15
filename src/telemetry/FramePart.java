@@ -66,9 +66,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			//if (Config.debugFrames)
 			//	Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + satLatitude + " " + satLongitude);
 		} else {
-			satLatitude = NO_T0;
-			satLongitude = NO_T0;
-			satAltitude = NO_T0;
+			satLatitude = NO_POSITION_DATA;
+			satLongitude = NO_POSITION_DATA;
+			satAltitude = NO_POSITION_DATA;
 		}
 	}
 
