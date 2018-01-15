@@ -982,7 +982,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+	public FramePart getFramePart(int id, int reset, long uptime, String layout, boolean prev) {
 		// TODO Auto-generated method stub
 		return null;
 	}

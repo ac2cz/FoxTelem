@@ -66,13 +66,13 @@ public class HealthTabRt extends HealthTab {
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.REAL_TIME_LAYOUT);
+    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.REAL_TIME_LAYOUT, false);
     	if (realTime != null)
     		updateTabRT(realTime, false);
-    	maxPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MAX_LAYOUT);
+    	maxPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MAX_LAYOUT, true);
     	if (maxPayload != null)
     		updateTabMax(maxPayload);
-    	minPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MIN_LAYOUT);
+    	minPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MIN_LAYOUT, true);
     	if (minPayload != null)
     		updateTabMin(minPayload);
     	table.setRowSelectionInterval(row, row);

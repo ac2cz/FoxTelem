@@ -256,10 +256,10 @@ public class SatPayloadStore {
 		
 	}
 		
-	public FramePart getLatest(int id, int reset, long uptime, String layout) throws IOException {
+	public FramePart getLatest(int id, int reset, long uptime, String layout, boolean prev) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getFrame(id, uptime, reset); 
+			return records[i].getFrame(id, uptime, reset, prev); 
 		return null;
 	}
 
@@ -296,7 +296,7 @@ public class SatPayloadStore {
 			return getLatestRadTelem();
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD2_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return (RadiationTelemetry) records[i].getFrame(id, uptime, resets);
+			return (RadiationTelemetry) records[i].getFrame(id, uptime, resets, false);
 		return null;
 	}
 

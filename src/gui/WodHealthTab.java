@@ -59,7 +59,7 @@ public class WodHealthTab extends HealthTab {
     	int reset = (int)reset_l;
     	Log.println("RESET: " + reset);
     	Log.println("UPTIME: " + uptime);
-    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT);
+    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT, false);
     	if (realTime != null)
     		updateTabRT(realTime, false);
     	table.setRowSelectionInterval(row, row);

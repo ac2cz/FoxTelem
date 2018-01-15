@@ -102,21 +102,27 @@ public class SatPayloadTable {
 	}
 	
 	/**
-	 * Return the nearest frame part to the passed reset and uptime.  We search from low uptime to high.  We return the first record that is 
-	 * equal to or greater than the uptime
+	 * Return the frame part with the passed reset and uptime or the first frame after it. Unless the "prev" boolean is passed
+	 * then we return the previous frame if the required reset/uptime is not found 
 	 * @param id
 	 * @param uptime
 	 * @param resets
 	 * @return
 	 * @throws IOException
 	 */
-	public FramePart getFrame(int id, long uptime, int resets) throws IOException { 
+	public FramePart getFrame(int id, long uptime, int resets, boolean prev) throws IOException { 
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
 		TableSeg seg = loadSeg(resets, uptime);
-		int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
-		if (i == -1) return null;
-		return rtRecords.get(i);
+		if (prev) {
+			int i = rtRecords.getNearestPrevFrameIndex(id, uptime, resets); 
+			if (i == -1) return null;
+			return rtRecords.get(i);
+		} else {
+			int i = rtRecords.getNearestFrameIndex(id, uptime, resets); 
+			if (i == -1) return null;
+			return rtRecords.get(i);
+		}
 	}
 	
 	/**

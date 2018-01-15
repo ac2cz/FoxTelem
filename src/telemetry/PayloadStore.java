@@ -513,11 +513,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 
 	@Override
-	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+	public FramePart getFramePart(int id, int reset, long uptime, String layout, boolean prev) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getLatest(id, reset, uptime, layout);
+				return store.getLatest(id, reset, uptime, layout, prev);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());

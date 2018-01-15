@@ -395,8 +395,8 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
     	//Log.println("RESET: " + reset_l);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	this.hsPayload = (PayloadHERCIhighSpeed) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_LAYOUT);
-    	updateTab((HerciHighspeedHeader) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_HEADER_LAYOUT), false);
+    	this.hsPayload = (PayloadHERCIhighSpeed) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_LAYOUT, false);
+    	updateTab((HerciHighspeedHeader) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, false), false);
     	
     	table.setRowSelectionInterval(row, row);
 	}
