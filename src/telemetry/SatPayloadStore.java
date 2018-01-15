@@ -453,6 +453,13 @@ public class SatPayloadStore {
 			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH, reverse); // FIXME - LENGTH NOT CORECT
 		return null;
 	}
+	
+	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
+		int i = fox.getLayoutIdxByName(Spacecraft.HERCI_HS_LAYOUT);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE, reverse); 
+		return null;
+	}
 
 	
 /*

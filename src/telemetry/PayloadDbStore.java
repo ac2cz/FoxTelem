@@ -993,6 +993,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 
 
 
