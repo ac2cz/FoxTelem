@@ -61,7 +61,8 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 226;
 	PayloadHERCIhighSpeed hsPayload;
-
+	HerciHighspeedHeader hsHeader;
+	
 	JLabel lblFramesDecoded;
 	JLabel lblHSpayload;
 	int displayRows = PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE/32+1;
@@ -253,19 +254,21 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 	private void parseRawBytes() {
 		if (hsPayload == null) return;
-		String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
-		long[][] keydata = new long[1][2];
+		String[][] rawData = Config.payloadStore.getHerciHsData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+		//String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
+		String[][] data = new String[rawData.length][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
+		long[][] keydata = new long[rawData.length][2];
 		for (int i = 0; i < rawData.length; i ++) {
-			keydata[i][0] = (long)(hsPayload.getResets());
-			keydata[i][1] = hsPayload.getUptime();
+			keydata[i][0] = (long)(Integer.parseInt(rawData[i][0]));
+			keydata[i][1] = (long)(Integer.parseInt(rawData[i][1]));
 
 			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-				rawData[i][k] = FoxDecoder.plainhex(hsPayload.fieldValue[k] & 0xff);
+				data[i][k] = FoxDecoder.plainhex(Integer.parseInt(rawData[i][k+2]) & 0xff);
 			}
 		}
 		
 		if (rawData.length > 0) {
-			radTableModel.setData(keydata,rawData);
+			radTableModel.setData(keydata,data);
 		}
 	}
 	
@@ -290,8 +293,8 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	
 	public void updateTab(FramePart rad,boolean refreshTable) {
 		if (rad == null) return;
+		hsHeader = (HerciHighspeedHeader) rad; // Cache this in case show raw is toggled
 		lblHSpayload.setText("HERCI EXPERIMENT PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + rad.getResets() + " Uptime:" + rad.getUptime() );
-		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
@@ -367,9 +370,8 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 				Config.displayRawValues = true;
 			}
 
-			if (hsPayload != null) {
-				parseRadiationFrames();
-				updateTab(hsPayload, true);
+			if (hsHeader != null) {
+				updateTab(hsHeader, false);
 			}
 			
 		}

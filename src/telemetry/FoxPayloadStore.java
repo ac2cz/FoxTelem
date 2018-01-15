@@ -119,6 +119,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse);
+	public abstract String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse);
 	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
 	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
 	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
