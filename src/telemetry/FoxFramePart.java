@@ -571,7 +571,8 @@ longer send telemetry.
 			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			int cameraChecksumErrors = (rawValue >> 20) & 0xff; // last 8 bits
+			int cameraChecksumErrors = (rawValue >> 24) & 0xff; // last 8 bits
+			cameraChecksumErrors = cameraChecksumErrors - 1; // This is initialized to 1, so we subtract that initial value
 			if (shortString)
 				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
 				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
@@ -580,7 +581,7 @@ longer send telemetry.
 				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			int hsAudioBufferUnderflows = (rawValue >> 20) & 0xff; // last 8 bits
+			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
 				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
 				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
