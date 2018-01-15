@@ -398,7 +398,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	}
 	
 	public void updateTabRT(FramePart realTime2, boolean refreshTable) {
-		
+		realTime = realTime2;
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
@@ -451,7 +451,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	}
 	
 	public void updateTabMax(FramePart maxPayload2) {
-		
+		maxPayload = maxPayload2;
 	//	System.out.println("GOT MAX PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
@@ -473,7 +473,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	}
 
 	public void updateTabMin(FramePart minPayload2) {
-		
+		minPayload = minPayload2;
 	//	System.out.println("GOT MIN PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 
 		for (DisplayModule mod : topModules) {
@@ -496,6 +496,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
 		Object source = e.getItemSelectable();
 		
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
@@ -513,28 +514,15 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			if (minPayload != null)
 				updateTabMin(minPayload);
 		}
+		
 		if (source == cbUTC) {
-
-			showUTCtime = !showUTCtime;
-			if (showUTCtime) {
-				parseTextFields();
-				//textToUtc.setText();
-				txtSamplePeriod.setText(Integer.toString(SAMPLES));
-				
-			} else {
-				parseUTCFields();
-				txtSamplePeriod.setText(Integer.toString(SAMPLES));
-			}
-			showUptimeQuery(!showUTCtime);
-			parseFrames();
-			/*
 			if (realTime != null)
 				updateTabRT(realTime, false);
 			if (maxPayload != null)
 				updateTabMax(maxPayload);
 			if (minPayload != null)
 				updateTabMin(minPayload);
-				*/
+			//parseFrames();
 		}
 		
 		
