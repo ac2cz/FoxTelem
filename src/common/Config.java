@@ -258,6 +258,7 @@ public class Config {
 	// V1.06
 	static public boolean insertMissingBits = false;
 	static public boolean useLongPRN = true;
+	static public boolean firstRun106 = true; // first time user is running version 1.06
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -339,6 +340,15 @@ public class Config {
 		initPassManager();
 		// Start this last or we get a null pointer exception if it tries to access the data before it is loaded
 		initServerQueue();
+		if (firstRun106) {
+			SCAN_SIGNAL_THRESHOLD = 12d; 
+			ANALYZE_SNR_THRESHOLD = 2.5d; 
+			firstRun106 = false;
+			Log.infoDialog("First run of 1.06", "This is the first time you are running version 1.06 of FoxTelem.  The FInd Signal algorithm\n"
+					+ "has been updated and the default values for Peak, SNR and Bit SNR have been set to new default values.\n"
+					+ "You can adjust these again to any value you want, but peak should now be set slightly higher and the\n"
+					+ "Signal To Noise measure slightly lower.  The Eye (bit) Signal To Noise has remained the same\n");
+		}
 	}
 
 	public static String getLogFileDirectory() {
@@ -657,7 +667,7 @@ public class Config {
 		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
 		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
 		properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
-		
+		properties.setProperty("firstRun106", Boolean.toString(firstRun106));
 		
 		store();
 	}
@@ -827,6 +837,7 @@ public class Config {
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
 		useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
+		firstRun106 = Boolean.parseBoolean(getProperty("firstRun106"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

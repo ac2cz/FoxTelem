@@ -163,6 +163,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JRadioButton iqAudio;
 	JRadioButton afAudio;
 	JRadioButton showSNR;
+	JLabel showLabel;
 	JRadioButton showLevel;
 	JRadioButton viewHighSpeed;
 	JRadioButton viewLowSpeed;
@@ -281,8 +282,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		options1.setLayout(new FlowLayout(FlowLayout.LEFT));
 		optionsPanel.add(options1);
 		
-		JLabel l = new JLabel ("Show");
-		options1.add(l);
+		showLabel = new JLabel ("Show");
+		options1.add(showLabel);
 		showLevel = addRadioButton("Peak", options1 );
 		showSNR = addRadioButton("SNR", options1 );
 		ButtonGroup group = new ButtonGroup();
@@ -700,6 +701,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		txtFreq = new JTextField();
 		txtFreq.addActionListener(this);
+		txtFreq.addFocusListener(this);
 		panelFreq.add(txtFreq);
 		txtFreq.setColumns(10);
 		txtFreq.setVisible(false);
@@ -957,6 +959,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		findSignalPanel.setVisible(b&&Config.findSignal);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
+		showLabel.setVisible(b);
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
@@ -2106,7 +2109,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
 		}
-
+		if (e.getSource() == txtFreq) {
+			setCenterFreq();
+		}
 		
 	}
 
@@ -2208,9 +2213,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						if (atLeastOneTracked) {
 							//rdbtnFindSignal.setEnabled(true);
 							rdbtnFindSignal.setSelected(true);
+							findSignalPanel.setVisible(true);
 						} else {
 							rdbtnFindSignal.setEnabled(false);
 							rdbtnFindSignal.setSelected(false);
+							findSignalPanel.setVisible(false);
 						}
 						btnStartButton.setEnabled(true);
 						lblWhenAboveHorizon.setVisible(false);
