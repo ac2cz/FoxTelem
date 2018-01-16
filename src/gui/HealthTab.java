@@ -338,21 +338,22 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	}
 
 	protected void displayMode(int safeMode, int scienceMode) {
-		
+		// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
+		// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same		
+		if (realTime != null && minPayload != null && maxPayload != null) {
+			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+				lblModeValue.setText("DATA");
+			return;
+		}
+		// Otherwise this is based on the Max/Min bits passed.  If the values are not 0/1 then we ignore
+		if (safeMode > 1 || scienceMode > 1)
+			return;
 		if (scienceMode == 1)
 			lblModeValue.setText("SCIENCE");
 		else if (safeMode == 1)
 			lblModeValue.setText("SAFE");
 		else {
-			// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
-			// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same
-			if (realTime != null && minPayload != null && maxPayload != null) {
-				if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
-					lblModeValue.setText("DATA");
-				else
-					lblModeValue.setText("TRANSPONDER");
-			} else
-				lblModeValue.setText("TRANSPONDER");
+			lblModeValue.setText("TRANSPONDER");
 		}
 	}
 
@@ -424,6 +425,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			lblLive.setForeground(Color.BLACK);
 			lblLive.setText(DISPLAY);
 		}
+		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
+		
 	}
 	
 

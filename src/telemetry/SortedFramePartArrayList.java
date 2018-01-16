@@ -79,7 +79,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets) {
-    	return getNearestFrameIndex(id, uptime, resets, 0);
+    	return getNearestFrameIndex(id, uptime, resets, get(0).type);
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets, int type) {
@@ -99,7 +99,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     }
 
     public int getNearestPrevFrameIndex(int id, long uptime, int resets) {
-    	return getNearestPrevFrameIndex(id, uptime, resets, 0);
+    	return getNearestPrevFrameIndex(id, uptime, resets, get(0).type);
     }
 
     public int getNearestPrevFrameIndex(int id, long uptime, int resets, int type) {

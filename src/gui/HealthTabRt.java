@@ -144,7 +144,6 @@ public class HealthTabRt extends HealthTab {
 						justStarted = false;
 					}
 				}
-				
 				MainWindow.setTotalDecodes();
 
 			}
