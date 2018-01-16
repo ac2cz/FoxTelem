@@ -79,12 +79,13 @@ public class WodHealthTab extends HealthTab {
 		long reset_l = (long)table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	int reset = (int)reset_l;
-    	Log.println("RESET: " + reset);
-    	Log.println("UPTIME: " + uptime);
+    	//Log.println("RESET: " + reset);
+    	//Log.println("UPTIME: " + uptime);
     	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT, false);
     	if (realTime != null)
     		updateTabRT(realTime, false);
     	table.setRowSelectionInterval(row, row);
+       	displayLatLong();
 	}
 	
 	@Override

@@ -376,12 +376,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}
 
 		setRedOutline(btnMain, hideMain);
-		setRedOutline(btnLines, hideLines);
-		setRedOutline(btnPoints, hidePoints);
+		setRedOutline(btnLines, !hideLines);
+		setRedOutline(btnPoints, !hidePoints);
 		setRedOutline(btnDerivative, plotDerivative);
 		setRedOutline(btnAvg, dspAvg);
 		setRedOutline(btnHorizontalLines, showHorizontalLines);
 		setRedOutline(btnVerticalLines, showVerticalLines);
+		setRedOutline(cbUTC, showUTCtime);
+		if (chckbxPlotAllUptime != null)
+			setRedOutline(chckbxPlotAllUptime,showContinuous);
+		if (cbUptime != null)
+			setRedOutline(cbUptime,!hideUptime);
+
 
 		btnDefault = createIconButton("/images/refreshSmall.png","Reset","Reset to default range and show latest data");
 		titlePanelRight.add(btnDefault);
@@ -1063,9 +1069,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 	private void setRedOutline(JButton but, boolean red) {
 		if (red) {	
-			but.setBackground(Color.RED);
-		} else
+			//but.setBackground(Color.RED);
+			but.setForeground(Color.BLACK);
 			but.setBackground(Color.GRAY);
+		} else
+			but.setForeground(Color.GRAY);
+			but.setBackground(Color.WHITE);
 	}
 
 	private void convertToUtc() {
@@ -1343,59 +1352,42 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		}  else if (e.getSource() == btnHorizontalLines) {
 			showHorizontalLines = !showHorizontalLines;
 			//Log.println("Plot Derivative " + plotDerivative);
-			if (showHorizontalLines) {	
-				btnHorizontalLines.setBackground(Color.RED);
-			} else
-				btnHorizontalLines.setBackground(Color.GRAY);
+			setRedOutline(btnHorizontalLines,showHorizontalLines);
 			panel.updateGraphData("GraphFrame.actionPerformed:horizontal");
 		} else if (e.getSource() == btnVerticalLines) {
 			showVerticalLines = !showVerticalLines;
 			//Log.println("Plot Derivative " + plotDerivative);
-			if (showVerticalLines) {	
+			setRedOutline(btnVerticalLines,showVerticalLines);
+/*			if (showVerticalLines) {	
 				btnVerticalLines.setBackground(Color.RED);
 			} else
 				btnVerticalLines.setBackground(Color.GRAY);
+				*/
 			panel.updateGraphData("GraphFrame.actionPerformed:vertical");
 		} else if (e.getSource() == btnDerivative) {
 			plotDerivative = !plotDerivative;
 			//Log.println("Plot Derivative " + plotDerivative);
-			if (plotDerivative) {	
-				btnDerivative.setBackground(Color.RED);
-			} else
-				btnDerivative.setBackground(Color.GRAY);
+			setRedOutline(btnDerivative,plotDerivative);
+			
 			panel.updateGraphData("GraphFrame.actionPerformed:derivative");
 		}  else if (e.getSource() == btnAvg) {
 			dspAvg = !dspAvg;
-			if (dspAvg) {	
-				btnAvg.setBackground(Color.RED);
-			} else
-				btnAvg.setBackground(Color.GRAY);
+			setRedOutline(btnAvg,dspAvg);
 			setAvgVisible(dspAvg);
 			//Log.println("Calc Average " + dspAvg);
 			panel.updateGraphData("GraphFrame.actionPerformed:avg");
 		} else if (e.getSource() == btnMain) {
 			hideMain = !hideMain;
-			if (!hideMain) {	
-				btnMain.setBackground(Color.RED);
-			} else
-				btnMain.setBackground(Color.GRAY);
+			setRedOutline(btnMain,hideMain);
 
 			panel.updateGraphData("GraphFrame.actionPerformed:main");
 		}  else if (e.getSource() == btnLines) {
 			hideLines = !hideLines;
-			if (hideLines) {	
-				btnLines.setBackground(Color.RED);
-			} else
-				btnLines.setBackground(Color.GRAY);
-
+			setRedOutline(btnLines,!hideLines);
 			panel.updateGraphData("GraphFrame.actionPerformed:hideLines");
 		} else if (e.getSource() == btnPoints) {
 			hidePoints = !hidePoints;
-			if (hidePoints) {	
-				btnPoints.setBackground(Color.RED);
-			} else
-				btnPoints.setBackground(Color.GRAY);
-
+			setRedOutline(btnPoints,!hidePoints);
 			panel.updateGraphData("GraphFrame.actionPerformed:points");
 		}  else if (e.getSource() == btnMapType) {
 			mapType = mapType + 1;
@@ -1409,6 +1401,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				diagnosticTable.updateData();
 			else
 				panel.updateGraphData("GraphFrame:stateChange:Uptime");
+			setRedOutline(cbUptime, !hideUptime);
 		}
 		if (e.getSource() == chckbxPlotAllUptime) {
 			showContinuous = !showContinuous;
@@ -1417,6 +1410,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else {
 				UPTIME_THRESHOLD = DEFAULT_UPTIME_THRESHOLD;				
 			}
+			setRedOutline(chckbxPlotAllUptime,showContinuous);
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
@@ -1435,6 +1429,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				txtSamplePeriod.setText(Integer.toString(SAMPLES));
 			}
 			showUptimeQuery(!showUTCtime);
+			setRedOutline(cbUTC,showUTCtime);
 
 			if (textDisplay)
 				diagnosticTable.updateData();
@@ -1638,7 +1633,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (width > MAX_WIDTH)
 				width = MAX_WIDTH;
 			arg0.getComponent().setBounds(b.x, b.y, width, width*H/W);
-			Log.println("WH:" + b.width + " " + b.height);
+		//	Log.println("WH:" + b.width + " " + b.height);
 		}
 	    
 	}

@@ -28,8 +28,8 @@ public class EarthPlotPanel extends GraphCanvas {
 	
 	EarthPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
-		sideBorder = sideBorder + 50;
-		sideLabelOffset = sideLabelOffset + 50;
+		sideBorder = sideBorder + 20;
+		sideLabelOffset = sideLabelOffset + 30;
 		updateGraphData("EarthPlotPanel.new");
 	}
 	
@@ -235,6 +235,15 @@ public class EarthPlotPanel extends GraphCanvas {
 			String s = f2.format(labels[v]);
 
 			g2.drawString(s, sideLabelOffset, pos+(int)(Config.graphAxisFontSize/2)); 
+			
+			if (graphFrame.showHorizontalLines) {
+				g2.setColor(Color.GRAY);
+				g2.drawLine(sideBorder-5, pos+topBorder, graphWidth+sideBorder, pos+topBorder);
+				g2.setColor(graphTextColor);
+			} else
+				g.drawLine(sideBorder-5, pos+topBorder, sideBorder+5, pos+topBorder);
+				
+			
 		}
 		g2.setColor(graphAxisColor);
 		
@@ -258,7 +267,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		
 		// Draw baseline at the zero point
 		g2.setColor(graphAxisColor);
-		g2.drawLine(sideLabelOffset, zeroPoint, graphWidth+sideBorder, zeroPoint);
+		g2.drawLine(sideLabelOffset+sideBorder, zeroPoint, graphWidth+sideBorder, zeroPoint);
 		g2.setColor(graphTextColor);
 		int offset = 0;
 		//g2.drawString("Longitude", sideLabelOffset, zeroPoint+1*Config.graphAxisFontSize + offset );
@@ -272,6 +281,10 @@ public class EarthPlotPanel extends GraphCanvas {
 			int timepos = getRatioPosition(minHor, maxHor, timelabels[h], graphWidth);
 			g2.setColor(graphTextColor);
 			g2.drawString(""+(long)timelabels[h], timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+			if (graphFrame.showVerticalLines) {
+				g2.setColor(Color.GRAY);
+				g.drawLine(timepos+sideBorder, graphHeight + topBorder+5, timepos+sideBorder, topBorder);
+			}
 		}
 		
 		if (noLatLonReadings) {
