@@ -307,21 +307,17 @@ public class GraphPanel extends GraphCanvas {
 
 	private void plotAlternateLabels(int zeroPoint, int graphHeight) {
 
-		//		int numberOfTimeLabels = plottedXreset.length/labelWidth;
-
-		// calculate the label step size
-		//		double[] timelabels = calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, true);
-		//		numberOfTimeLabels = timelabels.length;
-		//		int resets = (int) graphData[0][PayloadStore.RESETS_COL][start];
-
 		int prevReset = -1;
+		boolean firstLabel = true;
 		DecimalFormat d = new DecimalFormat("0");
 		int w = 0;
 		for (int v=0; v < plottedXuptime.length; v++) {
 			int resets = plottedXreset[v];
 			long uptime = plottedXuptime[v];
+			
 
-			if (w++ >= labelWidth && plottedXuptime[v] != NO_TIME_VALUE) {
+			if (firstLabel || w++ >= labelWidth && plottedXuptime[v] != NO_TIME_VALUE) {
+				firstLabel = false;
 				w=0;
 				int timepos = v;
 
