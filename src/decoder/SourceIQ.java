@@ -618,19 +618,19 @@ public class SourceIQ extends SourceAudio {
 	 */
 	private void filterFFTWindow(double[] fftData) {
 		for (int z=0; z<fftData.length; z++) newData[z] = 0.0;
-		
+
 		int binOfPeakSignalInFilterWidth = 0;  // the peak signal bin
 		double peakSignalInFilterWidth = -999999;
 		double strongestSigInSatBand = -999999;
 		int binOfStrongestSigInSatBand = 0;
-		
+
 		// We break the spectrum into chunks, so that we pass through it only once, but can analyze the different sections in different ways
 		// 0 - noiseStart
 		// noiseStart to start of pass band
 		// the pass band
 		// pass band to noiseEnd
 		// noiseEnd to end of spectrum
-		
+
 		double noiseOutsideFilterWidth = 0;
 		double avgSigInFilterWidth = 0;
 		int noiseReading = 0;
@@ -652,12 +652,12 @@ public class SourceIQ extends SourceAudio {
 		int k=dcOffset;
 		double iAvg = 0;
 		double qAvg = 0;
-		
+
 		int noiseStart = start - filterBins;
 		if (noiseStart < 0 ) noiseStart = 0;
 		int noiseEnd = end + filterBins;
 		if (noiseEnd > fftData.length-2) noiseEnd = fftData.length - 2;
-		
+
 		/* Here we start the analysis of the spectrum.  We use our knowledge of the sat band, which is fromBin toBin.
 		 * We split it into the following chunks:
 		 * 0 - noiseStart: This is outside the filter width and beyond the point we measure noise
@@ -688,7 +688,7 @@ public class SourceIQ extends SourceAudio {
 			noiseOutsideFilterWidth += sig;
 			noiseReading++;
 		}
-
+//		double sigList[] = new double[(end-start+2)/2];
 		for (int i = start; i <= end; i+=2) {
 			if (Config.applyBlackmanWindow) {
 				newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
@@ -704,12 +704,13 @@ public class SourceIQ extends SourceAudio {
 					binOfStrongestSigInSatBand = i/2;
 				}
 			}
-			
+
 			if (sig > peakSignalInFilterWidth) { 
 				peakSignalInFilterWidth = sig;
 				binOfPeakSignalInFilterWidth = i/2;
 			}
 			avgSigInFilterWidth += sig;
+//			sigList[sigReading] = sig;
 			sigReading++;
 
 			iAvg += newData[k];
@@ -738,9 +739,9 @@ public class SourceIQ extends SourceAudio {
 			}
 		}
 
-		
-//		fftData[0] = 0;
-//		fftData[1] = 0;
+
+		//		fftData[0] = 0;
+		//		fftData[1] = 0;
 		// Write the DC bins - seem to need this for the blackman filter
 		if (Config.applyBlackmanWindow) {
 			newData[0] = iAvg / (filterBins * 2);
@@ -748,18 +749,19 @@ public class SourceIQ extends SourceAudio {
 		}
 		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
-//		if (Config.debugSignalFinder) {
-//			Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);
-//			Log.println("peak signal in filter width bin: " + binOfPeakSignalInFilterWidth);
-//			Log.println("strong signal in filter width bin: " + binOfStrongestSigInSatBand);
-//		}
-		
+		//		if (Config.debugSignalFinder) {
+//		Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);			
+//		Log.println("Peak: " + peakSignalInFilterWidth+ " bin: " + binOfPeakSignalInFilterWidth);
+//		Log.println("Strong: "+ strongestSigInSatBand+ " bin: " + binOfStrongestSigInSatBand);
+//		for (double d : sigList) Log.println(""+ d);
+		//		}
+
 		// store the peak signal - PEAK_SIGNAL_IN_FILTER_WIDTH
 		rfData.setPeakSignalInFilterWidth(peakSignalInFilterWidth, binOfPeakSignalInFilterWidth, avgSigInFilterWidth, noiseOutsideFilterWidth);
 
 		// store the strongest sigs - STRONGEST_SIGNAL_IN_SAT_BAND
 		rfData.setStrongestSignal(strongestSigInSatBand, binOfStrongestSigInSatBand);
-		
+
 		for (int i = 0; i < fftData.length; i+=1) {
 			fftData[i] = newData[i];			
 		}
@@ -771,36 +773,36 @@ public class SourceIQ extends SourceAudio {
 	private int getRequiredBin(int bin) {
 		double binBW = 192000f / 2 / SourceIQ.FFT_SAMPLES; // nyquist freq / fft length
 		double freq = (double)Config.selectedBin * binBW;
-		
+
 		//int actBin = (int) (Math.round(SourceIQ.FFT_SAMPLES * freq / (30 * 192000)) * 30);
 		int actBin = (int) (Math.round(bin / 30) * 30 - 1) ;
 		return actBin;
 	}
 	 */
-	
+
 	/*
 	private double[] rotateFFT(double[] fftData) {
 		double[] newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
-		
+
 		//int binIndex = (int) (Math.round(Config.selectedBin / 30) * 30) *2; // multiply by two because each bin has a real and imaginary part
 		int binIndex = Config.selectedBin *2;
-		
+
 		// We move start to zero and rotate everything else
 		for (int i = 0; i < fftData.length; i+=1) {
 			int newIdx = (i - binIndex);
 			newIdx = newIdx % fftData.length;
 			if (newIdx < 0) newIdx += fftData.length; // Java Modulus has the sign of the dividend so need to correct for that
 			newData[newIdx] = fftData[i];
-			
+
 		}	
 		// Write the DC bins
 //		newData[0] = iAvg / (filterBins * 2);
 //		newData[1] = qAvg / (filterBins * 2);
-			
+
 		return newData;
 	}
 	 */
-	
+
 	/**
 	 * A simple window of the data introduces phase noise.  Instead I do the following:
 	 * - calculate a Windowed Sinc Low pass filter for the desired bandwidth

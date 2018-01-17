@@ -341,10 +341,10 @@ public class Config {
 		// Start this last or we get a null pointer exception if it tries to access the data before it is loaded
 		initServerQueue();
 		if (firstRun106) {
-			SCAN_SIGNAL_THRESHOLD = 12d; 
+			SCAN_SIGNAL_THRESHOLD = 14d; 
 			ANALYZE_SNR_THRESHOLD = 2.5d; 
 			firstRun106 = false;
-			Log.infoDialog("First run of 1.06", "This is the first time you are running version 1.06 of FoxTelem.  The FInd Signal algorithm\n"
+			Log.infoDialog("First run of 1.06", "This is the first time you are running version 1.06 of FoxTelem.  The Find Signal algorithm\n"
 					+ "has been updated and the default values for Peak, SNR and Bit SNR have been set to new default values.\n"
 					+ "You can adjust these again to any value you want, but peak should now be set slightly higher and the\n"
 					+ "Signal To Noise measure slightly lower.  The Eye (bit) Signal To Noise has remained the same\n");
