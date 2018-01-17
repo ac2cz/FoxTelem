@@ -97,9 +97,12 @@ public class BitArrayLayout {
 	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
 	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
 	public static final int CONVERT_WOD_STORED = 36;
-	public static final int CONVERT_FOX1E_TXRX_TEMP = 37;
-	public static final int CONVERT_FOX1E_PA_CURRENT = 38;
+	public static final int CONVERT_LT_TXRX_TEMP = 37;
+	public static final int CONVERT_LT_PA_CURRENT = 38;
 	public static final int CONVERT_SOFT_ERROR_84488 = 39;
+	public static final int CONVERT_LT_TX_FWD_PWR = 40;
+	public static final int CONVERT_LT_TX_REF_PWR = 41;
+	public static final int CONVERT_LT_VGA = 42;
 	
 	/**
 	 * Create an empty layout for manual init

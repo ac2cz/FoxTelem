@@ -464,15 +464,28 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_WOD_STORED:
 			return rawValue * 4;
-		case BitArrayLayout.CONVERT_FOX1E_TXRX_TEMP:
+		case BitArrayLayout.CONVERT_LT_TXRX_TEMP:
 			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 			volts = volts / 2;
 			return 100 * volts - 50; // TMP36 sensor conversion graph is a straight line where 0.5V is 0C and 0.01V rise is 1C increase.  So 0.75V is 25C
-		case BitArrayLayout.CONVERT_FOX1E_PA_CURRENT:
+		case BitArrayLayout.CONVERT_LT_PA_CURRENT:
 			double voltspa = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 			voltspa = voltspa / 2;
 			double pacurrent = voltspa/PA_CURRENT_INA194_FACTOR/0.1; 
 			return 1000* pacurrent;
+		case BitArrayLayout.CONVERT_LT_TX_FWD_PWR:
+			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2;
+			double y = 1.6707*Math.pow(x, 3) - 12.954*Math.pow(x,2)+ 37.706*x - 14.388;
+			return Math.pow(10, y/10);
+		case BitArrayLayout.CONVERT_LT_TX_REF_PWR:
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			y = 0.1921*Math.pow(x, 3) + 14.663*Math.pow(x,2)+ 11.56*x - 1.8544;
+			return y;
+		case BitArrayLayout.CONVERT_LT_VGA:
+			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			volts = volts / 2;
+			return volts;
 		}
 		
 		return ERROR_VALUE;
