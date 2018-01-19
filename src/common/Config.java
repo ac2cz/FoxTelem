@@ -256,7 +256,7 @@ public class Config {
 	static public boolean whenAboveHorizon = false;
 	
 	// V1.06
-	static public boolean insertMissingBits = false;
+	static public boolean insertMissingBits = true;
 	static public boolean useLongPRN = true;
 	static public boolean firstRun106 = true; // first time user is running version 1.06
 	
