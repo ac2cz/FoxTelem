@@ -258,13 +258,23 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		//String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
 		String[][] data = new String[rawData.length][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
 		long[][] keydata = new long[rawData.length][2];
-		for (int i = 0; i < rawData.length; i ++) {
-			keydata[i][0] = (long)(Integer.parseInt(rawData[i][0]));
-			keydata[i][1] = (long)(Integer.parseInt(rawData[i][1]));
-
+		int j = 0;
+		for (int i = rawData.length-1; i >=0 ; i--) {
+			int reset = (int)(Integer.parseInt(rawData[i][0]));
+			long uptime = (long)(Integer.parseInt(rawData[i][1]));	
+			/* this needs to be able to store the results as as string, not long
+			if (showUTCtime) {
+				keydata[i][1] = fox.getUtcTimeForReset(reset, uptime);
+				keydata[i][0] = fox.getUtcDateForReset(reset, uptime);	
+			} else {
+			*/
+				keydata[j][0] = (long)(reset);
+				keydata[j][1] = uptime;
+		//	}
 			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-				data[i][k] = FoxDecoder.plainhex(Integer.parseInt(rawData[i][k+2]) & 0xff);
+				data[j][k] = FoxDecoder.plainhex(Integer.parseInt(rawData[i][k+2]) & 0xff);
 			}
+			j++;
 		}
 		
 		if (rawData.length > 0) {
