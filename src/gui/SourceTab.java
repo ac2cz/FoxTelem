@@ -956,7 +956,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnShowFFT.setVisible(b);
 		rdbtnFindSignal.setVisible(false);
 		rdbtnFindSignal.setEnabled(false);
-		findSignalPanel.setVisible(b&&Config.findSignal);
+		findSignalPanel.setVisible(b);
 		showSNR.setVisible(b);
 		showLevel.setVisible(b);
 		showLabel.setVisible(b);
@@ -2213,7 +2213,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						if (atLeastOneTracked) {
 							//rdbtnFindSignal.setEnabled(true);
 							rdbtnFindSignal.setSelected(true);
-							findSignalPanel.setVisible(true);
+							if (Config.iq) {
+								findSignalPanel.setVisible(true);
+							}
 						} else {
 							rdbtnFindSignal.setEnabled(false);
 							rdbtnFindSignal.setSelected(false);
