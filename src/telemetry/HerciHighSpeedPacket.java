@@ -409,13 +409,17 @@ return pkt_time + delta + epoch;
 	public static String getTableCreateStmt() {
 		String s = new String();
 		s = s + "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int, resets int, uptime bigint, type int, "
-		 + "pktType int, "
-		 + "length int, "
-		 + "truncTime int,"
-		 + "segmentation int,"
-		 + "st1 int,"
-		 + "st2 int,"
-		 + "st3 int,";
+				+ "epoch int," 
+				+ "headerTime int," 
+				+ "packetTimestamp int,"
+				+ "pktType int, "
+				+ "length int, "
+				+ "truncTime int,"
+				+ "segmentation int,"
+				+ "st1 int,"
+				+ "st2 int,"
+				+ "st3 int,";
+
 		 
 		for (int i=NUMBER_OF_HEADER_FIELDS; i< MAX_PACKET_BYTES; i++ )
 			s = s + "byte" + i + " int NOT NULL DEFAULT 0,";
@@ -427,6 +431,9 @@ return pkt_time + delta + epoch;
 		copyBitsToFields();
 		String s = new String();
 		s = s + " (id, resets, uptime, type, \n";
+		s = s + "epoch,\n";
+		s = s + "headerTime,\n";
+		s = s + "packetTimestamp,\n";
 		s = s + "pktType,\n";
 		s = s + "length,\n";
 		s = s + "truncTime,\n";
@@ -438,7 +445,8 @@ return pkt_time + delta + epoch;
 			s = s + "byte" + i + " ,\n";
 		s = s + "byte" + (NUMBER_OF_FIELDS-1) + " )\n";
 		
-		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ",\n";
+		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ","
+				+ epoch + "," + headerTime + "," + packetTimestamp  + ",\n";
 		s = s + fieldValue[TYPE_FIELD]+",\n";
 		s = s + fieldValue[LENGTH_FIELD]+",\n";
 		s = s + fieldValue[TIME_FIELD]+",\n";
