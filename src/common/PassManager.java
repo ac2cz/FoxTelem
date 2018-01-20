@@ -188,16 +188,15 @@ public class PassManager implements Runnable {
 		}
 
 	}
-	
+
 	private void setFreqRangeBins(Spacecraft spacecraft, PassParams pp) {
 		if (pp.foxDecoder != null && pp.iqSource != null) {
-			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
-				Config.toBin = 0;
-				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
-			} else {
-				Config.toBin = pp.iqSource.getBinFromFreqHz(spacecraft.maxFreqBoundkHz*1000);
-				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
-			}
+			Config.toBin = pp.iqSource.getBinFromFreqHz(spacecraft.maxFreqBoundkHz*1000);
+			Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
+//			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
+//				Config.toBin = 0;
+//				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
+//			}
 		}
 	}
 	

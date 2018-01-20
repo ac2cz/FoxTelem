@@ -635,7 +635,16 @@ public class SourceIQ extends SourceAudio {
 		double avgSigInFilterWidth = 0;
 		int noiseReading = 0;
 		int sigReading = 0;
-
+		// snapshot these so they dont change as we measure
+		int fromBin = Config.fromBin;
+		int toBin = Config.toBin;
+		boolean spansDcSpike = false;
+		if (toBin < fromBin) {
+			// Then we span the central spike.  Not ideal.  We will not get a Strong Sig reading at all unless we search the two parts of the FFT
+			// seperately
+			spansDcSpike = true;
+		}
+		
 		// If we are outside the FFT range then pick a default point.  This happens if the FFT is resized between runs, e.g. a different SDR device
 		if (Config.selectedBin*2 > fftData.length) {
 			Config.selectedBin = 3 * fftData.length / 8;
@@ -668,7 +677,8 @@ public class SourceIQ extends SourceAudio {
 		 */
 		double sig = 0;
 		for (int n=0; n < noiseStart; n+=2) {
-			if (Config.fromBin*2 < n && n < Config.toBin*2) {
+			if (fromBin*2 < n && n < toBin*2 
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
 				sig = psd(fftData[n], fftData[n+1]);
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
@@ -679,7 +689,8 @@ public class SourceIQ extends SourceAudio {
 
 		for (int n=noiseStart; n< start; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
-			if (Config.fromBin*2 < n && n < Config.toBin*2) {
+			if (fromBin*2 < n && n < toBin*2
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = n/2;
@@ -698,7 +709,8 @@ public class SourceIQ extends SourceAudio {
 				newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
 			}
 			sig = psd(fftData[i], fftData[i+1]);
-			if (Config.fromBin*2 < i && i < Config.toBin*2) {
+			if (fromBin*2 < i && i < toBin*2
+					|| (spansDcSpike && fromBin*2 < i && i < fftData.length-2) || (spansDcSpike && 0 < i && i < toBin*2)) {
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = i/2;
@@ -719,7 +731,8 @@ public class SourceIQ extends SourceAudio {
 		}
 		for (int n=end; n < noiseEnd; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
-			if (Config.fromBin*2 < n && n < Config.toBin*2) {
+			if (fromBin*2 < n && n < toBin*2
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = n/2;
@@ -730,7 +743,8 @@ public class SourceIQ extends SourceAudio {
 		}
 
 		for (int n=noiseEnd; n < fftData.length-2; n+=2) {
-			if (Config.fromBin*2 < n && n < Config.toBin*2) {
+			if (fromBin*2 < n && n < toBin*2
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
 				sig = psd(fftData[n], fftData[n+1]);
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
@@ -751,8 +765,8 @@ public class SourceIQ extends SourceAudio {
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
 		//		if (Config.debugSignalFinder) {
 //		Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);			
-//		Log.println("Peak: " + peakSignalInFilterWidth+ " bin: " + binOfPeakSignalInFilterWidth);
-//		Log.println("Strong: "+ strongestSigInSatBand+ " bin: " + binOfStrongestSigInSatBand);
+//		Log.println("Peak: " + peakSignalInFilterWidth+ " bin: " + binOfPeakSignalInFilterWidth);	
+//		Log.println("Strong: "+ strongestSigInSatBand+ " bin: " + binOfStrongestSigInSatBand + " From: " + fromBin + " To: " + toBin);
 //		for (double d : sigList) Log.println(""+ d);
 		//		}
 

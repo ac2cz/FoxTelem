@@ -97,7 +97,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	RfData rfData;
 	boolean liveData = false; // true if we have not received a NULL buffer from the decoder.
 	int tuneDelay = 0;
-	final int TUNE_THRESHOLD = 60; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
+	final int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
 	JLabel title;
 	
 	FFTPanel() {
@@ -233,7 +233,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			if (Config.passManager.getState() == PassManager.DECODE ) {
 				tuneDelay++;
 			} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
-					tuneDelay += 10;
+					tuneDelay += 20;
 			} else if (Config.passManager.getState() == PassManager.FADED) {
 				// Don't tune
 				tuneDelay = 0;
@@ -467,9 +467,9 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);
 				//int width = 10;
-				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH), graphHeight);
+				int posPeakSignalInFilterWidth = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.AVGSIG_IN_FILTER_WIDTH), graphHeight);
 //				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, -60, graphHeight);
-				peakSignalInFilterWidth=graphHeight-peakSignalInFilterWidth-topBorder;
+				posPeakSignalInFilterWidth=graphHeight-posPeakSignalInFilterWidth-topBorder;
 				
 				int binOfPeakSignalInFilterWidth = 0;
 				if (rfData.getBinOfPeakSignalInFilterWidth() < fftSamples/2) {
@@ -487,13 +487,13 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				String s = Double.toString(snr) + "";
 				String ss = Double.toString(snrStrongestSigInSatBand) + "";
 				long f = iqSource.getFrequencyFromBin(Config.selectedBin);  //rfData.getPeakFrequency();
-				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , binOfPeakSignalInFilterWidth, peakSignalInFilterWidth  );
+				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , binOfPeakSignalInFilterWidth, posPeakSignalInFilterWidth  );
 
-				g2.drawLine(binOfPeakSignalInFilterWidth-5 , (int)peakSignalInFilterWidth-3, binOfPeakSignalInFilterWidth+5, (int)peakSignalInFilterWidth-3);
+				g2.drawLine(binOfPeakSignalInFilterWidth-5 , (int)posPeakSignalInFilterWidth-3, binOfPeakSignalInFilterWidth+5, (int)posPeakSignalInFilterWidth-3);
 				if (Config.showSNR) 
-					g.drawString("snr: " + s + "dB", binOfPeakSignalInFilterWidth+10, peakSignalInFilterWidth  );
+					g.drawString("snr: " + s + "dB", binOfPeakSignalInFilterWidth+10, posPeakSignalInFilterWidth  );
 				else
-					g.drawString("" + ss + "dB", binOfPeakSignalInFilterWidth+10, peakSignalInFilterWidth  );
+					g.drawString("" + ss + "dB", binOfPeakSignalInFilterWidth+10, posPeakSignalInFilterWidth  );
 				g.drawString("Freq:"+f, graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
 
 				if (Config.findSignal && Config.debugSignalFinder) {
