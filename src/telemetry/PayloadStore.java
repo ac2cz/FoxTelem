@@ -950,6 +950,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		
 	}
 	
+	public void initHerciPackets() {
+		
+	}
+	
 	@Override
 	public boolean addStpHeader(Frame f) {
 		// TODO Auto-generated method stub

@@ -859,6 +859,43 @@ public class SatPayloadDbStore {
 		}
 	}
 
+	public void initHerciPackets() {
+		int k = 0;
+		int p = 0;
+		ResultSet rs = null;
+		String where = "select * from " + this.herciHSTableName;
+		Statement stmt = null;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = payloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(where);
+			
+			while (rs.next()) {
+				PayloadHERCIhighSpeed f = new PayloadHERCIhighSpeed(rs, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
+				int type = rs.getInt(5); // Column 5 is the Type.  We need to get this as we increment them 601, 602, 603 for the identical reset/uptime
+				k++;
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					pk.type = type*1000 + 900 + i;  // This will give a type formatted like 601903
+					add(pk);
+					p++;
+					updatedHerciPacket = true;
+				}
+				
+			}
+			Log.println("Processed " + k + " HERCI HS FRAMES generating " + p + " mini packets");
+
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("initRad2", e);
+		} finally {
+			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
+	}
+
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.

@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -156,6 +158,10 @@ public class PayloadHERCIhighSpeed extends FoxFramePart {
 	public PayloadHERCIhighSpeed(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, date, st, lay);
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
+	}
+	
+	public PayloadHERCIhighSpeed(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, lay);
 	}
 
 	@Override
