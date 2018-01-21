@@ -1248,6 +1248,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (showLatest > SHOW_RANGE)
 				showLatest = SHOW_LIVE;
 			showRangeSearch(showLatest);
+			parseFields();
 			/*
 			if (textDisplay)
 				diagnosticTable.updateData();

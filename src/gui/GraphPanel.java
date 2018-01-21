@@ -345,7 +345,7 @@ public class GraphPanel extends GraphCanvas {
 				if (graphFrame.showUTCtime) {
 					if (fox.isFox1()) {
 						FoxSpacecraft fox2 = (FoxSpacecraft)fox;
-						if (fox2.hasTimeZero(resets)) {
+						if (fox2.hasTimeZero(resets) && resets != NO_TIME_VALUE) {
 							g2.drawString(fox2.getUtcTimeForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
 							g2.drawString(""+fox2.getUtcDateForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
 						}

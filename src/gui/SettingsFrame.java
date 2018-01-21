@@ -308,8 +308,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.insertMissingBits, rightcolumnpanel0 );
 		useLongPRN = addCheckBoxRow("Use Long PRN", "Use a 31 bit SYNC word between frames",
 				Config.useLongPRN, rightcolumnpanel0 );
-		insertMissingBits.setForeground(Config.AMSAT_RED);
-		useLongPRN.setForeground(Config.AMSAT_RED);
+		//insertMissingBits.setForeground(Config.AMSAT_RED);
+		//useLongPRN.setForeground(Config.AMSAT_RED);
 		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		//JPanel rightcolumnpanel1 = addColumn(rightcolumnpanel,3);
