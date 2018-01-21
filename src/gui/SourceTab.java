@@ -564,21 +564,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		usbSources = new ArrayList<String>();
 		usbSources.add("AirSpy");
 		usbSources.add("RTL SDR");
-/*
-		usbSources = null;
-		try {
-//			usbSources = tunerManager.makeDeviceList();
-		} catch (UsbException e) {
-			Log.println("ERROR GETTING USB SOURCES");
-			e.printStackTrace();
-		}
-		*/
-		String[] allSources = new String[soundcardSources.length + usbSources.size()];
+
+// THIS REMOVES USB		String[] allSources = new String[soundcardSources.length + usbSources.size()];
+		String[] allSources = new String[soundcardSources.length];
 		int j = 0;
 		for (String s : soundcardSources) allSources[j++] = s;
+		/* THIS COMMENT REMOVED THE USB SOURCES FOR THI RELEASE
 		if (usbSources != null)
 			for (String s : usbSources) allSources[j++] = s;
-
+		*/
 		return allSources;
 		
 		//return soundcardSources;
