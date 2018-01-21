@@ -606,7 +606,7 @@ public class PassManager implements Runnable {
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
-							if (Config.findSignal) {
+							if (Config.findSignal && Config.iq) {
 								stateMachine(sat);
 							} else {
 								// we don't have find signal on. set full range or signals calculated incorrectly

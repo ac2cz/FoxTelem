@@ -51,8 +51,12 @@ public class SatPc32DDE {
 		        if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
 		        String parts[] = ddeString.split(" ");
 		        satellite = parts[0].substring(2, parts[0].length());
-		        azimuth = Double.parseDouble(parts[1].substring(2, parts[1].length()));
-		        elevation = Double.parseDouble(parts[2].substring(2, parts[2].length()));
+		        String az = parts[1].substring(2, parts[1].length());
+		        az = az.replaceAll(",","."); // in case we have European formatting
+		        azimuth = Double.parseDouble(az);
+		        String el = parts[2].substring(2, parts[2].length());
+		        el = el.replaceAll(",",".");
+		        elevation = Double.parseDouble(el);
 		        downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
 		        //System.out.println("Sat: " + satellite);
 		        //System.out.println("Az: " + azimuth);
