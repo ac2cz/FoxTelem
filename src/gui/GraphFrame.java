@@ -1248,10 +1248,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (showLatest > SHOW_RANGE)
 				showLatest = SHOW_LIVE;
 			showRangeSearch(showLatest);
+			/*
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
 				panel.updateGraphData("GraphFrame.btnLatest");
+			*/
 			
 		} else if (e.getSource() == btnDefault) { // This is now called reset on the graph and also resets the averaging
 			if (!textDisplay) {
