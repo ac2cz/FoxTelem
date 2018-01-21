@@ -314,8 +314,11 @@ public abstract class GraphCanvas extends MapPanel {
 				if (axisPosition > 0) fudge = sideBorder + (int)(Config.graphAxisFontSize);
 				
 				g2.setColor(graphTextColor);
-				g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
-				
+				if (Config.displayRawValues)
+					g2.drawString("(RAW)", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
+				else
+					g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
+			
 				for (int v=0; v < numberOfLabels; v++) {
 					
 					int pos = getRatioPosition(minValue, maxValue, labels[v], graphHeight);
