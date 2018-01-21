@@ -274,7 +274,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
 				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
-		cbWhenAboveHorizon = addCheckBoxRow("Start Decoder when above horizon", "FoxTelem can start/stop the decoder when the spacecraft is above/below the horizon",
+		cbWhenAboveHorizon = addCheckBoxRow("Auto Start Decoder when above horizon", "FoxTelem can start/stop the decoder when the spacecraft is above/below the horizon",
 				Config.whenAboveHorizon, leftcolumnpanel3 );
 			
 		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));

@@ -174,6 +174,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	Box.Filler audioOptionsFiller;
 	JTextArea log;
 	JScrollPane logScrollPane;
+	JCheckBox autoStart;
 	
 	FilterPanel filterPanel;
 	
@@ -467,6 +468,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s].add(satName[s]);
 			satRows[s].add(satPosition[s]);
 		}
+		autoStart = new JCheckBox("Auto Start");
+		autoStart.setSelected(Config.whenAboveHorizon);
+		autoStart.addItemListener(this);
+		satPanel.add(autoStart);
 		return oneTracked;
 	}
 	
@@ -1900,6 +1905,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	
 	        }
 		}
+		if (e.getSource() == autoStart) {
+			
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.whenAboveHorizon = false;
+	        } else {
+	        	Config.whenAboveHorizon = true;	        	
+	        }
+		}
 		
 		if (e.getSource() == rdbtnUseNco) {
 			if (fftPanel != null)
@@ -2197,6 +2210,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 					}
 
+					autoStart.setSelected(Config.whenAboveHorizon);
 					if (soundCardComboBox.getSelectedIndex() == 0) {
 						btnStartButton.setEnabled(false);
 					} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
