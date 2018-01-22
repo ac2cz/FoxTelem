@@ -3,8 +3,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
 
-import decoder.FoxDecoder;
-
 /**
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz

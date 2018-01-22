@@ -8,15 +8,11 @@ import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JOptionPane;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
 import common.Spacecraft;
@@ -697,7 +693,7 @@ public abstract class Decoder implements Runnable {
 				} else {
 					sat = Config.satManager.getSpacecraft(header.id);
 					try {
-						DateTime satTime = null;
+						//DateTime satTime = null;
 						//if (sat.isFox1())
 						//	satTime = ((FoxSpacecraft) sat).getUtcDateTimeForReset(header.resets, header.uptime);
 						//if (satTime != null) {

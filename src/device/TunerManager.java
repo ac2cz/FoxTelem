@@ -18,8 +18,6 @@
 package device;
 
 import java.util.ArrayList;
-import java.util.Collection;
-
 import javax.usb.UsbException;
 
 import org.usb4java.Device;
@@ -63,8 +61,8 @@ public class TunerManager {
      * all locked by FoxTelem
      * @throws UsbException 
      */
-    public <String>ArrayList makeDeviceList() throws UsbException	{
-    	deviceNames = new ArrayList();
+    public ArrayList<String> makeDeviceList() throws UsbException	{
+    	deviceNames = new ArrayList<String>();
     	tunerControllerList = new ArrayList<TunerController>();
     	DeviceList deviceList = new DeviceList();
     	int result = LibUsb.init( null );

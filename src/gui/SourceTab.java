@@ -71,7 +71,6 @@ import decoder.FoxBPSK.FoxBPSKDecoder;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
-import device.TunerClass;
 import device.TunerManager;
 import fcd.FcdDevice;
 import fcd.FcdProPanel;

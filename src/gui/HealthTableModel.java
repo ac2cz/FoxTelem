@@ -1,13 +1,10 @@
 package gui;
 
-import javax.swing.ListSelectionModel;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.table.AbstractTableModel;
 
-import common.Log;
 import telemetry.BitArrayLayout;
 
+@SuppressWarnings("serial")
 public class HealthTableModel  extends AbstractTableModel {
 	String[] columnNames = null;
     private long[][] data = null;

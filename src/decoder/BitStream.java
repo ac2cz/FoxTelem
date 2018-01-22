@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import common.Config;
 import common.Log;
 import common.Performance;
-import gui.MainWindow;
 
 @SuppressWarnings("serial")
 public class BitStream extends CircularBuffer {

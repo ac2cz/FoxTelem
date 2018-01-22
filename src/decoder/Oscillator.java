@@ -1,7 +1,5 @@
 package decoder;
 
-import common.Log;
-
 /*******************************************************************************
  *     SDR Trunk 
  *     Copyright (C) 2014 Dennis Sheirer

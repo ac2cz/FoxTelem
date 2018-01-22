@@ -6,24 +6,11 @@ import common.Log;
 import common.Performance;
 import decoder.CodePRN;
 import decoder.Decoder;
-import decoder.FoxBitStream;
-import decoder.SlowSpeedBitStream;
 import decoder.SourceAudio;
 import filter.AGCFilter;
 import filter.DcRemoval;
 import gui.MainWindow;
-import telemetry.FoxFramePart;
 import telemetry.Frame;
-import telemetry.HighSpeedFrame;
-import telemetry.HighSpeedHeader;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
 
@@ -344,7 +331,7 @@ public class FoxBPSKDecoder extends Decoder {
 	private double dmBitPhase = 0.0;
 	private double[] dmLastIQ = new double[2];
 	
-	private int debugCount = 0;
+	//private int debugCount = 0;
 
 	/**
 	 * Demodulate the DBPSK signal, adjust the clock if needed to stay in sync.  Populate the bit buffer

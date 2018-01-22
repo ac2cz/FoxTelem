@@ -17,7 +17,6 @@ import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
 import telemetry.PayloadWOD;
 import telemetry.PayloadWODRad;
-import telemetry.RadiationTelemetry;
 
 /**
 	 * 

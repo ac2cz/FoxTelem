@@ -10,7 +10,6 @@ import java.util.HashMap;
 
 import common.Config;
 import common.FoxSpacecraft;
-import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.PayloadStore;
 

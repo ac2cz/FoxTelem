@@ -963,6 +963,7 @@ public class SatPayloadDbStore {
 		return resultSet;
 	}
 
+	/*
 	private ResultSet selectRows(String table, String name, String where, int numberOfRows) {
 		Statement stmt = null;
 		String update = "";
@@ -988,7 +989,7 @@ public class SatPayloadDbStore {
 		return null;
 		
 	}
-
+*/
     
 	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs = null;

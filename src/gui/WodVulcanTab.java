@@ -9,6 +9,7 @@ import common.Spacecraft;
 import telemetry.FoxFramePart;
 import telemetry.RadiationTelemetry;
 
+@SuppressWarnings("serial")
 public class WodVulcanTab extends VulcanTab {
 
 	public WodVulcanTab(FoxSpacecraft sat) {

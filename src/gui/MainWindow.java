@@ -37,10 +37,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import common.Config;
 import common.DesktopApi;
 import common.Log;
@@ -55,8 +51,6 @@ import javax.swing.JCheckBoxMenuItem;
 import org.rauschig.jarchivelib.Archiver;
 import org.rauschig.jarchivelib.ArchiverFactory;
 
-import telemServer.StpFileProcessException;
-import telemetry.Frame;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
@@ -778,7 +772,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 		// Get the server data for each spacecraft we have
 		sats = Config.satManager.getSpacecraftList();
-		int i=0;
 		for (Spacecraft sat : sats) {
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up

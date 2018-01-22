@@ -21,7 +21,7 @@ package gui;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-@SuppressWarnings({ "serial", "unchecked" })
+@SuppressWarnings({ "serial"})
 class HerciHsPacketTableModel extends FoxTelemTableModel {
 	
 	HerciHsPacketTableModel() {

@@ -12,14 +12,12 @@ import java.awt.event.WindowListener;
 import java.io.File;
 
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
@@ -155,15 +153,7 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		return northpanel;
 
 	}
-	
-	private JRadioButton addRadioButton(String name, JPanel panel) {
-		JRadioButton radioButton = new JRadioButton(name);
-		radioButton.setEnabled(true);
-		radioButton.addActionListener(this);
-		panel.add(radioButton);
-		return radioButton;
-	}
-	
+		
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnCancel) {
@@ -227,6 +217,7 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 
 	void saveAndExit() {
 		Config.FIRST_RUN = false;
+		Config.firstRun106 = false; // dont need to tell a brand new user about changes from version to version
 		if (!Config.logFileDirectory.equalsIgnoreCase(txtLogFileDirectory.getText())) {
 			// user changed the logfile directory
 			File file = new File(txtLogFileDirectory.getText());

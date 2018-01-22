@@ -1,11 +1,8 @@
 package decoder;
 
 import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.LineUnavailableException;
-
 import common.Config;
 import common.Log;
-import device.airspy.AirspyDevice;
 import gui.MainWindow;
 
 public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnable {

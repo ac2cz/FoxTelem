@@ -3,10 +3,6 @@ package common;
 import gui.MainWindow;
 import gui.SourceTab;
 
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
-import telemetry.FramePart;
 import telemetry.PayloadStore;
 import uk.me.g4dpz.satellite.SatPos;
 import measure.PassMeasurement;
@@ -15,7 +11,6 @@ import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import decoder.Decoder;
-import decoder.RfData;
 import decoder.SourceIQ;
 
 /**

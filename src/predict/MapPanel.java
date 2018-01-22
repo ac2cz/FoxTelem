@@ -6,11 +6,11 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
-import common.Config;
 import common.Log;
 import gui.ImagePanel;
 import uk.me.g4dpz.satellite.SatPos;
 
+@SuppressWarnings("serial")
 public class MapPanel extends ImagePanel implements Runnable {
 	boolean running = true;
 	public static final int MAP_UPDATE_PERIOD = 1000;
@@ -93,7 +93,7 @@ public class MapPanel extends ImagePanel implements Runnable {
     				lastX = x;
     				lastY = y;
     			}
-    			g2.drawLine(x, y, x, y);
+    			g2.drawLine(lastX, lastY, x, y);
     		}
     		}
     	}

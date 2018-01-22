@@ -612,6 +612,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.fieldName[0] = s;
 	}
 
+	
 	private void initEarthPlotFields() {
 		String s = this.fieldName[0];
 		this.fieldName2 = new String[2];
@@ -1260,6 +1261,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (!textDisplay) {
 				if (plotType == SKY_PLOT)
 					initSkyPlotFields();
+				else if (plotType == EARTH_PLOT)
+					initEarthPlotFields();
 				else {
 					fieldUnits2 = "";
 					fieldName2 = null;

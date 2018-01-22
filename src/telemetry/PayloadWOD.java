@@ -1,23 +1,6 @@
 package telemetry;
 
-import java.text.DecimalFormat;
-import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
-
-import org.joda.time.DateTime;
-import org.joda.time.DateTimeZone;
-
-import common.Config;
-import common.FoxSpacecraft;
-import common.Log;
-import common.Spacecraft;
-import decoder.FoxDecoder;
-import predict.PositionCalcException;
-import uk.me.g4dpz.satellite.GroundStationPosition;
-import uk.me.g4dpz.satellite.SatPos;
-import uk.me.g4dpz.satellite.Satellite;
-import uk.me.g4dpz.satellite.SatelliteFactory;
-import uk.me.g4dpz.satellite.TLE;
 
 public class PayloadWOD extends PayloadRtValues {
 	public static final String WOD_RESETS = "WODTimestampReset";

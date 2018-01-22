@@ -15,12 +15,9 @@ import java.util.Properties;
 
 import javax.swing.JOptionPane;
 
-import decoder.HighSpeedBitStream;
 import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
-import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
-import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
 import uk.me.g4dpz.satellite.GroundStationPosition;
 
@@ -446,9 +443,10 @@ public class Config {
 		}
 		 if (isLinuxOs()) {
 		        final File file = new File("/etc", "os-release");
+		        BufferedReader bufferedReader = null;
 		        try {
 		        	FileInputStream fis = new FileInputStream(file);
-		            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+		            bufferedReader = new BufferedReader(new InputStreamReader(fis));
 		            String string;
 		            while ((string = bufferedReader.readLine()) != null) {
 		                if (string.toLowerCase().contains("raspbian")) {
@@ -458,9 +456,16 @@ public class Config {
 		                    }
 		                }
 		            }
+		            
 		        } catch (final Exception e) {
 		           // e.printStackTrace();
 		        	Log.println("Linux but not Raspberry Pi");
+		        } finally {
+		        	try {
+						if (bufferedReader != null) bufferedReader.close();
+					} catch (IOException e) {
+						// Ignore
+					}
 		        }
 		    }
 	}

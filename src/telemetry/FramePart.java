@@ -9,10 +9,6 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import org.joda.time.DateTime;
-
-import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxDecoder;
@@ -111,9 +107,6 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return lon;
 	}
 
-	private void defaultValue(double val) {
-		val = NO_POSITION_DATA;
-	}
 	public int getFoxId() { return id; }
 	public long getUptime() { return uptime; }
 	public int getResets() { return resets; }

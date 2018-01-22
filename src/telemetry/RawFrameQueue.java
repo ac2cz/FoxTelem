@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.UnknownHostException;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.swing.JOptionPane;
@@ -53,7 +52,6 @@ import common.TlmServer;
  *
  */
 public class RawFrameQueue implements Runnable {
-	private static final int INIT_SIZE = 1000;
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVframes.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSframes.log";
 	public static String RAW_PSK_FRAMES_FILE = "rawPSKframes.log";

@@ -8,9 +8,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
@@ -64,9 +61,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	static String user = "g0kla";
     static String password = "amsatfox";
 
-	private final int INITIAL_QUEUE_SIZE = 1000;
 	SatPayloadDbStore[] payloadStore;
-	//SatPictureStore[] pictureStore;
 	
 	public PayloadDbStore(String u, String pw, String database) {
 		db = database;

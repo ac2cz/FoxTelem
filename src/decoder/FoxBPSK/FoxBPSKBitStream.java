@@ -1,16 +1,9 @@
 package decoder.FoxBPSK;
 
-import common.Config;
-import common.Log;
 import decoder.Decoder;
-import decoder.FoxBitStream;
 import decoder.HighSpeedBitStream;
-import decoder.LookupException;
 import telemetry.Frame;
-import telemetry.HighSpeedFrame;
-import telemetry.SlowSpeedFrame;
 import telemetry.FoxBPSK.FoxBPSKFrame;
-import fec.RsCodeWord;
 
 /**
  * 

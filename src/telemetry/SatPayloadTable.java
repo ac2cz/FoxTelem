@@ -396,9 +396,11 @@ public class SatPayloadTable {
 		
 	}
 	
+	/*
 	private int findLastSeg(int reset, long uptime) {
 		return 0;
 	}
+	*/
 	
 	/**
 	 * Load all of the segments needed so that "number" of records is available.  Used for plotting graphs.  If segments are missing then

@@ -2,14 +2,9 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
-import org.joda.time.DateTime;
-
 import common.Config;
-import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
-import predict.PositionCalcException;
-import uk.me.g4dpz.satellite.SatPos;
 
 public class PayloadWODRad extends PayloadRadExpData {
 

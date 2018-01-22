@@ -135,8 +135,8 @@ public class EyePanel extends JPanel implements Runnable {
 				int b=0;
 				try {
 
-					if (false && decoder instanceof FoxBPSKDecoder)
-						NUMBER_OF_BITS = data.length;
+			//		if (false && decoder instanceof FoxBPSKDecoder)
+			//			NUMBER_OF_BITS = data.length;
 
 					/*
 						int offset = ((FoxBPSKDecoder) decoder).recoverClockOffset();

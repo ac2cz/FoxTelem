@@ -13,17 +13,13 @@ import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-
 import java.awt.BorderLayout;
 import java.awt.Font;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.InputMap;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
@@ -31,8 +27,6 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.RadiationTelemetry;
-
 import java.awt.Dimension;
 
 import javax.swing.border.EmptyBorder;
@@ -45,11 +39,8 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import decoder.SourceIQ;
-
 import java.awt.Color;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 

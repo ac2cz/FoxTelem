@@ -225,6 +225,7 @@ public abstract class FoxBitStream extends BitStream {
 
 	protected int checkShortFrame(int start, int end) {
 
+		@SuppressWarnings("unused")
 		int SYNC_WORD_BIT_TOLERANCE = 6; // look for frames that might be short by up to this amount
 
 		int firstMinErasures = 0;
@@ -245,6 +246,7 @@ public abstract class FoxBitStream extends BitStream {
 			for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
 				if (a == currentWord++) // This is where we insert
 					j=j-shortBits;
+				@SuppressWarnings("unused")
 				byte b8 = -1;
 				try {
 					b8 = processWord(j);

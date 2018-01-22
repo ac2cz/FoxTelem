@@ -13,8 +13,6 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
-import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
-
 import telemetry.Frame;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
@@ -103,6 +101,7 @@ public class WebServiceProcess implements Runnable {
 						if (path.length == 4) {
 							PayloadRtValues rt = null;
 							int sat = 1;
+							@SuppressWarnings("unused")
 							int type = 1;
 							try {
 								sat = Integer.parseInt(path[2]);

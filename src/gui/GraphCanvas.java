@@ -6,11 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 
-import javax.swing.JPanel;
-
 import common.Config;
 import common.FoxSpacecraft;
-import common.Log;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
 import predict.PositionCalcException;
@@ -77,7 +74,7 @@ public abstract class GraphCanvas extends MapPanel {
 		for (int i=0; i<graphFrame.fieldName.length; i++) {
 			if (graphFrame.SAMPLES > showDialogThreshold)
 				fileProgress.updateProgress((int)(100*i/totalFields));
-			if (graphFrame.showLatest == graphFrame.SHOW_LIVE)
+			if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 				reverse=true;
 			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 				graphData[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);

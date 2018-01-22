@@ -3,7 +3,6 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,8 +26,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.border.EmptyBorder;
-
 import common.Config;
 import common.FoxSpacecraft;
 import common.FoxTime;
@@ -36,7 +33,6 @@ import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadWOD;
 
 /**
  * 
@@ -98,9 +94,9 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 //	private JLabel lblPlot;
 	JLabel lblSamplePeriod; // The number of samples to grab for each graph
 	protected JTextField txtSamplePeriod;
-	private JLabel lblAvg;
-	JLabel lblAvgPeriod; 
-	private JTextField txtAvgPeriod;
+//	private JLabel lblAvg;
+//	JLabel lblAvgPeriod; 
+//	private JTextField txtAvgPeriod;
 	private JLabel lblFromReset;
 	private JTextField textFromReset;
 	
@@ -787,8 +783,6 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		} else if (e.getSource() == this.textFromUptime) {
 		//	parseTextFields();
 			
-		} else if (e.getSource() == this.txtAvgPeriod) {
-		//		parseAvgPeriod();
 		}
 		
 	}

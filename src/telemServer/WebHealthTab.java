@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
-import common.Config;
 import common.Log;
 import common.Spacecraft;
 import common.FoxSpacecraft;

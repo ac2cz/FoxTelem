@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
-import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -590,7 +589,7 @@ public abstract class Frame implements Comparable<Frame> {
 		String versionString[] = demodulator.split(" ");
 		int major = Config.parseVersionMajor(versionString[1]);
 		int minor = Config.parseVersionMinor(versionString[1]);
-		String point = Config.parseVersionPoint(versionString[1]);
+		//String point = Config.parseVersionPoint(versionString[1]);
 		//Log.println("RS Decode for: " + demodulator + " "+ major +" "+ minor +" "+ point);
 		
 		RsCodeWord[] codeWords = new RsCodeWord[numOfCodewords];

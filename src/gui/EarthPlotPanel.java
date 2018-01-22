@@ -3,8 +3,6 @@ package gui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
@@ -13,7 +11,6 @@ import javax.imageio.ImageIO;
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
-import telemetry.CameraJpeg;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 
@@ -324,7 +321,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		if (shade <0) shade = 0;
 		shade = 255-shade; // we want min signal white and max black
 
-		int r1 = 200;
+		/*int r1 = 200;
 		int r2 = 100;
 		int grn1=0;
 		int grn2 = 0;
@@ -335,6 +332,8 @@ public class EarthPlotPanel extends GraphCanvas {
 		int r = (int) ((1.0-p) * r1 + p * r2 + 0.5);
 		int g = (int) ((1.0-p) * grn1 + p * grn2 + 0.5);
 		int b = (int) ((1.0-p) * b1 + p * b2 + 0.5);
+		 *
+		 */
 		
 		//g2.setColor(new Color(shade,shade,shade));
 		return new Color(255-shade,0,shade, alpha);

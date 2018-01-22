@@ -1,7 +1,5 @@
 package telemetry;
 
-import java.util.Collections;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

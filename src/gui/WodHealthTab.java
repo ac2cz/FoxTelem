@@ -13,7 +13,6 @@ import common.Spacecraft;
 import predict.PositionCalcException;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
-import telemetry.PayloadStore;
 import telemetry.PayloadWOD;
 import uk.me.g4dpz.satellite.SatPos;
 

@@ -12,7 +12,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Date;
@@ -28,11 +27,8 @@ import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
-import uk.me.g4dpz.satellite.SatPos;
-import uk.me.g4dpz.satellite.TLE;
 
 /**
  * 
@@ -111,8 +107,6 @@ public class SatelliteManager implements Runnable {
 						// Missing this file
 						if (!haveDatFiles) {
 							// And we are doing a new install, so as the user what to do
-							Object[] options = {"Yes",
-							"No"};
 							int n = Log.optionYNdialog("Hit yes to install or No to skip?",
 									"Do you want to install the spacecraft file for: " + targetFile);
 
@@ -131,8 +125,6 @@ public class SatelliteManager implements Runnable {
 						if (targetFile.lastModified() < listOfFiles[i].lastModified()) {
 							Date targetDate = new Date(targetFile.lastModified());
 							Date masterDate = new Date(listOfFiles[i].lastModified());
-							Object[] options = {"Yes",
-					        "No"};
 							int n = Log.optionYNdialog("Overwrite Existing spacecraft config file",
 									"There is a newer spacecraft file available in the installation directory. Do you want to replace your local file?\n"
 									+ "The local file contains any changes you have made to the spacecraft, such as Freqency Bounds.\n"
@@ -224,7 +216,7 @@ public class SatelliteManager implements Runnable {
 					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
 			System.exit(1);
 		}
-		Collections.sort((List)spacecraftList);
+		Collections.sort((List<Spacecraft>)spacecraftList);
 	}
 	
 	/**
@@ -480,9 +472,8 @@ public class SatelliteManager implements Runnable {
 										+ "Tracking will be disabled for " + sat.name + ".");
 								sat.satPos = null;
 							} else {
-								SatPos pos = null;
 								try {
-									pos = sat.calcualteCurrentPosition();
+									sat.calcualteCurrentPosition();
 								} catch (PositionCalcException e) {
 									// We wont get NO T0 as we are using the current time, but we may have missing keps
 							/*		if (running) { // otherwise we reset the sats and another copy of this thread will deal with the issue

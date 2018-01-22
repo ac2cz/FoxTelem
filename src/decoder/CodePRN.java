@@ -84,8 +84,8 @@ public class CodePRN {
 	
 	public static void main(String[] args) {
 		boolean[] w1 = {false,true,false,true,true,true,false,false,true,false,false,false,true,true,false};
-		boolean[] w2 = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
-		boolean[] w4 = {true,true,true,true,true,true,true,true,true,false,false,true,true,false,true,false,false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
+	//	boolean[] w2 = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
+	//	boolean[] w4 = {true,true,true,true,true,true,true,true,true,false,false,true,true,false,true,false,false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
 		boolean[] w3 = new boolean[31];
 		for (int i=0; i<w3.length; i++) {
 			int f = (LONG_FRAME_SYNC >>i) & 0x1;

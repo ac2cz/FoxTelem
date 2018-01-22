@@ -2,8 +2,8 @@ package gui;
 
 import javax.swing.table.AbstractTableModel;
 
+@SuppressWarnings("serial")
 public class SoftError84488TableModel extends AbstractTableModel {
-	@SuppressWarnings("serial")
 	String[] columnNames = null;
 	private String[][] data = null;
 

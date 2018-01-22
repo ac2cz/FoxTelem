@@ -1,7 +1,5 @@
 package decoder;
 
-import common.Log;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

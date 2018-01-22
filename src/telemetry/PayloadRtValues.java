@@ -6,7 +6,6 @@ import java.util.StringTokenizer;
 
 import common.Config;
 import common.FoxSpacecraft;
-import decoder.FoxDecoder;
 
 /**
  * 
