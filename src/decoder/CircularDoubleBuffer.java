@@ -40,7 +40,7 @@ public class CircularDoubleBuffer {
 		doubles = new double[size];
 		bufferSize = size;
 //		startPointer = bufferSize - 1; // initialize this to the end of the array, otherwise we can not write data to it
-		Log.println("Created circular BYTE buffer with " + bufferSize + " bytes");
+		Log.println("Created circular Double buffer with " + bufferSize + " bytes");
 	}
 
 	public int getStartPointer() { return startPointer; }

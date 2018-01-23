@@ -577,6 +577,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("VulcanTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

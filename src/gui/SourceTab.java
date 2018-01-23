@@ -1721,6 +1721,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (decoder1 != null) {
 			decoder1.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder1 = null;
+			iqSource1.stop();
 			iqSource1 = null;
 			decoder1Thread = null;
 			Config.passManager.setDecoder1(decoder1, iqSource1, this);			
@@ -1728,6 +1729,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (decoder2 != null) {
 			decoder2.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder2 = null;
+			iqSource2.stop();
 			iqSource2 = null;
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
@@ -2038,7 +2040,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
          */
         @Override
         public void run() { 
-            
+    		Thread.currentThread().setName("ProgressBar");
             //Initialize progress property.
             setProgress(0);
             while (progress < 100 && wavSource != null) {
@@ -2138,6 +2140,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	 */
 	@Override
 	public void run() {
+		Thread.currentThread().setName("SourceTab:Tracking");
+
 		// Runs until we exit
 		while(true) {
 

@@ -101,6 +101,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("SourceWav");
 		running = true;
 		done = false;
 		Log.println("WAV Source START");

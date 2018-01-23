@@ -117,7 +117,8 @@ public abstract class Decoder implements Runnable {
      * This holds the stream of bits that we have not decoded. Once we have several
      * SYNC words, this is flushed of processed bits.
      */
-    protected BitStream bitStream = null;  // Hold bits until we turn them into decoded frames
+  //  protected BitStream bitStream = null;  // Hold bits until we turn them into decoded frames
+    protected FoxBitStream foxBitStream = null;
     
     protected int averageMax;
     protected int averageMin;
@@ -354,6 +355,8 @@ public abstract class Decoder implements Runnable {
 	@Override
 	public void run() {
 		Log.println("DECODER Start");
+		Thread.currentThread().setName("Decoder");
+
 		try {
 			process();
 		} catch (UnsupportedAudioFileException e) {

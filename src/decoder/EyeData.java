@@ -59,6 +59,7 @@ public class EyeData extends DataMeasure {
     
 	@Override
 	public void run() {
+		Thread.currentThread().setName("EyeData");
 		// No thread, sychronous with the decoder windows
 	}
     public void calcAverages() {

@@ -63,7 +63,7 @@ public abstract class FoxDecoder extends Decoder {
      * This holds the stream of bits that we have not decoded. Once we have several
      * SYNC words, this is flushed of processed bits.
      */
-    protected FoxBitStream foxBitStream = null;  // Hold bits until we turn them into decoded frames
+//    protected FoxBitStream foxBitStream = null;  // Hold bits until we turn them into decoded frames
 	
 	public static final int BIT_DISTANCE_THRESHOLD_PERCENT = 15; // use 20 for 736R audio *****15; // Distance that bits need to be apart to change the bit decision as % of average BIT HEIGHT
 														
@@ -79,7 +79,7 @@ public abstract class FoxDecoder extends Decoder {
      */
 	public FoxDecoder(String n, SourceAudio as, int chan) {
 		super(n,as,chan);
-		init();
+		//init();
 	}
 	
 

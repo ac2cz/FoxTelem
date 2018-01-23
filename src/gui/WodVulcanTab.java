@@ -70,6 +70,7 @@ public class WodVulcanTab extends VulcanTab {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("WodVulcanTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

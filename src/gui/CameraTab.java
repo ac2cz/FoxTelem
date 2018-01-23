@@ -425,6 +425,8 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		
 	@Override
 	public void run() {
+		Thread.currentThread().setName("CameraTab");
+
 		running = true;
 		done = false;
 		

@@ -67,6 +67,7 @@ public class RfData extends DataMeasure {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("RfData");
 		while(running) {
 			try {
 				Thread.sleep(1);
@@ -80,6 +81,11 @@ public class RfData extends DataMeasure {
 			}
 		}
 		
+	}
+	
+	public void stopProcessing() {
+		running = false;
+		Log.println("RfData STOPPING");
 	}
 
 	private void calcAverages() {    		

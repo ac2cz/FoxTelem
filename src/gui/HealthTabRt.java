@@ -90,6 +90,7 @@ public class HealthTabRt extends HealthTab {
 
 	@Override
 	public void run() {
+		Thread.currentThread().setName("HealthTabRt");
 		running = true;
 		done = false;
 		boolean justStarted = true;

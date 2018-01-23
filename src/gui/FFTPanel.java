@@ -180,7 +180,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	@Override
 	public void run() {
-		
+		Thread.currentThread().setName("SourceIQ");
 		double[] buffer = null;
 		while(running) {
 			if (iqSource != null) {

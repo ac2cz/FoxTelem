@@ -331,6 +331,7 @@ public class SourceIQ extends SourceAudio {
 	double a, b;
 	@Override
 	public void run() {
+		Thread.currentThread().setName("SourceIQ");
 		done = false;
 		running = true;
 		// Start reading data from the audio source.  This will store it in the circular buffer in the audio source
@@ -372,7 +373,7 @@ public class SourceIQ extends SourceAudio {
 				}
 			}
 		}
-
+		rfData.stopProcessing();
 		Log.println("IQ Source EXIT.  Running="+running);
 
 	}

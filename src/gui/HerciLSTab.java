@@ -306,6 +306,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, 
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("HerciLSTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

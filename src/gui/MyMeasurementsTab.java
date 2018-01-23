@@ -138,6 +138,7 @@ ItemListener {
 
 	@Override
 	public void run() {
+		Thread.currentThread().setName("MyMeasurementsTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

@@ -96,6 +96,7 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 	@Override
 	public void run() {
+		Thread.currentThread().setName("EyePanel");
 		done = false;
 		running = true;
 		Log.println("STARTING EYE PANEL THREAD");

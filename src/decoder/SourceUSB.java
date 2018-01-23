@@ -90,6 +90,7 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("SourceUSB");
 		done = false;
 		running = false;
 		// nothing to run as the USB device is a thread

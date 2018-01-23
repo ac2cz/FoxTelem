@@ -84,6 +84,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("AudioGraphPanel");
 		done = false;
 		running = true;
 //		int bytesRead =0;

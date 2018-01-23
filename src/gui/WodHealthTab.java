@@ -98,6 +98,7 @@ public class WodHealthTab extends HealthTab {
 
 	@Override
 	public void run() {
+		Thread.currentThread().setName("WodHealthTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;
