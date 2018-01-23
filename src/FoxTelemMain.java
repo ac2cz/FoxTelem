@@ -518,7 +518,7 @@ public class FoxTelemMain {
 		initProgress.setVisible(true);
 		int arg = 0;
 		while (arg < args.length) {
-			if (args[arg].startsWith("-") || args[arg].startsWith("/")) { // this is a switch
+			if (args[arg].startsWith("-")) { // this is a switch
 			if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("-help")) || (args[arg].equalsIgnoreCase("--help"))) {
 				System.out.println(HELP);
 				System.exit(0);
