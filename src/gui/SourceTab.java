@@ -1721,7 +1721,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (decoder1 != null) {
 			decoder1.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder1 = null;
-			iqSource1.stop();
+			if (iqSource1 != null)
+				iqSource1.stop();
 			iqSource1 = null;
 			decoder1Thread = null;
 			Config.passManager.setDecoder1(decoder1, iqSource1, this);			
@@ -1729,7 +1730,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (decoder2 != null) {
 			decoder2.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder2 = null;
-			iqSource2.stop();
+			if (iqSource2 != null)
+				iqSource2.stop();
 			iqSource2 = null;
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
@@ -2206,7 +2208,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} catch (ArrayIndexOutOfBoundsException e) {
 						// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 					}
-
+					if (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)
+						autoStart.setEnabled(true);
+					else
+						autoStart.setEnabled(false);
 					autoStart.setSelected(Config.whenAboveHorizon);
 					if (soundCardComboBox.getSelectedIndex() == 0) {
 						btnStartButton.setEnabled(false);
@@ -2235,6 +2240,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						btnStartButton.setEnabled(true);
 						lblWhenAboveHorizon.setVisible(false);
 					}
+					
+					// These are just debug values
 					if (Config.debugValues && !unpause.isVisible()) {
 						unpause.setVisible(true);
 						play.setVisible(true);

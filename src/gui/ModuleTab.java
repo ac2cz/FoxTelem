@@ -85,7 +85,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	public static String DEFAULT_END_UTC = NOW;
 	public String START_UTC = DEFAULT_START_UTC;
 	public String END_UTC = DEFAULT_END_UTC;	
-	public static final int MAX_SAMPLES = 9999;
+	public static final int MAX_SAMPLES = 99999;
 	
 	protected int fonth = 0; // font height for footer. MUST set in the class that inherits from this
 	
@@ -694,6 +694,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			if (SAMPLES > MAX_SAMPLES) {
 				SAMPLES = MAX_SAMPLES;
 				text = Integer.toString(MAX_SAMPLES);
+				txtSamplePeriod.setText(text);
 			}
 			//System.out.println(SAMPLES);
 

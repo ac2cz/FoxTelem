@@ -614,14 +614,14 @@ public class PassManager implements Runnable {
 				if (MainWindow.inputTab != null && !oneSatUp) {
 					MainWindow.inputTab.stopDecoding();
 				}
-				if (Config.whenAboveHorizon && Config.findSignal && !atLeastOneTracked) {
+				if (Config.whenAboveHorizon && !atLeastOneTracked) {
 					if (MainWindow.inputTab != null) {
 						MainWindow.inputTab.rdbtnFindSignal.setSelected(false);
 						Config.whenAboveHorizon = false;
-						Log.errorDialog("NO SPACECRAFT TRACKED", "You have turned on find signal and paused the decoder waiting for a spacecraft above\n"
-								+ "the horizon, but no spacecraft are being tracked.  Go to the spacecraft menu, pick a spacecraft\n"
-								+ "and check 'Track when Find Signal Enabled'\n"
-								+ "'Start Decoder when Above Horizon' and 'Find Signal' will be disabled.");
+						Log.errorDialog("NO SPACECRAFT TRACKED", "You have paused the decoder waiting for a spacecraft above the horizon,\n"
+								+ "but no spacecraft are being tracked.  Toggle 'Not Tracked' to 'Tracked'\n"
+								+ "by clicking on it, top right of the input tab.\n"
+								+ "'Auto Start Decoder when Above Horizon' will be disabled.");
 					}
 				}
 			//}
