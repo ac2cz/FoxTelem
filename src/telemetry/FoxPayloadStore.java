@@ -82,6 +82,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract FramePart getLatestMin(int id);
 
 	public abstract FramePart getFramePart(int id, int reset, long uptime, String layout, boolean prev);
+	public abstract FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev);
 
 	public abstract PayloadRadExpData getLatestRad(int id);
 	public abstract RadiationTelemetry getLatestRadTelem(int id);
@@ -118,7 +119,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse);
 	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
-	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse);
+	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse);
 	public abstract String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse);
 	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
 	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);

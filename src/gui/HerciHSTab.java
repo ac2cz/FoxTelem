@@ -176,9 +176,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-		
+		column = table.getColumnModel().getColumn(2);
+		column.setPreferredWidth(55);
 		for (int i=0; i<PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; i++) {
-			column = table.getColumnModel().getColumn(i+2);
+			column = table.getColumnModel().getColumn(i+3);
 			if (i <100)
 				column.setPreferredWidth(25);
 			else
@@ -191,27 +192,29 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		column = packetTable.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		column = packetTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(55);
+		column = packetTable.getColumnModel().getColumn(3);
 		column.setPreferredWidth(90);
 
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(35);
 		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(35);
-
 		column = packetTable.getColumnModel().getColumn(5);
-		column.setPreferredWidth(55);
+		column.setPreferredWidth(35);
 
 		column = packetTable.getColumnModel().getColumn(6);
+		column.setPreferredWidth(55);
+
+		column = packetTable.getColumnModel().getColumn(7);
 		column.setPreferredWidth(35);
 		
-		column = packetTable.getColumnModel().getColumn(7);
-		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(8);
 		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(9);
 		column.setPreferredWidth(45);
-
 		column = packetTable.getColumnModel().getColumn(10);
+		column.setPreferredWidth(45);
+
+		column = packetTable.getColumnModel().getColumn(11);
 		column.setPreferredWidth(600);
 
 		if (showRawBytes.isSelected()) {
@@ -225,23 +228,25 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 
 	private void parseMiniPackets() {
-		String[][] rawData = Config.payloadStore.getHerciPacketData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+		String[][] rawData = Config.payloadStore.getHerciPacketData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse);
 		String[][] data = new String[rawData.length][9];
-		long[][] keydata = new long[rawData.length][2];
+		long[][] keydata = new long[rawData.length][3];
 		
 		//for (int k =0; k < rawData.length; k++) {
 		for (int k =rawData.length-1; k >= 0; k--) {
 			keydata[rawData.length-k-1][0] = Long.parseLong(rawData[k][0]);
 			keydata[rawData.length-k-1][1] = Long.parseLong(rawData[k][1]);
-			data[rawData.length-k-1][0] = rawData[k][2] + ":" + rawData[k][4];  //acquire time
-			data[rawData.length-k-1][1] = rawData[k][5];
-			data[rawData.length-k-1][2] = rawData[k][6];
-			data[rawData.length-k-1][3] = ""+Integer.parseInt(rawData[k][7])/40+":"+Integer.parseInt(rawData[k][7])%40; //rti
-			for (int j=8; j<12; j++) {
-				data[rawData.length-k-1][j-4] = FoxDecoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
+			keydata[rawData.length-k-1][2] = Long.parseLong(rawData[k][2]);
+			
+			data[rawData.length-k-1][0] = rawData[k][3] + ":" + rawData[k][5];  //acquire time
+			data[rawData.length-k-1][1] = rawData[k][6];
+			data[rawData.length-k-1][2] = rawData[k][7];
+			data[rawData.length-k-1][3] = ""+Integer.parseInt(rawData[k][8])/40+":"+Integer.parseInt(rawData[k][8])%40; //rti
+			for (int j=9; j<13; j++) {
+				data[rawData.length-k-1][j-5] = FoxDecoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
 			}
 			data[rawData.length-k-1][8] = "";
-			for (int j=13; j<rawData[k].length; j++) {
+			for (int j=14; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
 					data[rawData.length-k-1][8] = data[rawData.length-k-1][8] + FoxDecoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
@@ -257,11 +262,12 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		String[][] rawData = Config.payloadStore.getHerciHsData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 		//String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
 		String[][] data = new String[rawData.length][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
-		long[][] keydata = new long[rawData.length][2];
+		long[][] keydata = new long[rawData.length][3];
 		int j = 0;
 		for (int i = rawData.length-1; i >=0 ; i--) {
 			int reset = (int)(Integer.parseInt(rawData[i][0]));
-			long uptime = (long)(Integer.parseInt(rawData[i][1]));	
+			long uptime = (long)(Long.parseLong(rawData[i][1]));	
+			int type = (int)(Integer.parseInt(rawData[i][2]));
 			/* this needs to be able to store the results as as string, not long
 			if (showUTCtime) {
 				keydata[i][1] = fox.getUtcTimeForReset(reset, uptime);
@@ -270,9 +276,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 			*/
 				keydata[j][0] = (long)(reset);
 				keydata[j][1] = uptime;
+				keydata[j][2] = type;
 		//	}
 			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-				data[j][k] = FoxDecoder.plainhex(Integer.parseInt(rawData[i][k+2]) & 0xff);
+				data[j][k] = FoxDecoder.plainhex(Integer.parseInt(rawData[i][k+3]) & 0xff);
 			}
 			j++;
 		}
@@ -401,13 +408,28 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 	
 	protected void displayRow(JTable table, int row) {
+		long type_l = 0;
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-    	//Log.println("RESET: " + reset_l);
-    	//Log.println("UPTIME: " + uptime);
+    	
+    	type_l = (long)table.getValueAt(row, HerciHSTableModel.TYPE_COL);
+    	
+    	Log.println("RESET: " + reset_l);
+    	Log.println("UPTIME: " + uptime);
+    	Log.println("TYPE: " + type_l);
     	int reset = (int)reset_l;
-    	this.hsPayload = (PayloadHERCIhighSpeed) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_LAYOUT, false);
-    	updateTab((HerciHighspeedHeader) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, false), false);
+    	int type = (int)type_l;
+    	int headerType = 0;
+    	if (table.getModel() instanceof HerciHSTableModel)
+    		headerType = type + 200;
+    	else {
+    		type = (int)(type/1000);
+    		headerType = type + 200; // FIXME - these hard coded numbers should be tied back to the base types 600 / 800
+    		
+    	}
+    	Log.println("Header Type: " + headerType);
+    	this.hsPayload = (PayloadHERCIhighSpeed) Config.payloadStore.getFramePart(foxId, reset, uptime, type, Spacecraft.HERCI_HS_LAYOUT, false);
+    	updateTab((HerciHighspeedHeader) Config.payloadStore.getFramePart(foxId, reset, uptime, headerType, Spacecraft.HERCI_HS_HEADER_LAYOUT, false), false);
     	
     	table.setRowSelectionInterval(row, row);
 	}

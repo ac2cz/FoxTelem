@@ -907,7 +907,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -1002,6 +1002,12 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev) {
 		// TODO Auto-generated method stub
 		return null;
 	}

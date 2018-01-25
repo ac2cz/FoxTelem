@@ -125,6 +125,25 @@ public class SatPayloadTable {
 		}
 	}
 	
+	public FramePart getFrame(int id, long uptime, int resets, int type, boolean prev) throws IOException { 
+		// Make sure the segment is loaded, so we can check
+		@SuppressWarnings("unused")
+		TableSeg seg = loadSeg(resets, uptime);
+		if (prev) {
+			int i = rtRecords.getNearestPrevFrameIndex(id, uptime, resets, type); 
+			if (i == -1) return null;
+			return rtRecords.get(i);
+		} else {
+			int i = rtRecords.getNearestFrameIndex(id, uptime, resets, type); 
+			if (i == -1) return null;
+			return rtRecords.get(i);
+		}
+	}
+	
+	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean reverse) throws IOException {
+		return getPayloadData(period, id, fromReset, fromUptime, length, false, reverse);
+	}
+	
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -135,7 +154,7 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean reverse) throws IOException {
+	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
 		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
@@ -158,22 +177,32 @@ public class SatPayloadTable {
 		int[][] results = new int[end-start][];
 		String[] upTime = new String[end-start];
 		String[] resets = new String[end-start];
+		String[] type = null;
+		
+		if (returnType)
+			type = new String[end-start];
 		
 		int j = results.length-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
 			results[j] = rtRecords.get(i).getFieldValues();
+			if (returnType)
+				type[j] = ""+rtRecords.get(i).type; // get type returns a different type for some payloads, e.g. HerciPackets.  Reference directly
 			upTime[j] = ""+rtRecords.get(i).getUptime();
 			resets[j--] = ""+rtRecords.get(i).getResets();
 		}
 		
 		// Create a results set, with reset, uptime and the data on the same line
-		String[][] resultSet = new String[end-start][length+3];
+		int offset = 2;
+		if (returnType) offset = 3;
+		String[][] resultSet = new String[end-start][length+offset+1];
 		for (int r=0; r< end-start; r++) {
 			resultSet[r][0] = resets[r];
 			resultSet[r][1] = upTime[r];
+			if (returnType)
+				resultSet[r][2] = type[r];
 			for (int k=0; k<results[r].length; k++)
-				resultSet[r][k+2] = ""+results[r][k];
+				resultSet[r][k+offset] = ""+results[r][k];
 		}
 		
 		return resultSet;

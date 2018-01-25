@@ -528,6 +528,21 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 	
+	public FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(id, reset, uptime, type, layout, prev);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+	
 	public FramePart getLatest(int id,  String lay) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -827,11 +842,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getHerciPacketData(period, id, fromReset, fromUptime, reverse);
+				return store.getHerciPacketData(period, id, fromReset, fromUptime, type, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
