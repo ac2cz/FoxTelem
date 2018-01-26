@@ -160,6 +160,9 @@ public class GraphPanel extends GraphCanvas {
 		
 		int graphHeight = getHeight() - topBorder - bottomBorder;
 		int graphWidth = getWidth() - sideBorder*2; // width of entire graph
+		if (graphWidth < 1) return;
+		if (graphHeight < 1) return;
+		
 		plottedXreset = new int[graphWidth+1];
 		plottedXuptime = new long[graphWidth+1];
 		
@@ -329,16 +332,15 @@ public class GraphPanel extends GraphCanvas {
 				{
 					g2.setColor(graphTextColor);
 					if (!graphFrame.showUTCtime)
-						g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset );
-					//else
-					//	g2.drawString(""+fox.getUtcDateforReset(resets, timepos), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize );	
-
+						if (resets != NO_TIME_VALUE)
+							g2.drawString(""+resets, timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset );
 				}
 
 				g2.setColor(graphTextColor);
 
 				if (!graphFrame.hideUptime) {
-					g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
+					if (uptime != NO_TIME_VALUE)
+						g2.drawString(s, timepos+sideBorder+2, zeroPoint+Config.graphAxisFontSize );
 
 				}
 				if (graphFrame.showUTCtime) {

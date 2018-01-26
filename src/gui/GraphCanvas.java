@@ -549,6 +549,7 @@ public abstract class GraphCanvas extends MapPanel {
 	}
 	
 	public static int getRatioPosition(double min, double max, double value, int dimension) {
+		if (max == min) return 0;
 		double ratio = (max - value) / (max - min);
 		int position = (int)Math.round(dimension * ratio);
 		return dimension-position;
