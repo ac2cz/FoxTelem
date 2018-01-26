@@ -121,6 +121,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 	
+	public static final String MEASUREMENTS = "measurements";
+	public static final String PASS_MEASUREMENTS = "passmeasurements";
+	
 	public int numberOfFrameLayouts = 1;
 	public String[] frameLayoutFilename;
 	//public FrameLayout[] frameLayout;

@@ -1003,6 +1003,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		if (payloadType == Spacecraft.MEASUREMENTS || payloadType == Spacecraft.PASS_MEASUREMENTS) {
+			SatMeasurementStore store = getMeasurementStoreById(id);
+			if (store != null)
+				return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
+		}
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);

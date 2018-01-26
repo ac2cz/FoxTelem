@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
+import common.Spacecraft;
 import common.FoxSpacecraft;
 
 /**
@@ -424,6 +425,26 @@ public class SatMeasurementStore {
 				save(p,log);	
 			}
 		}
+	}
+
+	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		if (payloadType == Spacecraft.MEASUREMENTS) {
+			try {
+				return rtRecords.getNumberOfPayloadsBetweenTimestamps(reset, uptime, toReset, toUptime);
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+				return 0;
+			} 
+		}
+		else if (payloadType == Spacecraft.PASS_MEASUREMENTS){
+			try {
+				return passRecords.getNumberOfPayloadsBetweenTimestamps(reset, uptime, toReset, toUptime);
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+				return 0;
+			} 
+		}
+		return 0;
 	}
 	
 }

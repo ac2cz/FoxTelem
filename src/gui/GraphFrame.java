@@ -1101,7 +1101,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			txtSamplePeriod.setText(Integer.toString(SAMPLES));
 		}
 	}
-	
+
 	private void convertToUptime() {
 		parseUTCFields();
 		textFromReset.setText(Integer.toString(START_RESET));
@@ -1111,6 +1111,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (showLatest == SHOW_RANGE) {
 			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, layout.name);
 			txtSamplePeriod.setText(Integer.toString(SAMPLES));
+
 		}
 	}
 	

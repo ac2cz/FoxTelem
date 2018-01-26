@@ -97,8 +97,11 @@ public class FoxSpacecraft extends Spacecraft{
 			timeZero = null;
 		}
 		measurementLayout = new BitArrayLayout(measurementsFileName);
-		if (passMeasurementsFileName != null)
+		measurementLayout.name=MEASUREMENTS;
+		if (passMeasurementsFileName != null) {
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
+			passMeasurementLayout.name = PASS_MEASUREMENTS;
+		}
 		loadTleHistory(); // DOnt call this until the Name and FoxId are set
 		positionCache = new SpacecraftPositionCache(foxId);
 	}
