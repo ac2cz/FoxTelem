@@ -35,6 +35,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	JTextField rfFilterValue;
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
+	boolean gettingSettings = false;
 	
 	public FcdProPlusPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
@@ -110,6 +111,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	}
 	
 	public void getSettings()  throws IOException, DeviceException {
+		gettingSettings = true; // prevent the widgets from firing more commands
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -122,6 +124,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		ifFilterValue.setText(fcd.getIfFilter());
 //		int ifG = fcd.getIFGain();
 //		ifSpinner.setValue(""+ifG);
+		gettingSettings = false;
 	}
 	
 	
@@ -163,6 +166,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		if (gettingSettings) return;
 		if (e.getSource() == cbMixerGain) {
 			try {
 				if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -202,6 +206,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
+		if (gettingSettings) return;
 		if (e.getSource() == ifSpinner) {
 			int u = Integer.parseInt((String) ifSpinner.getValue());
 	        try {
