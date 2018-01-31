@@ -210,7 +210,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			is = new FileInputStream(f);
 			tleList = FoxTLE.importFoxSat(is);
 		} catch (IOException e) {
-			e.printStackTrace(Log.getWriter()); // No TLE, but this is not viewed as fatal.  It should be fixed by Kep check
+			Log.println("TLE file not loaded: " + file);
+			//e.printStackTrace(Log.getWriter()); // No TLE, but this is not viewed as fatal.  It should be fixed by Kep check
 		} finally {
 			try {
 				if (is != null) is.close();
