@@ -55,6 +55,7 @@ public abstract class Filter {
 	}
 	
 	public double getGain() {return gain;}
+	
 	public void setDecimationFactor(int f) {
 		decimationFactor = f;
 		decimationCount = f; // so we start from the first value

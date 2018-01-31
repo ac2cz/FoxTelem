@@ -354,7 +354,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
 		rdbtnUseNco.setSelected(SourceIQ.useNCO);
-		rdbtnUseNco.setVisible(false);
+		rdbtnUseNco.setVisible(true);
 		optionsPanel.add(rdbtnUseNco);
 		
 

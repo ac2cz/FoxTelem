@@ -6,7 +6,11 @@ import org.jtransforms.fft.DoubleFFT_1D;
 
 import common.Config;
 import common.Log;
+import filter.CICDecimationFilter;
 import filter.DcRemoval;
+import filter.Filter;
+import filter.RaisedCosineFilter;
+import filter.WindowedSincFilter;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -60,7 +64,7 @@ public class SourceIQ extends SourceAudio {
 	
 	double[] outputData = null;
 	double[] fcdData = null; //new double[samplesToRead];
-//	double[] fcdData2 = null; //new double[samplesToRead];
+	double[] fcdData2 = null; //new double[samplesToRead];
 	double[] audioData = null;
 	double[] demodAudio = null; //new double[samplesToRead/4];
 
@@ -98,8 +102,8 @@ public class SourceIQ extends SourceAudio {
 	DcRemoval iDcFilter;
 	DcRemoval qDcFilter;
 	
-//	Filter decimateFilter;
-//	Filter decimateFilter2;
+	Filter decimateFilter;
+	Filter decimateFilter2;
 	
 //	Filter audioFilterI;
 //	Filter audioFilterQ;
@@ -295,7 +299,7 @@ public class SourceIQ extends SourceAudio {
 		overlap = new double[2*FFT_SAMPLES - (samplesToRead)]; // we only use part of this, but this is the maximum it could be
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
-//		fcdData2 = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
+		fcdData2 = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
 		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
 
@@ -305,16 +309,31 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
 /*		
-		decimateFilter = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 256);
+		decimateFilter = new RaisedCosineFilter(audioFormat, fcdData.length);
+		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 512);
 		decimateFilter.setFilterDC(false);
 		decimateFilter.setAGC(false);
 
-		decimateFilter2 = new WindowedSincFilter(audioFormat, fcdData.length);
-		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 256);
+		decimateFilter2 = new RaisedCosineFilter(audioFormat, fcdData.length);
+		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 512);
 		decimateFilter2.setFilterDC(false);
 		decimateFilter2.setAGC(false);
 */
+		decimateFilter = new CICDecimationFilter(audioFormat, fcdData.length);
+		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 64);
+		decimateFilter.setFilterDC(false);
+		decimateFilter.setAGC(false);
+
+		decimateFilter2 = new CICDecimationFilter(audioFormat, fcdData.length);
+		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 64);
+		decimateFilter2.setFilterDC(false);
+		decimateFilter2.setAGC(false);
+
+		decimateFilter.setDecimationFactor(decimationFactor);
+		decimateFilter2.setDecimationFactor(decimationFactor);
+
+
+		
 		audioDcFilter = new DcRemoval(0.9999d);
 
 		iDcFilter = new DcRemoval(0.9999d);
@@ -419,16 +438,14 @@ public class SourceIQ extends SourceAudio {
 			fcdData[j] = iDcFilter.filter(id);
 			fcdData[j+1] = qDcFilter.filter(qd);
 		}
-/*		
+		
 		if (useNCO) {
 				 ncoDecimate(fcdData, fcdData2);
 		}
-*/
+
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
-			if (useNCO) {
-			}
 			id = fcdData[j];
 			qd = fcdData[j+1];
 			// filter out any DC from I/Q signals
@@ -454,19 +471,20 @@ public class SourceIQ extends SourceAudio {
  		
 		if (Config.showIF) calcPsd();
 
-		if (!useNCO && mode != MODE_PSK)
+		if (useNCO || mode == MODE_PSK) 
+			;
+		else
 			inverseFFT(fftData);
 		int d=0;		
-		
+
+		if (!useNCO)
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-			if (mode != MODE_PSK)
-				if (useNCO)
-					;//demodAudio[d++] = fm.demodulate(fcdData2[j], fcdData2[j+1]);	
-				else
-					demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
-			else	
+			if (mode == MODE_PSK)
 				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+			else
+				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
+
 		}
 		
 		int k = 0;
@@ -481,12 +499,12 @@ public class SourceIQ extends SourceAudio {
 			else {
 				antiAlias16kHzIIRFilter(demodAudio);				
 			}
-		/*
+		
 		if (useNCO) {
 			// Every 4th entry goes to the audio output to get us from 192k -> 48k
 			for (int j=0; j < fcdData2.length; j+=decimationFactor*2 ) { // data size is 1 decimate by factor of 4 to get to audio format size
 				double finalValue = fm.demodulate(fcdData2[j], fcdData2[j+1]);
-				//              double finalValue = audioDcFilter.filter(audioValue); // remove DC.  Only need to do this to the values we want to keep
+				finalValue = audioDcFilter.filter(finalValue); // remove DC.  Only need to do this to the values we want to keep
 				// FUDGE - safety factor because the decimation is not exact
 				if (k >= audioData.length ) {
 					//Log.println("k:" + k);
@@ -497,7 +515,7 @@ public class SourceIQ extends SourceAudio {
 			}
 
 		} else
-		*/
+		
 		// Every 4th entry goes to the audio output to get us from 192k -> 48k
 		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
 			// scaling and conversion to integer
@@ -1110,14 +1128,11 @@ public class SourceIQ extends SourceAudio {
 		}
 	}
 	
-	/*
-	double gain = 50;
+	
+	double gain = 1;
 	private double [] ncoDecimate(double[] samples, double[] translated) {
 		int ssbOffset = 0;
 		double id, qd;
-
-		decimateFilter.setDecimationFactor(decimationFactor);
-		decimateFilter2.setDecimationFactor(decimationFactor);
 
 		for( int x = 0; x < samples.length; x += 2 ) {
 			id = gain*samples[x];
@@ -1131,6 +1146,6 @@ public class SourceIQ extends SourceAudio {
 		return translated;
 
 	}
-	*/
+	
 
 }
