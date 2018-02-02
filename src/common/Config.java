@@ -19,7 +19,7 @@ import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
 import telemetry.PayloadStore;
 import telemetry.RawFrameQueue;
-import uk.me.g4dpz.satellite.GroundStationPosition;
+import uk.me.g4dpz.satellite.GroundStationPosition;;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -256,6 +256,9 @@ public class Config {
 	static public boolean insertMissingBits = true;
 	static public boolean useLongPRN = true;
 	static public boolean firstRun106 = true; // first time user is running version 1.06
+	
+	// V1.07
+	static public boolean useNCO = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -674,6 +677,9 @@ public class Config {
 		properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
 		properties.setProperty("firstRun106", Boolean.toString(firstRun106));
 		
+		// V1.07
+		properties.setProperty("useNCO", Boolean.toString(useNCO));
+		
 		store();
 	}
 	
@@ -843,6 +849,9 @@ public class Config {
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
 		useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
 		firstRun106 = Boolean.parseBoolean(getProperty("firstRun106"));
+		
+		// V1.07
+		useNCO = Boolean.parseBoolean(getProperty("useNCO"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

@@ -6,11 +6,9 @@ import org.jtransforms.fft.DoubleFFT_1D;
 
 import common.Config;
 import common.Log;
-import filter.CICDecimationFilter;
 import filter.DcRemoval;
 import filter.Filter;
 import filter.RaisedCosineFilter;
-import filter.WindowedSincFilter;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -109,7 +107,6 @@ public class SourceIQ extends SourceAudio {
 //	Filter audioFilterQ;
 	
 	boolean fftDataFresh = false;
-	public static boolean useNCO = false;
 	public boolean offsetFFT = true;
 	int dist = 0; // the offset distance
 	
@@ -308,17 +305,17 @@ public class SourceIQ extends SourceAudio {
 		Log.println("Decimation Factor: " + decimationFactor);
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
-/*		
+		
 		decimateFilter = new RaisedCosineFilter(audioFormat, fcdData.length);
-		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 512);
+		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 128);
 		decimateFilter.setFilterDC(false);
 		decimateFilter.setAGC(false);
 
 		decimateFilter2 = new RaisedCosineFilter(audioFormat, fcdData.length);
-		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 512);
+		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 128);
 		decimateFilter2.setFilterDC(false);
 		decimateFilter2.setAGC(false);
-*/
+/*
 		decimateFilter = new CICDecimationFilter(audioFormat, fcdData.length);
 		decimateFilter.init(IQ_SAMPLE_RATE, filterWidthHz, 64);
 		decimateFilter.setFilterDC(false);
@@ -328,7 +325,7 @@ public class SourceIQ extends SourceAudio {
 		decimateFilter2.init(IQ_SAMPLE_RATE, filterWidthHz, 64);
 		decimateFilter2.setFilterDC(false);
 		decimateFilter2.setAGC(false);
-
+*/
 		decimateFilter.setDecimationFactor(decimationFactor);
 		decimateFilter2.setDecimationFactor(decimationFactor);
 
@@ -439,7 +436,7 @@ public class SourceIQ extends SourceAudio {
 			fcdData[j+1] = qDcFilter.filter(qd);
 		}
 		
-		if (useNCO) {
+		if (Config.useNCO) {
 				 ncoDecimate(fcdData, fcdData2);
 		}
 
@@ -471,13 +468,13 @@ public class SourceIQ extends SourceAudio {
  		
 		if (Config.showIF) calcPsd();
 
-		if (useNCO || mode == MODE_PSK) 
+		if (Config.useNCO || mode == MODE_PSK) 
 			;
 		else
 			inverseFFT(fftData);
 		int d=0;		
 
-		if (!useNCO)
+		if (!Config.useNCO)
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
 			if (mode == MODE_PSK)
@@ -492,7 +489,7 @@ public class SourceIQ extends SourceAudio {
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
 		// No needed with NCO as we have already filtered to 3kHz
-		if (!useNCO)
+		if (!Config.useNCO)
 		for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
 			if (highSpeed)
 				antiAlias20kHzIIRFilter(demodAudio);
@@ -500,7 +497,7 @@ public class SourceIQ extends SourceAudio {
 				antiAlias16kHzIIRFilter(demodAudio);				
 			}
 		
-		if (useNCO) {
+		if (Config.useNCO) {
 			// Every 4th entry goes to the audio output to get us from 192k -> 48k
 			for (int j=0; j < fcdData2.length; j+=decimationFactor*2 ) { // data size is 1 decimate by factor of 4 to get to audio format size
 				double finalValue = fm.demodulate(fcdData2[j], fcdData2[j+1]);

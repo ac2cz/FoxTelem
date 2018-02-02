@@ -95,6 +95,7 @@ public class AirspyDevice extends device.TunerController
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.90;
 	public static final AirspySampleRate DEFAULT_SAMPLE_RATE =
 			new AirspySampleRate( 1, 3000000, "3.00 MHz" );
+			//new AirspySampleRate( 1, 3000000, "3.00 MHz" );
 	public static final long USB_TIMEOUT_MS = 2000l; //milliseconds
 	public static final byte USB_ENDPOINT = (byte)0x81;
 	public static final byte USB_INTERFACE = (byte)0x0;
