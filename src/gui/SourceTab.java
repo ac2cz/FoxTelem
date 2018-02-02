@@ -350,10 +350,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		findSignalPanel.setVisible(Config.findSignal);
 	
-		
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
-		rdbtnUseNco.setSelected(SourceIQ.useNCO);
+		rdbtnUseNco.setSelected(Config.useNCO);
 		rdbtnUseNco.setVisible(true);
 		optionsPanel.add(rdbtnUseNco);
 		
@@ -1909,9 +1908,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == rdbtnUseNco) {
 			if (fftPanel != null)
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-					SourceIQ.useNCO = false;
+				Config.useNCO = false;
 	        } else {
-	        		SourceIQ.useNCO = true;
+	        	Config.useNCO = true;
 	        	
 	        }
 		}

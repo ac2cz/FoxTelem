@@ -116,6 +116,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton cbUTC;
 	private JButton cbUptime;
 	private JCheckBox cbRoundLabels;
+	private JCheckBox cbShowSun;
 	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
@@ -194,6 +195,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean showUTCtime = false;
 	public boolean hideUptime = true;
 	public boolean roundLabels = true;
+	public boolean showSun = false;
 	public boolean hidePoints = true;
 	public boolean hideLines = true;
 	public boolean showContinuous = false;
@@ -424,6 +426,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			cbRoundLabels.setSelected(roundLabels);
 			cbRoundLabels.addItemListener(this);
 			footerPanel1.add(cbRoundLabels);
+			cbShowSun = new JCheckBox("Sun");
+			cbShowSun.setSelected(showSun);
+			cbShowSun.addItemListener(this);
+			footerPanel1.add(cbShowSun);
 		}
 		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 
@@ -1454,6 +1460,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				roundLabels = false;
 			} else {
 				roundLabels = true;
+			}
+			if (textDisplay)
+				diagnosticTable.updateData();
+			else
+				panel.updateGraphData("GraphFrame:stateChange:altLabels");
+		}
+		if (e.getSource() == cbShowSun) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				showSun = false;
+			} else {
+				showSun = true;
 			}
 			if (textDisplay)
 				diagnosticTable.updateData();
