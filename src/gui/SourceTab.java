@@ -1125,7 +1125,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 		// SPEAKER OUTPUT COMBO BOX
 		if (e.getSource() == speakerComboBox) {
-			//String source = (String)speakerComboBox.getSelectedItem();
+			processSpeakerComboBox();
 		}
 		
 		// USER CHANGES THE SAMPLE RATE
@@ -1289,6 +1289,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	}
 
+	private void processSpeakerComboBox() {
+		int position = speakerComboBox.getSelectedIndex();
+		
+		if (position != -1) {
+			Config.audioSink = SinkAudio.getDeviceName(position);
+		}
+	}
+	
 	@SuppressWarnings("unused")
 	private void releaseFcd() {
 		if (rfDevice != null) { // release the FCD device
