@@ -6,6 +6,9 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,7 +17,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
-
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import telemServer.StpFileRsDecodeException;
@@ -745,8 +747,9 @@ public abstract class Frame implements Comparable<Frame> {
 		return s;
 	}
 	
-	public String getInsertStmt() {
-	//	java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
+	public PreparedStatement getPreparedInsertStmt(Connection con) throws SQLException {
+				
+		java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
 		//FIXME - need to omake this a proper date in the DB
 		String dt = "";
 		if (stpDate != null)
@@ -760,7 +763,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (receiver_rf.length() > 50) receiver_rf = receiver_rf.substring(0, 50);
 		if (measuredTCA.length() > 32) measuredTCA = measuredTCA.substring(0, 32);
 		if (measuredTCAfrequency.length() > 32) measuredTCAfrequency = measuredTCAfrequency.substring(0, 32);
-		s = s + " (stpDate,  id, resets, uptime, type, \n";
+		s = s + "insert into STP_HEADER (stpDate,  id, resets, uptime, type, \n";
 		s = s + "sequenceNumber,\n";
 		s = s + "length,\n";
 		s = s + "source,\n";
@@ -771,21 +774,31 @@ public abstract class Frame implements Comparable<Frame> {
 		s = s + "demodulator,\n";
 		s = s + "measuredTCA,\n";
 		s = s + "measuredTCAfrequency)\n";
-		
-		s = s + "values ('" + dt + "', " + this.foxId + ", " + header.resets + ", " + header.uptime + ", " + header.type + ",\n";
-		s = s + sequenceNumber+",\n";
-		s = s + length+",\n";
-		s = s + "'" + source+"',\n";
-		s = s + "'" + receiver+"',\n";
-		s = s + "'" + frequency+"',\n";
-		s = s + "'" + rx_location+"',\n";
-		s = s + "'" + receiver_rf+"',\n";
-		s = s + "'" + demodulator+"',\n";
-		s = s + "'" + measuredTCA+"',\n";
-		s = s + "'" + measuredTCAfrequency+"')\n";
-		return s;
-	}
 
+		s = s + "values (?, ?, ?, ?, ?,"
+				+ "?,?,?,?,?,?,?,?,?,?)";
+
+		java.sql.PreparedStatement ps = con.prepareStatement(s);
+		
+		ps.setString(1, dt);
+		ps.setInt(2, foxId);
+		ps.setInt(3, header.resets);
+		ps.setLong(4, header.uptime);
+		ps.setInt(5, header.type);
+		ps.setLong(6, sequenceNumber);
+		ps.setString(7, length);
+		ps.setString(8, source);
+		ps.setString(9, receiver);
+		ps.setString(10, frequency);
+		ps.setString(11, rx_location);
+		ps.setString(12, receiver_rf);
+		ps.setString(13, demodulator);
+		ps.setString(14, measuredTCA);
+		ps.setString(15, measuredTCAfrequency);
+
+		return ps;
+		
+	}
 	
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame)
