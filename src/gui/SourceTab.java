@@ -983,6 +983,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (decoder2 != null)
 				decoder2.stopAudioMonitor();
 			if (decoder1 != null)
+				if (Config.monitorAudio && sink != null)
 				decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 		} catch (IllegalArgumentException e1) {
 			// TODO Auto-generated catch block
@@ -1005,6 +1006,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (decoder1 != null)
 					decoder1.stopAudioMonitor();
 				if (decoder2 != null)
+					if (Config.monitorAudio && sink != null)
 					decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 			} catch (IllegalArgumentException e1) {
 				// TODO Auto-generated catch block
@@ -1127,15 +1129,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == speakerComboBox) {
 			processSpeakerComboBox();
 		}
-		
+
 		// USER CHANGES THE SAMPLE RATE
 		if (e.getSource() == cbSoundCardRate) {
 			// store the value so it is saved if we exit
 			Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());
 		}
-		
+
 		// MONITOR AUDIO BUTTON
 		if (e.getSource() == btnMonitorAudio) {
+			if (!Config.monitorAudio) {// then we are toggling it on, get the sink ready
+				setupAudioSink(decoder1);
+			} else {// we are toggling it off
+				sink.flush();
+				sink.closeOutput();
+				sink = null;
+			}
 			try {
 				if (viewLowSpeed.isSelected())
 					if (decoder1 != null) { // then we want to toggle the live audio	
@@ -1153,14 +1162,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				JOptionPane.showMessageDialog(this,
 						e1.toString(),
 						"ARGUMENT ERROR",
-					    JOptionPane.ERROR_MESSAGE) ;
+						JOptionPane.ERROR_MESSAGE) ;
 				//e1.printStackTrace();	
 			} catch (LineUnavailableException e1) {
 				JOptionPane.showMessageDialog(this,
 						e1.toString(),
 						"LINE UNAVAILABLE ERROR",
-					    JOptionPane.ERROR_MESSAGE) ;
+						JOptionPane.ERROR_MESSAGE) ;
 			}
+
 			if (Config.monitorAudio) { 
 				btnMonitorAudio.setText("Silence Speaker");
 				speakerComboBox.setEnabled(false);
@@ -1186,6 +1196,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private void setupAudioSink(Decoder decoder12) {
 		int position = speakerComboBox.getSelectedIndex();
+		if (sink != null) {
+			sink.flush();
+			sink.closeOutput();
+			sink = null;
+		}
 		
 		try {
 			sink = new SinkAudio(decoder12.getAudioFormat());
@@ -1431,7 +1446,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}
-		setupAudioSink(decoder1);
+		if (Config.monitorAudio)
+			setupAudioSink(decoder1);
 	}
 	
 
@@ -1559,7 +1575,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						iqSource1 = new SourceIQ(rate*2, 0,decoder1HS); 
 						iqSource1.setAudioSource(audioSource,0);
 						setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
-						setupAudioSink(decoder1);
+						
 						Config.passManager.setDecoder1(decoder1, iqSource1, this);
 						if (Config.autoDecodeSpeed)
 							Config.passManager.setDecoder2(decoder2, iqSource2, this);
@@ -1621,16 +1637,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						decoder2Thread = new Thread(decoder2);
 						decoder2Thread.setUncaughtExceptionHandler(Log.uncaughtExHandler);				
 					}
-					try {
-						decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
-					} catch (IllegalArgumentException e) {
-						Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
-						e.printStackTrace(Log.getWriter());
-					} catch (LineUnavailableException e) {
-						Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
-						e.printStackTrace(Log.getWriter());
-					}
-					
+					if (Config.monitorAudio && sink != null)
+						try {
+							decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
+						} catch (IllegalArgumentException e) {
+							Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
+							e.printStackTrace(Log.getWriter());
+						} catch (LineUnavailableException e) {
+							Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
+							e.printStackTrace(Log.getWriter());
+						}
+
 				}
 
 				if (decoder1Thread != null) {

@@ -275,7 +275,8 @@ public abstract class Decoder implements Runnable {
 		Config.monitorFilteredAudio = monitorFiltered;
 		monitorAudio = !monitorAudio;
 		if (!monitorAudio) {
-			sink.closeOutput();
+			if (sink != null) 
+				sink.closeOutput();
 			sink = null;
 		} else {
 			sink.setDevice(position);
