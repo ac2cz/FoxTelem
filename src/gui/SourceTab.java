@@ -72,10 +72,7 @@ import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 import device.TunerManager;
-import fcd.FcdDevice;
-import fcd.FcdProPanel;
-import fcd.FcdProPlusDevice;
-import fcd.FcdProPlusPanel;
+import device.fcd.FCDTunerController;
 import telemetry.FramePart;
 
 import javax.swing.JProgressBar;
@@ -560,13 +557,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private String[] getSources() {
 		soundcardSources = SourceSoundCardAudio.getAudioSources();
-		usbSources = new ArrayList<String>();
-		usbSources.add("AirSpy");
-		usbSources.add("RTL SDR");
-		usbSources.add("FCD Pro Plus");
+//REMOVED		usbSources = new ArrayList<String>();
+//		usbSources.add("AirSpy");
+//		usbSources.add("RTL SDR");
 
-        String[] allSources = new String[soundcardSources.length + usbSources.size()];
-//		String[] allSources = new String[soundcardSources.length];
+// REMOVED FROM RELEASE        String[] allSources = new String[soundcardSources.length + usbSources.size()];
+		String[] allSources = new String[soundcardSources.length];
 		int j = 0;
 		for (String s : soundcardSources) allSources[j++] = s;
 		if (usbSources != null)
@@ -1795,7 +1791,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
 		}
 		
-		if (rfDevice != null && !(rfDevice instanceof FcdDevice)) {
+		if (rfDevice != null && !(rfDevice instanceof FCDTunerController)) {
 			try {
 				rfDevice.cleanup();  // Must call this to stop the buffer copy routines.  If exiting the USB device causes issues then don't exit in the called routine
 			} catch (IOException e) {

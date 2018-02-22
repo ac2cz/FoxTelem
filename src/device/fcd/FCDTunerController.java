@@ -17,6 +17,7 @@
  ******************************************************************************/
 package device.fcd;
 
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.IntBuffer;
@@ -30,6 +31,7 @@ import org.usb4java.DeviceHandle;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
+import common.Config;
 import common.Log;
 import device.DeviceException;
 import device.fcd.FCD1TunerController.Block;
@@ -132,21 +134,6 @@ public abstract class FCDTunerController extends device.TunerController
 	 */
 	public abstract int getCurrentSampleRate() throws DeviceException;
 	
-	/**
-	 * Tuner class
-	 
-	public abstract TunerClass getTunerClass();
-*/
-	/**
-	 * Tuner type
-	 
-	public abstract TunerType getTunerType();
-*/
-	/**
-	 * Applies the settings in the tuner configuration
-	 
-	public abstract void apply( TunerConfiguration config ) throws DeviceException;
-*/
 	/**
 	 * USB address (bus/port)
 	 */
@@ -251,7 +238,7 @@ public abstract class FCDTunerController extends device.TunerController
 	/**
 	 * Sets the actual (uncorrected) device frequency
 	 */
-	public void setTunedFrequency( long frequency ) throws DeviceException
+	public int setFrequency( long frequency ) throws DeviceException
 	{
 		try
 		{
@@ -262,6 +249,7 @@ public abstract class FCDTunerController extends device.TunerController
 			throw new DeviceException( "Couldn't set FCD Local " +
 					"Oscillator Frequency [" + frequency + "]" +e.getMessage() );
 		}
+		return 0;
 	}
 
 	/**
@@ -633,5 +621,9 @@ public abstract class FCDTunerController extends device.TunerController
 			
 			return retVal;
 		}
+	}
+	
+	public void cleanup() throws IOException, DeviceException {
+		//Leave this connected for stability
 	}
 }

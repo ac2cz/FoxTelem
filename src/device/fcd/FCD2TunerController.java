@@ -162,6 +162,7 @@ public class FCD2TunerController extends FCDTunerController
         	throw new DeviceException( "error while setting Bias Tee: " + e.getMessage() );
         }
 	}
+	
 	public boolean getBiasTee() throws DeviceException {
 		try {
         	ByteBuffer buffer = send( FCDCommand.APP_GET_BIAS_TEE );
@@ -203,141 +204,84 @@ public class FCD2TunerController extends FCDTunerController
         }
 		return "";
 	}
-
-	/*
-	@Override
-    public void apply( TunerConfiguration config ) throws DeviceException
-    {
-		if( config instanceof FCD2TunerConfiguration )
-		{
-			FCD2TunerConfiguration fcd2 = (FCD2TunerConfiguration)config;
-
-			setFrequencyCorrection( fcd2.getFrequencyCorrection() );
-			setFrequency( fcd2.getFrequency() );
-			setLNAGain( fcd2.getGainLNA() );
-			setMixerGain( fcd2.getGainMixer() );
-			
-			try
-			{
-				setFrequency( fcd2.getFrequency() );
-			}
-			catch( DeviceException se )
-			{
-				//Do nothing, we couldn't set the frequency
-			}
-		}
-    }
-	*/
 	
-	public int getDCCorrection()
-	{
+	public int getDCCorrection() {
 		int dcCorrection = -999;
 		
-		try
-        {
+		try {
 			ByteBuffer buffer = send( FCDCommand.APP_GET_DC_CORRECTION );
 			
 			buffer.order( ByteOrder.LITTLE_ENDIAN );
 			
 			return buffer.getInt( 2 );
         }
-        catch ( Exception e )
-        {
+        catch ( Exception e ) {
         	Log.errorDialog( "error getting dc correction value", e.getMessage() );
         }
 		
 		return dcCorrection;
 	}
 	
-	public void setDCCorrection( int value )
-	{
-		try
-        {
+	public void setDCCorrection( int value ) {
+		try {
 			send( FCDCommand.APP_SET_DC_CORRECTION, value );
         }
-        catch ( Exception e )
-        {
+        catch ( Exception e ) {
         	Log.errorDialog( "error setting dc correction to [" + value + "]", e.getMessage() );
         }
 	}
 	
-	public int getIQCorrection()
-	{
+	public int getIQCorrection() {
 		int iqCorrection = -999;
 		
-		try
-        {
+		try {
 			ByteBuffer buffer = send( FCDCommand.APP_GET_IQ_CORRECTION );
 			
 			buffer.order( ByteOrder.LITTLE_ENDIAN );
 			
 			return buffer.getInt( 2 );
         }
-        catch ( Exception e )
-        {
+        catch ( Exception e )  {
         	Log.errorDialog( "error reading IQ correction value", e.getMessage() );
         }
 	        
 		return iqCorrection;
 	}
 	
-	public void setIQCorrection( int value )
-	{
-		try
-        {
+	public void setIQCorrection( int value ) {
+		try {
 	        send( FCDCommand.APP_SET_IQ_CORRECTION, value );
         }
-        catch ( Exception e )
-        {
+        catch ( Exception e ) {
         	Log.errorDialog( "error setting IQ correction to [" + value + "]", e.getMessage() );
         }
 	}
 	
-	public enum Block 
-	{ 
+	public enum Block { 
 		CELLULAR_BAND_BLOCKED( "Blocked" ),
 		NO_BAND_BLOCK( "Unblocked" ),
 		UNKNOWN( "Unknown" );
 		
 		private String mLabel;
 		
-		private Block( String label )
-		{
+		private Block( String label ) {
 		    mLabel = label;
 		}
 		
-		public String getLabel()
-		{
+		public String getLabel() {
 		    return mLabel;
 		}
 
-		public static Block getBlock( String block )
-		{
+		public static Block getBlock( String block ) {
 			Block retVal = UNKNOWN;
-
-			if( block.equalsIgnoreCase( "No blk" ) )
-			{
+			if( block.equalsIgnoreCase( "No blk" ) ) {
 				retVal = NO_BAND_BLOCK;
 			}
-			else if( block.equalsIgnoreCase( "Cell blk" ) )
-			{
+			else if( block.equalsIgnoreCase( "Cell blk" ) ) {
 				retVal = CELLULAR_BAND_BLOCKED;
 			}
-			
 			return retVal;
 		}
-	}
-
-	@Override
-	public int setFrequency(long freq) throws DeviceException {
-		return 0;
-		
-	}
-
-	@Override
-	public void cleanup() throws IOException, DeviceException {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
