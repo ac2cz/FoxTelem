@@ -1,4 +1,4 @@
-package fcd;
+package device.fcd;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -29,7 +29,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
-	FcdProPlusDevice fcd;
+	FCD2TunerController fcd;
 	JCheckBox cbMixerGain;
 	JCheckBox cbLnaGain;
 	JCheckBox cbBiasTee;
@@ -112,16 +112,16 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	
 	@Override
 	public void setDevice(TunerController fcd) throws IOException, DeviceException {
-		setFcd((FcdProPlusDevice)fcd);
+		setFcd((FCD2TunerController)fcd);
 		
 	}
-	public void setFcd(FcdProPlusDevice f) throws IOException, DeviceException { 
+	public void setFcd(FCD2TunerController f) throws IOException, DeviceException { 
 		fcd = f; 
 		getSettings();
 	}
 	
 	public void updateFilter() throws IOException, DeviceException {
-		rfFilterValue.setText(fcd.getRfFilter());
+// IMPLEMENT		rfFilterValue.setText(fcd.getRfFilter());
 	}
 	
 	public void getSettings()  throws IOException, DeviceException {
@@ -132,8 +132,9 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  // Allow startup to settle down first
-		cbMixerGain.setSelected(fcd.getMixerGain());
-		cbLnaGain.setSelected(fcd.getLnaGain());	
+		boolean b = fcd.getLnaGain();
+		cbLnaGain.setSelected(b);
+		cbMixerGain.setSelected(fcd.getMixerGain());	
 		rfFilterValue.setText(fcd.getRfFilter());
 		ifFilterValue.setText(fcd.getIfFilter());
 		cbBiasTee.setSelected(fcd.getBiasTee());
@@ -183,73 +184,66 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	public void itemStateChanged(ItemEvent e) {
 		if (gettingSettings) return;
 		if (e.getSource() == cbMixerGain) {
+			
 			try {
 				if (e.getStateChange() == ItemEvent.DESELECTED) {
 					fcd.setMixerGain(false);
 				} else {
 					fcd.setMixerGain(true);
 				}
-				cbMixerGain.setSelected(fcd.getMixerGain());
+				//cbMixerGain.setSelected(fcd.getMixerGain());
 			} catch (DeviceException e1) {
 				Log.println("Error setting Mixer Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading Mixer Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			}
 		}
 		if (e.getSource() == cbLnaGain) {
+			
 			try {
 				if (e.getStateChange() == ItemEvent.DESELECTED) {
 					fcd.setLnaGain(false);
 				} else {
 					fcd.setLnaGain(true);
 				}
-				cbLnaGain.setSelected(fcd.getLnaGain());
+//				cbLnaGain.setSelected(fcd.getLnaGain());
 			} catch (DeviceException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
 			}
+			
 		}
 		if (e.getSource() == cbBiasTee ) {
+			
 			try {
 				if (e.getStateChange() == ItemEvent.DESELECTED) {
 					fcd.setBiasTee(false);
 				} else {
 					fcd.setBiasTee(true);
 				}
-				cbBiasTee.setSelected(fcd.getBiasTee());
 			} catch (DeviceException e1) {
 				Log.println("Error setting Bias Tee on FCD");
 				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading Bias Tee on FCD");
-				e1.printStackTrace(Log.getWriter());
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+			} 
 		}
+		
 		
 	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (gettingSettings) return;
+		/*
 		if (e.getSource() == ifSpinner) {
 			int u = Integer.parseInt((String) ifSpinner.getValue());
 	        try {
 	        	Log.println("Setting IF Gain to: " + u);
-				fcd.setIFGain(u);
+	        	// IMPLEMENT			fcd.setIFGain(u);
 			} catch (DeviceException e1) {
 				Log.println("Error setting IF Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			}
 		}
+		*/
 		
 	}
 

@@ -563,15 +563,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		usbSources = new ArrayList<String>();
 		usbSources.add("AirSpy");
 		usbSources.add("RTL SDR");
+		usbSources.add("FCD Pro Plus");
 
-// THIS REMOVES USB		String[] allSources = new String[soundcardSources.length + usbSources.size()];
-		String[] allSources = new String[soundcardSources.length];
+        String[] allSources = new String[soundcardSources.length + usbSources.size()];
+//		String[] allSources = new String[soundcardSources.length];
 		int j = 0;
 		for (String s : soundcardSources) allSources[j++] = s;
-		/* THIS COMMENT REMOVED THE USB SOURCES FOR THI RELEASE
 		if (usbSources != null)
 			for (String s : usbSources) allSources[j++] = s;
-		*/
 		return allSources;
 		
 		//return soundcardSources;
@@ -1117,7 +1116,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 		// Frequency Text Field
 		if (e.getSource() == this.txtFreq) {
-			setCenterFreq();
+			// User has done this so trap the error and report
+			try {
+				setCenterFreq();				
+			} catch (DeviceException e1) {
+				Log.errorDialog("ERROR with txtFreq", e1.getMessage());
+				e1.printStackTrace(Log.getWriter());
+			} catch (IOException e1) {
+				e1.printStackTrace(Log.getWriter());
+			} catch (LibUsbException e2) {
+				e2.printStackTrace(Log.getWriter());
+			}
 		}
 		
 		// SOUND CARD AND FILE COMBO BOX
@@ -1342,16 +1351,23 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (fcdSelected) {
 			
 				if (rfDevice == null) {
-					rfDevice = FcdDevice.makeDevice();	
+					// FCDPP
+					short vendorId = (short)0x04D8;
+					short deviceId = (short)0xFB31;
+					
+					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+					try {
+						rfDevice = tunerManager.findDevice(vendorId, deviceId);
+					} catch (UsbException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
+//					rfDevice = FcdDevice.makeDevice();	
 					if (rfDevice == null) return false; // FIXME this is an issue because we found the description but not the HID device
 				}
 				if (panelFcd == null)
 					try {
-						if (rfDevice instanceof FcdProPlusDevice)
-							panelFcd = new FcdProPlusPanel();
-						else
-							panelFcd = new FcdProPanel();
-						
+						panelFcd = rfDevice.getDevicePanel();
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					} catch (DeviceException e) {
@@ -1491,7 +1507,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							iqSource1 = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4,0,highSpeed.isSelected());
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
-							setCenterFreq();
+							try {
+								setCenterFreq();
+							} catch (DeviceException e) {
+								Log.println("ERROR setting the Center Frequency: " + e.getMessage());
+								e.printStackTrace(Log.getWriter());
+							} catch (IOException e) {
+								Log.println("ERROR setting the Center Frequency: " + e.getMessage());
+								e.printStackTrace(Log.getWriter());
+							}
 							Config.passManager.setDecoder1(decoder1, iqSource1, this);
 							//if (Config.autoDecodeSpeed)
 							//	Config.passManager.setDecoder2(decoder2, iqSource2, this);
@@ -1515,6 +1539,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} else if (position-soundcardSources.length == 1) { // rtlsdr
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
+					} else if (position-soundcardSources.length == 2) { // FCDPP
+						vendorId = (short)0x04D8;
+						deviceId = (short)0xFB31;
 					}
 					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 					try {
@@ -1564,8 +1591,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						int channels = 0;
 						if (Config.autoDecodeSpeed)
 							channels = 2;
-						audioSource = new SourceUSB("USB Source", rate, rate*2, channels); 
-						rfDevice.setUsbSource((SourceUSB)audioSource);
+						if (position-soundcardSources.length == 2) { // FCDPP
+							setFcdSampleRate();
+							Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
+							audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
+							
+						} else {
+							audioSource = new SourceUSB("USB Source", rate, rate*2, channels); 
+							rfDevice.setUsbSource((SourceUSB)audioSource);
+						}
 						boolean decoder1HS = highSpeed.isSelected();
 						if (Config.autoDecodeSpeed) {
 							iqSource2 = new SourceIQ(rate*2, 0,true);
@@ -1623,9 +1657,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e.printStackTrace(Log.getWriter());
 						stopButton();
 					} catch (DeviceException e) {
-						Log.errorDialog("FCD Start Error", e.getMessage());
+						Log.println("FCD Startup Error writing commands: " + e.getMessage());
 						e.printStackTrace(Log.getWriter());
-						stopButton();
 					}
 				}
 				
@@ -1696,7 +1729,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					if (rfDevice != null) {
 						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
-						setCenterFreq();
+						try {
+							setCenterFreq();
+						} catch (DeviceException e) {
+							Log.println("ERROR setting the Center Frequency: " + e.getMessage());
+							e.printStackTrace(Log.getWriter());
+						} catch (IOException e) {
+							Log.println("ERROR setting the Center Frequency: " + e.getMessage());
+							e.printStackTrace(Log.getWriter());
+						}
+
 					}
 					
 				}
@@ -1705,7 +1747,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	}
 
-	private void setCenterFreq() {
+	private void setCenterFreq() throws DeviceException, IOException {
 		//String text = txtFreq.getText();
 		try {
 			txtFreq.selectAll();
@@ -1719,17 +1761,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
-					try {
-						rfDevice.setFrequency(freq*1000);
-						panelFcd.updateFilter();
-					} catch (DeviceException e1) {
-						Log.errorDialog("ERROR", e1.getMessage());
-						e1.printStackTrace(Log.getWriter());
-					} catch (IOException e1) {
-						e1.printStackTrace(Log.getWriter());
-					} catch (LibUsbException e2) {
-						e2.printStackTrace(Log.getWriter());
-					}
+					rfDevice.setFrequency(freq*1000);
+					panelFcd.updateFilter();
 				}
 			} else {
 
@@ -2145,7 +2178,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 		}
 		if (e.getSource() == txtFreq) {
-			setCenterFreq();
+			try {
+				setCenterFreq();				
+			} catch (DeviceException e1) {
+				Log.errorDialog("ERROR loosing focus", e1.getMessage());
+				e1.printStackTrace(Log.getWriter());
+			} catch (IOException e1) {
+				e1.printStackTrace(Log.getWriter());
+			} catch (LibUsbException e2) {
+				e2.printStackTrace(Log.getWriter());
+			}
 		}
 		
 	}

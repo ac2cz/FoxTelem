@@ -2,6 +2,11 @@ package fcd;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
+
+import javax.swing.SwingWorker;
 
 import common.Config;
 import common.Log;
@@ -148,50 +153,77 @@ public abstract class FcdDevice extends TunerController {
 
 	}
 
-
-	protected void sendFcdCommand(byte[] command, int len) throws IOException, DeviceException {
+    /**
+     * To send commands to the FCD, we first wrap them in a swing worker, so we can handle any timeouts from the hardware.
+     * @param command
+     * @param len
+     * @throws IOException
+     * @throws DeviceException
+     */
+	protected void sendFcdCommand(final byte[] command, final int len) throws IOException, DeviceException {
 
 		try {
-			Thread.sleep(50); // let previous command settle
+			Thread.sleep(5); // let previous command settle
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		//HidDevice dev = null;
-		lastReport = null;
-		if (dev == null) open();
-		if (dev != null) {
-			dev.setInputReportListener(new InputReportListener() {
-				@Override
-				public void onInputReport(HidDevice source, byte Id, byte[] data, int len) {
-					lastReport = data;
+		SwingWorker worker = new SwingWorker() {
+			//HidDevice dev = null;
+			@Override
+			public String doInBackground() throws DeviceException {
+				lastReport = null;
+				if (dev == null) open();
+				if (dev != null) {
+					dev.setInputReportListener(new InputReportListener() {
+						@Override
+						public void onInputReport(HidDevice source, byte Id, byte[] data, int len) {
+							lastReport = data;
+						}
+					});
+					int result = dev.setOutputReport((byte)0, command, len);
+					Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
+
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+					result = dev.getFeatureReport(command, len);
+					if (lastReport != null) {
+						for (int i = 0; i < len; i++)
+							Log.print(String.format("%02X ", lastReport[i]));
+						Log.println("");
+						String s = new String();
+						for (int i=0; i< len; i++) {
+							s = s + (char)lastReport[i];
+							command[i] = lastReport[i];
+						}
+						//Log.println(s);
+					}
 				}
-			});
-			int result = dev.setOutputReport((byte)0, command, len);
-			Log.println("COMMAND: " + (int)command[0] + " Output Report: " + result);
-
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
+				return "";
 			}
-			result = dev.getFeatureReport(command, len);
-			if (lastReport != null) {
-				for (int i = 0; i < len; i++)
-					Log.print(String.format("%02X ", lastReport[i]));
-				Log.println("");
-				String s = new String();
-				for (int i=0; i< len; i++) {
-					s = s + (char)lastReport[i];
-					command[i] = lastReport[i];
-				}
-				//Log.println(s);
-			}
-		}
-
-
+			@Override
+		       protected void done() {
+		           try {
+		               ;
+		           } catch (Exception ignore) {
+		           }
+		       }
+		};
+		worker.execute();
+		try {
+			worker.get(5, TimeUnit.SECONDS);
+		} catch (InterruptedException | ExecutionException | TimeoutException e) {
+			// TODO Auto-generated catch block
+			Log.println("Error sending a command to the FCD.  It never returned.  Check your \n"
+					+ "hardware connection. You may need to restart FoxTelem and/or unplug and replug the device.  \n"
+					+ "Loose connections, long cables and USB hubs can cause this issue\n" + e.getMessage());
+		} 
 	}
+	
 	public int setMixerGain(boolean on) throws DeviceException {
 
 		try {
