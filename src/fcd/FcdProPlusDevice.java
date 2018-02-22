@@ -10,6 +10,9 @@ import device.DevicePanel;
 public class FcdProPlusDevice extends FcdDevice {
 
 	
+	// Pro Plus Constants
+	public static final byte APP_SET_BIAS_TEE = (byte)0x7E; //126 - Bias T for ext LNA. Send with one byte: 1=ON, 0=OFF
+	public static final byte APP_GET_BIAS_TEE = (byte)0xA6; //166
 
 	//RF Filter Numbers
 	int TRFE_0_4 = 0,
@@ -240,6 +243,47 @@ public class FcdProPlusDevice extends FcdDevice {
 	public DevicePanel getDevicePanel() throws IOException, DeviceException {
 		return new FcdProPlusPanel();
 	}
-    
+
+	public int setBiasTee(boolean on) throws DeviceException {
+
+		try {
+			int FCD_CMD_LEN = 2;
+			byte[] report = new byte[FCD_CMD_LEN];
+
+			report[0] = (byte)APP_SET_BIAS_TEE;
+			if (on)
+				report[1] = (byte)0x01;
+			else
+				report[1] = (byte)0x00;
+
+			sendFcdCommand(report, FCD_CMD_LEN);
+			if (report[0] == APP_SET_BIAS_TEE)
+				return 0;
+			else
+				throw new DeviceException("Set Bias Tee Command not executed: ");
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+
+			return -1;
+		}
+	}
+
+	public boolean getBiasTee() throws IOException, DeviceException {
+
+		int FCD_CMD_LEN = 3;
+		byte[] report = new byte[FCD_CMD_LEN];
+		report[1] = 0;
+		report[0] = (byte)APP_GET_BIAS_TEE;
+		sendFcdCommand(report,FCD_CMD_LEN);
+
+		if (report[0] == APP_GET_BIAS_TEE) {
+			Log.println("BIAS TEE: " + report[2]);
+			if (report[2] == 1)
+				return true;
+		} else
+			throw new DeviceException("Get Bias Tee Command not executed: ");
+		return false;
+	}
 
 }

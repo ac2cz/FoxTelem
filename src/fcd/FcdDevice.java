@@ -151,6 +151,12 @@ public abstract class FcdDevice extends TunerController {
 
 	protected void sendFcdCommand(byte[] command, int len) throws IOException, DeviceException {
 
+		try {
+			Thread.sleep(50); // let previous command settle
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		//HidDevice dev = null;
 		lastReport = null;
 		if (dev == null) open();

@@ -32,9 +32,11 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	FcdProPlusDevice fcd;
 	JCheckBox cbMixerGain;
 	JCheckBox cbLnaGain;
+	JCheckBox cbBiasTee;
 	JTextField rfFilterValue;
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
+	boolean gettingSettings = false;
 	
 	public FcdProPlusPanel() throws IOException, DeviceException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
@@ -47,6 +49,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 
 		cbMixerGain.setEnabled(b);
 		cbLnaGain.setEnabled(b);
+		cbBiasTee.setEnabled(b);
 	}
 	public void initializeGui() throws IOException, DeviceException {
 		setLayout(new BorderLayout(3,3));
@@ -57,10 +60,10 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		cbMixerGain = new JCheckBox("Mixer Gain");
 		top.add(cbMixerGain);
 		cbMixerGain.addItemListener(this);
-		cbLnaGain = new JCheckBox("LNA Gain    ");
+		cbLnaGain = new JCheckBox("LNA Gain");
 		top.add(cbLnaGain);
 		cbLnaGain.addItemListener(this);
-		
+		top.add(new Box.Filler(new Dimension(10,10), new Dimension(10,10), new Dimension(10,10)));
 		/*
 		JLabel lblIfGain = new JLabel("IF Gain ");
 		top.add(lblIfGain);
@@ -92,6 +95,12 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		ifFilterValue.setColumns(30);
 		ifFilterValue.setEnabled(false);
 		top.add(ifFilterValue);
+		
+		top.add(new Box.Filler(new Dimension(10,10), new Dimension(10,10), new Dimension(10,10)));
+		cbBiasTee = new JCheckBox("Bias T");
+		top.add(cbBiasTee);
+		cbBiasTee.addItemListener(this);
+		
 		top.add(new Box.Filler(new Dimension(10,10), new Dimension(500,10), new Dimension(1000,10)));
 	}
 	
@@ -110,6 +119,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	}
 	
 	public void getSettings()  throws IOException, DeviceException {
+		gettingSettings = true; // prevent the widgets from firing more commands
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -120,8 +130,10 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		cbLnaGain.setSelected(fcd.getLnaGain());	
 		rfFilterValue.setText(fcd.getRfFilter());
 		ifFilterValue.setText(fcd.getIfFilter());
+		cbBiasTee.setSelected(fcd.getBiasTee());
 //		int ifG = fcd.getIFGain();
 //		ifSpinner.setValue(""+ifG);
+		gettingSettings = false;
 	}
 	
 	
@@ -163,6 +175,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		if (gettingSettings) return;
 		if (e.getSource() == cbMixerGain) {
 			try {
 				if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -197,11 +210,30 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 				e1.printStackTrace();
 			}
 		}
+		if (e.getSource() == cbBiasTee ) {
+			try {
+				if (e.getStateChange() == ItemEvent.DESELECTED) {
+					fcd.setBiasTee(false);
+				} else {
+					fcd.setBiasTee(true);
+				}
+				cbBiasTee.setSelected(fcd.getBiasTee());
+			} catch (DeviceException e1) {
+				Log.println("Error setting Bias Tee on FCD");
+				e1.printStackTrace(Log.getWriter());
+			} catch (IOException e1) {
+				Log.println("Error reading Bias Tee on FCD");
+				e1.printStackTrace(Log.getWriter());
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
 		
 	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
+		if (gettingSettings) return;
 		if (e.getSource() == ifSpinner) {
 			int u = Integer.parseInt((String) ifSpinner.getValue());
 	        try {

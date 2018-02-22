@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -472,16 +473,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public boolean addStpHeader(Frame f) {
-
-		Statement stmt = null;
-		String update = "insert into STP_HEADER";
-		update = update + f.getInsertStmt();
-		//Log.println("SQL:" + update);
+		PreparedStatement ps = null;
 		try {
 			derby = getConnection();
-			stmt = derby.createStatement();
+			ps = f.getPreparedInsertStmt(derby);
+			
 			@SuppressWarnings("unused")
-			int r = stmt.executeUpdate(update);
+			int count = ps.executeUpdate();
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
@@ -491,11 +489,11 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			}
 			return false;
 		} finally {
-			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
 		}
 		return true;
 	}
-
+	
 	public boolean updateStpHeader(Frame f) throws StpFileProcessException {
 
 		Statement stmt = null;

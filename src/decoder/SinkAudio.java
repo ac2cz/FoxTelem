@@ -39,6 +39,7 @@ public class SinkAudio {
 	public SinkAudio(AudioFormat af) {
 		audioFormat = af;
 		initializeOutput();
+		Log.println("SETUP AUDIO SINK: " + af);
 	}
 
 	private static String getMixerIdString(Mixer appMixer) {

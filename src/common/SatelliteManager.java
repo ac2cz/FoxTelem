@@ -305,7 +305,8 @@ public class SatelliteManager implements Runnable {
 		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
 		String filetmp = file + ".tmp";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";		
+			file = Config.logFileDirectory + File.separator + FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
+			filetmp = file + ".tmp";
 		}
 		File f1 = new File(filetmp);
 		File f2 = new File(file);
@@ -332,18 +333,24 @@ public class SatelliteManager implements Runnable {
 				Log.println(".. keps are current");
 				filetmp = file;
 			} else {
-
+				Log.println(" ... open RBC ..");
 				rbc = Channels.newChannel(website.openStream());
+				Log.println(" ... open output file .." + filetmp);
 				fos = new FileOutputStream(filetmp);
+				Log.println(" ... getting file ..");
 				fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
+				Log.println(" ... closing outpt stream ..");
 				fos.close();
+				Log.println(" ... closing input stream ..");
 				rbc.close();
 			}
 			// Always process the file because it is quick and the user may have changed the name of a spacecraft
 			// The code throws away duplicate keps with the same epoch
 			// Now lets see if we have a good file.  If we did not, it will throw an exception
+			Log.println(" ... parsing file ..");
 			parseTleFile(filetmp);
 			// this is a good file so we can now use it as the default
+			Log.println(" ... remove and rename ..");
 			if (!file.equalsIgnoreCase(filetmp)) {
 				// We downloaded a new file so rename tmp as the new file
 				SatPayloadStore.remove(file);
