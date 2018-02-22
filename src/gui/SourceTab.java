@@ -353,7 +353,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
 		rdbtnUseNco.setSelected(Config.useNCO);
-		rdbtnUseNco.setVisible(true);
+		rdbtnUseNco.setVisible(false);
 		optionsPanel.add(rdbtnUseNco);
 		
 
@@ -1472,6 +1472,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// we don't have a selection
 			} else {
 				if (position == SourceAudio.FILE_SOURCE) { // || position == SourceAudio.IQ_FILE_SOURCE) {
+					Config.useNCO = false;
 					SourceWav wav = setWavFile(Config.iq);
 					if (wav != null) {
 						if (task != null) {
@@ -1501,6 +1502,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					// USB Sound card - this is not pretty and needs to be fixed
 					// Ids should be looked up from TunerClass, but the implementation is a mess.  FIXME
 					SourceAudio audioSource;
+					Config.useNCO = true;
 					short vendorId = 0;
 					short deviceId = 0;
 					if (position-soundcardSources.length == 0) { // airspy
@@ -1580,6 +1582,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				else { // soundcard - fcd or normal
 					SourceAudio audioSource;
 					boolean fcdSelected = false;
+					Config.useNCO = false;
 					try {
 						fcdSelected = usingFcd();
 						if (fcdSelected) {
