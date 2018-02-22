@@ -1502,7 +1502,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					// USB Sound card - this is not pretty and needs to be fixed
 					// Ids should be looked up from TunerClass, but the implementation is a mess.  FIXME
 					SourceAudio audioSource;
-					Config.useNCO = true;
+					if (Config.mode != SourceIQ.MODE_PSK)
+						Config.useNCO = true;
+					else
+						Config.useNCO = false;
 					short vendorId = 0;
 					short deviceId = 0;
 					if (position-soundcardSources.length == 0) { // airspy
