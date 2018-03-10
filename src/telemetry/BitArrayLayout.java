@@ -103,6 +103,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_LT_TX_FWD_PWR = 40;
 	public static final int CONVERT_LT_TX_REF_PWR = 41;
 	public static final int CONVERT_LT_VGA = 42;
+	public static final int CONVERT_ICR_VOLT_SENSOR = 43;
 	
 	/**
 	 * Create an empty layout for manual init

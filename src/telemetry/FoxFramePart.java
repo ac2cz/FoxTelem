@@ -346,7 +346,9 @@ longer send telemetry.
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
 				s = "-----";
-			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY) {
+			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY 
+					|| layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
+					|| layout.conversion[pos] == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
 				s = String.format("%1.2f", dvalue);
 			} else {
 				s = String.format("%2.1f", dvalue);
@@ -485,6 +487,10 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_LT_VGA:
 			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 			volts = volts / 2;
+			return volts;
+		case BitArrayLayout.CONVERT_ICR_VOLT_SENSOR:
+			volts = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS;
+			volts = volts * 99/75; // based in voltage divider on the ICR of 24k/75k
 			return volts;
 		}
 		

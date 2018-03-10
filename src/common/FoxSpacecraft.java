@@ -52,12 +52,14 @@ import uk.me.g4dpz.satellite.TLE;
 public class FoxSpacecraft extends Spacecraft{
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1; // This is the 1A LEP experiment
+	public static final int EXP_VANDERBILT_LEP = 1; // This is the 1A LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
 	public static final int EXP_VT_CAMERA_LOW_RES = 5;
 	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
+	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
+	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
 	
 	public static final String[] expNames = {
 		"Empty",
@@ -66,7 +68,10 @@ public class FoxSpacecraft extends Spacecraft{
 		"University of Iowa HERCI",
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
-		"Vanderbilt VUC"
+		"Vanderbilt VUC",
+		"Vanderbilt LEP",
+		"Vanderbilt REM",
+		"Vanderbilt LEPF"
 	};
 	
 	

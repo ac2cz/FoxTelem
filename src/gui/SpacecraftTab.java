@@ -138,7 +138,7 @@ public class SpacecraftTab extends JPanel {
 
 		if (sat.isFox1()) {
 			for (int exp : ((FoxSpacecraft)sat).experiments) {
-				if (exp == FoxSpacecraft.EXP_VULCAN)
+				if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP)
 					addExperimentTab((FoxSpacecraft)sat);
 				if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
 					addCameraTab((FoxSpacecraft)sat);
