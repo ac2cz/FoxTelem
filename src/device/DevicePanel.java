@@ -10,9 +10,11 @@ import common.Config;
 import common.Log;
 
 @SuppressWarnings("serial")
-public abstract class DevicePanel extends JPanel {
+public abstract class DevicePanel extends JPanel implements Runnable {
 
 	protected device.TunerController device;
+	protected boolean running = true;
+	protected boolean done = false;
 	
 	public abstract void setDevice(TunerController fcd) throws IOException, DeviceException;
 	
@@ -22,6 +24,10 @@ public abstract class DevicePanel extends JPanel {
 	
 	public abstract int getSampleRate();
 	public abstract int getDecimationRate();
+	
+	public void stopProcessing() {
+		running = false;
+	}
 	
 	protected void saveParam(JComboBox box, String key) {
 		int g = box.getSelectedIndex();

@@ -16,6 +16,7 @@ import javax.swing.border.TitledBorder;
 import javax.usb.UsbClaimException;
 import javax.usb.UsbException;
 
+import common.Config;
 import common.Log;
 import device.TunerController;
 import device.DeviceException;
@@ -24,8 +25,6 @@ import device.DevicePanel;
 @SuppressWarnings("serial")
 public class FcdProPanel extends DevicePanel implements ItemListener, ActionListener, Runnable {
 	int NUM_OF_PARAMS = 15;
-	boolean running = true;
-	boolean done = false;
 	@SuppressWarnings("rawtypes")
 	JComboBox cbMixerGain;
 	@SuppressWarnings("rawtypes")
@@ -123,6 +122,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 	public void run() {
 		done = false;
 		running = true;
+		Thread.currentThread().setName("FCDProPanel");
 
 		while(running) {
 
@@ -157,7 +157,8 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			Log.println("Error setting LNA Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		saveParam(cbLnaGain, "cbLnaGain");
+		if (Config.saveFcdParams)
+			saveParam(cbLnaGain, "cbLnaGain");
 	}
 
 	private void setMixerGain(int position) {
@@ -170,7 +171,8 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			Log.println("Error setting LNA Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		saveParam(cbMixerGain, "cbMixerGain");
+		if (Config.saveFcdParams)
+			saveParam(cbMixerGain, "cbMixerGain");
 	}
 	
 	@Override
@@ -181,17 +183,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 	@Override
 	public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() == cbMixerGain) {
-			try {
-				int position = cbMixerGain.getSelectedIndex();
-				if (position == 1)
-					((FCD1TunerController) device).setMixerGain(true);
-				else 
-					((FCD1TunerController) device).setMixerGain(false);
-			} catch (DeviceException e1) {
-				Log.println("Error setting LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			}
-			saveParam(cbMixerGain, "cbMixerGain");
+			setMixerGain(cbMixerGain.getSelectedIndex());			
 		}
 		if (e.getSource() == cbLnaGain) {
 			setLnaGain(cbLnaGain.getSelectedIndex());

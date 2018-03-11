@@ -34,6 +34,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.File;
 
 /**
@@ -58,7 +60,7 @@ import java.io.File;
  *
  */
 @SuppressWarnings("serial")
-public class SettingsFrame extends JDialog implements ActionListener, ItemListener, FocusListener {
+public class SettingsFrame extends JDialog implements ActionListener, ItemListener, FocusListener, WindowListener {
 
 	public static final int MAX_CALLSIGN_LEN = 32;
 	public static final int MAX_STATION_LEN = 50;
@@ -83,6 +85,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox rdbtnTrackSignal;
 //	private JCheckBox cbUseUDP;
 	private JCheckBox storePayloads;
+	private JCheckBox saveFcdParams;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
 	private JCheckBox insertMissingBits;
@@ -108,9 +111,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	public SettingsFrame(JFrame owner, boolean modal) {
 		super(owner, modal);
 		setTitle("Settings");
+		addWindowListener(this);
 //		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-		setBounds(100, 100, 650, 630);
+		loadProperties();
 		//this.setResizable(false);
 		contentPane = new JPanel();
 		contentPane.setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -299,6 +303,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 //		cbUseUDP = addCheckBoxRow("Use UDP", "Use UDP (vs TCP) to send data to the AMSAT telemetry server",
 //				useUDP, rightcolumnpanel0 );
 		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
+		saveFcdParams = addCheckBoxRow("Store FCD Params", "Save the FCD settings to disk and restore at start up.  May conflict with other programs or other copies of FoxTelem.", Config.saveFcdParams, rightcolumnpanel0 );
 		useLeftStereoChannel = addCheckBoxRow("Use Left Stereo Channel", "The default is for FoxTelem to read audio from the left stereo channel of your soundcard.  "
 				+ "If you uncheck this it will read from the right",
 				Config.useLeftStereoChannel, rightcolumnpanel0 );
@@ -326,7 +331,25 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		enableDependentParams();
 	}
 
-
+	public void saveProperties() {
+		Config.saveGraphIntParam("Global", 0, 0, "settingsWindow", "windowHeight", this.getHeight());
+		Config.saveGraphIntParam("Global", 0, 0, "settingsWindow", "windowWidth", this.getWidth());
+		Config.saveGraphIntParam("Global", 0, 0, "settingsWindow", "windowX", this.getX());
+		Config.saveGraphIntParam("Global", 0, 0, "settingsWindow",  "windowY", this.getY());
+	}
+	
+	public void loadProperties() {
+		int windowX = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowX");
+		int windowY = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowY");
+		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowWidth");
+		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowHeight");
+		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
+			setBounds(100, 100, 650, 630);
+		} else {
+			setBounds(windowX, windowY, windowWidth, windowHeight);
+		}
+	}
+	
 	private TitledBorder title(String s) {
 		TitledBorder title = new TitledBorder(null, s, TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		title.setTitleFont(new Font("SansSerif", Font.BOLD, 14));
@@ -551,6 +574,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.webSiteUrl = txtServerUrl.getText();
 				
 				Config.storePayloads = storePayloads.isSelected();
+				Config.saveFcdParams = saveFcdParams.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
 				Config.insertMissingBits = insertMissingBits.isSelected();
@@ -802,6 +826,47 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			validAltitude();
 			enableDependentParams();
 		}
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent arg0) {
+		saveProperties();
+	}
+
+	@Override
+	public void windowClosing(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent arg0) {
+		// TODO Auto-generated method stub
 		
 	}		
 		

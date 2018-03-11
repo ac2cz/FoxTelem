@@ -256,6 +256,7 @@ public class Config {
 	static public boolean insertMissingBits = true;
 	static public boolean useLongPRN = true;
 	static public boolean firstRun106 = true; // first time user is running version 1.06
+	static public boolean saveFcdParams = false;
 	
 	// V1.07
 	static public boolean useNCO = false;
@@ -676,6 +677,8 @@ public class Config {
 		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
 		properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
 		properties.setProperty("firstRun106", Boolean.toString(firstRun106));
+		properties.setProperty("saveFcdParams", Boolean.toString(saveFcdParams));
+		
 		
 		// V1.07
 		properties.setProperty("useNCO", Boolean.toString(useNCO));
@@ -849,6 +852,7 @@ public class Config {
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
 		useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
 		firstRun106 = Boolean.parseBoolean(getProperty("firstRun106"));
+		saveFcdParams = Boolean.parseBoolean(getProperty("saveFcdParams"));
 		
 		// V1.07
 		useNCO = Boolean.parseBoolean(getProperty("useNCO"));

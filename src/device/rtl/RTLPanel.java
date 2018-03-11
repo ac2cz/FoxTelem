@@ -52,8 +52,6 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	private static final R820TGain DEFAULT_GAIN = R820TGain.GAIN_279;
 	
 	int NUM_OF_PARAMS = 15;
-	boolean running = true;
-	boolean done = false;
 
     private JTextField mConfigurationName;
     private JButton mTunerInfo;
@@ -222,7 +220,8 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	public void run() {
 		done = false;
 		running = true;
-
+		Thread.currentThread().setName("RTLPanel");
+		
 		while(running) {
 
 			try {

@@ -101,7 +101,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		//recoverClock.setEnabled(false);
 		debugFrames = addCheckBox("Debug Frames", "Print information about the decoded frames into the debug log", Config.debugFrames );
 		debugFieldValues = addCheckBox("Debug Fields", "Write all of the decoded fields in the payloads to the debug log", Config.debugFieldValues );
-		debugCameraFrames = addCheckBox("Debug Camera Frames", "Write the entire contents of the camera frame to the debug log", Config.debugCameraFrames );
+//		debugCameraFrames = addCheckBox("Debug Camera Frames", "Write the entire contents of the camera frame to the debug log", Config.debugCameraFrames );
 		//debugBits = addCheckBox("Debug Bits", "Write very verbose debug information at the bit level", Config.debugBits );
 		debugValues = addCheckBox("Debug Values", "Display Debug information for bit values on the audio screen", Config.debugValues );
 		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
