@@ -556,11 +556,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private String[] getSources() {
 		soundcardSources = SourceSoundCardAudio.getAudioSources();
-		usbSources = new ArrayList<String>();
-		usbSources.add("AirSpy");
-		usbSources.add("RTL SDR");
+//REMOVED		usbSources = new ArrayList<String>();
+//		usbSources.add("AirSpy");
+//		usbSources.add("RTL SDR");
 
+<<<<<<< HEAD
 		String[] allSources = new String[soundcardSources.length + usbSources.size()];
+=======
+// REMOVED FROM RELEASE        String[] allSources = new String[soundcardSources.length + usbSources.size()];
+		String[] allSources = new String[soundcardSources.length];
+>>>>>>> 1.06
 		int j = 0;
 		for (String s : soundcardSources) allSources[j++] = s;
 		if (usbSources != null)

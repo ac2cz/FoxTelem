@@ -137,11 +137,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 								   int centerUnusableBandwidth,
 								   double usableBandwidthPercentage ) throws DeviceException
 	{
-		//super( minTunableFrequency, 
-		//	   maxTunableFrequency, 
-		//	   centerUnusableBandwidth, 
-		//	   usableBandwidthPercentage );
-		
+		super( "RTL", minTunableFrequency, 
+			   maxTunableFrequency);		
 		mThreadPoolManager = threadPoolManager;
 
 		mDevice = device;

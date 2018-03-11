@@ -38,6 +38,7 @@ import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 import device.SourceException;
+import device.airspy.AirspyDevice;
 import device.airspy.AirspyDevice.Gain;
 import device.airspy.AirspyDevice.GainMode;
 import device.rtl.R820TTunerController.R820TGain;
@@ -53,7 +54,6 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
-	RTL2832TunerController device;
 
     private JTextField mConfigurationName;
     private JButton mTunerInfo;
@@ -248,18 +248,6 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 			}
 		}			
 	}
-
-	private void saveParam(JComboBox box, String key) {
-		int g = box.getSelectedIndex();
-		Log.println("SAVED " + key + ": " + g);
-		Config.saveGraphIntParam("SDR", 0, 0, "RTL", key, g);		
-	}
-	
-	private void loadParam(JComboBox box, String key) {
-        int g = Config.loadGraphIntValue("SDR", 0, 0, "RTL", key);
-		Log.println("Loaded " + key + ": " + g);
-		box.setSelectedIndex(g);
-	}
 	
 	private void setGain() {
 		try  {
@@ -388,7 +376,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 private void setSampleRate() {
 	SampleRate sampleRate = (SampleRate)mComboSampleRate.getSelectedItem();
 	try {
-		device.setSampleRate( sampleRate );
+		((RTL2832TunerController) device).setSampleRate( sampleRate );
 		save();
 	}
 	catch ( DeviceException | LibUsbException eSampleRate ) {

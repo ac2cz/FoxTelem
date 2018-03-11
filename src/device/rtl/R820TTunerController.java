@@ -43,8 +43,8 @@ import device.TunerType;
 public class R820TTunerController extends RTL2832TunerController
 {
 	
-	public static final long MIN_FREQUENCY =  3180000;
-	public static final long MAX_FREQUENCY = 1782030000;
+	public static final long MIN_FREQUENCY =  31800;
+	public static final long MAX_FREQUENCY = 1782030;
 	public static final double USABLE_BANDWIDTH_PERCENT = 1.0;
 	public static final int DC_SPIKE_AVOID_BUFFER = 5000;
 

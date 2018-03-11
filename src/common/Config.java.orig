@@ -59,12 +59,11 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 <<<<<<< HEAD
-	public static String VERSION_NUM = "1.07";
-	public static String VERSION = VERSION_NUM + " - 28 Jan 2018";
+	public static String VERSION_NUM = "1.07b";
 =======
-	public static String VERSION_NUM = "1.06o";
-	public static String VERSION = VERSION_NUM + " - 11 Feb 2018";
+	public static String VERSION_NUM = "1.06q";
 >>>>>>> 1.06
+	public static String VERSION = VERSION_NUM + " - 10 Mar 2018";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
