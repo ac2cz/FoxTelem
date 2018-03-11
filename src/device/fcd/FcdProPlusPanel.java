@@ -27,14 +27,13 @@ import device.DevicePanel;
 @SuppressWarnings("serial")
 public class FcdProPlusPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
 	int NUM_OF_PARAMS = 15;
-	boolean running = true;
-	boolean done = false;
 	JCheckBox cbMixerGain;
 	JCheckBox cbLnaGain;
 	JCheckBox cbBiasTee;
 	JTextField rfFilterValue;
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
+	boolean checkingSettings = false;
 	
 	public FcdProPlusPanel() throws IOException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
@@ -122,6 +121,23 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 // IMPLEMENT		rfFilterValue.setText(fcd.getRfFilter());
 	}
 	
+	private void checkSettings() throws DeviceException {
+		// THIS DOES NOT WORK...
+		checkingSettings = true;
+		boolean lnaGain = ((FCD2TunerController) device).getLnaGain();
+		if (lnaGain != cbLnaGain.isSelected()) {
+			cbLnaGain.setSelected(lnaGain);
+			//setLnaGain(lnaGain);
+		}
+		boolean mixerGain = ((FCD2TunerController) device).getMixerGain();
+		if (mixerGain != cbMixerGain.isSelected()) {
+			setMixerGain(mixerGain);
+		}
+		//rfFilterValue.setText(((FCD2TunerController) device).getRfFilter());
+		//ifFilterValue.setText(((FCD2TunerController) device).getIfFilter());		
+		checkingSettings = false;
+	}
+	
 	public void getSettings()  throws IOException, DeviceException {
 		try {
 			Thread.sleep(100);
@@ -148,7 +164,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	public void run() {
 		done = false;
 		running = true;
-
+		Thread.currentThread().setName("FcdProPlusPanel");
 		while(running) {
 
 			try {
@@ -158,13 +174,9 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 				//e.printStackTrace();
 			} 
 
-
 			if (device != null) {
 				try {
-					getSettings();
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
+					checkSettings();
 				} catch (DeviceException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -225,6 +237,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		if (checkingSettings) return;
 		if (e.getSource() == cbMixerGain) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				setMixerGain(false);

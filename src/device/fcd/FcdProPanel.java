@@ -24,8 +24,6 @@ import device.DevicePanel;
 @SuppressWarnings("serial")
 public class FcdProPanel extends DevicePanel implements ItemListener, ActionListener, Runnable {
 	int NUM_OF_PARAMS = 15;
-	boolean running = true;
-	boolean done = false;
 	@SuppressWarnings("rawtypes")
 	JComboBox cbMixerGain;
 	@SuppressWarnings("rawtypes")
@@ -123,6 +121,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 	public void run() {
 		done = false;
 		running = true;
+		Thread.currentThread().setName("FCDProPanel");
 
 		while(running) {
 
