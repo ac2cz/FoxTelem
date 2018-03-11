@@ -31,8 +31,8 @@ import device.fcd.FcdProPlusPanel;
 public class FCD2TunerController extends FCDTunerController
 {
 
-	public static final int MINIMUM_TUNABLE_FREQUENCY = 150000;
-	public static final int MAXIMUM_TUNABLE_FREQUENCY = 2050000000;
+	public static final int MINIMUM_TUNABLE_FREQUENCY = 150;
+	public static final int MAXIMUM_TUNABLE_FREQUENCY = 2050000;
 	public static final int SAMPLE_RATE = 192000;
 	
 	//RF Filter Numbers
@@ -68,7 +68,7 @@ public class FCD2TunerController extends FCDTunerController
 		
 	public FCD2TunerController( Device device, DeviceDescriptor descriptor ) throws DeviceException 
 	{
-		super( device, descriptor, SAMPLE_RATE,
+		super( "FCDPP", device, descriptor, SAMPLE_RATE,
 			   MINIMUM_TUNABLE_FREQUENCY, MAXIMUM_TUNABLE_FREQUENCY );
 	}
 
@@ -129,29 +129,7 @@ public class FCD2TunerController extends FCDTunerController
 		return false;
 	}
 
-	public void setMixerGain( boolean enabled ) throws DeviceException {
-		try
-        {
-        	send( FCDCommand.APP_SET_MIXER_GAIN, enabled ? 1 : 0 );
-        }
-        catch ( Exception e )
-        {
-        	throw new DeviceException( "error while setting Mixer Gain: " + e.getMessage() );
-        }
-	}
-	public boolean getMixerGain() throws DeviceException {
-		try {
-        	ByteBuffer buffer = send( FCDCommand.APP_GET_MIXER_GAIN );
-			buffer.order( ByteOrder.LITTLE_ENDIAN );
-			int ret = buffer.get(2);
-			if (ret > 0 )
-				return true;
-        }
-        catch ( Exception e ) {
-        	throw new DeviceException( "error while getting Mixer Gain: " + e.getMessage() );
-        }
-		return false;
-	}
+
 	public void setBiasTee( boolean enabled ) throws DeviceException {
 		try
         {

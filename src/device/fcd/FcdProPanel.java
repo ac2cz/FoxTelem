@@ -13,6 +13,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
+import javax.usb.UsbClaimException;
+import javax.usb.UsbException;
 
 import common.Log;
 import device.TunerController;
@@ -24,7 +26,6 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
-	FCD1TunerController fcd;
 	@SuppressWarnings("rawtypes")
 	JComboBox cbMixerGain;
 	@SuppressWarnings("rawtypes")
@@ -91,13 +92,13 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 		
 	}
 	public void setFcd(FCD1TunerController f) throws IOException, DeviceException { 
-		fcd = f; 
+		device = f; 
 		getSettings();
 	}
 	
 	public void updateFilter() throws IOException, DeviceException {
-		rfFilterValue.setText(fcd.getRfFilter());
-		bandValue.setText(fcd.getBand());
+		rfFilterValue.setText(((FCD1TunerController) device).getRfFilter());
+		bandValue.setText(((FCD1TunerController) device).getBand());
 	}
 	
 	public void getSettings()  throws IOException, DeviceException {
@@ -107,14 +108,13 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  // Allow startup to settle down first
-		boolean mixer = fcd.getMixerGain();
-		if (mixer)
-			cbMixerGain.setSelectedIndex(1);
-		else 
-			cbMixerGain.setSelectedIndex(0);
-		cbLnaGain.setSelectedIndex(fcd.getLnaGain());	
-		rfFilterValue.setText(fcd.getRfFilter());
-		bandValue.setText(fcd.getBand());
+		
+		loadParam(cbLnaGain, "cbLnaGain");
+		setLnaGain(cbLnaGain.getSelectedIndex());
+		loadParam(cbMixerGain, "cbMixerGain");
+		setMixerGain(cbMixerGain.getSelectedIndex());
+		rfFilterValue.setText(((FCD1TunerController) device).getRfFilter());
+		bandValue.setText(((FCD1TunerController) device).getBand());
 //		ifFilterValue.setText(fcd.getIfFilter());
 	}
 	
@@ -134,7 +134,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			} 
 
 
-			if (fcd != null) {
+			if (device != null) {
 				try {
 					getSettings();
 				} catch (IOException e) {
@@ -149,7 +149,30 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			}
 		}			
 	}
+	
+	private void setLnaGain(int position) {
+		try {
+			((FCD1TunerController) device).setLnaGain(position);
+		} catch (DeviceException e1) {
+			Log.println("Error setting LNA Gain on FCD");
+			e1.printStackTrace(Log.getWriter());
+		}
+		saveParam(cbLnaGain, "cbLnaGain");
+	}
 
+	private void setMixerGain(int position) {
+		try {
+			if (position == 1)
+				((FCD1TunerController) device).setMixerGain(true);
+			else 
+				((FCD1TunerController) device).setMixerGain(false);
+		} catch (DeviceException e1) {
+			Log.println("Error setting LNA Gain on FCD");
+			e1.printStackTrace(Log.getWriter());
+		}
+		saveParam(cbMixerGain, "cbMixerGain");
+	}
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		
@@ -161,29 +184,23 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			try {
 				int position = cbMixerGain.getSelectedIndex();
 				if (position == 1)
-					fcd.setMixerGain(true);
+					((FCD1TunerController) device).setMixerGain(true);
 				else 
-					fcd.setMixerGain(false);
+					((FCD1TunerController) device).setMixerGain(false);
 			} catch (DeviceException e1) {
 				Log.println("Error setting LNA Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
-			} 
+			}
+			saveParam(cbMixerGain, "cbMixerGain");
 		}
 		if (e.getSource() == cbLnaGain) {
-			try {
-				int position = cbLnaGain.getSelectedIndex();
-				fcd.setLnaGain(position);
-			} catch (DeviceException e1) {
-				Log.println("Error setting LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} 
+			setLnaGain(cbLnaGain.getSelectedIndex());
 		}
-		
 	}
 
 	@Override
 	public int getSampleRate() {
-		return fcd.SAMPLE_RATE;
+		return ((FCD1TunerController) device).SAMPLE_RATE;
 	}
 
 	@Override

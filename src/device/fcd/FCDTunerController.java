@@ -61,22 +61,44 @@ public abstract class FCDTunerController extends device.TunerController
 	 * @param maxTunableFrequency
 	 * @throws DeviceException 
 	 */
-	public FCDTunerController( Device device, 
+	public FCDTunerController( String name, Device device, 
 							   DeviceDescriptor descriptor,
 							   int sampleRate,
-							   int minTunableFrequency,
-							   int maxTunableFrequency ) throws DeviceException
+							   long minTunableFrequency,
+							   long maxTunableFrequency ) throws DeviceException
 	{
-	//	super( minTunableFrequency, 
-	//		   maxTunableFrequency, 
-	//		   DC_SPIKE_AVOID_BUFFER, 
-	//		   USABLE_BANDWIDTH_PERCENT );
+		super(name, minTunableFrequency, maxTunableFrequency);
 		
 		SAMPLE_RATE = sampleRate;
 		mDevice = device;
 		mDeviceDescriptor = descriptor;
 	}
 
+	
+	public void setMixerGain( boolean enabled ) throws DeviceException {
+		try
+        {
+        	send( FCDCommand.APP_SET_MIXER_GAIN, enabled ? 1 : 0 );
+        }
+        catch ( Exception e )
+        {
+        	throw new DeviceException( "error while setting Mixer Gain: " + e.getMessage() );
+        }
+	}
+	public boolean getMixerGain() throws DeviceException {
+		try {
+        	ByteBuffer buffer = send( FCDCommand.APP_GET_MIXER_GAIN );
+			buffer.order( ByteOrder.LITTLE_ENDIAN );
+			int ret = buffer.get(2);
+			if (ret > 0 )
+				return true;
+        }
+        catch ( Exception e ) {
+        	throw new DeviceException( "error while getting Mixer Gain: " + e.getMessage() );
+        }
+		return false;
+	}
+	
 	public boolean isConnected() { if (mDevice !=null) return true; return false; }
 
 	
