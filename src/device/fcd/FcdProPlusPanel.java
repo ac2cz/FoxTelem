@@ -118,7 +118,8 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	}
 	
 	public void updateFilter() throws IOException, DeviceException {
-// IMPLEMENT		rfFilterValue.setText(fcd.getRfFilter());
+		rfFilterValue.setText(((FCD2TunerController) device).getRfFilter());
+		ifFilterValue.setText(((FCD2TunerController) device).getIfFilter());	
 	}
 	
 	private void checkSettings() throws DeviceException {
