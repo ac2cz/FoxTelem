@@ -115,7 +115,7 @@ public class PayloadRadExpData extends FoxFramePart {
 		}
 		radTelem.copyBitsToFields();
 		int offset=0;  
-		int length=16; // Default is that we display 16 bytes
+		int length=0; // Default is that we display nothing
 		if (radTelem.getRawValue(STATE2) == ACTIVE) { // LEPF is 2
 			offset=0;
 			length = 16;
@@ -125,14 +125,14 @@ public class PayloadRadExpData extends FoxFramePart {
 		} else if (radTelem.getRawValue(STATE4) == ACTIVE) { // REM is 4
 			offset=26;
 			length = 16;
-		}
+		} 
 		// Pretend there is a gap, so that the layout works like Fox-1B
-		for (int k=10; k<10+offset; k++) { 
+		for (int k=0; k<offset; k++) { 
 			radTelem.addNext8Bits(0);
 		}
 		// Now flow the rest of the data in, 
 		for (int k=10+offset; k<10+offset+length; k++) { 
-			radTelem.addNext8Bits(fieldValue[k]);
+			radTelem.addNext8Bits(fieldValue[k-offset]);
 		}
 		radTelem.copyBitsToFields();
 		

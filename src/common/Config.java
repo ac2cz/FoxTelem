@@ -682,6 +682,8 @@ public class Config {
 		
 		// V1.07
 		properties.setProperty("useNCO", Boolean.toString(useNCO));
+		properties.setProperty("generateSecondaryPayloads", Boolean.toString(generateSecondaryPayloads));
+		
 		
 		store();
 	}
@@ -856,6 +858,7 @@ public class Config {
 		
 		// V1.07
 		useNCO = Boolean.parseBoolean(getProperty("useNCO"));
+		generateSecondaryPayloads = Boolean.parseBoolean(getProperty("generateSecondaryPayloads"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

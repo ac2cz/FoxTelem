@@ -574,6 +574,7 @@ public class SatPayloadTable {
 		if (type == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA ) {
 			rt = new WodRadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
+			
 		}
 		if (type == FoxFramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
 			rt = new PayloadRadExpData(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
@@ -592,6 +593,16 @@ public class SatPayloadTable {
 		}
 		if (type == FoxFramePart.TYPE_WOD_RAD) {
 			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
+			rt.type = type;
+			
+			// hack to convert data - only used in testing
+			if (Config.generateSecondaryPayloads) {
+				PayloadWODRad f = (PayloadWODRad)rt; 
+				WodRadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+				Config.payloadStore.setUpdated(id, Spacecraft.WOD_RAD_LAYOUT, true);			
+			}
 		}
 		if (type == FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
 			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
