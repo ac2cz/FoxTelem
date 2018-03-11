@@ -1,4 +1,4 @@
-package fcd;
+package device.fcd;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -29,20 +29,24 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	int NUM_OF_PARAMS = 15;
 	boolean running = true;
 	boolean done = false;
-	FcdProPlusDevice fcd;
 	JCheckBox cbMixerGain;
 	JCheckBox cbLnaGain;
 	JCheckBox cbBiasTee;
 	JTextField rfFilterValue;
 	JTextField ifFilterValue;
 	JSpinner ifSpinner;
-	boolean gettingSettings = false;
 	
-	public FcdProPlusPanel() throws IOException, DeviceException {
+	public FcdProPlusPanel() throws IOException {
 		TitledBorder title = new TitledBorder(null, "Funcube Dongle Pro Plus", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
-		initializeGui();
+		try {
+			initializeGui();
+		} catch (DeviceException e) {
+			// Don't stop the GUI thread, just report the error
+			Log.println("ERROR setting the inital settings for the FCD");
+			e.printStackTrace(Log.getWriter());
+		}
 	}
 	
 	public void setEnabled(boolean b) {
@@ -106,34 +110,37 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 	
 	@Override
 	public void setDevice(TunerController fcd) throws IOException, DeviceException {
-		setFcd((FcdProPlusDevice)fcd);
+		setFcd((FCD2TunerController)fcd);
 		
 	}
-	public void setFcd(FcdProPlusDevice f) throws IOException, DeviceException { 
-		fcd = f; 
+	public void setFcd(FCD2TunerController f) throws IOException, DeviceException { 
+		device = f; 
 		getSettings();
 	}
 	
 	public void updateFilter() throws IOException, DeviceException {
-		rfFilterValue.setText(fcd.getRfFilter());
+// IMPLEMENT		rfFilterValue.setText(fcd.getRfFilter());
 	}
 	
 	public void getSettings()  throws IOException, DeviceException {
-		gettingSettings = true; // prevent the widgets from firing more commands
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}  // Allow startup to settle down first
-		cbMixerGain.setSelected(fcd.getMixerGain());
-		cbLnaGain.setSelected(fcd.getLnaGain());	
-		rfFilterValue.setText(fcd.getRfFilter());
-		ifFilterValue.setText(fcd.getIfFilter());
-		cbBiasTee.setSelected(fcd.getBiasTee());
+		
+		loadParam(cbLnaGain, "cbLnaGain");
+		setLnaGain(cbLnaGain.isSelected());
+		loadParam(cbMixerGain, "cbMixerGain");
+		setMixerGain(cbMixerGain.isSelected());
+		loadParam(cbBiasTee, "cbBiasTee");
+		setBiasTee(cbBiasTee.isSelected());
+		
+		rfFilterValue.setText(((FCD2TunerController) device).getRfFilter());
+		ifFilterValue.setText(((FCD2TunerController) device).getIfFilter());
 //		int ifG = fcd.getIFGain();
 //		ifSpinner.setValue(""+ifG);
-		gettingSettings = false;
 	}
 	
 	
@@ -152,7 +159,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			} 
 
 
-			if (fcd != null) {
+			if (device != null) {
 				try {
 					getSettings();
 				} catch (IOException e) {
@@ -173,89 +180,101 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		
 	}
 
+	private void setMixerGain(boolean b) {
+		try {
+			if (b == false) {
+				((FCD2TunerController) device).setMixerGain(false);
+			} else {
+				((FCD2TunerController) device).setMixerGain(true);
+			}
+			//cbMixerGain.setSelected(fcd.getMixerGain());
+		} catch (DeviceException e1) {
+			Log.println("Error setting Mixer Gain on FCD");
+			e1.printStackTrace(Log.getWriter());
+		}
+		saveParam(cbMixerGain.isSelected(), "cbMixerGain");
+	}
+	
+	private void setLnaGain(boolean b) {
+		try {
+			if (b == false) {
+				((FCD2TunerController) device).setLnaGain(false);
+			} else {
+				((FCD2TunerController) device).setLnaGain(true);
+			}
+		} catch (DeviceException e1) {
+			Log.println("Error setting LNA Gain on FCD");
+			e1.printStackTrace(Log.getWriter());
+		}
+		saveParam(cbLnaGain.isSelected(), "cbLnaGain");
+	}
+	
+	private void setBiasTee(boolean b) {
+		try {
+			if (b == false) {
+				((FCD2TunerController) device).setBiasTee(false);
+			} else {
+				((FCD2TunerController) device).setBiasTee(true);
+			}
+		} catch (DeviceException e1) {
+			Log.println("Error setting Bias Tee on FCD");
+			e1.printStackTrace(Log.getWriter());
+		}
+		saveParam(cbBiasTee.isSelected(), "cbBiasTee");
+	}
+	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		if (gettingSettings) return;
 		if (e.getSource() == cbMixerGain) {
-			try {
-				if (e.getStateChange() == ItemEvent.DESELECTED) {
-					fcd.setMixerGain(false);
-				} else {
-					fcd.setMixerGain(true);
-				}
-				cbMixerGain.setSelected(fcd.getMixerGain());
-			} catch (DeviceException e1) {
-				Log.println("Error setting Mixer Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading Mixer Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			}
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				setMixerGain(false);
+			} else {
+				setMixerGain(true);
+			}		
 		}
 		if (e.getSource() == cbLnaGain) {
-			try {
-				if (e.getStateChange() == ItemEvent.DESELECTED) {
-					fcd.setLnaGain(false);
-				} else {
-					fcd.setLnaGain(true);
-				}
-				cbLnaGain.setSelected(fcd.getLnaGain());
-			} catch (DeviceException e1) {
-				Log.println("Error setting LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading LNA Gain on FCD");
-				e1.printStackTrace(Log.getWriter());
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				setLnaGain(false);
+			} else {
+				setLnaGain(true);
 			}
 		}
 		if (e.getSource() == cbBiasTee ) {
-			try {
-				if (e.getStateChange() == ItemEvent.DESELECTED) {
-					fcd.setBiasTee(false);
-				} else {
-					fcd.setBiasTee(true);
-				}
-				cbBiasTee.setSelected(fcd.getBiasTee());
-			} catch (DeviceException e1) {
-				Log.println("Error setting Bias Tee on FCD");
-				e1.printStackTrace(Log.getWriter());
-			} catch (IOException e1) {
-				Log.println("Error reading Bias Tee on FCD");
-				e1.printStackTrace(Log.getWriter());
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				setBiasTee(false);
+			} else {
+				setBiasTee(true);
 			}
+			saveParam(cbBiasTee.isSelected(), "cbBiasTee");
 		}
-		
 	}
 
 	@Override
 	public void stateChanged(ChangeEvent e) {
-		if (gettingSettings) return;
+		/*
 		if (e.getSource() == ifSpinner) {
 			int u = Integer.parseInt((String) ifSpinner.getValue());
 	        try {
 	        	Log.println("Setting IF Gain to: " + u);
-				fcd.setIFGain(u);
+	        	// IMPLEMENT			fcd.setIFGain(u);
 			} catch (DeviceException e1) {
 				Log.println("Error setting IF Gain on FCD");
 				e1.printStackTrace(Log.getWriter());
 			}
 		}
+		*/
 		
 	}
 
 	@Override
 	public int getSampleRate() {
-		return fcd.SAMPLE_RATE;
+		return ((FCD2TunerController) device).SAMPLE_RATE;
 	}
 
 	@Override
 	public int getDecimationRate() {
 		return 1;
 	}
-
 
 }

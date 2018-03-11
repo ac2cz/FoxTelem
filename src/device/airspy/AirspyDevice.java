@@ -89,8 +89,8 @@ public class AirspyDevice extends device.TunerController
 	public static final int IF_GAIN_MIN = 0;
 	public static final int IF_GAIN_MAX = 15;
 	public static final int IF_GAIN_DEFAULT = 9;
-	public static final long FREQUENCY_MIN = 24000000l;
-	public static final long FREQUENCY_MAX = 1800000000l;
+	public static final long FREQUENCY_MIN = 24000l;
+	public static final long FREQUENCY_MAX = 1800000l;
 	public static final long FREQUENCY_DEFAULT = 101100000;
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.90;
 	public static final AirspySampleRate DEFAULT_SAMPLE_RATE =
@@ -135,7 +135,7 @@ public class AirspyDevice extends device.TunerController
 	public AirspyDevice( Device device,ThreadPoolManager threadPoolManager ) 
 										  throws DeviceException 
 	{
-		//super( FREQUENCY_MIN, FREQUENCY_MAX, 0, USABLE_BANDWIDTH_PERCENT );
+		super( "Airspy", FREQUENCY_MIN, FREQUENCY_MAX );
 		
 		mDevice = device;
 		name = "USBAirspy";

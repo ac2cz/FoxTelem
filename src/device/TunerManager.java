@@ -27,6 +27,8 @@ import org.usb4java.LibUsb;
 
 import common.Log;
 import device.airspy.AirspyDevice;
+import device.fcd.FCD1TunerController;
+import device.fcd.FCD2TunerController;
 import device.rtl.E4KTunerController;
 import device.rtl.R820TTunerController;
 import device.rtl.RTL2832TunerController;
@@ -185,7 +187,7 @@ public class TunerManager {
 				case FUNCUBE_DONGLE_PRO:
 					//return initFuncubeProTuner( device, descriptor );
 				case FUNCUBE_DONGLE_PRO_PLUS:
-					//return initFuncubeProPlusTuner( device, descriptor );
+					return initFuncubeProPlusTuner( device, descriptor );
 				case HACKRF_ONE:
 				case RAD1O:
 					//return initHackRFTuner( device, descriptor );
@@ -254,83 +256,32 @@ public class TunerManager {
 				+ "supported" );
 	}
 	
-	private TunerInitStatus initFuncubeProTuner( Device device, 
-												 DeviceDescriptor descriptor )
-	{
-		String reason = "NOT LOADED";
-		
-		MixerTunerDataLine dataline = getMixerTunerDataLine( 
-							TunerClass.FUNCUBE_DONGLE_PRO.getTunerType() );
-		
-		if( dataline != null )
-		{
+	private FCD1TunerController initFuncubeProTuner( Device device,  DeviceDescriptor descriptor ) {
+		try {
 			FCD1TunerController controller = 
-						new FCD1TunerController( device, descriptor );
-
-			try
-            {
-	            controller.init();
-	            
-				FCDTuner tuner = 
-						new FCDTuner( dataline, controller );
-
-				return new TunerInitStatus( tuner, "LOADED" );
-            }
-            catch ( DeviceException e )
-            {
-            	Log.println( "couldn't load funcube dongle pro tuner", e );
-            	
-            	reason = "error during initialization - " + e.getLocalizedMessage();
-            }
+					new FCD1TunerController( device, descriptor );
+			controller.init();
+			return controller;
 		}
-		else
-		{
-			reason = "couldn't find matching mixer dataline";
+		catch( DeviceException se ) {
+			Log.println( "error constructing tuner: " + se );
+			return null;
 		}
-
-		return new TunerInitStatus( null, "Funcube Dongle Pro tuner not "
-				+ "loaded - " + reason  );
 	}
-
-	private TunerInitStatus initFuncubeProPlusTuner( Device device, 
-													 DeviceDescriptor descriptor )
-	{
-		String reason = "NOT LOADED";
-		
-		MixerTunerDataLine dataline = getMixerTunerDataLine( 
-					TunerClass.FUNCUBE_DONGLE_PRO_PLUS.getTunerType() );
-		
-		if( dataline != null )
-		{
+*/
+	private FCD2TunerController initFuncubeProPlusTuner( Device device, DeviceDescriptor descriptor ) {
+		try {
 			FCD2TunerController controller = 
-						new FCD2TunerController( device, descriptor );
-
-			try
-            {
-	            controller.init();
-	            
-				FCDTuner tuner = 
-						new FCDTuner( dataline, controller );
-
-				return new TunerInitStatus( tuner, "LOADED" );
-            }
-            catch ( DeviceException e )
-            {
-            	Log.println( "couldn't load funcube dongle pro plus tuner", e );
-            	
-            	reason = "error during initialization - " + 
-            						e.getLocalizedMessage();
-            }
+					new FCD2TunerController( device, descriptor );
+			controller.init();
+			return controller;
 		}
-		else
-		{
-			reason = "couldn't find matching mixer dataline";
+		catch( DeviceException se ) {
+			Log.println( "error constructing tuner: " + se );
+			return null;
 		}
-
-		return new TunerInitStatus( null, "Funcube Dongle Pro tuner not "
-				+ "loaded - " + reason );
 	}
-
+/*
 	private TunerInitStatus initHackRFTuner( Device device, 
 											 DeviceDescriptor descriptor )
 	{

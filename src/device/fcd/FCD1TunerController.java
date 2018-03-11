@@ -1,29 +1,48 @@
-package fcd;
+/*******************************************************************************
+ *     SDR Trunk 
+ *     Copyright (C) 2014 Dennis Sheirer
+ * 
+ *     This program is free software: you can redistribute it and/or modify
+ *     it under the terms of the GNU General Public License as published by
+ *     the Free Software Foundation, either version 3 of the License, or
+ *     (at your option) any later version.
+ * 
+ *     This program is distributed in the hope that it will be useful,
+ *     but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *     GNU General Public License for more details.
+ * 
+ *     You should have received a copy of the GNU General Public License
+ *     along with this program.  If not, see <http://www.gnu.org/licenses/>
+ ******************************************************************************/
+package device.fcd;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
+
+import javax.usb.UsbClaimException;
+import javax.usb.UsbException;
+import org.usb4java.Device;
+import org.usb4java.DeviceDescriptor;
 
 import common.Log;
 import device.DeviceException;
 import device.DevicePanel;
-import purejavahidapi.HidDeviceInfo;
 
-public class FcdProDevice extends FcdDevice {
-
-	public static final byte APP_GET_LNA_ENHANCE = (byte)0x97;
-	public static final byte APP_GET_BAND = (byte)0x98;
-	public static final byte APP_GET_MIXER_FILTER = (byte)0x9C;
-	public static final byte APP_GET_GAIN1 = (byte)0x9D;
-	public static final byte APP_GET_GAIN_MODE = (byte)0x9E;
-	public static final byte APP_GET_RC_FILTER = (byte)0x9F;
-	public static final byte APP_GET_GAIN2 = (byte)0xA0;
-	public static final byte APP_GET_GAIN3 = (byte)0xA1;
-	public static final byte APP_GET_GAIN4 = (byte)0xA3;
-	public static final byte APP_GET_GAIN5 = (byte)0xA4;
-	public static final byte APP_GET_GAIN6 = (byte)0xA5;
-
+public class FCD1TunerController extends FCDTunerController
+{
+	public static final int MINIMUM_TUNABLE_FREQUENCY = 64000;
+	public static final int MAXIMUM_TUNABLE_FREQUENCY = 1700000;
+	public static final int SAMPLE_RATE = 96000;
 	
-	// TUNER_LNA_GAIN_ENUM
-	//int[] lnaGainConfigValue = {0,1,4,5,6,7,8,9,10,11,12,13,14};
+//	private double mDCCorrectionInPhase = 0.0;
+//	private double mDCCorrectionQuadrature = 0.0;
+//	private double mPhaseCorrection = 0.0;
+//	private double mGainCorrection = 0.0;
+//	private LNAGain mLNAGain;
+//	private LNAEnhance mLNAEnhance;
+//	private MixerGain mMixerGain;
 	
 	public static String[] lnaGain = {"-5dB","-2.5dB","0dB","2.5dB","5dB","7.5dB","10dB","12.5dB","15dB","17.5dB","20dB","25dB","30dB"};
 
@@ -206,103 +225,90 @@ public class FcdProDevice extends FcdDevice {
 			  TIG6E_P9_0DB=2,
 			  TIG6E_P12_0DB=3,
 			  TIG6E_P15_0DB=4;
-	
-	
-	public FcdProDevice(HidDeviceInfo fcdInfo) throws IOException, DeviceException {
-		super(fcdInfo);
-		SAMPLE_RATE = 96000;
-		MIN_FREQ = 64000;
-		MAX_FREQ = 1700000;
-		}
 
-	public int setLnaGain(int val) throws DeviceException {
-
-		try {
-			int FCD_CMD_LEN = 2;
-			byte[] report = new byte[FCD_CMD_LEN];
-
-			report[0] = (byte)APP_SET_LNA_GAIN;
-			if (val > 1)
-				report[1] = (byte)(2+val); // we are missing 2 values in the array per the API.  Dont know why, but we offset
-			else
-				report[1] = (byte)val;
-
-			sendFcdCommand(report, FCD_CMD_LEN);
-			if (report[0] == APP_SET_LNA_GAIN)
-				return 0;
-			else
-				throw new DeviceException("Set LNA Command not executed: ");
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-
-			return -1;
-		}
-	}
-	public int getLnaGain() throws IOException, DeviceException {
-		int FCD_CMD_LEN = 3;
-		byte[] report = new byte[FCD_CMD_LEN];
-		report[1] = 0;
-		report[0] = (byte)APP_GET_LNA_GAIN;
-		sendFcdCommand(report,FCD_CMD_LEN);
-
-		if (report[0] == APP_GET_LNA_GAIN) {
-			Log.println("LNA GAIN: " + report[2]);
-			if (report[2]> 3) 
-				report[2] = (byte) (report[2] - 2);
-			return report[2];
-		} else
-			throw new DeviceException("Get LNA Command not executed: ");
+	public FCD1TunerController( Device device, DeviceDescriptor descriptor ) throws DeviceException 
+	{
+		super( "FCDP", device, descriptor, SAMPLE_RATE,
+				   MINIMUM_TUNABLE_FREQUENCY, MAXIMUM_TUNABLE_FREQUENCY );
 	}
 	
-public int setRFFilter(int filter) throws DeviceException {
-    	
-    	try {
-    		int FCD_CMD_LEN = 2;
-    		byte[] report = new byte[FCD_CMD_LEN];
-
-    		report[0] = (byte)APP_SET_RF_FILTER;
-    		report[1] = (byte)filter;
-
-    		sendFcdCommand(report, FCD_CMD_LEN);
-    		if (report[0] == APP_SET_RF_FILTER)
-    			return 0;
-    		else
-    			throw new DeviceException("Set RF Filter Command not executed: ");
-    	} catch (IOException e) {
-    		// TODO Auto-generated catch block
-    		e.printStackTrace();
-
-    		return -1;
-    	}
-    }
-    
-    public String getRfFilter() throws IOException, DeviceException {
-		int band = getBandInt();
-		int FCD_CMD_LEN = 3;
-		byte[] report = new byte[FCD_CMD_LEN];
-		report[1] = 0;
-		report[0] = (byte)APP_GET_RF_FILTER;
-		sendFcdCommand(report,FCD_CMD_LEN);
+	public void init() throws DeviceException
+	{
+		super.init();
 		
-		if (report[0] == APP_GET_RF_FILTER) {
-			Log.println("RF FILTER: " + report[2]);
-			if (band == 0) {
-			if (report[2] > -1 && report[2] < vhfIIFilterName.length)
-				return vhfIIFilterName[report[2]];
-			} else if (band == 1) {
-				if (report[2] > -1 && report[2] < vhfIIIFilterName.length)
-					return vhfIIIFilterName[report[2]];
-			} else if (band == 2) {
-				if (report[2] > -1 && report[2] < uhfFilterName.length)
-					return uhfFilterName[report[2]];
-			} else if (band == 3) {
-				if (report[2] > -1 && report[2] < lbandFilterName.length)
-					return lbandFilterName[report[2]];
-			} else
-				return "";
-		} else
-			throw new DeviceException("Get RF Filter Command not executed: ");
+		//mFrequencyController.setSampleRate( SAMPLE_RATE );
+		
+		try
+		{
+			setFCDMode( Mode.APPLICATION );
+			//getPhaseAndGainCorrection();
+			//getDCIQCorrection();
+			//getLNAGainSetting();
+			//getLNAEnhanceSetting();
+			//getMixerGainSetting();
+			
+			send( FCDCommand.APP_SET_MIXER_GAIN, 1l );
+		}
+		catch( Exception e )
+		{
+			e.printStackTrace();
+			
+			throw new DeviceException( "FCDTunerController error " +
+					"during construction: " + e.getMessage() );
+		}
+	}
+	
+	public int getCurrentSampleRate()
+	{
+		return SAMPLE_RATE;
+	}
+	
+	public void setLnaGain(int val) throws DeviceException {
+		try {
+        	send( FCDCommand.APP_SET_LNA_GAIN, val );
+        }
+        catch ( Exception e ) {
+        	throw new DeviceException( "error while setting LNA Gain: " + e.getMessage() );
+        }
+	}
+	
+	public int getLnaGain() {
+		ByteBuffer buffer = send( FCDCommand.APP_GET_LNA_GAIN );
+		buffer.order( ByteOrder.LITTLE_ENDIAN );
+		int gain = buffer.getInt( 2 );
+		return gain;
+	}
+	
+	public void setRFFilter(int filter) throws DeviceException {
+		try {
+			send( FCDCommand.APP_SET_RF_FILTER, filter );
+		}
+		catch ( Exception e ) {
+			throw new DeviceException( "error while setting RF Filter: " + e.getMessage() );
+		}	
+	}
+
+    public String getRfFilter() throws IOException, DeviceException {	 	
+		int band = getBandInt();
+		
+		ByteBuffer buffer = send( FCDCommand.APP_GET_RF_FILTER );
+		buffer.order( ByteOrder.LITTLE_ENDIAN );
+		int filter = buffer.getInt( 2 );
+
+		Log.println("RF FILTER: " + filter);
+		if (band == 0) {
+			if (filter > -1 && filter < vhfIIFilterName.length)
+				return vhfIIFilterName[filter];
+		} else if (band == 1) {
+			if (filter > -1 && filter < vhfIIIFilterName.length)
+				return vhfIIIFilterName[filter];
+		} else if (band == 2) {
+			if (filter > -1 && filter < uhfFilterName.length)
+				return uhfFilterName[filter];
+		} else if (band == 3) {
+			if (filter > -1 && filter < lbandFilterName.length)
+				return lbandFilterName[filter];
+		}
 		return "";
     }
 
@@ -313,47 +319,55 @@ public int setRFFilter(int filter) throws DeviceException {
     	else
     		return "";
     }
+    
     public int getBandInt() throws IOException, DeviceException {
-    	int FCD_CMD_LEN = 3;
-    	byte[] report = new byte[FCD_CMD_LEN];
-    	report[1] = 0;
-    	report[0] = (byte)APP_GET_BAND         ;
-    	sendFcdCommand(report,FCD_CMD_LEN);
-
-    	if (report[0] == APP_GET_BAND) {
-    		Log.println("BAND: " + report[2]);
-    		if (report[2] > -1 && report[2] < band.length)
-    			return report[2];
-    	} else
-    		throw new DeviceException("Get RF Filter Command not executed: ");
+    	ByteBuffer buffer = send( FCDCommand.APP_GET_BAND );
+		buffer.order( ByteOrder.LITTLE_ENDIAN );
+		int bandNum = buffer.getInt( 2 );
+    		Log.println("BAND: " + bandNum);
+    		if (bandNum > -1 && bandNum < band.length)
+    			return bandNum;
     	return 99;
     }
+	
+	public enum Block 
+	{ 
+		CELLULAR_BAND_BLOCKED( "Blocked" ),
+		NO_BAND_BLOCK( "Unblocked" ),
+		UNKNOWN( "Unknown" );
+		
+		private String mLabel;
+		
+		private Block( String label )
+		{
+		    mLabel = label;
+		}
+		
+		public String getLabel()
+		{
+		    return mLabel;
+		}
+
+		public static Block getBlock( String block )
+		{
+			Block retVal = UNKNOWN;
+
+			if( block.equalsIgnoreCase( "No blk" ) )
+			{
+				retVal = NO_BAND_BLOCK;
+			}
+			else if( block.equalsIgnoreCase( "Cell blk" ) )
+			{
+				retVal = CELLULAR_BAND_BLOCKED;
+			}
+			
+			return retVal;
+		}
+	}
+
 
 	@Override
 	public DevicePanel getDevicePanel() throws IOException, DeviceException {
 		return new FcdProPanel();
 	}
-
-  //  public int setFcdFreq(long freq) throws FcdException {
-   // 	super.setFcdFreq(freq);
-  //  	Log.println("Freq causes RF Filter to be set"); 
-   // 	return setRfFilter(freq);
-   // }
-    
-    /**
-	 * Set the RF Filter and Band based on the frequency requested
-	 * @param freq
-	 * @throws FcdException 
-	 
-	public int setRfFilter(long freq) throws FcdException {
-		if (freq >= 4000000 && freq <= 268000000) {
-			Log.println("RF Filter set to 268M");
-			return setRFFilter(TRFE_LPF268MHZ);
-		} else if (freq > 268000000 && freq <= 299000000) {
-			Log.println("RF Filter set to 299M");
-			return setRFFilter(TRFE_LPF299MHZ); 
-		} 
-		return 0;
-	}
-	*/
 }

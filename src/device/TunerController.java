@@ -29,14 +29,16 @@ import decoder.SourceUSB;
  */
 public abstract class TunerController {
 	
-	public int MIN_FREQ = 1500;
-	public int MAX_FREQ = 2050000000;
+	public long MIN_FREQ = 1500;
+	public long MAX_FREQ = 2050000000;
 	public int SAMPLE_RATE = 192000;
 	
 	public String name;
 
-	public TunerController() {
-
+	public TunerController(String name, long min, long max) {
+		this.name = name;
+		MIN_FREQ = min;
+		MAX_FREQ = max;
 	}
 
 	public abstract int setFrequency(long freq) throws DeviceException;
@@ -50,8 +52,8 @@ public abstract class TunerController {
 		return SAMPLE_RATE;
 	}
 
-	public int getMinFreq() { return MIN_FREQ; }
-	public int getMaxFreq() { return MAX_FREQ; }
+	public long getMinFreq() { return MIN_FREQ; }
+	public long getMaxFreq() { return MAX_FREQ; }
 
 	public abstract DevicePanel getDevicePanel() throws IOException, DeviceException;
 	
