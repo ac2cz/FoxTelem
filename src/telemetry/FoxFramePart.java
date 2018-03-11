@@ -483,6 +483,7 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_LT_TX_REF_PWR:
 			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
 			y = 0.1921*Math.pow(x, 3) + 14.663*Math.pow(x,2)+ 11.56*x - 1.8544;
+			if (y < 0) y = 0;  // Power can not be negative
 			return y;
 		case BitArrayLayout.CONVERT_LT_VGA:
 			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
