@@ -19,6 +19,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
+import common.Config;
 import common.Log;
 import device.TunerController;
 import device.DeviceException;
@@ -147,13 +148,18 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			e.printStackTrace();
 		}  // Allow startup to settle down first
 		
+		if (Config.saveFcdParams) {
 		loadParam(cbLnaGain, "cbLnaGain");
 		setLnaGain(cbLnaGain.isSelected());
 		loadParam(cbMixerGain, "cbMixerGain");
 		setMixerGain(cbMixerGain.isSelected());
 		loadParam(cbBiasTee, "cbBiasTee");
 		setBiasTee(cbBiasTee.isSelected());
-		
+		} else {
+			cbLnaGain.setSelected(((FCD2TunerController) device).getLnaGain());
+			cbMixerGain.setSelected(((FCD2TunerController) device).getMixerGain());
+			cbBiasTee.setSelected(((FCD2TunerController) device).getBiasTee());
+		}
 		rfFilterValue.setText(((FCD2TunerController) device).getRfFilter());
 		ifFilterValue.setText(((FCD2TunerController) device).getIfFilter());
 //		int ifG = fcd.getIFGain();
@@ -205,7 +211,8 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			Log.println("Error setting Mixer Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		saveParam(cbMixerGain.isSelected(), "cbMixerGain");
+		if (Config.saveFcdParams)
+			saveParam(cbMixerGain.isSelected(), "cbMixerGain");
 	}
 	
 	private void setLnaGain(boolean b) {
@@ -219,7 +226,8 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			Log.println("Error setting LNA Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		saveParam(cbLnaGain.isSelected(), "cbLnaGain");
+		if (Config.saveFcdParams)
+			saveParam(cbLnaGain.isSelected(), "cbLnaGain");
 	}
 	
 	private void setBiasTee(boolean b) {
@@ -233,7 +241,8 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			Log.println("Error setting Bias Tee on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		saveParam(cbBiasTee.isSelected(), "cbBiasTee");
+		if (Config.saveFcdParams)
+			saveParam(cbBiasTee.isSelected(), "cbBiasTee");
 	}
 	
 	@Override
@@ -260,7 +269,6 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			} else {
 				setBiasTee(true);
 			}
-			saveParam(cbBiasTee.isSelected(), "cbBiasTee");
 		}
 	}
 
