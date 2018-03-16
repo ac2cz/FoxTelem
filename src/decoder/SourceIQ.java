@@ -727,14 +727,15 @@ public class SourceIQ extends SourceAudio {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = i/2;
 				}
-			}
 
-			if (sig > peakSignalInFilterWidth) { 
-				peakSignalInFilterWidth = sig;
-				binOfPeakSignalInFilterWidth = i/2;
+
+				if (sig > peakSignalInFilterWidth) { 
+					peakSignalInFilterWidth = sig;
+					binOfPeakSignalInFilterWidth = i/2;
+				}
 			}
 			avgSigInFilterWidth += sig;
-//			sigList[sigReading] = sig;
+			//			sigList[sigReading] = sig;
 			sigReading++;
 
 			iAvg += newData[k];
