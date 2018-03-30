@@ -14,6 +14,7 @@ import java.util.TimeZone;
 
 import common.Log;
 import telemetry.Frame;
+import telemetry.HighSpeedFrame;
 
 public class ServerProcess implements Runnable {
 	//PayloadDbStore payloadStoreX;
@@ -32,7 +33,9 @@ public class ServerProcess implements Runnable {
 	}
 
 
-	
+	// safety limit to stop massive files being sent to us
+	// Max frame size is a high speed frame plus the maximum STP Header Size, which is circa 350 bytes.  1000 used to be conservative
+	public static final int MAX_FRAME_SIZE = HighSpeedFrame.MAX_FRAME_SIZE + 1000;
 	public static final DateFormat fileDateName = new SimpleDateFormat("yyyyMMddHHmmss");
 	public static final DateFormat yearDirName = new SimpleDateFormat("yyyy");
 	public static final DateFormat monthDirName = new SimpleDateFormat("MM");
@@ -103,6 +106,8 @@ public class ServerProcess implements Runnable {
 			while ((c = in.read()) != -1) {
 				f.write(c);
 				b++;
+				if (b > MAX_FRAME_SIZE) 
+					throw new StpFileProcessException(fileName,"Frame too long, probablly spam: Aborted");
 			}
 			
 			in.close();
@@ -152,16 +157,12 @@ public class ServerProcess implements Runnable {
 				Log.println("ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
 		} catch (StpFileProcessException e) {
 			Log.println("STP EXCPETION: " + e.getMessage());
-			e.printStackTrace(Log.getWriter());
 			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
 			storeException(stp);
 		} finally {
-			try { 
-				in.close();
-				socket.close();
-				f.close();
-				
-			} catch (Exception ex) { /*ignore*/} 
+			try { in.close();  } catch (Exception ex) { /*ignore*/}
+			try { socket.close();  } catch (Exception ex) { /*ignore*/} 
+			try { f.close();  } catch (Exception ex) { /*ignore*/}
 		}
 	}
 

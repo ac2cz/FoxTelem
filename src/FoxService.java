@@ -77,11 +77,11 @@ public class FoxService {
         ExecutorService pool = null;
 
         try {
-            serverSocket = new ServerSocket(port);
-            pool = Executors.newFixedThreadPool(poolSize);
-            } catch (IOException e) {
-            Log.println("Could not listen on port: " + port);
-            System.exit(-1);
+        	serverSocket = new ServerSocket(port);
+        	pool = Executors.newFixedThreadPool(poolSize);
+        } catch (IOException e) {
+        	Log.println("Could not listen on port: " + port);
+        	System.exit(-1);
         }
 
         while (listening) {

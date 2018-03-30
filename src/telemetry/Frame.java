@@ -480,8 +480,12 @@ public abstract class Frame implements Comparable<Frame> {
 								stpDate = null;
 								//e.printStackTrace(Log.getWriter());
 							} catch (NumberFormatException e) {
-								Log.println("ERROR - Date was not parsable. Setting to null");
+								Log.println("ERROR - Date has number format exception. Setting to null");
 								stpDate = null;
+							} catch (Exception e) { // we can get other unusual exceptions such as ArrayIndexOutOfBounds...
+								Log.println("ERROR - Date was not parsable. Setting to null: " + e.getMessage());
+								stpDate = null;
+								e.printStackTrace(Log.getWriter());								
 							}
 						}
 						key = "";
