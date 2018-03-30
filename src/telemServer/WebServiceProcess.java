@@ -25,7 +25,7 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 0.21 - 12 Feb 2017";
+	public static String version = "Version 0.22 - 30 Mar 2018";
 	private Socket socket = null;
 	int port = 8080;
 	
