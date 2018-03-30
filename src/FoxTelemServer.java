@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.28 - 11 Feb 2018";
+	public static String version = "Version 0.30 - 30 Mar 2018";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -169,26 +169,36 @@ public class FoxTelemServer {
         imageThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
         imageThread.start();
         
+        int retries = 0;
+        int RETRY_LIMIT = 10;
         while (listening) {
         	try {
         		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
         		pool.execute(new ServerProcess(u,p,db, serverSocket.accept(), sequence++));
+        		retries = 0;
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
+        		retries++;
+        		try { Thread.sleep(1000); } catch (InterruptedException e1) {	}
         	} catch (IOException e) {
-        		// TODO Auto-generated catch block
         		e.printStackTrace(Log.getWriter());
+        		Log.println("Socket Error: waiting to see if we recover: " + e.getMessage());
+        		retries++;
+        		try { Thread.sleep(1000); } catch (InterruptedException e1) {	}
         	}
             if (sequence == MAX_SEQUENCE)
             	sequence=0;
+            if (retries == RETRY_LIMIT) {
+            	Log.println("Max Socket Retries hit: Terminating Server");
+            	listening = false;
+            }
         }
 
         try {
 			serverSocket.close();
 			pool.shutdown();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace(Log.getWriter());
 		}
     }
