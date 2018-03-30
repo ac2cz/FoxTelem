@@ -9,4 +9,9 @@ public class StpFileProcessException extends Exception {
 		super(error);
 		fileName = file;
 	}
+	
+	public String getMessage() {
+		String s = super.getMessage();
+		return fileName + " caused exception: \n" + s;
+	}
 }

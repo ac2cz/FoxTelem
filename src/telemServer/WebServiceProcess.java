@@ -25,7 +25,7 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 0.21 - 12 Feb 2017";
+	public static String version = "Version 0.22 - 30 Mar 2018";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -38,11 +38,13 @@ public class WebServiceProcess implements Runnable {
 
 	@Override
 	public void run() {
+		BufferedReader in = null;
+		PrintWriter out = null;
 		try {
 			Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
 
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			PrintWriter out = new PrintWriter(socket.getOutputStream());
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out = new PrintWriter(socket.getOutputStream());
 
 			// read the data sent. 
 			// stop reading once a blank line is hit. This
@@ -171,21 +173,14 @@ public class WebServiceProcess implements Runnable {
 			}
 
 			out.flush();
-			out.close();
-			in.close();
-			socket.close();
 		} catch (IOException e) {
 			Log.println("ERROR: IO Exception in Webservice" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 		} finally {
-			try {
-				socket.close();
-			} catch (IOException e) {
-				// ignore
-			}
+			try { out.close(); } catch (Exception e) {}
+			try { in.close();  } catch (Exception e) {}
+			try { socket.close();  } catch (Exception e) {}
 		}
-
-
 	}
 
 	String calculateT0(PrintWriter out, int sat, int reset, String receiver, int num) {
@@ -202,11 +197,13 @@ public class WebServiceProcess implements Runnable {
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<table><tr><th>STP Date</th><th>Uptime</th><th>Estimated T0</th></tr>";
 		
+		Connection derby = null;
+		ResultSet r = null;
 		try {
-			Connection derby = payloadDbStore.getConnection();
+			derby = payloadDbStore.getConnection();
 			stmt = derby.createStatement();
 			//Log.println(update);
-			ResultSet r = stmt.executeQuery(update);
+			r = stmt.executeQuery(update);
 			int size = 0;
 			int i=0;
 			if (r.last()) {
@@ -245,6 +242,10 @@ public class WebServiceProcess implements Runnable {
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint("calculateT0", e);
 			return e.toString();
+		} finally {
+			try { r.close(); } catch (SQLException e) {}
+			try { stmt.close(); } catch (SQLException e) {}
+			try { derby.close(); } catch (SQLException e) {}
 		}
 		
 	}

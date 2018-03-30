@@ -1140,11 +1140,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		// MONITOR AUDIO BUTTON
 		if (e.getSource() == btnMonitorAudio) {
 			if (!Config.monitorAudio) {// then we are toggling it on, get the sink ready
+				if (decoder1 != null)
 				setupAudioSink(decoder1);
 			} else {// we are toggling it off
-				sink.flush();
-				sink.closeOutput();
-				sink = null;
+				if (sink != null) {
+					sink.flush();
+					sink.closeOutput();
+					sink = null;
+				}
 			}
 			try {
 				if (viewLowSpeed.isSelected())
