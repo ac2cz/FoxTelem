@@ -38,6 +38,7 @@ public class WebHealthTab {
 
 	public WebHealthTab(PayloadDbStore pdb, FoxSpacecraft f, int p) throws LayoutLoadException {
 		fox = f;
+		if (fox == null) throw new LayoutLoadException("Spacecraft is not valid");
 		port = p;
 		payloadDbStore = pdb;
 		rtlayout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);

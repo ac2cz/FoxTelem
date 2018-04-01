@@ -40,6 +40,7 @@ public class WebServiceProcess implements Runnable {
 	public void run() {
 		BufferedReader in = null;
 		PrintWriter out = null;
+		String GET = null;
 		try {
 			Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
 
@@ -50,7 +51,7 @@ public class WebServiceProcess implements Runnable {
 			// stop reading once a blank line is hit. This
 			// blank line signals the end of the client HTTP headers.
 			String str = ".";
-			String GET = in.readLine();
+			GET = in.readLine();
 			if (GET != null) {
 				Log.println(GET);
 				String[] requestLine = GET.split(" "); // GET <path> HTTP/1.1
@@ -177,9 +178,11 @@ public class WebServiceProcess implements Runnable {
 			Log.println("ERROR: IO Exception in Webservice" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 		} finally {
-			try { out.close(); } catch (Exception e) {}
-			try { in.close();  } catch (Exception e) {}
-			try { socket.close();  } catch (Exception e) {}
+			try { out.close(); } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			try { in.close();  } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			try { socket.close();  } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			try { payloadDbStore.closeConnection(); } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			Log.println("Finished Request: " + GET);
 		}
 	}
 
@@ -243,10 +246,8 @@ public class WebServiceProcess implements Runnable {
 			PayloadDbStore.errorPrint("calculateT0", e);
 			return e.toString();
 		} finally {
-			try { r.close(); } catch (SQLException e) {}
-			try { stmt.close(); } catch (SQLException e) {}
-			try { derby.close(); } catch (SQLException e) {}
+			try { r.close(); } catch (SQLException e) {e.printStackTrace(Log.getWriter());}
+			try { stmt.close(); } catch (SQLException e) {e.printStackTrace(Log.getWriter());}
 		}
-		
 	}
 }
