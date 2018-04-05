@@ -327,7 +327,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	private void displayResets(JLabel lblResetsValue, int u) {
 		lblResetsValue.setText("" + u);
 	}
-
+	
 	protected void displayMode(int safeMode, int scienceMode) {
 		// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
 		// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same		
