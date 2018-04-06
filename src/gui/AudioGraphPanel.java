@@ -181,7 +181,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				// data is stereo, but we want to decimate before display
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
-				g2.setColor(Color.BLUE);
+				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length)
+					g2.setColor(Color.BLACK);
+				else
+					g2.setColor(Color.BLUE);
 				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
 				x = border*2 + i*(graphWidth-border*2)/audioData.length;
 
@@ -211,7 +214,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 
 				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length) {
 					if (pskAudioData != null && pskAudioData.length > 0) {
-					g2.setColor(Color.BLACK);
+					g2.setColor(Color.BLUE);
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
 
 					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph

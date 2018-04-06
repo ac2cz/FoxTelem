@@ -135,31 +135,6 @@ public class EyePanel extends JPanel implements Runnable {
 				int a=0; 
 				int b=0;
 				try {
-
-			//		if (false && decoder instanceof FoxBPSKDecoder)
-			//			NUMBER_OF_BITS = data.length;
-
-					/*
-						int offset = ((FoxBPSKDecoder) decoder).recoverClockOffset();
-
-						for (int i=0; i < NUMBER_OF_BITS; i++) {
-							for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
-								if (data !=null && a < NUMBER_OF_BITS && b < SAMPLES) {
-									if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-										buffer[a][b++] = data[i-1][j+decoder.getBucketSize()+offset];
-									else if (offset > 0 && j + offset >= decoder.getBucketSize() && i < NUMBER_OF_BITS-1) // copy from next
-										buffer[a][b++] = data[i+1][decoder.getBucketSize()-1-j+offset];
-									else if (j+offset >=0 && j+offset < decoder.getBucketSize())
-										buffer[a][b++] = data[i][j+offset];
-								}
-							}
-							b=0;
-							a++;
-						}
-
-
-					} else {
-					 */
 					if (NUMBER_OF_BITS > data.length) NUMBER_OF_BITS = data.length;
 					for (int i=0; i < NUMBER_OF_BITS; i++) {
 						for (int j=0; j < decoder.getBucketSize(); j+=decoder.getBucketSize()/SAMPLES) {
@@ -170,7 +145,6 @@ public class EyePanel extends JPanel implements Runnable {
 						b=0;
 						a++;
 					}
-					//			}
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// nothing to do at run time.  We switched decoders and the array length changed underneath us
 					Log.println("Ran off end of eye diagram data: a:" + a + " b:" + b);	

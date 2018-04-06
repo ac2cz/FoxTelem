@@ -9,6 +9,8 @@ import common.Log;
 import filter.DcRemoval;
 import filter.Filter;
 import filter.RaisedCosineFilter;
+import filter.Delay;
+import filter.HilbertTransform;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -1075,6 +1077,8 @@ public class SourceIQ extends SourceAudio {
 	}//end getAudioFormat
 
 
+//	HilbertTransform ht = new HilbertTransform(192000, 255);
+//	Delay delay = new Delay((255-1)/2);
 	
 	/**
 	 * BFO translates to baseband and gives audio for a SSB signal
@@ -1090,6 +1094,9 @@ public class SourceIQ extends SourceAudio {
 			//System.err.println("OFF: " + ssbOffset);
 		double mi = ncoMixerI(i,q, ssbOffset);
 		double mq = ncoMixerQ(i,q, ssbOffset);
+		//Demodulate ssb
+//		mi = ht.filter(mi);
+//		mq = delay.filter(mq);
 		return mi + mq;
 	}
 
