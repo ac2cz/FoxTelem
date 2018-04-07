@@ -27,6 +27,11 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRadExpData;
+import telemetry.PayloadRtValues;
+
 import java.awt.Dimension;
 
 import javax.swing.border.EmptyBorder;
@@ -70,8 +75,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	
 	public final int DEFAULT_DIVIDER_LOCATION = 500;
 	public static final String HEALTHTAB = "HEALTHTAB";
-	public static final String SAFE_MODE_IND = "SafeModeIndication";
-	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+
 	private static final String LIVE = "Live ";
 	private static final String DISPLAY = "Selected ";
 	
@@ -328,6 +332,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		lblResetsValue.setText("" + u);
 	}
 	
+	/*
 	protected void displayMode(int safeMode, int scienceMode) {
 		// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
 		// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same		
@@ -347,7 +352,15 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			lblModeValue.setText("TRANSPONDER");
 		}
 	}
-
+	*/
+	
+	protected void displayMode() {
+		PayloadRadExpData radPayload =Config.payloadStore.getLatestRad(foxId);
+		String mode = FoxSpacecraft.determineModeString((PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
+		if (lblModeValue != null)
+			lblModeValue.setText(mode);
+	}
+	
 	/**
 	 * Given the Fox ID, display the actual number of the spacecraft
 	 * @param u
@@ -416,7 +429,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			lblLive.setForeground(Color.BLACK);
 			lblLive.setText(DISPLAY);
 		}
-		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
+		displayMode();
+//		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
 		
 	}
 	
@@ -462,7 +476,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		displayUptime(lblMaxUptimeValue, maxPayload2.getUptime());
 		displayResets(lblMaxResetsValue, maxPayload2.getResets());
 		displayCaptureDate(maxPayload2.getCaptureDate());
-		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
+//		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
+		displayMode();
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
@@ -484,7 +499,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		displayUptime(lblMinUptimeValue, minPayload2.getUptime());
 		displayResets(lblMinResetsValue, minPayload2.getResets());
 		displayCaptureDate(minPayload2.getCaptureDate());
-		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
+		displayMode();
+//		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
 	

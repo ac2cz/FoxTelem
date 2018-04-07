@@ -19,6 +19,10 @@ import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRadExpData;
+import telemetry.PayloadRtValues;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
@@ -60,6 +64,21 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
 	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
 	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
+	
+	public static final String SAFE_MODE_IND = "SafeModeIndication";
+	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+	
+	public static final int SAFE_MODE = 0;
+	public static final int TRANSPONDER_MODE = 1;
+	public static final int DATA_MODE = 2;
+	public static final int SCIENCE_MODE = 3;
+	
+	public static final String[] modeNames = {
+		"SAFE",
+		"TRANSPONDER",
+		"DATA",
+		"SCIENCE"
+	};
 	
 	public static final String[] expNames = {
 		"Empty",
@@ -373,6 +392,57 @@ public class FoxSpacecraft extends Spacecraft{
 		else id = Integer.toString(foxId);
 
 		return id;
+	}
+	
+	public static String getModeString(int mode) {
+		return FoxSpacecraft.modeNames[mode];
+	}
+	
+	/**
+	 * Return the mode of the spacecraft based in the most recent RT, MAX and MIN payloads
+	 * @param realTime
+	 * @param maxPaylaod
+	 * @param minPayload
+	 * @return
+	 */
+	public static int determineMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, PayloadRadExpData radPayload) {
+		if (realTime != null && minPayload != null && maxPayload != null) {
+			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+				return DATA_MODE;
+		}
+		// Otherwise, if RAD received more recently than max/min and RT
+		if (radPayload != null)
+			if (realTime != null && radPayload.compareTo(realTime) > 0)
+				if (maxPayload == null && minPayload == null)
+					return TRANSPONDER_MODE;
+				else if (maxPayload != null && radPayload.compareTo(maxPayload) > 0)
+					if (minPayload == null)
+						return TRANSPONDER_MODE;
+					else if (radPayload.compareTo(minPayload) > 0)
+						return TRANSPONDER_MODE;
+		
+		// Otherwise find the most recent max/min
+		if ((minPayload == null && maxPayload != null) || maxPayload.compareTo(minPayload) > 0) {
+			if (maxPayload.getRawValue(SCIENCE_MODE_IND) == 1)
+				return SCIENCE_MODE;
+			else if (maxPayload.getRawValue(SAFE_MODE_IND) == 1)
+				return SAFE_MODE;
+			else
+				return TRANSPONDER_MODE;
+		} else if (minPayload != null) {
+			if (minPayload.getRawValue(SCIENCE_MODE_IND) == 1)
+				return SCIENCE_MODE;
+			else if (minPayload.getRawValue(SAFE_MODE_IND) == 1)
+				return SAFE_MODE;
+			else
+				return TRANSPONDER_MODE;
+		}
+		return TRANSPONDER_MODE;
+	}
+	
+	public static String determineModeString(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, PayloadRadExpData radPayload) {
+		int mode = determineMode(realTime, maxPayload, minPayload, radPayload);
+		return getModeString(mode);
 	}
 	
 	public String toString() {
