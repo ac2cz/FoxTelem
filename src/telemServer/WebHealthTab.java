@@ -6,15 +6,18 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
+import common.Config;
 import common.FoxSpacecraft;
 import gui.DisplayModule;
 import gui.HealthTab;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
+import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
 
@@ -76,7 +79,16 @@ public class WebHealthTab {
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+" - " + fieldName +"</h1>"
 				+ "<table><tr><th>Reset</th> <th>Uptime </th> <th>" + fieldName + "</th> </tr>";
-		double[][] graphData = payloadDbStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime, false, true);
+		
+		double[][] graphData = null;
+
+		if (rtlayout.hasFieldName(fieldName))
+			graphData = payloadDbStore.getRtGraphData(fieldName, num, fox, fromReset, fromUptime, false, true);
+		else if (minlayout.hasFieldName(fieldName))
+			graphData = payloadDbStore.getMinGraphData(fieldName, num, fox, fromReset, fromUptime, false, true);
+		else if (maxlayout.hasFieldName(fieldName))
+			graphData = payloadDbStore.getMaxGraphData(fieldName, num, fox, fromReset, fromUptime, false, true);
+		
 		if (graphData != null) {
 			for (int i=0; i< graphData[0].length; i++) {
 				s = s + "<tr>";
@@ -92,27 +104,10 @@ public class WebHealthTab {
 	
 	public String toString() {
 		String s = "";
-		String mode = "TRANSPONDER";
+		PayloadRadExpData radPayload = payloadDbStore.getLatestRad(fox.foxId);
+		String mode = FoxSpacecraft.determineModeString((PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
 		if (payloadRt != null) {
-			// Work out the mode
-			// First, which record should we look at
-			if (payloadMax.getRawValue(HealthTab.SCIENCE_MODE_IND) == 1) {
-				mode = "SCIENCE";
-			}
-			if (payloadMin.getRawValue(HealthTab.SCIENCE_MODE_IND) == 1) {
-				mode = "SCIENCE";
-			}
-			if (payloadMax.getRawValue(HealthTab.SAFE_MODE_IND) == 1) {
-				mode = "SAFE";
-			}
-			if (payloadMin.getRawValue(HealthTab.SAFE_MODE_IND) == 1) {
-				mode = "SAFE";
-			}
-			if (payloadRt != null && payloadMin != null && payloadMax != null) {
-				if (payloadRt.uptime == payloadMin.uptime && payloadMin.uptime == payloadMax.uptime)				
-					mode = "DATA";
-			}
-
+			
 			s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+"</h1>";
 			// We set the style of table 1 for the telemetry.  Table 2 is the inner table for the max/min/rt rows
 		s = s + "<style> table.table1 td { border: 5px solid lightgray; } "
@@ -185,9 +180,11 @@ public class WebHealthTab {
 		s = s + "<td><table class='table2'>";
 		s = s + "<tr><th></th><th>RT</th><th>MIN</th><th>MAX</th></tr>";
 		try {
-			s = s + addModuleLines(topModuleNames[i], topModuleLines[i], rtlayout);
-		    if (maxlayout != null) s = s + addModuleLines(topModuleNames[i], topModuleLines[i], maxlayout);
-		    if (minlayout != null) s = s + addModuleLines(topModuleNames[i], topModuleLines[i], minlayout);
+			s = s + addModuleLines(topModuleNames[i], topModuleLines[i], rtlayout, payloadRt);
+		    if (maxlayout != null) 
+		    	s = s + addModuleLines(topModuleNames[i], topModuleLines[i], maxlayout, payloadMax);
+		    if (minlayout != null) 
+		    	s = s + addModuleLines(topModuleNames[i], topModuleLines[i], minlayout, payloadMin);
 		} catch (LayoutLoadException e) {
 			e.printStackTrace(Log.getWriter());
 		}
@@ -196,7 +193,7 @@ public class WebHealthTab {
 		return s;
 	}
 	
-	private String addModuleLines(String topModuleName, int topModuleLine, BitArrayLayout rt) throws LayoutLoadException {
+	private String addModuleLines(String topModuleName, int topModuleLine, BitArrayLayout rt, FramePart payloadRt) throws LayoutLoadException {
 		
 		String s = "";
 		for (int j=0; j<rt.NUMBER_OF_FIELDS; j++) {
@@ -207,7 +204,11 @@ public class WebHealthTab {
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				
 				if (!rt.fieldName[j].startsWith("IHUDiag")) {
-				s = s + "<tr><td><a href=/tlm/graph.php?"
+				s = s + "<tr>";
+				
+				s= s + "<td>";
+				
+				s = s + "<a href=/tlm/graph.php?"
 						+ "sat=" + fox.foxId+"&field=" + rt.fieldName[j]
 								+ "&raw=conv"  
 								+ "&reset=0"
@@ -215,20 +216,29 @@ public class WebHealthTab {
 								+ "&rows=100"
 								+ "&port=" + port
 								+ ">" + rt.shortName[j] + "</a>";
-				s = s + formatUnits(rt.fieldUnits[j]) + "</td><td align=center > " + payloadRt.getStringValue(rt.fieldName[j], fox)  + "</td>"; 
+				s = s + formatUnits(rt.fieldUnits[j]) + "</td>";
 
-				s = s + "<td align=center >";
+				if (rt.moduleDisplayType[j] == DisplayModule.DISPLAY_RT_ONLY)
+					s= s + "<td align=left colspan=3>";
+				else
+					s= s + "<td align=center > ";
+				
+				s = s + payloadRt.getStringValue(rt.fieldName[j], fox)  + "</td>"; 
+
+				
 				// Min
 				if (rt.moduleDisplayType[j] != DisplayModule.DISPLAY_RT_ONLY) {
+					s = s + "<td align=center >";
 					if (rt.moduleDisplayType[j] == DisplayModule.DISPLAY_ALL_SWAP_MINMAX) {
 						if (payloadMax != null)
 							s = s + payloadMax.getStringValue(rt.fieldName[j], fox);
 					} else if (payloadMin != null)
 						s = s + payloadMin.getStringValue(rt.fieldName[j], fox);
 				}
-				s = s + "</td><td align=center >";
+				
 				// Max
 				if (rt.moduleDisplayType[j] != DisplayModule.DISPLAY_RT_ONLY) {
+					s = s + "</td><td align=center >";
 					if (rt.moduleDisplayType[j] == DisplayModule.DISPLAY_ALL_SWAP_MINMAX) {
 						if (payloadMin != null)
 							s = s + payloadMin.getStringValue(rt.fieldName[j], fox);

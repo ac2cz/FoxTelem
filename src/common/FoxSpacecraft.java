@@ -399,10 +399,11 @@ public class FoxSpacecraft extends Spacecraft{
 	}
 	
 	/**
-	 * Return the mode of the spacecraft based in the most recent RT, MAX and MIN payloads
+	 * Return the mode of the spacecraft based in the most recent RT, MAX, MIN and EXP payloads
 	 * @param realTime
 	 * @param maxPaylaod
 	 * @param minPayload
+	 * @param radPayload
 	 * @return
 	 */
 	public static int determineMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, PayloadRadExpData radPayload) {

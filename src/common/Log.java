@@ -108,8 +108,8 @@ public class Log {
 	public static void alert(String message) {
 		try {
 			println("ALERT: " + message); // put as last item in the log too
-			Log.logFile = Log.logFile + ".ALERT";
-			File aFile = new File(Log.logFile);
+			String alertFile = Log.logFile + ".ALERT";
+			File aFile = new File(alertFile);
 			if(!aFile.exists()){
 				aFile.createNewFile();
 			}

@@ -770,17 +770,18 @@ longer send telemetry.
 						+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ "tn " + Integer.toHexString(taskNumber) + " "
 						+ "al " + Integer.toHexString(alignment);
-			else
+			else {
 				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
 						+ " Error Type: " + ihuErrorType[errorCode] + " "
 						+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
 						+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ " Task Number: " + taskNumber + "- ";
-			if (taskNumber < ihuTask.length)
-				s = s + ihuTask[taskNumber];
-			else
-				s = s + "Unknown";
-			s = s + " Alignment: " + alignment;
+				if (taskNumber < ihuTask.length)
+					s = s + ihuTask[taskNumber];
+				else
+					s = s + "Unknown";
+				s = s + " Alignment: " + alignment;
+			}
 		}
 		return s;
 	}
