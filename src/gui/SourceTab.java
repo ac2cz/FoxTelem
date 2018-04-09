@@ -1340,24 +1340,34 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 		return false;
 	}
+
+	private void connectFCD(short vendorId, short deviceId) throws UsbException, DeviceException {
+		if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+		try {
+			rfDevice = tunerManager.findDevice(vendorId, deviceId);
+		} catch (Exception e1) {
+			// FIXME - This can not be right..
+			// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
+			rfDevice = tunerManager.findDevice(vendorId, deviceId);
+		}
+	}
 	
-	private boolean usingFcd() throws IOException, DeviceException {
+	private boolean usingFcd() throws IOException, DeviceException, UsbException {
 		boolean fcdSelected = fcdSelected();
 		if (fcdSelected) {
 			
 				if (rfDevice == null) {
-					// FCDPP
+					// Try FCDPP first
 					short vendorId = (short)0x04D8;
 					short deviceId = (short)0xFB31;
-					
-					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 					try {
-						rfDevice = tunerManager.findDevice(vendorId, deviceId);
-					} catch (UsbException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
+						connectFCD(vendorId, deviceId);
+					} catch (Exception e) {
+						// Try FCDP next
+						vendorId = (short)0x04D8;
+						deviceId = (short)0xFB56;
+						connectFCD(vendorId, deviceId);
 					}
-//					rfDevice = FcdDevice.makeDevice();	
 					if (rfDevice == null) return false; // FIXME this is an issue because we found the description but not the HID device
 				}
 				if (panelFcd == null)
@@ -1547,8 +1557,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					try {
 						rfDevice = tunerManager.findDevice(vendorId, deviceId);
 					} catch (UsbException e1) {
-						// TODO Auto-generated catch block
+						Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
 						e1.printStackTrace();
+						rfDevice = null;
+					} catch (DeviceException e) {
+						Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
+						e.printStackTrace();
+						rfDevice = null;
 					}
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
@@ -1658,8 +1673,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e.printStackTrace(Log.getWriter());
 						stopButton();
 					} catch (DeviceException e) {
-						Log.println("FCD Startup Error writing commands: " + e.getMessage());
+						Log.errorDialog("ERROR", "FCD Startup Error writing commands: " + e.getMessage());
 						e.printStackTrace(Log.getWriter());
+						stopButton();
+					} catch (UsbException e) {
+						Log.errorDialog("ERROR", "FCD Startup error with USB: " + e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
 					}
 				}
 				
