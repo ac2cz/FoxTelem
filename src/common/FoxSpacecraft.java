@@ -423,7 +423,7 @@ public class FoxSpacecraft extends Spacecraft{
 						return TRANSPONDER_MODE;
 		
 		// Otherwise find the most recent max/min
-		if ((minPayload == null && maxPayload != null) || maxPayload.compareTo(minPayload) > 0) {
+		if ((minPayload == null && maxPayload != null) || (maxPayload != null && minPayload != null && maxPayload.compareTo(minPayload) > 0)) {
 			if (maxPayload.getRawValue(SCIENCE_MODE_IND) == 1)
 				return SCIENCE_MODE;
 			else if (maxPayload.getRawValue(SAFE_MODE_IND) == 1)
