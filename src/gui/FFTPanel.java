@@ -220,12 +220,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int targetBin = 0;
 
 		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
-			if (Config.passManager.getState() == PassManager.DECODE || 
-					Config.passManager.getState() == PassManager.ANALYZE ||
-					Config.passManager.getState() == PassManager.FADED)
+			//if (Config.passManager.getState() == PassManager.DECODE || 
+			//		Config.passManager.getState() == PassManager.ANALYZE ||
+			//		Config.passManager.getState() == PassManager.FADED)
 				targetBin = rfData.getBinOfPeakSignalInFilterWidth();  // peak is the strongest signal in the filter width
-			else
-				targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
+			//else
+			//	targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
 
 			avgBin = avgBin + targetBin;
 			avgNum++;
