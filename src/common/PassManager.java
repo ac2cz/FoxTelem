@@ -11,6 +11,7 @@ import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import decoder.Decoder;
+import decoder.FoxDecoder;
 import decoder.SourceIQ;
 
 /**
@@ -92,8 +93,6 @@ public class PassManager implements Runnable {
 	private boolean newPass = false; // true if we are starting a new pass and need to be give the reset/uptime
 	private boolean faded = false;
 	private boolean pendingTCA = false; // True if we have a TCA measurement that needs to be sent to the server
-	
-	
 	
 	static final int MIN_FREQ_READINGS_FOR_TCA = 10;
 	
@@ -388,12 +387,23 @@ public class PassManager implements Runnable {
 		
 		if (Config.findSignal && pp.rfData != null && pp.foxDecoder != null && pp.eyeData != null) {
 			
-			//Log.println("Getting eye data");
+			// Lock to Bit SNR is faster
 			pp.eyeData = pp.foxDecoder.eyeData;
 			if (Config.debugSignalFinder)
 				Log.println(spacecraft.getIdString() + " BIT SNR:" + pp.eyeData.bitSNR);
 			if (pp.eyeData != null && pp.eyeData.bitSNR > Config.BIT_SNR_THRESHOLD) {
 				// We have a signal
+				return true;
+			}
+
+			// But check if we got a decode as this is more definite.  Especially if the bit SNR is set too high
+			// This is often a problem for PSK where we can decode signal that has very low SNR
+			if (((FoxDecoder)pp.foxDecoder).decodedFrame != null) {
+				if (pp.lastFrame != null)
+					if (pp.lastFrame.getHeader().uptime - ((FoxDecoder)pp.foxDecoder).decodedFrame.getHeader().uptime > 11) {
+						return false;
+					}
+				pp.lastFrame = ((FoxDecoder)pp.foxDecoder).decodedFrame;
 				return true;
 			}
 		}
