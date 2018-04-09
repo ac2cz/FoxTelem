@@ -42,9 +42,10 @@ public class EyeData extends DataMeasure {
     
     public static final int HIGH = 0;
     public static final int LOW = 1;
+    public static final int BIT = 2;
     
     public EyeData(int l, int b) {
-    	MEASURES = 2;
+    	MEASURES = 3;
     	AVERAGE_PERIOD = 400; // 350ms to measure a window of 70 bits. 1000 = 1 sec average time
     	init();
     	
@@ -83,10 +84,12 @@ public class EyeData extends DataMeasure {
     
     public void setHigh(int value) {
     	setValue(HIGH, value);
+    	setValue(BIT, value);
     }
 
     public void setLow(int value) {
     	setValue(LOW,value);
+    	setValue(BIT, value);
     }
 
     public void setOffsetLow(int i, int width, int offset) {
@@ -94,22 +97,31 @@ public class EyeData extends DataMeasure {
     	for (int w=-width; w<width; w++)
     		value += getOffsetValue(i, bucketSize/2+w, offset);
         setValue(LOW,value/(width*2));
+        setValue(BIT, value/(width*2));
     }
     public void setOffsetHigh(int i, int width, int offset) {
     	int value = 0;
     	for (int w=-width; w<width; w++)
     		value += getOffsetValue(i, bucketSize/2+w, offset);
     	setValue(HIGH,value/(width*2));
+    	setValue(BIT, value/(width*2));
     }
     
     private int getOffsetValue(int i, int j, int offset) {
     	int value = 0;
-    	if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-    		value = eyeData[i-1][j+bucketSize+offset];
+    	if (offset < 0 && j < Math.abs(offset) && i == 0) // copy from previous data set
+			value = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
+		else if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+			value = eyeData[i-1][j+bucketSize+offset];
 		else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
 			value = eyeData[i+1][bucketSize-1-j+offset];
-		else if (j+offset >=0 && j+offset < bucketSize)
+		else if (j+offset >=0 && j+offset < bucketSize) // copy from the current
 			value = eyeData[i][j+offset];
+		else {
+			// There is no data to copy.  Out offset is looking into the future
+			//buffer[a][b++] = 0;
+			//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
+		}
     	return value;
     }
     /*
@@ -128,19 +140,20 @@ public class EyeData extends DataMeasure {
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int j=0; j < bucketSize; j+=1) {
 				if (eyeData !=null && a < SAMPLE_WINDOW_LENGTH && b < bucketSize) {
-					if (offset < 0 && j < Math.abs(offset) && i == 0) // copy from previous data set
-						buffer[a][b++] = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
-					else if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-						buffer[a][b++] = eyeData[i-1][j+bucketSize+offset];
-					else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
-						buffer[a][b++] = eyeData[i+1][bucketSize-1-j+offset];
-					else if (j+offset >=0 && j+offset < bucketSize) // copy from the current
-						buffer[a][b++] = eyeData[i][j+offset];
-					else {
-						// There is no data to copy.  Out offset is looking into the future
-						//buffer[a][b++] = 0;
-						//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
-					}
+//					if (offset < 0 && j < Math.abs(offset) && i == 0) // copy from previous data set
+//						buffer[a][b++] = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
+//					else if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+//						buffer[a][b++] = eyeData[i-1][j+bucketSize+offset];
+//					else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
+//						buffer[a][b++] = eyeData[i+1][bucketSize-1-j+offset];
+//					else if (j+offset >=0 && j+offset < bucketSize) // copy from the current
+//						buffer[a][b++] = eyeData[i][j+offset];
+//					else {
+//						// There is no data to copy.  Out offset is looking into the future
+//						//buffer[a][b++] = 0;
+//						//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
+//					}
+					buffer[a][b++] = getOffsetValue(i,j,offset);
 				}
 			}
 			b=0;
