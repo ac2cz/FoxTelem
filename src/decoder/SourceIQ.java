@@ -655,11 +655,6 @@ public class SourceIQ extends SourceAudio {
 		int fromBin = Config.fromBin;
 		int toBin = Config.toBin;
 		boolean spansDcSpike = false;
-		if (toBin < fromBin) {
-			// Then we span the central spike.  Not ideal.  We will not get a Strong Sig reading at all unless we search the two parts of the FFT
-			// seperately
-			spansDcSpike = true;
-		}
 		
 		// If we are outside the FFT range then pick a default point.  This happens if the FFT is resized between runs, e.g. a different SDR device
 		if (Config.selectedBin*2 > fftData.length) {
@@ -672,6 +667,18 @@ public class SourceIQ extends SourceAudio {
 		if (start < 0) start = 0;
 		int end = binIndex + filterBins;
 		if (end > fftData.length-2) end = fftData.length-2;
+		
+		if (fromBin == toBin) {
+			// We have a mismatch between the sat range and the frequency.  Set from/to equal to filter width only
+			fromBin = start/2;
+			toBin = end/2;
+		}
+		if (toBin < fromBin) {
+			// Then we span the central spike.  Not ideal.  We will not get a Strong Sig reading at all unless we search the two parts of the FFT
+			// seperately
+			spansDcSpike = true;
+		}
+		
 		// Selected frequencies part
 		int dcOffset=0; // must be even
 		int k=dcOffset;
@@ -781,9 +788,11 @@ public class SourceIQ extends SourceAudio {
 		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
 		//		if (Config.debugSignalFinder) {
+		
 //		Log.println("Sig: " + avgSigInFilterWidth + " from " + sigReading + " Noise: " + noiseOutsideFilterWidth + " from readings: " + noiseReading);			
 //		Log.println("Peak: " + peakSignalInFilterWidth+ " bin: " + binOfPeakSignalInFilterWidth);	
 //		Log.println("Strong: "+ strongestSigInSatBand+ " bin: " + binOfStrongestSigInSatBand + " From: " + fromBin + " To: " + toBin);
+//		Log.println("DC Spike:"+spansDcSpike + " From: " + Config.fromBin + " To: " + Config.toBin);
 //		for (double d : sigList) Log.println(""+ d);
 		//		}
 

@@ -219,7 +219,9 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
     	int selectedBin = Config.selectedBin;
 		int targetBin = 0;
 
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
+		//if (rfData != null)
+		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
 			//		Config.passManager.getState() == PassManager.FADED)
@@ -248,13 +250,13 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				avgBin = 0;
 				tuneDelay = 0;
 				// move half the distance to the bin
-				
-				if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
 
-					int move = targetBin - selectedBin;
-					//System.out.println("MOVE: "+ move);
+				//if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
 
-					/*
+				int move = targetBin - selectedBin;
+				//System.out.println("MOVE: "+ move);
+
+				/*
 				// THIS NEEDS TO UNDERSTAND THE WRAP OF THE BINS AROUND ZERO!
 				// PERHAPS CONVERT BIN TO FREQ.  ADJUST FREQ.  THEN CONVERT BACK...
 				long targetFreq = iqSource.getFrequencyFromBin(targetBin);
@@ -288,42 +290,45 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						currentFreq++;
 				}
 				selectedBin = iqSource.getBinFromFreqHz(currentFreq);
-					 */
-					if (targetBin < selectedBin) {
-						if (move < -100)
-							selectedBin -= 50;
+				 */
+				if (targetBin < selectedBin) {
+					if (move < -100)
+						selectedBin -= 50;
+					else
+						if (move < -25)
+							selectedBin -= 12;
+						else if (move < -5)
+							selectedBin -= 5;
+						else if (move < -2)
+							selectedBin -= 2;
 						else
-							if (move < -25)
-								selectedBin -= 12;
-							else if (move < -5)
-								selectedBin -= 5;
-							else if (move < -2)
-								selectedBin -= 2;
-							else
-								selectedBin--;
-					}
-					if (targetBin > selectedBin) {
-						if (move > 100)
-							selectedBin += 50;
-						else if (move > 25)
-							selectedBin += 12;
-						else if (move > 5)
-							selectedBin += 5;
-						else if (move > 2)
-							selectedBin += 2;
-						else
-							selectedBin++;
-					}
+							selectedBin--;
+				}
+				if (targetBin > selectedBin) {
+					if (move > 100)
+						selectedBin += 50;
+					else if (move > 25)
+						selectedBin += 12;
+					else if (move > 5)
+						selectedBin += 5;
+					else if (move > 2)
+						selectedBin += 2;
+					else
+						selectedBin++;
+				}
 
-					//			Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
-					if (Config.findSignal) {
-						if (targetBin > Config.fromBin && targetBin < Config.toBin)
-							Config.selectedBin = targetBin;
-							//Config.selectedBin = selectedBin;
-					} else
-						Config.selectedBin = selectedBin;
+
+				if (Config.findSignal) {
+					//Log.println("FS TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+					if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) 
+						Config.selectedBin = targetBin;
+					//Config.selectedBin = selectedBin;
+				} else {
+					//Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+					Config.selectedBin = selectedBin;
 				}
 			}
+
 		}
 	}
 	public static int littleEndian2(byte b[]) {
