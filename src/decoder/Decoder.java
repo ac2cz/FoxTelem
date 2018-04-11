@@ -141,6 +141,8 @@ public abstract class Decoder implements Runnable {
     private SinkAudio sink = null; // The audio output device that we copy bytes to if we are monitoring the audio
     private boolean monitorAudio = false; // true if we are monitoring the audio
     
+    public Frame decodedFrame = null;
+    
     /**
      * Given an audio source, decode the data in it,
      */

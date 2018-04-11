@@ -398,12 +398,12 @@ public class PassManager implements Runnable {
 
 			// But check if we got a decode as this is more definite.  Especially if the bit SNR is set too high
 			// This is often a problem for PSK where we can decode signal that has very low SNR
-			if (((FoxDecoder)pp.foxDecoder).decodedFrame != null) {
+			if (pp.foxDecoder.decodedFrame != null) {
 				if (pp.lastFrame != null)
-					if (pp.lastFrame.getHeader().uptime - ((FoxDecoder)pp.foxDecoder).decodedFrame.getHeader().uptime > 11) {
+					if (pp.lastFrame.getHeader().uptime - pp.foxDecoder.decodedFrame.getHeader().uptime > 11) {
 						return false;
 					}
-				pp.lastFrame = ((FoxDecoder)pp.foxDecoder).decodedFrame;
+				pp.lastFrame = pp.foxDecoder.decodedFrame;
 				return true;
 			}
 		}

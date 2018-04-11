@@ -71,7 +71,6 @@ public abstract class FoxDecoder extends Decoder {
 	protected double currentFilterFreq = 0d;   
     private int lastBitValue = 0; // store the value of the last bit for use in the bit detection algorithm
     private boolean lastBit = false;
-    public Frame decodedFrame = null;
     public Filter monitorFilter = null;
     
     /**
