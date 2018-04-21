@@ -106,10 +106,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
 	
+	public String localServer = "127.0.0.1";
+	public int localServerPort = 8587;
+	
 	public int numberOfLayouts = 4;
 	public String[] layoutFilename;
 	//public String[] layoutName;
 	public BitArrayLayout[] layout;
+	private boolean[] sendLayoutLocally;  // CURRENTLY UNUSED SO MADE PRIVATE
 	 	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
@@ -309,6 +313,26 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
 	}
 	
+	public boolean sendToLocalServer() {
+		if (localServer.equalsIgnoreCase(""))
+			return false;
+		else
+			return true;
+	}
+	
+	/**
+	 * Returns true if this layout should be sent to the local server
+	 * @param name
+	 * @return
+	 */
+	public boolean shouldSendLayout(String name) {
+		for (int i=0; i<numberOfLayouts; i++)
+			if (layout[i].name.equals(name))
+				if (sendLayoutLocally[i])
+					return true;
+		return false;
+	}
+	
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
 		try {
@@ -344,6 +368,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			layoutFilename = new String[numberOfLayouts];
 			layout = new BitArrayLayout[numberOfLayouts];
+			sendLayoutLocally = new boolean[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
@@ -361,12 +386,28 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				lookupTable[i].name = getProperty("lookupTable"+i);
 			}
 			
-			
 			String t = getOptionalProperty("track");
 			if (t == null) 
 				track = true;
 			else 
 				track = Boolean.parseBoolean(t);
+			String serv = getOptionalProperty("localServer");
+			if (serv == null) 
+				localServer = "";
+			else 
+				localServer = serv;
+			String p = getOptionalProperty("localServerPort");
+			if (p == null) 
+				localServerPort = 0;
+			else 
+				localServerPort = Integer.parseInt(p);
+			for (int i=0; i < numberOfLookupTables; i++) {
+				String l = getOptionalProperty("sendLayoutLocally"+i);
+				if (l != null)
+					sendLayoutLocally[i] = Boolean.parseBoolean(l);
+				else
+					sendLayoutLocally[i] = false;
+			}
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );

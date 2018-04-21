@@ -19,6 +19,8 @@ import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
 import telemetry.PayloadStore;
 import telemetry.RawFrameQueue;
+import telemetry.RawPayloadQueue;
+import telemetry.RawQueue;
 import uk.me.g4dpz.satellite.GroundStationPosition;;
 
 /**
@@ -58,8 +60,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.07d";
-	public static String VERSION = VERSION_NUM + " - 5 Apr 2018";
+	public static String VERSION_NUM = "1.07(uw)a";
+	public static String VERSION = VERSION_NUM + " - 20 Apr 2018";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -92,9 +94,13 @@ public class Config {
 	
 	public static FoxPayloadStore payloadStore;
 	static Thread payloadStoreThread;
-	public static RawFrameQueue rawFrameQueue;
+	public static RawQueue rawFrameQueue;
 	// We have one queue for the whole application
 	static Thread rawFrameQueueThread;
+	// another queue for a local server
+	public static RawQueue rawPayloadQueue;
+	static Thread rawPayloadQueueThread;
+
 	//public static Filter filter = null; // This is set when the GUI initializes.  This decoder gets the filter from here
 	//public static int currentSampleRate = 48000; // this is the actual sample rate we are using in the decoder and is not saved.  
 	public static double filterFrequency = 200;
@@ -260,6 +266,8 @@ public class Config {
 	
 	// V1.07
 	static public boolean useNCO = false;
+	static public String localServer = "127.0.0.1";
+	static public int localServerPort = 8587;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -434,6 +442,12 @@ public class Config {
 		rawFrameQueueThread = new Thread(rawFrameQueue);
 		rawFrameQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		rawFrameQueueThread.start();
+
+		if (rawPayloadQueueThread != null) { rawPayloadQueue.stopProcessing(); }
+		rawPayloadQueue = new RawPayloadQueue();
+		rawPayloadQueueThread = new Thread(rawPayloadQueue);
+		rawPayloadQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		rawPayloadQueueThread.start();
 
 	}
 	

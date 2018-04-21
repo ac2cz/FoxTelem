@@ -72,6 +72,9 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField mpptResistanceError;
 	JTextField mpptSensorOffThreshold;
 	JTextField[] T0;
+	JTextField localServer;
+	JTextField localServerPort;
+	JCheckBox[] sendLayoutToServer;
 	
 	JCheckBox useIHUVBatt;
 	JCheckBox track;
@@ -175,8 +178,30 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		btnGetT0.addActionListener(this);
 		t0Panel.add(btnGetT0);//, BorderLayout.WEST);
 		
-		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		JPanel localServerPanel = new JPanel();
+		leftPanel.add(localServerPanel);
 		
+		if (sat.sendToLocalServer()) {
+			TitledBorder localServerPanelHeader = title("Local Server");
+			localServerPanel.setBorder(localServerPanelHeader);
+			localServerPanel.setLayout(new BoxLayout(localServerPanel, BoxLayout.Y_AXIS));
+
+			localServer = addSettingsRow(localServerPanel, 15, "Local Server", 
+					"The IP address or domain name of the local server", "" + sat.localServer);
+			localServerPort = addSettingsRow(localServerPanel, 15, "Port", 
+					"The port of the local Server", ""+sat.localServerPort);
+			
+			/*
+			sendLayoutToServer = new JCheckBox[sat.numberOfLayouts];
+			for (int i=0; i<sat.numberOfLayouts; i++) {
+				sendLayoutToServer[i] = new JCheckBox("Send "+ sat.layout[i].name);
+				localServerPanel.add(sendLayoutToServer[i]);
+				if (sat.sendLayoutLocally[i]) sendLayoutToServer[i].setSelected(true); else sendLayoutToServer[i].setSelected(false);
+			}
+			*/
+		}
+
+		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		// Right Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
 		JPanel rightPanel = new JPanel();

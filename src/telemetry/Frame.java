@@ -17,6 +17,9 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+
+import javax.swing.JCheckBox;
+
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import telemServer.StpFileRsDecodeException;
@@ -27,6 +30,7 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
+import common.Spacecraft;
 import common.FoxSpacecraft;
 import common.TlmServer;
 import decoder.HighSpeedBitStream;
@@ -99,7 +103,7 @@ public abstract class Frame implements Comparable<Frame> {
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
 	public static final String NONE = "NONE";
 	public boolean corrupt = false;;
-	private int foxId = 0;
+	public int foxId = 0;
 	public String receiver = NONE; // unique name (usually callsign) chosen by
 									// the user. May vary over life of program
 									// usage, so stored
@@ -850,7 +854,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer(TlmServer tlmServer, int protocol)
+	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
 			throws UnknownHostException, IOException {
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();
@@ -869,4 +873,32 @@ public abstract class Frame implements Comparable<Frame> {
 			Log.println(header);
 	}
 
+	public byte[] getServerBytes() {
+		String header = getSTPCoreHeader();
+		header = header + getSTPExtendedHeader();
+		header = header + "\r\n";
+		byte[] headerBytes = header.getBytes();
+
+		int j = 0;
+		byte[] buffer = new byte[headerBytes.length + bytes.length];
+		for (byte b : headerBytes)
+			buffer[j++] = b;
+		for (byte b : bytes)
+			buffer[j++] = b;
+
+		if (Config.debugFrames)
+			Log.println(header);
+		return buffer;
+	}
+	
+	/**
+	 * Send Experiment bytes to local server if it is configured
+	 * Override in child class
+	 * 
+	 */
+	public byte[] getPayloadBytes() {
+		return null;
+	}
+
+	
 }

@@ -202,7 +202,31 @@ import telemetry.PayloadWODRad;
 		public static int getMaxBytes() {
 			return MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE + MAX_TRAILER_SIZE;
 		}
-		
+
+		public byte[] getPayloadBytes() {
+			byte buffer[] = null;
+			Spacecraft sat = Config.satManager.getSpacecraft(foxId);
+			if (sat.sendToLocalServer()) {
+				int numBytes = 0;
+				for (int i=0; i< payload.length; i++) {
+					// if this payload should be output then add to the byte buffer
+					if (payload[i] instanceof PayloadRadExpData) 
+						numBytes += ((PayloadRadExpData)payload[i]).getMaxBytes();
+					
+				}
+				buffer = new byte[numBytes];
+				int j = 0;
+				for (int i=0; i< payload.length; i++) {
+					// if this payload should be output then add to the byte buffer
+					if (payload[i] instanceof PayloadRadExpData) {
+						for (int b : ((PayloadRadExpData)payload[i]).fieldValue)
+							buffer[j++] = (byte)b;
+					}
+				}
+			}
+			return buffer;
+		}
+
 		public String toString() {
 			String s = new String();
 			s = "\n" + header.toString();
