@@ -106,7 +106,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
 	
-	public String localServer = "127.0.0.1";
+	public String localServer = ""; // default to blank, otherwise we try to send to the local server
 	public int localServerPort = 8587;
 	
 	public int numberOfLayouts = 4;
@@ -314,6 +314,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public boolean sendToLocalServer() {
+		if (localServer == null) return false;
 		if (localServer.equalsIgnoreCase(""))
 			return false;
 		else
@@ -393,7 +394,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				track = Boolean.parseBoolean(t);
 			String serv = getOptionalProperty("localServer");
 			if (serv == null) 
-				localServer = "";
+				localServer = null;
 			else 
 				localServer = serv;
 			String p = getOptionalProperty("localServerPort");
@@ -458,6 +459,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
 		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
 		properties.setProperty("track", Boolean.toString(track));
+		
+		if (localServer != null) {
+			properties.setProperty("localServer",localServer);
+			properties.setProperty("localServerPort", Integer.toString(localServerPort));
+		}
 	}
 	
 	public String getIdString() {

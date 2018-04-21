@@ -603,6 +603,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
+				Config.rawPayloadQueue.delete();
 				Config.totalFrames = 0;
 				refreshTabs(true);
 				fileProgress.updateProgress(100);

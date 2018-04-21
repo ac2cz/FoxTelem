@@ -181,7 +181,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		JPanel localServerPanel = new JPanel();
 		leftPanel.add(localServerPanel);
 		
-		if (sat.sendToLocalServer()) {
+		if (sat.localServer != null) {
 			TitledBorder localServerPanelHeader = title("Local Server");
 			localServerPanel.setBorder(localServerPanelHeader);
 			localServerPanel.setLayout(new BoxLayout(localServerPanel, BoxLayout.Y_AXIS));
@@ -413,6 +413,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.name = name.getText();
 					refreshTabs = true;
 				}
+				if (localServer != null)
+					sat.localServer = localServer.getText();
+				if (localServerPort != null)
+					sat.localServerPort = Integer.parseInt(localServerPort.getText());
 				sat.track = track.isSelected();
 
 				if (dispose) {
