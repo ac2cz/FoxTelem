@@ -287,8 +287,13 @@ public class SatelliteManager implements Runnable {
 		return null;
 	}
 	
+	/**
+	 * We consider a valid Fox-Id to be 1 - 9
+	 * @param id
+	 * @return
+	 */
 	public boolean validFoxId(int id) {
-		if (id > 0 && id < 6) return true;
+		if (id > 0 && id < 10) return true;
 		return false;
 	}
 	
