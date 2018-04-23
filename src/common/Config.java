@@ -58,8 +58,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.07d";
-	public static String VERSION = VERSION_NUM + " - 5 Apr 2018";
+	public static String VERSION_NUM = "1.07e";
+	public static String VERSION = VERSION_NUM + " - 22 Apr 2018";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -254,7 +254,7 @@ public class Config {
 	
 	// V1.06
 	static public boolean insertMissingBits = true;
-	static public boolean useLongPRN = true;
+	//static public boolean useLongPRN = true;
 	static public boolean firstRun106 = true; // first time user is running version 1.06
 	static public boolean saveFcdParams = false;
 	
@@ -675,7 +675,7 @@ public class Config {
 		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
 		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
 		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
-		properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
+		//properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
 		properties.setProperty("firstRun106", Boolean.toString(firstRun106));
 		properties.setProperty("saveFcdParams", Boolean.toString(saveFcdParams));
 		
@@ -852,7 +852,7 @@ public class Config {
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
-		useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
+		//useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
 		firstRun106 = Boolean.parseBoolean(getProperty("firstRun106"));
 		saveFcdParams = Boolean.parseBoolean(getProperty("saveFcdParams"));
 		
