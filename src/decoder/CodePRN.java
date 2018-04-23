@@ -15,9 +15,9 @@ public class CodePRN {
 	public static final int FAIL = -99999;
 	
 	public static final int getSyncWordLength() {
-		int len = SHORT_FRAME_PRN.length;
-		if (Config.useLongPRN)
-			len = LONG_FRAME_PRN.length;
+		//int len = SHORT_FRAME_PRN.length;
+		//if (Config.useLongPRN)
+		int len = LONG_FRAME_PRN.length;
 		return len;
 	}
 	/**
@@ -47,9 +47,9 @@ public class CodePRN {
 	 * @return
 	 */
 	public static boolean equals(boolean[] word1) {
-		boolean[] FRAME_PRN = SHORT_FRAME_PRN;
-		if (Config.useLongPRN)
-			FRAME_PRN = LONG_FRAME_PRN;
+		//boolean[] FRAME_PRN = SHORT_FRAME_PRN;
+		//if (Config.useLongPRN)
+		boolean[] FRAME_PRN = LONG_FRAME_PRN;
 		if (word1.length != FRAME_PRN.length) {
 			System.err.println("PRN FRAME MARKER WRONG LENGTH");
 			return false;
@@ -67,12 +67,12 @@ public class CodePRN {
 	 * @return
 	 */
 	public static final boolean probabllyFrameMarker(boolean[] word) {
-		boolean[] FRAME_PRN = SHORT_FRAME_PRN;
-		int threshold = SHORT_CORRELATION_THRESHOLD;
-		if (Config.useLongPRN) {
-			FRAME_PRN = LONG_FRAME_PRN;
-			threshold = LONG_CORRELATION_THRESHOLD;
-		}
+		//boolean[] FRAME_PRN = SHORT_FRAME_PRN;
+		//int threshold = SHORT_CORRELATION_THRESHOLD;
+		//if (Config.useLongPRN) {
+		boolean[] FRAME_PRN = LONG_FRAME_PRN;
+		int threshold = LONG_CORRELATION_THRESHOLD;
+
 		if (simpleBinaryCorrelation(word, FRAME_PRN) > threshold) 
 			return true;
 	//	if (simpleBinaryCorrelation(word, NOT_FRAME_PRN) > CORRELATION_THRESHOLD) 
