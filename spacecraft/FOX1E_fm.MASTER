@@ -48,3 +48,4 @@ layout8.name=wodradtelemetry2
 layout5.name=radtelemetry2
 layout5.filename=FOX1E_radtelemetry2.csv
 layout5.parentLayout=radtelemetry
+hasImprovedCommandReceiver=true
