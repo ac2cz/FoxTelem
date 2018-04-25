@@ -11,6 +11,8 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -58,7 +60,7 @@ import common.FoxSpacecraft;
 *
 */
 @SuppressWarnings("serial")
-public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener {
+public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener, WindowListener {
 
 	private final JPanel contentPanel = new JPanel();
 	JTextField name;
@@ -95,7 +97,9 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
-		setBounds(100, 100, 600, 600);
+		addWindowListener(this);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		loadProperties();
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -141,6 +145,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
+		JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
+		leftFixedPanel.add(icr);
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
@@ -432,6 +438,26 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		}
 
 	}
+	
+	public void saveProperties() {
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow", "windowHeight", this.getHeight());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow", "windowWidth", this.getWidth());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow", "windowX", this.getX());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow",  "windowY", this.getY());
+	}
+	
+	public void loadProperties() {
+		int windowX = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowX");
+		int windowY = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowY");
+		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowWidth");
+		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowHeight");
+		if (windowX == 0 || windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
+			setBounds(100, 100, 600, 600);
+		} else {
+			setBounds(windowX, windowY, windowWidth, windowHeight);
+		}
+	}
+
 
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
@@ -447,6 +473,48 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 	@Override
 	public void focusLost(FocusEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent arg0) {
+		saveProperties();
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		
 	}

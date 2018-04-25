@@ -293,7 +293,7 @@ public class SatelliteManager implements Runnable {
 	 * @return
 	 */
 	public boolean validFoxId(int id) {
-		if (id > 0 && id < 10) return true;
+		if (id > 0 && id <= Spacecraft.MAX_FOXID) return true;
 		return false;
 	}
 	

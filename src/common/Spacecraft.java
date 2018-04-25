@@ -38,21 +38,21 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
+	public static final int UW_SAT = 6;
 	public static final int FUN_CUBE1 = 100;
 	public static final int FUN_CUBE2 = 101;
 	
-	// Primary Payloads
-//	public static String RT_LOG = "";
-//	public static String MAX_LOG = "";
-//	public static String MIN_LOG = "";
-//	public static String RAD_LOG = "";
+	public static final String[][] SOURCES = {
+			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
+			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
+			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
+			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
+			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
+			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
+			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" } };
 
-	// Secondary payloads - decoded from the primary payloads
-//	public static String RAD_TELEM_LOG = "";
+	public static final int MAX_FOXID = 6;
 
-//	public static String HERCI_LOG = "";
-//	public static String HERCI_HEADER_LOG = "";
-//	public static String HERCI_PACKET_LOG = "";
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
 	public static final String REAL_TIME_LAYOUT = "rttelemetry";
@@ -95,7 +95,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	public int foxId = 1;
 	public int catalogNumber = 0;
-	public String series = "Fox";
+	public String series = "FOX";
 	public String name = "Fox-1A";
 	public String description = "";
 	public int model;
@@ -203,7 +203,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	 * @throws IOException 
 	 */
 	protected void loadTleHistory() {
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -228,7 +228,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	private void saveTleHistory() throws IOException {
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -392,6 +392,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				track = true;
 			else 
 				track = Boolean.parseBoolean(t);
+			String s = getOptionalProperty("series");
+			if (s == null) 
+				series = "FOX";
+			else 
+				series = s;
 			String serv = getOptionalProperty("localServer");
 			if (serv == null) 
 				localServer = null;

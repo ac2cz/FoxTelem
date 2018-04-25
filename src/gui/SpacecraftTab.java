@@ -146,14 +146,22 @@ public class SpacecraftTab extends JPanel {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
 				}
+				if (exp == FoxSpacecraft.EXP_UW)
+					addUwExperimentTab((FoxSpacecraft)sat);
+
 			}
 		}
 		if (sat.foxId == Spacecraft.FOX1E) {
-			addWodTabs((FoxSpacecraft)sat);
+			addWodTab((FoxSpacecraft)sat);
+			addWodRadTab((FoxSpacecraft)sat);
+		}
+		if (sat.foxId == Spacecraft.UW_SAT) {
+			addWodTab((FoxSpacecraft)sat);
+			//addWodRadTab((FoxSpacecraft)sat);
 		}
 	}
 
-	private void addWodTabs(FoxSpacecraft fox) {
+	private void addWodTab(FoxSpacecraft fox) {
 		
 		wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
 		wodHealthThread = new Thread(wodHealthTab);
@@ -162,7 +170,9 @@ public class SpacecraftTab extends JPanel {
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "WOD" + "</b></body></html>", wodHealthTab );
-		
+	}
+	
+	private void addWodRadTab(FoxSpacecraft fox) {
 		wodRadiationTab = new WodVulcanTab(fox);
 		wodRadiationThread = new Thread((VulcanTab)wodRadiationTab);
 		wodRadiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -182,6 +192,18 @@ public class SpacecraftTab extends JPanel {
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" VU Rad ("+ fox.getIdString() + ")</body></html>", radiationTab );
+
+	}
+	
+	private void addUwExperimentTab(FoxSpacecraft fox) {
+
+		radiationTab = new UwExperiment(fox);
+		radiationThread = new Thread((UwExperiment)radiationTab);
+		radiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		radiationThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+		" Experiment</body></html>", radiationTab);
 
 	}
 

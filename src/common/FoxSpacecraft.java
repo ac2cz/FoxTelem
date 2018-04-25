@@ -64,6 +64,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
 	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
 	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
+	public static final int EXP_UW = 9; // University of Washington
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
@@ -90,13 +91,15 @@ public class FoxSpacecraft extends Spacecraft{
 		"Vanderbilt VUC",
 		"Vanderbilt LEP",
 		"Vanderbilt REM",
-		"Vanderbilt LEPF"
+		"Vanderbilt LEPF",
+		"University of Washington Experiment"
 	};
 	
 	
 	public int IHU_SN = 0;
 	public int[] experiments = {EXP_EMPTY, EXP_EMPTY, EXP_EMPTY, EXP_EMPTY};
 	
+	public boolean hasImprovedCommandReceiver = false;
 	
 	// Calibration
 	public double BATTERY_CURRENT_ZERO = 0;
@@ -337,6 +340,10 @@ public class FoxSpacecraft extends Spacecraft{
 			if (threshold != null) {
 				mpptSensorOffThreshold = Integer.parseInt(threshold);
 				hasMpptSettings = true;
+			}
+			String icr = getOptionalProperty("hasImprovedCommandReceiver");
+			if (icr != null) {
+				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
 			}
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());

@@ -553,7 +553,7 @@ longer send telemetry.
 				+ Integer.toHexString(n4) + " "+ Integer.toHexString(n5) + " "+ Integer.toHexString(n6);
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
-			if (fox.foxId == Spacecraft.FOX1E) {
+			if (fox.hasImprovedCommandReceiver) {
 				return icrCommandCount(value, shortString);
 			} else {
 			if (shortString)

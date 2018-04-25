@@ -91,14 +91,7 @@ public abstract class Frame implements Comparable<Frame> {
 	public static final int DUV_FRAME_LEN = 768; 
 	public static final int HIGH_SPEED_FRAME_LEN = 42176;
 	public static final int PSK_FRAME_LEN = 4576;
-	
-	public static final String[][] SOURCES = {
-			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
-			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
-			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
-			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
-			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
-			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" } };
+
 
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
 	public static final String NONE = "NONE";
@@ -272,11 +265,11 @@ public abstract class Frame implements Comparable<Frame> {
 		length = Integer.toString(byteLen * 8);
 
 		if (this instanceof SlowSpeedFrame) {
-			source = SOURCES[foxId][DUV_FRAME];
+			source = Spacecraft.SOURCES[foxId][DUV_FRAME];
 		} else if (this instanceof HighSpeedFrame){
-			source = SOURCES[foxId][HIGH_SPEED_FRAME];
+			source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
 		} else {
-			source = SOURCES[foxId][0]; // first value
+			source = Spacecraft.SOURCES[foxId][0]; // first value
 		}
 
 	}
