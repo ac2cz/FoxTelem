@@ -419,6 +419,8 @@ public class FoxSpacecraft extends Spacecraft{
 				return DATA_MODE;
 		}
 		// Otherwise, if RAD received more recently than max/min and RT
+		// In the compare, a -ve result means older, because the reset or uptime is less
+		// So a result >0 means the object calling the compare is newer
 		if (radPayload != null)
 			if (realTime != null && radPayload.compareTo(realTime) > 0)
 				if (maxPayload == null && minPayload == null)
@@ -430,14 +432,15 @@ public class FoxSpacecraft extends Spacecraft{
 						return TRANSPONDER_MODE;
 		
 		// Otherwise find the most recent max/min
-		if ((minPayload == null && maxPayload != null) || (maxPayload != null && minPayload != null && maxPayload.compareTo(minPayload) > 0)) {
+		// if we have just a max payload, or we have both and max is more recent or the same
+		if ((minPayload == null && maxPayload != null) || (maxPayload != null && minPayload != null && maxPayload.compareTo(minPayload) >=0)) {
 			if (maxPayload.getRawValue(SCIENCE_MODE_IND) == 1)
 				return SCIENCE_MODE;
 			else if (maxPayload.getRawValue(SAFE_MODE_IND) == 1)
 				return SAFE_MODE;
 			else
 				return TRANSPONDER_MODE;
-		} else if (minPayload != null) {
+		} else if (minPayload != null) {  // this is the case when we have both and min is more recent
 			if (minPayload.getRawValue(SCIENCE_MODE_IND) == 1)
 				return SCIENCE_MODE;
 			else if (minPayload.getRawValue(SAFE_MODE_IND) == 1)
@@ -445,6 +448,7 @@ public class FoxSpacecraft extends Spacecraft{
 			else
 				return TRANSPONDER_MODE;
 		}
+		// return default
 		return TRANSPONDER_MODE;
 	}
 	
