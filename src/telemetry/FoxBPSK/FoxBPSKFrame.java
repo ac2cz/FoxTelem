@@ -8,6 +8,7 @@ import java.io.IOException;
 
 import common.Log;
 import common.Spacecraft;
+import decoder.FoxDecoder;
 import telemetry.FoxFramePart;
 import telemetry.Frame;
 import telemetry.HighSpeedTrailer;
@@ -55,6 +56,8 @@ import telemetry.PayloadWODRad;
 		public static final int REALTIME_BEACON = 3;
 		public static final int WOD_BEACON = 4;
 		public static final int TYPES_OF_FRAME = 5;
+		
+		private boolean debugFrame = false;
 
 		public FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 		
@@ -85,7 +88,7 @@ import telemetry.PayloadWODRad;
 					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 					if (fox != null) {
 						initPayloads(header.getType());
-						if (payload[0] == null) {
+						if (payload[0] == null && !debugFrame) {
 							if (Config.debugFrames)
 								Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
 										+ "Turn off Debug Frames to prevent this message in future.");
@@ -108,8 +111,11 @@ import telemetry.PayloadWODRad;
 					}
 					firstNonHeaderByte = false;
 				}
-				payload[0].addNext8Bits(b);
-			} else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*2)
+				if (!debugFrame)
+					payload[0].addNext8Bits(b);
+			} else if (debugFrame)
+				; // Just print out the contents at the end
+			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*2)
 				payload[1].addNext8Bits(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*3)
 				payload[2].addNext8Bits(b);
@@ -181,11 +187,18 @@ import telemetry.PayloadWODRad;
 					payload[i] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				}
 				break;
-			default: break;
+			default: 
+				// Debug for BURNS
+				debugFrame = true;
+				break;
 			}
 		}
 
 		public boolean savePayloads() {
+			if (debugFrame) {
+				Log.println(""+this);
+				return true;
+			}
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
 				payload[i].copyBitsToFields();
@@ -204,6 +217,7 @@ import telemetry.PayloadWODRad;
 		}
 
 		public byte[] getPayloadBytes() {
+			if (debugFrame) return null;
 			byte buffer[] = null;
 			Spacecraft sat = Config.satManager.getSpacecraft(foxId);
 			if (sat.sendToLocalServer()) {
@@ -230,12 +244,20 @@ import telemetry.PayloadWODRad;
 		public String toString() {
 			String s = new String();
 			s = "\n" + header.toString();
-
-			if (payload != null)
+			if (debugFrame) {
+				s = s + "\nUNKNOWN FRAME TYPE DATA:\n";
+				for (int i =0; i< bytes.length; i++) {
+					s = s + FoxDecoder.plainhex(bytes[i]) + " ";
+					// Print 8 bytes in a row
+					if ((i+1)%32 == 0) s = s + "\n";
+				}
+			} else
+			if (payload != null) {
 				for (int i=0; i < payload.length; i++) {
 					s = s + "\n"+ payload[i].toString() +
 					"\n"; 
 				}
+			} 
 			
 			return s;
 		}

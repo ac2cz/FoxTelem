@@ -893,6 +893,11 @@ public abstract class Decoder implements Runnable {
 		//return String.valueOf(n);
 	}
 	
+	public static String plainhex(byte n) {
+		int i = 0xff & n;
+		return plainhex(i);
+	}
+	
 	public static String plainhex(int n) {
 		return String.format("%2s", Integer.toHexString(n)).replace(' ', '0');
 		//return String.valueOf(n);
