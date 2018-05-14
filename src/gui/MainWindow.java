@@ -115,6 +115,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmAbout;
 	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
+	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
+	JCheckBoxMenuItem chckbxmntmShowSatOptions;
+	JCheckBoxMenuItem chckbxmntmShowSourceOptions;
 	
 	// GUI components
 	static JTabbedPane tabbedPane;
@@ -417,10 +420,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		chckbxmntmShowFilterOptions.setState(Config.showFilters);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
-		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
-		chckbxmntmShowDecoderOptions.addActionListener(this);
-		mnOptions.add(chckbxmntmShowDecoderOptions);
-		
+		chckbxmntmShowAudioOptions = new JCheckBoxMenuItem("Show Audio Options");
+		chckbxmntmShowAudioOptions.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowAudioOptions);
+		chckbxmntmShowAudioOptions.setState(true);
+
+		chckbxmntmShowSourceOptions = new JCheckBoxMenuItem("Show Source");
+		chckbxmntmShowSourceOptions.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowSourceOptions);
+		chckbxmntmShowSourceOptions.setState(true);
+
+		chckbxmntmShowSatOptions = new JCheckBoxMenuItem("Show Sat Status");
+		chckbxmntmShowSatOptions.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowSatOptions);
+		chckbxmntmShowSatOptions.setState(true);
+
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
@@ -625,11 +639,17 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				inputTab.showFilters(Config.showFilters);
 		}
 		
-		if (e.getSource() == chckbxmntmShowDecoderOptions) {	
-			//inputTab.showDecoderOptions(chckbxmntmShowDecoderOptions.getState());
-	}
+		if (e.getSource() == chckbxmntmShowAudioOptions) {	
+			inputTab.showAudioOptions(chckbxmntmShowAudioOptions.getState());
+	    }
 		
+		if (e.getSource() == chckbxmntmShowSourceOptions) {	
+			inputTab.showSourceOptions(chckbxmntmShowSourceOptions.getState());
+	    }
 		
+		if (e.getSource() == chckbxmntmShowSatOptions) {	
+			inputTab.showSatOptions(chckbxmntmShowSatOptions.getState());
+	    }
 		if (e.getSource() == mntmManual) {
 			try {
 				DesktopApi.browse(new URI(HelpAbout.MANUAL));

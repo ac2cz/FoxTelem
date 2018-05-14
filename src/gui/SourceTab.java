@@ -171,6 +171,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JTextArea log;
 	JScrollPane logScrollPane;
 	JCheckBox autoStart;
+	JPanel sourcePanel, audioOutputPanel;
 	
 	FilterPanel filterPanel;
 	
@@ -205,7 +206,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblFreq;
 	JLabel lblkHz;
 	
-	JPanel opts, satPanel;  // this list of right hand options panel where we put the sats we track
+	JPanel opts, satPanel, optionsPanel;  // this list of right hand options panel where we put the sats we track
 	JLabel satPosition[];
 	
 	private JTextField txtFreq;
@@ -247,8 +248,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			        "Wav files", "wav", "wave");
 			fc.setFileFilter(filter);
 		//}
-		JPanel leftPanel_1 = new JPanel();
-		buildLeftPanel(topPanel,  BorderLayout.CENTER, leftPanel_1);
+		sourcePanel = new JPanel();
+		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
 		if (soundCardComboBox.getSelectedIndex() != 0)
 			if (Config.startButtonPressed) processStartButtonClick();
@@ -258,6 +259,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		filterPanel.setVisible(b);
 //		audioOptionsFiller.setVisible(!b);
 	}
+	public void showAudioOptions(boolean b) { 
+		optionsPanel.setVisible(b);
+		audioOutputPanel.setVisible(b);
+	}
+	public void showSourceOptions(boolean b) { 
+		sourcePanel.setVisible(b);
+	}
+
+	public void showSatOptions(boolean b) { 
+		satPanel.setVisible(b);
+	}
+	
 	public boolean getShowFilterState() {
 		return filterPanel.isVisible();
 	}
@@ -481,7 +494,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//buildTrackedSpacecraftList();
 
 		
-		JPanel optionsPanel = new JPanel();
+		optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(null, "Audio Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		opts.add(optionsPanel, BorderLayout.CENTER);
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
@@ -775,13 +788,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		JSeparator separator = new JSeparator();
 //		centerPanel.add(separator);
 		
-		JPanel southPanel = new JPanel();
-		leftPanel.add(southPanel, BorderLayout.SOUTH);
-		southPanel.setLayout(new BorderLayout(3, 3));
+		audioOutputPanel = new JPanel();
+		leftPanel.add(audioOutputPanel, BorderLayout.SOUTH);
+		audioOutputPanel.setLayout(new BorderLayout(3, 3));
 		//southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
 
 		JPanel panel_3 = new JPanel();
-		southPanel.add(panel_3, BorderLayout.NORTH);
+		audioOutputPanel.add(panel_3, BorderLayout.NORTH);
 		
 		panel_3.setMinimumSize(new Dimension(10, 35));
 		panel_3.setLayout(new BoxLayout(panel_3, BoxLayout.Y_AXIS));
@@ -799,7 +812,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//sink = new SinkAudio();
 		
 		JPanel panelCombo = new JPanel();
-		southPanel.add(panelCombo, BorderLayout.CENTER);
+		audioOutputPanel.add(panelCombo, BorderLayout.CENTER);
 		speakerComboBox = new JComboBox<String>(SinkAudio.getAudioSinks());
 
 		speakerComboBox.addPopupMenuListener(new PopupMenuListener() {
