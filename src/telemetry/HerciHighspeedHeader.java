@@ -116,20 +116,18 @@ public class HerciHighspeedHeader extends FoxFramePart {
 	};
 
 	public HerciHighspeedHeader(int r, long u, BitArrayLayout l) {
-		super(l);
+		super(TYPE_HERCI_SCIENCE_HEADER, l);
 		reset = r;
 		uptime = u;
 	}
 
 	public HerciHighspeedHeader(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);	
+		super(id, resets, uptime, TYPE_HERCI_SCIENCE_HEADER, date, st, lay);	
 	}
 
 	@Override
 	protected void init() {
-		type = TYPE_HERCI_SCIENCE_HEADER;
-		
-		fieldValue = new int[layout.NUMBER_OF_FIELDS];
+
 	}
 
 	/**

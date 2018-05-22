@@ -1,4 +1,4 @@
-43,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+44,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,RT,BATT_A_V,12,V,4,Battery,3,1,3,Cell A,Battery pair A voltage (0-2.5V scale)
 1,RT,BATT_B_V,12,V,4,Battery,3,2,3,Cell A + B,Battery pairs A+B voltage (0-3.3V scale)
 2,RT,BATT_C_V,12,V,4,Battery,3,3,3,Cell A + B + C,Battery pairs A+B+C voltage (0-5.0V scale)
@@ -42,3 +42,4 @@
 40,RT,NumberofGroundCommandedTLMResets,4,-,1,Computer,2,6,0,Ground Resets,Number of times command stations reset stored telemetry
 41,RT,RXAntenna,1,-,16,Radio,1,6,0,RX Antenna,70cm Antenna status
 42,RT,TXAntenna,1,-,16,Radio,1,5,0,TX Antenna,2m Antenna status
+43,RT,Pad,51,-,0,NONE,0,0,0,NONE,NONE

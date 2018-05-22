@@ -56,6 +56,10 @@ public abstract class BitArray {
 
 	protected BitArray(BitArrayLayout l) {
 		layout = l;
+		if (layout != null ) {
+			rawBits = new boolean[layout.getMaxNumberOfBits()];
+			fieldValue = new int[layout.NUMBER_OF_FIELDS];
+		}
 	}
 	
 	public boolean hasFieldName(String name) {

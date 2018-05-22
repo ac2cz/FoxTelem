@@ -47,24 +47,23 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	
 	public PayloadRadExpData(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_RAD_EXP_DATA, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
-		rawBits = new boolean[MAX_BYTES*8];
+//		rawBits = new boolean[MAX_BYTES*8];
 		
 	}
 	
 	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);
+		super(id, resets, uptime, TYPE_RAD_EXP_DATA, date, st, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 
 	public PayloadRadExpData(ResultSet r, BitArrayLayout lay) throws SQLException {
-		super(r, lay);
+		super(r, TYPE_RAD_EXP_DATA, lay);
 	}
 	
 	protected void init() {
-		fieldValue = new int[layout.fieldName.length];
-		type = TYPE_RAD_EXP_DATA;
+
 	}
 	
 	/*
@@ -166,7 +165,7 @@ public class PayloadRadExpData extends FoxFramePart {
 			return radTelem;
 		} else {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
-			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+			for (int k=0; k<radTelem.getMaxBytes(); k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;

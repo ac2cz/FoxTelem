@@ -59,10 +59,15 @@ public abstract class FoxFramePart extends FramePart {
 	
 	public static final int TYPE_UW_CAN_PACKET = 13; // UW Can packets for HuskySat
 	
+	// These are infrastructure and not saved to Disk
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
 	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
+	public static final int TYPE_CAMERA_SCAN_LINE_COUNT = 102;
+	public static final int TYPE_HERCI_LINE_COUNT = 103;
+	public static final int TYPE_EXTENDED_HEADER = 104;
+	
 	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
 	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
 	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
@@ -223,8 +228,8 @@ longer send telemetry.
 	
 	protected int MAX_BYTES = 78;  // This provides enough storage to cover the zero filled bytes at the end of the Slow, High Speed frames or 1E frames
 	
-	public FoxFramePart(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(lay);
+	public FoxFramePart(int id, int resets, long uptime, int type, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(lay, type);
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
@@ -234,10 +239,9 @@ longer send telemetry.
 		load(st);
 	}
 	
-	public FoxFramePart(BitArrayLayout lay) {
-		super(lay);
+	public FoxFramePart(int type, BitArrayLayout lay) {
+		super(lay, type);
 		init();
-		rawBits = new boolean[MAX_BYTES*8];
 	}
 	
 	/**
@@ -245,8 +249,8 @@ longer send telemetry.
 	 * @param results
 	 * @throws SQLException 
 	 */
-	public FoxFramePart(ResultSet results, BitArrayLayout lay) throws SQLException {
-		super(lay);
+	public FoxFramePart(ResultSet results, int type, BitArrayLayout lay) throws SQLException {
+		super(lay, type);
 		this.id = results.getInt("id");
 		this.resets = results.getInt("resets");
 		this.uptime = results.getLong("uptime");
@@ -266,8 +270,8 @@ longer send telemetry.
 
 	public abstract boolean isValid();
 	
-	public int getMaxBytes() { return MAX_BYTES; }
-	public int getMaxBits() { return rawBits.length; }
+	public int getMaxBytes() { return layout.getMaxNumberOfBytes(); }
+	public int getMaxBits() { return layout.getMaxNumberOfBits(); }
 	
 	public boolean isValidType(int t) {
 		if (t == TYPE_DEBUG) return true;

@@ -59,6 +59,9 @@ public class BitArrayLayout {
 
 	public String[] shortName = null;
 	public String[] description = null;
+	
+	private int numberOfBits = 0;
+	private int numberOfBytes = 0;
 
 	public static final int CONVERT_NONE = 0;
 	public static final int CONVERT_INTEGER = 1;
@@ -107,6 +110,7 @@ public class BitArrayLayout {
 	
 	/**
 	 * Create an empty layout for manual init
+	 * Note that if this is called, the BitArray is not initialized.  So it must also be setup manually
 	 */
 	public BitArrayLayout() {
 		
@@ -120,6 +124,18 @@ public class BitArrayLayout {
 	 */
 	public BitArrayLayout(String f) throws FileNotFoundException, LayoutLoadException {
 		load(f);
+	}
+	
+	/**
+	 * Calculate and return the total number of bits across all fields
+	 * @return
+	 */
+	public int getMaxNumberOfBits() {
+		return numberOfBits;
+	}
+	
+	public int getMaxNumberOfBytes() {
+		return numberOfBytes;
 	}
 	
 	public boolean isSecondaryPayload() {
@@ -248,7 +264,13 @@ public class BitArrayLayout {
 		}
 		if (NUMBER_OF_FIELDS != field) throw new LayoutLoadException("Error loading fields from " + fileName +
 				". Expected " + NUMBER_OF_FIELDS + " fields , but loaded " + field);
-
+		if (fieldBitLength != null) {
+			numberOfBits = 0;
+			for (int i=0; i < fieldBitLength.length; i++) {
+				numberOfBits += fieldBitLength[i];
+			}
+			numberOfBytes = (int)(Math.ceil(numberOfBits / 8.0));
+		}
 	}
 	
 	public String getTableCreateStmt() {

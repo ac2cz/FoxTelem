@@ -21,15 +21,15 @@ public class CanPacket extends FoxFramePart {
 	
 	
 	public CanPacket(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_UW_CAN_PACKET, lay);
 	}
 	
 	public CanPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);
+		super(id, resets, uptime, TYPE_UW_CAN_PACKET, date, st, lay);
 	}
 
 	public CanPacket(ResultSet r, BitArrayLayout lay) throws SQLException {
-		super(r, lay);
+		super(r, TYPE_UW_CAN_PACKET, lay);
 	}
 
 	public void initBytes() {
@@ -49,7 +49,7 @@ public class CanPacket extends FoxFramePart {
 		// This is called from the parent constructor so the below values are not yet initialized.  So set them up here.  Leave at top of class just as documentation
 		NUMBER_OF_FIELDS = 10;
 		MAX_PACKET_BYTES = 12;
-		rawBits = new boolean[MAX_PACKET_BYTES*8];
+		//rawBits = new boolean[MAX_PACKET_BYTES*8];
 		fieldValue = new int[NUMBER_OF_FIELDS];
 	}
 

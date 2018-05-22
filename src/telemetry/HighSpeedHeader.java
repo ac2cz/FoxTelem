@@ -28,7 +28,7 @@ public class HighSpeedHeader extends Header {
 	
 	
 	public HighSpeedHeader() {
-		super();
+		super(TYPE_HIGH_SPEED_HEADER);
 		MAX_BYTES = HighSpeedFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 	}

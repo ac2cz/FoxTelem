@@ -7,6 +7,7 @@ import telemetry.Header;
 public class FoxBPSKHeader extends Header {
 	
 	public FoxBPSKHeader() {
+		super(TYPE_EXTENDED_HEADER);
 		MAX_BYTES = FoxBPSKFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 	}

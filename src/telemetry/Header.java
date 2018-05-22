@@ -28,8 +28,8 @@ public abstract class Header extends FoxFramePart {
 	
 	public abstract String toString();
 
-	protected Header() {
-		super(new BitArrayLayout());
+	protected Header(int type) {
+		super(type, new BitArrayLayout());
 	}
 	
 	protected void init() { }

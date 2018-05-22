@@ -33,8 +33,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	double satLongitude = NO_POSITION_DATA; // from -180 to 180
 	double satAltitude = NO_POSITION_DATA;
 	
-	protected FramePart(BitArrayLayout l) {
+	protected FramePart(BitArrayLayout l, int type) {
 		super(l);
+		this.type = type;
 		// TODO Auto-generated constructor stub
 	}
 
