@@ -57,6 +57,8 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
 	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
 	
+	public static final int TYPE_UW_CAN_PACKET = 13; // UW Can packets for HuskySat
+	
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;

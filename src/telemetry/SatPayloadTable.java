@@ -16,6 +16,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
+import telemetry.uw.CanPacket;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -636,6 +637,10 @@ public class SatPayloadTable {
 		}
 		if (type == FoxFramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
 			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		}
+		if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1300 && type < 1400) {
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 

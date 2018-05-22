@@ -29,6 +29,8 @@ import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.RadiationTelemetry;
+import telemetry.SatPayloadStore;
+import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -57,9 +59,9 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class UwExperiment extends RadiationTab implements ItemListener, Runnable, MouseListener {
+public class UwExperimentTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
 
-	public static final String HERCITAB = "UWEXPTAB";
+	public static final String UWTAB = "UWEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";
 	public final int DEFAULT_DIVIDER_LOCATION = 350;
 	
@@ -68,7 +70,7 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 	JLabel lblFramesDecoded;
 		
 	//JCheckBox showRawBytes;
-	RadiationTableModel radTableModel;
+	CanPacketTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 
 	JPanel healthPanel;
@@ -77,13 +79,13 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 
 	boolean displayTelem = true;
 	
-	public UwExperiment(FoxSpacecraft sat)  {
+	public UwExperimentTab(FoxSpacecraft sat)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
 		NAME = fox.toString() + " CAN PACKETS";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -114,7 +116,7 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI_HK);
@@ -140,7 +142,7 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -173,7 +175,7 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 
 		addBottomFilter();
 		
-		radTableModel = new RadiationTableModel();
+		radTableModel = new CanPacketTableModel();
 		radPacketTableModel = new RadiationPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
@@ -203,9 +205,15 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 		
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
+
+		column = table.getColumnModel().getColumn(2);
+		column.setPreferredWidth(65);
 		
-		for (int i=0; i<58; i++) {
-			column = table.getColumnModel().getColumn(i+2);
+		column = table.getColumnModel().getColumn(3);
+		column.setPreferredWidth(55);
+
+		for (int i=0; i<8; i++) {
+			column = table.getColumnModel().getColumn(i+4);
 			column.setPreferredWidth(25);
 		}
 
@@ -229,7 +237,34 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 		//packetTable.getRowSelectionAllowed();
 				
 	}
-	
+	protected void parseRawBytes(String data[][], CanPacketTableModel radTableModel) {
+		long[][] keyRawData = new long[data.length][2];
+		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+2];
+		for (int i=0; i<data.length; i++)
+			for (int k=0; k<CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+3; k++)
+				try {
+					if (k<=1)
+						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
+					else {
+						if (k==2) {
+							// ID String
+							int id = CanPacket.getIdfromRawID(Integer.valueOf(data[data.length-i-1][k]));
+							int len = CanPacket.getLengthfromRawID(Integer.valueOf(data[data.length-i-1][k]));
+							rawData[i][k-2] = Integer.toHexString(id);
+							rawData[i][k-1] = Integer.toString(len);
+						} else {
+							rawData[i][k-1] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
+							if (rawData[i][k-1] == null)
+								rawData[i][k-1] = "";
+						}
+					}
+				} catch (NumberFormatException e) {
+
+				}
+		radTableModel.setData(keyRawData, rawData);
+		
+
+	}
 	protected void parseRadiationFrames() {
 		
 			if (Config.displayRawRadData) {
@@ -263,6 +298,7 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 	private void parseTelemetry(String data[][]) {
 		
 		// Now put the telemetry data into the table data structure
+		/*
 		int len = data.length;
 		long[][] keyPacketData = new long[len][2];
 		String[][] packetData = new String[len][3];
@@ -284,6 +320,8 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 		}
 		
 		//updateTab(data.get(packets.size()-1));
+		 
+		 */
 	}
 	
 	
@@ -306,7 +344,7 @@ public class UwExperiment extends RadiationTab implements ItemListener, Runnable
 	
 	@Override
 	public void run() {
-		Thread.currentThread().setName("HerciLSTab");
+		Thread.currentThread().setName("UwTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

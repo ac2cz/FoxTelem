@@ -163,9 +163,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
+			s = s + getRawValue(layout.fieldName[i]) + ",";
 		}
-		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		s = s + getRawValue(layout.fieldName[layout.fieldName.length-1]);
 		return s;
 	}
 	

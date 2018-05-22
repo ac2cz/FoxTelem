@@ -932,8 +932,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 					if (f == null) {
 						Log.println("NULL RECORD IN THE Q");
 					} else {
-						if (Config.debugFieldValues)
+						if (Config.debugFieldValues) {
 							Log.println(f.toString() + "\n");
+						}
 						if (f instanceof PayloadCameraData)
 							addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
 						else

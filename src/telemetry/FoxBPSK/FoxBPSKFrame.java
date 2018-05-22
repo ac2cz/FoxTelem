@@ -5,9 +5,11 @@ import common.FoxSpacecraft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import common.Log;
 import common.Spacecraft;
+import decoder.Decoder;
 import decoder.FoxDecoder;
 import telemetry.FoxFramePart;
 import telemetry.Frame;
@@ -18,6 +20,7 @@ import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
 import telemetry.PayloadWOD;
 import telemetry.PayloadWODRad;
+import telemetry.uw.CanPacket;
 
 /**
 	 * 
@@ -55,16 +58,21 @@ import telemetry.PayloadWODRad;
 		public static final int MINMAX_FRAME = 2;
 		public static final int REALTIME_BEACON = 3;
 		public static final int WOD_BEACON = 4;
-		public static final int TYPES_OF_FRAME = 5;
+		public static final int CAN_PACKET_SCIENCE_FRAME = 5;
+		public static final int CAN_PACKET_CAMERA_FRAME = 6;
+		public static final int TYPES_OF_FRAME = 7;
 		
-		private boolean debugFrame = false;
+		private boolean canPacketFrame = false;
 
 		public FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
+		public ArrayList<CanPacket> canPackets; 
+		private CanPacket canPacket; // the current CAN Packet we are adding bytes to
 		
 		HighSpeedTrailer trailer = null;
 
 		int numberBytesAdded = 0;
 		private boolean firstNonHeaderByte = true;
+		private boolean firstCANPayloadByte = true;
 		
 		public FoxBPSKFrame() {
 			super();
@@ -88,7 +96,7 @@ import telemetry.PayloadWODRad;
 					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 					if (fox != null) {
 						initPayloads(header.getType());
-						if (payload[0] == null && !debugFrame) {
+						if (payload[0] == null && !canPacketFrame) {
 							if (Config.debugFrames)
 								Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
 										+ "Turn off Debug Frames to prevent this message in future.");
@@ -111,10 +119,18 @@ import telemetry.PayloadWODRad;
 					}
 					firstNonHeaderByte = false;
 				}
-				if (!debugFrame)
+				if (!canPacketFrame)
 					payload[0].addNext8Bits(b);
-			} else if (debugFrame)
-				; // Just print out the contents at the end
+				else if (firstCANPayloadByte){
+					// The first non header byte of a CAN packet payload is a flag byte
+					// BIT 0 means overflow
+					; // it still needs debugging by BURNS
+					firstCANPayloadByte = false;
+				} else {
+					addToCanPackets(b);
+				}
+			} else if (canPacketFrame)
+				addToCanPackets(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*2)
 				payload[1].addNext8Bits(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*3)
@@ -134,6 +150,27 @@ import telemetry.PayloadWODRad;
 			numberBytesAdded++;
 		}
 		
+		/**
+		 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.
+		 * We are finished once we have hit the ID 0x0000, which means end of CAN Packets.  That final packet is thrown
+		 * away
+		 * @param b
+		 */
+		private void addToCanPackets(byte b) {
+			String debug = (Decoder.hex(b));
+			if (canPacket == null) {
+				canPacket = new CanPacket(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100);
+			}
+			if (canPacket.hasEndOfCanPacketsId()) return;
+			canPacket.addNext8Bits(b);
+			if (canPacket.isValid()) {
+				canPackets.add(canPacket);
+				canPacket = new CanPacket(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+canPackets.size());
+			}
+		}
+
 		/**
 		 *  Here is how the frames are defined in the IHU:
 		 *  
@@ -187,16 +224,24 @@ import telemetry.PayloadWODRad;
 					payload[i] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				}
 				break;
+			case CAN_PACKET_SCIENCE_FRAME:
+				canPackets = new ArrayList<CanPacket>();
+				canPacketFrame = true;
+				break;
+			case CAN_PACKET_CAMERA_FRAME:
+				canPackets = new ArrayList<CanPacket>();
+				canPacketFrame = true;
+				break;
 			default: 
-				// Debug for BURNS
-				debugFrame = true;
 				break;
 			}
 		}
 
 		public boolean savePayloads() {
-			if (debugFrame) {
-				Log.println(""+this);
+			if (canPacketFrame) {
+				for (CanPacket p : canPackets)
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), p))
+						return false;
 				return true;
 			}
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
@@ -217,7 +262,7 @@ import telemetry.PayloadWODRad;
 		}
 
 		public byte[] getPayloadBytes() {
-			if (debugFrame) return null;
+			if (canPacketFrame) return null;
 			byte buffer[] = null;
 			Spacecraft sat = Config.satManager.getSpacecraft(foxId);
 			if (sat.sendToLocalServer()) {
@@ -244,8 +289,13 @@ import telemetry.PayloadWODRad;
 		public String toString() {
 			String s = new String();
 			s = "\n" + header.toString();
-			if (debugFrame) {
-				s = s + "\nUNKNOWN FRAME TYPE DATA:\n";
+			if (canPacketFrame) {
+				s = s + "\nUW CAN PACKET FRAME:\n";
+				for (int p=0; p < canPackets.size(); p++) {
+					s = s + canPackets.get(p).toString() + "    " ;
+					if ((p+1)%3 == 0) s = s + "\n";
+				}
+				s=s+"\n";
 				for (int i =0; i< bytes.length; i++) {
 					s = s + FoxDecoder.plainhex(bytes[i]) + " ";
 					// Print 8 bytes in a row
