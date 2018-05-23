@@ -18,6 +18,7 @@ import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
+import telemetry.PayloadUwExperiment;
 import telemetry.PayloadWOD;
 import telemetry.PayloadWODRad;
 import telemetry.uw.CanPacket;
@@ -65,8 +66,6 @@ import telemetry.uw.CanPacket;
 		private boolean canPacketFrame = false;
 
 		public FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-		public ArrayList<CanPacket> canPackets; 
-		private CanPacket canPacket; // the current CAN Packet we are adding bytes to
 		
 		HighSpeedTrailer trailer = null;
 
@@ -119,18 +118,9 @@ import telemetry.uw.CanPacket;
 					}
 					firstNonHeaderByte = false;
 				}
-				if (!canPacketFrame)
-					payload[0].addNext8Bits(b);
-				else if (firstCANPayloadByte){
-					// The first non header byte of a CAN packet payload is a flag byte
-					// BIT 0 means overflow
-					; // it still needs debugging by BURNS
-					firstCANPayloadByte = false;
-				} else {
-					addToCanPackets(b);
-				}
+				payload[0].addNext8Bits(b);
 			} else if (canPacketFrame)
-				addToCanPackets(b);
+				payload[0].addNext8Bits(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*2)
 				payload[1].addNext8Bits(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*3)
@@ -150,26 +140,7 @@ import telemetry.uw.CanPacket;
 			numberBytesAdded++;
 		}
 		
-		/**
-		 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.
-		 * We are finished once we have hit the ID 0x0000, which means end of CAN Packets.  That final packet is thrown
-		 * away
-		 * @param b
-		 */
-		private void addToCanPackets(byte b) {
-			String debug = (Decoder.hex(b));
-			if (canPacket == null) {
-				canPacket = new CanPacket(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-				canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100);
-			}
-			if (canPacket.hasEndOfCanPacketsId()) return;
-			canPacket.addNext8Bits(b);
-			if (canPacket.isValid()) {
-				canPackets.add(canPacket);
-				canPacket = new CanPacket(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-				canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+canPackets.size());
-			}
-		}
+		
 
 		/**
 		 *  Here is how the frames are defined in the IHU:
@@ -225,11 +196,11 @@ import telemetry.uw.CanPacket;
 				}
 				break;
 			case CAN_PACKET_SCIENCE_FRAME:
-				canPackets = new ArrayList<CanPacket>();
+				payload[0] = new PayloadUwExperiment();
 				canPacketFrame = true;
 				break;
 			case CAN_PACKET_CAMERA_FRAME:
-				canPackets = new ArrayList<CanPacket>();
+				payload[0] = new PayloadUwExperiment();
 				canPacketFrame = true;
 				break;
 			default: 
@@ -238,14 +209,12 @@ import telemetry.uw.CanPacket;
 		}
 
 		public boolean savePayloads() {
-			if (canPacketFrame) {
-				for (CanPacket p : canPackets)
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), p))
-						return false;
-				return true;
-			}
+			
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
+				if (payload[i] instanceof PayloadUwExperiment) {
+					((PayloadUwExperiment)payload[i]).savePayloads();
+				}
 				payload[i].copyBitsToFields();
 				if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
 					return false;
@@ -289,19 +258,7 @@ import telemetry.uw.CanPacket;
 		public String toString() {
 			String s = new String();
 			s = "\n" + header.toString();
-			if (canPacketFrame) {
-				s = s + "\nUW CAN PACKET FRAME:\n";
-				for (int p=0; p < canPackets.size(); p++) {
-					s = s + canPackets.get(p).toString() + "    " ;
-					if ((p+1)%3 == 0) s = s + "\n";
-				}
-				s=s+"\n";
-				for (int i =0; i< bytes.length; i++) {
-					s = s + FoxDecoder.plainhex(bytes[i]) + " ";
-					// Print 8 bytes in a row
-					if ((i+1)%32 == 0) s = s + "\n";
-				}
-			} else
+			
 			if (payload != null) {
 				for (int i=0; i < payload.length; i++) {
 					s = s + "\n"+ payload[i].toString() +
