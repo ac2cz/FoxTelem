@@ -228,7 +228,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//pack(); // pack all in as tight as possible
 
 		// Once the main window is up we check the version info
-		updateManager = new UpdateManager();
+		updateManager = new UpdateManager(false);
 		updateManagerThread = new Thread(updateManager);
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();

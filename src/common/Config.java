@@ -55,6 +55,8 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 	public static MainWindow mainWindow;
+	static UpdateManager updateManager; // for server only
+	static Thread updateManagerThread; // for server only
 	
 	public static boolean logDirFromPassedParam = false; // true if we started up with a logFile dir passed in on the command line
 	
@@ -305,7 +307,12 @@ public class Config {
 	}		
 	public static void serverInit() {
 		basicInit();
-		//initPayloadDB(u,p,db);
+		
+		// Init the update manager.  This is done from the MainWindow for the client
+		updateManager = new UpdateManager(true);
+		updateManagerThread = new Thread(updateManager);
+		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		updateManagerThread.start();
 		
 	}
 	
