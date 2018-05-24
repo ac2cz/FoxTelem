@@ -9,8 +9,11 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 import java.util.TimeZone;
 
 import telemetry.Frame;
@@ -21,11 +24,13 @@ import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
 import common.Config;
 import common.FoxSpacecraft;
+import common.FoxTime;
 import common.Log;
+import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 0.28 - 6 Apr 2017";
+	public static String version = "Version 0.29 - 23 May 2018";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -85,9 +90,24 @@ public class WebServiceProcess implements Runnable {
 				 * 
 				 */
 				String[] path = request.split("/");
-				if (path.length > 0) { // VERSION COMMAND
-					if (path[1].equalsIgnoreCase("version")) {
+				if (path.length > 0) { 
+					
+					if (path[1].equalsIgnoreCase("version")) { // VERSION COMMAND
 						out.println("Fox Web Service..." + version);
+					} else if (path[1].equalsIgnoreCase("time")) { // TIME COMMAND
+						if (path.length == 3) {
+							try {
+								FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(path[2]));
+								if (fox != null) {
+									String t0 = calculateSpacecraftTime(fox);
+									out.println(t0 + "\n");
+								} else out.println("0, 0" + "\n");
+							} catch (Exception e) {
+								out.println("FOX T0 Request is invalid id + " + path[2] + " reset " + path[3] + " number " + path[5]+"\n");								
+							}
+						} else {
+							out.println("FOX TIME Request invalid\n");
+						}
 					} else if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
 						if (path.length == 6) {
 							try {
@@ -185,7 +205,14 @@ public class WebServiceProcess implements Runnable {
 			Log.println("Finished Request: " + GET);
 		}
 	}
-
+	
+	String calculateSpacecraftTime(FoxSpacecraft fox) {
+		Date currentDate = new Date();
+		FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+		
+		return foxTime.getReset() + ", " + foxTime.getUptime();
+	}
+	
 	String calculateT0(PrintWriter out, int sat, int reset, String receiver, int num) {
 		Statement stmt = null;
 		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
