@@ -174,7 +174,7 @@ import telemetry.uw.CanPacket;
 				payload[4] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
 				if (foxId == FoxSpacecraft.FOX1E)
 					payload[5] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-				else if (foxId == FoxSpacecraft.UW_SAT) {
+				else if (foxId == FoxSpacecraft.HUSKY_SAT) {
 					payload[5] = new PayloadUwExperiment();
 					payload[5].captureHeaderInfo(header.id, header.uptime, header.resets);
 				} else

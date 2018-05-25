@@ -38,7 +38,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
-	public static final int UW_SAT = 6;
+	public static final int HUSKY_SAT = 6;
 	public static final int FUN_CUBE1 = 100;
 	public static final int FUN_CUBE2 = 101;
 	

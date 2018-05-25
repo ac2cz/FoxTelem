@@ -143,7 +143,7 @@ public class SatPayloadDbStore {
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT));
 			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT));
 		}
-		if (fox.foxId == Spacecraft.UW_SAT) {
+		if (fox.foxId == Spacecraft.HUSKY_SAT) {
 			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
 		}
 	}
