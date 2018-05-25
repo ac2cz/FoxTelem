@@ -94,7 +94,7 @@ import telemetry.uw.CanPacket;
 					header.copyBitsToFields(); // make sure the id is populated
 					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 					if (fox != null) {
-						initPayloads(header.getType());
+						initPayloads(header.id, header.getType());
 						if (payload[0] == null && !canPacketFrame) {
 							if (Config.debugFrames)
 								Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
@@ -158,7 +158,7 @@ import telemetry.uw.CanPacket;
 		 *
 		 * @param type
 		 */
-		private void initPayloads(int type) {
+		private void initPayloads(int foxId, int type) {
 			switch (type) {
 			case ALL_WOD_FRAME:
 				for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i+=2 ) {
@@ -172,7 +172,13 @@ import telemetry.uw.CanPacket;
 				payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				payload[4] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-				payload[5] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				if (foxId == FoxSpacecraft.FOX1E)
+					payload[5] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				else if (foxId == FoxSpacecraft.UW_SAT) {
+					payload[5] = new PayloadUwExperiment();
+					payload[5].captureHeaderInfo(header.id, header.uptime, header.resets);
+				} else
+					payload[5] = null;
 				break;
 			case MINMAX_FRAME:
 				payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
@@ -197,10 +203,12 @@ import telemetry.uw.CanPacket;
 				break;
 			case CAN_PACKET_SCIENCE_FRAME:
 				payload[0] = new PayloadUwExperiment();
+				payload[0].captureHeaderInfo(header.id, header.uptime, header.resets);
 				canPacketFrame = true;
 				break;
 			case CAN_PACKET_CAMERA_FRAME:
 				payload[0] = new PayloadUwExperiment();
+				payload[0].captureHeaderInfo(header.id, header.uptime, header.resets); 
 				canPacketFrame = true;
 				break;
 			default: 
@@ -209,15 +217,17 @@ import telemetry.uw.CanPacket;
 		}
 
 		public boolean savePayloads() {
-			
+
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
-				if (payload[i] instanceof PayloadUwExperiment) {
-					((PayloadUwExperiment)payload[i]).savePayloads();
+				if (payload[i] != null) {
+					if (payload[i] instanceof PayloadUwExperiment) {
+						((PayloadUwExperiment)payload[i]).savePayloads();
+					}
+					payload[i].copyBitsToFields();
+					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
+						return false;
 				}
-				payload[i].copyBitsToFields();
-				if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
-					return false;
 			}
 			return true;			
 		}

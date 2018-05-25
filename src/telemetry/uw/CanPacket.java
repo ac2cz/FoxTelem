@@ -10,16 +10,14 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 
 public class CanPacket extends FoxFramePart {
-	public static int MAX_PACKET_BYTES = 12;
-	public int NUMBER_OF_FIELDS = 10; // This is set to the maximum, but reset once the type is initialized
+	public static final int MAX_PACKET_BYTES = 12;
 	
 	public static final int ID_FIELD = 0; 
 	public static final int ID_BYTES = 4;
 	
 	int canPacketId = 0;
 	int length = 0;
-	
-	
+		
 	public CanPacket(BitArrayLayout lay) {
 		super(TYPE_UW_CAN_PACKET, lay);
 	}
@@ -33,7 +31,6 @@ public class CanPacket extends FoxFramePart {
 	}
 
 	public void initBytes() {
-		NUMBER_OF_FIELDS = getLength();
 		for (int i=0; i < getLength(); i++) {
 			layout.fieldName[i+1] = 	"BYTE" + i;		
 			layout.fieldBitLength[i+1] = 8;
@@ -46,11 +43,6 @@ public class CanPacket extends FoxFramePart {
 	
 	@Override
 	protected void init() {
-		// This is called from the parent constructor so the below values are not yet initialized.  So set them up here.  Leave at top of class just as documentation
-		NUMBER_OF_FIELDS = 10;
-		MAX_PACKET_BYTES = 12;
-		//rawBits = new boolean[MAX_PACKET_BYTES*8];
-		fieldValue = new int[NUMBER_OF_FIELDS];
 	}
 
 	public int getLength() {

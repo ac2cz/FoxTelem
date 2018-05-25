@@ -289,8 +289,8 @@ public class SatPayloadStore {
 		return getLatest(Spacecraft.MIN_LAYOUT);
 	}
 
-	public PayloadRadExpData getLatestRad() throws IOException {
-		return (PayloadRadExpData) getLatest(Spacecraft.RAD_LAYOUT);
+	public FoxFramePart getLatestRad() throws IOException {
+		return (FoxFramePart) getLatest(Spacecraft.RAD_LAYOUT);
 	}
 
 	public RadiationTelemetry getLatestRadTelem() throws IOException {

@@ -48,14 +48,18 @@ public class PayloadUwExperiment extends FoxFramePart {
 		super(TYPE_UW_EXPERIMENT, new BitArrayLayout());
 		MAX_BYTES = 1;
 		rawBits = new boolean[8];
+		canPackets = new ArrayList<CanPacket>();
 	}
 	
 	public PayloadUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st) {
 		super(id, resets, uptime, TYPE_UW_EXPERIMENT, date, st, new BitArrayLayout());
 		MAX_BYTES = 1;
+		canPackets = new ArrayList<CanPacket>();
 	}
 	
-	protected void init() { }
+	protected void init() { 
+		
+	}
 	
 	/**
 	 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.

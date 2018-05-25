@@ -413,7 +413,7 @@ public class FoxSpacecraft extends Spacecraft{
 	 * @param radPayload
 	 * @return
 	 */
-	public static int determineMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, PayloadRadExpData radPayload) {
+	public static int determineMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
 		if (realTime != null && minPayload != null && maxPayload != null) {
 			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
 				return DATA_MODE;
@@ -452,7 +452,7 @@ public class FoxSpacecraft extends Spacecraft{
 		return TRANSPONDER_MODE;
 	}
 	
-	public static String determineModeString(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, PayloadRadExpData radPayload) {
+	public static String determineModeString(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
 		int mode = determineMode(realTime, maxPayload, minPayload, radPayload);
 		return getModeString(mode);
 	}
