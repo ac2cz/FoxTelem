@@ -188,11 +188,11 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		leftPanel.add(localServerPanel);
 		
 		if (sat.localServer != null) {
-			TitledBorder localServerPanelHeader = title("Local Server");
+			TitledBorder localServerPanelHeader = title("COSMOS TCP Interface");
 			localServerPanel.setBorder(localServerPanelHeader);
 			localServerPanel.setLayout(new BoxLayout(localServerPanel, BoxLayout.Y_AXIS));
 
-			localServer = addSettingsRow(localServerPanel, 15, "Local Server", 
+			localServer = addSettingsRow(localServerPanel, 15, "Server", 
 					"The IP address or domain name of the local server", "" + sat.localServer);
 			localServerPort = addSettingsRow(localServerPanel, 15, "Port", 
 					"The port of the local Server", ""+sat.localServerPort);

@@ -65,17 +65,14 @@ import telemetry.uw.CanPacket;
 		
 		private boolean canPacketFrame = false;
 
-		public FoxFramePart[] payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
+		public FoxFramePart[] payload;
 		
 		HighSpeedTrailer trailer = null;
 
 		int numberBytesAdded = 0;
-		private boolean firstNonHeaderByte = true;
-		private boolean firstCANPayloadByte = true;
 		
 		public FoxBPSKFrame() {
 			super();
-			header = new FoxBPSKHeader();
 			bytes = new byte[MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE + MAX_TRAILER_SIZE];
 		}
 
@@ -87,37 +84,38 @@ import telemetry.uw.CanPacket;
 		
 		public void addNext8Bits(byte b) {
 			if (corrupt) return;
-			if (numberBytesAdded < MAX_HEADER_SIZE)
+			if (numberBytesAdded < MAX_HEADER_SIZE-1) {
+				if (header == null)
+					header = new FoxBPSKHeader();
 				header.addNext8Bits(b);
-			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
-				if (firstNonHeaderByte) {
-					header.copyBitsToFields(); // make sure the id is populated
-					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
-					if (fox != null) {
-						initPayloads(header.id, header.getType());
-						if (payload[0] == null && !canPacketFrame) {
-							if (Config.debugFrames)
-								Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
-										+ "Turn off Debug Frames to prevent this message in future.");
-							else
-								Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.");
-
-							corrupt = true;
-							return;
-						}
+			} else if (numberBytesAdded == MAX_HEADER_SIZE-1) {
+				// first non header byte
+				header.copyBitsToFields(); // make sure the id is populated
+				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+				if (fox != null) {
+					initPayloads(header.id, header.getType());
+					if (payload[0] == null) {
 						if (Config.debugFrames)
-							Log.println(header.toString());
-					} else {
-						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.\n"
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");							
+							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.");
+
 						corrupt = true;
 						return;
 					}
-					firstNonHeaderByte = false;
+					if (Config.debugFrames)
+						Log.println(header.toString());
+				} else {
+					if (Config.debugFrames)
+						Log.errorDialog("ERROR","FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.\n"
+								+ "Turn off Debug Frames to prevent this message in future.");
+					else
+						Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");							
+					corrupt = true;
+					return;
 				}
+			} else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
 				payload[0].addNext8Bits(b);
 			} else if (canPacketFrame)
 				payload[0].addNext8Bits(b);
@@ -161,12 +159,14 @@ import telemetry.uw.CanPacket;
 		private void initPayloads(int foxId, int type) {
 			switch (type) {
 			case ALL_WOD_FRAME:
+				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 				for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i+=2 ) {
 					payload[i] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 					payload[i+1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				}
 				break;
 			case REALTIME_FRAME:
+				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 				payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
@@ -181,6 +181,7 @@ import telemetry.uw.CanPacket;
 					payload[5] = null;
 				break;
 			case MINMAX_FRAME:
+				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 				payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
@@ -189,6 +190,7 @@ import telemetry.uw.CanPacket;
 				payload[5] = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
 				break;
 			case REALTIME_BEACON:
+				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 				payload[0] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
 				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				payload[2] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
@@ -197,16 +199,19 @@ import telemetry.uw.CanPacket;
 				payload[5] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				break;
 			case WOD_BEACON:
+				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 				for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
 					payload[i] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				}
 				break;
 			case CAN_PACKET_SCIENCE_FRAME:
+				payload = new FoxFramePart[1];
 				payload[0] = new PayloadUwExperiment();
 				payload[0].captureHeaderInfo(header.id, header.uptime, header.resets);
 				canPacketFrame = true;
 				break;
 			case CAN_PACKET_CAMERA_FRAME:
+				payload = new FoxFramePart[1];
 				payload[0] = new PayloadUwExperiment();
 				payload[0].captureHeaderInfo(header.id, header.uptime, header.resets); 
 				canPacketFrame = true;
@@ -219,7 +224,7 @@ import telemetry.uw.CanPacket;
 		public boolean savePayloads() {
 
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
-			for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
+			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
 					if (payload[i] instanceof PayloadUwExperiment) {
 						((PayloadUwExperiment)payload[i]).savePayloads();
@@ -240,29 +245,39 @@ import telemetry.uw.CanPacket;
 			return MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE + MAX_TRAILER_SIZE;
 		}
 
+		/**
+		 * Get a buffer containing all of the CAN Packets in this frame.  There may be multiple payloads that have CAN Packets,
+		 * so we need to check all of them.  First we gather the bytes from each payload in a list and calculate the total size,
+		 * then we join all the bytes together in one array and return it.
+		 */
 		public byte[] getPayloadBytes() {
-			if (canPacketFrame) return null;
-			byte buffer[] = null;
+
+			byte[] buffer = null;
+
 			Spacecraft sat = Config.satManager.getSpacecraft(foxId);
 			if (sat.sendToLocalServer()) {
-				int numBytes = 0;
+				byte[][] buffers = new byte[NUMBER_DEFAULT_PAYLOADS][];
+				int totalBytes = 0;
 				for (int i=0; i< payload.length; i++) {
 					// if this payload should be output then add to the byte buffer
-					if (payload[i] instanceof PayloadRadExpData) 
-						numBytes += ((PayloadRadExpData)payload[i]).getMaxBytes();
-					
-				}
-				buffer = new byte[numBytes];
-				int j = 0;
-				for (int i=0; i< payload.length; i++) {
-					// if this payload should be output then add to the byte buffer
-					if (payload[i] instanceof PayloadRadExpData) {
-						for (int b : ((PayloadRadExpData)payload[i]).fieldValue)
-							buffer[j++] = (byte)b;
+					if (payload[i] instanceof PayloadUwExperiment) {
+						buffers[i] = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(); 
+						totalBytes += buffers[i].length; 
+					}
+					buffer = new byte[totalBytes];
+					int startPosition = 0;
+					for (int p=0; p< payload.length; p++) {
+						// if this payload should be output then add to the byte buffer
+						if (payload[p] instanceof PayloadUwExperiment) {
+							for (int j=0; j < buffers[p].length; j++) {
+								buffer[j + startPosition] = buffers[p][j];
+							}
+							startPosition += buffers[p].length;
+						}
 					}
 				}
 			}
-			return buffer;
+			return buffer;				
 		}
 
 		public String toString() {

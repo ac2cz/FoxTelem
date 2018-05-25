@@ -62,8 +62,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.07(uw)f";
-	public static String VERSION = VERSION_NUM + " - 24 May 2018";
+	public static String VERSION_NUM = "1.07(uw)g";
+	public static String VERSION = VERSION_NUM + " - 25 May 2018";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -263,7 +263,7 @@ public class Config {
 	// V1.06
 	static public boolean insertMissingBits = true;
 	//static public boolean useLongPRN = true;
-	static public boolean firstRun106 = true; // first time user is running version 1.06
+	static public boolean firstRun106 = false; // first time user is running version 1.06 - now set to false for 1.07
 	static public boolean saveFcdParams = false;
 	
 	// V1.07

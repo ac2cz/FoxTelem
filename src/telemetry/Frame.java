@@ -830,7 +830,8 @@ public abstract class Frame implements Comparable<Frame> {
 			// System.out.println("loaded: " + this.getSTPHeader());
 			for (int i = 0; i < bytes.length; i++) {
 
-				bytes[i] = (byte) Integer.parseInt(st.nextToken());
+				//bytes[i] = (byte) Integer.parseInt(st.nextToken());
+				this.addNext8Bits((byte) Integer.parseInt(st.nextToken()));
 				// System.out.println("loaded: " + i + " - " + bytes[i]);
 			}
 		}

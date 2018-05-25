@@ -17,6 +17,8 @@ public class CanPacket extends FoxFramePart {
 	
 	int canPacketId = 0;
 	int length = 0;
+	
+	byte[] bytes = new byte[MAX_PACKET_BYTES]; // keep a copy so we can sent to the COSMOS server
 		
 	public CanPacket(BitArrayLayout lay) {
 		super(TYPE_UW_CAN_PACKET, lay);
@@ -77,6 +79,7 @@ public class CanPacket extends FoxFramePart {
 	
 	public void addNext8Bits(byte b) {
 		super.addNext8Bits(b);
+		bytes[numberBytesAdded-1] = b;
 		if (numberBytesAdded == ID_BYTES) {
 			copyBitsToFields();
 			initBytes();
@@ -112,5 +115,11 @@ public class CanPacket extends FoxFramePart {
 		return s;
 	}
 	
+	public byte[] getBytes() {
+		byte[] buffer = new byte[getLength() + ID_BYTES];
+		for (int i=0; i<buffer.length; i++)
+			buffer[i] = bytes[i];
+		return buffer;
+	}
 	
 }

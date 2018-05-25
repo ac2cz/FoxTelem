@@ -136,4 +136,33 @@ public class PayloadUwExperiment extends FoxFramePart {
 		String s = new String();
 		return s;
 	}
+	
+	/**
+	 * Get all the Can Packets Bytes in this Payload as a single array
+	 * @return
+	 */
+	public byte[] getCANPacketBytes() {
+		byte[] buffer = null;
+		int totalBytes = 0;
+		for (CanPacket p : canPackets) {
+			totalBytes += p.getBytes().length; 
+		}
+		buffer = new byte[totalBytes];
+		int startPosition = 0;
+		for (CanPacket p : canPackets) {
+			byte[] packetBytes = p.getBytes();
+			for (int i=0; i < packetBytes.length; i++) {
+				buffer[i + startPosition] = packetBytes[i];
+			}
+			startPosition += packetBytes.length;
+		}
+		return buffer;
+	}
+	
+	byte[] concatenateByteArrays(byte[] a, byte[] b) {
+	    byte[] result = new byte[a.length + b.length]; 
+	    System.arraycopy(a, 0, result, 0, a.length); 
+	    System.arraycopy(b, 0, result, a.length, b.length); 
+	    return result;
+	} 
 }
