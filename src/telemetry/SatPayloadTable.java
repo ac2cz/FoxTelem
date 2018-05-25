@@ -639,8 +639,8 @@ public class SatPayloadTable {
 			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
-		if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1300 && type < 1400) {
-			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
+		if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 
