@@ -63,7 +63,8 @@ public class PayloadUwExperiment extends FoxFramePart {
 	
 	/**
 	 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.
-	 * We are finished once we have hit the ID 0x0000, which means end of CAN Packets.  That final packet is thrown
+	 * We are finished once we have hit the ID 0x0000, which means end of CAN Packets or we run out of bytes.  
+	 * That final packet is thrown away, unless it fit exactly and passes the isValid() check.
 	 * away
 	 * @param b
 	 */
@@ -83,7 +84,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 	}
 	
 	public void addNext8Bits(byte b) {
-		if (this.numberBytesAdded <1)
+		if (numberBytesAdded <1)
 			super.addNext8Bits(b);  // the flag byte
 		else
 			addToCanPackets(b);
