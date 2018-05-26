@@ -250,7 +250,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 							// ID String
 							int id = CanPacket.getIdfromRawID(Integer.valueOf(data[data.length-i-1][k]));
 							int len = CanPacket.getLengthfromRawID(Integer.valueOf(data[data.length-i-1][k]));
-							rawData[i][k-2] = Integer.toHexString(id);
+							rawData[i][k-2] = String.format("%08x", id);
 							rawData[i][k-1] = Integer.toString(len);
 						} else {
 							rawData[i][k-1] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
