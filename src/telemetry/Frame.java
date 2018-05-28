@@ -886,11 +886,12 @@ public abstract class Frame implements Comparable<Frame> {
 	}
 	
 	/**
-	 * Send Experiment bytes to local server if it is configured
+	 * Send Payload bytes to local server if it is configured
+	 * This returns an array of byte arrays.  One byte array per payload in the frame.
 	 * Override in child class
 	 * 
 	 */
-	public byte[] getPayloadBytes() {
+	public byte[][] getPayloadBytes() {
 		return null;
 	}
 

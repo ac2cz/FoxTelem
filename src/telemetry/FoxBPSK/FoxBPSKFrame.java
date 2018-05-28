@@ -247,37 +247,39 @@ import telemetry.uw.CanPacket;
 
 		/**
 		 * Get a buffer containing all of the CAN Packets in this frame.  There may be multiple payloads that have CAN Packets,
-		 * so we need to check all of them.  First we gather the bytes from each payload in a list and calculate the total size,
-		 * then we join all the bytes together in one array and return it.
+		 * so we need to check all of them.  First we gather the bytes from each payload in the PCAN format.  We return an 
+		 * array of those byte arrays.  The calling routine will send each PCAN packet individually
 		 */
-		public byte[] getPayloadBytes() {
+		public byte[][] getPayloadBytes() {
 
-			byte[] buffer = null;
+			byte[][] allBuffers = null;
 
 			Spacecraft sat = Config.satManager.getSpacecraft(foxId);
 			if (sat.sendToLocalServer()) {
-				byte[][] buffers = new byte[NUMBER_DEFAULT_PAYLOADS][];
-				int totalBytes = 0;
+				int totalBuffers = 0;
 				for (int i=0; i< payload.length; i++) {
 					// if this payload should be output then add to the byte buffer
 					if (payload[i] instanceof PayloadUwExperiment) {
-						buffers[i] = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(); 
-						totalBytes += buffers[i].length; 
-					}
-					buffer = new byte[totalBytes];
-					int startPosition = 0;
-					for (int p=0; p< payload.length; p++) {
-						// if this payload should be output then add to the byte buffer
-						if (payload[p] instanceof PayloadUwExperiment) {
-							for (int j=0; j < buffers[p].length; j++) {
-								buffer[j + startPosition] = buffers[p][j];
-							}
-							startPosition += buffers[p].length;
-						}
+						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(); 
+						totalBuffers += buffer.length; 
 					}
 				}
+					
+				allBuffers = new byte[totalBuffers][];
+				int startPosition = 0;
+				for (int p=0; p< payload.length; p++) {
+					// if this payload should be output then add its byte buffers to the output
+					if (payload[p] instanceof PayloadUwExperiment) {
+						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(); 
+						for (int j=0; j < buffer.length; j++) {
+							allBuffers[j + startPosition] = buffer[j];
+						}
+						startPosition += buffer.length;
+					}
+				}
+
 			}
-			return buffer;				
+			return allBuffers;				
 		}
 
 		public String toString() {

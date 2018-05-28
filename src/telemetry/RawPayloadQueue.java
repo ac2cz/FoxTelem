@@ -171,9 +171,10 @@ public class RawPayloadQueue extends RawQueue {
 					if (sat.sendToLocalServer()) {
 						localServer.setHostName(sat.localServer);
 						localServer.setPort(sat.localServerPort);
-						byte[] buffer = frames.peek().getPayloadBytes();
-						localServer.sendToServer(buffer, protocol);
 						Log.println("Trying Local Server: TCP://" + sat.localServer + ":" + sat.localServerPort);
+						byte[][] buffer = frames.peek().getPayloadBytes();
+						for (byte[] b : buffer)
+							localServer.sendToServer(b, protocol);
 						success = true;
 					}
 				}

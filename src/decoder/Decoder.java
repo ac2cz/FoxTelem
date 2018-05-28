@@ -830,6 +830,38 @@ public abstract class Decoder implements Runnable {
 		     | ((b1 & 0xff) << 0);
 		return value;
 	}
+	
+	public static int bigEndian4(byte b[]) {
+		byte b1 = b[0];
+		byte b2 = b[1];
+		byte b3 = b[2];
+		byte b4 = b[3];
+		int value =  ((b1 & 0xff) << 24)
+		     | ((b2 & 0xff) << 16)
+		     | ((b3 & 0xff) << 8)
+		     | ((b4 & 0xff) << 0);
+		return value;
+	}
+	
+	public static byte[] bigEndian4(int in) {
+		byte[] b = new byte[4];
+		
+		b[0] = (byte)((in >> 24) & 0xff);
+		b[1] = (byte)((in >> 16) & 0xff);
+		b[2] = (byte)((in >> 8) & 0xff);
+		b[3] = (byte)((in >> 0) & 0xff);
+		return b;
+	}
+
+	public static byte[] bigEndian4(long in) {
+		byte[] b = new byte[4];
+		
+		b[0] = (byte)((in >> 24) & 0xff);
+		b[1] = (byte)((in >> 16) & 0xff);
+		b[2] = (byte)((in >> 8) & 0xff);
+		b[3] = (byte)((in >> 0) & 0xff);
+		return b;
+	}
 
 	public static int oldlittleEndian2(byte b[], int bitsPerSample) {
 		byte b1 = b[0];

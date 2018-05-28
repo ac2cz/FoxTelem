@@ -10,6 +10,7 @@ import decoder.Decoder;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import telemetry.uw.CanPacket;
+import telemetry.uw.PcanPacket;
 
 /**
  * 
@@ -72,6 +73,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		String debug = (Decoder.hex(b));
 		if (canPacket == null) {
 			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
 			canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100);
 		}
 		if (canPacket.hasEndOfCanPacketsId()) return;
@@ -79,6 +81,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		if (canPacket.isValid()) {
 			canPackets.add(canPacket);
 			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
 			canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+canPackets.size());
 		}
 	}
@@ -138,25 +141,19 @@ public class PayloadUwExperiment extends FoxFramePart {
 	}
 	
 	/**
-	 * Get all the Can Packets Bytes in this Payload as a single array
+	 * Get all the Can Packets Bytes in this Payload as an array of payload byte arrays
 	 * @return
 	 */
-	public byte[] getCANPacketBytes() {
-		byte[] buffer = null;
-		int totalBytes = 0;
+	public byte[][] getCANPacketBytes() {
+		byte[][] buffers = new byte[canPackets.size()][];
+		int i=0;
 		for (CanPacket p : canPackets) {
-			totalBytes += p.getBytes().length; 
+			PcanPacket pc = p.getPCanPacket();
+		//	if (Config.debugFrames)
+		//		Log.println("PCAN: " + pc);
+			buffers[i++] = pc.getBytes(); 
 		}
-		buffer = new byte[totalBytes];
-		int startPosition = 0;
-		for (CanPacket p : canPackets) {
-			byte[] packetBytes = p.getBytes();
-			for (int i=0; i < packetBytes.length; i++) {
-				buffer[i + startPosition] = packetBytes[i];
-			}
-			startPosition += packetBytes.length;
-		}
-		return buffer;
+		return buffers;
 	}
 	
 	byte[] concatenateByteArrays(byte[] a, byte[] b) {

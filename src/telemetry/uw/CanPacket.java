@@ -115,6 +115,16 @@ public class CanPacket extends FoxFramePart {
 		return s;
 	}
 	
+	public PcanPacket getPCanPacket() {
+		if (!isValid()) return null;
+		byte[] data = new byte[getLength()];
+		for (int i=0; i<getLength(); i++)
+			data[i] = bytes[i+ID_BYTES];
+		
+		PcanPacket pcan = new PcanPacket(captureDate, id, resets, uptime, type, canPacketId, (byte)getLength(), data);
+		return pcan;
+	}
+	
 	public byte[] getBytes() {
 		byte[] buffer = new byte[getLength() + ID_BYTES];
 		for (int i=0; i<buffer.length; i++)
