@@ -1,6 +1,14 @@
 package telemetry.uw;
 
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
+
+import common.Log;
 import decoder.Decoder;
+import telemetry.FramePart;
 
 /**
  * 
@@ -57,6 +65,20 @@ public class PcanPacket {
 			canData[i] = data[i];
 	}
 	
+	private Date parseDate(String strDate) {
+		DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+		Date date = null;
+		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		try {
+			date = dateFormat.parse(strDate);
+		} catch (ParseException e) {
+					// We don't do anything in this case, the date will be null
+					date = null;
+		}
+
+		return date;
+	}
+	
 	/**
 	 * Get a set of bytes in Big Endian order that conform to the PCAN layout
 	 * @return
@@ -82,18 +104,18 @@ public class PcanPacket {
 		//for (int i=0; i<tag.length; i++) 
 		//	buffer[4+i] = tag[i];
 		
-		byte[] date = createDate.getBytes();
-		for (int j=0; j<8; j++) 
-			buffer[12+j] = date[j];
-		/*
-		byte[] lowBytes = Decoder.bigEndian4(timestampLow);
-		for (int j=0; j<4; j++) 
-			buffer[12+j] = lowBytes[j];
 		
-		byte[] highBytes = Decoder.bigEndian4(timestampHigh);
-		for (int k=0; k<4; k++) 
-			buffer[16+k] = highBytes[k];
-		*/
+		
+		Date dt = parseDate(createDate);
+		long date_long = dt.getTime();
+		byte[] timeBytes = Decoder.bigEndian8(date_long); 
+		for (int j=0; j<8; j++) 
+			buffer[12+j] = timeBytes[j];
+		
+//		byte[] highBytes = Decoder.bigEndian4(timestampHigh);
+//		for (int k=0; k<4; k++) 
+//			buffer[16+k] = highBytes[k];
+		
 		
 		buffer[20] = channel;;
 		

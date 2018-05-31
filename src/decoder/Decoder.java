@@ -853,6 +853,21 @@ public abstract class Decoder implements Runnable {
 		return b;
 	}
 
+	public static byte[] bigEndian8(long in) {
+		byte[] b = new byte[8];
+		
+		b[0] = (byte)((in >> 56) & 0xff);
+		b[1] = (byte)((in >> 48) & 0xff);
+		b[2] = (byte)((in >> 40) & 0xff);
+		b[3] = (byte)((in >> 32) & 0xff);
+		b[4] = (byte)((in >> 24) & 0xff);
+		b[5] = (byte)((in >> 16) & 0xff);
+		b[6] = (byte)((in >> 8) & 0xff);
+		b[7] = (byte)((in >> 0) & 0xff);
+		return b;
+	}
+
+	
 	public static byte[] bigEndian4(long in) {
 		byte[] b = new byte[4];
 		
