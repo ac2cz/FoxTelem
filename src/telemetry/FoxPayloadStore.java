@@ -139,6 +139,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract void initRad2();
 	public abstract void initHerciPackets();
+	public abstract String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout);
 	
 
 }

@@ -115,6 +115,7 @@ public class SatPayloadTable {
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
 		TableSeg seg = loadSeg(resets, uptime);
+		if (seg.records == 0) return null;
 		if (prev) {
 			int i = rtRecords.getNearestPrevFrameIndex(id, uptime, resets); 
 			if (i == -1) return null;
@@ -539,6 +540,7 @@ public class SatPayloadTable {
 	}
 
 	private FoxFramePart addLine(String line) {
+		if (line.length() == 0) return null;
 		StringTokenizer st = new StringTokenizer(line, ",");
 		String date = st.nextToken();
 		int id = Integer.valueOf(st.nextToken()).intValue();
@@ -640,7 +642,15 @@ public class SatPayloadTable {
 			rt.type = type; // make sure we get the right type
 		}
 		if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
-			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		}
+		if (type == FoxFramePart.TYPE_UW_EXPERIMENT ) {
+			rt = new PayloadUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		}
+		if (type == FoxFramePart.TYPE_UW_WOD_EXPERIMENT ) {
+			rt = new PayloadWODUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
 

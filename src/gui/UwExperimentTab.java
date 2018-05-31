@@ -28,6 +28,7 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadUwExperiment;
 import telemetry.RadiationTelemetry;
 import telemetry.SatPayloadStore;
 import telemetry.uw.CanPacket;
@@ -79,7 +80,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 
 	boolean displayTelem = true;
 	
-	public UwExperimentTab(FoxSpacecraft sat)  {
+	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
@@ -116,7 +117,12 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+		BitArrayLayout rad = null;
+
+		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+			rad = fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT);
+		else
+			rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI_HK);
@@ -187,7 +193,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		parseRadiationFrames();
 	}
 	
-	private void displayFramesDecoded(int u) {
+	protected void displayFramesDecoded(int u) {
 		lblFramesDecoded.setText(DECODED + u);
 	}
 	
@@ -268,7 +274,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 	protected void parseRadiationFrames() {
 		
 			if (Config.displayRawRadData) {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.CAN_PKT_LAYOUT);
 				if (data != null && data.length > 0)
 					parseRawBytes(data,radTableModel);
 			} else {
@@ -357,14 +363,15 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 				e.printStackTrace(Log.getWriter());
 			} 			
 			if (foxId != 0 && Config.payloadStore.initialized()) {
+				// If either of these are toggled then redisplay the results
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 					
 				}
 
@@ -374,11 +381,11 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 
 						parseRadiationFrames();
-						updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME), true);
+						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_REAL_TIME);
+							openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
 							justStarted = false;
 						}
 					}
@@ -418,7 +425,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT, false), false);
+    	updateTab((PayloadUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD_LAYOUT, false), false);
     	
     	table.setRowSelectionInterval(row, row);
 	}

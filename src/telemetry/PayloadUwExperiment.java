@@ -42,24 +42,26 @@ import telemetry.uw.PcanPacket;
 public class PayloadUwExperiment extends FoxFramePart {	
 	private int flagByte = 0;
 	
+	public static final int FLAG_FIELD = 0;
+	public static final String FLAG = "Flag";
+	
 	public ArrayList<CanPacket> canPackets; 
 	private CanPacket canPacket; // the current CAN Packet we are adding bytes to
 	
-	public PayloadUwExperiment() {
-		super(TYPE_UW_EXPERIMENT, new BitArrayLayout());
-		MAX_BYTES = 1;
-		rawBits = new boolean[8];
+	public PayloadUwExperiment(BitArrayLayout lay) {
+		super(TYPE_UW_EXPERIMENT,lay);
+		//MAX_BYTES = 1;
 		canPackets = new ArrayList<CanPacket>();
 	}
 	
-	public PayloadUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st) {
-		super(id, resets, uptime, TYPE_UW_EXPERIMENT, date, st, new BitArrayLayout());
-		MAX_BYTES = 1;
+	public PayloadUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(id, resets, uptime, TYPE_UW_EXPERIMENT, date, st, lay);
+		//MAX_BYTES = 1;
 		canPackets = new ArrayList<CanPacket>();
 	}
 	
 	protected void init() { 
-		
+		//rawBits = new boolean[8];	
 	}
 	
 	/**
@@ -69,10 +71,16 @@ public class PayloadUwExperiment extends FoxFramePart {
 	 * away
 	 * @param b
 	 */
-	private void addToCanPackets(byte b) {
-		String debug = (Decoder.hex(b));
+	int debugCount = 0;
+	protected void addToCanPackets(byte b) {
+		if (Config.debugBytes) {
+			String debug = (Decoder.plainhex(b));
+			debugCount++;
+			Log.print(debug);
+			if (debugCount % 80 == 0) Log.println("");;
+		}
 		if (canPacket == null) {
-			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			canPacket.captureHeaderInfo(id, uptime, resets);
 			canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100);
 		}
@@ -80,7 +88,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		canPacket.addNext8Bits(b);
 		if (canPacket.isValid()) {
 			canPackets.add(canPacket);
-			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			canPacket.captureHeaderInfo(id, uptime, resets);
 			canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+canPackets.size());
 		}
@@ -89,27 +97,23 @@ public class PayloadUwExperiment extends FoxFramePart {
 	public void addNext8Bits(byte b) {
 		if (numberBytesAdded <1)
 			super.addNext8Bits(b);  // the flag byte
-		else
+		else if (numberBytesAdded <72) {
 			addToCanPackets(b);
+			super.addNext8Bits(b);
+		} else if (numberBytesAdded < 78)
+			super.addNext8Bits(b); // deal with timestamp		
 	}
 
-	
-	@Override
-	public void copyBitsToFields() {
-		// Nothing to do here as bits are put into the structure as they are received
-	}
-
-	
 	@Override
 	public String toString() {
 		copyBitsToFields();
 		String s = "UW EXPERIMENT PAYLOAD - " + canPackets.size() + " CAN PACKETS\n";
-		s = s + "OVERFLOW FLAG: " + rawBits[0];
-		for (int p=0; p < canPackets.size(); p++) {
-			s = s + canPackets.get(p).toString() + "    " ;
-			if ((p+1)%3 == 0) s = s + "\n";
-		}
-		s=s+"\n";
+		s = s + "OVERFLOW FLAG: " + rawBits[0] + "\n";
+		//for (int p=0; p < canPackets.size(); p++) {
+		//	s = s + canPackets.get(p).toString() + "    " ;
+		//	if ((p+1)%3 == 0) s = s + "\n";
+		//}
+		//s=s+"\n";
 
 		return s;
 	}
@@ -121,23 +125,13 @@ public class PayloadUwExperiment extends FoxFramePart {
 	}
 
 	public boolean savePayloads() {
+		if (!Config.payloadStore.add(getFoxId(), getUptime(), getResets(), this))
+			return false;
 		for (CanPacket p : canPackets)
 			if (!Config.payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
 		return true;
 
-	}
-
-	/**
-	 * Write the data out to file
-	 * This may need to write the flag byte and perhaps the total number of packets.
-	 * The packets are saved as seperate payloads
-	 * 
-	 */
-	public String toFile() {
-		copyBitsToFields();
-		String s = new String();
-		return s;
 	}
 	
 	/**

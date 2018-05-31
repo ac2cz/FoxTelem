@@ -11,6 +11,7 @@ import common.Log;
 import common.Spacecraft;
 import decoder.Decoder;
 import decoder.FoxDecoder;
+import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.Frame;
 import telemetry.HighSpeedTrailer;
@@ -21,6 +22,7 @@ import telemetry.PayloadRtValues;
 import telemetry.PayloadUwExperiment;
 import telemetry.PayloadWOD;
 import telemetry.PayloadWODRad;
+import telemetry.PayloadWODUwExperiment;
 import telemetry.uw.CanPacket;
 
 /**
@@ -161,30 +163,49 @@ import telemetry.uw.CanPacket;
 			case ALL_WOD_FRAME:
 				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
 				for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i+=2 ) {
-					payload[i] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+					if (foxId == FoxSpacecraft.HUSKY_SAT) {
+						payload[i] = new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+						payload[i].captureHeaderInfo(header.id, header.uptime, header.resets);
+					} else {
+						payload[i] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));						
+					}
 					payload[i+1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				}
 				break;
 			case REALTIME_FRAME:
 				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-				payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+				if (foxId == FoxSpacecraft.HUSKY_SAT) {
+					payload[0] = new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+					payload[0].captureHeaderInfo(header.id, header.uptime, header.resets);
+				} else
+					payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-				payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+				if (foxId == FoxSpacecraft.HUSKY_SAT) {
+					payload[2] = new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+					payload[2].captureHeaderInfo(header.id, header.uptime, header.resets);
+				} else
+					payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				payload[4] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-				if (foxId == FoxSpacecraft.FOX1E)
-					payload[5] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-				else if (foxId == FoxSpacecraft.HUSKY_SAT) {
-					payload[5] = new PayloadUwExperiment();
+				if (foxId == FoxSpacecraft.HUSKY_SAT) {
+					payload[5] = new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
 					payload[5].captureHeaderInfo(header.id, header.uptime, header.resets);
 				} else
-					payload[5] = null;
+					payload[5] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
 				break;
 			case MINMAX_FRAME:
 				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-				payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+				if (foxId == FoxSpacecraft.HUSKY_SAT) {
+					payload[0] = new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+					payload[0].captureHeaderInfo(header.id, header.uptime, header.resets);
+				} else
+					payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-				payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+				if (foxId == FoxSpacecraft.HUSKY_SAT) {
+					payload[2] = new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+					payload[2].captureHeaderInfo(header.id, header.uptime, header.resets);
+				} else
+					payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
 				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
 				payload[4] = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
 				payload[5] = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
@@ -206,13 +227,13 @@ import telemetry.uw.CanPacket;
 				break;
 			case CAN_PACKET_SCIENCE_FRAME:
 				payload = new FoxFramePart[1];
-				payload[0] = new PayloadUwExperiment();
+				payload[0] = new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
 				payload[0].captureHeaderInfo(header.id, header.uptime, header.resets);
 				canPacketFrame = true;
 				break;
 			case CAN_PACKET_CAMERA_FRAME:
 				payload = new FoxFramePart[1];
-				payload[0] = new PayloadUwExperiment();
+				payload[0] = new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
 				payload[0].captureHeaderInfo(header.id, header.uptime, header.resets); 
 				canPacketFrame = true;
 				break;
@@ -226,12 +247,12 @@ import telemetry.uw.CanPacket;
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
-					if (payload[i] instanceof PayloadUwExperiment) {
-						((PayloadUwExperiment)payload[i]).savePayloads();
-					}
 					payload[i].copyBitsToFields();
-					if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
-						return false;
+					if (payload[i] instanceof PayloadUwExperiment) { // Also saves WOD UW Payloads
+						((PayloadUwExperiment)payload[i]).savePayloads();
+					} else
+						if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
+							return false;
 				}
 			}
 			return true;			

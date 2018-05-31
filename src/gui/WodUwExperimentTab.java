@@ -7,10 +7,11 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.FoxFramePart;
+import telemetry.PayloadWODUwExperiment;
 import telemetry.RadiationTelemetry;
 
 @SuppressWarnings("serial")
-public class WodUwExperimentTab extends VulcanTab {
+public class WodUwExperimentTab extends UwExperimentTab {
 
 	public WodUwExperimentTab(FoxSpacecraft sat) {
 		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
@@ -21,14 +22,14 @@ public class WodUwExperimentTab extends VulcanTab {
 	protected void parseRadiationFrames() {
 		
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getWODRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+			String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.CAN_PKT_LAYOUT);
 			if (data != null && data.length > 0)
 				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
 				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0)
-					parseTelemetry(data);
+					//parseTelemetry(data);
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
@@ -38,7 +39,7 @@ public class WodUwExperimentTab extends VulcanTab {
 			else {
 				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data.length > 0)
-					parsePackets(data);
+					//parsePackets(data);
 					topHalfPackets.setVisible(true);
 					bottomHalfPackets.setVisible(true);
 					topHalf.setVisible(false);
@@ -63,7 +64,7 @@ public class WodUwExperimentTab extends VulcanTab {
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD2_LAYOUT, false), false);
+    	updateTab((PayloadWODUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD_LAYOUT, false), false);
     	
     	table.setRowSelectionInterval(row, row);
 	}
@@ -88,8 +89,9 @@ public class WodUwExperimentTab extends VulcanTab {
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
 						Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
-						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
+						
 						parseRadiationFrames();
+						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD_LAYOUT), true);
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {

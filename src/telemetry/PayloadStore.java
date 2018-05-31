@@ -794,6 +794,20 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout)  {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getTableData(period, id, fromReset, fromUptime, reverse, layout);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+
+	
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -1014,6 +1028,8 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
 		return 0;
 	}
+
+	
 
 
 

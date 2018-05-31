@@ -157,7 +157,7 @@ public class SpacecraftTab extends JPanel {
 		}
 		if (sat.foxId == Spacecraft.HUSKY_SAT) {
 			addWodTab((FoxSpacecraft)sat);
-///// ADD WOD HERE			addUwWodExperimentTab((FoxSpacecraft)sat);
+			addUwWodExperimentTab((FoxSpacecraft)sat);
 		}
 	}
 
@@ -197,13 +197,24 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addUwExperimentTab(FoxSpacecraft fox) {
 
-		radiationTab = new UwExperimentTab(fox);
+		radiationTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_VULCAN);
 		radiationThread = new Thread((UwExperimentTab)radiationTab);
 		radiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		radiationThread.start();
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
-		" Experiment</body></html>", radiationTab);
+		"CAN Pkts</body></html>", radiationTab);
+
+	}
+
+	private void addUwWodExperimentTab(FoxSpacecraft fox) {
+		wodRadiationTab = new WodUwExperimentTab(fox);
+		wodRadiationThread = new Thread((WodUwExperimentTab)wodRadiationTab);
+		wodRadiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodRadiationThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "CAN Pkt WOD" + "</b></body></html>", wodRadiationTab );
 
 	}
 
