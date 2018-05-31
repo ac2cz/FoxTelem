@@ -71,8 +71,8 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 	JLabel lblFramesDecoded;
 		
 	//JCheckBox showRawBytes;
-	CanPacketTableModel radTableModel;
-	RadiationPacketTableModel radPacketTableModel;
+	CanPacketRawTableModel radTableModel;
+	CanPacketTableModel radPacketTableModel;
 
 	JPanel healthPanel;
 	JPanel topHalfPackets;
@@ -181,8 +181,8 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 
 		addBottomFilter();
 		
-		radTableModel = new CanPacketTableModel();
-		radPacketTableModel = new RadiationPacketTableModel();
+		radTableModel = new CanPacketRawTableModel();
+		radPacketTableModel = new CanPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
 		addPacketModules();
@@ -213,13 +213,16 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		column.setPreferredWidth(55);
 
 		column = table.getColumnModel().getColumn(2);
+		column.setPreferredWidth(55);
+
+		column = table.getColumnModel().getColumn(3);
 		column.setPreferredWidth(65);
 		
-		column = table.getColumnModel().getColumn(3);
+		column = table.getColumnModel().getColumn(4);
 		column.setPreferredWidth(55);
 
 		for (int i=0; i<8; i++) {
-			column = table.getColumnModel().getColumn(i+4);
+			column = table.getColumnModel().getColumn(i+5);
 			column.setPreferredWidth(25);
 		}
 
@@ -230,12 +233,15 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		column.setPreferredWidth(55);
 
 		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(80);
+		column.setPreferredWidth(55);
 
 		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
+		column.setPreferredWidth(65);
 
 		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(55);
+
+		column = packetTable.getColumnModel().getColumn(5);
 		column.setPreferredWidth(600);
 
 		//packetTable.getSelectionModel().addListSelectionListener(this);
@@ -243,42 +249,42 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		//packetTable.getRowSelectionAllowed();
 				
 	}
-	protected void parseRawBytes(String data[][], CanPacketTableModel radTableModel) {
-		long[][] keyRawData = new long[data.length][2];
+	protected void parseRawBytes(String data[][], CanPacketRawTableModel radTableModel) {
+		long[][] keyRawData = new long[data.length][3];
 		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+2];
 		for (int i=0; i<data.length; i++)
 			for (int k=0; k<CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+3; k++)
 				try {
-					if (k<=1)
+					if (k<=2)
 						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
 					else {
-						if (k==2) {
+						if (k==3) {
 							// ID String
 							int id = CanPacket.getIdfromRawID(Integer.valueOf(data[data.length-i-1][k]));
 							int len = CanPacket.getLengthfromRawID(Integer.valueOf(data[data.length-i-1][k]));
-							rawData[i][k-2] = String.format("%08x", id);
-							rawData[i][k-1] = Integer.toString(len);
+							rawData[i][k-3] = String.format("%08x", id);
+							rawData[i][k-2] = Integer.toString(len);
 						} else {
-							rawData[i][k-1] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
-							if (rawData[i][k-1] == null)
-								rawData[i][k-1] = "";
+							rawData[i][k-2] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
+							if (rawData[i][k-2] == null)
+								rawData[i][k-2] = "";
 						}
 					}
 				} catch (NumberFormatException e) {
 
 				}
 		radTableModel.setData(keyRawData, rawData);
-		
-
 	}
+	
 	protected void parseRadiationFrames() {
 		
 			if (Config.displayRawRadData) {
-				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.CAN_PKT_LAYOUT);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
 				if (data != null && data.length > 0)
 					parseRawBytes(data,radTableModel);
 			} else {
-				String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
+				//String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0) {
 					parseTelemetry(data);
 				}
@@ -301,21 +307,24 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 	}
 	
 	
-	private void parseTelemetry(String data[][]) {
-		
-		// Now put the telemetry data into the table data structure
-		/*
+	protected void parseTelemetry(String data[][]) {
 		int len = data.length;
-		long[][] keyPacketData = new long[len][2];
+		long[][] keyPacketData = new long[len][3];
 		String[][] packetData = new String[len][3];
 		for (int i=0; i < len; i++) { 
 			keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
 			keyPacketData[len-i-1][1] = Long.parseLong(data[i][1]);
-			packetData[len-i-1][0] = "TELEMETRY";
-			packetData[len-i-1][1] = ""+data[i][2];
+			keyPacketData[len-i-1][2] = Long.parseLong(data[i][2]);
+			int id = CanPacket.getIdfromRawID(Integer.valueOf(data[i][3]));
+			int length = CanPacket.getLengthfromRawID(Integer.valueOf(data[i][3]));
+			packetData[len-i-1][0] = String.format("%08x", id);
+			packetData[len-i-1][1] = Integer.toString(length);
+	
 			String telem = "";
-			for (int j=2; j< fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
+			for (int j=4; j< fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).fieldName.length; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
 				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
+//			for (int j=2; j< fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
+//				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
 			packetData[len-i-1][2] = telem;
@@ -324,10 +333,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		if (packetData.length > 0) {
 			radPacketTableModel.setData(keyPacketData, packetData);
 		}
-		
-		//updateTab(data.get(packets.size()-1));
 		 
-		 */
 	}
 	
 	

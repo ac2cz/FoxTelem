@@ -22,16 +22,17 @@ package gui;
  *
  */
 @SuppressWarnings("serial")
-class CanPacketTableModel extends FoxTelemTableModel {
+class CanPacketRawTableModel extends FoxTelemTableModel {
 
-	CanPacketTableModel() {
-		columnNames = new String[6];
+	CanPacketRawTableModel() {
+		columnNames = new String[13];
 		columnNames[0] = "RESET";
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "FOX SEQ";
 		columnNames[3] = "ID";
 		columnNames[4] = "LEN";
-		columnNames[5] = "DATA";
+		for (int k=0; k<8; k++) 
+			columnNames[k+5] = ""+k;
 	}
 	
 }

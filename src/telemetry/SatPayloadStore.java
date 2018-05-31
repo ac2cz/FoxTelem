@@ -422,6 +422,14 @@ public class SatPayloadStore {
 		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_RAD2_LAYOUT);
 	}
 	
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		BitArrayLayout l = fox.getLayoutByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, l.fieldName.length, returnType, reverse);
+		return null;	
+	}
+	
 	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		BitArrayLayout l = fox.getLayoutByName(layout);

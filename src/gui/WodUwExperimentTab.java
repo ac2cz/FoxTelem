@@ -22,30 +22,22 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	protected void parseRadiationFrames() {
 		
 		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.CAN_PKT_LAYOUT);
+			String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
 			if (data != null && data.length > 0)
 				parseRawBytes(data, radTableModel);
 		} else {
 			if (displayTelem) {
-				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
+//				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0)
-					//parseTelemetry(data);
+					parseTelemetry(data);
 					topHalfPackets.setVisible(false);
 					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
 //					bottomHalf.setVisible(true);
 			
 			}
-			else {
-				String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
-				if (data.length > 0)
-					//parsePackets(data);
-					topHalfPackets.setVisible(true);
-					bottomHalfPackets.setVisible(true);
-					topHalf.setVisible(false);
-					bottomHalf.setVisible(false);
 			
-			}
 		}
 		if (showRawBytes.isSelected()) {
 			packetScrollPane.setVisible(false); 
@@ -71,7 +63,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	
 	@Override
 	public void run() {
-		Thread.currentThread().setName("WodVulcanTab");
+		Thread.currentThread().setName("UwWODTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;
