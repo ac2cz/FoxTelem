@@ -251,8 +251,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		sourcePanel = new JPanel();
 		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
+		
 		if (soundCardComboBox.getSelectedIndex() != 0)
 			if (Config.startButtonPressed) processStartButtonClick();
+
+		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
+		showSourceOptions(Config.showSourceOptions);
+		showAudioOptions(Config.showAudioOptions);
 	}
 	
 	public void showFilters(boolean b) { 
@@ -480,6 +485,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		autoStart.setSelected(Config.whenAboveHorizon);
 		autoStart.addItemListener(this);
 		satPanel.add(autoStart);
+		showSatOptions(Config.showSatOptions);
 		return oneTracked;
 	}
 	
@@ -555,7 +561,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	//	rdbtnWriteDebugData.setVisible(true);
 
 //		optionsPanel.setVisible(true);
-		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 
 	}
 	

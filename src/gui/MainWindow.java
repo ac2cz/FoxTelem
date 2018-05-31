@@ -423,17 +423,17 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		chckbxmntmShowAudioOptions = new JCheckBoxMenuItem("Show Audio Options");
 		chckbxmntmShowAudioOptions.addActionListener(this);
 		mnDecoder.add(chckbxmntmShowAudioOptions);
-		chckbxmntmShowAudioOptions.setState(true);
+		chckbxmntmShowAudioOptions.setState(Config.showAudioOptions);
 
 		chckbxmntmShowSourceOptions = new JCheckBoxMenuItem("Show Source");
 		chckbxmntmShowSourceOptions.addActionListener(this);
 		mnDecoder.add(chckbxmntmShowSourceOptions);
-		chckbxmntmShowSourceOptions.setState(true);
+		chckbxmntmShowSourceOptions.setState(Config.showSourceOptions);
 
 		chckbxmntmShowSatOptions = new JCheckBoxMenuItem("Show Sat Status");
 		chckbxmntmShowSatOptions.addActionListener(this);
 		mnDecoder.add(chckbxmntmShowSatOptions);
-		chckbxmntmShowSatOptions.setState(true);
+		chckbxmntmShowSatOptions.setState(Config.showSatOptions);
 
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
@@ -640,15 +640,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 		
 		if (e.getSource() == chckbxmntmShowAudioOptions) {	
-			inputTab.showAudioOptions(chckbxmntmShowAudioOptions.getState());
+			Config.showAudioOptions = chckbxmntmShowAudioOptions.getState();
+			inputTab.showAudioOptions(Config.showAudioOptions);
 	    }
 		
 		if (e.getSource() == chckbxmntmShowSourceOptions) {	
-			inputTab.showSourceOptions(chckbxmntmShowSourceOptions.getState());
+			Config.showSourceOptions = chckbxmntmShowSourceOptions.getState();
+			inputTab.showSourceOptions(Config.showSourceOptions);
 	    }
 		
 		if (e.getSource() == chckbxmntmShowSatOptions) {	
-			inputTab.showSatOptions(chckbxmntmShowSatOptions.getState());
+			Config.showSatOptions = chckbxmntmShowSatOptions.getState();
+			inputTab.showSatOptions(Config.showSatOptions);
 	    }
 		if (e.getSource() == mntmManual) {
 			try {

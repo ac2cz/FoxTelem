@@ -268,8 +268,10 @@ public class Config {
 	
 	// V1.07
 	static public boolean useNCO = false;
-	static public String localServer = "127.0.0.1";
-	static public int localServerPort = 8587;
+	public static boolean showAudioOptions = true; 
+	public static boolean showSatOptions = true; 
+	public static boolean showSourceOptions = true; 
+
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -704,7 +706,9 @@ public class Config {
 		// V1.07
 		properties.setProperty("useNCO", Boolean.toString(useNCO));
 		properties.setProperty("generateSecondaryPayloads", Boolean.toString(generateSecondaryPayloads));
-		
+		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
+		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
+		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
 		
 		store();
 	}
@@ -880,6 +884,9 @@ public class Config {
 		// V1.07
 		useNCO = Boolean.parseBoolean(getProperty("useNCO"));
 		generateSecondaryPayloads = Boolean.parseBoolean(getProperty("generateSecondaryPayloads"));
+		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
+		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
+		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();
