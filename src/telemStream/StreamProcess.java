@@ -142,10 +142,11 @@ public class StreamProcess implements Runnable {
 						streaming = false;
 						break;
 					} 
-					Log.println("Sent: " + ((CanPacket)can));
+					
 					lastCan = (CanPacket)can;
 				}
-				
+				if (canPacketsList.size() > 0)
+					Log.println("Sent: " + canPacketsList.size() + " CAN packets to: " + socket.getInetAddress() );
 				try {
 					Thread.sleep(REFRESH_PERIOD);
 				} catch (InterruptedException e1) {
