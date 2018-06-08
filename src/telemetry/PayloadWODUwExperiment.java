@@ -39,12 +39,12 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		return false;
 	}
 	
-	public boolean savePayloads() {
+	public boolean savePayloads(FoxPayloadStore payloadStore) {
 		copyBitsToFields(); // make sure reset / uptime correct
-		if (!Config.payloadStore.add(getFoxId(), getUptime(), getResets(), this))
+		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
 		for (CanPacket p : canPackets)
-			if (!Config.payloadStore.add(getFoxId(), getUptime(), getResets(), p))
+			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
 		return true;
 

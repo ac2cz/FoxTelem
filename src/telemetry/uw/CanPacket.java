@@ -1,19 +1,21 @@
 package telemetry.uw;
 
+import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.StringTokenizer;
-
-import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
+import telemetry.FramePart;
 
-public class CanPacket extends FoxFramePart {
+public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	public static final int MAX_PACKET_BYTES = 12;
 	
 	public static final int ID_FIELD = 0; 
 	public static final int ID_BYTES = 4;
+	public Timestamp serverTimeStamp = null;
 	
 	int canPacketId = 0;
 	int length = 0;
@@ -44,7 +46,7 @@ public class CanPacket extends FoxFramePart {
 	}
 	
 	@Override
-	protected void init() {
+	public void init() {
 	}
 
 	public int getLength() {
@@ -57,7 +59,8 @@ public class CanPacket extends FoxFramePart {
 	@Override
 	/** True if we have a valid length, id and have received all the bytes */
 	public boolean isValid() {
-		if (numberBytesAdded < ID_BYTES) return false;
+		if (rawBits == null) return true;
+		if (numberBytesAdded < ID_BYTES) return false;  // If rawBits not null this is being created, otherwise we are loading from file or DB.
 		copyBitsToFields();
 		if (fieldValue[ID_FIELD] != 0)
 			if (getLength() > 0 && getLength() < 9)
@@ -116,20 +119,21 @@ public class CanPacket extends FoxFramePart {
 	}
 	
 	public PcanPacket getPCanPacket() {
+		copyBitsToFields();
 		if (!isValid()) return null;
 		byte[] data = new byte[getLength()];
 		for (int i=0; i<getLength(); i++)
-			data[i] = bytes[i+ID_BYTES];
+			data[i] = (byte) fieldValue[i+1]; // skips the id field
 		
 		PcanPacket pcan = new PcanPacket(captureDate, id, resets, uptime, type, canPacketId, (byte)getLength(), data);
 		return pcan;
 	}
 	
-	public byte[] getBytes() {
-		byte[] buffer = new byte[getLength() + ID_BYTES];
-		for (int i=0; i<buffer.length; i++)
-			buffer[i] = bytes[i];
-		return buffer;
-	}
+//	public byte[] getBytes() {
+//		byte[] buffer = new byte[getLength() + ID_BYTES];
+//		for (int i=0; i<buffer.length; i++)
+//			buffer[i] = bytes[i];
+//		return buffer;
+//	}
 	
 }

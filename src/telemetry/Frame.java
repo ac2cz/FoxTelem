@@ -678,10 +678,8 @@ public abstract class Frame implements Comparable<Frame> {
 					//duvFrames++;
 				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-					//System.out.println("Storing: " + hsf);
 					FoxBPSKHeader header = hsf.getHeader();
-					for (int i=0; i<FoxBPSKFrame.NUMBER_DEFAULT_PAYLOADS; i++ )
-						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), hsf.payload[i]))
+					if (!hsf.savePayloads(payloadStore))
 							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add PSK record to database");;
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;

@@ -13,12 +13,14 @@ import decoder.Decoder;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
+import telemetry.FoxPayloadStore;
 import telemetry.Frame;
 import telemetry.HighSpeedTrailer;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
+import telemetry.PayloadStore;
 import telemetry.PayloadUwExperiment;
 import telemetry.PayloadWOD;
 import telemetry.PayloadWODRad;
@@ -242,16 +244,16 @@ import telemetry.uw.CanPacket;
 			}
 		}
 
-		public boolean savePayloads() {
+		public boolean savePayloads(FoxPayloadStore payloadStore) {
 
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
 					payload[i].copyBitsToFields();
 					if (payload[i] instanceof PayloadUwExperiment) { // Also saves WOD UW Payloads
-						((PayloadUwExperiment)payload[i]).savePayloads();
+						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore);
 					} else
-						if (!Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
+						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
 							return false;
 				}
 			}

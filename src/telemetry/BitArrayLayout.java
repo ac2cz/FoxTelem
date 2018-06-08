@@ -281,6 +281,7 @@ public class BitArrayLayout {
 		}
 		// We use serial for the type, except for type 4 where we use it for the payload number.  This allows us to have
 		// multiple high speed records with the same reset and uptime
+		s = s + "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
 		s = s + "PRIMARY KEY (id, resets, uptime, type))";
 		return s;
 	}

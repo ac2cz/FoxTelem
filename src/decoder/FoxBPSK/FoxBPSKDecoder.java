@@ -185,7 +185,7 @@ public class FoxBPSKDecoder extends Decoder {
 				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 				FoxBPSKHeader header = hsf.getHeader();
 				sat = Config.satManager.getSpacecraft(header.id);
-				hsf.savePayloads();;
+				hsf.savePayloads(Config.payloadStore);;
 
 				// Capture measurements once per payload or every 5 seconds ish
 				addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);

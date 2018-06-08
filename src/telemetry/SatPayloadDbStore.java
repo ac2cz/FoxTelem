@@ -2,6 +2,7 @@ package telemetry;
 
 
 import gui.MainWindow;
+import telemetry.uw.CanPacket;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,6 +48,7 @@ import common.FoxSpacecraft;
  */
 public class SatPayloadDbStore {
 
+	// MySQL error codes
 	public static final String ERR_TABLE_DOES_NOT_EXIST = "42S02";
 	public static final String ERR_DUPLICATE = "23000";
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
@@ -67,6 +69,7 @@ public class SatPayloadDbStore {
 	public static String WOD_LOG = "WODTELEMETRY";
 	public static String WOD_RAD_LOG = "WODRADTELEMETRY";
 	public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
+	public static String UW_CAN_PACKET_LOG = "UW_CAN_PACKET";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -81,6 +84,7 @@ public class SatPayloadDbStore {
 	public String wodTableName;
 	public String wodRadTableName;
 	public String wodRadTelemTableName;
+	public String uwCanPacketTableName;
 	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
@@ -94,6 +98,7 @@ public class SatPayloadDbStore {
 	boolean updatedWod = true;
 	boolean updatedWodRad = true;
 	boolean updatedWodRadTelem = true;
+	boolean updatedUwCanPacket = true;
 	
 	PayloadDbStore payloadDbStore;
 	
@@ -118,6 +123,7 @@ public class SatPayloadDbStore {
 		wodTableName = "Fox"+foxId+WOD_LOG;
 		wodRadTableName = "Fox"+foxId+WOD_RAD_LOG;
 		wodRadTelemTableName = "Fox"+foxId+WOD_RAD_TELEM_LOG;
+		uwCanPacketTableName = "Fox"+foxId+UW_CAN_PACKET_LOG;
 		initPayloadFiles();
 	}
 	
@@ -145,6 +151,8 @@ public class SatPayloadDbStore {
 		}
 		if (fox.foxId == Spacecraft.HUSKY_SAT) {
 			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT));
+			initPayloadTable(uwCanPacketTableName, fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
 		}
 	}
 
@@ -152,6 +160,7 @@ public class SatPayloadDbStore {
 	 *  create the tables if they do not exist
 	 */
 	private void initPayloadTable(String table, BitArrayLayout layout) {
+		if (layout == null) return; // we don't need this table if there is no layout
 		String createStmt = layout.getTableCreateStmt();
 		createTable(table, createStmt);
 	}
@@ -511,6 +520,14 @@ public class SatPayloadDbStore {
 			return insert(herciHSHeaderTableName, f);
 		} else if (f instanceof HerciHighSpeedPacket ) {
 			return insert(herciHSPacketTableName, (HerciHighSpeedPacket)f);
+		} else if (f instanceof PayloadWODUwExperiment ) {
+			updatedWodRad=true;
+			return insert(wodRadTableName, (PayloadWODUwExperiment)f);
+		} else if (f instanceof PayloadUwExperiment ) {
+			updatedRad=true;
+			return insert(radTableName, (PayloadUwExperiment)f);
+		} else if (f instanceof CanPacket ) {
+			return insert(uwCanPacketTableName, (CanPacket)f);
 		}
 		return false;
 	}
@@ -702,7 +719,49 @@ public class SatPayloadDbStore {
 		return null;
 	}
 	
-	@SuppressWarnings("unused")
+	SortedFramePartArrayList selectCanPackets(String where) {
+		Statement stmt = null;
+		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
+		update = update + uwCanPacketTableName + " " + where + " ORDER BY resets DESC, uptime DESC, type DESC";
+		ResultSet r = null;
+		SortedFramePartArrayList frameParts = new SortedFramePartArrayList(60);
+
+		try {
+			Connection derby = payloadDbStore.getConnection();
+			stmt = derby.createStatement();
+			//Log.println(update);
+			r = stmt.executeQuery(update);
+			if (r != null) {
+				while (r.next()) {
+					CanPacket payload = new CanPacket(Config.satManager.getLayoutByName(foxId, Spacecraft.CAN_PKT_LAYOUT));
+					payload.id = r.getInt("id");
+					payload.resets = r.getInt("resets");
+					payload.uptime = r.getLong("uptime");
+					payload.type = r.getInt("type");
+					payload.captureDate = r.getString("captureDate");
+					payload.serverTimeStamp = r.getTimestamp("date_time");
+					payload.init();
+					payload.rawBits = null; // no binary array when loaded from database
+					for (int i=0; i < payload.fieldValue.length; i++) {
+						payload.fieldValue[i] = r.getInt(payload.layout.fieldName[i]);
+					}
+					frameParts.add(payload);
+				}
+			} else {
+				frameParts = null;
+			}
+			return frameParts;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("selectLatest:"+uwCanPacketTableName, e);
+			try { r.close(); stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (r != null) r.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
+		return null;
+	}
+	
+	
 	private SortedArrayList<PictureScanLine> selectImageLines(String table, String where) {
 		Statement stmt = null;
 		String update = "";
@@ -752,7 +811,11 @@ public class SatPayloadDbStore {
 	
 	private void selectLatest(String table, FoxFramePart payload) {
 		Statement stmt = null;
-		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC LIMIT 1"; // Derby Syntax FETCH FIRST ROW ONLY";
+		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
+		if (payload instanceof CanPacket)
+			update = update + " date_time DESC LIMIT 1"; 
+		else
+			update = update + " resets DESC, uptime DESC, type DESC LIMIT 1"; 
 		ResultSet r = null;
 
 		try {
@@ -764,7 +827,10 @@ public class SatPayloadDbStore {
 				payload.id = r.getInt("id");
 				payload.resets = r.getInt("resets");
 				payload.uptime = r.getLong("uptime");
+				payload.type = r.getInt("type");
 				payload.captureDate = r.getString("captureDate");
+				if (payload instanceof CanPacket)
+					((CanPacket)payload).serverTimeStamp = r.getTimestamp("date_time");
 				payload.init();
 				payload.rawBits = null; // no binary array when loaded from database
 				for (int i=0; i < payload.fieldValue.length; i++) {
@@ -782,6 +848,20 @@ public class SatPayloadDbStore {
 			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
 		}
 		payload = null;
+	}
+	
+//	public FramePart getLatest(String layout) throws SQLException {
+//		BitArrayLayout lay = fox.getLayoutByName(layout);
+//		String tableName = lay.getTableName();
+//		FoxFramePart payload = FramePart.makePayload(lay);
+//		selectLatest(tableName, payload);
+//		return payload;
+//	}
+	
+	public CanPacket getLatestUwCanPacket() throws SQLException {
+		CanPacket payload = new CanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
+		selectLatest(uwCanPacketTableName, payload);
+		return payload;
 	}
 	
 	public PayloadRtValues getLatestRt() throws SQLException {

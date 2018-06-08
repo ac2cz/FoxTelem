@@ -124,11 +124,11 @@ public class PayloadUwExperiment extends FoxFramePart {
 		return false;
 	}
 
-	public boolean savePayloads() {
-		if (!Config.payloadStore.add(getFoxId(), getUptime(), getResets(), this))
+	public boolean savePayloads(FoxPayloadStore payloadStore) {
+		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
 		for (CanPacket p : canPackets)
-			if (!Config.payloadStore.add(getFoxId(), getUptime(), getResets(), p))
+			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
 		return true;
 

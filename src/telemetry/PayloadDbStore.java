@@ -13,6 +13,7 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
+import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -568,10 +569,36 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	@Override
 	public FramePart getLatest(int id, String layout) {
-		// TODO Auto-generated method stub
+//		SatPayloadDbStore store = getPayloadStoreById(id);
+//		if (store != null)
+//			try {
+//				return store.getLatest(layout);
+//			} catch (SQLException e) {
+//				e.printStackTrace(Log.getWriter());
+//				return null;
+//			}
 		return null;
 	}
 
+	public SortedFramePartArrayList selectCanPackets(int id, String where) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.selectCanPackets(where);
+		return null;
+	}
+	
+	public CanPacket getLatestUwCanPacket(int id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatestUwCanPacket();
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
+		return null;
+	}
+	
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)

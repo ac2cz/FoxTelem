@@ -30,7 +30,7 @@ import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 0.29 - 23 May 2018";
+	public static String version = "Version 0.30 - 7 June 2018";
 	private Socket socket = null;
 	int port = 8080;
 	
