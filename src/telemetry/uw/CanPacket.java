@@ -15,7 +15,7 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	
 	public static final int ID_FIELD = 0; 
 	public static final int ID_BYTES = 4;
-	public Timestamp serverTimeStamp = null;
+	public int pkt_id = 0;
 	
 	int canPacketId = 0;
 	int length = 0;
@@ -129,11 +129,17 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		return pcan;
 	}
 	
-//	public byte[] getBytes() {
-//		byte[] buffer = new byte[getLength() + ID_BYTES];
-//		for (int i=0; i<buffer.length; i++)
-//			buffer[i] = bytes[i];
-//		return buffer;
-//	}
+	public String getTableCreateStmt() {
+		String s = new String();
+		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		for (int i=0; i < layout.fieldName.length; i++) {
+			s = s + layout.fieldName[i] + " int,\n";
+		}
+		// We use serial for the type, except for type 4 where we use it for the payload number.  This allows us to have
+		// multiple high speed records with the same reset and uptime
+		s = s + "date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,";
+		s = s + "PRIMARY KEY (id, resets, uptime, type))";
+		return s;
+	}
 	
 }

@@ -7,9 +7,11 @@ import telemetry.uw.CanPacket;
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 import javax.swing.JOptionPane;
@@ -70,6 +72,7 @@ public class SatPayloadDbStore {
 	public static String WOD_RAD_LOG = "WODRADTELEMETRY";
 	public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
 	public static String UW_CAN_PACKET_LOG = "UW_CAN_PACKET";
+	public static String UW_CAN_PACKET_TIMESTAMP = "UW_CAN_PACKET_TIMESTAMP";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -85,6 +88,7 @@ public class SatPayloadDbStore {
 	public String wodRadTableName;
 	public String wodRadTelemTableName;
 	public String uwCanPacketTableName;
+	public String uwCanPacketTimestampTableName;
 	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
@@ -124,6 +128,7 @@ public class SatPayloadDbStore {
 		wodRadTableName = "Fox"+foxId+WOD_RAD_LOG;
 		wodRadTelemTableName = "Fox"+foxId+WOD_RAD_TELEM_LOG;
 		uwCanPacketTableName = "Fox"+foxId+UW_CAN_PACKET_LOG;
+		uwCanPacketTimestampTableName = "Fox"+foxId+UW_CAN_PACKET_TIMESTAMP;
 		initPayloadFiles();
 	}
 	
@@ -152,7 +157,8 @@ public class SatPayloadDbStore {
 		if (fox.foxId == Spacecraft.HUSKY_SAT) {
 			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT));
-			initPayloadTable(uwCanPacketTableName, fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
+			initCanPacketTable();
+			initCanTimestampTable();
 		}
 	}
 
@@ -183,6 +189,31 @@ public class SatPayloadDbStore {
 		//String lastImageTable = "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int,"
 		//		+ "PRIMARY KEY (date_time, id))";
 		//createTable("LAST_IMAGE_TIMESTAMP", lastImageTable);
+	}
+	
+	private void initCanPacketTable() {
+		String table = uwCanPacketTableName;
+		BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT);
+		String s = new String();
+		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		for (int i=0; i < lay.fieldName.length; i++) {
+			s = s + lay.fieldName[i] + " int,\n";
+		}
+		// We use serial for the type, except for type 4 where we use it for the payload number.  This allows us to have
+		// multiple high speed records with the same reset and uptime
+		s = s + "pkt_id int(11) NOT NULL AUTO_INCREMENT,";
+		s = s + "PRIMARY KEY (pkt_id),";
+		s = s + "UNIQUE KEY (id, resets, uptime, type)" + ")";
+		createTable(table, s);
+	}
+	
+	private void initCanTimestampTable() {
+		String table = uwCanPacketTimestampTableName;
+		String s = new String();
+		s = s + "(username varchar(255) not null,"
+				+ "last_pkt_id int(11) NOT NULL,";
+				s = s + "PRIMARY KEY (username))";
+		createTable(table, s);
 	}
 	
 	private void createTable(String table, String createStmt) {
@@ -722,7 +753,7 @@ public class SatPayloadDbStore {
 	SortedFramePartArrayList selectCanPackets(String where) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
-		update = update + uwCanPacketTableName + " " + where + " ORDER BY resets DESC, uptime DESC, type DESC";
+		update = update + uwCanPacketTableName + " " + where + " ORDER BY pkt_id";
 		ResultSet r = null;
 		SortedFramePartArrayList frameParts = new SortedFramePartArrayList(60);
 
@@ -739,7 +770,7 @@ public class SatPayloadDbStore {
 					payload.uptime = r.getLong("uptime");
 					payload.type = r.getInt("type");
 					payload.captureDate = r.getString("captureDate");
-					payload.serverTimeStamp = r.getTimestamp("date_time");
+					payload.pkt_id = r.getInt("pkt_id");
 					payload.init();
 					payload.rawBits = null; // no binary array when loaded from database
 					for (int i=0; i < payload.fieldValue.length; i++) {
@@ -813,7 +844,7 @@ public class SatPayloadDbStore {
 		Statement stmt = null;
 		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
 		if (payload instanceof CanPacket)
-			update = update + " date_time DESC LIMIT 1"; 
+			update = update + " pkt_id DESC LIMIT 1"; 
 		else
 			update = update + " resets DESC, uptime DESC, type DESC LIMIT 1"; 
 		ResultSet r = null;
@@ -830,7 +861,7 @@ public class SatPayloadDbStore {
 				payload.type = r.getInt("type");
 				payload.captureDate = r.getString("captureDate");
 				if (payload instanceof CanPacket)
-					((CanPacket)payload).serverTimeStamp = r.getTimestamp("date_time");
+					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
 				payload.init();
 				payload.rawBits = null; // no binary array when loaded from database
 				for (int i=0; i < payload.fieldValue.length; i++) {
@@ -978,6 +1009,74 @@ public class SatPayloadDbStore {
 			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
 		}
 	}
+	
+	public boolean storeLastCanId(String user, int pkt_id) {
+		PreparedStatement ps = null;
+		PreparedStatement ps2 = null;
+		try {
+			Connection derby = payloadDbStore.getConnection();
+			ps = derby.prepareStatement(
+				      "UPDATE "+ uwCanPacketTimestampTableName +" SET last_pkt_id = ? where username = ?");
+
+			// set the preparedstatement parameters
+		    ps.setInt(1,pkt_id);
+		    ps.setString(2,user);
+		    
+		    int rows = ps.executeUpdate();
+			if (rows > 0) {
+				return true;
+			} else {
+				Log.println("Could not update the CAN pkt id for " + user + " trying INSERT");
+				ps2 = derby.prepareStatement(
+					      "INSERT INTO "+ uwCanPacketTimestampTableName +" (username, last_pkt_id) VALUES (?, ?)");
+
+				// set the preparedstatement parameters
+			    ps2.setString(1,user);
+			    ps2.setInt(2,pkt_id);
+			    
+			    rows = ps2.executeUpdate();
+			    if (rows > 0) {
+					return true;
+				} else {
+					Log.println("ERROR: Could not insert the CAN pkt id "+pkt_id+" for " + user);
+					return false; 
+				}
+			}
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check Password SQL:", e);
+		} finally {
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
+			try { if (ps2 != null) ps2.close(); } catch (SQLException e2) {};
+		}
+		return false;
+	}
+	
+	public int getLastCanId(String user) {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		int pktId = 0;
+		try {
+			Connection derby = payloadDbStore.getConnection();
+			ps = derby.prepareStatement("SELECT last_pkt_id from "+ uwCanPacketTimestampTableName +" where username = ?");
+		    ps.setString(1,user);
+		    
+		    rs = ps.executeQuery();
+			
+		    while (rs.next()) {
+		    	pktId = rs.getInt("last_pkt_id");	
+			}
+			return pktId;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check Password SQL:", e);
+			try { rs.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { ps.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
+		}
+		return 0;
+	}
+	
 
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and

@@ -8,6 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import measure.Measurement;
 import measure.PassMeasurement;
@@ -56,7 +57,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	//private List<FramePart> payloadQueue;
 	
-	protected Connection derby;
+	public Connection derby;
 
 	static String url = "jdbc:mysql://localhost:3306/"; //FOXDB?autoReconnect=true";
     static String db = "FOXDB";
@@ -587,6 +588,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 	
+	public int getLastCanId(int id, String user) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLastCanId(user);
+		return 0;
+	}
+	
 	public CanPacket getLatestUwCanPacket(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -597,6 +605,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				return null;
 			}
 		return null;
+	}
+	
+	public boolean storeLastCanId(int id, String date, int pkt_id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.storeLastCanId(date, pkt_id);
+		return false;
 	}
 	
 	public PayloadRtValues getLatestRt(int id) {

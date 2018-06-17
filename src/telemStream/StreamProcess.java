@@ -1,34 +1,28 @@
 package telemStream;
 
 import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.TimeZone;
-
-import common.Config;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.sql.Statement;
 import common.Log;
-import common.Spacecraft;
-import telemetry.Frame;
 import telemetry.FramePart;
 import telemetry.HighSpeedFrame;
 import telemetry.PayloadDbStore;
-import telemetry.PayloadMaxValues;
 import telemetry.SortedFramePartArrayList;
 import telemetry.uw.CanPacket;
 import telemetry.uw.PcanPacket;
 
 public class StreamProcess implements Runnable {
 	public static final int REFRESH_PERIOD = 5000; // Check every 5 seconds
+	public static final String GUEST = "guest";
+	public static final String GUEST_PASSWORD = "amsat";
 	
 	//PayloadDbStore payloadStoreX;
 	String u;
@@ -80,17 +74,30 @@ public class StreamProcess implements Runnable {
 			 */
 			input = new BufferedReader(new InputStreamReader(in));
 
-			/*  Uncomment to REQUIRE username and password.  This blocks
+			/*  REQUIRE username and password. */
 			String username = input.readLine();
 			Log.println("Username: " + username);
 			String password = input.readLine();
 			Log.println("Pass: " + password); // this should NOT be logged once we are live
-			*/
+			String spacecraft_id = input.readLine();
+			Log.println("Id: " + spacecraft_id); // this should NOT be logged once we are live
+
+			int id = 0;
+			try {
+				id = Integer.parseInt(spacecraft_id);
+			} catch (NumberFormatException e) {
+				Log.println("Rejected invalid FoxId: " + spacecraft_id);
+				spacecraft_id = null;
+			}
 			out = socket.getOutputStream();
 
-//			if (username != null && password != null)
-//				streamTelemetry(username, password, 6, out);
-			streamTelemetry(null, null, 6, out);
+			if (username != null && password != null && spacecraft_id != null)
+				try {
+					streamTelemetry(username, password, id, out);
+				} catch (SQLException e) {
+					Log.println("ERROR: with SQL TRANS" + e.getMessage());
+					e.printStackTrace(Log.getWriter());
+				}
 
 			in.close();
 			out.close();
@@ -113,48 +120,99 @@ public class StreamProcess implements Runnable {
 		}
 	}
 	
-	private void streamTelemetry(String user, String pass, int sat, OutputStream out) {
+	private void streamTelemetry(String user, String pass, int sat, OutputStream out) throws SQLException  {
 		boolean streaming=true;
 
 		PayloadDbStore payloadDbStore = null;
 
 		try {
 			payloadDbStore = new PayloadDbStore(u,p,db);
+			if (!validLogin(payloadDbStore, user, pass)) {
+				return;
+			}
 			CanPacket lastCan = (CanPacket) payloadDbStore.getLatestUwCanPacket(sat);
+			int lastPktId;
+
+			if (lastCan.getFoxId() == 0) // there are no CAN Packets yet
+				lastPktId = 0;
+			else
+				if (user.equalsIgnoreCase(GUEST)) {
+					// we want to use the date of the most recent packet.  We send new packets live after that
+					lastPktId = lastCan.pkt_id;
+				} else {
+					// we send everything or everything since last connection
+					lastPktId = payloadDbStore.getLastCanId(sat, user);
+				}
 
 			while (streaming) {
-				// 36 bytes
-				String lastDate;
-				if (lastCan.serverTimeStamp != null)
-					lastDate = lastCan.serverTimeStamp.toString();
-				else
-					lastDate = "0000-00-00 00:00:00";
-				String where = "where date_time > '" + lastDate + "'";
+				
+				String where = "where pkt_id > '" + lastPktId + "'";
+				
+				payloadDbStore.derby.setAutoCommit(false); // use a transaction to make sure packets are not written with the same timestamp, but after we query
 				SortedFramePartArrayList canPacketsList = payloadDbStore.selectCanPackets(sat, where);
+				
+				int count=0;
 				for (FramePart can : canPacketsList) {
 					PcanPacket pc = ((CanPacket)can).getPCanPacket();
 					byte[] bytes = pc.getBytes();
 					try {
 						out.write(bytes);
 						out.flush();
+						count++;
+						lastCan = (CanPacket)can; // make a note each time we send one
 					} catch (IOException e) {
 						// Client likely disconnected
 						streaming = false;
 						break;
 					} 
-					
-					lastCan = (CanPacket)can;
 				}
-				if (canPacketsList.size() > 0)
-					Log.println("Sent: " + canPacketsList.size() + " CAN packets to: " + socket.getInetAddress() );
-				try {
-					Thread.sleep(REFRESH_PERIOD);
-				} catch (InterruptedException e1) {
-					e1.printStackTrace();
+				if (count > 0) {
+					Log.println("Sent: " + count + " CAN packets to: " + socket.getInetAddress() );
+					lastPktId = lastCan.pkt_id;
+					if (!user.equalsIgnoreCase(GUEST))
+						payloadDbStore.storeLastCanId(sat, user, lastPktId);
+				}
+				payloadDbStore.derby.commit();
+				
+				if (streaming) {
+					try {
+						Thread.sleep(REFRESH_PERIOD);
+					} catch (InterruptedException e1) {
+						e1.printStackTrace();
+					}
 				}
 			}
 		} finally {
 			try { if (payloadDbStore != null) payloadDbStore.closeConnection(); } catch (Exception e) {	}
 		}
 	}
+	
+	private boolean validLogin(PayloadDbStore db, String user, String pass) {
+		Statement stmt = null;
+		String update = "  SELECT password, salt FROM users where username= '" + user + "'"; // Derby Syntax FETCH FIRST ROW ONLY";
+		ResultSet r = null;
+
+		try {
+			Connection derby = db.getConnection();
+			stmt = derby.createStatement();
+			r = stmt.executeQuery(update);
+			if (r.next()) {
+				String password = r.getString("password");
+				String salt = r.getString("salt");
+				return true;
+			} else {
+				Log.println("Invalid username");
+				return false;  // invalid username
+			}
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check Password SQL:", e);
+			try { r.close(); stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (r != null) r.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
+		return false;
+	}
+	
+
 }
