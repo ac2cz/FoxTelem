@@ -37,7 +37,7 @@ import telemStream.StreamProcess;
  */
 public class FoxStream {
 
-	public static String version = "Version 0.01 - 2 June 2018";
+	public static String version = "Version 0.02 - 17 June 2018";
 	public static int port = 41043;
 	static int sequence = 0;
 	static int poolSize = 8; // max number of threads
