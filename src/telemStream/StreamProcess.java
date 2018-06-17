@@ -20,7 +20,7 @@ import telemetry.uw.CanPacket;
 import telemetry.uw.PcanPacket;
 
 public class StreamProcess implements Runnable {
-	public static final int REFRESH_PERIOD = 5000; // Check every 5 seconds
+	public static final int REFRESH_PERIOD = 1000; // Check every second
 	public static final String GUEST = "guest";
 	public static final String GUEST_PASSWORD = "amsat";
 	
@@ -78,7 +78,7 @@ public class StreamProcess implements Runnable {
 			String username = input.readLine();
 			Log.println("Username: " + username);
 			String password = input.readLine();
-			Log.println("Pass: " + password); // this should NOT be logged once we are live
+			Log.println("Pass: <***>"); // this should NOT be logged once we are live
 			String spacecraft_id = input.readLine();
 			Log.println("Id: " + spacecraft_id); // this should NOT be logged once we are live
 
@@ -148,31 +148,37 @@ public class StreamProcess implements Runnable {
 				
 				String where = "where pkt_id > '" + lastPktId + "'";
 				
-				payloadDbStore.derby.setAutoCommit(false); // use a transaction to make sure packets are not written with the same timestamp, but after we query
+				//payloadDbStore.derby.setAutoCommit(false); // use a transaction to make sure packets are not written with the same timestamp, but after we query
 				SortedFramePartArrayList canPacketsList = payloadDbStore.selectCanPackets(sat, where);
-				
+				int prevPktId = lastPktId;
 				int count=0;
 				for (FramePart can : canPacketsList) {
 					PcanPacket pc = ((CanPacket)can).getPCanPacket();
 					byte[] bytes = pc.getBytes();
 					try {
-						out.write(bytes);
+						out.write(bytes);  // This does not fail if the socket closed.  It fails on the write after that!
 						out.flush();
 						count++;
 						lastCan = (CanPacket)can; // make a note each time we send one
+						prevPktId = lastPktId;
+						lastPktId = lastCan.pkt_id;
+						if (!user.equalsIgnoreCase(GUEST))
+							payloadDbStore.storeLastCanId(sat, user, lastPktId);
+						Log.println("lastCan =: " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan );
 					} catch (IOException e) {
 						// Client likely disconnected
 						streaming = false;
+						if (count > 0) count = count -1;
+						lastPktId = prevPktId;
+						if (!user.equalsIgnoreCase(GUEST))
+							payloadDbStore.storeLastCanId(sat, user, lastPktId);
 						break;
 					} 
 				}
 				if (count > 0) {
 					Log.println("Sent: " + count + " CAN packets to: " + socket.getInetAddress() );
-					lastPktId = lastCan.pkt_id;
-					if (!user.equalsIgnoreCase(GUEST))
-						payloadDbStore.storeLastCanId(sat, user, lastPktId);
 				}
-				payloadDbStore.derby.commit();
+				//payloadDbStore.derby.commit();
 				
 				if (streaming) {
 					try {

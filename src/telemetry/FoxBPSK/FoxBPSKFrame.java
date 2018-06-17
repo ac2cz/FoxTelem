@@ -240,6 +240,8 @@ import telemetry.uw.CanPacket;
 				canPacketFrame = true;
 				break;
 			default: 
+				// Need some error handling here in case the frame is invalid
+				// Though in testing we get a crash, which is perhaps what we want, as this should never be reachable
 				break;
 			}
 		}
