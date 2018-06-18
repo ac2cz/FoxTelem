@@ -54,24 +54,7 @@ public class StreamProcess implements Runnable {
 		BufferedReader input;
 		try {
 			in = socket.getInputStream();
-			/**
-			 * We could handle username here and then send unique telemetry that has not been received so far.  
-			 * For now the connection just gets live telemetry
-			 *
-			int b=0;
-			String s = "";
-			int c;
-			while ((c = in.read()) != -1) {
-				//f.write(c);
-				b++; // bytes received
-				if (b > MAX_FRAME_SIZE)
-					; // abort the connection
-				char ch = (char)c;
-				System.out.print(ch);				
-			}
-   			System.out.println("Received: " + b + " bytes");
 
-			 */
 			input = new BufferedReader(new InputStreamReader(in));
 
 			/*  REQUIRE username and password. */
@@ -164,7 +147,7 @@ public class StreamProcess implements Runnable {
 						lastPktId = lastCan.pkt_id;
 						if (!user.equalsIgnoreCase(GUEST))
 							payloadDbStore.storeLastCanId(sat, user, lastPktId);
-						Log.println("lastCan =: " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan );
+						//Log.println("lastCan =: " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan );
 					} catch (IOException e) {
 						// Client likely disconnected
 						streaming = false;
