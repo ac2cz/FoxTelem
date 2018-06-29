@@ -29,8 +29,8 @@
 27,realtimeDownlink,pad2,144,-,0,NONE,0,0,0,pad,Unused
 28,realtimeDownlink,IHUdiagData,32,-,18,Computer Software,3,1,0,Diagnostic Info,Diagnostic Data on IHU Performance
 29,realtimeDownlink,transponder,1,-,44,Radio,1,7,0,Transponder Status,Transponder Is Enabled
-30,realtimeDownlink,I2CfailureAntenna0,1,-,17,Computer Hardware,2,2,0,Antenna Bus 0,Antenna Bus 1 Fail
-31,realtimeDownlink,I2CfailureAntenna1,1,-,17,Computer Hardware,2,3,0,Antenna Bus 1,Antenna Bus 0 Fail
+30,realtimeDownlink,I2CfailureAntenna0,1,-,17,Computer Hardware,2,2,0,Antenna Bus 1,Antenna is not communicating over bus 1
+31,realtimeDownlink,I2CfailureAntenna1,1,-,17,Computer Hardware,2,3,0,Antenna Bus 2,Antenna is not communicating over bus 2
 32,realtimeDownlink,I2CfailureRF,1,-,17,Computer Hardware,2,4,0,RF I2C,RF I2C Bus failure indicator
 33,realtimeDownlink,state4,1,-,0,NONE,0,0,0,spare,None
 34,realtimeDownlink,state5,1,-,0,NONE,0,0,0,spare,None

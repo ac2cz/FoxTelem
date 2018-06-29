@@ -36,8 +36,8 @@
 34,wodSpecificDownlink,pad1,3,-,0,NONE,0,0,0,pad,-
 35,wodSpecificDownlink,ScienceModeActive,1,-,17,Computer Software,3,3,0,Science Mode,Are we in science mode?
 36,wodSpecificDownlink,CameraModeActive,1,-,17,Computer Software,3,4,0,Camera Mode,Are we in science mode?
-37,wodSpecificDownlink,I2CfailureAnt1,1,-,17,Computer Hardware,2,3,0,I2C1 Antenna Failure,Antenna 1 I2C Bus failure indicator
-38,wodSpecificDownlink,I2CfailureAnt2,1,-,17,Computer Hardware,2,4,0,I2C2 Antenna Failure,Antenna 2 I2C Bus failure indicator
+37,wodSpecificDownlink,I2CfailureAnt1,1,-,17,Computer Hardware,2,3,0,Antenna Bus 1,Antenna is not communicating over bus 1
+38,wodSpecificDownlink,I2CfailureAnt2,1,-,17,Computer Hardware,2,4,0,Antenna Bus 2,Antenna is not communicating over bus 2
 39,wodSpecificDownlink,I2CfailureRF,1,-,17,Computer Hardware,2,5,0,RF I2C,RF I2C Bus failure indicator
 40,wodSpecificDownlink,WodCRCError,1,-,1,WOD,8,3,0,CRC Error,CRC Error on this WOD entry
 41,wodSpecificDownlink,hwCmdCnt,6,-,34,Command Receiver (ICR),6,4,0,HW Command Count,Number of hardware commands since last reset
