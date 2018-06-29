@@ -1,38 +1,38 @@
 37,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,MAX,busV,12,V,2,NONE,4,1,3,Bus Voltage,Vbatt Bus voltage
-1,MAX,gTemp,12,V,34,NONE,4,2,3,Gyro Temp,Gyro temp in tenths of degree above -40C
-2,MAX,TxPAi,12,mA,10,NONE,1,2,3,PA Current,Transmit power amplifier current
-3,MAX,TxTemp,12,C,7,NONE,1,1,3,TX Temperature,Transmitter card temperature
-4,MAX,FwdPower,12,mW,0,NONE,1,4,3,Fwd Power,Receiver card temperature
-5,MAX,rssi,12,dBm,14,NONE,1,3,3,RSSI,Received Signal Strength Indication
-6,MAX,IHUcpuTemp,12,C,15,NONE,2,1,3,Temperature,Internal Temperature of IHU
-7,MAX,AntennaTemp,12,C,7,NONE,5,1,3,AntennaTemp,ISIS Antenna Temperature
-8,MAX,Xspin,16,dps,13,NONE,2,2,3,Rotation,Angular Velocity around X Axis
-9,MAX,Yspin,16,dps,13,NONE,2,3,3,Rotation,Angular Veolcity around Y Axis
-10,MAX,Zspin,16,dps,13,NONE,2,4,3,Rotation,Angular Veolcity around Z Axis
-11,MAX,Xaccel,16,dps,13,NONE,2,5,3,Acceleration,Acceleration along X axis
-12,MAX,Yaccel,16,dps,13,NONE,2,6,3,Acceleration,Acceleration along Y  axis
-13,MAX,Zaccel,16,dps,13,NONE,2,7,3,Acceleration,Acceleration along Z axis
-14,MAX,Xmag,16,dps,13,NONE,2,8,3,Magnetometer,Angular Veolcity around X Axis
-15,MAX,Ymag,16,dps,13,NONE,2,9,3,Magnetometer,Angular Veolcity around Y Axis
-16,MAX,Zmag,16,dps,13,NONE,2,10,3,Magnetometer,Angular Veolcity around Z Axis
-17,MAX,ReflectedPwr,12,mW,0,NONE,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
-18,MAX,ICR3VProt,12,V,23,NONE,6,1,3,3V Prot,ICR 3V Proteted
-19,MAX,DistBoardStatus,12,-,0,NONE,5,2,3,UW Dist Board,UW Dist Board
-20,MAX,ICR2dot5V,12,V,23,NONE,6,2,3,2.5V,ICR 2.5V
-21,MAX,MinusXpanel,12,-,0,NONE,0,0,0,Minus X Solar Panel,None
-22,MAX,Xpanel,12,-,0,NONE,0,0,0,Plus X Solar Panel,None
-23,MAX,Ypanel,12,-,0,NONE,0,0,0,Minus X Solar Panel,None
-24,MAX,VddaCAN,12,-,0,NONE,5,3,3,CAN 5V VDDA,CAN 5V VDDA
-25,MAX,LtVGACtl,12,V,0,NONE,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-26,MAX,pad1,4,-,0,NONE,0,0,0,-,None
-27,MAX,pad2,144,-,34,NONE,0,0,0,None,Unused
-28,MAX,IHUhardError,32,-,19,Computer Hardware,2,13,0,IHU Hard Error Data,Reason for last reset
-29,MAX,maxTimestampReset,16,s,1,NONE,0,0,0,MAX Timestamp Reset Count,Timestamp of last max change
-30,MAX,maxTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Timestamp of last max change
-31,MAX,SafeModeIndication,1,-,21,Computer Software,3,3,0,Safe Mode,In safe mode?
-32,MAX,AutoSafeModeActive,1,-,21,Computer Software,3,4,0,Auto Safe Mode,In Autosafe mode?
-33,MAX,AutoSafeModeAllowed,1,-,21,Computer Software,3,5,0,Auto Safe Allowed,Autosafe enabled?
-34,MAX,ScienceModeActive,1,-,21,Computer Software,3,6,0,Science Mode,In Science Mode?
-35,MAX,pad1,19,-,0,NONE,0,0,0,NONE,Make it even
-36,MAX,pad2,32,-,0,NONE,0,0,0,NONE,-
+0,maxDownlink,busV,12,V,2,NONE,5,1,3,Bus Voltage,Vbatt Bus voltage
+1,maxDownlink,gTemp,12,C,1,NONE,4,12,3,Gyro Temp,Gyro temp in tenths of degree above -40C
+2,maxDownlink,TxPAi,12,mA,10,NONE,1,2,3,PA Current,Transmit power amplifier current
+3,maxDownlink,TxTemp,12,C,7,NONE,1,1,3,TX Temperature,Transmitter card temperature
+4,maxDownlink,FwdPower,12,mW,40,NONE,1,3,3,Fwd Power,Receiver card temperature
+5,maxDownlink,rssi,12,dBm,14,NONE,6,1,3,RSSI,Received Signal Strength Indication
+6,maxDownlink,IHUcpuTemp,12,C,15,NONE,2,1,3,Temperature,Internal Temperature of IHU
+7,maxDownlink,AntennaTemp,12,C,1,NONE,1,4,3,Antenna Temp,ISIS Antenna Temperature
+8,maxDownlink,Xspin,16,dps,47,NONE,4,3,3,X Rotation ,Angular Velocity around X Axis
+9,maxDownlink,Yspin,16,dps,47,NONE,4,4,3,Y Rotation,Angular Veolcity around Y Axis
+10,maxDownlink,Zspin,16,dps,47,NONE,4,5,3,Z Rotation,Angular Veolcity around Z Axis
+11,maxDownlink,Xaccel,16,g,45,NONE,4,6,3,X Acceleration,Acceleration along X axis
+12,maxDownlink,Yaccel,16,g,45,NONE,4,7,3,Y Acceleration,Acceleration along Y  axis
+13,maxDownlink,Zaccel,16,g,45,NONE,4,8,3,Z Acceleration,Acceleration along Z axis
+14,maxDownlink,Xmag,16,uT,46,NONE,4,9,3,X Magnetometer,Angular Veolcity around X Axis
+15,maxDownlink,Ymag,16,uT,46,NONE,4,10,3,Y Magnetometer,Angular Veolcity around Y Axis
+16,maxDownlink,Zmag,16,uT,46,NONE,4,11,3,Z Magnetometer,Angular Veolcity around Z Axis
+17,maxDownlink,ReflectedPwr,12,mW,41,NONE,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
+18,maxDownlink,ICR3VProt,12,V,3,NONE,6,2,3,3V Prot,ICR 3V Proteted
+19,maxDownlink,DistBoardStatus,12,V,1,NONE,4,1,3,UW Dist Board,Signal from the UW power distribution board
+20,maxDownlink,ICR2dot5V,12,V,2,NONE,6,3,3,2.5V,ICR 2.5V
+21,maxDownlink,MinusXpanel,12,-,1,NONE,7,1,3,Minus X Solar Panel,Minus X Solar Panel
+22,maxDownlink,Xpanel,12,-,1,NONE,7,2,3,Plus X Solar Panel,Plus X Solar Panel
+23,maxDownlink,Ypanel,12,-,1,NONE,7,3,3,Minus X Solar Panel,Minus X Solar Panel
+24,maxDownlink,VddaCAN,12,-,1,NONE,4,2,3,CAN 5V VDDA,VDDA is the 5V level supplied to run the CAN bus
+25,maxDownlink,LtVGACtl,12,V,42,NONE,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+26,maxDownlink,pad1,4,-,0,NONE,0,0,0,pad,None
+27,maxDownlink,pad2,144,-,0,NONE,0,0,0,pad,Unused
+28,maxDownlink,IHUhardError,32,-,19,Computer Hardware,2,6,0,IHU Hard Error Data,Reason for last reset
+29,maxDownlink,maxTimestampReset,16,s,1,NONE,0,0,0,MAX Timestamp Reset Count,Timestamp of last max change
+30,maxDownlink,maxTimestampUptime,25,s,1,NONE,0,0,0,MAX Timestamp Uptime,Timestamp of last max change
+31,maxDownlink,SafeModeIndication,1,-,21,Computer Software,3,3,0,Safe Mode,In safe mode?
+32,maxDownlink,AutoSafeModeActive,1,-,21,Computer Software,3,4,0,Auto Safe Mode,In Autosafe mode?
+33,maxDownlink,AutoSafeModeAllowed,1,-,21,Computer Software,3,5,0,Auto Safe Allowed,Autosafe enabled?
+34,maxDownlink,ScienceModeActive,1,-,21,Computer Software,3,6,0,Science Mode,In Science Mode?
+35,maxDownlink,pad1,19,-,0,NONE,0,0,0,NONE,Make it even
+36,maxDownlink,pad2,32,-,0,NONE,0,0,0,NONE,-

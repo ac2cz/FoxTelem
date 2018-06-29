@@ -107,6 +107,10 @@ public class BitArrayLayout {
 	public static final int CONVERT_LT_TX_REF_PWR = 41;
 	public static final int CONVERT_LT_VGA = 42;
 	public static final int CONVERT_ICR_VOLT_SENSOR = 43;
+	public static final int CONVERT_STATUS_ENABLED = 44;
+	public static final int CONVERT_HUSKY_ACCELEROMETER = 45;
+	public static final int CONVERT_HUSKY_MAGNETOMETER = 46;
+	public static final int CONVERT_HUSKY_SPIN = 47;
 	
 	/**
 	 * Create an empty layout for manual init

@@ -118,6 +118,7 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int GYRO2V = 13;
 	public static final int UNKNOWN = 15;
 	public static final int IHU_SW_VERSION = 14;
+	public static final int ISISStatus = 16;
 	//public static final int BUS_VOLTAGE_OVER_2 = 15;
 
 	
@@ -330,6 +331,12 @@ longer send telemetry.
 				s = "OK";
 			else
 				s = "FAIL";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+			int value = getRawValue(name);
+			if (value == 1)
+				s = "Enabled";
+			else
+				s = "Disabled";
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BOOLEAN) {
 			int value = getRawValue(name);
 			if (value == 1)
@@ -501,6 +508,18 @@ longer send telemetry.
 			volts = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS;
 			volts = volts * 99/75; // based in voltage divider on the ICR of 24k/75k
 			return volts;
+		case BitArrayLayout.CONVERT_HUSKY_SPIN:
+			double spin = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			spin = spin / 131.0 ; // 131 per dps
+			return spin;
+		case BitArrayLayout.CONVERT_HUSKY_ACCELEROMETER:
+			double acc = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			acc = acc / 16384.0 ; // 16384 per g.  If we want this in m/s * 9.80665 
+			return acc;
+		case BitArrayLayout.CONVERT_HUSKY_MAGNETOMETER:
+			double mag = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			mag = mag * 0.6 ; // 0.6 micro Tesla per count value 
+			return mag;
 		}
 		
 		return ERROR_VALUE;
@@ -622,6 +641,13 @@ longer send telemetry.
 			int swMinor = (rawValue >> 24) & 0xff;
 			
 			return "IHU SW: " + Character.toString((char) swType) + fox.foxId + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
+		case ISISStatus: // Version of the software on the IHU
+			int antStatus = (rawValue >> 8) & 0xffff; // shift away the type byte and get 16 bit status
+			
+			// Bus status - 0 - did not try to read, 1 tried and failed, tried and succeeded
+			int bus0 = (rawValue >> 24) & 0xf;
+			int bus1 = (rawValue >> 28) & 0xf;
+			return "ISIS Status: " + Integer.toHexString(antStatus) + " " + Integer.toHexString(bus0) + " "+Integer.toHexString(bus1);
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
 			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value),3) + "V";
