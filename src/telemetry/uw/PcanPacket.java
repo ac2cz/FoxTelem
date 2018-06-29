@@ -109,11 +109,9 @@ public class PcanPacket {
 		byte[] timeBytes = Decoder.bigEndian8(date_long); 
 		
 		// For some reason the spec wants the 4 low bytes of the timestamp first, even though it specifies big endian order overall
-		// So we send in two chunks.  Each chumk in big endian order, but with the 4 low bytes first.
-		for (int j=0; j<4; j++) 
-			buffer[12+j] = timeBytes[j+4];
-		for (int j=0; j<4; j++) 
-			buffer[16+j] = timeBytes[j];
+		// We ignore that and send 8 bytes in big endian order.
+		for (int j=0; j<8; j++) 
+			buffer[12+j] = timeBytes[j];
 	
 		buffer[20] = channel;;
 		
