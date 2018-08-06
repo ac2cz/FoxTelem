@@ -146,6 +146,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_HERCI_HK = 21;
 	public static final int DISPLAY_HERCI_MICRO_PKT = 22;
 	public static final int DISPLAY_WOD = 23;
+	public static final int DISPLAY_UW = 24;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
 	public static Color herciFontColor = new Color(240,154,21);
@@ -170,7 +171,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		//Log.println("SCALE: " + scale + " font:" +Config.displayModuleFontSize + " def: " + DEFAULT_FONT_SIZE);
 		setDefaultSizes();
 		moduleType = modType;
-		
+				
 		if (moduleType == DISPLAY_HERCI || moduleType == DISPLAY_HERCI_HK || moduleType == DISPLAY_HERCI_MICRO_PKT) {
 			border.setTitleFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 12/11)));
 			border.setTitleColor(herciFontColor);

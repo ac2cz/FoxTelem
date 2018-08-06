@@ -119,13 +119,10 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 
 		BitArrayLayout rad = null;
 
-		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
-			rad = fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT);
-		else
-			rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		BitArrayLayout none = null;
 		try {
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_HERCI_HK);
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -321,10 +318,8 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 			packetData[len-i-1][1] = Integer.toString(length);
 	
 			String telem = "";
-			for (int j=4; j< fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).fieldName.length; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
+			for (int j=4; j< fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).fieldName.length; j++) {  
 				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
-//			for (int j=2; j< fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).fieldName.length+2; j++) {  // 24 is the number of fieleds in the HERCI LS Telem Data
-//				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
 			packetData[len-i-1][2] = telem;

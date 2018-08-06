@@ -57,16 +57,17 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		return fieldValue[ID_FIELD];
 	}
 	
-	@Override
-	public int compareTo(FramePart p) {
-		if (pkt_id == ((CanPacket)p).pkt_id)
-			return 0;
-		if (pkt_id < ((CanPacket)p).pkt_id)
-			return -1;
-		if (pkt_id > ((CanPacket)p).pkt_id)
-			return +1;
-		return +1;
-	}
+	// Need to work out why this was overridden.  This should use the reset/uptime/type compare.  Otherwise most packets are dupes..
+//	@Override
+//	public int compareTo(FramePart p) {
+//		if (pkt_id == ((CanPacket)p).pkt_id)
+//			return 0;
+//		if (pkt_id < ((CanPacket)p).pkt_id)
+//			return -1;
+//		if (pkt_id > ((CanPacket)p).pkt_id)
+//			return +1;
+//		return +1;
+//	}
 	@Override
 	/** True if we have a valid length, id and have received all the bytes */
 	public boolean isValid() {

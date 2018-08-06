@@ -197,7 +197,7 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addUwExperimentTab(FoxSpacecraft fox) {
 
-		radiationTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_VULCAN);
+		radiationTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_UW);
 		radiationThread = new Thread((UwExperimentTab)radiationTab);
 		radiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		radiationThread.start();
