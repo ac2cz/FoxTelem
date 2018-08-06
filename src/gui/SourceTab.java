@@ -190,7 +190,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	FileDialog fd = null;
 	
 	// Variables
-	public static final String FUNCUBE = "FUNcube";
+	public static final String FUNCUBE1 = "FUNcube Dongle V1.0";
+	public static final String FUNCUBE2 = "FUNcube Dongle V2.0";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
 	public Decoder decoder1;
 	Decoder decoder2;
@@ -1304,9 +1305,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Config.autoDecodeSpeed = false;
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
-			boolean fcdSelected = fcdSelected();
+			int fcdSelected = fcdSelected();
 			auto.setEnabled(true);
-			if (fcdSelected) {
+			if (fcdSelected > 0) {
 
 			} else {
 				Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
@@ -1348,15 +1349,21 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 	}
 	
-	private boolean fcdSelected() {
+	private int fcdSelected() {
 		
 		String source = (String)soundCardComboBox.getSelectedItem();
-		Pattern pattern = Pattern.compile(FUNCUBE);
-		Matcher matcher = pattern.matcher(source);
-		if (matcher.find()) {
-			return true;
+		Pattern pattern2 = Pattern.compile(FUNCUBE2);
+		Matcher matcher2 = pattern2.matcher(source);
+		if (matcher2.find()) {
+			return 2;
 		}
-		return false;
+
+		Pattern pattern1 = Pattern.compile(FUNCUBE1);
+		Matcher matcher1 = pattern1.matcher(source);
+		if (matcher1.find()) {
+			return 1;
+		}
+		return 0;
 	}
 
 	private void connectFCD(short vendorId, short deviceId) throws UsbException, DeviceException {
@@ -1370,27 +1377,26 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 	}
 	
-	private boolean usingFcd() throws IOException, DeviceException, UsbException {
-		boolean fcdSelected = fcdSelected();
-		if (fcdSelected) {
-			
-				if (rfDevice == null) {
-					// Try FCDPP first
-					short vendorId = (short)0x04D8;
-					short deviceId = (short)0xFB31;
-					try {
-						connectFCD(vendorId, deviceId);
-					} catch (Exception e) {
-						// Try FCDP next
-						vendorId = (short)0x04D8;
-						deviceId = (short)0xFB56;
-						connectFCD(vendorId, deviceId);
-					}
-					if (rfDevice == null) return false; // FIXME this is an issue because we found the description but not the HID device
+	private int usingFcd() throws IOException, DeviceException, UsbException {
+		int fcdSelected = fcdSelected();
+		if (fcdSelected >0) {
+			short vendorId = 0;
+			short deviceId = 0;
+			if (rfDevice == null) {
+				// FCDPP
+				if (fcdSelected == 2) {
+					vendorId = (short)0x04D8;
+					deviceId = (short)0xFB31;
+				} else { // FCDP
+					vendorId = (short)0x04D8;
+					deviceId = (short)0xFB56;						
 				}
-				if (panelFcd == null)
-					try {
-						panelFcd = rfDevice.getDevicePanel();
+				connectFCD(vendorId, deviceId);
+				if (rfDevice == null) return 0; // FIXME this is an issue because we found the description but not the HID device
+			}
+			if (panelFcd == null)
+				try {
+					panelFcd = rfDevice.getDevicePanel();
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					} catch (DeviceException e) {
@@ -1567,10 +1573,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} else if (position-soundcardSources.length == 1) { // rtlsdr
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
-					} else if (position-soundcardSources.length == 2) { // FCDPP
-						vendorId = (short)0x04D8;
-						deviceId = (short)0xFB31;
-					}
+					} 
 					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 					try {
 						rfDevice = tunerManager.findDevice(vendorId, deviceId);
@@ -1652,11 +1655,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				} 
 				else { // soundcard - fcd or normal
 					SourceAudio audioSource;
-					boolean fcdSelected = false;
+					int fcdSelected = 0;
 					Config.useNCO = false;
 					try {
 						fcdSelected = usingFcd();
-						if (fcdSelected) {
+						if (fcdSelected > 0) {
 							setFcdSampleRate();
 						} else {
 							Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
@@ -1665,7 +1668,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
 						audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
 						if (audioSource != null)
-							if (fcdSelected || Config.iq) {
+							if (fcdSelected > 0 || Config.iq) {
 								Log.println("IQ Source Selected");
 								boolean decoder1HS = highSpeed.isSelected();
 								if (Config.autoDecodeSpeed) {
