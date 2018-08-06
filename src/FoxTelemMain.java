@@ -701,10 +701,15 @@ public class FoxTelemMain {
 		}
 
 		protected void handleException(String tname, Throwable thrown) {
-			thrown.printStackTrace(Log.getWriter());
-			StringWriter sw = new StringWriter();
-			thrown.printStackTrace(new PrintWriter(sw));
-            String stacktrace = sw.toString();
+            String stacktrace = "";  
+            StackTraceElement[] elements = thrown.getStackTrace();
+            int limit = 5;
+            for (int i=0; i< limit && i< elements.length; i++) {
+            	stacktrace =  stacktrace + elements[i] + "\n";
+            }
+            if (elements.length > limit)
+            	stacktrace = stacktrace + " ... " + (elements.length - limit) + " items not shown .... ";
+            
 			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + "\n" + stacktrace);
 		}
 	}
