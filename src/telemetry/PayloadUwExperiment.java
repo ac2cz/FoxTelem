@@ -48,10 +48,11 @@ public class PayloadUwExperiment extends FoxFramePart {
 	public ArrayList<CanPacket> canPackets; 
 	private CanPacket canPacket; // the current CAN Packet we are adding bytes to
 	
-	public PayloadUwExperiment(BitArrayLayout lay) {
+	public PayloadUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_UW_EXPERIMENT,lay);
 		//MAX_BYTES = 1;
 		canPackets = new ArrayList<CanPacket>();
+		captureHeaderInfo(id, uptime, resets);
 	}
 	
 	public PayloadUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {

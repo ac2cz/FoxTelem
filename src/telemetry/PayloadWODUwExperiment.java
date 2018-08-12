@@ -20,8 +20,8 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 	public static final int PAD2_FIELD = 4;
 	public static final String PAD2 = "pad2";
 		
-	public PayloadWODUwExperiment(BitArrayLayout lay) {
-		super(lay);
+	public PayloadWODUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
+		super(lay,id, uptime, resets);
 	}
 
 	public PayloadWODUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
