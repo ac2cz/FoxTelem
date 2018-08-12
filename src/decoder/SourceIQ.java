@@ -1086,9 +1086,10 @@ public class SourceIQ extends SourceAudio {
 	}//end getAudioFormat
 
 
-//	HilbertTransform ht = new HilbertTransform(192000, 255);
-//	Delay delay = new Delay((255-1)/2);
-	
+	HilbertTransform ht = new HilbertTransform(192000, 255);
+	Delay delay = new Delay((255-1)/2);
+	double mi, mq;
+	int ssbOffset = 0;
 	/**
 	 * BFO translates to baseband and gives audio for a SSB signal
 	 * @param i
@@ -1096,16 +1097,15 @@ public class SourceIQ extends SourceAudio {
 	 * @return
 	 */
 	private double ncoBFO(double i, double q) {
-		int ssbOffset = 0;
 		// offset by 1200Hz if this is PSK
 		 	ssbOffset = (int)(1200.0/(IQ_SAMPLE_RATE/FFT_SAMPLES)); // 1200 / binBandwidth = number of bins for 1200 Hz
 			//ssbOffset = (int)(1200.0/(192000.0/4096.0)); // 1200 / binBandwidth = number of bins for 1200 Hz
 			//System.err.println("OFF: " + ssbOffset);
-		double mi = ncoMixerI(i,q, ssbOffset);
-		double mq = ncoMixerQ(i,q, ssbOffset);
+		mi = ncoMixerI(i,q, ssbOffset);
+		mq = ncoMixerQ(i,q, ssbOffset);
 		//Demodulate ssb
-//		mi = ht.filter(mi);
-//		mq = delay.filter(mq);
+		mi = ht.filter(mi);
+		mq = delay.filter(mq);
 		return mi + mq;
 	}
 

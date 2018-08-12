@@ -444,7 +444,7 @@ public abstract class Decoder implements Runnable {
                 	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
         		Performance.endTimer("Read");
         		Performance.startTimer("Filter");
-
+ 
                 if (Config.filterData) { // && !Config.highSpeed) {
                 	//SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
                 	/**
@@ -642,7 +642,8 @@ public abstract class Decoder implements Runnable {
 				for (int j=0; j < bucketSize; j++ ) { // sample size is 2, 2 bytes per channel 				
 					int value = (int)(abData[k] * 32768.0);
 					dataValues[i][j] = value; 
-					eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
+					if (!(this instanceof FoxBPSKDecoder))
+						eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
 
 					if (value > maxValue[i]) maxValue[i] = value;
 					if (value < minValue[i]) minValue[i] = value;

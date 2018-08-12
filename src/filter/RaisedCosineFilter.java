@@ -55,29 +55,34 @@ public class RaisedCosineFilter extends Filter {
 		xv = new double[M+1];
 		
 		double sumofsquares = 0;
+		double[] tempCoeffs = new double[M+1];
 		int limit = (int)(0.5 / (alpha * Fc));
 		for (int i=0; i <= M; i++) {
 			double sinc = (Math.sin(2 * Math.PI * Fc * (i - M/2)))/ (i - M/2);
 			double cos = Math.cos(alpha * Math.PI * Fc * (i - M/2)) / ( 1 - (Math.pow((2 * alpha * Fc * (i - M/2)),2)));
 			
 			if (i == M/2) {
-				xcoeffs[i] = 2 * Math.PI * Fc * cos;
+				tempCoeffs[i] = 2 * Math.PI * Fc * cos;
 			} else {
-				xcoeffs[i] = sinc * cos;
+				tempCoeffs[i] = sinc * cos;
 			}
 			
 			// Care because ( 1 - ( 2 * Math.pow((alpha * Fc * (i - M/2)),2))) is zero for 
 			if ((i-M/2) == limit || (i-M/2) == -limit) {
-				xcoeffs[i] = 0.25 * Math.PI * sinc;
+				tempCoeffs[i] = 0.25 * Math.PI * sinc;
 			} 
 			
-			sumofsquares += xcoeffs[i]*xcoeffs[i];
+			sumofsquares += tempCoeffs[i]*tempCoeffs[i];
 //			System.out.println(xcoeffs[i]);
 		}
-		GAIN = Math.sqrt(sumofsquares)/xcoeffs.length;
+		GAIN = Math.sqrt(sumofsquares);
 		Log.println("Raised Cosine Filter GAIN: " + GAIN);
 		super.init((double)sampleRate, (double)freq, len);
 		name = "RaisedCosine ("+cutoffFreq + " "+ xcoeffs.length+ " stereo:"+stereo+ " Rate: " + SAMPLERATE+")";
+		for (int i=0; i < tempCoeffs.length; i++) {
+			xcoeffs[i] = tempCoeffs[tempCoeffs.length-i-1]/GAIN;
+			//System.out.println(coeffs[i]);
+		}
 	}
 	
 	@Override
@@ -86,7 +91,7 @@ public class RaisedCosineFilter extends Filter {
 		int i;
 		for (i = 0; i < M; i++) 
 			xv[i] = xv[i+1];
-		xv[M] = in * GAIN;
+		xv[M] = in;
 		if (calculateNow()) {
 		sum = 0.0;
 		for (i = 0; i <= M; i++) 

@@ -4,13 +4,21 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 
 import javax.swing.JPanel;
+import javax.swing.KeyStroke;
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
+import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import common.Config;
 import common.Log;
 import decoder.Decoder;
+import decoder.SourceIQ;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 
 /**
@@ -48,6 +56,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	Decoder foxDecoder;
 	double[] audioData = null;
 	double[] pskAudioData = null;
+	double[] pskQAudioData = null;
 	int AUDIO_DATA_SIZE = 1024;
 	int currentDataPosition = 0;
 	JLabel sample;
@@ -68,6 +77,46 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		add(title);
 		//sample  = new JLabel("sample: " + 0);
 		//add(sample);
+		String TUNE_LEFT = "up";
+		String TUNE_RIGHT = "down";
+		String TUNE_LEFT_MILI = "q";
+		String TUNE_RIGHT_MILI = "a";
+		InputMap inMap = this.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW);
+		inMap.put(KeyStroke.getKeyStroke("UP"), TUNE_LEFT);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), TUNE_RIGHT);
+		inMap.put(KeyStroke.getKeyStroke('q'), TUNE_LEFT_MILI);
+		inMap.put(KeyStroke.getKeyStroke('a'), TUNE_RIGHT_MILI);
+		ActionMap actMap = this.getActionMap();
+		actMap.put(TUNE_LEFT, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	                System.out.println("TUNE UP");
+	        	((FoxBPSKDecoder)foxDecoder).incFreq();
+	        }
+	    });
+		actMap.put(TUNE_RIGHT, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	                System.out.println("TUNE DOWN");
+		        	((FoxBPSKDecoder)foxDecoder).decFreq();
+	        	
+	        }
+	    });
+		actMap.put(TUNE_LEFT_MILI, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	                System.out.println("TUNE UP MILLI");
+	        	((FoxBPSKDecoder)foxDecoder).incMiliFreq();
+	        }
+	    });
+		actMap.put(TUNE_RIGHT_MILI, new AbstractAction() {
+	        @Override
+	        public void actionPerformed(ActionEvent e) {
+	                System.out.println("TUNE DOWN MILLI");
+		        	((FoxBPSKDecoder)foxDecoder).decMiliFreq();
+	        	
+	        }
+	    });
 	}
 	
 	public void updateFont() {
@@ -112,7 +161,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				if (buffer != null) {
 					audioData = buffer;		
 					if (foxDecoder instanceof FoxBPSKDecoder) {
-						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();				
+						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();		
+						pskQAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandQData();	
 					}
 				}
 				
@@ -159,6 +209,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		int lastx2 = border*2+1; 
 		int lasty2 = graphHeight/2;
 		int x2 = border*2+1;
+		
+		int lastx3 = border*2+1; 
+		int lasty3 = graphHeight/2;
+		int x3 = border*2+1;
 		
 		
 		
@@ -213,6 +267,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lasty = (int)y;
 
 				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length) {
+					g.drawString("Loop Error: " + Math.round(((FoxBPSKDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, 14*Config.graphAxisFontSize  );
+					g.drawString("Freq: " + Math.round(((FoxBPSKDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, 13*Config.graphAxisFontSize  );
 					if (pskAudioData != null && pskAudioData.length > 0) {
 					g2.setColor(Color.BLUE);
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
@@ -223,6 +279,17 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					g2.drawLine(lastx2, lasty2, x2, (int)y2);
 					lastx2 = x2;
 					lasty2 = (int)y2;
+					
+					// 2nd trace
+					g2.setColor(Color.RED);
+					x3 = border*2 + i*(graphWidth-border*2)/pskQAudioData.length;
+
+					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
+					double y3 = 3*graphHeight/4-graphHeight/6*pskQAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
+					//int y = 100;
+					g2.drawLine(lastx3, lasty3, x3, (int)y3);
+					lastx3 = x3;
+					lasty3 = (int)y3;
 					}
 				}
 				
