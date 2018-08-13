@@ -71,6 +71,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String RAD_REM_LAYOUT = "radtelemREM";
 	
 	public static final String CAN_PKT_LAYOUT = "canpacket";
+	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";

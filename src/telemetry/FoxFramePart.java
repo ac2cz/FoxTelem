@@ -60,6 +60,7 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
 	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
 	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
+	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
 	
 	// These are infrastructure and not saved to Disk
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;

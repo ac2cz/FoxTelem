@@ -33,6 +33,36 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		type = TYPE_UW_WOD_EXPERIMENT;
 	}
 	
+	/**
+	 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.
+	 * We are finished once we have hit the ID 0x0000, which means end of CAN Packets or we run out of bytes.  
+	 * That final packet is thrown away, unless it fit exactly and passes the isValid() check.
+	 * away
+	 * @param b
+	 */
+	int debugCount = 0;
+	protected void addToCanPackets(byte b) {
+		if (Config.debugBytes) {
+			String debug = (Decoder.plainhex(b));
+			debugCount++;
+			Log.print(debug);
+			if (debugCount % 80 == 0) Log.println("");;
+		}
+		if (canPacket == null) {
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
+			canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET*100);
+		}
+		if (canPacket.hasEndOfCanPacketsId()) return;
+		canPacket.addNext8Bits(b);
+		if (canPacket.isValid()) {
+			canPackets.add(canPacket);
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
+			canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET*100+canPackets.size());
+		}
+	}
+	
 	@Override
 	public boolean isValid() {
 		// TODO Auto-generated method stub

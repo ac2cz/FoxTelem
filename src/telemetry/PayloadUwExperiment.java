@@ -46,7 +46,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 	public static final String FLAG = "Flag";
 	
 	public ArrayList<CanPacket> canPackets; 
-	private CanPacket canPacket; // the current CAN Packet we are adding bytes to
+	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
 	
 	public PayloadUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_UW_EXPERIMENT,lay);

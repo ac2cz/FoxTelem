@@ -645,6 +645,10 @@ public class SatPayloadTable {
 			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
+		if (type == FoxFramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		}
 		if (type == FoxFramePart.TYPE_UW_EXPERIMENT ) {
 			rt = new PayloadUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
