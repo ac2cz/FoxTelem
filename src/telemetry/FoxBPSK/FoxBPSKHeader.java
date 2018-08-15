@@ -35,7 +35,6 @@ public class FoxBPSKHeader extends Header {
 			scienceMode = nextbits(1);
 			cameraMode = nextbits(1);
 			minorVersion = nextbits(4);
-
 		}
 	}
 

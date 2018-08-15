@@ -93,11 +93,11 @@ import telemetry.uw.CanPacket;
 		
 		public void addNext8Bits(byte b) {
 			if (corrupt) return;
-			if (numberBytesAdded < MAX_HEADER_SIZE-1) {
+			if (numberBytesAdded < MAX_HEADER_SIZE) {
 				if (header == null)
 					header = new FoxBPSKHeader();
 				header.addNext8Bits(b);
-			} else if (numberBytesAdded == MAX_HEADER_SIZE-1) {
+			} else if (numberBytesAdded == MAX_HEADER_SIZE) {
 				// first non header byte
 				header.copyBitsToFields(); // make sure the id is populated
 				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
