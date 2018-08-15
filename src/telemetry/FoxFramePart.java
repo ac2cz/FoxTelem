@@ -60,6 +60,7 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
 	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
 	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
+	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
 	
 	// These are infrastructure and not saved to Disk
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
@@ -508,18 +509,21 @@ longer send telemetry.
 			volts = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS;
 			volts = volts * 99/75; // based in voltage divider on the ICR of 24k/75k
 			return volts;
-		case BitArrayLayout.CONVERT_HUSKY_SPIN:
+		case BitArrayLayout.CONVERT_COM1_SPIN:
 			double spin = rawValue - 32768; // signed 16 bit with 32768 added by IHU
 			spin = spin / 131.0 ; // 131 per dps
 			return spin;
-		case BitArrayLayout.CONVERT_HUSKY_ACCELEROMETER:
+		case BitArrayLayout.CONVERT_COM1_ACCELEROMETER:
 			double acc = rawValue - 32768; // signed 16 bit with 32768 added by IHU
 			acc = acc / 16384.0 ; // 16384 per g.  If we want this in m/s * 9.80665 
 			return acc;
-		case BitArrayLayout.CONVERT_HUSKY_MAGNETOMETER:
+		case BitArrayLayout.CONVERT_COM1_MAGNETOMETER:
 			double mag = rawValue - 32768; // signed 16 bit with 32768 added by IHU
 			mag = mag * 0.6 ; // 0.6 micro Tesla per count value 
 			return mag;
+		case BitArrayLayout.CONVERT_COM1_GYRO_TEMP:
+			double temp = rawValue * 0.1 - 40; // 0 is -40 then increments in 1/10 degree per raw value
+			return temp;
 		}
 		
 		return ERROR_VALUE;

@@ -46,12 +46,14 @@ public class PayloadUwExperiment extends FoxFramePart {
 	public static final String FLAG = "Flag";
 	
 	public ArrayList<CanPacket> canPackets; 
-	private CanPacket canPacket; // the current CAN Packet we are adding bytes to
+	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
+	private int startPacketSerial = 0;
 	
-	public PayloadUwExperiment(BitArrayLayout lay) {
+	public PayloadUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_UW_EXPERIMENT,lay);
 		//MAX_BYTES = 1;
 		canPackets = new ArrayList<CanPacket>();
+		captureHeaderInfo(id, uptime, resets);
 	}
 	
 	public PayloadUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
@@ -62,6 +64,10 @@ public class PayloadUwExperiment extends FoxFramePart {
 	
 	protected void init() { 
 		//rawBits = new boolean[8];	
+	}
+	
+	public void setStartSerial(int serial) {
+		startPacketSerial = serial;
 	}
 	
 	/**
@@ -82,7 +88,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		if (canPacket == null) {
 			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			canPacket.captureHeaderInfo(id, uptime, resets);
-			canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100);
+			//canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+startPacketSerial);
 		}
 		if (canPacket.hasEndOfCanPacketsId()) return;
 		canPacket.addNext8Bits(b);
@@ -90,7 +96,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 			canPackets.add(canPacket);
 			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			canPacket.captureHeaderInfo(id, uptime, resets);
-			canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+canPackets.size());
+			//.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+startPacketSerial+canPackets.size());
 		}
 	}
 	
@@ -108,7 +114,10 @@ public class PayloadUwExperiment extends FoxFramePart {
 	public String toString() {
 		copyBitsToFields();
 		String s = "UW EXPERIMENT PAYLOAD - " + canPackets.size() + " CAN PACKETS\n";
-		s = s + "OVERFLOW FLAG: " + rawBits[0] + "\n";
+		s = s + "RESET: " + resets;
+		s = s + "  UPTIME: " + uptime;
+		s = s + "  TYPE: " + type;
+		s = s + "  OVERFLOW FLAG: " + rawBits[0] + "\n";
 		//for (int p=0; p < canPackets.size(); p++) {
 		//	s = s + canPackets.get(p).toString() + "    " ;
 		//	if ((p+1)%3 == 0) s = s + "\n";
@@ -124,12 +133,18 @@ public class PayloadUwExperiment extends FoxFramePart {
 		return false;
 	}
 
-	public boolean savePayloads(FoxPayloadStore payloadStore) {
+	public boolean savePayloads(FoxPayloadStore payloadStore, int serial) {
+		type = type * 100 + serial;
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
-		for (CanPacket p : canPackets)
+		int j = 0;
+		for (CanPacket p : canPackets) {
+			int p_type = p.getType();
+			p_type = p_type * 100 + serial + j++;
+			p.setType(p_type);
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
+		}
 		return true;
 
 	}

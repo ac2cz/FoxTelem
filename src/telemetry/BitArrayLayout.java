@@ -108,9 +108,10 @@ public class BitArrayLayout {
 	public static final int CONVERT_LT_VGA = 42;
 	public static final int CONVERT_ICR_VOLT_SENSOR = 43;
 	public static final int CONVERT_STATUS_ENABLED = 44;
-	public static final int CONVERT_HUSKY_ACCELEROMETER = 45;
-	public static final int CONVERT_HUSKY_MAGNETOMETER = 46;
-	public static final int CONVERT_HUSKY_SPIN = 47;
+	public static final int CONVERT_COM1_ACCELEROMETER = 45;
+	public static final int CONVERT_COM1_MAGNETOMETER = 46;
+	public static final int CONVERT_COM1_SPIN = 47;
+	public static final int CONVERT_COM1_GYRO_TEMP = 48;
 	
 	/**
 	 * Create an empty layout for manual init

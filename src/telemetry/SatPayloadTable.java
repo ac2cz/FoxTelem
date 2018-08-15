@@ -197,7 +197,7 @@ public class SatPayloadTable {
 		// Create a results set, with reset, uptime and the data on the same line
 		int offset = 2;
 		if (returnType) offset = 3;
-		String[][] resultSet = new String[end-start][length+offset+1];
+		String[][] resultSet = new String[end-start][length+offset];   // removed +1 to debug CAN Pkt display issue 8/14/2018
 		for (int r=0; r< end-start; r++) {
 			resultSet[r][0] = resets[r];
 			resultSet[r][1] = upTime[r];
@@ -500,7 +500,7 @@ public class SatPayloadTable {
 			//return rtRecords.add(f);
 			return true;
 		} else {
-			if (Config.debugFrames) Log.println("DUPLICATE RECORD, not loaded");
+			if (Config.debugFrames) Log.println("DUPLICATE RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 		}
 		return false;
 	}
@@ -644,12 +644,16 @@ public class SatPayloadTable {
 		if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
 			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
+		}	
+		if (type == FoxFramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
 		}
-		if (type == FoxFramePart.TYPE_UW_EXPERIMENT ) {
+		if (type == FoxFramePart.TYPE_UW_EXPERIMENT || type >= 1300 && type < 1400 ) {
 			rt = new PayloadUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}
-		if (type == FoxFramePart.TYPE_UW_WOD_EXPERIMENT ) {
+		if (type == FoxFramePart.TYPE_UW_WOD_EXPERIMENT || type >= 1500 && type < 1600 ) {
 			rt = new PayloadWODUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		}

@@ -20,8 +20,8 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 	public static final int PAD2_FIELD = 4;
 	public static final String PAD2 = "pad2";
 		
-	public PayloadWODUwExperiment(BitArrayLayout lay) {
-		super(lay);
+	public PayloadWODUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
+		super(lay,id, uptime, resets);
 	}
 
 	public PayloadWODUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
@@ -33,19 +33,55 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		type = TYPE_UW_WOD_EXPERIMENT;
 	}
 	
+	/**
+	 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.
+	 * We are finished once we have hit the ID 0x0000, which means end of CAN Packets or we run out of bytes.  
+	 * That final packet is thrown away, unless it fit exactly and passes the isValid() check.
+	 * away
+	 * @param b
+	 */
+	int debugCount = 0;
+	protected void addToCanPackets(byte b) {
+		if (Config.debugBytes) {
+			String debug = (Decoder.plainhex(b));
+			debugCount++;
+			Log.print(debug);
+			if (debugCount % 80 == 0) Log.println("");;
+		}
+		if (canPacket == null) {
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
+			canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET*100);
+		}
+		if (canPacket.hasEndOfCanPacketsId()) return;
+		canPacket.addNext8Bits(b);
+		if (canPacket.isValid()) {
+			canPackets.add(canPacket);
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
+			canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET*100+canPackets.size());
+		}
+	}
+	
 	@Override
 	public boolean isValid() {
 		// TODO Auto-generated method stub
 		return false;
 	}
 	
-	public boolean savePayloads(FoxPayloadStore payloadStore) {
+	public boolean savePayloads(FoxPayloadStore payloadStore, int serial) {
+		type = type * 100 + serial;
 		copyBitsToFields(); // make sure reset / uptime correct
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
-		for (CanPacket p : canPackets)
+		int j = 0;
+		for (CanPacket p : canPackets) {
+			int p_type = p.getType();
+			p_type = p_type * 100 + serial + j++;
+			p.setType(p_type);
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
+		}
 		return true;
 
 	}
@@ -63,6 +99,7 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		String s = "UW WOD EXPERIMENT PAYLOAD - " + canPackets.size() + " CAN PACKETS\n";
 		s = s + "RESET: " + getRawValue(WOD_RESETS);
 		s = s + "  UPTIME: " + getRawValue(WOD_UPTIME);
+		s = s + "  TYPE: " +  type;
 		s = s + "  OVERFLOW FLAG: " + rawBits[0] + "\n";
 		//for (int p=0; p < canPackets.size(); p++) {
 		//	s = s + canPackets.get(p).toString() + "    " ;
