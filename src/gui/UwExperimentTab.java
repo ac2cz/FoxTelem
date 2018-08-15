@@ -246,13 +246,14 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 		//packetTable.getRowSelectionAllowed();
 				
 	}
+	
 	protected void parseRawBytes(String data[][], CanPacketRawTableModel radTableModel) {
 		long[][] keyRawData = new long[data.length][3];
-		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+2];
+		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+2]; // +2 fields for ID, LEN
 		for (int i=0; i<data.length; i++)
-			for (int k=0; k<CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+3; k++)
+			for (int k=0; k< data[0].length; k++)
 				try {
-					if (k<=2)
+					if (k<3) // key
 						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
 					else {
 						if (k==3) {
@@ -318,7 +319,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 			packetData[len-i-1][1] = Integer.toString(length);
 	
 			String telem = "";
-			for (int j=4; j< fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).fieldName.length; j++) {  
+			for (int j=4; j< data[0].length; j++) {  
 				telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 				
 			}
@@ -409,7 +410,7 @@ public class UwExperimentTab extends RadiationTab implements ItemListener, Runna
 				Config.displayRawValues = true;
 			}
 
-			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
+			updateTab(Config.payloadStore.getLatestRad(foxId), true);  // we don't have RAD2 conversion for the Experiment Payloads so just get RAD.
 			
 		}
 	}

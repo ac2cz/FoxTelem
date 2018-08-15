@@ -72,6 +72,7 @@ import telemetry.uw.CanPacket;
 		public static final int TYPES_OF_FRAME = 11;
 		
 		private boolean canPacketFrame = false;
+		private int canPacketSerial = 0;
 
 		public FoxFramePart[] payload;
 		
@@ -304,13 +305,14 @@ import telemetry.uw.CanPacket;
 		}
 
 		public boolean savePayloads(FoxPayloadStore payloadStore) {
-
+			int serial = 0;
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
 					payload[i].copyBitsToFields();
 					if (payload[i] instanceof PayloadUwExperiment) { // Also saves WOD UW Payloads
-						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore);
+						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore, serial);
+						serial = serial + ((PayloadUwExperiment)payload[i]).canPackets.size();
 					} else
 						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
 							return false;

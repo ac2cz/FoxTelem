@@ -69,13 +69,19 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		return false;
 	}
 	
-	public boolean savePayloads(FoxPayloadStore payloadStore) {
+	public boolean savePayloads(FoxPayloadStore payloadStore, int serial) {
+		type = type * 100 + serial;
 		copyBitsToFields(); // make sure reset / uptime correct
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
-		for (CanPacket p : canPackets)
+		int j = 0;
+		for (CanPacket p : canPackets) {
+			int p_type = p.getType();
+			p_type = p_type * 100 + serial + j++;
+			p.setType(p_type);
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
+		}
 		return true;
 
 	}
@@ -93,6 +99,7 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		String s = "UW WOD EXPERIMENT PAYLOAD - " + canPackets.size() + " CAN PACKETS\n";
 		s = s + "RESET: " + getRawValue(WOD_RESETS);
 		s = s + "  UPTIME: " + getRawValue(WOD_UPTIME);
+		s = s + "  TYPE: " +  type;
 		s = s + "  OVERFLOW FLAG: " + rawBits[0] + "\n";
 		//for (int p=0; p < canPackets.size(); p++) {
 		//	s = s + canPackets.get(p).toString() + "    " ;
