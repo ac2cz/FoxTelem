@@ -11,14 +11,23 @@ public abstract class Oscillator {
 	
 	public Oscillator(int samples, int freq) {
 		this.samplesPerSecond = samples;
-		this.frequency = freq;
-		this.phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;
+		setFrequency(freq);
 	}
 	
-	public void setPhase(double phaseIncrement, double freq) { 
-		this.frequency = freq;
-		this.phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;		
-		incPhase(phaseIncrement);
+	public void changePhase(double phaseIncrement) { 
+		if ((phaseIncrement < 2*Math.PI) && (phaseIncrement> -2*Math.PI)) {
+			phase = phase + phaseIncrement;
+			if (phase >= 2 * Math.PI) {
+				phase = phase - 2*Math.PI;
+				frequency = frequency + 1;
+				setFrequency(frequency);
+			}
+			if (phase <= 0) {
+				phase = phase + 2*Math.PI;
+				frequency = frequency - 1;
+				setFrequency(frequency);
+			}
+		}
 	}
 
 	public void incPhase(double phaseIncrement) {
@@ -33,7 +42,8 @@ public abstract class Oscillator {
 	}
 	
 	public void setFrequency(double freq) {
-		
+		frequency = freq;
+		phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;
 	}
 	
 	public double getFrequency() { 

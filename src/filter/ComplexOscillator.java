@@ -22,9 +22,9 @@ public class ComplexOscillator {
 		return c;
 	}
 	
-	public void setPhase(double phaseIncrement, double freq) {
-		cosOsc.setPhase(phaseIncrement, freq);
-		sinOsc.setPhase(phaseIncrement, freq);
+	public void changePhase(double phaseIncrement) {
+		cosOsc.changePhase(phaseIncrement);
+		sinOsc.changePhase(phaseIncrement);
 	}
 	
 	public double getFrequency() {
