@@ -112,6 +112,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_COM1_MAGNETOMETER = 46;
 	public static final int CONVERT_COM1_SPIN = 47;
 	public static final int CONVERT_COM1_GYRO_TEMP = 48;
+	public static final int CONVERT_HUSKY_ISIS_ANT_TEMP = 49;
 	
 	/**
 	 * Create an empty layout for manual init
