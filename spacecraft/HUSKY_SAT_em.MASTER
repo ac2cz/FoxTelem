@@ -1,7 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
 useIHUVBatt=false
-numberOfLookupTables=3
+numberOfLookupTables=4
 measurementsFileName=measurements.csv
 model=0
 layout0.filename=FOX1A_debug.csv
@@ -31,12 +31,14 @@ layout8.filename=HUSKY_SAT_CanPacket.csv
 EXP1=9
 minFreqBoundkHz=435790
 hasImprovedCommandReceiver=true
-lookupTable2.filename=FOX1A_ihutempSN7.tab
+lookupTable2.filename=HUSKY_SAT_ihutempSN22.tab
 mpptResistanceError=6.58
 BATTERY_CURRENT_ZERO=-1.834
 layout3.filename=HUSKY_SAT_mintelemetry.csv
 maxFreqBoundkHz=435810
 mpptSensorOffThreshold=1600
+lookupTable3=HUSKY_ISIS_ANT_TEMP
+lookupTable3.filename=HUSKY_isisAntTemp.tab
 lookupTable2=IHU_TEMP
 lookupTable1=IHU_VBATT
 lookupTable0=RSSI

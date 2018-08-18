@@ -26,14 +26,14 @@
 24,realtimeDownlink,VddaCAN,12,-,1,Experiments,5,2,3,CAN 5V VDDA,VDDA is the 5V level supplied to run the CAN bus
 25,realtimeDownlink,LtVGACtl,12,V,42,Radio,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 26,realtimeDownlink,pad1,4,-,0,NONE,0,0,0,pad,None
-27,realtimeDownlink,Ant1Time,16,s,1,ISIS Antenna Control,1,6,3,#1 Deploy Time,Antenna 1 Deploy Time
-28,realtimeDownlink,Ant2Time,16,s,1,ISIS Antenna Control,1,8,3,#2 Deploy Time,Antenna 2 Deploy Time
-29,realtimeDownlink,Ant3Time,16,s,1,ISIS Antenna Control,1,10,3,#3 Deploy Time,Antenna 3 Deploy Time
-30,realtimeDownlink,Ant4Time,16,s,1,ISIS Antenna Control,1,12,3,#4 Deploy Time,Antenna 4 Deploy Time
-31,realtimeDownlink,Ant1Cnt,8,-,1,ISIS Antenna Control,1,7,3,#1 Deploy Count,Antenna 1 Deploy Count
-32,realtimeDownlink,Ant2Cnt,8,-,1,ISIS Antenna Control,1,9,3,#2 Deploy Count,Antenna 2 Deploy Count
-33,realtimeDownlink,Ant3Cnt,8,-,1,ISIS Antenna Control,1,11,3,#3 Deploy Count,Antenna 3 Deploy Count
-34,realtimeDownlink,Ant4Cnt,8,-,1,ISIS Antenna Control,1,13,3,#4 Deploy Count,Antenna 4 Deploy Count
+27,realtimeDownlink,Ant1Time,16,s,50,ISIS Antenna Control,1,2,3,#1 Deploy Time,Antenna 1 Deploy Time
+28,realtimeDownlink,Ant2Time,16,s,50,ISIS Antenna Control,1,4,3,#2 Deploy Time,Antenna 2 Deploy Time
+29,realtimeDownlink,Ant3Time,16,s,50,ISIS Antenna Control,1,6,3,#3 Deploy Time,Antenna 3 Deploy Time
+30,realtimeDownlink,Ant4Time,16,s,50,ISIS Antenna Control,1,8,3,#4 Deploy Time,Antenna 4 Deploy Time
+31,realtimeDownlink,Ant1Cnt,8,-,1,ISIS Antenna Control,1,3,3,#1 Deploy Count,Antenna 1 Deploy Count
+32,realtimeDownlink,Ant2Cnt,8,-,1,ISIS Antenna Control,1,5,3,#2 Deploy Count,Antenna 2 Deploy Count
+33,realtimeDownlink,Ant3Cnt,8,-,1,ISIS Antenna Control,1,7,3,#3 Deploy Count,Antenna 3 Deploy Count
+34,realtimeDownlink,Ant4Cnt,8,-,1,ISIS Antenna Control,1,9,3,#4 Deploy Count,Antenna 4 Deploy Count
 35,realtimeDownlink,pad2,48,-,34,NONE,0,0,0,pad,Unused
 36,realtimeDownlink,IHUdiagData,32,-,18,Spacecraft Status,4,1,0,Diagnostic Info,Diagnostic Data on IHU Performance
 37,realtimeDownlink,transponder,1,-,44,Radio,2,6,0,Transponder Status,Transponder Is Enabled
@@ -45,10 +45,10 @@
 43,realtimeDownlink,state6,1,-,0,NONE,0,0,0,spare,None
 44,realtimeDownlink,state7,1,-,0,NONE,0,0,0,spare,None
 45,realtimeDownlink,TLMresets,4,-,1,Computer Hardware,3,5,0,Ground Resets,Number of times command stations reset stored telemetry
-46,realtimeDownlink,Ant1Deployed,1,-,16,ISIS Antenna Control,1,2,0,Antenna 1,Antenna status
-47,realtimeDownlink,Ant2Deployed,1,-,16,ISIS Antenna Control,1,3,0,Antenna 2,Antenna status
-48,realtimeDownlink,Ant3Deployed,1,-,16,ISIS Antenna Control,1,4,0,Antenna 3,Antenna status
-49,realtimeDownlink,Ant4Deployed,1,-,16,ISIS Antenna Control,1,5,0,Antenna 4,Antenna status
+46,realtimeDownlink,Ant1Deployed,1,-,16,ISIS Antenna Control,1,10,0,Antenna 1,Antenna status
+47,realtimeDownlink,Ant2Deployed,1,-,16,ISIS Antenna Control,1,11,0,Antenna 2,Antenna status
+48,realtimeDownlink,Ant3Deployed,1,-,16,ISIS Antenna Control,1,12,0,Antenna 3,Antenna status
+49,realtimeDownlink,Ant4Deployed,1,-,16,ISIS Antenna Control,1,13,0,Antenna 4,Antenna status
 50,realtimeDownlink,wodSize,8,000s,1,Spacecraft Status,4,2,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
 51,realtimeDownlink,swCmds,32,-,35,Command Receiver (ICR),6,4,0,Diagnostic,ICR Diagnostic information
 52,realtimeDownlink,hwCmdCnt,6,-,34,Command Receiver (ICR),6,5,0,HW Command Count,Number of hardware commands since last reset

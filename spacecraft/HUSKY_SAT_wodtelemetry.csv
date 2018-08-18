@@ -26,10 +26,10 @@
 24,wodSpecificDownlink,VddaCAN,12,-,1,Experiments,5,2,3,CAN 5V VDDA,VDDA is the 5V level supplied to run the CAN bus
 25,wodSpecificDownlink,LtVGACtl,12,V,42,Radio,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 26,wodSpecificDownlink,pad1,4,-,0,NONE,0,0,0,pad,None
-27,wodSpecificDownlink,Ant1Time,16,s,1,ISIS Antenna Control,1,2,3,#1 Deploy Time,Antenna 1 Deploy Time
-28,wodSpecificDownlink,Ant2Time,16,s,1,ISIS Antenna Control,1,4,3,#2 Deploy Time,Antenna 2 Deploy Time
-29,wodSpecificDownlink,Ant3Time,16,s,1,ISIS Antenna Control,1,6,3,#3 Deploy Time,Antenna 3 Deploy Time
-30,wodSpecificDownlink,Ant4Time,16,s,1,ISIS Antenna Control,1,8,3,#4 Deploy Time,Antenna 4 Deploy Time
+27,wodSpecificDownlink,Ant1Time,16,s,50,ISIS Antenna Control,1,2,3,#1 Deploy Time,Antenna 1 Deploy Time
+28,wodSpecificDownlink,Ant2Time,16,s,50,ISIS Antenna Control,1,4,3,#2 Deploy Time,Antenna 2 Deploy Time
+29,wodSpecificDownlink,Ant3Time,16,s,50,ISIS Antenna Control,1,6,3,#3 Deploy Time,Antenna 3 Deploy Time
+30,wodSpecificDownlink,Ant4Time,16,s,50,ISIS Antenna Control,1,8,3,#4 Deploy Time,Antenna 4 Deploy Time
 31,wodSpecificDownlink,Ant1Cnt,8,-,1,ISIS Antenna Control,1,3,3,#1 Deploy Count,Antenna 1 Deploy Count
 32,wodSpecificDownlink,Ant2Cnt,8,-,1,ISIS Antenna Control,1,5,3,#2 Deploy Count,Antenna 2 Deploy Count
 33,wodSpecificDownlink,Ant3Cnt,8,-,1,ISIS Antenna Control,1,7,3,#3 Deploy Count,Antenna 3 Deploy Count

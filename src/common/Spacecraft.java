@@ -76,6 +76,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
 	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
+	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
 
 	
 	// Model Versions

@@ -524,6 +524,13 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_COM1_GYRO_TEMP:
 			double temp = rawValue * 0.1 - 40; // 0 is -40 then increments in 1/10 degree per raw value
 			return temp;
+		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TEMP:
+			double V = 3.3 / 1023 * rawValue;
+			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue(rawValue);
+			return antTemp;
+		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TIME:
+			double time = rawValue / 20.0d; // deploy time in 50ms steps
+			return time;
 		}
 		
 		return ERROR_VALUE;
