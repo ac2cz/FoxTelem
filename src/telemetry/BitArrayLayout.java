@@ -114,7 +114,8 @@ public class BitArrayLayout {
 	public static final int CONVERT_COM1_GYRO_TEMP = 48;
 	public static final int CONVERT_HUSKY_ISIS_ANT_TEMP = 49;
 	public static final int CONVERT_HUSKY_ISIS_ANT_TIME = 50;
-	public static final int CONVERT_HUSKY_ISIS_ANT_DEPLOYMENT = 50;
+	public static final int CONVERT_HUSKY_ISIS_ANT_DEPLOYMENT = 51;
+	public static final int CONVERT_HUSKY_SOLAR_PANEL = 52;
 	
 	/**
 	 * Create an empty layout for manual init

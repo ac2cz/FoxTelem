@@ -326,6 +326,12 @@ longer send telemetry.
 				s = "Stowed";
 			else
 				s = "Deployed";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_DEPLOYMENT) {  //TODO: This needs to be implemented
+				int value = getRawValue(name);
+				if (value == 0)
+					s = "Stowed";
+				else
+					s = "Deployed";
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
 			int value = getRawValue(name);
 			if (value == 0)
