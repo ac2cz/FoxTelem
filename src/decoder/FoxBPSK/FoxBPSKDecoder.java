@@ -19,6 +19,7 @@ import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.Delay;
 import filter.HilbertTransform;
+import filter.IirFilter;
 import filter.RaisedCosineFilter;
 import filter.WindowedSincFilter;
 
@@ -28,12 +29,15 @@ public class FoxBPSKDecoder extends Decoder {
 	private int clockOffset = 0;
 	DcRemoval audioDcFilter;
 	
-	ComplexOscillator nco = new ComplexOscillator(48000, 1200);
+	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
 	
 	RaisedCosineFilter dataFilter;
-	RaisedCosineFilter iFilter;
-	RaisedCosineFilter qFilter;
-	RaisedCosineFilter loopFilter;
+	//RaisedCosineFilter iFilter;
+	//RaisedCosineFilter qFilter;
+	//RaisedCosineFilter loopFilter;
+	IirFilter iFilter;
+	IirFilter qFilter;
+	IirFilter loopFilter;
 
 	double[] pskAudioData;
 	double[] pskQAudioData;
@@ -71,16 +75,31 @@ public class FoxBPSKDecoder extends Decoder {
 		filter.init(currentSampleRate, 0, 0);
 		
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(48000, 2000, 256); // just remove noise, perhaps at twice data rate?
+		dataFilter.init(currentSampleRate, 3000, 128); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
 		
-		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		iFilter.init(48000, 1200, 128);
+//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+//		iFilter.init(48000, 1200, 128);
 
-		qFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		qFilter.init(48000, 1200, 128);
+//		qFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+//		qFilter.init(48000, 1200, 128);
+	
+		// 4 pole cheb at fc = 0.025 = 1200Kz at 48k.  Ch 20 Eng and Sci guide to DSP
+		double[] a = {1.504626E-05, 6.018503E-05, 9.027754E-05, 6.018503E-05, 1.504626E-05};
+		double[] b = {1, 3.725385E+00, -5.226004E+00,  3.270902E+00,  -7.705239E-01};
 		
-		loopFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		loopFilter.init(48000, 50, 32); // this filter should not contribute to lock.  Should be far outside the closed loop response.
+		iFilter = new IirFilter(a,b);
+		qFilter = new IirFilter(a,b);
+		
+		// Single pole IIR from Eng and Scientists Guide to DSP ch 19.  Higher X is amount of decay.  Higher X is slower
+		// decay. x = e^-1/d where d is number of samples for decay. x = e^-2*pi*fc
+		double x = 0.3678;//0.86 is 6 samples, 0.606 is 2 samples 0.3678 is 1 sample, 0.1353 is 0.5 samples
+		double[] a2 = {1-x};
+		double[] b2 = {1, x};
+		
+		loopFilter = new IirFilter(a2,b2);
+		
+	//	loopFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+	//	loopFilter.init(48000, 50, 32); // this filter should not contribute to lock.  Should be far outside the closed loop response.
 		
 		pskAudioData = new double[BUFFER_SIZE];
 		pskQAudioData = new double[BUFFER_SIZE];
@@ -105,7 +124,7 @@ public class FoxBPSKDecoder extends Decoder {
 	 */
 	double gain = 1.0;
 	
-	double alpha = 0.02; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  In fact seems unstable above 0.01
+	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double error, errTotal;  // accumulation of the error over a buffer
 	double loopError;
@@ -122,34 +141,33 @@ public class FoxBPSKDecoder extends Decoder {
 			double averageQValue = 0;
 			errTotal = 0;
 			for (int s=0; s < bucketSize; s++) {
-				//sampleWithVCO(dataValues[i][s], i, s);
 				double value = dataValues[i][s]/ 32768.0;
-//				value = testOscillator.nextSample();
 //				value = audioDcFilter.filter(value);		
-//				RxDownSample(value, value, i);
-			//	double psk = squareLoop(value, value, i);
+				value = value*gain;
 				double psk = costasLoop(value, value, i);
 				int eyeValue = (int)(psk*32768.0); //(Math.sqrt(energy1)-32768.0/2);
 
 //				int eyeValue = (int) (Math.sqrt(energy1)-32768.0/2);
 				if (eyeValue > maxValue) maxValue = eyeValue;
 				if (eyeValue < minValue) minValue = eyeValue;
-				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
-				pskAudioData[i*bucketSize+s] = psk*gain;	
-				pskQAudioData[i*bucketSize+s] = fq*gain;	
+//				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
+				pskAudioData[i*bucketSize+s] = psk; //psk*gain;	
+				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
 				eyeData.setData(i,s,eyeValue);
-				if (s > bucketSize/4 && s < 3*bucketSize/4) {
+				if (s > (bucketSize/2-2) && s < (bucketSize/2+2)) { // middle 4-5 bits averaged as the sample
+				//if (s == bucketSize/2) {
 					averageValue += psk;
 					averageCount++;
 				}
 				errTotal += error;
 				loopError = beta*error + alpha*error; //loopFilter.filterDouble(error); // /(double)(bucketSize);
 				
-				freq = freq + beta*loopError + alpha*loopError;
+//				freq = freq + beta*loopError + alpha*loopError;
 				if (freq > 2300) freq = 2300;
 				if (freq < -2300) freq = -2300;
-				nco.changePhase(loopError);
-//				nco.setFrequency(freq);
+				nco.changePhase(alpha*error);
+				freq = freq + beta*error;
+				nco.setFrequency(freq);
 			}
 			
 			averageValue = averageValue / (double)averageCount;
@@ -187,7 +205,7 @@ public class FoxBPSKDecoder extends Decoder {
 		
 		
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-	//	System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
+//		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
 		
 		int offset = recoverClockOffset();
 //		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
@@ -200,23 +218,23 @@ public class FoxBPSKDecoder extends Decoder {
 
 	public void incFreq () {
 		freq = freq + 1d;
-		nco.changePhase(10*alpha);
+//		nco.changePhase(10*alpha);
 		//nco.setPhase(0, freq); 
 		}
 	public void incMiliFreq () {
 			freq = freq + 0.01d;
-			nco.changePhase(alpha);
+//			nco.changePhase(alpha);
 		//nco.setPhase(alpha, freq); 
 	}
 
 	public void decFreq () {
 		freq = freq - 1; 
-		nco.changePhase(-10*alpha);
+//		nco.changePhase(-10*alpha);
 		//nco.setPhase(0, freq); 
 		}
 	public void decMiliFreq () {
 		freq = freq - 0.01d;
-		nco.changePhase(-1*alpha);
+//		nco.changePhase(-1*alpha);
 	//	nco.setPhase(-alpha, freq); 
 	}
 
@@ -324,14 +342,14 @@ public class FoxBPSKDecoder extends Decoder {
 		// Mix 
 		double iFil = dataFilter.filterDouble(i);
 		iMix = iFil * c.geti(); // + q*c.getq();
-		qMix = iFil * c.getq(); // - i*c.getq();
+		qMix = iFil * -1*c.getq(); // - i*c.getq();
 		// Filter
 		fi = iFilter.filterDouble(iMix);
 		fq = qFilter.filterDouble(qMix);
 		
 		// Phase error
 		error = (fi*fq);
-//		errTotal += loopFilter.filterDouble(error);
+		error = loopFilter.filterDouble(error);
 		return fi;
 	}
 	
