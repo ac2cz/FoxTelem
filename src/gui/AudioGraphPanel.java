@@ -250,7 +250,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					if (bucketPositionCount >= foxDecoder.getBucketSize()) {
 						g2.setColor(Color.BLACK);
 						g2.drawLine(x, 0, x, graphHeight);
-						g.drawString(""+((Config.windowsProcessed)*foxDecoder.getSampleWindowLength()+bitCount), x-40, graphHeight-20 );
+						g.drawString(""+((Config.windowsProcessed-1)*foxDecoder.getSampleWindowLength()+bitCount), x-40, graphHeight-20 );
 						bucketPositionCount = 0;
 						bitCount++;
 					}

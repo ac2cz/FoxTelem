@@ -30,4 +30,8 @@ public class ComplexOscillator {
 	public double getFrequency() {
 		return cosOsc.getFrequency();
 	}
+	
+	public double getPhase() {
+		return cosOsc.getPhase();
+	}
 }

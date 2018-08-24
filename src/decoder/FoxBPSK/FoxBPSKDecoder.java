@@ -60,7 +60,7 @@ public class FoxBPSKDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 40; //40;  
+		SAMPLE_WINDOW_LENGTH = 10; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -126,40 +126,49 @@ public class FoxBPSKDecoder extends Decoder {
 	
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
-	double error, errTotal;  // accumulation of the error over a buffer
+	double error;  // accumulation of the error over a buffer
 	double loopError;
 	boolean lastBit = false;
 	double freq = 1200.0d;
+	double lastPhase = 0d;
+	
+	int bitPosition = 0; // which sample are we at in the bit.  Nominally 48000/1200 = 40 samples per bit
+	int bitLength = 40; // this is the same as the bucketSize initially, but we vary it
+	int bitNumber = 0; // for eye diagram only
 	
 	protected void sampleBuckets() {
 		long maxValue = 0;
 		long minValue = 0;
 		long DESIRED_RANGE =60000;
+//		bitNumber = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			double averageValue = 0;
 			int averageCount = 0;
-			double averageQValue = 0;
-			errTotal = 0;
+//			bitPosition = 0;
 			for (int s=0; s < bucketSize; s++) {
 				double value = dataValues[i][s]/ 32768.0;
 //				value = audioDcFilter.filter(value);		
 				value = value*gain;
 				double psk = costasLoop(value, value, i);
-				int eyeValue = (int)(psk*32768.0); //(Math.sqrt(energy1)-32768.0/2);
-
-//				int eyeValue = (int) (Math.sqrt(energy1)-32768.0/2);
+				int eyeValue = (int)(-1*psk*32768.0); 
 				if (eyeValue > maxValue) maxValue = eyeValue;
 				if (eyeValue < minValue) minValue = eyeValue;
 //				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
 				pskAudioData[i*bucketSize+s] = psk; //psk*gain;	
-				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
-				eyeData.setData(i,s,eyeValue);
-				if (s > (bucketSize/2-2) && s < (bucketSize/2+2)) { // middle 4-5 bits averaged as the sample
+//				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
+				pskQAudioData[i*bucketSize+s] = c.geti();	
+				if (bitPosition < bucketSize) {// we can plot it
+//					eyeData.setData(bitNumber,bitPosition,(int) (c.geti()*32768.0));
+					eyeData.setData(bitNumber,bitPosition,eyeValue);
+//					eyeData.setData(i,s,eyeValue);
+//					eyeData.setData(i,s,(int) (c.geti()*32768.0));
+//					System.out.println("S:"+s+" Pos:"+bitPosition);
+				}
+				if (bitPosition > (bitLength/2-1) && bitPosition < (bitLength/2+1)) { // middle 4-5 bits averaged as the sample
 				//if (s == bucketSize/2) {
 					averageValue += psk;
 					averageCount++;
 				}
-				errTotal += error;
 				loopError = beta*error + alpha*error; //loopFilter.filterDouble(error); // /(double)(bucketSize);
 				
 //				freq = freq + beta*loopError + alpha*loopError;
@@ -168,22 +177,32 @@ public class FoxBPSKDecoder extends Decoder {
 				nco.changePhase(alpha*error);
 				freq = freq + beta*error;
 				nco.setFrequency(freq);
+				bitPosition++;
+				double currentPhase = nco.getPhase();
+//				System.out.println("Ph:"+currentPhase);
+				if (currentPhase < lastPhase && lastPhase-currentPhase > 1.5*Math.PI) {
+//					// we wrapped around the NCO Cos Waveform
+////					System.out.println("WRAP");
+					bitLength = bitPosition;
+////					System.out.println("Len:"+bitLength);
+					bitPosition = 0;
+					bitNumber++;
+					if (bitNumber >= SAMPLE_WINDOW_LENGTH)
+						bitNumber = 0;
+				}
+				lastPhase = currentPhase;
+				
 			}
+//			System.out.println("END BUCKET");
+//			bitNumber++;
 			
 			averageValue = averageValue / (double)averageCount;
-			averageQValue = averageQValue / (double)bucketSize;
-			errTotal = errTotal  / (double)bucketSize;
 			boolean thisBit = false;
 			if (averageValue > 0) {
 				thisBit = true;
 			}
-			int sign = thisBit ? 1 : -1;
+//			int sign = thisBit ? 1 : -1;
 			
-	//		errTotal = averageValue*averageQValue;
-	//		errTotal = errTotal * sign;
-			
-			
-			//nco.setPhase(alpha*loopError, freq);
 			int offset = recoverClockOffset();
 			offset = 0;
 			
@@ -201,19 +220,13 @@ public class FoxBPSKDecoder extends Decoder {
 				
 			
 		}
-		
-		
-		
+			
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 //		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
 		
 		int offset = recoverClockOffset();
 //		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
-		//	Scanner scanner = new Scanner(System.in);
-		//		System.out.println("Press enter");
-		//	String username = scanner.next();
-		
 	}
 
 	public void incFreq () {
@@ -335,9 +348,9 @@ public class FoxBPSKDecoder extends Decoder {
 	
 	public double getError() { return loopError; }
 	public double getFrequency() { return nco.getFrequency(); }
-	
+	Complex c;
 	private double costasLoop(double i, double q, int bucketNumber) {
-		Complex c = nco.nextSample();
+		c = nco.nextSample();
 		c.normalize();
 		// Mix 
 		double iFil = dataFilter.filterDouble(i);
@@ -350,16 +363,6 @@ public class FoxBPSKDecoder extends Decoder {
 		// Phase error
 		error = (fi*fq);
 		error = loopFilter.filterDouble(error);
-		return fi;
-	}
-	
-	private double squareLoop(double i, double q, int bucketNumber) {
-		Complex c = nco.nextSample();
-		c.normalize();
-		// Mix 
-		fi = i*i;
-		// then need to divide freq by 2 to get the carrier
-
 		return fi;
 	}
 

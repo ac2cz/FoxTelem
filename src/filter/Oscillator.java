@@ -72,6 +72,10 @@ public abstract class Oscillator {
 		return frequency;
 	}
 	
+	public double getPhase() {
+		return phase;
+	}
+	
 	public double nextSample() {
 		incPhase(phaseIncrement);
 		int idx = (int)((phase * (double)TABLE_SIZE/(2 * Math.PI))%TABLE_SIZE);
