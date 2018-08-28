@@ -140,19 +140,6 @@ public class EyeData extends DataMeasure {
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int j=0; j < bucketSize; j+=1) {
 				if (eyeData !=null && a < SAMPLE_WINDOW_LENGTH && b < bucketSize) {
-//					if (offset < 0 && j < Math.abs(offset) && i == 0) // copy from previous data set
-//						buffer[a][b++] = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
-//					else if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-//						buffer[a][b++] = eyeData[i-1][j+bucketSize+offset];
-//					else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
-//						buffer[a][b++] = eyeData[i+1][bucketSize-1-j+offset];
-//					else if (j+offset >=0 && j+offset < bucketSize) // copy from the current
-//						buffer[a][b++] = eyeData[i][j+offset];
-//					else {
-//						// There is no data to copy.  Out offset is looking into the future
-//						//buffer[a][b++] = 0;
-//						//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
-//					}
 					buffer[a][b++] = getOffsetValue(i,j,offset);
 				}
 			}
