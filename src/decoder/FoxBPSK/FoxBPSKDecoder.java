@@ -28,9 +28,9 @@ public class FoxBPSKDecoder extends Decoder {
 	public static final int WORD_LENGTH = 10;
 	private int clockOffset = 0;
 	DcRemoval audioDcFilter;
-	
+
 	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
-	
+
 	RaisedCosineFilter dataFilter;
 	//RaisedCosineFilter iFilter;
 	//RaisedCosineFilter qFilter;
@@ -43,7 +43,7 @@ public class FoxBPSKDecoder extends Decoder {
 	double[] pskQAudioData;
 
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
-	
+
 	/**
 	 * This holds the stream of bits that we have not decoded. Once we have several
 	 * SYNC words, this is flushed of processed bits.
@@ -73,34 +73,34 @@ public class FoxBPSKDecoder extends Decoder {
 		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 		audioDcFilter = new DcRemoval(0.9999d);
 		filter.init(currentSampleRate, 0, 0);
-		
+
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		dataFilter.init(currentSampleRate, 3000, 128); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
-		
-//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-//		iFilter.init(48000, 1200, 128);
 
-//		qFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-//		qFilter.init(48000, 1200, 128);
-	
+		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+		//		iFilter.init(48000, 1200, 128);
+
+		//		qFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+		//		qFilter.init(48000, 1200, 128);
+
 		// 4 pole cheb at fc = 0.025 = 1200Kz at 48k.  Ch 20 Eng and Sci guide to DSP
 		double[] a = {1.504626E-05, 6.018503E-05, 9.027754E-05, 6.018503E-05, 1.504626E-05};
 		double[] b = {1, 3.725385E+00, -5.226004E+00,  3.270902E+00,  -7.705239E-01};
-		
+
 		iFilter = new IirFilter(a,b);
 		qFilter = new IirFilter(a,b);
-		
+
 		// Single pole IIR from Eng and Scientists Guide to DSP ch 19.  Higher X is amount of decay.  Higher X is slower
 		// decay. x = e^-1/d where d is number of samples for decay. x = e^-2*pi*fc
 		double x = 0.3678;//0.86 is 6 samples, 0.606 is 2 samples 0.3678 is 1 sample, 0.1353 is 0.5 samples
 		double[] a2 = {1-x};
 		double[] b2 = {1, x};
-		
+
 		loopFilter = new IirFilter(a2,b2);
-		
-	//	loopFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-	//	loopFilter.init(48000, 50, 32); // this filter should not contribute to lock.  Should be far outside the closed loop response.
-		
+
+		//	loopFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+		//	loopFilter.init(48000, 50, 32); // this filter should not contribute to lock.  Should be far outside the closed loop response.
+
 		pskAudioData = new double[BUFFER_SIZE];
 		pskQAudioData = new double[BUFFER_SIZE];
 	}
@@ -113,7 +113,7 @@ public class FoxBPSKDecoder extends Decoder {
 	public double[] getBasebandData() {
 		return pskAudioData;
 	}
-	
+
 	public double[] getBasebandQData() {
 		return pskQAudioData;
 	}
@@ -123,7 +123,7 @@ public class FoxBPSKDecoder extends Decoder {
 	 * 
 	 */
 	double gain = 1.0;
-	
+
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double error;  // accumulation of the error over a buffer
@@ -131,124 +131,162 @@ public class FoxBPSKDecoder extends Decoder {
 	boolean lastBit = false;
 	double freq = 1200.0d;
 	double lastPhase = 0d;
-	
-	int bitPosition = 0; // which sample are we at in the bit.  Nominally 48000/1200 = 40 samples per bit
-	int bitLength = 40; // this is the same as the bucketSize initially, but we vary it
-	int bitNumber = 0; // for eye diagram only
-	
+
+	// Kep track of where we are in the bit for sampling
+//	int bitNumber = 0; // for eye diagram only
+	int bitPosition = 0;
+	int offset = 0;
+	double YnMinus2Sample = 0;
+	int YnSamplePoint = 20;
+	int YnMinus1SamplePoint = 0;
+	double YnSample = 0;
+	double YnMinus1Sample;
+
+	private void shiftSamplePoints(double error) {
+		if (error < 0) { // timing is early.  Sample later
+			bitPosition = bitPosition + 1;
+			if (bitPosition == bucketSize)
+				bitPosition = 0;
+		} else { // timing is late, sample earlier
+			bitPosition = bitPosition - 1;
+			if (bitPosition < 0)
+				bitPosition = bucketSize-1;
+		}
+	}
+	private void shiftSamplePointsOLD(double error) {
+		if (error < 0) { // timing is early.  Sample later
+			YnSamplePoint = YnSamplePoint + 1;
+			if (YnSamplePoint == bucketSize)
+				YnSamplePoint = 0;
+			YnMinus1SamplePoint = YnMinus1SamplePoint + 1;
+			if (YnMinus1SamplePoint == bucketSize)
+				YnMinus1SamplePoint = 0;
+		} else { // timing is late, sample earlier
+			YnSamplePoint = YnSamplePoint - 1;
+			if (YnSamplePoint < 0)
+				YnSamplePoint = bucketSize-1;
+			YnMinus1SamplePoint = YnMinus1SamplePoint - 1;			
+			if (YnMinus1SamplePoint < 0)
+				YnMinus1SamplePoint = bucketSize-1;
+		}
+	}
+
 	protected void sampleBuckets() {
 		long maxValue = 0;
 		long minValue = 0;
 		long DESIRED_RANGE =60000;
-//		bitNumber = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			double averageValue = 0;
-			int averageCount = 0;
-//			bitPosition = 0;
 			for (int s=0; s < bucketSize; s++) {
 				double value = dataValues[i][s]/ 32768.0;
-//				value = audioDcFilter.filter(value);		
+				//				value = audioDcFilter.filter(value);		
 				value = value*gain;
 				double psk = costasLoop(value, value, i);
 				int eyeValue = (int)(-1*psk*32768.0); 
 				if (eyeValue > maxValue) maxValue = eyeValue;
 				if (eyeValue < minValue) minValue = eyeValue;
-//				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
-				pskAudioData[i*bucketSize+s] = psk; //psk*gain;	
-//				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
-				pskQAudioData[i*bucketSize+s] = c.geti();	
-				if (bitPosition < bucketSize) {// we can plot it
-//					eyeData.setData(bitNumber,bitPosition,(int) (c.geti()*32768.0));
-					eyeData.setData(bitNumber,bitPosition,eyeValue);
-//					eyeData.setData(i,s,eyeValue);
-//					eyeData.setData(i,s,(int) (c.geti()*32768.0));
-//					System.out.println("S:"+s+" Pos:"+bitPosition);
-				}
-				if (bitPosition > (bitLength/2-1) && bitPosition < (bitLength/2+1)) { // middle 4-5 bits averaged as the sample
-				//if (s == bucketSize/2) {
-					averageValue += psk;
-					averageCount++;
-				}
+
 				loopError = beta*error + alpha*error; //loopFilter.filterDouble(error); // /(double)(bucketSize);
-				
-//				freq = freq + beta*loopError + alpha*loopError;
+
+				//				freq = freq + beta*loopError + alpha*loopError;
 				if (freq > 2300) freq = 2300;
 				if (freq < -2300) freq = -2300;
 				nco.changePhase(alpha*error);
 				freq = freq + beta*error;
 				nco.setFrequency(freq);
-				bitPosition++;
-				double currentPhase = nco.getPhase();
-//				System.out.println("Ph:"+currentPhase);
-				if (currentPhase < lastPhase && lastPhase-currentPhase > 1.5*Math.PI) {
-//					// we wrapped around the NCO Cos Waveform
-////					System.out.println("WRAP");
-					bitLength = bitPosition;
-////					System.out.println("Len:"+bitLength);
-					bitPosition = 0;
-					bitNumber++;
-					if (bitNumber >= SAMPLE_WINDOW_LENGTH)
-						bitNumber = 0;
+
+				// Info to be plotted on the screen
+				
+				if (bitPosition == YnSamplePoint ) {
+					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
+					YnSample = psk;
+					psk = 1.5;
 				}
-				lastPhase = currentPhase;
+				if (bitPosition == YnMinus1SamplePoint ) {
+					YnMinus1Sample = psk;
+					//psk = -1.5;
+				}
+
+				pskAudioData[i*bucketSize+s] = psk; 
+//				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
+				pskQAudioData[i*bucketSize+s] = c.geti();	
+//				eyeData.setData(bitNumber,bitPosition,eyeValue);
+				eyeData.setData(i,s,eyeValue);
+				bitPosition++;
+				if (bitPosition == bucketSize)
+					bitPosition = 0;
 				
 			}
-//			System.out.println("END BUCKET");
-//			bitNumber++;
-			
-			averageValue = averageValue / (double)averageCount;
-			boolean thisBit = false;
-			if (averageValue > 0) {
-				thisBit = true;
-			}
-//			int sign = thisBit ? 1 : -1;
-			
-			int offset = recoverClockOffset();
+			//			System.out.println("END BUCKET");
+
+			///// HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
+			// Gardner Error calculation
+			// error = (Yn -Yn-2)*Yn-1
+
+			double clockError = (YnSample - YnMinus2Sample) * YnMinus1Sample;
+			System.err.print("end: " + bitPosition + " ");
+			System.err.print(YnSamplePoint + ":" +YnMinus1SamplePoint + " (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
+
+	//		shiftSamplePoints(clockError);
+	//		bitPosition = bitPosition + 1;
+			double errThreshold = 0.1;
+			if (error < -1*errThreshold)
+				bitPosition = bitPosition + 1;
+			else if (error > errThreshold) // sample is late because error is positive
+				bitPosition = bitPosition - 1;
+			if (bitPosition < 0) bitPosition = bucketSize-1;
+			if (bitPosition == bucketSize) bitPosition = 0;
+			YnMinus2Sample = YnMinus1Sample;
 			offset = 0;
-			
+
+			boolean thisBit = false;
+			if (YnSample > 0) {
+				thisBit = true;
+				System.err.println(" Bit = " + thisBit);
+			} else
+				System.err.println(" Bit = " + thisBit);
+			//			int sign = thisBit ? 1 : -1;
+
 			if (thisBit == lastBit)
 				middleSample[i] = true;
 			else // phase change so a zero
 				middleSample[i] = false;
 			lastBit = thisBit;
 			bitStream.addBit(middleSample[i]);
-			
+
 			if (middleSample[i] == false)
 				eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
 			else
 				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
-				
-			
+
 		}
-			
+
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-//		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-		
-		int offset = recoverClockOffset();
-//		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
+		//		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
+
+		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
 	}
 
 	public void incFreq () {
 		freq = freq + 1d;
-//		nco.changePhase(10*alpha);
+		//		nco.changePhase(10*alpha);
 		//nco.setPhase(0, freq); 
-		}
+	}
 	public void incMiliFreq () {
-			freq = freq + 0.01d;
-//			nco.changePhase(alpha);
+		freq = freq + 0.01d;
+		//			nco.changePhase(alpha);
 		//nco.setPhase(alpha, freq); 
 	}
 
 	public void decFreq () {
 		freq = freq - 1; 
-//		nco.changePhase(-10*alpha);
+		//		nco.changePhase(-10*alpha);
 		//nco.setPhase(0, freq); 
-		}
+	}
 	public void decMiliFreq () {
 		freq = freq - 0.01d;
-//		nco.changePhase(-1*alpha);
-	//	nco.setPhase(-alpha, freq); 
+		//		nco.changePhase(-1*alpha);
+		//	nco.setPhase(-alpha, freq); 
 	}
 
 	public static double average (double avg, double new_sample, int N) {
@@ -339,13 +377,13 @@ public class FoxBPSKDecoder extends Decoder {
 	}
 
 
-//	HilbertTransform ht = new HilbertTransform(9600, 255);
-//	Delay delay = new Delay((255-1)/2);
-	
+	//	HilbertTransform ht = new HilbertTransform(9600, 255);
+	//	Delay delay = new Delay((255-1)/2);
+
 	double iMix, qMix;
-	
+
 	double fi = 0.0, fq = 0.0;
-	
+
 	public double getError() { return loopError; }
 	public double getFrequency() { return nco.getFrequency(); }
 	Complex c;
@@ -359,7 +397,7 @@ public class FoxBPSKDecoder extends Decoder {
 		// Filter
 		fi = iFilter.filterDouble(iMix);
 		fq = qFilter.filterDouble(qMix);
-		
+
 		// Phase error
 		error = (fi*fq);
 		error = loopFilter.filterDouble(error);
