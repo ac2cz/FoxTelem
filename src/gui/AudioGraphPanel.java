@@ -230,7 +230,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			if (stepSize <= 0) stepSize = 1;
 			int bucketPositionCount = 0;
 			int bitCount = 0;
-			for (int i=0; i < audioData.length-stepSize; i+=stepSize*2) {
+			for (int i=0; i < audioData.length-stepSize; i+=stepSize) { //// TODO stepSize was 2.  That is wrong for PSK. Not stereo.  Is it ever right?
 				
 				// data is stereo, but we want to decimate before display
 
@@ -246,11 +246,11 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					// If we are on a bucket boundry, draw a line and label the bit
 					// We have foxDecoder.SAMPLE_WINDOW_LENGTH buckets
 					// The audio data has decoder.bucketSize samples per bucket
-					bucketPositionCount +=stepSize*2;
+					bucketPositionCount +=stepSize;
 					if (bucketPositionCount >= foxDecoder.getBucketSize()) {
 						g2.setColor(Color.BLACK);
 						g2.drawLine(x, 0, x, graphHeight);
-						g.drawString(""+((Config.windowsProcessed-1)*foxDecoder.getSampleWindowLength()+bitCount), x-40, graphHeight-20 );
+						g.drawString(""+((Config.windowsProcessed-1)*foxDecoder.getSampleWindowLength()+bitCount), x-25, graphHeight-20 );
 						bucketPositionCount = 0;
 						bitCount++;
 					}
@@ -267,8 +267,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lasty = (int)y;
 
 				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length) {
-					g.drawString("Loop Error: " + Math.round(((FoxBPSKDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, 14*Config.graphAxisFontSize  );
-					g.drawString("Freq: " + Math.round(((FoxBPSKDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, 13*Config.graphAxisFontSize  );
+					g.drawString("Costas Error: " + Math.round(((FoxBPSKDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+					g.drawString("Freq: " + Math.round(((FoxBPSKDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					if (pskAudioData != null && pskAudioData.length > 0) {
 					g2.setColor(Color.BLUE);
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;

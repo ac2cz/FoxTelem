@@ -44,6 +44,8 @@ public class EyeData extends DataMeasure {
     public static final int LOW = 1;
     public static final int BIT = 2;
     
+    public int clockOffset = 0; // store the offset so we can print it for debug
+    
     public EyeData(int l, int b) {
     	MEASURES = 3;
     	AVERAGE_PERIOD = 400; // 350ms to measure a window of 70 bits. 1000 = 1 sec average time
@@ -131,6 +133,7 @@ public class EyeData extends DataMeasure {
 	 * However, we sampled at 9600, vs 48000.  So we have 4 identical samples in a row.
 	 */
     public void offsetEyeData(int offset) {
+    	clockOffset = offset;
     	int[][] buffer = new int[SAMPLE_WINDOW_LENGTH][];
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			buffer[i] = new int[bucketSize];

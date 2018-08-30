@@ -26,7 +26,9 @@ import filter.WindowedSincFilter;
 public class FoxBPSKDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
-	private int clockOffset = 0;
+	private double sumClockError = 0;
+	private int samplePoint = 20;
+	
 	DcRemoval audioDcFilter;
 
 	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
@@ -62,9 +64,9 @@ public class FoxBPSKDecoder extends Decoder {
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
-
+		samplePoint = bucketSize/2;
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
-		SAMPLE_WIDTH = 4;
+		SAMPLE_WIDTH = 1;
 		if (SAMPLE_WIDTH < 1) SAMPLE_WIDTH = 1;
 		CLOCK_TOLERANCE = bucketSize/2;
 		CLOCK_REOVERY_ZERO_THRESHOLD = 20;
@@ -75,7 +77,7 @@ public class FoxBPSKDecoder extends Decoder {
 		filter.init(currentSampleRate, 0, 0);
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 3000, 4); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, 3000, 512); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);
@@ -138,19 +140,19 @@ public class FoxBPSKDecoder extends Decoder {
 	double YnMinus2Sample = 0;
 	double YnSample = 0;
 	double YnMinus1Sample;
-
+	boolean delayClock = false;
 	
 	protected void sampleBuckets() {
 		long maxValue = 0;
 		long minValue = 0;
 		long DESIRED_RANGE =60000;
-		double clockErrorSum = 0;
+		sumClockError = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
 				double value = dataValues[i][s]/ 32768.0;
-				//				value = audioDcFilter.filter(value);		
 				value = value*gain;
 				double psk = costasLoop(value, value, i);
+				//psk = audioDcFilter.filter(psk);		
 				int eyeValue = (int)(-1*psk*32768.0); 
 				if (eyeValue > maxValue) maxValue = eyeValue;
 				if (eyeValue < minValue) minValue = eyeValue;
@@ -164,67 +166,91 @@ public class FoxBPSKDecoder extends Decoder {
 				freq = freq + beta*error;
 				nco.setFrequency(freq);
 
-				// Info to be plotted on the screen
-				
-				if (bitPosition == bucketSize/2 ) {
-//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
-					YnMinus2Sample = YnMinus1Sample;
-					YnMinus1Sample = YnSample;
-					YnSample = psk;
-					psk = 1.5;
+				if (bitPosition == 0 ) {
+					YnMinus1Sample = psk;
+				}
+
+				if (bitPosition == samplePoint  ) {
+					if (delayClock) // we already sampled this
+						delayClock = false;
+					else {
+						// ALL END OF BIT LOGIC TO DO WITH BIT CHOICE MUST GO HERE TO BE IN SYNC
+
+						//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
+						YnMinus2Sample = YnSample;
+						YnSample = psk;
+
+						boolean thisPhase = false;
+						boolean thisSample = false;
+						if (YnSample > 0) {
+							thisPhase = true;
+						} else {
+						}
+
+						// If this bit looks like the last bit then we did not change phase and we have a 1
+						if (thisPhase == lastPhase)
+							thisSample = true;
+						else // phase change so a zero
+							thisSample = false;
+						lastPhase = thisPhase;
+						bitStream.addBit(thisSample);
+
+						if (Config.debugValues)
+							psk = psk*1.5;
+						//eyeValue = (int) (psk*-32768);
+						//HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
+						// Gardner Error calculation
+						// error = (Yn -Yn-2)*Yn-1
+						double clockError = (YnSample - YnMinus2Sample) * YnMinus1Sample;
+						sumClockError += clockError;
+						// uncomment if clock calc per bit
+						double errThreshold = 0.1;
+						if (clockError < -1*errThreshold) {
+							delayClock = true;
+							bitPosition = bitPosition - 1;
+						} else if (clockError > errThreshold) // sample is late because error is positive, so sample earlier by increasing bitPosition
+							bitPosition = bitPosition + 1;
+
+						if (thisPhase == false)
+							eyeData.setLow((int) (YnSample*32768));
+//							eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
+						else
+							eyeData.setHigh((int) (YnSample*32768));
+//							eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
+
+						//					System.err.print("End bp: " + bitPosition + " ");
+						//					System.err.println(" (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
+					}
 				}
 				
 				pskAudioData[i*bucketSize+s] = psk; 
 				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
 //				pskQAudioData[i*bucketSize+s] = c.geti();	// this shows the waveform we mixed with
-//				eyeData.setData(bitNumber,bitPosition,eyeValue);
 				eyeData.setData(i,s,eyeValue);
+				
 				bitPosition++;
 				if (bitPosition == bucketSize)
 					bitPosition = 0;
 				
 			}
-			//HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
-			// Gardner Error calculation
-			// error = (Yn -Yn-2)*Yn-1
 
-			double clockError = (YnSample - YnMinus2Sample) * YnMinus1Sample;
-			clockErrorSum += clockError;
-//			System.err.print("End bp: " + bitPosition + " ");
-//			System.err.print(" (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
 
-			double errThreshold = 0.01;
-			if (clockError < 0)
-				bitPosition = bitPosition + 1;
-			else if (clockError > 0) // sample is late because error is positive, so sample earlier by increasing bitPosition
-				bitPosition = bitPosition - 1;
-			if (bitPosition < 0) bitPosition = bucketSize-1;
-			if (bitPosition == bucketSize) bitPosition = 0;
-
-			offset = -bitPosition; 
+	//		offset = -bitPosition; // uncomment if clock calc per bit
 			
-			boolean thisPhase = false;
-			if (YnSample > 0) {
-				thisPhase = true;
-//				System.err.println(" Phase = " + thisPhase);
-			} else
-//				System.err.println(" Phase = " + thisPhase);
-			//int sign = thisBit ? 1 : -1;
-
-			// If this bit looks like the last bit then we did not change phase and we have a 1
-			if (thisPhase == lastPhase)
-				middleSample[i] = true;
-			else // phase change so a zero
-				middleSample[i] = false;
-			lastPhase = thisPhase;
-			bitStream.addBit(middleSample[i]);
-
-			if (middleSample[i] == false)
-				eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
-			else
-				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 
 		}
+		// uncomment for clock offset per window
+//		System.err.println(sumClockError);
+//		if(sumClockError > 0) 
+//			bitPosition = bitPosition + 1;
+//		else
+//			bitPosition = bitPosition - 1;
+//		if (bitPosition >= bucketSize)
+//			bitPosition = 0;
+//		if (bitPosition < 0)
+//			bitPosition = bucketSize-1;
+//		
+		offset = -bitPosition; 
 
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
@@ -269,7 +295,7 @@ public class FoxBPSKDecoder extends Decoder {
 	@Override
 	public int recoverClockOffset() {
 
-		return clockOffset;
+		return 0;//clockOffset;
 	}
 
 	protected double[] recoverClock(int factor) {

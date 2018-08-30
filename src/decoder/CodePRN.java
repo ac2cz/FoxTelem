@@ -3,10 +3,9 @@ package decoder;
 import common.Config;
 
 public class CodePRN {
-	public static final int FRAME = 0x5647 & 0x7fff;  //101011001000111
+//	public static final int FRAME = 0x5647 & 0x7fff;  //101011001000111
 	public static final int LONG_FRAME_SYNC = 0x47cd215d;//
 	public static boolean[] SHORT_FRAME_PRN = {true,false,true,false,true,true,false,false,true,false,false,false,true,true,true};
-	static boolean[] NOT_FRAME_PRN = {false,true,false,true,false,false,true,true,false,true,true,true,false,false,false};
 	public static boolean[] LONG_FRAME_PRN = {true,false,false,false,true,true,true,true,true,false,false,true,true,false,true,false,
 			false,true,false,false,false,false,true,false,true,false,true,true,true,false,true};
 //	public static final int CORRELATION_THRESHOLD = 13;  // Accept the SYNC VECTOR if this many bits match 13 = 1 bit missed 11 = 2

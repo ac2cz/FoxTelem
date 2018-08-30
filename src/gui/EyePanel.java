@@ -63,6 +63,7 @@ public class EyePanel extends JPanel implements Runnable {
 	private double bitSNR;
 	private int errors;
 	private int erasures;
+	private int clockOffset;
 	//private double bitErrorRate;
 
 	EyeData eyeData;
@@ -128,6 +129,7 @@ public class EyePanel extends JPanel implements Runnable {
 					bitSNR = eyeData.bitSNR;
 					errors = eyeData.lastErrorsCount;
 					erasures = eyeData.lastErasureCount;
+					clockOffset = eyeData.clockOffset;
 				}
 			}
 			if (decoder != null && data != null ) { 
@@ -265,6 +267,8 @@ public class EyePanel extends JPanel implements Runnable {
 		//g.drawString("LOW:"+avgLow, graphWidth/2 + 10  + border, graphHeight - 30  );
 
 		g2.setColor(Color.GRAY);
+		if (Config.debugValues) 	
+			g.drawString("Clk Offset  "+clockOffset, 10  + border, 40    );
 		g.drawString("Errors  "+errors, graphWidth/2 - 70  + border, graphHeight - 10  );
 		g.drawString("Erasures  "+erasures, graphWidth/2 - 0  + border, graphHeight - 10  );
 		//g.drawString("BER:"+bitErrorRate, graphWidth/2 + 35  + border, graphHeight - 10  );
