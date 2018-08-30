@@ -60,7 +60,7 @@ public class FoxBPSKDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 10; //40;  
+		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -75,7 +75,7 @@ public class FoxBPSKDecoder extends Decoder {
 		filter.init(currentSampleRate, 0, 0);
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 3000, 128); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, 3000, 4); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);
@@ -128,53 +128,23 @@ public class FoxBPSKDecoder extends Decoder {
 	double beta = alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double error;  // accumulation of the error over a buffer
 	double loopError;
-	boolean lastBit = false;
+	boolean lastPhase = false;
 	double freq = 1200.0d;
-	double lastPhase = 0d;
 
 	// Kep track of where we are in the bit for sampling
 //	int bitNumber = 0; // for eye diagram only
 	int bitPosition = 0;
 	int offset = 0;
 	double YnMinus2Sample = 0;
-	int YnSamplePoint = 20;
-	int YnMinus1SamplePoint = 0;
 	double YnSample = 0;
 	double YnMinus1Sample;
 
-	private void shiftSamplePoints(double error) {
-		if (error < 0) { // timing is early.  Sample later
-			bitPosition = bitPosition + 1;
-			if (bitPosition == bucketSize)
-				bitPosition = 0;
-		} else { // timing is late, sample earlier
-			bitPosition = bitPosition - 1;
-			if (bitPosition < 0)
-				bitPosition = bucketSize-1;
-		}
-	}
-	private void shiftSamplePointsOLD(double error) {
-		if (error < 0) { // timing is early.  Sample later
-			YnSamplePoint = YnSamplePoint + 1;
-			if (YnSamplePoint == bucketSize)
-				YnSamplePoint = 0;
-			YnMinus1SamplePoint = YnMinus1SamplePoint + 1;
-			if (YnMinus1SamplePoint == bucketSize)
-				YnMinus1SamplePoint = 0;
-		} else { // timing is late, sample earlier
-			YnSamplePoint = YnSamplePoint - 1;
-			if (YnSamplePoint < 0)
-				YnSamplePoint = bucketSize-1;
-			YnMinus1SamplePoint = YnMinus1SamplePoint - 1;			
-			if (YnMinus1SamplePoint < 0)
-				YnMinus1SamplePoint = bucketSize-1;
-		}
-	}
-
+	
 	protected void sampleBuckets() {
 		long maxValue = 0;
 		long minValue = 0;
 		long DESIRED_RANGE =60000;
+		double clockErrorSum = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
 				double value = dataValues[i][s]/ 32768.0;
@@ -196,19 +166,17 @@ public class FoxBPSKDecoder extends Decoder {
 
 				// Info to be plotted on the screen
 				
-				if (bitPosition == YnSamplePoint ) {
-					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
+				if (bitPosition == bucketSize/2 ) {
+//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
+					YnMinus2Sample = YnMinus1Sample;
+					YnMinus1Sample = YnSample;
 					YnSample = psk;
 					psk = 1.5;
 				}
-				if (bitPosition == YnMinus1SamplePoint ) {
-					YnMinus1Sample = psk;
-					//psk = -1.5;
-				}
-
+				
 				pskAudioData[i*bucketSize+s] = psk; 
-//				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
-				pskQAudioData[i*bucketSize+s] = c.geti();	
+				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
+//				pskQAudioData[i*bucketSize+s] = c.geti();	// this shows the waveform we mixed with
 //				eyeData.setData(bitNumber,bitPosition,eyeValue);
 				eyeData.setData(i,s,eyeValue);
 				bitPosition++;
@@ -216,41 +184,39 @@ public class FoxBPSKDecoder extends Decoder {
 					bitPosition = 0;
 				
 			}
-			//			System.out.println("END BUCKET");
-
-			///// HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
+			//HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
 			// Gardner Error calculation
 			// error = (Yn -Yn-2)*Yn-1
 
 			double clockError = (YnSample - YnMinus2Sample) * YnMinus1Sample;
-			System.err.print("end: " + bitPosition + " ");
-			System.err.print(YnSamplePoint + ":" +YnMinus1SamplePoint + " (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
+			clockErrorSum += clockError;
+//			System.err.print("End bp: " + bitPosition + " ");
+//			System.err.print(" (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
 
-	//		shiftSamplePoints(clockError);
-	//		bitPosition = bitPosition + 1;
-			double errThreshold = 0.1;
-			if (error < -1*errThreshold)
+			double errThreshold = 0.01;
+			if (clockError < 0)
 				bitPosition = bitPosition + 1;
-			else if (error > errThreshold) // sample is late because error is positive
+			else if (clockError > 0) // sample is late because error is positive, so sample earlier by increasing bitPosition
 				bitPosition = bitPosition - 1;
 			if (bitPosition < 0) bitPosition = bucketSize-1;
 			if (bitPosition == bucketSize) bitPosition = 0;
-			YnMinus2Sample = YnMinus1Sample;
-			offset = 0;
 
-			boolean thisBit = false;
+			offset = -bitPosition; 
+			
+			boolean thisPhase = false;
 			if (YnSample > 0) {
-				thisBit = true;
-				System.err.println(" Bit = " + thisBit);
+				thisPhase = true;
+//				System.err.println(" Phase = " + thisPhase);
 			} else
-				System.err.println(" Bit = " + thisBit);
-			//			int sign = thisBit ? 1 : -1;
+//				System.err.println(" Phase = " + thisPhase);
+			//int sign = thisBit ? 1 : -1;
 
-			if (thisBit == lastBit)
+			// If this bit looks like the last bit then we did not change phase and we have a 1
+			if (thisPhase == lastPhase)
 				middleSample[i] = true;
 			else // phase change so a zero
 				middleSample[i] = false;
-			lastBit = thisBit;
+			lastPhase = thisPhase;
 			bitStream.addBit(middleSample[i]);
 
 			if (middleSample[i] == false)
