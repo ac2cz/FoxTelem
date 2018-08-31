@@ -77,7 +77,7 @@ public class FoxBPSKDecoder extends Decoder {
 		filter.init(currentSampleRate, 0, 0);
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 3000, 512); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, 3000, 256); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);
@@ -127,7 +127,7 @@ public class FoxBPSKDecoder extends Decoder {
 	double gain = 1.0;
 
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
-	double beta = alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
+	double beta = 64*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double error;  // accumulation of the error over a buffer
 	double loopError;
 	boolean lastPhase = false;
@@ -160,8 +160,8 @@ public class FoxBPSKDecoder extends Decoder {
 				loopError = beta*error + alpha*error; //loopFilter.filterDouble(error); // /(double)(bucketSize);
 
 				//				freq = freq + beta*loopError + alpha*loopError;
-				if (freq > 2300) freq = 2300;
-				if (freq < -2300) freq = -2300;
+				if (freq > 1600) freq = 1600;
+				if (freq < 800) freq = 800;
 				nco.changePhase(alpha*error);
 				freq = freq + beta*error;
 				nco.setFrequency(freq);
