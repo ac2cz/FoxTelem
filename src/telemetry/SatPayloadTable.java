@@ -500,7 +500,7 @@ public class SatPayloadTable {
 			//return rtRecords.add(f);
 			return true;
 		} else {
-			if (Config.debugFrames) Log.println("DUPLICATE RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
+			if (Config.debugFieldValues) Log.println("DUPLICATE RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 		}
 		return false;
 	}

@@ -64,6 +64,17 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 	}
 	
 	@Override
+	public void addNext8Bits(byte b) {
+		if (numberBytesAdded <1)
+			super.addNext8Bits(b);  // the flag byte
+		else if (numberBytesAdded <72) {
+			addToCanPackets(b);
+			super.addNext8Bits(b);
+		} else if (numberBytesAdded < 78)
+			super.addNext8Bits(b); // deal with timestamp		
+	}
+	
+	@Override
 	public boolean isValid() {
 		// TODO Auto-generated method stub
 		return false;
