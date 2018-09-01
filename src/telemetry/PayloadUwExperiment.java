@@ -79,12 +79,15 @@ public class PayloadUwExperiment extends FoxFramePart {
 	 */
 	int debugCount = 0;
 	protected void addToCanPackets(byte b) {
-		if (Config.debugBytes) {
-			String debug = (Decoder.plainhex(b));
-			debugCount++;
-			Log.print(debug);
-			if (debugCount % 80 == 0) Log.println("");;
-		}
+//		if (Config.debugBytes) {
+//			String debug = (Decoder.plainhex(b));
+//			debugCount++;
+//			Log.print(debug);
+//			if (debugCount % 40 == 0) {
+//				Log.println("");
+//				debugCount = 0;
+//			}
+//		}
 		if (canPacket == null) {
 			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			canPacket.captureHeaderInfo(id, uptime, resets);
@@ -100,14 +103,14 @@ public class PayloadUwExperiment extends FoxFramePart {
 		}
 	}
 	
+	@Override
 	public void addNext8Bits(byte b) {
 		if (numberBytesAdded <1)
 			super.addNext8Bits(b);  // the flag byte
-		else if (numberBytesAdded <72) {
+		else  {
 			addToCanPackets(b);
 			super.addNext8Bits(b);
-		} else if (numberBytesAdded < 78)
-			super.addNext8Bits(b); // deal with timestamp		
+		}	
 	}
 
 	@Override
