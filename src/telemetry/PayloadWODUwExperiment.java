@@ -1,5 +1,6 @@
 package telemetry;
 
+import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
@@ -9,28 +10,38 @@ import decoder.Decoder;
 import decoder.FoxDecoder;
 import telemetry.uw.CanPacket;
 
-public class PayloadWODUwExperiment extends PayloadUwExperiment {
+public class PayloadWODUwExperiment extends FoxFramePart {
+	public ArrayList<CanPacket> canPackets; 
+	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
+	private int startPacketSerial = 0;
 
-	public static final int WOD_RESETS_FIELD = 1;
-	public static final int WOD_UPTIME_FIELD = 2;
+//	public static final int WOD_RESETS_FIELD = 1;
+//	public static final int WOD_UPTIME_FIELD = 2;
 	public static final String WOD_RESETS = "WODTimestampReset";
 	public static final String WOD_UPTIME = "WODTimestampUptime";
-	public static final int CRC_ERROR_FIELD = 3;
+//	public static final int CRC_ERROR_FIELD = 3;
 	public static final String CRC_ERROR = "crcError";
-	public static final int PAD2_FIELD = 4;
-	public static final String PAD2 = "pad2";
+//	public static final int PAD2_FIELD = 4;
+//	public static final String PAD2 = "pad2";
 		
 	public PayloadWODUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
-		super(lay,id, uptime, resets);
+		super(TYPE_UW_WOD_EXPERIMENT,lay);
+		canPackets = new ArrayList<CanPacket>();
+		captureHeaderInfo(id, uptime, resets);
 	}
 
 	public PayloadWODUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);	
+		super(id, resets, uptime, TYPE_UW_WOD_EXPERIMENT, date, st, lay);
+		canPackets = new ArrayList<CanPacket>();
 	}
 	
 	@Override
 	protected void init() {
-		type = TYPE_UW_WOD_EXPERIMENT;
+		// nothing extra to init here
+	}
+	
+	public void setStartSerial(int serial) {
+		startPacketSerial = serial;
 	}
 	
 	/**
@@ -42,15 +53,10 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 	 */
 	int debugCount = 0;
 	protected void addToCanPackets(byte b) {
-		if (Config.debugBytes) {
-			String debug = (Decoder.plainhex(b));
-			debugCount++;
-			Log.print(debug);
-			if (debugCount % 80 == 0) Log.println("");;
-		}
 		if (canPacket == null) {
 			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
 			canPacket.captureHeaderInfo(id, uptime, resets);
+			// Set the type here as it does not need to span across payloads.  The uptime is unique for each WOD payload.
 			canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET*100);
 		}
 		if (canPacket.hasEndOfCanPacketsId()) return;
@@ -70,8 +76,8 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		else if (numberBytesAdded <72) {
 			addToCanPackets(b);
 			super.addNext8Bits(b);
-		} else if (numberBytesAdded < 78)
-			super.addNext8Bits(b); // deal with timestamp		
+		} else
+			super.addNext8Bits(b); // deal with timestamp
 	}
 	
 	@Override
@@ -87,15 +93,13 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 			return false;
 		int j = 0;
 		for (CanPacket p : canPackets) {
-			int p_type = p.getType();
-			p_type = p_type * 100 + serial + j++;
-			p.setType(p_type);
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
 		}
 		return true;
 
 	}
+	
 	
 	@Override
 	public void copyBitsToFields() {
@@ -121,14 +125,8 @@ public class PayloadWODUwExperiment extends PayloadUwExperiment {
 		return s;
 	}
 	
-	/**
-	 * Load this framePart from a file, which has been opened by a calling method.  The string tokenizer contains a 
-	 * set of tokens that represent the raw values to be loaded into the fields.
-	 * The framePart header has already been loaded by the calling routine, which had to work out the type first
-	 * @param st
-	 */
-	protected void load(StringTokenizer st) {
-//		satAltitude = Double.valueOf(st.nextToken()).doubleValue();
-		super.load(st);
+	public byte[][] getCANPacketBytes() {
+		return PayloadUwExperiment.getCANPacketBytes(canPackets);
 	}
+
 }

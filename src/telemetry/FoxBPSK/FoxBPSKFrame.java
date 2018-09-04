@@ -91,7 +91,15 @@ import telemetry.uw.CanPacket;
 		
 		public FoxBPSKHeader getHeader() { return (FoxBPSKHeader)header; }
 		
+		int debugCount = 0;
 		public void addNext8Bits(byte b) {
+			if (Config.debugBytes) {
+				String debug = (Decoder.plainhex(b));
+				debugCount++;
+				Log.print(debug);
+				if (debugCount % 40 == 0) Log.println("");;
+			}
+
 			if (corrupt) return;
 			if (numberBytesAdded < MAX_HEADER_SIZE) {
 				if (header == null)
@@ -124,6 +132,7 @@ import telemetry.uw.CanPacket;
 					corrupt = true;
 					return;
 				}
+				payload[0].addNext8Bits(b); // add the first byte to the first payload
 			} else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
 				payload[0].addNext8Bits(b);
 			} else if (canPacketFrame)
@@ -143,12 +152,14 @@ import telemetry.uw.CanPacket;
 			else
 				Log.println("ERROR: attempt to add byte past end of frame");
 
+			if (Config.debugBytes) {
+				if ((numberBytesAdded - MAX_HEADER_SIZE) % PAYLOAD_SIZE == 0)
+					Log.println("");
+			}
 			bytes[numberBytesAdded] = b;
 			numberBytesAdded++;
 		}
 		
-		
-
 		/**
 		 *  Here is how the frames are defined in the IHU for Husky:
 		 *  
@@ -182,7 +193,7 @@ import telemetry.uw.CanPacket;
             //9 HEALTH_CAN_MINMAX -- 1 HK, 1 Min, 1 Max, 1 CAN, 1 WOD HK, 1 WOD CAN
             {HK_PAYLOAD1, MIN_VALS_PAYLOAD3, MAX_VALS_PAYLOAD2,WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6},
 
-            //10 HEALTH_CAN -- 1 KH, 3 CAN, 1 WOD CAN, 1 WOD HK
+            //10 HEALTH_CAN -- 1 HK, 3 CAN, 1 WOD CAN, 1 WOD HK
             {HK_PAYLOAD1, HEALTH_CAN_PAYLOAD4, HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6},
 		 *
 		 * @param type
@@ -310,9 +321,12 @@ import telemetry.uw.CanPacket;
 			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
 					payload[i].copyBitsToFields();
-					if (payload[i] instanceof PayloadUwExperiment) { // Also saves WOD UW Payloads
+					if (payload[i] instanceof PayloadUwExperiment) { 
 						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore, serial);
 						serial = serial + ((PayloadUwExperiment)payload[i]).canPackets.size();
+					} else if (payload[i] instanceof PayloadWODUwExperiment) { 
+						((PayloadWODUwExperiment)payload[i]).savePayloads(payloadStore, serial);
+						serial = serial + ((PayloadWODUwExperiment)payload[i]).canPackets.size();
 					} else
 						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
 							return false;

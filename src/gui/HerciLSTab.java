@@ -57,7 +57,7 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
+public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	private static final String DECODED = "Housekeeping Payloads Decoded: ";

@@ -45,7 +45,7 @@ import telemetry.SatPayloadStore;
  *
  */
 @SuppressWarnings("serial")
-public abstract class RadiationTab extends ModuleTab implements MouseListener {
+public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 
 	JPanel topPanel;
 	JPanel centerPanel;
@@ -59,7 +59,7 @@ public abstract class RadiationTab extends ModuleTab implements MouseListener {
 	int splitPaneHeight = 0;
 	JSplitPane splitPane;
 	
-	RadiationTab() {
+	ExperimentTab() {
 		setLayout(new BorderLayout(0, 0));
 		
 		topPanel = new JPanel();
