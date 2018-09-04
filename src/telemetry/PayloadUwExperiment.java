@@ -40,30 +40,23 @@ import telemetry.uw.PcanPacket;
  *
  */
 public class PayloadUwExperiment extends FoxFramePart {	
-	private int flagByte = 0;
-	
-	public static final int FLAG_FIELD = 0;
-	public static final String FLAG = "Flag";
-	
 	public ArrayList<CanPacket> canPackets; 
 	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
 	private int startPacketSerial = 0;
 	
 	public PayloadUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_UW_EXPERIMENT,lay);
-		//MAX_BYTES = 1;
 		canPackets = new ArrayList<CanPacket>();
 		captureHeaderInfo(id, uptime, resets);
 	}
 	
 	public PayloadUwExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, TYPE_UW_EXPERIMENT, date, st, lay);
-		//MAX_BYTES = 1;
 		canPackets = new ArrayList<CanPacket>();
 	}
 	
 	protected void init() { 
-		//rawBits = new boolean[8];	
+		// nothing extra to init here
 	}
 	
 	public void setStartSerial(int serial) {
@@ -109,7 +102,6 @@ public class PayloadUwExperiment extends FoxFramePart {
 			super.addNext8Bits(b);  // the flag byte
 		else  {
 			addToCanPackets(b);
-			super.addNext8Bits(b);
 		}	
 	}
 
@@ -142,6 +134,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 			return false;
 		int j = 0;
 		for (CanPacket p : canPackets) {
+			// Set the type here as it needs to span across payloads.  The uptime is NOT unique for multiple payloads in same Frame.
 			int p_type = p.getType();
 			p_type = p_type * 100 + serial + j++;
 			p.setType(p_type);
@@ -152,11 +145,15 @@ public class PayloadUwExperiment extends FoxFramePart {
 
 	}
 	
+	public byte[][] getCANPacketBytes() {
+		return getCANPacketBytes(canPackets);
+	}
+	
 	/**
 	 * Get all the Can Packets Bytes in this Payload as an array of payload byte arrays
 	 * @return
 	 */
-	public byte[][] getCANPacketBytes() {
+	static public byte[][] getCANPacketBytes(ArrayList<CanPacket> canPackets) {
 		byte[][] buffers = new byte[canPackets.size()][];
 		int i=0;
 		for (CanPacket p : canPackets) {
@@ -168,7 +165,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		return buffers;
 	}
 	
-	byte[] concatenateByteArrays(byte[] a, byte[] b) {
+	static byte[] concatenateByteArrays(byte[] a, byte[] b) {
 	    byte[] result = new byte[a.length + b.length]; 
 	    System.arraycopy(a, 0, result, 0, a.length); 
 	    System.arraycopy(b, 0, result, a.length, b.length); 
