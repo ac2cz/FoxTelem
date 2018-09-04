@@ -60,7 +60,7 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class UwExperimentTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
+public class UwExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String UWTAB = "UWEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";

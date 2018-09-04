@@ -56,7 +56,7 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, MouseListener {
+public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener, MouseListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 226;

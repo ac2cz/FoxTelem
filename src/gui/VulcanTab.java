@@ -62,7 +62,7 @@ import common.FoxSpacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class VulcanTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
+public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String VULCANTAB = "VULCANTAB";
 	private static final String DECODED = "Radiation Payloads Decoded: ";
