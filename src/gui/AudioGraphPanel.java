@@ -235,7 +235,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				// data is stereo, but we want to decimate before display
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
-				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length)
+				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE && pskAudioData != null && i < pskAudioData.length)
 					g2.setColor(Color.BLACK);
 				else
 					g2.setColor(Color.BLUE);
@@ -257,7 +257,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				}
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
-				if (foxDecoder instanceof FoxBPSKDecoder)
+				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE)
 					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
 				else
 					y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
@@ -266,7 +266,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if (foxDecoder instanceof FoxBPSKDecoder && pskAudioData != null && i < pskAudioData.length) {
+				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE && pskAudioData != null && i < pskAudioData.length) {
 					g.drawString("Costas Error: " + Math.round(((FoxBPSKDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 					g.drawString("Freq: " + Math.round(((FoxBPSKDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					if (pskAudioData != null && pskAudioData.length > 0) {
@@ -297,7 +297,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		if (foxDecoder instanceof FoxBPSKDecoder) {
+		if (foxDecoder instanceof FoxBPSKDecoder  && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE) {
 			g2.drawLine(0, graphHeight/4+border, graphWidth, graphHeight/4+border);
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
 		} else

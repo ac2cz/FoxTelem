@@ -6,11 +6,14 @@ import org.jtransforms.fft.DoubleFFT_1D;
 
 import common.Config;
 import common.Log;
+import filter.Complex;
+import filter.ComplexOscillator;
 import filter.DcRemoval;
 import filter.Filter;
 import filter.RaisedCosineFilter;
 import filter.Delay;
 import filter.HilbertTransform;
+import filter.IirFilter;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -41,6 +44,8 @@ public class SourceIQ extends SourceAudio {
 	public int IQ_SAMPLE_RATE = 0;
 
 	public static int FFT_SAMPLES = 4096;
+	
+	private int selectedBin = 192/4;
 
 	/* The number of samples to read from the IQ source each time we request data */
 	public static int samplesToRead = 3840;
@@ -169,8 +174,32 @@ public class SourceIQ extends SourceAudio {
 	public int getCenterFreqkHz() { return centerFreq; }
 	public void setCenterFreqkHz(int freq) { 
 		centerFreq = freq; 
-		long frequencyOffset = getFrequencyFromBin(Config.selectedBin);
-		frequencyOffset = frequencyOffset-centerFreq*1000;
+	}
+	
+	public int getSelectedBin() { return selectedBin; }
+	public void setSelectedBin(int bin) { 
+		selectedBin = bin; 
+		Config.selectedBin = bin;
+		freq = getOffsetFrequencyFromBin(selectedBin); // costas freq
+		}
+	
+	public long getSelectedFrequency() {
+		return getFrequencyFromBin(selectedBin);
+	}
+	
+	/**
+	 * Get the offset from the center freq given a bin
+	 * @param bin
+	 * @return
+	 */
+	public long getOffsetFrequencyFromBin(int bin) {
+		long freq = 0;
+		if (bin < FFT_SAMPLES/2) {
+			freq = (long)(bin*binBandwidth);
+		} else {
+			freq = (long)( -1* (FFT_SAMPLES-bin)*binBandwidth);
+		}
+		return freq;
 	}
 	
 	public long getFrequencyFromBin(int bin) {
@@ -202,7 +231,24 @@ public class SourceIQ extends SourceAudio {
 	public void setBinFromFrequencyHz(long freq) {
 		
 	}
+	
+	public int incSelectedBin() {
+		int selectedBin = getSelectedBin();
+        selectedBin = selectedBin-1;
+        if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+        if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
+        setSelectedBin(selectedBin);
+        return selectedBin;
+	}
 
+	public int decSelectedBin() {
+		int selectedBin = getSelectedBin();
+        selectedBin = selectedBin+1;
+        if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+        if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
+        setSelectedBin(selectedBin);
+        return selectedBin;
+	}
 	
 	public double[] getPowerSpectralDensity() { 
 		if (fftDataFresh==false) {
@@ -330,13 +376,37 @@ public class SourceIQ extends SourceAudio {
 */
 		decimateFilter.setDecimationFactor(decimationFactor);
 		decimateFilter2.setDecimationFactor(decimationFactor);
-
-
 		
 		audioDcFilter = new DcRemoval(0.9999d);
 
 		iDcFilter = new DcRemoval(0.9999d);
 		qDcFilter = new DcRemoval(0.9999d);
+		
+		setSelectedBin(Config.selectedBin);
+		// Costas Loop
+		nco = new ComplexOscillator(IQ_SAMPLE_RATE, (int) freq);
+		idataFilter = new RaisedCosineFilter(audioFormat, 1); // filter a single double
+		idataFilter.init(IQ_SAMPLE_RATE, IQ_SAMPLE_RATE/4, 32); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
+		qdataFilter = new RaisedCosineFilter(audioFormat, 1); // filter a single double
+		qdataFilter.init(IQ_SAMPLE_RATE, IQ_SAMPLE_RATE/4, 32); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
+
+		// 4 pole cheb at fc = 0.025 = 1200Kz at 48k.  Ch 20 Eng and Sci guide to DSP
+		double[] a = {1.504626E-05, 6.018503E-05, 9.027754E-05, 6.018503E-05, 1.504626E-05};
+		double[] b = {1, 3.725385E+00, -5.226004E+00,  3.270902E+00,  -7.705239E-01};
+
+		iFilter = new IirFilter(a,b);
+		qFilter = new IirFilter(a,b);
+		iFilter2 = new IirFilter(a,b);
+		qFilter2 = new IirFilter(a,b);
+
+		// Single pole IIR from Eng and Scientists Guide to DSP ch 19.  Higher X is amount of decay.  Higher X is slower
+		// decay. x = e^-1/d where d is number of samples for decay. x = e^-2*pi*fc
+		double x = 0.1;//0.86 is 6 samples, 0.606 is 2 samples 0.3678 is 1 sample, 0.1353 is 0.5 samples
+		double[] a2 = {1-x};
+		double[] b2 = {1, x};
+
+		loopFilter = new IirFilter(a2,b2);
+
 		rfData = new RfData(this);
 		rfDataThread = new Thread(rfData);
 		rfDataThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -413,7 +483,10 @@ public class SourceIQ extends SourceAudio {
 	// local variables that I want to allocate only once
 	byte[] ib = new byte[2];
 	byte[] qb = new byte[2];
+	double gain = 100;
+	static final double DESIRED_RANGE = 0.7; // from -0.5 to +0.5
 	
+		
 	/**
 	 * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
 	 * We cache the read bytes in case we need to adjust for the clock
@@ -422,6 +495,8 @@ public class SourceIQ extends SourceAudio {
 	 * @return
 	 */
 	protected double[] processBytes(double[] fcdData, boolean clockMove) {
+		double maxValue = 0;
+		double minValue = 0;
 				//dist = 128;
  
 		//int nBytesRead = fcdData.length;
@@ -479,12 +554,18 @@ public class SourceIQ extends SourceAudio {
 		if (!Config.useNCO)
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-			if (mode == MODE_PSK)
-				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
-			else
+			if (mode == MODE_PSK) {
+				if (fcdData[j] > maxValue) maxValue = fcdData[j];
+				if (fcdData[j] < minValue) minValue = fcdData[j];
+//				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+				demodAudio[d++] = pskDemod(gain*fcdData[j], gain*fcdData[j+1]);
+
+
+			} else
 				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
 
 		}
+		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		
 		int k = 0;
 		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
@@ -657,10 +738,10 @@ public class SourceIQ extends SourceAudio {
 		boolean spansDcSpike = false;
 		
 		// If we are outside the FFT range then pick a default point.  This happens if the FFT is resized between runs, e.g. a different SDR device
-		if (Config.selectedBin*2 > fftData.length) {
-			Config.selectedBin = 3 * fftData.length / 8;
+		if (selectedBin*2 > fftData.length) {
+			selectedBin = 3 * fftData.length / 8;
 		}
-		int binIndex = Config.selectedBin*2; // multiply by two because each bin has a real and imaginary part
+		int binIndex = selectedBin*2; // multiply by two because each bin has a real and imaginary part
 		int filterBins = filterWidth*2;
 
 		int start = binIndex - filterBins;
@@ -1108,12 +1189,62 @@ public class SourceIQ extends SourceAudio {
 		mq = delay.filter(mq);
 		return mi + mq;
 	}
+	
+	private double pskDemod(double i, double q) {
+		ssbOffset = 0;
+		double psk = costasLoop(i, q);
+		if (this.rfData.rfSNRInFilterWidth > Config.ANALYZE_SNR_THRESHOLD) {
+			nco.changePhase(alpha*error);
+			freq = freq + beta*error;
+			if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
+			if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
+			nco.setFrequency(freq);
+		}
+		return psk;
+	}
 
+	ComplexOscillator nco;
+	RaisedCosineFilter idataFilter;
+	RaisedCosineFilter qdataFilter;
+	IirFilter iFilter;
+	IirFilter qFilter;
+	IirFilter iFilter2;
+	IirFilter qFilter2;
+	IirFilter loopFilter;
+	double iMix, qMix;
+	double fi, fq;
+	double freq;
+	double error;
+	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
+	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
+	
+	public double getError() { return error; }
+	public double getCostasFrequency() { return freq; }
+	
+	Complex c;
+	private double costasLoop(double i, double q) {
+		c = nco.nextSample();
+		c.normalize();
+		// Mix 
+		iMix = i * c.geti() + q*c.getq();
+		qMix = q * c.geti() - i*c.getq();
+		// Filter
+		fi = iFilter.filterDouble(iMix);
+		//fi = iFilter2.filterDouble(fi);
+		fq = qFilter.filterDouble(qMix);
+		//fq = qFilter2.filterDouble(fq);
+
+		// Phase error
+		error = fi*fq; 
+		error = loopFilter.filterDouble(error);
+		
+		return fi;
+	}
 	
 	private double iPhase = 0.0;
 	private double ncoMixerI(double i, double q, int offset) {
 		
-		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		double inc = 2.0*Math.PI*(selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
 		iPhase+=inc;
 		if (iPhase>2.0*Math.PI)
 			iPhase-=2.0*Math.PI;
@@ -1130,7 +1261,7 @@ public class SourceIQ extends SourceAudio {
 	private double qPhase = 0.0;
 	private double ncoMixerQ(double i, double q, int offset) {
 		
-		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		double inc = 2.0*Math.PI*(selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
 		qPhase+=inc;
 		if (qPhase>2.0*Math.PI)
 			qPhase-=2.0*Math.PI;
@@ -1145,8 +1276,8 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	
-	double gain = 1;
 	private double [] ncoDecimate(double[] samples, double[] translated) {
+		double gain = 1;
 		int ssbOffset = 0;
 		double id, qd;
 

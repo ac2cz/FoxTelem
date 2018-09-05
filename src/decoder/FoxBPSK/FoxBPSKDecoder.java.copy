@@ -31,8 +31,8 @@ public class FoxBPSKDecoder extends Decoder {
 	public static final int AUDIO_MODE = 0;
 	public static final int PSK_MODE = 1;
 	public int mode = AUDIO_MODE;
-
-	//DcRemoval audioDcFilter;
+	
+	DcRemoval audioDcFilter;
 
 	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
 
@@ -55,9 +55,8 @@ public class FoxBPSKDecoder extends Decoder {
 	 */
 	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
 
-	public FoxBPSKDecoder(SourceAudio as, int chan, int mode) {
+	public FoxBPSKDecoder(SourceAudio as, int chan) {
 		super("1200bps BPSK", as, chan);
-		this.mode = mode;
 		init();
 	}
 
@@ -76,7 +75,7 @@ public class FoxBPSKDecoder extends Decoder {
 		CLOCK_REOVERY_ZERO_THRESHOLD = 20;
 		initWindowData();
 
-		//audioDcFilter = new DcRemoval(0.9999d);
+		audioDcFilter = new DcRemoval(0.9999d);
 		if (mode == PSK_MODE) { // costas psk demod mode
 			filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 			filter.init(currentSampleRate, 0, 0);
@@ -84,7 +83,6 @@ public class FoxBPSKDecoder extends Decoder {
 			filter = new RaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
 			filter.init(currentSampleRate, 1200, 256);
 		}
-
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		dataFilter.init(currentSampleRate, 3000, 256); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
 
@@ -150,36 +148,33 @@ public class FoxBPSKDecoder extends Decoder {
 	double YnSample = 0;
 	double YnMinus1Sample;
 	boolean delayClock = false;
-	double psk;
+	double value, psk;
+	int eyeValue;
+	static final long DESIRED_RANGE =60000;
 	
 	protected void sampleBuckets() {
 		long maxValue = 0;
 		long minValue = 0;
-		long DESIRED_RANGE =60000;
 		sumClockError = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
-				double value = dataValues[i][s]/ 32768.0;
+				value = dataValues[i][s]/ 32768.0;
 				value = value*gain;
 				if (mode == PSK_MODE) {
-					psk = costasLoop(value, value, i);
+					psk = costasLoop(value, value);
+					nco.changePhase(alpha*error);
+					freq = freq + beta*error;
+					if (freq > 2400) freq = 2400;
+					if (freq < 800) freq = 800;
+					nco.setFrequency(freq);
 				} else {
 					psk = value;
-				}	
-				int eyeValue = (int)(-1*psk*32768.0); 
+					//psk = audioDcFilter.filter(psk);	
+				}
+				eyeValue = (int)(-1*psk*32768.0); 
 				if (eyeValue > maxValue) maxValue = eyeValue;
 				if (eyeValue < minValue) minValue = eyeValue;
 
-				if (mode == PSK_MODE) {
-					loopError = beta*error + alpha*error; //loopFilter.filterDouble(error); // /(double)(bucketSize);
-
-					//				freq = freq + beta*loopError + alpha*loopError;
-					if (freq > 3000) freq = 3000;
-					if (freq < 800) freq = 800;
-					nco.changePhase(alpha*error);
-					freq = freq + beta*error;
-					nco.setFrequency(freq);
-				}
 				if (bitPosition == 0 ) {
 					YnMinus1Sample = psk;
 				}
@@ -188,9 +183,7 @@ public class FoxBPSKDecoder extends Decoder {
 					if (delayClock) // we already sampled this
 						delayClock = false;
 					else {
-						// ALL END OF BIT LOGIC TO DO WITH BIT CHOICE MUST GO HERE TO BE IN SYNC
-
-						//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
+//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
 						YnMinus2Sample = YnSample;
 						YnSample = psk;
 
@@ -238,7 +231,8 @@ public class FoxBPSKDecoder extends Decoder {
 				}
 				
 				pskAudioData[i*bucketSize+s] = psk; 
-				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
+				if (mode == PSK_MODE)
+					pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
 //				pskQAudioData[i*bucketSize+s] = c.geti();	// this shows the waveform we mixed with
 				eyeData.setData(i,s,eyeValue);
 				
@@ -248,24 +242,9 @@ public class FoxBPSKDecoder extends Decoder {
 				
 			}
 
-
-	//		offset = -bitPosition; // uncomment if clock calc per bit
-			
-
 		}
-		// uncomment for clock offset per window
-//		System.err.println(sumClockError);
-//		if(sumClockError > 0) 
-//			bitPosition = bitPosition + 1;
-//		else
-//			bitPosition = bitPosition - 1;
-//		if (bitPosition >= bucketSize)
-//			bitPosition = 0;
-//		if (bitPosition < 0)
-//			bitPosition = bucketSize-1;
-//		
-		offset = -bitPosition; 
 
+		offset = -bitPosition; 
 		if (mode == PSK_MODE)
 			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
@@ -394,7 +373,7 @@ public class FoxBPSKDecoder extends Decoder {
 	public double getError() { return loopError; }
 	public double getFrequency() { return nco.getFrequency(); }
 	Complex c;
-	private double costasLoop(double i, double q, int bucketNumber) {
+	private double costasLoop(double i, double q) {
 		c = nco.nextSample();
 		c.normalize();
 		// Mix 
