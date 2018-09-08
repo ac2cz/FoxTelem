@@ -550,7 +550,7 @@ public class SourceIQ extends SourceAudio {
 		else
 			inverseFFT(fftData);
 		int d=0;		
-
+		int sumLockLevel = 0;
 		if (!Config.useNCO)
 		// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 		for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
@@ -559,14 +559,18 @@ public class SourceIQ extends SourceAudio {
 				if (fcdData[j] < minValue) minValue = fcdData[j];
 //				demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
 				demodAudio[d++] = pskDemod(gain*fcdData[j], gain*fcdData[j+1]);
-
+				sumLockLevel += lockLevel;
 
 			} else
 				demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
 
 		}
-		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-		
+		if (mode == MODE_PSK) {
+			avgLockLevel = sumLockLevel / fcdData.length;
+			//System.err.println(freq + ", " + (this.getOffsetFrequencyFromBin(selectedBin)-3000) + " - " + (this.getOffsetFrequencyFromBin(selectedBin)+3000));
+			
+			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		}
 		int k = 0;
 		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
 		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
@@ -1195,7 +1199,13 @@ public class SourceIQ extends SourceAudio {
 		double psk = costasLoop(i, q);
 		if (this.rfData.rfSNRInFilterWidth > Config.ANALYZE_SNR_THRESHOLD) {
 			nco.changePhase(alpha*error);
-			freq = freq + beta*error;
+			freq = freq + beta*error;		
+			if (avgLockLevel < LOCK_LEVEL_THRESHOLD) {
+					freq = freq + 0.03; // susceptible to false lock at half the bitrate
+					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+3000)
+						freq = this.getOffsetFrequencyFromBin(selectedBin)-3000;
+				} 
+			// These are hard limits for safety
 			if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
 			if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
 			nco.setFrequency(freq);
@@ -1217,7 +1227,10 @@ public class SourceIQ extends SourceAudio {
 	double error;
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
+	double ri, rq, lockLevel, avgLockLevel;
+	public static final double LOCK_LEVEL_THRESHOLD = 5;
 	
+	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
 	public double getCostasFrequency() { return freq; }
 	
@@ -1234,12 +1247,23 @@ public class SourceIQ extends SourceAudio {
 		fq = qFilter.filterDouble(qMix);
 		//fq = qFilter2.filterDouble(fq);
 
+		ri = SourceIQ.fullwaveRectify(fi*gain);
+		rq = SourceIQ.fullwaveRectify(fq*gain);
+		
+		lockLevel = 1E0*(ri - rq);  // in lock state rq is close to zero;
+		
 		// Phase error
 		error = fi*fq; 
 		error = loopFilter.filterDouble(error);
 		
 		return fi;
 	}
+	
+	public static double fullwaveRectify(double in) {
+		if (in < 0) return -1*in;
+		return in;
+	}
+
 	
 	private double iPhase = 0.0;
 	private double ncoMixerI(double i, double q, int offset) {

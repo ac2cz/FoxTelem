@@ -461,9 +461,18 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			}
 			
 			if (iqSource.getMode() == SourceIQ.MODE_PSK) {
+				int lock = (int) Math.round(iqSource.getLockLevel());
+				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
+					g2.setColor(Color.BLUE);
+//					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+					g.drawString("Locked: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+				} else {
+					g2.setColor(Color.gray);
+					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+				}
 				g2.setColor(Color.gray);
 				g.drawString("Costas Error: " + Math.round(iqSource.getError()*1E3), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
-				g.drawString("Freq: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
+				g.drawString("Carrier: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 
 			}
 			

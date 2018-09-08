@@ -267,8 +267,17 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lasty = (int)y;
 
 				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE && pskAudioData != null && i < pskAudioData.length) {
+					int lock = (int)Math.round(((FoxBPSKDecoder)foxDecoder).getLockLevel());
+					if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
+						g2.setColor(Color.BLUE);
+						g.drawString("Locked", graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+					} else {
+						g2.setColor(Color.gray);
+						g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+					}
+					g2.setColor(Color.gray);
 					g.drawString("Costas Error: " + Math.round(((FoxBPSKDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
-					g.drawString("Freq: " + Math.round(((FoxBPSKDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
+					g.drawString("Carrier: " + Math.round(((FoxBPSKDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					if (pskAudioData != null && pskAudioData.length > 0) {
 					g2.setColor(Color.BLUE);
 					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;

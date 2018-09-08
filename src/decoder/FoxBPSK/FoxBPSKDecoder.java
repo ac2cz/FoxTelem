@@ -8,6 +8,7 @@ import common.Spacecraft;
 import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.SourceAudio;
+import decoder.SourceIQ;
 import filter.AGCFilter;
 import filter.DcRemoval;
 import gui.MainWindow;
@@ -86,7 +87,7 @@ public class FoxBPSKDecoder extends Decoder {
 		}
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 3000, 256); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, 12000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);
@@ -138,9 +139,19 @@ public class FoxBPSKDecoder extends Decoder {
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = 64*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double error;  // accumulation of the error over a buffer
-	double loopError;
+	//double loopError;
 	boolean lastPhase = false;
-	double freq = 1200.0d;
+	double freq = 700.0d;
+	public static final double LOW_SWEEP_LIMIT = 700.0;
+	public static final double HIGH_SWEEP_LIMIT = 5000.0;
+	
+	double iMix, qMix;
+	double fi = 0.0, fq = 0.0;
+	double ri, rq;
+	double lockLevel, avgLockLevel;
+	public static final double LOCK_LEVEL_THRESHOLD = 3000;
+	public static final double FREQ_SWEEP_INCREMENT = 0.04;
+
 
 	// Kep track of where we are in the bit for sampling
 //	int bitNumber = 0; // for eye diagram only
@@ -156,6 +167,7 @@ public class FoxBPSKDecoder extends Decoder {
 		long maxValue = 0;
 		long minValue = 0;
 		long DESIRED_RANGE =60000;
+		int sumLockLevel = 0;
 		sumClockError = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
@@ -163,6 +175,7 @@ public class FoxBPSKDecoder extends Decoder {
 				value = value*gain;
 				if (mode == PSK_MODE) {
 					psk = costasLoop(value, value, i);
+					sumLockLevel += lockLevel;
 				} else {
 					psk = value;
 				}	
@@ -171,14 +184,17 @@ public class FoxBPSKDecoder extends Decoder {
 				if (eyeValue < minValue) minValue = eyeValue;
 
 				if (mode == PSK_MODE) {
-					loopError = beta*error + alpha*error; //loopFilter.filterDouble(error); // /(double)(bucketSize);
-
-					//				freq = freq + beta*loopError + alpha*loopError;
-					if (freq > 3000) freq = 3000;
-					if (freq < 800) freq = 800;
-					nco.changePhase(alpha*error);
-					freq = freq + beta*error;
-					nco.setFrequency(freq);
+					//if ) {
+						nco.changePhase(alpha*error);
+						freq = freq + beta*error;
+						if (avgLockLevel < LOCK_LEVEL_THRESHOLD) {
+							freq = freq + FREQ_SWEEP_INCREMENT; // susceptible to false lock at half the bitrate
+							if (freq > HIGH_SWEEP_LIMIT) freq = LOW_SWEEP_LIMIT;
+						} 
+						if (freq > HIGH_SWEEP_LIMIT) freq = HIGH_SWEEP_LIMIT;
+						if (freq < LOW_SWEEP_LIMIT) freq = LOW_SWEEP_LIMIT;
+						nco.setFrequency(freq);
+					//}
 				}
 				if (bitPosition == 0 ) {
 					YnMinus1Sample = psk;
@@ -266,10 +282,13 @@ public class FoxBPSKDecoder extends Decoder {
 //		
 		offset = -bitPosition; 
 
-		if (mode == PSK_MODE)
-			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-		//		System.out.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-
+		if (mode == PSK_MODE) {
+			avgLockLevel = sumLockLevel / SAMPLE_WINDOW_LENGTH*bucketSize;
+			if (maxValue - minValue != 0)
+				gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+				//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
+				if (gain < 1) gain = 1;
+		}
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
 	}
@@ -384,15 +403,10 @@ public class FoxBPSKDecoder extends Decoder {
 	}
 
 
-	//	HilbertTransform ht = new HilbertTransform(9600, 255);
-	//	Delay delay = new Delay((255-1)/2);
-
-	double iMix, qMix;
-
-	double fi = 0.0, fq = 0.0;
-
-	public double getError() { return loopError; }
+	public double getError() { return error; }
 	public double getFrequency() { return nco.getFrequency(); }
+	public double getLockLevel() { return avgLockLevel; }
+	
 	Complex c;
 	private double costasLoop(double i, double q, int bucketNumber) {
 		c = nco.nextSample();
@@ -405,12 +419,18 @@ public class FoxBPSKDecoder extends Decoder {
 		fi = iFilter.filterDouble(iMix);
 		fq = qFilter.filterDouble(qMix);
 
+		ri = SourceIQ.fullwaveRectify(fi);
+		rq = SourceIQ.fullwaveRectify(fq);
+		
+		lockLevel = 1E1*(ri - rq);  // in lock state rq is close to zero;
+		
 		// Phase error
 		error = (fi*fq);
 		error = loopFilter.filterDouble(error);
 		return fi;
 	}
-
+	
+	
 }
 
 
