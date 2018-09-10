@@ -1243,9 +1243,7 @@ public class SourceIQ extends SourceAudio {
 		qMix = q * c.geti() - i*c.getq();
 		// Filter
 		fi = iFilter.filterDouble(iMix);
-		//fi = iFilter2.filterDouble(fi);
-		fq = qFilter.filterDouble(qMix);
-		//fq = qFilter2.filterDouble(fq);
+		fq = qFilter.filterDouble(qMix);;
 
 		ri = SourceIQ.fullwaveRectify(fi*gain);
 		rq = SourceIQ.fullwaveRectify(fq*gain);

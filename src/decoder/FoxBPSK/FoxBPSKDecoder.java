@@ -22,6 +22,7 @@ import filter.Delay;
 import filter.HilbertTransform;
 import filter.IirFilter;
 import filter.RaisedCosineFilter;
+import filter.RootRaisedCosineFilter;
 import filter.WindowedSincFilter;
 
 public class FoxBPSKDecoder extends Decoder {
@@ -82,8 +83,8 @@ public class FoxBPSKDecoder extends Decoder {
 			filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 			filter.init(currentSampleRate, 0, 0);
 		} else {
-			filter = new RaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
-			filter.init(currentSampleRate, 1200, 256);
+			filter = new RootRaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
+			filter.init(currentSampleRate, 1200, 512);
 		}
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double

@@ -445,7 +445,8 @@ public abstract class Decoder implements Runnable {
         		Performance.endTimer("Read");
         		Performance.startTimer("Filter");
  
-                if (Config.filterData) { // && !Config.highSpeed) {
+//                if (!(this instanceof FoxBPSKDecoder) && Config.filterData) { 
+                if (Config.filterData) { 
                 	//SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
                 	/**
                 	 * Note that the filter converts the byte values to doubles and then back, so that
