@@ -76,7 +76,7 @@ public class RootRaisedCosineFilter extends Filter {
 				xcoeffs[i] = 1/Math.sqrt(Ts) * ((sin + cos)/det);
 			}
 			//xcoeffs[i] = xcoeffs[i] * blackman;
-			sum += xcoeffs[i];//*xcoeffs[i];
+			sum += xcoeffs[i]*xcoeffs[i];
 		}
 
 		for (int i=0; i<=M; i++) {
