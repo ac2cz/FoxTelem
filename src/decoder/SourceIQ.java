@@ -483,8 +483,8 @@ public class SourceIQ extends SourceAudio {
 	// local variables that I want to allocate only once
 	byte[] ib = new byte[2];
 	byte[] qb = new byte[2];
-	double gain = 100;
-	static final double DESIRED_RANGE = 0.7; // from -0.5 to +0.5
+	double gain = 1;
+	static final double DESIRED_RANGE = 0.6; // from -0.5 to +0.5
 	
 		
 	/**
