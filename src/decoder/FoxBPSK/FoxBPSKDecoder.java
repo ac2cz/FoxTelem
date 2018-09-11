@@ -264,23 +264,8 @@ public class FoxBPSKDecoder extends Decoder {
 					bitPosition = 0;
 				
 			}
-
-
-	//		offset = -bitPosition; // uncomment if clock calc per bit
-			
-
 		}
-		// uncomment for clock offset per window
-//		System.err.println(sumClockError);
-//		if(sumClockError > 0) 
-//			bitPosition = bitPosition + 1;
-//		else
-//			bitPosition = bitPosition - 1;
-//		if (bitPosition >= bucketSize)
-//			bitPosition = 0;
-//		if (bitPosition < 0)
-//			bitPosition = bucketSize-1;
-//		
+
 		offset = -bitPosition; 
 
 		if (mode == PSK_MODE) {
