@@ -182,7 +182,7 @@ public abstract class Filter {
 //			double desiredRange = 1.5d;
 //			gain = desiredRange/range;
 	//	}
-		if (gain < 1) gain = 1;
+//		if (gain < 1) gain = 1;
 		
 //		System.out.println("Max Level: "+maxLevel);
 //		System.out.println("Min Level: "+minLevel);

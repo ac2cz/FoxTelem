@@ -576,7 +576,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private String[] getSources() {
 		soundcardSources = SourceSoundCardAudio.getAudioSources();
 		usbSources = new ArrayList<String>();
-		usbSources.add("AirSpy");
+//		usbSources.add("AirSpy");
 		usbSources.add("RTL SDR");
 
 		String[] allSources = new String[soundcardSources.length + usbSources.size()];
@@ -1572,10 +1572,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						Config.useNCO = false;
 					short vendorId = 0;
 					short deviceId = 0;
-					if (position-soundcardSources.length == 0) { // airspy
-						vendorId = (short)0x1D50;
-						deviceId = (short)0x60A1;
-					} else if (position-soundcardSources.length == 1) { // rtlsdr
+//					if (position-soundcardSources.length == 0) { // airspy
+//						vendorId = (short)0x1D50;
+//						deviceId = (short)0x60A1;
+//					} else 
+					if (position-soundcardSources.length == 0) { // rtlsdr
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 

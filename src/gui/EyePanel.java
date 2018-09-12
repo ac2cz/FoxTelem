@@ -250,17 +250,18 @@ public class EyePanel extends JPanel implements Runnable {
 		int width = 30;
 
 		double low = GraphCanvas.getRatioPosition(minValue, maxValue, avgLow*0.5, graphHeight);
-		g2.drawLine(graphWidth/2-width + border, (int)low, graphWidth/2+width + border, (int)low);
+		g2.drawLine(graphWidth/2-width + border*2, (int)low, graphWidth/2+width + border*2, (int)low);
 
 
 		double high = GraphCanvas.getRatioPosition(minValue, maxValue, avgHigh*0.5, graphHeight);
-		g2.drawLine(graphWidth/2-width + border, (int)high, graphWidth/2+width + border, (int)high);
+		g2.drawLine(graphWidth/2-width + border*2, (int)high, graphWidth/2+width + border*2, (int)high);
 
-		g2.drawLine(graphWidth/2 + border , (int)high, graphWidth/2 + border, (int)low);
+		g2.drawLine(graphWidth/2 + border*2 , (int)high, graphWidth/2 + border*2, (int)low);
 
 		double r = GraphPanel.roundToSignificantFigures(bitSNR,2);
 		String s = Double.toString(r) + "";
-		g.drawString(s+"   SNR", graphWidth/2 -20  + border, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
+		g.drawString(s, graphWidth/2 -25  + border*2, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
+		g.drawString("SNR", graphWidth/2 + 10  + border*2, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
 
 		//debug
 		//g.drawString("HIGH:"+avgHigh, graphWidth/2 + 10  + border, 10  );

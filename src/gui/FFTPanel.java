@@ -213,6 +213,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 		//if (rfData != null)
 		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
+		if (iqSource.getMode() != SourceIQ.MODE_PSK)
 		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
@@ -465,23 +466,23 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
 					g2.setColor(Color.BLUE);
 //					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
-					g.drawString("Locked: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 				} else {
 					g2.setColor(Color.gray);
-					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 				}
 				g2.setColor(Color.gray);
-				g.drawString("Costas Error: " + Math.round(iqSource.getError()*1E3), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
-				g.drawString("Carrier: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
+				g.drawString("Costas Error: " + Math.round(iqSource.getError()*1E3), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ Config.graphAxisFontSize)  );
+				g.drawString("Carrier: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 )  );
 
 			}
 			
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);
 				//int width = 10;
-				int posPeakSignalInFilterWidth = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.AVGSIG_IN_FILTER_WIDTH), graphHeight);
+				int posPeakSignalInFilterWidth = getRatioPosition(maxValue, minValue, rfData.getAvg(RfData.AVGSIG_IN_FILTER_WIDTH)+topBorder, graphHeight);
 //				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, -60, graphHeight);
-				posPeakSignalInFilterWidth=graphHeight-posPeakSignalInFilterWidth-topBorder;
+			//	posPeakSignalInFilterWidth=posPeakSignalInFilterWidth-topBorder;
 				
 				int binOfPeakSignalInFilterWidth = 0;
 				if (rfData.getBinOfPeakSignalInFilterWidth() < fftSamples/2) {

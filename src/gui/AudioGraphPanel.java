@@ -257,7 +257,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				}
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
-				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE)
+				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE || Config.debugValues)
 					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
 				else
 					y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
@@ -266,7 +266,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if (foxDecoder instanceof FoxBPSKDecoder && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE && pskAudioData != null && i < pskAudioData.length) {
+				if (foxDecoder instanceof FoxBPSKDecoder && (((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE || Config.debugValues) && pskAudioData != null && i < pskAudioData.length) {
 					int lock = (int)Math.round(((FoxBPSKDecoder)foxDecoder).getLockLevel());
 					if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
 						g2.setColor(Color.BLUE);
@@ -306,7 +306,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		if (foxDecoder instanceof FoxBPSKDecoder  && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE) {
+		if (foxDecoder instanceof FoxBPSKDecoder  && ((FoxBPSKDecoder) foxDecoder).mode == FoxBPSKDecoder.PSK_MODE || Config.debugValues) {
 			g2.drawLine(0, graphHeight/4+border, graphWidth, graphHeight/4+border);
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
 		} else

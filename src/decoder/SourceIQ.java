@@ -64,7 +64,7 @@ public class SourceIQ extends SourceAudio {
 	private double[] psdSum = null; //new double[FFT_SAMPLES*2+1];;
 	private double[] psdAvg = null; //new double[FFT_SAMPLES*2+1];;
 	int psdAvgCount = 0;
-	int PSD_AVG_LEN = 5;
+	int PSD_AVG_LEN = 3;
 	double[] overlap = null; //new double[2*FFT_SAMPLES - (samplesToRead/2)];
 	
 	double[] outputData = null;
@@ -254,8 +254,8 @@ public class SourceIQ extends SourceAudio {
 		if (fftDataFresh==false) {
 			return null;
 		} else {
-			
 			fftDataFresh=false;
+//			return psd;
 			return psdAvg;
 		}
 	}	
@@ -286,6 +286,11 @@ public class SourceIQ extends SourceAudio {
 			FFT_SAMPLES=2048;
 			samplesToRead = 3840 /2;
 			return;
+		}
+		if (mode == MODE_PSK) {
+			FFT_SAMPLES=4096;
+			samplesToRead = 3840;
+			return;			
 		}
 		for (int f=0; f<17; f++) {
 			int len = (int)Math.pow(2, f);
@@ -444,7 +449,6 @@ public class SourceIQ extends SourceAudio {
 					e.printStackTrace();
 				}
 				*/
-				fftDataFresh = true;
 				for(int i=0; i < outputData.length; i+=2) {	
 			// FUDGE		
 					if (i+2 > outputData.length) {
@@ -484,7 +488,7 @@ public class SourceIQ extends SourceAudio {
 	byte[] ib = new byte[2];
 	byte[] qb = new byte[2];
 	double gain = 1;
-	static final double DESIRED_RANGE = 0.6; // from -0.5 to +0.5
+	static final double DESIRED_RANGE = 0.7; // from -0.5 to +0.5
 	
 		
 	/**
@@ -538,11 +542,12 @@ public class SourceIQ extends SourceAudio {
 		}
 	
 		runFFT(fftData); // results back in fftData
-	
+		fftDataFresh = false;	
 		if (!Config.showIF) calcPsd();
+		fftDataFresh = true;
 
 		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
- 		
+
 		if (Config.showIF) calcPsd();
 
 		if (Config.useNCO || mode == MODE_PSK) 
@@ -570,6 +575,9 @@ public class SourceIQ extends SourceAudio {
 			//System.err.println(freq + ", " + (this.getOffsetFrequencyFromBin(selectedBin)-3000) + " - " + (this.getOffsetFrequencyFromBin(selectedBin)+3000));
 			
 			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+			//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
+			//if (gain < 1) gain = 1;
+
 		}
 		int k = 0;
 		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
@@ -648,7 +656,7 @@ public class SourceIQ extends SourceAudio {
 		// divided by the bin bandwidth  
 		for (int s=0; s<fftData.length-1; s+=2) {
 			psd[s/2] = psd(fftData[s], fftData[s+1]);
-			
+
 			if (Double.isInfinite(psdSum[s/2]))
 				psdSum[s/2] = psd[s/2]*psdAvgCount;
 			if (Double.isNaN(psd[s/2]))
@@ -1228,7 +1236,7 @@ public class SourceIQ extends SourceAudio {
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double ri, rq, lockLevel, avgLockLevel;
-	public static final double LOCK_LEVEL_THRESHOLD = 5;
+	public static final double LOCK_LEVEL_THRESHOLD = 2;
 	
 	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
@@ -1245,8 +1253,10 @@ public class SourceIQ extends SourceAudio {
 		fi = iFilter.filterDouble(iMix);
 		fq = qFilter.filterDouble(qMix);;
 
-		ri = SourceIQ.fullwaveRectify(fi*gain);
-		rq = SourceIQ.fullwaveRectify(fq*gain);
+		double lockGain = gain;
+		if (lockGain < 1) lockGain = 1;
+		ri = SourceIQ.fullwaveRectify(fi*lockGain);
+		rq = SourceIQ.fullwaveRectify(fq*lockGain);
 		
 		lockLevel = 1E0*(ri - rq);  // in lock state rq is close to zero;
 		

@@ -466,6 +466,7 @@ public class AirspyDevice extends device.TunerController
 	@Override
 	public int setFrequency( long frequency ) throws DeviceException
 	{
+		frequency = frequency/1000;
 		if( FREQUENCY_MIN <= frequency && frequency <= FREQUENCY_MAX )
 		{
 			ByteBuffer buffer = ByteBuffer.allocateDirect( 4 );

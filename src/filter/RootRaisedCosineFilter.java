@@ -81,7 +81,7 @@ public class RootRaisedCosineFilter extends Filter {
 
 		for (int i=0; i<=M; i++) {
 			xcoeffs[i] = xcoeffs[i]/Math.sqrt(sum);
-			System.out.println(xcoeffs[i]);
+			//System.out.println(xcoeffs[i]);
 		}
 		GAIN = Math.sqrt(sum);
 		Log.println("Root Raised Cosine Filter GAIN: " + GAIN);

@@ -34,7 +34,7 @@ public class FoxBPSKDecoder extends Decoder {
 	public static final int PSK_MODE = 1;
 	public int mode = AUDIO_MODE;
 
-	//DcRemoval audioDcFilter;
+	DcRemoval audioDcFilter;
 
 	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
 
@@ -78,7 +78,7 @@ public class FoxBPSKDecoder extends Decoder {
 		CLOCK_REOVERY_ZERO_THRESHOLD = 20;
 		initWindowData();
 
-		//audioDcFilter = new DcRemoval(0.9999d);
+		audioDcFilter = new DcRemoval(0.9999d);
 		if (mode == PSK_MODE) { // costas psk demod mode
 			filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 			filter.init(currentSampleRate, 0, 0);
@@ -88,7 +88,7 @@ public class FoxBPSKDecoder extends Decoder {
 		}
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 12000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, 6000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);
@@ -165,14 +165,18 @@ public class FoxBPSKDecoder extends Decoder {
 	double psk;
 	
 	protected void sampleBuckets() {
-		long maxValue = 0;
-		long minValue = 0;
-		long DESIRED_RANGE =60000;
+		double maxValue = 0;
+		double minValue = 0;
+		double DESIRED_RANGE = 2;
 		int sumLockLevel = 0;
 		sumClockError = 0;
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
 				double value = dataValues[i][s]/ 32768.0;
+				
+				if (value > maxValue) maxValue = value;
+				if (value < minValue) minValue = value;
+
 				value = value*gain;
 				if (mode == PSK_MODE) {
 					psk = costasLoop(value, value, i);
@@ -181,8 +185,6 @@ public class FoxBPSKDecoder extends Decoder {
 					psk = value;
 				}	
 				int eyeValue = (int)(-1*psk*32768.0); 
-				if (eyeValue > maxValue) maxValue = eyeValue;
-				if (eyeValue < minValue) minValue = eyeValue;
 
 				if (mode == PSK_MODE) {
 					//if ) {
@@ -270,11 +272,12 @@ public class FoxBPSKDecoder extends Decoder {
 
 		if (mode == PSK_MODE) {
 			avgLockLevel = sumLockLevel / SAMPLE_WINDOW_LENGTH*bucketSize;
-			if (maxValue - minValue != 0)
-				gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-				//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-				if (gain < 1) gain = 1;
 		}
+		if (maxValue - minValue != 0)
+			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
+		if (gain < 1) gain = 1;
+
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
 	}

@@ -156,9 +156,9 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 	
 	protected void parseRawBytes(String data[][], RadiationTableModel radTableModel) {
 		long[][] keyRawData = new long[data.length][2];
-		String[][] rawData = new String[data.length][SatPayloadStore.MAX_RAD_DATA_LENGTH-2];
+		String[][] rawData = new String[data.length][data[0].length-2];
 		for (int i=0; i<data.length; i++)
-			for (int k=0; k<SatPayloadStore.MAX_RAD_DATA_LENGTH; k++)
+			for (int k=0; k<data[0].length; k++)
 				try {
 					if (k<=1)
 						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
