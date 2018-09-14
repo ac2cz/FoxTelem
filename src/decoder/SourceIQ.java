@@ -214,6 +214,10 @@ public class SourceIQ extends SourceAudio {
 
 	public int getBinFromFreqHz(long freq) {
 		long delta = freq-centerFreq*1000 ;
+		return getBinFromOffsetFreqHz(delta);
+	}
+	
+	public int getBinFromOffsetFreqHz(long delta) {
 		int bin = 0;
 		// Positive freq are 0 - FFT_SAMPLES/2
 		// Negative freq are FFT_SAMPLES/2 - FFT_SAMPLES
@@ -1209,8 +1213,10 @@ public class SourceIQ extends SourceAudio {
 			nco.changePhase(alpha*error);
 			freq = freq + beta*error;		
 			if (avgLockLevel < LOCK_LEVEL_THRESHOLD) {
-					freq = freq + 0.03; // susceptible to false lock at half the bitrate
+					freq = freq + gamma; // susceptible to false lock at half the bitrate
 					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+3000)
+						freq = this.getOffsetFrequencyFromBin(selectedBin)-3000;
+					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-3000)
 						freq = this.getOffsetFrequencyFromBin(selectedBin)-3000;
 				} 
 			// These are hard limits for safety
@@ -1235,6 +1241,7 @@ public class SourceIQ extends SourceAudio {
 	double error;
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
+	double gamma = 0.02; //scan frequency rate when not locked
 	double ri, rq, lockLevel, avgLockLevel;
 	public static final double LOCK_LEVEL_THRESHOLD = 2;
 	

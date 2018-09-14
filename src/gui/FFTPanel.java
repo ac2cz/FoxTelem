@@ -410,7 +410,11 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		if (iqSource != null) {
 			// Draw the current selected frequency to decode
 			// Only show half the filter width because of the taper of the filter shape
-			selection = getSelectionFromBin(iqSource.getSelectedBin());
+			if (iqSource.getMode() == SourceIQ.MODE_PSK) {
+				int bin  = iqSource.getBinFromOffsetFreqHz((long) iqSource.getCostasFrequency());
+				selection = getSelectionFromBin(bin);
+			} else
+				selection = getSelectionFromBin(iqSource.getSelectedBin());
 
 			int c = getRatioPosition(0, fftSamples, selection, graphWidth);
 			int lower = getRatioPosition(0, fftSamples, selection-iqSource.getFilterWidth()/2, graphWidth);
