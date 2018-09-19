@@ -361,6 +361,10 @@ import telemetry.uw.CanPacket;
 						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(); 
 						totalBuffers += buffer.length; 
 					}
+					if (payload[i] instanceof PayloadWODUwExperiment) {
+						byte[][] buffer = ((PayloadWODUwExperiment)payload[i]).getCANPacketBytes(); 
+						totalBuffers += buffer.length; 
+					}
 				}
 					
 				allBuffers = new byte[totalBuffers][];
@@ -369,6 +373,13 @@ import telemetry.uw.CanPacket;
 					// if this payload should be output then add its byte buffers to the output
 					if (payload[p] instanceof PayloadUwExperiment) {
 						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(); 
+						for (int j=0; j < buffer.length; j++) {
+							allBuffers[j + startPosition] = buffer[j];
+						}
+						startPosition += buffer.length;
+					}
+					if (payload[p] instanceof PayloadWODUwExperiment) {
+						byte[][] buffer = ((PayloadWODUwExperiment)payload[p]).getCANPacketBytes(); 
 						for (int j=0; j < buffer.length; j++) {
 							allBuffers[j + startPosition] = buffer[j];
 						}
