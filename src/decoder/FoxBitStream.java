@@ -77,6 +77,7 @@ public abstract class FoxBitStream extends BitStream {
 		syncWord = new boolean[syncWordLength];
 	}
 	
+	int nextSyncWord = 0;
 	/**
 	 * Search through windowLength bits and test to see if the last
 	 * SYNC_WORD_LENGTH bits are a frame marker.  If it is, then add the position of the first bit of data that
@@ -113,6 +114,17 @@ public abstract class FoxBitStream extends BitStream {
 		}
 		return found;
 	}
+	
+	public Frame NEWfindFrames() {
+		int missedBits = 0;
+		int repairPosition = 0;
+		int end = syncWords.get(syncWords.size()-1); // the latest Sync word is the end
+		int start = end - SYNC_WORD_DISTANCE;
+		if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");
+		Frame frame = decodeFrame(start,end, missedBits, repairPosition);
+		return frame;
+	}
+
 	
 	public Frame findFrames() {
 		

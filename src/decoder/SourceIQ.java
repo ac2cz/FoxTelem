@@ -306,7 +306,7 @@ public class SourceIQ extends SourceAudio {
 
 		decimationFactor = IQ_SAMPLE_RATE / AF_SAMPLE_RATE;
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
-		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
+		binBandwidth = IQ_SAMPLE_RATE/(double)FFT_SAMPLES;
 		
 			
 		if (mode == MODE_FSK_HS) {
@@ -332,7 +332,7 @@ public class SourceIQ extends SourceAudio {
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
 		
-		polyFilter = new PolyPhaseFilter(IQ_SAMPLE_RATE, filterWidthHz, decimationFactor, 13*decimationFactor);
+		polyFilter = new PolyPhaseFilter(IQ_SAMPLE_RATE, filterWidthHz, decimationFactor, 13*decimationFactor); // filter len must be divisible by decimation rate
 		polyFilter2 = new PolyPhaseFilter(IQ_SAMPLE_RATE, filterWidthHz, decimationFactor, 13*decimationFactor);
 		in = new double[decimationFactor];
 		in2 = new double[decimationFactor];
@@ -395,8 +395,10 @@ public class SourceIQ extends SourceAudio {
 					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
 				if (mode == MODE_PSK)
 					outputData = processPSKBytes(fcdData);
-				else 
+				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
+				else
+					outputData = processBytes(fcdData, true);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
@@ -1091,40 +1093,43 @@ protected double[] processPSKBytes(double[] fcdData) {
 
 
 	int ssbOffset = 0;
-	
+
 	private double pskDemod(double i, double q) {
 		ssbOffset = 0;
 		double psk = costasLoop(i, q);
-		if (this.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
-			
-			// only scan if we have a signal, but any signal in the sat band triggers this
-			nco.changePhase(alpha*error);
-			freq = freq + beta*error;		
-			if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
-				// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
-				long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
-				if (strongestFreq - freq > 2000 || strongestFreq - freq < -2000) {
-					// we are more than a kc off
-					freq = strongestFreq;
-				} else {
-					freq = freq + gamma; 
-					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+2000) // defeat false lock at 600Hz or other freq.
-						freq = this.getOffsetFrequencyFromBin(selectedBin)+2000;
-					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-2000)
-						freq = this.getOffsetFrequencyFromBin(selectedBin)-2000;
-				} 
+		
+			if (this.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
+
+				// only scan if we have a signal, but any signal in the sat band triggers this
+				nco.changePhase(alpha*error);
+				freq = freq + beta*error;	
+				if (Config.trackSignal)
+				if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
+					// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
+					long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
+					if (strongestFreq - freq > 3000 || strongestFreq - freq < -3000) { // if this is too narrow then we don't jump but we get caught in false lock
+						// we are more than a kc off
+						freq = strongestFreq;
+					} else {
+						freq = freq + gamma; 
+						if (freq > this.getOffsetFrequencyFromBin(selectedBin)+3000) // defeat false lock at 600Hz or other freq.
+							freq = this.getOffsetFrequencyFromBin(selectedBin)+3000;
+						if (freq < this.getOffsetFrequencyFromBin(selectedBin)-3000)
+							freq = this.getOffsetFrequencyFromBin(selectedBin)-3000;
+					} 
+				}
+				// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
+				// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we  update the tune point without moving it
+				// We just change the bin but not the freq
+				if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
+				if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
+				nco.setFrequency(freq);
+				selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
+			} else { 
+				lockLevel = 0;
+				error = 10;
 			}
-			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
-			// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we  update the tune point without moving it
-			// We just change the bin but not the freq
-			if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
-			if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
-			nco.setFrequency(freq);
-			selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
-		} else { 
-			lockLevel = 0;
-			error = 10;
-		}
+		
 		return psk;
 	}
 
@@ -1144,7 +1149,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double gamma = 0.02; //scan frequency rate when not locked
 	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
-	public static final double LOCK_LEVEL_THRESHOLD = 2;
+	public static final double LOCK_LEVEL_THRESHOLD = 10;
 	
 	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
