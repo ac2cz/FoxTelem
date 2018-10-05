@@ -410,10 +410,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		if (iqSource != null) {
 			// Draw the current selected frequency to decode
 			// Only show half the filter width because of the taper of the filter shape
-			if (iqSource.getMode() == SourceIQ.MODE_PSK) {
-				int bin  = iqSource.getBinFromOffsetFreqHz((long) iqSource.getCostasFrequency());
-				selection = getSelectionFromBin(bin);
-			} else
+			//if (iqSource.getMode() == SourceIQ.MODE_PSK) {
+			//	int bin  = iqSource.getBinFromOffsetFreqHz((long) iqSource.getCostasFrequency());
+			//	selection = getSelectionFromBin(bin);
+			//} else
 				selection = getSelectionFromBin(iqSource.getSelectedBin());
 
 			int c = getRatioPosition(0, fftSamples, selection, graphWidth);
@@ -470,7 +470,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
 					g2.setColor(Color.BLUE);
 //					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
-					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+					g.drawString("Locked ", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 				} else {
 					g2.setColor(Color.gray);
 					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
