@@ -1567,9 +1567,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					// Ids should be looked up from TunerClass, but the implementation is a mess.  FIXME
 					SourceAudio audioSource;
 					if (Config.mode != SourceIQ.MODE_PSK)
-						Config.useNCO = true;
-					else
 						Config.useNCO = false;
+					else
+						Config.useNCO = true;
 					short vendorId = 0;
 					short deviceId = 0;
 //					if (position-soundcardSources.length == 0) { // airspy
