@@ -753,8 +753,8 @@ public abstract class Frame implements Comparable<Frame> {
 	
 	public PreparedStatement getPreparedInsertStmt(Connection con) throws SQLException {
 				
-		java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
-		//FIXME - need to omake this a proper date in the DB
+		//java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
+		//FIXME - need to make this a proper date in the DB
 		String dt = "";
 		if (stpDate != null)
 			dt = stpDateFormat.format(stpDate);
