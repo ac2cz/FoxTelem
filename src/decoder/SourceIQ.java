@@ -396,7 +396,7 @@ public class SourceIQ extends SourceAudio {
 				if (mode == MODE_PSK)
 					outputData = processPSKBytes(fcdData);
 				else 
-					outputData = processNCOBytes(fcdData);
+					outputData = processBytes(fcdData, false);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
@@ -588,6 +588,152 @@ protected double[] processPSKBytes(double[] fcdData) {
 		return audioData; 
 	}
 
+/**
+ * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
+ * We cache the read bytes in case we need to adjust for the clock
+ * If this is being called because the clock moved, we do not re-cache the data
+ * @param fcdData
+ * @return
+ */
+protected double[] processBytes(double[] fcdData, boolean clockMove) {
+	if (Config.useNCO) return new double[0];
+	double maxValue = 0;
+	double minValue = 0;
+			//dist = 128;
+
+	//int nBytesRead = fcdData.length;
+	zeroFFT();
+	int i = 0;
+	
+	// DC Filter the incoming data
+	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+		double id, qd;
+		id = fcdData[j];
+		qd = fcdData[j+1];
+		// filter out any DC from I/Q signals
+		fcdData[j] = iDcFilter.filter(id);
+		fcdData[j+1] = qDcFilter.filter(qd);
+	}
+	
+//	if (Config.useNCO) {
+//			 ncoDecimate(fcdData, fcdData2);
+//	}
+
+	// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
+	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+		double id, qd;
+		id = fcdData[j];
+		qd = fcdData[j+1];
+		// filter out any DC from I/Q signals
+//		id = iDcFilter.filter(id);
+//		qd = qDcFilter.filter(qd);
+
+		// i and q go into consecutive spaces in the complex FFT data input
+		if (Config.swapIQ) {
+			fftData[i+dist] = qd;
+			fftData[i+1+dist] = id;
+		} else {
+			fftData[i+dist] = id;
+			fftData[i+1+dist] = qd;
+		}
+		i+=2;
+	}
+
+	runFFT(fftData); // results back in fftData
+	fftDataFresh = false;	
+	if (!Config.showIF) calcPsd();
+	fftDataFresh = true;
+
+	filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
+
+	if (Config.showIF) calcPsd();
+
+	if (Config.useNCO || mode == MODE_PSK) 
+		;
+	else
+		inverseFFT(fftData);
+	int d=0;		
+	int sumLockLevel = 0;
+	if (!Config.useNCO)
+	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
+	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
+		if (mode == MODE_PSK) {
+			if (fcdData[j] > maxValue) maxValue = fcdData[j];
+			if (fcdData[j] < minValue) minValue = fcdData[j];
+//			demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+			demodAudio[d++] = pskDemod(gain*fcdData[j], gain*fcdData[j+1]);
+			sumLockLevel += lockLevel;
+
+		} else if (Config.useNCO) {
+			if (fcdData[j] > maxValue) maxValue = fcdData[j];
+			if (fcdData[j] < minValue) minValue = fcdData[j];
+			c = nco.nextSample();
+			c.normalize();
+			// Mix 
+			double iMix = gain*fcdData[j] * c.geti() + gain*fcdData[j+1]*c.getq();
+			double qMix = gain*fcdData[j+1] * c.geti() - gain*fcdData[j]*c.getq();
+			
+			// Some filtering so the FM demod is not corrupted by other signals
+			
+			demodAudio[d++] = fm.demodulate(iMix, qMix);
+			
+		} else
+			demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
+
+	}
+	if (mode == MODE_PSK) {
+		avgLockLevel = sumLockLevel / fcdData.length;
+		//System.err.println(freq + ", " + (this.getOffsetFrequencyFromBin(selectedBin)-3000) + " - " + (this.getOffsetFrequencyFromBin(selectedBin)+3000));
+		
+		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
+		//if (gain < 1) gain = 1;
+
+	}
+	int k = 0;
+	// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
+	// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
+	// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
+	// No needed with NCO as we have already filtered to 3kHz
+//	if (!Config.useNCO)
+	for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
+		if (highSpeed)
+			antiAlias20kHzIIRFilter(demodAudio);
+		else {
+			demodAudio = mono16kHzIIRFilter(demodAudio);
+//			antiAlias16kHzIIRFilter(demodAudio);				
+		}
+	
+//	if (Config.useNCO) {
+//		// Every 4th entry goes to the audio output to get us from 192k -> 48k
+//		for (int j=0; j < fcdData2.length; j+=decimationFactor*2 ) { // data size is 1 decimate by factor of 4 to get to audio format size
+//			double finalValue = fm.demodulate(fcdData2[j], fcdData2[j+1]);
+//			finalValue = audioDcFilter.filter(finalValue); // remove DC.  Only need to do this to the values we want to keep
+//			// FUDGE - safety factor because the decimation is not exact
+//			if (k >= audioData.length ) {
+//				//Log.println("k:" + k);
+//				break;
+//			}
+//			audioData[k] = finalValue;
+//			k+=1;
+//		}
+//
+//	} else
+	
+	// Every 4th entry goes to the audio output to get us from 192k -> 48k
+	for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
+		// scaling and conversion to integer
+		double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
+// FUDGE - safety factor because the decimation is not exact
+		if (k >= audioData.length ) {
+			//Log.println("k:" + k);
+			break;
+		}
+		audioData[k] = value;
+		k+=1;			
+	 }
+	return audioData; 
+}
 
 	private void zeroPsdAvg() {
 		//Log.println("ZERO PSD!!!!!!");
