@@ -127,6 +127,8 @@ public class HighSpeedBitStream extends FoxBitStream {
 						erasurePositions[rsNum][numberOfErasures[rsNum]] = f;
 						numberOfErasures[rsNum]++;
 					} else {
+						if (Config.debugFrames)
+							Log.println("MAX ERASURES HIT: RS Decode Abandoned");
 						return null;
 					}
 				}

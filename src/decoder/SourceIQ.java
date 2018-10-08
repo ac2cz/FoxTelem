@@ -306,7 +306,7 @@ public class SourceIQ extends SourceAudio {
 
 		decimationFactor = IQ_SAMPLE_RATE / AF_SAMPLE_RATE;
 		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
-		binBandwidth = IQ_SAMPLE_RATE/FFT_SAMPLES;
+		binBandwidth = IQ_SAMPLE_RATE/(double)FFT_SAMPLES;
 		
 			
 		if (mode == MODE_FSK_HS) {
