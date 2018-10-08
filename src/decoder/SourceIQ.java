@@ -523,6 +523,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 		int i = 0;
 		int d=0;
 		int k = 0;
+		sumLockLevel = 0;
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
@@ -536,7 +537,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 			if (id > maxValue) maxValue = id;
 			if (id < minValue) minValue = id;
 			demodAudio[d++] = pskDemod(gain*id, gain*qd);
-			
+			sumLockLevel += lockLevel;
 			// i and q go into consecutive spaces in the complex FFT data input
 			if (Config.swapIQ) {
 				fftData[i+dist] = qd;
@@ -547,7 +548,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 			}
 			i+=2;
 		}
-		
+		avgLockLevel = sumLockLevel / (fcdData.length/2.0);
 		runFFT(fftData); // results back in fftData
 
 		if (!Config.showIF) calcPsd();
@@ -1245,7 +1246,7 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 			// only scan if we have a signal, but any signal in the sat band triggers this
 			nco.changePhase(alpha*error);
 			freq = freq + beta*error;		
-			if (lockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
+			if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
 				// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
 				long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
 				if (strongestFreq - freq > 2000 || strongestFreq - freq < -2000) {
@@ -1260,8 +1261,8 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 				} 
 			}
 			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
-			// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we should update the tune point without moving it
-			// so that does not happen.  We just change the bin but not the freq ****************************************
+			// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we  update the tune point without moving it
+			// We just change the bin but not the freq
 			if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
 			if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
 			nco.setFrequency(freq);
@@ -1288,10 +1289,10 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double gamma = 0.02; //scan frequency rate when not locked
-	double ri, rq, lockLevel, avgLockLevel;
+	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
 	public static final double LOCK_LEVEL_THRESHOLD = 2;
 	
-	public double getLockLevel() { return lockLevel; }
+	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
 	public double getCostasFrequency() { return freq; }
 	
