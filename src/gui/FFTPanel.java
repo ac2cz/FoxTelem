@@ -194,12 +194,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			if (buffer != null) {
 				psd = buffer;
 				liveData = true;
+				this.repaint();
 			} else {
 				liveData = false;
 			}
-			retune();
-			this.repaint();
-			
+			if (rfData != null)
+				retune();			
 		}
 		done = true;
 	}

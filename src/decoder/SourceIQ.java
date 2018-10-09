@@ -9,9 +9,6 @@ import common.Log;
 import filter.Complex;
 import filter.ComplexOscillator;
 import filter.DcRemoval;
-import filter.RaisedCosineFilter;
-import filter.Delay;
-import filter.HilbertTransform;
 import filter.IirFilter;
 import filter.PolyPhaseFilter;
 
@@ -53,8 +50,8 @@ public class SourceIQ extends SourceAudio {
 	
 	double[] fftData = null; //new double[FFT_SAMPLES*2];
 	double[] newData = null; //new double[fftData.length]; // make a new array to copy so we can store the section we want
-	private double[] psd = null; //new double[FFT_SAMPLES*2+1];;
-	private double[] psdSum = null; //new double[FFT_SAMPLES*2+1];;
+//	private double[] psd = null; //new double[FFT_SAMPLES*2+1];;
+
 	private double[] psdAvg = null; //new double[FFT_SAMPLES*2+1];;
 	int psdAvgCount = 0;
 	int PSD_AVG_LEN = 3;
@@ -228,13 +225,13 @@ public class SourceIQ extends SourceAudio {
 	}
 	
 	public double[] getPowerSpectralDensity() { 
-		if (fftDataFresh==false) {
-			return null;
-		} else {
-			fftDataFresh=false;
+//		if (fftDataFresh==false) {
+//			return null;
+//		} else {
+//			fftDataFresh=false;
 //			return psd;
 			return psdAvg;
-		}
+//		}
 	}	
 
 	/**
@@ -299,8 +296,6 @@ public class SourceIQ extends SourceAudio {
 		blackmanWindow = initBlackmanWindow(FFT_SAMPLES); 
 
 		fftData = new double[FFT_SAMPLES*2];
-		psd = new double[FFT_SAMPLES*2+1];;
-		psdSum = new double[FFT_SAMPLES*2+1];;
 		psdAvg = new double[FFT_SAMPLES*2+1];;
 		newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
 
@@ -310,14 +305,13 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (mode == MODE_FSK_HS) {
-			setFilterWidth(8000); //9600); // 8000 seems best for PolyPhase filter
+			setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
 		//	setFilterWidth(2*75000);
 		} else {
-			setFilterWidth(5000); // was 10000 for AirSpy
+			setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
 			//mode = MODE_NFM;
 		}
-
-		if (offsetFFT) 
+		if (offsetFFT) // only needed for FFT Filter
 			dist = 128*FFT_SAMPLES/4096; // offset puts the data outside the taper of the window function and gives better audio, but at the expense of dynamic range
 
 		overlap = new double[2*FFT_SAMPLES - (samplesToRead)]; // we only use part of this, but this is the maximum it could be
@@ -346,19 +340,13 @@ public class SourceIQ extends SourceAudio {
 		// Costas Loop or NCO downconvert
 		nco = new ComplexOscillator(IQ_SAMPLE_RATE, (int) freq);
 		// Costas
-		idataFilter = new RaisedCosineFilter(audioFormat, 1); // filter a single double
-		idataFilter.init(IQ_SAMPLE_RATE, IQ_SAMPLE_RATE/4, 32); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
-		qdataFilter = new RaisedCosineFilter(audioFormat, 1); // filter a single double
-		qdataFilter.init(IQ_SAMPLE_RATE, IQ_SAMPLE_RATE/4, 32); // just remove noise, perhaps at twice data rate? Better wider and steeper to give selectivity
-
+		
 		// 4 pole cheb at fc = 0.025 = 1200Kz at 48k.  Ch 20 Eng and Sci guide to DSP
 		double[] a = {1.504626E-05, 6.018503E-05, 9.027754E-05, 6.018503E-05, 1.504626E-05};
 		double[] b = {1, 3.725385E+00, -5.226004E+00,  3.270902E+00,  -7.705239E-01};
 
 		iFilter = new IirFilter(a,b);
 		qFilter = new IirFilter(a,b);
-		iFilter2 = new IirFilter(a,b);
-		qFilter2 = new IirFilter(a,b);
 
 		// Single pole IIR from Eng and Scientists Guide to DSP ch 19.  Higher X is amount of decay.  Higher X is slower
 		// decay. x = e^-1/d where d is number of samples for decay. x = e^-2*pi*fc
@@ -372,7 +360,6 @@ public class SourceIQ extends SourceAudio {
 		rfDataThread = new Thread(rfData);
 		rfDataThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		rfDataThread.start();
-		zeroPsdAvg();
 	}
 	
 	boolean skippedOneByte = false;
@@ -396,7 +383,8 @@ public class SourceIQ extends SourceAudio {
 				if (mode == MODE_PSK)
 					outputData = processPSKBytes(fcdData);
 				else 
-					outputData = processBytes(fcdData, false);
+					outputData = processNCOBytes(fcdData);
+//					outputData = processBytes(fcdData, false);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
@@ -460,13 +448,9 @@ public class SourceIQ extends SourceAudio {
 	 * @return
 	 */
 	protected double[] processNCOBytes(double[] fcdData) {
-		
-		double maxValue = 0;
-		double minValue = 0;
+		dist = 0;
 		zeroFFT();
 		int i = 0;
-		int d=0;
-		int k = 0;
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
@@ -734,15 +718,6 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 	return audioData; 
 }
 
-	private void zeroPsdAvg() {
-		//Log.println("ZERO PSD!!!!!!");
-		for (int s=0; s<fftData.length-1; s+=2) {
-			psdAvg[s/2] = 0;
-			psdSum[s/2] = 0;
-			psd[s/2] = 0;
-		}
-		psdAvgCount = 0;
-	}
 	private void zeroFFT() {
 		for (int i=0; i< FFT_SAMPLES*2; i++) {
 			fftData[i] = 0.0;
@@ -761,32 +736,20 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		fft.complexForward(fftData);
 	}
 
+	boolean firstRun = true;
+	double psd;
 	private void calcPsd() {
 		// Calculate power spectral density (PSD) so that we can display it
 		// This is the magnitude of the complex signal, so it is sqrt(i^2 + q^2)
 		// divided by the bin bandwidth  
 		for (int s=0; s<fftData.length-1; s+=2) {
-			psd[s/2] = psd(fftData[s], fftData[s+1]);
-
-			if (Double.isInfinite(psd[s/2]))
-				System.err.println("INFINITE");
-			if (Double.isNaN(psd[s/2]))
-				System.err.println("NAN");
-			
-			if (psdAvgCount >= PSD_AVG_LEN) {
-				psdSum[s/2] = psdSum[s/2]/(double)PSD_AVG_LEN;
-				psdAvg[s/2] = psdSum[s/2];
-				psdAvgCount = 0;
-			} else {
-				if (Double.isInfinite(psdSum[s/2]))
-					psdSum[s/2] +=0;
-				else if (Double.isNaN(psd[s/2]))
-					psdSum[s/2] +=0;
-				else
-					psdSum[s/2] += psd[s/2];
-			}
-			psdAvgCount++;
+			psd =  psd(fftData[s], fftData[s+1]);
+			if (firstRun)
+				psdAvg[s/2] = psd; // we do not have an average yet
+			else if (psd != 0)
+				psdAvg[s/2] = average(psdAvg[s/2], psd, PSD_AVG_LEN);
 		}
+		firstRun = false;
 
 	}
 	
@@ -795,6 +758,12 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		return (20*Math.log10(Math.sqrt((i*i) + (q*q))/binBandwidth));	// Compute PSD
 		//psd[s/2] = 10*Math.log10( ((fftData[s]*fftData[s]) + (fftData[s+1]*fftData[s+1]) )/binBandwidth);	// Compute PSD
 		
+	}
+	
+	public static double average (double avg, double new_sample, int N) {
+		avg -= avg / N;
+		avg += new_sample / N;
+		return avg;
 	}
 	
 	private void inverseFFT(double[] fftData) {
@@ -1273,14 +1242,14 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		}
 		return psk;
 	}
-
+	
 	ComplexOscillator nco;
-	RaisedCosineFilter idataFilter;
-	RaisedCosineFilter qdataFilter;
+	//RaisedCosineFilter idataFilter;
+	//RaisedCosineFilter qdataFilter;
 	IirFilter iFilter;
 	IirFilter qFilter;
-	IirFilter iFilter2;
-	IirFilter qFilter2;
+	//IirFilter iFilter2;
+	//IirFilter qFilter2;
 	IirFilter loopFilter;
 	double iMix, qMix;
 	double fi, fq;
