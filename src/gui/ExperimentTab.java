@@ -101,7 +101,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 				// System.out.println("PREV");
 				int row = table.getSelectedRow();
 				if (row > 0)
-					displayRow(table,row-1);
+					displayRow(table,NO_ROW_SELECTED, row-1);
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
@@ -110,7 +110,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 				//    System.out.println("NEXT");
 				int row = table.getSelectedRow();
 				if (row < table.getRowCount()-1)
-					displayRow(table,row+1);        
+					displayRow(table,NO_ROW_SELECTED, row+1);        
 			}
 		});
 		//table.setMinimumSize(new Dimension(6200, 6000));
@@ -136,7 +136,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 				// System.out.println("PREV");
 				int row = packetTable.getSelectedRow();
 				if (row > 0)
-					displayRow(packetTable, row-1);
+					displayRow(packetTable, NO_ROW_SELECTED, row-1);
 			}
 		});
 		packetactMap.put(NEXT, new AbstractAction() {
@@ -145,13 +145,13 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 				//    System.out.println("NEXT");
 				int row = packetTable.getSelectedRow();
 				if (row < packetTable.getRowCount()-1)
-					displayRow(packetTable, row+1);        
+					displayRow(packetTable, NO_ROW_SELECTED, row+1);        
 			}
 		});
 		
 	}
 	
-	protected abstract void displayRow(JTable packetTable, int row); // When we click on a row in the table we call this function to update the top part of the display
+	protected abstract void displayRow(JTable packetTable, int fromRow, int row); // When we click on a row in the table we call this function to update the top part of the display
 	protected abstract void parseRadiationFrames(); // When we get new data we call this function to display it
 	
 	protected void parseRawBytes(String data[][], RadiationTableModel radTableModel) {
@@ -196,23 +196,34 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 			
 		}
 	}
+	public static final int NO_ROW_SELECTED = -1;
+	
 	public void mouseClicked(MouseEvent e) {
 
+		int fromRow = NO_ROW_SELECTED;
+		JTable table = null;
+		
 		if (showRawBytes.isSelected()) {
-			int row = table.rowAtPoint(e.getPoint());
-			int col = table.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(table, row);
-			}
+			table = this.table;
 		} else {
-			int row = packetTable.rowAtPoint(e.getPoint());
-			int col = packetTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(packetTable, row);
-			}
+			table = packetTable;
 		}
+		
+		int row = table.rowAtPoint(e.getPoint());
+		int col = table.columnAtPoint(e.getPoint());
+		
+		if (e.isShiftDown()) {
+        	// from row is the first in the selection.  It equals row if we clicked above the current selected row
+			fromRow = table.getSelectedRow();
+			int n = table.getSelectedRowCount();
+			if (row == fromRow)
+				fromRow = fromRow + n-1;
+		}
+		if (row >= 0 && col >= 0) {
+        	//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+        	displayRow(table, fromRow, row);
+        }
+		
 	}
 
 		@Override

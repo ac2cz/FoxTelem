@@ -635,7 +635,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	protected void displayRow(JTable table, int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
@@ -643,7 +643,12 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
     	int reset = (int)reset_l;
     	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT, false), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
 

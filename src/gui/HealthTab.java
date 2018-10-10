@@ -278,7 +278,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 				// System.out.println("PREV");
 				int row = table.getSelectedRow();
 				if (row > 0)
-					displayRow(row-1);
+					displayRow(NO_ROW_SELECTED, row-1);
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
@@ -287,7 +287,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 				//    System.out.println("NEXT");
 				int row = table.getSelectedRow();
 				if (row < table.getRowCount()-1)
-					displayRow(row+1);        
+					displayRow(NO_ROW_SELECTED, row+1);        
 			}
 		});
 		centerPanel.add(scrollPane);
@@ -538,18 +538,29 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		
 	}
 	
+	public static final int NO_ROW_SELECTED = -1;
 	
-	
-	protected abstract void displayRow(int row);
+	protected abstract void displayRow(int fromRow, int toRow);
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		int fromRow = NO_ROW_SELECTED;
 		
+		// row is the one we clicked on
 		int row = table.rowAtPoint(e.getPoint());
         int col = table.columnAtPoint(e.getPoint());
+        
+        if (e.isShiftDown()) {
+        	// from row is the first in the selection.  It equals row if we clicked above the current selected row
+			fromRow = table.getSelectedRow();
+			int n = table.getSelectedRowCount();
+			if (row == fromRow)
+				fromRow = fromRow + n-1;
+		}
+		
         if (row >= 0 && col >= 0) {
         	//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-        	displayRow(row);
+        	displayRow(fromRow, row);
         }
 	}
 	@Override

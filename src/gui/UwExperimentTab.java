@@ -421,7 +421,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	protected void displayRow(JTable table, int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
@@ -429,27 +429,32 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
     	int reset = (int)reset_l;
     	updateTab((PayloadUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD_LAYOUT, false), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
-	public void mouseClicked(MouseEvent e) {
-
-		if (showRawBytes.isSelected()) {
-			int row = table.rowAtPoint(e.getPoint());
-			int col = table.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(table, row);
-			}
-		} else {
-			int row = packetTable.rowAtPoint(e.getPoint());
-			int col = packetTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(packetTable, row);
-			}
-		}
-	}
+//	public void mouseClicked(MouseEvent e) {
+//
+//		if (showRawBytes.isSelected()) {
+//			int row = table.rowAtPoint(e.getPoint());
+//			int col = table.columnAtPoint(e.getPoint());
+//			if (row >= 0 && col >= 0) {
+//				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+//				displayRow(table, row);
+//			}
+//		} else {
+//			int row = packetTable.rowAtPoint(e.getPoint());
+//			int col = packetTable.columnAtPoint(e.getPoint());
+//			if (row >= 0 && col >= 0) {
+//				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+//				displayRow(packetTable, row);
+//			}
+//		}
+//	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {
