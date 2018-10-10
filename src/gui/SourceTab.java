@@ -1405,6 +1405,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				try {
 					panelFcd.setDevice(rfDevice);
 				} catch (DeviceException e) {
+					this.lblkHz.setText(" kHz   " + " |   FCD DEVICE NOT CONNECTED");
 					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
 				}
 				SDRpanel.add(panelFcd, BorderLayout.CENTER);
@@ -1508,7 +1509,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void processStartButtonClick() {
 		//String source = (String)soundCardComboBox.getSelectedItem();
 		int position = soundCardComboBox.getSelectedIndex();
-				
+		lblkHz.setText(" kHz   ");
 		if (STARTED) {
 			// we stop everything
 			stopButton();
