@@ -431,8 +431,8 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	// local variables that I want to allocate only once
-	byte[] ib = new byte[2];
-	byte[] qb = new byte[2];
+//	byte[] ib = new byte[2];
+//	byte[] qb = new byte[2];
 	double gain = 1;
 	static final double DESIRED_RANGE = 0.7; // from -0.5 to +0.5
 	
@@ -471,7 +471,7 @@ public class SourceIQ extends SourceAudio {
 			in2[decimateCount] = qMix;
 			
 			decimateCount++;
-			if (decimateCount == decimationFactor-1) {
+			if (decimateCount >= decimationFactor-1) {
 				decimateCount = 0;
 				double value = polyFilter.filterDouble(in);
 				double value2 = polyFilter2.filterDouble(in2);

@@ -427,7 +427,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			cbRoundLabels.addItemListener(this);
 			footerPanel1.add(cbRoundLabels);
 			cbShowSun = new JCheckBox("Show Sun");
-			cbShowSun.setSelected(showSun);
+			if (Config.foxTelemCalcsPosition) {
+				cbShowSun.setSelected(showSun);
+				cbShowSun.setEnabled(true);
+			} else
+				cbShowSun.setEnabled(false);
 			cbShowSun.addItemListener(this);
 			footerPanel1.add(cbShowSun);
 		}
@@ -1069,11 +1073,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 
 		}
 
-		if (textDisplay)
-			diagnosticTable.updateData();
-		else
-			panel.updateGraphData("GraphFrame.parseTextFields");
-
+	}
+	
+	private void toggleSunCheckBox() {
+		if (!textDisplay)
+		if (Config.foxTelemCalcsPosition) {
+			cbShowSun.setSelected(showSun);
+			cbShowSun.setEnabled(true);
+		} else {
+			cbShowSun.setSelected(false);
+			cbShowSun.setEnabled(false);
+		}
 	}
 
 	private void setRedOutline(JButton but, boolean red) {
@@ -1452,7 +1462,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				panel.updateGraphData("GraphFrame:stateChange:UTC");
 		}
 		
-		
+		toggleSunCheckBox();
 	}
 
 	@Override
@@ -1490,6 +1500,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			else
 				panel.updateGraphData("GraphFrame:stateChange:Uptime");
 		}		
+		toggleSunCheckBox();
 	}
 
 	private void saveToCSV(File aFile) throws IOException {
@@ -1661,7 +1672,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			arg0.getComponent().setBounds(b.x, b.y, width, width*H/W);
 		//	Log.println("WH:" + b.width + " " + b.height);
 		}
-	    
+		toggleSunCheckBox();
 	}
 
 	@Override
