@@ -1259,7 +1259,7 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 	double beta = 4096*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
 	double gamma = 0.02; //scan frequency rate when not locked
 	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
-	public static final double LOCK_LEVEL_THRESHOLD = 2;
+	public static final double LOCK_LEVEL_THRESHOLD = 20;
 	
 	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }

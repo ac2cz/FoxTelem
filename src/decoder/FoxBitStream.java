@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import common.Config;
 import common.Log;
 import common.Performance;
+import decoder.FoxBPSK.FoxBPSKBitStream;
 import telemetry.Frame;
 import telemetry.FoxFramePart;
 import telemetry.HighSpeedHeader;
 import telemetry.SlowSpeedHeader;
+import telemetry.FoxBPSK.FoxBPSKHeader;
 
 /**
  * 
@@ -118,7 +120,9 @@ public abstract class FoxBitStream extends BitStream {
 		
 		Performance.startTimer("findFrames:checks");
 		
-		if (Config.mode == SourceIQ.MODE_FSK_HS)
+		if (this instanceof FoxBPSKBitStream)
+			checkMissingStartSYNC(0, new FoxBPSKHeader());
+		else if (Config.mode == SourceIQ.MODE_FSK_HS)
 			checkMissingStartSYNC(0, new HighSpeedHeader());
 		else
 			checkMissingStartSYNC(0, new SlowSpeedHeader()); 
@@ -280,7 +284,7 @@ public abstract class FoxBitStream extends BitStream {
 		if (start > SYNC_WORD_DISTANCE) {
 			// We might have a frame before this word, but we missed the start SYNC word
 			// Try to find a valid header
-			boolean loopUpError = false;
+			int loopUpError = 0;
 			for (int j=start-SYNC_WORD_DISTANCE; j< start-SYNC_WORD_DISTANCE+header.getMaxBytes()*10; j+=10) {
 				//int[] b8 = processWord(j);
 				byte b8;
@@ -288,12 +292,12 @@ public abstract class FoxBitStream extends BitStream {
 					b8 = processWord(j);
 				} catch (LookupException e) {
 					b8 = -1;
-					loopUpError = true;
+					loopUpError++;
 				}
 				header.addNext8Bits(b8);
 			}
 			
-			if (header.isValid() && !loopUpError) {
+			if (loopUpError < header.getMaxBytes()) { // If we find any valid 10b words then perhaps this was a header, try to process
 				syncWords.add(n, start-SYNC_WORD_DISTANCE);
 			//if (true || header.isValid() && !loopUpError) {
 //				if (!haveSyncWordAtBit(start-SYNC_WORD_DISTANCE)) syncWords.add(n, start-SYNC_WORD_DISTANCE);

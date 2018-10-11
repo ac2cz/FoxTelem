@@ -33,6 +33,13 @@ public abstract class Header extends FoxFramePart {
 	}
 	
 	protected void init() { }
+	
+	/**
+	 * Override the getMaxBytes in FoxFramePart because it uses the layout and the Header has no layout.
+	 */
+	public int getMaxBytes() {
+		return MAX_BYTES;
+	}
 
 	@Override
 	public void copyBitsToFields() {

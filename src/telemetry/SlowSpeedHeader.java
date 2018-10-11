@@ -103,7 +103,7 @@ public class SlowSpeedHeader extends Header {
 	
 	public boolean isValid() {
 		copyBitsToFields();
-		if (Config.satManager.validFoxId(id) && isValidType(type))
+		if (Config.satManager.validFoxId(id))
 			return true;
 		return false;
 	}
