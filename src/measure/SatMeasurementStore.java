@@ -414,10 +414,11 @@ public class SatMeasurementStore {
 		} 
         String oldlog = "Fox"+foxId+OLD_PASS_LOG;
         String log = "Fox"+foxId+PASS_LOG;
-		Log.println("CONVERTING " + oldlog + " to " + log);
+		
 		File aFile = new File(dir + oldlog );
 		if(aFile.exists()){
 			// then convert it
+			Log.println("CONVERTING " + oldlog + " to " + log);
 			load(oldlog, true);
 			Log.println("Loaded: " + this.passRecords.size() + " records");
 			for(Measurement m: this.passRecords) {

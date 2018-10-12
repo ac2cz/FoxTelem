@@ -71,7 +71,7 @@ public class PolyPhaseFilter {
 				//System.out.print("Tap: " + (P + i*R) + " ");
 			}
 			subFilters[j] = new SubFilter(taps);
-			System.out.println("");
+			//System.out.println("");
 			P = P - 1;
 			if (P < 0)
 				P = R - 1;
