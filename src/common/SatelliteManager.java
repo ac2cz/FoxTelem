@@ -65,7 +65,8 @@ public class SatelliteManager implements Runnable {
 	
 	public SatelliteManager()  {
 		init();
-		fetchTLEFile();
+		if (Config.foxTelemCalcsPosition)
+			fetchTLEFile();
 	}
 	
 	public void init() {

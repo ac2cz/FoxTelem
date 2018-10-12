@@ -314,7 +314,8 @@ public class UpdateManager implements Runnable {
 				}
 			
 			if (elapsed % KEP_UPDATE_PERIOD == 0) {
-				updateKeps();
+				if (Config.foxTelemCalcsPosition)
+					updateKeps();
 				elapsed = 0;
 			}
 				

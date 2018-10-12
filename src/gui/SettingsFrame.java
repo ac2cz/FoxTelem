@@ -587,6 +587,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
 					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
 				}
+				if (cbFoxTelemCalcsPosition.isSelected() && !Config.foxTelemCalcsPosition)
+					Config.satManager.fetchTLEFile(); // we are enabling this, better make sure we have a TLE
 				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
 				Config.whenAboveHorizon = cbWhenAboveHorizon.isSelected();
 				Config.trackSignal = rdbtnTrackSignal.isSelected();
