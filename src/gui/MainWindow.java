@@ -118,6 +118,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
 	JCheckBoxMenuItem chckbxmntmShowSatOptions;
 	JCheckBoxMenuItem chckbxmntmShowSourceOptions;
+	static JPanel bottomPanel;
 	
 	// GUI components
 	static JTabbedPane tabbedPane;
@@ -173,7 +174,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.setBorder(new EmptyBorder(5, 5, 5, 5));
 		tabbedPane.addTab( "<html><body leftmargin=15 topmargin=8 marginwidth=15 marginheight=5>Input</body></html>", inputTab );
 
-		JPanel bottomPanel = new JPanel();
+		bottomPanel = new JPanel();
 		getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BorderLayout ());
 		JPanel rightBottom = new JPanel();
@@ -309,7 +310,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				lblAudioMissed.setForeground(Color.RED);
 			else
 				lblAudioMissed.setForeground(Color.BLACK);
+			lblAudioMissed.invalidate();
+			bottomPanel.validate();
 		}
+		
 	}
 
 	public static void setTotalDecodes() {
@@ -317,15 +321,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			int total = 0;
 			total = Config.payloadStore.getTotalNumberOfFrames();
 			lblTotalDecodes.setText(TOTAL_DECODES + total);
+			lblTotalFrames.invalidate();
 		}
 		if (lblTotalFrames != null) { 
 			lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+			lblTotalFrames.invalidate();
 		}
+		bottomPanel.validate();
 	}
 
 	public static void setTotalQueued(int total) {
-		if (lblTotalQueued !=null) // make sure we have initialized before we try to update from another thread
+		if (lblTotalQueued !=null) {// make sure we have initialized before we try to update from another thread
 			lblTotalQueued.setText(TOTAL_QUEUED + total);
+			lblTotalQueued.invalidate();
+			bottomPanel.validate();
+		}
 	}
 
 	/**
