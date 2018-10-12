@@ -207,6 +207,10 @@ public abstract class Frame implements Comparable<Frame> {
 		if (m.getStringValue(PassMeasurement.TCA) != null)
 			strDate = m.getStringValue(PassMeasurement.TCA);
 
+		if (strDate.equals(PassMeasurement.DEFAULT_VALUE)) {
+			Log.println("TCA Could not be measured");
+			measuredTCA = NONE;
+		} else
 		if (strDate != null) {
 			Log.println("Got TCA: " + strDate);
 			Date date = null;
@@ -214,7 +218,8 @@ public abstract class Frame implements Comparable<Frame> {
 				date = FoxFramePart.fileDateFormat.parse(strDate);
 			} catch (ParseException e) {
 				// We don't do anything in this case, the date will be null
-				e.printStackTrace();
+				Log.println("Error parsing TCA date:");
+				e.printStackTrace(Log.getWriter());
 				date = null;
 			}
 
