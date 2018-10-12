@@ -1072,18 +1072,23 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		} catch (NumberFormatException ex) {
 
 		}
+		if (textDisplay)
+			diagnosticTable.updateData();
+		else
+			panel.updateGraphData("GraphFrame:parseTextFields");
 
 	}
 	
 	private void toggleSunCheckBox() {
 		if (!textDisplay)
-		if (Config.foxTelemCalcsPosition) {
-			cbShowSun.setSelected(showSun);
-			cbShowSun.setEnabled(true);
-		} else {
-			cbShowSun.setSelected(false);
-			cbShowSun.setEnabled(false);
-		}
+			if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT))
+				if (Config.foxTelemCalcsPosition) {
+					cbShowSun.setSelected(showSun);
+					cbShowSun.setEnabled(true);
+				} else {
+					cbShowSun.setSelected(false);
+					cbShowSun.setEnabled(false);
+				}
 	}
 
 	private void setRedOutline(JButton but, boolean red) {

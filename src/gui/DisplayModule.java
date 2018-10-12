@@ -218,7 +218,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	 */
 	public void addName(int i, String name, String fieldName, String desc, int display) {
 		this.label[i].setText(name);
-		if (desc != null) row[i].setToolTipText(desc);
+		if (desc != null) row[i].setToolTipText(desc + " | click for graph | right-click for EarthPlot");
 		this.label[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 		this.fieldName[i] = fieldName;
 		this.display[i] = display;
