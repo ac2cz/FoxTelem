@@ -606,7 +606,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		lowSpeed = addRadioButton("DUV", panel_2 );
 		highSpeed = addRadioButton("High Speed", panel_2 );
-		auto = addRadioButton("Auto", panel_2 );
+		auto = addRadioButton("DUV + HS", panel_2 );
 		JLabel bar = new JLabel("  |  ");
 		panel_2.add(bar);
 		psk = addRadioButton("PSK", panel_2 );
