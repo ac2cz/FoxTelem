@@ -856,6 +856,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
 		}
 		autoViewpanel = new JPanel();
+		autoViewpanel.add(new Box.Filler(new Dimension(10,1), new Dimension(40,1), new Dimension(1500,1)));
 		JLabel view = new JLabel("View ");
 		panelCombo.add(autoViewpanel);
 		autoViewpanel.add(view);
@@ -868,7 +869,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		if (Config.autoDecodeSpeed)
 //			autoViewpanel.setVisible(true);
 //		else
-			autoViewpanel.setVisible(false);
+			autoViewpanel.setVisible(true);
 	}
 
 	private JRadioButton addRadioButton(String name, JPanel panel) {
@@ -1002,10 +1003,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		audioGraph.startProcessing(decoder1);
-		eyePanel.startProcessing(decoder1);
-		fftPanel.startProcessing(iqSource1);
-		
+		if (decoder1 != null) {
+			audioGraph.startProcessing(decoder1);
+			eyePanel.startProcessing(decoder1);
+			fftPanel.startProcessing(iqSource1);
+		}
 		viewLowSpeed.setSelected(true);
 
 	}
@@ -1074,7 +1076,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			enableFilters(true);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FSK_HS);
-	//		autoViewpanel.setVisible(true);
+			autoViewpanel.setVisible(true);
 			//Config.save();
 		}
 		if (e.getSource() == viewHighSpeed) {
