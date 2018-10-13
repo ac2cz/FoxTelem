@@ -112,8 +112,8 @@ public class GraphPanel extends GraphCanvas {
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, font));
 		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,longestWord * fontw +1 , 9 + fonth * rows +1  );
-		g2.setColor(Color.LIGHT_GRAY);
-		//g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
+		g2.setColor(Color.WHITE);
+		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
 		
 		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
