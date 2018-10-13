@@ -1369,13 +1369,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	}
 
 	private void connectFCD(short vendorId, short deviceId) throws UsbException, DeviceException {
-		if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
-		try {
-			rfDevice = tunerManager.findDevice(vendorId, deviceId);
-		} catch (Exception e1) {
-			// FIXME - This can not be right..
-			// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
-			rfDevice = tunerManager.findDevice(vendorId, deviceId);
+		if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+			try {
+				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+			} catch (Exception e1) {
+				// FIXME - This can not be right..
+				// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
+				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+			}
+		} else {
+			// this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+			Log.infoDialog("WARNING", "FoxTelem does not support switching SDR devices without a restart.  Restart FoxTelem to use this device.");
 		}
 	}
 	
@@ -1583,17 +1587,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 
-					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
-					try {
-						rfDevice = tunerManager.findDevice(vendorId, deviceId);
-					} catch (UsbException e1) {
-						Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
-						e1.printStackTrace();
-						rfDevice = null;
-					} catch (DeviceException e) {
-						Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
-						e.printStackTrace();
-						rfDevice = null;
+					if (rfDevice == null) { 
+						try {
+							rfDevice = tunerManager.findDevice(vendorId, deviceId);
+						} catch (UsbException e1) {
+							Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
+							e1.printStackTrace();
+							rfDevice = null;
+						} catch (DeviceException e) {
+							Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
+							e.printStackTrace();
+							rfDevice = null;
+						}
+					} else {
+						// this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+						Log.infoDialog("WARNING", "FoxTelem does not support switching SDR devices without a restart.  Restart FoxTelem to use this device.");
+						stopButton();
 					}
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
