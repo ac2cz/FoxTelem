@@ -642,11 +642,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initVarlist() {
 		variables = new ArrayList<String>();
+		ArrayList<String> labels = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
-			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE)) {
+				labels.add(layout.module[v] + "-" + layout.shortName[v]);
 				variables.add(layout.fieldName[v]);
+			}
 		}
-		Object[] fields = variables.toArray();
+		Object[] fields = labels.toArray();
 		cbAddVariable.removeAllItems();
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
@@ -1082,6 +1085,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private void toggleSunCheckBox() {
 		if (!textDisplay)
 			if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT))
+				if (cbShowSun !=null)
 				if (Config.foxTelemCalcsPosition) {
 					cbShowSun.setSelected(showSun);
 					cbShowSun.setEnabled(true);
@@ -1223,17 +1227,20 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			
 			// now rebuild the pick list
+			ArrayList<String> labels = new ArrayList<String>();
 			variables = new ArrayList<String>();
 			
 			for (int v=0; v<layout.fieldName.length; v++) {
 				if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
 				if (layout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || layout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
-						|| fieldUnits2.equalsIgnoreCase(""))
+						|| fieldUnits2.equalsIgnoreCase("")) {
 					variables.add(layout.fieldName[v]);
+					labels.add(layout.module[v] + "-" + layout.shortName[v]);
+				}
 			}
 		
 			cbAddVariable.removeAllItems();
-			for (String s:variables) {
+			for (String s:labels) {
 				cbAddVariable.addItem(s);
 			}
 			

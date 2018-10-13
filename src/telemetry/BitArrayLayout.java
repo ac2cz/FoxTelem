@@ -211,7 +211,20 @@ public class BitArrayLayout {
 			return (shortName[pos]);
 		}
 	}
-	
+
+	public String getModuleByName(String name) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == ERROR_POSITION) {
+			return "";
+		} else {
+			return (module[pos]);
+		}
+	}
+
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 
 		String line;

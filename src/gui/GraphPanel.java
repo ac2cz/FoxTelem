@@ -49,6 +49,7 @@ public class GraphPanel extends GraphCanvas {
 
 	int[] plottedXreset;
 	long[] plottedXuptime;
+	int zeroPoint;
 	
 	public static final int MAX_VARIABLES = 13;
 	Color[] graphColor = {Color.BLUE, Config.GRAPH1, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
@@ -72,18 +73,25 @@ public class GraphPanel extends GraphCanvas {
 	}
 
 	
-	private void drawLegend(int graphWidth, int titleHeight) {
+	private void drawLegend(int graphHeight, int graphWidth) {
 		if (graphFrame.fieldName.length == 1 && graphFrame.fieldName2 == null) return;
 		
+		int titleHeight = topBorder;
 		int verticalOffset = 15;
+		if (zeroPoint < Config.graphAxisFontSize*3) {
+			// we need the title at bottom of graph, not top
+			titleHeight = graphHeight - 15;	
+		}
+		
+		
 		int lineLength = 15;
 		
 		int rows = graphFrame.fieldName.length;
-		int font = (int)(9 * Config.graphAxisFontSize / 11 );
+		int font = (int)(Config.graphAxisFontSize );
 		
 		int leftLineOffset = 50;
 		int fonth = (int)(12*font/9);
-		int fontw = (int)(8*font/10);
+		int fontw = (int)(9*font/10);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
 
@@ -105,12 +113,13 @@ public class GraphPanel extends GraphCanvas {
 		g.setFont(new Font("SansSerif", Font.PLAIN, font));
 		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,longestWord * fontw +1 , 9 + fonth * rows +1  );
 		g2.setColor(Color.LIGHT_GRAY);
-		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
+		//g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
 		
 		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			String name = graphFrame.fieldName[i].toLowerCase();
+			//String name = graphFrame.fieldName[i].toLowerCase();
+			String name = graphFrame.layout.getModuleByName(graphFrame.fieldName[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName[i]);
 			g2.drawString(name+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
@@ -121,7 +130,8 @@ public class GraphPanel extends GraphCanvas {
 		if (graphFrame.fieldName2 != null) {
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			String name = graphFrame.fieldName2[i].toLowerCase();
+			//String name = graphFrame.fieldName2[i].toLowerCase();
+			String name = graphFrame.layout.getModuleByName(graphFrame.fieldName2[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName2[i]);
 			g2.drawString(name+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
@@ -187,7 +197,7 @@ public class GraphPanel extends GraphCanvas {
 		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, conversionType);
 		
 		
-		int zeroPoint = (int) axisPoints[0];
+		zeroPoint = (int) axisPoints[0];
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
 		// Analyze the data for the horizontal axis next
@@ -231,7 +241,7 @@ public class GraphPanel extends GraphCanvas {
 		g2.drawString(graphFrame.displayTitle, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
 
 		// draw the key
-		drawLegend(graphWidth, topBorder); // FIXME - need to work out where to plot the key when the axis is on top
+		drawLegend(graphHeight, graphWidth); // FIXME - need to work out where to plot the key when the axis is on top
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
