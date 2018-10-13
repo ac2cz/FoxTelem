@@ -1377,10 +1377,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
 				rfDevice = tunerManager.findDevice(vendorId, deviceId);
 			}
-		} else {
-			// this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
-			Log.infoDialog("WARNING", "FoxTelem does not support switching SDR devices without a restart.  Restart FoxTelem to use this device.");
-		}
+		} 
 	}
 	
 	private int usingFcd() throws IOException, DeviceException, UsbException {
@@ -1587,7 +1584,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 
-					if (rfDevice == null) { 
+					if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 						try {
 							rfDevice = tunerManager.findDevice(vendorId, deviceId);
 						} catch (UsbException e1) {
@@ -1599,11 +1596,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							e.printStackTrace();
 							rfDevice = null;
 						}
-					} else {
-						// this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
-						Log.infoDialog("WARNING", "FoxTelem does not support switching SDR devices without a restart.  Restart FoxTelem to use this device.");
-						stopButton();
-					}
+					} 
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
 						stopButton();
