@@ -869,7 +869,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		if (Config.autoDecodeSpeed)
 //			autoViewpanel.setVisible(true);
 //		else
-			autoViewpanel.setVisible(true);
+		autoViewpanel.setVisible(true);
 	}
 
 	private JRadioButton addRadioButton(String name, JPanel panel) {
@@ -1299,8 +1299,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			cbSoundCardRate.setVisible(false);
 			panelFile.setVisible(false);
 			auto.setEnabled(false);
+
 			setIQVisible(true);
 			if (auto.isSelected()) { 
+				autoViewpanel.setVisible(false);
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
 				psk.setSelected(false);
