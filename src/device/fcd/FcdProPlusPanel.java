@@ -91,6 +91,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		rfFilterValue = new JTextField();
 		rfFilterValue.setColumns(35);
 		rfFilterValue.setEnabled(false);
+		rfFilterValue.setMinimumSize(new Dimension(70,10));
 		top.add(rfFilterValue);
 		
 		JLabel ifFilter = new JLabel("    IF Filter");
@@ -98,6 +99,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 		ifFilterValue = new JTextField();
 		ifFilterValue.setColumns(30);
 		ifFilterValue.setEnabled(false);
+		ifFilterValue.setMinimumSize(new Dimension(40,10));
 		top.add(ifFilterValue);
 		
 		top.add(new Box.Filler(new Dimension(10,10), new Dimension(10,10), new Dimension(10,10)));
