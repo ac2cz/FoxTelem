@@ -1381,6 +1381,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 		} 
 	}
+
 	
 	private int usingFcd() throws IOException, DeviceException, UsbException {
 		int fcdSelected = fcdSelected();
@@ -1396,8 +1397,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					vendorId = (short)0x04D8;
 					deviceId = (short)0xFB56;						
 				}
+				
 				connectFCD(vendorId, deviceId);
-				if (rfDevice == null) return 0; // FIXME this is an issue because we found the description but not the HID device
+				
+				if (rfDevice == null) {
+					this.lblkHz.setText(" kHz   " + " |   FCD DEVICE NOT CONNECTED");
+					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
+					return 0; // FIXME this is an issue because we found the description but not the HID device
+				}
 			}
 			if (panelFcd == null)
 				try {
