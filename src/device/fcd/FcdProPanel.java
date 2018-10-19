@@ -1,6 +1,7 @@
 package device.fcd;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -72,6 +73,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 		JLabel lblband = new JLabel("    Band");
 		center.add(lblband);
 		bandValue = new JTextField();
+		bandValue.setMinimumSize(new Dimension(40,10));
 		bandValue.setEnabled(false);
 		center.add(bandValue);
 		
@@ -79,6 +81,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 		JLabel rfFilter = new JLabel("    RF Filter");
 		center.add(rfFilter);
 		rfFilterValue = new JTextField();
+		rfFilterValue.setMinimumSize(new Dimension(70,10));
 		rfFilterValue.setEnabled(false);
 		center.add(rfFilterValue);
 
