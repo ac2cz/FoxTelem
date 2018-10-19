@@ -243,7 +243,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @throws IOException
 	 */
 	public Frame(BufferedReader input) throws IOException {
-		load(input);
+		
 	}
 
 	abstract public void addNext8Bits(byte b);
@@ -805,18 +805,22 @@ public abstract class Frame implements Comparable<Frame> {
 	}
 	
 	public void load(BufferedReader input) throws IOException {
-		if (this instanceof SlowSpeedFrame)
+		if (this instanceof SlowSpeedFrame) {
 			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
 					+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
 					+ SlowSpeedFrame.MAX_TRAILER_SIZE];
-		else if (this instanceof FoxBPSKFrame)
+			header = new SlowSpeedHeader();
+		} else if (this instanceof FoxBPSKFrame) {
 			bytes = new byte[FoxBPSKFrame.MAX_HEADER_SIZE
 								+ FoxBPSKFrame.MAX_PAYLOAD_SIZE
 								+ FoxBPSKFrame.MAX_TRAILER_SIZE];
-		else
+			header = new FoxBPSKHeader();
+		} else {
 			bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
 					+ HighSpeedFrame.MAX_PAYLOAD_SIZE
 					+ HighSpeedFrame.MAX_TRAILER_SIZE];
+			header = new HighSpeedHeader();
+		}
 		String line = input.readLine();
 		if (line != null) {
 			StringTokenizer st = new StringTokenizer(line, ",");
@@ -830,7 +834,7 @@ public abstract class Frame implements Comparable<Frame> {
 			demodulator = insertComma(st.nextToken());
 			stpDate = new Date(Long.parseLong(st.nextToken()));
 			length = st.nextToken();
-			// System.out.println("loaded: " + this.getSTPHeader());
+			//System.out.println("loaded: " + sequenceNumber);
 			for (int i = 0; i < bytes.length; i++) {
 
 				//bytes[i] = (byte) Integer.parseInt(st.nextToken());

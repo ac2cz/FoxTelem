@@ -87,6 +87,7 @@ import telemetry.uw.CanPacket;
 
 		public FoxBPSKFrame(BufferedReader input) throws IOException {
 			super(input);
+			load(input);
 		}
 		
 		public FoxBPSKHeader getHeader() { return (FoxBPSKHeader)header; }

@@ -49,6 +49,7 @@ public class SlowSpeedFrame extends Frame {
 	
 	public SlowSpeedFrame(BufferedReader input) throws IOException {
 		super(input);
+		load(input);
 	}
 	
 	public int getType() {
