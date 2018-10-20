@@ -206,7 +206,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					fieldValue[i++] = Integer.valueOf(s).intValue();
 			}
 		} catch (NoSuchElementException e) {
-			// we are done and can finish
+			// we are done and can finish. The line was terminated and is corrupt.
 		} catch (ArrayIndexOutOfBoundsException e) {
 			// Something nasty happened when we were loading, so skip this record and log an error
 			Log.errorDialog("ERROR: Too many fields: Index out of bounds", e.getMessage() + 
