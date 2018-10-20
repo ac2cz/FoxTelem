@@ -1393,15 +1393,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (fcdSelected == 2) {
 					vendorId = (short)0x04D8;
 					deviceId = (short)0xFB31;
+					cbSoundCardRate.setSelectedIndex(RATE_192000_IDX);
 				} else { // FCDP
 					vendorId = (short)0x04D8;
-					deviceId = (short)0xFB56;						
+					deviceId = (short)0xFB56;	
+					cbSoundCardRate.setSelectedIndex(RATE_96000_IDX);
 				}
 				
 				connectFCD(vendorId, deviceId);
 				
 				if (rfDevice == null) {
-					this.lblkHz.setText(" kHz   " + " |   FCD DEVICE NOT CONNECTED");
+					this.lblkHz.setText(" kHz   " + " |   FCD ERR - SET FREQ MANUALLY");
 					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
 					return 0; // FIXME this is an issue because we found the description but not the HID device
 				}
