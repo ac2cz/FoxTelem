@@ -119,6 +119,7 @@ public class HealthTabRt extends HealthTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
+					MainWindow.setTotalDecodes();
 				}
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
@@ -128,7 +129,7 @@ public class HealthTabRt extends HealthTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
-					
+					MainWindow.setTotalDecodes();
 				}
 
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
@@ -145,12 +146,13 @@ public class HealthTabRt extends HealthTab {
 
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
+					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs(FoxFramePart.TYPE_REAL_TIME);
 						justStarted = false;
 					}
 				}
-				MainWindow.setTotalDecodes();
+				
 
 			}
 			//System.out.println("Health tab running: " + running);
