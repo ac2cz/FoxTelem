@@ -127,8 +127,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 						erasurePositions[rsNum][numberOfErasures[rsNum]] = f;
 						numberOfErasures[rsNum]++;
 					} else {
-						if (Config.debugFrames)
-							Log.println("MAX ERASURES HIT: RS Decode Abandoned");
+						if (Config.debugFrames) {
+							int total=0;
+							for (int e1 : numberOfErasures)
+								total += e1;
+							Log.println("MAX ERASURES HIT: RS Decode Abandoned. Total: " + total);
+						}
 						return null;
 					}
 				}
@@ -184,7 +188,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 					}
 				}
 			} else {
-				if (Config.debugFrames || Config.debugRS) Log.println("Too many erasures, failure to decode");
+				if (Config.debugFrames || Config.debugRS) {
+					int total=0;
+					for (int e : numberOfErasures)
+						total += e;
+					Log.println("Too many erasures, failure to decode.  Total:" + total);
+				}
 				return null;
 			}
 		}
