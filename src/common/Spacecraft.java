@@ -340,11 +340,15 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
+		FileInputStream f = null;
 		try {
-			FileInputStream f=new FileInputStream(propertiesFile);
+			f=new FileInputStream(propertiesFile);
 			properties.load(f);
+			f.close();
 		} catch (IOException e) {
+			if (f!=null) try { f.close(); } catch (Exception e1) {};
 			throw new LayoutLoadException("Could not load spacecraft files: " + propertiesFile.getAbsolutePath());
+			
 		}
 		try {
 			foxId = Integer.parseInt(getProperty("foxId"));
@@ -447,17 +451,23 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return value;
 	}
 	protected void store() {
+		FileInputStream f = null;
 		try {
+			f=new FileInputStream(propertiesFile);
 			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
+			f.close();
 		} catch (FileNotFoundException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e2) {};
 			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
 			e1.printStackTrace(Log.getWriter());
 		} catch (IOException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e3) {};
 			Log.errorDialog("ERROR", "Error writing spacecraft file");
 			e1.printStackTrace(Log.getWriter());
 		}
 	}
 	protected void save() {
+		
 		properties.setProperty("foxId", Integer.toString(foxId));
 		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
 		properties.setProperty("name", name);

@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -46,7 +48,9 @@ import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 
 import org.rauschig.jarchivelib.Archiver;
 import org.rauschig.jarchivelib.ArchiverFactory;
@@ -54,6 +58,7 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
+import telemetry.SatPayloadStore;
 
 import com.apple.eawt.Application;
 
@@ -105,6 +110,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
 	static ArrayList<Spacecraft> sats;
+	// Swing File Chooser
+	JFileChooser fc = null;
+	//AWT file chooser for the Mac
+	FileDialog fd = null;
 	JMenu mnSats;
 	JMenuBar menuBar;
 	JMenuItem mntmSettings;
@@ -113,6 +122,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmLeaderboard;
 	JMenuItem mntmSoftware;
 	JMenuItem mntmAbout;
+	JMenuItem mntmSatAdd;
+	JMenuItem mntmSatRemove;
 	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
 	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
@@ -237,6 +248,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTabThread = new Thread(inputTab);
 		inputTabThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		inputTabThread.start();
+		
+		fd = new FileDialog(MainWindow.frame, "Select Spacecraft file",FileDialog.LOAD);
+	//	fd.setFile("*.MASTER");
+	//} else {
+		fc = new JFileChooser();
+		// initialize the file chooser
+		
 		
 		// We are fully up, remove the database loading message
 		Config.fileProgress.updateProgress(100);
@@ -488,8 +506,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			
 		}
 		mnSats = new JMenu("Spacecraft");
+		
 		menuBar.add(mnSats);
 
+		mntmSatAdd = new JMenuItem("Add");
+		mnSats.add(mntmSatAdd);
+		mntmSatAdd.addActionListener(this);
+		mntmSatRemove = new JMenuItem("Remove");
+		mnSats.add(mntmSatRemove);
+		mntmSatRemove.addActionListener(this);
+		
+		mnSats.addSeparator();
+		
 		sats = Config.satManager.getSpacecraftList();
 
 		mntmSat = new JMenuItem[sats.size()];
@@ -644,6 +672,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				}
 			}
 		}
+		
+		if (e.getSource() == mntmSatAdd) {
+			addSpacecraft(false);
+		}
+
+		if (e.getSource() == mntmSatRemove) {
+			addSpacecraft(true);
+		}
+
+		
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
 			Config.showFilters = chckbxmntmShowFilterOptions.getState();
 				inputTab.showFilters(Config.showFilters);
@@ -833,6 +871,143 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 	}
 	
+	/**
+	 * Allow the user to choose a new spacecraft file to add.  They can pick a .master or .dat file.
+	 */
+	private void addSpacecraft(boolean remove) {
+		File file = null;
+		File destinationDir = null;
+		File dir = null;
+		if (remove) {
+			dir = new File(Config.currentDir+"/spacecraft");
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				dir = new File(Config.logFileDirectory+"/spacecraft");
+			} 		
+		} else {
+			dir = new File(Config.currentDir+"/spacecraft");
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				destinationDir = new File(Config.logFileDirectory+"/spacecraft");
+			} else {
+				destinationDir = dir;
+			}
+		}
+		
+		if(Config.useNativeFileChooser) { // not on windows because native dir chooser does not work) {
+			// use the native file dialog on the mac
+			if (remove) {
+				fd.setFile("*.dat");
+				fd.setTitle("Select spacecraft DAT file to remove");
+			} else {
+				fd.setFile("*.MASTER");
+				fd.setTitle("Select spacecraft MASTER file to install");
+			}
+			if (dir != null) {
+				fd.setDirectory(dir.getAbsolutePath());
+			}
+			fd.setVisible(true);
+			String filename = fd.getFile();
+			String dirname = fd.getDirectory();
+			if (filename == null) {
+				Log.println("You cancelled the choice");
+				file = null;
+			} else {
+				Log.println("File: " + filename);
+				Log.println("DIR: " + dirname);
+				file = new File(dirname + filename);
+			}	
+		} else {
+			fc.setPreferredSize(new Dimension(Config.windowFcWidth, Config.windowFcHeight));
+			if (remove) {
+				fc.setDialogTitle("Select spacecraft DAT file to remove");
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "Spacecraft files", "dat");
+				fc.setFileFilter(filter);
+				fc.setApproveButtonText("Remove");
+			} else {
+				fc.setDialogTitle("Select spacecraft MASTER file to install");
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "Spacecraft files", "MASTER");
+				fc.setFileFilter(filter);
+				fc.setApproveButtonText("Add");
+			}
+			if (dir != null)
+				fc.setCurrentDirectory(dir);
+			// This toggles the details view on
+			//		Action details = fc.getActionMap().get("viewTypeDetails");
+			//		details.actionPerformed(null);
+
+			int returnVal = fc.showOpenDialog(this);
+			Config.windowFcHeight = fc.getHeight();
+			Config.windowFcWidth = fc.getWidth();		
+			
+			//Config.save();
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				file = fc.getSelectedFile();
+				Log.println("File: " + file.getName());
+				Log.println("DIR: " + file.getPath());
+			} else
+				file = null;
+		}
+		if (file !=null) {
+			boolean refresh = false;
+			if (remove) {
+				int n = Log.optionYNdialog("Delete the spacecraft config file?",
+						file.getName() + "\n\nYou will be able to install the spacecraft again if you want, but local settings such\n"
+								+ "as frequency ranges will be lost.  Stored telemetry will not be removed.  Delete for now?\n\n");
+				if (n == JOptionPane.NO_OPTION) {
+					refresh = false;
+				} else {
+					
+					try {
+						SatPayloadStore.remove(file.getAbsolutePath());
+						refresh = true;
+					} catch (IOException e) {
+						Log.errorDialog("ERROR removing File", "\nCould not remove the spacecraft file\n"+e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+
+			} else {
+				String targetName = file.getName().replace(".MASTER", ".dat");
+				File targetFile = new File(destinationDir.getPath()+ File.separator + targetName);
+				boolean copy = true;
+
+				Log.println("Installing " + file.getAbsolutePath() + " as " + targetFile.getAbsolutePath());
+
+				if (targetFile.exists()) {
+					int n = Log.optionYNdialog("Overwrite Existing spacecraft config file?",
+							targetFile.getName() + "\n\nThis spacecraft is already installed.  Overwrite it?\n\n");
+
+					if (n == JOptionPane.NO_OPTION) {
+						copy = false;
+					} else {
+						copy = true;
+					}
+				}
+				if (copy) {
+					try {
+						SatPayloadStore.copyFile(file, targetFile);
+						refresh = true;
+					} catch (IOException e) {
+						Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+			}
+			if (refresh) {
+				Config.initSatelliteManager();
+				Config.initPayloadStore();
+				Config.initPassManager();
+				Config.initSequence();
+				Config.initServerQueue();
+				Config.mainWindow.initSatMenu();
+				MainWindow.refreshTabs(false);
+				Config.fileProgress.updateProgress(100);
+			}
+		}
+	}
+
+
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
 	 * window that are not tied to a control that we have added.

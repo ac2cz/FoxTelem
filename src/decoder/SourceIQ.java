@@ -1260,7 +1260,7 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 	double gamma = 0.04; //scan frequency rate when not locked 0.02 may not be strong enough to defeat false lock
 	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
 	public static final double LOCK_LEVEL_THRESHOLD = 10; // Depending on the signal the actual lock seems to vary from 18 to 50 or so.
-	public static final int SCAN_RANGE = 2000;
+	public static final int SCAN_RANGE = 2000	;
 	
 	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
