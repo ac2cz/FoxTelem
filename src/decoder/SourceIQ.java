@@ -532,7 +532,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 			}
 			i+=2;
 		}
-		avgLockLevel = sumLockLevel / (fcdData.length/2.0);
+		avgLockLevel = sumLockLevel / (double)(fcdData.length/2.0);
 		runFFT(fftData); // results back in fftData
 
 		if (!Config.showIF) calcPsd();
@@ -1218,15 +1218,15 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 			if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
 				// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
 				long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
-				if (strongestFreq - freq > 2000 || strongestFreq - freq < -2000) {
+				if (strongestFreq - freq > SCAN_RANGE || strongestFreq - freq < -SCAN_RANGE) {
 					// we are more than a kc off
 					freq = strongestFreq;
 				} else {
 					freq = freq + gamma; 
-					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+2000) // defeat false lock at 600Hz or other freq.
-						freq = this.getOffsetFrequencyFromBin(selectedBin)+2000;
-					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-2000)
-						freq = this.getOffsetFrequencyFromBin(selectedBin)-2000;
+					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE) // defeat false lock at 600Hz or other freq.
+						freq = this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE;
+					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE)
+						freq = this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE;
 				} 
 			}
 			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
@@ -1260,6 +1260,7 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 	double gamma = 0.04; //scan frequency rate when not locked 0.02 may not be strong enough to defeat false lock
 	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
 	public static final double LOCK_LEVEL_THRESHOLD = 10; // Depending on the signal the actual lock seems to vary from 18 to 50 or so.
+	public static final int SCAN_RANGE = 2000;
 	
 	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
