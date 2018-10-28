@@ -673,9 +673,9 @@ public class SatPayloadTable {
 			}
 			return rt;
 		} catch (NoSuchElementException e) {
-			Log.errorDialog("ERROR: Corrupted record", e.getMessage() + 
-					" Could not load record for SAT: " + id + " Reset:" + resets + " Up:" + uptime + " Type:" + type +
-					"\nThis record will be ignored, but adding more records may not fix the problem.");
+			Log.errorDialog("ERROR: Corrupted record",  
+					" Could not load record. If this is test data \nuse File>Delete Payloads once FoxTelem has started." +
+					"\nThis record will be ignored.");
 			// we are done and can finish
 			return null;
 		} catch (ArrayIndexOutOfBoundsException e) {
@@ -796,7 +796,7 @@ public class SatPayloadTable {
 		}
 	}
 	
-	boolean newLineExists(String log) throws IOException {
+	public static boolean newLineExists(String log) throws IOException {
 		File file = new File(log );
 	    RandomAccessFile fileHandler = new RandomAccessFile(file, "r");
 	    long fileLength = fileHandler.length() - 1;
