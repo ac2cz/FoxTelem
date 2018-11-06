@@ -1583,17 +1583,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					SourceAudio audioSource;
 					if (autoViewpanel != null)
 						autoViewpanel.setVisible(false);
-					if (Config.mode != SourceIQ.MODE_PSK)
-						Config.useNCO = true;
-					else
-						Config.useNCO = false;
+					Config.useNCO = true; // always use NCO for a USB device
 					short vendorId = 0;
 					short deviceId = 0;
 //					if (position-soundcardSources.length == 0) { // airspy
 //						vendorId = (short)0x1D50;
 //						deviceId = (short)0x60A1;
 //					} else 
-					if (position-soundcardSources.length == 0) { // rtlsdr
+					if (position-soundcardSources.length == 0) { // rtlsdr // this is probablly not all the devices!
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 

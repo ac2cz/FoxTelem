@@ -382,9 +382,10 @@ public class SourceIQ extends SourceAudio {
 					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
 				if (mode == MODE_PSK)
 					outputData = processPSKBytes(fcdData);
-				else 
+				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
-//					outputData = processBytes(fcdData, false);
+				else
+					outputData = processBytes(fcdData, false);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
