@@ -1,6 +1,10 @@
 package decoder.FoxBPSK;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.swing.SwingUtilities;
+
 import common.Config;
 import common.Log;
 import common.Performance;
@@ -384,6 +388,17 @@ public class FoxBPSKCostasDecoder extends Decoder {
 					e.printStackTrace(Log.getWriter());
 				}
 			framesDecoded++;
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+				    public void run() { MainWindow.setTotalDecodes();}
+				});
+			} catch (InvocationTargetException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			Performance.endTimer("Store");
 		} else {
 			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
