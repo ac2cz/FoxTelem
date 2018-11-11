@@ -28,7 +28,8 @@ public class SourceIQ extends SourceAudio {
 	public static final int MODE_WFM = 0;
 	public static final int MODE_FSK_HS = 1;
 	public static final int MODE_FSK_DUV = 2;
-	public static final int MODE_PSK = 3;
+	public static final int MODE_PSK_NC = 3;
+	public static final int MODE_PSK_COSTAS = 4;
 	
 	private int mode = MODE_FSK_DUV;
 	
@@ -96,6 +97,11 @@ public class SourceIQ extends SourceAudio {
 	public boolean offsetFFT = true;
 	int dist = 0; // the offset distance
 	
+	// Only needed for Legacy NCO
+	private static final int SINCOS_SIZE = 256;
+	private double[] sinTab = new double[SINCOS_SIZE];
+	private double[] cosTab = new double[SINCOS_SIZE];
+	
 	RfData rfData;
 	Thread rfDataThread;
 	
@@ -106,6 +112,13 @@ public class SourceIQ extends SourceAudio {
 		AF_SAMPLE_RATE = Config.afSampleRate;
 		if (highSpeed && AF_SAMPLE_RATE < 48000) AF_SAMPLE_RATE = 48000;
 		audioFormat = makeAudioFormat();
+
+		// Legacy Oscillator
+		// NCO
+		for (int n=0; n<SINCOS_SIZE; n++) {
+			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
+			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
+		}
 	}
 
 	public void setAudioSource(SourceAudio as, int chan) {
@@ -144,17 +157,26 @@ public class SourceIQ extends SourceAudio {
 		centerFreq = freq; 
 	}
 
-	public int getSelectedBin() { return selectedBin; }
-	public void setSelectedBin(int bin) { 
+//	private int getSelectedBin() { return selectedBin; }
+/*	private void setSelectedBin(int bin) { 
 		selectedBin = bin; 
 		Config.selectedBin = bin;
 		freq = getOffsetFrequencyFromBin(selectedBin); // costas freq
 		if (nco != null)
 			nco.setFrequency(freq);
 	}
+	*/
+	
+	public void setSelectedBin(int bin) { 
+		selectedBin = bin; 
+		/////Config.selectedBin = bin;
+		freq = getOffsetFrequencyFromBin(selectedBin); // costas freq
+		if (nco != null)
+			nco.setFrequency(freq);
+	}
 	
 	public long getSelectedFrequency() {
-		return getFrequencyFromBin(selectedBin);
+		return getFrequencyFromBin(Config.selectedBin);
 	}
 	
 	/**
@@ -206,7 +228,7 @@ public class SourceIQ extends SourceAudio {
 		
 	}
 	
-	public int incSelectedBin() {
+/*	public int incSelectedBin() {
 		int selectedBin = getSelectedBin();
         selectedBin = selectedBin-1;
         if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
@@ -223,7 +245,7 @@ public class SourceIQ extends SourceAudio {
         setSelectedBin(selectedBin);
         return selectedBin;
 	}
-	
+*/	
 	public double[] getPowerSpectralDensity() { 
 //		if (fftDataFresh==false) {
 //			return null;
@@ -261,7 +283,7 @@ public class SourceIQ extends SourceAudio {
 			samplesToRead = 3840 /2;
 			return;
 		}
-		if (mode == MODE_PSK || Config.useNCO) {
+		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS || Config.useNCO) {
 			FFT_SAMPLES=4096;
 			samplesToRead = 3840;
 			return;			
@@ -305,10 +327,16 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (mode == MODE_FSK_HS) {
-			setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
+			if (Config.useNCO) 
+				setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
+			else
+				setFilterWidth(2*9600); //9600); // 7000 seems best for PolyPhase filter
 		//	setFilterWidth(2*75000);
 		} else {
-			setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
+			if (Config.useNCO) 
+				setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
+			else
+				setFilterWidth(5000); // 5kHz deviation, 3kHz audio on Fox
 			//mode = MODE_NFM;
 		}
 		if (offsetFFT) // only needed for FFT Filter
@@ -336,7 +364,7 @@ public class SourceIQ extends SourceAudio {
 		iDcFilter = new DcRemoval(0.9999d);
 		qDcFilter = new DcRemoval(0.9999d);
 		
-		setSelectedBin(Config.selectedBin);
+///		setSelectedBin(Config.selectedBin);
 		// Costas Loop or NCO downconvert
 		nco = new ComplexOscillator(IQ_SAMPLE_RATE, (int) freq);
 		// Costas
@@ -380,8 +408,10 @@ public class SourceIQ extends SourceAudio {
 				nBytesRead = upstreamAudioSource.read(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
 					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
-				if (mode == MODE_PSK)
+				if (mode == MODE_PSK_COSTAS)
 					outputData = processPSKBytes(fcdData);
+				else if (mode == MODE_PSK_NC)
+					outputData = processBytes(fcdData, false);
 				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
 				else
@@ -576,11 +606,16 @@ protected double[] processPSKBytes(double[] fcdData) {
  * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
  * We cache the read bytes in case we need to adjust for the clock
  * If this is being called because the clock moved, we do not re-cache the data
+ * 
+ * We use this for the FFT Filter version of DUV/HS and for the Non Coherent PSK decoder.
  * @param fcdData
  * @return
  */
 protected double[] processBytes(double[] fcdData, boolean clockMove) {
-	if (Config.useNCO) return new double[0];
+	if (!(mode == MODE_PSK_NC) && Config.useNCO) {
+		Log.errorDialog("FATAL", "Trying to run non NCO decoder with Config.useNCO set");
+		return new double[0];
+	}
 	double maxValue = 0;
 	double minValue = 0;
 			//dist = 128;
@@ -632,77 +667,35 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 
 	if (Config.showIF) calcPsd();
 
-	if (Config.useNCO || mode == MODE_PSK) 
+	if (mode == MODE_PSK_NC) 
 		;
 	else
 		inverseFFT(fftData);
 	int d=0;		
 	int sumLockLevel = 0;
-	if (!Config.useNCO)
+	//if (!Config.useNCO)
 	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-		if (mode == MODE_PSK) {
-			if (fcdData[j] > maxValue) maxValue = fcdData[j];
-			if (fcdData[j] < minValue) minValue = fcdData[j];
-//			demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
-			demodAudio[d++] = pskDemod(gain*fcdData[j], gain*fcdData[j+1]);
-			sumLockLevel += lockLevel;
-
-		} else if (Config.useNCO) {
-			if (fcdData[j] > maxValue) maxValue = fcdData[j];
-			if (fcdData[j] < minValue) minValue = fcdData[j];
-			c = nco.nextSample();
-			c.normalize();
-			// Mix 
-			double iMix = gain*fcdData[j] * c.geti() + gain*fcdData[j+1]*c.getq();
-			double qMix = gain*fcdData[j+1] * c.geti() - gain*fcdData[j]*c.getq();
-			
-			// Some filtering so the FM demod is not corrupted by other signals
-			
-			demodAudio[d++] = fm.demodulate(iMix, qMix);
-			
-		} else
+		if (mode == MODE_PSK_NC)
+			demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+		else
 			demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
-
 	}
-	if (mode == MODE_PSK) {
-		avgLockLevel = sumLockLevel / fcdData.length;
-		//System.err.println(freq + ", " + (this.getOffsetFrequencyFromBin(selectedBin)-3000) + " - " + (this.getOffsetFrequencyFromBin(selectedBin)+3000));
-		
-		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-		//if (gain < 1) gain = 1;
-
-	}
+	
 	int k = 0;
 	// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
 	// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 	// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
-	// No needed with NCO as we have already filtered to 3kHz
+
 //	if (!Config.useNCO)
 	for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
 		if (highSpeed)
-			antiAlias20kHzIIRFilter(demodAudio);
+			demodAudio = mono20kHzIIRFilter(demodAudio);
+			//antiAlias20kHzIIRFilter(demodAudio);
 		else {
 			demodAudio = mono16kHzIIRFilter(demodAudio);
 //			antiAlias16kHzIIRFilter(demodAudio);				
 		}
-	
-//	if (Config.useNCO) {
-//		// Every 4th entry goes to the audio output to get us from 192k -> 48k
-//		for (int j=0; j < fcdData2.length; j+=decimationFactor*2 ) { // data size is 1 decimate by factor of 4 to get to audio format size
-//			double finalValue = fm.demodulate(fcdData2[j], fcdData2[j+1]);
-//			finalValue = audioDcFilter.filter(finalValue); // remove DC.  Only need to do this to the values we want to keep
-//			// FUDGE - safety factor because the decimation is not exact
-//			if (k >= audioData.length ) {
-//				//Log.println("k:" + k);
-//				break;
-//			}
-//			audioData[k] = finalValue;
-//			k+=1;
-//		}
-//
-//	} else
 	
 	// Every 4th entry goes to the audio output to get us from 192k -> 48k
 	for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
@@ -832,10 +825,10 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		boolean spansDcSpike = false;
 		
 		// If we are outside the FFT range then pick a default point.  This happens if the FFT is resized between runs, e.g. a different SDR device
-		if (selectedBin*2 > fftData.length) {
-			selectedBin = 3 * fftData.length / 8;
+		if (Config.selectedBin*2 > fftData.length) {
+			Config.selectedBin = 3 * fftData.length / 8;
 		}
-		int binIndex = selectedBin*2; // multiply by two because each bin has a real and imaginary part
+		int binIndex = Config.selectedBin*2; // multiply by two because each bin has a real and imaginary part
 		int filterBins = filterWidth*2;
 
 		int start = binIndex - filterBins;
@@ -1090,6 +1083,33 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		return yvq[5];
         
 	}
+	
+	private double[] mono20kHzIIRFilter(double[] rawAudioData) {
+		// Designed at www-users.cs.york.ac.uk/~fisher
+		// Need to filter the data before we decimate
+		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
+		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
+		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
+		double[] out = new double[rawAudioData.length];
+		
+		for (int j=0; j < rawAudioData.length; j+=4 ) {
+			out[j] = mono20kHzValue(rawAudioData[j]);
+		}
+		return out;
+	}
+	
+	private double mono20kHzValue(double in) {
+		double GAIN = 3.006238283e+02;
+		xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
+        xvi[5] = in / GAIN;
+        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
+        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
+                + (  0.0175819825 * yvi[0]) + ( -0.1605530625 * yvi[1])
+                + (  0.6276667742 * yvi[2]) + ( -1.3438919231 * yvi[3])
+                + (  1.6182326801 * yvi[4]);
+        
+		return yvi[5];
+	}
 
 	private void antiAlias20kHzIIRFilter(double[] rawAudioData) {
 		// Designed at www-users.cs.york.ac.uk/~fisher
@@ -1297,4 +1317,60 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		return in;
 	}
 
+	// Legacy Decoder Elements below.  We use the Legacy BFO for PSK Non Coherent Demod.
+	
+	/**
+	 * BFO translates to baseband and gives audio for a SSB signal
+	 * @param i
+	 * @param q
+	 * @return
+	 */
+	private double ncoBFO(double i, double q) {
+		int ssbOffset = 0;
+		// offset by 1200Hz if this is PSK
+		 	ssbOffset = (int)(1200.0/(IQ_SAMPLE_RATE/FFT_SAMPLES)); // 1200 / binBandwidth = number of bins for 1200 Hz
+			//ssbOffset = (int)(1200.0/(192000.0/4096.0)); // 1200 / binBandwidth = number of bins for 1200 Hz
+			//System.err.println("OFF: " + ssbOffset);
+		double mi = ncoMixerI(i,q, ssbOffset);
+		double mq = ncoMixerQ(i,q, ssbOffset);
+		//Demodulate ssb
+//		mi = ht.filter(mi);
+//		mq = delay.filter(mq);
+		return mi + mq;
+	}
+	
+	private double iPhase = 0.0;
+	private double ncoMixerI(double i, double q, int offset) {
+		
+		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		iPhase+=inc;
+		if (iPhase>2.0*Math.PI)
+			iPhase-=2.0*Math.PI;
+		// mix with input signal (unless negative)
+		if (iPhase>0.0) {
+			double mi=i*cosTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE] +
+					q*sinTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+			return mi; //cosTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+		} else {
+			return i;
+		}
+	}
+
+	private double qPhase = 0.0;
+	private double ncoMixerQ(double i, double q, int offset) {
+		
+		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		qPhase+=inc;
+		if (qPhase>2.0*Math.PI)
+			qPhase-=2.0*Math.PI;
+		// mix with input signal (unless negative)
+		if (qPhase>0.0) {
+			double mq=q*cosTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE] -
+					i*sinTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+			return mq; //sinTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+		} else {
+			return q;
+		}
+	}
+	
 }

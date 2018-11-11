@@ -4,52 +4,27 @@ import java.io.IOException;
 import common.Config;
 import common.Log;
 import common.Performance;
-import common.Spacecraft;
 import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.SourceAudio;
-import decoder.SourceIQ;
 import filter.AGCFilter;
 import filter.DcRemoval;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
-import filter.Complex;
-import filter.ComplexOscillator;
-import filter.CosOscillator;
-import filter.Delay;
-import filter.HilbertTransform;
-import filter.IirFilter;
-import filter.RaisedCosineFilter;
-import filter.RootRaisedCosineFilter;
-import filter.WindowedSincFilter;
 
 public class FoxBPSKDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
-	private double sumClockError = 0;
-	private int samplePoint = 20;
-	public static final int AUDIO_MODE = 0;
-	public static final int PSK_MODE = 1;
-	public int mode = AUDIO_MODE;
-
+//	public static final int SYNC_WORD_LENGTH = 15;
+//	public static final int SYNC_WORD_LENGTH = 31;
+	private int clockOffset = 0;
+	private double[] cosTab;
+	private double[] sinTab;
 	DcRemoval audioDcFilter;
 
-	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
-
-	RaisedCosineFilter dataFilter;
-	//RaisedCosineFilter iFilter;
-	//RaisedCosineFilter qFilter;
-	//RaisedCosineFilter loopFilter;
-	IirFilter iFilter;
-	IirFilter qFilter;
-	IirFilter loopFilter;
-
 	double[] pskAudioData;
-	double[] pskQAudioData;
-
-	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
 	/**
 	 * This holds the stream of bits that we have not decoded. Once we have several
@@ -57,9 +32,8 @@ public class FoxBPSKDecoder extends Decoder {
 	 */
 	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
 
-	public FoxBPSKDecoder(SourceAudio as, int chan, int mode) {
+	public FoxBPSKDecoder(SourceAudio as, int chan) {
 		super("1200bps BPSK", as, chan);
-		this.mode = mode;
 		init();
 	}
 
@@ -70,52 +44,28 @@ public class FoxBPSKDecoder extends Decoder {
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
-		samplePoint = bucketSize/2;
+
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
-		SAMPLE_WIDTH = 1;
+		SAMPLE_WIDTH = 4;
 		if (SAMPLE_WIDTH < 1) SAMPLE_WIDTH = 1;
 		CLOCK_TOLERANCE = bucketSize/2;
 		CLOCK_REOVERY_ZERO_THRESHOLD = 20;
 		initWindowData();
 
+		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 		audioDcFilter = new DcRemoval(0.9999d);
-		if (mode == PSK_MODE) { // costas psk demod mode
-			filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
-			filter.init(currentSampleRate, 0, 0);
-		} else {
-			filter = new RootRaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
-			filter.init(currentSampleRate, 1200, 512);
+		filter.init(currentSampleRate, 0, 0);
+		//filter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
+		//filter.init(currentSampleRate, 1200, 65);
+
+		cosTab = new double[SINCOS_SIZE];
+		sinTab = new double[SINCOS_SIZE];
+
+		for (int n=0; n<SINCOS_SIZE; n++) {
+			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
+			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
 		}
-
-		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 6000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
-
-		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		//		iFilter.init(48000, 1200, 128);
-
-		//		qFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		//		qFilter.init(48000, 1200, 128);
-
-		// 4 pole cheb at fc = 0.025 = 1200Kz at 48k.  Ch 20 Eng and Sci guide to DSP
-		double[] a = {1.504626E-05, 6.018503E-05, 9.027754E-05, 6.018503E-05, 1.504626E-05};
-		double[] b = {1, 3.725385E+00, -5.226004E+00,  3.270902E+00,  -7.705239E-01};
-
-		iFilter = new IirFilter(a,b);
-		qFilter = new IirFilter(a,b);
-
-		// Single pole IIR from Eng and Scientists Guide to DSP ch 19.  Higher X is amount of decay.  Higher X is slower
-		// decay. x = e^-1/d where d is number of samples for decay. x = e^-2*pi*fc
-		double x = 0.3678;//0.86 is 6 samples, 0.606 is 2 samples 0.3678 is 1 sample, 0.1353 is 0.5 samples
-		double[] a2 = {1-x};
-		double[] b2 = {1, x};
-
-		loopFilter = new IirFilter(a2,b2);
-
-		//	loopFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		//	loopFilter.init(48000, 50, 32); // this filter should not contribute to lock.  Should be far outside the closed loop response.
-
 		pskAudioData = new double[BUFFER_SIZE];
-		pskQAudioData = new double[BUFFER_SIZE];
 	}
 
 	protected void resetWindowData() {
@@ -127,188 +77,65 @@ public class FoxBPSKDecoder extends Decoder {
 		return pskAudioData;
 	}
 
-	public double[] getBasebandQData() {
-		return pskQAudioData;
-	}
-
 	/**
+	 * Sample the buckets (one bucket per bit) to determine the change in phase and hence
+	 * the bit that each bucket contains.  We use the following approach:
+	 * Each sample in each bit is multiplied by the corresponding sample in the previous bit.  These multiplications
+	 * These multiplications are Integrated (summed) over the bit
+	 * If the total sum is positive then the phase did not change and we have a 1
+	 * If the total sum is negative then the phase did change and we have a 0
+	 * We store the data for the last bit so that we can use it as the "previous bit" for the first calculation next time
 	 * 
+	 * While we are sampling, we keep track of the clock offset in case we need to adjust it.
 	 * 
 	 */
+	private double vcoPhase = 0.0;
+	private static final double RX_CARRIER_FREQ = 1200.0;
+	//private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)48000;
+	private static final int SINCOS_SIZE = 256;
 	double gain = 1.0;
-
-	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
-	double beta = 64*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
-	double error;  // accumulation of the error over a buffer
-	//double loopError;
-	boolean lastPhase = false;
-	double freq = 700.0d;
-	public static final double LOW_SWEEP_LIMIT = 700.0;
-	public static final double HIGH_SWEEP_LIMIT = 5000.0;
-	
-	double iMix, qMix;
-	double fi = 0.0, fq = 0.0;
-	double ri, rq;
-	double lockLevel, avgLockLevel;
-	public static final double LOCK_LEVEL_THRESHOLD = 3000;
-	public static final double FREQ_SWEEP_INCREMENT = 0.04;
-
-
-	// Kep track of where we are in the bit for sampling
-//	int bitNumber = 0; // for eye diagram only
-	int bitPosition = 0;
-	int offset = 0;
-	double YnMinus2Sample = 0;
-	double YnSample = 0;
-	double YnMinus1Sample;
-	boolean delayClock = false;
-	double psk;
 	
 	protected void sampleBuckets() {
-		double maxValue = 0;
-		double minValue = 0;
-		double DESIRED_RANGE = 2;
-		int sumLockLevel = 0;
-		sumClockError = 0;
+		int maxValue = 0;
+		int minValue = 0;
+		int DESIRED_RANGE =60000;
+		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
+				//sampleWithVCO(dataValues[i][s], i, s);
 				double value = dataValues[i][s]/ 32768.0;
+				//////					value = audioDcFilter.filter(value);		
+				RxDownSample(value, value, i);
+				int eyeValue = (int) (Math.sqrt(energy1)-32768.0/2);
+				if (eyeValue > maxValue) maxValue = eyeValue;
+				if (eyeValue < minValue) minValue = eyeValue;
+				eyeValue = (int) (eyeValue * gain); // gain from the last SAMPLE_WINDOW
+				pskAudioData[i*bucketSize+s] = eyeValue/32768.0;	
 				
-				if (value > maxValue) maxValue = value;
-				if (value < minValue) minValue = value;
-
-				value = value*gain;
-				if (mode == PSK_MODE) {
-					psk = costasLoop(value, value, i);
-					sumLockLevel += lockLevel;
-				} else {
-					psk = value;
-				}	
-				int eyeValue = (int)(-1*psk*32768.0); 
-
-				if (mode == PSK_MODE) {
-					//if ) {
-						nco.changePhase(alpha*error);
-						freq = freq + beta*error;
-						if (avgLockLevel < LOCK_LEVEL_THRESHOLD) {
-							freq = freq + FREQ_SWEEP_INCREMENT; // susceptible to false lock at half the bitrate
-							if (freq > HIGH_SWEEP_LIMIT) freq = LOW_SWEEP_LIMIT;
-						} 
-						if (freq > HIGH_SWEEP_LIMIT) freq = HIGH_SWEEP_LIMIT;
-						if (freq < LOW_SWEEP_LIMIT) freq = LOW_SWEEP_LIMIT;
-						nco.setFrequency(freq);
-					//}
-				}
-				if (bitPosition == 0 ) {
-					YnMinus1Sample = psk;
-				}
-
-				if (bitPosition == samplePoint  ) {
-					if (delayClock) // we already sampled this
-						delayClock = false;
-					else {
-						// ALL END OF BIT LOGIC TO DO WITH BIT CHOICE MUST GO HERE TO BE IN SYNC
-
-						//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
-						YnMinus2Sample = YnSample;
-						YnSample = psk;
-
-						boolean thisPhase = false;
-						boolean thisSample = false;
-						if (YnSample > 0) {
-							thisPhase = true;
-						} else {
-						}
-
-						// If this bit looks like the last bit then we did not change phase and we have a 1
-						if (thisPhase == lastPhase)
-							thisSample = true;
-						else // phase change so a zero
-							thisSample = false;
-						lastPhase = thisPhase;
-						bitStream.addBit(thisSample);
-
-						if (Config.debugValues)
-							psk = psk*1.5;
-						//eyeValue = (int) (psk*-32768);
-						//HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
-						// Gardner Error calculation
-						// error = (Yn -Yn-2)*Yn-1
-						double clockError = (YnSample - YnMinus2Sample) * YnMinus1Sample;
-						sumClockError += clockError;
-						// uncomment if clock calc per bit
-						double errThreshold = 0.1;
-						if (clockError < -1*errThreshold) {
-							delayClock = true;
-							bitPosition = bitPosition - 1;
-						} else if (clockError > errThreshold) // sample is late because error is positive, so sample earlier by increasing bitPosition
-							bitPosition = bitPosition + 1;
-
-						if (thisPhase == false)
-							eyeData.setLow((int) (YnSample*32768));
-//							eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
-						else
-							eyeData.setHigh((int) (YnSample*32768));
-//							eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
-
-						//					System.err.print("End bp: " + bitPosition + " ");
-						//					System.err.println(" (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
-					}
-				}
-				
-				pskAudioData[i*bucketSize+s] = psk; 
-				pskQAudioData[i*bucketSize+s] = fq; //fq*gain;	
-//				pskQAudioData[i*bucketSize+s] = c.geti();	// this shows the waveform we mixed with
+///				pskAudioData[i*bucketSize+s] = energy1/dmEnergy[dmPeakPos]-1;
+///				int eyeValue = (int)(32768*(energy1/dmEnergy[dmPeakPos]-1));
 				eyeData.setData(i,s,eyeValue);
-				
-				bitPosition++;
-				if (bitPosition == bucketSize)
-					bitPosition = 0;
-				
 			}
+			int offset = recoverClockOffset();
+			if (middleSample[i] == false)
+				eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
+			else
+				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 		}
-
-		offset = -bitPosition; 
-
-		if (mode == PSK_MODE) {
-			avgLockLevel = sumLockLevel / SAMPLE_WINDOW_LENGTH*bucketSize;
-		}
-		if (maxValue - minValue != 0)
-			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-		if (gain < 1) gain = 1;
-
+		
+		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		
+		int offset = recoverClockOffset();
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
+		//	Scanner scanner = new Scanner(System.in);
+		//		System.out.println("Press enter");
+		//	String username = scanner.next();
+		
 	}
 
-	public void incFreq () {
-		freq = freq + 1d;
-		//		nco.changePhase(10*alpha);
-		//nco.setPhase(0, freq); 
-	}
-	public void incMiliFreq () {
-		freq = freq + 0.01d;
-		//			nco.changePhase(alpha);
-		//nco.setPhase(alpha, freq); 
-	}
 
-	public void decFreq () {
-		freq = freq - 1; 
-		//		nco.changePhase(-10*alpha);
-		//nco.setPhase(0, freq); 
-	}
-	public void decMiliFreq () {
-		freq = freq - 0.01d;
-		//		nco.changePhase(-1*alpha);
-		//	nco.setPhase(-alpha, freq); 
-	}
 
-	public static double average (double avg, double new_sample, int N) {
-		avg -= avg / N;
-		avg += new_sample / N;
-		return avg;
-	}
 
 	/**
 	 * Determine if the bit sampling buckets are aligned with the data. This is calculated when the
@@ -318,7 +145,7 @@ public class FoxBPSKDecoder extends Decoder {
 	@Override
 	public int recoverClockOffset() {
 
-		return 0;//clockOffset;
+		return clockOffset;
 	}
 
 	protected double[] recoverClock(int factor) {
@@ -338,11 +165,10 @@ public class FoxBPSKDecoder extends Decoder {
 
 	private Frame decodedFrame = null;
 	/**
-	 *  Decode the frame
+	 *  THIS IS THE FOX-1A-D decode, used for TESTING ONLY.  This needs to be replaced with the routine to decode 1E frames
 	 */
 	protected void processPossibleFrame() {
 
-		Spacecraft sat = null;
 		//Performance.startTimer("findFrames");
 		decodedFrame = bitStream.findFrames();
 		//Performance.endTimer("findFrames");
@@ -356,7 +182,6 @@ public class FoxBPSKDecoder extends Decoder {
 
 				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 				FoxBPSKHeader header = hsf.getHeader();
-				sat = Config.satManager.getSpacecraft(header.id);
 				hsf.savePayloads(Config.payloadStore);;
 
 				// Capture measurements once per payload or every 5 seconds ish
@@ -375,14 +200,6 @@ public class FoxBPSKDecoder extends Decoder {
 					// Write to the log only
 					e.printStackTrace(Log.getWriter());
 				}
-			if (sat != null && sat.sendToLocalServer())
-				try {
-					Config.rawPayloadQueue.add(decodedFrame);
-				} catch (IOException e) {
-					// Don't pop up a dialog here or the user will get one for every frame decoded.
-					// Write to the log only
-					e.printStackTrace(Log.getWriter());
-				}
 			framesDecoded++;
 			Performance.endTimer("Store");
 		} else {
@@ -391,35 +208,185 @@ public class FoxBPSKDecoder extends Decoder {
 		}
 	}
 
+	/**
+	 * The PSK demodulation algorithm is based on code by Howard and the Funcube team
+	 */
+	private static final int DOWN_SAMPLE_FILTER_SIZE = 27;
+	private static final double[] dsFilter = {
+			-6.103515625000e-004F,  /* filter tap #    0 */
+			-1.220703125000e-004F,  /* filter tap #    1 */
+			+2.380371093750e-003F,  /* filter tap #    2 */
+			+6.164550781250e-003F,  /* filter tap #    3 */
+			+7.324218750000e-003F,  /* filter tap #    4 */
+			+7.629394531250e-004F,  /* filter tap #    5 */
+			-1.464843750000e-002F,  /* filter tap #    6 */
+			-3.112792968750e-002F,  /* filter tap #    7 */
+			-3.225708007813e-002F,  /* filter tap #    8 */
+			-1.617431640625e-003F,  /* filter tap #    9 */
+			+6.463623046875e-002F,  /* filter tap #   10 */
+			+1.502380371094e-001F,  /* filter tap #   11 */
+			+2.231445312500e-001F,  /* filter tap #   12 */
+			+2.518310546875e-001F,  /* filter tap #   13 */
+			+2.231445312500e-001F,  /* filter tap #   14 */
+			+1.502380371094e-001F,  /* filter tap #   15 */
+			+6.463623046875e-002F,  /* filter tap #   16 */
+			-1.617431640625e-003F,  /* filter tap #   17 */
+			-3.225708007813e-002F,  /* filter tap #   18 */
+			-3.112792968750e-002F,  /* filter tap #   19 */
+			-1.464843750000e-002F,  /* filter tap #   20 */
+			+7.629394531250e-004F,  /* filter tap #   21 */
+			+7.324218750000e-003F,  /* filter tap #   22 */
+			+6.164550781250e-003F,  /* filter tap #   23 */
+			+2.380371093750e-003F,  /* filter tap #   24 */
+			-1.220703125000e-004F,  /* filter tap #   25 */
+			-6.103515625000e-004F   /* filter tap #   26 */
+	};
+	//		private static final double DOWN_SAMPLE_MULT = 0.9*32767.0;	// XXX: Voodoo from Howard?
+	private static final int MATCHED_FILTER_SIZE = 65;
+	private static final double[] dmFilter = {
+			-0.0101130691F,-0.0086975143F,-0.0038246093F,+0.0033563764F,+0.0107237026F,+0.0157790936F,+0.0164594107F,+0.0119213911F,
+			+0.0030315224F,-0.0076488191F,-0.0164594107F,-0.0197184277F,-0.0150109226F,-0.0023082460F,+0.0154712381F,+0.0327423589F,
+			+0.0424493086F,+0.0379940454F,+0.0154712381F,-0.0243701991F,-0.0750320094F,-0.1244834076F,-0.1568500423F,-0.1553748911F,
+			-0.1061032953F,-0.0015013786F,+0.1568500423F,+0.3572048240F,+0.5786381191F,+0.7940228249F,+0.9744923010F,+1.0945250059F,
+			+1.1366117829F,+1.0945250059F,+0.9744923010F,+0.7940228249F,+0.5786381191F,+0.3572048240F,+0.1568500423F,-0.0015013786F,
+			-0.1061032953F,-0.1553748911F,-0.1568500423F,-0.1244834076F,-0.0750320094F,-0.0243701991F,+0.0154712381F,+0.0379940454F,
+			+0.0424493086F,+0.0327423589F,+0.0154712381F,-0.0023082460F,-0.0150109226F,-0.0197184277F,-0.0164594107F,-0.0076488191F,
+			+0.0030315224F,+0.0119213911F,+0.0164594107F,+0.0157790936F,+0.0107237026F,+0.0033563764F,-0.0038246093F,-0.0086975143F,
+			-0.0101130691F,
+			-0.0101130691F,-0.0086975143F,-0.0038246093F,+0.0033563764F,+0.0107237026F,+0.0157790936F,+0.0164594107F,+0.0119213911F,
+			+0.0030315224F,-0.0076488191F,-0.0164594107F,-0.0197184277F,-0.0150109226F,-0.0023082460F,+0.0154712381F,+0.0327423589F,
+			+0.0424493086F,+0.0379940454F,+0.0154712381F,-0.0243701991F,-0.0750320094F,-0.1244834076F,-0.1568500423F,-0.1553748911F,
+			-0.1061032953F,-0.0015013786F,+0.1568500423F,+0.3572048240F,+0.5786381191F,+0.7940228249F,+0.9744923010F,+1.0945250059F,
+			+1.1366117829F,+1.0945250059F,+0.9744923010F,+0.7940228249F,+0.5786381191F,+0.3572048240F,+0.1568500423F,-0.0015013786F,
+			-0.1061032953F,-0.1553748911F,-0.1568500423F,-0.1244834076F,-0.0750320094F,-0.0243701991F,+0.0154712381F,+0.0379940454F,
+			+0.0424493086F,+0.0327423589F,+0.0154712381F,-0.0023082460F,-0.0150109226F,-0.0197184277F,-0.0164594107F,-0.0076488191F,
+			+0.0030315224F,+0.0119213911F,+0.0164594107F,+0.0157790936F,+0.0107237026F,+0.0033563764F,-0.0038246093F,-0.0086975143F,
+			-0.0101130691F
+	};
+	private static final int DOWN_SAMPLE_RATE = 9600;
+	private static final int BIT_RATE = 1200;
+	private static final int SAMPLES_PER_BIT = DOWN_SAMPLE_RATE/BIT_RATE;
+	private static final double VCO_PHASE_INC = 2.0*Math.PI*RX_CARRIER_FREQ/(double)DOWN_SAMPLE_RATE;
+	private static final double BIT_SMOOTH1 = 1.0/200.0;
+	private static final double BIT_SMOOTH2 = 1.0/800.0;
+	private static final double BIT_PHASE_INC = 1.0/(double)DOWN_SAMPLE_RATE;
+	private static final double BIT_TIME = 1.0/(double)BIT_RATE;
 
-	public double getError() { return error; }
-	public double getFrequency() { return nco.getFrequency(); }
-	public double getLockLevel() { return avgLockLevel; }
-	
-	Complex c;
-	private double costasLoop(double i, double q, int bucketNumber) {
-		c = nco.nextSample();
-		c.normalize();
-		// Mix 
-		double iFil = dataFilter.filterDouble(i);
-		iMix = iFil * c.geti(); // + q*c.getq();
-		qMix = iFil * -1*c.getq(); // - i*c.getq();
-		// Filter
-		fi = iFilter.filterDouble(iMix);
-		fq = qFilter.filterDouble(qMix);
+	private double energy1, energy2;
 
-		ri = SourceIQ.fullwaveRectify(fi);
-		rq = SourceIQ.fullwaveRectify(fq);
-		
-		lockLevel = 1E1*(ri - rq);  // in lock state rq is close to zero;
-		
-		// Phase error
-		error = (fi*fq);
-		error = loopFilter.filterDouble(error);
-		return fi;
+	private double[][] dsBuf = new double[DOWN_SAMPLE_FILTER_SIZE][2];
+	private int dsPos = DOWN_SAMPLE_FILTER_SIZE-1, dsCnt = 0;
+	private double HOWARD_FUDGE_FACTOR = 0.9 * 32768.0;
+
+	/**
+	 * Down sample from input rate to DOWN_SAMPLE_RATE and low pass filter
+	 * @param i
+	 * @param q
+	 * @param bucketNumber
+	 */
+	private void RxDownSample(double i, double q, int bucketNumber) {
+		dsBuf[dsPos][0]=i;
+		dsBuf[dsPos][1]=q;
+		if (++dsCnt>=(int)currentSampleRate/DOWN_SAMPLE_RATE) {	// typically 48000/9600
+			double fi = 0.0, fq = 0.0;
+			// apply low pass FIR
+			for (int n=0; n<DOWN_SAMPLE_FILTER_SIZE; n++) {
+				int dsi = (n+dsPos)%DOWN_SAMPLE_FILTER_SIZE; 
+				fi+=dsBuf[dsi][0]*dsFilter[n];
+				fq+=dsBuf[dsi][1]*dsFilter[n];
+			}
+			dsCnt=0;
+			// feed down sampled values to demodulator
+			RxDemodulate(fi * HOWARD_FUDGE_FACTOR, fq * HOWARD_FUDGE_FACTOR, bucketNumber);
+		}
+		dsPos--;
+		if (dsPos<0)
+			dsPos=DOWN_SAMPLE_FILTER_SIZE-1;
 	}
+
+	private double[][] dmBuf = new double[MATCHED_FILTER_SIZE][2];
+	private int dmPos = MATCHED_FILTER_SIZE-1;
+	private double[] dmEnergy = new double[SAMPLES_PER_BIT+2];
+	private int dmBitPos = 0, dmPeakPos = 0, dmNewPeak = 0;
+	private double dmEnergyOut = 1.0;
+	private int[] dmHalfTable = {4,5,6,7,0,1,2,3};
+	private double dmBitPhase = 0.0;
+	private double[] dmLastIQ = new double[2];
 	
-	
+	//private int debugCount = 0;
+
+	/**
+	 * Demodulate the DBPSK signal, adjust the clock if needed to stay in sync.  Populate the bit buffer
+	 * @param i
+	 * @param q
+	 * @param bucketNumber
+	 */
+	private void RxDemodulate(double i, double q, int bucketNumber) {
+		vcoPhase += VCO_PHASE_INC;
+		if (vcoPhase > 2.0*Math.PI)
+			vcoPhase -= 2.0*Math.PI;
+		// quadrature demodulate carrier to base band with VCO, store in FIR buffer
+		dmBuf[dmPos][0]=i*cosTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+		dmBuf[dmPos][1]=q*sinTab[(int)(vcoPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
+		// apply FIR (base band smoothing, root raised cosine)
+		double fi = 0.0, fq = 0.0;
+		for (int n=0; n<MATCHED_FILTER_SIZE; n++) {
+			int dmi = (MATCHED_FILTER_SIZE-dmPos+n);
+			fi+=dmBuf[n][0]*dmFilter[dmi];
+			fq+=dmBuf[n][1]*dmFilter[dmi];
+		}
+		dmPos--;
+		if (dmPos<0)
+			dmPos=MATCHED_FILTER_SIZE-1;
+
+		// store smoothed bit energy
+		energy1 = fi*fi+fq*fq;
+		dmEnergy[dmBitPos] = (dmEnergy[dmBitPos]*(1.0-BIT_SMOOTH1))+(energy1*BIT_SMOOTH1);
+
+		// at peak bit energy? decode 
+		if (dmBitPos==dmPeakPos) {
+			dmEnergyOut = (dmEnergyOut*(1.0-BIT_SMOOTH2))+(energy1*BIT_SMOOTH2);
+			double di = -(dmLastIQ[0]*fi + dmLastIQ[1]*fq);
+			double dq = dmLastIQ[0]*fq - dmLastIQ[1]*fi;
+			dmLastIQ[0]=fi;
+			dmLastIQ[1]=fq;
+			energy2 = Math.sqrt(di*di+dq*dq);
+
+			if (energy2>100.0) {	// TODO: work out where these magic numbers come from!
+				boolean bit = di<0.0;	// is that a 1 or 0 based on if we changed phase.  If it looks like the last bit, its a 1
+				middleSample[bucketNumber] = bit;
+				/*System.err.print(bit?1:0);
+				if (debugCount++ == 80) {
+					System.err.println("");
+					debugCount=0;
+				} */
+				bitStream.addBit(bit);
+			}
+		}
+		// half-way into next bit? reset peak energy point
+		if (dmBitPos==dmHalfTable[dmPeakPos]) {
+			dmPeakPos = dmNewPeak;
+			clockOffset = 4*(dmNewPeak-6); // store the clock offset so we can display the eye diagram "triggered" correctly
+			// = 4*(dmBitPos-6); // store the clock offset so we can display the eye diagram "triggered" correctly
+		}
+		dmBitPos = (dmBitPos+1) % SAMPLES_PER_BIT;
+		// advance phase of bit position and get ready for the next bit
+		dmBitPhase += BIT_PHASE_INC;
+		if (dmBitPhase>=BIT_TIME) {
+			dmBitPhase-=BIT_TIME;
+			dmBitPos=0;	
+			// rolled round another bit, measure new peak energy position
+			double eMax = -1.0e10F;
+			for (int n=0; n<SAMPLES_PER_BIT; n++) {
+				if (dmEnergy[n]>eMax) {
+					dmNewPeak=n;
+					eMax=dmEnergy[n];
+				}
+			}
+			
+		}
+	}
+
 }
 
 

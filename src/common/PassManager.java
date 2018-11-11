@@ -269,8 +269,9 @@ public class PassManager implements Runnable {
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering ANALYZE state");
 		MainWindow.inputTab.fftPanel.setFox(spacecraft);
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignalInSatBand());
-		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK)
-			pp1.iqSource.setSelectedBin(pp1.rfData.getBinOfStrongestSignalInSatBand());
+		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
+			//pp1.iqSource.setSelectedBin(pp1.rfData.getBinOfStrongestSignalInSatBand());
+			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
 		pp1.rfData.reset(); // because we changed frequency
 
 		if (pp1.rfData != null) {
@@ -349,7 +350,7 @@ public class PassManager implements Runnable {
 
 		if (passMeasurement != null)
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
-				+ " with " + pp.foxDecoder.name + " decoder bin:" + pp1.iqSource.getSelectedBin());
+				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin); //// pp1.iqSource.getSelectedBin());
 		newPass = true;
 	}
 	

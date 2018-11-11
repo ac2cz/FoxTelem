@@ -67,6 +67,7 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
+import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 import device.TunerController;
 import device.DeviceException;
@@ -137,6 +138,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JButton btnFftZoomOut;
 	
 	JCheckBox rdbtnUseNco;
+	JCheckBox rdbtnUseCostas;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
 	JComboBox<String> soundCardComboBox;
@@ -369,8 +371,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
 		rdbtnUseNco.setSelected(Config.useNCO);
-		rdbtnUseNco.setVisible(false);
+		rdbtnUseNco.setVisible(true);
 		optionsPanel.add(rdbtnUseNco);
+		rdbtnUseCostas = new JCheckBox("Costas");
+		rdbtnUseCostas.addItemListener(this);
+		if (Config.mode == SourceIQ.MODE_PSK_COSTAS)
+			rdbtnUseCostas.setSelected(true);
+		else
+			rdbtnUseCostas.setSelected(false);
+		rdbtnUseCostas.setVisible(true);
+		optionsPanel.add(rdbtnUseCostas);
 		
 
 		btnFftZoomIn = new JButton("+");
@@ -627,7 +637,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
-		} else if (Config.mode == SourceIQ.MODE_PSK){
+		} else if (Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS){
 			psk.setSelected(true);
 			enableFilters(true);
 		}
@@ -1064,11 +1074,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			//Config.save();
 		}
 		if (e.getSource() == psk) { 
-			Config.mode = SourceIQ.MODE_PSK;
+			Config.mode = SourceIQ.MODE_PSK_NC;
 			Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
-			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_PSK);
+			if (iqSource1 != null) {
+				if (rdbtnUseCostas.isSelected())
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+				else
+					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+			}
 			//Config.save();
 		}
 		if (e.getSource() == auto) { 
@@ -1500,12 +1515,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
 		} else if (this.psk.isSelected()) {
-			if (Config.iq)
-				decoder1 = new FoxBPSKDecoder(audioSource, 0, FoxBPSKDecoder.AUDIO_MODE);
-			else
-				decoder1 = new FoxBPSKDecoder(audioSource, 0, FoxBPSKDecoder.PSK_MODE);
-			 
-			
+			if (rdbtnUseCostas.isSelected()) {
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+				if (Config.iq) {
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
+				} else
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
+			} else {
+				decoder1 = new FoxBPSKDecoder(audioSource, 0);
+			}
 		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
@@ -1543,7 +1562,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// we don't have a selection
 			} else {
 				if (position == SourceAudio.FILE_SOURCE) { // || position == SourceAudio.IQ_FILE_SOURCE) {
-					Config.useNCO = false;
+					//Config.useNCO = false;
 					SourceWav wav = setWavFile(Config.iq);
 					if (wav != null) {
 						if (task != null) {
@@ -1583,7 +1602,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					SourceAudio audioSource;
 					if (autoViewpanel != null)
 						autoViewpanel.setVisible(false);
-					Config.useNCO = true; // always use NCO for a USB device
+//					Config.useNCO = true; // always use NCO for a USB device
 					short vendorId = 0;
 					short deviceId = 0;
 //					if (position-soundcardSources.length == 0) { // airspy
@@ -1677,7 +1696,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				else { // soundcard - fcd or normal
 					SourceAudio audioSource;
 					int fcdSelected = 0;
-					Config.useNCO = false;
+//					Config.useNCO = false;
 					try {
 						fcdSelected = usingFcd();
 						if (fcdSelected > 0) {
@@ -1920,7 +1939,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private void setMode() {
 		if (iqSource1 != null) {
-			if (psk.isSelected()) iqSource1.setMode(SourceIQ.MODE_PSK);
+			if (psk.isSelected()) {
+				if (rdbtnUseCostas.isSelected())
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+				else
+					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+			}
 			if (lowSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			if (highSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
 			if (auto.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
@@ -1928,11 +1952,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (iqSource2 != null) {
 			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FSK_HS);			
 		}
+		Config.mode = iqSource1.getMode(); // so it is saved for next time
 	}
 	
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
+		rdbtnUseNco.setEnabled(t);
+		rdbtnUseCostas.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
 		psk.setEnabled(t);
@@ -2036,8 +2063,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (fftPanel != null)
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.useNCO = false;
+				Log.println("NCO = false");
 	        } else {
 	        	Config.useNCO = true;
+				Log.println("NCO = true");
+	        	
+	        }
+		}
+		if (e.getSource() == rdbtnUseCostas) {
+			if (fftPanel != null)
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				
+	        } else {
 	        	
 	        }
 		}
