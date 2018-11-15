@@ -98,7 +98,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	RfData rfData;
 	boolean liveData = false; // true if we have not received a NULL buffer from the decoder.
 	int tuneDelay = 0;
-	final int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
+	int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on, unless in PSK mode
 	JLabel title;
 	
 	FFTPanel() {
@@ -236,19 +236,29 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 			avgBin = avgBin + targetBin;
 			avgNum++;
-			
-			if (Config.passManager.getState() == PassManager.DECODE ) {
-				tuneDelay++;
-			} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
-					tuneDelay += 20;
-			} else if (Config.passManager.getState() == PassManager.FADED) {
-				// Don't tune
-				tuneDelay = 0;
+
+			if (iqSource.getMode() != SourceIQ.MODE_PSK_NC) {
+				TUNE_THRESHOLD = 1000;
+				if (Config.passManager.getState() == PassManager.FADED) 
+					tuneDelay = 0; // dont tune
+				else
+					tuneDelay++; // tune slowly
 			} else {
-				// Tune at maximum speed
-				//tuneDelay = TUNE_THRESHOLD;
-				tuneDelay = TUNE_THRESHOLD;
-			} 
+				TUNE_THRESHOLD = 100;
+				if (Config.passManager.getState() == PassManager.DECODE ) {
+
+					tuneDelay++;
+				} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
+					tuneDelay += 20;
+				} else if (Config.passManager.getState() == PassManager.FADED) {
+					// Don't tune
+					tuneDelay = 0;
+				} else {
+					// Tune at maximum speed
+					//tuneDelay = TUNE_THRESHOLD;
+					tuneDelay = TUNE_THRESHOLD;
+				} 
+			}
 			if (tuneDelay >= TUNE_THRESHOLD) {
 				targetBin = avgBin/avgNum;
 				avgNum = 0;

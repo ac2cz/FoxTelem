@@ -241,7 +241,13 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				// data is stereo, but we want to decimate before display
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
-				if (foxDecoder instanceof FoxBPSKCostasDecoder && ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE && pskAudioData != null && i < pskAudioData.length)
+				if ( pskAudioData != null && i < pskAudioData.length && 
+						(foxDecoder instanceof FoxBPSKDecoder || 
+						    (foxDecoder instanceof FoxBPSKCostasDecoder && 
+								 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE
+							) 
+						)
+					)
 					g2.setColor(Color.BLACK);
 				else
 					g2.setColor(Color.BLUE);
@@ -263,7 +269,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				}
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
-				if (foxDecoder instanceof FoxBPSKCostasDecoder && ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE || Config.debugValues)
+				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
+						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues)
 					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
 				else
 					y = graphHeight/2+graphHeight/2.5*audioData[i] + border;
@@ -272,47 +279,53 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if (foxDecoder instanceof FoxBPSKCostasDecoder && (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE || Config.debugValues) && pskAudioData != null && i < pskAudioData.length) {
-					int lock = (int)Math.round(((FoxBPSKCostasDecoder)foxDecoder).getLockLevel());
-					if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
-						g2.setColor(Color.BLUE);
-						g.drawString("Locked " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
-					} else {
+				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
+						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) ) {
+					if (foxDecoder instanceof FoxBPSKCostasDecoder && (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ) && pskAudioData != null && i < pskAudioData.length) {
+						int lock = (int)Math.round(((FoxBPSKCostasDecoder)foxDecoder).getLockLevel());
+						if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
+							g2.setColor(Color.BLUE);
+							g.drawString("Locked " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+						} else {
+							g2.setColor(Color.gray);
+							g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+						}
 						g2.setColor(Color.gray);
-						g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+						g.drawString("Costas Error: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+						g.drawString("Carrier: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					}
-					g2.setColor(Color.gray);
-					g.drawString("Costas Error: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
-					g.drawString("Carrier: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					if (pskAudioData != null && pskAudioData.length > 0) {
-					g2.setColor(Color.BLUE);
-					x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
+						g2.setColor(Color.BLUE);
+						x2 = border*2 + i*(graphWidth-border*2)/pskAudioData.length;
 
-					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y2 = 3*graphHeight/4-graphHeight/6*pskAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
-					//int y = 100;
-					g2.drawLine(lastx2, lasty2, x2, (int)y2);
-					lastx2 = x2;
-					lasty2 = (int)y2;
-					
-					// 2nd trace
-					g2.setColor(Color.RED);
-					x3 = border*2 + i*(graphWidth-border*2)/pskQAudioData.length;
+						// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
+						double y2 = 3*graphHeight/4-graphHeight/6*pskAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
+						//int y = 100;
+						g2.drawLine(lastx2, lasty2, x2, (int)y2);
+						lastx2 = x2;
+						lasty2 = (int)y2;
 
-					// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
-					double y3 = 3*graphHeight/4-graphHeight/6*pskQAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
-					//int y = 100;
-					g2.drawLine(lastx3, lasty3, x3, (int)y3);
-					lastx3 = x3;
-					lasty3 = (int)y3;
+						if (foxDecoder instanceof FoxBPSKCostasDecoder && (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ) && pskAudioData != null && i < pskAudioData.length) {
+							// 2nd trace
+							g2.setColor(Color.RED);
+							x3 = border*2 + i*(graphWidth-border*2)/pskQAudioData.length;
+
+							// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
+							double y3 = 3*graphHeight/4-graphHeight/6*pskQAudioData[i] + border;  // 3/4 is because its centered at bottom quarter of graph. 
+							//int y = 100;
+							g2.drawLine(lastx3, lasty3, x3, (int)y3);
+							lastx3 = x3;
+							lasty3 = (int)y3;
+						}
 					}
 				}
-				
+
 			}
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		if (foxDecoder instanceof FoxBPSKCostasDecoder  && ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE || Config.debugValues) {
+		if (foxDecoder instanceof FoxBPSKDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder  &&
+				((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues) {
 			g2.drawLine(0, graphHeight/4+border, graphWidth, graphHeight/4+border);
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);
 		} else

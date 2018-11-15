@@ -269,11 +269,11 @@ public class PassManager implements Runnable {
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering ANALYZE state");
 		MainWindow.inputTab.fftPanel.setFox(spacecraft);
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignalInSatBand());
-		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS) {
+//		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS) {
 			//pp1.iqSource.setSelectedBin(pp1.rfData.getBinOfStrongestSignalInSatBand());
 			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
 			pp1.rfData.reset(); // because we changed frequency
-		}
+//		}
 
 		if (pp1.rfData != null) {
 			try {

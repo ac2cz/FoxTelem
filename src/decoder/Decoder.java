@@ -16,6 +16,7 @@ import common.Config;
 import common.Log;
 import common.Performance;
 import common.Spacecraft;
+import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 import filter.Filter;
 import gui.MainWindow;
@@ -643,7 +644,7 @@ public abstract class Decoder implements Runnable {
 				for (int j=0; j < bucketSize; j++ ) { // sample size is 2, 2 bytes per channel 				
 					int value = (int)(abData[k] * 32768.0);
 					dataValues[i][j] = value; 
-					if (!(this instanceof FoxBPSKDecoder))
+					if (!(this instanceof FoxBPSKDecoder || this instanceof FoxBPSKCostasDecoder))
 						eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
 
 					if (value > maxValue[i]) maxValue[i] = value;

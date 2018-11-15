@@ -11,6 +11,7 @@ import javax.swing.JPanel;
 import common.Config;
 import common.Log;
 import decoder.FoxDecoder;
+import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
@@ -208,9 +209,9 @@ public class EyePanel extends JPanel implements Runnable {
 		//int spaceSize = 1;
 		int maxValue = (int)(Decoder.MAX_VOLUME/1.5);
 		int minValue = (int)(-1*Decoder.MAX_VOLUME/1.5);
-		if (decoder instanceof FoxBPSKDecoder) {
-			maxValue = (int)(Decoder.MAX_VOLUME);
-			minValue = (int)(-1*Decoder.MAX_VOLUME);
+		if (decoder instanceof FoxBPSKDecoder || decoder instanceof FoxBPSKCostasDecoder) {
+			maxValue = (int)(Decoder.MAX_VOLUME*1.5);
+			minValue = (int)(-1*Decoder.MAX_VOLUME*1.5);
 		}
 		// Check that buffer has been populated all the way to the end
 		if (buffer != null && buffer[NUMBER_OF_BITS-1] != null) {

@@ -94,6 +94,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox cbUseDDEFreq;
 	private JCheckBox cbFoxTelemCalcsPosition;
 	private JCheckBox cbWhenAboveHorizon;
+	private JCheckBox useNCO;
+	private JCheckBox useCostas;
+
 	
 	boolean useUDP;
 	
@@ -302,19 +305,19 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			useUDP = false;
 //		cbUseUDP = addCheckBoxRow("Use UDP", "Use UDP (vs TCP) to send data to the AMSAT telemetry server",
 //				useUDP, rightcolumnpanel0 );
-		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
+//		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
 		saveFcdParams = addCheckBoxRow("Store FCD Params", "Save the FCD settings to disk and restore at start up.  May conflict with other programs or other copies of FoxTelem.", Config.saveFcdParams, rightcolumnpanel0 );
 		useLeftStereoChannel = addCheckBoxRow("Use Left Stereo Channel", "The default is for FoxTelem to read audio from the left stereo channel of your soundcard.  "
 				+ "If you uncheck this it will read from the right",
 				Config.useLeftStereoChannel, rightcolumnpanel0 );
 		swapIQ = addCheckBoxRow("Swap IQ", "Swap the I and Q channels in IQ deocder mode",
 				Config.swapIQ, rightcolumnpanel0 );
-		insertMissingBits = addCheckBoxRow("Fix Dropped Bits", "Fix bits dropped in the audio channel (may fix frames but use more CPU)",
-				Config.insertMissingBits, rightcolumnpanel0 );
-		//useLongPRN = addCheckBoxRow("Use Long PRN", "Use a 31 bit SYNC word between frames",
-		//		Config.useLongPRN, rightcolumnpanel0 );
-		//insertMissingBits.setForeground(Config.AMSAT_RED);
-		//useLongPRN.setForeground(Config.AMSAT_RED);
+//		insertMissingBits = addCheckBoxRow("Fix Dropped Bits", "Fix bits dropped in the audio channel (may fix frames but use more CPU)",
+//				Config.insertMissingBits, rightcolumnpanel0 );
+		useNCO = addCheckBoxRow("FSK: Use NCO", "Use Experimental Polyphase filters and numerically controlled oscillator for SDR vs FFT Filter",
+				Config.useNCO, rightcolumnpanel0 );
+		useCostas = addCheckBoxRow("PSK: Use Costas", "Use a coherent Costas Loop Decoder for PSK (better decoder but worse with fading)",
+				Config.useCostas, rightcolumnpanel0 );
 		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 		
 		//JPanel rightcolumnpanel1 = addColumn(rightcolumnpanel,3);
@@ -573,16 +576,21 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				
 				Config.webSiteUrl = txtServerUrl.getText();
 				
-				Config.storePayloads = storePayloads.isSelected();
+//				Config.storePayloads = storePayloads.isSelected();
 				Config.saveFcdParams = saveFcdParams.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
-				Config.insertMissingBits = insertMissingBits.isSelected();
-				//if (Config.useLongPRN != useLongPRN.isSelected())
-				//	Log.errorDialog("CHANGED PRN LENGTH", "If you changed the length of the PRN then the decoder needs to be stopped and restarted.  "
-				//			+ "You do not\n need to exit FoxTelem.");
-				//Config.useLongPRN = useLongPRN.isSelected();
-				
+//				Config.insertMissingBits = insertMissingBits.isSelected();
+				if (Config.useNCO != useNCO.isSelected())
+					Log.errorDialog("CHANGED Decoder", "The decoder needs to be stopped and restarted.\n"
+							+ "You do not need to exit FoxTelem.");
+				Config.useNCO = useNCO.isSelected();
+
+				if (Config.useCostas != useCostas.isSelected())
+					Log.errorDialog("CHANGED Decoder", "The decoder needs to be stopped and restarted.\n"
+							+ "You do not need to exit FoxTelem.");
+				Config.useCostas = useCostas.isSelected();
+
 				if (Config.isWindowsOs()) {
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
 					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();

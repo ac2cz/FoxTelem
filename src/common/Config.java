@@ -63,7 +63,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.07t";
-	public static String VERSION = VERSION_NUM + " - 11 Nov 2018";
+	public static String VERSION = VERSION_NUM + " - 14 Nov 2018";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -271,6 +271,7 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
+	static public boolean useCostas = false;
 
 	
 	public static boolean missing() { 
@@ -709,6 +710,7 @@ public class Config {
 		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
+		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		
 		store();
 	}
@@ -887,6 +889,7 @@ public class Config {
 		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
+		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

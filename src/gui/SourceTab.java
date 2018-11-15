@@ -371,15 +371,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
 		rdbtnUseNco.setSelected(Config.useNCO);
-		rdbtnUseNco.setVisible(true);
+		rdbtnUseNco.setVisible(false);
 		optionsPanel.add(rdbtnUseNco);
 		rdbtnUseCostas = new JCheckBox("Costas");
 		rdbtnUseCostas.addItemListener(this);
-		if (Config.mode == SourceIQ.MODE_PSK_COSTAS)
-			rdbtnUseCostas.setSelected(true);
-		else
-			rdbtnUseCostas.setSelected(false);
-		rdbtnUseCostas.setVisible(true);
+		rdbtnUseCostas.setSelected(Config.useCostas);
+		rdbtnUseCostas.setVisible(false);
 		optionsPanel.add(rdbtnUseCostas);
 		
 
@@ -1079,7 +1076,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
-				if (rdbtnUseCostas.isSelected())
+				if (Config.useCostas)
 					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
 				else
 					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
@@ -1515,7 +1512,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
 		} else if (this.psk.isSelected()) {
-			if (rdbtnUseCostas.isSelected()) {
+			if (Config.useCostas) {
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 				if (Config.iq) {
 					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
@@ -1940,19 +1937,35 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void setMode() {
 		if (iqSource1 != null) {
 			if (psk.isSelected()) {
-				if (rdbtnUseCostas.isSelected())
+				if (Config.useCostas) {
 					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				else
+					Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+					autoViewpanel.setVisible(false);
+				} else {
 					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+					Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+					autoViewpanel.setVisible(false);
+				}
 			}
-			if (lowSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
-			if (highSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
-			if (auto.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+			if (lowSpeed.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
+				autoViewpanel.setVisible(false);
+			}
+			if (highSpeed.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_FSK_HS);
+				Config.mode = SourceIQ.MODE_FSK_HS; // so it is saved for next time
+				autoViewpanel.setVisible(false);
+			}
+			if (auto.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
+				autoViewpanel.setVisible(true);
+			}
 		}
 		if (iqSource2 != null) {
 			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FSK_HS);			
 		}
-		Config.mode = iqSource1.getMode(); // so it is saved for next time
 	}
 	
 	private void enableSourceSelectionComponents(boolean t) {
