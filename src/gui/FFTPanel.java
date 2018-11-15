@@ -226,7 +226,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		//if (rfData != null)
 		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
 		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
+		if (Config.trackSignal && liveData && rfData.rfSNRInFilterWidth > Config.ANALYZE_SNR_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
 			//		Config.passManager.getState() == PassManager.FADED)
@@ -237,14 +237,14 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			avgBin = avgBin + targetBin;
 			avgNum++;
 
-			if (iqSource.getMode() != SourceIQ.MODE_PSK_NC) {
-				TUNE_THRESHOLD = 1000;
+			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC) {
+				TUNE_THRESHOLD = 180; // 6 second
 				if (Config.passManager.getState() == PassManager.FADED) 
 					tuneDelay = 0; // dont tune
 				else
 					tuneDelay++; // tune slowly
 			} else {
-				TUNE_THRESHOLD = 100;
+				TUNE_THRESHOLD = 90; // 3 second average time
 				if (Config.passManager.getState() == PassManager.DECODE ) {
 
 					tuneDelay++;

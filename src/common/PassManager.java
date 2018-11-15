@@ -272,6 +272,9 @@ public class PassManager implements Runnable {
 //		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS) {
 			//pp1.iqSource.setSelectedBin(pp1.rfData.getBinOfStrongestSignalInSatBand());
 			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
+			pp1.iqSource.setSelectedBin(Config.selectedBin);
+			if (pp2 != null && pp2.iqSource != null)
+				pp2.iqSource.setSelectedBin(Config.selectedBin);
 			pp1.rfData.reset(); // because we changed frequency
 //		}
 
