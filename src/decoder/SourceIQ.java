@@ -285,7 +285,7 @@ public class SourceIQ extends SourceAudio {
 		}
 		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS || Config.useNCO) {
 			FFT_SAMPLES=4096;
-			samplesToRead = 3840;
+			samplesToRead = 3840 /2;
 			return;			
 		}
 		for (int f=0; f<17; f++) {
@@ -411,11 +411,11 @@ public class SourceIQ extends SourceAudio {
 				if (mode == MODE_PSK_COSTAS)
 					outputData = processPSKBytes(fcdData);
 				else if (mode == MODE_PSK_NC)
-					outputData = processBytes(fcdData, false);
+					outputData = processBytes(fcdData);
 				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
 				else
-					outputData = processBytes(fcdData, false);
+					outputData = processBytes(fcdData);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
@@ -473,15 +473,13 @@ public class SourceIQ extends SourceAudio {
 
 	/**
 	 * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
-	 * We cache the read bytes in case we need to adjust for the clock
-	 * If this is being called because the clock moved, we do not re-cache the data
 	 * @param fcdData
 	 * @return
 	 */
 	protected double[] processNCOBytes(double[] fcdData) {
-		dist = 0;
 		zeroFFT();
 		int i = 0;
+		
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
@@ -491,7 +489,7 @@ public class SourceIQ extends SourceAudio {
 			// filter out any DC from I/Q signals
 			id = iDcFilter.filter(id);
 			qd = qDcFilter.filter(qd);
-
+			
 			c = nco.nextSample();
 			c.normalize();
 			// Mix 
@@ -519,7 +517,6 @@ public class SourceIQ extends SourceAudio {
 			}
 			i+=2;
 		}
-	
 		runFFT(fftData); // results back in fftData
 		fftDataFresh = false;	
 		if (!Config.showIF) calcPsd();
@@ -611,7 +608,7 @@ protected double[] processPSKBytes(double[] fcdData) {
  * @param fcdData
  * @return
  */
-protected double[] processBytes(double[] fcdData, boolean clockMove) {
+protected double[] processBytes(double[] fcdData) {
 	if (!(mode == MODE_PSK_NC) && Config.useNCO) {
 		Log.errorDialog("FATAL", "Trying to run non NCO decoder with Config.useNCO set");
 		return new double[0];
@@ -632,6 +629,8 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		// filter out any DC from I/Q signals
 		fcdData[j] = iDcFilter.filter(id);
 		fcdData[j+1] = qDcFilter.filter(qd);
+		
+		
 	}
 	
 //	if (Config.useNCO) {
@@ -643,6 +642,7 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		double id, qd;
 		id = fcdData[j];
 		qd = fcdData[j+1];
+		
 		// filter out any DC from I/Q signals
 //		id = iDcFilter.filter(id);
 //		qd = qDcFilter.filter(qd);
@@ -671,9 +671,7 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 		;
 	else
 		inverseFFT(fftData);
-	int d=0;		
-	int sumLockLevel = 0;
-	//if (!Config.useNCO)
+	int d=0;
 	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
 		if (mode == MODE_PSK_NC)
@@ -687,7 +685,6 @@ protected double[] processBytes(double[] fcdData, boolean clockMove) {
 	// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
 	// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
 
-//	if (!Config.useNCO)
 	for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
 		if (highSpeed)
 			demodAudio = mono20kHzIIRFilter(demodAudio);
