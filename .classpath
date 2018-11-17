@@ -20,5 +20,6 @@
 	<classpathentry kind="lib" path="lib/libusb/usb4java-javax-1.2.0.jar"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.37/mysql-connector-java-5.1.37-bin.jar"/>
 	<classpathentry kind="lib" path="lib/predict4java.jar"/>
+	<classpathentry kind="src" path="/predict4java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
