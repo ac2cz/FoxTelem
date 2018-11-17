@@ -8,7 +8,6 @@ import common.Log;
 import common.Spacecraft;
 import telemetry.FoxFramePart;
 import telemetry.PayloadWODUwExperiment;
-import telemetry.RadiationTelemetry;
 
 @SuppressWarnings("serial")
 public class WodUwExperimentTab extends UwExperimentTab {

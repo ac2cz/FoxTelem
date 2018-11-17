@@ -1,9 +1,7 @@
 package telemetry.uw;
 
-import java.sql.Date;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
 import java.util.StringTokenizer;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;

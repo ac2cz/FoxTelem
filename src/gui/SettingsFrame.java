@@ -84,11 +84,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox cbUploadToServer;
 	private JCheckBox rdbtnTrackSignal;
 //	private JCheckBox cbUseUDP;
-	private JCheckBox storePayloads;
+//	private JCheckBox storePayloads;
 	private JCheckBox saveFcdParams;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
-	private JCheckBox insertMissingBits;
+//	private JCheckBox insertMissingBits;
 //	private JCheckBox useLongPRN;
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;

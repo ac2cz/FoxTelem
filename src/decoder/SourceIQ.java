@@ -613,11 +613,7 @@ protected double[] processBytes(double[] fcdData) {
 		Log.errorDialog("FATAL", "Trying to run non NCO decoder with Config.useNCO set");
 		return new double[0];
 	}
-	double maxValue = 0;
-	double minValue = 0;
-			//dist = 128;
 
-	//int nBytesRead = fcdData.length;
 	zeroFFT();
 	int i = 0;
 	
@@ -1068,6 +1064,7 @@ protected double[] processBytes(double[] fcdData) {
 		return yvi[5];
 	}
 
+	/*
 	private double mono16kHzQValue(double in) {
 		double GAIN = 3.006238283e+02;
 		xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
@@ -1080,6 +1077,7 @@ protected double[] processBytes(double[] fcdData) {
 		return yvq[5];
         
 	}
+	*/
 	
 	private double[] mono20kHzIIRFilter(double[] rawAudioData) {
 		// Designed at www-users.cs.york.ac.uk/~fisher

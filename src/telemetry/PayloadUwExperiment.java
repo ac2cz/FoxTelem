@@ -4,11 +4,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
-import common.Log;
 import common.Spacecraft;
-import decoder.Decoder;
-import decoder.FoxBitStream;
-import decoder.FoxDecoder;
 import telemetry.uw.CanPacket;
 import telemetry.uw.PcanPacket;
 
@@ -42,7 +38,7 @@ import telemetry.uw.PcanPacket;
 public class PayloadUwExperiment extends FoxFramePart {	
 	public ArrayList<CanPacket> canPackets; 
 	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
-	private int startPacketSerial = 0;
+	//private int startPacketSerial = 0;
 	
 	public PayloadUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_UW_EXPERIMENT,lay);
@@ -59,9 +55,9 @@ public class PayloadUwExperiment extends FoxFramePart {
 		// nothing extra to init here
 	}
 	
-	public void setStartSerial(int serial) {
-		startPacketSerial = serial;
-	}
+//	public void setStartSerial(int serial) {
+//		startPacketSerial = serial;
+//	}
 	
 	/**
 	 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.

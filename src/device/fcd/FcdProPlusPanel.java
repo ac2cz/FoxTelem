@@ -293,7 +293,7 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 
 	@Override
 	public int getSampleRate() {
-		return ((FCD2TunerController) device).SAMPLE_RATE;
+		return FCD2TunerController.SAMPLE_RATE;
 	}
 
 	@Override

@@ -12,7 +12,6 @@ import common.Log;
 import common.Spacecraft;
 import common.TlmServer;
 import gui.MainWindow;
-import measure.PassMeasurement;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 
 /**
@@ -115,6 +114,7 @@ public class RawPayloadQueue extends RawQueue {
 	@Override
 	public void run() {
 		running = true;
+		@SuppressWarnings("unused") // might use this, so supress warning
 		boolean success = true;
 		while(running) {
 			

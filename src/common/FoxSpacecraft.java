@@ -21,7 +21,6 @@ import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;

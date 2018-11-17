@@ -19,7 +19,6 @@ import common.PassManager;
 import common.Spacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
-import decoder.FoxBPSK.FoxBPSKDecoder;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;

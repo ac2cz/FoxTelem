@@ -6,10 +6,8 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import common.Config;
 import common.FoxSpacecraft;
 import gui.DisplayModule;
-import gui.HealthTab;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;

@@ -25,14 +25,12 @@ import java.nio.IntBuffer;
 import javax.usb.UsbClaimException;
 import javax.usb.UsbException;
 
-import org.usb4java.Context;
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
 import org.usb4java.DeviceHandle;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
-import common.Config;
 import common.Log;
 import device.DeviceException;
 import device.fcd.FCD1TunerController.Block;

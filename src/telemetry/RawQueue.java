@@ -10,8 +10,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
-import javax.swing.JOptionPane;
-
 import common.Config;
 import common.Log;
 import gui.MainWindow;

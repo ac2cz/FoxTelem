@@ -1,6 +1,5 @@
 package decoder;
 
-import common.Config;
 
 public class CodePRN {
 //	public static final int FRAME = 0x5647 & 0x7fff;  //101011001000111

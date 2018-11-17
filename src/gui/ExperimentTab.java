@@ -21,7 +21,6 @@ import javax.swing.KeyStroke;
 import javax.swing.table.AbstractTableModel;
 import common.Config;
 import telemetry.PayloadRadExpData;
-import telemetry.SatPayloadStore;
 
 /**
  * 

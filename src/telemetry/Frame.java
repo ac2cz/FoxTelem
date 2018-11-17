@@ -17,9 +17,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
-
-import javax.swing.JCheckBox;
-
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import telemServer.StpFileRsDecodeException;
@@ -683,7 +680,7 @@ public abstract class Frame implements Comparable<Frame> {
 					//duvFrames++;
 				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-					FoxBPSKHeader header = hsf.getHeader();
+					// For BPSK the header is stored on the frame and the timestamp info is saved
 					if (!hsf.savePayloads(payloadStore))
 							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add PSK record to database");;
 				} else {

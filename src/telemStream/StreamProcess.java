@@ -186,8 +186,10 @@ public class StreamProcess implements Runnable {
 			stmt = derby.createStatement();
 			r = stmt.executeQuery(update);
 			if (r.next()) {
-				String password = r.getString("password");
-				String salt = r.getString("salt");
+				
+				// TODO: We do not check the password.  You just need a valid username
+				//String password = r.getString("password");
+				//String salt = r.getString("salt");
 				return true;
 			} else {
 				Log.println("Invalid username");

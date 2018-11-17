@@ -5,12 +5,9 @@ import common.FoxSpacecraft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.util.ArrayList;
-
 import common.Log;
 import common.Spacecraft;
 import decoder.Decoder;
-import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
@@ -20,12 +17,10 @@ import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
-import telemetry.PayloadStore;
 import telemetry.PayloadUwExperiment;
 import telemetry.PayloadWOD;
 import telemetry.PayloadWODRad;
 import telemetry.PayloadWODUwExperiment;
-import telemetry.uw.CanPacket;
 
 /**
 	 * 
@@ -72,7 +67,6 @@ import telemetry.uw.CanPacket;
 		public static final int TYPES_OF_FRAME = 11;
 		
 		private boolean canPacketFrame = false;
-		private int canPacketSerial = 0;
 
 		public FoxFramePart[] payload;
 		

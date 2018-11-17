@@ -440,7 +440,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		initSatMenu();
 		
-		JMenu mnOptions = new JMenu("Options");
+		//JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");

@@ -531,7 +531,7 @@ longer send telemetry.
 			double temp = rawValue * 0.1 - 40; // 0 is -40 then increments in 1/10 degree per raw value
 			return temp;
 		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TEMP:
-			double V = 3.3 / 1023 * rawValue;
+			//double V = 3.3 / 1023 * rawValue;
 			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue(rawValue);
 			return antTemp;
 		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TIME:

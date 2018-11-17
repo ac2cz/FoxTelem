@@ -7,8 +7,6 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;

@@ -9,14 +9,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import telemetry.Frame;
@@ -31,7 +27,6 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.FoxTime;
 import common.Log;
-import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
@@ -230,8 +225,8 @@ public class WebServiceProcess implements Runnable {
 	public static final String RESET = "reset";
 	public static final String UPTIME = "uptime";
 
-	HashMap consumeArgs(String in) {
-		HashMap args = new HashMap();
+	HashMap<String, String> consumeArgs(String in) {
+		HashMap<String, String> args = new HashMap<String, String>();
 		String[] params = in.split("&");
 		for (String p : params) {
 			String[] keyVal = p.split("=");
@@ -248,10 +243,10 @@ public class WebServiceProcess implements Runnable {
 	 */
 	private void getSatLatLonAtResetUptime(String args, PrintWriter out) {
 		DecimalFormat d = new DecimalFormat("00.000000");
-		HashMap params = consumeArgs(args);
-		String satId = (String) params.get(SAT);
-		String satReset = (String) params.get(RESET);
-		String satUptime = (String) params.get(UPTIME);
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
 		if (satId == null) return;
 		if (satReset == null) return;
 		if (satUptime == null) return;
@@ -275,10 +270,10 @@ public class WebServiceProcess implements Runnable {
 	private void getSatUtcForResetUptime(String args, PrintWriter out) {
 		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 
-		HashMap params = consumeArgs(args);
-		String satId = (String) params.get(SAT);
-		String satReset = (String) params.get(RESET);
-		String satUptime = (String) params.get(UPTIME);
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
 		if (satId == null) return;
 		if (satReset == null) return;
 		if (satUptime == null) return;

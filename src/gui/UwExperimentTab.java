@@ -29,8 +29,6 @@ import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadUwExperiment;
-import telemetry.RadiationTelemetry;
-import telemetry.SatPayloadStore;
 import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;

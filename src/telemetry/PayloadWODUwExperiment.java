@@ -4,16 +4,13 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
-import common.Log;
 import common.Spacecraft;
-import decoder.Decoder;
-import decoder.FoxDecoder;
 import telemetry.uw.CanPacket;
 
 public class PayloadWODUwExperiment extends FoxFramePart {
 	public ArrayList<CanPacket> canPackets; 
 	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
-	private int startPacketSerial = 0;
+//	private int startPacketSerial = 0;
 
 //	public static final int WOD_RESETS_FIELD = 1;
 //	public static final int WOD_UPTIME_FIELD = 2;
@@ -40,9 +37,9 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 		// nothing extra to init here
 	}
 	
-	public void setStartSerial(int serial) {
-		startPacketSerial = serial;
-	}
+//	public void setStartSerial(int serial) {
+//		startPacketSerial = serial;
+//	}
 	
 	/**
 	 * Add a byte to the next CAN Packet.  If the packet is full and we have more bytes, create another packet.
@@ -91,7 +88,6 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 		copyBitsToFields(); // make sure reset / uptime correct
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
-		int j = 0;
 		for (CanPacket p : canPackets) {
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;

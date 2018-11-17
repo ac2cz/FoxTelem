@@ -11,7 +11,6 @@ import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import decoder.Decoder;
-import decoder.FoxDecoder;
 import decoder.SourceIQ;
 
 /**

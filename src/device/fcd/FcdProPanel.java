@@ -14,8 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
-import javax.usb.UsbClaimException;
-import javax.usb.UsbException;
 
 import common.Config;
 import common.Log;
@@ -195,7 +193,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 
 	@Override
 	public int getSampleRate() {
-		return ((FCD1TunerController) device).SAMPLE_RATE;
+		return FCD1TunerController.SAMPLE_RATE;
 	}
 
 	@Override

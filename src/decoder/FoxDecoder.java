@@ -10,7 +10,6 @@ import common.Performance;
 import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FoxFramePart;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;

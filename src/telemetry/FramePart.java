@@ -11,7 +11,6 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import decoder.FoxDecoder;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {

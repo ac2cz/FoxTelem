@@ -6,9 +6,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-import common.Log;
 import decoder.Decoder;
-import telemetry.FramePart;
 
 /**
  * 
@@ -38,18 +36,19 @@ public class PcanPacket {
 
 	private final short length = 0x0024; //36
 	private final short messageType = 0x0080;
-	private byte[] tag = new byte[8]; // not used. Will populate with fox header as it is 8 bytes too
-	private int timestampLow;
-	private int timestampHigh;
-	private final byte channel = 0x00;
+//	private byte[] tag = new byte[8]; // not used. Will populate with fox header as it is 8 bytes too
+//	private int timestampLow;
+//	private int timestampHigh;
+	private static final byte CHANNEL = 0x00;
 	private byte dataLengthCount;
-	private final short flags = 0x0000;
+	private static final short FLAGS = 0x0000;
 	private int canId;
 	private byte[] canData = new byte[8];
 	
 	private int resets;
 	private long uptime;
 	private int type;
+	@SuppressWarnings("unused") // not currently used, but might be
 	private int foxId;
 	private String createDate;
 	
@@ -113,12 +112,12 @@ public class PcanPacket {
 		for (int j=0; j<8; j++) 
 			buffer[12+j] = timeBytes[j];
 	
-		buffer[20] = channel;;
+		buffer[20] = CHANNEL;
 		
 		buffer[21] = dataLengthCount;
 
-		buffer[22] = (byte)((flags >> 8) & 0xff);
-		buffer[23] = (byte)(flags & 0xff);
+		buffer[22] = (byte)((FLAGS >> 8) & 0xff);
+		buffer[23] = (byte)(FLAGS & 0xff);
 
 		byte[] id = Decoder.bigEndian4(canId);
 		for (int k=0; k<4; k++) 
