@@ -331,17 +331,17 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						selectedBin++;
 				}
 
-
-				if (Config.findSignal) {
-					//Log.println("FS TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
-					if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) 
-					iqSource.setSelectedBin(targetBin);
-					Config.selectedBin = targetBin;
-				} else {
-					//Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
-					iqSource.setSelectedBin(selectedBin);
-					Config.selectedBin = selectedBin;
-				}
+				if (targetBin != 0) // to avoid startup timing issue
+					if (Config.findSignal) {
+						//Log.println("FS TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+						if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) 
+							iqSource.setSelectedBin(targetBin);
+						Config.selectedBin = targetBin;
+					} else {
+						//Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+						iqSource.setSelectedBin(selectedBin);
+						Config.selectedBin = selectedBin;
+					}
 			}
 
 		}
