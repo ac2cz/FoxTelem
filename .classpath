@@ -3,7 +3,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
-	<classpathentry kind="lib" path="lib/commons-logging/commons-logging-api/1.1/commons-logging-api-1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-net-3.3/commons-net-3.3.jar"/>
 	<classpathentry kind="lib" path="lib/jarchivelib/jarchivelib-0.7.0-jar-with-dependencies.jar"/>
@@ -21,5 +20,13 @@
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.37/mysql-connector-java-5.1.37-bin.jar"/>
 	<classpathentry kind="lib" path="lib/predict4java.jar"/>
 	<classpathentry kind="src" path="/predict4java"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/commons-io-2.5/commons-io-2.5.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-aarch64.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-arm.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-ppc.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-x86.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-x86_64.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-osx-x86.jar"/>
+	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-osx-x86_64.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
