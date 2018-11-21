@@ -1,8 +1,5 @@
 package decoder;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
