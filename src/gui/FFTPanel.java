@@ -218,14 +218,13 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	int avgNum = 0;
 	private void retune() {
 		// auto tune
-//    	int selectedBin = iqSource.getSelectedBin();
-    	int selectedBin = Config.selectedBin;		
-    	int targetBin = 0;
+        int selectedBin = Config.selectedBin;
+        int targetBin = 0;
 
 		//if (rfData != null)
 		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
 		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
 			//		Config.passManager.getState() == PassManager.FADED)
@@ -235,7 +234,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 			avgBin = avgBin + targetBin;
 			avgNum++;
-
+			
 			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC) {
 				TUNE_THRESHOLD = 180; // 6 second
 				if (Config.passManager.getState() == PassManager.FADED) 
@@ -243,9 +242,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				else
 					tuneDelay++; // tune slowly
 			} else {
-				TUNE_THRESHOLD = 90; // 3 second average time
+				TUNE_THRESHOLD = 100; // ~3 second average time
 				if (Config.passManager.getState() == PassManager.DECODE ) {
-
 					tuneDelay++;
 				} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
 					tuneDelay += 20;
@@ -334,9 +332,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				if (targetBin != 0) // to avoid startup timing issue
 					if (Config.findSignal) {
 						//Log.println("FS TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
-						if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) 
+						if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
 							iqSource.setSelectedBin(targetBin);
-						Config.selectedBin = targetBin;
+							Config.selectedBin = targetBin;
+						}
 					} else {
 						//Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
 						iqSource.setSelectedBin(selectedBin);
@@ -346,6 +345,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 		}
 	}
+		
 	public static int littleEndian2(byte b[]) {
 		byte b1 = b[0];
 		byte b2 = b[1];
