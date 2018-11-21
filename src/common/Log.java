@@ -87,20 +87,24 @@ public class Log {
 		uncaughtExHandler = new Thread.UncaughtExceptionHandler() {
 		    public void uncaughtException(Thread th, Throwable ex) {
 		    	
-		    	String stacktrace = "";  
-	            StackTraceElement[] elements = ex.getStackTrace();
-	            int limit = 5;
-	            for (int i=0; i< limit && i< elements.length; i++) {
-	            	stacktrace =  stacktrace + elements[i] + "\n";
-	            }
-	            if (elements.length > limit)
-	            	stacktrace = stacktrace + " ... " + (elements.length - limit) + " items not shown .... ";
+		    	String stacktrace = makeShortTrace(ex.getStackTrace());  
 		    	
 		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + ex.toString() + "\n" + stacktrace);
 		        if (!showGuiDialogs) // this is the server
 		        	alert("Uncaught exception.  Need to clear the ALERT and restart the server:\n" + stacktrace);
 		    }
 		};
+	}
+	
+	public static String makeShortTrace(StackTraceElement[] elements) {
+		String stacktrace = "";  
+        int limit = 8;
+        for (int i=0; i< limit && i< elements.length; i++) {
+        	stacktrace =  stacktrace + elements[i] + "\n";
+        }
+        if (elements.length > limit)
+        	stacktrace = stacktrace + " ... " + (elements.length - limit) + " items not shown .... ";
+        return stacktrace;
 	}
 	
 	public static String rollLog(String logFile) {

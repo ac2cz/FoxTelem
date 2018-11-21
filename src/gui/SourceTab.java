@@ -1241,7 +1241,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		try {
 			sink = new SinkAudio(decoder12.getAudioFormat());
-			sink.setDevice(position);
+			if (sink != null)
+				sink.setDevice(position);
 		if (position != -1) {
 			Config.audioSink = SinkAudio.getDeviceName(position);
 			//Config.save();

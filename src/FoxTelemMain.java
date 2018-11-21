@@ -610,6 +610,7 @@ public class FoxTelemMain {
 		
 	}
 	
+	public static Exception launchException;
 	/**
 	 * Start the GUI
 	 */
@@ -639,21 +640,24 @@ public class FoxTelemMain {
 					Config.mainWindow.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg")));
 					Config.mainWindow.setVisible(true);
 				} catch (Exception e) {
+					launchException = e;
 					Log.println("SERIOUS ERROR - Uncaught and thrown from GUI");
 					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the spacecraft files then\n"
 							+ "try reverting to an older version, or install the standard files.  \n"
 							+ "If that does not work then you can try deleting the FoxTelem.properties\n"
 							+ "file in your home directory, in a sub directory called .FoxTelem, though this\n"
-							+ "will delete your settings\n";
+							+ "will delete your settings\n"; 
+			           
 					e.printStackTrace();
 					e.printStackTrace(Log.getWriter());
 					EventQueue.invokeLater(new Runnable() {
 				        @Override
 				        public void run(){
 				        	Frame frm = new Frame();
+				        	String stacktrace = Log.makeShortTrace(launchException.getStackTrace()); 
 				        	JOptionPane.showMessageDialog(frm,
 				        			seriousErrorMsg,
-									"SERIOUS ERROR - Uncaught and thrown from GUI",
+									"SERIOUS ERROR - Uncaught and thrown from GUI\n"+launchException.getMessage()+"\n"+stacktrace,
 									JOptionPane.ERROR_MESSAGE) ;
 				        	System.exit(99);
 							
@@ -709,15 +713,8 @@ public class FoxTelemMain {
 		}
 
 		protected void handleException(String tname, Throwable thrown) {
-            String stacktrace = "";  
-            StackTraceElement[] elements = thrown.getStackTrace();
-            int limit = 5;
-            for (int i=0; i< limit && i< elements.length; i++) {
-            	stacktrace =  stacktrace + elements[i] + "\n";
-            }
-            if (elements.length > limit)
-            	stacktrace = stacktrace + " ... " + (elements.length - limit) + " items not shown .... ";
-            
+            String stacktrace = Log.makeShortTrace(thrown.getStackTrace());  
+                    
 			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + "\n" + stacktrace);
 		}
 	}

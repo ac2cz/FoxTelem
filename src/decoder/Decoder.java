@@ -282,7 +282,8 @@ public abstract class Decoder implements Runnable {
 				sink.closeOutput();
 			sink = null;
 		} else {
-			sink.setDevice(position);
+			if (sink != null)
+				sink.setDevice(position);
 		}
 		return monitorAudio;
 	}
@@ -368,28 +369,20 @@ public abstract class Decoder implements Runnable {
 					e.toString(),
 					"ERROR",
 					JOptionPane.ERROR_MESSAGE) ;
-		}catch (IOException e) {
+		} catch (IOException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
 					"ERROR",
 					JOptionPane.ERROR_MESSAGE) ;	
-		} 
-		
-		catch (NullPointerException e) {
-			// ONLY CATCH THIS IN PRODUCTION VERSION	
-			/*
-			JOptionPane.showMessageDialog(MainWindow.frame,
-					e.toString(),
-					"FATAL ERROR IN DECODER",
-				    JOptionPane.ERROR_MESSAGE) ;
-			e.printStackTrace();
-			e.printStackTrace(Log.getWriter());
-			*/
-			e.printStackTrace(Log.getWriter());
-	    	StringWriter sw = new StringWriter();
-	    	PrintWriter pw = new PrintWriter(sw);
-	    	e.printStackTrace(pw);
-	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
+		} catch (NullPointerException e) {
+			// CATCH THIS IN PRODUCTION VERSION	
+	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
+	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught null exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+		} catch (Exception e) {
+			// CATCH THIS IN PRODUCTION VERSION	
+	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
+	        Log.errorDialog("UNEXPECTED ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+			
 		}
 		Log.println("DECODER Exit");
 	}
@@ -439,7 +432,12 @@ public abstract class Decoder implements Runnable {
                 nBytesRead = read(abBufferDouble);
                 if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
                 	if (sink != null)
-                		sink.write(abBufferDouble);
+                		try {
+                			sink.write(abBufferDouble);
+                		} catch (Exception se ) {
+                			// Failure to write the audio should not be fatal
+                			// If we print an error here the log will fill
+                		}
                 }
                 if (Config.debugBytes) 
                 	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
@@ -466,7 +464,13 @@ public abstract class Decoder implements Runnable {
                 Performance.startTimer("Monitor");
 
                 if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
-        			sink.write(abBufferDoubleFiltered);
+                	if (sink != null)
+                	try {
+                		sink.write(abBufferDoubleFiltered);
+            		} catch (Exception se ) {
+            			// Failure to write the audio should not be fatal
+            			// If we print an error here the log will fill
+            		}
                 }
                 Performance.endTimer("Monitor");
                 Performance.startTimer("Bucket");
