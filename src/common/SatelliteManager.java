@@ -109,7 +109,7 @@ public class SatelliteManager implements Runnable {
 						if (!haveDatFiles) {
 							// And we are doing a new install, so as the user what to do
 							int n = Log.optionYNdialog("Hit yes to install or No to skip?",
-									"Do you want to install the spacecraft file for: " + targetFile);
+									"Install: " + targetName + "\n\nDo you want to install the spacecraft file:\n" + targetFile);
 
 							if (n == JOptionPane.YES_OPTION) {
 								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
@@ -157,9 +157,11 @@ public class SatelliteManager implements Runnable {
 		
 		if(!folder.isDirectory()){
 			folder.mkdir();
-			Log.infoDialog("SPACECRAFT FILES INSTALLATION", "The configuration files for the spacecraft will be copied to: \n" + folder.getAbsolutePath() + "\n"
-					+ "You will be prompted to install each file.  If you are running multiple copies of FoxTelem, then only install the "
-					+ "file(s) you need.\n\n You can also delete or add '.dat' files later for this logfiles directory.\n"
+			Log.infoDialog("SPACECRAFT FILES INSTALLATION", "The configuration files for the spacecraft will be copied to: \n" 
+					+ folder.getAbsolutePath() + "\n\n"
+					+ "You will be prompted to install each file.  If you are running multiple copies of FoxTelem, \n"
+					+ "then only install the file(s) you need.\n\n "
+					+ "You can also delete or add spacecraft later from the spacecraft menu\n\n"
 					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n");
 		}
 		if(!folder.isDirectory()){

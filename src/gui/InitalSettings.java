@@ -68,7 +68,7 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 	
 	public InitalSettings(JFrame owner, boolean modal) {
 		super(owner, modal);
-		setTitle("Welcome too the Amsat Fox Telemetry Analysis Tool");
+		setTitle("Welcome to the Amsat Fox Telemetry Analysis Tool");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		//setBounds(100, 100, 650, 200);
 		//this.setResizable(false);
