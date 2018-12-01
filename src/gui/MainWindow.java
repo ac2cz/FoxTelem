@@ -144,9 +144,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
+	static JLabel lblLocalQueued;
 	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
 	private static String TOTAL_DECODES = "Payloads: ";
-	private static String TOTAL_QUEUED = "Queued: ";
+	private static String TOTAL_QUEUED = "Serv: ";
+	private static String LOCAL_QUEUED = "Que Loc: ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
 	private static int totalMissed;
@@ -226,6 +228,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
+		
+		lblLocalQueued = new JLabel(LOCAL_QUEUED);
+		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblLocalQueued.setBorder(new EmptyBorder(2, 2, 2, 2) ); // top left bottom right
+		lblLocalQueued.setToolTipText("The number of payloads that need to be sent to the Local telemetry server");
+		rightBottom.add(lblLocalQueued );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
 		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
@@ -354,6 +362,15 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			lblTotalQueued.invalidate();
 			bottomPanel.validate();
 		}
+	}
+
+	public static void setLocalQueued(int localTotal) {
+		if (lblLocalQueued !=null) {// make sure we have initialized before we try to update from another thread
+			lblLocalQueued.setText(LOCAL_QUEUED + localTotal);
+			lblLocalQueued.invalidate();
+			bottomPanel.validate();
+		}
+		
 	}
 
 	/**

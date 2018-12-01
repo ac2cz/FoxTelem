@@ -8,6 +8,7 @@ import javax.swing.SwingUtilities;
 import common.Config;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.SourceAudio;
@@ -168,11 +169,9 @@ public class FoxBPSKDecoder extends Decoder {
 	}
 
 	private Frame decodedFrame = null;
-	/**
-	 *  THIS IS THE FOX-1A-D decode, used for TESTING ONLY.  This needs to be replaced with the routine to decode 1E frames
-	 */
 	protected void processPossibleFrame() {
 
+		Spacecraft sat = null;
 		//Performance.startTimer("findFrames");
 		decodedFrame = bitStream.findFrames();
 		//Performance.endTimer("findFrames");
@@ -186,6 +185,7 @@ public class FoxBPSKDecoder extends Decoder {
 
 				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 				FoxBPSKHeader header = hsf.getHeader();
+				sat = Config.satManager.getSpacecraft(header.id);
 				hsf.savePayloads(Config.payloadStore);;
 
 				// Capture measurements once per payload or every 5 seconds ish
@@ -199,6 +199,14 @@ public class FoxBPSKDecoder extends Decoder {
 			if (Config.uploadToServer)
 				try {
 					Config.rawFrameQueue.add(decodedFrame);
+				} catch (IOException e) {
+					// Don't pop up a dialog here or the user will get one for every frame decoded.
+					// Write to the log only
+					e.printStackTrace(Log.getWriter());
+				}
+			if (sat != null && sat.sendToLocalServer())
+				try {
+					Config.rawPayloadQueue.add(decodedFrame);
 				} catch (IOException e) {
 					// Don't pop up a dialog here or the user will get one for every frame decoded.
 					// Write to the log only

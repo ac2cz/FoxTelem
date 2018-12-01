@@ -74,23 +74,28 @@ public class RawPayloadQueue extends RawQueue {
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
 		}
+		MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 	}
 	
 	public boolean add(Frame f) throws IOException {
 		if (f instanceof SlowSpeedFrame ) {
 				updatedSlowQueue = true;
 				save(f, RAW_SLOW_SPEED_FRAMES_FILE);
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 				return rawSlowSpeedFrames.add(f);
 			
 		} else if (f instanceof FoxBPSKFrame ) {
 				updatedPSKQueue = true;
 				save(f, RAW_PSK_FRAMES_FILE);
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 				return rawPSKFrames.add(f);
 		} else {
 				updatedHSQueue = true;
 				save(f, RAW_HIGH_SPEED_FRAMES_FILE);
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
 				return rawHighSpeedFrames.add(f);
 		}		
+		
 	}
 	
 	public void delete() {
@@ -157,6 +162,11 @@ public class RawPayloadQueue extends RawQueue {
 			}
 
 		}
+		try {
+			localServer.close();
+		} catch (IOException e) {
+			Log.println("ERROR: Could not close localServer");
+		}
 		Log.println("Local Server Queue thread ended");
 	}
 	
@@ -180,9 +190,11 @@ public class RawPayloadQueue extends RawQueue {
 				}
 			} catch (UnknownHostException e) {
 				Log.println("Could not connect to local server");
+				try { localServer.close(); } catch (Exception e1) {};
 				//e.printStackTrace(Log.getWriter());
 			} catch (IOException e) {
 				Log.println("IO Exception with local server");
+				try { localServer.close(); } catch (Exception e2) {};
 				//e.printStackTrace(Log.getWriter());
 			}
 		if (success) // then at least one of the transmissions was successful

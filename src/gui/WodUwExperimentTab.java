@@ -83,7 +83,8 @@ public class WodUwExperimentTab extends UwExperimentTab {
 						
 						parseRadiationFrames();
 						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD_LAYOUT), true);
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
+						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT),
+								Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_PKT_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs(FoxFramePart.TYPE_WOD_RAD);

@@ -62,6 +62,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 	public static final String UWTAB = "UWEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";
+	private static final String CAN_DECODED = " CAN Pkts: ";
 	public final int DEFAULT_DIVIDER_LOCATION = 350;
 	
 	JLabel lblName;
@@ -92,7 +93,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		lblName.setFont(new Font("SansSerif", Font.BOLD, 14));
 		topPanel.add(lblName);
 		
-		lblFramesDecoded = new JLabel(DECODED);
+		lblFramesDecoded = new JLabel(DECODED + CAN_DECODED);
 		lblFramesDecoded.setFont(new Font("SansSerif", Font.BOLD, 14));
 		lblFramesDecoded.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		topPanel.add(lblFramesDecoded);
@@ -188,8 +189,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		parseRadiationFrames();
 	}
 	
-	protected void displayFramesDecoded(int u) {
-		lblFramesDecoded.setText(DECODED + u);
+	protected void displayFramesDecoded(int u, int c) {
+		lblFramesDecoded.setText(DECODED + u + CAN_DECODED + c);
 	}
 	
 	private void addPacketModules() {
@@ -382,7 +383,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 						parseRadiationFrames();
 						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT),
+								Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_PKT_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);

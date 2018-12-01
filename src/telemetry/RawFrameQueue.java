@@ -182,6 +182,24 @@ public class RawFrameQueue extends RawQueue {
 						e.printStackTrace(Log.getWriter());
 					}
 				}
+				try {
+					primaryServer.close();	
+				} catch (UnknownHostException e) {
+					Log.println("Could not close server");
+					//e.printStackTrace(Log.getWriter());
+				} catch (IOException e) {
+					Log.println("IO Exception with server");
+					//e.printStackTrace(Log.getWriter());
+				}
+				try {
+					secondaryServer.close();
+				} catch (UnknownHostException e) {
+					Log.println("Could not close server");
+					//e.printStackTrace(Log.getWriter());
+				} catch (IOException e) {
+					Log.println("IO Exception with server");
+					//e.printStackTrace(Log.getWriter());
+				}
 			}
 		}
 		Log.println("Server Queue thread ended");
@@ -213,10 +231,10 @@ public class RawFrameQueue extends RawQueue {
 			}
 		} catch (UnknownHostException e) {
 			Log.println("Could not connect to primary server");
-			//e.printStackTrace(Log.getWriter());
+			try { primaryServer.close(); } catch (Exception e1) {};
 		} catch (IOException e) {
 			Log.println("IO Exception with primary server");
-			//e.printStackTrace(Log.getWriter());
+			try { primaryServer.close(); } catch (Exception e1) {};
 		}
 		if (running)
 			if (Config.sendToBothServers || !success) // We send to the secondary if we failed or if we are sending to both servers
@@ -229,10 +247,10 @@ public class RawFrameQueue extends RawQueue {
 				}
 			} catch (UnknownHostException e) {
 				Log.println("Could not connect to secondary server");
-				//e.printStackTrace(Log.getWriter());
+				try { secondaryServer.close(); } catch (Exception e1) {};
 			} catch (IOException e) {
 				Log.println("IO Exception with secondary server");
-				//e.printStackTrace(Log.getWriter());
+				try { secondaryServer.close(); } catch (Exception e1) {};
 			}
 		if (success) // then at least one of the transmissions was successful
 			try {
