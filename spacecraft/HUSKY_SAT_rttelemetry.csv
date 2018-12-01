@@ -49,6 +49,6 @@
 47,realtimeDownlink,antStatus,16,-,51,ISIS Antenna Control,1,10,0,Deploy Status,Deployment status of the antenna system
 48,realtimeDownlink,wodSize,8,000s,1,Spacecraft Status,4,2,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
 49,realtimeDownlink,swCmds,32,-,35,Command Receiver (ICR),6,4,0,Diagnostic,ICR Diagnostic information
-50,realtimeDownlink,hwCmdCnt,6,-,34,Command Receiver (ICR),6,5,0,HW Command Count,Number of hardware commands since last reset
-51,realtimeDownlink,swCmdCnt,6,-,34,Command Receiver (ICR),6,6,0,SW Command Count,Number of software commands since last reset
+50,realtimeDownlink,hwCmdCnt,6,-,1,Command Receiver (ICR),6,5,0,HW Command Count,Number of hardware commands since last reset
+51,realtimeDownlink,swCmdCnt,6,-,1,Command Receiver (ICR),6,6,0,SW Command Count,Number of software commands since last reset
 52,realtimeDownlink,pad2,12,-,0,NONE,0,0,0,NONE,Filler
