@@ -326,12 +326,8 @@ longer send telemetry.
 				s = "Stowed";
 			else
 				s = "Deployed";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_DEPLOYMENT) {  //TODO: This needs to be implemented
-				int value = getRawValue(name);
-				if (value == 0)
-					s = "Stowed";
-				else
-					s = "Deployed";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS) {  //TODO: This needs to be implemented
+				s = isisAntennaStatus(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
 			int value = getRawValue(name);
 			if (value == 0)
@@ -712,6 +708,7 @@ longer send telemetry.
 		"SetBoard"
 		};
 	
+		
 	/**
 	 * The Diagnostic String for the Improved Command Receiver shows a ring of the last commands.  There are 32 bits holding up
 	 * to four commands.  Each byte has the top 3 bits that hold the namespace and 5 bits for the command name	
@@ -887,6 +884,66 @@ longer send telemetry.
 		return s;
 	}
 
+	public static String[] isisAntennaStatusArray(int rawValue, boolean shortString) {
+		String[] s = new String[16];
+		
+		// First bit is the ARM bit 
+		int ARM = rawValue & 0x1;  // ARM
+		int A4B = (rawValue >> 1) & 0x1;  // A4B
+		int A4T = (rawValue >> 1) & 0x1;  // A4T
+		int A4S = (rawValue >> 1) & 0x1;  // A4S
+		int INDB = (rawValue >> 1) & 0x1; // INDB
+		int A3B = (rawValue >> 1) & 0x1;  // A3B
+		int A3T = (rawValue >> 1) & 0x1;  // A3T
+		int A3S = (rawValue >> 1) & 0x1;  // A3S
+		int IG = (rawValue >> 1) & 0x1;   // IG
+		int A2B = (rawValue >> 1) & 0x1;  // A2B
+		int A2T = (rawValue >> 1) & 0x1;  // A2T
+		int A2S = (rawValue >> 1) & 0x1;  // A2S
+		int zero = (rawValue >> 1) & 0x1; // zero
+		int A1B = (rawValue >> 1) & 0x1;  // A1B
+		int A1T = (rawValue >> 1) & 0x1;  // A1T
+		int A1S = (rawValue >> 1) & 0x1;  // A1S
+
+		if (shortString) {
+			if (ARM == 1) s[0] = "ARM "; else s[0] = "";
+			if (INDB == 1) s[1] = "BURN "; else s[1] = "";
+			if (IG == 1) s[2] = "IG "; else s[2] = "";
+			if (A4S == 1) s[6] = "N "; else s[3] = "Y ";
+			if (A3S == 1) s[5] = "N "; else s[4] = "Y ";
+			if (A2S == 1) s[4] = "N "; else s[5] = "Y ";
+			if (A1S == 1) s[3] = "N "; else s[6] = "Y ";
+		} else {
+			if (ARM == 1) s[0] = "ARM"; else s[0] = "DIS";
+			if (INDB == 1) s[1] = "ACT"; else s[4] = "NOT";
+			if (IG == 1) s[2] = "IGN"; else s[8] = "NOR";
+			if (A1B == 1) s[3] = "ACT"; else s[13] = "NOT";
+			if (A1T == 1) s[4] = "TIME"; else s[14] = "--";
+			if (A1S == 1) s[5] = "NO"; else s[15] = "YES";
+			if (A2B == 1) s[6] = "ACT"; else s[9] = "NOT";
+			if (A2T == 1) s[7] = "TIME"; else s[10] = "--";
+			if (A2S == 1) s[8] = "NO"; else s[11] = "YES";
+			if (A3B == 1) s[9] = "ACT"; else s[5] = "NOT";
+			if (A3T == 1) s[10] = "TIME"; else s[6] = "--";
+			if (A3S == 1) s[11] = "NO"; else s[7] = "YES";
+			if (A4B == 1) s[12] = "ACT"; else s[1] = "NOT";
+			if (A4T == 1) s[13] = "TIME"; else s[2] = "--";
+			if (A4S == 1) s[14] = "NO"; else s[3] = "YES";
+			s[15] = ""+zero;
+		}
+		return s;
+	}
+
+	public static String isisAntennaStatus(int rawValue, boolean shortString) {
+		String[] s = isisAntennaStatusArray(rawValue, shortString);
+		String result = "---";
+		if (s[0] != null)
+			result = s[0];
+		for (int i=1; i< s.length; i++)
+			if (s[i] != null)
+				result = result + s[i];
+		return result;
+	}
 
 	/**
 	 * Decode the IHU Soft error bits

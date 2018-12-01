@@ -1,4 +1,4 @@
-55,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+53,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,realtimeDownlink,busV,12,V,2,Solar Panels,7,4,3,Bus Voltage,Vbatt Bus voltage
 1,realtimeDownlink,gTemp,12,C,48,Experiments,5,12,3,Gyro Temp,Gyro temperature
 2,realtimeDownlink,TxPAi,12,mA,10,Radio,2,2,3,PA Current,Transmit power amplifier current
@@ -45,12 +45,10 @@
 43,realtimeDownlink,state6,1,-,0,NONE,0,0,0,spare,None
 44,realtimeDownlink,state7,1,-,0,NONE,0,0,0,spare,None
 45,realtimeDownlink,TLMresets,4,-,1,Computer Hardware,3,5,0,Ground Resets,Number of times command stations reset stored telemetry
-46,realtimeDownlink,Ant1Deployed,1,-,51,ISIS Antenna Control,1,10,0,Antenna #1,Antenna status
-47,realtimeDownlink,Ant2Deployed,1,-,51,ISIS Antenna Control,1,11,0,Antenna #2,Antenna status
-48,realtimeDownlink,Ant3Deployed,1,-,51,ISIS Antenna Control,1,12,0,Antenna #3,Antenna status
-49,realtimeDownlink,Ant4Deployed,1,-,51,ISIS Antenna Control,1,13,0,Antenna #4,Antenna status
-50,realtimeDownlink,wodSize,8,000s,1,Spacecraft Status,4,2,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
-51,realtimeDownlink,swCmds,32,-,35,Command Receiver (ICR),6,4,0,Diagnostic,ICR Diagnostic information
-52,realtimeDownlink,hwCmdCnt,6,-,34,Command Receiver (ICR),6,5,0,HW Command Count,Number of hardware commands since last reset
-53,realtimeDownlink,swCmdCnt,6,-,34,Command Receiver (ICR),6,6,0,SW Command Count,Number of software commands since last reset
-54,realtimeDownlink,pad2,28,-,0,NONE,0,0,0,NONE,Filler
+46,realtimeDownlink,pad1,4,-,0,NONE,0,0,0,NONE,None
+47,realtimeDownlink,antStatus,16,-,51,ISIS Antenna Control,1,10,0,Deploy Status,Deployment status of the antenna system
+48,realtimeDownlink,wodSize,8,000s,1,Spacecraft Status,4,2,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+49,realtimeDownlink,swCmds,32,-,35,Command Receiver (ICR),6,4,0,Diagnostic,ICR Diagnostic information
+50,realtimeDownlink,hwCmdCnt,6,-,34,Command Receiver (ICR),6,5,0,HW Command Count,Number of hardware commands since last reset
+51,realtimeDownlink,swCmdCnt,6,-,34,Command Receiver (ICR),6,6,0,SW Command Count,Number of software commands since last reset
+52,realtimeDownlink,pad2,12,-,0,NONE,0,0,0,NONE,Filler
