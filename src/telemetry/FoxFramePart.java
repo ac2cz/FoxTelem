@@ -119,10 +119,10 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int GYRO2V = 13;
 	public static final int UNKNOWN = 15;
 	public static final int IHU_SW_VERSION = 14;
-	public static final int ISISStatus = 16;
 	//public static final int BUS_VOLTAGE_OVER_2 = 15;
-
-	
+	public static final int ISISStatus = 16;
+	public static final int IHU_TEMP_CALIBRATION_VOLTAGE = 17;
+	public static final int AUTO_SAFE_VOLTAGES = 18;
 	
 	// Flattened C ENUM for IHU Errors
 	public static final String[] ihuErrorType = {
@@ -664,6 +664,20 @@ longer send telemetry.
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
 			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value),3) + "V";
+		case IHU_TEMP_CALIBRATION_VOLTAGE: // IHU measurement of bus voltage
+			value = (rawValue >> 8) & 0xffffff;  // 24 bits of temp calibration
+			return "IHU Temp Cal: " + value;
+		case AUTO_SAFE_VOLTAGES:
+			int value1 = (rawValue >> 8) & 0xfff; // 12 bit value after the type
+			double voltageIn = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value1);
+			int value2 = (rawValue >> 20) & 0xfff; // last 12 bits
+			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value2);
+			if (shortString)
+				return "AS Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
+						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
+			else
+				return "Auto Safe Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
+						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
 		}
 		return "-----" + type;
 	}
