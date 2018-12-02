@@ -72,12 +72,14 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final int TRANSPONDER_MODE = 1;
 	public static final int DATA_MODE = 2;
 	public static final int SCIENCE_MODE = 3;
+	public static final int HEALTH_MODE = 4;
 	
 	public static final String[] modeNames = {
 		"SAFE",
 		"TRANSPONDER",
 		"DATA",
-		"SCIENCE"
+		"SCIENCE",
+		"HEALTH"
 	};
 	
 	public static final String[] expNames = {
@@ -105,6 +107,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public double mpptResistanceError = 6.58d;
 	public int mpptSensorOffThreshold = 1600;
 	public boolean hasMpptSettings = false;
+	public boolean hasModeInHeader = true;
 	
 	// layout flags
 	public boolean useIHUVBatt = false;
@@ -265,6 +268,7 @@ public class FoxSpacecraft extends Spacecraft{
 			properties.setProperty("mpptSensorOffThreshold", Integer.toString(mpptSensorOffThreshold));
 		}
 		
+		properties.setProperty("hasModeInHeader", Boolean.toString(hasModeInHeader));
 		store();
 	
 	}
@@ -344,6 +348,10 @@ public class FoxSpacecraft extends Spacecraft{
 			if (icr != null) {
 				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
 			}
+			String mode = getOptionalProperty("hasModeInHeader");
+			if (mode != null) {
+				hasModeInHeader = Boolean.parseBoolean(getProperty("hasModeInHeader"));
+			}
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -412,7 +420,7 @@ public class FoxSpacecraft extends Spacecraft{
 	 * @param radPayload
 	 * @return
 	 */
-	public static int determineMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+	public static int determine1A1DMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
 		if (realTime != null && minPayload != null && maxPayload != null) {
 			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
 				return DATA_MODE;
@@ -450,9 +458,19 @@ public class FoxSpacecraft extends Spacecraft{
 		// return default
 		return TRANSPONDER_MODE;
 	}
+
+	public static int determineModeFromHeader(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+		// Mode is stored in the header
+		return HEALTH_MODE;
+	}
 	
-	public static String determineModeString(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
-		int mode = determineMode(realTime, maxPayload, minPayload, radPayload);
+	public static String determineModeString(FoxSpacecraft fox, PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+		int mode;
+
+		if (fox.hasModeInHeader)
+			mode = determineModeFromHeader(realTime, maxPayload, minPayload, radPayload);
+		else
+			mode = determine1A1DMode(realTime, maxPayload, minPayload, radPayload);
 		return getModeString(mode);
 	}
 	

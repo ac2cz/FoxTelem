@@ -23,6 +23,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
 	protected String captureDate; // the date/time that this was captured
 	protected int type; // the type of this payload. Zero if the spacecraft does not use types
+	public int newMode; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
+	public static final int NO_MODE = 0;
 	public static final double NO_POSITION_DATA = -999.0;
 	public static final double NO_T0 = -998.0;
 	public static final double NO_TLE = -997.0;
@@ -38,11 +40,16 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		// TODO Auto-generated constructor stub
 	}
 
+//	public void captureHeaderInfo(int id, long uptime, int resets, String captureDate, int mode) {
 	public void captureHeaderInfo(int id, long uptime, int resets) {
 		this.id = id;
 		this.uptime = uptime;
 		this.resets = resets;
-		this.captureDate = fileDateStamp();
+		if (captureDate == null)
+			this.captureDate = fileDateStamp(); // snap the current time
+		else
+			this.captureDate = captureDate;
+//		this.newMode = mode; // this is zero unless the mode was on the header.
 	}
 	
 	public double getSatLatitude() { return satLatitude; }
@@ -162,6 +169,10 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		copyBitsToFields();
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		
+		// If we have the mode in the header we save it here
+		
+		
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + getRawValue(layout.fieldName[i]) + ",";
 		}
