@@ -747,19 +747,19 @@ longer send telemetry.
 
 			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
 				if (shortString)
-					s[i] = s[i] + "Ops";
+					s[i] = s[i] + SWOpsCommands[value];
 				else
 					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
 				break;
 			case SWCmdNSTelemetry: // Telemetry Control
 				if (shortString)
-					s[i] = s[i] + "Tlm";
+					s[i] = s[i] + SWTlmCommands[value];
 				else
 					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
 				break;
 			case SWCmdNSExperiment1: // Experiment 1
 				if (shortString)
-					s[i] = s[i] + "Exp1";
+					s[i] = s[i] + SWExp1Commands[value];
 				else
 					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
 			break;
