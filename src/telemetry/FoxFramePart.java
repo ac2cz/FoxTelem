@@ -533,6 +533,8 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TIME:
 			double time = rawValue / 20.0d; // deploy time in 50ms steps
 			return time;
+		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS:
+			return rawValue;
 		}
 		
 		return ERROR_VALUE;
@@ -900,7 +902,11 @@ longer send telemetry.
 
 	public static String[] isisAntennaStatusArray(int rawValue, boolean shortString) {
 		String[] s = new String[16];
-		
+		if (rawValue == 9999) {
+			for (int i=0; i< s.length; i++)
+				s[i] = "";
+			return s;
+		}
 		// First bit is the ARM bit 
 		int ARM = rawValue & 0x1;  // ARM
 		int A4B = (rawValue >> 1) & 0x1;  // A4B
@@ -923,26 +929,26 @@ longer send telemetry.
 			if (ARM == 1) s[0] = "ARM "; else s[0] = "";
 			if (INDB == 1) s[1] = "BURN "; else s[1] = "";
 			if (IG == 1) s[2] = "IG "; else s[2] = "";
-			if (A4S == 1) s[6] = "N "; else s[3] = "Y ";
-			if (A3S == 1) s[5] = "N "; else s[4] = "Y ";
-			if (A2S == 1) s[4] = "N "; else s[5] = "Y ";
-			if (A1S == 1) s[3] = "N "; else s[6] = "Y ";
+			if (A4S == 1) s[3] = "N "; else s[3] = "Y ";
+			if (A3S == 1) s[4] = "N "; else s[4] = "Y ";
+			if (A2S == 1) s[5] = "N "; else s[5] = "Y ";
+			if (A1S == 1) s[6] = "N "; else s[6] = "Y ";
 		} else {
 			if (ARM == 1) s[0] = "ARM"; else s[0] = "DIS";
-			if (INDB == 1) s[1] = "ACT"; else s[4] = "NOT";
-			if (IG == 1) s[2] = "IGN"; else s[8] = "NOR";
-			if (A1B == 1) s[3] = "ACT"; else s[13] = "NOT";
-			if (A1T == 1) s[4] = "TIME"; else s[14] = "--";
-			if (A1S == 1) s[5] = "NO"; else s[15] = "YES";
-			if (A2B == 1) s[6] = "ACT"; else s[9] = "NOT";
-			if (A2T == 1) s[7] = "TIME"; else s[10] = "--";
-			if (A2S == 1) s[8] = "NO"; else s[11] = "YES";
-			if (A3B == 1) s[9] = "ACT"; else s[5] = "NOT";
-			if (A3T == 1) s[10] = "TIME"; else s[6] = "--";
-			if (A3S == 1) s[11] = "NO"; else s[7] = "YES";
-			if (A4B == 1) s[12] = "ACT"; else s[1] = "NOT";
-			if (A4T == 1) s[13] = "TIME"; else s[2] = "--";
-			if (A4S == 1) s[14] = "NO"; else s[3] = "YES";
+			if (INDB == 1) s[1] = "ACT"; else s[1] = "NOT";
+			if (IG == 1) s[2] = "IGN"; else s[2] = "NOR";
+			if (A1B == 1) s[3] = "ACT"; else s[3] = "NOT";
+			if (A1T == 1) s[4] = "TIME"; else s[4] = "--";
+			if (A1S == 1) s[5] = "NO"; else s[5] = "YES";
+			if (A2B == 1) s[6] = "ACT"; else s[6] = "NOT";
+			if (A2T == 1) s[7] = "TIME"; else s[7] = "--";
+			if (A2S == 1) s[8] = "NO"; else s[8] = "YES";
+			if (A3B == 1) s[9] = "ACT"; else s[9] = "NOT";
+			if (A3T == 1) s[10] = "TIME"; else s[10] = "--";
+			if (A3S == 1) s[11] = "NO"; else s[11] = "YES";
+			if (A4B == 1) s[12] = "ACT"; else s[12] = "NOT";
+			if (A4T == 1) s[13] = "TIME"; else s[13] = "--";
+			if (A4S == 1) s[14] = "NO"; else s[14] = "YES";
 			s[15] = ""+zero;
 		}
 		return s;
