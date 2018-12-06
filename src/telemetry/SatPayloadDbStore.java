@@ -137,25 +137,28 @@ public class SatPayloadDbStore {
 		
 		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
 		//
-		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
-		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
-		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
-		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
+		boolean storeMode = false;
+		if (fox.hasModeInHeader)
+			storeMode = true;
+		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
+		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
+		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);
+		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT), storeMode);
+		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), storeMode);
 		if (fox.hasHerci()) {
-			initHerciTables();
+			initHerciTables(storeMode);
 		}
 		if (fox.hasCamera()) {
 			initCameraTables();
 		}
 		if (fox.foxId == Spacecraft.FOX1E) {
-			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
-			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT));
-			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT));
+			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), storeMode);
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), storeMode);
+			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), storeMode);
 		}
 		if (fox.foxId == Spacecraft.HUSKY_SAT) {
-			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
-			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT));
+			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), storeMode);
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), storeMode);
 			initCanPacketTable();
 			initCanTimestampTable();
 		}
@@ -164,15 +167,15 @@ public class SatPayloadDbStore {
 	/** 
 	 *  create the tables if they do not exist
 	 */
-	private void initPayloadTable(String table, BitArrayLayout layout) {
+	private void initPayloadTable(String table, BitArrayLayout layout, boolean storeMode) {
 		if (layout == null) return; // we don't need this table if there is no layout
-		String createStmt = layout.getTableCreateStmt();
+		String createStmt = layout.getTableCreateStmt(storeMode);
 		createTable(table, createStmt);
 	}
 
-	private void initHerciTables() {
-		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
-		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT));
+	private void initHerciTables(boolean storeMode) {
+		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT), storeMode);
+		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT), storeMode);
 		String table = herciHSPacketTableName;
 		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
 		createTable(table, createStmt);

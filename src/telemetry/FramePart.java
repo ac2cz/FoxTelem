@@ -165,13 +165,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * can then be written to a file
 	 * @return
 	 */
-	public String toFile() {
+	public String toFile(boolean storeMode) {
 		copyBitsToFields();
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		
 		// If we have the mode in the header we save it here
-		
+		if (storeMode)
+			s = s + newMode + ",";
 		
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + getRawValue(layout.fieldName[i]) + ",";
@@ -184,11 +185,15 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		copyBitsToFields();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, \n";
+		if (newMode != NO_MODE)
+			s = s + "newMode,";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
 		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
+		if (newMode != NO_MODE)
+			s = s + newMode+",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + fieldValue[i] + ",\n";
 		}

@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import javax.swing.SwingUtilities;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
 import common.Spacecraft;
@@ -171,7 +172,7 @@ public class FoxBPSKDecoder extends Decoder {
 	private Frame decodedFrame = null;
 	protected void processPossibleFrame() {
 
-		Spacecraft sat = null;
+		FoxSpacecraft sat = null;
 		//Performance.startTimer("findFrames");
 		decodedFrame = bitStream.findFrames();
 		//Performance.endTimer("findFrames");
@@ -185,8 +186,8 @@ public class FoxBPSKDecoder extends Decoder {
 
 				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 				FoxBPSKHeader header = hsf.getHeader();
-				sat = Config.satManager.getSpacecraft(header.id);
-				hsf.savePayloads(Config.payloadStore);;
+				sat = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+				hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader);
 
 				// Capture measurements once per payload or every 5 seconds ish
 				addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);

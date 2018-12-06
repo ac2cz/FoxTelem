@@ -47,7 +47,7 @@ import common.FoxSpacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
-	private Spacecraft fox;
+	private FoxSpacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
 	//private boolean initRad2 = false;
@@ -64,7 +64,7 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
-		fox = Config.satManager.getSpacecraft(foxId);
+		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(foxId);
 		
 		try {
 			initPayloadFiles();
@@ -90,7 +90,7 @@ public class SatPayloadStore {
 	private void initPayloadFiles() throws IOException {
 		records = new SatPayloadTable[fox.numberOfLayouts];
 		for (int i=0; i<fox.numberOfLayouts; i++)
-			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name);
+			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name, fox.hasModeInHeader);
 	}
 	
 	public void setUpdatedAll() {

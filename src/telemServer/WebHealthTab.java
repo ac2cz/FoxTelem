@@ -103,7 +103,7 @@ public class WebHealthTab {
 	public String toString() {
 		String s = "";
 		PayloadRadExpData radPayload = payloadDbStore.getLatestRad(fox.foxId);
-		String mode = FoxSpacecraft.determineModeString((PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
+		String mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
 		if (payloadRt != null) {
 			
 			s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+"</h1>";

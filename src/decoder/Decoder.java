@@ -374,11 +374,11 @@ public abstract class Decoder implements Runnable {
 		} catch (NullPointerException e) {
 			// CATCH THIS IN PRODUCTION VERSION	
 	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
-	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught null exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught null exception." +e.getMessage()+"\nYou probablly need to restart FoxTelem:\n" + stacktrace);
 		} catch (Exception e) {
 			// CATCH THIS IN PRODUCTION VERSION	
 	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
-	        Log.errorDialog("UNEXPECTED ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+	        Log.errorDialog("UNEXPECTED ERROR IN DECODER", "Uncaught exception." +e.getMessage()+"\nYou probablly need to restart FoxTelem:\n" + stacktrace);
 			
 		}
 		Log.println("DECODER Exit");

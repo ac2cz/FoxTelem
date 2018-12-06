@@ -310,17 +310,19 @@ import telemetry.PayloadWODUwExperiment;
 			}
 		}
 
-		public boolean savePayloads(FoxPayloadStore payloadStore) {
+		public boolean savePayloads(FoxPayloadStore payloadStore, boolean storeMode) {
 			int serial = 0;
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
 					payload[i].copyBitsToFields();
+					if (storeMode)
+						payload[i].newMode = header.newMode;
 					if (payload[i] instanceof PayloadUwExperiment) { 
-						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore, serial);
+						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
 						serial = serial + ((PayloadUwExperiment)payload[i]).canPackets.size();
 					} else if (payload[i] instanceof PayloadWODUwExperiment) { 
-						((PayloadWODUwExperiment)payload[i]).savePayloads(payloadStore, serial);
+						((PayloadWODUwExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
 						serial = serial + ((PayloadWODUwExperiment)payload[i]).canPackets.size();
 					} else
 						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))

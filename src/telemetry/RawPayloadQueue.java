@@ -162,11 +162,6 @@ public class RawPayloadQueue extends RawQueue {
 			}
 
 		}
-		try {
-			localServer.close();
-		} catch (IOException e) {
-			Log.println("ERROR: Could not close localServer");
-		}
 		Log.println("Local Server Queue thread ended");
 	}
 	
@@ -190,11 +185,9 @@ public class RawPayloadQueue extends RawQueue {
 				}
 			} catch (UnknownHostException e) {
 				Log.println("Could not connect to local server");
-				try { localServer.close(); } catch (Exception e1) {};
 				//e.printStackTrace(Log.getWriter());
 			} catch (IOException e) {
 				Log.println("IO Exception with local server");
-				try { localServer.close(); } catch (Exception e2) {};
 				//e.printStackTrace(Log.getWriter());
 			}
 		if (success) // then at least one of the transmissions was successful

@@ -40,9 +40,6 @@ public class TlmServer {
 
 	String hostName;
 	int portNumber;
-	Socket socket = null;
-	OutputStream out = null;
-	
 	
 	public TlmServer(String hostName, int portNumber) {
 		this.hostName = hostName;
@@ -79,22 +76,8 @@ public class TlmServer {
 		Log.println(" connected");
 		return true;
 	}
-	 * @throws UnknownHostException 
-	 * @throws IOException 
 	*/
 	
-	public void open() throws UnknownHostException, IOException {
-		socket = new Socket(hostName, portNumber);
-		socket.setKeepAlive(true);
-		out = socket.getOutputStream();
-	}
-	
-	public void close() throws IOException {
-		out.close();
-		socket.close();
-		socket = null;
-		out = null;
-	}
 	/**
 	 * Send this frame to the amsat server "hostname" on "port" for storage.  It is sent by the queue
 	 * so there is no need for this routine to remove the record from the queue
@@ -104,11 +87,12 @@ public class TlmServer {
 	public void sendToServer(byte[] buffer, int protocol) throws UnknownHostException, IOException {
 		
 		if (protocol == TCP) {
-			if (socket == null || socket.isOutputShutdown())
-				open();
+			Socket socket = new Socket(hostName, portNumber);
+			OutputStream out = socket.getOutputStream();
 
 			out.write(buffer);
-			
+			out.close();
+			socket.close();
 		} else {
 			DatagramSocket socket = new DatagramSocket();
 

@@ -1,8 +1,10 @@
 package telemetry.FoxBPSK;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
+import telemetry.FramePart;
 import telemetry.Header;
 
 public class FoxBPSKHeader extends Header {
@@ -36,17 +38,17 @@ public class FoxBPSKHeader extends Header {
 			cameraMode = nextbits(1);
 			minorVersion = nextbits(4);
 		}
+		setMode();
 	}
 
-	public String getMode() {
+	public void setMode() {
+		newMode = FramePart.NO_MODE;
 		if (id >= Spacecraft.HUSKY_SAT) {
-			if (safeMode != 0 ) return "SAFE";
-			if (healthMode != 0 ) return "HEALTH";
-			if (scienceMode != 0 ) return "SCIENCE";
-			if (cameraMode != 0 ) return "CAMERA";
-			return "UNKNOWN";
+			if (safeMode != 0 ) newMode = FoxSpacecraft.SAFE_MODE;
+			if (healthMode != 0 ) newMode = FoxSpacecraft.HEALTH_MODE;
+			if (scienceMode != 0 ) newMode = FoxSpacecraft.SCIENCE_MODE;
 		}
-		return null;
+	
 	}
 
 	public boolean isValid() {
@@ -74,7 +76,7 @@ public class FoxBPSKHeader extends Header {
 				+ " TYPE: " + FoxDecoder.dec(type);
 		
 		if (id >= Spacecraft.HUSKY_SAT)
-			s = s + " - " + getMode() + " MODE";
+			s = s + " - MODE: " + newMode;
 		return s;
 	}
 }

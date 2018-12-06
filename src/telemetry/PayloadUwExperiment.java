@@ -124,7 +124,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		return false;
 	}
 
-	public boolean savePayloads(FoxPayloadStore payloadStore, int serial) {
+	public boolean savePayloads(FoxPayloadStore payloadStore, int serial, boolean storeMode) {
 		type = type * 100 + serial;
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
@@ -134,6 +134,8 @@ public class PayloadUwExperiment extends FoxFramePart {
 			int p_type = p.getType();
 			p_type = p_type * 100 + serial + j++;
 			p.setType(p_type);
+			if (storeMode)
+				p.newMode = newMode;
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
 		}

@@ -53,10 +53,12 @@ public class SatPayloadTable {
 	private String baseFileName; // this is the base filename for this table
 	private SortedFramePartArrayList rtRecords; // this is the rtRecords that are loaded into memory
 	private boolean updated = false;
+	private boolean storeMode = false;
 
-	public SatPayloadTable(int size, String name) throws IOException {
+	public SatPayloadTable(int size, String name, boolean storeMode) throws IOException {
 		tableIdx = new SortedArrayList<TableSeg>(INITIAL_SIZE);
 		baseFileName = name;
+		this.storeMode = storeMode;
 		String dir = getDir();
         fileName = dir + PayloadStore.DB_NAME+File.separator + name;
       
@@ -548,6 +550,7 @@ public class SatPayloadTable {
 		int resets = 0;
 		long uptime = 0;
 		int type = 0;
+		int mode = 0;
 		StringTokenizer st = null;
 		try {
 			st = new StringTokenizer(line, ",");
@@ -556,6 +559,8 @@ public class SatPayloadTable {
 			resets = Integer.valueOf(st.nextToken()).intValue();
 			uptime = Long.valueOf(st.nextToken()).longValue();
 			type = Integer.valueOf(st.nextToken()).intValue();
+			if (storeMode)
+				mode = Integer.valueOf(st.nextToken()).intValue();
 
 			// We should never get this situation, but good to check..
 			if (Config.satManager.getSpacecraft(id) == null) {
@@ -669,6 +674,8 @@ public class SatPayloadTable {
 
 			// Check the the record set is actuall loaded.  Sometimes at start up the GUI is querying for records before they are loaded
 			if (rtRecords != null && rt != null) {
+				if (storeMode)
+					rt.newMode = mode;
 				rtRecords.add(rt);
 			}
 			return rt;
@@ -787,7 +794,7 @@ public class SatPayloadTable {
 		try {
 			if (appendNewLine)
 				output.write( "\n" );
-			output.write( f.toFile() + "\n" );
+			output.write( f.toFile(storeMode) + "\n" );
 			output.flush();
 		} finally {
 			// Make sure it is closed even if we hit an error

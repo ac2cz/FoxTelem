@@ -22,6 +22,7 @@ import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
+import telemetry.SortedFramePartArrayList;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
@@ -68,13 +69,15 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
 	
-	public static final int SAFE_MODE = 0;
-	public static final int TRANSPONDER_MODE = 1;
-	public static final int DATA_MODE = 2;
-	public static final int SCIENCE_MODE = 3;
-	public static final int HEALTH_MODE = 4;
+	public static final int NO_MODE = 0;
+	public static final int SAFE_MODE = 1;
+	public static final int TRANSPONDER_MODE = 2;
+	public static final int DATA_MODE = 3;
+	public static final int SCIENCE_MODE = 4;
+	public static final int HEALTH_MODE = 5;
 	
 	public static final String[] modeNames = {
+		"UNKNOWN",
 		"SAFE",
 		"TRANSPONDER",
 		"DATA",
@@ -107,7 +110,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public double mpptResistanceError = 6.58d;
 	public int mpptSensorOffThreshold = 1600;
 	public boolean hasMpptSettings = false;
-	public boolean hasModeInHeader = true;
+	public boolean hasModeInHeader = false;
 	
 	// layout flags
 	public boolean useIHUVBatt = false;
@@ -458,22 +461,42 @@ public class FoxSpacecraft extends Spacecraft{
 		// return default
 		return TRANSPONDER_MODE;
 	}
-
-	public static int determineModeFromHeader(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+	public String determineModeFromHeader() {
 		// Mode is stored in the header
-		return HEALTH_MODE;
-	}
-	
-	public static String determineModeString(FoxSpacecraft fox, PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
-		int mode;
+		// Find the most recent frame and return the mode that it has
+		SortedFramePartArrayList payloads = new SortedFramePartArrayList(numberOfLayouts);
+		for (BitArrayLayout lay : layout)
+			payloads.add(Config.payloadStore.getLatest(foxId, lay.name));
 
-		if (fox.hasModeInHeader)
-			mode = determineModeFromHeader(realTime, maxPayload, minPayload, radPayload);
-		else
-			mode = determine1A1DMode(realTime, maxPayload, minPayload, radPayload);
+		int mode = NO_MODE;
+		if (payloads.size() > 0)
+			mode = payloads.get(payloads.size()-1).newMode;
+		return getModeString(mode);
+	}
+
+	public static String OLDdetermineModeFromHeader(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, 
+			FramePart radPayload) {
+		// Mode is stored in the header
+		// Find the most recent frame and return the mode that it has
+		SortedFramePartArrayList payloads = new SortedFramePartArrayList(4);
+		if (realTime != null) payloads.add(realTime);
+		if (maxPayload != null) payloads.add(maxPayload);
+		if (minPayload != null) payloads.add(minPayload);
+		if (radPayload != null) payloads.add(radPayload);
+		int mode = NO_MODE;
+		if (payloads.size() > 0)
+			mode = payloads.get(payloads.size()-1).newMode;
 		return getModeString(mode);
 	}
 	
+	public static String determineModeString(FoxSpacecraft fox, PayloadRtValues realTime, PayloadMaxValues maxPayload, 
+			PayloadMinValues minPayload, FramePart radPayload) {
+		int mode;
+
+		mode = determine1A1DMode(realTime, maxPayload, minPayload, radPayload);
+		return getModeString(mode);
+	}
+
 	public String toString() {
 
 		return this.name; //"Fox-" + getIdString();

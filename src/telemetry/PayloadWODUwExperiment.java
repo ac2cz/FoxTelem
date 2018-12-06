@@ -83,12 +83,14 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 		return false;
 	}
 	
-	public boolean savePayloads(FoxPayloadStore payloadStore, int serial) {
+	public boolean savePayloads(FoxPayloadStore payloadStore, int serial, boolean storeMode) {
 		type = type * 100 + serial;
 		copyBitsToFields(); // make sure reset / uptime correct
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
 		for (CanPacket p : canPackets) {
+			if (storeMode)
+				p.newMode = newMode;
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
 		}
