@@ -42,5 +42,5 @@
 40,maxDownlink,AutoSafeModeActive,1,-,21,Spacecraft Status,4,4,0,Auto Safe Mode,In Autosafe mode?
 41,maxDownlink,AutoSafeModeAllowed,1,-,21,Spacecraft Status,4,5,0,Auto Safe Allowed,Autosafe enabled?
 42,maxDownlink,ScienceModeActive,1,-,21,Spacecraft Status,4,6,0,Science Mode,In Science Mode?
-43,maxDownlink,pad1,19,-,0,NONE,0,0,0,NONE,Make it even
-44,maxDownlink,pad2,32,-,0,NONE,0,0,0,NONE,-
+43,maxDownlink,pad3,19,-,0,NONE,0,0,0,NONE,Make it even
+44,maxDownlink,pad4,32,-,0,NONE,0,0,0,NONE,-

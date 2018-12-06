@@ -42,5 +42,5 @@
 40,minDownlink,AutoSafeModeActive,1,-,21,NONE,0,0,0,NONE,In Autosafe mode?
 41,minDownlink,AutoSafeModeAllowed,1,-,21,NONE,0,0,0,NONE,Autosafe enabled?
 42,minDownlink,ScienceModeActive,1,-,21,NONE,0,0,0,Science Mode,In Science Mode?
-43,minDownlink,pad1,19,-,0,NONE,0,0,0,NONE,Make it even
-44,minDownlink,pad2,32,-,0,NONE,0,0,0,NONE,Make it even
+43,minDownlink,pad3,19,-,0,NONE,0,0,0,NONE,Make it even
+44,minDownlink,pad4,32,-,0,NONE,0,0,0,NONE,Make it even

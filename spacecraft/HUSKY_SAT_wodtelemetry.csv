@@ -39,7 +39,7 @@
 37,wodSpecificDownlink,IHUdiagData,32,-,18,Spacecraft Status,4,1,0,Diagnostic Data,Diagnostic Data on IHU Performance
 38,wodSpecificDownlink,WODTimestampReset,16,-,1,WOD,8,1,0,Reset Count,Time Whole Orbit Data was collected
 39,wodSpecificDownlink,WODTimestampUptime,25,s,1,WOD,8,2,0,Uptime,Time Whole Orbit Data was collected
-40,wodSpecificDownlink,pad1,1,-,0,NONE,0,0,0,pad,-
+40,wodSpecificDownlink,pad3,1,-,0,NONE,0,0,0,pad,-
 41,wodSpecificDownlink,TransponderEnabled,1,-,21,Spacecraft Status,4,2,0,Transponder Enabled,Is the transponder enabled?
 42,wodSpecificDownlink,AutoSafeModeActive,1,-,21,Spacecraft Status,4,3,0,Auto Safe Mode,Are we in safe mode due to auto-safe?
 43,wodSpecificDownlink,SafeModeActive,1,-,21,Spacecraft Status,4,4,0,Safe Mode,Are we in safe mode?
