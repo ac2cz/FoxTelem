@@ -139,9 +139,12 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		return pcan;
 	}
 	
-	public String getTableCreateStmt() {
+	public String getTableCreateStmt(boolean storeMode) {
 		String s = new String();
 		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (storeMode)
+			s = s + "newMode int,";
+		
 		for (int i=0; i < layout.fieldName.length; i++) {
 			s = s + layout.fieldName[i] + " int,\n";
 		}

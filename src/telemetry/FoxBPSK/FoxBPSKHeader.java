@@ -42,7 +42,7 @@ public class FoxBPSKHeader extends Header {
 	}
 
 	public void setMode() {
-		newMode = FramePart.NO_MODE;
+		newMode = FoxSpacecraft.NO_MODE;
 		if (id >= Spacecraft.HUSKY_SAT) {
 			if (safeMode != 0 ) newMode = FoxSpacecraft.SAFE_MODE;
 			if (healthMode != 0 ) newMode = FoxSpacecraft.HEALTH_MODE;

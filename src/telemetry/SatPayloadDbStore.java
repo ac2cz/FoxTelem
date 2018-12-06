@@ -159,7 +159,7 @@ public class SatPayloadDbStore {
 		if (fox.foxId == Spacecraft.HUSKY_SAT) {
 			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), storeMode);
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), storeMode);
-			initCanPacketTable();
+			initCanPacketTable(storeMode);
 			initCanTimestampTable();
 		}
 	}
@@ -193,11 +193,13 @@ public class SatPayloadDbStore {
 		//createTable("LAST_IMAGE_TIMESTAMP", lastImageTable);
 	}
 	
-	private void initCanPacketTable() {
+	private void initCanPacketTable(boolean storeMode) {
 		String table = uwCanPacketTableName;
 		BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT);
 		String s = new String();
 		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (storeMode)
+			s = s + "newMode int,";
 		for (int i=0; i < lay.fieldName.length; i++) {
 			s = s + lay.fieldName[i] + " int,\n";
 		}
