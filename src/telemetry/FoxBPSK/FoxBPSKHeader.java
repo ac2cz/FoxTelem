@@ -47,6 +47,7 @@ public class FoxBPSKHeader extends Header {
 			if (safeMode != 0 ) newMode = FoxSpacecraft.SAFE_MODE;
 			if (healthMode != 0 ) newMode = FoxSpacecraft.HEALTH_MODE;
 			if (scienceMode != 0 ) newMode = FoxSpacecraft.SCIENCE_MODE;
+			if (cameraMode != 0 ) newMode = FoxSpacecraft.CAMERA_MODE;
 		}
 	
 	}

@@ -75,6 +75,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final int DATA_MODE = 3;
 	public static final int SCIENCE_MODE = 4;
 	public static final int HEALTH_MODE = 5;
+	public static final int CAMERA_MODE = 6;
 	
 	public static final String[] modeNames = {
 		"UNKNOWN",
@@ -82,7 +83,8 @@ public class FoxSpacecraft extends Spacecraft{
 		"TRANSPONDER",
 		"DATA",
 		"SCIENCE",
-		"HEALTH"
+		"HEALTH",
+		"CAMERA"
 	};
 	
 	public static final String[] expNames = {
