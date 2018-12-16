@@ -74,7 +74,7 @@ public class BadFox {
 	}
 	
 	private static void sendBytes() {
-		TlmServer tlmServer = new TlmServer("127.0.0.1", 41042);
+		TlmServer tlmServer = new TlmServer("127.0.0.1", 41042, TlmServer.AUTO_CLOSE);
 		byte[] bytes = new byte[100];
 		try {
 			tlmServer.sendToServer(bytes, TlmServer.TCP);

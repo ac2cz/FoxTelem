@@ -51,7 +51,7 @@ public class RawPayloadQueue extends RawQueue {
 	}
 	
 	public void init() {
-		localServer = new TlmServer(Config.primaryServer, Config.serverPort);
+		localServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.KEEP_OPEN);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
@@ -184,11 +184,11 @@ public class RawPayloadQueue extends RawQueue {
 					}
 				}
 			} catch (UnknownHostException e) {
-				Log.println("Could not connect to local server");
-				//e.printStackTrace(Log.getWriter());
+				Log.println("Could not connect to local server: " + e.getMessage());
+				localServer.close();
 			} catch (IOException e) {
-				Log.println("IO Exception with local server");
-				//e.printStackTrace(Log.getWriter());
+				Log.println("IO Exception with local server: " + e.getMessage());
+				localServer.close();
 			}
 		if (success) // then at least one of the transmissions was successful
 			try {

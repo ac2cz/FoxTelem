@@ -147,8 +147,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JLabel lblLocalQueued;
 	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
 	private static String TOTAL_DECODES = "Payloads: ";
-	private static String TOTAL_QUEUED = "Serv: ";
-	private static String LOCAL_QUEUED = "Que Loc: ";
+	private static String TOTAL_QUEUED = "Queue: ";
+	private static String LOCAL_QUEUED = "/ ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
 	private static int totalMissed;
@@ -229,18 +229,19 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
-		lblLocalQueued = new JLabel(LOCAL_QUEUED);
+		lblTotalQueued = new JLabel(TOTAL_QUEUED);
+		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalQueued.setBorder(new EmptyBorder(2, 2, 2, 2) ); // top left bottom right
+		lblTotalQueued.setToolTipText("The number of frames that need to be sent to the Amsat / Local telemetry servers");
+		rightBottom.add(lblTotalQueued );
+		bottomPanel.add(rightBottom, BorderLayout.EAST);
+
+		lblLocalQueued = new JLabel("");  // This starts blank and then appears if there are actual frames
 		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
-		lblLocalQueued.setBorder(new EmptyBorder(2, 2, 2, 2) ); // top left bottom right
+		lblLocalQueued.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblLocalQueued.setToolTipText("The number of payloads that need to be sent to the Local telemetry server");
 		rightBottom.add(lblLocalQueued );
 		
-		lblTotalQueued = new JLabel(TOTAL_QUEUED);
-		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
-		lblTotalQueued.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalQueued.setToolTipText("The number of frames that need to be sent to the Amsat telemetry server");
-		rightBottom.add(lblTotalQueued );
-		bottomPanel.add(rightBottom, BorderLayout.EAST);
 		
 		addHealthTabs();
 		

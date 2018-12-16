@@ -37,13 +37,19 @@ public class TlmServer {
 	public static final int TCP = 0;
 	public static final int UDP = 1;
 	public static final int FTP_PORT = 22;
+	public static final boolean KEEP_OPEN = false;
+	public static final boolean AUTO_CLOSE = true;
 
 	String hostName;
 	int portNumber;
+	boolean autoClose = true; // If this is false we keep the socket open, but reopen if it is closed
+	Socket socket = null;
+	OutputStream out = null;
 	
-	public TlmServer(String hostName, int portNumber) {
+	public TlmServer(String hostName, int portNumber, boolean autoClose) {
 		this.hostName = hostName;
 		this.portNumber = portNumber;
+		this.autoClose = autoClose;
 	}
 
 	public void setHostName(String hostName) {
@@ -78,6 +84,23 @@ public class TlmServer {
 	}
 	*/
 	
+	public void close() {
+		if (out != null)
+			try {
+				out.close();
+			} catch (Exception e) {
+				// Nothing to do
+			}
+		out = null;
+		if (socket != null)
+			try {
+				socket.close();
+			} catch (Exception e) {
+				// Nothing to do
+			}
+		socket = null;
+	}
+	
 	/**
 	 * Send this frame to the amsat server "hostname" on "port" for storage.  It is sent by the queue
 	 * so there is no need for this routine to remove the record from the queue
@@ -87,12 +110,15 @@ public class TlmServer {
 	public void sendToServer(byte[] buffer, int protocol) throws UnknownHostException, IOException {
 		
 		if (protocol == TCP) {
-			Socket socket = new Socket(hostName, portNumber);
-			OutputStream out = socket.getOutputStream();
+			if (autoClose || socket == null) {
+				socket = new Socket(hostName, portNumber);
+				out = socket.getOutputStream();
+			}
 
 			out.write(buffer);
-			out.close();
-			socket.close();
+			if (autoClose)
+				close();
+			
 		} else {
 			DatagramSocket socket = new DatagramSocket();
 

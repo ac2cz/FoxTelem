@@ -60,8 +60,8 @@ public class RawFrameQueue extends RawQueue {
 	}
 	
 	public void init() {
-		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort);
-		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort);
+		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.AUTO_CLOSE);
+		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort, TlmServer.AUTO_CLOSE);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
