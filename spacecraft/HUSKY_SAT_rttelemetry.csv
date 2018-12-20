@@ -1,21 +1,21 @@
 53,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,realtimeDownlink,busV,12,V,2,Solar Panels,7,4,3,Bus Voltage,Vbatt Bus voltage
-1,realtimeDownlink,gTemp,12,C,48,Experiments,5,12,3,Gyro Temp,Gyro temperature
+1,realtimeDownlink,gTemp,12,C,48,Experiments,5,11,3,Gyro Temp,Gyro temperature
 2,realtimeDownlink,TxPAi,12,mA,10,Radio,2,2,3,PA Current,Transmit power amplifier current
 3,realtimeDownlink,TxTemp,12,C,37,Radio,2,1,3,TX Temperature,Transmitter card temperature
 4,realtimeDownlink,FwdPower,12,mW,40,Radio,2,3,3,Fwd Power,Receiver card temperature
 5,realtimeDownlink,rssi,12,dBm,14,Command Receiver (ICR),6,1,3,RSSI,Received Signal Strength Indication
 6,realtimeDownlink,IHUcpuTemp,12,C,15,Computer Hardware,3,1,3,Temperature,Internal Temperature of IHU
 7,realtimeDownlink,AntennaTemp,12,C,49,ISIS Antenna Control,1,1,3,Board Temp,ISIS Antenna Temperature
-8,realtimeDownlink,Xspin,16,dps,47,Experiments,5,3,3,X Rotation,Angular Velocity around X Axis
-9,realtimeDownlink,Yspin,16,dps,47,Experiments,5,4,3,Y Rotation,Angular Veolcity around Y Axis
-10,realtimeDownlink,Zspin,16,dps,47,Experiments,5,5,3,Z Rotation,Angular Veolcity around Z Axis
-11,realtimeDownlink,Xaccel,16,g,45,Experiments,5,6,3,X Acceleration,Acceleration along X axis
-12,realtimeDownlink,Yaccel,16,g,45,Experiments,5,7,3,Y Acceleration,Acceleration along Y  axis
-13,realtimeDownlink,Zaccel,16,g,45,Experiments,5,8,3,Z Acceleration,Acceleration along Z axis
-14,realtimeDownlink,Xmag,16,uT,46,Experiments,5,9,3,X Magnetometer,Angular Veolcity around X Axis
-15,realtimeDownlink,Ymag,16,uT,46,Experiments,5,10,3,Y Magnetometer,Angular Veolcity around Y Axis
-16,realtimeDownlink,Zmag,16,uT,46,Experiments,5,11,3,Z Magnetometer,Angular Veolcity around Z Axis
+8,realtimeDownlink,Xspin,16,dps,47,Experiments,5,2,3,X Rotation,Angular Velocity around X Axis
+9,realtimeDownlink,Yspin,16,dps,47,Experiments,5,3,3,Y Rotation,Angular Veolcity around Y Axis
+10,realtimeDownlink,Zspin,16,dps,47,Experiments,5,4,3,Z Rotation,Angular Veolcity around Z Axis
+11,realtimeDownlink,Xaccel,16,g,45,Experiments,5,5,3,X Acceleration,Acceleration along X axis
+12,realtimeDownlink,Yaccel,16,g,45,Experiments,5,6,3,Y Acceleration,Acceleration along Y  axis
+13,realtimeDownlink,Zaccel,16,g,45,Experiments,5,7,3,Z Acceleration,Acceleration along Z axis
+14,realtimeDownlink,Xmag,16,uT,46,Experiments,5,8,3,X Magnetometer,Angular Veolcity around X Axis
+15,realtimeDownlink,Ymag,16,uT,46,Experiments,5,9,3,Y Magnetometer,Angular Veolcity around Y Axis
+16,realtimeDownlink,Zmag,16,uT,46,Experiments,5,10,3,Z Magnetometer,Angular Veolcity around Z Axis
 17,realtimeDownlink,ReflectedPwr,12,mW,41,Radio,2,4,3,Ref Power,Reflected Power from the Transmit Antenna
 18,realtimeDownlink,ICR3VProt,12,V,3,Command Receiver (ICR),6,2,3,3V Prot,ICR 3V Proteted
 19,realtimeDownlink,DistBoardStatus,12,V,1,Experiments,5,1,3,UW Dist Board,Signal from the UW power distribution board
@@ -23,7 +23,7 @@
 21,realtimeDownlink,MinusXpanel,12,-,52,Solar Panels,7,1,3,Minus X,Minus X Solar Panel
 22,realtimeDownlink,Xpanel,12,-,52,Solar Panels,7,2,3,Plus X,Plus X Solar Panel
 23,realtimeDownlink,Ypanel,12,-,52,Solar Panels,7,3,3,Plus Y,Plus Y Solar Panel
-24,realtimeDownlink,VddaCAN,12,-,1,Experiments,5,2,3,CAN 5V VDDA,VDDA is the 5V level supplied to run the CAN bus
+24,realtimeDownlink,Vsensors,12,-,1,Computer Hardware,3,2,3,Sensor Power,Sensor voltage supplied by LTI
 25,realtimeDownlink,LtVGACtl,12,V,42,Radio,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 26,realtimeDownlink,pad1,4,-,0,NONE,0,0,0,pad,None
 27,realtimeDownlink,Ant1Time,16,s,50,ISIS Antenna Control,1,2,3,#1 Deploy Time,Antenna 1 Deploy Time
@@ -37,14 +37,14 @@
 35,realtimeDownlink,pad2,48,-,34,NONE,0,0,0,pad,Unused
 36,realtimeDownlink,IHUdiagData,32,-,18,Spacecraft Status,4,1,0,Diagnostic Info,Diagnostic Data on IHU Performance
 37,realtimeDownlink,transponder,1,-,44,Radio,2,6,0,Transponder Status,Transponder Is Enabled
-38,realtimeDownlink,I2CfailureAntenna1,1,-,17,Computer Hardware,3,2,0,Antenna Bus 1,Antenna is not communicating over bus 1
-39,realtimeDownlink,I2CfailureAntenna2,1,-,17,Computer Hardware,3,3,0,Antenna Bus 2,Antenna is not communicating over bus 2
-40,realtimeDownlink,I2CfailureRF,1,-,17,Computer Hardware,3,4,0,RF I2C,RF I2C Bus failure indicator
+38,realtimeDownlink,I2CfailureAntenna1,1,-,17,Computer Hardware,3,3,0,Antenna Bus 1,Antenna is not communicating over bus 1
+39,realtimeDownlink,I2CfailureAntenna2,1,-,17,Computer Hardware,3,4,0,Antenna Bus 2,Antenna is not communicating over bus 2
+40,realtimeDownlink,I2CfailureRF,1,-,17,Computer Hardware,3,5,0,RF I2C,RF I2C Bus failure indicator
 41,realtimeDownlink,state4,1,-,0,NONE,0,0,0,spare,None
 42,realtimeDownlink,state5,1,-,0,NONE,0,0,0,spare,None
 43,realtimeDownlink,state6,1,-,0,NONE,0,0,0,spare,None
 44,realtimeDownlink,state7,1,-,0,NONE,0,0,0,spare,None
-45,realtimeDownlink,TLMresets,4,-,1,Computer Hardware,3,5,0,Ground Resets,Number of times command stations reset stored telemetry
+45,realtimeDownlink,TLMresets,4,-,1,Computer Hardware,3,6,0,Ground Resets,Number of times command stations reset stored telemetry
 46,realtimeDownlink,pad3,4,-,0,NONE,0,0,0,NONE,None
 47,realtimeDownlink,antStatus,16,-,51,ISIS Antenna Control,1,10,0,Deploy Status,Deployment status of the antenna system
 48,realtimeDownlink,wodSize,8,000s,1,Spacecraft Status,4,2,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds

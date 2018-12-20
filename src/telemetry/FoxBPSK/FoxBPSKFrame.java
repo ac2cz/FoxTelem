@@ -130,7 +130,7 @@ import telemetry.PayloadWODUwExperiment;
 				payload[0].addNext8Bits(b); // add the first byte to the first payload
 			} else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
 				payload[0].addNext8Bits(b);
-			} else if (canPacketFrame)
+			} else if (canPacketFrame && numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*6)
 				payload[0].addNext8Bits(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE*2)
 				payload[1].addNext8Bits(b);
