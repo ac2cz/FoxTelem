@@ -715,7 +715,7 @@ public class FoxTelemMain {
 		protected void handleException(String tname, Throwable thrown) {
             String stacktrace = Log.makeShortTrace(thrown.getStackTrace());  
                     
-			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + "\n" + stacktrace);
+			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + ":" + thrown +"\n" + stacktrace);
 		}
 	}
 

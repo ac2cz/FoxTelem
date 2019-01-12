@@ -89,7 +89,7 @@ public class Log {
 		    	
 		    	String stacktrace = makeShortTrace(ex.getStackTrace());  
 		    	
-		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + ex.toString() + "\n" + stacktrace);
+		        Log.errorDialog("SERIOUS ERROR", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + ex + "\n" + stacktrace);
 		        if (!showGuiDialogs) // this is the server
 		        	alert("Uncaught exception.  Need to clear the ALERT and restart the server:\n" + stacktrace);
 		    }
