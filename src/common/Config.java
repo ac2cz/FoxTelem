@@ -295,7 +295,7 @@ public class Config {
 					"\nFoxTelem needs to save the program settings.  The directory is either not accessible or not writable\n");
 		}
 		
-		System.out.println("Set Home to: " + homeDirectory);
+		Log.println("Set Home to: " + homeDirectory);
 	}
 	
 	public static void basicInit() {
