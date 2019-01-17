@@ -26,6 +26,9 @@ def processSignals(frame, fileName, outFile, moduleNum):
             if (unit == ""):
                 unit = "-"
             bits = line[5]
+            description = line[1]
+            if (description == ""):
+                description = "No description provided"
             print("  " + frame +": " + signal)
             data += str(lineNum) + ","
             lineNum = lineNum + 1
@@ -40,7 +43,7 @@ def processSignals(frame, fileName, outFile, moduleNum):
             moduleLine = moduleLine + 1
             data += str(lineType) + ","
             data += signal + "," #shortName
-            data += line[1] + "," # description
+            data += description + "," # description
             data += '\n'
 
     outfile = open(outFileName, "w" )
@@ -93,7 +96,8 @@ def processFrames(fileName, signalsFile, outFile):
     moduleNum = 1
     for line in lines:
         frame = line[0]
-        if (line[11].rstrip('\n') == "descoped"):
+        note = line[11].rstrip('\n')
+        if (note == "descoped"):   # contains descope
             print(frame + " ignored - descoped")
         else:
             print(frame)
@@ -103,7 +107,7 @@ def processFrames(fileName, signalsFile, outFile):
 foxId = sys.argv[1]    
 framesFileName = sys.argv[2]
 signalsFileName = sys.argv[3]
-outFileName = foxId + '_CAN_'
+outFileName = ""
 
 print ('Processing '+ framesFileName + ' & ' + signalsFileName)
 processFrames(framesFileName, signalsFileName, outFileName)

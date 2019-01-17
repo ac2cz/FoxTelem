@@ -52,3 +52,4 @@ layout4.name=radtelemetry
 IHU_SN=7
 layout6.name=wodradtelemetry
 hasModeInHeader=true
+hasCanBus=true

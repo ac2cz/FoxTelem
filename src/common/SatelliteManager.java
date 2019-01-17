@@ -234,6 +234,13 @@ public class SatelliteManager implements Runnable {
 		return null;
 	}
 	
+	public BitArrayLayout getLayoutByCanId(int sat, int id) {
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		if (sc != null) return sc.getLayoutByCanId(id);
+		return null;
+	}
+	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		if (!validFoxId(sat)) return null;
 		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);

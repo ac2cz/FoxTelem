@@ -21,6 +21,7 @@ import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
+import telemetry.uw.CanFrames;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
@@ -118,7 +119,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	//public String[] layoutName;
 	public BitArrayLayout[] layout;
 	private boolean[] sendLayoutLocally;  // CURRENTLY UNUSED SO MADE PRIVATE
-	 	
+	public CanFrames canFrames;
+	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
 	//public String[] lookupTableName;
@@ -140,6 +142,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public boolean track = true; // default is we track a satellite
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
 	public double satPosErrorCode; // Store the error code when we return null for the position
+	public boolean hasCanBus;
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
 	
@@ -179,6 +182,18 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		if (i != ERROR_IDX)
 				return layout[i];
 		return null;
+	}
+	
+	public BitArrayLayout getLayoutByCanId(int canId) {
+		if (!hasCanBus) return null;
+		if (canFrames == null) return null;
+		String name = canFrames.getNameByCanId(canId);
+		if (name != null) {
+			int i = getLayoutIdxByName(name);
+			if (i != ERROR_IDX)
+				return layout[i];
+		}
+		return getLayoutByName(Spacecraft.CAN_PKT_LAYOUT); // try to return the default instead. We dont have this CAN ID
 	}
 
 	public LookUpTable getLookupTableByName(String name) {
@@ -422,6 +437,15 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				else
 					sendLayoutLocally[i] = false;
 			}
+			String c = getOptionalProperty("hasCanBus");
+			if (c == null) 
+				hasCanBus = false;
+			else 
+				hasCanBus =  Boolean.parseBoolean(c);
+			if (hasCanBus) {
+				loadCanLayouts();
+			}
+
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -432,6 +456,36 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			e.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
 		}
+	}
+	
+	/**
+	 * We have a CAN Bus and need to load the additional layouts for CAN Packts
+	 * These are defined in frames.csv in a subdirectory with the name of the spacecraft
+	 */
+	private void loadCanLayouts() {
+		try {
+			canFrames = new CanFrames(this.name+ File.separator +"frames.csv");
+			int canLayoutNum = canFrames.NUMBER_OF_FIELDS;
+			Log.println("Loading " + canLayoutNum + " CAN Layouts");
+			BitArrayLayout[] existingLayouts = layout;
+			layout = new BitArrayLayout[layout.length+canLayoutNum];
+			int i = 0;
+			for (BitArrayLayout l : existingLayouts)
+				layout[i++] = l;
+			for (String frameName : canFrames.frame) {
+				layout[i] = new BitArrayLayout(this.name+ File.separator + frameName + ".csv");
+				layout[i].name = frameName;
+				i++;
+			}
+			numberOfLayouts = layout.length;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (LayoutLoadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//layout[i] = new BitArrayLayout(layoutFilename[i]);
 	}
 	
 	protected String getOptionalProperty(String key) throws LayoutLoadException {

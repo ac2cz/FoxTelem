@@ -3,6 +3,9 @@ package telemetry.uw;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
+
+import common.Config;
+import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
@@ -13,7 +16,7 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	
 	public static final int ID_FIELD = 0; 
 	public static final int ID_BYTES = 4;
-	public int pkt_id = 0;
+	public int pkt_id = 0; // this is a unique id we use for streaming.  This is not the canId
 	
 	int canPacketId = 0;
 	int length = 0;
@@ -26,17 +29,21 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	
 	public CanPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, TYPE_UW_CAN_PACKET, date, st, lay);
+		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
 	}
 
 	public CanPacket(ResultSet r, BitArrayLayout lay) throws SQLException {
 		super(r, TYPE_UW_CAN_PACKET, lay);
+		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
 	}
 
 	public void initBytes() {
-		for (int i=0; i < getLength(); i++) {
-			layout.fieldName[i+1] = 	"BYTE" + i;		
-			layout.fieldBitLength[i+1] = 8;
-		}
+		// set the layout again based on the CAN ID
+		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
+//		for (int i=0; i < getLength(); i++) {
+//			layout.fieldName[i+1] = 	"BYTE" + i;		
+//			layout.fieldBitLength[i+1] = 8;
+//		}
 	}
 
 	public void setType(int t) {
@@ -55,17 +62,7 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		return fieldValue[ID_FIELD];
 	}
 	
-	// Need to work out why this was overridden.  This should use the reset/uptime/type compare.  Otherwise most packets are dupes..
-//	@Override
-//	public int compareTo(FramePart p) {
-//		if (pkt_id == ((CanPacket)p).pkt_id)
-//			return 0;
-//		if (pkt_id < ((CanPacket)p).pkt_id)
-//			return -1;
-//		if (pkt_id > ((CanPacket)p).pkt_id)
-//			return +1;
-//		return +1;
-//	}
+
 	@Override
 	/** True if we have a valid length, id and have received all the bytes */
 	public boolean isValid() {
