@@ -275,10 +275,10 @@ public class BitArrayLayout {
 			e.printStackTrace(Log.getWriter());
 
 		} catch (NumberFormatException n) {
-			Log.errorDialog("NUMBER FORMAT EXCEPTION", n.getMessage());
+			Log.errorDialog("NUMBER FORMAT EXCEPTION", "In layout: " + fileName+"\n" + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (IndexOutOfBoundsException n) {
-			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout at Index: " + n.getMessage());
+			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout "+fileName+"\n at Index: " + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (NoSuchElementException n) {
 			Log.errorDialog("Missing Field in Layout File", "Halted loading " + fileName);

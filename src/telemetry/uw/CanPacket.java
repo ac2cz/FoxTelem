@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
+import common.Log;
 import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
@@ -18,28 +19,34 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	public static final int ID_BYTES = 4;
 	public int pkt_id = 0; // this is a unique id we use for streaming.  This is not the canId
 	
-	int canPacketId = 0;
+	public int canPacketId = 0;
 	int length = 0;
 	
-	byte[] bytes = new byte[MAX_PACKET_BYTES]; // keep a copy so we can sent to the COSMOS server
+	byte[] bytes; // keep a copy so we can sent to the COSMOS server
 		
 	public CanPacket(BitArrayLayout lay) {
 		super(TYPE_UW_CAN_PACKET, lay);
 	}
 	
+	public CanPacket(int id, int resets, long uptime, String date, byte[] data, BitArrayLayout lay) {
+		super(id, resets, uptime, TYPE_UW_CAN_PACKET, date, data, lay);
+	}
+	
 	public CanPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, TYPE_UW_CAN_PACKET, date, st, lay);
-		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
 	}
 
 	public CanPacket(ResultSet r, BitArrayLayout lay) throws SQLException {
 		super(r, TYPE_UW_CAN_PACKET, lay);
-		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
 	}
 
+	public void init() {
+		bytes = new byte[MAX_PACKET_BYTES];
+	}
+	
 	public void initBytes() {
 		// set the layout again based on the CAN ID
-		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
+//		layout = Config.satManager.getLayoutByCanId(id, canPacketId);
 //		for (int i=0; i < getLength(); i++) {
 //			layout.fieldName[i+1] = 	"BYTE" + i;		
 //			layout.fieldBitLength[i+1] = 8;
@@ -49,10 +56,6 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	public void setType(int t) {
 		type = t;
 	}
-	
-	@Override
-	public void init() {
-	}
 
 	public int getLength() {
 		return length;
@@ -60,6 +63,18 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	public int getID() {
 		if (fieldValue == null) return 0;
 		return fieldValue[ID_FIELD];
+	}
+	
+	public byte[] getBytes() {
+		int len = getLength();
+		if (isValid()) {
+			byte[] data = new byte[getLength() + ID_BYTES];
+			if (bytes.length < getLength() + ID_BYTES) return null;
+			for (int i=0; i < getLength() + ID_BYTES; i++)
+				data[i] = bytes[i];
+			return data;
+		}
+		return null;
 	}
 	
 
@@ -88,11 +103,16 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	}
 	
 	public void addNext8Bits(byte b) {
+		try {
 		super.addNext8Bits(b);
 		bytes[numberBytesAdded-1] = b;
 		if (numberBytesAdded == ID_BYTES) {
 			copyBitsToFields();
-			initBytes();
+		}
+		} catch (ArrayIndexOutOfBoundsException e) {
+			Log.errorDialog("FATAL ERROR", "Error adding data to layout:\n" + layout.name + " layout length: " + (layout.getMaxNumberOfBytes()-4)
+					+ " data len: " + getLength() + "\n at byte: "+numberBytesAdded );
+			System.exit(1);
 		}
 	}
 	
@@ -120,8 +140,8 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		String s = "CAN ID:";
 		s = s + FoxDecoder.hex(canPacketId);
 		s = s + " Len:" + getLength() + " Type:" + type;
-		for (int i=0; i<getLength(); i++)
-			s = s + " " + FoxDecoder.hex(fieldValue[i+1]);
+		for (int i=1; i<fieldValue.length; i++)
+			s = s + " " + FoxDecoder.hex(fieldValue[i]);
 		return s;
 	}
 	

@@ -58,7 +58,7 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class UwExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
+public class UwEpsExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String UWTAB = "UWEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";
@@ -79,15 +79,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 	boolean displayTelem = true;
 	
-	BitArrayLayout layout;
-	
-	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
+	public UwEpsExperimentTab(FoxSpacecraft sat, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
 		NAME = fox.toString() + " CAN PACKETS";
-		
-		layout = Config.satManager.getLayoutByCanId(6, 309920256);
 		
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
@@ -115,17 +111,17 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		healthPanel.add(topHalfPackets);
 		healthPanel.add(bottomHalfPackets);
 	
-		initDisplayHalves(healthPanel);
+//		initDisplayHalves(healthPanel);
 		
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		//BitArrayLayout rad = null;
+		BitArrayLayout rad = null;
 
-		//rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		BitArrayLayout none = null;
 		try {
-			analyzeModules(layout, none, none, DisplayModule.DISPLAY_UW);
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -158,26 +154,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 				
-//		showRawValues = new JCheckBox("Dislay Raw Values", Config.displayRawValues);
-//		bottomPanel.add(showRawValues );
-//		showRawValues.addItemListener(this);
 		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
 		bottomPanel.add(showRawBytes );
 		showRawBytes.addItemListener(this);
 		
 
-//		decodePacket = addRadioButton("Packets (Buffered Mode)", bottomPanel );
-//		decodeTelem = addRadioButton("Telemetry", bottomPanel );
-//		ButtonGroup group = new ButtonGroup();
-//		group.add(decodePacket);
-//		group.add(decodeTelem);
-//		if (displayTelem) 
-//			decodeTelem.setSelected(true);
-//		else
-//			decodePacket.setSelected(true);
-		
-//		showRawBytes.setMinimumSize(new Dimension(1600, 14));
-//		showRawBytes.setMaximumSize(new Dimension(1600, 14));
 
 		addBottomFilter();
 		
@@ -191,8 +172,6 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		
 		// initial populate
 		parseRadiationFrames();
-		
-		
 	}
 	
 	protected void displayFramesDecoded(int u, int c) {
@@ -282,11 +261,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	protected void parseRadiationFrames() {
 		
 			if (Config.displayRawRadData) {
-				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
 				if (data != null && data.length > 0)
 					parseRawBytes(data,radTableModel);
 			} else {
-				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
 				//String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0) {
 					parseTelemetry(data);
@@ -374,23 +353,23 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 					
 				}
 
 				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, layout.name)) {
+					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
-						Config.payloadStore.setUpdated(foxId, layout.name, false);
+						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 
 						parseRadiationFrames();
-						updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT),
-								Config.payloadStore.getNumberOfFrames(foxId, layout.name));
+								Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_PKT_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
@@ -433,7 +412,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((CanPacket) Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
+    	updateTab((PayloadUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD_LAYOUT, false), false);
     	
     	if (fromRow == NO_ROW_SELECTED)
     		fromRow = row;

@@ -224,7 +224,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			// we are done and can finish. The line was terminated and is corrupt.
 		} catch (ArrayIndexOutOfBoundsException e) {
 			// Something nasty happened when we were loading, so skip this record and log an error
-			Log.errorDialog("ERROR: Too many fields: Index out of bounds", e.getMessage() + 
+			Log.errorDialog("ERROR: Too many fields: Index out of bounds", "Layout: " + layout.name +"\n" + e + 
 					" Could not load field "+i+ " SAT: " + this.id + " Reset:" + this.resets + " Up:" + this.uptime + " Type:" + this.type);
 		} catch (NumberFormatException n) {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);

@@ -243,6 +243,18 @@ longer send telemetry.
 		load(st);
 	}
 	
+	public FoxFramePart(int id, int resets, long uptime, int type, String date, byte[] data, BitArrayLayout lay) {
+		super(lay, type);
+		this.id = id;
+		this.resets = resets;
+		this.uptime = uptime;
+		this.captureDate = date;
+		init();
+		for (byte b : data) {
+			addNext8Bits(b);
+		}
+	}
+	
 	public FoxFramePart(int type, BitArrayLayout lay) {
 		super(lay, type);
 		init();
