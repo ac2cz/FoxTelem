@@ -11,22 +11,30 @@ def processSignals(frame, fileName, outFile, moduleNum):
 
     outFileName = outFile + frame + ".csv"
     # Open the output file and write out the header and the structures
-    lineNum = 0
+    lineNum = 1 # start at 1 as we add in line 0 with the CAN ID
 
     lines = loadCsvFile(fileName)
-    moduleLine = 1
+    moduleLine = 2 # start at 2 because CAN_ID on 1
     lineType = 0
     data = ""
+    totalBits = 0
+    # Signal Columns
+    FRAME = 2
+    SIGNAL = 0
+    UNITS = 11
+    BITS = 5
+    DESC = 1
     for line in lines:
-        frameName = line[2]
+        frameName = line[FRAME]
         if (frameName == frame):
-            signal = line[0]
+            signal = line[SIGNAL].replace(frameName+"_",'') # if the signal contains the frame name then strip it
             conversion = 0
-            unit = line[11]
+            unit = line[UNITS]
             if (unit == ""):
                 unit = "-"
-            bits = line[5]
-            description = line[1]
+            bits = line[BITS]
+            totalBits = totalBits + int(bits)
+            description = line[DESC]
             if (description == ""):
                 description = "No description provided"
             print("  " + frame +": " + signal)
@@ -45,7 +53,8 @@ def processSignals(frame, fileName, outFile, moduleNum):
             data += signal + "," #shortName
             data += description + "," # description
             data += '\n'
-
+    if (totalBits < 64):
+        lineNum = lineNum + 1
     outfile = open(outFileName, "w" )
     outfile.write(str(lineNum) + "," + 
         "TYPE" + "," + 
@@ -59,7 +68,34 @@ def processSignals(frame, fileName, outFile, moduleNum):
         "LINE_TYPE" +"," +
         "SHORT_NAME" +"," +    
         "DESCRIPTION" + '\n')
+    outfile.write("0" + "," +
+        "CAN" + "," + 
+        "UW_ID" +"," +
+        "32" +"," +
+        "NONE" +"," +
+        "0" +"," +
+        frame +"," +
+        str(moduleNum) +"," +
+        "1" +"," +
+        str(lineType) +"," +
+        "ID" +"," +    
+        "CAN ID with Length Encoded\n")
     outfile.write(data)
+    if (totalBits < 64):
+        # Add a row to pad the layout to 8 bytes as we seem to frequently have packets too long
+        pad = (64 - totalBits)
+        outfile.write(str(lineNum-1) + "," +
+        "CAN" + "," + 
+        "JUNK" +"," +
+        str(pad) +"," +
+        "NONE" +"," +
+        "0" +"," +
+        frame +"," +
+        str(moduleNum) +"," +
+        str(moduleLine) +"," +
+        str(lineType) +"," +
+        "Junk" + "," +    
+        "Unexpected bytes at the end of the CAN Packet\n")
     outfile.close()
 
 if len(sys.argv) <= 3:
@@ -102,7 +138,8 @@ def processFrames(fileName, signalsFile, outFile):
         else:
             print(frame)
             processSignals(frame, signalsFile, outFile, moduleNum)
-            moduleNum = moduleNum + 1
+            #Leave all module nums as 1 so that we can allocate them dynamically
+            #moduleNum = moduleNum + 1
 
 foxId = sys.argv[1]    
 framesFileName = sys.argv[2]
