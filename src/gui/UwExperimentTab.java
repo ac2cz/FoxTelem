@@ -14,6 +14,7 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.border.BevelBorder;
@@ -79,7 +80,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 	boolean displayTelem = true;
 	
-	BitArrayLayout layout;
+	BitArrayLayout[] layout;
 	
 	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
 		super();
@@ -87,7 +88,12 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		foxId = fox.foxId;
 		NAME = fox.toString() + " CAN PACKETS";
 		
-		layout = Config.satManager.getLayoutByCanId(6, 309920256);
+		int j = 0;
+		int[] ids = {309920562, 308871790, 308871784,308871781,308871775,307823194,307823128,307823127,
+307823126,307823125,307823124,307823123,307823122,307823121,307823120,308871685,308871684,307823107,308871682,308871681,309920256};
+		layout = new BitArrayLayout[ids.length];
+		for (int canid : ids)
+			layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
 		
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
@@ -108,14 +114,28 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		healthPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		healthPanel.setBackground(Color.DARK_GRAY);
 		
-		topHalfPackets = new JPanel(); 
-		topHalfPackets.setBackground(Color.DARK_GRAY);
-		bottomHalfPackets = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars5.png");
-		bottomHalfPackets.setBackground(Color.DARK_GRAY);
-		healthPanel.add(topHalfPackets);
-		healthPanel.add(bottomHalfPackets);
+//		topHalfPackets = new JPanel(); 
+//		topHalfPackets.setBackground(Color.DARK_GRAY);
+//		bottomHalfPackets = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars5.png");
+//		bottomHalfPackets.setBackground(Color.DARK_GRAY);
+//		healthPanel.add(topHalfPackets);
+//		healthPanel.add(bottomHalfPackets);
 	
-		initDisplayHalves(healthPanel);
+		JPanel topAndBottom = new JPanel();
+		topAndBottom.setLayout(new BoxLayout(topAndBottom, BoxLayout.Y_AXIS));
+		
+		topHalf = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars1.png");
+		topHalf.setBackground(Color.DARK_GRAY);
+		bottomHalf = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars1.png");
+		bottomHalf.setBackground(Color.DARK_GRAY);
+		//topHalf.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		
+		topAndBottom.add(topHalf);
+		topAndBottom.add(bottomHalf);
+		scrollPane = new JScrollPane (topAndBottom, 
+				   JScrollPane.VERTICAL_SCROLLBAR_NEVER, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+		healthPanel.add(scrollPane);
+
 		
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
@@ -124,8 +144,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 		//rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		BitArrayLayout none = null;
+		// Put one layout on each JPanel and store a handle.  Then we can update each of them
 		try {
-			analyzeModules(layout, none, none, DisplayModule.DISPLAY_UW);
+			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -158,36 +179,18 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		centerPanel.setMinimumSize(minimumSize);
 		add(splitPane, BorderLayout.CENTER);
 				
-//		showRawValues = new JCheckBox("Dislay Raw Values", Config.displayRawValues);
-//		bottomPanel.add(showRawValues );
-//		showRawValues.addItemListener(this);
 		showRawBytes = new JCheckBox("Show Raw Bytes", Config.displayRawRadData);
 		bottomPanel.add(showRawBytes );
 		showRawBytes.addItemListener(this);
 		
-
-//		decodePacket = addRadioButton("Packets (Buffered Mode)", bottomPanel );
-//		decodeTelem = addRadioButton("Telemetry", bottomPanel );
-//		ButtonGroup group = new ButtonGroup();
-//		group.add(decodePacket);
-//		group.add(decodeTelem);
-//		if (displayTelem) 
-//			decodeTelem.setSelected(true);
-//		else
-//			decodePacket.setSelected(true);
-		
-//		showRawBytes.setMinimumSize(new Dimension(1600, 14));
-//		showRawBytes.setMaximumSize(new Dimension(1600, 14));
-
 		addBottomFilter();
 		
 		radTableModel = new CanPacketRawTableModel();
 		radPacketTableModel = new CanPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
-		addPacketModules();
-		topHalfPackets.setVisible(false);
-		bottomHalfPackets.setVisible(false);
+//		topHalfPackets.setVisible(false);
+//		bottomHalfPackets.setVisible(false);
 		
 		// initial populate
 		parseRadiationFrames();
@@ -198,11 +201,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	protected void displayFramesDecoded(int u, int c) {
 		lblFramesDecoded.setText(DECODED + u + CAN_DECODED + c);
 	}
-	
-	private void addPacketModules() {
 		
-	}
-	
 	
 	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel) {
 		super.addTables(radTableModel, radPacketTableModel);
@@ -282,11 +281,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	protected void parseRadiationFrames() {
 		
 			if (Config.displayRawRadData) {
-				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout[0].name);
 				if (data != null && data.length > 0)
 					parseRawBytes(data,radTableModel);
 			} else {
-				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);
+				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout[0].name);
 				//String[][] data = Config.payloadStore.getRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0) {
 					parseTelemetry(data);
@@ -374,23 +373,24 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout[0].name), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout[0].name), true);
 					
 				}
 
 				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, layout.name)) {
+					for (BitArrayLayout lay : layout)
+					if (Config.payloadStore.getUpdated(foxId, lay.name)) {
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
-						Config.payloadStore.setUpdated(foxId, layout.name, false);
+						Config.payloadStore.setUpdated(foxId, lay.name, false);
 
 						parseRadiationFrames();
-						updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+						updateTab(Config.payloadStore.getLatest(foxId, layout[0].name), true);
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT),
-								Config.payloadStore.getNumberOfFrames(foxId, layout.name));
+								Config.payloadStore.getNumberOfFrames(foxId, layout[0].name));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
@@ -433,7 +433,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((CanPacket) Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
+    	updateTab((CanPacket) Config.payloadStore.getFramePart(foxId, reset, uptime, layout[0].name, false), false);
     	
     	if (fromRow == NO_ROW_SELECTED)
     		fromRow = row;

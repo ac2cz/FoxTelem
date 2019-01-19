@@ -253,6 +253,7 @@ longer send telemetry.
 		for (byte b : data) {
 			addNext8Bits(b);
 		}
+		copyBitsToFields();
 	}
 	
 	public FoxFramePart(int type, BitArrayLayout lay) {

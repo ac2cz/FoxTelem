@@ -709,6 +709,10 @@ public class SatPayloadTable {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
 			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
 			return null;
+		} catch (NullPointerException n) {
+			Log.println("ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
+			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
+			return null;
 		}
 
 	}

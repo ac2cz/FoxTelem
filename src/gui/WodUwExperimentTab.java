@@ -30,10 +30,10 @@ public class WodUwExperimentTab extends UwExperimentTab {
 //				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 				if (data != null && data.length > 0)
 					parseTelemetry(data);
-					topHalfPackets.setVisible(false);
-					bottomHalfPackets.setVisible(false);
+//					topHalfPackets.setVisible(false);
+//					bottomHalfPackets.setVisible(false);
 					topHalf.setVisible(true);
-//					bottomHalf.setVisible(true);
+					bottomHalf.setVisible(true);
 			
 			}
 			

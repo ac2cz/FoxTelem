@@ -7,6 +7,7 @@ import java.util.StringTokenizer;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
@@ -126,6 +127,12 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		return length + 1;
 	}
 	
+	/**
+	 * The first 4 bytes are from FOX and are little endian with MSB first.
+	 * The rest of the bytes are from the experiment and are network byte order ie Big endian.  Yes really...
+	 * This suggest these should be in different classes, one wrapping the other.  Perhaps with the experiment data as a secondary payload
+	 * with the ID, Length and data in big endian.
+	 */
 	public void copyBitsToFields() {
 		resetBitPosition();
 		super.copyBitsToFields();

@@ -285,6 +285,51 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 //		}
 	}
 	
+	protected void makeDisplayModules(BitArrayLayout[] layouts,int moduleType) throws LayoutLoadException {
+		int topLength = layouts.length/2;
+		int bottomLength = layouts.length - topLength;
+		String[] topModuleNames = new String[topLength];
+		int[] topModuleLines = new int[topLength];
+		String[] bottomModuleNames = new String[bottomLength];
+		int[] bottomModuleLines = new int[bottomLength];
+		int numOfTopModules = 0;
+		int numOfBottomModules = 0;
+		
+		// Process each layout 1 by 1.  We expect only one DisplayModule per layout
+		int moduleNum = 0;
+		for (BitArrayLayout rt : layouts) {
+			if (moduleNum < topLength) {
+				topModuleNames[moduleNum] = rt.module[0];
+				topModuleLines[moduleNum] = rt.NUMBER_OF_FIELDS; // we display them all
+				numOfTopModules++;
+			} else {
+				bottomModuleNames[moduleNum-topLength] = rt.module[0];
+				bottomModuleLines[moduleNum-topLength] = rt.NUMBER_OF_FIELDS; // we display them all
+				numOfBottomModules++;				
+			}
+			moduleNum++;
+		}
+			
+
+		topModules = new DisplayModule[numOfTopModules];
+		bottomModules = new DisplayModule[numOfBottomModules];
+
+		// Process the top Modules
+		for (int i=0; i < numOfTopModules; i++) {
+			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
+			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], layouts[i]);
+			topHalf.add(topModules[i]);
+		}
+
+		// then bottom
+		for (int i=0; i < numOfBottomModules; i++) {
+			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, moduleType);
+			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], layouts[i]);
+			bottomHalf.add(bottomModules[i]);
+		}
+		
+	}
+	
 	/**
 	 * Analyze the layouts that have been loaded and determine the list of modules and lines that should be used in 
 	 * the display
