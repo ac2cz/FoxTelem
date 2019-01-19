@@ -53,10 +53,14 @@ public class TlmServer {
 	}
 
 	public void setHostName(String hostName) {
+		if (this.hostName != hostName)
+			close();
 		this.hostName = hostName;
 	}
 	
 	public void setPort(int port) {
+		if (this.portNumber != port)
+			close();
 		this.portNumber = port;
 	}
 		
