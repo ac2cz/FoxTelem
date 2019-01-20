@@ -64,8 +64,10 @@ public abstract class Oscillator {
 	}
 	
 	public void setFrequency(double freq) {
-		frequency = freq;
-		phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;
+		if (frequency != freq) { // avoid the calculation if they are the same
+			frequency = freq;
+			phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;
+		}
 	}
 	
 	public double getFrequency() { 
