@@ -37,7 +37,7 @@ import telemetry.uw.PcanPacket;
  */
 public class PayloadUwExperiment extends FoxFramePart {	
 	public ArrayList<CanPacket> canPackets; 
-	protected CanPacket tempCanPacket; // a temporary packet to hold the bytes and calculate the ID 
+	protected CanPacket canPacket; // a temporary packet to hold the bytes and calculate the ID 
 	
 	// the current CAN Packet we are adding bytes to
 	//private int startPacketSerial = 0;
@@ -71,20 +71,32 @@ public class PayloadUwExperiment extends FoxFramePart {
 	int debugCount = 0;
 	protected void addToCanPackets(byte b) {
 
-		if (tempCanPacket == null) {
-			tempCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
+		if (canPacket == null) {
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
+			//canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+startPacketSerial);
 		}
-		if (tempCanPacket.hasEndOfCanPacketsId()) return;
-		tempCanPacket.addNext8Bits(b);
-		if (tempCanPacket.isValid()) {
-			byte[] data = tempCanPacket.getBytes();
-			BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, tempCanPacket.canPacketId);
-
-			CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
-			canPackets.add(newPacket);
-			tempCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
-
+		if (canPacket.hasEndOfCanPacketsId()) return;
+		canPacket.addNext8Bits(b);
+		if (canPacket.isValid()) {
+			canPackets.add(canPacket);
+			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+			canPacket.captureHeaderInfo(id, uptime, resets);
+			//.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+startPacketSerial+canPackets.size());
 		}
+//		if (tempCanPacket == null) {
+//			tempCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
+//		}
+//		if (tempCanPacket.hasEndOfCanPacketsId()) return;
+//		tempCanPacket.addNext8Bits(b);
+//		if (tempCanPacket.isValid()) {
+//			byte[] data = tempCanPacket.getBytes();
+//			BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, tempCanPacket.canPacketId);
+//
+//			CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
+//			canPackets.add(newPacket);
+//			tempCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
+//		}
 	}
 	
 	@Override
