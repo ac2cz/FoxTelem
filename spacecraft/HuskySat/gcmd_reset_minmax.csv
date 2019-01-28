@@ -1,0 +1,12 @@
+11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,gcmd_reset_minmax,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,batt,1,-,0,gcmd_reset_minmax,1,2,0,batt,Whether to reset the subsystem,
+2,CAN,bdot,1,-,0,gcmd_reset_minmax,1,3,0,bdot,Whether to reset the subsystem,
+3,CAN,dist,1,-,0,gcmd_reset_minmax,1,4,0,dist,Whether to reset the subsystem,
+4,CAN,estim,1,-,0,gcmd_reset_minmax,1,5,0,estim,Whether to reset the subsystem,
+5,CAN,gen,1,-,0,gcmd_reset_minmax,1,6,0,gen,Whether to reset the subsystem,
+6,CAN,mpc,1,-,0,gcmd_reset_minmax,1,7,0,mpc,Whether to reset the subsystem,
+7,CAN,mtq,1,-,0,gcmd_reset_minmax,1,8,0,mtq,Whether to reset the subsystem,
+8,CAN,ppt,1,-,0,gcmd_reset_minmax,1,9,0,ppt,Whether to reset the subsystem,
+9,CAN,sensorproc,1,-,0,gcmd_reset_minmax,1,10,0,sensorproc,Whether to reset the subsystem,
+10,CAN,JUNK,55,NONE,0,gcmd_reset_minmax,1,11,0,Junk,Unexpected bytes at the end of the CAN Packet

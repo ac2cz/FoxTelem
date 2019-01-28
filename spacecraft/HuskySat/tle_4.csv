@@ -1,0 +1,4 @@
+3,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,tle_4,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,aop,32,rad,0,tle_4,1,2,0,aop,TLE Argument of perigee,
+2,CAN,raan,32,rad,0,tle_4,1,3,0,raan,TLE Rt ascension of the asc. node,

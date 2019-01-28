@@ -1,0 +1,10 @@
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_mtq_4,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,duty_x1_avg,8,-,0,rc_adcs_mtq_4,1,2,0,duty_x1_avg,Average X Duty ,
+2,CAN,duty_x2_avg,8,-,0,rc_adcs_mtq_4,1,3,0,duty_x2_avg,Average X Duty ,
+3,CAN,duty_y1_avg,8,-,0,rc_adcs_mtq_4,1,4,0,duty_y1_avg,Average Y Duty,
+4,CAN,duty_y2_avg,8,-,0,rc_adcs_mtq_4,1,5,0,duty_y2_avg,Average Y Duty,
+5,CAN,duty_z1_avg,8,-,0,rc_adcs_mtq_4,1,6,0,duty_z1_avg,Average Z Duty,
+6,CAN,duty_z2_avg,8,-,0,rc_adcs_mtq_4,1,7,0,duty_z2_avg,Average Z Duty,
+7,CAN,fsw_y_max,8,-,0,rc_adcs_mtq_4,1,8,0,fsw_y_max,Max Z FSW command,
+8,CAN,fsw_z_min,8,-,0,rc_adcs_mtq_4,1,9,0,fsw_z_min,Min Z FSW command,

@@ -1,0 +1,5 @@
+4,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_eps_batt_1,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,acc_charge_avg,16,22.588 mAh,0,rc_eps_batt_1,1,2,0,acc_charge_avg,Accumulated charge avg,
+2,CAN,voltage_avg,16,raw voltage,0,rc_eps_batt_1,1,3,0,voltage_avg,Battery voltage from the coulomb counter on the battery board. Most accurate but only on when the EPS power domain is on.,
+3,CAN,JUNK,32,NONE,0,rc_eps_batt_1,1,4,0,Junk,Unexpected bytes at the end of the CAN Packet

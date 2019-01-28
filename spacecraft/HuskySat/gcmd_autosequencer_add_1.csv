@@ -1,0 +1,5 @@
+4,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,gcmd_autosequencer_add_1,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,can_id,29,-,0,gcmd_autosequencer_add_1,1,2,0,can_id,the CAN id of the message to add,
+2,CAN,met,32,2^-15s,0,gcmd_autosequencer_add_1,1,3,0,met,the MET of the entry to add,
+3,CAN,JUNK,3,NONE,0,gcmd_autosequencer_add_1,1,4,0,Junk,Unexpected bytes at the end of the CAN Packet

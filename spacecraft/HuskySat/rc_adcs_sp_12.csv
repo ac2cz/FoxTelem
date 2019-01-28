@@ -1,0 +1,6 @@
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_sp_12,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,mag2_y_avg,16,1/73 nT,0,rc_adcs_sp_12,1,2,0,mag2_y_avg,Magnetometer 2 Y axis avg,
+2,CAN,mag2_y_max,16,1/73 nT,0,rc_adcs_sp_12,1,3,0,mag2_y_max,Magnetometer 2 Y axis max,
+3,CAN,mag2_z_max,16,1/73 nT,0,rc_adcs_sp_12,1,4,0,mag2_z_max,Magnetometer 2 Z axis max,
+4,CAN,mag2_z_min,16,1/73 nT,0,rc_adcs_sp_12,1,5,0,mag2_z_min,Magnetometer 2 Z axis min,

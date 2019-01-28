@@ -1,0 +1,10 @@
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_mtq_2,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,bdot_x_avg,8,-,0,rc_adcs_mtq_2,1,2,0,bdot_x_avg,Average X BDOT command,
+2,CAN,bdot_x_max,8,-,0,rc_adcs_mtq_2,1,3,0,bdot_x_max,Max X BDOT command,
+3,CAN,bdot_x_min,8,-,0,rc_adcs_mtq_2,1,4,0,bdot_x_min,Min X BDOT command,
+4,CAN,bdot_y_avg,8,-,0,rc_adcs_mtq_2,1,5,0,bdot_y_avg,Average Y BDOT command,
+5,CAN,bdot_y_max,8,-,0,rc_adcs_mtq_2,1,6,0,bdot_y_max,Max Y BDOT command,
+6,CAN,bdot_y_min,8,-,0,rc_adcs_mtq_2,1,7,0,bdot_y_min,Min Y BDOT command,
+7,CAN,bdot_z_avg,8,-,0,rc_adcs_mtq_2,1,8,0,bdot_z_avg,Average Z BDOT command,
+8,CAN,bdot_z_max,8,-,0,rc_adcs_mtq_2,1,9,0,bdot_z_max,Max Z BDOT command,

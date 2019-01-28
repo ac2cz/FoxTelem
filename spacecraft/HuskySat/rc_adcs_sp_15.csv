@@ -1,0 +1,7 @@
+6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_sp_15,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,imu_valid,8,-,0,rc_adcs_sp_15,1,2,0,imu_valid,Sum of last 255 processed imu valid bits,
+2,CAN,imu_x_avg,16,0.004375 º/s,0,rc_adcs_sp_15,1,3,0,imu_x_avg,IMU X axis avg,
+3,CAN,imu_x_max,16,0.004375 º/s,0,rc_adcs_sp_15,1,4,0,imu_x_max,IMU X axis max,
+4,CAN,imu_x_min,16,0.004375 º/s,0,rc_adcs_sp_15,1,5,0,imu_x_min,IMU X axis min,
+5,CAN,JUNK,8,NONE,0,rc_adcs_sp_15,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet

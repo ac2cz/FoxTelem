@@ -1,0 +1,7 @@
+6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,com2_state,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,curr_file,8,-,0,com2_state,1,2,0,curr_file,which fille is comm2 running rn,
+2,CAN,health_state,8,-,0,com2_state,1,3,0,health_state,health state codes,
+3,CAN,qfilesize,16,kB,0,com2_state,1,4,0,qfilesize,size of most recent queue file,
+4,CAN,qlen,16,files,0,com2_state,1,5,0,qlen,length of the queue of py files to run,
+5,CAN,uptime,16,s,0,com2_state,1,6,0,uptime,time since least mcu reboot,

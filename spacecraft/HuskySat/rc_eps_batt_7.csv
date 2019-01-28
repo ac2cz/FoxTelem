@@ -1,0 +1,5 @@
+4,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_eps_batt_7,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,acc_charge_avg,48,22.588 mAh,0,rc_eps_batt_7,1,2,0,acc_charge_avg,Accumulated charge avg,
+2,CAN,acc_charge_max,32,22.588 mAh,0,rc_eps_batt_7,1,3,0,acc_charge_max,Accumulated charge maximum,
+3,CAN,acc_charge_min,16,22.588 mAh,0,rc_eps_batt_7,1,4,0,acc_charge_min,Acumulated charge minimum,

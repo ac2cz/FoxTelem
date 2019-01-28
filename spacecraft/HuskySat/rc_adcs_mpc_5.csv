@@ -1,0 +1,3 @@
+2,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_mpc_5,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,sc_quat_4,64,-,0,rc_adcs_mpc_5,1,2,0,sc_quat_4,The fourth element of the attitude quaternion of the spacecraft,

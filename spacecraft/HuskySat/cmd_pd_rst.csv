@@ -1,0 +1,4 @@
+3,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,cmd_pd_rst,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,confirm,1,-,0,cmd_pd_rst,1,2,0,confirm,Are you sure you want to rst pd aggs?,
+2,CAN,JUNK,63,NONE,0,cmd_pd_rst,1,3,0,Junk,Unexpected bytes at the end of the CAN Packet

@@ -1,0 +1,6 @@
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,gcmd_mtq_pop,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,x,2,-,0,gcmd_mtq_pop,1,2,0,x,flips the polarity on mtq x axis ,
+2,CAN,y,2,-,0,gcmd_mtq_pop,1,3,0,y,flips the polarity on mtq y axis,
+3,CAN,z,2,-,0,gcmd_mtq_pop,1,4,0,z,flips the polarity on mtq z axis,
+4,CAN,JUNK,58,NONE,0,gcmd_mtq_pop,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet

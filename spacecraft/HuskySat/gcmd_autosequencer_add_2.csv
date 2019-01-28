@@ -1,0 +1,3 @@
+2,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,gcmd_autosequencer_add_2,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,data,64,-,0,gcmd_autosequencer_add_2,1,2,0,data,the data of the CAN packet to be added to the autosequencer,

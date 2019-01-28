@@ -1,0 +1,6 @@
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_sp_13,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,mag2_z_avg,16,1/73 nT,0,rc_adcs_sp_13,1,2,0,mag2_z_avg,Magnetometer 2 Z axis avg,
+2,CAN,suna_avg,16,60/32767º,0,rc_adcs_sp_13,1,3,0,suna_avg,Average alpha value from the sun sensor,
+3,CAN,suna_max,16,60/32767º,0,rc_adcs_sp_13,1,4,0,suna_max,Maximum alpha value from the sun sensor,
+4,CAN,suna_min,16,60/32767º,0,rc_adcs_sp_13,1,5,0,suna_min,Minimum alpha value from the sun sensor,

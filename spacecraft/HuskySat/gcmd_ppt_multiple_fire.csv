@@ -1,0 +1,5 @@
+4,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,gcmd_ppt_multiple_fire,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,count,8,-,0,gcmd_ppt_multiple_fire,1,2,0,count,How many times to fire,
+2,CAN,override,1,-,0,gcmd_ppt_multiple_fire,1,3,0,override,Ppt fire override,
+3,CAN,JUNK,55,NONE,0,gcmd_ppt_multiple_fire,1,4,0,Junk,Unexpected bytes at the end of the CAN Packet

@@ -1,0 +1,4 @@
+3,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,gcmd_autosequencer_get_indices,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,gcmd_autoseq_get_indices_id,29,-,0,gcmd_autosequencer_get_indices,1,2,0,gcmd_autoseq_get_indices_id,the CAN Id,
+2,CAN,JUNK,35,NONE,0,gcmd_autosequencer_get_indices,1,3,0,Junk,Unexpected bytes at the end of the CAN Packet

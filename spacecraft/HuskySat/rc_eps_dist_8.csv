@@ -1,0 +1,7 @@
+6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_eps_dist_8,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,rahs_c_avg,16,raw node current,0,rc_eps_dist_8,1,2,0,rahs_c_avg,RAHS domain current average,
+2,CAN,rahs_c_max,16,raw node current,0,rc_eps_dist_8,1,3,0,rahs_c_max,RAHS domain current maximum,
+3,CAN,rahs_c_min,16,raw node current,0,rc_eps_dist_8,1,4,0,rahs_c_min,RAHS domain current minimum,
+4,CAN,rahs_state,8,-,0,rc_eps_dist_8,1,5,0,rahs_state,RAHS domain state,
+5,CAN,JUNK,8,NONE,0,rc_eps_dist_8,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet

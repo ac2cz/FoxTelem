@@ -1,0 +1,206 @@
+name,priority,id,#NAME?,msp_cat,gnd_health,#NAME?,#NAME?,data_length,senders,description,added to dbc
+sync_1,0,17,0x011,cat_brd,gnd_health,6357009,0x00610011,0,ppt,Sync1 Pulse (Every 2 seconds),yes
+bdot_tumble_status,18,32,0x020,cat_adcs,gnd_health,308740128,0x12670020,1,-,Whether the BDot is tumbling,yes
+dist_solar_deploy,2,20,0x014,,,33554452,0x02000014,0,-,Command to deploy the solar panels,descoped
+rc_eps_batt_2,18,513,0x201,cat_health,gnd_health,308871681,0x12690201,6,eps_batt,EPS_BATT RollCall,yes
+rc_eps_batt_3,18,514,0x202,cat_health,gnd_health,308871682,0x12690202,8,eps_batt,EPS_BATT RollCall,yes
+sensorproc_photodiode,2,64,0x040,,,33554496,0x02000040,3,-,Photodiode Readings,descoped
+rc_eps_batt_5,18,516,0x204,cat_health,gnd_health,308871684,0x12690204,8,eps_batt,EPS_BATT RollCall,yes
+rc_eps_batt_6,18,517,0x205,cat_health,gnd_health,308871685,0x12690205,8,eps_batt,EPS_BATT RollCall,yes
+rc_adcs_mtq_2,18,524,0x20C,cat_health,gnd_health,308871692,0x1269020C,8,adcs_mtq,MTQ RollCall,yes
+sensorproc_gps_pos_x,2,80,0x050,,,33554512,0x02000050,8,-,WGS84 ECEF x coord position,descoped
+sensorproc_gps_pos_y,2,81,0x051,,,33554513,0x02000051,8,-,WGS84 ECEF y coord position,descoped
+sensorproc_gps_pos_z,2,82,0x052,,,33554514,0x02000052,8,-,WGS84 ECEF z coord position,descoped
+sensorproc_gps_vel_x,2,83,0x053,,,33554515,0x02000053,8,-,WGS84 ECEF x coord velocity,descoped
+sensorproc_gps_vel_y,2,84,0x054,,,33554516,0x02000054,8,-,WGS84 ECEF y coord velocity,descoped
+sensorproc_gps_vel_z,2,85,0x055,,,33554517,0x02000055,8,-,WGS84 ECEF z coord velocity,descoped
+sensorporc_gps_x_u,2,86,0x056,,,33554518,0x02000056,8,-,WGS84 ECEF x velocity and position uncertainty,descoped
+sensorporc_gps_y_u,2,87,0x057,,,33554519,0x02000057,8,-,WGS84 ECEF y velocity and position uncertainty,descoped
+sensorporc_gps_z_u,2,88,0x058,,,33554520,0x02000058,8,-,WGS84 ECEF z velocity and position uncertainty,descoped
+sensorproc_gps_time,2,89,0x059,,,33554521,0x02000059,8,-,GPS time,descoped
+sensorproc_gps_pwr,2,90,0x05A,,,33554522,0x0200005A,1,-,GPS Power State,na_descope
+sensorproc_gps_status,2,91,0x05B,,,33554523,0x0200005B,8,-,GPS Status,na_descope
+sensorproc_gps_enable,2,128,0x080,,,33554560,0x02000080,1,-,Enable/Disable Command for GPS,descoped
+rc_adcs_mtq_3,18,525,0x20D,cat_health,gnd_health,308871693,0x1269020D,8,adcs_mtq,MTQ RollCall,yes
+rc_adcs_mtq_4,18,526,0x20E,cat_health,gnd_health,308871694,0x1269020E,8,adcs_mtq,MTQ RollCall,yes
+rc_adcs_mtq_5,18,527,0x20F,cat_health,gnd_health,308871695,0x1269020F,2,adcs_mtq,MTQ RollCall,yes
+sensorproc_david,2,511,0x1FF,,,33554943,0x020001FF,8,-,GPD Debug Info (Not handled by C&DH),na_descope
+rc_eps_dist_4,18,582,0x246,cat_health,gnd_health,308871750,0x12690246,7,eps_dist,Dist Rollcall,yes
+rc_ppt_h1,18,605,0x25D,cat_health,gnd_health,308871773,0x1269025D,8,ppt,PPT Health Rollcall 1,
+rc_adcs_mtq_h1,18,606,0x25E,cat_health,gnd_health,308871774,0x1269025E,8,adcs_mtq,MTQ Health Rollcall 1,
+rc_eps_gen_h1,18,607,0x25F,cat_health,gnd_health,308871775,0x1269025F,8,eps_gen,GEN Health Rollcall 1,
+rc_adcs_sp_h1,18,608,0x260,cat_health,gnd_health,308871776,0x12690260,8,adcs_sensorproc,SP Health Rollcall 1,
+rc_adcs_mpc_h1,18,610,0x262,cat_health,gnd_health,308871778,0x12690262,8,adcs_mpc,MPC Health Rollcall 1,
+rc_eps_dist_h1,18,611,0x263,cat_health,gnd_health,308871779,0x12690263,8,eps_dist,DIST Health Rollcall 1,
+rc_adcs_bdot_h1,18,612,0x264,cat_health,gnd_health,308871780,0x12690264,8,adcs_bdot,BDOT Health Rollcall 1,
+rc_eps_batt_h1,18,613,0x265,cat_health,gnd_health,308871781,0x12690265,8,eps_batt,BATT Health Rollcall 1,
+rc_ppt_h2,18,614,0x266,cat_health,gnd_health,308871782,0x12690266,1,ppt,PPT Health Rollcall 2,
+rc_adcs_mtq_h2,18,615,0x267,cat_health,gnd_health,308871783,0x12690267,1,adcs_mtq,MTQ Health Rollcall 2,
+rc_eps_gen_h2,18,616,0x268,cat_health,gnd_health,308871784,0x12690268,1,eps_gen,GEN Health Rollcall 2,
+rc_adcs_sp_h2,18,617,0x269,cat_health,gnd_health,308871785,0x12690269,1,adcs_sensorproc,SP Health Rollcall 2,
+rc_adcs_mpc_h2,18,619,0x26B,cat_health,gnd_health,308871787,0x1269026B,1,adcs_mpc,MPC Health Rollcall 2,
+rc_eps_dist_h2,18,620,0x26C,cat_health,gnd_health,308871788,0x1269026C,1,eps_dist,DIST Health Rollcall 2,
+rc_adcs_bdot_h2,18,621,0x26D,cat_health,gnd_health,308871789,0x1269026D,1,adcs_bdot,BDOT Health Rollcall 2,
+rc_eps_batt_h2,18,622,0x26E,cat_health,gnd_health,308871790,0x1269026E,1,eps_batt,BATT Health Rollcall 2,
+rc_adcs_bdot_7,18,625,0x271,cat_health,gnd_health,308871793,0x12690271,8,adcs_bdot,ADCS BDOT RollCall,
+rc_adcs_bdot_8,18,626,0x272,cat_health,gnd_health,308871794,0x12690272,8,adcs_bdot,ADCS BDOT RollCall,
+rc_adcs_bdot_9,18,627,0x273,cat_health,gnd_health,308871795,0x12690273,4,adcs_bdot,ADCS BDOT RollCall,
+rc_adcs_bdot_10,18,733,0x2DD,cat_health,gnd_health,308871901,0x126902DD,6,adcs_bdot,BDOT RollCall,
+cmd_reboot_request,0,8,0x008,cat_cmd,gnd_none,262152,0x00040008,1,"adcs_bdot,adcs_estim,adcs_mpc,adcs_mtq,adcs_sensorproc,eps_batt,eps_dist,eps_gen",Request for power domain to be rebooted,yes
+gcmd_ppt_halt,17,260,0x104,cat_cmd,gnd_none,285475076,0x11040104,1,-,Immediately halt PPT,
+gcmd_batt_set_heater_check,18,730,0x2DA,cat_none,gnd_none,301990618,0x120002DA,1,com_1,enables/disables battery heater automation,
+cmd_pd_rst,18,273,0x111,cat_pwr,gnd_none,302121233,0x12020111,1,-,Reset Bat Bal Aggregates,yes
+cmd_mtq_fsw,18,35,0x023,cat_cmd,gnd_none,302252067,0x12040023,4,adcs_estim,BDOT command from flight sw,yes
+cmd_ignore_fsw,18,36,0x024,cat_cmd,gnd_none,302252068,0x12040024,4,-,BDOT command from flight sw,yes
+cmd_ppt_single_fire,18,256,0x100,cat_cmd,gnd_none,302252288,0x12040100,2,-,charge w/ or w/o checking conditions and optionally firing,yes
+cmd_pd_enable,18,257,0x101,cat_cmd,gnd_none,302252289,0x12040101,2,-,command to enable power domain x,yes
+cmd_batt_rst,18,258,0x102,cat_cmd,gnd_none,302252290,0x12040102,1,-,command to reset the battery statistics,yes
+cmd_batt_bal_enable,18,259,0x103,cat_cmd,gnd_none,302252291,0x12040103,1,-,command to enable battery balancer,yes
+cmd_ppt_time_upd,18,261,0x105,cat_cmd,gnd_none,302252293,0x12040105,8,-,Update ppt fire timing dimensions,
+cmd_ppt_set_count,18,262,0x106,cat_cmd,gnd_none,302252294,0x12040106,1,-,Set the number of times PPT fires,
+gcmd_mtq_pop,18,700,0x2BC,cat_cmd,gnd_none,302252732,0x120402BC,1,com_1,Command to flip polarity of MTQ dipoles,yes
+gcmd_dist_set_pd_state,18,701,0x2BD,cat_cmd,gnd_none,302252733,0x120402BD,2,com_1,Enables or disables the power switch,yes
+gcmd_dist_set_pd_ovc_com1,18,702,0x2BE,cat_cmd,gnd_none,302252734,0x120402BE,4,com_1,Command to set Over Current Threshold of COM1,yes
+gcmd_dist_set_pd_ovc_com2,18,703,0x2BF,cat_cmd,gnd_none,302252735,0x120402BF,4,com_1,Command to set Over Current Threshold of COM2,yes
+gcmd_dist_set_pd_ovc_rahs,18,704,0x2C0,cat_cmd,gnd_none,302252736,0x120402C0,4,com_1,Command to set Over Current Threshold of rahs,yes
+gcmd_dist_set_pd_ovc_bdot,18,705,0x2C1,cat_cmd,gnd_none,302252737,0x120402C1,4,com_1,Command to set Over Current Threshold of bdot,yes
+gcmd_dist_set_pd_ovc_estim,18,706,0x2C2,cat_cmd,gnd_none,302252738,0x120402C2,4,com_1,Command to set Over Current Threshold of estim,yes
+gcmd_dist_set_pd_ovc_wheels,18,707,0x2C3,cat_cmd,gnd_none,302252739,0x120402C3,4,com_1,Command to set Over Current Threshold of wheels,yes
+gcmd_dist_set_pd_ovc_eps,18,708,0x2C4,cat_cmd,gnd_none,302252740,0x120402C4,4,com_1,Command to set Over Current Threshold of eps,yes
+gcmd_dist_set_pd_ovc_ppt,18,709,0x2C5,cat_cmd,gnd_none,302252741,0x120402C5,4,com_1,Command to set Over Current Threshold of ppt,yes
+gcmd_gen_set_pt_state,18,710,0x2C6,cat_cmd,gnd_none,302252742,0x120402C6,1,com_1,Set power tracker states,yes
+gcmd_sp_set_thresh,18,711,0x2C7,cat_cmd,gnd_none,302252743,0x120402C7,1,com_1,Any magnetometer reading outside of +/- the set threshold will be discarded as invalid,yes
+gcmd_bdot_pole_override,18,712,0x2C8,cat_cmd,gnd_none,302252744,0x120402C8,1,com_1,Flips the dipole signs on axis before sending command to mtq,
+gcmd_bdot_mag_control,18,713,0x2C9,cat_cmd,gnd_none,302252745,0x120402C9,1,com_1,"Choose the best fit magnetometer from ground. 0 = Auto, 1 = MAG_BDOT, 2 = MAG_SP1, 3 = MAG_SP2",
+gcmd_bdot_control,18,714,0x2CA,cat_cmd,gnd_none,302252746,0x120402CA,1,com_1,"Chooses mode that bdot is in: 0 = NORMAL_MODE , 1 = SLEEP_MODE",
+gcmd_bdot_spam,18,715,0x2CB,cat_cmd,gnd_none,302252747,0x120402CB,4,com_1,Spam Control message,
+gcmd_bdot_max_tumble,18,716,0x2CC,cat_cmd,gnd_none,302252748,0x120402CC,2,com_1,"Chooses the maximum time bdot is tumbling continuously. If bdot tumbles for longer than this time, will automatically go into sleep mode. Units: Minutes",
+gcmd_mtq_pms,18,717,0x2CD,cat_cmd,gnd_none,302252749,0x120402CD,4,com_1,Command to flip polarity of MTQ dipoles,yes
+gcmd_reset_minmax,18,718,0x2CE,cat_cmd,gnd_none,302252750,0x120402CE,0,com_1,reset min and max,yes
+gcmd_eps_batt_fulldef,18,719,0x2CF,cat_cmd,gnd_none,302252751,0x120402CF,8,com_1,battery definition of full,yes
+gcmd_mtq_pwm_time,18,720,0x2D0,cat_cmd,gnd_none,302252752,0x120402D0,2,com_1,mtq pwm time,
+gcmd_ppt_multiple_fire,18,721,0x2D1,cat_cmd,gnd_none,302252753,0x120402D1,2,com_1,Ground commands for firing the ppt multiple times,
+gcmd_autosequencer_add_1,18,722,0x2D2,cat_cmd,gnd_none,302252754,0x120402D2,8,com_1,properties of autosequencer entry,yes
+gcmd_autosequencer_add_2,18,723,0x2D3,cat_cmd,gnd_none,302252755,0x120402D3,8,com_1,data of CAN packet to be added to autosequencer,yes
+gcmd_autosequencer_rm_at_index,18,724,0x2D4,cat_cmd,gnd_none,302252756,0x120402D4,1,com_1,remove the autosequencer entry at the specified index,yes
+gcmd_autosequencer_remove_can_id,18,725,0x2D5,cat_cmd,gnd_none,302252757,0x120402D5,4,com_1,remove all occurrences of the specified CAN Id in the autosequencer,yes
+gcmd_autosequencer_get_indices,18,726,0x2D6,cat_cmd,gnd_none,302252758,0x120402D6,4,com_1,get indices of the specified packet in the autosequencer,yes
+gcmd_autosequencer_get_met,18,727,0x2D7,cat_cmd,gnd_none,302252759,0x120402D7,1,com_1,get MET of the item at the specified index of the autosequencer,yes
+gcmd_dist_self_restart,18,734,0x2DE,cat_cmd,gnd_none,302252766,0x120402DE,0,com_1,Causes dist to self-restart,
+gcmd_dist_reset_mission,18,735,0x2DF,cat_cmd,gnd_none,302252767,0x120402DF,0,com_1,"Resets MET and autosequencer, also sets the autosequencer to be reinitialized on next powerup",
+gcmd_dist_autoshutoff,18,815,0x32F,cat_cmd,gnd_none,302252847,0x1204032F,1,com_1,Set the status of dist autoshutoff for each power domain,
+gcmd_batt_set_balancer_auto,18,816,0x330,cat_cmd,gnd_none,302252848,0x12040330,1,com_1,Sets the state of battery balancer automation,
+gcmd_autoseq_enable,18,817,0x331,cat_cmd,gnd_none,302252849,0x12040331,1,com_2,,
+mpc_vp,18,34,0x022,cat_adcs,gnd_none,302448674,0x12070022,1,-,Is the ship velocity pointing,yes
+tle_1,18,68,0x044,cat_adcs,gnd_none,302448708,0x12070044,6,-,TLE Packet 1,yes
+tle_2,18,69,0x045,cat_adcs,gnd_none,302448709,0x12070045,8,-,TLE Packet 2,yes
+tle_3,18,70,0x046,cat_adcs,gnd_none,302448710,0x12070046,8,-,TLE Packet 3,yes
+tle_4,18,71,0x047,cat_adcs,gnd_none,302448711,0x12070047,8,-,TLE Packet 4,yes
+tle_5,18,72,0x048,cat_adcs,gnd_none,302448712,0x12070048,4,-,TLE Packet 5,yes
+tle_6,18,73,0x049,cat_adcs,gnd_none,302448713,0x12070049,8,-,TLE Packet 6,yes
+estim_sun_unit_x,18,690,0x2B2,cat_adcs,gnd_none,302449330,0x120702B2,8,adcs_estim,Unit vector of where the sun is at z,yes
+estim_sun_unit_y,18,691,0x2B3,cat_adcs,gnd_none,302449331,0x120702B3,8,adcs_estim,Unit vector of where the sun is at y,yes
+estim_sun_unit_z,18,692,0x2B4,cat_adcs,gnd_none,302449332,0x120702B4,8,adcs_estim,Unit vector of where the sun is at x,yes
+estim_mag_unit_x,18,693,0x2B5,cat_adcs,gnd_none,302449333,0x120702B5,8,adcs_estim,Unit vector of direction of magnetic field z,yes
+estim_mag_unit_y,18,694,0x2B6,cat_adcs,gnd_none,302449334,0x120702B6,8,adcs_estim,Unit vector of direction of magnetic field y,yes
+estim_mag_unit_z,18,695,0x2B7,cat_adcs,gnd_none,302449335,0x120702B7,8,adcs_estim,Unit vector of direction of magnetic field x,yes
+estim_state,18,696,0x2B8,cat_adcs,gnd_none,302449336,0x120702B8,1,adcs_estim,Are we in the sun/overhead?,yes
+grnd_epoch,18,697,0x2B9,cat_adcs,gnd_none,302449337,0x120702B9,5,-,Epoch from ground (delta between millenium & launch),
+gcmd_com2_run,18,497,0x1F1,cat_comm2,gnd_none,302514673,0x120801F1,2,-,Add a python file to the queue,yes
+sensorproc_sun,20,65,0x041,cat_sensor,gnd_none,335872065,0x14050041,5,adcs_sensorproc,Angle that the sun sensor reports,yes
+sensorproc_imu,20,66,0x042,cat_sensor,gnd_none,335872066,0x14050042,7,adcs_sensorproc,"Angular rate of the satellite in X, Y, Z directions",yes
+sensorproc_mag,20,67,0x043,cat_sensor,gnd_none,335872067,0x14050043,7,adcs_sensorproc,Unit vector from both magnetometers on sensor board,yes
+cmd_rollcall,0,20,0x014,cat_brd,gnd_realtime,5308436,0x00510014,7,eps_dist,EPS Roll Call Command include met,yes
+eps_dist_autoseq_get_indices_rsp,18,728,0x2D8,cat_none,gnd_realtime,307233496,0x125002D8,8,eps_dist,the first 8 indices of the specified CAN ID,yes
+eps_dist_autosequencer_get_met_rsp,18,729,0x2D9,cat_none,gnd_realtime,307233497,0x125002D9,4,eps_dist,the MET of the item,yes
+cmd_mtq_bdot,18,33,0x021,cat_adcs,gnd_realtime,307691553,0x12570021,3,adcs_bdot,How does the BDOT want the magnetorquers to fire,yes
+mtq_ack,18,48,0x030,cat_adcs,gnd_realtime,307691568,0x12570030,1,adcs_mtq,MTQ Acknowledge,yes
+com2_state,18,496,0x1F0,cat_comm2,gnd_realtime,307757552,0x125801F0,8,-,COMM2 Statistics,yes
+ppt_firing_result,18,240,0x0F0,cat_health,gnd_realtime,307822832,0x125900F0,8,-,Result of the last PPT fire,
+rc_eps_batt_4,18,515,0x203,cat_health,gnd_realtime,307823107,0x12590203,7,eps_batt,EPS_BATT RollCall,yes
+rc_adcs_bdot_1,18,518,0x206,cat_health,gnd_realtime,307823110,0x12590206,7,adcs_bdot,BDOT RollCall,yes
+rc_adcs_bdot_2,18,519,0x207,cat_health,gnd_realtime,307823111,0x12590207,8,adcs_bdot,BDOT RollCall,yes
+rc_ppt_1,18,520,0x208,cat_health,gnd_realtime,307823112,0x12590208,7,ppt,PPT RollCall,yes
+rc_ppt_2,18,521,0x209,cat_health,gnd_realtime,307823113,0x12590209,8,ppt,PPT RollCall,yes
+rc_ppt_3,18,522,0x20A,cat_health,gnd_realtime,307823114,0x1259020A,7,ppt,PPT RollCall,yes
+rc_eps_gen_1,18,528,0x210,cat_health,gnd_realtime,307823120,0x12590210,7,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_2,18,529,0x211,cat_health,gnd_realtime,307823121,0x12590211,8,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_3,18,530,0x212,cat_health,gnd_realtime,307823122,0x12590212,8,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_4,18,531,0x213,cat_health,gnd_realtime,307823123,0x12590213,8,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_5,18,532,0x214,cat_health,gnd_realtime,307823124,0x12590214,8,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_6,18,533,0x215,cat_health,gnd_realtime,307823125,0x12590215,8,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_7,18,534,0x216,cat_health,gnd_realtime,307823126,0x12590216,8,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_8,18,535,0x217,cat_health,gnd_realtime,307823127,0x12590217,7,eps_gen,EPS GEN RollCall,yes
+rc_eps_gen_9,18,536,0x218,cat_health,gnd_realtime,307823128,0x12590218,8,eps_gen,EPS GEN RollCall,yes
+rc_adcs_bdot_3,18,537,0x219,cat_health,gnd_realtime,307823129,0x12590219,8,adcs_bdot,BDOT RollCall,yes
+rc_adcs_bdot_4,18,538,0x21A,cat_health,gnd_realtime,307823130,0x1259021A,3,adcs_bdot,BDOT RollCall,yes
+rc_adcs_sp_1,18,539,0x21B,cat_health,gnd_realtime,307823131,0x1259021B,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_2,18,540,0x21C,cat_health,gnd_realtime,307823132,0x1259021C,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_3,18,541,0x21D,cat_health,gnd_realtime,307823133,0x1259021D,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_4,18,542,0x21E,cat_health,gnd_realtime,307823134,0x1259021E,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_5,18,543,0x21F,cat_health,gnd_realtime,307823135,0x1259021F,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_6,18,544,0x220,cat_health,gnd_realtime,307823136,0x12590220,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_7,18,545,0x221,cat_health,gnd_realtime,307823137,0x12590221,8,adcs_sensorproc,DEPRECATED Sensor Proc RollCall,yes
+rc_adcs_sp_8,18,546,0x222,cat_health,gnd_realtime,307823138,0x12590222,8,adcs_sensorproc,DEPRECATED Sensor Proc RollCall,yes
+rc_adcs_sp_9,18,547,0x223,cat_health,gnd_realtime,307823139,0x12590223,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_10,18,548,0x224,cat_health,gnd_realtime,307823140,0x12590224,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_11,18,549,0x225,cat_health,gnd_realtime,307823141,0x12590225,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_12,18,550,0x226,cat_health,gnd_realtime,307823142,0x12590226,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_13,18,551,0x227,cat_health,gnd_realtime,307823143,0x12590227,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_14,18,552,0x228,cat_health,gnd_realtime,307823144,0x12590228,7,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_15,18,553,0x229,cat_health,gnd_realtime,307823145,0x12590229,7,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_16,18,554,0x22A,cat_health,gnd_realtime,307823146,0x1259022A,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_sp_17,18,555,0x22B,cat_health,gnd_realtime,307823147,0x1259022B,8,adcs_sensorproc,Sensor Proc RollCall,yes
+rc_adcs_estim_1,18,556,0x22C,cat_health,gnd_realtime,307823148,0x1259022C,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_2,18,557,0x22D,cat_health,gnd_realtime,307823149,0x1259022D,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_3,18,558,0x22E,cat_health,gnd_realtime,307823150,0x1259022E,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_4,18,559,0x22F,cat_health,gnd_realtime,307823151,0x1259022F,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_5,18,560,0x230,cat_health,gnd_realtime,307823152,0x12590230,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_6,18,561,0x231,cat_health,gnd_realtime,307823153,0x12590231,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_7,18,562,0x232,cat_health,gnd_realtime,307823154,0x12590232,8,adcs_estim,Estim Rollcall,yes
+rc_adcs_estim_8,18,563,0x233,cat_health,gnd_realtime,307823155,0x12590233,7,adcs_estim,Estim Rollcall,yes
+rc_adcs_mpc_1,18,564,0x234,cat_health,gnd_realtime,307823156,0x12590234,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_2,18,565,0x235,cat_health,gnd_realtime,307823157,0x12590235,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_3,18,566,0x236,cat_health,gnd_realtime,307823158,0x12590236,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_4,18,567,0x237,cat_health,gnd_realtime,307823159,0x12590237,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_5,18,568,0x238,cat_health,gnd_realtime,307823160,0x12590238,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_6,18,569,0x239,cat_health,gnd_realtime,307823161,0x12590239,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_7,18,570,0x23A,cat_health,gnd_realtime,307823162,0x1259023A,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_8,18,571,0x23B,cat_health,gnd_realtime,307823163,0x1259023B,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_9,18,572,0x23C,cat_health,gnd_realtime,307823164,0x1259023C,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_10,18,573,0x23D,cat_health,gnd_realtime,307823165,0x1259023D,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_11,18,574,0x23E,cat_health,gnd_realtime,307823166,0x1259023E,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_12,18,575,0x23F,cat_health,gnd_realtime,307823167,0x1259023F,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_13,18,576,0x240,cat_health,gnd_realtime,307823168,0x12590240,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_14,18,577,0x241,cat_health,gnd_realtime,307823169,0x12590241,8,adcs_mpc,MPC Rollcall,yes
+rc_adcs_mpc_15,18,578,0x242,cat_health,gnd_realtime,307823170,0x12590242,2,adcs_mpc,MPC Rollcall,yes
+rc_eps_dist_2,18,580,0x244,cat_health,gnd_realtime,307823172,0x12590244,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_3,18,581,0x245,cat_health,gnd_realtime,307823173,0x12590245,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_5,18,583,0x247,cat_health,gnd_realtime,307823175,0x12590247,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_6,18,584,0x248,cat_health,gnd_realtime,307823176,0x12590248,7,eps_dist,Dist Rollcall,yes
+rc_eps_dist_7,18,585,0x249,cat_health,gnd_realtime,307823177,0x12590249,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_8,18,586,0x24A,cat_health,gnd_realtime,307823178,0x1259024A,7,eps_dist,Dist Rollcall,yes
+rc_eps_dist_9,18,587,0x24B,cat_health,gnd_realtime,307823179,0x1259024B,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_10,18,588,0x24C,cat_health,gnd_realtime,307823180,0x1259024C,7,eps_dist,Dist Rollcall,yes
+rc_eps_dist_11,18,589,0x24D,cat_health,gnd_realtime,307823181,0x1259024D,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_12,18,590,0x24E,cat_health,gnd_realtime,307823182,0x1259024E,7,eps_dist,Dist Rollcall,yes
+rc_eps_dist_13,18,591,0x24F,cat_health,gnd_realtime,307823183,0x1259024F,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_14,18,592,0x250,cat_health,gnd_realtime,307823184,0x12590250,7,eps_dist,Dist Rollcall,yes
+rc_eps_dist_15,18,593,0x251,cat_health,gnd_realtime,307823185,0x12590251,6,eps_dist,Dist Rollcall,yes
+rc_eps_dist_16,18,594,0x252,cat_health,gnd_realtime,307823186,0x12590252,7,eps_dist,Dist Rollcall,yes
+rc_eps_dist_17,18,595,0x253,cat_health,gnd_realtime,307823187,0x12590253,6,eps_dist,Dist Rollcall,yes
+rc_adcs_estim_9,18,596,0x254,cat_health,gnd_realtime,307823188,0x12590254,8,adcs_estim,ESTim Rollcall,
+rc_adcs_estim_10,18,597,0x255,cat_health,gnd_realtime,307823189,0x12590255,8,adcs_estim,ESTim Rollcall,
+rc_adcs_estim_11,18,598,0x256,cat_health,gnd_realtime,307823190,0x12590256,8,adcs_estim,ESTim Rollcall,
+rc_adcs_estim_12,18,599,0x257,cat_health,gnd_realtime,307823191,0x12590257,8,adcs_estim,ESTim Rollcall,
+rc_adcs_estim_13,18,600,0x258,cat_health,gnd_realtime,307823192,0x12590258,8,adcs_estim,ESTim Rollcall,
+rc_adcs_estim_14,18,601,0x259,cat_health,gnd_realtime,307823193,0x12590259,8,adcs_estim,ESTim Rollcall,
+rc_eps_batt_7,18,602,0x25A,cat_health,gnd_realtime,307823194,0x1259025A,6,eps_batt,EPS_BATT Rollcall,
+rc_adcs_bdot_5,18,604,0x25C,cat_health,gnd_realtime,307823196,0x1259025C,8,adcs_bdot,BDOT Rollcall,
+rc_adcs_estim_h1,18,609,0x261,cat_health,gnd_realtime,307823201,0x12590261,8,adcs_estim,ESTIM Health Rollcall 1,
+rc_adcs_estim_h2,18,618,0x26A,cat_health,gnd_realtime,307823210,0x1259026A,1,adcs_estim,ESTIM Health Rollcall 2,
+rc_adcs_bdot_6,18,624,0x270,cat_health,gnd_realtime,307823216,0x12590270,8,adcs_bdot,ADCS BDOT RollCall,
+rc_eps_dist_18,18,731,0x2DB,cat_health,gnd_realtime,307823323,0x125902DB,8,eps_dist,Dist Rollcall,
+rc_eps_dist_1,18,579,0x243,-,gnd_wod,309330499,0x12700243,6,eps_dist,-,
+rc_eps_batt_1,18,512,0x200,cat_health,gnd_wod,309920256,0x12790200,4,eps_batt,-,
+rc_eps_gen_10,18,818,0x332,cat_health,gnd_wod,309920562,0x12790332,6,eps_gen,-,

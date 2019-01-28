@@ -1,0 +1,6 @@
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_eps_gen_10,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,pnl_1_power_avg,16,raw power gen,0,rc_eps_gen_10,1,2,0,pnl_1_power_avg,Panel 1 Current avg,
+2,CAN,pnl_2_power_avg,16,raw power gen,0,rc_eps_gen_10,1,3,0,pnl_2_power_avg,Panel 2 Current avg,
+3,CAN,pnl_3_power_avg,16,raw power gen,0,rc_eps_gen_10,1,4,0,pnl_3_power_avg,Panel 3 Current avg,
+4,CAN,JUNK,16,NONE,0,rc_eps_gen_10,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet

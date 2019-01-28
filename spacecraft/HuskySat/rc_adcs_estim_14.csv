@@ -1,0 +1,3 @@
+2,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_estim_14,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,mag_z,64,u,0,rc_adcs_estim_14,1,2,0,mag_z,z component of unit vector of the direction of the magnetic field ,

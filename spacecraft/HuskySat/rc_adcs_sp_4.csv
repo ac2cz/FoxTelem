@@ -1,0 +1,6 @@
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_adcs_sp_4,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,imup_z_avg,16,0.004375º/s,0,rc_adcs_sp_4,1,2,0,imup_z_avg,Processed IMU Z axis avg,
+2,CAN,sun_x_avg,16,1/32768 units,0,rc_adcs_sp_4,1,3,0,sun_x_avg, Sun Sensor X axis avg,
+3,CAN,sun_x_max,16,1/32768 units,0,rc_adcs_sp_4,1,4,0,sun_x_max, Sun Sensor X axis max,
+4,CAN,sun_x_min,16,1/32768 units,0,rc_adcs_sp_4,1,5,0,sun_x_min, Sun Sensor X axis min,

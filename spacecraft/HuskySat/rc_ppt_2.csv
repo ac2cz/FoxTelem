@@ -1,0 +1,6 @@
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,rc_ppt_2,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,cooldown_time,16,2^-15 seconds,0,rc_ppt_2,1,2,0,cooldown_time,No description provided,
+2,CAN,ign_charge_time,16,2^-15 seconds,0,rc_ppt_2,1,3,0,ign_charge_time,No description provided,
+3,CAN,main_charge_time,16,2^-15 seconds,0,rc_ppt_2,1,4,0,main_charge_time,No description provided,
+4,CAN,main_ign_delay,16,2^-15 seconds,0,rc_ppt_2,1,5,0,main_ign_delay,No description provided,

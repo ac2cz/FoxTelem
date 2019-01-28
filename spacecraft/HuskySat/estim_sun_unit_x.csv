@@ -1,0 +1,3 @@
+2,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID,32,NONE,0,estim_sun_unit_x,1,1,0,ID,CAN ID with Length Encoded
+1,CAN,val,64,-,0,estim_sun_unit_x,1,2,0,val,Unit vector of where the sun is at z,
