@@ -62,7 +62,7 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.08b";
+	public static String VERSION_NUM = "1.08b(split)";
 	public static String VERSION = VERSION_NUM + " - 18 Jan 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
@@ -272,7 +272,10 @@ public class Config {
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
 	static public boolean useCostas = false;
-
+	
+	// V1.087
+	static public boolean splitCanPackets = true;
+	
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -712,6 +715,9 @@ public class Config {
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		
+		// V1.08
+		properties.setProperty("splitCanPackets", Boolean.toString(splitCanPackets));
+
 		store();
 	}
 	
@@ -890,6 +896,10 @@ public class Config {
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		
+		// V1.08
+		splitCanPackets = Boolean.parseBoolean(getProperty("splitCanPackets"));
+		
 		
 		} catch (NumberFormatException nf) {
 			catchException();

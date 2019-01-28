@@ -1,5 +1,7 @@
 package gui;
 
+import common.Config;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -25,13 +27,22 @@ package gui;
 class CanPacketTableModel extends FoxTelemTableModel {
 
 	CanPacketTableModel() {
-		columnNames = new String[6];
-		columnNames[0] = "RESET";
-		columnNames[1] = "UPTIME";
-		columnNames[2] = "FOX SEQ";
-		columnNames[3] = "ID";
-		columnNames[4] = "LEN";
-		columnNames[5] = "DATA";
+		if (Config.splitCanPackets) {
+			columnNames = new String[5];
+			columnNames[0] = "ID";
+			columnNames[1] = "GROUND";
+			columnNames[2] = "FRAME";
+			columnNames[3] = "SENDER";
+			columnNames[4] = "TOTAL";
+		} else {
+			columnNames = new String[6];
+			columnNames[0] = "RESET";
+			columnNames[1] = "UPTIME";
+			columnNames[2] = "FOX SEQ";
+			columnNames[3] = "ID";
+			columnNames[4] = "LEN";
+			columnNames[5] = "DATA";
+		}
 	}
 	
 }

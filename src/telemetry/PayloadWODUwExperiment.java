@@ -10,6 +10,8 @@ import telemetry.uw.CanPacket;
 public class PayloadWODUwExperiment extends FoxFramePart {
 	public ArrayList<CanPacket> canPackets; 
 	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
+	public ArrayList<CanPacket> splitPackets; 
+	protected CanPacket rawCanPacket;
 //	private int startPacketSerial = 0;
 
 //	public static final int WOD_RESETS_FIELD = 1;
@@ -24,6 +26,8 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 	public PayloadWODUwExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_UW_WOD_EXPERIMENT,lay);
 		canPackets = new ArrayList<CanPacket>();
+		if (Config.splitCanPackets)
+			splitPackets = new ArrayList<CanPacket>();
 		captureHeaderInfo(id, uptime, resets);
 	}
 
@@ -50,34 +54,39 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 	 */
 	int debugCount = 0;
 	protected void addToCanPackets(byte b) {
-		if (canPacket == null) {
-			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
-			canPacket.captureHeaderInfo(id, uptime, resets);
-			//canPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+startPacketSerial);
+		if (!Config.splitCanPackets) {
+			if (canPacket == null) {
+				canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+				canPacket.captureHeaderInfo(id, uptime, resets);
+				canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+			}
+			if (canPacket.hasEndOfCanPacketsId()) return;
+			canPacket.addNext8Bits(b);
+			if (canPacket.isValid()) {
+				canPackets.add(canPacket);
+				canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+				canPacket.captureHeaderInfo(id, uptime, resets);
+				canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+			}
+		} else {
+			if (rawCanPacket == null) {
+				rawCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
+				rawCanPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+			}
+			if (rawCanPacket.hasEndOfCanPacketsId()) return;
+			rawCanPacket.addNext8Bits(b);
+			if (rawCanPacket.isValid()) {
+				canPackets.add(rawCanPacket);
+				byte[] data = rawCanPacket.getBytes();
+				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.canPacketId);
+
+				CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
+				newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM);
+				splitPackets.add(newPacket);
+				rawCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
+				rawCanPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+			}
 		}
-		if (canPacket.hasEndOfCanPacketsId()) return;
-		canPacket.addNext8Bits(b);
-		if (canPacket.isValid()) {
-			canPackets.add(canPacket);
-			canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
-			canPacket.captureHeaderInfo(id, uptime, resets);
-			//.setType(FoxFramePart.TYPE_UW_CAN_PACKET*100+startPacketSerial+canPackets.size());
-		}
-//		if (tempCanPacket == null) {
-//			tempCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
-//		}
-//		if (tempCanPacket.hasEndOfCanPacketsId()) return;
-//		tempCanPacket.addNext8Bits(b);
-//		if (tempCanPacket.isValid()) {
-//			byte[] data = tempCanPacket.getBytes();
-//			BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, tempCanPacket.canPacketId);
-//
-//			CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
-//			// Set the type here as it does not need to span across payloads.  The uptime is unique for each WOD payload.
-//			newPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET*100);
-//			canPackets.add(newPacket);
-//			tempCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT)); 
-//		}
 	}
 	
 	@Override
@@ -102,11 +111,29 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 		copyBitsToFields(); // make sure reset / uptime correct
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
+		int j = 0;
 		for (CanPacket p : canPackets) {
+			// Set the type here as it needs to span across payloads.  The uptime is NOT unique for multiple payloads in same Frame.
+			int p_type = p.getType();
+			p_type = p_type * 100 + serial + j++;
+			p.setType(p_type);
 			if (storeMode)
 				p.newMode = newMode;
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
+		}
+		if (splitPackets != null && splitPackets.size() > 0) {
+			j = 0;
+			for (CanPacket p : splitPackets) {
+				// Set the type here as it needs to span across payloads.  The uptime is NOT unique for multiple payloads in same Frame.
+				int p_type = p.getType();
+				p_type = p_type * 100 + serial + j++;
+				p.setType(p_type);
+				if (storeMode)
+					p.newMode = newMode;
+				if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
+					return false;
+			}
 		}
 		return true;
 

@@ -146,6 +146,10 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		copyBitsToFields();
 		String s = "CAN ID:";
 		s = s + FoxDecoder.hex(canPacketId);
+		s = s + " " + canPacketId;
+		Spacecraft fox = Config.satManager.getSpacecraft(getFoxId());
+		s = s + ": " + fox.canFrames.getGroundByCanId(canPacketId);
+		s = s + " - " + fox.canFrames.getSenderByCanId(canPacketId);
 		s = s + " Len:" + getLength() + " Type:" + type;
 		for (int i=1; i<fieldValue.length; i++)
 			s = s + " " + FoxDecoder.hex(fieldValue[i]);

@@ -657,29 +657,27 @@ public class SatPayloadTable {
 			}
 			if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
 				rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
-//				// Peek at CAN Packet value without advancing the tokenizer - TODO replace the tokenizer with string.split() so we dont need this
-//				String[] st2 = line.split(",");
-//				int canIdField = 5;
-//				if (storeMode)
-//					canIdField = 6;
-//				int pktid = Integer.valueOf(st2[canIdField]).intValue();
-//				int canId = CanPacket.getIdfromRawID(pktid);
-//				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
-//				rt = new CanPacket(id, resets, uptime, date, st, canLayout);
 				rt.type = type; // make sure we get the right type
 			}	
 			if (type == FoxFramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
 				rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
-				
-//				String[] st2 = line.split(",");
-//				int canIdField = 5;
-//				if (storeMode)
-//					canIdField = 6;
-//				int pktid = Integer.valueOf(st2[canIdField]).intValue();
-//				int canId = CanPacket.getIdfromRawID(pktid);
-//				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
-//				rt = new CanPacket(id, resets, uptime, date, st, canLayout);
 				rt.type = type; // make sure we get the right type
+			}
+			if (type == FoxFramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
+				if (!Config.splitCanPackets) {
+					rt = null; // we are not saving these
+				} else {
+					String[] st2 = line.split(",");
+					int canIdField = 5;
+					if (storeMode)
+						canIdField = 6;
+					int pktid = Integer.valueOf(st2[canIdField]).intValue();
+					int canId = CanPacket.getIdfromRawID(pktid);
+					BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
+					rt = new CanPacket(id, resets, uptime, date, st, canLayout);
+				}
+				if (rt != null)
+					rt.type = type; // make sure we get the right type
 			}
 			if (type == FoxFramePart.TYPE_UW_EXPERIMENT || type >= 1300 && type < 1400 ) {
 				rt = new PayloadUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));

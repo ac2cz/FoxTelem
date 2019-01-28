@@ -54,6 +54,7 @@ public class CanFrames {
 	public int[] priority = null; // the can packet priority
 	public int[] canId = null; // the can id in decimal
 	public int[] dataLength = null; // the number of bytes this frame should have
+	public String[] groundClass = null;
 	public String[] senders = null; // the sending component
 	public String[] description = null;
 	public String[] notes = null;
@@ -76,7 +77,26 @@ public class CanFrames {
 		}
 		return null;
 	}
+
+	public String getGroundByCanId(int id) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < canId.length; i++) {
+			if (id == canId[i])
+				return groundClass[i];
+		}
+		return null;
+	}
 	
+	public String getSenderByCanId(int id) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < canId.length; i++) {
+			if (id == canId[i])
+				return senders[i];
+		}
+		return null;
+	}
+
+
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
@@ -103,6 +123,7 @@ public class CanFrames {
 			canId = new int[NUMBER_OF_FIELDS];
 			dataLength = new int[NUMBER_OF_FIELDS];
 			senders = new String[NUMBER_OF_FIELDS];
+			groundClass = new String[NUMBER_OF_FIELDS];
 			description = new String[NUMBER_OF_FIELDS];
 			notes = new String[NUMBER_OF_FIELDS];
 			dis.close();
@@ -120,7 +141,7 @@ public class CanFrames {
 					String id = values[2];
 					String id_hex = values[3];
 					String msp_cat = values[4];
-					String gnd_class = values[5];
+					groundClass[field] = values[5];
 					canId[field] = Integer.valueOf(values[6]).intValue();
 					String canid_hex = values[7];
 					dataLength[field] = Integer.valueOf(values[8]).intValue();

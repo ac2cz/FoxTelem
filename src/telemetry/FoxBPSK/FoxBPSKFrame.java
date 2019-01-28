@@ -390,11 +390,11 @@ import telemetry.PayloadWODUwExperiment;
 
 		public String toString() {
 			String s = new String();
-			s = "\n" + header.toString();
+			s = header.toString();
 			
 			if (payload != null) {
 				for (int i=0; i < payload.length; i++) {
-					s = s + "\n"+ payload[i].toString() +
+					s = s + payload[i].toString() +
 					"\n"; 
 				}
 			} 
