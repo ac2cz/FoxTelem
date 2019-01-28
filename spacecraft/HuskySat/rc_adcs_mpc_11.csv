@@ -1,3 +1,6 @@
-2,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_adcs_mpc_11,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,omega_y_avg,64,r/s,0,rc_adcs_mpc_11,1,2,0,omega_y_avg,The body angular velocity in the y direction,
+5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_adcs_mpc_11,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_adcs_mpc_11,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_adcs_mpc_11,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_adcs_mpc_11,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,omega_y_avg,64,r/s,0,rc_adcs_mpc_11,1,2,0,omega_y_avg,The body angular velocity in the y direction,

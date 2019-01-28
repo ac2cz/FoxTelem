@@ -1,6 +1,9 @@
-5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_eps_dist_17,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,ppt_v_avg,16,raw node voltage,0,rc_eps_dist_17,1,2,0,ppt_v_avg,PPT domain voltage average,
-2,CAN,ppt_v_max,16,raw node voltage,0,rc_eps_dist_17,1,3,0,ppt_v_max,PPT domain voltage maximum,
-3,CAN,ppt_v_min,16,raw node voltage,0,rc_eps_dist_17,1,4,0,ppt_v_min,PPT domain voltage minimum,
-4,CAN,JUNK,16,NONE,0,rc_eps_dist_17,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet
+8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_eps_dist_17,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_eps_dist_17,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_eps_dist_17,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_eps_dist_17,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,ppt_v_avg,16,raw node voltage,0,rc_eps_dist_17,1,2,0,ppt_v_avg,PPT domain voltage average,
+5,CAN,ppt_v_max,16,raw node voltage,0,rc_eps_dist_17,1,3,0,ppt_v_max,PPT domain voltage maximum,
+6,CAN,ppt_v_min,16,raw node voltage,0,rc_eps_dist_17,1,4,0,ppt_v_min,PPT domain voltage minimum,
+7,CAN,JUNK,16,NONE,0,rc_eps_dist_17,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet

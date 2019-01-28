@@ -6,12 +6,27 @@ import sys
 
 lineNum = 0;
 
+def writeCanIdLine(outfile, line, frame, moduleNum, lineType):
+    outfile.write(str(line) + "," +
+    "CAN" + "," + 
+    "UW_ID" + str(line) +"," +
+    "8" +"," +
+    "NONE" +"," +
+    "0" +"," +
+    frame +"," +
+    str(moduleNum) +"," +
+    "1" +"," +
+    str(lineType) +"," +
+    "ID" + str(line) +"," +    
+    "CAN ID with Length Encoded\n")
+
+
 def processSignals(frame, fileName, outFile, moduleNum):
     "This processes a set of signals for a given frame"
 
     outFileName = outFile + frame + ".csv"
     # Open the output file and write out the header and the structures
-    lineNum = 1 # start at 1 as we add in line 0 with the CAN ID
+    lineNum = 4 # start at 4 as we add in line 0-3 with the CAN ID
 
     lines = loadCsvFile(fileName)
     moduleLine = 2 # start at 2 because CAN_ID on 1
@@ -68,18 +83,10 @@ def processSignals(frame, fileName, outFile, moduleNum):
         "LINE_TYPE" +"," +
         "SHORT_NAME" +"," +    
         "DESCRIPTION" + '\n')
-    outfile.write("0" + "," +
-        "CAN" + "," + 
-        "UW_ID" +"," +
-        "32" +"," +
-        "NONE" +"," +
-        "0" +"," +
-        frame +"," +
-        str(moduleNum) +"," +
-        "1" +"," +
-        str(lineType) +"," +
-        "ID" +"," +    
-        "CAN ID with Length Encoded\n")
+    writeCanIdLine(outfile, 0, frame, moduleNum, lineType)
+    writeCanIdLine(outfile, 1, frame, moduleNum, lineType)
+    writeCanIdLine(outfile, 2, frame, moduleNum, lineType)
+    writeCanIdLine(outfile,3, frame, moduleNum, lineType)
     outfile.write(data)
     if (totalBits < 64):
         # Add a row to pad the layout to 8 bytes as we seem to frequently have packets too long

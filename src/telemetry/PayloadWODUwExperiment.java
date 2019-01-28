@@ -78,7 +78,7 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 			if (rawCanPacket.isValid()) {
 				canPackets.add(rawCanPacket);
 				byte[] data = rawCanPacket.getBytes();
-				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.canPacketId);
+				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.getID());
 
 				CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
 				newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM);

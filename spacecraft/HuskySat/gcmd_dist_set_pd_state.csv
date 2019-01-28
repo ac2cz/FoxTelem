@@ -1,11 +1,14 @@
-10,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,gcmd_dist_set_pd_state,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,bdot,2,-,0,gcmd_dist_set_pd_state,1,2,0,bdot,Enables or disables the power switch to BDOT power domain,
-2,CAN,com1,2,-,0,gcmd_dist_set_pd_state,1,3,0,com1,Enables or disables the power switch to com1 power domain,
-3,CAN,com2,2,-,0,gcmd_dist_set_pd_state,1,4,0,com2,Enables or disables the power switch to com2 power domain,
-4,CAN,eps,2,-,0,gcmd_dist_set_pd_state,1,5,0,eps,Enables or disables the power switch to the EPS power domain,
-5,CAN,estim,2,-,0,gcmd_dist_set_pd_state,1,6,0,estim,Enables or disables the power switch to the estimator power domain,
-6,CAN,ppt,2,-,0,gcmd_dist_set_pd_state,1,7,0,ppt,Enables or disables the power switch to the PPT power domain,
-7,CAN,rahs,2,-,0,gcmd_dist_set_pd_state,1,8,0,rahs,Enables or disables the power switch to rahs power domain,
-8,CAN,wheels,2,-,0,gcmd_dist_set_pd_state,1,9,0,wheels,Enables or disables the power switch to the reaction wheels (empty power domain),
-9,CAN,JUNK,48,NONE,0,gcmd_dist_set_pd_state,1,10,0,Junk,Unexpected bytes at the end of the CAN Packet
+13,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,gcmd_dist_set_pd_state,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,gcmd_dist_set_pd_state,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,gcmd_dist_set_pd_state,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,gcmd_dist_set_pd_state,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,bdot,2,-,0,gcmd_dist_set_pd_state,1,2,0,bdot,Enables or disables the power switch to BDOT power domain,
+5,CAN,com1,2,-,0,gcmd_dist_set_pd_state,1,3,0,com1,Enables or disables the power switch to com1 power domain,
+6,CAN,com2,2,-,0,gcmd_dist_set_pd_state,1,4,0,com2,Enables or disables the power switch to com2 power domain,
+7,CAN,eps,2,-,0,gcmd_dist_set_pd_state,1,5,0,eps,Enables or disables the power switch to the EPS power domain,
+8,CAN,estim,2,-,0,gcmd_dist_set_pd_state,1,6,0,estim,Enables or disables the power switch to the estimator power domain,
+9,CAN,ppt,2,-,0,gcmd_dist_set_pd_state,1,7,0,ppt,Enables or disables the power switch to the PPT power domain,
+10,CAN,rahs,2,-,0,gcmd_dist_set_pd_state,1,8,0,rahs,Enables or disables the power switch to rahs power domain,
+11,CAN,wheels,2,-,0,gcmd_dist_set_pd_state,1,9,0,wheels,Enables or disables the power switch to the reaction wheels (empty power domain),
+12,CAN,JUNK,48,NONE,0,gcmd_dist_set_pd_state,1,10,0,Junk,Unexpected bytes at the end of the CAN Packet

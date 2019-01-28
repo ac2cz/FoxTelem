@@ -1,6 +1,9 @@
-5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_eps_dist_2,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,met,32,-,0,rc_eps_dist_2,1,2,0,met,Mission elapsed time first 4 bytes,
-2,CAN,met_overflow,8,-,0,rc_eps_dist_2,1,3,0,met_overflow,Mission elapsed time last byte,
-3,CAN,uv_state,8,-,0,rc_eps_dist_2,1,4,0,uv_state,Undervoltage State,
-4,CAN,JUNK,16,NONE,0,rc_eps_dist_2,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet
+8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_eps_dist_2,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_eps_dist_2,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_eps_dist_2,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_eps_dist_2,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,met,32,-,0,rc_eps_dist_2,1,2,0,met,Mission elapsed time first 4 bytes,
+5,CAN,met_overflow,8,-,0,rc_eps_dist_2,1,3,0,met_overflow,Mission elapsed time last byte,
+6,CAN,uv_state,8,-,0,rc_eps_dist_2,1,4,0,uv_state,Undervoltage State,
+7,CAN,JUNK,16,NONE,0,rc_eps_dist_2,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet

@@ -1,4 +1,7 @@
-3,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,ovc,32,Amps,0,gcmd_dist_set_pd_ovc_ppt,1,2,0,ovc,Set PD overcurrent PPT,
-2,CAN,JUNK,32,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,3,0,Junk,Unexpected bytes at the end of the CAN Packet
+6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,ovc,32,Amps,0,gcmd_dist_set_pd_ovc_ppt,1,2,0,ovc,Set PD overcurrent PPT,
+5,CAN,JUNK,32,NONE,0,gcmd_dist_set_pd_ovc_ppt,1,3,0,Junk,Unexpected bytes at the end of the CAN Packet

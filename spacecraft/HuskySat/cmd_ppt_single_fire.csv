@@ -1,6 +1,9 @@
-5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,cmd_ppt_single_fire,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,override,1,bool,0,cmd_ppt_single_fire,1,2,0,override,Do we fire or just charge?,
-2,CAN,override_smt,1,-,0,cmd_ppt_single_fire,1,3,0,override_smt,Whether the Schmidt Trigger is checked,
-3,CAN,with_pulse,1,bool,0,cmd_ppt_single_fire,1,4,0,with_pulse,Do we fire or just charge?,
-4,CAN,JUNK,61,NONE,0,cmd_ppt_single_fire,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet
+8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,cmd_ppt_single_fire,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,cmd_ppt_single_fire,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,cmd_ppt_single_fire,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,cmd_ppt_single_fire,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,override,1,bool,0,cmd_ppt_single_fire,1,2,0,override,Do we fire or just charge?,
+5,CAN,override_smt,1,-,0,cmd_ppt_single_fire,1,3,0,override_smt,Whether the Schmidt Trigger is checked,
+6,CAN,with_pulse,1,bool,0,cmd_ppt_single_fire,1,4,0,with_pulse,Do we fire or just charge?,
+7,CAN,JUNK,61,NONE,0,cmd_ppt_single_fire,1,5,0,Junk,Unexpected bytes at the end of the CAN Packet

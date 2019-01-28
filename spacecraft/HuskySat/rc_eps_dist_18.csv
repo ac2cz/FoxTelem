@@ -1,9 +1,12 @@
-8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_eps_dist_18,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,bdot_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,2,0,bdot_ocp_thresh,BDOT current threshold,
-2,CAN,com2_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,3,0,com2_ocp_thresh,COM2 current threshold,
-3,CAN,eps_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,4,0,eps_ocp_thresh,EPS current threshold,
-4,CAN,estim_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,5,0,estim_ocp_thresh,ESTIM current threshold,
-5,CAN,ppt_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,6,0,ppt_ocp_thresh,PPT current threshold,
-6,CAN,rahs_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,7,0,rahs_ocp_thresh,COM1 current threshold,
-7,CAN,JUNK,10,NONE,0,rc_eps_dist_18,1,8,0,Junk,Unexpected bytes at the end of the CAN Packet
+11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_eps_dist_18,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_eps_dist_18,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_eps_dist_18,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_eps_dist_18,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,bdot_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,2,0,bdot_ocp_thresh,BDOT current threshold,
+5,CAN,com2_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,3,0,com2_ocp_thresh,COM2 current threshold,
+6,CAN,eps_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,4,0,eps_ocp_thresh,EPS current threshold,
+7,CAN,estim_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,5,0,estim_ocp_thresh,ESTIM current threshold,
+8,CAN,ppt_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,6,0,ppt_ocp_thresh,PPT current threshold,
+9,CAN,rahs_ocp_thresh,9,ocpThresh,0,rc_eps_dist_18,1,7,0,rahs_ocp_thresh,COM1 current threshold,
+10,CAN,JUNK,10,NONE,0,rc_eps_dist_18,1,8,0,Junk,Unexpected bytes at the end of the CAN Packet

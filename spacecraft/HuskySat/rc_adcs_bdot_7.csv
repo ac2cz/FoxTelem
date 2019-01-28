@@ -1,13 +1,16 @@
-12,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_adcs_bdot_7,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,rc_adcs_bdot_10_dipole_var_y,16,-,0,rc_adcs_bdot_7,1,2,0,rc_adcs_bdot_10_dipole_var_y,The variance of sent dipole commands,
-2,CAN,rc_adcs_bdot_10_dipole_var_z,16,-,0,rc_adcs_bdot_7,1,3,0,rc_adcs_bdot_10_dipole_var_z,The variance of sent dipole commands,
-3,CAN,spam_magnitude_x,8,-,0,rc_adcs_bdot_7,1,4,0,spam_magnitude_x,Current setting of magnitude of x dipole commands during spam,
-4,CAN,spam_magnitude_y,8,-,0,rc_adcs_bdot_7,1,5,0,spam_magnitude_y,Current setting of magnitude of y dipole commands during spam,
-5,CAN,spam_magnitude_z,8,-,0,rc_adcs_bdot_7,1,6,0,spam_magnitude_z,Current setting of magnitude of z dipole commands during spam,
-6,CAN,spam_off_x_mtq_x,16,-,0,rc_adcs_bdot_7,1,7,0,spam_off_x_mtq_x,Last spam reading with mtq off,
-7,CAN,spam_off_x_mtq_y,16,-,0,rc_adcs_bdot_7,1,8,0,spam_off_x_mtq_y,Last spam reading with mtq off,
-8,CAN,rc_adcs_bdot_8_spam_off_x_mtq_z,16,-,0,rc_adcs_bdot_7,1,9,0,rc_adcs_bdot_8_spam_off_x_mtq_z,Last spam reading with mtq off,
-9,CAN,rc_adcs_bdot_8_spam_off_y_mtq_x,16,-,0,rc_adcs_bdot_7,1,10,0,rc_adcs_bdot_8_spam_off_y_mtq_x,Last spam reading with mtq off,
-10,CAN,rc_adcs_bdot_8_spam_off_y_mtq_y,16,-,0,rc_adcs_bdot_7,1,11,0,rc_adcs_bdot_8_spam_off_y_mtq_y,Last spam reading with mtq off,
-11,CAN,dipole_gain_x,8,-,0,rc_adcs_bdot_7,1,12,0,dipole_gain_x,No description provided,
+15,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_adcs_bdot_7,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_adcs_bdot_7,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_adcs_bdot_7,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_adcs_bdot_7,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,rc_adcs_bdot_10_dipole_var_y,16,-,0,rc_adcs_bdot_7,1,2,0,rc_adcs_bdot_10_dipole_var_y,The variance of sent dipole commands,
+5,CAN,rc_adcs_bdot_10_dipole_var_z,16,-,0,rc_adcs_bdot_7,1,3,0,rc_adcs_bdot_10_dipole_var_z,The variance of sent dipole commands,
+6,CAN,spam_magnitude_x,8,-,0,rc_adcs_bdot_7,1,4,0,spam_magnitude_x,Current setting of magnitude of x dipole commands during spam,
+7,CAN,spam_magnitude_y,8,-,0,rc_adcs_bdot_7,1,5,0,spam_magnitude_y,Current setting of magnitude of y dipole commands during spam,
+8,CAN,spam_magnitude_z,8,-,0,rc_adcs_bdot_7,1,6,0,spam_magnitude_z,Current setting of magnitude of z dipole commands during spam,
+9,CAN,spam_off_x_mtq_x,16,-,0,rc_adcs_bdot_7,1,7,0,spam_off_x_mtq_x,Last spam reading with mtq off,
+10,CAN,spam_off_x_mtq_y,16,-,0,rc_adcs_bdot_7,1,8,0,spam_off_x_mtq_y,Last spam reading with mtq off,
+11,CAN,rc_adcs_bdot_8_spam_off_x_mtq_z,16,-,0,rc_adcs_bdot_7,1,9,0,rc_adcs_bdot_8_spam_off_x_mtq_z,Last spam reading with mtq off,
+12,CAN,rc_adcs_bdot_8_spam_off_y_mtq_x,16,-,0,rc_adcs_bdot_7,1,10,0,rc_adcs_bdot_8_spam_off_y_mtq_x,Last spam reading with mtq off,
+13,CAN,rc_adcs_bdot_8_spam_off_y_mtq_y,16,-,0,rc_adcs_bdot_7,1,11,0,rc_adcs_bdot_8_spam_off_y_mtq_y,Last spam reading with mtq off,
+14,CAN,dipole_gain_x,8,-,0,rc_adcs_bdot_7,1,12,0,dipole_gain_x,No description provided,

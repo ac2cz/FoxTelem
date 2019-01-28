@@ -1,6 +1,9 @@
-5,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,cmd_ppt_time_upd,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,charge,16,2^-15s,0,cmd_ppt_time_upd,1,2,0,charge,PPT Main Capacitor Charge Time,
-2,CAN,cooldown,16,2^-15s,0,cmd_ppt_time_upd,1,3,0,cooldown,PPT Cooldown Time,
-3,CAN,ign_charge,16,2^-15s,0,cmd_ppt_time_upd,1,4,0,ign_charge,PPT Igniter Charge Time,
-4,CAN,ign_delay,16,2^-15s,0,cmd_ppt_time_upd,1,5,0,ign_delay,PPT Main Igniter Delay,
+8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,cmd_ppt_time_upd,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,cmd_ppt_time_upd,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,cmd_ppt_time_upd,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,cmd_ppt_time_upd,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,charge,16,2^-15s,0,cmd_ppt_time_upd,1,2,0,charge,PPT Main Capacitor Charge Time,
+5,CAN,cooldown,16,2^-15s,0,cmd_ppt_time_upd,1,3,0,cooldown,PPT Cooldown Time,
+6,CAN,ign_charge,16,2^-15s,0,cmd_ppt_time_upd,1,4,0,ign_charge,PPT Igniter Charge Time,
+7,CAN,ign_delay,16,2^-15s,0,cmd_ppt_time_upd,1,5,0,ign_delay,PPT Main Igniter Delay,

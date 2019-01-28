@@ -259,29 +259,29 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	protected void parseRawBytes(String data[][], CanPacketRawTableModel radTableModel) {
 		long[][] keyRawData = new long[data.length][3];
 		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+2]; // +2 fields for ID, LEN
-		for (int i=0; i<data.length; i++)
-			for (int k=0; k< data[0].length; k++)
+		for (int i=0; i<data.length; i++) {
+			// ID String
+			int id = CanPacket.getIdFromRawBytes(Integer.valueOf(data[data.length-i-1][3]),Integer.valueOf(data[data.length-i-1][4]),
+					Integer.valueOf(data[data.length-i-1][5]),Integer.valueOf(data[data.length-i-1][6]));
+			int len = CanPacket.getLengthFromRawBytes(Integer.valueOf(data[data.length-i-1][3]),Integer.valueOf(data[data.length-i-1][4]),
+					Integer.valueOf(data[data.length-i-1][5]),Integer.valueOf(data[data.length-i-1][6]));
+			for (int k=0; k< 3; k++)
 				try {
 					if (k<3) // key
 						keyRawData[i][k] = Long.parseLong(data[data.length-i-1][k]);
-					else {
-						if (k==3) {
-							// ID String
-							int id = CanPacket.getIdfromRawID(Integer.valueOf(data[data.length-i-1][k]));
-							int len = CanPacket.getLengthfromRawID(Integer.valueOf(data[data.length-i-1][k]));
-							rawData[i][k-3] = String.format("%08x", id);
-							rawData[i][k-2] = Integer.toString(len);
-						} else {
-							if (data[data.length-i-1].length > k && data[data.length-i-1][k] != null)
-								rawData[i][k-2] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
-							if (rawData[i][k-2] == null)
-								rawData[i][k-2] = "";
-						}
-					}
 				} catch (NumberFormatException e) {
 
 				}
-		radTableModel.setData(keyRawData, rawData);
+			rawData[i][0] = String.format("%08x", id);
+			rawData[i][1] = Integer.toString(len);
+			for (int k=7; k< data[0].length; k++) {
+				if (data[data.length-i-1].length > k && data[data.length-i-1][k] != null)
+					rawData[i][k-5] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
+				if (rawData[i][k-5] == null)
+					rawData[i][k-5] = "";
+			}
+		}
+	radTableModel.setData(keyRawData, rawData);
 	}
 	
 	protected void parseRadiationFrames() {
@@ -336,9 +336,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				for (int j=0; j<number; j++)
 					data[j] = totals[j];
 			} else {
-				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
-
-				
+				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);				
 			}
 			if (data != null && data.length > 0) {
 				parseTelemetry(data);
@@ -383,13 +381,16 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
 				keyPacketData[len-i-1][1] = Long.parseLong(data[i][1]);
 				keyPacketData[len-i-1][2] = Long.parseLong(data[i][2]);
-				int id = CanPacket.getIdfromRawID(Integer.valueOf(data[i][3]));
-				int length = CanPacket.getLengthfromRawID(Integer.valueOf(data[i][3]));
+				int id = CanPacket.getIdFromRawBytes(Integer.valueOf(data[i][3]),Integer.valueOf(data[i][4]),
+						Integer.valueOf(data[i][5]),Integer.valueOf(data[i][6]));
+				int length = CanPacket.getLengthFromRawBytes(Integer.valueOf(data[i][3]),Integer.valueOf(data[i][4]),
+						Integer.valueOf(data[i][5]),Integer.valueOf(data[i][6]));
+
 				packetData[len-i-1][0] = String.format("%08x", id);
 				packetData[len-i-1][1] = Integer.toString(length);
 
 				String telem = "";
-				for (int j=4; j< data[0].length; j++) {  
+				for (int j=7; j< data[0].length; j++) {  
 					telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
 
 				}

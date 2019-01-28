@@ -1,5 +1,8 @@
-4,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,tle_1,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,bstar,32,1/earthRadii,0,tle_1,1,2,0,bstar,TLE BSTAR drag term,
-2,CAN,year,8,yrs frm 2000,0,tle_1,1,3,0,year,TLE years since 2000,
-3,CAN,JUNK,24,NONE,0,tle_1,1,4,0,Junk,Unexpected bytes at the end of the CAN Packet
+7,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,tle_1,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,tle_1,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,tle_1,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,tle_1,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,bstar,32,1/earthRadii,0,tle_1,1,2,0,bstar,TLE BSTAR drag term,
+5,CAN,year,8,yrs frm 2000,0,tle_1,1,3,0,year,TLE years since 2000,
+6,CAN,JUNK,24,NONE,0,tle_1,1,4,0,Junk,Unexpected bytes at the end of the CAN Packet

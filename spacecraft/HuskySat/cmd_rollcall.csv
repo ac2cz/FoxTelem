@@ -1,7 +1,10 @@
-6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,cmd_rollcall,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,met,32,?,0,cmd_rollcall,1,2,0,met,Mission Elapsed Time,
-2,CAN,met_overflow,8,-,0,cmd_rollcall,1,3,0,met_overflow,MET Overflow Count,
-3,CAN,state,8,-,0,cmd_rollcall,1,4,0,state,Overall Satellite State,
-4,CAN,type,8,-,0,cmd_rollcall,1,5,0,type,Rollcall Type (Unused for now),
-5,CAN,JUNK,8,NONE,0,cmd_rollcall,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,cmd_rollcall,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,cmd_rollcall,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,cmd_rollcall,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,cmd_rollcall,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,met,32,?,0,cmd_rollcall,1,2,0,met,Mission Elapsed Time,
+5,CAN,met_overflow,8,-,0,cmd_rollcall,1,3,0,met_overflow,MET Overflow Count,
+6,CAN,state,8,-,0,cmd_rollcall,1,4,0,state,Overall Satellite State,
+7,CAN,type,8,-,0,cmd_rollcall,1,5,0,type,Rollcall Type (Unused for now),
+8,CAN,JUNK,8,NONE,0,cmd_rollcall,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet

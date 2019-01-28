@@ -1,7 +1,10 @@
-6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,gcmd_mtq_pms,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,enable,2,-,0,gcmd_mtq_pms,1,2,0,enable,turns on permanent magnet setting,
-2,CAN,x,8,-,0,gcmd_mtq_pms,1,3,0,x,Sets permamenent dipole strength,
-3,CAN,y,8,-,0,gcmd_mtq_pms,1,4,0,y,Sets permamenent dipole strength,
-4,CAN,z,8,-,0,gcmd_mtq_pms,1,5,0,z,Sets permamenent dipole strength,
-5,CAN,JUNK,38,NONE,0,gcmd_mtq_pms,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,gcmd_mtq_pms,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,gcmd_mtq_pms,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,gcmd_mtq_pms,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,gcmd_mtq_pms,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,enable,2,-,0,gcmd_mtq_pms,1,2,0,enable,turns on permanent magnet setting,
+5,CAN,x,8,-,0,gcmd_mtq_pms,1,3,0,x,Sets permamenent dipole strength,
+6,CAN,y,8,-,0,gcmd_mtq_pms,1,4,0,y,Sets permamenent dipole strength,
+7,CAN,z,8,-,0,gcmd_mtq_pms,1,5,0,z,Sets permamenent dipole strength,
+8,CAN,JUNK,38,NONE,0,gcmd_mtq_pms,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet

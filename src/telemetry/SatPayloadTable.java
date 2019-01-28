@@ -672,7 +672,10 @@ public class SatPayloadTable {
 					if (storeMode)
 						canIdField = 6;
 					int pktid = Integer.valueOf(st2[canIdField]).intValue();
-					int canId = CanPacket.getIdfromRawID(pktid);
+					int pktid1 = Integer.valueOf(st2[canIdField+1]).intValue();
+					int pktid2 = Integer.valueOf(st2[canIdField+2]).intValue();
+					int pktid3 = Integer.valueOf(st2[canIdField+3]).intValue();
+					int canId = CanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
 					BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
 					rt = new CanPacket(id, resets, uptime, date, st, canLayout);
 				}

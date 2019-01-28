@@ -1,7 +1,10 @@
-6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_eps_dist_h1,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,reset_count,8,-,0,rc_eps_dist_h1,1,2,0,reset_count,Reset Count,
-2,CAN,sysrstiv,8,-,0,rc_eps_dist_h1,1,3,0,sysrstiv,Reason for reset,
-3,CAN,temp_avg,16,cC,0,rc_eps_dist_h1,1,4,0,temp_avg,Temperature of MSP,
-4,CAN,temp_max,16,cC,0,rc_eps_dist_h1,1,5,0,temp_max,Temperature of MSP,
-5,CAN,temp_min,16,cC,0,rc_eps_dist_h1,1,6,0,temp_min,Temperature of MSP,
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_eps_dist_h1,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_eps_dist_h1,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_eps_dist_h1,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_eps_dist_h1,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,reset_count,8,-,0,rc_eps_dist_h1,1,2,0,reset_count,Reset Count,
+5,CAN,sysrstiv,8,-,0,rc_eps_dist_h1,1,3,0,sysrstiv,Reason for reset,
+6,CAN,temp_avg,16,cC,0,rc_eps_dist_h1,1,4,0,temp_avg,Temperature of MSP,
+7,CAN,temp_max,16,cC,0,rc_eps_dist_h1,1,5,0,temp_max,Temperature of MSP,
+8,CAN,temp_min,16,cC,0,rc_eps_dist_h1,1,6,0,temp_min,Temperature of MSP,

@@ -1,7 +1,10 @@
-6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_adcs_mtq_5,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,cmds_x_var,16,-,0,rc_adcs_mtq_5,1,2,0,cmds_x_var,Variance in BDot's dipole commands,
-2,CAN,cmds_y_var,16,-,0,rc_adcs_mtq_5,1,3,0,cmds_y_var,Variance in BDot's dipole commands,
-3,CAN,cmds_z_var,16,-,0,rc_adcs_mtq_5,1,4,0,cmds_z_var,Variance in BDot's dipole commands,
-4,CAN,fsw_ignore,8,-,0,rc_adcs_mtq_5,1,5,0,fsw_ignore,Flight Software Ignore,
-5,CAN,reset_counts,8,-,0,rc_adcs_mtq_5,1,6,0,reset_counts,Number of resets,
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_adcs_mtq_5,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_adcs_mtq_5,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_adcs_mtq_5,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_adcs_mtq_5,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,cmds_x_var,16,-,0,rc_adcs_mtq_5,1,2,0,cmds_x_var,Variance in BDot's dipole commands,
+5,CAN,cmds_y_var,16,-,0,rc_adcs_mtq_5,1,3,0,cmds_y_var,Variance in BDot's dipole commands,
+6,CAN,cmds_z_var,16,-,0,rc_adcs_mtq_5,1,4,0,cmds_z_var,Variance in BDot's dipole commands,
+7,CAN,fsw_ignore,8,-,0,rc_adcs_mtq_5,1,5,0,fsw_ignore,Flight Software Ignore,
+8,CAN,reset_counts,8,-,0,rc_adcs_mtq_5,1,6,0,reset_counts,Number of resets,

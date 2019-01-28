@@ -1,7 +1,10 @@
-6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,rc_eps_dist_10,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,bdot_c_avg,16,raw node current,0,rc_eps_dist_10,1,2,0,bdot_c_avg,BDOT domain current average,
-2,CAN,bdot_c_max,16,raw node current,0,rc_eps_dist_10,1,3,0,bdot_c_max,BDOT domain current maximum,
-3,CAN,bdot_c_min,16,raw node current,0,rc_eps_dist_10,1,4,0,bdot_c_min,BDOT domain current minimum,
-4,CAN,bdot_state,8,-,0,rc_eps_dist_10,1,5,0,bdot_state,BDOT domain state,
-5,CAN,JUNK,8,NONE,0,rc_eps_dist_10,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet
+9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,rc_eps_dist_10,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,rc_eps_dist_10,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,rc_eps_dist_10,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,rc_eps_dist_10,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,bdot_c_avg,16,raw node current,0,rc_eps_dist_10,1,2,0,bdot_c_avg,BDOT domain current average,
+5,CAN,bdot_c_max,16,raw node current,0,rc_eps_dist_10,1,3,0,bdot_c_max,BDOT domain current maximum,
+6,CAN,bdot_c_min,16,raw node current,0,rc_eps_dist_10,1,4,0,bdot_c_min,BDOT domain current minimum,
+7,CAN,bdot_state,8,-,0,rc_eps_dist_10,1,5,0,bdot_state,BDOT domain state,
+8,CAN,JUNK,8,NONE,0,rc_eps_dist_10,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet

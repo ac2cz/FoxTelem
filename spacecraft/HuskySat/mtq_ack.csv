@@ -1,10 +1,13 @@
-9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID,32,NONE,0,mtq_ack,1,1,0,ID,CAN ID with Length Encoded
-1,CAN,last_bdot_x,8,%,0,mtq_ack,1,2,0,last_bdot_x,last bdot x command received ,
-2,CAN,last_bdot_y,8,%,0,mtq_ack,1,3,0,last_bdot_y,last bdot y command received ,
-3,CAN,last_bdot_z,8,%,0,mtq_ack,1,4,0,last_bdot_z,last bdot z command received ,
-4,CAN,last_fsw_x,8,%,0,mtq_ack,1,5,0,last_fsw_x,last fsw x command received ,
-5,CAN,last_fsw_y,8,%,0,mtq_ack,1,6,0,last_fsw_y,last fsw y command received ,
-6,CAN,last_fsw_z,8,%,0,mtq_ack,1,7,0,last_fsw_z,last fsw z command received ,
-7,CAN,phase,8,-,0,mtq_ack,1,8,0,phase,specifies what state the coils are in - measurement or actuation phase ,
-8,CAN,source,8,-,0,mtq_ack,1,9,0,source,who the mtq last listened to - bdot or fsw ,
+12,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,mtq_ack,1,1,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,mtq_ack,1,1,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,mtq_ack,1,1,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,mtq_ack,1,1,0,ID3,CAN ID with Length Encoded
+4,CAN,last_bdot_x,8,%,0,mtq_ack,1,2,0,last_bdot_x,last bdot x command received ,
+5,CAN,last_bdot_y,8,%,0,mtq_ack,1,3,0,last_bdot_y,last bdot y command received ,
+6,CAN,last_bdot_z,8,%,0,mtq_ack,1,4,0,last_bdot_z,last bdot z command received ,
+7,CAN,last_fsw_x,8,%,0,mtq_ack,1,5,0,last_fsw_x,last fsw x command received ,
+8,CAN,last_fsw_y,8,%,0,mtq_ack,1,6,0,last_fsw_y,last fsw y command received ,
+9,CAN,last_fsw_z,8,%,0,mtq_ack,1,7,0,last_fsw_z,last fsw z command received ,
+10,CAN,phase,8,-,0,mtq_ack,1,8,0,phase,specifies what state the coils are in - measurement or actuation phase ,
+11,CAN,source,8,-,0,mtq_ack,1,9,0,source,who the mtq last listened to - bdot or fsw ,
