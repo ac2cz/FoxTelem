@@ -1,12 +1,12 @@
 11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_eps_gen_1,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_eps_gen_1,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_eps_gen_1,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_eps_gen_1,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,pnl_1_charging,1,-,0,rc_eps_gen_1,1,2,0,pnl_1_charging,whether gen panel 1 is charing,
-5,CAN,pnl_1_enabled,1,-,0,rc_eps_gen_1,1,3,0,pnl_1_enabled,whether gen panel 1 is enabled,
-6,CAN,pnl_2_charing,1,-,0,rc_eps_gen_1,1,4,0,pnl_2_charing,whether gen panel 2 is charing,
-7,CAN,pnl_2_enabled,1,-,0,rc_eps_gen_1,1,5,0,pnl_2_enabled,whether gen panel 2 is enabled,
-8,CAN,pnl_3_charging,1,-,0,rc_eps_gen_1,1,6,0,pnl_3_charging,whether gen panel 3 is charing,
-9,CAN,pnl_3_enabled,1,-,0,rc_eps_gen_1,1,7,0,pnl_3_enabled,whether gen panel 3 is enabled,
-10,CAN,JUNK,58,NONE,0,rc_eps_gen_1,1,8,0,Junk,Unexpected bytes at the end of the CAN Packet
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,pnl_1_charging,1,-,0,rc_eps_gen_1,1,1,0,pnl_1_charging,whether gen panel 1 is charing,
+5,CAN,pnl_1_enabled,1,-,0,rc_eps_gen_1,1,2,0,pnl_1_enabled,whether gen panel 1 is enabled,
+6,CAN,pnl_2_charing,1,-,0,rc_eps_gen_1,1,3,0,pnl_2_charing,whether gen panel 2 is charing,
+7,CAN,pnl_2_enabled,1,-,0,rc_eps_gen_1,1,4,0,pnl_2_enabled,whether gen panel 2 is enabled,
+8,CAN,pnl_3_charging,1,-,0,rc_eps_gen_1,1,5,0,pnl_3_charging,whether gen panel 3 is charing,
+9,CAN,pnl_3_enabled,1,-,0,rc_eps_gen_1,1,6,0,pnl_3_enabled,whether gen panel 3 is enabled,
+10,CAN,JUNK,58,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

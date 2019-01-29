@@ -1,12 +1,12 @@
 11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,gcmd_bdot_spam,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,gcmd_bdot_spam,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,gcmd_bdot_spam,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,gcmd_bdot_spam,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,control,2,-,0,gcmd_bdot_spam,1,2,0,control,Turn spam on or off,
-5,CAN,magnitude_x,8,-,0,gcmd_bdot_spam,1,3,0,magnitude_x,What magnitude the magnetorquer should spam on x axis,
-6,CAN,magnitude_y,8,-,0,gcmd_bdot_spam,1,4,0,magnitude_y,What magnitude the magnetorquer should spam on y axis,
-7,CAN,magnitude_z,8,-,0,gcmd_bdot_spam,1,5,0,magnitude_z,What magnitude the magnetorquer should spam on z axis,
-8,CAN,time_off,16,minutes,0,gcmd_bdot_spam,1,6,0,time_off,Chooses the amount of time SPAM should be on for,
-9,CAN,time_on,16,minutes,0,gcmd_bdot_spam,1,7,0,time_on,Chooses the amount of minutes in between SPAM,
-10,CAN,JUNK,6,NONE,0,gcmd_bdot_spam,1,8,0,Junk,Unexpected bytes at the end of the CAN Packet
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,control,2,-,0,gcmd_bdot_spam,1,1,0,control,Turn spam on or off,
+5,CAN,magnitude_x,8,-,0,gcmd_bdot_spam,1,2,0,magnitude_x,What magnitude the magnetorquer should spam on x axis,
+6,CAN,magnitude_y,8,-,0,gcmd_bdot_spam,1,3,0,magnitude_y,What magnitude the magnetorquer should spam on y axis,
+7,CAN,magnitude_z,8,-,0,gcmd_bdot_spam,1,4,0,magnitude_z,What magnitude the magnetorquer should spam on z axis,
+8,CAN,time_off,16,minutes,0,gcmd_bdot_spam,1,5,0,time_off,Chooses the amount of time SPAM should be on for,
+9,CAN,time_on,16,minutes,0,gcmd_bdot_spam,1,6,0,time_on,Chooses the amount of minutes in between SPAM,
+10,CAN,JUNK,6,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

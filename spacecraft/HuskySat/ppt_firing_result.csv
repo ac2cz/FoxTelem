@@ -1,11 +1,11 @@
 10,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,ppt_firing_result,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,ppt_firing_result,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,ppt_firing_result,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,ppt_firing_result,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,batt_good,8,-,0,ppt_firing_result,1,2,0,batt_good,Was the battery full time adequate,
-5,CAN,code,8,-,0,ppt_firing_result,1,3,0,code,fire successful / fire overriden / no charge / no discharge,
-6,CAN,coulomb_good,8,-,0,ppt_firing_result,1,4,0,coulomb_good,Was the coulomb counter value adequate,
-7,CAN,ign_time,16,2^-15s,0,ppt_firing_result,1,5,0,ign_time,how long it took the PPT's igniter to finish charging (0 if error),
-8,CAN,main_time,16,2^-15s,0,ppt_firing_result,1,6,0,main_time,how long it took the PPT's main cap gets done charging (0 if error),
-9,CAN,panel_good,8,-,0,ppt_firing_result,1,7,0,panel_good,Was the panel voltage adequate,
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,batt_good,8,-,0,ppt_firing_result,1,1,0,batt_good,Was the battery full time adequate,
+5,CAN,code,8,-,0,ppt_firing_result,1,2,0,code,fire successful / fire overriden / no charge / no discharge,
+6,CAN,coulomb_good,8,-,0,ppt_firing_result,1,3,0,coulomb_good,Was the coulomb counter value adequate,
+7,CAN,ign_time,16,2^-15s,0,ppt_firing_result,1,4,0,ign_time,how long it took the PPT's igniter to finish charging (0 if error),
+8,CAN,main_time,16,2^-15s,0,ppt_firing_result,1,5,0,main_time,how long it took the PPT's main cap gets done charging (0 if error),
+9,CAN,panel_good,8,-,0,ppt_firing_result,1,6,0,panel_good,Was the panel voltage adequate,

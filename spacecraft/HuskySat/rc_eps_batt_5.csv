@@ -1,10 +1,10 @@
 9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_eps_batt_5,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_eps_batt_5,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_eps_batt_5,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_eps_batt_5,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,batt_temp_max,8,deg C,0,rc_eps_batt_5,1,2,0,batt_temp_max,Battery temperature indicated by TMP36 mounted to the batteries.,
-5,CAN,batt_temp_min,8,deg C,0,rc_eps_batt_5,1,3,0,batt_temp_min,Battery temperature indicated by TMP36 mounted to the batteries.,
-6,CAN,node_c_avg,16,raw node current batt,0,rc_eps_batt_5,1,4,0,node_c_avg,Current into the node between batteries. Indicates battery ballancing state.,
-7,CAN,node_c_max,16,raw node current batt,0,rc_eps_batt_5,1,5,0,node_c_max,Current into the node between batteries. Indicates battery ballancing state.,
-8,CAN,node_c_min,16,raw node current batt,0,rc_eps_batt_5,1,6,0,node_c_min,Current into the node between batteries. Indicates battery ballancing state.,
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,batt_temp_max,8,deg C,0,rc_eps_batt_5,1,1,0,batt_temp_max,Battery temperature indicated by TMP36 mounted to the batteries.,
+5,CAN,batt_temp_min,8,deg C,0,rc_eps_batt_5,1,2,0,batt_temp_min,Battery temperature indicated by TMP36 mounted to the batteries.,
+6,CAN,node_c_avg,16,raw node current batt,0,rc_eps_batt_5,1,3,0,node_c_avg,Current into the node between batteries. Indicates battery ballancing state.,
+7,CAN,node_c_max,16,raw node current batt,0,rc_eps_batt_5,1,4,0,node_c_max,Current into the node between batteries. Indicates battery ballancing state.,
+8,CAN,node_c_min,16,raw node current batt,0,rc_eps_batt_5,1,5,0,node_c_min,Current into the node between batteries. Indicates battery ballancing state.,

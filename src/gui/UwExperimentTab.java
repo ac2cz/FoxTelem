@@ -81,11 +81,20 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 	boolean displayTelem = true;
 	
+	BitArrayLayout[] layout;
+	int[] ids = {309920562, 309920256, 309330499};
+	 
 	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
 		NAME = fox.toString() + " CAN PACKETS";
+		
+		int j = 0;
+		layout = new BitArrayLayout[ids.length];
+		 for (int canid : ids)
+			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
+
 		
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
@@ -123,13 +132,14 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		BitArrayLayout none = null;
 		try {
+//			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
+
 			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
 			System.exit(1);
 		}
-		
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
@@ -182,10 +192,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	
 	private void addPacketModules() {
 
-	
 	}
 	
-	
+
 	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel) {
 		super.addTables(radTableModel, radPacketTableModel);
 		
@@ -210,7 +219,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			column.setPreferredWidth(55);
 		}
 
-		if (Config.splitCanPackets) {
+//		if (Config.splitCanPackets) {
 			column = packetTable.getColumnModel().getColumn(0);
 			column.setPreferredWidth(100);
 
@@ -226,30 +235,27 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			column = packetTable.getColumnModel().getColumn(4);
 			column.setPreferredWidth(55);
 
-		} else {
-			column = packetTable.getColumnModel().getColumn(0);
-			column.setPreferredWidth(45);
-			
-			column = packetTable.getColumnModel().getColumn(1);
-			column.setPreferredWidth(55);
+//		} else {
+//			column = packetTable.getColumnModel().getColumn(0);
+//			column.setPreferredWidth(45);
+//			
+//			column = packetTable.getColumnModel().getColumn(1);
+//			column.setPreferredWidth(55);
+//
+//			column = packetTable.getColumnModel().getColumn(2);
+//			column.setPreferredWidth(55);
+//			
+//			column = packetTable.getColumnModel().getColumn(3);
+//			column.setPreferredWidth(65);
+//
+//			column = packetTable.getColumnModel().getColumn(4);
+//			column.setPreferredWidth(55);
+//
+//			column = packetTable.getColumnModel().getColumn(5);
+//			column.setPreferredWidth(600);
+//			
+//		}
 
-			column = packetTable.getColumnModel().getColumn(2);
-			column.setPreferredWidth(55);
-			
-			column = packetTable.getColumnModel().getColumn(3);
-			column.setPreferredWidth(65);
-
-			column = packetTable.getColumnModel().getColumn(4);
-			column.setPreferredWidth(55);
-
-			column = packetTable.getColumnModel().getColumn(5);
-			column.setPreferredWidth(600);
-			
-		}
-
-		if (!Config.splitCanPackets) {
-		
-		}
 		//packetTable.getSelectionModel().addListSelectionListener(this);
 		//table.getSelectionModel().addListSelectionListener(this);
 		//packetTable.getRowSelectionAllowed();
@@ -288,7 +294,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		String[][] data = null;
 
 		if (Config.displayRawRadData) {
-			if (Config.splitCanPackets) {
+//			if (Config.splitCanPackets) {
 				// for each CAN Packet get the layout and all the packets
 				String[][][] all = new String[250][][];
 				int number = 0;
@@ -308,13 +314,13 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					for (int r=0; r<all[j].length; r++) {
 						data[k++] = all[j][r];
 					}
-			} else {
-				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
-			}
+//			} else {
+//				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
+//			}
 			if (data != null && data.length > 0)
 				parseRawBytes(data,radTableModel);
 		} else {
-			if (Config.splitCanPackets) {
+//			if (Config.splitCanPackets) {
 				// for each CAN Packet name, get the layout and see what total we have
 				String[][] totals = new String[250][];
 				int number = 0;
@@ -335,9 +341,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				data = new String[number][];
 				for (int j=0; j<number; j++)
 					data[j] = totals[j];
-			} else {
-				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);				
-			}
+//			} else {
+//				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);				
+//			}
 			if (data != null && data.length > 0) {
 				parseTelemetry(data);
 			}
@@ -364,7 +370,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		int len = data.length;
 		long[][] keyPacketData = null;
 		String[][] packetData = null;
-		if (Config.splitCanPackets) {
+//		if (Config.splitCanPackets) {
 			keyPacketData = new long[len][1];
 			packetData = new String[len][4];
 			for (int i=0; i < len; i++) { 
@@ -374,29 +380,29 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				packetData[len-i-1][2] = data[i][3];
 				packetData[len-i-1][3] = data[i][4];
 			}
-		} else {
-			keyPacketData = new long[len][3];
-			packetData = new String[len][3];
-			for (int i=0; i < len; i++) { 
-				keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
-				keyPacketData[len-i-1][1] = Long.parseLong(data[i][1]);
-				keyPacketData[len-i-1][2] = Long.parseLong(data[i][2]);
-				int id = CanPacket.getIdFromRawBytes(Integer.valueOf(data[i][3]),Integer.valueOf(data[i][4]),
-						Integer.valueOf(data[i][5]),Integer.valueOf(data[i][6]));
-				int length = CanPacket.getLengthFromRawBytes(Integer.valueOf(data[i][3]),Integer.valueOf(data[i][4]),
-						Integer.valueOf(data[i][5]),Integer.valueOf(data[i][6]));
-
-				packetData[len-i-1][0] = String.format("%08x", id);
-				packetData[len-i-1][1] = Integer.toString(length);
-
-				String telem = "";
-				for (int j=7; j< data[0].length; j++) {  
-					telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
-
-				}
-				packetData[len-i-1][2] = telem;
-			}
-		}
+//		} else {
+//			keyPacketData = new long[len][3];
+//			packetData = new String[len][3];
+//			for (int i=0; i < len; i++) { 
+//				keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
+//				keyPacketData[len-i-1][1] = Long.parseLong(data[i][1]);
+//				keyPacketData[len-i-1][2] = Long.parseLong(data[i][2]);
+//				int id = CanPacket.getIdFromRawBytes(Integer.valueOf(data[i][3]),Integer.valueOf(data[i][4]),
+//						Integer.valueOf(data[i][5]),Integer.valueOf(data[i][6]));
+//				int length = CanPacket.getLengthFromRawBytes(Integer.valueOf(data[i][3]),Integer.valueOf(data[i][4]),
+//						Integer.valueOf(data[i][5]),Integer.valueOf(data[i][6]));
+//
+//				packetData[len-i-1][0] = String.format("%08x", id);
+//				packetData[len-i-1][1] = Integer.toString(length);
+//
+//				String telem = "";
+//				for (int j=7; j< data[0].length; j++) {  
+//					telem = telem + FoxDecoder.plainhex(Integer.parseInt(data[i][j])) + " ";
+//
+//				}
+//				packetData[len-i-1][2] = telem;
+//			}
+//		}
 
 		if (packetData.length > 0) {
 			
@@ -442,76 +448,93 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
+					//					for (BitArrayLayout lay : layout)
+					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
+					//					for (BitArrayLayout lay : layout)
+					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
-					
 				}
 
-				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-						//radPayload = Config.payloadStore.getLatestRad(foxId);
-						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
+				boolean refresh = false;
 
-						parseRadiationFrames();
-						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT),
-								Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_PKT_LAYOUT));
-						MainWindow.setTotalDecodes();
-						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
-							justStarted = false;
-						}
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+					//radPayload = Config.payloadStore.getLatestRad(foxId);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
+					refresh = true;
+				}
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
+					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
+					refresh = true;
+				}
+
+				if (refresh) {
+					parseRadiationFrames();
+					//						for (BitArrayLayout lay : layout)
+					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT) +
+							Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT),
+							Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_PKT_LAYOUT));
+					MainWindow.setTotalDecodes();
+					if (justStarted) {
+						openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
+						justStarted = false;
 					}
-				
-			}
-		}
-		done = true;
-	}
+				}
 
-	@Override
-	public void itemStateChanged(ItemEvent e) {
-		super.itemStateChanged(e);
-		Object source = e.getItemSelectable();
-
-		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
-
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.displayRawValues = false;
-			} else {
-				Config.displayRawValues = true;
-			}
-
-			updateTab(Config.payloadStore.getLatestRad(foxId), true);  // we don't have RAD2 conversion for the Experiment Payloads so just get RAD.
-			
 		}
 	}
+	done = true;
+}
 
-	@Override
-	public void parseFrames() {
-		parseRadiationFrames();
-		
+@Override
+public void itemStateChanged(ItemEvent e) {
+	super.itemStateChanged(e);
+	Object source = e.getItemSelectable();
+
+	if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+
+		if (e.getStateChange() == ItemEvent.DESELECTED) {
+			Config.displayRawValues = false;
+		} else {
+			Config.displayRawValues = true;
+		}
+
+		//			for (BitArrayLayout lay : layout)
+		//				updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
+
+		updateTab(Config.payloadStore.getLatestRad(foxId), true);  // we don't have RAD2 conversion for the Experiment Payloads so just get RAD.
+
 	}
-	
-	protected void displayRow(JTable table, int fromRow, int row) {
-		
-//		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
-//    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-//    	//Log.println("RESET: " + reset);
-//    	//Log.println("UPTIME: " + uptime);
-//    	int reset = (int)reset_l;
-//    	updateTab((PayloadUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD_LAYOUT, false), false);
-//    	
-//    	if (fromRow == NO_ROW_SELECTED)
-//    		fromRow = row;
-//    	if (fromRow <= row)
-//    		table.setRowSelectionInterval(fromRow, row);
-//    	else
-//    		table.setRowSelectionInterval(row, fromRow);
-	}
-	
+}
+
+@Override
+public void parseFrames() {
+	parseRadiationFrames();
+
+}
+
+protected void displayRow(JTable table, int fromRow, int row) {
+
+	//		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+	//    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+	//    	//Log.println("RESET: " + reset);
+	//    	//Log.println("UPTIME: " + uptime);
+	//    	int reset = (int)reset_l;
+	//    	updateTab((PayloadUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD_LAYOUT, false), false);
+	//    	
+	//    	if (fromRow == NO_ROW_SELECTED)
+	//    		fromRow = row;
+	//    	if (fromRow <= row)
+	//    		table.setRowSelectionInterval(fromRow, row);
+	//    	else
+	//    		table.setRowSelectionInterval(row, fromRow);
+}
+
 //	public void mouseClicked(MouseEvent e) {
 //
 //		if (showRawBytes.isSelected()) {

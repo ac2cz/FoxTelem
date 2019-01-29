@@ -1,9 +1,9 @@
 8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_eps_batt_6,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_eps_batt_6,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_eps_batt_6,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_eps_batt_6,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,rc_eps_batt_3_batt_temp_avg,8,deg C,0,rc_eps_batt_6,1,2,0,rc_eps_batt_3_batt_temp_avg,Battery temperature indicated by TMP36 mounted to the batteries.,
-5,CAN,ctrl,8,-,0,rc_eps_batt_6,1,3,0,ctrl,State of charge from coulomb counter on battery board,
-6,CAN,last_charge,40,2^-8 seconds,0,rc_eps_batt_6,1,4,0,last_charge,The MET of last full battery charge,
-7,CAN,status,8,-,0,rc_eps_batt_6,1,5,0,status,State of charge status register,
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,rc_eps_batt_3_batt_temp_avg,8,deg C,0,rc_eps_batt_6,1,1,0,rc_eps_batt_3_batt_temp_avg,Battery temperature indicated by TMP36 mounted to the batteries.,
+5,CAN,ctrl,8,-,0,rc_eps_batt_6,1,2,0,ctrl,State of charge from coulomb counter on battery board,
+6,CAN,last_charge,40,2^-8 seconds,0,rc_eps_batt_6,1,3,0,last_charge,The MET of last full battery charge,
+7,CAN,status,8,-,0,rc_eps_batt_6,1,4,0,status,State of charge status register,

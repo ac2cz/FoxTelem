@@ -1,10 +1,10 @@
 9,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,cmd_mtq_fsw,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,cmd_mtq_fsw,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,cmd_mtq_fsw,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,cmd_mtq_fsw,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,sc_mode,8,-,0,cmd_mtq_fsw,1,2,0,sc_mode,overall satellite state,
-5,CAN,x,8,pct doodie,0,cmd_mtq_fsw,1,3,0,x,bdot command for x direction,
-6,CAN,y,8,pct doodie,0,cmd_mtq_fsw,1,4,0,y,bdot command for y direction,
-7,CAN,z,8,pct doodie,0,cmd_mtq_fsw,1,5,0,z,bdot command for z direction,
-8,CAN,JUNK,32,NONE,0,cmd_mtq_fsw,1,6,0,Junk,Unexpected bytes at the end of the CAN Packet
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,sc_mode,8,-,0,cmd_mtq_fsw,1,1,0,sc_mode,overall satellite state,
+5,CAN,x,8,pct doodie,0,cmd_mtq_fsw,1,2,0,x,bdot command for x direction,
+6,CAN,y,8,pct doodie,0,cmd_mtq_fsw,1,3,0,y,bdot command for y direction,
+7,CAN,z,8,pct doodie,0,cmd_mtq_fsw,1,4,0,z,bdot command for z direction,
+8,CAN,JUNK,32,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

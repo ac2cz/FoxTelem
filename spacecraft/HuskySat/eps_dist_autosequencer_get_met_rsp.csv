@@ -1,7 +1,7 @@
 6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,eps_dist_autosequencer_get_met_rsp,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,eps_dist_autosequencer_get_met_rsp,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,eps_dist_autosequencer_get_met_rsp,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,eps_dist_autosequencer_get_met_rsp,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,eps_dist_autoseq_get_met_rsp_met,32,2^-15s,0,eps_dist_autosequencer_get_met_rsp,1,2,0,eps_dist_autoseq_get_met_rsp_met,the MET,
-5,CAN,JUNK,32,NONE,0,eps_dist_autosequencer_get_met_rsp,1,3,0,Junk,Unexpected bytes at the end of the CAN Packet
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,eps_dist_autoseq_get_met_rsp_met,32,2^-15s,0,eps_dist_autosequencer_get_met_rsp,1,1,0,eps_dist_autoseq_get_met_rsp_met,the MET,
+5,CAN,JUNK,32,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

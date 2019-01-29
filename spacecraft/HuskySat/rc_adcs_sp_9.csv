@@ -1,9 +1,9 @@
 8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_adcs_sp_9,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_adcs_sp_9,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_adcs_sp_9,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_adcs_sp_9,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,mag1_x_avg,16,1/73 nT,0,rc_adcs_sp_9,1,2,0,mag1_x_avg,Magnetometer 1 X axis avg,
-5,CAN,mag1_x_max,16,1/73 nT,0,rc_adcs_sp_9,1,3,0,mag1_x_max,Magnetometer 1 X axis max,
-6,CAN,mag1_y_max,16,1/73 nT,0,rc_adcs_sp_9,1,4,0,mag1_y_max,Magnetometer 1 Y axis max,
-7,CAN,mag1_y_min,16,1/73 nT,0,rc_adcs_sp_9,1,5,0,mag1_y_min,Magnetometer 1 Y axis min,
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,mag1_x_avg,16,1/73 nT,0,rc_adcs_sp_9,1,1,0,mag1_x_avg,Magnetometer 1 X axis avg,
+5,CAN,mag1_x_max,16,1/73 nT,0,rc_adcs_sp_9,1,2,0,mag1_x_max,Magnetometer 1 X axis max,
+6,CAN,mag1_y_max,16,1/73 nT,0,rc_adcs_sp_9,1,3,0,mag1_y_max,Magnetometer 1 Y axis max,
+7,CAN,mag1_y_min,16,1/73 nT,0,rc_adcs_sp_9,1,4,0,mag1_y_min,Magnetometer 1 Y axis min,

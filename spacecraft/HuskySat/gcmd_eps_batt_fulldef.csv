@@ -1,7 +1,7 @@
 6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,gcmd_eps_batt_fulldef,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,gcmd_eps_batt_fulldef,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,gcmd_eps_batt_fulldef,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,gcmd_eps_batt_fulldef,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,chg_curr,32,Amps,0,gcmd_eps_batt_fulldef,1,2,0,chg_curr,Limits for detecting a full state on the battery (current must be less than this value),
-5,CAN,const_volt,32,Volts,0,gcmd_eps_batt_fulldef,1,3,0,const_volt,Limits for detecting a full state on the battery (voltage must be greater than this value),
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,chg_curr,32,Amps,0,gcmd_eps_batt_fulldef,1,1,0,chg_curr,Limits for detecting a full state on the battery (current must be less than this value),
+5,CAN,const_volt,32,Volts,0,gcmd_eps_batt_fulldef,1,2,0,const_volt,Limits for detecting a full state on the battery (voltage must be greater than this value),

@@ -1,16 +1,16 @@
 15,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_adcs_bdot_6,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_adcs_bdot_6,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_adcs_bdot_6,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_adcs_bdot_6,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,gain_ovr_status_x,1,-,0,rc_adcs_bdot_6,1,2,0,gain_ovr_status_x,Current status of whether or not Gain Override is enable for specified axis,
-5,CAN,gain_ovr_status_y,1,-,0,rc_adcs_bdot_6,1,3,0,gain_ovr_status_y,Current status of whether or not Gain Override is enable for specified axis,
-6,CAN,gain_ovr_status_z,1,-,0,rc_adcs_bdot_6,1,4,0,gain_ovr_status_z,Current status of whether or not Gain Override is enable for specified axis,
-7,CAN,max_tumble_time,16,-,0,rc_adcs_bdot_6,1,5,0,max_tumble_time,Current max tumbling time that bdot can be in until it swtiches to SLEEP_MODE automatically,
-8,CAN,pop_status_x,1,-,0,rc_adcs_bdot_6,1,6,0,pop_status_x,Current status of whether or not POP is enable for specified axis,
-9,CAN,pop_status_y,1,-,0,rc_adcs_bdot_6,1,7,0,pop_status_y,Current status of whether or not POP is enable for specified axis,
-10,CAN,pop_status_z,1,-,0,rc_adcs_bdot_6,1,8,0,pop_status_z,Current status of whether or not POP is enable for specified axis,
-11,CAN,spam_control,1,-,0,rc_adcs_bdot_6,1,9,0,spam_control,Current setting on whether or not spam is enabled,
-12,CAN,spam_off_time,16,-,0,rc_adcs_bdot_6,1,10,0,spam_off_time,Current setting for the time in minutes of SPAM not being on,
-13,CAN,spam_on_time,16,-,0,rc_adcs_bdot_6,1,11,0,spam_on_time,Current setting for the time in minutes of SPAM being on,
-14,CAN,JUNK,9,NONE,0,rc_adcs_bdot_6,1,12,0,Junk,Unexpected bytes at the end of the CAN Packet
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,gain_ovr_status_x,1,-,0,rc_adcs_bdot_6,1,1,0,gain_ovr_status_x,Current status of whether or not Gain Override is enable for specified axis,
+5,CAN,gain_ovr_status_y,1,-,0,rc_adcs_bdot_6,1,2,0,gain_ovr_status_y,Current status of whether or not Gain Override is enable for specified axis,
+6,CAN,gain_ovr_status_z,1,-,0,rc_adcs_bdot_6,1,3,0,gain_ovr_status_z,Current status of whether or not Gain Override is enable for specified axis,
+7,CAN,max_tumble_time,16,-,0,rc_adcs_bdot_6,1,4,0,max_tumble_time,Current max tumbling time that bdot can be in until it swtiches to SLEEP_MODE automatically,
+8,CAN,pop_status_x,1,-,0,rc_adcs_bdot_6,1,5,0,pop_status_x,Current status of whether or not POP is enable for specified axis,
+9,CAN,pop_status_y,1,-,0,rc_adcs_bdot_6,1,6,0,pop_status_y,Current status of whether or not POP is enable for specified axis,
+10,CAN,pop_status_z,1,-,0,rc_adcs_bdot_6,1,7,0,pop_status_z,Current status of whether or not POP is enable for specified axis,
+11,CAN,spam_control,1,-,0,rc_adcs_bdot_6,1,8,0,spam_control,Current setting on whether or not spam is enabled,
+12,CAN,spam_off_time,16,-,0,rc_adcs_bdot_6,1,9,0,spam_off_time,Current setting for the time in minutes of SPAM not being on,
+13,CAN,spam_on_time,16,-,0,rc_adcs_bdot_6,1,10,0,spam_on_time,Current setting for the time in minutes of SPAM being on,
+14,CAN,JUNK,9,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

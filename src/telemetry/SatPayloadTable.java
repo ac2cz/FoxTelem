@@ -664,21 +664,19 @@ public class SatPayloadTable {
 				rt.type = type; // make sure we get the right type
 			}
 			if (type == FoxFramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
-				if (!Config.splitCanPackets) {
-					rt = null; // we are not saving these
-				} else {
-					String[] st2 = line.split(",");
-					int canIdField = 5;
-					if (storeMode)
-						canIdField = 6;
-					int pktid = Integer.valueOf(st2[canIdField]).intValue();
-					int pktid1 = Integer.valueOf(st2[canIdField+1]).intValue();
-					int pktid2 = Integer.valueOf(st2[canIdField+2]).intValue();
-					int pktid3 = Integer.valueOf(st2[canIdField+3]).intValue();
-					int canId = CanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
-					BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
-					rt = new CanPacket(id, resets, uptime, date, st, canLayout);
-				}
+
+				String[] st2 = line.split(",");
+				int canIdField = 5;
+				if (storeMode)
+					canIdField = 6;
+				int pktid = Integer.valueOf(st2[canIdField]).intValue();
+				int pktid1 = Integer.valueOf(st2[canIdField+1]).intValue();
+				int pktid2 = Integer.valueOf(st2[canIdField+2]).intValue();
+				int pktid3 = Integer.valueOf(st2[canIdField+3]).intValue();
+				int canId = CanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
+				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
+				rt = new CanPacket(id, resets, uptime, date, st, canLayout);
+
 				if (rt != null)
 					rt.type = type; // make sure we get the right type
 			}
@@ -713,11 +711,12 @@ public class SatPayloadTable {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
 			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
 			return null;
-		} catch (NullPointerException n) {
-			Log.println("ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
-			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
-			return null;
-		}
+		} 
+//		catch (NullPointerException n) {
+//			Log.println("ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
+//			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
+//			return null;
+//		}
 
 	}
 	

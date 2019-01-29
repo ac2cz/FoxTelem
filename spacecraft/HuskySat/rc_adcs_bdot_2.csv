@@ -1,9 +1,9 @@
 8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_adcs_bdot_2,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_adcs_bdot_2,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_adcs_bdot_2,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_adcs_bdot_2,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,mag_x_avg,16,1/73 nT,0,rc_adcs_bdot_2,1,2,0,mag_x_avg,X Average reading in nT,
-5,CAN,mag_x_max,16,1/73 nT,0,rc_adcs_bdot_2,1,3,0,mag_x_max,X Maximum reading in nT ,
-6,CAN,mag_x_min,16,1/73 nT,0,rc_adcs_bdot_2,1,4,0,mag_x_min,X Minium reading in nT,
-7,CAN,mag_y_min,16,1/73 nT,0,rc_adcs_bdot_2,1,5,0,mag_y_min,Y Minium reading in nT,
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,mag_x_avg,16,1/73 nT,0,rc_adcs_bdot_2,1,1,0,mag_x_avg,X Average reading in nT,
+5,CAN,mag_x_max,16,1/73 nT,0,rc_adcs_bdot_2,1,2,0,mag_x_max,X Maximum reading in nT ,
+6,CAN,mag_x_min,16,1/73 nT,0,rc_adcs_bdot_2,1,3,0,mag_x_min,X Minium reading in nT,
+7,CAN,mag_y_min,16,1/73 nT,0,rc_adcs_bdot_2,1,4,0,mag_y_min,Y Minium reading in nT,

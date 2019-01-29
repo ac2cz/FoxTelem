@@ -6,11 +6,15 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
+import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.PayloadWODUwExperiment;
 
 @SuppressWarnings("serial")
 public class WodUwExperimentTab extends UwExperimentTab {
+
+	
+	public static int[] wod_ids = {309920562, 309920256, 309330499};
 
 	public WodUwExperimentTab(FoxSpacecraft sat) {
 		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
@@ -19,35 +23,80 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	
 	@Override
 	protected void parseRadiationFrames() {
-		
-		if (Config.displayRawRadData) {
-			String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.WOD_CAN_PKT_LAYOUT);
-			if (data != null && data.length > 0)
-				parseRawBytes(data, radTableModel);
-		} else {
-			if (displayTelem) {
-				String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.WOD_CAN_PKT_LAYOUT);
-//				String[][] data = Config.payloadStore.getWodRadTelemData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
-				if (data != null && data.length > 0)
-					parseTelemetry(data);
-					topHalfPackets.setVisible(false);
-					bottomHalfPackets.setVisible(false);
-					topHalf.setVisible(true);
-//					bottomHalf.setVisible(true);
-			
+	String[][] data = null;
+
+	if (Config.displayRawRadData) {
+//		if (Config.splitCanPackets) {
+			// for each CAN Packet get the layout and all the packets
+			String[][][] all = new String[250][][];
+			int number = 0;
+			int total = 0;
+			for (int id : wod_ids) {
+				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+				String[][] records = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, lay.name);
+				if (records.length > 0) {
+					all[number] = records;
+					number++;
+					total = total + records.length;
+				}
 			}
-			
+			int k = 0;
+			data = new String[total][];
+			for (int j=0; j<number; j++)
+				for (int r=0; r<all[j].length; r++) {
+					data[k++] = all[j][r];
+				}
+//		} else {
+//			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
+//		}
+		if (data != null && data.length > 0)
+			parseRawBytes(data,radTableModel);
+	} else {
+//		if (Config.splitCanPackets) {
+			// for each CAN Packet name, get the layout and see what total we have
+			String[][] totals = new String[250][];
+			int number = 0;
+			for (int id : wod_ids) {
+				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+				int total = Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
+				if (total > 0) {
+					String[] row = new String[5];
+					row[0] = ""+id;
+					row[1] = fox.canFrames.getGroundByCanId(id);
+					row[2] = fox.canFrames.getNameByCanId(id);
+					row[3] = fox.canFrames.getSenderByCanId(id);
+					row[4] = ""+total;
+					totals[number] = row;
+					number++;
+				}
+			}
+			data = new String[number][];
+			for (int j=0; j<number; j++)
+				data[j] = totals[j];
+//		} else {
+//			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);				
+//		}
+		if (data != null && data.length > 0) {
+			parseTelemetry(data);
 		}
-		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
-			scrollPane.setVisible(true);
-		} else { 
-			packetScrollPane.setVisible(true);
-			scrollPane.setVisible(false);
-		}
-		
-		MainWindow.frame.repaint();
+		//		topHalfPackets.setVisible(false);
+		//		bottomHalfPackets.setVisible(false);
+		//		topHalf.setVisible(true);
+		//		bottomHalf.setVisible(true);
+
 	}
+
+	if (showRawBytes.isSelected()) {
+		packetScrollPane.setVisible(false); 
+		scrollPane.setVisible(true);
+	} else { 
+		packetScrollPane.setVisible(true);
+		scrollPane.setVisible(false);
+	}
+
+	MainWindow.frame.repaint();
+}
+
 	
 	protected void displayRow(JTable table, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);

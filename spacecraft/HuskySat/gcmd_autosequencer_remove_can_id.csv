@@ -1,7 +1,7 @@
 6,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,gcmd_autosequencer_remove_can_id,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,gcmd_autosequencer_remove_can_id,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,gcmd_autosequencer_remove_can_id,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,gcmd_autosequencer_remove_can_id,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,gcmd_autosequencer_rm_can_id_id,29,-,0,gcmd_autosequencer_remove_can_id,1,2,0,gcmd_autosequencer_rm_can_id_id,remove all occurrences of the specified CAN Id in the autosequencer,
-5,CAN,JUNK,35,NONE,0,gcmd_autosequencer_remove_can_id,1,3,0,Junk,Unexpected bytes at the end of the CAN Packet
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,gcmd_autosequencer_rm_can_id_id,29,-,0,gcmd_autosequencer_remove_can_id,1,1,0,gcmd_autosequencer_rm_can_id_id,remove all occurrences of the specified CAN Id in the autosequencer,
+5,CAN,JUNK,35,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

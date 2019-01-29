@@ -1,9 +1,9 @@
 8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,CAN,UW_ID0,8,NONE,0,rc_adcs_sp_2,1,1,0,ID0,CAN ID with Length Encoded
-1,CAN,UW_ID1,8,NONE,0,rc_adcs_sp_2,1,1,0,ID1,CAN ID with Length Encoded
-2,CAN,UW_ID2,8,NONE,0,rc_adcs_sp_2,1,1,0,ID2,CAN ID with Length Encoded
-3,CAN,UW_ID3,8,NONE,0,rc_adcs_sp_2,1,1,0,ID3,CAN ID with Length Encoded
-4,CAN,imup_x_avg,16,0.004375º/s,0,rc_adcs_sp_2,1,2,0,imup_x_avg,Processed IMU X axis avg,
-5,CAN,imup_x_max,16,0.004375º/s,0,rc_adcs_sp_2,1,3,0,imup_x_max,Processed IMU X axis max,
-6,CAN,imup_x_min,16,0.004375º/s,0,rc_adcs_sp_2,1,4,0,imup_x_min,Processed IMU X axis min,
-7,CAN,imup_y_min,16,0.004375º/s,0,rc_adcs_sp_2,1,5,0,imup_y_min,Processed IMU Y axis min,
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,imup_x_avg,16,0.004375º/s,0,rc_adcs_sp_2,1,1,0,imup_x_avg,Processed IMU X axis avg,
+5,CAN,imup_x_max,16,0.004375º/s,0,rc_adcs_sp_2,1,2,0,imup_x_max,Processed IMU X axis max,
+6,CAN,imup_x_min,16,0.004375º/s,0,rc_adcs_sp_2,1,3,0,imup_x_min,Processed IMU X axis min,
+7,CAN,imup_y_min,16,0.004375º/s,0,rc_adcs_sp_2,1,4,0,imup_y_min,Processed IMU Y axis min,

@@ -13,9 +13,9 @@ def writeCanIdLine(outfile, line, frame, moduleNum, lineType):
     "8" +"," +
     "NONE" +"," +
     "0" +"," +
-    frame +"," +
-    str(moduleNum) +"," +
-    "1" +"," +
+    "NONE" +"," +
+    "0," +
+    "0," +
     str(lineType) +"," +
     "ID" + str(line) +"," +    
     "CAN ID with Length Encoded\n")
@@ -29,7 +29,7 @@ def processSignals(frame, fileName, outFile, moduleNum):
     lineNum = 4 # start at 4 as we add in line 0-3 with the CAN ID
 
     lines = loadCsvFile(fileName)
-    moduleLine = 2 # start at 2 because CAN_ID on 1
+    moduleLine = 1 # start at 1 because we ignore CAN_ID on 1
     lineType = 0
     data = ""
     totalBits = 0
@@ -97,9 +97,9 @@ def processSignals(frame, fileName, outFile, moduleNum):
         str(pad) +"," +
         "NONE" +"," +
         "0" +"," +
-        frame +"," +
-        str(moduleNum) +"," +
-        str(moduleLine) +"," +
+        "NONE" +"," +
+        "0" +"," +
+        "0" +"," +
         str(lineType) +"," +
         "Junk" + "," +    
         "Unexpected bytes at the end of the CAN Packet\n")

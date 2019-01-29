@@ -273,8 +273,8 @@ public class Config {
 	public static boolean showSourceOptions = true; 
 	static public boolean useCostas = false;
 	
-	// V1.087
-	static public boolean splitCanPackets = true;
+	// V1.08
+	//static public boolean splitCanPackets = true;
 	
 	
 	public static boolean missing() { 
@@ -716,7 +716,7 @@ public class Config {
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		
 		// V1.08
-		properties.setProperty("splitCanPackets", Boolean.toString(splitCanPackets));
+//		properties.setProperty("splitCanPackets", Boolean.toString(splitCanPackets));
 
 		store();
 	}
@@ -898,7 +898,7 @@ public class Config {
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		
 		// V1.08
-		splitCanPackets = Boolean.parseBoolean(getProperty("splitCanPackets"));
+//		splitCanPackets = Boolean.parseBoolean(getProperty("splitCanPackets"));
 		
 		
 		} catch (NumberFormatException nf) {

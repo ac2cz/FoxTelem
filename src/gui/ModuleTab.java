@@ -286,8 +286,8 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	}
 	
 	protected void makeDisplayModules(BitArrayLayout[] layouts,int moduleType) throws LayoutLoadException {
-		int topLength = layouts.length/2;
-		int bottomLength = layouts.length - topLength;
+		int topLength = layouts.length;//   /2;
+		int bottomLength = 0; //layouts.length - topLength;
 		String[] topModuleNames = new String[topLength];
 		int[] topModuleLines = new int[topLength];
 		String[] bottomModuleNames = new String[bottomLength];
@@ -295,16 +295,16 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		int numOfTopModules = 0;
 		int numOfBottomModules = 0;
 		
-		// Process each layout 1 by 1.  We expect only one DisplayModule per layout
+		// Process each layout 1 by 1.  
 		int moduleNum = 0;
 		for (BitArrayLayout rt : layouts) {
 			if (moduleNum < topLength) {
-				topModuleNames[moduleNum] = rt.module[0];
-				topModuleLines[moduleNum] = rt.NUMBER_OF_FIELDS; // we display them all
+				topModuleNames[moduleNum] = rt.module[4]; // ignore the ID fields
+				topModuleLines[moduleNum] = rt.NUMBER_OF_FIELDS-5; // we display them all except 4 id and junk
 				numOfTopModules++;
 			} else {
-				bottomModuleNames[moduleNum-topLength] = rt.module[0];
-				bottomModuleLines[moduleNum-topLength] = rt.NUMBER_OF_FIELDS; // we display them all
+				bottomModuleNames[moduleNum-topLength] = rt.module[4];
+				bottomModuleLines[moduleNum-topLength] = rt.NUMBER_OF_FIELDS-5; // we display them all except 4 id and junk
 				numOfBottomModules++;				
 			}
 			moduleNum++;
@@ -312,6 +312,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			
 
 		topModules = new DisplayModule[numOfTopModules];
+		if (bottomLength > 0)
 		bottomModules = new DisplayModule[numOfBottomModules];
 
 		// Process the top Modules
@@ -322,6 +323,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		}
 
 		// then bottom
+		if (bottomLength > 0)
 		for (int i=0; i < numOfBottomModules; i++) {
 			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, moduleType);
 			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], layouts[i]);
@@ -408,7 +410,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			}
 			bottomHalf.add(bottomModules[i]);
 		}
-		
+
 	}
 
 	private void addModuleLines(DisplayModule displayModule, String topModuleName, int topModuleLine, BitArrayLayout rt) throws LayoutLoadException {
@@ -416,7 +418,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			if (rt.module[j].equals(topModuleName)) {
 				//Log.println("Adding:" + rt.shortName[j]);
 				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName + " field: " + j +
-				".\nModule: " + topModuleName +
+						".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				try {
 					if (rt.name.equals(Spacecraft.WOD_LAYOUT)) rt.moduleDisplayType[j] = DisplayModule.DISPLAY_WOD;
@@ -424,13 +426,13 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 				} catch (NullPointerException e) {
 					throw new LayoutLoadException("Found NULL item error in Layout File: "+ rt.fileName +
 							".\nModule: " + topModuleName +
-									" has " + topModuleLine + " lines, but error adding " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
+							" has " + topModuleLine + " lines, but error adding " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				}
-				}
+			}
 		}
 
 	}
-	
+
 	private String formatUnits(String unit) {
 		if (unit.equals("-") || unit.equalsIgnoreCase(BitArrayLayout.NONE)) return "";
 		unit = " ("+unit+")";
