@@ -32,6 +32,11 @@ public abstract class Oscillator {
 		setFrequency(freq);
 	}
 	
+	public Oscillator(int samples, double phaseInc) {
+		this.samplesPerSecond = samples;
+		setPhaseIncrement(phaseInc);
+	}
+	
 	public void changePhase(double phaseIncrement) { 
 		incPhase(phaseIncrement);
 	}
@@ -70,12 +75,27 @@ public abstract class Oscillator {
 		}
 	}
 	
+	public void setPhase(double phase) {
+		this.phase = phase;
+	}
+	
+	public void setPhaseIncrement(double phaseInc) {
+		if (phaseIncrement != phaseInc) { // avoid the calculation if they are the same
+			frequency = phaseInc * samplesPerSecond / (2 * Math.PI);
+			phaseIncrement = phaseInc;
+		}
+	}
+	
 	public double getFrequency() { 
 		return frequency;
 	}
 	
 	public double getPhase() {
 		return phase;
+	}
+	
+	public double getPhaseIncrement() {
+		return phaseIncrement;
 	}
 	
 	public double nextSample() {

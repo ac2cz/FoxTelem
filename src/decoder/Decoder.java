@@ -98,7 +98,7 @@ public abstract class Decoder implements Runnable {
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
 	private double[] abBufferDouble;
-	private double[] abBufferDoubleFiltered; 
+	protected double[] abBufferDoubleFiltered; 
 	
 	protected boolean dataFresh = false; // true if we have just written new data for the GUI to read
 	

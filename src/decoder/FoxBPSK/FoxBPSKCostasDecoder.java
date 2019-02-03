@@ -172,7 +172,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
-				double value = dataValues[i][s]/ 32768.0;
+				double value = dataValues[i][s]/ 32767.0;
 				
 				if (value > maxValue) maxValue = value;
 				if (value < minValue) minValue = value;
@@ -184,7 +184,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 				} else {
 					psk = value;
 				}	
-				int eyeValue = (int)(-1*psk*32768.0); 
+				int eyeValue = (int)(-1*psk*32767.0); 
 
 				if (mode == PSK_MODE) {
 					//if ) {
@@ -244,10 +244,10 @@ public class FoxBPSKCostasDecoder extends Decoder {
 							bitPosition = bitPosition + 1;
 
 						if (thisPhase == false)
-							eyeData.setLow((int) (YnSample*32768));
+							eyeData.setLow((int) (YnSample*32767));
 //							eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
 						else
-							eyeData.setHigh((int) (YnSample*32768));
+							eyeData.setHigh((int) (YnSample*32767));
 //							eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 
 						//					System.err.print("End bp: " + bitPosition + " ");
