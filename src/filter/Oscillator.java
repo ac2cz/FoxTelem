@@ -99,9 +99,13 @@ public abstract class Oscillator {
 	}
 	
 	public double nextSample() {
+		double value = 0;
 		incPhase(phaseIncrement);
-		int idx = (int)((phase * (double)TABLE_SIZE/(2 * Math.PI))%TABLE_SIZE);
-		double value = sinTable[idx];
+		int idx = ((int)((phase * (double)TABLE_SIZE/(2 * Math.PI))))%TABLE_SIZE;
+		if (idx < 0 || idx > sinTable.length)
+			System.err.println("NEG IDX ERROR: " + idx + " phase:" + phase + " inc:"+phaseIncrement);
+		else
+			value = sinTable[idx];
 		return value;
 	}
 	

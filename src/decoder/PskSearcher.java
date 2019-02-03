@@ -62,17 +62,17 @@ public class PskSearcher implements Runnable {
 		cos = new CosOscillator(sampleRate, cphase_inc_start);
 		sin = new SinOscillator(sampleRate, cphase_inc_start);
 		
-		Log.println("SEARCHER STARTED: Start Freq: " + cos.getFrequency());
-		Log.println("  searching: " + nfreq + " steps");
+		//Log.println("SEARCHER STARTED: Start Freq: " + cos.getFrequency());
+		//Log.println("  searching: " + nfreq + " steps");
 		double endInc = cphase_inc_step * nfreq;
 		double endFreq = endInc * sampleRate / (2 * Math.PI);
-		Log.println("  to: " + (cos.getFrequency() + endFreq));
+		//Log.println("  to: " + (cos.getFrequency() + endFreq));
 	}
 
 	public synchronized double getEnergy() { return energy; }
 	public synchronized int getNfreq() { return nfreq; }
 	public synchronized double getCphaseInc() { return cphase_inc; }
-	public synchronized double getSymphase() { return symphase; }
+	public synchronized int getSymphase() { return symphase; }
 	public synchronized double getFrequency() { return frequency; }
 	
 	public void stop() {
@@ -150,8 +150,8 @@ public class PskSearcher implements Runnable {
 				e.printStackTrace();
 			}
 		}
-		Log.println("SEARCHER ENDED: End Freq: " + cos.getFrequency());
-		Log.println("  Start Phase: "+cphase_inc_start+" Inc:"+this.cphase_inc +" E:" + energy + " O:" + symphase);
+		//Log.println("SEARCHER ENDED: End Freq: " + cos.getFrequency());
+		//Log.println("  Start Phase: "+cphase_inc_start+" Inc:"+this.cphase_inc +" E:" + energy + " O:" + symphase);
 	}
 
 

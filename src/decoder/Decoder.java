@@ -15,6 +15,7 @@ import common.Performance;
 import common.Spacecraft;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
@@ -97,7 +98,7 @@ public abstract class Decoder implements Runnable {
 	public static final int MIN_BIT_SNR = 2;// Above this threshold we unsquelch the audio
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
-	private double[] abBufferDouble;
+	protected double[] abBufferDouble;
 	protected double[] abBufferDoubleFiltered; 
 	
 	protected boolean dataFresh = false; // true if we have just written new data for the GUI to read
@@ -375,11 +376,11 @@ public abstract class Decoder implements Runnable {
 			// CATCH THIS IN PRODUCTION VERSION	
 	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
 	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught null exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
-		} catch (Exception e) {
-			// CATCH THIS IN PRODUCTION VERSION	
-	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
-	        Log.errorDialog("UNEXPECTED ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
-			
+//		} catch (Exception e) {
+//			// CATCH THIS IN PRODUCTION VERSION	
+//	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
+//	        Log.errorDialog("UNEXPECTED ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+//			
 		}
 		Log.println("DECODER Exit");
 	}
@@ -390,8 +391,13 @@ public abstract class Decoder implements Runnable {
 		nBytesRead = audioSource.read(abData, audioChannel);	
 		return nBytesRead;
 	}
-
 	
+	protected void rewind(int amount) {
+		int nBytesRead = 0;
+		//Log.println("Rewinding "+ amount +" doubles from channel: " + audioChannel);
+		 audioSource.rewind(amount, audioChannel);
+	}
+
 	public void process() throws UnsupportedAudioFileException, IOException {
 		Log.println("Decoder using sample rate: " + currentSampleRate);
 		Log.println("Decoder using bucketSize: " + bucketSize);
@@ -645,7 +651,8 @@ public abstract class Decoder implements Runnable {
 				for (int j=0; j < bucketSize; j++ ) { // sample size is 2, 2 bytes per channel 				
 					int value = (int)(abData[k] * 32768.0);
 					dataValues[i][j] = value; 
-					if (!(this instanceof FoxBPSKDecoder || this instanceof FoxBPSKCostasDecoder))
+					if (!(this instanceof FoxBPSKDecoder || this instanceof FoxBPSKCostasDecoder
+							|| this instanceof FoxBPSKDotProdDecoder))
 						eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
 
 					if (value > maxValue[i]) maxValue[i] = value;

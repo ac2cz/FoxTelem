@@ -78,6 +78,10 @@ public abstract class SourceAudio implements Runnable {
 		this.channels = channels;
 		storeStereo = stereo;
 	}
+	
+	public void rewind(int amount, int chan) {
+		circularDoubleBuffer[chan].decStartPointer(amount);
+	}
 
 	public int read(double[] abData, int chan) {
 		//int bytesRead = 0; 

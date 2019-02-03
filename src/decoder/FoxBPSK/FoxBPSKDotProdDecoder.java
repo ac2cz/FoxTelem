@@ -24,10 +24,12 @@ import filter.Complex;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.Delay;
+import filter.DotProduct;
 import filter.HilbertTransform;
 import filter.IirFilter;
 import filter.RaisedCosineFilter;
 import filter.RootRaisedCosineFilter;
+import filter.SinOscillator;
 import filter.WindowedSincFilter;
 
 public class FoxBPSKDotProdDecoder extends Decoder {
@@ -64,7 +66,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 128; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
+		SAMPLE_WINDOW_LENGTH = 40; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 		samplePoint = bucketSize/2;
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -86,6 +88,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		phase_inc_stop = (Carrier + Carrier_range) * 2 * Math.PI / (double) currentSampleRate;
 		phase_inc_step = 2 * Math.PI * 100 / (double) currentSampleRate; // 100Hz - how much to increase phase for each searcher
 		Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
+		
+		matchedFilter = new DotProduct();
 	}
 
 	protected void resetWindowData() {
@@ -112,7 +116,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 
 	int chunk = 0;
 	public static final int SEARCH_INTERVAL = 16;
-	public static final int NSEARCHERS = 1;
+	public static final int NSEARCHERS = 4;
 	double Carrier = 1200;         // Center of carrier frequency search range
 	double Carrier_range = 600;    // Limits of search range above and below Carrier frequency
 	int Ftotal = (int) (2 * Carrier_range/100.0d + 1);
@@ -121,8 +125,28 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	Thread[] searcherThreads = new Thread[NSEARCHERS];
 	
 	double phase_inc_start, phase_inc_stop, phase_inc_step;
+	DotProduct matchedFilter;
+	
+	CosOscillator cos = new CosOscillator(currentSampleRate, (int)Carrier);
+	SinOscillator sin = new SinOscillator(currentSampleRate, (int)Carrier);
+
+	CosOscillator ftcos = new CosOscillator(currentSampleRate, (int)Carrier);
+	SinOscillator ftsin = new SinOscillator(currentSampleRate, (int)Carrier);
 	
 	double freq = 1200.0;  //////////////// legacy value, REMOVE
+	
+	double carrier = 0;
+    double cphase_inc;
+    int symphase = 0;
+	double[] baseband_i = new double[BUFFER_SIZE];
+	double[] baseband_q = new double[BUFFER_SIZE];
+	PskDemodState[] demodState = new PskDemodState[3];
+	int symbol_count = 0;
+	double[] data; // the demodulated symbols
+	int Symbols_demodulated; // total symbols demodulated
+	double Gain = 128; // Heuristically, this seems about optimum
+	int samples_processed = 0;
+
 	
 	protected void sampleBuckets() {
 		double maxValue = 0;
@@ -133,11 +157,11 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		// dataValues is already bucketed, but we don't want that.
 		// we use abBufferDoubleFiltered which has DC balance but nothing else
 		// abBufferDoubleFiltered is BUFFER_SIZE long
-		
+
 		// Perform a brute force search periodically
 		if (chunk % SEARCH_INTERVAL == 0) {
 			int slot;
-	        double cphase_inc, maxenergy_value, symphase = 0;
+	        double maxenergy_value;
 	        int slots;
 	        int fleft;
 	        
@@ -157,7 +181,6 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        }
 	        
 	        // Find the winner
-	        double carrier = 0;
 	        slots = slot;
 	        maxenergy_value = 0;
 	        for(slot=0;slot < slots;slot++){
@@ -176,14 +199,112 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        }
 	        ////////////// Need to think about this.  He has phase in terms of the actual samples in the 
 	        ////////////// symbol I think.  Which is clever ...
-//	        if(symphase < SAMPPSYM/2)
-//	        	symphase += SAMPPSYM; // Allow room for early symbol timing test
-	        Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value+"\n");
+	        if(symphase < bucketSize/2)
+	        	symphase += bucketSize; // Allow room for early symbol timing test
+	        //Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
 	    }
 	    
-		// At the end of chunk processing, increment counter
-		chunk++;
-		
+		// track frequency with two probes, one below and one above nominal carrier frequency
+	    // Use linear interpolation to determine more accurate carrier frequency
+	    double lower = carrier - 75;
+	    double upper = carrier + 75;
+	    double lower_phase = lower * 2 * Math.PI / (double) currentSampleRate;
+	    double upper_phase = upper * 2 * Math.PI / (double) currentSampleRate;
+
+        //Log.println("   CARRIER "+carrier+" Hz Upper:"+upper + " Lower:"+lower);
+
+	    double cpt0 = frequencyTracker(abBufferDoubleFiltered,symphase, lower_phase);
+	    double cpt1 = frequencyTracker(abBufferDoubleFiltered,symphase, upper_phase);
+
+	    // Solve for zero crossing of cpt / carrier curve
+	    // Note: this isn't exact. The cpt values aren't linear as they're actually functions of the sine of the frequency offset
+	    // I should work up a more exact function, or at least bound the error
+	    if(cpt1 != cpt0) // Avoid unlikely divide by zero
+	      carrier = lower - cpt0 * (upper - lower) / (cpt1 - cpt0);
+
+        //Log.println("   CARRIER "+carrier+" Hz cpt0:"+cpt0 + " cpt1:"+cpt1);
+
+	    // Spin down to baseband with best estimate of carrier frequency
+	    cphase_inc = carrier * 2 * Math.PI / (double) currentSampleRate;
+		cos.setPhaseIncrement(cphase_inc);
+		sin.setPhaseIncrement(cphase_inc);
+		int eyeValue = 0;
+	    for(int i=0; i < BUFFER_SIZE; i++){
+			baseband_i[i] = abBufferDoubleFiltered[i] * cos.nextSample();
+			baseband_q[i] = abBufferDoubleFiltered[i] * sin.nextSample();
+			pskAudioData[i] = baseband_i[i] + baseband_q[i];
+			eyeValue = (int)(-1*pskAudioData[i]*32767.0); 
+			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
+	    }
+
+	    // Demodulate 3 times: early, on time, and late
+	    int best_index = -1;
+	    double energy = 0;
+	    for(int i=0;i<3;i++){
+	    	demodState[i] = demodulate(baseband_i, baseband_q, symphase + i - 1);
+	    	if(energy < demodState[i].energy){
+	    		best_index = i;
+	    		energy = demodState[i].energy;
+	    	}
+	    }
+	    
+	    assert(best_index != -1);
+	    symphase = symphase + best_index - 1;
+	    symbol_count = demodState[best_index].symbol_count;
+	    data = demodState[best_index].data;
+	    Symbols_demodulated += symbol_count;
+
+	    //Log.println("Symbols decoded:" + symbol_count);
+	    // Scale demodulated data and pass to FEC
+	    double rms = Math.sqrt(energy / symbol_count);
+	    gain = Gain / rms; // Tune this
+	    // Skip data[0], which is actually the last symbol from the previous chunk
+	    // It was needed by the demodulator as the reference for differentially decoding the second symbol, i.e., data[1]
+	    for(int i=1;i<symbol_count;i++){
+	    	boolean thisSample = false;
+	    	double y;
+
+	    	y = 127.5 + gain * data[i];
+	    	y = (y > 255) ? 255 : ((y < 0) ? 0 : y);
+
+	    	//symbolq((int)y+" "); // Pass to FEC decoder thread
+	    	if (data[i] > 0) thisSample = true;
+			bitStream.addBit(thisSample);
+			if (thisSample == false)
+				eyeData.setLow((int) (data[i]*32767));
+//				eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
+			else
+				eyeData.setHigh((int) (data[i]*32767));
+			
+	    }
+	    
+	    // Move carefully to next chunk, allowing for overlap of last/first symbol used for differential decoding and for timing skew
+	    samples_processed = bucketSize * (symbol_count-1);
+	    if(symphase <= bucketSize/2){
+	    	// Timing is moving early; move back 1/2 symbol
+	    	samples_processed -= bucketSize/2;
+	    	symphase += bucketSize/2;
+	    	cos.changePhase(-1*cphase_inc/2.0);
+	    	sin.changePhase(-1*cphase_inc/2.0);
+	    } else if(symphase >= (3*bucketSize)/2){
+	    	// Timing is moving late; move forward 1/2 sample
+	    	samples_processed += bucketSize/2;
+	    	symphase -= bucketSize/2;
+	    	cos.changePhase(cphase_inc/2.0);
+	    	sin.changePhase(cphase_inc/2.0);
+	    }
+
+	    // At the end of chunk processing, increment counter
+	    chunk++;
+	    // adjust the read pointer based on the number of symbols we actually processed
+	    int amount = BUFFER_SIZE - samples_processed;
+	    rewind(amount);
+	    
+	    //Sampcounter += samples_processed; // not currently used
+
+	    
+	    
+	    
 //		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 //			for (int s=0; s < bucketSize; s++) {
 //				double value = dataValues[i][s]/ 32768.0;
@@ -264,6 +385,97 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 
 	}
+	
+	/**
+	 * Demodulate chunk, determining frequency error
+	 * @param samples - samples to be processed
+	 * @param symphase - Offset to first sample of first symbol; determined by symbol timing (input)
+	 * @param cphase_inc - Carrier phase increment per sample (2^32 = 2 pi radians) (input)
+	 * @return
+	 */
+	private double frequencyTracker(double[] samples, int symphase, double cphase_inc) {
+		double[] baseband_i = new double[BUFFER_SIZE];
+		double[] baseband_q = new double[BUFFER_SIZE];
+		int bb_p,i;
+		double tlast_i,tlast_q;
+		double cpt;
+		int Ntaps = matchedFilter.getNumOfTaps();
+
+		ftcos.setPhaseIncrement(cphase_inc);
+		ftsin.setPhaseIncrement(cphase_inc);
+		// reset each time to do the search
+		ftcos.setPhase(0);
+		ftsin.setPhase(0);
+
+		// Downconvert chunk of samples to baseband 
+		for(i=0; i < BUFFER_SIZE; i++){
+			baseband_i[i] = samples[i] * ftcos.nextSample();
+			baseband_q[i] = samples[i] * ftsin.nextSample();
+		}
+		// Perform demodulation with specified symbol timing, computing sum of cross products
+		cpt = 0;
+		tlast_i = tlast_q = 0;
+		for(bb_p = symphase; bb_p + Ntaps < BUFFER_SIZE; bb_p += bucketSize){ // For every symbol in baseband buffer
+			double fi,fq;
+			double symbol;
+
+			// Demodulate through matched filter, compute baseband energy
+			fi = matchedFilter.dotprod(baseband_i, bb_p);
+			fq = matchedFilter.dotprod(baseband_q, bb_p);
+
+			// Dot product of previous and current center complex samples gives differentially demodulated symbol
+			symbol = fi * tlast_i + fq * tlast_q;
+			// When there hasn't been a transition, a positive cross product means the signal frequency is positive, i.e.,
+			// our estimate of carrier frequency is too low. A transition reverses the sense of the cross product.
+			if(symbol < 0)
+				cpt -= fi * tlast_q - fq * tlast_i;
+			else
+				cpt += fi * tlast_q - fq * tlast_i;
+
+			tlast_i = fi;
+			tlast_q = fq;
+		}
+		return cpt;
+	}
+	
+	/**
+	 * 
+	 * @param baseband_i // Baseband I-channel samples (input)
+	 * @param baseband_q 
+	 * @param symphase // Offset to first sample of first symbol; determined by symbol timing (input)
+	 * @return PskDemodState
+	 */
+	private PskDemodState demodulate(double[] baseband_i, double[] baseband_q, int symphase) {
+
+		int bb_p, symbol_count = 0;
+		double tlast_i = 0, tlast_q = 0;
+		double en_tmp;
+		int Ntaps = matchedFilter.getNumOfTaps();
+		double[] data = new double[SAMPLE_WINDOW_LENGTH];
+		
+		en_tmp = 0;
+		for(bb_p = symphase; bb_p + Ntaps < BUFFER_SIZE; bb_p += bucketSize){ // For every symbol in baseband buffer
+			double fi, fq;
+			double symbol;
+
+			// Sample matched filter
+			fi = matchedFilter.dotprod(baseband_i, bb_p);
+			fq = matchedFilter.dotprod(baseband_q, bb_p);
+
+			// Dot product of previous and current complex samples gives differentially demodulated symbol
+			// data[0] will always be 0
+			symbol = fi * tlast_i + fq * tlast_q;
+			en_tmp += (double)symbol * symbol;
+
+			assert(symbol_count < SAMPLE_WINDOW_LENGTH);
+			data[symbol_count++] = symbol;
+			tlast_i = fi;
+			tlast_q = fq;
+		}
+		PskDemodState demodState = new PskDemodState(symphase, en_tmp, data, symbol_count);
+		return demodState;
+	}
+
 
 	private int min(int a, int b) {
 		if (a < b)
@@ -271,7 +483,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		else
 			return b;
 	}
-	
+
 	public void incFreq () {
 		freq = freq + 1d;
 		//		nco.changePhase(10*alpha);
@@ -393,9 +605,22 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	}
 
 
-	public double getFrequency() { return nco.getFrequency(); }
+	public double getFrequency() { return cos.getFrequency(); }
+	public int getOffset() { return symphase; }
 	
-	
+	class PskDemodState {
+		int symphase;                // Offset to first sample of first symbol; determined by symbol timing (input)
+		double energy;               // Total demodulator output energy (output)
+		double[] data;  	// Demodulated symbols (output)
+		int symbol_count;
+		
+		PskDemodState(int symphase, double energy, double[] data, int symbol_count) {
+			this.symphase = symphase;
+			this.energy = energy;
+			this.data = data;
+			this.symbol_count = symbol_count;
+		}
+	}
 	
 }
 

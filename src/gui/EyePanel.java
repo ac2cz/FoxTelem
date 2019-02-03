@@ -13,6 +13,7 @@ import common.Log;
 import decoder.FoxDecoder;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
@@ -209,7 +210,8 @@ public class EyePanel extends JPanel implements Runnable {
 		//int spaceSize = 1;
 		int maxValue = (int)(Decoder.MAX_VOLUME/1.5);
 		int minValue = (int)(-1*Decoder.MAX_VOLUME/1.5);
-		if (decoder instanceof FoxBPSKDecoder || decoder instanceof FoxBPSKCostasDecoder) {
+		if (decoder instanceof FoxBPSKDecoder || decoder instanceof FoxBPSKCostasDecoder
+				|| decoder instanceof FoxBPSKDotProdDecoder) {
 			maxValue = (int)(Decoder.MAX_VOLUME*1.5);
 			minValue = (int)(-1*Decoder.MAX_VOLUME*1.5);
 		}
