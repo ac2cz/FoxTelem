@@ -233,6 +233,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			column.setPreferredWidth(150);
 
 			column = packetTable.getColumnModel().getColumn(4);
+			column.setPreferredWidth(155);
+			column = packetTable.getColumnModel().getColumn(5);
 			column.setPreferredWidth(55);
 
 //		} else {
@@ -372,13 +374,14 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		String[][] packetData = null;
 //		if (Config.splitCanPackets) {
 			keyPacketData = new long[len][1];
-			packetData = new String[len][4];
+			packetData = new String[len][5];
 			for (int i=0; i < len; i++) { 
 				keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
-				packetData[len-i-1][0] = data[i][1];
-				packetData[len-i-1][1] = data[i][2];
-				packetData[len-i-1][2] = data[i][3];
-				packetData[len-i-1][3] = data[i][4];
+				packetData[len-i-1][0] = String.format("%08x", Long.parseLong(data[i][0]));
+				packetData[len-i-1][1] = data[i][1];
+				packetData[len-i-1][2] = data[i][2];
+				packetData[len-i-1][3] = data[i][3];
+				packetData[len-i-1][4] = data[i][4];
 			}
 //		} else {
 //			keyPacketData = new long[len][3];

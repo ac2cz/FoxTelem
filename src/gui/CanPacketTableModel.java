@@ -28,12 +28,13 @@ class CanPacketTableModel extends FoxTelemTableModel {
 
 	CanPacketTableModel() {
 //		if (Config.splitCanPackets) {
-			columnNames = new String[5];
+			columnNames = new String[6];
 			columnNames[0] = "ID";
-			columnNames[1] = "GROUND";
-			columnNames[2] = "FRAME";
-			columnNames[3] = "SENDER";
-			columnNames[4] = "TOTAL";
+			columnNames[1] = "ID Hex";
+			columnNames[2] = "GROUND";
+			columnNames[3] = "FRAME";
+			columnNames[4] = "SENDER";
+			columnNames[5] = "TOTAL";
 //		} else {
 //			columnNames = new String[6];
 //			columnNames[0] = "RESET";
