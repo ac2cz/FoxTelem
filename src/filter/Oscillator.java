@@ -76,7 +76,7 @@ public abstract class Oscillator {
 	}
 	
 	public void setPhase(double phase) {
-		this.phase = phase;
+		this.phase = phase % 2*Math.PI;
 	}
 	
 	public void setPhaseIncrement(double phaseInc) {

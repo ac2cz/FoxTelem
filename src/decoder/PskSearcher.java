@@ -20,9 +20,10 @@ import filter.SinOscillator;
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * 
- * KA9Q searcher algorithm
+ * Based on KA9Q PSK signal searcher algorithm
  * Repeatedly demodulate at a specified carrier frequency for all symbol offsets
  * record one that gives greatest demodulated energy
+ * 
  * @author chris
  *
  */

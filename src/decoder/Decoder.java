@@ -1,5 +1,7 @@
 package decoder;
 import java.io.IOException;
+import java.util.Arrays;
+
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
@@ -433,15 +435,7 @@ public abstract class Decoder implements Runnable {
         	if (nBytesRead >= 0) {
         		Performance.startTimer("Read");
                 nBytesRead = read(abBufferDouble);
-                if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
-                	if (sink != null)
-                		try {
-                			sink.write(abBufferDouble);
-                		} catch (Exception se ) {
-                			// Failure to write the audio should not be fatal
-                			// If we print an error here the log will fill
-                		}
-                }
+                
                 if (Config.debugBytes) 
                 	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
         		Performance.endTimer("Read");
@@ -466,20 +460,37 @@ public abstract class Decoder implements Runnable {
                 Performance.endTimer("Filter");
                 Performance.startTimer("Monitor");
 
-                if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
-                	if (sink != null)
-                	try {
-                		sink.write(abBufferDoubleFiltered);
-            		} catch (Exception se ) {
-            			// Failure to write the audio should not be fatal
-            			// If we print an error here the log will fill
-            		}
-                }
                 Performance.endTimer("Monitor");
                 Performance.startTimer("Bucket");
 
                 bucketData(abBufferDoubleFiltered);
                 Performance.endTimer("Bucket");
+
+                if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
+                	if (sink != null)
+                		
+                		try {
+                			double[] buffer = abBufferDouble;
+                			if (this instanceof FoxBPSKDotProdDecoder)
+                				buffer = Arrays.copyOfRange(abBufferDouble, 0, ((FoxBPSKDotProdDecoder)this).samples_processed);
+                			sink.write(buffer);
+                		} catch (Exception se ) {
+                			// Failure to write the audio should not be fatal
+                			// If we print an error here the log will fill
+                		}
+                }
+                if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
+                	if (sink != null)
+                	try {
+                		double[] buffer = abBufferDoubleFiltered;
+                		if (this instanceof FoxBPSKDotProdDecoder)
+                			buffer = Arrays.copyOfRange(abBufferDoubleFiltered, 0, ((FoxBPSKDotProdDecoder)this).samples_processed);
+                		sink.write(buffer);
+            		} catch (Exception se ) {
+            			// Failure to write the audio should not be fatal
+            			// If we print an error here the log will fill
+            		}
+                }
 
         	}
 
