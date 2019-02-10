@@ -1,6 +1,7 @@
 package decoder;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 import javax.swing.SwingUtilities;
 
@@ -11,6 +12,7 @@ import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.FoxFramePart;
+import telemetry.Frame;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;
 import telemetry.PayloadHERCIhighSpeed;
@@ -93,16 +95,16 @@ public abstract class FoxDecoder extends Decoder {
 		BUFFER_SIZE = SAMPLE_WINDOW_LENGTH * bucketSize;
 		
 		initWindowData();
-//		agcFilter = new AGCFilter();
+		//		agcFilter = new AGCFilter();
 		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
-//		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
+		//		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE /bytesPerSample);
 		monitorFilter.init(currentSampleRate, 3000, 256);
 	}
 
-	
-	
-	protected void processPossibleFrame() {
-		
+
+
+	protected void processPossibleFrame(ArrayList<Frame> frames) {
+
 		/*
 		 * Cause the audio to glitch for testing
 		 *
@@ -113,82 +115,84 @@ public abstract class FoxDecoder extends Decoder {
 				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-		*/
-		
-		//Performance.startTimer("findFrames");
-		decodedFrame = foxBitStream.findFrames();
-		//Performance.endTimer("findFrames");
-		if (decodedFrame != null && !decodedFrame.corrupt) {
-			//System.err.println("FOUND FRAME");
-			Performance.startTimer("Store");
-			// Successful frame
-			eyeData.lastErasureCount = foxBitStream.lastErasureNumber;
-			eyeData.lastErrorsCount = foxBitStream.lastErrorsNumber;
-			//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
-			if (Config.storePayloads) {
-				if (decodedFrame instanceof SlowSpeedFrame) {
-					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FoxFramePart payload = ssf.getPayload();
-					SlowSpeedHeader header = ssf.getHeader();
-					if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-					
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
-				} else {
-					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
-					HighSpeedHeader header = hsf.getHeader();
-					PayloadRtValues payload = hsf.getRtPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
-					PayloadMaxValues maxPayload = hsf.getMaxPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
-					PayloadMinValues minPayload = hsf.getMinPayload();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
-					PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
-					Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
-					if (Config.satManager.hasCamera(header.getFoxId())) {
-						PayloadCameraData cameraData = hsf.getCameraPayload();
-						if (cameraData != null)
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
-					}
-					if (Config.satManager.hasHerci(header.getFoxId())) {
-						PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
-						if (herciDataSet != null)
-							Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
-					}
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder2();
-				}
+		 */
 
-			}
-			Config.totalFrames++;
-			if (Config.uploadToServer)
-				try {
-					Config.rawFrameQueue.add(decodedFrame);
-				} catch (IOException e) {
-					// Don't pop up a dialog here or the user will get one for every frame decoded.
-					// Write to the log only
-					e.printStackTrace(Log.getWriter());
+		//Performance.startTimer("findFrames");
+		//		decodedFrame = foxBitStream.findFrames();
+		//Performance.endTimer("findFrames");
+		for (Frame decodedFrame : frames) {
+			if (decodedFrame != null && !decodedFrame.corrupt) {
+				//System.err.println("FOUND FRAME");
+				Performance.startTimer("Store");
+				// Successful frame
+				eyeData.lastErasureCount = foxBitStream.lastErasureNumber;
+				eyeData.lastErrorsCount = foxBitStream.lastErrorsNumber;
+				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
+				if (Config.storePayloads) {
+					if (decodedFrame instanceof SlowSpeedFrame) {
+						SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
+						FoxFramePart payload = ssf.getPayload();
+						SlowSpeedHeader header = ssf.getHeader();
+						if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+
+						// Capture measurements once per payload or every 5 seconds ish
+						addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
+						if (Config.autoDecodeSpeed)
+							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
+					} else {
+						HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
+						HighSpeedHeader header = hsf.getHeader();
+						PayloadRtValues payload = hsf.getRtPayload();
+						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
+						PayloadMaxValues maxPayload = hsf.getMaxPayload();
+						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), maxPayload);
+						PayloadMinValues minPayload = hsf.getMinPayload();
+						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), minPayload);
+						PayloadRadExpData[] radPayloads = hsf.getRadPayloads();
+						Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), radPayloads);
+						if (Config.satManager.hasCamera(header.getFoxId())) {
+							PayloadCameraData cameraData = hsf.getCameraPayload();
+							if (cameraData != null)
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), cameraData);
+						}
+						if (Config.satManager.hasHerci(header.getFoxId())) {
+							PayloadHERCIhighSpeed[] herciDataSet = hsf.getHerciPayloads();
+							if (herciDataSet != null)
+								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
+						}
+						// Capture measurements once per payload or every 5 seconds ish
+						addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
+						if (Config.autoDecodeSpeed)
+							MainWindow.inputTab.setViewDecoder2();
+					}
+
 				}
-			framesDecoded++;
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-				    public void run() { MainWindow.setTotalDecodes();}
-				});
-			} catch (InvocationTargetException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				Config.totalFrames++;
+				if (Config.uploadToServer)
+					try {
+						Config.rawFrameQueue.add(decodedFrame);
+					} catch (IOException e) {
+						// Don't pop up a dialog here or the user will get one for every frame decoded.
+						// Write to the log only
+						e.printStackTrace(Log.getWriter());
+					}
+				framesDecoded++;
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+						public void run() { MainWindow.setTotalDecodes();}
+					});
+				} catch (InvocationTargetException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				Performance.endTimer("Store");
+			} else {
+				if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
+				//clockLocked = false;
 			}
-			Performance.endTimer("Store");
-		} else {
-			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
-			//clockLocked = false;
 		}
 	}
 		
@@ -316,28 +320,26 @@ public abstract class FoxDecoder extends Decoder {
 			foxBitStream.addBit(middleSample[i]);
 		}
 		
-		Performance.startTimer("debugValues");
-
-    	if (Config.debugValues /*&& framesDecoded == writeAfterFrame*/) {
-   /////// 		//if (Config.debugBytes) printBytes(abData);
-    		//    			if (debugBytes) printBuckets();
-    		//if (frameMarkerFound)  
-    		printBucketsValues();
-    		//printByteValues();
-    	}
-    	//if (Config.debugValues) count ++;
-    	//if (count == 3) System.exit(0); /// DROP OUT FOR TEST PURPOSES
-    	//if (Config.DEBUG_COUNT != -1 && count > Config.DEBUG_COUNT)
-    	//	nBytesRead = -1; /// DROP OUT FOR TEST PURPOSES
-
-    	Performance.endTimer("debugValues");
-
-    	Performance.startTimer("findSync");
-    	boolean found = foxBitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
-    	Performance.endTimer("findSync");
-    	if (found) {
-    		processPossibleFrame();
-    	}
+//		Performance.startTimer("debugValues");
+//
+//    	if (Config.debugValues /*&& framesDecoded == writeAfterFrame*/) {
+//    		printBucketsValues();
+//    	}
+//
+//    	Performance.endTimer("debugValues");
+//
+//    	Performance.startTimer("findSync");
+//    	boolean found = foxBitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
+//    	Performance.endTimer("findSync");
+//    	if (found) {
+//    		processPossibleFrame();
+//    	}
+    	
+    	ArrayList<Frame> frames = foxBitStream.findFrames(SAMPLE_WINDOW_LENGTH);
+    	if (frames != null) {
+			processPossibleFrame(frames);
+		}
+    	
     	//windowNumber++;
 
     	

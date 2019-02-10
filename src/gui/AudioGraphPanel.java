@@ -190,7 +190,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	public void paintComponent(Graphics g) {
 		super.paintComponent( g ); // call superclass's paintComponent  
 		Graphics2D g2 = ( Graphics2D ) g; // cast g to Graphics2D  
-		
+		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		// Have 5 pix border
 		int border = 5;
 		int graphHeight = getHeight() - border;
@@ -254,7 +254,9 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					if (bucketPositionCount >= foxDecoder.getBucketSize()) {
 						g2.setColor(Color.BLACK);
 						g2.drawLine(x, 0, x, graphHeight);
+						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize-2));
 						g.drawString(""+((Config.windowsProcessed-1)*foxDecoder.getSampleWindowLength()+bitCount), x-25, graphHeight-20 );
+						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 						bucketPositionCount = 0;
 						bitCount++;
 					}

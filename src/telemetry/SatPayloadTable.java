@@ -689,7 +689,7 @@ public class SatPayloadTable {
 				rt.type = type; // make sure we get the right type
 			}
 
-			// Check the the record set is actuall loaded.  Sometimes at start up the GUI is querying for records before they are loaded
+			// Check the the record set is actually loaded.  Sometimes at start up the GUI is querying for records before they are loaded
 			if (rtRecords != null && rt != null) {
 				if (storeMode)
 					rt.newMode = mode;
