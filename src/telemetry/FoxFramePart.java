@@ -340,7 +340,7 @@ longer send telemetry.
 				s = "Stowed";
 			else
 				s = "Deployed";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS) {  //TODO: This needs to be implemented
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {  
 				s = isisAntennaStatus(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
 			int value = getRawValue(name);
@@ -373,7 +373,11 @@ longer send telemetry.
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
 			s = icrCommandCount(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
-			s = icrDiagnosticString(getRawValue(name), true);			
+			s = icrDiagnosticString(getRawValue(name), true);	
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
+			double val = getRawValue(name);
+			if (val >= 1500) return "OK";
+			else return "FAIL";
 		} else {
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
@@ -540,15 +544,44 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_COM1_GYRO_TEMP:
 			double temp = rawValue * 0.1 - 40; // 0 is -40 then increments in 1/10 degree per raw value
 			return temp;
-		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TEMP:
-			//double V = 3.3 / 1023 * rawValue;
-			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue(rawValue);
+		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_TEMP:
+			double V = (3.3 / 1023) * 1000 *  rawValue;
+			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue((int)V);
 			return antTemp;
-		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TIME:
+		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_TIME:
 			double time = rawValue / 20.0d; // deploy time in 50ms steps
 			return time;
-		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS:
+		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS:
 			return rawValue;
+		case BitArrayLayout.CONVERT_COM1_TX_FWD_PWR:
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2;
+			y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
+			return Math.pow(10, y/10);
+		case BitArrayLayout.CONVERT_COM1_TX_REF_PWR:
+			x = rawValue * 1000* VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			y = 0.1727*x - 34.583;
+			return Math.pow(10, y/10);
+		case BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS:
+			// TODO - this does not match what Eric sent in conversion document..
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			return x;
+		case BitArrayLayout.CONVERT_COM1_RSSI:
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2;
+			y = 46.566*x - 135.54;
+			return y;
+		case BitArrayLayout.CONVERT_COM1_ICR_2V5_SENSOR:
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			return x;
+		case BitArrayLayout.CONVERT_COM1_SOLAR_PANEL:
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.324; 
+			return x;
+		case BitArrayLayout.CONVERT_COM1_BUS_VOLTAGE:
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2 ;
+			x = x / 0.2424;
+			return x;
 		}
 		
 		return ERROR_VALUE;

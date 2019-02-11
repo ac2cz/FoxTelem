@@ -638,7 +638,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR || 
 				conversionType == BitArrayLayout.CONVERT_SOFT_ERROR_84488 ||
 				conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC ||
-				conversionType == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS)
+				conversionType == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS)
 			return true;
 		return false;
 	}

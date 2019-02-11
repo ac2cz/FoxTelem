@@ -78,7 +78,7 @@ public class DiagnosticTable extends JPanel {
 			tableModel = new SoftError84488TableModel();
 		else if (conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
 			tableModel = new IcrDiagnosticTableModel();
-		else if (conversionType == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS)
+		else if (conversionType == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS)
 			tableModel = new IsisAntennaStatusTableModel();
 		
 		JTable table = new JTable(tableModel);
@@ -132,7 +132,7 @@ public class DiagnosticTable extends JPanel {
 				column.setHeaderRenderer(centerRenderer);
 			}
 		}
-		else if (conversionType == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS) {
+		else if (conversionType == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {
 			for (int i=0; i<15; i++) {
 				column = table.getColumnModel().getColumn(i+2);
 				column.setPreferredWidth(60);
@@ -158,7 +158,7 @@ public class DiagnosticTable extends JPanel {
 			updateSoftErrorData84488();
 		else if (conversionType == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC)
 			updateIcrDiagnosticData();
-		else if (conversionType == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_STATUS)
+		else if (conversionType == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS)
 			updateIsisAntennaData();
 
 	}

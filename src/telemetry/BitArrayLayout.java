@@ -112,10 +112,16 @@ public class BitArrayLayout {
 	public static final int CONVERT_COM1_MAGNETOMETER = 46;
 	public static final int CONVERT_COM1_SPIN = 47;
 	public static final int CONVERT_COM1_GYRO_TEMP = 48;
-	public static final int CONVERT_HUSKY_ISIS_ANT_TEMP = 49;
-	public static final int CONVERT_HUSKY_ISIS_ANT_TIME = 50;
-	public static final int CONVERT_HUSKY_ISIS_ANT_STATUS = 51;
-	public static final int CONVERT_HUSKY_SOLAR_PANEL = 52;
+	public static final int CONVERT_COM1_ISIS_ANT_TEMP = 49; // COM1
+	public static final int CONVERT_COM1_ISIS_ANT_TIME = 50; // COM1
+	public static final int CONVERT_COM1_ISIS_ANT_STATUS = 51; // COM1
+	public static final int CONVERT_COM1_SOLAR_PANEL = 52; // COM1
+	public static final int CONVERT_COM1_TX_FWD_PWR = 53; // COM1
+	public static final int CONVERT_COM1_TX_REF_PWR = 54; // COM1
+	public static final int CONVERT_HUSKY_UW_DIST_BOARD_STATUS = 55; // COM1
+	public static final int CONVERT_COM1_RSSI = 56; // COM1
+	public static final int CONVERT_COM1_ICR_2V5_SENSOR = 57; // COM1
+	public static final int CONVERT_COM1_BUS_VOLTAGE = 58; // COM1
 	
 	/**
 	 * Create an empty layout for manual init
