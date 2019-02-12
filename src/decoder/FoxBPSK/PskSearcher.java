@@ -1,9 +1,7 @@
-package decoder;
+package decoder.FoxBPSK;
 
-import common.Log;
 import filter.CosOscillator;
 import filter.DotProduct;
-import filter.RootRaisedCosineFilter;
 import filter.SinOscillator;
 
 /**

@@ -159,18 +159,18 @@ public class CircularDoubleBuffer {
 	public void decStartPointer(int amount) {
 		// snapshot the value to avoid failing the check due to a race condition
 		int e = endPointer;
-//		if (e < startPointer ) {
-//			// then the startPointer needs to remain more than the end pointer after the increment
-//			if (startPointer - amount <= e)
-//				throw new IndexOutOfBoundsException("Attempt to decrement start pointer " + startPointer + " by "+amount + " past end pointer " + e);
-//		} else {
-//			// if it wraps then it needs to stay more than the end point, otherwise we are fine
-//			if (startPointer - amount < 0) {
-//				int testPointer = decPointer(startPointer, amount);
-//				if (testPointer <= endPointer)
-//					throw new IndexOutOfBoundsException("Attempt to decrement start pointer past end pointer (wraps)" + startPointer + " past end pointer " + e);
-//			}
-//		}
+		if (e < startPointer ) {
+			// then the startPointer needs to remain more than the end pointer after the decrement
+			if (startPointer - amount <= e)
+				throw new IndexOutOfBoundsException("Attempt to decrement start pointer " + startPointer + " by "+amount + " past end pointer " + e);
+		} else {
+			// end pointer is greater than the start pointer,  only need to worry if it wraps around
+			if (startPointer - amount < 0) {
+				int testPointer = decPointer(startPointer, amount);
+				if (testPointer <= endPointer)
+					throw new IndexOutOfBoundsException("Attempt to decrement start pointer past end pointer (wraps)" + startPointer + " past end pointer " + e);
+			}
+		}
 		
 		startPointer = decPointer(startPointer, amount);
 	}

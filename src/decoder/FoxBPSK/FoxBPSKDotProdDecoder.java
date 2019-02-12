@@ -3,8 +3,6 @@ package decoder.FoxBPSK;
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
-import java.util.Arrays;
-
 import javax.swing.SwingUtilities;
 
 import common.Config;
@@ -13,26 +11,18 @@ import common.Performance;
 import common.Spacecraft;
 import decoder.CodePRN;
 import decoder.Decoder;
-import decoder.PskSearcher;
 import decoder.SourceAudio;
-import decoder.SourceIQ;
 import filter.AGCFilter;
 import filter.DcRemoval;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
-import filter.Complex;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
-import filter.Delay;
 import filter.DotProduct;
-import filter.HilbertTransform;
-import filter.IirFilter;
-import filter.RaisedCosineFilter;
 import filter.RootRaisedCosineFilter;
 import filter.SinOscillator;
-import filter.WindowedSincFilter;
 
 /**
  * This program is free software: you can redistribute it and/or modify
@@ -104,8 +94,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 		filter.init(currentSampleRate, 0, 0);
 		
-	//	filter = new RootRaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
-	//	filter.init(currentSampleRate, 5000, 512);
+//		filter = new RootRaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
+//		filter.init(currentSampleRate, 3000, 64);
 
 		pskAudioData = new double[BUFFER_SIZE];
 		
@@ -166,14 +156,14 @@ public class FoxBPSKDotProdDecoder extends Decoder {
     int symphase = 0;
 	double[] baseband_i = new double[BUFFER_SIZE];
 	double[] baseband_q = new double[BUFFER_SIZE];
-	PskDemodState[] demodState = new PskDemodState[3];
+	static final int NUM_OF_DEMODS = 5;
+	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
 	int symbol_count = 0;
 	double[] data; // the demodulated symbols
 	int Symbols_demodulated; // total symbols demodulated
 	double Gain = 128; // Heuristically, this seems about optimum
 	public int samples_processed = 0;
 
-	
 	protected void sampleBuckets() {
 		double maxValue = 0;
 		double minValue = 0;
@@ -256,9 +246,9 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		cos.setPhase(cphase);
 		sin.setPhase(cphase);
 		int eyeValue = 0;
-		double[] nextPhase = new double[BUFFER_SIZE]; // store the phase so we can wind the buffer back and continue from that point
+//		double[] nextPhase = new double[BUFFER_SIZE]; // store the phase so we can wind the buffer back and continue from that point
 	    for(int i=0; i < BUFFER_SIZE; i++){
-			nextPhase[i] = cos.getPhase();  // we store for N meaning it is the phase ready to process that number
+//			nextPhase[i] = cos.getPhase();  // we store for N meaning it is the phase ready to process that number
 			baseband_i[i] = abBufferDoubleFiltered[i] * cos.nextSample();
 			baseband_q[i] = abBufferDoubleFiltered[i] * sin.nextSample();
 			pskAudioData[i] = baseband_i[i] + baseband_q[i];
@@ -266,11 +256,12 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
 	    }
 
-	    // Demodulate 3 times: early, on time, and late
+	    // Demodulate N times: early, on time, and late
+	    int DEFAULT_INDEX = (int)(NUM_OF_DEMODS-1)/-2;
 	    int best_index = -1;
 	    double energy = -9E99;
-	    for(int i=0;i<3;i++){
-	    	demodState[i] = demodulate(baseband_i, baseband_q, symphase + i - 1);
+	    for(int i=0;i<NUM_OF_DEMODS;i++){
+	    	demodState[i] = demodulate(baseband_i, baseband_q, symphase + i + DEFAULT_INDEX); // default_index is -ve so we add it
 	    	if(energy < demodState[i].energy){
 	    		best_index = i;
 	    		energy = demodState[i].energy;
@@ -278,18 +269,22 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    }
 	    
 	    if(best_index == -1) {
-	    	best_index = 1; // we did not pick any state, so pick middle
+	    	best_index = (int)(NUM_OF_DEMODS-1)/2; // we did not pick any state, so pick middle
 	    	System.err.println("Best Index -1");
 	    }
-	    symphase = symphase + best_index - 1;
+	    symphase = symphase + best_index + DEFAULT_INDEX; // default_index is -ve so we add it
 	    symbol_count = demodState[best_index].symbol_count;
 	    data = demodState[best_index].data;
 	    Symbols_demodulated += symbol_count;
-
+	    
+	    if (chunk % 10 == 0) {
+	    System.err.print(/*"Def: " + DEFAULT_INDEX + */" Best Idx: " + best_index + " delta: " + (best_index + DEFAULT_INDEX));
+	    System.err.println(" symphase: " + symphase);
+	    }
 	    //Log.println("Symbols decoded:" + symbol_count);
 	    // Scale demodulated data and pass to FEC
-	    double rms = Math.sqrt(energy / symbol_count);
-	    gain = Gain / rms; // Tune this
+//	    double rms = Math.sqrt(energy / symbol_count);
+//	    gain = Gain / rms; // Tune this
 	    // Skip data[0], which is actually the last symbol from the previous chunk
 	    // It was needed by the demodulator as the reference for differentially decoding the second symbol, i.e., data[1]
 	    for(int i=1;i<symbol_count;i++){
@@ -311,97 +306,31 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    
 	    // Move carefully to next chunk, allowing for overlap of last/first symbol used for differential decoding and for timing skew
 	    samples_processed = bucketSize * (symbol_count-1);
+	    int move = bucketSize/2; //bucketSize/2;
 	    if(symphase <= bucketSize/2){
 	    	// Timing is moving early; move back 1/2 symbol
-	    	samples_processed -= bucketSize/2;
-	    	symphase += bucketSize/2;
+	    	System.err.println("EARLY!!!!");
+	    	samples_processed -= move;
+	    	symphase += move;
 	    } else if(symphase >= (3*bucketSize)/2){
 	    	// Timing is moving late; move forward 1/2 sample
-	    	samples_processed += bucketSize/2;
-	    	symphase -= bucketSize/2;
+	    	System.err.println("LATE!!!!");
+	    	samples_processed += move;
+	    	symphase -= move;
 	    }
 
-	    // At the end of chunk processing, increment counter
-	    chunk++;
 	    // adjust the read pointer based on the number of symbols we actually processed
 	    int amount = BUFFER_SIZE - samples_processed;
 	    rewind(amount);
-	    cphase = nextPhase[samples_processed-1];
+//	    cphase = nextPhase[samples_processed-1];
+	    cphase = samples_processed * cphase_inc;
 	    
 	    //Sampcounter += samples_processed; // not currently used
 
-//		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-//			for (int s=0; s < bucketSize; s++) {
-//				double value = dataValues[i][s]/ 32768.0;
-//				
-//				if (value > maxValue) maxValue = value;
-//				if (value < minValue) minValue = value;
-//
-//				value = value*gain;
-//				
-//				psk = demodulate(value, i);
-//				int eyeValue = (int)(-1*psk*32768.0); 
-//
-//				// Here we would adjust the freq to track
-//				//		nco.setFrequency(freq);
-//				
-//				
-//				if (bitPosition == 0 ) {
-//					YnMinus1Sample = psk;
-//				}
-//
-//				if (bitPosition == samplePoint  ) {
-//					if (delayClock) // we already sampled this
-//						delayClock = false;
-//					else {
-//						// ALL END OF BIT LOGIC TO DO WITH BIT CHOICE MUST GO HERE TO BE IN SYNC
-//
-//	//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
-//						YnMinus2Sample = YnSample;
-//						YnSample = psk;
-//
-//						boolean thisBit;
-//						////  Determine the dot product here and the bit value
-//						////bitStream.addBit(thisSample);
-//
-//						if (Config.debugValues)
-//							psk = psk*1.5;
-//
-//						//HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
-//						// Gardner Error calculation
-//						// error = (Yn -Yn-2)*Yn-1
-//						double clockError = (YnSample - YnMinus2Sample) * YnMinus1Sample;
-//						sumClockError += clockError;
-//						double errThreshold = 0.1;
-//						if (clockError < -1*errThreshold) {
-//							delayClock = true;
-//							bitPosition = bitPosition - 1;
-//						} else if (clockError > errThreshold) // sample is late because error is positive, so sample earlier by increasing bitPosition
-//							bitPosition = bitPosition + 1;
-//
-//						if (/*thisBit == */false)
-//							eyeData.setLow((int) (YnSample*32768));
-//						else
-//							eyeData.setHigh((int) (YnSample*32768));
-//
-//						//					System.err.print("End bp: " + bitPosition + " ");
-//						//					System.err.println(" (" + YnSample + " - " + YnMinus2Sample + ")* " + YnMinus1Sample + " = " + error);
-//					}
-//				}
-//				
-//				pskAudioData[i*bucketSize+s] = psk; 
-////				pskQAudioData[i*bucketSize+s] = c.geti();	// this shows the waveform we mixed with
-//				eyeData.setData(i,s,eyeValue);
-//				
-//				bitPosition++;
-//				if (bitPosition == bucketSize)
-//					bitPosition = 0;
-//				
-//			}
-//		}
-//
-//		offset = -bitPosition; 
+	    // At the end of chunk processing, increment counter
+	    chunk++;
 
+//		
 		if (maxValue - minValue != 0)
 			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
