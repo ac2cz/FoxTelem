@@ -2,6 +2,7 @@ package decoder.FoxBPSK;
 
 import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 import javax.swing.SwingUtilities;
@@ -180,7 +181,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		sumClockError = 0;
 		
 		// dataValues is already bucketed, but we don't want that.
-		// we use abBufferDoubleFiltered which has DC balance but nothing else
+		// we use abBufferDoubleFiltered which has DC balance and some AGC but nothing else
 		// abBufferDoubleFiltered is BUFFER_SIZE long
 
 		// Perform a brute force search periodically
@@ -555,83 +556,81 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	@Override
 	protected void processBitsWindow() {
 		Performance.startTimer("findSync");
-		boolean found = bitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
+		ArrayList<Frame> frames = bitStream.findFrames(SAMPLE_WINDOW_LENGTH);
 		Performance.endTimer("findSync");
-		if (found) {
-			processPossibleFrame();
+		if (frames != null) {
+			processPossibleFrame(frames);
 		}
 	}
-
 	private Frame decodedFrame = null;
 	/**
 	 *  Decode the frame
 	 */
-	protected void processPossibleFrame() {
+	protected void processPossibleFrame(ArrayList<Frame> frames) {
 
 		Spacecraft sat = null;
-		//Performance.startTimer("findFrames");
-		decodedFrame = bitStream.findFrames();
-		//Performance.endTimer("findFrames");
-		if (decodedFrame != null && !decodedFrame.corrupt) {
-			Performance.startTimer("Store");
-			// Successful frame
-			eyeData.lastErasureCount = bitStream.lastErasureNumber;
-			eyeData.lastErrorsCount = bitStream.lastErrorsNumber;
-			//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
-			if (Config.storePayloads) {
+		for (Frame decodedFrame : frames) {
+			if (decodedFrame != null && !decodedFrame.corrupt) {
+				Performance.startTimer("Store");
+				// Successful frame
+				eyeData.lastErasureCount = bitStream.lastErasureNumber;
+				eyeData.lastErrorsCount = bitStream.lastErrorsNumber;
+				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
+				if (Config.storePayloads) {
 
-				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-				FoxBPSKHeader header = hsf.getHeader();
-				sat = Config.satManager.getSpacecraft(header.id);
-				hsf.savePayloads(Config.payloadStore);;
+					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
+					FoxBPSKHeader header = hsf.getHeader();
+					sat = Config.satManager.getSpacecraft(header.id);
+					hsf.savePayloads(Config.payloadStore);;
 
-				// Capture measurements once per payload or every 5 seconds ish
-				addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
-				if (Config.autoDecodeSpeed)
-					MainWindow.inputTab.setViewDecoder2();
+					// Capture measurements once per payload or every 5 seconds ish
+					addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
+					if (Config.autoDecodeSpeed)
+						MainWindow.inputTab.setViewDecoder2();
 
 
-			}
-			Config.totalFrames++;
-			if (Config.uploadToServer)
-				try {
-					Config.rawFrameQueue.add(decodedFrame);
-				} catch (IOException e) {
-					// Don't pop up a dialog here or the user will get one for every frame decoded.
-					// Write to the log only
-					e.printStackTrace(Log.getWriter());
 				}
-			if (sat != null && sat.sendToLocalServer())
+				Config.totalFrames++;
+				if (Config.uploadToServer)
+					try {
+						Config.rawFrameQueue.add(decodedFrame);
+					} catch (IOException e) {
+						// Don't pop up a dialog here or the user will get one for every frame decoded.
+						// Write to the log only
+						e.printStackTrace(Log.getWriter());
+					}
+				if (sat != null && sat.sendToLocalServer())
+					try {
+						Config.rawPayloadQueue.add(decodedFrame);
+					} catch (IOException e) {
+						// Don't pop up a dialog here or the user will get one for every frame decoded.
+						// Write to the log only
+						e.printStackTrace(Log.getWriter());
+					}
+				framesDecoded++;
 				try {
-					Config.rawPayloadQueue.add(decodedFrame);
-				} catch (IOException e) {
-					// Don't pop up a dialog here or the user will get one for every frame decoded.
-					// Write to the log only
-					e.printStackTrace(Log.getWriter());
+					SwingUtilities.invokeAndWait(new Runnable() {
+						public void run() { MainWindow.setTotalDecodes();}
+					});
+				} catch (InvocationTargetException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
 				}
-			framesDecoded++;
-			try {
-				SwingUtilities.invokeAndWait(new Runnable() {
-				    public void run() { MainWindow.setTotalDecodes();}
-				});
-			} catch (InvocationTargetException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (InterruptedException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				Performance.endTimer("Store");
+			} else {
+				if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
+				//clockLocked = false;
 			}
-			Performance.endTimer("Store");
-		} else {
-			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
-			//clockLocked = false;
 		}
 	}
 
 
 	public double getFrequency() { return cos.getFrequency(); }
 	public int getOffset() { return symphase; }
-	
+
 	class PskDemodState {
 		int symphase;                // Offset to first sample of first symbol; determined by symbol timing (input)
 		double energy;               // Total demodulator output energy (output)
