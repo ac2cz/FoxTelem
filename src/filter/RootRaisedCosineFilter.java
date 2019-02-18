@@ -120,7 +120,7 @@ public class RootRaisedCosineFilter extends Filter {
 	public static void main(String[] args) {
 		
 		AudioFormat af = SourceSoundCardAudio.makeAudioFormat(48000);
-		RootRaisedCosineFilter rrc = new RootRaisedCosineFilter(af, 400);
-		rrc.init(48000, 1200, 400);
+		RootRaisedCosineFilter rrc = new RootRaisedCosineFilter(af, 452);
+		rrc.init(48000, 1200, 452);
 	}
 }

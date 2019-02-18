@@ -13,6 +13,7 @@ import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.SourceAudio;
 import filter.AGCFilter;
+import filter.Complex;
 import filter.DcRemoval;
 import gui.MainWindow;
 import telemetry.Frame;
@@ -21,6 +22,7 @@ import telemetry.FoxBPSK.FoxBPSKHeader;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.DotProduct;
+import filter.RaisedCosineFilter;
 import filter.RootRaisedCosineFilter;
 import filter.SinOscillator;
 
@@ -47,17 +49,16 @@ import filter.SinOscillator;
 public class FoxBPSKDotProdDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
-	private double sumClockError = 0;
-	private int samplePoint = 20;
 	public static final int AUDIO_MODE = 0;
 	public static final int PSK_MODE = 1;
 	public int mode = AUDIO_MODE;
 
 	DcRemoval audioDcFilter;
-
-	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, 1200);
+	RootRaisedCosineFilter dataFilterI;
+	RootRaisedCosineFilter dataFilterQ;
 
 	double[] pskAudioData;
+	double[] pskQAudioData;
 
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
@@ -78,14 +79,10 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 128; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
+		SAMPLE_WINDOW_LENGTH = 64; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
+		SEARCH_INTERVAL = (int) 8192/SAMPLE_WINDOW_LENGTH;
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
-		samplePoint = bucketSize/2;
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
-		SAMPLE_WIDTH = 1;
-		if (SAMPLE_WIDTH < 1) SAMPLE_WIDTH = 1;
-		CLOCK_TOLERANCE = bucketSize/2;
-		CLOCK_REOVERY_ZERO_THRESHOLD = 20;
 		initWindowData();
 
 		audioDcFilter = new DcRemoval(0.9999d);
@@ -93,11 +90,22 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		// We don't filter the data as it comes in
 		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
 		filter.init(currentSampleRate, 0, 0);
+		filter.setFilterDC(false);
 		
-//		filter = new RootRaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
-//		filter.init(currentSampleRate, 3000, 64);
+//		filter = new RaisedCosineFilter(audioSource.audioFormat, (BUFFER_SIZE));
+//		filter.init(currentSampleRate, 1500, 64);
 
+		dataFilterI = new RootRaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+		dataFilterI.init(currentSampleRate, 1200, 400); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilterI.setAGC(false);
+		dataFilterI.setFilterDC(false);
+		dataFilterQ = new RootRaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
+		dataFilterQ.init(currentSampleRate, 1200, 400); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilterQ.setAGC(false);
+		dataFilterQ.setFilterDC(false);
+		
 		pskAudioData = new double[BUFFER_SIZE];
+		pskQAudioData = new double[BUFFER_SIZE];
 		
 		phase_inc_start = (Carrier - Carrier_range) * 2 * Math.PI / (double) currentSampleRate;
 		phase_inc_stop = (Carrier + Carrier_range) * 2 * Math.PI / (double) currentSampleRate;
@@ -115,25 +123,29 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	public double[] getBasebandData() {
 		return pskAudioData;
 	}
+	
+	public double[] getBasebandQData() {
+		return pskQAudioData;
+	}
 
-	double gain = 1.0;
+	double gain = 1;
 	
 //	double iMix, qMix;
 //	double fi = 0.0, fq = 0.0;
 
 	// Keep track of where we are in the bit for sampling - Gardner algorithm
 	int bitPosition = 0;
-	int offset = 0;
+//	int offset = 0;
 	double YnMinus2Sample = 0;
 	double YnSample = 0;
 	double YnMinus1Sample;
 	boolean delayClock = false;
 
 	int chunk = 0;
-	public static final int SEARCH_INTERVAL = 16;
+	public int SEARCH_INTERVAL = 64; //16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
 	public static final int NSEARCHERS = 4;
-	double Carrier = 1200;         // Center of carrier frequency search range
-	double Carrier_range = 600;    // Limits of search range above and below Carrier frequency
+	static final double Carrier = 1500;         // Center of carrier frequency search range
+	static final double Carrier_range = 600;    // Limits of search range above and below Carrier frequency
 	int Ftotal = (int) (2 * Carrier_range/100.0d + 1);
 	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
 	PskSearcher[] searchers = new PskSearcher[NSEARCHERS];
@@ -142,13 +154,15 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	double phase_inc_start, phase_inc_stop, phase_inc_step;
 	DotProduct matchedFilter;
 	
-	CosOscillator cos = new CosOscillator(currentSampleRate, (int)Carrier);
-	SinOscillator sin = new SinOscillator(currentSampleRate, (int)Carrier);
+	//CosOscillator cos = new CosOscillator(currentSampleRate, (int)Carrier);
+	//SinOscillator sin = new SinOscillator(currentSampleRate, (int)Carrier);
+	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, (int)Carrier);
+
 
 	CosOscillator ftcos = new CosOscillator(currentSampleRate, (int)Carrier);
 	SinOscillator ftsin = new SinOscillator(currentSampleRate, (int)Carrier);
 	
-	double freq = 1200.0;  //////////////// legacy value, REMOVE
+//	double freq = 100.0;  //////////////// legacy value, REMOVE
 	
 	double carrier = 0;
     double cphase_inc;
@@ -156,23 +170,28 @@ public class FoxBPSKDotProdDecoder extends Decoder {
     int symphase = 0;
 	double[] baseband_i = new double[BUFFER_SIZE];
 	double[] baseband_q = new double[BUFFER_SIZE];
-	static final int NUM_OF_DEMODS = 5;
+	static final int NUM_OF_DEMODS = 3;
 	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
 	int symbol_count = 0;
 	double[] data; // the demodulated symbols
 	int Symbols_demodulated; // total symbols demodulated
-	double Gain = 128; // Heuristically, this seems about optimum
+//	double Gain = 128; // Heuristically, this seems about optimum
 	public int samples_processed = 0;
+	Complex c;
 
 	protected void sampleBuckets() {
 		double maxValue = 0;
 		double minValue = 0;
-		double DESIRED_RANGE = 2;
-		sumClockError = 0;
+		double DESIRED_RANGE = 1;
 		
 		// dataValues is already bucketed, but we don't want that.
 		// we use abBufferDoubleFiltered which has DC balance and some AGC but nothing else
 		// abBufferDoubleFiltered is BUFFER_SIZE long
+//		for (int j=0; j<BUFFER_SIZE; j++) {
+//			if (abBufferDoubleFiltered[j] > maxValue) maxValue = abBufferDoubleFiltered[j];
+//			if (abBufferDoubleFiltered[j] < minValue) minValue = abBufferDoubleFiltered[j];
+//			abBufferDoubleFiltered[j] = abBufferDoubleFiltered[j]*gain;
+//		}
 
 		// Perform a brute force search periodically
 		if (chunk % SEARCH_INTERVAL == 0) {
@@ -198,7 +217,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        
 	        // Find the winner
 	        slots = slot;
-	        maxenergy_value = 0;
+	        maxenergy_value = -99E99;
 	        for(slot=0;slot < slots;slot++){
 	        	try {
 					searcherThreads[slot].join();
@@ -215,7 +234,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        }
 	        if(symphase < bucketSize/2)
 	        	symphase += bucketSize; // Allow room for early symbol timing test
-	        //Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+	        Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
 	    }
 	    
 		// track frequency with two probes, one below and one above nominal carrier frequency
@@ -225,7 +244,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    double lower_phase = lower * 2 * Math.PI / (double) currentSampleRate;
 	    double upper_phase = upper * 2 * Math.PI / (double) currentSampleRate;
 
-        //Log.println("   CARRIER "+carrier+" Hz Upper:"+upper + " Lower:"+lower);
+      //  Log.println("   CARRIER "+carrier+" Hz Upper:"+upper + " Lower:"+lower);
 
 	    double cpt0 = frequencyTracker(abBufferDoubleFiltered,symphase, lower_phase);
 	    double cpt1 = frequencyTracker(abBufferDoubleFiltered,symphase, upper_phase);
@@ -236,22 +255,36 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    // I should work up a more exact function, or at least bound the error
 	    if(cpt1 != cpt0) // Avoid unlikely divide by zero
 	      carrier = lower - cpt0 * (upper - lower) / (cpt1 - cpt0);
+	    if (carrier > Carrier+Carrier_range)
+	    	carrier = Carrier+Carrier_range;
+	    if (carrier < Carrier-Carrier_range)
+	    	carrier = Carrier-Carrier_range;
+	    
+//	    carrier = 1264; // ignore freqTracker
 
-        //Log.println("   CARRIER "+carrier+" Hz cpt0:"+cpt0 + " cpt1:"+cpt1);
+       // Log.println("   CARRIER "+carrier+" Hz cpt0:"+cpt0 + " cpt1:"+cpt1);
 
 	    // Spin down to baseband with best estimate of carrier frequency
 	    cphase_inc = carrier * 2 * Math.PI / (double) currentSampleRate;
-		cos.setPhaseIncrement(cphase_inc);
-		sin.setPhaseIncrement(cphase_inc);
-		cos.setPhase(cphase);
-		sin.setPhase(cphase);
+		nco.setPhaseIncrement(cphase_inc);
+		nco.setPhase(cphase);
+		
 		int eyeValue = 0;
-//		double[] nextPhase = new double[BUFFER_SIZE]; // store the phase so we can wind the buffer back and continue from that point
 	    for(int i=0; i < BUFFER_SIZE; i++){
-//			nextPhase[i] = cos.getPhase();  // we store for N meaning it is the phase ready to process that number
-			baseband_i[i] = abBufferDoubleFiltered[i] * cos.nextSample();
-			baseband_q[i] = abBufferDoubleFiltered[i] * sin.nextSample();
-			pskAudioData[i] = baseband_i[i] + baseband_q[i];
+	    	c = nco.nextSample();
+			c.normalize();
+			
+			baseband_i[i] = abBufferDoubleFiltered[i] * c.geti();
+			baseband_q[i] = abBufferDoubleFiltered[i] * -1*c.getq();
+			
+			baseband_i[i] = dataFilterI.filterDouble(baseband_i[i]);
+			baseband_q[i] = dataFilterQ.filterDouble(baseband_q[i]);
+
+			// This shows the input buffer.  Need to restrict to samples_processed at end of chunk to see actual
+			double mag = Math.sqrt((baseband_i[i]*baseband_i[i]) + (baseband_q[i]*baseband_q[i]));
+			//double mag = baseband_i[i] + baseband_q[i];
+			pskAudioData[i] = mag;
+//			pskQAudioData[i] = baseband_q[i];
 			eyeValue = (int)(-1*pskAudioData[i]*32767.0); 
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
 	    }
@@ -277,9 +310,9 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    data = demodState[best_index].data;
 	    Symbols_demodulated += symbol_count;
 	    
-	    if (chunk % 10 == 0) {
-	    System.err.print(/*"Def: " + DEFAULT_INDEX + */" Best Idx: " + best_index + " delta: " + (best_index + DEFAULT_INDEX));
-	    System.err.println(" symphase: " + symphase);
+	    if (chunk % 1 == 0) {
+	   // 	System.err.print(/*"Def: " + DEFAULT_INDEX + */" Best Idx: " + best_index + " delta: " + (best_index + DEFAULT_INDEX));
+	   // 	System.err.println(" symphase: " + symphase);
 	    }
 	    //Log.println("Symbols decoded:" + symbol_count);
 	    // Scale demodulated data and pass to FEC
@@ -297,47 +330,52 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    	if (data[i] > 0) thisSample = true;
 			bitStream.addBit(thisSample);
 			if (thisSample == false)
-				eyeData.setLow((int) (data[i]*32767));
-//				eyeData.setOffsetLow(i, SAMPLE_WIDTH, offset );
+				eyeData.setLow((int) (baseband_i[symphase+i*(bucketSize/2)])); // take the middle of the bit as the eye sample
 			else
-				eyeData.setHigh((int) (data[i]*32767));
-			
+				eyeData.setHigh((int) (baseband_i[symphase+i*(bucketSize/2)]));
 	    }
 	    
 	    // Move carefully to next chunk, allowing for overlap of last/first symbol used for differential decoding and for timing skew
-	    samples_processed = bucketSize * (symbol_count-1);
+	    samples_processed = bucketSize * (symbol_count-1); // this ignores the first symbol which as not processed and puts the last symbol as our new first symbol
 	    int move = bucketSize/2; //bucketSize/2;
 	    if(symphase <= bucketSize/2){
 	    	// Timing is moving early; move back 1/2 symbol
-	    	System.err.println("EARLY!!!!");
+//	    	System.err.println("EARLY!!!!");
 	    	samples_processed -= move;
 	    	symphase += move;
 	    } else if(symphase >= (3*bucketSize)/2){
 	    	// Timing is moving late; move forward 1/2 sample
-	    	System.err.println("LATE!!!!");
+//	    	System.err.println("LATE!!!!");
 	    	samples_processed += move;
 	    	symphase -= move;
 	    }
 
 	    // adjust the read pointer based on the number of symbols we actually processed
+	    // In theory we read BUFFER_SIZE samples
 	    int amount = BUFFER_SIZE - samples_processed;
 	    rewind(amount);
-//	    cphase = nextPhase[samples_processed-1];
-	    cphase = samples_processed * cphase_inc;
+	    cphase = (cphase + samples_processed * cphase_inc);
+//	    cphase = (samples_processed * cphase_inc) % (2 * Math.PI); // for some reason this is worse..
+
+//	    for (int i=0; i< samples_processed; i++) {
+//	    	pskAudioData[i] = baseband_i[i];
+//	    	eyeValue = (int)(-1*pskAudioData[i]*32767.0); 
+//	    	eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
+//	    }
+
 	    
 	    //Sampcounter += samples_processed; // not currently used
 
 	    // At the end of chunk processing, increment counter
 	    chunk++;
 
-//		
-		if (maxValue - minValue != 0)
-			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+//		if (maxValue - minValue != 0)
+//			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-		if (gain < 1) gain = 1;
+		//if (gain < 1) gain = 1;
 
+		int offset = -1*(symphase+20)%bucketSize;
 		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
-
 	}
 	
 	/**
@@ -438,27 +476,6 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			return b;
 	}
 
-	public void incFreq () {
-		freq = freq + 1d;
-		//		nco.changePhase(10*alpha);
-		//nco.setPhase(0, freq); 
-	}
-	public void incMiliFreq () {
-		freq = freq + 0.01d;
-		//			nco.changePhase(alpha);
-		//nco.setPhase(alpha, freq); 
-	}
-
-	public void decFreq () {
-		freq = freq - 1; 
-		//		nco.changePhase(-10*alpha);
-		//nco.setPhase(0, freq); 
-	}
-	public void decMiliFreq () {
-		freq = freq - 0.01d;
-		//		nco.changePhase(-1*alpha);
-		//	nco.setPhase(-alpha, freq); 
-	}
 
 	public static double average (double avg, double new_sample, int N) {
 		avg -= avg / N;
@@ -557,7 +574,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	}
 
 
-	public double getFrequency() { return cos.getFrequency(); }
+	public double getFrequency() { return nco.getFrequency(); }
+//	public double getFrequency() { return cos.getFrequency(); }
 	public int getOffset() { return symphase; }
 
 	class PskDemodState {

@@ -165,6 +165,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 					}
 					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
 						pskAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandData();
+						pskQAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandQData();	
 					}
 				}
 
@@ -307,7 +308,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 						lastx2 = x2;
 						lasty2 = (int)y2;
 
-						if (foxDecoder instanceof FoxBPSKCostasDecoder && (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ) && pskAudioData != null && i < pskAudioData.length) {
+						if ((foxDecoder instanceof FoxBPSKDotProdDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder 
+								&& (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ))) && pskAudioData != null && i < pskAudioData.length) {
 							// 2nd trace
 							g2.setColor(Color.RED);
 							x3 = border*2 + i*(graphWidth-border*2)/pskQAudioData.length;
