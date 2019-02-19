@@ -79,7 +79,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 64; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
+		SAMPLE_WINDOW_LENGTH = 128; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
 		SEARCH_INTERVAL = (int) 8192/SAMPLE_WINDOW_LENGTH;
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -142,8 +142,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	boolean delayClock = false;
 
 	int chunk = 0;
-	public int SEARCH_INTERVAL = 64; //16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
-	public static final int NSEARCHERS = 4;
+	public int SEARCH_INTERVAL = 16; //16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
+	public static final int NSEARCHERS = 8;
 	static final double Carrier = 1500;         // Center of carrier frequency search range
 	static final double Carrier_range = 600;    // Limits of search range above and below Carrier frequency
 	int Ftotal = (int) (2 * Carrier_range/100.0d + 1);
@@ -170,7 +170,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
     int symphase = 0;
 	double[] baseband_i = new double[BUFFER_SIZE];
 	double[] baseband_q = new double[BUFFER_SIZE];
-	static final int NUM_OF_DEMODS = 3;
+	static final int NUM_OF_DEMODS = 5;
 	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
 	int symbol_count = 0;
 	double[] data; // the demodulated symbols
@@ -281,11 +281,11 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			baseband_q[i] = dataFilterQ.filterDouble(baseband_q[i]);
 
 			// This shows the input buffer.  Need to restrict to samples_processed at end of chunk to see actual
-			double mag = Math.sqrt((baseband_i[i]*baseband_i[i]) + (baseband_q[i]*baseband_q[i]));
-			//double mag = baseband_i[i] + baseband_q[i];
-			pskAudioData[i] = mag;
+			double mag = Math.sqrt(baseband_i[i]*baseband_i[i] + baseband_q[i]*baseband_q[i]);
+			//double mag = baseband_i[i];// + baseband_q[i];
+			pskAudioData[i] = 1.5*(mag-.5);
 //			pskQAudioData[i] = baseband_q[i];
-			eyeValue = (int)(-1*pskAudioData[i]*32767.0); 
+			eyeValue = (int)(pskAudioData[i]*32767.0); 
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
 	    }
 
@@ -330,11 +330,14 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    	if (data[i] > 0) thisSample = true;
 			bitStream.addBit(thisSample);
 			if (thisSample == false)
-				eyeData.setLow((int) (baseband_i[symphase+i*(bucketSize/2)])); // take the middle of the bit as the eye sample
+				eyeData.setLow((int) (pskAudioData[(int) (symphase+bucketSize/2.0+(i-1)*bucketSize)]*-32767.0)); // take the middle of the bit as the eye sample
 			else
-				eyeData.setHigh((int) (baseband_i[symphase+i*(bucketSize/2)]));
+				eyeData.setHigh((int) (pskAudioData[(int) (symphase+bucketSize/2.0+(i-1)*bucketSize)]*32767.0));
 	    }
-	    
+
+		int offset = 0;//-1*(symphase)%bucketSize;
+		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
+
 	    // Move carefully to next chunk, allowing for overlap of last/first symbol used for differential decoding and for timing skew
 	    samples_processed = bucketSize * (symbol_count-1); // this ignores the first symbol which as not processed and puts the last symbol as our new first symbol
 	    int move = bucketSize/2; //bucketSize/2;
@@ -374,8 +377,6 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
 		//if (gain < 1) gain = 1;
 
-		int offset = -1*(symphase+20)%bucketSize;
-		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
 	}
 	
 	/**
