@@ -98,7 +98,7 @@ public class Log {
 	
 	public static String makeShortTrace(StackTraceElement[] elements) {
 		String stacktrace = "";  
-        int limit = 8;
+        int limit = 13;
         for (int i=0; i< limit && i< elements.length; i++) {
         	stacktrace =  stacktrace + elements[i] + "\n";
         }
