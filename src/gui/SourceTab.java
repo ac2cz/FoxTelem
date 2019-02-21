@@ -255,8 +255,21 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
 		
-		if (soundCardComboBox.getSelectedIndex() != 0)
-			if (Config.startButtonPressed) processStartButtonClick();
+		if (soundCardComboBox.getSelectedIndex() != 0) {
+			if (Config.startButtonPressed) {
+				// Wait for the database to be ready then press the start button
+				while (!Config.payloadStore.initialized()) {
+					Log.println("Waiting for Payload store before hitting start...");
+					try {
+						Thread.sleep(10);
+					} catch (InterruptedException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+				processStartButtonClick();
+			}
+		}
 
 		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 		showSourceOptions(Config.showSourceOptions);
