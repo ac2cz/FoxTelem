@@ -79,8 +79,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 128; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
-		SEARCH_INTERVAL = (int) 8192/SAMPLE_WINDOW_LENGTH;
+		SAMPLE_WINDOW_LENGTH = 100; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
+		SEARCH_INTERVAL = (int) 1*8192/SAMPLE_WINDOW_LENGTH;
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
 		initWindowData();
@@ -96,11 +96,11 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 //		filter.init(currentSampleRate, 1500, 64);
 
 		dataFilterI = new RootRaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilterI.init(currentSampleRate, 1200, 400); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilterI.init(currentSampleRate, 1200, 400); 
 		dataFilterI.setAGC(false);
 		dataFilterI.setFilterDC(false);
 		dataFilterQ = new RootRaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilterQ.init(currentSampleRate, 1200, 400); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilterQ.init(currentSampleRate, 1200, 400); 
 		dataFilterQ.setAGC(false);
 		dataFilterQ.setFilterDC(false);
 		
@@ -142,10 +142,10 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	boolean delayClock = false;
 
 	int chunk = 0;
-	public int SEARCH_INTERVAL = 16; //16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
-	public static final int NSEARCHERS = 8;
+	public int SEARCH_INTERVAL = 0; //set by window length. 16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
+	public static final int NSEARCHERS = 4;
 	static final double Carrier = 1500;         // Center of carrier frequency search range
-	static final double Carrier_range = 600;    // Limits of search range above and below Carrier frequency
+	static final double Carrier_range = 900;    // Limits of search range above and below Carrier frequency
 	int Ftotal = (int) (2 * Carrier_range/100.0d + 1);
 	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
 	PskSearcher[] searchers = new PskSearcher[NSEARCHERS];
@@ -170,7 +170,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
     int symphase = 0;
 	double[] baseband_i = new double[BUFFER_SIZE];
 	double[] baseband_q = new double[BUFFER_SIZE];
-	static final int NUM_OF_DEMODS = 5;
+	static final int NUM_OF_DEMODS = 3;
 	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
 	int symbol_count = 0;
 	double[] data; // the demodulated symbols
@@ -282,9 +282,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 
 			// This shows the input buffer.  Need to restrict to samples_processed at end of chunk to see actual
 			double mag = Math.sqrt(baseband_i[i]*baseband_i[i] + baseband_q[i]*baseband_q[i]);
-			//double mag = baseband_i[i];// + baseband_q[i];
+			//double phase = Math.atan2(baseband_i[i], baseband_q[i])/3;
 			pskAudioData[i] = 1.5*(mag-.5);
-//			pskQAudioData[i] = baseband_q[i];
 			eyeValue = (int)(pskAudioData[i]*32767.0); 
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
 	    }
@@ -357,8 +356,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    // In theory we read BUFFER_SIZE samples
 	    int amount = BUFFER_SIZE - samples_processed;
 	    rewind(amount);
-	    cphase = (cphase + samples_processed * cphase_inc);
-//	    cphase = (samples_processed * cphase_inc) % (2 * Math.PI); // for some reason this is worse..
+	    cphase = (cphase + samples_processed * cphase_inc) % (2 * Math.PI); // for some reason this is worse..
 
 //	    for (int i=0; i< samples_processed; i++) {
 //	    	pskAudioData[i] = baseband_i[i];
