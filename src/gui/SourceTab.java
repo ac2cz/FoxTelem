@@ -69,6 +69,7 @@ import decoder.SourceUSB;
 import decoder.SourceWav;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
@@ -1534,7 +1535,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				} else
 					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
 			} else {
-				decoder1 = new FoxBPSKDecoder(audioSource, 0);
+				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
 			}
 		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);

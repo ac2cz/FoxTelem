@@ -20,13 +20,13 @@
 	<classpathentry kind="lib" path="lib/mysql-connector-java-5.1.37/mysql-connector-java-5.1.37-bin.jar"/>
 	<classpathentry kind="lib" path="lib/predict4java.jar"/>
 	<classpathentry kind="src" path="/predict4java"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/commons-io-2.5/commons-io-2.5.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-aarch64.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-arm.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-ppc.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-x86.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-linux-x86_64.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-osx-x86.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/libusb/libusb4java-1.2.0-osx-x86_64.jar"/>
+	<classpathentry kind="lib" path="lib/commons-io-2.5/commons-io-2.5.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-linux-aarch64.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-linux-arm.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-linux-ppc.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-linux-x86.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-linux-x86_64.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-osx-x86.jar"/>
+	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-osx-x86_64.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

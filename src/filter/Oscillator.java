@@ -32,6 +32,11 @@ public abstract class Oscillator {
 		setFrequency(freq);
 	}
 	
+	public Oscillator(int samples, double phaseInc) {
+		this.samplesPerSecond = samples;
+		setPhaseIncrement(phaseInc);
+	}
+	
 	public void changePhase(double phaseIncrement) { 
 		incPhase(phaseIncrement);
 	}
@@ -64,8 +69,21 @@ public abstract class Oscillator {
 	}
 	
 	public void setFrequency(double freq) {
-		frequency = freq;
-		phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;
+		if (frequency != freq) { // avoid the calculation if they are the same
+			frequency = freq;
+			phaseIncrement = 2 * Math.PI * frequency / (double)samplesPerSecond;
+		}
+	}
+	
+	public void setPhase(double phase) {
+		this.phase = phase % 2*Math.PI;
+	}
+	
+	public void setPhaseIncrement(double phaseInc) {
+		if (phaseIncrement != phaseInc) { // avoid the calculation if they are the same
+			frequency = phaseInc * samplesPerSecond / (2 * Math.PI);
+			phaseIncrement = phaseInc;
+		}
 	}
 	
 	public double getFrequency() { 
@@ -76,10 +94,18 @@ public abstract class Oscillator {
 		return phase;
 	}
 	
+	public double getPhaseIncrement() {
+		return phaseIncrement;
+	}
+	
 	public double nextSample() {
+		double value = 0;
 		incPhase(phaseIncrement);
-		int idx = (int)((phase * (double)TABLE_SIZE/(2 * Math.PI))%TABLE_SIZE);
-		double value = sinTable[idx];
+		int idx = ((int)((phase * (double)TABLE_SIZE/(2 * Math.PI))))%TABLE_SIZE;
+		if (idx < 0 || idx > sinTable.length)
+			System.err.println("NEG IDX ERROR: " + idx + " phase:" + phase + " inc:"+phaseIncrement);
+		else
+			value = sinTable[idx];
 		return value;
 	}
 	

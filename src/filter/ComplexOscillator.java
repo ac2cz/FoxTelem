@@ -27,6 +27,16 @@ public class ComplexOscillator {
 		sinOsc.changePhase(phaseIncrement);
 	}
 	
+	public void setPhaseIncrement(double phaseInc) {
+		cosOsc.setPhaseIncrement(phaseInc);
+		sinOsc.setPhaseIncrement(phaseInc);
+	}
+	
+	public void setPhase(double phase) {
+		cosOsc.setPhase(phase);
+		sinOsc.setPhase(phase);
+	}
+	
 	public double getFrequency() {
 		return cosOsc.getFrequency();
 	}

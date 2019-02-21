@@ -480,6 +480,9 @@ public class SourceIQ extends SourceAudio {
 		zeroFFT();
 		int i = 0;
 		
+		// TODO - this is brute force because I can't find the obscure situation where they get out of sync
+		setSelectedBin(Config.selectedBin); // make sure we are in sync with the pass manager and FFT  
+		
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;

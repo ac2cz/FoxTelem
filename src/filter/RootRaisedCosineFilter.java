@@ -3,6 +3,7 @@ package filter;
 import javax.sound.sampled.AudioFormat;
 
 import common.Log;
+import decoder.SourceSoundCardAudio;
 
 /**
  * 
@@ -81,7 +82,7 @@ public class RootRaisedCosineFilter extends Filter {
 
 		for (int i=0; i<=M; i++) {
 			xcoeffs[i] = xcoeffs[i]/Math.sqrt(sum);
-			//System.out.println(xcoeffs[i]);
+			//System.out.println(xcoeffs[i] + ",");
 		}
 		GAIN = Math.sqrt(sum);
 		Log.println("Root Raised Cosine Filter GAIN: " + GAIN);
@@ -104,14 +105,22 @@ public class RootRaisedCosineFilter extends Filter {
 		}
 		return 0;  // return zero for all the values we don't need when decimating.  Ignored after decimation
 	}
+	
+	
 
 	@Override
 	protected int getFilterLength() {
 		return xcoeffs.length;
 	}
-	
+
 	public double[] getKernal() {
 		return xcoeffs;
 	}
 
+	public static void main(String[] args) {
+		
+		AudioFormat af = SourceSoundCardAudio.makeAudioFormat(48000);
+		RootRaisedCosineFilter rrc = new RootRaisedCosineFilter(af, 452);
+		rrc.init(48000, 1200, 452);
+	}
 }
