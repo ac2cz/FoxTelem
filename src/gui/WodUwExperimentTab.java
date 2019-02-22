@@ -23,6 +23,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	
 	@Override
 	protected void parseRadiationFrames() {
+		if (!Config.payloadStore.initialized()) return;
 	String[][] data = null;
 
 	if (Config.displayRawRadData) {

@@ -467,8 +467,11 @@ public class FoxSpacecraft extends Spacecraft{
 		// Mode is stored in the header
 		// Find the most recent frame and return the mode that it has
 		SortedFramePartArrayList payloads = new SortedFramePartArrayList(numberOfLayouts);
-		for (BitArrayLayout lay : layout)
-			payloads.add(Config.payloadStore.getLatest(foxId, lay.name));
+		int maxLayouts = 4; // First four layouts are rt, max, min, exp
+		for (int i=0; i <= maxLayouts && i < layout.length; i++) {
+			//System.err.println("Checking mode in: "+layout[i].name );
+			payloads.add(Config.payloadStore.getLatest(foxId, layout[i].name));
+		}
 
 		int mode = NO_MODE;
 		if (payloads.size() > 0)

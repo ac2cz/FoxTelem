@@ -288,7 +288,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 	
 	
 	public void updateTab(FramePart rad, boolean refreshTable) {
-		
+		if (!Config.payloadStore.initialized()) return;
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {

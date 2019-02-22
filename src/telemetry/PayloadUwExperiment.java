@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.StringTokenizer;
 
 import common.Config;
+import common.Log;
 import common.Spacecraft;
 import telemetry.uw.CanPacket;
 import telemetry.uw.PcanPacket;
@@ -100,7 +101,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 				canPackets.add(rawCanPacket);
 				byte[] data = rawCanPacket.getBytes();
 				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.getID());
-
+				if (canLayout == null) Log.errorDialog("ERROR", "Missing CAN Layout for CAN ID: "+rawCanPacket.getID());
 				CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
 				newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM);
 				splitPackets.add(newPacket);
@@ -126,7 +127,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 		s = s + "RESET: " + resets;
 		s = s + "  UPTIME: " + uptime;
 		s = s + "  TYPE: " + type;
-		s = s + "  OVERFLOW FLAG: " + rawBits[0] + "\n";
+		s = s + "  OVERFLOW FLAG: (not printed)"  + "\n";
 		//for (int p=0; p < canPackets.size(); p++) {
 		//	s = s + canPackets.get(p).toString() + "    " ;
 		//	if ((p+1)%3 == 0) s = s + "\n";

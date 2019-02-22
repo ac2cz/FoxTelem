@@ -309,7 +309,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	
 	
 	protected void parseRadiationFrames() {
-		
+		if (!Config.payloadStore.initialized()) return;
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 			if (data != null && data.length > 0)
@@ -550,7 +550,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	}
 	
 	public void updateTab(FramePart rad, boolean refreshTable) {
-		
+		if (!Config.payloadStore.initialized()) return;
 	//	if (rad != null)
 	//	System.out.println("DISPLAY PAYLOAD FROM payloadStore: Resets " + rad.getResets() + " Uptime: " + rad.getUptime() + "\n" + rad + "\n");
 		if (rad != null) {

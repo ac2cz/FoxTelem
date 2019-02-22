@@ -293,6 +293,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	}
 	
 	protected void parseRadiationFrames() {
+		if (!Config.payloadStore.initialized()) return;
 		String[][] data = null;
 
 		if (Config.displayRawRadData) {
@@ -416,7 +417,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	
 	
 	public void updateTab(FramePart rad, boolean refreshTable) {
-		
+		if (!Config.payloadStore.initialized()) return;
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {

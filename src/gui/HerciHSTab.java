@@ -309,6 +309,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 	
 	
 	public void updateTab(FramePart rad,boolean refreshTable) {
+		if (!Config.payloadStore.initialized()) return;
 		if (rad == null) return;
 		hsHeader = (HerciHighspeedHeader) rad; // Cache this in case show raw is toggled
 		lblHSpayload.setText("HERCI EXPERIMENT PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + rad.getResets() + " Uptime:" + rad.getUptime() );

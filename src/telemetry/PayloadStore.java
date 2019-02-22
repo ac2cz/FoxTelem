@@ -68,8 +68,6 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	SatMeasurementStore[] measurementStore;
 	
 	public PayloadStore() {
-		
-
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
 		measurementQueue = new SortedMeasurementArrayList(INITIAL_QUEUE_SIZE);
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
@@ -943,36 +941,38 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (InterruptedException e) {
 				Log.println("ERROR: PayloadStore thread interrupted");
 				e.printStackTrace(Log.getWriter());
-			} 	
-			if (payloadQueue.size() > 0) {
-				while (payloadQueue.size() > 0) {
-					FramePart f = payloadQueue.get(0);
-					if (f == null) {
-						Log.println("NULL RECORD IN THE Q");
-					} else {
-						if (Config.debugFieldValues) {
-							Log.println(f.toString() + "\n");
-						}
-						if (f instanceof PayloadCameraData)
-							addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
-						else
-							addToFile(f.id, f.uptime, f.resets, f);
-					}
-					payloadQueue.remove(0);
-					Thread.yield(); // don't hog the thread or we block when trying to add new payloads
-				}
 			}
-			if (measurementQueue.size() > 0) {
-				while (measurementQueue.size() > 0) {
-					Measurement f = measurementQueue.get(0);
-					if (f == null) {
-						Log.println("NULL RECORD IN THE MEASUREMENT Q");
-					} else {
-						if (Config.debugFieldValues)
-							Log.println(f.toString() + "\n");
-						addToFile(f.id, f);
-						measurementQueue.remove(0);
+			if (this.initialized()) {
+				if (payloadQueue.size() > 0) {
+					while (payloadQueue.size() > 0) {
+						FramePart f = payloadQueue.get(0);
+						if (f == null) {
+							Log.println("NULL RECORD IN THE Q");
+						} else {
+							if (Config.debugFieldValues) {
+								Log.println(f.toString() + "\n");
+							}
+							if (f instanceof PayloadCameraData)
+								addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
+							else
+								addToFile(f.id, f.uptime, f.resets, f);
+						}
+						payloadQueue.remove(0);
 						Thread.yield(); // don't hog the thread or we block when trying to add new payloads
+					}
+				}
+				if (measurementQueue.size() > 0) {
+					while (measurementQueue.size() > 0) {
+						Measurement f = measurementQueue.get(0);
+						if (f == null) {
+							Log.println("NULL RECORD IN THE MEASUREMENT Q");
+						} else {
+							if (Config.debugFieldValues)
+								Log.println(f.toString() + "\n");
+							addToFile(f.id, f);
+							measurementQueue.remove(0);
+							Thread.yield(); // don't hog the thread or we block when trying to add new payloads
+						}
 					}
 				}
 			}

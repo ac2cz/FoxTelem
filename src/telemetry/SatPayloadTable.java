@@ -54,6 +54,7 @@ public class SatPayloadTable {
 	private SortedFramePartArrayList rtRecords; // this is the rtRecords that are loaded into memory
 	private boolean updated = false;
 	private boolean storeMode = false;
+	boolean debugSegs = false; // set to true to print out every seg load
 
 	public SatPayloadTable(int size, String name, boolean storeMode) throws IOException {
 		tableIdx = new SortedArrayList<TableSeg>(INITIAL_SIZE);
@@ -283,8 +284,9 @@ public class SatPayloadTable {
 		}
 		return resultSet;
 	}
-	
+		
 	private TableSeg getSeg(int reset, long uptime) throws IOException {
+		if (debugSegs) Log.println("SEG-GET: " + this.fileName + ":" + reset + ":" + uptime);
 		for (int i=tableIdx.size()-1; i>=0; i--) {
 			if (tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) {
 				return tableIdx.get(i);
@@ -303,6 +305,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	private TableSeg loadSeg(int reset, long uptime) throws IOException {
+		if (debugSegs) Log.println("SEG-LOAD: " + this.fileName + ":" + reset + ":" + uptime);
 		TableSeg seg = getSeg(reset, uptime);
 		if (seg.isLoaded()) return seg;
 		load(seg);
