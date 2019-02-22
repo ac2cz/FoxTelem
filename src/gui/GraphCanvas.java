@@ -260,8 +260,8 @@ public abstract class GraphCanvas extends MapPanel {
 							
 				}
 
-				
-				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
+				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_ENABLED 
+						|| graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
 					maxValue = 2;
 					minValue = 0;		
 				}
@@ -297,7 +297,8 @@ public abstract class GraphCanvas extends MapPanel {
 				
 				boolean intStep = false;
 				if (graphType == BitArrayLayout.CONVERT_INTEGER || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS 
-						|| graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_BOOLEAN
+						|| graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
+						|| graphType == BitArrayLayout.CONVERT_BOOLEAN
 						|| graphType == BitArrayLayout.CONVERT_STATUS_BIT)
 					intStep = true;
 				// calculate the label step size
@@ -387,6 +388,17 @@ public abstract class GraphCanvas extends MapPanel {
 							
 						} 
 
+						if (graphType == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+							drawLabel = false;
+							if (labels[v] == 2) {
+								s = "Enabled";
+								drawLabel = true;
+							}
+							if (labels[v] == 1) {
+								s = "Disabled";
+								drawLabel = true;
+							}	
+						} 
 						
 						if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
 							drawLabel = false;

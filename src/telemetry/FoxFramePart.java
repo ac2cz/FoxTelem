@@ -584,7 +584,7 @@ longer send telemetry.
 			return x;
 		}
 		
-		return ERROR_VALUE;
+		return rawValue; // no conversion, return as is
 	}
 	
 	/**

@@ -371,8 +371,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		titlePanelRight.add(btnAvg);
 		if (this.textDisplay || plotType == SKY_PLOT || plotType == EARTH_PLOT) btnAvg.setVisible(false);
 
-		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA || 
-				conversionType == BitArrayLayout.CONVERT_BOOLEAN ) {
+		if (conversionType == BitArrayLayout.CONVERT_STATUS_BIT || conversionType == BitArrayLayout.CONVERT_ANTENNA
+				|| conversionType == BitArrayLayout.CONVERT_STATUS_ENABLED || conversionType == BitArrayLayout.CONVERT_BOOLEAN ) {
 			btnDerivative.setVisible(false);
 			btnAvg.setVisible(false);
 		}

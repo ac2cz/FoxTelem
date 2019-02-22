@@ -6,7 +6,7 @@
 4,CANWOD,state4,1,-,17,NONE,0,0,0,spare,None
 5,CANWOD,state5,1,-,17,NONE,0,0,0,spare,None
 6,CANWOD,state6,1,-,17,NONE,0,0,0,spare,None
-7,CANWOD,overflow,1,-,1,Status,1,5,0,CAN Overflow,Number of CAN Packets that were lost because the IHU could not keep up
+7,CANWOD,overflow,1,-,21,Status,1,5,0,CAN Overflow,CAN Packets were lost because the IHU could not keep up
 8,CANWOD,data,568,-,0,NONE,0,0,0,NONE,0x01 specifies Fox-1A (each Fox satellite will have a unique ID)
 9,CANWOD,WODTimestampReset,16,-,1,WOD,2,1,0,Reset Count,Reset Count Whole Orbit Data was collected  (WOD only)
 10,CANWOD,WODTimestampUptime,25,s,1,WOD,2,2,0,Uptime,Uptime Whole Orbit Data was collected (WOD only)
