@@ -286,8 +286,9 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	}
 	
 	protected void makeDisplayModules(BitArrayLayout[] layouts,int moduleType) throws LayoutLoadException {
-		int topLength = layouts.length;//   /2;
-		int bottomLength = 0; //layouts.length - topLength;
+		// TODO - for this to work it needs to add them to the top but leave room for what is there already.  Bottom does not work
+		int topLength = 0;//   /2;
+		int bottomLength = layouts.length; //layouts.length - topLength;
 		String[] topModuleNames = new String[topLength];
 		int[] topModuleLines = new int[topLength];
 		String[] bottomModuleNames = new String[bottomLength];
@@ -310,12 +311,13 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			moduleNum++;
 		}
 			
-
+		if (topLength > 0)
 		topModules = new DisplayModule[numOfTopModules];
 		if (bottomLength > 0)
 		bottomModules = new DisplayModule[numOfBottomModules];
 
 		// Process the top Modules
+		if (topLength > 0)		
 		for (int i=0; i < numOfTopModules; i++) {
 			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], layouts[i]);

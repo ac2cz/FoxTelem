@@ -8,18 +8,37 @@ import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
+import telemetry.LayoutLoadException;
 import telemetry.PayloadWODUwExperiment;
 
 @SuppressWarnings("serial")
 public class WodUwExperimentTab extends UwExperimentTab {
 
-	
 	public static int[] wod_ids = {309920562, 309920256, 309330499};
 
 	public WodUwExperimentTab(FoxSpacecraft sat) {
 		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
 	}
 
+	protected void addModules() {
+		int j=0;
+		layout = new BitArrayLayout[ids.length];
+		 for (int canid : ids)
+			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
+
+		BitArrayLayout rad = null;
+
+		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+		BitArrayLayout none = null;
+		try {
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
+			//makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			System.exit(1);
+		}
+	}
 	
 	@Override
 	protected void parseRadiationFrames() {

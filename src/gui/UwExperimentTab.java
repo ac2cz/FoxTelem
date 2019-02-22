@@ -126,19 +126,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		centerPanel = new JPanel();
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
-		BitArrayLayout rad = null;
-
-		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
-		BitArrayLayout none = null;
-		try {
-//			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
-
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
-		} catch (LayoutLoadException e) {
-			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			System.exit(1);
-		}
+		addModules();
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
@@ -183,6 +171,22 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		
 		// initial populate
 		parseRadiationFrames();
+	}
+	
+	void addModules() {
+		BitArrayLayout rad = null;
+
+		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+		BitArrayLayout none = null;
+		try {
+//			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
+
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			e.printStackTrace(Log.getWriter());
+			System.exit(1);
+		}
 	}
 	
 	protected void displayFramesDecoded(int u, int c) {
@@ -413,10 +417,14 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					mod.updateRtValues(rad);
 			}
 			if (bottomModules != null)
-			for (DisplayModule mod : bottomModules) {
-				if (mod != null)
-					mod.updateRtValues(rad);
-			}
+				for (BitArrayLayout lay : layout) {
+					// TODO - this is very inefficient.  The module should take the layout as a param and it should just update itself
+					FramePart can = Config.payloadStore.getLatest(fox.foxId, lay.name);
+					for (DisplayModule mod : bottomModules) {
+						if (mod != null)
+							mod.updateRtValues(can);
+					}
+				}
 		}
 	}
 	
