@@ -668,6 +668,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			layout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
 		else if (plType == FoxFramePart.TYPE_MIN_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		else if (plType == FoxFramePart.TYPE_RAD_EXP_DATA)
+			layout = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
 		else if (plType == FoxFramePart.TYPE_RAD_TELEM_DATA)
 			layout = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		else if (plType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)

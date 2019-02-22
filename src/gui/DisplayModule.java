@@ -534,6 +534,14 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					} else
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, plotType);
 				}
+				else if (moduleType == DISPLAY_UW) {
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+					conversion = lay.getConversionByName(fieldName[i]);
+					units = lay.getUnitsByName(fieldName[i]);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_EXP_DATA, fox, plotType);
+
+					// This is a CAN Packet then we need to know the layout as each is different
+				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
