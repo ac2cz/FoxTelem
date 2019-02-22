@@ -164,9 +164,9 @@ public class SpacecraftTab extends JPanel {
 		if (sat.foxId == Spacecraft.FOX1E) {
 			addWodRadTab((FoxSpacecraft)sat);
 		}
-//		if (sat.foxId == Spacecraft.HUSKY_SAT) {
-//			addUwWodExperimentTab((FoxSpacecraft)sat);
-//		}
+		if (sat.foxId == Spacecraft.HUSKY_SAT) {
+			addUwWodExperimentTab((FoxSpacecraft)sat);
+		}
 	}
 
 	private void addWodTab(FoxSpacecraft fox) {

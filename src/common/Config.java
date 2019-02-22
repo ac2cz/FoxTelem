@@ -62,8 +62,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.08d(split)";
-	public static String VERSION = VERSION_NUM + " - 11 Feb 2019";
+	public static String VERSION_NUM = "1.08e";
+	public static String VERSION = VERSION_NUM + " - 22 Feb 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -271,7 +271,7 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-	static public boolean useCostas = false;
+	static public boolean useCostas = true;
 	
 	// V1.08
 	//static public boolean splitCanPackets = true;

@@ -95,7 +95,6 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		 for (int canid : ids)
 			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
 
-		
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
@@ -209,64 +208,42 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		column.setPreferredWidth(55);
 
 		column = table.getColumnModel().getColumn(3);
-		column.setPreferredWidth(65);
-		
+		column.setPreferredWidth(75);
+
 		column = table.getColumnModel().getColumn(4);
+		column.setPreferredWidth(75);
+
+		column = table.getColumnModel().getColumn(5);
 		column.setPreferredWidth(55);
 
 		for (int i=0; i<8; i++) {
-			column = table.getColumnModel().getColumn(i+5);
-			column.setPreferredWidth(55);
+			column = table.getColumnModel().getColumn(i+6);
+			column.setPreferredWidth(45);
 		}
 
-//		if (Config.splitCanPackets) {
-			column = packetTable.getColumnModel().getColumn(0);
-			column.setPreferredWidth(100);
+		// This is the table that shows CAN Packets and counts
+		column = packetTable.getColumnModel().getColumn(0);
+		column.setPreferredWidth(100);
 
-			column = packetTable.getColumnModel().getColumn(1);
-			column.setPreferredWidth(150);
+		column = packetTable.getColumnModel().getColumn(1);
+		column.setPreferredWidth(150);
 
-			column = packetTable.getColumnModel().getColumn(2);
-			column.setPreferredWidth(150);
-			
-			column = packetTable.getColumnModel().getColumn(3);
-			column.setPreferredWidth(150);
+		column = packetTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(150);
 
-			column = packetTable.getColumnModel().getColumn(4);
-			column.setPreferredWidth(155);
-			column = packetTable.getColumnModel().getColumn(5);
-			column.setPreferredWidth(55);
+		column = packetTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(150);
 
-//		} else {
-//			column = packetTable.getColumnModel().getColumn(0);
-//			column.setPreferredWidth(45);
-//			
-//			column = packetTable.getColumnModel().getColumn(1);
-//			column.setPreferredWidth(55);
-//
-//			column = packetTable.getColumnModel().getColumn(2);
-//			column.setPreferredWidth(55);
-//			
-//			column = packetTable.getColumnModel().getColumn(3);
-//			column.setPreferredWidth(65);
-//
-//			column = packetTable.getColumnModel().getColumn(4);
-//			column.setPreferredWidth(55);
-//
-//			column = packetTable.getColumnModel().getColumn(5);
-//			column.setPreferredWidth(600);
-//			
-//		}
+		column = packetTable.getColumnModel().getColumn(4);
+		column.setPreferredWidth(155);
+		column = packetTable.getColumnModel().getColumn(5);
+		column.setPreferredWidth(55);
 
-		//packetTable.getSelectionModel().addListSelectionListener(this);
-		//table.getSelectionModel().addListSelectionListener(this);
-		//packetTable.getRowSelectionAllowed();
-				
 	}
 	
 	protected void parseRawBytes(String data[][], CanPacketRawTableModel radTableModel) {
 		long[][] keyRawData = new long[data.length][3];
-		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+2]; // +2 fields for ID, LEN
+		String[][] rawData = new String[data.length][CanPacket.MAX_PACKET_BYTES-CanPacket.ID_BYTES+3]; // +3 fields for ID, HEX ID LEN
 		for (int i=0; i<data.length; i++) {
 			// ID String
 			int id = CanPacket.getIdFromRawBytes(Integer.valueOf(data[data.length-i-1][3]),Integer.valueOf(data[data.length-i-1][4]),
@@ -280,8 +257,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				} catch (NumberFormatException e) {
 
 				}
-			rawData[i][0] = String.format("%08x", id);
-			rawData[i][1] = Integer.toString(len);
+			rawData[i][0] = ""+id;
+			rawData[i][1] = String.format("%08x", id);
+			rawData[i][2] = Integer.toString(len);
 			for (int k=7; k< data[0].length; k++) {
 				if (data[data.length-i-1].length > k && data[data.length-i-1][k] != null)
 					rawData[i][k-5] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
@@ -290,6 +268,12 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			}
 		}
 	radTableModel.setData(keyRawData, rawData);
+	}
+	
+	private boolean in(int[] array, int a) {
+		for (int b : array)
+			if (a == b) return true;
+		return false;
 	}
 	
 	protected void parseRadiationFrames() {
@@ -303,12 +287,14 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				int number = 0;
 				int total = 0;
 				for (int id : fox.canFrames.canId) {
-					BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
-					String[][] records = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, lay.name);
-					if (records.length > 0) {
-						all[number] = records;
-						number++;
-						total = total + records.length;
+					if (!in(WodUwExperimentTab.wod_ids, id) ) {
+						BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+						String[][] records = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, lay.name);
+						if (records.length > 0) {
+							all[number] = records;
+							number++;
+							total = total + records.length;
+						}
 					}
 				}
 				int k = 0;
@@ -328,17 +314,19 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				String[][] totals = new String[250][];
 				int number = 0;
 				for (int id : fox.canFrames.canId) {
-					BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
-					int total = Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
-					if (total > 0) {
-						String[] row = new String[5];
-						row[0] = ""+id;
-						row[1] = fox.canFrames.getGroundByCanId(id);
-						row[2] = fox.canFrames.getNameByCanId(id);
-						row[3] = fox.canFrames.getSenderByCanId(id);
-						row[4] = ""+total;
-						totals[number] = row;
-						number++;
+					if (!in(WodUwExperimentTab.wod_ids, id) ) {
+						BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+						int total = Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
+						if (total > 0) {
+							String[] row = new String[5];
+							row[0] = ""+id;
+							row[1] = fox.canFrames.getGroundByCanId(id);
+							row[2] = fox.canFrames.getNameByCanId(id);
+							row[3] = fox.canFrames.getSenderByCanId(id);
+							row[4] = ""+total;
+							totals[number] = row;
+							number++;
+						}
 					}
 				}
 				data = new String[number][];
@@ -431,6 +419,17 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			}
 		}
 	}
+	
+	private int getTotalPackets() {
+		int total = 0;
+		for (int id : fox.canFrames.canId) {
+			if (!in(WodUwExperimentTab.wod_ids, id) ) {
+				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+				total += Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
+			}
+		}
+		return total;
+	}
 
 	
 	@Override
@@ -470,19 +469,13 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 					refresh = true;
 				}
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
-					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
-					refresh = true;
-				}
-
 				if (refresh) {
 					parseRadiationFrames();
 					//						for (BitArrayLayout lay : layout)
 					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT) +
-							Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT),
-							Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_PKT_LAYOUT));
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT),
+							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);

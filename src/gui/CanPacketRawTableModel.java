@@ -25,14 +25,15 @@ package gui;
 class CanPacketRawTableModel extends FoxTelemTableModel {
 
 	CanPacketRawTableModel() {
-		columnNames = new String[13];
+		columnNames = new String[14];
 		columnNames[0] = "RESET";
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "FOX SEQ";
 		columnNames[3] = "ID";
-		columnNames[4] = "LEN";
+		columnNames[4] = "ID HEX";
+		columnNames[5] = "LEN";
 		for (int k=0; k<8; k++) 
-			columnNames[k+5] = ""+k;
+			columnNames[k+6] = ""+k;
 	}
 	
 }

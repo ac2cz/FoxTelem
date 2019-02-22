@@ -110,6 +110,15 @@ public class WodUwExperimentTab extends UwExperimentTab {
     	table.setRowSelectionInterval(row, row);
 	}
 	
+	private int getTotalPackets() {
+		int total = 0;
+		for (int id : wod_ids) {
+			BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+			total += Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
+		}
+		return total;
+	}
+	
 	@Override
 	public void run() {
 		Thread.currentThread().setName("UwWODTab");
@@ -128,19 +137,19 @@ public class WodUwExperimentTab extends UwExperimentTab {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
-						Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
-						
-						parseRadiationFrames();
-						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD_LAYOUT), true);
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT),
-								Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_PKT_LAYOUT));
-						MainWindow.setTotalDecodes();
-						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_WOD_RAD);
-							justStarted = false;
-						}
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
+					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
+
+					parseRadiationFrames();
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD_LAYOUT), true);
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT),
+							getTotalPackets());
+					MainWindow.setTotalDecodes();
+					if (justStarted) {
+						openGraphs(FoxFramePart.TYPE_WOD_RAD);
+						justStarted = false;
 					}
+				}
 			}
 		}
 		done = true;
