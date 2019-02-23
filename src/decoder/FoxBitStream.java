@@ -219,10 +219,12 @@ public abstract class FoxBitStream extends BitStream {
 		if (this.size() < SYNC_WORD_LENGTH) return null; // not enough bits yet
 		
 		ArrayList<Frame> frames = null;
+		syncWordbitPosition = 0;
+		syncWord = new boolean[SYNC_WORD_LENGTH]; // re-init each search
 		
-		// We only need to look for a new sync word in the current window of bits.  We add each bit one by one
-		// and see if the previous N bits are the sync word
-		for (int i=this.size()-windowLength; i < this.size(); i++) {
+		// We look for a new sync word in the current window of bits.  We add each bit one by one
+		// and see if the previous N bits are the sync word.  We might have just the last bit in this window
+		for (int i=this.size()-windowLength-SYNC_WORD_LENGTH; i < this.size(); i++) {
 			syncWord[syncWordbitPosition++] = this.get(i);
 			if (syncWordbitPosition > SYNC_WORD_LENGTH-1) {
 				syncWordbitPosition = SYNC_WORD_LENGTH-1;
@@ -251,10 +253,16 @@ public abstract class FoxBitStream extends BitStream {
 					syncWord[k-1] = syncWord[k];
 			} 
 		}
-		return frames;
-		
+//		if (frames !=null && frames.size() > 1) { // then reverse the order or the timestamps are back to front
+//			ArrayList<Frame> returnFrames = new ArrayList<Frame>(frames.size());
+//			for (int i = 0; i< frames.size(); i++)
+//				returnFrames.add(frames.get(frames.size()-1-i));
+//			return returnFrames;
+//		} else
+			return frames;
+
 	}
-	
+
 	/**
 	 * We have a sync word at this bit position, try to process a frame or frames
 	 * @param bitPosition
