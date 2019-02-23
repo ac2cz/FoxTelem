@@ -85,6 +85,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		SAMPLE_WINDOW_LENGTH = 100; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
 		SEARCH_INTERVAL = (int) 1*8192/SAMPLE_WINDOW_LENGTH;
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
+		symphase = bucketSize/2;
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
 		initWindowData();
 
@@ -174,7 +175,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
     int symphase = 0;
 	double[] baseband_i = new double[BUFFER_SIZE];
 	double[] baseband_q = new double[BUFFER_SIZE];
-	static final int NUM_OF_DEMODS = 3;
+	static final int NUM_OF_DEMODS = 7;
 	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
 	int symbol_count = 0;
 	double[] data; // the demodulated symbols
@@ -204,6 +205,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        double maxenergy_value;
 	        int slots;
 	        int fleft;
+	        int newSymphase = symphase;
+	        double newCarrier = carrier;
 	        
 	        cphase_inc = phase_inc_start;
 	        fleft = Ftotal;
@@ -231,16 +234,23 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 				}
 	        	if(searchers[slot].getEnergy() >= maxenergy_value){
 	        		maxenergy_value = searchers[slot].getEnergy();
-	        		cphase_inc = searchers[slot].getCphaseInc();
-	        		symphase = searchers[slot].getSymphase();
-	        		carrier = searchers[slot].getFrequency();
+// NOT USED	        		cphase_inc = searchers[slot].getCphaseInc();
+	        		newSymphase = searchers[slot].getSymphase();
+	        		newCarrier = searchers[slot].getFrequency();
 	        	}
 	        	searchers[slot].stop();
 	        }
-	        if(symphase < bucketSize/2)
-	        	symphase += bucketSize; // Allow room for early symbol timing test
-	        Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
-	    }
+	        
+	        // Dont adjust symphase or carrier unless carrier has changed
+	        if (Math.abs(newCarrier - carrier) > 75) { // more than 75 hz diff, differnt slot, outside our tracker range
+	        	carrier = newCarrier;
+	        	symphase = newSymphase;
+	        	if(symphase < bucketSize/2)
+	        		symphase += bucketSize; // Allow room for early symbol timing test
+	        	Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+	        } else
+	        Log.println("   NO CHANGE: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+		}
 	    
 		// track frequency with two probes, one below and one above nominal carrier frequency
 	    // Use linear interpolation to determine more accurate carrier frequency
@@ -347,14 +357,16 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    int move = bucketSize/2; //bucketSize/2;
 	    if(symphase <= bucketSize/2){
 	    	// Timing is moving early; move back 1/2 symbol
-//	    	System.err.println("EARLY!!!!");
+	    	//System.err.println("EARLY!!!! " + symphase + " " + samples_processed);
 	    	samples_processed -= move;
 	    	symphase += move;
 	    } else if(symphase >= (3*bucketSize)/2){
 	    	// Timing is moving late; move forward 1/2 sample
-//	    	System.err.println("LATE!!!!");
+	    	//System.err.println("LATE!!!!" + symphase + " " + samples_processed);
 	    	samples_processed += move;
 	    	symphase -= move;
+	    } else {
+	    	;//System.err.println("Ontime:" + symphase + " " + samples_processed + " idx delta: " + (best_index + DEFAULT_INDEX));
 	    }
 
 	    // adjust the read pointer based on the number of symbols we actually processed
