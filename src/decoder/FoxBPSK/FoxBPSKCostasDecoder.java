@@ -344,7 +344,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 	protected void processPossibleFrame(ArrayList<Frame> frames) {
 
 		FoxSpacecraft sat = null;
-		for (Frame decodedFrame : frames)
+		for (Frame decodedFrame : frames) {
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 				Performance.startTimer("Store");
 				// Successful frame
@@ -397,8 +397,8 @@ public class FoxBPSKCostasDecoder extends Decoder {
 				if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
 				//clockLocked = false;
 			}
+		}
 	}
-
 
 	public double getError() { return error; }
 	public double getFrequency() { return nco.getFrequency(); }
