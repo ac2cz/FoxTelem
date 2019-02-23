@@ -54,7 +54,9 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	public static final int PSK_MODE = 1;
 	public int mode = AUDIO_MODE;
 
-	DcRemoval audioDcFilter;
+	DcRemoval audioIDcFilter;
+	DcRemoval audioQDcFilter;
+	
 	RootRaisedCosineFilter dataFilterI;
 	RootRaisedCosineFilter dataFilterQ;
 
@@ -86,7 +88,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
 		initWindowData();
 
-		audioDcFilter = new DcRemoval(0.9999d);
+		audioIDcFilter = new DcRemoval(0.9999d);
+		audioQDcFilter = new DcRemoval(0.9999d);
 		
 		// We don't filter the data as it comes in
 		filter = new AGCFilter(audioSource.audioFormat, (BUFFER_SIZE));
@@ -188,10 +191,11 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		// dataValues is already bucketed, but we don't want that.
 		// we use abBufferDoubleFiltered which has DC balance and some AGC but nothing else
 		// abBufferDoubleFiltered is BUFFER_SIZE long
-//		for (int j=0; j<BUFFER_SIZE; j++) {
+//		for (int j=0; j<BUFFER_SIZE; j+=2) {
 //			if (abBufferDoubleFiltered[j] > maxValue) maxValue = abBufferDoubleFiltered[j];
 //			if (abBufferDoubleFiltered[j] < minValue) minValue = abBufferDoubleFiltered[j];
-//			abBufferDoubleFiltered[j] = abBufferDoubleFiltered[j]*gain;
+//			abBufferDoubleFiltered[j] = audioIDcFilter.filter(abBufferDoubleFiltered[j]);
+//			abBufferDoubleFiltered[j+1] = audioQDcFilter.filter(abBufferDoubleFiltered[j+1]);
 //		}
 
 		// Perform a brute force search periodically
@@ -371,8 +375,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    // At the end of chunk processing, increment counter
 	    chunk++;
 
-//		if (maxValue - minValue != 0)
-//			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		if (maxValue - minValue != 0)
+			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
 		//if (gain < 1) gain = 1;
 

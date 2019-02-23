@@ -47,8 +47,11 @@ public class WodUwExperimentTab extends UwExperimentTab {
 
 	if (Config.displayRawRadData) {
 //		if (Config.splitCanPackets) {
+		boolean showParsedPackets = false;
+		if (showParsedPackets) {
 			// for each CAN Packet get the layout and all the packets
-			String[][][] all = new String[250][][];
+			int maxCanIDs = wod_ids.length;
+			String[][][] all = new String[maxCanIDs][][];
 			int number = 0;
 			int total = 0;
 			for (int id : wod_ids) {
@@ -66,9 +69,9 @@ public class WodUwExperimentTab extends UwExperimentTab {
 				for (int r=0; r<all[j].length; r++) {
 					data[k++] = all[j][r];
 				}
-//		} else {
-//			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
-//		}
+		} else {
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.WOD_CAN_PKT_LAYOUT);				
+		}
 		if (data != null && data.length > 0)
 			parseRawBytes(data,radTableModel);
 	} else {

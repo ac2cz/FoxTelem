@@ -24,6 +24,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.AbstractTableModel;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
@@ -201,24 +202,33 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel) {
 		super.addTables(radTableModel, radPacketTableModel);
 		
+		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
+		centerRenderer.setHorizontalAlignment( JLabel.CENTER );
+		
 		TableColumn column = null;
 		column = table.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);
+		column.setCellRenderer( centerRenderer );
 		
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
+		column.setCellRenderer( centerRenderer );
 
 		column = table.getColumnModel().getColumn(2);
 		column.setPreferredWidth(55);
+		column.setCellRenderer( centerRenderer );
 
 		column = table.getColumnModel().getColumn(3);
 		column.setPreferredWidth(75);
+		column.setCellRenderer( centerRenderer );
 
 		column = table.getColumnModel().getColumn(4);
 		column.setPreferredWidth(75);
+		column.setCellRenderer( centerRenderer );
 
 		column = table.getColumnModel().getColumn(5);
 		column.setPreferredWidth(55);
+		column.setCellRenderer( centerRenderer );
 
 		for (int i=0; i<8; i++) {
 			column = table.getColumnModel().getColumn(i+6);
@@ -228,9 +238,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		// This is the table that shows CAN Packets and counts
 		column = packetTable.getColumnModel().getColumn(0);
 		column.setPreferredWidth(100);
+		column.setCellRenderer( centerRenderer );
 
 		column = packetTable.getColumnModel().getColumn(1);
 		column.setPreferredWidth(150);
+		column.setCellRenderer( centerRenderer );
 
 		column = packetTable.getColumnModel().getColumn(2);
 		column.setPreferredWidth(150);
@@ -242,7 +254,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		column.setPreferredWidth(155);
 		column = packetTable.getColumnModel().getColumn(5);
 		column.setPreferredWidth(55);
-
+		column.setCellRenderer( centerRenderer );
 	}
 	
 	protected void parseRawBytes(String data[][], CanPacketRawTableModel radTableModel) {
@@ -266,9 +278,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			rawData[i][2] = Integer.toString(len);
 			for (int k=7; k< data[0].length; k++) {
 				if (data[data.length-i-1].length > k && data[data.length-i-1][k] != null)
-					rawData[i][k-5] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
-				if (rawData[i][k-5] == null)
-					rawData[i][k-5] = "";
+					rawData[i][k-4] = Integer.toHexString(Integer.valueOf(data[data.length-i-1][k]));
+				if (rawData[i][k-4] == null)
+					rawData[i][k-4] = "";
 			}
 		}
 	radTableModel.setData(keyRawData, rawData);
@@ -286,8 +298,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 		if (Config.displayRawRadData) {
 //			if (Config.splitCanPackets) {
+			boolean showParsedPackets = false;
+			if (showParsedPackets) {
 				// for each CAN Packet get the layout and all the packets
-				String[][][] all = new String[250][][];
+				int maxCanIDs = 250;
+				String[][][] all = new String[maxCanIDs][][];
 				int number = 0;
 				int total = 0;
 				for (int id : fox.canFrames.canId) {
@@ -307,9 +322,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					for (int r=0; r<all[j].length; r++) {
 						data[k++] = all[j][r];
 					}
-//			} else {
-//				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);
-//			}
+			} else {
+				data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.CAN_PKT_LAYOUT);				
+			}
 			if (data != null && data.length > 0)
 				parseRawBytes(data,radTableModel);
 		} else {
