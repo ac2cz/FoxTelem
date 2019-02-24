@@ -514,12 +514,16 @@ public class FoxTelemMain {
 	static int REQUIRED_JAVA_VERSION = 8;
 	
 	public static void main(String[] args) {
-		String javaVersion = System.getProperty("java.specification.version");
-		int release = Integer.parseInt(javaVersion.split("\\.")[1]);  // need to escape the period and take the second part
-		if (release < REQUIRED_JAVA_VERSION) {
-			Log.errorDialog("Java Version Error", "FoxTelem needs Java Version "+REQUIRED_JAVA_VERSION+" or higher.  You are using Java Version: " + release  +"\n"
-					+ "Please install a later version of Java.");
-			System.exit(1);
+		try {
+			String javaVersion = System.getProperty("java.specification.version");
+			int release = Integer.parseInt(javaVersion.split("\\.")[1]);  // need to escape the period and take the second part
+			if (release < REQUIRED_JAVA_VERSION) {
+				Log.errorDialog("Java Version Error", "FoxTelem needs Java Version "+REQUIRED_JAVA_VERSION+" or higher.  You are using Java Version: " + release  +"\n"
+						+ "Please install a later version of Java.");
+				System.exit(1);
+			}
+		} catch (Exception e) {
+			; // Failure to check the version is not fatal.  Ignore and hope the user got it right
 		}
 		
 		ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, "Initializing AMSAT FoxTelem, please wait ...", false);
