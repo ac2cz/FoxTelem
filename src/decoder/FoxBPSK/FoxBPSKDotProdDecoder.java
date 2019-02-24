@@ -171,7 +171,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
     int symphase = 0;
 	double[] baseband_i = new double[BUFFER_SIZE];
 	double[] baseband_q = new double[BUFFER_SIZE];
-	static final int NUM_OF_DEMODS = 7;
+	static final int NUM_OF_DEMODS = 5;
 	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
 	int symbol_count = 0;
 	double[] data; // the demodulated symbols
