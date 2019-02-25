@@ -289,7 +289,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			// This shows the input buffer.  Need to restrict to samples_processed at end of chunk to see actual
 			double mag = Math.sqrt(baseband_i[i]*baseband_i[i] + baseband_q[i]*baseband_q[i]);
 			//double phase = Math.atan2(baseband_i[i], baseband_q[i])/3;
-			pskAudioData[i] = 1.5*(mag-.5);
+			pskAudioData[i] = 1*(mag-0.7);
 			eyeValue = (int)(pskAudioData[i]*32767.0); 
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
 	    }
@@ -330,14 +330,14 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 //	    	y = 127.5 + gain * data[i];
 //	    	y = (y > 255) ? 255 : ((y < 0) ? 0 : y);
 	    	//symbolq((int)y+" "); // Pass to FEC decoder thread
-	    	
+	    	int middleSamplePosition = (int) (symphase+bucketSize/2.0+(i)*bucketSize);
 	    	boolean thisSample = false;
 	    	if (data[i] > 0) thisSample = true;
 			bitStream.addBit(thisSample);
 			if (thisSample == false)
-				eyeData.setLow((int) (pskAudioData[(int) (symphase+bucketSize/2.0+(i-1)*bucketSize)]*-32767.0)); // take the middle of the bit as the eye sample
+				eyeData.setLow((int) (pskAudioData[middleSamplePosition]*-32767.0)); // take the middle of the bit as the eye sample
 			else
-				eyeData.setHigh((int) (pskAudioData[(int) (symphase+bucketSize/2.0+(i-1)*bucketSize)]*32767.0));
+				eyeData.setHigh((int) (pskAudioData[middleSamplePosition]*32767.0));
 	    }
 
 		int offset = 0;//-1*(symphase)%bucketSize;
