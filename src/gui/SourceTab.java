@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -109,13 +110,14 @@ import javax.swing.event.PopupMenuEvent;
 public class SourceTab extends JPanel implements Runnable, ItemListener, ActionListener, PropertyChangeListener, FocusListener, MouseListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
-	//Thread fcdPanelThread;
+	Thread phasorPanelThread;
 	
 	Thread fftPanelThread;
 	Thread decoder1Thread;
 	Thread decoder2Thread;
 	AudioGraphPanel audioGraph;
 	EyePanel eyePanel;
+	PhasorPanel phasorPanel;
 	public FFTPanel fftPanel;
 	JButton btnMonitorAudio;
 	JCheckBox rdbtnMonitorFilteredAudio;
@@ -279,7 +281,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	public void showSatOptions(boolean b) { 
 		satPanel.setVisible(b);
 	}
-	
+
+	public void showEye(boolean b) { 
+		eyePanel.setVisible(b);
+	}
+	public void showPhasor(boolean b) { 
+		phasorPanel.setVisible(b);
+	}
+
 	public boolean getShowFilterState() {
 		return filterPanel.isVisible();
 	}
@@ -415,12 +424,25 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		audioGraphThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		audioGraphThread.start();
 
+		JPanel eyePhasorPanel = new JPanel();
+		eyePhasorPanel.setLayout(new BorderLayout());
+		
 		eyePanel = new EyePanel();
 		eyePanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		bottomPanel.add(eyePanel, BorderLayout.EAST);
+		bottomPanel.add(eyePhasorPanel, BorderLayout.EAST);
+		eyePhasorPanel.add(eyePanel, BorderLayout.WEST);
 		eyePanel.setBackground(Color.LIGHT_GRAY);
 		eyePanel.setPreferredSize(new Dimension(200, 100));
 		eyePanel.setMaximumSize(new Dimension(200, 100));
+		eyePanel.setVisible(true);
+		
+		phasorPanel = new PhasorPanel();
+		phasorPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		eyePhasorPanel.add(phasorPanel, BorderLayout.EAST);
+		phasorPanel.setBackground(Color.LIGHT_GRAY);
+		phasorPanel.setPreferredSize(new Dimension(200, 100));
+		phasorPanel.setMaximumSize(new Dimension(200, 100));
+		phasorPanel.setVisible(false);
 		
 		fftPanel = new FFTPanel();
 		fftPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
@@ -495,6 +517,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		autoStart.addItemListener(this);
 		satPanel.add(autoStart);
 		showSatOptions(Config.showSatOptions);
+		showEye(Config.showEye);
+		if (decoder1 != null && (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder))
+			showPhasor(Config.showPhasor);
 		return oneTracked;
 	}
 	
@@ -1014,6 +1039,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (decoder1 != null) {
 			audioGraph.startProcessing(decoder1);
 			eyePanel.startProcessing(decoder1);
+			if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
+				phasorPanel.setVisible(true);
+				phasorPanel.startProcessing(decoder1);
+			} else {
+				phasorPanel.setVisible(false);
+			}
 			fftPanel.startProcessing(iqSource1);
 		}
 		viewLowSpeed.setSelected(true);
@@ -1038,6 +1069,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 			audioGraph.startProcessing(decoder2);
 			eyePanel.startProcessing(decoder2);
+			if (decoder2 instanceof FoxBPSKDotProdDecoder || decoder2 instanceof FoxBPSKCostasDecoder)
+			phasorPanel.startProcessing(decoder2);
 			fftPanel.startProcessing(iqSource2);
 			
 			viewHighSpeed.setSelected(true);
@@ -1776,6 +1809,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							eyePanelThread.start();
 						}
 						eyePanel.startProcessing(decoder1);
+						if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
+							if (phasorPanelThread == null) {	
+								phasorPanelThread = new Thread(phasorPanel);
+								phasorPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+								phasorPanelThread.start();
+							}
+							phasorPanel.startProcessing(decoder1);
+							phasorPanel.setVisible(true);
+						} else {
+							phasorPanel.setVisible(false);
+						}
 						enableSourceSelectionComponents(false);
 						
 						if (iqSource1 != null) {
@@ -2360,7 +2404,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								if (sat.satPos != null) {
 									double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 									double el = FramePart.radToDeg(sat.satPos.getElevation());
-									satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+									double freq = sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz);
+									satPosition[s].setText("" + String.format("%2.1f", az) 
+									+ " | " + String.format("%2.1f", el) + " | " + String.format("%2.1f", freq) + "kHz");
 								} else {
 									String msg = "Tracked / ";
 									if (Config.whenAboveHorizon) {

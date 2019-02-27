@@ -272,6 +272,8 @@ public class Config {
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
 	static public boolean useCostas = false;
+	public static boolean showEye = true; 
+	public static boolean showPhasor = true; 
 
 	
 	public static boolean missing() { 
@@ -711,6 +713,8 @@ public class Config {
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
+		properties.setProperty("showEye", Boolean.toString(showEye));
+		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
 		
 		store();
 	}
@@ -890,6 +894,8 @@ public class Config {
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		showEye = Boolean.parseBoolean(getProperty("showEye"));
+		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

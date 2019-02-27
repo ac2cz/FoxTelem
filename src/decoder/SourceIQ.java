@@ -104,6 +104,7 @@ public class SourceIQ extends SourceAudio {
 	
 	RfData rfData;
 	Thread rfDataThread;
+	double[] phasorData;
 	
 	public SourceIQ(int circularDoubleBufferSize, int chan, boolean hs) {
 		super("IQ Source" + hs, circularDoubleBufferSize, chan, false);
@@ -347,6 +348,7 @@ public class SourceIQ extends SourceAudio {
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
 		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
+		phasorData = new double[samplesToRead]; // same length as the IQ data
 
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
@@ -551,7 +553,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 			
 			if (id > maxValue) maxValue = id;
 			if (id < minValue) minValue = id;
-			demodAudio[d++] = pskDemod(gain*id, gain*qd);
+			demodAudio[d++] = pskDemod(gain*id, gain*qd, j/2);
 			sumLockLevel += lockLevel;
 			// i and q go into consecutive spaces in the complex FFT data input
 			if (Config.swapIQ) {
@@ -1226,9 +1228,9 @@ protected double[] processBytes(double[] fcdData) {
 
 	int ssbOffset = 0;
 	
-	private double pskDemod(double i, double q) {
+	private double pskDemod(double i, double q, int sample) {
 		ssbOffset = 0;
-		double psk = costasLoop(i, q);
+		double psk = costasLoop(i, q, sample);
 		if (this.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
 			
 			// only scan if we have a signal, but any signal in the sat band triggers this
@@ -1286,7 +1288,7 @@ protected double[] processBytes(double[] fcdData) {
 	public double getCostasFrequency() { return freq; }
 	
 	Complex c;
-	private double costasLoop(double i, double q) {
+	private double costasLoop(double i, double q, int sample) {
 		c = nco.nextSample();
 		c.normalize();
 		// Mix 
@@ -1295,6 +1297,10 @@ protected double[] processBytes(double[] fcdData) {
 		// Filter
 		fi = iFilter.filterDouble(iMix);
 		fq = qFilter.filterDouble(qMix);;
+		
+		phasorData[2*sample] = fi*5;
+		phasorData[2*sample+1] = fq*5;
+
 
 		double lockGain = gain;
 		if (lockGain < 1) lockGain = 1;
@@ -1314,7 +1320,11 @@ protected double[] processBytes(double[] fcdData) {
 		if (in < 0) return -1*in;
 		return in;
 	}
-
+	
+	public double[] getPhasorData() {
+			return phasorData;
+	}
+	
 	// Legacy Decoder Elements below.  We use the Legacy BFO for PSK Non Coherent Demod.
 	
 	/**

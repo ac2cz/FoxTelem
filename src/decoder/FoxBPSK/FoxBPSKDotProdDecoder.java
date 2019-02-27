@@ -98,6 +98,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 //	double Gain = 128; // Heuristically, this seems about optimum
 	public int samples_processed = 0;
 	Complex c;
+	double[] phasorData;
 
 	/**
 	 * This holds the stream of bits that we have not decoded. Once we have several
@@ -144,6 +145,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		
 		pskAudioData = new double[BUFFER_SIZE];
 		pskQAudioData = new double[BUFFER_SIZE];
+		phasorData = new double[BUFFER_SIZE*2]; // actually it stores baseband i and q
 		
 		phase_inc_start = (CENTER_CARRIER - CARRIER_SEARCH_RANGE) * 2 * Math.PI / (double) currentSampleRate;
 		phase_inc_stop = (CENTER_CARRIER + CARRIER_SEARCH_RANGE) * 2 * Math.PI / (double) currentSampleRate;
@@ -166,6 +168,9 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		return pskQAudioData;
 	}
 
+	public double[] getPhasorData() {
+		return phasorData;
+	}
 
 	protected void sampleBuckets() {
 		double maxValue = 0;
@@ -229,9 +234,11 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        	symphase = newSymphase;
 	        	if(symphase < bucketSize/2)
 	        		symphase += bucketSize; // Allow room for early symbol timing test
-	        	Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+	        	if (Config.debugClock)
+	        		Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
 	        } else
-	        Log.println("   NO CHANGE: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+	        	if (Config.debugClock)
+	        		Log.println("   NO CHANGE: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
 		}
 		
 		if (Double.isNaN(carrier))
@@ -292,6 +299,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			pskAudioData[i] = 1*(mag-0.7);
 			eyeValue = (int)(pskAudioData[i]*32767.0); 
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
+			phasorData[2*i] = baseband_i[i];
+			phasorData[2*i+1] = baseband_q[i];
 	    }
 
 	    // Demodulate N times: early, on time, and late
@@ -308,7 +317,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    
 	    if(best_index == -1) {
 	    	best_index = (int)(NUM_OF_DEMODS-1)/2; // we did not pick any state, so pick middle
-	    	System.err.println("Best Index -1");
+	    	//System.err.println("Best Index -1");
 	    }
 	    symphase = symphase + best_index + DEFAULT_INDEX; // default_index is -ve so we add it
 	    symbol_count = demodState[best_index].symbol_count;

@@ -49,6 +49,8 @@ public class FoxBPSKCostasDecoder extends Decoder {
 
 	double[] pskAudioData;
 	double[] pskQAudioData;
+	double[] phasorData;
+
 
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
@@ -117,6 +119,8 @@ public class FoxBPSKCostasDecoder extends Decoder {
 
 		pskAudioData = new double[BUFFER_SIZE];
 		pskQAudioData = new double[BUFFER_SIZE];
+		phasorData = new double[BUFFER_SIZE*2]; // actually it stores baseband i and q
+		
 	}
 
 	protected void resetWindowData() {
@@ -130,6 +134,13 @@ public class FoxBPSKCostasDecoder extends Decoder {
 
 	public double[] getBasebandQData() {
 		return pskQAudioData;
+	}
+	
+	public double[] getPhasorData() {
+		if (mode == PSK_MODE)
+			return phasorData;
+		else
+			return ((SourceIQ)audioSource).getPhasorData();
 	}
 
 	/**
@@ -180,7 +191,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 
 				value = value*gain;
 				if (mode == PSK_MODE) {
-					psk = costasLoop(value, value, i);
+					psk = costasLoop(value, value, i, s);
 					sumLockLevel += lockLevel;
 				} else {
 					psk = value;
@@ -407,7 +418,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 	public double getLockLevel() { return avgLockLevel; }
 	
 	Complex c;
-	private double costasLoop(double i, double q, int bucketNumber) {
+	private double costasLoop(double i, double q, int bucketNumber, int sample) {
 		c = nco.nextSample();
 		c.normalize();
 		// Mix 
@@ -417,6 +428,10 @@ public class FoxBPSKCostasDecoder extends Decoder {
 		// Filter
 		fi = iFilter.filterDouble(iMix);
 		fq = qFilter.filterDouble(qMix);
+		
+		int p = bucketSize*bucketNumber+sample;
+		phasorData[2*p] = fi;
+		phasorData[2*p+1] = fq;
 
 		ri = SourceIQ.fullwaveRectify(fi);
 		rq = SourceIQ.fullwaveRectify(fq);

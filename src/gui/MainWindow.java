@@ -128,6 +128,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
 	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
 	JCheckBoxMenuItem chckbxmntmShowSatOptions;
+	JCheckBoxMenuItem chckbxmntmShowEye;
+	JCheckBoxMenuItem chckbxmntmShowPhasor;
+	JCheckBoxMenuItem chckbxmntmShowFFT;
+
 	JCheckBoxMenuItem chckbxmntmShowSourceOptions;
 	static JPanel bottomPanel;
 	
@@ -463,6 +467,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnDecoder.add(chckbxmntmShowSatOptions);
 		chckbxmntmShowSatOptions.setState(Config.showSatOptions);
 
+		chckbxmntmShowEye = new JCheckBoxMenuItem("Show Eye");
+		chckbxmntmShowEye.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowEye);
+		chckbxmntmShowEye.setState(Config.showEye);
+
+		chckbxmntmShowPhasor = new JCheckBoxMenuItem("Show Phasor");
+		chckbxmntmShowPhasor.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowPhasor);
+		chckbxmntmShowPhasor.setState(Config.showPhasor);
+		
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
@@ -700,6 +714,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == chckbxmntmShowSatOptions) {	
 			Config.showSatOptions = chckbxmntmShowSatOptions.getState();
 			inputTab.showSatOptions(Config.showSatOptions);
+	    }
+		if (e.getSource() == chckbxmntmShowEye) {	
+			Config.showEye = chckbxmntmShowEye.getState();
+			inputTab.showEye(Config.showEye);
+	    }
+		if (e.getSource() == chckbxmntmShowPhasor) {	
+			Config.showPhasor = chckbxmntmShowPhasor.getState();
+			inputTab.showPhasor(Config.showPhasor);
 	    }
 		if (e.getSource() == mntmManual) {
 			try {
