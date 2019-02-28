@@ -6,6 +6,7 @@ import org.jtransforms.fft.DoubleFFT_1D;
 
 import common.Config;
 import common.Log;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Complex;
 import filter.ComplexOscillator;
 import filter.DcRemoval;
@@ -42,7 +43,7 @@ public class SourceIQ extends SourceAudio {
 
 	public static int FFT_SAMPLES = 4096;
 	
-	private int selectedBin = 192/4;
+//	private int selectedBin = 192/4;
 
 	/* The number of samples to read from the IQ source each time we request data */
 	public static int samplesToRead = 3840;
@@ -157,27 +158,36 @@ public class SourceIQ extends SourceAudio {
 	public void setCenterFreqkHz(int freq) { 
 		centerFreq = freq; 
 	}
+	
+	public void setSelectedBin(int bin) {  
+		double f = getOffsetFrequencyFromBin(bin); // costas freq
+		setSelectedFrequency(f);
+	}
+	
+	public int getSelectedBin() {
+		return getBinFromOffsetFreqHz(freq);
+	}
 
-//	private int getSelectedBin() { return selectedBin; }
-/*	private void setSelectedBin(int bin) { 
-		selectedBin = bin; 
-		Config.selectedBin = bin;
-		freq = getOffsetFrequencyFromBin(selectedBin); // costas freq
-		if (nco != null)
-			nco.setFrequency(freq);
-	}
-	*/
-	
-	public void setSelectedBin(int bin) { 
-		selectedBin = bin; 
-		/////Config.selectedBin = bin;
-		freq = getOffsetFrequencyFromBin(selectedBin); // costas freq
-		if (nco != null)
-			nco.setFrequency(freq);
+	public void incSelectedFrequency() {
+		setSelectedFrequency(freq+10);
 	}
 	
-	public long getSelectedFrequency() {
-		return getFrequencyFromBin(Config.selectedBin);
+	public void decSelectedFrequency() {
+		setSelectedFrequency(freq-10);
+	}
+	
+	public void setSelectedFrequency(double f) {
+//		if (f > sampleRate / 2) f = sampleRate/2;
+//		if (f < -1* sampleRate/ 2) f = -1* sampleRate/2;
+		freq = f;
+		if (nco != null)
+			nco.setFrequency(freq);
+		Config.selectedFrequency = freq;
+	}
+	
+	public double getSelectedFrequency() {
+		return freq;
+//		return getFrequencyFromBin(Config.selectedBin);
 	}
 	
 	/**
@@ -210,7 +220,7 @@ public class SourceIQ extends SourceAudio {
 		return getBinFromOffsetFreqHz(delta);
 	}
 	
-	public int getBinFromOffsetFreqHz(long delta) {
+	public int getBinFromOffsetFreqHz(double delta) {
 		int bin = 0;
 		// Positive freq are 0 - FFT_SAMPLES/2
 		// Negative freq are FFT_SAMPLES/2 - FFT_SAMPLES
@@ -229,24 +239,6 @@ public class SourceIQ extends SourceAudio {
 		
 	}
 	
-/*	public int incSelectedBin() {
-		int selectedBin = getSelectedBin();
-        selectedBin = selectedBin-1;
-        if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
-        if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
-        setSelectedBin(selectedBin);
-        return selectedBin;
-	}
-
-	public int decSelectedBin() {
-		int selectedBin = getSelectedBin();
-        selectedBin = selectedBin+1;
-        if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
-        if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
-        setSelectedBin(selectedBin);
-        return selectedBin;
-	}
-*/	
 	public double[] getPowerSpectralDensity() { 
 //		if (fftDataFresh==false) {
 //			return null;
@@ -367,6 +359,7 @@ public class SourceIQ extends SourceAudio {
 		qDcFilter = new DcRemoval(0.9999d);
 		
 ///		setSelectedBin(Config.selectedBin);
+		freq = Config.selectedFrequency;
 		// Costas Loop or NCO downconvert
 		nco = new ComplexOscillator(IQ_SAMPLE_RATE, (int) freq);
 		// Costas
@@ -483,7 +476,7 @@ public class SourceIQ extends SourceAudio {
 		int i = 0;
 		
 		// TODO - this is brute force because I can't find the obscure situation where they get out of sync
-		setSelectedBin(Config.selectedBin); // make sure we are in sync with the pass manager and FFT  
+//		setSelectedBin(Config.selectedBin); // make sure we are in sync with the pass manager and FFT  
 		
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
@@ -676,7 +669,7 @@ protected double[] processBytes(double[] fcdData) {
 	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
 		if (mode == MODE_PSK_NC)
-			demodAudio[d++] = ncoBFO(fcdData[j], fcdData[j+1]);
+			demodAudio[d++] = ncoDownconvert(fcdData[j], fcdData[j+1]);
 		else
 			demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
 	}
@@ -822,11 +815,14 @@ protected double[] processBytes(double[] fcdData) {
 		int toBin = Config.toBin;
 		boolean spansDcSpike = false;
 		
+		int selectedBin = getBinFromOffsetFreqHz(freq);
+		
 		// If we are outside the FFT range then pick a default point.  This happens if the FFT is resized between runs, e.g. a different SDR device
-		if (Config.selectedBin*2 > fftData.length) {
-			Config.selectedBin = 3 * fftData.length / 8;
+		if (selectedBin*2 > fftData.length) {
+			selectedBin = 3 * fftData.length / 8;
+			this.setSelectedBin(selectedBin);
 		}
-		int binIndex = Config.selectedBin*2; // multiply by two because each bin has a real and imaginary part
+		int binIndex = selectedBin*2; // multiply by two because each bin has a real and imaginary part
 		int filterBins = filterWidth*2;
 
 		int start = binIndex - filterBins;
@@ -1227,6 +1223,16 @@ protected double[] processBytes(double[] fcdData) {
 
 
 	int ssbOffset = 0;
+
+	private double ncoDownconvert(double i, double q) {
+		nco.setFrequency(freq+FoxBPSKDotProdDecoder.CENTER_CARRIER); // ssboffset
+		c = nco.nextSample();
+		c.normalize();
+		// Mix 
+		iMix = i * c.geti() + q*c.getq();
+		qMix = q * c.geti() - i*c.getq();
+		return iMix + qMix;
+	}
 	
 	private double pskDemod(double i, double q, int sample) {
 		ssbOffset = 0;
@@ -1244,10 +1250,10 @@ protected double[] processBytes(double[] fcdData) {
 					freq = strongestFreq;
 				} else {
 					freq = freq + gamma; 
-					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE) // defeat false lock at 600Hz or other freq.
-						freq = this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE;
-					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE)
-						freq = this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE;
+//					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE) // defeat false lock at 600Hz or other freq.
+//						freq = this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE;
+//					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE)
+//						freq = this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE;
 				} 
 			}
 			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
@@ -1256,7 +1262,7 @@ protected double[] processBytes(double[] fcdData) {
 			if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
 			if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
 			nco.setFrequency(freq);
-			selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
+			//selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
 		} else { 
 			lockLevel = 0;
 			error = 10;
@@ -1350,7 +1356,8 @@ protected double[] processBytes(double[] fcdData) {
 	private double iPhase = 0.0;
 	private double ncoMixerI(double i, double q, int offset) {
 		
-		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		//double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		double inc = 2.0*Math.PI*(freq-offset)/sampleRate; //getFrequencyFromBin()/192000;
 		iPhase+=inc;
 		if (iPhase>2.0*Math.PI)
 			iPhase-=2.0*Math.PI;
@@ -1367,7 +1374,7 @@ protected double[] processBytes(double[] fcdData) {
 	private double qPhase = 0.0;
 	private double ncoMixerQ(double i, double q, int offset) {
 		
-		double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
+		double inc = 2.0*Math.PI*(freq-offset)/sampleRate; //getFrequencyFromBin()/192000;
 		qPhase+=inc;
 		if (qPhase>2.0*Math.PI)
 			qPhase-=2.0*Math.PI;

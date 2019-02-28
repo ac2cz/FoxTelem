@@ -62,8 +62,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.07w(nc)";
-	public static String VERSION = VERSION_NUM + " - 3 Feb 2019";
+	public static String VERSION_NUM = "1.07x";
+	public static String VERSION = VERSION_NUM + " - 27 Feb 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -204,7 +204,7 @@ public class Config {
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
 	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
-	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
+/////////////	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
 	public static int fromBin = DEFAULT_FROM_BIN; 
@@ -274,7 +274,8 @@ public class Config {
 	static public boolean useCostas = false;
 	public static boolean showEye = true; 
 	public static boolean showPhasor = true; 
-
+	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
+	static public boolean foxTelemCalcsDoppler = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -648,7 +649,7 @@ public class Config {
 		properties.setProperty("windowX", Integer.toString(windowX));
 		properties.setProperty("windowY", Integer.toString(windowY));
 		properties.setProperty("fcdFrequency", Integer.toString(fcdFrequency));
-		properties.setProperty("selectedBin", Integer.toString(selectedBin));
+/////////////		properties.setProperty("selectedBin", Integer.toString(selectedBin));
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
 		properties.setProperty("logFileDirectory", logFileDirectory);
@@ -715,6 +716,8 @@ public class Config {
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("showEye", Boolean.toString(showEye));
 		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
+		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
+		properties.setProperty("foxTelemCalcsDoppler", Boolean.toString(foxTelemCalcsDoppler));
 		
 		store();
 	}
@@ -821,7 +824,7 @@ public class Config {
 		windowX = Integer.parseInt(getProperty("windowX"));
 		windowY = Integer.parseInt(getProperty("windowY"));
 		fcdFrequency = Integer.parseInt(getProperty("fcdFrequency"));
-		selectedBin = Integer.parseInt(getProperty("selectedBin"));
+///////////		selectedBin = Integer.parseInt(getProperty("selectedBin"));
 		windowCurrentDirectory = getProperty("windowCurrentDirectory");
 		if (windowCurrentDirectory == null) windowCurrentDirectory = "";
 		csvCurrentDirectory = getProperty("csvCurrentDirectory");
@@ -896,6 +899,8 @@ public class Config {
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		showEye = Boolean.parseBoolean(getProperty("showEye"));
 		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
+		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
+		foxTelemCalcsDoppler = Boolean.parseBoolean(getProperty("foxTelemCalcsDoppler"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

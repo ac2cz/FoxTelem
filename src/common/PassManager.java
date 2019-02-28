@@ -270,10 +270,16 @@ public class PassManager implements Runnable {
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignalInSatBand());
 //		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS) {
 			//pp1.iqSource.setSelectedBin(pp1.rfData.getBinOfStrongestSignalInSatBand());
-			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
-			pp1.iqSource.setSelectedBin(Config.selectedBin);
-			if (pp2 != null && pp2.iqSource != null)
-				pp2.iqSource.setSelectedBin(Config.selectedBin);
+//			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
+//			pp1.iqSource.setSelectedBin(Config.selectedBin);
+//			if (pp2 != null && pp2.iqSource != null)
+//				pp2.iqSource.setSelectedBin(Config.selectedBin);
+		
+		int bin = pp1.rfData.getBinOfStrongestSignalInSatBand();
+		pp1.iqSource.setSelectedBin(bin);
+		if (pp2 != null && pp2.iqSource != null)
+			pp2.iqSource.setSelectedBin(bin);
+		
 			pp1.rfData.reset(); // because we changed frequency
 //		}
 
@@ -353,7 +359,7 @@ public class PassManager implements Runnable {
 
 		if (passMeasurement != null)
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
-				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin); //// pp1.iqSource.getSelectedBin());
+				+ " with " + pp.foxDecoder.name + " decoder freq:" + Config.selectedFrequency); //// pp1.iqSource.getSelectedBin());
 		newPass = true;
 	}
 	
