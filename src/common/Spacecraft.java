@@ -101,6 +101,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int catalogNumber = 0;
 	public String series = "FOX";
 	public String name = "Fox-1A";
+	public int priority = 1;
 	public String description = "";
 	public int model;
 	public int telemetryDownlinkFreqkHz = 145980;
@@ -422,6 +423,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				else
 					sendLayoutLocally[i] = false;
 			}
+			String pri = getOptionalProperty("priority");
+			if (pri == null) 
+				priority = 1;
+			else 
+				priority = Integer.parseInt(pri);
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );

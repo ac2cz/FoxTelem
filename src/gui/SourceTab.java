@@ -346,7 +346,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
 		rdbtnFindSignal.setSelected(Config.findSignal);
-		rdbtnFindSignal.setVisible(false);
+		rdbtnFindSignal.setVisible(false); // this is not under user control except for debugging
 
 		optionsPanel.add(findSignalPanel);
 				
@@ -1231,14 +1231,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 			} catch (IllegalArgumentException e1) {
 				JOptionPane.showMessageDialog(this,
-						e1.toString(),
-						"ARGUMENT ERROR",
+						"Is there a valid sound card attached?\n"+e1.toString(),
+						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 				//e1.printStackTrace();	
 			} catch (LineUnavailableException e1) {
 				JOptionPane.showMessageDialog(this,
-						e1.toString(),
-						"LINE UNAVAILABLE ERROR",
+						"Is there a valid sound card attached?\n"+e1.toString(),
+						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 			}
 
@@ -2404,9 +2404,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								if (sat.satPos != null) {
 									double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 									double el = FramePart.radToDeg(sat.satPos.getElevation());
-									double freq = sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz);
-									satPosition[s].setText("" + String.format("%2.1f", az) 
-									+ " | " + String.format("%2.1f", el) + " | " + String.format("%2.1f", freq) + "kHz");
+									String position = "" + String.format("%2.1f", az) 
+									+ " | " + String.format("%2.1f", el);
+									if (Config.foxTelemCalcsDoppler) {
+										double freq = sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz);
+										String sign="";
+										if (freq > 0) sign = "+";
+										position = position + " | " + sign+String.format("%2.3f", freq) + "kHz";
+									}
+									satPosition[s].setText(position);
 								} else {
 									String msg = "Tracked / ";
 									if (Config.whenAboveHorizon) {
@@ -2454,7 +2460,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							processStartButtonClick();
 						}
 					} else {
-						if (atLeastOneTracked) {
+						if (atLeastOneTracked && !Config.foxTelemCalcsDoppler) {
 							//rdbtnFindSignal.setEnabled(true);
 							rdbtnFindSignal.setSelected(true);
 							if (Config.iq) {

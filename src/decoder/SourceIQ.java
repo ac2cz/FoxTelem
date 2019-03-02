@@ -175,12 +175,27 @@ public class SourceIQ extends SourceAudio {
 	public void decSelectedFrequency() {
 		setSelectedFrequency(freq-10);
 	}
+
+	/**
+	 * Tune the offset to the right place when passed a frequency in Hz
+	 * Compensate for centerFreq which is in kHz
+	 * @param f
+	 */
+	public void setTunedFrequency(double f) {
+		double offset = f - centerFreq*1000;
+		setSelectedFrequency(offset);
+	}
 	
+	/**
+	 * Set the offset frequency to this frequency in Hz and tune the NCO if needed
+	 * Store in config
+	 * @param f
+	 */
 	public void setSelectedFrequency(double f) {
 //		if (f > sampleRate / 2) f = sampleRate/2;
 //		if (f < -1* sampleRate/ 2) f = -1* sampleRate/2;
 		freq = f;
-		if (nco != null)
+		if (nco != null && mode != MODE_PSK_COSTAS)
 			nco.setFrequency(freq);
 		Config.selectedFrequency = freq;
 	}
@@ -1225,7 +1240,7 @@ protected double[] processBytes(double[] fcdData) {
 	int ssbOffset = 0;
 
 	private double ncoDownconvert(double i, double q) {
-		nco.setFrequency(freq+FoxBPSKDotProdDecoder.CENTER_CARRIER); // ssboffset
+		nco.setFrequency(freq+1200); // ssboffset
 		c = nco.nextSample();
 		c.normalize();
 		// Mix 
@@ -1241,15 +1256,15 @@ protected double[] processBytes(double[] fcdData) {
 			
 			// only scan if we have a signal, but any signal in the sat band triggers this
 			nco.changePhase(alpha*error);
-			freq = freq + beta*error;		
+			costasLoopFreq = costasLoopFreq + beta*error;		
 			if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
 				// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
 				long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
-				if (strongestFreq - freq > SCAN_RANGE || strongestFreq - freq < -SCAN_RANGE) {
+				if (strongestFreq - costasLoopFreq > SCAN_RANGE || strongestFreq - costasLoopFreq < -SCAN_RANGE) {
 					// we are more than a kc off
-					freq = strongestFreq;
+					costasLoopFreq = strongestFreq;
 				} else {
-					freq = freq + gamma; 
+					costasLoopFreq = costasLoopFreq + gamma; 
 //					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE) // defeat false lock at 600Hz or other freq.
 //						freq = this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE;
 //					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE)
@@ -1259,9 +1274,9 @@ protected double[] processBytes(double[] fcdData) {
 			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
 			// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we  update the tune point without moving it
 			// We just change the bin but not the freq
-			if (freq > IQ_SAMPLE_RATE/2) freq = IQ_SAMPLE_RATE/2;
-			if (freq < -IQ_SAMPLE_RATE/2) freq = -IQ_SAMPLE_RATE/2;
-			nco.setFrequency(freq);
+			if (costasLoopFreq > freq + SCAN_RANGE) costasLoopFreq = freq + SCAN_RANGE;
+			if (costasLoopFreq < (freq-SCAN_RANGE)) costasLoopFreq = freq-SCAN_RANGE;
+			nco.setFrequency(costasLoopFreq);
 			//selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
 		} else { 
 			lockLevel = 0;
@@ -1280,7 +1295,8 @@ protected double[] processBytes(double[] fcdData) {
 	IirFilter loopFilter;
 	double iMix, qMix;
 	double fi, fq;
-	double freq;
+	double freq; // this is the frequency of the carrier we tune to the side for ssb
+	double costasLoopFreq; // this is the actual frequency NCO is tuned to for costas
 	double error;
 	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
 	double beta = 2048*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. // 4096* seems to aggressive and can have long lock time
@@ -1291,7 +1307,7 @@ protected double[] processBytes(double[] fcdData) {
 	
 	public double getLockLevel() { return avgLockLevel; }
 	public double getError() { return error; }
-	public double getCostasFrequency() { return freq; }
+	public double getCostasFrequency() { return costasLoopFreq; }
 	
 	Complex c;
 	private double costasLoop(double i, double q, int sample) {

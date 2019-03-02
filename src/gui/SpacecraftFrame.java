@@ -63,7 +63,7 @@ import common.FoxSpacecraft;
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener, WindowListener {
 
 	private final JPanel contentPanel = new JPanel();
-	JTextField name;
+	JTextField name, priority;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -125,7 +125,11 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
-		
+
+		priority = addSettingsRow(titlePanel, 5, "    Priority", 
+				"The highest priority spacecraft is tracked if more than one is above the horizon", ""+sat.priority);
+		titlePanel.add(priority);
+
 		// Left Column - Fixed Params that can not be changed
 		JPanel leftPanel = new JPanel();
 		contentPanel.add(leftPanel, BorderLayout.WEST);
@@ -418,6 +422,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				if (!sat.name.equalsIgnoreCase(name.getText())) {
 					sat.name = name.getText();
 					refreshTabs = true;
+				}
+				int pri = 99;
+				try {
+					Integer.parseInt(priority.getText());
+				} catch (NumberFormatException e2) {
+					
+				}
+				if (sat.priority != pri) {
+					sat.priority = pri;
+					//refreshTabs = true; // refresh the menu list and sat list but not the tabs
 				}
 				if (localServer != null)
 					sat.localServer = localServer.getText();

@@ -127,7 +127,10 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			debugCount.setForeground(Color.RED);
 			add(debugCount);
 		}
-		this.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
+		// min, pref, max - each is Hor, Vert
+		this.add(new Box.Filler(new Dimension(0,0), new Dimension(100,0), new Dimension(1000,0)));
+
+		//this.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 	}
 	
 	private JCheckBox addCheckBox(String name, String tip, boolean value) {

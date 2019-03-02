@@ -208,8 +208,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			} else {
 				liveData = false;
 			}
-			if (rfData != null)
-				retune();			
+			if (rfData != null) {
+				if (!Config.foxTelemCalcsDoppler)
+					retune();		
+			}
 		}
 		done = true;
 	}
@@ -453,12 +455,13 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			g2.drawLine(upper+sideBorder, topBorder, upper+sideBorder, zeroPoint);
 
 			
-			if (Config.findSignal) {
+			if (Config.findSignal || Config.foxTelemCalcsDoppler) {
 
-				if (fox != null) {
-					g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
-				} else
-					g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
+				if (Config.findSignal)
+					if (fox != null) {
+						g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
+					} else
+						g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
@@ -527,8 +530,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				String s = Double.toString(snr) + "";
 				String ss = Double.toString(snrStrongestSigInSatBand) + "";
 				//long f = iqSource.getFrequencyFromBin(iqSource.getSelectedBin());  //rfData.getPeakFrequency();
-				long f = (long)( iqSource.getCenterFreqkHz()*1000 + iqSource.getSelectedFrequency());  //rfData.getPeakFrequency();
-
+				double f = ( iqSource.getCenterFreqkHz()*1000 + iqSource.getSelectedFrequency());  //rfData.getPeakFrequency();
+				DecimalFormat d3 = new DecimalFormat("0.000");
 				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , binOfPeakSignalInFilterWidth, posPeakSignalInFilterWidth  );
 
 				g2.drawLine(binOfPeakSignalInFilterWidth-5 , (int)posPeakSignalInFilterWidth-3, binOfPeakSignalInFilterWidth+5, (int)posPeakSignalInFilterWidth-3);
@@ -536,7 +539,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					g.drawString("snr: " + s + "dB", binOfPeakSignalInFilterWidth+10, posPeakSignalInFilterWidth  );
 				else
 					g.drawString("" + ss + "dB", binOfPeakSignalInFilterWidth+10, posPeakSignalInFilterWidth  );
-				g.drawString("Freq:"+f, graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
+				g.drawString("Freq:"+d3.format(f/1000), graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
 
 				if (Config.findSignal && Config.debugSignalFinder) {
 					int strongestSigInSatBand = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND), graphHeight);

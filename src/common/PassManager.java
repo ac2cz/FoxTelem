@@ -10,6 +10,9 @@ import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
+
+import java.text.DecimalFormat;
+
 import decoder.Decoder;
 import decoder.SourceIQ;
 
@@ -604,10 +607,30 @@ public class PassManager implements Runnable {
 		running = true;
 		done = false;
 
+		/**
+		 * We run in a loop checking each spacecraft that the user has configured for tracking. 
+		 * This is configured by the following:
+		 *  First the subroutine trackSpacecraft() determines if we should be tracking this spacecraft.  It returns true if:
+		 *    sat.track is on and either:
+		 *      Config.whenAboveHorizon is on and satPC32DDE is used and the sat is up
+		 *      Config.foxTelemCalcsPosition is true and the sat is up
+		 *      
+		 *  If we should be tracking this spacecraft right now, then it is further defined by:
+		 *    Config.findSignal - this determines if we searching for the signal.  It is enabled if any are tracked and we are
+		 *      not calculating Doppler
+		 *      It controls if the findSignal panel is shown in the inputTab.  It determines if we enter the state machine below
+		 *    Config.iq - true if FoxTelem is the SDR.  Otherwise we don't bother with all this, we are in AF mode
+		 *    Config.whenAboveHorizon - the decoder is frozen until a spacecraft that is tracked is above the horizon
+		 *  
+		 *  
+		 */
 		while (running) {
 		//	System.err.println("PASS MGR RUNNING");
 			try {
-				Thread.sleep(100);
+				if (Config.foxTelemCalcsDoppler)
+					Thread.sleep(1000);
+				else
+					Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -618,17 +641,28 @@ public class PassManager implements Runnable {
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) atLeastOneTracked = true;
-					if (MainWindow.inputTab != null && sat.track) {
+					if (MainWindow.inputTab != null) {
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
-							if (Config.findSignal && Config.iq) {
-								stateMachine(sat);
-							} else {
-								// we don't have find signal on. set full range or signals calculated incorrectly
-								Config.fromBin = 0; 
-								Config.toBin = SourceIQ.FFT_SAMPLES;
-							}
+							if (Config.iq)
+								if (Config.findSignal) {
+									stateMachine(sat);
+								} else if (Config.foxTelemCalcsDoppler) {
+									// we set the spacecraft ranges but no find signal panel
+									// Doppler is displayed and we tune the signal for the active spacecraft only if up
+									// We have to pass a delta from the center frequency to the nco
+									double dopplerShiftedFreq = sat.telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz*1000);
+									//DecimalFormat d3 = new DecimalFormat("0.000");
+									//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
+									setFreqRangeBins(sat, pp1);
+									if (pp1 != null && pp1.iqSource != null)
+										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+								} else {
+									// we don't have find signal on. set full range or signals calculated incorrectly
+									Config.fromBin = 0; 
+									Config.toBin = SourceIQ.FFT_SAMPLES;
+								}
 						} 
 					}
 				}
@@ -657,6 +691,7 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
+		if (!sat.track) return false;
 		if (Config.whenAboveHorizon && Config.useDDEforAzEl) {
 			String satString = null;
 			SatPc32DDE satPC = new SatPc32DDE();
@@ -681,17 +716,26 @@ public class PassManager implements Runnable {
 						if (Config.whenAboveHorizon)
 							return false; // a sat with no T0 or TLE will never be considered above horizon
 						else
-							return true; // if we are not checking if above horizon, then track
+							if (Config.foxTelemCalcsDoppler)
+								return false; // a sat with no T0 or TLE cant have doppler tuned
+							else
+								return true; // if we are not checking if above horizon or Doppler, then track
 					}
-					if (!Config.whenAboveHorizon)
-						return true;
-					else if (pos != null) {
+					if (!Config.whenAboveHorizon) {
+						if (Config.foxTelemCalcsDoppler) {
+							if (sat.aboveHorizon())
+								return true;
+							else
+								//return true; /////////////////////// FOR TESTING ONLY
+								return false; // we wont tune Doppler if sat is not up
+						} else
+							return true; // if we are not checking if above horizon or Doppler, then track
+					} else if (pos != null) {
 						if (sat.aboveHorizon()) {
 							return true;
 						}
 					}
 					return false;
-				
 		}
 		return true;
 	}
