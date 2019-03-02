@@ -476,7 +476,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		chckbxmntmShowPhasor.addActionListener(this);
 		mnDecoder.add(chckbxmntmShowPhasor);
 		chckbxmntmShowPhasor.setState(Config.showPhasor);
-		
+
+		chckbxmntmShowFFT = new JCheckBoxMenuItem("Show FFT");
+		chckbxmntmShowFFT.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowFFT);
+		chckbxmntmShowFFT.setState(Config.showFFT);
+
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
@@ -722,6 +727,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == chckbxmntmShowPhasor) {	
 			Config.showPhasor = chckbxmntmShowPhasor.getState();
 			inputTab.showPhasor(Config.showPhasor);
+	    }
+		if (e.getSource() == chckbxmntmShowFFT) {	
+			Config.showFFT = chckbxmntmShowFFT.getState();
+			inputTab.showFFT(Config.showFFT);
 	    }
 		if (e.getSource() == mntmManual) {
 			try {

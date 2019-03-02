@@ -276,6 +276,7 @@ public class Config {
 	public static boolean showPhasor = true; 
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
 	static public boolean foxTelemCalcsDoppler = false;
+	public static boolean showFFT = true; 
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -718,6 +719,7 @@ public class Config {
 		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
 		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
 		properties.setProperty("foxTelemCalcsDoppler", Boolean.toString(foxTelemCalcsDoppler));
+		properties.setProperty("showFFT", Boolean.toString(showFFT));
 		
 		store();
 	}
@@ -901,6 +903,7 @@ public class Config {
 		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
 		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
 		foxTelemCalcsDoppler = Boolean.parseBoolean(getProperty("foxTelemCalcsDoppler"));
+		showFFT = Boolean.parseBoolean(getProperty("showFFT"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

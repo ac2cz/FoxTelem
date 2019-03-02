@@ -372,7 +372,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowWidth");
 		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
-			setBounds(100, 100, 725, 675);
+			setBounds(100, 100, 725, 700);
 		} else {
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 		}

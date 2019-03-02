@@ -130,7 +130,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JCheckBox rdbtnShowIF;
 	public JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
-	JCheckBox rdbtnShowFFT;
+//	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
 	JCheckBox rdbtnFcdMixerGain;
 	JTextField peakLevel;
@@ -449,7 +449,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		fftPanel.setBackground(Color.LIGHT_GRAY);
 		
 		//bottomPanel.add(fftPanel, BorderLayout.SOUTH);
-		setFFTVisible(false);
+		showFFT(false);
 		fftPanel.setPreferredSize(new Dimension(100, 150));
 		fftPanel.setMaximumSize(new Dimension(100, 150));
 		
@@ -563,11 +563,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnFilterOutputAudio.setSelected(Config.filterOutputAudio);
 		rdbtnFilterOutputAudio.setVisible(false);
 		
-		rdbtnShowFFT = new JCheckBox("Show FFT");
-		rdbtnShowFFT.addItemListener(this);
-		rdbtnShowFFT.setSelected(true);
-		optionsPanel.add(rdbtnShowFFT);
-		rdbtnShowFFT.setVisible(false);
+//		rdbtnShowFFT = new JCheckBox("Show FFT");
+//		rdbtnShowFFT.addItemListener(this);
+//		rdbtnShowFFT.setSelected(true);
+//		optionsPanel.add(rdbtnShowFFT);
+//		rdbtnShowFFT.setVisible(false);
 		play = new JButton(">");
 		play.addActionListener(this);
 		optionsPanel.add(play);
@@ -983,7 +983,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//soundCardComboBox.setSelectedIndex(SourceAudio.IQ_FILE_SOURCE);
 	}
 	
-	private void setFFTVisible(boolean b) {
+	void showFFT(boolean b) {
 		fftPanel.setVisible(b);
 		if (b==true) {
 			if (Config.splitPaneHeight != 0) 
@@ -991,11 +991,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			else
 				splitPane.setDividerLocation(200);
 		}
+		mainWindow.chckbxmntmShowFFT.setState(b); // this will get the menu toggle right
 	}
 	
 	private void setIQVisible(boolean b) {
-		setFFTVisible(b);
-		rdbtnShowFFT.setVisible(b);
+		showFFT(b);
+//		rdbtnShowFFT.setVisible(b);
 		rdbtnFindSignal.setVisible(false);
 		rdbtnFindSignal.setEnabled(false);
 		findSignalPanel.setVisible(b);
@@ -2100,15 +2101,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        }
 		}
 		*/
-		if (e.getSource() == rdbtnShowFFT) {
-			if (fftPanel != null)
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				setFFTVisible(false);
-	        } else {
-	        	setFFTVisible(true);
-	        	
-	        }
-		}
+//		if (e.getSource() == rdbtnShowFFT) {
+//			if (fftPanel != null)
+//			if (e.getStateChange() == ItemEvent.DESELECTED) {
+//				setFFTVisible(false);
+//	        } else {
+//	        	setFFTVisible(true);
+//	        	
+//	        }
+//		}
 		if (e.getSource() == autoStart) {
 			
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
