@@ -501,7 +501,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s] = new JPanel();
 			satRows[s].setLayout(new FlowLayout(FlowLayout.LEFT));
 			satPanel.add(satRows[s]);
-			satName[s] = new JLabel(sat.name + ":   ");
+			satName[s] = new JLabel(sat.priority + "/"+sat.name + "   ");
 			satPosition[s] = new JLabel("Not Tracked");
 			if (sat.track) {
 				satPosition[s].setText("Tracked");
@@ -2395,7 +2395,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Spacecraft sat = Config.satManager.spacecraftList.get(s);
 							if (sat.track)
 								atLeastOneTracked = true;
-							if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
+							if ((Config.foxTelemCalcsDoppler || (Config.whenAboveHorizon && aboveHorizon)) && sat.track && sat.aboveHorizon())
 								satPosition[s].setForeground(Config.AMSAT_RED);
 							else
 								satPosition[s].setForeground(Config.AMSAT_BLUE);

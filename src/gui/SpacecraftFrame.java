@@ -18,6 +18,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -63,7 +64,8 @@ import common.FoxSpacecraft;
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener, WindowListener {
 
 	private final JPanel contentPanel = new JPanel();
-	JTextField name, priority;
+	JTextField name;
+	JComboBox priority;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -126,8 +128,15 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
 
-		priority = addSettingsRow(titlePanel, 5, "    Priority", 
-				"The highest priority spacecraft is tracked if more than one is above the horizon", ""+sat.priority);
+		JLabel lblPriority = new JLabel("    Priority");
+		titlePanel.add(lblPriority);
+		String tip = "The highest priority spacecraft is tracked if more than one is above the horizon";
+		lblPriority.setToolTipText(tip);
+		String[] nums = new String[20];
+		for (int i=0; i < nums.length; i++)
+			nums[i] = ""+i;
+		priority = new JComboBox(nums); 
+		priority.setSelectedIndex(sat.priority);
 		titlePanel.add(priority);
 
 		// Left Column - Fixed Params that can not be changed
@@ -358,6 +367,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		boolean refreshTabs = false;
+		boolean rebuildMenu = false;
 		if (e.getSource() == btnGetT0) {
 			MainWindow.updateManager.updateT0(sat);
 			updateTimeSeries();
@@ -425,11 +435,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				}
 				int pri = 99;
 				try {
-					Integer.parseInt(priority.getText());
+					pri = priority.getSelectedIndex();
 				} catch (NumberFormatException e2) {
 					
 				}
 				if (sat.priority != pri) {
+					rebuildMenu = true;
 					sat.priority = pri;
 					//refreshTabs = true; // refresh the menu list and sat list but not the tabs
 				}
@@ -442,6 +453,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				if (dispose) {
 					sat.save();
 					Config.initSatelliteManager();
+					if (rebuildMenu)
+						Config.mainWindow.initSatMenu();
 					this.dispose();
 					if (refreshTabs)
 						MainWindow.refreshTabs(false);
