@@ -101,7 +101,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int catalogNumber = 0;
 	public String series = "FOX";
 	public String name = "Fox-1A";
-	public int priority = 19; // set to low priority so new spacecraft are not suddenly ahead of old ones
+	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
 	public int telemetryDownlinkFreqkHz = 145980;

@@ -318,7 +318,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel0.setBorder(eastTitle4);
 		cbUploadToServer = addCheckBoxRow("Upload to Server", "Select this if you want to send your collected data to the AMSAT telemetry server",
 				Config.uploadToServer, rightcolumnpanel0 );
-		rdbtnTrackSignal = addCheckBoxRow("Track Doppler","Leave this on except in a test situation.  It allows FoxTelem to follow the spacecraft downllink signal",
+		rdbtnTrackSignal = addCheckBoxRow("Follow Doppler","Follow the signal and record the frequency of the downlink.  Useful if you are trying to measure the actual spacecraft downlink frequency.",
 				Config.trackSignal, rightcolumnpanel0);
 		useUDP = true;
 		if (Config.serverProtocol == TlmServer.TCP)
@@ -821,6 +821,12 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				cbFoxTelemCalcsDoppler.setEnabled(false);
 			}
 		}
+		if (source == cbFoxTelemCalcsDoppler) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				rdbtnTrackSignal.setSelected(false);
+			} else {
+			}
+		}
 		if (source == cbWhenAboveHorizon) { 
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				if (!cbFoxTelemCalcsPosition.isSelected() && !cbUseDDEAzEl.isSelected())
@@ -831,12 +837,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == rdbtnTrackSignal) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				
 	            Config.trackSignal=false;
 	            //Config.save();
 	        } else {
 	        	Config.trackSignal=true;
-	        	
+	        	cbFoxTelemCalcsDoppler.setSelected(false);
 	        	//Config.save();
 	        }
 		}

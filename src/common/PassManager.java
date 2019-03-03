@@ -658,6 +658,7 @@ public class PassManager implements Runnable {
 									setFreqRangeBins(sat, pp1);
 									if (pp1 != null && pp1.iqSource != null)
 										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									break; // we only tune Doppler for the first spacecraft in the priority ordered list
 								} else {
 									// we don't have find signal on. set full range or signals calculated incorrectly
 									Config.fromBin = 0; 
