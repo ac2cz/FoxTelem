@@ -186,6 +186,10 @@ public class SourceIQ extends SourceAudio {
 		setSelectedFrequency(offset);
 	}
 	
+	public double getTunedFrequency() {
+		return centerFreq*1000 + freq;
+	}
+	
 	/**
 	 * Set the offset frequency to this frequency in Hz and tune the NCO if needed
 	 * Store in config
