@@ -62,8 +62,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.07x";
-	public static String VERSION = VERSION_NUM + " - 27 Feb 2019";
+	public static String VERSION_NUM = "1.07y";
+	public static String VERSION = VERSION_NUM + " - 3 March 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -203,7 +203,7 @@ public class Config {
 	public static int windowY = 100;
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
-	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
+	public static double fcdFrequency = 145930.0;  // the default frequency we set the FCD to if this is a fresh install
 /////////////	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
@@ -649,7 +649,7 @@ public class Config {
 		properties.setProperty("windowWidth", Integer.toString(windowWidth));
 		properties.setProperty("windowX", Integer.toString(windowX));
 		properties.setProperty("windowY", Integer.toString(windowY));
-		properties.setProperty("fcdFrequency", Integer.toString(fcdFrequency));
+		properties.setProperty("fcdFrequency", Double.toString(fcdFrequency));
 /////////////		properties.setProperty("selectedBin", Integer.toString(selectedBin));
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
@@ -825,7 +825,7 @@ public class Config {
 		windowWidth = Integer.parseInt(getProperty("windowWidth"));
 		windowX = Integer.parseInt(getProperty("windowX"));
 		windowY = Integer.parseInt(getProperty("windowY"));
-		fcdFrequency = Integer.parseInt(getProperty("fcdFrequency"));
+		fcdFrequency = Double.parseDouble(getProperty("fcdFrequency"));
 ///////////		selectedBin = Integer.parseInt(getProperty("selectedBin"));
 		windowCurrentDirectory = getProperty("windowCurrentDirectory");
 		if (windowCurrentDirectory == null) windowCurrentDirectory = "";

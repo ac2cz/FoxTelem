@@ -377,16 +377,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		}
 		if (e.getSource() == btnSave) {
 			boolean dispose = true;
-			int downlinkFreq = 0;
-			int minFreq = 0;
-			int maxFreq = 0;
+			double downlinkFreq = 0;
+			double minFreq = 0;
+			double maxFreq = 0;
 			try {
 				try {
-					downlinkFreq = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
-					minFreq = Integer.parseInt(minFreqBoundkHz.getText());
-					maxFreq = Integer.parseInt(maxFreqBoundkHz.getText());
+					downlinkFreq = (double)(Math.round(Double.parseDouble(telemetryDownlinkFreqkHz.getText())*1000)/1000.0);
+					minFreq = (double)(Math.round(Double.parseDouble(minFreqBoundkHz.getText())*1000)/1000.0);
+					maxFreq = (double)(Math.round(Double.parseDouble(maxFreqBoundkHz.getText())*1000)/1000.0);
 				} catch (NumberFormatException ex) {
-					throw new NumberFormatException("The Frequency fields must contain a valid number");
+					throw new NumberFormatException("The Frequency fields must contain a valid frequency in kHz");
 				}
 				if (minFreq < maxFreq) {
 					sat.telemetryDownlinkFreqkHz = downlinkFreq;

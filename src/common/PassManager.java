@@ -187,8 +187,8 @@ public class PassManager implements Runnable {
 
 	private void setFreqRangeBins(Spacecraft spacecraft, PassParams pp) {
 		if (pp.foxDecoder != null && pp.iqSource != null) {
-			Config.toBin = pp.iqSource.getBinFromFreqHz(spacecraft.maxFreqBoundkHz*1000);
-			Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
+			Config.toBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.maxFreqBoundkHz*1000));
+			Config.fromBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.minFreqBoundkHz*1000));
 //			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
 //				Config.toBin = 0;
 //				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
@@ -358,6 +358,16 @@ public class PassManager implements Runnable {
 			if (connected && passMeasurement != null) {
 				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
 			}
+		} else if (Config.foxTelemCalcsPosition) {
+			if (passMeasurement != null) {
+				try {
+					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long) spacecraft.getCurrentPosition().getAzimuth());
+				} catch (PositionCalcException e) {
+					// Ignore this, not a fatal error
+					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long) 0);
+					e.printStackTrace(Log.getWriter()); // put message in the log
+				}
+			}			
 		}
 
 		if (passMeasurement != null)
@@ -424,13 +434,7 @@ public class PassManager implements Runnable {
 		return false;
 	}
 	
-	/**
-	 * Wait to see if we have lost the signal because the satellite faded, or because the pass ended
-	 * @param spacecraft
-	 * @return
-	 */
-	private int faded(Spacecraft spacecraft) {
-		if (!Config.findSignal) return EXIT;
+	private void logEndOfPass(Spacecraft spacecraft) {
 		if (passMeasurement != null) {
 			passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
 			if (Config.useDDEforAzEl) { // store end Azimuth too
@@ -439,9 +443,29 @@ public class PassManager implements Runnable {
 				if (connected) {
 					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
 				}
+			} else if (Config.foxTelemCalcsPosition) {
+				if (passMeasurement != null) {
+					try {
+						passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long) spacecraft.getCurrentPosition().getAzimuth());
+					} catch (PositionCalcException e) {
+						// Ignore this, not a fatal error
+						passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long) 0);
+						e.printStackTrace(Log.getWriter()); // put message in the log
+					}
+				}			
 			}
 			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 		}
+	}
+
+	/**
+	 * Wait to see if we have lost the signal because the satellite faded, or because the pass ended
+	 * @param spacecraft
+	 * @return
+	 */
+	private int faded(Spacecraft spacecraft) {
+		if (!Config.findSignal) return EXIT;
+		logEndOfPass(spacecraft);
 		faded = true;
 
 		long startTime = System.nanoTime()/1000000; // get time in ms
@@ -494,13 +518,17 @@ public class PassManager implements Runnable {
 	 */
 	private int endPass(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
+		logEndPassMeasurement(spacecraft);
+		return EXIT;
+	}
+	
+	private void logEndPassMeasurement(Spacecraft spacecraft) {
 		if (passMeasurement != null) {
 			calculateTCA(spacecraft);
 			calculateMaxEl(spacecraft);
 			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
 			Config.payloadStore.add(spacecraft.foxId, passMeasurement);
 		}
-		return EXIT;
 	}
 
 	private void calculateMaxEl(Spacecraft spacecraft) {
@@ -606,7 +634,9 @@ public class PassManager implements Runnable {
 		
 		running = true;
 		done = false;
-
+		newPass = false;
+		int currentSatId = 0;
+		
 		/**
 		 * We run in a loop checking each spacecraft that the user has configured for tracking. 
 		 * This is configured by the following:
@@ -638,6 +668,7 @@ public class PassManager implements Runnable {
 			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
 				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
+				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) atLeastOneTracked = true;
@@ -649,6 +680,9 @@ public class PassManager implements Runnable {
 								if (Config.findSignal) {
 									stateMachine(sat);
 								} else if (Config.foxTelemCalcsDoppler) {
+									if (sat.foxId != currentSatId) { // we have a new pass for a new sat
+										lockSignal(sat, pp1);   
+									}
 									// we set the spacecraft ranges but no find signal panel
 									// Doppler is displayed and we tune the signal for the active spacecraft only if up
 									// We have to pass a delta from the center frequency to the nco
@@ -664,7 +698,13 @@ public class PassManager implements Runnable {
 									Config.fromBin = 0; 
 									Config.toBin = SourceIQ.FFT_SAMPLES;
 								}
-						} 
+						} else {
+							if (currentSatId == sat.foxId) { // close out the pass for a previous sat
+								logEndOfPass(sat);
+								currentSatId = 0;
+							}
+						}
+
 					}
 				}
 				if (MainWindow.inputTab != null && !oneSatUp) {

@@ -64,7 +64,7 @@ public class SourceIQ extends SourceAudio {
 	double[] audioData = null;
 	double[] demodAudio = null; //new double[samplesToRead/4];
 
-	int centerFreq; // The frequency that the dongle is set to
+	double centerFreq; // The frequency that the dongle is set to in kHz for historical reasons.  Multiply by 1000 for Hz
 	
 	double binBandwidth = 0;
 	int filterWidth = 0 ; //We FFT filter +- this number of bins 64 bins is 3000 Hz for 4096 FFT samples, Normal FM channel is 16kHz = +-8kHz = 170
@@ -154,8 +154,8 @@ public class SourceIQ extends SourceAudio {
 	public int getAudioBufferCapacity() { return upstreamAudioSource.circularDoubleBuffer[upstreamChannel].getCapacity(); }
 	
 	public int getFilterWidth() { return filterWidth; }
-	public int getCenterFreqkHz() { return centerFreq; }
-	public void setCenterFreqkHz(int freq) { 
+	public double getCenterFreqkHz() { return centerFreq; }
+	public void setCenterFreqkHz(double freq) { 
 		centerFreq = freq; 
 	}
 	
@@ -231,7 +231,7 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	public int getBinFromFreqHz(long freq) {
-		long delta = freq-centerFreq*1000 ;
+		long delta = (long) (freq-centerFreq*1000);
 		return getBinFromOffsetFreqHz(delta);
 	}
 	

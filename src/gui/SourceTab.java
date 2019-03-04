@@ -1178,7 +1178,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == this.txtFreq) {
 			// User has done this so trap the error and report
 			try {
-				setCenterFreq();				
+				double f = setCenterFreq();
+				txtFreq.setText(Double.toString(f));				
 			} catch (DeviceException e1) {
 				Log.errorDialog("ERROR with txtFreq", e1.getMessage());
 				e1.printStackTrace(Log.getWriter());
@@ -1610,7 +1611,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							try {
-								setCenterFreq();
+								double f = setCenterFreq();
+								txtFreq.setText(Double.toString(f));
 							} catch (DeviceException e) {
 								Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 								e.printStackTrace(Log.getWriter());
@@ -1756,7 +1758,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								Config.passManager.setDecoder1(decoder1, iqSource1, this);
 								if (Config.autoDecodeSpeed)
 									Config.passManager.setDecoder2(decoder2, iqSource2, this);
-								txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+								txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 								setCenterFreq();
 							} else {
 								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
@@ -1854,9 +1856,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e.printStackTrace();
 					}
 					if (rfDevice != null) {
-						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+						txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 						try {
-							setCenterFreq();
+							double f = setCenterFreq();
+							txtFreq.setText(Double.toString(f));
 						} catch (DeviceException e) {
 							Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 							e.printStackTrace(Log.getWriter());
@@ -1873,11 +1876,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	}
 
-	private void setCenterFreq() throws DeviceException, IOException {
+	private double setCenterFreq() throws DeviceException, IOException {
 		//String text = txtFreq.getText();
+		double freq = Config.fcdFrequency; // we fall back to this and return it if we cant parse the value
 		try {
 			txtFreq.selectAll();
-			int freq = Integer.parseInt(txtFreq.getText());
+			freq = (double)(Math.round(Double.parseDouble(txtFreq.getText())*1000)/1000.0);
 			if (iqSource1 != null)
 				(iqSource1).setCenterFreqkHz(freq);
 			if (iqSource2 != null)
@@ -1887,7 +1891,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
-					rfDevice.setFrequency(freq*1000);
+					rfDevice.setFrequency((long) (freq*1000));
 					panelFcd.updateFilter();
 				}
 			} else {
@@ -1897,7 +1901,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} catch (NumberFormatException n) {
 			// not much to say here, just catch the error
 		}
-
+		return freq;
 	}
 
 	private void stopDecoder() {
@@ -2339,7 +2343,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 		if (e.getSource() == txtFreq) {
 			try {
-				setCenterFreq();				
+				double f = setCenterFreq();
+				txtFreq.setText(Double.toString(f));
 			} catch (DeviceException e1) {
 				Log.errorDialog("ERROR loosing focus", e1.getMessage());
 				e1.printStackTrace(Log.getWriter());

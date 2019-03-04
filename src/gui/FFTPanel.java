@@ -72,7 +72,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	boolean running = true;
 	boolean done = false;
-	int centerFreqX = 145950;
+	double centerFreqX = 145950;
 	//int selectedBin = 0; // this is the actual FFT bin, with negative and positve freq flipped
 	int selection = 0; // this is the bin that the user clicked on, which runs from left to right
 	boolean showFilteredAudio = false;
@@ -384,8 +384,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		graphWidth = getWidth() - sideBorder*2; // width of entire graph
 		
 		
-		int minTimeValue = centerFreqX-iqSource.IQ_SAMPLE_RATE/2000;//96;
-		int maxTimeValue = centerFreqX+iqSource.IQ_SAMPLE_RATE/2000;//96;
+		int minTimeValue = (int) (centerFreqX-iqSource.IQ_SAMPLE_RATE/2000);//96;
+		int maxTimeValue = (int) (centerFreqX+iqSource.IQ_SAMPLE_RATE/2000);//96;
 		int numberOfTimeLabels = graphWidth/labelWidth;
 		int zeroPoint = graphHeight;
 		
@@ -466,8 +466,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) {
-						int fromSatBin = iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
-						int toSatBin = iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
+						int fromSatBin = iqSource.getBinFromFreqHz((long) (sat.minFreqBoundkHz*1000));
+						int toSatBin = iqSource.getBinFromFreqHz((long) (sat.maxFreqBoundkHz*1000));
 					
 						if (fromSatBin > SourceIQ.FFT_SAMPLES/2 && toSatBin < SourceIQ.FFT_SAMPLES/2) {
 							toSatBin = 0;
