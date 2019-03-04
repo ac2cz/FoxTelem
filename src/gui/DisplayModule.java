@@ -14,6 +14,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
+import javax.swing.AbstractButton;
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -142,11 +143,11 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_MEASURES = 9;
 	public static final int DISPLAY_PASS_MEASURES = 10;
 	public static final int DISPLAY_MIN_AND_MAX_ONLY = 15;
+	public static final int DISPLAY_WOD = 16;
+	public static final int DISPLAY_UW = 17;
 	public static final int DISPLAY_HERCI = 20;
 	public static final int DISPLAY_HERCI_HK = 21;
 	public static final int DISPLAY_HERCI_MICRO_PKT = 22;
-	public static final int DISPLAY_WOD = 23;
-	public static final int DISPLAY_UW = 24;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
 	public static Color herciFontColor = new Color(240,154,21);
@@ -228,7 +229,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			w = SINGLE_VAL_WIDTH;			
 		} else 	if (display == DISPLAY_MAX_ONLY || display == DISPLAY_MIN_ONLY || display == DISPLAY_MIN_AND_MAX_ONLY) {
 			w = 0;
-		} else if (display == DISPLAY_MEASURES || display == DISPLAY_WOD ) {
+		} else if (display == DISPLAY_MEASURES  ) {
 			w= MEASUREMENT_WIDTH;
 		} else if (display == DISPLAY_ALL || display == DISPLAY_ALL_SWAP_MINMAX ) {
 			w= VAL_WIDTH;
@@ -446,6 +447,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			// We want to add a button for a sky plot.  This goes in the min column
 			for (int i=1; i < size; i++) {
 				minValue[i] = new JButton();
+				((JButton) minValue[i]).setMargin(new Insets(3,3,3,3));
+
 				((JButton)minValue[i]).addActionListener(this);
 				((JButton)minValue[i]).setBackground(wodFontColor);
 				row[i].add(minValue[i]);
