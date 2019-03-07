@@ -63,7 +63,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.07y";
-	public static String VERSION = VERSION_NUM + " - 3 March 2019";
+	public static String VERSION = VERSION_NUM + " - 7 Mar 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -277,6 +277,7 @@ public class Config {
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
 	static public boolean foxTelemCalcsDoppler = false;
 	public static boolean showFFT = true; 
+	static public boolean debugCalcDopplerContinually = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -720,6 +721,7 @@ public class Config {
 		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
 		properties.setProperty("foxTelemCalcsDoppler", Boolean.toString(foxTelemCalcsDoppler));
 		properties.setProperty("showFFT", Boolean.toString(showFFT));
+		properties.setProperty("debugCalcDopplerContinually", Boolean.toString(debugCalcDopplerContinually));
 		
 		store();
 	}
@@ -904,6 +906,7 @@ public class Config {
 		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
 		foxTelemCalcsDoppler = Boolean.parseBoolean(getProperty("foxTelemCalcsDoppler"));
 		showFFT = Boolean.parseBoolean(getProperty("showFFT"));
+		debugCalcDopplerContinually = Boolean.parseBoolean(getProperty("debugCalcDopplerContinually"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

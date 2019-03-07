@@ -279,7 +279,8 @@ public class PassManager implements Runnable {
 //				pp2.iqSource.setSelectedBin(Config.selectedBin);
 		
 		int bin = pp1.rfData.getBinOfStrongestSignalInSatBand();
-		pp1.iqSource.setSelectedBin(bin);
+		if (pp1.iqSource != null)
+			pp1.iqSource.setSelectedBin(bin);
 		if (pp2 != null && pp2.iqSource != null)
 			pp2.iqSource.setSelectedBin(bin);
 		
@@ -767,8 +768,10 @@ public class PassManager implements Runnable {
 							if (sat.aboveHorizon())
 								return true;
 							else
-								//return true; /////////////////////// FOR TESTING ONLY
-								return false; // we wont tune Doppler if sat is not up
+								if (Config.debugCalcDopplerContinually)
+									return true; /////////////////////// FOR TESTING ONLY
+								else
+									return false; // we wont tune Doppler if sat is not up
 						} else
 							return true; // if we are not checking if above horizon or Doppler, then track
 					} else if (pos != null) {

@@ -494,9 +494,6 @@ public class SourceIQ extends SourceAudio {
 		zeroFFT();
 		int i = 0;
 		
-		// TODO - this is brute force because I can't find the obscure situation where they get out of sync
-//		setSelectedBin(Config.selectedBin); // make sure we are in sync with the pass manager and FFT  
-		
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
 			double id, qd;
@@ -1244,7 +1241,7 @@ protected double[] processBytes(double[] fcdData) {
 	int ssbOffset = 0;
 
 	private double ncoDownconvert(double i, double q) {
-		nco.setFrequency(freq+1200); // ssboffset
+		nco.setFrequency(freq+2000); // ssboffset
 		c = nco.nextSample();
 		c.normalize();
 		// Mix 
@@ -1349,63 +1346,6 @@ protected double[] processBytes(double[] fcdData) {
 	
 	public double[] getPhasorData() {
 			return phasorData;
-	}
-	
-	// Legacy Decoder Elements below.  We use the Legacy BFO for PSK Non Coherent Demod.
-	
-	/**
-	 * BFO translates to baseband and gives audio for a SSB signal
-	 * @param i
-	 * @param q
-	 * @return
-	 */
-	private double ncoBFO(double i, double q) {
-		int ssbOffset = 0;
-		// offset by 1200Hz if this is PSK
-		 	ssbOffset = (int)(1200.0/(IQ_SAMPLE_RATE/FFT_SAMPLES)); // 1200 / binBandwidth = number of bins for 1200 Hz
-			//ssbOffset = (int)(1200.0/(192000.0/4096.0)); // 1200 / binBandwidth = number of bins for 1200 Hz
-			//System.err.println("OFF: " + ssbOffset);
-		double mi = ncoMixerI(i,q, ssbOffset);
-		double mq = ncoMixerQ(i,q, ssbOffset);
-		//Demodulate ssb
-//		mi = ht.filter(mi);
-//		mq = delay.filter(mq);
-		return mi + mq;
-	}
-	
-	private double iPhase = 0.0;
-	private double ncoMixerI(double i, double q, int offset) {
-		
-		//double inc = 2.0*Math.PI*(Config.selectedBin-offset)/FFT_SAMPLES; //getFrequencyFromBin()/192000;
-		double inc = 2.0*Math.PI*(freq-offset)/sampleRate; //getFrequencyFromBin()/192000;
-		iPhase+=inc;
-		if (iPhase>2.0*Math.PI)
-			iPhase-=2.0*Math.PI;
-		// mix with input signal (unless negative)
-		if (iPhase>0.0) {
-			double mi=i*cosTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE] +
-					q*sinTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
-			return mi; //cosTab[(int)(iPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
-		} else {
-			return i;
-		}
-	}
-
-	private double qPhase = 0.0;
-	private double ncoMixerQ(double i, double q, int offset) {
-		
-		double inc = 2.0*Math.PI*(freq-offset)/sampleRate; //getFrequencyFromBin()/192000;
-		qPhase+=inc;
-		if (qPhase>2.0*Math.PI)
-			qPhase-=2.0*Math.PI;
-		// mix with input signal (unless negative)
-		if (qPhase>0.0) {
-			double mq=q*cosTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE] -
-					i*sinTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
-			return mq; //sinTab[(int)(qPhase*(double)SINCOS_SIZE/(2.0*Math.PI))%SINCOS_SIZE];
-		} else {
-			return q;
-		}
 	}
 	
 }
