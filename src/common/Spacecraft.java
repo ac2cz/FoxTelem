@@ -102,11 +102,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int catalogNumber = 0;
 	public String series = "FOX";
 	public String name = "Fox-1A";
+	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
-	public int telemetryDownlinkFreqkHz = 145980;
-	public int minFreqBoundkHz = 145970;
-	public int maxFreqBoundkHz = 145990;
+	public double telemetryDownlinkFreqkHz = 145980;
+	public double minFreqBoundkHz = 145970;
+	public double maxFreqBoundkHz = 145990;
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
@@ -371,9 +372,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			name = getProperty("name");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
-			telemetryDownlinkFreqkHz = Integer.parseInt(getProperty("telemetryDownlinkFreqkHz"));			
-			minFreqBoundkHz = Integer.parseInt(getProperty("minFreqBoundkHz"));
-			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
+			telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
+			minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
+			maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			// Frame Layouts
 			/**
@@ -430,13 +431,18 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				localServerPort = 0;
 			else 
 				localServerPort = Integer.parseInt(p);
-			for (int i=0; i < numberOfLookupTables; i++) {
-				String l = getOptionalProperty("sendLayoutLocally"+i);
-				if (l != null)
-					sendLayoutLocally[i] = Boolean.parseBoolean(l);
-				else
-					sendLayoutLocally[i] = false;
-			}
+//			for (int i=0; i < numberOfLayouts; i++) {
+//				String l = getOptionalProperty("sendLayoutLocally"+i);
+//				if (l != null)
+//					sendLayoutLocally[i] = Boolean.parseBoolean(l);
+//				else
+//					sendLayoutLocally[i] = false;
+//			}
+			String pri = getOptionalProperty("priority");
+			if (pri == null) 
+				priority = 1;
+			else 
+				priority = Integer.parseInt(pri);
 			String c = getOptionalProperty("hasCanBus");
 			if (c == null) 
 				hasCanBus = false;
@@ -527,16 +533,16 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("name", name);
 		properties.setProperty("description", description);
 		properties.setProperty("model", Integer.toString(model));
-		properties.setProperty("telemetryDownlinkFreqkHz", Integer.toString(telemetryDownlinkFreqkHz));
-		properties.setProperty("minFreqBoundkHz", Integer.toString(minFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
+		properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(telemetryDownlinkFreqkHz));
+		properties.setProperty("minFreqBoundkHz", Double.toString(minFreqBoundkHz));
+		properties.setProperty("maxFreqBoundkHz", Double.toString(maxFreqBoundkHz));
 		properties.setProperty("track", Boolean.toString(track));
 		
 		if (localServer != null) {
 			properties.setProperty("localServer",localServer);
 			properties.setProperty("localServerPort", Integer.toString(localServerPort));
 		}
+		properties.setProperty("priority", Integer.toString(priority));
 	}
 	
 	public String getIdString() {
@@ -552,7 +558,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	@Override
 	public int compareTo(Spacecraft s2) {
-		return name.compareToIgnoreCase(s2.name);
+		if (priority == s2.priority) 
+			return name.compareTo(s2.name);
+		else if (priority < s2.priority) return -1;
+		else if (priority > s2.priority) return 1;
+		return -1;
 	}
 	
 }

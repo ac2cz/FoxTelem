@@ -10,6 +10,9 @@ import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
+
+import java.text.DecimalFormat;
+
 import decoder.Decoder;
 import decoder.SourceIQ;
 
@@ -184,8 +187,8 @@ public class PassManager implements Runnable {
 
 	private void setFreqRangeBins(Spacecraft spacecraft, PassParams pp) {
 		if (pp.foxDecoder != null && pp.iqSource != null) {
-			Config.toBin = pp.iqSource.getBinFromFreqHz(spacecraft.maxFreqBoundkHz*1000);
-			Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
+			Config.toBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.maxFreqBoundkHz*1000));
+			Config.fromBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.minFreqBoundkHz*1000));
 //			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
 //				Config.toBin = 0;
 //				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
@@ -270,10 +273,17 @@ public class PassManager implements Runnable {
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Setting Bin to: " + pp1.rfData.getBinOfStrongestSignalInSatBand());
 //		if (pp1.iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS) {
 			//pp1.iqSource.setSelectedBin(pp1.rfData.getBinOfStrongestSignalInSatBand());
-			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
-			pp1.iqSource.setSelectedBin(Config.selectedBin);
-			if (pp2 != null && pp2.iqSource != null)
-				pp2.iqSource.setSelectedBin(Config.selectedBin);
+//			Config.selectedBin = pp1.rfData.getBinOfStrongestSignalInSatBand();
+//			pp1.iqSource.setSelectedBin(Config.selectedBin);
+//			if (pp2 != null && pp2.iqSource != null)
+//				pp2.iqSource.setSelectedBin(Config.selectedBin);
+		
+		int bin = pp1.rfData.getBinOfStrongestSignalInSatBand();
+		if (pp1.iqSource != null)
+			pp1.iqSource.setSelectedBin(bin);
+		if (pp2 != null && pp2.iqSource != null)
+			pp2.iqSource.setSelectedBin(bin);
+		
 			pp1.rfData.reset(); // because we changed frequency
 //		}
 
@@ -349,11 +359,21 @@ public class PassManager implements Runnable {
 			if (connected && passMeasurement != null) {
 				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
 			}
+		} else if (Config.foxTelemCalcsPosition) {
+			if (passMeasurement != null) {
+				try {
+					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long) spacecraft.getCurrentPosition().getAzimuth());
+				} catch (PositionCalcException e) {
+					// Ignore this, not a fatal error
+					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long) 0);
+					e.printStackTrace(Log.getWriter()); // put message in the log
+				}
+			}			
 		}
 
 		if (passMeasurement != null)
 		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
-				+ " with " + pp.foxDecoder.name + " decoder bin:" + Config.selectedBin); //// pp1.iqSource.getSelectedBin());
+				+ " with " + pp.foxDecoder.name + " decoder freq:" + Config.selectedFrequency); //// pp1.iqSource.getSelectedBin());
 		newPass = true;
 	}
 	
@@ -415,13 +435,7 @@ public class PassManager implements Runnable {
 		return false;
 	}
 	
-	/**
-	 * Wait to see if we have lost the signal because the satellite faded, or because the pass ended
-	 * @param spacecraft
-	 * @return
-	 */
-	private int faded(Spacecraft spacecraft) {
-		if (!Config.findSignal) return EXIT;
+	private void logEndOfPass(Spacecraft spacecraft) {
 		if (passMeasurement != null) {
 			passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
 			if (Config.useDDEforAzEl) { // store end Azimuth too
@@ -430,9 +444,29 @@ public class PassManager implements Runnable {
 				if (connected) {
 					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
 				}
+			} else if (Config.foxTelemCalcsPosition) {
+				if (passMeasurement != null) {
+					try {
+						passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long) spacecraft.getCurrentPosition().getAzimuth());
+					} catch (PositionCalcException e) {
+						// Ignore this, not a fatal error
+						passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long) 0);
+						e.printStackTrace(Log.getWriter()); // put message in the log
+					}
+				}			
 			}
 			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Cached LOS as " + passMeasurement.getRawValue(PassMeasurement.LOS));
 		}
+	}
+
+	/**
+	 * Wait to see if we have lost the signal because the satellite faded, or because the pass ended
+	 * @param spacecraft
+	 * @return
+	 */
+	private int faded(Spacecraft spacecraft) {
+		if (!Config.findSignal) return EXIT;
+		logEndOfPass(spacecraft);
 		faded = true;
 
 		long startTime = System.nanoTime()/1000000; // get time in ms
@@ -485,13 +519,17 @@ public class PassManager implements Runnable {
 	 */
 	private int endPass(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
+		logEndPassMeasurement(spacecraft);
+		return EXIT;
+	}
+	
+	private void logEndPassMeasurement(Spacecraft spacecraft) {
 		if (passMeasurement != null) {
 			calculateTCA(spacecraft);
 			calculateMaxEl(spacecraft);
 			if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " LOS at " + passMeasurement.getRawValue(PassMeasurement.LOS));
 			Config.payloadStore.add(spacecraft.foxId, passMeasurement);
 		}
-		return EXIT;
 	}
 
 	private void calculateMaxEl(Spacecraft spacecraft) {
@@ -597,11 +635,33 @@ public class PassManager implements Runnable {
 		
 		running = true;
 		done = false;
-
+		newPass = false;
+		int currentSatId = 0;
+		
+		/**
+		 * We run in a loop checking each spacecraft that the user has configured for tracking. 
+		 * This is configured by the following:
+		 *  First the subroutine trackSpacecraft() determines if we should be tracking this spacecraft.  It returns true if:
+		 *    sat.track is on and either:
+		 *      Config.whenAboveHorizon is on and satPC32DDE is used and the sat is up
+		 *      Config.foxTelemCalcsPosition is true and the sat is up
+		 *      
+		 *  If we should be tracking this spacecraft right now, then it is further defined by:
+		 *    Config.findSignal - this determines if we searching for the signal.  It is enabled if any are tracked and we are
+		 *      not calculating Doppler
+		 *      It controls if the findSignal panel is shown in the inputTab.  It determines if we enter the state machine below
+		 *    Config.iq - true if FoxTelem is the SDR.  Otherwise we don't bother with all this, we are in AF mode
+		 *    Config.whenAboveHorizon - the decoder is frozen until a spacecraft that is tracked is above the horizon
+		 *  
+		 *  
+		 */
 		while (running) {
 		//	System.err.println("PASS MGR RUNNING");
 			try {
-				Thread.sleep(100);
+				if (Config.foxTelemCalcsDoppler)
+					Thread.sleep(1000);
+				else
+					Thread.sleep(100);
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -609,21 +669,43 @@ public class PassManager implements Runnable {
 			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
 				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
+				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) atLeastOneTracked = true;
-					if (MainWindow.inputTab != null && sat.track) {
+					if (MainWindow.inputTab != null) {
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
-							if (Config.findSignal && Config.iq) {
-								stateMachine(sat);
-							} else {
-								// we don't have find signal on. set full range or signals calculated incorrectly
-								Config.fromBin = 0; 
-								Config.toBin = SourceIQ.FFT_SAMPLES;
+							if (Config.iq)
+								if (Config.findSignal) {
+									stateMachine(sat);
+								} else if (Config.foxTelemCalcsDoppler) {
+									if (sat.foxId != currentSatId) { // we have a new pass for a new sat
+										lockSignal(sat, pp1);   
+									}
+									// we set the spacecraft ranges but no find signal panel
+									// Doppler is displayed and we tune the signal for the active spacecraft only if up
+									// We have to pass a delta from the center frequency to the nco
+									double dopplerShiftedFreq = sat.telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz*1000);
+									//DecimalFormat d3 = new DecimalFormat("0.000");
+									//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
+									setFreqRangeBins(sat, pp1);
+									if (pp1 != null && pp1.iqSource != null)
+										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									break; // we only tune Doppler for the first spacecraft in the priority ordered list
+								} else {
+									// we don't have find signal on. set full range or signals calculated incorrectly
+									Config.fromBin = 0; 
+									Config.toBin = SourceIQ.FFT_SAMPLES;
+								}
+						} else {
+							if (currentSatId == sat.foxId) { // close out the pass for a previous sat
+								logEndOfPass(sat);
+								currentSatId = 0;
 							}
-						} 
+						}
+
 					}
 				}
 				if (MainWindow.inputTab != null && !oneSatUp) {
@@ -651,6 +733,7 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
+		if (!sat.track) return false;
 		if (Config.whenAboveHorizon && Config.useDDEforAzEl) {
 			String satString = null;
 			SatPc32DDE satPC = new SatPc32DDE();
@@ -675,17 +758,28 @@ public class PassManager implements Runnable {
 						if (Config.whenAboveHorizon)
 							return false; // a sat with no T0 or TLE will never be considered above horizon
 						else
-							return true; // if we are not checking if above horizon, then track
+							if (Config.foxTelemCalcsDoppler)
+								return false; // a sat with no T0 or TLE cant have doppler tuned
+							else
+								return true; // if we are not checking if above horizon or Doppler, then track
 					}
-					if (!Config.whenAboveHorizon)
-						return true;
-					else if (pos != null) {
+					if (!Config.whenAboveHorizon) {
+						if (Config.foxTelemCalcsDoppler) {
+							if (sat.aboveHorizon())
+								return true;
+							else
+								if (Config.debugCalcDopplerContinually)
+									return true; /////////////////////// FOR TESTING ONLY
+								else
+									return false; // we wont tune Doppler if sat is not up
+						} else
+							return true; // if we are not checking if above horizon or Doppler, then track
+					} else if (pos != null) {
 						if (sat.aboveHorizon()) {
 							return true;
 						}
 					}
 					return false;
-				
 		}
 		return true;
 	}

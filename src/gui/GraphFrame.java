@@ -697,7 +697,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
 				displayTitle = fox.name + " " + displayTitle;
 			if (conversionType == BitArrayLayout.CONVERT_FREQ) {
-				int freqOffset = fox.telemetryDownlinkFreqkHz;
+				int freqOffset = (int) fox.telemetryDownlinkFreqkHz;
 				displayTitle = title + " delta from " + freqOffset + " kHz";
 			}
 		}

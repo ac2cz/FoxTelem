@@ -7,6 +7,7 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
+import java.awt.GridLayout;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -109,13 +110,14 @@ import javax.swing.event.PopupMenuEvent;
 public class SourceTab extends JPanel implements Runnable, ItemListener, ActionListener, PropertyChangeListener, FocusListener, MouseListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
-	//Thread fcdPanelThread;
+	Thread phasorPanelThread;
 	
 	Thread fftPanelThread;
 	Thread decoder1Thread;
 	Thread decoder2Thread;
 	AudioGraphPanel audioGraph;
 	EyePanel eyePanel;
+	PhasorPanel phasorPanel;
 	public FFTPanel fftPanel;
 	JButton btnMonitorAudio;
 	JCheckBox rdbtnMonitorFilteredAudio;
@@ -128,7 +130,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JCheckBox rdbtnShowIF;
 	public JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
-	JCheckBox rdbtnShowFFT;
+//	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
 	JCheckBox rdbtnFcdMixerGain;
 	JTextField peakLevel;
@@ -292,7 +294,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	public void showSatOptions(boolean b) { 
 		satPanel.setVisible(b);
 	}
-	
+
+	public void showEye(boolean b) { 
+		eyePanel.setVisible(b);
+	}
+	public void showPhasor(boolean b) { 
+		phasorPanel.setVisible(b);
+	}
+
 	public boolean getShowFilterState() {
 		return filterPanel.isVisible();
 	}
@@ -350,7 +359,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
 		rdbtnFindSignal.setSelected(Config.findSignal);
-		rdbtnFindSignal.setVisible(false);
+		rdbtnFindSignal.setVisible(false); // this is not under user control except for debugging
 
 		optionsPanel.add(findSignalPanel);
 				
@@ -428,19 +437,32 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		audioGraphThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		audioGraphThread.start();
 
+		JPanel eyePhasorPanel = new JPanel();
+		eyePhasorPanel.setLayout(new BorderLayout());
+		
 		eyePanel = new EyePanel();
 		eyePanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		bottomPanel.add(eyePanel, BorderLayout.EAST);
+		bottomPanel.add(eyePhasorPanel, BorderLayout.EAST);
+		eyePhasorPanel.add(eyePanel, BorderLayout.WEST);
 		eyePanel.setBackground(Color.LIGHT_GRAY);
 		eyePanel.setPreferredSize(new Dimension(200, 100));
 		eyePanel.setMaximumSize(new Dimension(200, 100));
+		eyePanel.setVisible(true);
+		
+		phasorPanel = new PhasorPanel();
+		phasorPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		eyePhasorPanel.add(phasorPanel, BorderLayout.EAST);
+		phasorPanel.setBackground(Color.LIGHT_GRAY);
+		phasorPanel.setPreferredSize(new Dimension(200, 100));
+		phasorPanel.setMaximumSize(new Dimension(200, 100));
+		phasorPanel.setVisible(false);
 		
 		fftPanel = new FFTPanel();
 		fftPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		fftPanel.setBackground(Color.LIGHT_GRAY);
 		
 		//bottomPanel.add(fftPanel, BorderLayout.SOUTH);
-		setFFTVisible(false);
+		showFFT(false);
 		fftPanel.setPreferredSize(new Dimension(100, 150));
 		fftPanel.setMaximumSize(new Dimension(100, 150));
 		
@@ -492,7 +514,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s] = new JPanel();
 			satRows[s].setLayout(new FlowLayout(FlowLayout.LEFT));
 			satPanel.add(satRows[s]);
-			satName[s] = new JLabel(sat.name + ":   ");
+			satName[s] = new JLabel(sat.priority + "/"+sat.name + "   ");
 			satPosition[s] = new JLabel("Not Tracked");
 			if (sat.track) {
 				satPosition[s].setText("Tracked");
@@ -508,6 +530,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		autoStart.addItemListener(this);
 		satPanel.add(autoStart);
 		showSatOptions(Config.showSatOptions);
+		showEye(Config.showEye);
+		if (decoder1 != null && (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder))
+			showPhasor(Config.showPhasor);
 		return oneTracked;
 	}
 	
@@ -551,11 +576,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnFilterOutputAudio.setSelected(Config.filterOutputAudio);
 		rdbtnFilterOutputAudio.setVisible(false);
 		
-		rdbtnShowFFT = new JCheckBox("Show FFT");
-		rdbtnShowFFT.addItemListener(this);
-		rdbtnShowFFT.setSelected(true);
-		optionsPanel.add(rdbtnShowFFT);
-		rdbtnShowFFT.setVisible(false);
+//		rdbtnShowFFT = new JCheckBox("Show FFT");
+//		rdbtnShowFFT.addItemListener(this);
+//		rdbtnShowFFT.setSelected(true);
+//		optionsPanel.add(rdbtnShowFFT);
+//		rdbtnShowFFT.setVisible(false);
 		play = new JButton(">");
 		play.addActionListener(this);
 		optionsPanel.add(play);
@@ -971,7 +996,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//soundCardComboBox.setSelectedIndex(SourceAudio.IQ_FILE_SOURCE);
 	}
 	
-	private void setFFTVisible(boolean b) {
+	void showFFT(boolean b) {
 		fftPanel.setVisible(b);
 		if (b==true) {
 			if (Config.splitPaneHeight != 0) 
@@ -979,11 +1004,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			else
 				splitPane.setDividerLocation(200);
 		}
+		mainWindow.chckbxmntmShowFFT.setState(b); // this will get the menu toggle right
 	}
 	
 	private void setIQVisible(boolean b) {
-		setFFTVisible(b);
-		rdbtnShowFFT.setVisible(b);
+		showFFT(b);
+//		rdbtnShowFFT.setVisible(b);
 		rdbtnFindSignal.setVisible(false);
 		rdbtnFindSignal.setEnabled(false);
 		findSignalPanel.setVisible(b);
@@ -1027,6 +1053,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (decoder1 != null) {
 			audioGraph.startProcessing(decoder1);
 			eyePanel.startProcessing(decoder1);
+			if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
+				phasorPanel.setVisible(true);
+				phasorPanel.startProcessing(decoder1);
+			} else {
+				phasorPanel.setVisible(false);
+			}
 			fftPanel.startProcessing(iqSource1);
 		}
 		viewLowSpeed.setSelected(true);
@@ -1051,6 +1083,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 			audioGraph.startProcessing(decoder2);
 			eyePanel.startProcessing(decoder2);
+			if (decoder2 instanceof FoxBPSKDotProdDecoder || decoder2 instanceof FoxBPSKCostasDecoder)
+			phasorPanel.startProcessing(decoder2);
 			fftPanel.startProcessing(iqSource2);
 			
 			viewHighSpeed.setSelected(true);
@@ -1157,7 +1191,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == this.txtFreq) {
 			// User has done this so trap the error and report
 			try {
-				setCenterFreq();				
+				double f = setCenterFreq();
+				txtFreq.setText(Double.toString(f));				
 			} catch (DeviceException e1) {
 				Log.errorDialog("ERROR with txtFreq", e1.getMessage());
 				e1.printStackTrace(Log.getWriter());
@@ -1211,14 +1246,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 			} catch (IllegalArgumentException e1) {
 				JOptionPane.showMessageDialog(this,
-						e1.toString(),
-						"ARGUMENT ERROR",
+						"Is there a valid sound card attached?\n"+e1.toString(),
+						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 				//e1.printStackTrace();	
 			} catch (LineUnavailableException e1) {
 				JOptionPane.showMessageDialog(this,
-						e1.toString(),
-						"LINE UNAVAILABLE ERROR",
+						"Is there a valid sound card attached?\n"+e1.toString(),
+						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 			}
 
@@ -1589,7 +1624,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							try {
-								setCenterFreq();
+								double f = setCenterFreq();
+								txtFreq.setText(Double.toString(f));
 							} catch (DeviceException e) {
 								Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 								e.printStackTrace(Log.getWriter());
@@ -1735,7 +1771,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								Config.passManager.setDecoder1(decoder1, iqSource1, this);
 								if (Config.autoDecodeSpeed)
 									Config.passManager.setDecoder2(decoder2, iqSource2, this);
-								txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+								txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 								setCenterFreq();
 							} else {
 								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
@@ -1789,6 +1825,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							eyePanelThread.start();
 						}
 						eyePanel.startProcessing(decoder1);
+						if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
+							if (phasorPanelThread == null) {	
+								phasorPanelThread = new Thread(phasorPanel);
+								phasorPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+								phasorPanelThread.start();
+							}
+							phasorPanel.startProcessing(decoder1);
+							phasorPanel.setVisible(true);
+						} else {
+							phasorPanel.setVisible(false);
+						}
 						enableSourceSelectionComponents(false);
 						
 						if (iqSource1 != null) {
@@ -1822,9 +1869,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e.printStackTrace();
 					}
 					if (rfDevice != null) {
-						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+						txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 						try {
-							setCenterFreq();
+							double f = setCenterFreq();
+							txtFreq.setText(Double.toString(f));
 						} catch (DeviceException e) {
 							Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 							e.printStackTrace(Log.getWriter());
@@ -1841,11 +1889,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	}
 
-	private void setCenterFreq() throws DeviceException, IOException {
+	private double setCenterFreq() throws DeviceException, IOException {
 		//String text = txtFreq.getText();
+		double freq = Config.fcdFrequency; // we fall back to this and return it if we cant parse the value
 		try {
 			txtFreq.selectAll();
-			int freq = Integer.parseInt(txtFreq.getText());
+			freq = (double)(Math.round(Double.parseDouble(txtFreq.getText())*1000)/1000.0);
 			if (iqSource1 != null)
 				(iqSource1).setCenterFreqkHz(freq);
 			if (iqSource2 != null)
@@ -1855,7 +1904,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
-					rfDevice.setFrequency(freq*1000);
+					rfDevice.setFrequency((long) (freq*1000));
 					panelFcd.updateFilter();
 				}
 			} else {
@@ -1865,7 +1914,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} catch (NumberFormatException n) {
 			// not much to say here, just catch the error
 		}
-
+		return freq;
 	}
 
 	private void stopDecoder() {
@@ -2069,15 +2118,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        }
 		}
 		*/
-		if (e.getSource() == rdbtnShowFFT) {
-			if (fftPanel != null)
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				setFFTVisible(false);
-	        } else {
-	        	setFFTVisible(true);
-	        	
-	        }
-		}
+//		if (e.getSource() == rdbtnShowFFT) {
+//			if (fftPanel != null)
+//			if (e.getStateChange() == ItemEvent.DESELECTED) {
+//				setFFTVisible(false);
+//	        } else {
+//	        	setFFTVisible(true);
+//	        	
+//	        }
+//		}
 		if (e.getSource() == autoStart) {
 			
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -2307,7 +2356,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 		if (e.getSource() == txtFreq) {
 			try {
-				setCenterFreq();				
+				double f = setCenterFreq();
+				txtFreq.setText(Double.toString(f));
 			} catch (DeviceException e1) {
 				Log.errorDialog("ERROR loosing focus", e1.getMessage());
 				e1.printStackTrace(Log.getWriter());
@@ -2364,7 +2414,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Spacecraft sat = Config.satManager.spacecraftList.get(s);
 							if (sat.track)
 								atLeastOneTracked = true;
-							if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
+							if ((Config.foxTelemCalcsDoppler || (Config.whenAboveHorizon && aboveHorizon)) && sat.track && sat.aboveHorizon())
 								satPosition[s].setForeground(Config.AMSAT_RED);
 							else
 								satPosition[s].setForeground(Config.AMSAT_BLUE);
@@ -2373,7 +2423,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								if (sat.satPos != null) {
 									double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 									double el = FramePart.radToDeg(sat.satPos.getElevation());
-									satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+									String position = "" + String.format("%2.1f", az) 
+									+ " | " + String.format("%2.1f", el);
+									if (Config.foxTelemCalcsDoppler) {
+										double freq = sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz);
+										String sign="";
+										if (freq > 0) sign = "+";
+										position = position + " | " + sign+String.format("%2.3f", freq) + "kHz";
+									}
+									satPosition[s].setText(position);
 								} else {
 									String msg = "Tracked / ";
 									if (Config.whenAboveHorizon) {
@@ -2421,7 +2479,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							processStartButtonClick();
 						}
 					} else {
-						if (atLeastOneTracked) {
+						if (atLeastOneTracked && !Config.foxTelemCalcsDoppler) {
 							//rdbtnFindSignal.setEnabled(true);
 							rdbtnFindSignal.setSelected(true);
 							if (Config.iq) {

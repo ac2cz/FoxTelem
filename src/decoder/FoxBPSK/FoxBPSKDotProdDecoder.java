@@ -63,7 +63,45 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	double[] pskAudioData;
 	double[] pskQAudioData;
 
-	//CosOscillator testOscillator = new CosOscillator(48000,1200);
+	double gain = 1;	
+	int chunk = 0;
+	public int SEARCH_INTERVAL = 0; //set by window length. 16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
+	public static final int NSEARCHERS = 4;
+	public static final double CENTER_CARRIER = 1500;         // Center of carrier frequency search range
+	static final double CARRIER_SEARCH_RANGE = 900;    // Limits of search range above and below Carrier frequency
+	int Ftotal = (int) (2 * CARRIER_SEARCH_RANGE/100.0d + 1);
+	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
+	PskSearcher[] searchers = new PskSearcher[NSEARCHERS];
+	Thread[] searcherThreads = new Thread[NSEARCHERS];
+	
+	double phase_inc_start, phase_inc_stop, phase_inc_step;
+	DotProduct matchedFilter;
+	
+	//CosOscillator cos = new CosOscillator(currentSampleRate, (int)Carrier);
+	//SinOscillator sin = new SinOscillator(currentSampleRate, (int)Carrier);
+	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, (int)CENTER_CARRIER);
+
+
+	CosOscillator ftcos = new CosOscillator(currentSampleRate, (int)CENTER_CARRIER);
+	SinOscillator ftsin = new SinOscillator(currentSampleRate, (int)CENTER_CARRIER);
+	
+//	double freq = 100.0;  //////////////// legacy value, REMOVE
+	
+	double carrier = CENTER_CARRIER;
+    double cphase_inc;
+    double cphase = 0; // phase that we start the window when we downconvert with best carrier
+    int symphase = 0;
+	double[] baseband_i = new double[BUFFER_SIZE];
+	double[] baseband_q = new double[BUFFER_SIZE];
+	static final int NUM_OF_DEMODS = 5;
+	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
+	int symbol_count = 0;
+	double[] data; // the demodulated symbols
+	int Symbols_demodulated; // total symbols demodulated
+//	double Gain = 128; // Heuristically, this seems about optimum
+	public int samples_processed = 0;
+	Complex c;
+	double[] phasorData;
 
 	/**
 	 * This holds the stream of bits that we have not decoded. Once we have several
@@ -111,9 +149,10 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		
 		pskAudioData = new double[BUFFER_SIZE];
 		pskQAudioData = new double[BUFFER_SIZE];
+		phasorData = new double[BUFFER_SIZE*2]; // actually it stores baseband i and q
 		
-		phase_inc_start = (Carrier - Carrier_range) * 2 * Math.PI / (double) currentSampleRate;
-		phase_inc_stop = (Carrier + Carrier_range) * 2 * Math.PI / (double) currentSampleRate;
+		phase_inc_start = (CENTER_CARRIER - CARRIER_SEARCH_RANGE) * 2 * Math.PI / (double) currentSampleRate;
+		phase_inc_stop = (CENTER_CARRIER + CARRIER_SEARCH_RANGE) * 2 * Math.PI / (double) currentSampleRate;
 		phase_inc_step = 2 * Math.PI * 100 / (double) currentSampleRate; // 100Hz - how much to increase phase for each searcher
 		Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
 		
@@ -133,56 +172,9 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		return pskQAudioData;
 	}
 
-	double gain = 1;
-	
-//	double iMix, qMix;
-//	double fi = 0.0, fq = 0.0;
-
-	// Keep track of where we are in the bit for sampling - Gardner algorithm
-	int bitPosition = 0;
-//	int offset = 0;
-	double YnMinus2Sample = 0;
-	double YnSample = 0;
-	double YnMinus1Sample;
-	boolean delayClock = false;
-
-	int chunk = 0;
-	public int SEARCH_INTERVAL = 0; //set by window length. 16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
-	public static final int NSEARCHERS = 4;
-	static final double Carrier = 1500;         // Center of carrier frequency search range
-	static final double Carrier_range = 900;    // Limits of search range above and below Carrier frequency
-	int Ftotal = (int) (2 * Carrier_range/100.0d + 1);
-	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
-	PskSearcher[] searchers = new PskSearcher[NSEARCHERS];
-	Thread[] searcherThreads = new Thread[NSEARCHERS];
-	
-	double phase_inc_start, phase_inc_stop, phase_inc_step;
-	DotProduct matchedFilter;
-	
-	//CosOscillator cos = new CosOscillator(currentSampleRate, (int)Carrier);
-	//SinOscillator sin = new SinOscillator(currentSampleRate, (int)Carrier);
-	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, (int)Carrier);
-
-
-	CosOscillator ftcos = new CosOscillator(currentSampleRate, (int)Carrier);
-	SinOscillator ftsin = new SinOscillator(currentSampleRate, (int)Carrier);
-	
-//	double freq = 100.0;  //////////////// legacy value, REMOVE
-	
-	double carrier = 0;
-    double cphase_inc;
-    double cphase = 0; // phase that we start the window when we downconvert with best carrier
-    int symphase = 0;
-	double[] baseband_i = new double[BUFFER_SIZE];
-	double[] baseband_q = new double[BUFFER_SIZE];
-	static final int NUM_OF_DEMODS = 5;
-	PskDemodState[] demodState = new PskDemodState[NUM_OF_DEMODS];
-	int symbol_count = 0;
-	double[] data; // the demodulated symbols
-	int Symbols_demodulated; // total symbols demodulated
-//	double Gain = 128; // Heuristically, this seems about optimum
-	public int samples_processed = 0;
-	Complex c;
+	public double[] getPhasorData() {
+		return phasorData;
+	}
 
 	protected void sampleBuckets() {
 		double maxValue = 0;
@@ -247,10 +239,19 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	        	symphase = newSymphase;
 	        	if(symphase < bucketSize/2)
 	        		symphase += bucketSize; // Allow room for early symbol timing test
-	        	Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+	        	if (Config.debugClock)
+	        		Log.println("   --full search: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
 	        } else
-	        Log.println("   NO CHANGE: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
+	        	if (Config.debugClock)
+	        		Log.println("   NO CHANGE: carrier "+carrier+" Hz; best offset "+symphase+"; energy "+maxenergy_value);
 		}
+		
+		if (Double.isNaN(carrier))
+			carrier = CENTER_CARRIER;
+		if (carrier > CENTER_CARRIER+CARRIER_SEARCH_RANGE)
+	    	carrier = CENTER_CARRIER+CARRIER_SEARCH_RANGE;
+	    if (carrier < CENTER_CARRIER-CARRIER_SEARCH_RANGE)
+	    	carrier = CENTER_CARRIER-CARRIER_SEARCH_RANGE;
 	    
 		// track frequency with two probes, one below and one above nominal carrier frequency
 	    // Use linear interpolation to determine more accurate carrier frequency
@@ -270,10 +271,12 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    // I should work up a more exact function, or at least bound the error
 	    if(cpt1 != cpt0) // Avoid unlikely divide by zero
 	      carrier = lower - cpt0 * (upper - lower) / (cpt1 - cpt0);
-	    if (carrier > Carrier+Carrier_range)
-	    	carrier = Carrier+Carrier_range;
-	    if (carrier < Carrier-Carrier_range)
-	    	carrier = Carrier-Carrier_range;
+	    if (Double.isNaN(carrier))
+			carrier = CENTER_CARRIER;
+	    if (carrier > CENTER_CARRIER+CARRIER_SEARCH_RANGE)
+	    	carrier = CENTER_CARRIER+CARRIER_SEARCH_RANGE;
+	    if (carrier < CENTER_CARRIER-CARRIER_SEARCH_RANGE)
+	    	carrier = CENTER_CARRIER-CARRIER_SEARCH_RANGE;
 	    
 //	    carrier = 1264; // ignore freqTracker
 
@@ -298,9 +301,11 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			// This shows the input buffer.  Need to restrict to samples_processed at end of chunk to see actual
 			double mag = Math.sqrt(baseband_i[i]*baseband_i[i] + baseband_q[i]*baseband_q[i]);
 			//double phase = Math.atan2(baseband_i[i], baseband_q[i])/3;
-			pskAudioData[i] = 1.5*(mag-.5);
+			pskAudioData[i] = 1*(mag-0.7);
 			eyeValue = (int)(pskAudioData[i]*32767.0); 
 			eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
+			phasorData[2*i] = baseband_i[i];
+			phasorData[2*i+1] = baseband_q[i];
 	    }
 
 	    // Demodulate N times: early, on time, and late
@@ -317,7 +322,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    
 	    if(best_index == -1) {
 	    	best_index = (int)(NUM_OF_DEMODS-1)/2; // we did not pick any state, so pick middle
-	    	System.err.println("Best Index -1");
+	    	//System.err.println("Best Index -1");
 	    }
 	    symphase = symphase + best_index + DEFAULT_INDEX; // default_index is -ve so we add it
 	    symbol_count = demodState[best_index].symbol_count;
@@ -339,14 +344,14 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 //	    	y = 127.5 + gain * data[i];
 //	    	y = (y > 255) ? 255 : ((y < 0) ? 0 : y);
 	    	//symbolq((int)y+" "); // Pass to FEC decoder thread
-	    	
+	    	int middleSamplePosition = (int) (symphase+bucketSize/2.0+(i)*bucketSize);
 	    	boolean thisSample = false;
 	    	if (data[i] > 0) thisSample = true;
 			bitStream.addBit(thisSample);
 			if (thisSample == false)
-				eyeData.setLow((int) (pskAudioData[(int) (symphase+bucketSize/2.0+(i-1)*bucketSize)]*-32767.0)); // take the middle of the bit as the eye sample
+				eyeData.setLow((int) (pskAudioData[middleSamplePosition]*-32767.0)); // take the middle of the bit as the eye sample
 			else
-				eyeData.setHigh((int) (pskAudioData[(int) (symphase+bucketSize/2.0+(i-1)*bucketSize)]*32767.0));
+				eyeData.setHigh((int) (pskAudioData[middleSamplePosition]*32767.0));
 	    }
 
 		int offset = 0;//-1*(symphase)%bucketSize;
@@ -380,7 +385,6 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 //	    	eyeValue = (int)(-1*pskAudioData[i]*32767.0); 
 //	    	eyeData.setData(i/bucketSize,i%bucketSize,eyeValue);
 //	    }
-
 	    
 	    //Sampcounter += samples_processed; // not currently used
 

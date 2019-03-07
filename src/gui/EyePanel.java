@@ -107,7 +107,7 @@ public class EyePanel extends JPanel implements Runnable {
 		while(running) {
 			//			Log.println("eye running");
 			try {
-				Thread.sleep(1000/50); // approx 1/50 sec refresh
+				Thread.sleep(1000/100); // approx 1/100 sec refresh
 			} catch (InterruptedException e) {
 				Log.println("ERROR: Eye Diagram thread interrupted");
 				//e.printStackTrace();

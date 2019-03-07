@@ -128,6 +128,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
 	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
 	JCheckBoxMenuItem chckbxmntmShowSatOptions;
+	JCheckBoxMenuItem chckbxmntmShowEye;
+	JCheckBoxMenuItem chckbxmntmShowPhasor;
+	JCheckBoxMenuItem chckbxmntmShowFFT;
+
 	JCheckBoxMenuItem chckbxmntmShowSourceOptions;
 	static JPanel bottomPanel;
 	
@@ -481,6 +485,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnDecoder.add(chckbxmntmShowSatOptions);
 		chckbxmntmShowSatOptions.setState(Config.showSatOptions);
 
+		chckbxmntmShowEye = new JCheckBoxMenuItem("Show Eye");
+		chckbxmntmShowEye.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowEye);
+		chckbxmntmShowEye.setState(Config.showEye);
+
+		chckbxmntmShowPhasor = new JCheckBoxMenuItem("Show Phasor");
+		chckbxmntmShowPhasor.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowPhasor);
+		chckbxmntmShowPhasor.setState(Config.showPhasor);
+
+		chckbxmntmShowFFT = new JCheckBoxMenuItem("Show FFT");
+		chckbxmntmShowFFT.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowFFT);
+		chckbxmntmShowFFT.setState(Config.showFFT);
+
 		JMenu mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
@@ -718,6 +737,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (e.getSource() == chckbxmntmShowSatOptions) {	
 			Config.showSatOptions = chckbxmntmShowSatOptions.getState();
 			inputTab.showSatOptions(Config.showSatOptions);
+	    }
+		if (e.getSource() == chckbxmntmShowEye) {	
+			Config.showEye = chckbxmntmShowEye.getState();
+			inputTab.showEye(Config.showEye);
+	    }
+		if (e.getSource() == chckbxmntmShowPhasor) {	
+			Config.showPhasor = chckbxmntmShowPhasor.getState();
+			inputTab.showPhasor(Config.showPhasor);
+	    }
+		if (e.getSource() == chckbxmntmShowFFT) {	
+			Config.showFFT = chckbxmntmShowFFT.getState();
+			inputTab.showFFT(Config.showFFT);
 	    }
 		if (e.getSource() == mntmManual) {
 			try {

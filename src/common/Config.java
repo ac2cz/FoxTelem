@@ -203,8 +203,8 @@ public class Config {
 	public static int windowY = 100;
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
-	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
-	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
+	public static double fcdFrequency = 145930.0;  // the default frequency we set the FCD to if this is a fresh install
+/////////////	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
 	public static int fromBin = DEFAULT_FROM_BIN; 
@@ -271,7 +271,13 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-	static public boolean useCostas = true;
+	static public boolean useCostas = false;
+	public static boolean showEye = true; 
+	public static boolean showPhasor = true; 
+	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
+	static public boolean foxTelemCalcsDoppler = false;
+	public static boolean showFFT = true; 
+	static public boolean debugCalcDopplerContinually = false;
 	
 	// V1.08
 	//static public boolean splitCanPackets = true;
@@ -648,8 +654,8 @@ public class Config {
 		properties.setProperty("windowWidth", Integer.toString(windowWidth));
 		properties.setProperty("windowX", Integer.toString(windowX));
 		properties.setProperty("windowY", Integer.toString(windowY));
-		properties.setProperty("fcdFrequency", Integer.toString(fcdFrequency));
-		properties.setProperty("selectedBin", Integer.toString(selectedBin));
+		properties.setProperty("fcdFrequency", Double.toString(fcdFrequency));
+/////////////		properties.setProperty("selectedBin", Integer.toString(selectedBin));
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
 		properties.setProperty("logFileDirectory", logFileDirectory);
@@ -714,6 +720,12 @@ public class Config {
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
+		properties.setProperty("showEye", Boolean.toString(showEye));
+		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
+		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
+		properties.setProperty("foxTelemCalcsDoppler", Boolean.toString(foxTelemCalcsDoppler));
+		properties.setProperty("showFFT", Boolean.toString(showFFT));
+		properties.setProperty("debugCalcDopplerContinually", Boolean.toString(debugCalcDopplerContinually));
 		
 		// V1.08
 //		properties.setProperty("splitCanPackets", Boolean.toString(splitCanPackets));
@@ -822,8 +834,8 @@ public class Config {
 		windowWidth = Integer.parseInt(getProperty("windowWidth"));
 		windowX = Integer.parseInt(getProperty("windowX"));
 		windowY = Integer.parseInt(getProperty("windowY"));
-		fcdFrequency = Integer.parseInt(getProperty("fcdFrequency"));
-		selectedBin = Integer.parseInt(getProperty("selectedBin"));
+		fcdFrequency = Double.parseDouble(getProperty("fcdFrequency"));
+///////////		selectedBin = Integer.parseInt(getProperty("selectedBin"));
 		windowCurrentDirectory = getProperty("windowCurrentDirectory");
 		if (windowCurrentDirectory == null) windowCurrentDirectory = "";
 		csvCurrentDirectory = getProperty("csvCurrentDirectory");
@@ -896,6 +908,12 @@ public class Config {
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		showEye = Boolean.parseBoolean(getProperty("showEye"));
+		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
+		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
+		foxTelemCalcsDoppler = Boolean.parseBoolean(getProperty("foxTelemCalcsDoppler"));
+		showFFT = Boolean.parseBoolean(getProperty("showFFT"));
+		debugCalcDopplerContinually = Boolean.parseBoolean(getProperty("debugCalcDopplerContinually"));
 		
 		// V1.08
 //		splitCanPackets = Boolean.parseBoolean(getProperty("splitCanPackets"));

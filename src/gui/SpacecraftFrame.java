@@ -18,6 +18,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -64,6 +65,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 	private final JPanel contentPanel = new JPanel();
 	JTextField name;
+	JComboBox priority;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -125,7 +127,18 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
-		
+
+		JLabel lblPriority = new JLabel("    Priority");
+		titlePanel.add(lblPriority);
+		String tip = "The highest priority spacecraft is tracked if more than one is above the horizon";
+		lblPriority.setToolTipText(tip);
+		String[] nums = new String[20];
+		for (int i=0; i < nums.length; i++)
+			nums[i] = ""+i;
+		priority = new JComboBox(nums); 
+		priority.setSelectedIndex(sat.priority);
+		titlePanel.add(priority);
+
 		// Left Column - Fixed Params that can not be changed
 		JPanel leftPanel = new JPanel();
 		contentPanel.add(leftPanel, BorderLayout.WEST);
@@ -354,6 +367,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		boolean refreshTabs = false;
+		boolean rebuildMenu = false;
 		if (e.getSource() == btnGetT0) {
 			MainWindow.updateManager.updateT0(sat);
 			updateTimeSeries();
@@ -363,16 +377,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		}
 		if (e.getSource() == btnSave) {
 			boolean dispose = true;
-			int downlinkFreq = 0;
-			int minFreq = 0;
-			int maxFreq = 0;
+			double downlinkFreq = 0;
+			double minFreq = 0;
+			double maxFreq = 0;
 			try {
 				try {
-					downlinkFreq = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
-					minFreq = Integer.parseInt(minFreqBoundkHz.getText());
-					maxFreq = Integer.parseInt(maxFreqBoundkHz.getText());
+					downlinkFreq = (double)(Math.round(Double.parseDouble(telemetryDownlinkFreqkHz.getText())*1000)/1000.0);
+					minFreq = (double)(Math.round(Double.parseDouble(minFreqBoundkHz.getText())*1000)/1000.0);
+					maxFreq = (double)(Math.round(Double.parseDouble(maxFreqBoundkHz.getText())*1000)/1000.0);
 				} catch (NumberFormatException ex) {
-					throw new NumberFormatException("The Frequency fields must contain a valid number");
+					throw new NumberFormatException("The Frequency fields must contain a valid frequency in kHz");
 				}
 				if (minFreq < maxFreq) {
 					sat.telemetryDownlinkFreqkHz = downlinkFreq;
@@ -419,6 +433,17 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.name = name.getText();
 					refreshTabs = true;
 				}
+				int pri = 99;
+				try {
+					pri = priority.getSelectedIndex();
+				} catch (NumberFormatException e2) {
+					
+				}
+				if (sat.priority != pri) {
+					rebuildMenu = true;
+					sat.priority = pri;
+					//refreshTabs = true; // refresh the menu list and sat list but not the tabs
+				}
 				if (localServer != null)
 					sat.localServer = localServer.getText();
 				if (localServerPort != null)
@@ -428,6 +453,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				if (dispose) {
 					sat.save();
 					Config.initSatelliteManager();
+					if (rebuildMenu)
+						Config.mainWindow.initSatMenu();
 					this.dispose();
 					if (refreshTabs)
 						MainWindow.refreshTabs(false);
