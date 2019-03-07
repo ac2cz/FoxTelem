@@ -145,11 +145,9 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_UW = 11;
 	public static final int DISPLAY_MIN_AND_MAX_ONLY = 15;
 	public static final int DISPLAY_WOD = 16;
-	public static final int DISPLAY_UW = 17;
 	public static final int DISPLAY_HERCI = 20;
 	public static final int DISPLAY_HERCI_HK = 21;
 	public static final int DISPLAY_HERCI_MICRO_PKT = 22;
-	public static final int DISPLAY_WOD = 23;
 	
 	public static Color vulcanFontColor = new Color(153,0,0);
 	public static Color herciFontColor = new Color(240,154,21);
