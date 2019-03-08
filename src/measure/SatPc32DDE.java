@@ -38,15 +38,16 @@ public class SatPc32DDE {
 	public long downlinkFrequency;
 	
 	public boolean connect() {
+		String ddeString = null;
 		try
 		{
 		    final DDEClientConversation conversation = new DDEClientConversation();
-
+		    
 		    conversation.connect("SatPC32", "SatPcDdeConv");
 		    try
 		    {
 		        // Requesting DDE String
-		        String ddeString = conversation.request("SatPcDdeItem");
+		        ddeString = conversation.request("SatPcDdeItem");
 		      //  Log.println("SatPC32: " + ddeString);
 		        if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
 		        String parts[] = ddeString.split(" ");
@@ -105,6 +106,14 @@ public class SatPc32DDE {
 			Config.useDDEforAzEl = false;
 			Config.useDDEforFreq = false;
 			return false;
+		}
+		catch (NumberFormatException e) {
+			if (ddeString != null) 
+				Log.println("Cannot parse the DDE message: " + ddeString + "\nNumber format error: " + e.getMessage());
+			else
+				Log.println("Cannot parse the DDE message.  \nNumber format error: " + e.getMessage());
+		    return false;
+			
 		}
 	}
 }
