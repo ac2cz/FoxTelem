@@ -278,13 +278,16 @@ public class PassManager implements Runnable {
 //			if (pp2 != null && pp2.iqSource != null)
 //				pp2.iqSource.setSelectedBin(Config.selectedBin);
 		
-		int bin = pp1.rfData.getBinOfStrongestSignalInSatBand();
-		if (pp1.iqSource != null)
-			pp1.iqSource.setSelectedBin(bin);
-		if (pp2 != null && pp2.iqSource != null)
-			pp2.iqSource.setSelectedBin(bin);
-		
+		// Check for nulls incase we are in the middle of stopping
+		if (pp1.rfData != null) {
+			int bin = pp1.rfData.getBinOfStrongestSignalInSatBand();
+			if (pp1.iqSource != null)
+				pp1.iqSource.setSelectedBin(bin);
+			if (pp2 != null && pp2.iqSource != null)
+				pp2.iqSource.setSelectedBin(bin);
+
 			pp1.rfData.reset(); // because we changed frequency
+		}
 //		}
 
 		if (pp1.rfData != null) {
