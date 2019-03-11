@@ -318,7 +318,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel0.setBorder(eastTitle4);
 		cbUploadToServer = addCheckBoxRow("Upload to Server", "Select this if you want to send your collected data to the AMSAT telemetry server",
 				Config.uploadToServer, rightcolumnpanel0 );
-		rdbtnTrackSignal = addCheckBoxRow("Follow Doppler","Follow the signal and record the frequency of the downlink.  Useful if you are trying to measure the actual spacecraft downlink frequency.",
+		rdbtnTrackSignal = addCheckBoxRow("Find Signal","Find and follow the signal. Record the frequency of the downlink.  Useful if you are trying to measure the actual spacecraft downlink frequency.",
 				Config.trackSignal, rightcolumnpanel0);
 		useUDP = true;
 		if (Config.serverProtocol == TlmServer.TCP)
