@@ -29,7 +29,7 @@ public class ProgressPanel extends JDialog implements ActionListener {
 			x = (int) ((dimension.getWidth() - this.getWidth()) / 2);
 			y = (int) ((dimension.getHeight() - this.getHeight()) / 2);
 		}
-		setBounds(100, 100, message.length()*9, 10);
+		setBounds(100, 100, message.length()*11, 10);
 	
 		    this.setLocation(x, y);
 	}

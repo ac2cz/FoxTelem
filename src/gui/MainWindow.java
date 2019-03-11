@@ -890,6 +890,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (n == JOptionPane.NO_OPTION) {
 			return;
 		}
+		
+		ProgressPanel fileProgress = new ProgressPanel(this, "Deleting existing data, please wait ...", false);
+		fileProgress.setVisible(true);
+
+		Config.payloadStore.deleteAll();
+		fileProgress.updateProgress(100);
 
 		// Get the server data for each spacecraft we have
 		sats = Config.satManager.getSpacecraftList();
