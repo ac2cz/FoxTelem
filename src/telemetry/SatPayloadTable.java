@@ -88,7 +88,7 @@ public class SatPayloadTable {
 	public boolean hasFrame(int id, long uptime, int resets) throws IOException { 
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
-		TableSeg seg = loadSeg(resets, uptime);
+		TableSeg seg = loadSeg(resets, uptime, false);
 		return rtRecords.hasFrame(id, uptime, resets); }
 	
 	public FramePart getLatest() throws IOException {
@@ -116,7 +116,8 @@ public class SatPayloadTable {
 	public FramePart getFrame(int id, long uptime, int resets, boolean prev) throws IOException { 
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
-		TableSeg seg = loadSeg(resets, uptime);
+		TableSeg seg = loadSeg(resets, uptime, prev);
+		if (seg == null) return null;
 		if (seg.records == 0) return null;
 		if (prev) {
 			int i = rtRecords.getNearestPrevFrameIndex(id, uptime, resets); 
@@ -132,8 +133,9 @@ public class SatPayloadTable {
 	public FramePart getFrame(int id, long uptime, int resets, int type, boolean prev) throws IOException { 
 		// Make sure the segment is loaded, so we can check
 		@SuppressWarnings("unused")
-		TableSeg seg = loadSeg(resets, uptime);
+		TableSeg seg = loadSeg(resets, uptime, prev);
 		if (prev) {
+			if (seg == null) return null;
 			int i = rtRecords.getNearestPrevFrameIndex(id, uptime, resets, type); 
 			if (i == -1) return null;
 			return rtRecords.get(i);
@@ -282,12 +284,24 @@ public class SatPayloadTable {
 		return resultSet;
 	}
 	
-	private TableSeg getSeg(int reset, long uptime) throws IOException {
+	/**
+	 * If Prev is true then we are searching for the previous record.  We do not create a new seg if it is missing
+	 * and we do not need reset to be the same in the seg we found.  We just want the previous record.
+	 * @param reset
+	 * @param uptime
+	 * @param prev
+	 * @return
+	 * @throws IOException
+	 */
+	private TableSeg getSeg(int reset, long uptime, boolean prev) throws IOException {
 		for (int i=tableIdx.size()-1; i>=0; i--) {
 			if (tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) {
 				return tableIdx.get(i);
+			} else if (prev && tableIdx.get(i).fromReset < reset) {
+				return tableIdx.get(i);
 			}
 		}
+		if (prev) return null;
 		// We could not find a valid Segment, so create a new segment at the head of the list
 		TableSeg seg = new TableSeg(reset, uptime, baseFileName);
 		tableIdx.add(seg);
@@ -300,8 +314,9 @@ public class SatPayloadTable {
 	 * @param f
 	 * @throws IOException 
 	 */
-	private TableSeg loadSeg(int reset, long uptime) throws IOException {
-		TableSeg seg = getSeg(reset, uptime);
+	private TableSeg loadSeg(int reset, long uptime, boolean prev) throws IOException {
+		TableSeg seg = getSeg(reset, uptime, prev);
+		if (seg == null) return null;
 		if (seg.isLoaded()) return seg;
 		load(seg);
 		return seg;
@@ -487,7 +502,7 @@ public class SatPayloadTable {
 	 */
 	public boolean save(FramePart f) throws IOException {
 		// Make sure this segment is loaded, or create an empty segment if it does not exist
-		TableSeg seg = loadSeg(f.resets, f.uptime);
+		TableSeg seg = loadSeg(f.resets, f.uptime, false);
 		if (rtRecords.add(f)) {
 		//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
 			updated = true;
