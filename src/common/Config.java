@@ -21,7 +21,7 @@ import telemetry.PayloadStore;
 import telemetry.RawFrameQueue;
 import telemetry.RawPayloadQueue;
 import telemetry.RawQueue;
-import uk.me.g4dpz.satellite.GroundStationPosition;;
+import uk.me.g4dpz.satellite.GroundStationPosition;
 
 /**
  * FOX 1 Telemetry Decoder
