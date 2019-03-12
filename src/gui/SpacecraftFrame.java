@@ -502,7 +502,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowWidth");
 		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowHeight");
 		if (windowX == 0 || windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
-			setBounds(100, 100, 600, 600);
+			setBounds(100, 100, 600, 700);
 		} else {
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 		}

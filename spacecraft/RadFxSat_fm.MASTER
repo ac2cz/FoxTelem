@@ -4,6 +4,9 @@
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=false
 mpptResistanceError=6.58
+memsRestValueX=2009
+memsRestValueY=2033
+memsRestValueZ=1993
 mpptSensorOffThreshold=1600
 numberOfLookupTables=3
 measurementsFileName=measurements.csv
