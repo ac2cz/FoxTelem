@@ -467,7 +467,8 @@ longer send telemetry.
 			value = value / 256.0d;
 			return value ;
 		case BitArrayLayout.CONVERT_MEMS_ROTATION:
-			return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
+			return calcMemsValue(rawValue, name, fox);
+			//return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
 		case BitArrayLayout.CONVERT_RSSI:
 			return fox.getLookupTableByName(Spacecraft.RSSI_LOOKUP).lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_IHU_TEMP:
@@ -540,6 +541,33 @@ longer send telemetry.
 		}
 		
 		return ERROR_VALUE;
+	}
+	
+	/**
+	 * Calculate the MEMS rotation value based in the rest values saved in the spacecraft config file, if
+	 * they exist.  Otherwise use the default values from the data sheet.
+	 * @param value
+	 * @param name
+	 * @param fox
+	 * @return
+	 */
+	private static double calcMemsValue(int value, String name, FoxSpacecraft fox) {
+		double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+		volts = volts / 2;
+		double memsZeroValue = MEMS_ZERO_VALUE_VOLTS;
+		double result = 0;
+		
+		if (fox.hasMemsRestValues) {
+			int restValue = 0;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.memsRestValueX;	
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.memsRestValueY;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.memsRestValueZ;
+			memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(restValue);
+			memsZeroValue = memsZeroValue/2;
+		}
+		
+	    result = (volts - memsZeroValue)/MEMS_VOLT_PER_DPS;
+		return result;
 	}
 	
 	/**
@@ -629,28 +657,28 @@ longer send telemetry.
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			if (shortString)
 				//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
 			else
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
 			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			int cameraChecksumErrors = (rawValue >> 24) & 0xff; // last 8 bits
 			cameraChecksumErrors = cameraChecksumErrors - 1; // This is initialized to 1, so we subtract that initial value
 			if (shortString)
-				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_X, fox),3);
 				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
+				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_X, fox),3) + " Camera Checksum Errors: " + cameraChecksumErrors;
 				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Y, fox),3);
 				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Y, fox),3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		case IHU_SW_VERSION: // Version of the software on the IHU
 			int swType = (rawValue >> 8) & 0xff;

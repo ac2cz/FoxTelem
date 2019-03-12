@@ -2,6 +2,9 @@
 #Thu Feb 09 21:13:22 EST 2017
 mpptSensorOffThreshold=1600
 mpptResistanceError=6.58
+memsRestValueX=2129
+memsRestValueY=2131
+memsRestValueZ=2103
 useIHUVBatt=false
 numberOfLookupTables=3
 measurementsFileName=measurements.csv

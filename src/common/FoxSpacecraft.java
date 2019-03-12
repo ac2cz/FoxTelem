@@ -67,6 +67,9 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
+	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
+	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
 	
 	public static final int SAFE_MODE = 0;
 	public static final int TRANSPONDER_MODE = 1;
@@ -105,6 +108,10 @@ public class FoxSpacecraft extends Spacecraft{
 	public double mpptResistanceError = 6.58d;
 	public int mpptSensorOffThreshold = 1600;
 	public boolean hasMpptSettings = false;
+	public int memsRestValueX = 0;
+	public int memsRestValueY = 0;
+	public int memsRestValueZ = 0;
+	public boolean hasMemsRestValues = false;
 	
 	// layout flags
 	public boolean useIHUVBatt = false;
@@ -264,6 +271,11 @@ public class FoxSpacecraft extends Spacecraft{
 			properties.setProperty("mpptResistanceError", Double.toString(mpptResistanceError));
 			properties.setProperty("mpptSensorOffThreshold", Integer.toString(mpptSensorOffThreshold));
 		}
+		if (hasMemsRestValues) {
+			properties.setProperty("memsRestValueX", Integer.toString(memsRestValueX));
+			properties.setProperty("memsRestValueY", Integer.toString(memsRestValueY));
+			properties.setProperty("memsRestValueZ", Integer.toString(memsRestValueZ));			
+		}
 		
 		store();
 	
@@ -344,6 +356,21 @@ public class FoxSpacecraft extends Spacecraft{
 			if (icr != null) {
 				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
 			}
+			String mems_x = getOptionalProperty("memsRestValueX");
+			if (mems_x != null) {
+				memsRestValueX = Integer.parseInt(mems_x);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_y = getOptionalProperty("memsRestValueY");
+			if (mems_y != null) {
+				memsRestValueY = Integer.parseInt(mems_y);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_z = getOptionalProperty("memsRestValueZ");
+			if (mems_z != null) {
+				memsRestValueZ = Integer.parseInt(mems_z);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );

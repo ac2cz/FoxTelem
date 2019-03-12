@@ -75,6 +75,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField BATTERY_CURRENT_ZERO;
 	JTextField mpptResistanceError;
 	JTextField mpptSensorOffThreshold;
+	JTextField memsRestValueX, memsRestValueY, memsRestValueZ;
 	JTextField[] T0;
 	JTextField localServer;
 	JTextField localServerPort;
@@ -272,6 +273,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
 					"The ADC value when the temperature sensor is considered off", ""+sat.mpptSensorOffThreshold);
 		}
+		if (sat.hasMemsRestValues) {
+			memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
+					"The rest value for the MEMS X rotation sensor", ""+sat.memsRestValueX);
+			memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
+					"The rest value for the MEMS Y rotation sensor", ""+sat.memsRestValueY);
+			memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
+					"The rest value for the MEMS Z rotation sensor", ""+sat.memsRestValueZ);
+		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		
@@ -422,6 +431,20 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 					if (sat.mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
 						sat.mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+						refreshTabs=true;
+					}
+				}
+				if (sat.hasMemsRestValues) {
+					if (sat.memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+						refreshTabs=true;
+					}
+					if (sat.memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+						refreshTabs=true;
+					}
+					if (sat.memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
 						refreshTabs=true;
 					}
 				}
