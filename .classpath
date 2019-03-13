@@ -25,8 +25,8 @@
 	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-linux-x86_64.jar"/>
 	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-osx-x86.jar"/>
 	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-osx-x86_64.jar"/>
-	<classpathentry kind="lib" path="lib/predict4java.jar"/>
 	<classpathentry kind="lib" path="lib/libusb/usb-api-1.0.2.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/predict4java"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
