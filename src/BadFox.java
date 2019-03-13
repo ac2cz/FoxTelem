@@ -19,6 +19,7 @@ public class BadFox {
 		massiveFrame();
 	}
 	
+	@SuppressWarnings("unused")
 	private static void emptyFrame() {
 		try {
 			Socket socket = new Socket("127.0.0.1", 41042);
@@ -56,10 +57,12 @@ public class BadFox {
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private static void crashInFrame() {
 		byte[] bytes = new byte[10];
+		Socket socket = null;
 		try {
-			Socket socket = new Socket("127.0.0.1", 41042);
+			socket = new Socket("127.0.0.1", 41042);
 			OutputStream out = socket.getOutputStream();
 
 			out.write(bytes);
@@ -70,9 +73,12 @@ public class BadFox {
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
+		} finally {
+			try{ socket.close(); } catch (Exception e) {};
 		}
 	}
 	
+	@SuppressWarnings("unused")
 	private static void sendBytes() {
 		TlmServer tlmServer = new TlmServer("127.0.0.1", 41042);
 		byte[] bytes = new byte[100];

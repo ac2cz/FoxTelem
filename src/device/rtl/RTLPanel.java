@@ -7,24 +7,10 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
-import java.text.DecimalFormat;
-import java.util.List;
-
-import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JSlider;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
-import javax.swing.SpinnerModel;
-import javax.swing.SpinnerNumberModel;
-import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -32,15 +18,10 @@ import javax.usb.UsbException;
 
 import org.usb4java.LibUsbException;
 
-import common.Config;
 import common.Log;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
-import device.SourceException;
-import device.airspy.AirspyDevice;
-import device.airspy.AirspyDevice.Gain;
-import device.airspy.AirspyDevice.GainMode;
 import device.rtl.R820TTunerController.R820TGain;
 import device.rtl.R820TTunerController.R820TLNAGain;
 import device.rtl.R820TTunerController.R820TMixerGain;
@@ -53,8 +34,8 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	
 	int NUM_OF_PARAMS = 15;
 
-    private JTextField mConfigurationName;
-    private JButton mTunerInfo;
+   // private JTextField mConfigurationName;
+    //private JButton mTunerInfo;
     private JComboBox<SampleRate> mComboSampleRate;
     private JSpinner mFrequencyCorrection;
     private JComboBox<R820TGain> mComboMasterGain;
@@ -391,13 +372,13 @@ public void itemStateChanged(ItemEvent e) {
     /**
      * Read the configuration from the device
      */
-    private void getConfig() {
-    	
-    }
-    
-	private void loadConfig() {
-		
-	}
+//    private void getConfig() {
+//    	
+//    }
+//    
+//	private void loadConfig() {
+//		
+//	}
 	
 	@Override
 	public void stateChanged(ChangeEvent e) {

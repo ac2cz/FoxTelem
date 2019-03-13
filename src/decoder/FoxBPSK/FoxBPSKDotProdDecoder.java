@@ -22,7 +22,6 @@ import telemetry.FoxBPSK.FoxBPSKHeader;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.DotProduct;
-import filter.RaisedCosineFilter;
 import filter.RootRaisedCosineFilter;
 import filter.SinOscillator;
 
@@ -173,9 +172,9 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	}
 
 	protected void sampleBuckets() {
-		double maxValue = 0;
-		double minValue = 0;
-		double DESIRED_RANGE = 1;
+//		double maxValue = 0;
+//		double minValue = 0;
+//		double DESIRED_RANGE = 1;
 		
 		// dataValues is already bucketed, but we don't want that.
 		// we use abBufferDoubleFiltered which has DC balance and some AGC but nothing else
@@ -523,7 +522,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			processPossibleFrame(frames);
 		}
 	}
-	private Frame decodedFrame = null;
+	
 	/**
 	 *  Decode the frame
 	 */

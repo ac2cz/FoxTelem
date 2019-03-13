@@ -3,11 +3,7 @@ package FuncubeDecoder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
-import telemetry.BitArray;
-import telemetry.FoxFramePart;
 import telemetry.FramePart;
-import telemetry.SlowSpeedFrame;
 
 
 /**

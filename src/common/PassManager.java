@@ -10,9 +10,6 @@ import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SatPc32DDE;
 import predict.PositionCalcException;
-
-import java.text.DecimalFormat;
-
 import decoder.Decoder;
 import decoder.SourceIQ;
 

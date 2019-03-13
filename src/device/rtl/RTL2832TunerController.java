@@ -57,8 +57,6 @@ import device.DeviceException;
 import device.DevicePanel;
 import device.ThreadPoolManager;
 import device.ThreadPoolManager.ThreadType;
-import device.airspy.AirspyDevice.BufferProcessor;
-import device.airspy.AirspyPanel;
 import device.TunerType;
 
 public abstract class RTL2832TunerController extends device.TunerController

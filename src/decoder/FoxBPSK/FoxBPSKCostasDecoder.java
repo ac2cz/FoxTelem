@@ -347,7 +347,6 @@ public class FoxBPSKCostasDecoder extends Decoder {
 		}
 	}
 
-	private Frame decodedFrame = null;
 	/**
 	 *  Decode the frame
 	 */

@@ -5,6 +5,7 @@ import java.util.EventObject;
 import java.util.List;
 
 /** @since 10.6 Update 3 and 10.5 Update 8 */
+@SuppressWarnings("serial")
 public abstract class AppEvent extends EventObject {
 
     AppEvent() {super(Application.getApplication());}
@@ -24,7 +25,8 @@ public abstract class AppEvent extends EventObject {
     public static class UserSessionEvent extends AppEvent {}
 
     public static class FilesEvent extends AppEvent {
-        public List getFiles() {return null;}
+        @SuppressWarnings("rawtypes")
+		public List getFiles() {return null;}
     }
     public static class PrintFilesEvent extends FilesEvent {}
     public static class OpenFilesEvent extends FilesEvent {

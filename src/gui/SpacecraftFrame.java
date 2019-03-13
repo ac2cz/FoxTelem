@@ -65,7 +65,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 	private final JPanel contentPanel = new JPanel();
 	JTextField name;
-	JComboBox priority;
+	JComboBox<String> priority;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -136,7 +136,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		String[] nums = new String[20];
 		for (int i=0; i < nums.length; i++)
 			nums[i] = ""+i;
-		priority = new JComboBox(nums); 
+		priority = new JComboBox<String>(nums); 
 		priority.setSelectedIndex(sat.priority);
 		titlePanel.add(priority);
 

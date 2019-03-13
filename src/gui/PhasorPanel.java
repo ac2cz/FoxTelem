@@ -13,11 +13,9 @@ import common.Config;
 import common.Log;
 import decoder.FoxDecoder;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
-import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
-import decoder.Fox9600bpsDecoder;
 import gui.GraphCanvas;
 
 /** 
@@ -62,7 +60,7 @@ public class PhasorPanel extends JPanel implements Runnable {
 	public double sdHigh;
 	public double sdLow;
 
-	private double bitSNR;
+//	private double bitSNR;
 	private int errors;
 	private int erasures;
 	private int clockOffset;
@@ -86,10 +84,6 @@ public class PhasorPanel extends JPanel implements Runnable {
                 Short.MAX_VALUE));
 	}
 	
-	
-
-	private void init() {
-	}
 	@Override
 	public void run() {
 		Thread.currentThread().setName("PhasorPanel");
@@ -155,7 +149,9 @@ public class PhasorPanel extends JPanel implements Runnable {
 		// Draw vertical end axis
 		g2.drawLine(graphWidth, getHeight()-border, graphWidth, border*4);
 
+		@SuppressWarnings("unused")
 		int lastx = border*2+1; 
+		@SuppressWarnings("unused")
 		int lasty = graphHeight/2;
 		int y = 0,x = border*2+1;
 
@@ -180,10 +176,8 @@ public class PhasorPanel extends JPanel implements Runnable {
 		double h = graphHeight/2+graphHeight/3*zeroValue/FoxDecoder.MAX_VOLUME+border;
 		g2.drawLine(0, (int)h, graphWidth, (int)h);
 
-		// Draw the eye facts
+		// Draw the SNR facts
 		g2.setColor(Config.AMSAT_RED);
-
-		int width = 30;
 
 		//		double r = GraphPanel.roundToSignificantFigures(bitSNR,2);
 		//		String s = Double.toString(r) + "";

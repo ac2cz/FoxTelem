@@ -17,7 +17,6 @@
  ******************************************************************************/
 package device.rtl;
 
-import java.io.IOException;
 import java.util.Arrays;
 
 import javax.usb.UsbException;
@@ -30,9 +29,7 @@ import org.usb4java.LibUsbException;
 
 import common.Log;
 import device.DeviceException;
-import device.DevicePanel;
 import device.ThreadPoolManager;
-import device.TunerConfiguration;
 import device.TunerType;
 
 public class E4KTunerController extends RTL2832TunerController
