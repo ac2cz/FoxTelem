@@ -116,6 +116,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JButton cbUTC;
 	private JButton cbUptime;
 	private JCheckBox cbRoundLabels;
+	private JCheckBox cbShowSun;
 	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
@@ -194,6 +195,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	public boolean showUTCtime = false;
 	public boolean hideUptime = true;
 	public boolean roundLabels = true;
+	public boolean showSun = false;
 	public boolean hidePoints = true;
 	public boolean hideLines = true;
 	public boolean showContinuous = false;
@@ -424,6 +426,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			cbRoundLabels.setSelected(roundLabels);
 			cbRoundLabels.addItemListener(this);
 			footerPanel1.add(cbRoundLabels);
+			cbShowSun = new JCheckBox("Show Sun");
+			if (Config.foxTelemCalcsPosition) {
+				cbShowSun.setSelected(showSun);
+				cbShowSun.setEnabled(true);
+			} else
+				cbShowSun.setEnabled(false);
+			cbShowSun.addItemListener(this);
+			footerPanel1.add(cbShowSun);
 		}
 		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
 
@@ -632,11 +642,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initVarlist() {
 		variables = new ArrayList<String>();
+		ArrayList<String> labels = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
-			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
+			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE)) {
+				labels.add(layout.module[v] + "-" + layout.shortName[v]);
 				variables.add(layout.fieldName[v]);
+			}
 		}
-		Object[] fields = variables.toArray();
+		Object[] fields = labels.toArray();
 		cbAddVariable.removeAllItems();
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
@@ -678,7 +691,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
 				displayTitle = fox.name + " " + displayTitle;
 			if (conversionType == BitArrayLayout.CONVERT_FREQ) {
-				int freqOffset = fox.telemetryDownlinkFreqkHz;
+				int freqOffset = (int) fox.telemetryDownlinkFreqkHz;
 				displayTitle = title + " delta from " + freqOffset + " kHz";
 			}
 		}
@@ -752,6 +765,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime", showUTCtime);
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime", hideUptime);
 		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "roundLabels", roundLabels);
+		Config.saveGraphBooleanParam(fox.getIdString(), plotType, payloadType, fieldName[0], "showSun", showSun);
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType", plotType);
 		
 		Config.saveGraphIntParam(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD", AVG_PERIOD);
@@ -818,6 +832,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		showUTCtime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showUTCtime");
 		hideUptime = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "hideUptime");
 		roundLabels = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "roundLabels");
+		showSun = Config.loadGraphBooleanValue(fox.getIdString(), plotType, payloadType, fieldName[0], "showSun");
 		//plotType = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "plotType");
 		
 		AVG_PERIOD = Config.loadGraphIntValue(fox.getIdString(), plotType, payloadType, fieldName[0], "AVG_PERIOD");
@@ -1060,12 +1075,24 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		} catch (NumberFormatException ex) {
 
 		}
-
 		if (textDisplay)
 			diagnosticTable.updateData();
 		else
-			panel.updateGraphData("GraphFrame.parseTextFields");
+			panel.updateGraphData("GraphFrame:parseTextFields");
 
+	}
+	
+	private void toggleSunCheckBox() {
+		if (!textDisplay)
+			if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT))
+				if (cbShowSun !=null)
+				if (Config.foxTelemCalcsPosition) {
+					cbShowSun.setSelected(showSun);
+					cbShowSun.setEnabled(true);
+				} else {
+					cbShowSun.setSelected(false);
+					cbShowSun.setEnabled(false);
+				}
 	}
 
 	private void setRedOutline(JButton but, boolean red) {
@@ -1200,17 +1227,20 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			
 			// now rebuild the pick list
+			ArrayList<String> labels = new ArrayList<String>();
 			variables = new ArrayList<String>();
 			
 			for (int v=0; v<layout.fieldName.length; v++) {
 				if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
 				if (layout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || layout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
-						|| fieldUnits2.equalsIgnoreCase(""))
+						|| fieldUnits2.equalsIgnoreCase("")) {
 					variables.add(layout.fieldName[v]);
+					labels.add(layout.module[v] + "-" + layout.shortName[v]);
+				}
 			}
 		
 			cbAddVariable.removeAllItems();
-			for (String s:variables) {
+			for (String s:labels) {
 				cbAddVariable.addItem(s);
 			}
 			
@@ -1444,7 +1474,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				panel.updateGraphData("GraphFrame:stateChange:UTC");
 		}
 		
-		
+		toggleSunCheckBox();
 	}
 
 	@Override
@@ -1454,6 +1484,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				roundLabels = false;
 			} else {
 				roundLabels = true;
+			}
+			if (textDisplay)
+				diagnosticTable.updateData();
+			else
+				panel.updateGraphData("GraphFrame:stateChange:altLabels");
+		}
+		if (e.getSource() == cbShowSun) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				showSun = false;
+			} else {
+				showSun = true;
 			}
 			if (textDisplay)
 				diagnosticTable.updateData();
@@ -1471,6 +1512,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			else
 				panel.updateGraphData("GraphFrame:stateChange:Uptime");
 		}		
+		toggleSunCheckBox();
 	}
 
 	private void saveToCSV(File aFile) throws IOException {
@@ -1642,7 +1684,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			arg0.getComponent().setBounds(b.x, b.y, width, width*H/W);
 		//	Log.println("WH:" + b.width + " " + b.height);
 		}
-	    
+		toggleSunCheckBox();
 	}
 
 	@Override

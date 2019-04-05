@@ -31,7 +31,6 @@ import org.usb4java.DeviceHandle;
 import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
-import common.Config;
 import common.Log;
 import device.DeviceException;
 import device.fcd.FCD1TunerController.Block;
@@ -111,20 +110,17 @@ public abstract class FCDTunerController extends device.TunerController
 	 * 
 	 * @throws DeviceException if cannot open and claim the USB device
 	 */
-	public void init() throws DeviceException
-	{
+	public void init() throws DeviceException {
 		mDeviceHandle = new DeviceHandle();
 		
 		int result = LibUsb.open( mDevice, mDeviceHandle );
 
-		if( result != LibUsb.SUCCESS )
-		{
-			mDeviceHandle = null;
-			
+		if( result != LibUsb.SUCCESS ) {
 			throw new DeviceException( "libusb couldn't open funcube usb "
 					+ "device [" + LibUsb.errorName( result ) + "]" );
+
 		}
-		
+
 		claimInterface();
 	}
 

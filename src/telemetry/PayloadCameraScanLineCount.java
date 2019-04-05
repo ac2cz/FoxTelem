@@ -9,12 +9,14 @@ public class PayloadCameraScanLineCount extends FoxFramePart {
 	private boolean foundEndOfJpegData = false;
 	
 	public PayloadCameraScanLineCount() {
-		super(new BitArrayLayout());
+		super(TYPE_CAMERA_SCAN_LINE_COUNT, new BitArrayLayout());
 	}
 
 	@Override
 	protected void init() { 
 		MAX_BYTES = 1;
+		rawBits = new boolean[MAX_BYTES*8];
+		fieldValue = new int[MAX_BYTES];
 	}
 	
 	public boolean foundEndOfJpegData() { return foundEndOfJpegData; }

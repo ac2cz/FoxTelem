@@ -4,6 +4,9 @@
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=true
 numberOfLookupTables=3
+memsRestValueX=2087
+memsRestValueY=2101
+memsRestValueZ=2045
 measurementsFileName=measurements.csv
 model=1
 layout0.filename=FOX1A_debug.csv

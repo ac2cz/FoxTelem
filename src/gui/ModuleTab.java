@@ -370,7 +370,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		for (int j=0; j<rt.NUMBER_OF_FIELDS; j++) {
 			if (rt.module[j].equals(topModuleName)) {
 				//Log.println("Adding:" + rt.shortName[j]);
-				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName +
+				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName + " field: " + j +
 				".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				try {

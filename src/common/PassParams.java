@@ -4,6 +4,7 @@ import decoder.Decoder;
 import decoder.EyeData;
 import decoder.RfData;
 import decoder.SourceIQ;
+import telemetry.Frame;
 
 /**
  * 
@@ -35,6 +36,7 @@ public class PassParams {
 	public Decoder foxDecoder;
 	public RfData rfData;
 	public EyeData eyeData;
+	public Frame lastFrame;
 	
 	public void resetEyeData() {
 		eyeData = foxDecoder.eyeData;

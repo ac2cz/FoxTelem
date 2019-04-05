@@ -55,6 +55,7 @@ public abstract class Filter {
 	}
 	
 	public double getGain() {return gain;}
+	
 	public void setDecimationFactor(int f) {
 		decimationFactor = f;
 		decimationCount = f; // so we start from the first value
@@ -181,7 +182,7 @@ public abstract class Filter {
 //			double desiredRange = 1.5d;
 //			gain = desiredRange/range;
 	//	}
-		if (gain < 1) gain = 1;
+//		if (gain < 1) gain = 1;
 		
 //		System.out.println("Max Level: "+maxLevel);
 //		System.out.println("Min Level: "+minLevel);

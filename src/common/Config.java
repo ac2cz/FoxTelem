@@ -19,6 +19,8 @@ import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
 import telemetry.PayloadStore;
 import telemetry.RawFrameQueue;
+import telemetry.RawPayloadQueue;
+import telemetry.RawQueue;
 import uk.me.g4dpz.satellite.GroundStationPosition;
 
 /**
@@ -53,13 +55,15 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 	public static MainWindow mainWindow;
+	static UpdateManager updateManager; // for server only
+	static Thread updateManagerThread; // for server only
 	
 	public static boolean logDirFromPassedParam = false; // true if we started up with a logFile dir passed in on the command line
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.06r";
-	public static String VERSION = VERSION_NUM + " - 30 Mar 2018";
+	public static String VERSION_NUM = "1.07y";
+	public static String VERSION = VERSION_NUM + " - 10 Mar 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -92,9 +96,13 @@ public class Config {
 	
 	public static FoxPayloadStore payloadStore;
 	static Thread payloadStoreThread;
-	public static RawFrameQueue rawFrameQueue;
+	public static RawQueue rawFrameQueue;
 	// We have one queue for the whole application
 	static Thread rawFrameQueueThread;
+	// another queue for a local server
+	public static RawQueue rawPayloadQueue;
+	static Thread rawPayloadQueueThread;
+
 	//public static Filter filter = null; // This is set when the GUI initializes.  This decoder gets the filter from here
 	//public static int currentSampleRate = 48000; // this is the actual sample rate we are using in the decoder and is not saved.  
 	public static double filterFrequency = 200;
@@ -195,8 +203,8 @@ public class Config {
 	public static int windowY = 100;
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
-	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
-	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
+	public static double fcdFrequency = 145930.0;  // the default frequency we set the FCD to if this is a fresh install
+/////////////	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
 	public static int fromBin = DEFAULT_FROM_BIN; 
@@ -254,9 +262,22 @@ public class Config {
 	
 	// V1.06
 	static public boolean insertMissingBits = true;
-	static public boolean useLongPRN = true;
-	static public boolean firstRun106 = true; // first time user is running version 1.06
+	//static public boolean useLongPRN = true;
+	static public boolean firstRun106 = false; // first time user is running version 1.06 - now set to false for 1.07
 	static public boolean saveFcdParams = false;
+	
+	// V1.07
+	static public boolean useNCO = false;
+	public static boolean showAudioOptions = true; 
+	public static boolean showSatOptions = true; 
+	public static boolean showSourceOptions = true; 
+	static public boolean useCostas = false;
+	public static boolean showEye = true; 
+	public static boolean showPhasor = true; 
+	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
+	static public boolean foxTelemCalcsDoppler = false;
+	public static boolean showFFT = true; 
+	static public boolean debugCalcDopplerContinually = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -294,7 +315,12 @@ public class Config {
 	}		
 	public static void serverInit() {
 		basicInit();
-		//initPayloadDB(u,p,db);
+		
+		// Init the update manager.  This is done from the MainWindow for the client
+		updateManager = new UpdateManager(true);
+		updateManagerThread = new Thread(updateManager);
+		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		updateManagerThread.start();
 		
 	}
 	
@@ -431,6 +457,12 @@ public class Config {
 		rawFrameQueueThread = new Thread(rawFrameQueue);
 		rawFrameQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		rawFrameQueueThread.start();
+
+		if (rawPayloadQueueThread != null) { rawPayloadQueue.stopProcessing(); }
+		rawPayloadQueue = new RawPayloadQueue();
+		rawPayloadQueueThread = new Thread(rawPayloadQueue);
+		rawPayloadQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		rawPayloadQueueThread.start();
 
 	}
 	
@@ -618,8 +650,8 @@ public class Config {
 		properties.setProperty("windowWidth", Integer.toString(windowWidth));
 		properties.setProperty("windowX", Integer.toString(windowX));
 		properties.setProperty("windowY", Integer.toString(windowY));
-		properties.setProperty("fcdFrequency", Integer.toString(fcdFrequency));
-		properties.setProperty("selectedBin", Integer.toString(selectedBin));
+		properties.setProperty("fcdFrequency", Double.toString(fcdFrequency));
+/////////////		properties.setProperty("selectedBin", Integer.toString(selectedBin));
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
 		properties.setProperty("logFileDirectory", logFileDirectory);
@@ -672,10 +704,24 @@ public class Config {
 		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
 		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
 		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
-		properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
+		//properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
 		properties.setProperty("firstRun106", Boolean.toString(firstRun106));
 		properties.setProperty("saveFcdParams", Boolean.toString(saveFcdParams));
 		
+		
+		// V1.07
+		properties.setProperty("useNCO", Boolean.toString(useNCO));
+		properties.setProperty("generateSecondaryPayloads", Boolean.toString(generateSecondaryPayloads));
+		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
+		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
+		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
+		properties.setProperty("useCostas", Boolean.toString(useCostas));
+		properties.setProperty("showEye", Boolean.toString(showEye));
+		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
+		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
+		properties.setProperty("foxTelemCalcsDoppler", Boolean.toString(foxTelemCalcsDoppler));
+		properties.setProperty("showFFT", Boolean.toString(showFFT));
+		properties.setProperty("debugCalcDopplerContinually", Boolean.toString(debugCalcDopplerContinually));
 		
 		store();
 	}
@@ -781,8 +827,8 @@ public class Config {
 		windowWidth = Integer.parseInt(getProperty("windowWidth"));
 		windowX = Integer.parseInt(getProperty("windowX"));
 		windowY = Integer.parseInt(getProperty("windowY"));
-		fcdFrequency = Integer.parseInt(getProperty("fcdFrequency"));
-		selectedBin = Integer.parseInt(getProperty("selectedBin"));
+		fcdFrequency = Double.parseDouble(getProperty("fcdFrequency"));
+///////////		selectedBin = Integer.parseInt(getProperty("selectedBin"));
 		windowCurrentDirectory = getProperty("windowCurrentDirectory");
 		if (windowCurrentDirectory == null) windowCurrentDirectory = "";
 		csvCurrentDirectory = getProperty("csvCurrentDirectory");
@@ -844,9 +890,23 @@ public class Config {
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
-		useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
+		//useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
 		firstRun106 = Boolean.parseBoolean(getProperty("firstRun106"));
 		saveFcdParams = Boolean.parseBoolean(getProperty("saveFcdParams"));
+		
+		// V1.07
+		useNCO = Boolean.parseBoolean(getProperty("useNCO"));
+		generateSecondaryPayloads = Boolean.parseBoolean(getProperty("generateSecondaryPayloads"));
+		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
+		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
+		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
+		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		showEye = Boolean.parseBoolean(getProperty("showEye"));
+		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
+		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
+		foxTelemCalcsDoppler = Boolean.parseBoolean(getProperty("foxTelemCalcsDoppler"));
+		showFFT = Boolean.parseBoolean(getProperty("showFFT"));
+		debugCalcDopplerContinually = Boolean.parseBoolean(getProperty("debugCalcDopplerContinually"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

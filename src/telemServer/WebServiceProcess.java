@@ -9,25 +9,34 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TimeZone;
 
 import telemetry.Frame;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
+import uk.me.g4dpz.satellite.SatPos;
 import common.Config;
 import common.FoxSpacecraft;
+import common.FoxTime;
 import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 0.22 - 30 Mar 2018";
+	public static String version = "Version 1.00 - 15 Sept 2018";
 	private Socket socket = null;
 	int port = 8080;
+	
+	public static final String VERSION = "version";
+	public static final String TIME = "getSatUtcAtResetUptime";
+	public static final String POSITION = "getSatLatLonAtResetUptime";
 	
 	public WebServiceProcess(PayloadDbStore db, Socket socket, int p) {
 		this.socket = socket;
@@ -79,16 +88,44 @@ public class WebServiceProcess implements Runnable {
 				 * 
 				 * The following commands are valid:
 				 * /VERSION - return the version
+				 * /getSatLatLonAtResetUptime=sat&reset&uptime
+				 * /getSatUtcForResetUptime=sat&reset&uptime
+				 * 
+				 * LEGACY APIs:
 				 * /T0/SAT/RESET/CALL/N - Returns N T0 records for RESET logged by CALL for sat SAT
 				 * /FRAME/SAT/TYPE - Return the latest frame of type TYPE for SAT
 				 * /FIELD/SAT/NAME/R|C/N/RESET/UPTIME - Return N R-RAW or C-CONVERTED values for field NAME from sat SAT from RESET and UPTIME
 				 * 
 				 */
 				String[] path = request.split("/");
-				if (path.length > 0) { // VERSION COMMAND
-					if (path[1].equalsIgnoreCase("version")) {
+				
+				if (path.length == 0) {
+					out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
+				} else { 
+					String[] params = path[1].split("\\?");
+
+					switch (params[0]) {
+					case VERSION:
 						out.println("Fox Web Service..." + version);
-					} else if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
+						return;
+					case POSITION:
+						if (params.length == 2) {
+							getSatLatLonAtResetUptime(params[1], out);
+							return;	
+						}
+					case TIME:
+						if (params.length == 2) {
+							getSatUtcForResetUptime(params[1], out);
+							return;	
+						}
+					default:
+						//out.println("Amsat API Malformed Request");  // put this message back in if NO LEGACY APIs
+						break;
+					}
+					
+					
+					// LEGACY APIs in old format
+					if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
 						if (path.length == 6) {
 							try {
 								String t0 = calculateT0(out, Integer.parseInt(path[2]), Integer.parseInt(path[3]), path[4],  Integer.parseInt(path[5]));
@@ -169,8 +206,6 @@ public class WebServiceProcess implements Runnable {
 						}
 					}
 				}
-			} else {
-				out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
 			}
 
 			out.flush();
@@ -186,6 +221,84 @@ public class WebServiceProcess implements Runnable {
 		}
 	}
 
+	public static final String SAT = "sat";
+	public static final String RESET = "reset";
+	public static final String UPTIME = "uptime";
+
+	HashMap<String, String> consumeArgs(String in) {
+		HashMap<String, String> args = new HashMap<String, String>();
+		String[] params = in.split("&");
+		for (String p : params) {
+			String[] keyVal = p.split("=");
+			if (keyVal.length > 1)
+				args.put(keyVal[0], keyVal[1]);
+		}
+		return args;
+	}
+	
+	/**
+	 * Calculate and return the position
+	 * amsat.org/getPositionAtResetUptime&sat&reset&uptime
+	 * @param path
+	 */
+	private void getSatLatLonAtResetUptime(String args, PrintWriter out) {
+		DecimalFormat d = new DecimalFormat("00.000000");
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
+		if (satId == null) return;
+		if (satReset == null) return;
+		if (satUptime == null) return;
+
+		try {
+			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			int reset = Integer.parseInt(satReset);
+			long uptime = Long.parseLong(satUptime);
+			if (fox != null) {
+				SatPos pos = fox.getSatellitePosition(reset, uptime);
+				double satLatitude = FramePart.latRadToDeg (pos.getLatitude());
+				double satLongitude = FramePart.lonRadToDeg(pos.getLongitude());
+				out.println(d.format (satLatitude) + "," + d.format (satLongitude));
+			} else out.println("0, 0");
+		} catch (Exception e) {
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n");								
+		}
+
+	}
+	
+	private void getSatUtcForResetUptime(String args, PrintWriter out) {
+		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
+		if (satId == null) return;
+		if (satReset == null) return;
+		if (satUptime == null) return;
+		
+		try {
+			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			int reset = Integer.parseInt(satReset);
+			long uptime = Long.parseLong(satUptime);
+			if (fox != null) {
+				Date t = fox.getUtcForReset(reset, uptime);
+				out.println(Frame.stpDateFormat.format(t));
+			} else out.println("0, 0" + "\n");
+		} catch (Exception e) {
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n");										
+		}
+
+	}
+	
+	String calculateSpacecraftTime(FoxSpacecraft fox) {
+		Date currentDate = new Date();
+		FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+		
+		return foxTime.getReset() + ", " + foxTime.getUptime();
+	}
+	
 	String calculateT0(PrintWriter out, int sat, int reset, String receiver, int num) {
 		Statement stmt = null;
 		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));

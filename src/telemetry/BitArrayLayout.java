@@ -59,6 +59,9 @@ public class BitArrayLayout {
 
 	public String[] shortName = null;
 	public String[] description = null;
+	
+	private int numberOfBits = 0;
+	private int numberOfBytes = 0;
 
 	public static final int CONVERT_NONE = 0;
 	public static final int CONVERT_INTEGER = 1;
@@ -103,9 +106,20 @@ public class BitArrayLayout {
 	public static final int CONVERT_LT_TX_FWD_PWR = 40;
 	public static final int CONVERT_LT_TX_REF_PWR = 41;
 	public static final int CONVERT_LT_VGA = 42;
+	public static final int CONVERT_ICR_VOLT_SENSOR = 43;
+	public static final int CONVERT_STATUS_ENABLED = 44;
+	public static final int CONVERT_COM1_ACCELEROMETER = 45;
+	public static final int CONVERT_COM1_MAGNETOMETER = 46;
+	public static final int CONVERT_COM1_SPIN = 47;
+	public static final int CONVERT_COM1_GYRO_TEMP = 48;
+	public static final int CONVERT_HUSKY_ISIS_ANT_TEMP = 49;
+	public static final int CONVERT_HUSKY_ISIS_ANT_TIME = 50;
+	public static final int CONVERT_HUSKY_ISIS_ANT_DEPLOYMENT = 51;
+	public static final int CONVERT_HUSKY_SOLAR_PANEL = 52;
 	
 	/**
 	 * Create an empty layout for manual init
+	 * Note that if this is called, the BitArray is not initialized.  So it must also be setup manually
 	 */
 	public BitArrayLayout() {
 		
@@ -119,6 +133,18 @@ public class BitArrayLayout {
 	 */
 	public BitArrayLayout(String f) throws FileNotFoundException, LayoutLoadException {
 		load(f);
+	}
+	
+	/**
+	 * Calculate and return the total number of bits across all fields
+	 * @return
+	 */
+	public int getMaxNumberOfBits() {
+		return numberOfBits;
+	}
+	
+	public int getMaxNumberOfBytes() {
+		return numberOfBytes;
 	}
 	
 	public boolean isSecondaryPayload() {
@@ -185,7 +211,20 @@ public class BitArrayLayout {
 			return (shortName[pos]);
 		}
 	}
-	
+
+	public String getModuleByName(String name) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == ERROR_POSITION) {
+			return "";
+		} else {
+			return (module[pos]);
+		}
+	}
+
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
@@ -247,7 +286,13 @@ public class BitArrayLayout {
 		}
 		if (NUMBER_OF_FIELDS != field) throw new LayoutLoadException("Error loading fields from " + fileName +
 				". Expected " + NUMBER_OF_FIELDS + " fields , but loaded " + field);
-
+		if (fieldBitLength != null) {
+			numberOfBits = 0;
+			for (int i=0; i < fieldBitLength.length; i++) {
+				numberOfBits += fieldBitLength[i];
+			}
+			numberOfBytes = (int)(Math.ceil(numberOfBits / 8.0));
+		}
 	}
 	
 	public String getTableCreateStmt() {

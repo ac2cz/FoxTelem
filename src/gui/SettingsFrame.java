@@ -7,6 +7,7 @@ import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.JButton;
@@ -26,7 +27,6 @@ import common.Config;
 import common.Location;
 import common.Log;
 import common.TlmServer;
-
 import java.awt.GridLayout;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
@@ -84,16 +84,20 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox cbUploadToServer;
 	private JCheckBox rdbtnTrackSignal;
 //	private JCheckBox cbUseUDP;
-	private JCheckBox storePayloads;
+//	private JCheckBox storePayloads;
 	private JCheckBox saveFcdParams;
 	private JCheckBox useLeftStereoChannel;
 	private JCheckBox swapIQ;
-	private JCheckBox insertMissingBits;
-	private JCheckBox useLongPRN;
+//	private JCheckBox insertMissingBits;
+//	private JCheckBox useLongPRN;
 	private JCheckBox cbUseDDEAzEl;
 	private JCheckBox cbUseDDEFreq;
 	private JCheckBox cbFoxTelemCalcsPosition;
+	private JCheckBox cbFoxTelemCalcsDoppler;
 	private JCheckBox cbWhenAboveHorizon;
+	private JCheckBox useNCO;
+	private JCheckBox useCostas;
+
 	
 	boolean useUDP;
 	
@@ -209,57 +213,60 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//centerpanel.setLayout(new FlowLayout(FlowLayout.CENTER, 5, 5));
 		centerpanel.setLayout(new BoxLayout(centerpanel, BoxLayout.X_AXIS));
 		
-		// Add left column with 2 panels in it
+		// Add left column with 3 panels in it
+
 		JPanel leftcolumnpanel = new JPanel();
-		centerpanel.add(leftcolumnpanel);
-		//leftcolumnpanel.setLayout(new GridLayout(2,1,10,10));
-		leftcolumnpanel.setLayout(new BoxLayout(leftcolumnpanel, BoxLayout.Y_AXIS));
+		JScrollPane leftscrollPane = new JScrollPane (leftcolumnpanel, 
+				   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		leftscrollPane.setBorder(new EmptyBorder(5, 2, 5, 5) );
+		centerpanel.add(leftscrollPane);
+		leftcolumnpanel.setLayout(new BoxLayout(leftcolumnpanel, BoxLayout.PAGE_AXIS));
 		
 		serverPanel = addColumn(leftcolumnpanel,6);
 		TitledBorder eastTitle2 = title("Ground Station Params");
 		serverPanel.setBorder(eastTitle2);
 
-		txtCallsign = addSettingsRow(serverPanel, 15, "Groundstation Name", 
+		txtCallsign = addSettingsRow(serverPanel, 5, "Groundstation Name", 
 				"Ground station name is the unique identifier that you will use to store data on the AMSAT telemetry server", Config.callsign);
 		
-		txtPrimaryServer = addSettingsRow(serverPanel, 15, "Primary Server", "The address of the Amsat Telemetry server. "
+		txtPrimaryServer = addSettingsRow(serverPanel, 5, "Primary Server", "The address of the Amsat Telemetry server. "
 				+ "Should not need to be changed", Config.primaryServer);
-		txtSecondaryServer = addSettingsRow(serverPanel, 15, "Secondary Server", "The backup address of the Amsat Telemetry server. "
+		txtSecondaryServer = addSettingsRow(serverPanel, 5, "Secondary Server", "The backup address of the Amsat Telemetry server. "
 				+ "Should not need to be changed",Config.secondaryServer);
-		txtLatitude = addSettingsRow(serverPanel, 10, "Lat (S is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.latitude); // South is negative
-		txtLongitude = addSettingsRow(serverPanel, 10, "Long (W is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.longitude); // West is negative
+		txtLatitude = addSettingsRow(serverPanel, 4, "Lat (S is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.latitude); // South is negative
+		txtLongitude = addSettingsRow(serverPanel, 4, "Long (W is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.longitude); // West is negative
 		JPanel locatorPanel = new JPanel();
 		JLabel lblLoc = new JLabel("Lat Long gives Locator: ");
 		txtMaidenhead = new JTextField(Config.maidenhead);
 		txtMaidenhead.addActionListener(this);
 		txtMaidenhead.addFocusListener(this);
 
-		txtMaidenhead.setColumns(10);
+		txtMaidenhead.setColumns(7);
 		serverPanel.add(locatorPanel);
 		locatorPanel.add(lblLoc);
 		locatorPanel.add(txtMaidenhead);
 
-		txtAltitude = addSettingsRow(serverPanel, 15, "Altitude (m)", "Altitude will be supplied to AMSAT along with your data if you specify it", Config.altitude);
-		txtStation = addSettingsRow(serverPanel, 15, "RF-Receiver Description", "RF-Receiver can be specified to give us an idea of the types of stations that are in operation", Config.stationDetails);
-		
-		serverPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
-		
+		txtAltitude = addSettingsRow(serverPanel, 5, "Altitude (m)", "Altitude will be supplied to AMSAT along with your data if you specify it", Config.altitude);
+		txtStation = addSettingsRow(serverPanel, 5, "RF-Receiver Description", "RF-Receiver can be specified to give us an idea of the types of stations that are in operation", Config.stationDetails);
 
+		// min, pref, max - each is Hor, Vert
+		serverPanel.add(new Box.Filler(new Dimension(100,0), new Dimension(100,0), new Dimension(100,0)));
+//		serverPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		
 		
 		JPanel leftcolumnpanel2 = addColumn(leftcolumnpanel,6);
 		TitledBorder eastTitle3 = title("Formatting");
 		leftcolumnpanel2.setBorder(eastTitle3);
 
-		txtDisplayModuleFontSize = addSettingsRow(leftcolumnpanel2, 5, "Health Module Font Size", 
+		txtDisplayModuleFontSize = addSettingsRow(leftcolumnpanel2, 3, "Health Module Font Size", 
 				"Change the size of the font on the Satellite tabs so that it is more readable or so that it fits in the space available", Integer.toString(Config.displayModuleFontSize));
-		txtGraphAxisFontSize = addSettingsRow(leftcolumnpanel2, 5, "Graph Font Size", "Change the size of the font on the graph axis", Integer.toString(Config.graphAxisFontSize));
+		txtGraphAxisFontSize = addSettingsRow(leftcolumnpanel2, 3, "Graph Font Size", "Change the size of the font on the graph axis", Integer.toString(Config.graphAxisFontSize));
 		//JPanel cb = new JPanel();
 		//leftcolumnpanel2.add(cb);
 		//cbHtmlFormatting = addCheckBoxRow("Use HTML Formatting", Config.htmlFormatting, cb );
 		
-		//leftcolumnpanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
-		
-		//leftcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		// min, pref, max - each is Hor, Vert
+		leftcolumnpanel2.add(new Box.Filler(new Dimension(250,0), new Dimension(250,0), new Dimension(1000,0)));
 		
 		JPanel leftcolumnpanel3 = addColumn(leftcolumnpanel,6);
 		TitledBorder measureTitle = title("Measurements");
@@ -278,14 +285,27 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		cbFoxTelemCalcsPosition = addCheckBoxRow("FoxTelem Calculates Position", "FoxTelem can calculate the position of the spacecraft and store it for analysis",
 				Config.foxTelemCalcsPosition, leftcolumnpanel3 );
+		cbFoxTelemCalcsDoppler = addCheckBoxRow("FoxTelem Calculates Doppler", "FoxTelem can calculate the doppler shift of the downlink and tune the decoder",
+				Config.foxTelemCalcsDoppler, leftcolumnpanel3 );
 		cbWhenAboveHorizon = addCheckBoxRow("Auto Start Decoder when above horizon", "FoxTelem can start/stop the decoder when the spacecraft is above/below the horizon",
 				Config.whenAboveHorizon, leftcolumnpanel3 );
-			
-		leftcolumnpanel3.add(new Box.Filler(new Dimension(200,10), new Dimension(150,400), new Dimension(500,500)));
+		if (!Config.foxTelemCalcsPosition) {
+			cbFoxTelemCalcsDoppler.setEnabled(false);
+		}
+
+		// min, pref, max - each is Hor, Vert
+		leftcolumnpanel3.add(new Box.Filler(new Dimension(250,0), new Dimension(250,0), new Dimension(1000,0)));
 		
+		// min, pref, max - each is Hor, Vert
+		leftcolumnpanel.add(new Box.Filler(new Dimension(0,0), new Dimension(0,0), new Dimension(0,1000)));
+
 		// Add a right column with two panels in it
 		JPanel rightcolumnpanel = new JPanel();
-		centerpanel.add(rightcolumnpanel);
+		JScrollPane rightscrollPane = new JScrollPane (rightcolumnpanel, 
+				   JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED, JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		rightscrollPane.setBorder(new EmptyBorder(5, 2, 5, 5) );
+		centerpanel.add(rightscrollPane);
+		
 		//rightcolumnpanel.setLayout(new GridLayout(2,1,10,10));
 		rightcolumnpanel.setLayout(new BoxLayout(rightcolumnpanel, BoxLayout.Y_AXIS));
 		
@@ -295,33 +315,38 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		rightcolumnpanel0.setBorder(eastTitle4);
 		cbUploadToServer = addCheckBoxRow("Upload to Server", "Select this if you want to send your collected data to the AMSAT telemetry server",
 				Config.uploadToServer, rightcolumnpanel0 );
-		rdbtnTrackSignal = addCheckBoxRow("Track Doppler","Leave this on except in a test situation.  It allows FoxTelem to follow the spacecraft downllink signal",
+		rdbtnTrackSignal = addCheckBoxRow("Find Signal","Find and follow the signal. Record the frequency of the downlink.  Useful if you are trying to measure the actual spacecraft downlink frequency.",
 				Config.trackSignal, rightcolumnpanel0);
 		useUDP = true;
 		if (Config.serverProtocol == TlmServer.TCP)
 			useUDP = false;
 //		cbUseUDP = addCheckBoxRow("Use UDP", "Use UDP (vs TCP) to send data to the AMSAT telemetry server",
 //				useUDP, rightcolumnpanel0 );
-		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
+//		storePayloads = addCheckBoxRow("Store Payloads", "Uncheck this if you do not want to store the decoded payloads on disk", Config.storePayloads, rightcolumnpanel0 );
 		saveFcdParams = addCheckBoxRow("Store FCD Params", "Save the FCD settings to disk and restore at start up.  May conflict with other programs or other copies of FoxTelem.", Config.saveFcdParams, rightcolumnpanel0 );
 		useLeftStereoChannel = addCheckBoxRow("Use Left Stereo Channel", "The default is for FoxTelem to read audio from the left stereo channel of your soundcard.  "
 				+ "If you uncheck this it will read from the right",
 				Config.useLeftStereoChannel, rightcolumnpanel0 );
 		swapIQ = addCheckBoxRow("Swap IQ", "Swap the I and Q channels in IQ deocder mode",
 				Config.swapIQ, rightcolumnpanel0 );
-		insertMissingBits = addCheckBoxRow("Fix Dropped Bits", "Fix bits dropped in the audio channel (may fix frames but use more CPU)",
-				Config.insertMissingBits, rightcolumnpanel0 );
-		useLongPRN = addCheckBoxRow("Use Long PRN", "Use a 31 bit SYNC word between frames",
-				Config.useLongPRN, rightcolumnpanel0 );
-		//insertMissingBits.setForeground(Config.AMSAT_RED);
-		//useLongPRN.setForeground(Config.AMSAT_RED);
-		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
+//		insertMissingBits = addCheckBoxRow("Fix Dropped Bits", "Fix bits dropped in the audio channel (may fix frames but use more CPU)",
+//				Config.insertMissingBits, rightcolumnpanel0 );
+		useNCO = addCheckBoxRow("FSK: Use NCO", "Use Experimental Polyphase filters and numerically controlled oscillator for SDR vs FFT Filter",
+				Config.useNCO, rightcolumnpanel0 );
+		useCostas = addCheckBoxRow("PSK: Use Costas", "Use a coherent Costas Loop Decoder for PSK (better decoder but worse with fading)",
+				Config.useCostas, rightcolumnpanel0 );
+//		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
+		// min, pref, max - each is Hor, Vert
+		rightcolumnpanel0.add(new Box.Filler(new Dimension(0,0), new Dimension(100,0), new Dimension(1000,0)));
 		
 		//JPanel rightcolumnpanel1 = addColumn(rightcolumnpanel,3);
 		//txtGraphAxisFontSize = addSettingsRow(rightcolumnpanel, 5, "Graph Font Size", Integer.toString(Config.graphAxisFontSize));
 		optionsPanel = new OptionsPanel();
 		rightcolumnpanel.add(optionsPanel);
-		rightcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+
+		//		rightcolumnpanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		// min, pref, max - each is Hor, Vert
+		rightcolumnpanel.add(new Box.Filler(new Dimension(0,0), new Dimension(0,0), new Dimension(0,1000)));
 
 		setServerPanelEnabled(Config.uploadToServer);
 //		cbUseUDP.setEnabled(false);
@@ -344,7 +369,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowWidth");
 		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
-			setBounds(100, 100, 650, 630);
+			setBounds(100, 100, 725, 700);
 		} else {
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 		}
@@ -457,7 +482,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		textField.addActionListener(this);
 		textField.addFocusListener(this);
 
-		column.add(new Box.Filler(new Dimension(10,5), new Dimension(10,5), new Dimension(10,5)));
+//		column.add(new Box.Filler(new Dimension(10,5), new Dimension(10,5), new Dimension(10,5)));
 
 		return textField;
 	
@@ -505,11 +530,15 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			else
 				cbUploadToServer.setEnabled(false);
 			cbFoxTelemCalcsPosition.setEnabled(true);
+			if (cbFoxTelemCalcsPosition.isSelected())
+				cbFoxTelemCalcsDoppler.setEnabled(true);
+			else
+				cbFoxTelemCalcsDoppler.setEnabled(false);
 			cbWhenAboveHorizon.setEnabled(true);
-			
 		} else {
 			cbUploadToServer.setEnabled(false);
 			cbFoxTelemCalcsPosition.setEnabled(false);
+			cbFoxTelemCalcsDoppler.setEnabled(false);
 			cbWhenAboveHorizon.setEnabled(false);
 		}
 	}
@@ -573,21 +602,29 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				
 				Config.webSiteUrl = txtServerUrl.getText();
 				
-				Config.storePayloads = storePayloads.isSelected();
+//				Config.storePayloads = storePayloads.isSelected();
 				Config.saveFcdParams = saveFcdParams.isSelected();
 				Config.useLeftStereoChannel = useLeftStereoChannel.isSelected();
 				Config.swapIQ = swapIQ.isSelected();
-				Config.insertMissingBits = insertMissingBits.isSelected();
-				if (Config.useLongPRN != useLongPRN.isSelected())
-					Log.errorDialog("CHANGED PRN LENGTH", "If you changed the length of the PRN then the decoder needs to be stopped and restarted.  "
-							+ "You do not\n need to exit FoxTelem.");
-				Config.useLongPRN = useLongPRN.isSelected();
-				
+//				Config.insertMissingBits = insertMissingBits.isSelected();
+				if (Config.useNCO != useNCO.isSelected())
+					Log.errorDialog("CHANGED Decoder", "The decoder needs to be stopped and restarted.\n"
+							+ "You do not need to exit FoxTelem.");
+				Config.useNCO = useNCO.isSelected();
+
+				if (Config.useCostas != useCostas.isSelected())
+					Log.errorDialog("CHANGED Decoder", "The decoder needs to be stopped and restarted.\n"
+							+ "You do not need to exit FoxTelem.");
+				Config.useCostas = useCostas.isSelected();
+
 				if (Config.isWindowsOs()) {
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();
 					Config.useDDEforAzEl = cbUseDDEAzEl.isSelected();
 				}
+				if (cbFoxTelemCalcsPosition.isSelected() && !Config.foxTelemCalcsPosition)
+					Config.satManager.fetchTLEFile(); // we are enabling this, better make sure we have a TLE
 				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
+				Config.foxTelemCalcsDoppler = cbFoxTelemCalcsDoppler.isSelected();
 				Config.whenAboveHorizon = cbWhenAboveHorizon.isSelected();
 				Config.trackSignal = rdbtnTrackSignal.isSelected();
 				/*
@@ -765,15 +802,26 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		if (source == cbUseDDEAzEl) { 
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				cbFoxTelemCalcsPosition.setSelected(false);
+				cbFoxTelemCalcsDoppler.setSelected(false);
 			}
 		}
 		
 		if (source == cbFoxTelemCalcsPosition) { 
 			if (e.getStateChange() == ItemEvent.SELECTED) {
 				cbUseDDEAzEl.setSelected(false);
+				cbFoxTelemCalcsDoppler.setEnabled(true);
 			} else {
 				if (cbWhenAboveHorizon.isSelected())
 					cbWhenAboveHorizon.setSelected(false);
+				if (cbFoxTelemCalcsDoppler.isSelected())
+					cbFoxTelemCalcsDoppler.setSelected(false);
+				cbFoxTelemCalcsDoppler.setEnabled(false);
+			}
+		}
+		if (source == cbFoxTelemCalcsDoppler) { 
+			if (e.getStateChange() == ItemEvent.SELECTED) {
+				rdbtnTrackSignal.setSelected(false);
+			} else {
 			}
 		}
 		if (source == cbWhenAboveHorizon) { 
@@ -786,12 +834,11 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == rdbtnTrackSignal) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				
 	            Config.trackSignal=false;
 	            //Config.save();
 	        } else {
 	        	Config.trackSignal=true;
-	        	
+	        	cbFoxTelemCalcsDoppler.setSelected(false);
 	        	//Config.save();
 	        }
 		}

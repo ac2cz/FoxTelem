@@ -32,13 +32,13 @@
 30,WOD,Exp4Temp,12,C,7,Experiments,6,1,3,EXP4 Temp,Experiment 4 card temperature
 31,WOD,PSUCurrent,12,mA,22,MPPT,5,1,3,Current,Power Supply DC Current
 32,WOD,ReflectedPwr,12,mW,41,Radio,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
-33,WOD,ICR3V,12,V,23,Command Receiver (ICR),7,1,3,3V,ICR 3V
-34,WOD,ICR3VProt,12,V,23,Command Receiver (ICR),7,2,3,3V Prot,ICR 3V Proteted
-35,WOD,ICR2dot5V,12,V,23,Command Receiver (ICR),7,3,3,2.5V,ICR 2.5V
-36,WOD,ICR2dot5VProt,12,V,23,Command Receiver (ICR),7,4,3,2.5V Prot,ICR 2.5V Protected
+33,WOD,ICR3V,12,V,43,Command Receiver (ICR),7,1,3,3V,ICR 3V
+34,WOD,ICR3VProt,12,V,43,Command Receiver (ICR),7,2,3,3V Prot,ICR 3V Proteted
+35,WOD,ICR2dot5V,12,V,43,Command Receiver (ICR),7,3,3,2.5V,ICR 2.5V
+36,WOD,ICR2dot5VProt,12,V,43,Command Receiver (ICR),7,4,3,2.5V Prot,ICR 2.5V Protected
 37,WOD,rf6,12,-,0,NONE,0,0,0,None,None
 38,WOD,rf7,12,-,0,NONE,0,0,0,None,None
-39,WOD,MuxTest,12,V,23,Command Receiver (ICR),7,5,3,Sensor Power,Sensor Power Voltage at the ICR
+39,WOD,MuxTest,12,V,43,Command Receiver (ICR),7,5,3,Sensor Power,Sensor Power Voltage at the ICR
 40,WOD,LtVGACtl,12,V,42,Radio,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 41,WOD,pad,4,-,34,NONE,0,0,0,None,Unused
 42,WOD,IHUhardError,32,-,19,Computer Hardware,2,2,0,IHU Hard Error Data,Reason for last reset

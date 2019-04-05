@@ -22,7 +22,6 @@ import common.Log;
  */
 public class FoxService {
 
-	public static String version = "Version 0.26 - 31 Dec 2017";
 	public static int port = 8080;
 	int poolSize = 8;
 	static String usage = "Usage: FoxService user database port";
@@ -35,7 +34,7 @@ public class FoxService {
 			System.exit(1);
 		}
 		if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
-			System.out.println("AMSAT Fox Web Service. Version " + version);
+			System.out.println("AMSAT Fox Web Service. Version " + WebServiceProcess.version);
 			System.exit(0);
 		}
 		if (args.length == 3) {

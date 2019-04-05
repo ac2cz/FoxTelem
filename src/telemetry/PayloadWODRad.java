@@ -20,7 +20,7 @@ public class PayloadWODRad extends PayloadRadExpData {
 	
 	@Override
 	protected void init() {
-		type = TYPE_WOD_RAD;
+		type = TYPE_WOD_RAD; // otherwise this will be just an expeiment record
 		fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 

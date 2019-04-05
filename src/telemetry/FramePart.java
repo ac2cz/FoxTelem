@@ -11,7 +11,6 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import decoder.FoxDecoder;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
@@ -33,8 +32,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	double satLongitude = NO_POSITION_DATA; // from -180 to 180
 	double satAltitude = NO_POSITION_DATA;
 	
-	protected FramePart(BitArrayLayout l) {
+	protected FramePart(BitArrayLayout l, int type) {
 		super(l);
+		this.type = type;
 		// TODO Auto-generated constructor stub
 	}
 
@@ -163,9 +163,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		String s = new String();
 		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
+			s = s + getRawValue(layout.fieldName[i]) + ",";
 		}
-		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		s = s + getRawValue(layout.fieldName[layout.fieldName.length-1]);
 		return s;
 	}
 	
@@ -205,10 +205,11 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					fieldValue[i++] = Integer.valueOf(s).intValue();
 			}
 		} catch (NoSuchElementException e) {
-			// we are done and can finish
+			// we are done and can finish. The line was terminated and is corrupt.
 		} catch (ArrayIndexOutOfBoundsException e) {
 			// Something nasty happened when we were loading, so skip this record and log an error
-			Log.println("ERROR: Too many fields: " + e.getMessage() + " Could not load field "+i+ " frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+			Log.errorDialog("ERROR: Too many fields: Index out of bounds", e.getMessage() + 
+					" Could not load field "+i+ " SAT: " + this.id + " Reset:" + this.resets + " Up:" + this.uptime + " Type:" + this.type);
 		} catch (NumberFormatException n) {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);

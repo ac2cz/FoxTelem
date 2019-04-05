@@ -11,11 +11,14 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -58,10 +61,11 @@ import common.FoxSpacecraft;
 *
 */
 @SuppressWarnings("serial")
-public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener {
+public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener, WindowListener {
 
 	private final JPanel contentPanel = new JPanel();
 	JTextField name;
+	JComboBox<String> priority;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -71,7 +75,11 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField BATTERY_CURRENT_ZERO;
 	JTextField mpptResistanceError;
 	JTextField mpptSensorOffThreshold;
+	JTextField memsRestValueX, memsRestValueY, memsRestValueZ;
 	JTextField[] T0;
+	JTextField localServer;
+	JTextField localServerPort;
+	JCheckBox[] sendLayoutToServer;
 	
 	JCheckBox useIHUVBatt;
 	JCheckBox track;
@@ -92,7 +100,9 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;
-		setBounds(100, 100, 600, 600);
+		addWindowListener(this);
+		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+		loadProperties();
 		getContentPane().setLayout(new BorderLayout());
 		contentPanel.setBorder(new EmptyBorder(5, 5, 5, 5));
 		getContentPane().add(contentPanel, BorderLayout.CENTER);
@@ -118,7 +128,18 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
-		
+
+		JLabel lblPriority = new JLabel("    Priority");
+		titlePanel.add(lblPriority);
+		String tip = "The highest priority spacecraft is tracked if more than one is above the horizon";
+		lblPriority.setToolTipText(tip);
+		String[] nums = new String[20];
+		for (int i=0; i < nums.length; i++)
+			nums[i] = ""+i;
+		priority = new JComboBox<String>(nums); 
+		priority.setSelectedIndex(sat.priority);
+		titlePanel.add(priority);
+
 		// Left Column - Fixed Params that can not be changed
 		JPanel leftPanel = new JPanel();
 		contentPanel.add(leftPanel, BorderLayout.WEST);
@@ -138,6 +159,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
+		JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
+		leftFixedPanel.add(icr);
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
@@ -175,8 +198,30 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		btnGetT0.addActionListener(this);
 		t0Panel.add(btnGetT0);//, BorderLayout.WEST);
 		
-		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
+		JPanel localServerPanel = new JPanel();
+		leftPanel.add(localServerPanel);
 		
+		if (sat.localServer != null) {
+			TitledBorder localServerPanelHeader = title("COSMOS TCP Interface");
+			localServerPanel.setBorder(localServerPanelHeader);
+			localServerPanel.setLayout(new BoxLayout(localServerPanel, BoxLayout.Y_AXIS));
+
+			localServer = addSettingsRow(localServerPanel, 15, "Server", 
+					"The IP address or domain name of the local server", "" + sat.localServer);
+			localServerPort = addSettingsRow(localServerPanel, 15, "Port", 
+					"The port of the local Server", ""+sat.localServerPort);
+			
+			/*
+			sendLayoutToServer = new JCheckBox[sat.numberOfLayouts];
+			for (int i=0; i<sat.numberOfLayouts; i++) {
+				sendLayoutToServer[i] = new JCheckBox("Send "+ sat.layout[i].name);
+				localServerPanel.add(sendLayoutToServer[i]);
+				if (sat.sendLayoutLocally[i]) sendLayoutToServer[i].setSelected(true); else sendLayoutToServer[i].setSelected(false);
+			}
+			*/
+		}
+
+		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		// Right Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
 		JPanel rightPanel = new JPanel();
@@ -227,6 +272,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					"The extra resistance in the RTD temperature measurement circuit", ""+sat.mpptResistanceError);
 			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
 					"The ADC value when the temperature sensor is considered off", ""+sat.mpptSensorOffThreshold);
+		}
+		if (sat.hasMemsRestValues) {
+			memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
+					"The rest value for the MEMS X rotation sensor", ""+sat.memsRestValueX);
+			memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
+					"The rest value for the MEMS Y rotation sensor", ""+sat.memsRestValueY);
+			memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
+					"The rest value for the MEMS Z rotation sensor", ""+sat.memsRestValueZ);
 		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
@@ -323,6 +376,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		boolean refreshTabs = false;
+		boolean rebuildMenu = false;
 		if (e.getSource() == btnGetT0) {
 			MainWindow.updateManager.updateT0(sat);
 			updateTimeSeries();
@@ -332,16 +386,16 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		}
 		if (e.getSource() == btnSave) {
 			boolean dispose = true;
-			int downlinkFreq = 0;
-			int minFreq = 0;
-			int maxFreq = 0;
+			double downlinkFreq = 0;
+			double minFreq = 0;
+			double maxFreq = 0;
 			try {
 				try {
-					downlinkFreq = Integer.parseInt(telemetryDownlinkFreqkHz.getText());
-					minFreq = Integer.parseInt(minFreqBoundkHz.getText());
-					maxFreq = Integer.parseInt(maxFreqBoundkHz.getText());
+					downlinkFreq = (double)(Math.round(Double.parseDouble(telemetryDownlinkFreqkHz.getText())*1000)/1000.0);
+					minFreq = (double)(Math.round(Double.parseDouble(minFreqBoundkHz.getText())*1000)/1000.0);
+					maxFreq = (double)(Math.round(Double.parseDouble(maxFreqBoundkHz.getText())*1000)/1000.0);
 				} catch (NumberFormatException ex) {
-					throw new NumberFormatException("The Frequency fields must contain a valid number");
+					throw new NumberFormatException("The Frequency fields must contain a valid frequency in kHz");
 				}
 				if (minFreq < maxFreq) {
 					sat.telemetryDownlinkFreqkHz = downlinkFreq;
@@ -380,6 +434,20 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 						refreshTabs=true;
 					}
 				}
+				if (sat.hasMemsRestValues) {
+					if (sat.memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+						refreshTabs=true;
+					}
+					if (sat.memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+						refreshTabs=true;
+					}
+					if (sat.memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
+						refreshTabs=true;
+					}
+				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
@@ -388,11 +456,28 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.name = name.getText();
 					refreshTabs = true;
 				}
+				int pri = 99;
+				try {
+					pri = priority.getSelectedIndex();
+				} catch (NumberFormatException e2) {
+					
+				}
+				if (sat.priority != pri) {
+					rebuildMenu = true;
+					sat.priority = pri;
+					//refreshTabs = true; // refresh the menu list and sat list but not the tabs
+				}
+				if (localServer != null)
+					sat.localServer = localServer.getText();
+				if (localServerPort != null)
+					sat.localServerPort = Integer.parseInt(localServerPort.getText());
 				sat.track = track.isSelected();
 
 				if (dispose) {
 					sat.save();
 					Config.initSatelliteManager();
+					if (rebuildMenu)
+						Config.mainWindow.initSatMenu();
 					this.dispose();
 					if (refreshTabs)
 						MainWindow.refreshTabs(false);
@@ -403,6 +488,26 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		}
 
 	}
+	
+	public void saveProperties() {
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow", "windowHeight", this.getHeight());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow", "windowWidth", this.getWidth());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow", "windowX", this.getX());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftWindow",  "windowY", this.getY());
+	}
+	
+	public void loadProperties() {
+		int windowX = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowX");
+		int windowY = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowY");
+		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowWidth");
+		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowHeight");
+		if (windowX == 0 || windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
+			setBounds(100, 100, 600, 700);
+		} else {
+			setBounds(windowX, windowY, windowWidth, windowHeight);
+		}
+	}
+
 
 	@Override
 	public void itemStateChanged(ItemEvent arg0) {
@@ -418,6 +523,48 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 	@Override
 	public void focusLost(FocusEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowClosed(WindowEvent arg0) {
+		saveProperties();
+		
+	}
+
+	@Override
+	public void windowClosing(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowIconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void windowOpened(WindowEvent arg0) {
 		// TODO Auto-generated method stub
 		
 	}

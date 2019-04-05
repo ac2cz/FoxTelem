@@ -1,17 +1,11 @@
 package FuncubeDecoder;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 
-import common.Config;
-import common.Log;
 import common.Spacecraft;
-import telemetry.BitArray;
-import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadRtValues;
 
 public class FUNcubeSpacecraft extends Spacecraft {
 	public static final int[] TYPE_WHOLE_ORBIT = {1,2,3,4,5,6,7,8,9,10,11,12};

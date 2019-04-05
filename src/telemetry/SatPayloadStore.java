@@ -289,8 +289,8 @@ public class SatPayloadStore {
 		return getLatest(Spacecraft.MIN_LAYOUT);
 	}
 
-	public PayloadRadExpData getLatestRad() throws IOException {
-		return (PayloadRadExpData) getLatest(Spacecraft.RAD_LAYOUT);
+	public FoxFramePart getLatestRad() throws IOException {
+		return (FoxFramePart) getLatest(Spacecraft.RAD_LAYOUT);
 	}
 
 	public RadiationTelemetry getLatestRadTelem() throws IOException {
@@ -420,6 +420,14 @@ public class SatPayloadStore {
 	 */
 	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_RAD2_LAYOUT);
+	}
+	
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		BitArrayLayout l = fox.getLayoutByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, l.fieldName.length, returnType, reverse);
+		return null;	
 	}
 	
 	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout) throws IOException {

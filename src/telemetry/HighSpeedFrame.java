@@ -77,6 +77,7 @@ public class HighSpeedFrame extends Frame {
 
 	public HighSpeedFrame(BufferedReader input) throws IOException {
 		super(input);
+		load(input);
 	}
 	
 	public HighSpeedHeader getHeader() { return (HighSpeedHeader)header; }

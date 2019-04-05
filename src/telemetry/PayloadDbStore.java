@@ -13,6 +13,7 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
+import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -55,7 +56,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	//private List<FramePart> payloadQueue;
 	
-	protected Connection derby;
+	public Connection derby;
 
 	static String url = "jdbc:mysql://localhost:3306/"; //FOXDB?autoReconnect=true";
     static String db = "FOXDB";
@@ -568,10 +569,50 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	@Override
 	public FramePart getLatest(int id, String layout) {
-		// TODO Auto-generated method stub
+//		SatPayloadDbStore store = getPayloadStoreById(id);
+//		if (store != null)
+//			try {
+//				return store.getLatest(layout);
+//			} catch (SQLException e) {
+//				e.printStackTrace(Log.getWriter());
+//				return null;
+//			}
 		return null;
 	}
 
+	public SortedFramePartArrayList selectCanPackets(int id, String where) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.selectCanPackets(where);
+		return null;
+	}
+	
+	public int getLastCanId(int id, String user) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLastCanId(user);
+		return 0;
+	}
+	
+	public CanPacket getLatestUwCanPacket(int id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatestUwCanPacket();
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
+		return null;
+	}
+	
+	public boolean storeLastCanId(int id, String date, int pkt_id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.storeLastCanId(date, pkt_id);
+		return false;
+	}
+	
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -1006,6 +1047,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType,
+			boolean reverse, String layout) {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -19,6 +19,9 @@ import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRtValues;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
@@ -52,12 +55,33 @@ import uk.me.g4dpz.satellite.TLE;
 public class FoxSpacecraft extends Spacecraft{
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1; // This is the 1A LEP experiment
+	public static final int EXP_VANDERBILT_LEP = 1; // This is the 1A LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
 	public static final int EXP_VT_CAMERA_LOW_RES = 5;
 	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
+	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
+	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
+	public static final int EXP_UW = 9; // University of Washington
+	
+	public static final String SAFE_MODE_IND = "SafeModeIndication";
+	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
+	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
+	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
+	
+	public static final int SAFE_MODE = 0;
+	public static final int TRANSPONDER_MODE = 1;
+	public static final int DATA_MODE = 2;
+	public static final int SCIENCE_MODE = 3;
+	
+	public static final String[] modeNames = {
+		"SAFE",
+		"TRANSPONDER",
+		"DATA",
+		"SCIENCE"
+	};
 	
 	public static final String[] expNames = {
 		"Empty",
@@ -66,19 +90,28 @@ public class FoxSpacecraft extends Spacecraft{
 		"University of Iowa HERCI",
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
-		"Vanderbilt VUC"
+		"Vanderbilt VUC",
+		"Vanderbilt LEP",
+		"Vanderbilt REM",
+		"Vanderbilt LEPF",
+		"University of Washington Experiment"
 	};
 	
 	
 	public int IHU_SN = 0;
 	public int[] experiments = {EXP_EMPTY, EXP_EMPTY, EXP_EMPTY, EXP_EMPTY};
 	
+	public boolean hasImprovedCommandReceiver = false;
 	
 	// Calibration
 	public double BATTERY_CURRENT_ZERO = 0;
 	public double mpptResistanceError = 6.58d;
 	public int mpptSensorOffThreshold = 1600;
 	public boolean hasMpptSettings = false;
+	public int memsRestValueX = 0;
+	public int memsRestValueY = 0;
+	public int memsRestValueZ = 0;
+	public boolean hasMemsRestValues = false;
 	
 	// layout flags
 	public boolean useIHUVBatt = false;
@@ -238,6 +271,11 @@ public class FoxSpacecraft extends Spacecraft{
 			properties.setProperty("mpptResistanceError", Double.toString(mpptResistanceError));
 			properties.setProperty("mpptSensorOffThreshold", Integer.toString(mpptSensorOffThreshold));
 		}
+		if (hasMemsRestValues) {
+			properties.setProperty("memsRestValueX", Integer.toString(memsRestValueX));
+			properties.setProperty("memsRestValueY", Integer.toString(memsRestValueY));
+			properties.setProperty("memsRestValueZ", Integer.toString(memsRestValueZ));			
+		}
 		
 		store();
 	
@@ -314,6 +352,25 @@ public class FoxSpacecraft extends Spacecraft{
 				mpptSensorOffThreshold = Integer.parseInt(threshold);
 				hasMpptSettings = true;
 			}
+			String icr = getOptionalProperty("hasImprovedCommandReceiver");
+			if (icr != null) {
+				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
+			}
+			String mems_x = getOptionalProperty("memsRestValueX");
+			if (mems_x != null) {
+				memsRestValueX = Integer.parseInt(mems_x);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_y = getOptionalProperty("memsRestValueY");
+			if (mems_y != null) {
+				memsRestValueY = Integer.parseInt(mems_y);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_z = getOptionalProperty("memsRestValueZ");
+			if (mems_z != null) {
+				memsRestValueZ = Integer.parseInt(mems_z);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -368,6 +425,62 @@ public class FoxSpacecraft extends Spacecraft{
 		else id = Integer.toString(foxId);
 
 		return id;
+	}
+	
+	public static String getModeString(int mode) {
+		return FoxSpacecraft.modeNames[mode];
+	}
+	
+	/**
+	 * Return the mode of the spacecraft based in the most recent RT, MAX, MIN and EXP payloads
+	 * @param realTime
+	 * @param maxPaylaod
+	 * @param minPayload
+	 * @param radPayload
+	 * @return
+	 */
+	public static int determineMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+		if (realTime != null && minPayload != null && maxPayload != null) {
+			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+				return DATA_MODE;
+		}
+		// Otherwise, if RAD received more recently than max/min and RT
+		// In the compare, a -ve result means older, because the reset or uptime is less
+		// So a result >0 means the object calling the compare is newer
+		if (radPayload != null)
+			if (realTime != null && radPayload.compareTo(realTime) > 0)
+				if (maxPayload == null && minPayload == null)
+					return TRANSPONDER_MODE;
+				else if (maxPayload != null && radPayload.compareTo(maxPayload) > 0)
+					if (minPayload == null)
+						return TRANSPONDER_MODE;
+					else if (radPayload.compareTo(minPayload) > 0)
+						return TRANSPONDER_MODE;
+		
+		// Otherwise find the most recent max/min
+		// if we have just a max payload, or we have both and max is more recent or the same
+		if ((minPayload == null && maxPayload != null) || (maxPayload != null && minPayload != null && maxPayload.compareTo(minPayload) >=0)) {
+			if (maxPayload.getRawValue(SCIENCE_MODE_IND) == 1)
+				return SCIENCE_MODE;
+			else if (maxPayload.getRawValue(SAFE_MODE_IND) == 1)
+				return SAFE_MODE;
+			else
+				return TRANSPONDER_MODE;
+		} else if (minPayload != null) {  // this is the case when we have both and min is more recent
+			if (minPayload.getRawValue(SCIENCE_MODE_IND) == 1)
+				return SCIENCE_MODE;
+			else if (minPayload.getRawValue(SAFE_MODE_IND) == 1)
+				return SAFE_MODE;
+			else
+				return TRANSPONDER_MODE;
+		}
+		// return default
+		return TRANSPONDER_MODE;
+	}
+	
+	public static String determineModeString(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+		int mode = determineMode(realTime, maxPayload, minPayload, radPayload);
+		return getModeString(mode);
 	}
 	
 	public String toString() {

@@ -62,8 +62,10 @@ public class TunerManager {
      * This locks each USB device that it finds.  It's nice that we build the list of the actual devices, but not good that they are
      * all locked by FoxTelem
      * @throws UsbException 
+     * @throws DeviceException 
      */
-    public ArrayList<String> makeDeviceList() throws UsbException	{
+    /*
+    public ArrayList<String> makeDeviceList() throws UsbException, DeviceException	{
     	deviceNames = new ArrayList<String>();
     	tunerControllerList = new ArrayList<TunerController>();
     	DeviceList deviceList = new DeviceList();
@@ -113,9 +115,9 @@ public class TunerManager {
     	LibUsb.freeDeviceList( deviceList, true );
     	return deviceNames;
     }
-
+	*/
     
-    public TunerController findDevice(short vendor, short product) throws UsbException	{
+    public TunerController findDevice(short vendor, short product) throws UsbException, DeviceException	{
     	DeviceList deviceList = new DeviceList();
     	int result = LibUsb.init( null );
     	if( result != LibUsb.SUCCESS ){
@@ -124,9 +126,7 @@ public class TunerManager {
     	} else {
     		Log.println( "LibUSB API Version: " + LibUsb.getApiVersion() );
     		Log.println( "LibUSB Version: " + LibUsb.getVersion() );
-
     		result = LibUsb.getDeviceList( null, deviceList );
-
     		if( result < 0 ) {
     			Log.println( "unable to get device list from libusb [" + result + " / " + 
     					LibUsb.errorName( result ) + "]" );
@@ -142,20 +142,19 @@ public class TunerManager {
     			Log.println( "unable to read device descriptor [" + 
     					LibUsb.errorName( result ) + "]" );
     		} else {
+    			StringBuilder sb = new StringBuilder();
+    			sb.append( "usb device [" );
+    			sb.append( String.format( "%04X", descriptor.idVendor() ) );
+    			sb.append( ":" );
+    			sb.append( String.format( "%04X", descriptor.idProduct() ) + "]");
+
+    			Log.println( sb.toString() );
+    			Log.println(device.toString());
     			if (descriptor.idVendor() == vendor && descriptor.idProduct() == product) {
+    				Log.println("FOUND DEVICE!");
     				TunerController dev = initTuner( device, descriptor );
     				if (dev !=null) {
-    					StringBuilder sb = new StringBuilder();
-
-    					sb.append( "usb device [" );
-    					sb.append( descriptor.idVendor() );
-    					//    				sb.append( String.format( "%04X", descriptor.idVendor() ) );
-    					sb.append( ":" );
-    					//   				sb.append( String.format( "%04X", descriptor.idProduct() ) );
-    					sb.append( descriptor.idProduct() );
-
-    					Log.println( sb.toString() );
-    					LibUsb.freeDeviceList( deviceList, true );
+    	    			LibUsb.freeDeviceList( deviceList, true );
     					return dev;
     				}
     			}
@@ -165,13 +164,13 @@ public class TunerManager {
     	LibUsb.freeDeviceList( deviceList, true );
     	return null;
     }
-    
+
     public TunerController DEPRECIATED_getTunerControllerById(int id) {
     	return tunerControllerList.get(id);
     }
     
     private device.TunerController initTuner( Device device, 
-    		DeviceDescriptor descriptor ) throws UsbException
+    		DeviceDescriptor descriptor ) throws UsbException, DeviceException
     {
     	if( device != null && descriptor != null )
     	{
@@ -185,7 +184,7 @@ public class TunerManager {
 				case ETTUS_USRP_B100:
 					//return initEttusB100Tuner( device, descriptor );
 				case FUNCUBE_DONGLE_PRO:
-					//return initFuncubeProTuner( device, descriptor );
+					return initFuncubeProTuner( device, descriptor );
 				case FUNCUBE_DONGLE_PRO_PLUS:
 					return initFuncubeProPlusTuner( device, descriptor );
 				case HACKRF_ONE:
@@ -255,7 +254,7 @@ public class TunerManager {
 		return new TunerInitStatus( null, "Ettus B100 tuner not currently "
 				+ "supported" );
 	}
-	
+*/	
 	private FCD1TunerController initFuncubeProTuner( Device device,  DeviceDescriptor descriptor ) {
 		try {
 			FCD1TunerController controller = 
@@ -268,18 +267,13 @@ public class TunerManager {
 			return null;
 		}
 	}
-*/
-	private FCD2TunerController initFuncubeProPlusTuner( Device device, DeviceDescriptor descriptor ) {
-		try {
+
+	private FCD2TunerController initFuncubeProPlusTuner( Device device, DeviceDescriptor descriptor ) throws DeviceException {
 			FCD2TunerController controller = 
 					new FCD2TunerController( device, descriptor );
 			controller.init();
 			return controller;
-		}
-		catch( DeviceException se ) {
-			Log.println( "error constructing tuner: " + se );
-			return null;
-		}
+
 	}
 /*
 	private TunerInitStatus initHackRFTuner( Device device, 

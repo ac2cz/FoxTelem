@@ -604,7 +604,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 
-	public PayloadRadExpData getLatestRad(int id) {
+	public FoxFramePart getLatestRad(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -794,6 +794,24 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout)  {
+		return getTableData(period, id, fromReset, fromUptime, false, reverse, layout);
+	}
+	
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout)  {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getTableData(period, id, fromReset, fromUptime, reverse, returnType, layout);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+
+	
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -932,8 +950,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 					if (f == null) {
 						Log.println("NULL RECORD IN THE Q");
 					} else {
-						if (Config.debugFieldValues)
+						if (Config.debugFieldValues) {
 							Log.println(f.toString() + "\n");
+						}
 						if (f instanceof PayloadCameraData)
 							addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
 						else
@@ -1013,6 +1032,8 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
 		return 0;
 	}
+
+	
 
 
 

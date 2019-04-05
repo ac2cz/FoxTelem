@@ -72,7 +72,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	boolean running = true;
 	boolean done = false;
-	int centerFreqX = 145950;
+	double centerFreqX = 145950;
 	//int selectedBin = 0; // this is the actual FFT bin, with negative and positve freq flipped
 	int selection = 0; // this is the bin that the user clicked on, which runs from left to right
 	boolean showFilteredAudio = false;
@@ -97,7 +97,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	RfData rfData;
 	boolean liveData = false; // true if we have not received a NULL buffer from the decoder.
 	int tuneDelay = 0;
-	final int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on
+	int TUNE_THRESHOLD = 100; // 30 = 1 second, 3 = 100 ms tune time.  Delay only used when DECODE, ie locked on, unless in PSK mode
 	JLabel title;
 	
 	FFTPanel() {
@@ -113,26 +113,28 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		actMap.put(TUNE_LEFT, new AbstractAction() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
-	          //      System.out.println("TUNE LEFT");
-	        	int selectedBin = Config.selectedBin;
-	                selectedBin = selectedBin-1;
-	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
-	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
-	                Config.selectedBin = selectedBin;
-	          //     printBin();
+	            iqSource.decSelectedFrequency();    
+//	        	int selectedBin = iqSource.getSelectedBin();
+//	        	System.out.println("TUNE LEFT from " + selectedBin);
+//	                selectedBin = selectedBin-1;
+//	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+//	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
+//	                iqSource.setSelectedBin(selectedBin);
+//	               printBin();
 	        }
 	    });
 		actMap.put(TUNE_RIGHT, new AbstractAction() {
 	        @Override
 	        public void actionPerformed(ActionEvent e) {
+	        	iqSource.incSelectedFrequency();
 	          //      System.out.println("TUNE RIGHT");
-	        	int selectedBin = Config.selectedBin;
-
-	                selectedBin = selectedBin+1;
-	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
-	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
-	                Config.selectedBin = selectedBin;
-	         //       printBin();
+//	        	int selectedBin = iqSource.getSelectedBin();
+//
+//	                selectedBin = selectedBin+1;
+//	                if (selectedBin < 0) selectedBin = SourceIQ.FFT_SAMPLES;
+//	                if (selectedBin > SourceIQ.FFT_SAMPLES) selectedBin = 0;
+//	                iqSource.setSelectedBin(selectedBin);
+//	                printBin();
 	        }
 	    });
 	}
@@ -154,7 +156,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	@SuppressWarnings("unused")
 	private void printBin() {
 		int freq=0;
-    	int selectedBin = Config.selectedBin;
+    	int selectedBin = iqSource.getSelectedBin();
 
 		 if (selectedBin < SourceIQ.FFT_SAMPLES/2)
          	freq= 192000*selectedBin/SourceIQ.FFT_SAMPLES;
@@ -180,7 +182,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	@Override
 	public void run() {
-		Thread.currentThread().setName("SourceIQ");
+		Thread.currentThread().setName("FFTPanel");
 		double[] buffer = null;
 		while(running) {
 			if (iqSource != null) {
@@ -202,12 +204,14 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			if (buffer != null) {
 				psd = buffer;
 				liveData = true;
+				this.repaint();
 			} else {
 				liveData = false;
 			}
-			retune();
-			this.repaint();
-			
+			if (rfData != null) {
+				if (!Config.foxTelemCalcsDoppler)
+					retune();		
+			}
 		}
 		done = true;
 	}
@@ -216,45 +220,57 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	int avgNum = 0;
 	private void retune() {
 		// auto tune
-    	int selectedBin = Config.selectedBin;
-		int targetBin = 0;
+        int selectedBin = iqSource.getSelectedBin();
+        int targetBin = 0;
 
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND) > TRACK_SIGNAL_THRESHOLD) {
-			if (Config.passManager.getState() == PassManager.DECODE || 
-					Config.passManager.getState() == PassManager.ANALYZE ||
-					Config.passManager.getState() == PassManager.FADED)
+		//if (rfData != null)
+		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
+		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
+		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
+			//if (Config.passManager.getState() == PassManager.DECODE || 
+			//		Config.passManager.getState() == PassManager.ANALYZE ||
+			//		Config.passManager.getState() == PassManager.FADED)
 				targetBin = rfData.getBinOfPeakSignalInFilterWidth();  // peak is the strongest signal in the filter width
-			else
-				targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
+			//else
+			//	targetBin = rfData.getBinOfStrongestSignalInSatBand(); // strongest is the strongest signal in the sat band
 
 			avgBin = avgBin + targetBin;
 			avgNum++;
 			
-			if (Config.passManager.getState() == PassManager.DECODE ) {
-				tuneDelay++;
-			} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
-					tuneDelay += 20;
-			} else if (Config.passManager.getState() == PassManager.FADED) {
-				// Don't tune
-				tuneDelay = 0;
+			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC) {
+				TUNE_THRESHOLD = 180; // 6 second
+				if (Config.passManager.getState() == PassManager.FADED) 
+					tuneDelay = 0; // dont tune
+				else
+					tuneDelay++; // tune slowly
 			} else {
-				// Tune at maximum speed
-				//tuneDelay = TUNE_THRESHOLD;
-				tuneDelay = TUNE_THRESHOLD;
-			} 
+				TUNE_THRESHOLD = 100; // ~3 second average time
+				if (Config.passManager.getState() == PassManager.DECODE ) {
+					tuneDelay++;
+				} else if (Config.passManager.getState() == PassManager.ANALYZE ) {
+					tuneDelay += 20;
+				} else if (Config.passManager.getState() == PassManager.FADED) {
+					// Don't tune
+					tuneDelay = 0;
+				} else {
+					// Tune at maximum speed
+					//tuneDelay = TUNE_THRESHOLD;
+					tuneDelay = TUNE_THRESHOLD;
+				} 
+			}
 			if (tuneDelay >= TUNE_THRESHOLD) {
 				targetBin = avgBin/avgNum;
 				avgNum = 0;
 				avgBin = 0;
 				tuneDelay = 0;
 				// move half the distance to the bin
-				
-				if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
 
-					int move = targetBin - selectedBin;
-					//System.out.println("MOVE: "+ move);
+				//if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
 
-					/*
+				int move = targetBin - selectedBin;
+				//System.out.println("MOVE: "+ move);
+
+				/*
 				// THIS NEEDS TO UNDERSTAND THE WRAP OF THE BINS AROUND ZERO!
 				// PERHAPS CONVERT BIN TO FREQ.  ADJUST FREQ.  THEN CONVERT BACK...
 				long targetFreq = iqSource.getFrequencyFromBin(targetBin);
@@ -288,44 +304,50 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 						currentFreq++;
 				}
 				selectedBin = iqSource.getBinFromFreqHz(currentFreq);
-					 */
-					if (targetBin < selectedBin) {
-						if (move < -100)
-							selectedBin -= 50;
+				 */
+				if (targetBin < selectedBin) {
+					if (move < -100)
+						selectedBin -= 50;
+					else
+						if (move < -25)
+							selectedBin -= 12;
+						else if (move < -5)
+							selectedBin -= 5;
+						else if (move < -2)
+							selectedBin -= 2;
 						else
-							if (move < -25)
-								selectedBin -= 12;
-							else if (move < -5)
-								selectedBin -= 5;
-							else if (move < -2)
-								selectedBin -= 2;
-							else
-								selectedBin--;
-					}
-					if (targetBin > selectedBin) {
-						if (move > 100)
-							selectedBin += 50;
-						else if (move > 25)
-							selectedBin += 12;
-						else if (move > 5)
-							selectedBin += 5;
-						else if (move > 2)
-							selectedBin += 2;
-						else
-							selectedBin++;
-					}
-
-					//			Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
-					if (Config.findSignal) {
-						if (targetBin > Config.fromBin && targetBin < Config.toBin)
-							Config.selectedBin = targetBin;
-							//Config.selectedBin = selectedBin;
-					} else
-						Config.selectedBin = selectedBin;
+							selectedBin--;
 				}
+				if (targetBin > selectedBin) {
+					if (move > 100)
+						selectedBin += 50;
+					else if (move > 25)
+						selectedBin += 12;
+					else if (move > 5)
+						selectedBin += 5;
+					else if (move > 2)
+						selectedBin += 2;
+					else
+						selectedBin++;
+				}
+
+				if (targetBin != 0) // to avoid startup timing issue
+					if (Config.findSignal) {
+						//Log.println("FS TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+						if ((selectedBin > Config.fromBin && selectedBin < Config.toBin) && (targetBin > Config.fromBin && targetBin < Config.toBin)) {
+							iqSource.setSelectedBin(targetBin);
+							//Config.selectedBin = targetBin;
+						}
+					} else {
+						//Log.println("TUNE to: " + selectedBin + " from: "+ Config.selectedBin + " range: " + Config.fromBin + " - " + Config.toBin);
+						iqSource.setSelectedBin(selectedBin);
+						//Config.selectedBin = selectedBin;
+					}
 			}
+
 		}
 	}
+		
 	public static int littleEndian2(byte b[]) {
 		byte b1 = b[0];
 		byte b2 = b[1];
@@ -362,8 +384,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		graphWidth = getWidth() - sideBorder*2; // width of entire graph
 		
 		
-		int minTimeValue = centerFreqX-iqSource.IQ_SAMPLE_RATE/2000;//96;
-		int maxTimeValue = centerFreqX+iqSource.IQ_SAMPLE_RATE/2000;//96;
+		int minTimeValue = (int) (centerFreqX-iqSource.IQ_SAMPLE_RATE/2000);//96;
+		int maxTimeValue = (int) (centerFreqX+iqSource.IQ_SAMPLE_RATE/2000);//96;
 		int numberOfTimeLabels = graphWidth/labelWidth;
 		int zeroPoint = graphHeight;
 		
@@ -412,7 +434,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		if (iqSource != null) {
 			// Draw the current selected frequency to decode
 			// Only show half the filter width because of the taper of the filter shape
-			selection = getSelectionFromBin(Config.selectedBin);
+			//if (iqSource.getMode() == SourceIQ.MODE_PSK) {
+			//	int bin  = iqSource.getBinFromOffsetFreqHz((long) iqSource.getCostasFrequency());
+			//	selection = getSelectionFromBin(bin);
+			//} else
+				//selection = getSelectionFromBin(iqSource.getSelectedBin());
+				selection = getSelectionFromBin(iqSource.getSelectedBin());
 
 			int c = getRatioPosition(0, fftSamples, selection, graphWidth);
 			int lower = getRatioPosition(0, fftSamples, selection-iqSource.getFilterWidth()/2, graphWidth);
@@ -428,18 +455,19 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			g2.drawLine(upper+sideBorder, topBorder, upper+sideBorder, zeroPoint);
 
 			
-			if (Config.findSignal) {
+			if (Config.findSignal || Config.foxTelemCalcsDoppler) {
 
-				if (fox != null) {
-					g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
-				} else
-					g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
+				if (Config.findSignal)
+					if (fox != null) {
+						g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
+					} else
+						g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.track) {
-						int fromSatBin = iqSource.getBinFromFreqHz(sat.minFreqBoundkHz*1000);
-						int toSatBin = iqSource.getBinFromFreqHz(sat.maxFreqBoundkHz*1000);
+						int fromSatBin = iqSource.getBinFromFreqHz((long) (sat.minFreqBoundkHz*1000));
+						int toSatBin = iqSource.getBinFromFreqHz((long) (sat.maxFreqBoundkHz*1000));
 					
 						if (fromSatBin > SourceIQ.FFT_SAMPLES/2 && toSatBin < SourceIQ.FFT_SAMPLES/2) {
 							toSatBin = 0;
@@ -463,13 +491,28 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				}
 			}
 			
+			if (iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS) {
+				int lock = (int) Math.round(iqSource.getLockLevel());
+				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
+					g2.setColor(Color.BLUE);
+//					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+					g.drawString("Locked "+lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+				} else {
+					g2.setColor(Color.gray);
+					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+				}
+				g2.setColor(Color.gray);
+				g.drawString("Costas Error: " + Math.round(iqSource.getError()*1E3), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ Config.graphAxisFontSize)  );
+				g.drawString("Carrier: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 )  );
+
+			}
 			
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);
 				//int width = 10;
-				int posPeakSignalInFilterWidth = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.AVGSIG_IN_FILTER_WIDTH), graphHeight);
+				int posPeakSignalInFilterWidth = getRatioPosition(maxValue, minValue, rfData.getAvg(RfData.AVGSIG_IN_FILTER_WIDTH)+topBorder, graphHeight);
 //				int peakSignalInFilterWidth = getRatioPosition(minValue, maxValue, -60, graphHeight);
-				posPeakSignalInFilterWidth=graphHeight-posPeakSignalInFilterWidth-topBorder;
+			//	posPeakSignalInFilterWidth=posPeakSignalInFilterWidth-topBorder;
 				
 				int binOfPeakSignalInFilterWidth = 0;
 				if (rfData.getBinOfPeakSignalInFilterWidth() < fftSamples/2) {
@@ -486,7 +529,9 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				double snr = GraphPanel.roundToSignificantFigures(rfData.rfSNRInFilterWidth,3);
 				String s = Double.toString(snr) + "";
 				String ss = Double.toString(snrStrongestSigInSatBand) + "";
-				long f = iqSource.getFrequencyFromBin(Config.selectedBin);  //rfData.getPeakFrequency();
+				//long f = iqSource.getFrequencyFromBin(iqSource.getSelectedBin());  //rfData.getPeakFrequency();
+				double f = ( iqSource.getCenterFreqkHz()*1000 + iqSource.getSelectedFrequency());  //rfData.getPeakFrequency();
+				DecimalFormat d3 = new DecimalFormat("0.000");
 				g.drawString("| " /*+ rfData.getBinOfPeakSignal()*/ , binOfPeakSignalInFilterWidth, posPeakSignalInFilterWidth  );
 
 				g2.drawLine(binOfPeakSignalInFilterWidth-5 , (int)posPeakSignalInFilterWidth-3, binOfPeakSignalInFilterWidth+5, (int)posPeakSignalInFilterWidth-3);
@@ -494,7 +539,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					g.drawString("snr: " + s + "dB", binOfPeakSignalInFilterWidth+10, posPeakSignalInFilterWidth  );
 				else
 					g.drawString("" + ss + "dB", binOfPeakSignalInFilterWidth+10, posPeakSignalInFilterWidth  );
-				g.drawString("Freq:"+f, graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
+				g.drawString("Freq:"+d3.format(f/1000), graphWidth-5*Config.graphAxisFontSize, 2*Config.graphAxisFontSize  );
 
 				if (Config.findSignal && Config.debugSignalFinder) {
 					int strongestSigInSatBand = getRatioPosition(minValue, maxValue, rfData.getAvg(RfData.STRONGEST_SIGNAL_IN_SAT_BAND), graphHeight);
@@ -629,7 +674,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	}
 
 	private double getCycles() {
-    	int selectedBin = Config.selectedBin;
+		int selectedBin = iqSource.getSelectedBin();
 
 		double binBW = 192000f / 2 / SourceIQ.FFT_SAMPLES; // nyquist freq / fft length
 		double freq = (double)selectedBin * binBW;
@@ -653,7 +698,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-    	int selectedBin = Config.selectedBin;
+    //	int selectedBin = iqSource.getSelectedBin();
+    	int selectedBin = iqSource.getSelectedBin();
 
 		int x=e.getX();
 	    //int y=e.getY();
@@ -670,7 +716,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	//	selectedBin = getRequiredBin(selectedBin);
 //		System.out.println("Trying bin: " + selectedBin);
 				
-		Config.selectedBin = selectedBin;
+		iqSource.setSelectedBin(selectedBin);
+//		Config.selectedBin = selectedBin;
 		if (rfData != null)
 			rfData.reset(); // reset the average calcs so the UI is more responsive
 //		printBin();

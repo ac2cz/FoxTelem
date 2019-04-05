@@ -5,12 +5,14 @@ public class PayloadHerciLineCount extends FoxFramePart {
 	int scanLineCount = 1; // default to true so that we initialize it the first time we populate data
 	
 	public PayloadHerciLineCount() {
-		super(new BitArrayLayout());
+		super(TYPE_HERCI_LINE_COUNT, new BitArrayLayout());
 	}
 
 	@Override
 	protected void init() { 
 		MAX_BYTES = 1;
+		rawBits = new boolean[MAX_BYTES*8];
+		fieldValue = new int[MAX_BYTES];
 	}
 	
 	public int getLineCount() { return scanLineCount; }

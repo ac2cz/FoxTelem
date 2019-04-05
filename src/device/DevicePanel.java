@@ -29,12 +29,14 @@ public abstract class DevicePanel extends JPanel implements Runnable {
 		running = false;
 	}
 	
+	@SuppressWarnings("rawtypes")
 	protected void saveParam(JComboBox box, String key) {
 		int g = box.getSelectedIndex();
 		Log.println("SAVED " + key + ": " + g);
 		Config.saveGraphIntParam("SDR", 0, 0, device.name, key, g);		
 	}
 	
+	@SuppressWarnings("rawtypes")
 	protected void loadParam(JComboBox box, String key) {
         int g = Config.loadGraphIntValue("SDR", 0, 0, device.name, key);
 		Log.println("Loaded " + key + ": " + g);

@@ -1,6 +1,5 @@
 package FuncubeDecoder;
 
-import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 
@@ -11,9 +10,11 @@ public class PayloadRealTime extends FramePart {
 	protected String[] fieldUnits = null;
 	protected int[] fieldBitLength = null;
 	public String[] description = null;
+	public static final int REAL_TIME_TYPE = 0;
+
 	
 	protected PayloadRealTime(BitArrayLayout l) {
-		super(l);
+		super(l, REAL_TIME_TYPE);
 		MAX_BYTES = MAX_RT_PAYLOAD_SIZE;
 		fieldValue = new int[layout.fieldName.length];
 		rawBits = new boolean[MAX_BYTES*8];

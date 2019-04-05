@@ -24,7 +24,7 @@ public class FUNcubeHeader extends BitArray {
 	@Override
 	public void copyBitsToFields() {
 		resetBitPosition();
-		int id = nextbits(2);
+		id = nextbits(2);
 		type = nextbits(6);
 		
 	}

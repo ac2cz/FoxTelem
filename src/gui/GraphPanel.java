@@ -10,8 +10,10 @@ import java.util.HashMap;
 
 import common.Config;
 import common.FoxSpacecraft;
+import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
 import telemetry.PayloadStore;
+import uk.me.g4dpz.satellite.SatPos;
 
 /**
  * 
@@ -47,6 +49,7 @@ public class GraphPanel extends GraphCanvas {
 
 	int[] plottedXreset;
 	long[] plottedXuptime;
+	int zeroPoint;
 	
 	public static final int MAX_VARIABLES = 13;
 	Color[] graphColor = {Color.BLUE, Config.GRAPH1, Config.GRAPH2, Config.GRAPH3, Config.GRAPH4, Config.GRAPH5, Config.GRAPH6, 
@@ -65,23 +68,30 @@ public class GraphPanel extends GraphCanvas {
 	
 	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft fox2) {
 		super(t, conversionType, plType, gf, fox2);
-		freqOffset = fox2.telemetryDownlinkFreqkHz * 1000;
+		freqOffset = (int) (fox2.telemetryDownlinkFreqkHz * 1000);
 		updateGraphData("GrapPanel.new");
 	}
 
 	
-	private void drawLegend(int graphWidth, int titleHeight) {
+	private void drawLegend(int graphHeight, int graphWidth) {
 		if (graphFrame.fieldName.length == 1 && graphFrame.fieldName2 == null) return;
 		
+		int titleHeight = topBorder;
 		int verticalOffset = 15;
+		if (zeroPoint < Config.graphAxisFontSize*3) {
+			// we need the title at bottom of graph, not top
+			titleHeight = graphHeight - 15;	
+		}
+		
+		
 		int lineLength = 15;
 		
 		int rows = graphFrame.fieldName.length;
-		int font = (int)(9 * Config.graphAxisFontSize / 11 );
+		int font = (int)(Config.graphAxisFontSize );
 		
 		int leftLineOffset = 50;
 		int fonth = (int)(12*font/9);
-		int fontw = (int)(8*font/10);
+		int fontw = (int)(9*font/10);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
 
@@ -102,13 +112,14 @@ public class GraphPanel extends GraphCanvas {
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, font));
 		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,longestWord * fontw +1 , 9 + fonth * rows +1  );
-		g2.setColor(Color.LIGHT_GRAY);
+		g2.setColor(Color.WHITE);
 		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, longestWord * fontw , 9 + fonth * rows  );
 		
 		
 		for (int i=0; i < graphFrame.fieldName.length; i++) {
 			g2.setColor(Color.BLACK);
-			String name = graphFrame.fieldName[i].toLowerCase();
+			//String name = graphFrame.fieldName[i].toLowerCase();
+			String name = graphFrame.layout.getModuleByName(graphFrame.fieldName[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName[i]);
 			g2.drawString(name+" ("+graphFrame.fieldUnits+")", sideBorder+ graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
@@ -119,7 +130,8 @@ public class GraphPanel extends GraphCanvas {
 		if (graphFrame.fieldName2 != null) {
 		for (int i=0; i < graphFrame.fieldName2.length; i++) {
 			g2.setColor(Color.BLACK);
-			String name = graphFrame.fieldName2[i].toLowerCase();
+			//String name = graphFrame.fieldName2[i].toLowerCase();
+			String name = graphFrame.layout.getModuleByName(graphFrame.fieldName2[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName2[i]);
 			g2.drawString(name+" ("+graphFrame.fieldUnits2+")", sideBorder + graphWidth - leftOffset + 2, titleHeight + verticalOffset +5 + i * fonth );
 			g2.setColor(graphColor[graphFrame.fieldName.length + i]);
 			g2.fillRect(sideBorder + graphWidth - leftLineOffset, titleHeight + verticalOffset + i * fonth, lineLength + 5,2);
@@ -185,7 +197,7 @@ public class GraphPanel extends GraphCanvas {
 		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines,graphFrame.fieldUnits, conversionType);
 		
 		
-		int zeroPoint = (int) axisPoints[0];
+		zeroPoint = (int) axisPoints[0];
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
 		// Analyze the data for the horizontal axis next
@@ -229,7 +241,7 @@ public class GraphPanel extends GraphCanvas {
 		g2.drawString(graphFrame.displayTitle, sideBorder/2 + graphWidth/2 - graphFrame.displayTitle.length()/2 * Config.graphAxisFontSize/2, titleHeight);
 
 		// draw the key
-		drawLegend(graphWidth, topBorder); // FIXME - need to work out where to plot the key when the axis is on top
+		drawLegend(graphHeight, graphWidth); // FIXME - need to work out where to plot the key when the axis is on top
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 		
@@ -532,6 +544,8 @@ public class GraphPanel extends GraphCanvas {
 		if (graphData != null)
 			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
+				int nextx = 0; 
+				int lastMidPoint = 0;
 				int lastx2 = sideBorder+1;
 				int lasty = graphHeight/2;
 				int lasty2 = graphHeight/2;
@@ -544,13 +558,33 @@ public class GraphPanel extends GraphCanvas {
 				for (int i=start; i < end; i+=stepSize) {
 
 					// calculate the horizontal position of this point based on the number of points and the width
-					x = getRatioPosition(minTimeValue, maxTimeValue, graphData[j][PayloadStore.UPTIME_COL][i], graphWidth);
+					double p = graphData[j][PayloadStore.UPTIME_COL][i];
+					x = getRatioPosition(minTimeValue, maxTimeValue, p, graphWidth);
+					if (i < end-stepSize) {
+						double q = graphData[j][PayloadStore.UPTIME_COL][i+stepSize];
+					
+						nextx = getRatioPosition(minTimeValue, maxTimeValue, q, graphWidth);
+						nextx = nextx + sideBorder;
+					} else
+						nextx=0;
 					
 					x = x + sideBorder; // sideborder is the position of this reset, unless its the first one, which is equal to this.sideBorder
 
 					plottedXreset[x-this.sideBorder] = (int) graphData[j][PayloadStore.RESETS_COL][i];
 					plottedXuptime[x-this.sideBorder] = (long) graphData[j][PayloadStore.UPTIME_COL][i];
 
+					
+					// draw the sun if requested by user
+					long up = (long) graphData[j][PayloadStore.UPTIME_COL][i];
+					int res = (int) graphData[j][PayloadStore.RESETS_COL][i];
+					SatPos pos = null;
+					try {
+						 pos = this.fox.getSatellitePosition(res, up);
+					} catch (PositionCalcException e) {
+						// Ignore, we just don't plot it
+						pos = null;
+					}
+					
 					x2 = (x + lastx)/2; // position for the first deriv
 					//				System.out.println(x + " graphData " + graphData[i]);
 
@@ -581,11 +615,39 @@ public class GraphPanel extends GraphCanvas {
 					//				System.out.println(x + " value " + value);
 					if (i == start) {
 						lastx=x;
+						lastMidPoint = x;
 						lastx2=x2;
 						lasty=y;
 						lasty2=y2;
 						lasty3=y3;
 					}
+					
+					if (graphFrame.showSun) {
+						if (pos != null && pos.isEclipsed())
+							g2.setColor(new Color(204,204,204)); // gray
+						else
+							g2.setColor(new Color(255,204,0)); // yellow
+
+						int midPoint = 0;
+						int w = 0; // width of sun rectangle
+						if (nextx == 0)
+							nextx = x;
+						midPoint = x + (nextx-x)/2;
+						w = midPoint - lastMidPoint;
+						if (lastx == x) {
+							// project forward half width.  Likely first point
+							g2.fillRect(lastx, topBorder+5, w, graphHeight-5);	
+						} else if (w == 0) {
+							midPoint = x;
+							g2.drawLine(x, topBorder+5, x, graphHeight+topBorder-5);
+						} else {
+							g2.fillRect(lastMidPoint, topBorder+5, w, graphHeight-5);
+						//g2.fillRect(lastx, topBorder+5, x-lastx, graphHeight-5);
+						}
+						lastMidPoint = midPoint;
+					}
+
+
 					// Hide the trace if hideMain is set, unless this is not the first trace or we are not plotting deriv/dsp for this set of data
 					if (!graphFrame.hideMain || ( graphFrame.hideMain && plotDsp && j > 0 ) || ( graphFrame.hideMain && !plotDsp)) {
 						g2.setColor(graphColor[j+colorIdx]);

@@ -1,6 +1,7 @@
 package device.fcd;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -13,8 +14,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
-import javax.usb.UsbClaimException;
-import javax.usb.UsbException;
 
 import common.Config;
 import common.Log;
@@ -72,6 +71,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 		JLabel lblband = new JLabel("    Band");
 		center.add(lblband);
 		bandValue = new JTextField();
+		bandValue.setMinimumSize(new Dimension(40,10));
 		bandValue.setEnabled(false);
 		center.add(bandValue);
 		
@@ -79,6 +79,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 		JLabel rfFilter = new JLabel("    RF Filter");
 		center.add(rfFilter);
 		rfFilterValue = new JTextField();
+		rfFilterValue.setMinimumSize(new Dimension(70,10));
 		rfFilterValue.setEnabled(false);
 		center.add(rfFilterValue);
 
@@ -192,7 +193,7 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 
 	@Override
 	public int getSampleRate() {
-		return ((FCD1TunerController) device).SAMPLE_RATE;
+		return FCD1TunerController.SAMPLE_RATE;
 	}
 
 	@Override

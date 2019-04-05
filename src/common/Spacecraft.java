@@ -38,21 +38,21 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
+	public static final int HUSKY_SAT = 6;
 	public static final int FUN_CUBE1 = 100;
 	public static final int FUN_CUBE2 = 101;
 	
-	// Primary Payloads
-//	public static String RT_LOG = "";
-//	public static String MAX_LOG = "";
-//	public static String MIN_LOG = "";
-//	public static String RAD_LOG = "";
+	public static final String[][] SOURCES = {
+			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
+			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
+			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
+			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
+			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
+			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
+			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" } };
 
-	// Secondary payloads - decoded from the primary payloads
-//	public static String RAD_TELEM_LOG = "";
+	public static final int MAX_FOXID = 6;
 
-//	public static String HERCI_LOG = "";
-//	public static String HERCI_HEADER_LOG = "";
-//	public static String HERCI_PACKET_LOG = "";
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
 	public static final String REAL_TIME_LAYOUT = "rttelemetry";
@@ -70,9 +70,13 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
 	public static final String RAD_REM_LAYOUT = "radtelemREM";
 	
+	public static final String CAN_PKT_LAYOUT = "canpacket";
+	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
+	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
 	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
+	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
 
 	
 	// Model Versions
@@ -95,21 +99,26 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	public int foxId = 1;
 	public int catalogNumber = 0;
-	public String series = "Fox";
+	public String series = "FOX";
 	public String name = "Fox-1A";
+	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
-	public int telemetryDownlinkFreqkHz = 145980;
-	public int minFreqBoundkHz = 145970;
-	public int maxFreqBoundkHz = 145990;
+	public double telemetryDownlinkFreqkHz = 145980;
+	public double minFreqBoundkHz = 145970;
+	public double maxFreqBoundkHz = 145990;
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
+	
+	public String localServer = ""; // default to blank, otherwise we try to send to the local server
+	public int localServerPort = 8587;
 	
 	public int numberOfLayouts = 4;
 	public String[] layoutFilename;
 	//public String[] layoutName;
 	public BitArrayLayout[] layout;
+	private boolean[] sendLayoutLocally;  // CURRENTLY UNUSED SO MADE PRIVATE
 	 	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
@@ -199,7 +208,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	 * @throws IOException 
 	 */
 	protected void loadTleHistory() {
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -224,7 +233,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	private void saveTleHistory() throws IOException {
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -309,13 +318,38 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
 	}
 	
+	public boolean sendToLocalServer() {
+		if (localServer == null) return false;
+		if (localServer.equalsIgnoreCase(""))
+			return false;
+		else
+			return true;
+	}
+	
+	/**
+	 * Returns true if this layout should be sent to the local server
+	 * @param name
+	 * @return
+	 */
+	public boolean shouldSendLayout(String name) {
+		for (int i=0; i<numberOfLayouts; i++)
+			if (layout[i].name.equals(name))
+				if (sendLayoutLocally[i])
+					return true;
+		return false;
+	}
+	
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
+		FileInputStream f = null;
 		try {
-			FileInputStream f=new FileInputStream(propertiesFile);
+			f=new FileInputStream(propertiesFile);
 			properties.load(f);
+			f.close();
 		} catch (IOException e) {
+			if (f!=null) try { f.close(); } catch (Exception e1) {};
 			throw new LayoutLoadException("Could not load spacecraft files: " + propertiesFile.getAbsolutePath());
+			
 		}
 		try {
 			foxId = Integer.parseInt(getProperty("foxId"));
@@ -323,9 +357,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			name = getProperty("name");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
-			telemetryDownlinkFreqkHz = Integer.parseInt(getProperty("telemetryDownlinkFreqkHz"));			
-			minFreqBoundkHz = Integer.parseInt(getProperty("minFreqBoundkHz"));
-			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
+			telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
+			minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
+			maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			// Frame Layouts
 			/**
@@ -344,6 +378,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			layoutFilename = new String[numberOfLayouts];
 			layout = new BitArrayLayout[numberOfLayouts];
+			sendLayoutLocally = new boolean[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
@@ -361,12 +396,38 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				lookupTable[i].name = getProperty("lookupTable"+i);
 			}
 			
-			
 			String t = getOptionalProperty("track");
 			if (t == null) 
 				track = true;
 			else 
 				track = Boolean.parseBoolean(t);
+			String s = getOptionalProperty("series");
+			if (s == null) 
+				series = "FOX";
+			else 
+				series = s;
+			String serv = getOptionalProperty("localServer");
+			if (serv == null) 
+				localServer = null;
+			else 
+				localServer = serv;
+			String p = getOptionalProperty("localServerPort");
+			if (p == null) 
+				localServerPort = 0;
+			else 
+				localServerPort = Integer.parseInt(p);
+//			for (int i=0; i < numberOfLayouts; i++) {
+//				String l = getOptionalProperty("sendLayoutLocally"+i);
+//				if (l != null)
+//					sendLayoutLocally[i] = Boolean.parseBoolean(l);
+//				else
+//					sendLayoutLocally[i] = false;
+//			}
+			String pri = getOptionalProperty("priority");
+			if (pri == null) 
+				priority = 1;
+			else 
+				priority = Integer.parseInt(pri);
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -396,27 +457,38 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return value;
 	}
 	protected void store() {
+		FileInputStream f = null;
 		try {
+			f=new FileInputStream(propertiesFile);
 			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
+			f.close();
 		} catch (FileNotFoundException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e2) {};
 			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
 			e1.printStackTrace(Log.getWriter());
 		} catch (IOException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e3) {};
 			Log.errorDialog("ERROR", "Error writing spacecraft file");
 			e1.printStackTrace(Log.getWriter());
 		}
 	}
 	protected void save() {
+		
 		properties.setProperty("foxId", Integer.toString(foxId));
 		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
 		properties.setProperty("name", name);
 		properties.setProperty("description", description);
 		properties.setProperty("model", Integer.toString(model));
-		properties.setProperty("telemetryDownlinkFreqkHz", Integer.toString(telemetryDownlinkFreqkHz));
-		properties.setProperty("minFreqBoundkHz", Integer.toString(minFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
+		properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(telemetryDownlinkFreqkHz));
+		properties.setProperty("minFreqBoundkHz", Double.toString(minFreqBoundkHz));
+		properties.setProperty("maxFreqBoundkHz", Double.toString(maxFreqBoundkHz));
 		properties.setProperty("track", Boolean.toString(track));
+		
+		if (localServer != null) {
+			properties.setProperty("localServer",localServer);
+			properties.setProperty("localServerPort", Integer.toString(localServerPort));
+		}
+		properties.setProperty("priority", Integer.toString(priority));
 	}
 	
 	public String getIdString() {
@@ -432,7 +504,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	@Override
 	public int compareTo(Spacecraft s2) {
-		return name.compareToIgnoreCase(s2.name);
+		if (priority == s2.priority) 
+			return name.compareTo(s2.name);
+		else if (priority < s2.priority) return -1;
+		else if (priority > s2.priority) return 1;
+		return -1;
 	}
 	
 }

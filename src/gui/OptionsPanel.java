@@ -58,6 +58,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JCheckBox debugClock;
 	JCheckBox debugGlitches;
 	JCheckBox debugSignalFinder;
+	JCheckBox debugCalcDopplerContinually;
 	JCheckBox filterData;
 	JCheckBox useRSfec;
 	JCheckBox useRSerasures;
@@ -110,6 +111,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	//	useAGC = addCheckBox("Use AGC", Config.useAGC );
 		debugGlitches = addCheckBox("Debug missed audio", "Write to debug log when significant audio is being missed from the soundcard", Config.debugAudioGlitches );
 		debugSignalFinder = addCheckBox("Debug Find Signal", "Write debug to show the workings of the signal finder and the pass measurements", Config.debugSignalFinder );
+		debugCalcDopplerContinually = addCheckBox("Debug (Calc) Doppler Continually", "Calculate doppler continually for debugging.  Calculates first sat in the priority order.", Config.debugCalcDopplerContinually );
 		useNativeFileChooser = addCheckBox("Use Native File Chooser", "Use the OS native file chooser", Config.useNativeFileChooser );
 		//squelchAudio = addCheckBox("Squelch Decoder", Config.squelchAudio );
 		//realTimePlayback = addCheckBox("Slow Down Playback", Config.realTimePlaybackOfFile );
@@ -127,7 +129,10 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			debugCount.setForeground(Color.RED);
 			add(debugCount);
 		}
-		this.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
+		// min, pref, max - each is Hor, Vert
+		this.add(new Box.Filler(new Dimension(0,0), new Dimension(100,0), new Dimension(1000,0)));
+
+		//this.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 	}
 	
 	private JCheckBox addCheckBox(String name, String tip, boolean value) {
@@ -238,6 +243,13 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				Config.debugSignalFinder = false;
 			} else {
 				Config.debugSignalFinder = true;
+			}
+		}
+		if (source == debugCalcDopplerContinually) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugCalcDopplerContinually = false;
+			} else {
+				Config.debugCalcDopplerContinually = true;
 			}
 		}
 		if (source == useNativeFileChooser) { 

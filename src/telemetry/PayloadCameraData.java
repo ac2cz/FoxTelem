@@ -58,17 +58,16 @@ public class PayloadCameraData extends FoxFramePart {
 	private boolean foundEndOfJpegData = false;
 	
 	public PayloadCameraData(int slc) {
-		super(new BitArrayLayout());
+		super(TYPE_CAMERA_DATA, new BitArrayLayout());
 		
 		MAX_BYTES = HighSpeedFrame.MAX_CAMERA_PAYLOAD_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
-		type = TYPE_CAMERA_DATA;
 		
 		setupScanLines(slc);
 	}
 	
 	public PayloadCameraData(int id, int resets, long uptime, String date, StringTokenizer st) {
-		super(id, resets, uptime, date, st, new BitArrayLayout());
+		super(id, resets, uptime, TYPE_CAMERA_DATA, date, st, new BitArrayLayout());
 		MAX_BYTES = HighSpeedFrame.MAX_CAMERA_PAYLOAD_SIZE;
 	}
 	

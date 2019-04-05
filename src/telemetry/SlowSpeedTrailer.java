@@ -29,7 +29,7 @@ public class SlowSpeedTrailer extends FoxFramePart {
 	int[] fecBytes = new int[MAX_BYTES];
 	
 	SlowSpeedTrailer() {
-		super (new BitArrayLayout());
+		super (TYPE_SLOW_SPEED_HEADER, new BitArrayLayout());
 	}
 	
 	@Override

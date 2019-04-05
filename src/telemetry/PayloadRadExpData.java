@@ -47,24 +47,23 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	
 	public PayloadRadExpData(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_RAD_EXP_DATA, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
-		rawBits = new boolean[MAX_BYTES*8];
+//		rawBits = new boolean[MAX_BYTES*8];
 		
 	}
 	
 	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);
+		super(id, resets, uptime, TYPE_RAD_EXP_DATA, date, st, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 
 	public PayloadRadExpData(ResultSet r, BitArrayLayout lay) throws SQLException {
-		super(r, lay);
+		super(r, TYPE_RAD_EXP_DATA, lay);
 	}
 	
 	protected void init() {
-		fieldValue = new int[layout.fieldName.length];
-		type = TYPE_RAD_EXP_DATA;
+
 	}
 	
 	/*
@@ -115,7 +114,7 @@ public class PayloadRadExpData extends FoxFramePart {
 		}
 		radTelem.copyBitsToFields();
 		int offset=0;  
-		int length=16; // Default is that we display 16 bytes
+		int length=0; // Default is that we display nothing
 		if (radTelem.getRawValue(STATE2) == ACTIVE) { // LEPF is 2
 			offset=0;
 			length = 16;
@@ -125,14 +124,14 @@ public class PayloadRadExpData extends FoxFramePart {
 		} else if (radTelem.getRawValue(STATE4) == ACTIVE) { // REM is 4
 			offset=26;
 			length = 16;
-		}
+		} 
 		// Pretend there is a gap, so that the layout works like Fox-1B
-		for (int k=10; k<10+offset; k++) { 
+		for (int k=0; k<offset; k++) { 
 			radTelem.addNext8Bits(0);
 		}
 		// Now flow the rest of the data in, 
 		for (int k=10+offset; k<10+offset+length; k++) { 
-			radTelem.addNext8Bits(fieldValue[k]);
+			radTelem.addNext8Bits(fieldValue[k-offset]);
 		}
 		radTelem.copyBitsToFields();
 		
@@ -166,7 +165,7 @@ public class PayloadRadExpData extends FoxFramePart {
 			return radTelem;
 		} else {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
-			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+			for (int k=0; k<radTelem.getMaxBytes(); k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;

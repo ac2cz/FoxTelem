@@ -77,6 +77,7 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets) {
+    	if (this.size() == 0) return -1;
     	return getNearestFrameIndex(id, uptime, resets, get(0).type);
     }
     

@@ -85,6 +85,7 @@ Array index   Value
 public class SlowSpeedHeader extends Header {
 	
 	public SlowSpeedHeader() {
+		super(TYPE_SLOW_SPEED_HEADER);
 		MAX_BYTES = SlowSpeedFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 	}
@@ -102,7 +103,7 @@ public class SlowSpeedHeader extends Header {
 	
 	public boolean isValid() {
 		copyBitsToFields();
-		if (Config.satManager.validFoxId(id) && isValidType(type))
+		if (Config.satManager.validFoxId(id))
 			return true;
 		return false;
 	}

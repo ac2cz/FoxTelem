@@ -60,7 +60,7 @@ public class HealthTabRt extends HealthTab {
 	}
 	
 	@Override
-	protected void displayRow(int row) {
+	protected void displayRow(int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
@@ -75,7 +75,12 @@ public class HealthTabRt extends HealthTab {
     	minPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MIN_LAYOUT, true);
     	if (minPayload != null)
     		updateTabMin(minPayload);
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
 	@Override
@@ -114,6 +119,7 @@ public class HealthTabRt extends HealthTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
+					MainWindow.setTotalDecodes();
 				}
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
@@ -123,7 +129,7 @@ public class HealthTabRt extends HealthTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
-					
+					MainWindow.setTotalDecodes();
 				}
 
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
@@ -140,12 +146,13 @@ public class HealthTabRt extends HealthTab {
 
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
+					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs(FoxFramePart.TYPE_REAL_TIME);
 						justStarted = false;
 					}
 				}
-				MainWindow.setTotalDecodes();
+				
 
 			}
 			//System.out.println("Health tab running: " + running);

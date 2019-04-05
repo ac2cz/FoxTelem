@@ -26,19 +26,19 @@
 24,MIN,FwdPower,12,mW,40,NONE,1,4,3,Fwd Power,Receiver card temperature
 25,MIN,rssi,12,dBm,14,NONE,1,3,3,RSSI,Received Signal Strength Indication
 26,MIN,IHUcpuTemp,12,C,15,NONE,2,1,3,Temperature,Internal Temperature of IHU
-27,MIN,Xvelocity,12,dps,13,NONE,8,3,3,Rotation,Angular Veolcity around X Axis
-28,MIN,Yvelocity,12,dps,13,NONE,9,3,3,Rotation,Angular Veolcity around Y Axis
-29,MIN,Zvelocity,12,dps,13,NONE,10,3,3,Rotation,Angular Veolcity around Z Axis
+27,MIN,SatelliteXAxisAngularVelocity,12,dps,13,NONE,8,3,3,Rotation,Angular Veolcity around X Axis
+28,MIN,SatelliteYAxisAngularVelocity,12,dps,13,NONE,9,3,3,Rotation,Angular Veolcity around Y Axis
+29,MIN,SatelliteZAxisAngularVelocity,12,dps,13,NONE,10,3,3,Rotation,Angular Veolcity around Z Axis
 30,MIN,Exp4Temp,12,C,7,NONE,6,1,3,EXP4 Temp,Experiment 4 card temperature
 31,MIN,PSUCurrent,12,mA,22,NONE,5,1,3,Current,Power Supply DC Current
 32,MIN,ReflectedPwr,12,mW,41,NONE,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
-33,MIN,ICR3V,12,V,23,NONE,7,1,3,3V,ICR 3V
-34,MIN,ICR3VProt,12,V,23,NONE,7,2,3,3V Prot,ICR 3V Proteted
-35,MIN,ICR2dot5V,12,V,23,NONE,7,3,3,2.5V,ICR 2.5V
-36,MIN,ICR2dot5VProt,12,V,23,NONE,7,4,3,2.5V Prot,ICR 2.5V Protected
+33,MIN,ICR3V,12,V,43,NONE,7,1,3,3V,ICR 3V
+34,MIN,ICR3VProt,12,V,43,NONE,7,2,3,3V Prot,ICR 3V Proteted
+35,MIN,ICR2dot5V,12,V,43,NONE,7,3,3,2.5V,ICR 2.5V
+36,MIN,ICR2dot5VProt,12,V,43,NONE,7,4,3,2.5V Prot,ICR 2.5V Protected
 37,MIN,rf6,12,-,0,NONE,0,0,0,None,None
 38,MIN,rf7,12,-,0,NONE,0,0,0,None,None
-39,MIN,MuxTest,12,V,23,NONE,7,5,3,Sensor Power,Sensor Power Voltage at the ICR
+39,MIN,MuxTest,12,V,43,NONE,7,5,3,Sensor Power,Sensor Power Voltage at the ICR
 40,MIN,LtVGACtl,12,V,42,NONE,1,6,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 41,MIN,pad,4,-,34,NONE,0,0,0,None,Unused
 42,MIN,IHUsoftError,32,-,39,Computer Software,3,8,0,Soft Error,Diagnostic Data on IHU Software Errors

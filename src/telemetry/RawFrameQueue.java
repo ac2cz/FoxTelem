@@ -2,15 +2,8 @@ package telemetry;
 
 import gui.MainWindow;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -51,26 +44,18 @@ import common.TlmServer;
  * TCA is measured.
  *
  */
-public class RawFrameQueue implements Runnable {
+public class RawFrameQueue extends RawQueue {
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVframes.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSframes.log";
 	public static String RAW_PSK_FRAMES_FILE = "rawPSKframes.log";
-	ConcurrentLinkedQueue<Frame> rawSlowSpeedFrames;
-	ConcurrentLinkedQueue<Frame> rawHighSpeedFrames;
-	ConcurrentLinkedQueue<Frame> rawPSKFrames;
-	@SuppressWarnings("unused")
-	private boolean updatedSlowQueue = false;
-	@SuppressWarnings("unused")
-	private boolean updatedHSQueue = false;
-	@SuppressWarnings("unused")
-	private boolean updatedPSKQueue = false;
 	
 	TlmServer primaryServer;
 	TlmServer secondaryServer;
 	
-	boolean running = false;
+	
 	
 	public RawFrameQueue() {
+		super();
 		init();
 	}
 	
@@ -122,111 +107,6 @@ public class RawFrameQueue implements Runnable {
 	}
 
 	
-	public void load(String log, int type) throws IOException {
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-			Log.println("Loading: " + log);
-		}
-		File aFile = new File(log );
-		if(!aFile.exists()){
-			aFile.createNewFile();
-		}
-
-		FileInputStream dis = new FileInputStream(log);
-		BufferedReader reader = new BufferedReader(new InputStreamReader(dis));
-
-		Frame frame = null;
-		//int size = 0;
-		if (type == Frame.DUV_FRAME) {
-			//size = SlowSpeedFrame.MAX_HEADER_SIZE + SlowSpeedFrame.MAX_PAYLOAD_SIZE
-			//		+ SlowSpeedFrame.MAX_TRAILER_SIZE;
-			while (reader.ready()) {
-				frame = new SlowSpeedFrame(reader);
-				rawSlowSpeedFrames.add(frame);
-			}
-			updatedSlowQueue = true;
-		} else if (type == Frame.PSK_FRAME) {
-			while (reader.ready()) {
-				frame = new FoxBPSKFrame(reader);
-				rawPSKFrames.add(frame);
-			}
-			updatedPSKQueue = true;
-		} else if (type == Frame.HIGH_SPEED_FRAME) {
-			//size = HighSpeedFrame.MAX_HEADER_SIZE + HighSpeedFrame.MAX_PAYLOAD_SIZE 
-			//		+ HighSpeedFrame.MAX_TRAILER_SIZE;
-			while (reader.ready()) {
-				frame = new HighSpeedFrame(reader);
-				rawHighSpeedFrames.add(frame);
-			}
-			updatedHSQueue = true;
-		}
-
-		dis.close();
-		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
-
-	}
-
-	/**
-	 * Save a payload to the log file
-	 * @param frame
-	 * @param log
-	 * @throws IOException
-	 */
-	public void save(Frame frame, String log) throws IOException {
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			log = Config.logFileDirectory + File.separator + log;
-		} 
-		synchronized(this) { // make sure we have exlusive access to the file on disk, otherwise a removed frame can clash with this
-			File aFile = new File(log );
-			if(!aFile.exists()){
-				aFile.createNewFile();
-			}
-			//Log.println("Saving: " + log);
-			//use buffering and append to the existing file
-			FileOutputStream dis = new FileOutputStream(log, true);
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
-
-			try {
-				frame.save(writer);
-			} finally {
-				writer.flush();
-				writer.close();
-			}
-
-			writer.close();
-			dis.close();
-		}
-	}
-
-	/**
-	 * Remove the first record in the queue.  Save all of the records to the file as a backup
-	 * @throws IOException 
-	 */
-	private void deleteAndSave(ConcurrentLinkedQueue<Frame> frames, String log) throws IOException {
-		synchronized(this) {  // make sure we have exclusive access to the file on disk, otherwise a frame being added can clash with this
-			frames.poll(); // remove the head of the queue
-			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-				log = Config.logFileDirectory + File.separator + log;
-			} 
-			File aFile = new File(log );
-			if(!aFile.exists()){
-				aFile.createNewFile();
-			}
-			//use buffering and OVERWRITE the existing file
-			FileOutputStream dis = new FileOutputStream(log, false);
-			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(dis));
-			try {
-				for (Frame f : frames) {
-					f.save(writer);
-				}
-			} finally {
-				writer.flush();
-				writer.close();
-			}
-
-		}
-	}
-	
 	public void delete() {
 		try {
 			SatPayloadStore.remove(SatPayloadTable.getDir() + RAW_SLOW_SPEED_FRAMES_FILE);
@@ -243,11 +123,6 @@ public class RawFrameQueue implements Runnable {
 					JOptionPane.ERROR_MESSAGE) ;
 		}
 
-	}
-
-	
-	public void stopProcessing() {
-		running = false;
 	}
 	
 	@Override
@@ -332,7 +207,8 @@ public class RawFrameQueue implements Runnable {
 		Log.println("Trying Primary Server: " + protocol + "://" + Config.primaryServer + ":" + Config.serverPort);
 		try {
 			if (frames.peek() != null) {
-				frames.peek().sendToServer(primaryServer, Config.serverProtocol);
+				byte[] buffer = frames.peek().getServerBytes();
+				primaryServer.sendToServer(buffer, Config.serverProtocol);
 				success = true;
 			}
 		} catch (UnknownHostException e) {
@@ -347,7 +223,8 @@ public class RawFrameQueue implements Runnable {
 			try {
 				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
 				if (frames.peek() != null) {
-					frames.peek().sendToServer(secondaryServer, Config.serverProtocol);
+					byte[] buffer = frames.peek().getServerBytes();
+					secondaryServer.sendToServer(buffer, Config.serverProtocol);
 					success = true;
 				}
 			} catch (UnknownHostException e) {

@@ -5,10 +5,12 @@ import java.util.ArrayList;
 import common.Config;
 import common.Log;
 import common.Performance;
+import decoder.FoxBPSK.FoxBPSKBitStream;
 import telemetry.Frame;
 import telemetry.FoxFramePart;
 import telemetry.HighSpeedHeader;
 import telemetry.SlowSpeedHeader;
+import telemetry.FoxBPSK.FoxBPSKHeader;
 
 /**
  * 
@@ -114,11 +116,17 @@ public abstract class FoxBitStream extends BitStream {
 		return found;
 	}
 	
+	/**
+	 * Original Find Frames, called in conjunction with findSyncMarkers
+	 * @return
+	 */
 	public Frame findFrames() {
 		
 		Performance.startTimer("findFrames:checks");
 		
-		if (Config.mode == SourceIQ.MODE_FSK_HS)
+		if (this instanceof FoxBPSKBitStream)
+			checkMissingStartSYNC(0, new FoxBPSKHeader());
+		else if (Config.mode == SourceIQ.MODE_FSK_HS)
 			checkMissingStartSYNC(0, new HighSpeedHeader());
 		else
 			checkMissingStartSYNC(0, new SlowSpeedHeader()); 
@@ -197,6 +205,90 @@ public abstract class FoxBitStream extends BitStream {
 		Performance.endTimer("findFrames:decode");
 
 		return null;
+	}
+	
+	/**
+	 * Add the bits from the current processed window.  For each bit added check to see if the previous N bits are
+	 * a sync word.  If they are try to process it as a frame.  If that is successful and enough bits remain, try to 
+	 * process a previous frame and continue until no more bits
+	 * If there was no frame, continue adding bits and checking for the sync word
+	 * @param windowLength
+	 * @return
+	 */
+	public ArrayList<Frame> findFrames(int windowLength) {
+		if (this.size() < SYNC_WORD_LENGTH) return null; // not enough bits yet
+		
+		ArrayList<Frame> frames = null;
+		syncWordbitPosition = 0;
+		syncWord = new boolean[SYNC_WORD_LENGTH]; // re-init each search
+		
+		// We look for a new sync word in the current window of bits.  We add each bit one by one
+		// and see if the previous N bits are the sync word.  We might have just the last bit in this window
+		for (int i=this.size()-windowLength-SYNC_WORD_LENGTH; i < this.size(); i++) {
+			syncWord[syncWordbitPosition++] = this.get(i);
+			if (syncWordbitPosition > SYNC_WORD_LENGTH-1) {
+				syncWordbitPosition = SYNC_WORD_LENGTH-1;
+				// Check the last SYNC_WORD_LENGTH bits in the bit stream for the end of frame market
+				int word = binToInt(syncWord);
+				if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
+				//if ((findFramesWithPRN && (word == CodePRN.FRAME )) ||
+				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
+						!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
+					// We found a sync word
+					if (Config.debugFrames) {
+						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1) + " total:" + (totalBits + i + 1));
+						int last = 0;
+						for (int s : syncWords) {
+							Log.print(s + "-" + (s-last)+", ");
+							last = s;
+						}
+						Log.println("");
+						printBitArray(syncWord);
+					}
+					frames = tryToProcessFrames(i+1);
+					// we do not exit as we have to add the remaining bits in the window, which are the start of the next frame
+				} 
+				// now shift the bits and continue looking for frame marker
+				for (int k=1; k<SYNC_WORD_LENGTH; k++)
+					syncWord[k-1] = syncWord[k];
+			} 
+		}
+//		if (frames !=null && frames.size() > 1) { // then reverse the order or the timestamps are back to front
+//			ArrayList<Frame> returnFrames = new ArrayList<Frame>(frames.size());
+//			for (int i = 0; i< frames.size(); i++)
+//				returnFrames.add(frames.get(frames.size()-1-i));
+//			return returnFrames;
+//		} else
+			return frames;
+
+	}
+
+	/**
+	 * We have a sync word at this bit position, try to process a frame or frames
+	 * @param bitPosition
+	 */
+	private ArrayList<Frame> tryToProcessFrames(int end) {
+		int END = end;
+		ArrayList<Frame> frames = new ArrayList<Frame>();
+		int start = end - SYNC_WORD_DISTANCE;
+		int missedBits = 0;
+		int repairPosition = 0;
+		while (start > 0) {
+			Frame frame = decodeFrame(start,end, missedBits, repairPosition);
+			if (frame != null) {
+				// We found a frame
+				frames.add(frame);
+				end = end - SYNC_WORD_DISTANCE;
+				start = start - SYNC_WORD_DISTANCE;
+			} else {
+				start = -1;
+			}
+		}
+		if (frames.isEmpty()) return null;
+		// Otherwise we found some frames
+		// purge the bits, we found a frame or frames
+		removeBits(0, END-SYNC_WORD_LENGTH);
+		return frames;
 	}
 	
 	/**
@@ -280,7 +372,7 @@ public abstract class FoxBitStream extends BitStream {
 		if (start > SYNC_WORD_DISTANCE) {
 			// We might have a frame before this word, but we missed the start SYNC word
 			// Try to find a valid header
-			boolean loopUpError = false;
+			int loopUpError = 0;
 			for (int j=start-SYNC_WORD_DISTANCE; j< start-SYNC_WORD_DISTANCE+header.getMaxBytes()*10; j+=10) {
 				//int[] b8 = processWord(j);
 				byte b8;
@@ -288,12 +380,12 @@ public abstract class FoxBitStream extends BitStream {
 					b8 = processWord(j);
 				} catch (LookupException e) {
 					b8 = -1;
-					loopUpError = true;
+					loopUpError++;
 				}
 				header.addNext8Bits(b8);
 			}
 			
-			if (header.isValid() && !loopUpError) {
+			if (loopUpError < header.getMaxBytes()) { // If we find any valid 10b words then perhaps this was a header, try to process
 				syncWords.add(n, start-SYNC_WORD_DISTANCE);
 			//if (true || header.isValid() && !loopUpError) {
 //				if (!haveSyncWordAtBit(start-SYNC_WORD_DISTANCE)) syncWords.add(n, start-SYNC_WORD_DISTANCE);

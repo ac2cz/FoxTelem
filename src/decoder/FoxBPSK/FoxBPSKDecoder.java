@@ -1,6 +1,10 @@
 package decoder.FoxBPSK;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.swing.SwingUtilities;
+
 import common.Config;
 import common.Log;
 import common.Performance;
@@ -42,7 +46,7 @@ public class FoxBPSKDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 20; //40;  
+		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -98,7 +102,7 @@ public class FoxBPSKDecoder extends Decoder {
 	protected void sampleBuckets() {
 		int maxValue = 0;
 		int minValue = 0;
-		int DESIRED_RANGE =50000;
+		int DESIRED_RANGE =60000;
 		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
@@ -150,24 +154,6 @@ public class FoxBPSKDecoder extends Decoder {
 
 	protected double[] recoverClock(int factor) {
 
-		/*
-	    	if (clockOffset > 0) {
-	    	// There are 40 samples in a 1200bps bucket. The clock offset 
-	    		double[] clockData = new double[clockOffset];
-	    		if (Config.debugClock) Log.println("Advancing clock " + clockOffset + " samples");
-	    		int nBytesRead = read(clockData);
-	    		if (nBytesRead != (clockOffset)) {
-	    			if (Config.debugClock) Log.println("ERROR: Could not advance clock");
-	    		} else {
-	    			// This is the new clock offsest
-	    			// Reprocess the data in the current window
-	    			return clockData;
-	    		}
-	    	} else {
-	    		if (Config.debugClock) Log.println("PSK CLOCK STABLE");
-	    		return null;
-	    	}
-		 */
 		return null;
 	}
 
@@ -200,7 +186,7 @@ public class FoxBPSKDecoder extends Decoder {
 
 				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 				FoxBPSKHeader header = hsf.getHeader();
-				hsf.savePayloads();;
+				hsf.savePayloads(Config.payloadStore);;
 
 				// Capture measurements once per payload or every 5 seconds ish
 				addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
@@ -219,6 +205,17 @@ public class FoxBPSKDecoder extends Decoder {
 					e.printStackTrace(Log.getWriter());
 				}
 			framesDecoded++;
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+				    public void run() { MainWindow.setTotalDecodes();}
+				});
+			} catch (InvocationTargetException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			Performance.endTimer("Store");
 		} else {
 			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");

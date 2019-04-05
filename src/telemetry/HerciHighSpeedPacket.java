@@ -125,7 +125,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	long packetTimestamp; // the 32 bit timestamp when the packet was generated - calculated
 	
 	HerciHighSpeedPacket(int sat, int r, long u, int e, long t, BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_HERCI_HS_PACKET, lay);
 		resets = r;
 		uptime = u;
 		epoch = e;
@@ -137,7 +137,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	}
 
 	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(new BitArrayLayout());
+		super(TYPE_HERCI_HS_PACKET, new BitArrayLayout());
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;

@@ -72,6 +72,7 @@ abstract class FoxTelemTableModel extends AbstractTableModel {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public Class getColumnClass(int c) {
+    	if (getValueAt(0,c) == null) return Integer.class;
         return getValueAt(0, c).getClass();
     }
 

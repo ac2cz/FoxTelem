@@ -57,8 +57,6 @@ import device.DeviceException;
 import device.DevicePanel;
 import device.ThreadPoolManager;
 import device.ThreadPoolManager.ThreadType;
-import device.airspy.AirspyDevice.BufferProcessor;
-import device.airspy.AirspyPanel;
 import device.TunerType;
 
 public abstract class RTL2832TunerController extends device.TunerController
@@ -137,11 +135,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 								   int centerUnusableBandwidth,
 								   double usableBandwidthPercentage ) throws DeviceException
 	{
-		//super( minTunableFrequency, 
-		//	   maxTunableFrequency, 
-		//	   centerUnusableBandwidth, 
-		//	   usableBandwidthPercentage );
-		
+		super( "RTL", minTunableFrequency, 
+			   maxTunableFrequency);		
 		mThreadPoolManager = threadPoolManager;
 
 		mDevice = device;

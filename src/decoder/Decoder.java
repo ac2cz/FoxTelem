@@ -1,7 +1,6 @@
 package decoder;
 import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.StringWriter;
+import java.util.Arrays;
 
 import javax.sound.sampled.AudioFormat;
 import javax.sound.sampled.LineUnavailableException;
@@ -16,7 +15,9 @@ import common.Config;
 import common.Log;
 import common.Performance;
 import common.Spacecraft;
+import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
@@ -99,8 +100,8 @@ public abstract class Decoder implements Runnable {
 	public static final int MIN_BIT_SNR = 2;// Above this threshold we unsquelch the audio
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
-	private double[] abBufferDouble;
-	private double[] abBufferDoubleFiltered; 
+	protected double[] abBufferDouble;
+	protected double[] abBufferDoubleFiltered; 
 	
 	protected boolean dataFresh = false; // true if we have just written new data for the GUI to read
 	
@@ -140,6 +141,8 @@ public abstract class Decoder implements Runnable {
     
     private SinkAudio sink = null; // The audio output device that we copy bytes to if we are monitoring the audio
     private boolean monitorAudio = false; // true if we are monitoring the audio
+    
+    public Frame decodedFrame = null;
     
     /**
      * Given an audio source, decode the data in it,
@@ -279,7 +282,8 @@ public abstract class Decoder implements Runnable {
 				sink.closeOutput();
 			sink = null;
 		} else {
-			sink.setDevice(position);
+			if (sink != null)
+				sink.setDevice(position);
 		}
 		return monitorAudio;
 	}
@@ -365,28 +369,20 @@ public abstract class Decoder implements Runnable {
 					e.toString(),
 					"ERROR",
 					JOptionPane.ERROR_MESSAGE) ;
-		}catch (IOException e) {
+		} catch (IOException e) {
 			JOptionPane.showMessageDialog(MainWindow.frame,
 					e.toString(),
 					"ERROR",
 					JOptionPane.ERROR_MESSAGE) ;	
-		} 
-		
-		catch (NullPointerException e) {
-			// ONLY CATCH THIS IN PRODUCTION VERSION	
-			/*
-			JOptionPane.showMessageDialog(MainWindow.frame,
-					e.toString(),
-					"FATAL ERROR IN DECODER",
-				    JOptionPane.ERROR_MESSAGE) ;
-			e.printStackTrace();
-			e.printStackTrace(Log.getWriter());
-			*/
-			e.printStackTrace(Log.getWriter());
-	    	StringWriter sw = new StringWriter();
-	    	PrintWriter pw = new PrintWriter(sw);
-	    	e.printStackTrace(pw);
-	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + sw.toString());
+		} catch (NullPointerException e) {
+			// CATCH THIS IN PRODUCTION VERSION	
+	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
+	        Log.errorDialog("FATAL ERROR IN DECODER", "Uncaught null exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+//		} catch (Exception e) {
+//			// CATCH THIS IN PRODUCTION VERSION	
+//	    	String stacktrace = Log.makeShortTrace(e.getStackTrace());  
+//	        Log.errorDialog("UNEXPECTED ERROR IN DECODER", "Uncaught exception.  You probablly need to restart FoxTelem:\n" + stacktrace);
+//			
 		}
 		Log.println("DECODER Exit");
 	}
@@ -397,8 +393,12 @@ public abstract class Decoder implements Runnable {
 		nBytesRead = audioSource.read(abData, audioChannel);	
 		return nBytesRead;
 	}
-
 	
+	protected void rewind(int amount) {
+		//Log.println("Rewinding "+ amount +" doubles from channel: " + audioChannel);
+		 audioSource.rewind(amount, audioChannel);
+	}
+
 	public void process() throws UnsupportedAudioFileException, IOException {
 		Log.println("Decoder using sample rate: " + currentSampleRate);
 		Log.println("Decoder using bucketSize: " + bucketSize);
@@ -434,16 +434,14 @@ public abstract class Decoder implements Runnable {
         	if (nBytesRead >= 0) {
         		Performance.startTimer("Read");
                 nBytesRead = read(abBufferDouble);
-                if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
-                	if (sink != null)
-                		sink.write(abBufferDouble);
-                }
+                
                 if (Config.debugBytes) 
                 	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
         		Performance.endTimer("Read");
         		Performance.startTimer("Filter");
-
-                if (Config.filterData) { // && !Config.highSpeed) {
+ 
+//                if (!(this instanceof FoxBPSKDecoder) && Config.filterData) { 
+                if (Config.filterData) { 
                 	//SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
                 	/**
                 	 * Note that the filter converts the byte values to doubles and then back, so that
@@ -461,14 +459,37 @@ public abstract class Decoder implements Runnable {
                 Performance.endTimer("Filter");
                 Performance.startTimer("Monitor");
 
-                if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
-        			sink.write(abBufferDoubleFiltered);
-                }
                 Performance.endTimer("Monitor");
                 Performance.startTimer("Bucket");
 
                 bucketData(abBufferDoubleFiltered);
                 Performance.endTimer("Bucket");
+
+                if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
+                	if (sink != null)
+                		
+                		try {
+                			double[] buffer = abBufferDouble;
+                			if (this instanceof FoxBPSKDotProdDecoder)
+                				buffer = Arrays.copyOfRange(abBufferDouble, 0, ((FoxBPSKDotProdDecoder)this).samples_processed);
+                			sink.write(buffer);
+                		} catch (Exception se ) {
+                			// Failure to write the audio should not be fatal
+                			// If we print an error here the log will fill
+                		}
+                }
+                if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
+                	if (sink != null)
+                	try {
+                		double[] buffer = abBufferDoubleFiltered;
+                		if (this instanceof FoxBPSKDotProdDecoder)
+                			buffer = Arrays.copyOfRange(abBufferDoubleFiltered, 0, ((FoxBPSKDotProdDecoder)this).samples_processed);
+                		sink.write(buffer);
+            		} catch (Exception se ) {
+            			// Failure to write the audio should not be fatal
+            			// If we print an error here the log will fill
+            		}
+                }
 
         	}
 
@@ -640,7 +661,9 @@ public abstract class Decoder implements Runnable {
 				for (int j=0; j < bucketSize; j++ ) { // sample size is 2, 2 bytes per channel 				
 					int value = (int)(abData[k] * 32768.0);
 					dataValues[i][j] = value; 
-					eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
+					if (!(this instanceof FoxBPSKDecoder || this instanceof FoxBPSKCostasDecoder
+							|| this instanceof FoxBPSKDotProdDecoder))
+						eyeData.setData(i,j,value);  // this data is not reset to zero and is easier to graph
 
 					if (value > maxValue[i]) maxValue[i] = value;
 					if (value < minValue[i]) minValue[i] = value;
@@ -723,10 +746,10 @@ public abstract class Decoder implements Runnable {
 				}
 		}
 		if (this.audioSource instanceof SourceIQ) {
-			long freq = ((SourceIQ)audioSource).getFrequencyFromBin(Config.selectedBin);
+			double freq = ((SourceIQ)audioSource).getTunedFrequency();
 			double sig = ((SourceIQ)audioSource).rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH);
 			double rfSnr = ((SourceIQ)audioSource).rfData.rfSNRInFilterWidth;
-			rtMeasurement.setCarrierFrequency(freq);
+			rtMeasurement.setCarrierFrequency((long) freq);
 			rtMeasurement.setRfPower(sig);
 			rtMeasurement.setRfSNR(rfSnr);
 		} else {
@@ -828,6 +851,53 @@ public abstract class Decoder implements Runnable {
 		     | ((b1 & 0xff) << 0);
 		return value;
 	}
+	
+	public static int bigEndian4(byte b[]) {
+		byte b1 = b[0];
+		byte b2 = b[1];
+		byte b3 = b[2];
+		byte b4 = b[3];
+		int value =  ((b1 & 0xff) << 24)
+		     | ((b2 & 0xff) << 16)
+		     | ((b3 & 0xff) << 8)
+		     | ((b4 & 0xff) << 0);
+		return value;
+	}
+	
+	public static byte[] bigEndian4(int in) {
+		byte[] b = new byte[4];
+		
+		b[0] = (byte)((in >> 24) & 0xff);
+		b[1] = (byte)((in >> 16) & 0xff);
+		b[2] = (byte)((in >> 8) & 0xff);
+		b[3] = (byte)((in >> 0) & 0xff);
+		return b;
+	}
+
+	public static byte[] bigEndian8(long in) {
+		byte[] b = new byte[8];
+		
+		b[0] = (byte)((in >> 56) & 0xff);
+		b[1] = (byte)((in >> 48) & 0xff);
+		b[2] = (byte)((in >> 40) & 0xff);
+		b[3] = (byte)((in >> 32) & 0xff);
+		b[4] = (byte)((in >> 24) & 0xff);
+		b[5] = (byte)((in >> 16) & 0xff);
+		b[6] = (byte)((in >> 8) & 0xff);
+		b[7] = (byte)((in >> 0) & 0xff);
+		return b;
+	}
+
+	
+	public static byte[] bigEndian4(long in) {
+		byte[] b = new byte[4];
+		
+		b[0] = (byte)((in >> 24) & 0xff);
+		b[1] = (byte)((in >> 16) & 0xff);
+		b[2] = (byte)((in >> 8) & 0xff);
+		b[3] = (byte)((in >> 0) & 0xff);
+		return b;
+	}
 
 	public static int oldlittleEndian2(byte b[], int bitsPerSample) {
 		byte b1 = b[0];
@@ -889,6 +959,11 @@ public abstract class Decoder implements Runnable {
 		int i = 0xff & n;
 		return String.format("0x%2s", Integer.toHexString(i)).replace(' ', '0');
 		//return String.valueOf(n);
+	}
+	
+	public static String plainhex(byte n) {
+		int i = 0xff & n;
+		return plainhex(i);
 	}
 	
 	public static String plainhex(int n) {

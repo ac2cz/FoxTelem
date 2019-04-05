@@ -49,6 +49,10 @@ public class TlmServer {
 	public void setHostName(String hostName) {
 		this.hostName = hostName;
 	}
+	
+	public void setPort(int port) {
+		this.portNumber = port;
+	}
 		
 	/**
 	 * Use TCP, even if we are in UDP mode, to check that the server is there

@@ -74,7 +74,7 @@ public class WodHealthTab extends HealthTab {
 		}
 	}
 
-	protected void displayRow(int row) {
+	protected void displayRow(int fromRow, int row) {
 		long reset_l = (long)table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	int reset = (int)reset_l;
@@ -83,7 +83,12 @@ public class WodHealthTab extends HealthTab {
     	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT, false);
     	if (realTime != null)
     		updateTabRT(realTime, false);
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
        	displayLatLong();
 	}
 	
@@ -129,13 +134,14 @@ public class WodHealthTab extends HealthTab {
 
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_LAYOUT, false);
+					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs(FoxFramePart.TYPE_WOD);
 						justStarted = false;
 					}
 				}
 				
-				MainWindow.setTotalDecodes();
+				
 
 			}
 			//System.out.println("Health tab running: " + running);

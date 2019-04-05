@@ -49,6 +49,7 @@ public class SlowSpeedFrame extends Frame {
 	
 	public SlowSpeedFrame(BufferedReader input) throws IOException {
 		super(input);
+		load(input);
 	}
 	
 	public int getType() {
@@ -71,7 +72,7 @@ public class SlowSpeedFrame extends Frame {
 		else if (numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE)
 			payload.addNext8Bits(b);
 		else if (numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE + MAX_TRAILER_SIZE)
-			fecTrailer.addNext8Bits(b); //FEC ;
+			; //fecTrailer.addNext8Bits(b); //FEC ;
 		else
 			Log.println("ERROR: attempt to add byte past end of frame");
 

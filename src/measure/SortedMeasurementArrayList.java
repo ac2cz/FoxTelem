@@ -1,8 +1,6 @@
 package measure;
 
 import java.io.IOException;
-
-import telemetry.FramePart;
 import telemetry.SortedArrayList;
 
 /**

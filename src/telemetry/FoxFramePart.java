@@ -57,10 +57,20 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
 	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
 	
+	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
+	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
+	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
+	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
+	
+	// These are infrastructure and not saved to Disk
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
 	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
+	public static final int TYPE_CAMERA_SCAN_LINE_COUNT = 102;
+	public static final int TYPE_HERCI_LINE_COUNT = 103;
+	public static final int TYPE_EXTENDED_HEADER = 104;
+	
 	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
 	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
 	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
@@ -109,6 +119,7 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int GYRO2V = 13;
 	public static final int UNKNOWN = 15;
 	public static final int IHU_SW_VERSION = 14;
+	public static final int ISISStatus = 16;
 	//public static final int BUS_VOLTAGE_OVER_2 = 15;
 
 	
@@ -221,8 +232,8 @@ longer send telemetry.
 	
 	protected int MAX_BYTES = 78;  // This provides enough storage to cover the zero filled bytes at the end of the Slow, High Speed frames or 1E frames
 	
-	public FoxFramePart(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(lay);
+	public FoxFramePart(int id, int resets, long uptime, int type, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(lay, type);
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
@@ -232,10 +243,9 @@ longer send telemetry.
 		load(st);
 	}
 	
-	public FoxFramePart(BitArrayLayout lay) {
-		super(lay);
+	public FoxFramePart(int type, BitArrayLayout lay) {
+		super(lay, type);
 		init();
-		rawBits = new boolean[MAX_BYTES*8];
 	}
 	
 	/**
@@ -243,8 +253,8 @@ longer send telemetry.
 	 * @param results
 	 * @throws SQLException 
 	 */
-	public FoxFramePart(ResultSet results, BitArrayLayout lay) throws SQLException {
-		super(lay);
+	public FoxFramePart(ResultSet results, int type, BitArrayLayout lay) throws SQLException {
+		super(lay, type);
 		this.id = results.getInt("id");
 		this.resets = results.getInt("resets");
 		this.uptime = results.getLong("uptime");
@@ -264,8 +274,8 @@ longer send telemetry.
 
 	public abstract boolean isValid();
 	
-	public int getMaxBytes() { return MAX_BYTES; }
-	public int getMaxBits() { return rawBits.length; }
+	public int getMaxBytes() { return layout.getMaxNumberOfBytes(); }
+	public int getMaxBits() { return layout.getMaxNumberOfBits(); }
 	
 	public boolean isValidType(int t) {
 		if (t == TYPE_DEBUG) return true;
@@ -316,12 +326,24 @@ longer send telemetry.
 				s = "Stowed";
 			else
 				s = "Deployed";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_DEPLOYMENT) {  //TODO: This needs to be implemented
+				int value = getRawValue(name);
+				if (value == 0)
+					s = "Stowed";
+				else
+					s = "Deployed";
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
 			int value = getRawValue(name);
 			if (value == 0)
 				s = "OK";
 			else
 				s = "FAIL";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+			int value = getRawValue(name);
+			if (value == 1)
+				s = "Enabled";
+			else
+				s = "Disabled";
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BOOLEAN) {
 			int value = getRawValue(name);
 			if (value == 1)
@@ -346,7 +368,9 @@ longer send telemetry.
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
 				s = "-----";
-			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY) {
+			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY 
+					|| layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
+					|| layout.conversion[pos] == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
 				s = String.format("%1.2f", dvalue);
 			} else {
 				s = String.format("%2.1f", dvalue);
@@ -443,7 +467,8 @@ longer send telemetry.
 			value = value / 256.0d;
 			return value ;
 		case BitArrayLayout.CONVERT_MEMS_ROTATION:
-			return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
+			return calcMemsValue(rawValue, name, fox);
+			//return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
 		case BitArrayLayout.CONVERT_RSSI:
 			return fox.getLookupTableByName(Spacecraft.RSSI_LOOKUP).lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_IHU_TEMP:
@@ -481,14 +506,68 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_LT_TX_REF_PWR:
 			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
 			y = 0.1921*Math.pow(x, 3) + 14.663*Math.pow(x,2)+ 11.56*x - 1.8544;
+			if (y < 0) y = 0;  // Power can not be negative
 			return y;
 		case BitArrayLayout.CONVERT_LT_VGA:
 			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 			volts = volts / 2;
 			return volts;
+		case BitArrayLayout.CONVERT_ICR_VOLT_SENSOR:
+			volts = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS;
+			volts = volts * 99/75; // based in voltage divider on the ICR of 24k/75k
+			return volts;
+		case BitArrayLayout.CONVERT_COM1_SPIN:
+			double spin = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			spin = spin / 131.0 ; // 131 per dps
+			return spin;
+		case BitArrayLayout.CONVERT_COM1_ACCELEROMETER:
+			double acc = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			acc = acc / 16384.0 ; // 16384 per g.  If we want this in m/s * 9.80665 
+			return acc;
+		case BitArrayLayout.CONVERT_COM1_MAGNETOMETER:
+			double mag = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			mag = mag * 0.6 ; // 0.6 micro Tesla per count value 
+			return mag;
+		case BitArrayLayout.CONVERT_COM1_GYRO_TEMP:
+			double temp = rawValue * 0.1 - 40; // 0 is -40 then increments in 1/10 degree per raw value
+			return temp;
+		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TEMP:
+			//double V = 3.3 / 1023 * rawValue;
+			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue(rawValue);
+			return antTemp;
+		case BitArrayLayout.CONVERT_HUSKY_ISIS_ANT_TIME:
+			double time = rawValue / 20.0d; // deploy time in 50ms steps
+			return time;
 		}
 		
 		return ERROR_VALUE;
+	}
+	
+	/**
+	 * Calculate the MEMS rotation value based in the rest values saved in the spacecraft config file, if
+	 * they exist.  Otherwise use the default values from the data sheet.
+	 * @param value
+	 * @param name
+	 * @param fox
+	 * @return
+	 */
+	private static double calcMemsValue(int value, String name, FoxSpacecraft fox) {
+		double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+		volts = volts / 2;
+		double memsZeroValue = MEMS_ZERO_VALUE_VOLTS;
+		double result = 0;
+		
+		if (fox.hasMemsRestValues) {
+			int restValue = 0;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.memsRestValueX;	
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.memsRestValueY;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.memsRestValueZ;
+			memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(restValue);
+			memsZeroValue = memsZeroValue/2;
+		}
+		
+	    result = (volts - memsZeroValue)/MEMS_VOLT_PER_DPS;
+		return result;
 	}
 	
 	/**
@@ -546,7 +625,7 @@ longer send telemetry.
 				+ Integer.toHexString(n4) + " "+ Integer.toHexString(n5) + " "+ Integer.toHexString(n6);
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
-			if (fox.foxId == Spacecraft.FOX1E) {
+			if (fox.hasImprovedCommandReceiver) {
 				return icrCommandCount(value, shortString);
 			} else {
 			if (shortString)
@@ -574,32 +653,36 @@ longer send telemetry.
 			return "XXXX";
 		case 10: // unused
 			return "XXXX";
-		case GYRO1Z: // Gyro1Z
+		case GYRO1Z: // Gyro1Z - this is the "extra" Z axis reading.  We have 2 chips, each with 2 axis.  So we have Z twice
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			if (shortString)
 				//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
 			else
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
 			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
+			double vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+			vRef = vRef/2;
 			int cameraChecksumErrors = (rawValue >> 24) & 0xff; // last 8 bits
 			cameraChecksumErrors = cameraChecksumErrors - 1; // This is initialized to 1, so we subtract that initial value
 			if (shortString)
-				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1V (V): " + GraphPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
+				return "Gyro1V (V): " + GraphPanel.roundToSignificantFigures(vRef,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
 				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
+			vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+			vRef = vRef/2;
 			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(vRef,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		case IHU_SW_VERSION: // Version of the software on the IHU
 			int swType = (rawValue >> 8) & 0xff;
@@ -607,6 +690,13 @@ longer send telemetry.
 			int swMinor = (rawValue >> 24) & 0xff;
 			
 			return "IHU SW: " + Character.toString((char) swType) + fox.foxId + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
+		case ISISStatus: // Version of the software on the IHU
+			int antStatus = (rawValue >> 8) & 0xffff; // shift away the type byte and get 16 bit status
+			
+			// Bus status - 0 - did not try to read, 1 tried and failed, tried and succeeded
+			int bus0 = (rawValue >> 24) & 0xf;
+			int bus1 = (rawValue >> 28) & 0xf;
+			return "ISIS Status: " + Integer.toHexString(antStatus) + " " + Integer.toHexString(bus0) + " "+Integer.toHexString(bus1);
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
 			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value),3) + "V";
@@ -763,17 +853,18 @@ longer send telemetry.
 						+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ "tn " + Integer.toHexString(taskNumber) + " "
 						+ "al " + Integer.toHexString(alignment);
-			else
+			else {
 				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
 						+ " Error Type: " + ihuErrorType[errorCode] + " "
 						+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
 						+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ " Task Number: " + taskNumber + "- ";
-			if (taskNumber < ihuTask.length)
-				s = s + ihuTask[taskNumber];
-			else
-				s = s + "Unknown";
-			s = s + " Alignment: " + alignment;
+				if (taskNumber < ihuTask.length)
+					s = s + ihuTask[taskNumber];
+				else
+					s = s + "Unknown";
+				s = s + " Alignment: " + alignment;
+			}
 		}
 		return s;
 	}

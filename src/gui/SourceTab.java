@@ -67,7 +67,8 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
-import decoder.FoxBPSK.FoxBPSKDecoder;
+import decoder.FoxBPSK.FoxBPSKCostasDecoder;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
@@ -107,13 +108,14 @@ import javax.swing.event.PopupMenuEvent;
 public class SourceTab extends JPanel implements Runnable, ItemListener, ActionListener, PropertyChangeListener, FocusListener, MouseListener {
 	Thread audioGraphThread;
 	Thread eyePanelThread;
-	//Thread fcdPanelThread;
+	Thread phasorPanelThread;
 	
 	Thread fftPanelThread;
 	Thread decoder1Thread;
 	Thread decoder2Thread;
 	AudioGraphPanel audioGraph;
 	EyePanel eyePanel;
+	PhasorPanel phasorPanel;
 	public FFTPanel fftPanel;
 	JButton btnMonitorAudio;
 	JCheckBox rdbtnMonitorFilteredAudio;
@@ -126,7 +128,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JCheckBox rdbtnShowIF;
 	public JCheckBox rdbtnFindSignal;
 	JCheckBox rdbtnShowLog;
-	JCheckBox rdbtnShowFFT;
+//	JCheckBox rdbtnShowFFT;
 	JCheckBox rdbtnFcdLnaGain;
 	JCheckBox rdbtnFcdMixerGain;
 	JTextField peakLevel;
@@ -137,6 +139,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JButton btnFftZoomOut;
 	
 	JCheckBox rdbtnUseNco;
+	JCheckBox rdbtnUseCostas;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
 	JComboBox<String> soundCardComboBox;
@@ -171,6 +174,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JTextArea log;
 	JScrollPane logScrollPane;
 	JCheckBox autoStart;
+	JPanel sourcePanel, audioOutputPanel;
 	
 	FilterPanel filterPanel;
 	
@@ -189,7 +193,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	FileDialog fd = null;
 	
 	// Variables
-	public static final String FUNCUBE = "FUNcube";
+	public static final String FUNCUBE1 = "FUNcube Dongle V1.0";
+	public static final String FUNCUBE2 = "FUNcube Dongle V2.0";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
 	public Decoder decoder1;
 	Decoder decoder2;
@@ -205,7 +210,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblFreq;
 	JLabel lblkHz;
 	
-	JPanel opts, satPanel;  // this list of right hand options panel where we put the sats we track
+	JPanel opts, satPanel, optionsPanel;  // this list of right hand options panel where we put the sats we track
 	JLabel satPosition[];
 	
 	private JTextField txtFreq;
@@ -247,17 +252,41 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			        "Wav files", "wav", "wave");
 			fc.setFileFilter(filter);
 		//}
-		JPanel leftPanel_1 = new JPanel();
-		buildLeftPanel(topPanel,  BorderLayout.CENTER, leftPanel_1);
+		sourcePanel = new JPanel();
+		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
+		
 		if (soundCardComboBox.getSelectedIndex() != 0)
 			if (Config.startButtonPressed) processStartButtonClick();
+
+		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
+		showSourceOptions(Config.showSourceOptions);
+		showAudioOptions(Config.showAudioOptions);
 	}
 	
 	public void showFilters(boolean b) { 
 		filterPanel.setVisible(b);
 //		audioOptionsFiller.setVisible(!b);
 	}
+	public void showAudioOptions(boolean b) { 
+		optionsPanel.setVisible(b);
+		audioOutputPanel.setVisible(b);
+	}
+	public void showSourceOptions(boolean b) { 
+		sourcePanel.setVisible(b);
+	}
+
+	public void showSatOptions(boolean b) { 
+		satPanel.setVisible(b);
+	}
+
+	public void showEye(boolean b) { 
+		eyePanel.setVisible(b);
+	}
+	public void showPhasor(boolean b) { 
+		phasorPanel.setVisible(b);
+	}
+
 	public boolean getShowFilterState() {
 		return filterPanel.isVisible();
 	}
@@ -315,7 +344,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		options1.add(rdbtnFindSignal);
 		rdbtnFindSignal.addItemListener(this);
 		rdbtnFindSignal.setSelected(Config.findSignal);
-		rdbtnFindSignal.setVisible(false);
+		rdbtnFindSignal.setVisible(false); // this is not under user control except for debugging
 
 		optionsPanel.add(findSignalPanel);
 				
@@ -347,12 +376,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		findSignalPanel.setVisible(Config.findSignal);
 	
-		
 		rdbtnUseNco = new JCheckBox("Use NCO");
 		rdbtnUseNco.addItemListener(this);
-		rdbtnUseNco.setSelected(SourceIQ.useNCO);
+		rdbtnUseNco.setSelected(Config.useNCO);
 		rdbtnUseNco.setVisible(false);
 		optionsPanel.add(rdbtnUseNco);
+		rdbtnUseCostas = new JCheckBox("Costas");
+		rdbtnUseCostas.addItemListener(this);
+		rdbtnUseCostas.setSelected(Config.useCostas);
+		rdbtnUseCostas.setVisible(false);
+		optionsPanel.add(rdbtnUseCostas);
 		
 
 		btnFftZoomIn = new JButton("+");
@@ -389,19 +422,32 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		audioGraphThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		audioGraphThread.start();
 
+		JPanel eyePhasorPanel = new JPanel();
+		eyePhasorPanel.setLayout(new BorderLayout());
+		
 		eyePanel = new EyePanel();
 		eyePanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		bottomPanel.add(eyePanel, BorderLayout.EAST);
+		bottomPanel.add(eyePhasorPanel, BorderLayout.EAST);
+		eyePhasorPanel.add(eyePanel, BorderLayout.WEST);
 		eyePanel.setBackground(Color.LIGHT_GRAY);
 		eyePanel.setPreferredSize(new Dimension(200, 100));
 		eyePanel.setMaximumSize(new Dimension(200, 100));
+		eyePanel.setVisible(true);
+		
+		phasorPanel = new PhasorPanel();
+		phasorPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
+		eyePhasorPanel.add(phasorPanel, BorderLayout.EAST);
+		phasorPanel.setBackground(Color.LIGHT_GRAY);
+		phasorPanel.setPreferredSize(new Dimension(200, 100));
+		phasorPanel.setMaximumSize(new Dimension(200, 100));
+		phasorPanel.setVisible(false);
 		
 		fftPanel = new FFTPanel();
 		fftPanel.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		fftPanel.setBackground(Color.LIGHT_GRAY);
 		
 		//bottomPanel.add(fftPanel, BorderLayout.SOUTH);
-		setFFTVisible(false);
+		showFFT(false);
 		fftPanel.setPreferredSize(new Dimension(100, 150));
 		fftPanel.setMaximumSize(new Dimension(100, 150));
 		
@@ -453,7 +499,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s] = new JPanel();
 			satRows[s].setLayout(new FlowLayout(FlowLayout.LEFT));
 			satPanel.add(satRows[s]);
-			satName[s] = new JLabel(sat.name + ":   ");
+			satName[s] = new JLabel(sat.priority + "/"+sat.name + "   ");
 			satPosition[s] = new JLabel("Not Tracked");
 			if (sat.track) {
 				satPosition[s].setText("Tracked");
@@ -468,6 +514,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		autoStart.setSelected(Config.whenAboveHorizon);
 		autoStart.addItemListener(this);
 		satPanel.add(autoStart);
+		showSatOptions(Config.showSatOptions);
+		showEye(Config.showEye);
+		if (decoder1 != null && (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder))
+			showPhasor(Config.showPhasor);
 		return oneTracked;
 	}
 	
@@ -482,7 +532,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//buildTrackedSpacecraftList();
 
 		
-		JPanel optionsPanel = new JPanel();
+		optionsPanel = new JPanel();
 		optionsPanel.setBorder(new TitledBorder(null, "Audio Options", TitledBorder.LEADING, TitledBorder.TOP, null, null));
 		opts.add(optionsPanel, BorderLayout.CENTER);
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
@@ -511,11 +561,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnFilterOutputAudio.setSelected(Config.filterOutputAudio);
 		rdbtnFilterOutputAudio.setVisible(false);
 		
-		rdbtnShowFFT = new JCheckBox("Show FFT");
-		rdbtnShowFFT.addItemListener(this);
-		rdbtnShowFFT.setSelected(true);
-		optionsPanel.add(rdbtnShowFFT);
-		rdbtnShowFFT.setVisible(false);
+//		rdbtnShowFFT = new JCheckBox("Show FFT");
+//		rdbtnShowFFT.addItemListener(this);
+//		rdbtnShowFFT.setSelected(true);
+//		optionsPanel.add(rdbtnShowFFT);
+//		rdbtnShowFFT.setVisible(false);
 		play = new JButton(">");
 		play.addActionListener(this);
 		optionsPanel.add(play);
@@ -543,7 +593,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	//	rdbtnWriteDebugData.setVisible(true);
 
 //		optionsPanel.setVisible(true);
-		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 
 	}
 	
@@ -557,19 +606,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private String[] getSources() {
 		soundcardSources = SourceSoundCardAudio.getAudioSources();
-//REMOVED		usbSources = new ArrayList<String>();
+		usbSources = new ArrayList<String>();
 //		usbSources.add("AirSpy");
-//		usbSources.add("RTL SDR");
+		usbSources.add("RTL SDR");
 
-// REMOVED FROM RELEASE        String[] allSources = new String[soundcardSources.length + usbSources.size()];
-		String[] allSources = new String[soundcardSources.length];
+		String[] allSources = new String[soundcardSources.length + usbSources.size()];
 		int j = 0;
 		for (String s : soundcardSources) allSources[j++] = s;
 		if (usbSources != null)
 			for (String s : usbSources) allSources[j++] = s;
 		return allSources;
-		
-		//return soundcardSources;
 	}
 
 	
@@ -591,7 +637,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		lowSpeed = addRadioButton("DUV", panel_2 );
 		highSpeed = addRadioButton("High Speed", panel_2 );
-		auto = addRadioButton("Auto", panel_2 );
+		auto = addRadioButton("DUV + HS", panel_2 );
 		JLabel bar = new JLabel("  |  ");
 		panel_2.add(bar);
 		psk = addRadioButton("PSK", panel_2 );
@@ -612,7 +658,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
-		} else if (Config.mode == SourceIQ.MODE_PSK){
+		} else if (Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS){
 			psk.setSelected(true);
 			enableFilters(true);
 		}
@@ -779,13 +825,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		JSeparator separator = new JSeparator();
 //		centerPanel.add(separator);
 		
-		JPanel southPanel = new JPanel();
-		leftPanel.add(southPanel, BorderLayout.SOUTH);
-		southPanel.setLayout(new BorderLayout(3, 3));
+		audioOutputPanel = new JPanel();
+		leftPanel.add(audioOutputPanel, BorderLayout.SOUTH);
+		audioOutputPanel.setLayout(new BorderLayout(3, 3));
 		//southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
 
 		JPanel panel_3 = new JPanel();
-		southPanel.add(panel_3, BorderLayout.NORTH);
+		audioOutputPanel.add(panel_3, BorderLayout.NORTH);
 		
 		panel_3.setMinimumSize(new Dimension(10, 35));
 		panel_3.setLayout(new BoxLayout(panel_3, BoxLayout.Y_AXIS));
@@ -803,7 +849,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//sink = new SinkAudio();
 		
 		JPanel panelCombo = new JPanel();
-		southPanel.add(panelCombo, BorderLayout.CENTER);
+		audioOutputPanel.add(panelCombo, BorderLayout.CENTER);
 		speakerComboBox = new JComboBox<String>(SinkAudio.getAudioSinks());
 
 		speakerComboBox.addPopupMenuListener(new PopupMenuListener() {
@@ -841,6 +887,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
 		}
 		autoViewpanel = new JPanel();
+		autoViewpanel.add(new Box.Filler(new Dimension(10,1), new Dimension(40,1), new Dimension(1500,1)));
 		JLabel view = new JLabel("View ");
 		panelCombo.add(autoViewpanel);
 		autoViewpanel.add(view);
@@ -853,7 +900,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		if (Config.autoDecodeSpeed)
 //			autoViewpanel.setVisible(true);
 //		else
-			autoViewpanel.setVisible(false);
+		autoViewpanel.setVisible(true);
 	}
 
 	private JRadioButton addRadioButton(String name, JPanel panel) {
@@ -934,7 +981,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//soundCardComboBox.setSelectedIndex(SourceAudio.IQ_FILE_SOURCE);
 	}
 	
-	private void setFFTVisible(boolean b) {
+	void showFFT(boolean b) {
 		fftPanel.setVisible(b);
 		if (b==true) {
 			if (Config.splitPaneHeight != 0) 
@@ -942,11 +989,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			else
 				splitPane.setDividerLocation(200);
 		}
+		mainWindow.chckbxmntmShowFFT.setState(b); // this will get the menu toggle right
 	}
 	
 	private void setIQVisible(boolean b) {
-		setFFTVisible(b);
-		rdbtnShowFFT.setVisible(b);
+		showFFT(b);
+//		rdbtnShowFFT.setVisible(b);
 		rdbtnFindSignal.setVisible(false);
 		rdbtnFindSignal.setEnabled(false);
 		findSignalPanel.setVisible(b);
@@ -987,10 +1035,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			// TODO Auto-generated catch block
 			e1.printStackTrace();
 		}
-		audioGraph.startProcessing(decoder1);
-		eyePanel.startProcessing(decoder1);
-		fftPanel.startProcessing(iqSource1);
-		
+		if (decoder1 != null) {
+			audioGraph.startProcessing(decoder1);
+			eyePanel.startProcessing(decoder1);
+			if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
+				phasorPanel.setVisible(true);
+				phasorPanel.startProcessing(decoder1);
+			} else {
+				phasorPanel.setVisible(false);
+			}
+			fftPanel.startProcessing(iqSource1);
+		}
 		viewLowSpeed.setSelected(true);
 
 	}
@@ -1013,6 +1068,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 			audioGraph.startProcessing(decoder2);
 			eyePanel.startProcessing(decoder2);
+			if (decoder2 instanceof FoxBPSKDotProdDecoder || decoder2 instanceof FoxBPSKCostasDecoder)
+			phasorPanel.startProcessing(decoder2);
 			fftPanel.startProcessing(iqSource2);
 			
 			viewHighSpeed.setSelected(true);
@@ -1047,11 +1104,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			//Config.save();
 		}
 		if (e.getSource() == psk) { 
-			Config.mode = SourceIQ.MODE_PSK;
+			Config.mode = SourceIQ.MODE_PSK_NC;
 			Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
-			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_PSK);
+			if (iqSource1 != null) {
+				if (Config.useCostas)
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+				else
+					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+			}
 			//Config.save();
 		}
 		if (e.getSource() == auto) { 
@@ -1059,7 +1121,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			enableFilters(true);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FSK_HS);
-	//		autoViewpanel.setVisible(true);
+			autoViewpanel.setVisible(true);
 			//Config.save();
 		}
 		if (e.getSource() == viewHighSpeed) {
@@ -1114,7 +1176,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == this.txtFreq) {
 			// User has done this so trap the error and report
 			try {
-				setCenterFreq();				
+				double f = setCenterFreq();
+				txtFreq.setText(Double.toString(f));				
 			} catch (DeviceException e1) {
 				Log.errorDialog("ERROR with txtFreq", e1.getMessage());
 				e1.printStackTrace(Log.getWriter());
@@ -1168,14 +1231,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 			} catch (IllegalArgumentException e1) {
 				JOptionPane.showMessageDialog(this,
-						e1.toString(),
-						"ARGUMENT ERROR",
+						"Is there a valid sound card attached?\n"+e1.toString(),
+						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 				//e1.printStackTrace();	
 			} catch (LineUnavailableException e1) {
 				JOptionPane.showMessageDialog(this,
-						e1.toString(),
-						"LINE UNAVAILABLE ERROR",
+						"Is there a valid sound card attached?\n"+e1.toString(),
+						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 			}
 
@@ -1212,7 +1275,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		try {
 			sink = new SinkAudio(decoder12.getAudioFormat());
-			sink.setDevice(position);
+			if (sink != null)
+				sink.setDevice(position);
 		if (position != -1) {
 			Config.audioSink = SinkAudio.getDeviceName(position);
 			//Config.save();
@@ -1282,17 +1346,19 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			cbSoundCardRate.setVisible(false);
 			panelFile.setVisible(false);
 			auto.setEnabled(false);
+
 			setIQVisible(true);
 			if (auto.isSelected()) { 
+				autoViewpanel.setVisible(false);
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
 				psk.setSelected(false);
 				Config.autoDecodeSpeed = false;
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
-			boolean fcdSelected = fcdSelected();
+			int fcdSelected = fcdSelected();
 			auto.setEnabled(true);
-			if (fcdSelected) {
+			if (fcdSelected > 0) {
 
 			} else {
 				Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
@@ -1334,39 +1400,64 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 	}
 	
-	private boolean fcdSelected() {
+	private int fcdSelected() {
 		
 		String source = (String)soundCardComboBox.getSelectedItem();
-		Pattern pattern = Pattern.compile(FUNCUBE);
-		Matcher matcher = pattern.matcher(source);
-		if (matcher.find()) {
-			return true;
+		Pattern pattern2 = Pattern.compile(FUNCUBE2);
+		Matcher matcher2 = pattern2.matcher(source);
+		if (matcher2.find()) {
+			return 2;
 		}
-		return false;
+
+		Pattern pattern1 = Pattern.compile(FUNCUBE1);
+		Matcher matcher1 = pattern1.matcher(source);
+		if (matcher1.find()) {
+			return 1;
+		}
+		return 0;
 	}
+
+	private void connectFCD(short vendorId, short deviceId) throws UsbException, DeviceException {
+		if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+			try {
+				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+			} catch (Exception e1) {
+				// FIXME - This can not be right..
+				// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
+				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+			}
+		} 
+	}
+
 	
-	private boolean usingFcd() throws IOException, DeviceException {
-		boolean fcdSelected = fcdSelected();
-		if (fcdSelected) {
-			
-				if (rfDevice == null) {
-					// FCDPP
-					short vendorId = (short)0x04D8;
-					short deviceId = (short)0xFB31;
-					
-					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
-					try {
-						rfDevice = tunerManager.findDevice(vendorId, deviceId);
-					} catch (UsbException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
-//					rfDevice = FcdDevice.makeDevice();	
-					if (rfDevice == null) return false; // FIXME this is an issue because we found the description but not the HID device
+	private int usingFcd() throws IOException, DeviceException, UsbException {
+		int fcdSelected = fcdSelected();
+		if (fcdSelected >0) {
+			short vendorId = 0;
+			short deviceId = 0;
+			if (rfDevice == null) {
+				// FCDPP
+				if (fcdSelected == 2) {
+					vendorId = (short)0x04D8;
+					deviceId = (short)0xFB31;
+					cbSoundCardRate.setSelectedIndex(RATE_192000_IDX);
+				} else { // FCDP
+					vendorId = (short)0x04D8;
+					deviceId = (short)0xFB56;	
+					cbSoundCardRate.setSelectedIndex(RATE_96000_IDX);
 				}
-				if (panelFcd == null)
-					try {
-						panelFcd = rfDevice.getDevicePanel();
+				
+				connectFCD(vendorId, deviceId);
+				
+				if (rfDevice == null) {
+					this.lblkHz.setText(" kHz   " + " |   FCD ERR - SET FREQ MANUALLY");
+					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
+					return 0; // FIXME this is an issue because we found the description but not the HID device
+				}
+			}
+			if (panelFcd == null)
+				try {
+					panelFcd = rfDevice.getDevicePanel();
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					} catch (DeviceException e) {
@@ -1375,6 +1466,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				try {
 					panelFcd.setDevice(rfDevice);
 				} catch (DeviceException e) {
+					this.lblkHz.setText(" kHz   " + " |   FCD DEVICE NOT CONNECTED");
 					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
 				}
 				SDRpanel.add(panelFcd, BorderLayout.CENTER);
@@ -1454,9 +1546,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
-		} else if (this.psk.isSelected()) 
-			decoder1 = new FoxBPSKDecoder(audioSource, 0); // test PSK decoder
-		else if (highSpeed) {
+		} else if (this.psk.isSelected()) {
+			if (Config.useCostas) {
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+				if (Config.iq) {
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
+				} else
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
+			} else {
+				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
+			}
+		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
 			decoder1 = new Fox200bpsDecoder(audioSource, 0);
@@ -1473,7 +1574,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void processStartButtonClick() {
 		//String source = (String)soundCardComboBox.getSelectedItem();
 		int position = soundCardComboBox.getSelectedIndex();
-				
+		lblkHz.setText(" kHz   ");
 		if (STARTED) {
 			// we stop everything
 			stopButton();
@@ -1493,6 +1594,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				// we don't have a selection
 			} else {
 				if (position == SourceAudio.FILE_SOURCE) { // || position == SourceAudio.IQ_FILE_SOURCE) {
+					//Config.useNCO = false;
 					SourceWav wav = setWavFile(Config.iq);
 					if (wav != null) {
 						if (task != null) {
@@ -1507,7 +1609,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							try {
-								setCenterFreq();
+								double f = setCenterFreq();
+								txtFreq.setText(Double.toString(f));
 							} catch (DeviceException e) {
 								Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 								e.printStackTrace(Log.getWriter());
@@ -1530,25 +1633,32 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					// USB Sound card - this is not pretty and needs to be fixed
 					// Ids should be looked up from TunerClass, but the implementation is a mess.  FIXME
 					SourceAudio audioSource;
+					if (autoViewpanel != null)
+						autoViewpanel.setVisible(false);
+//					Config.useNCO = true; // always use NCO for a USB device
 					short vendorId = 0;
 					short deviceId = 0;
-					if (position-soundcardSources.length == 0) { // airspy
-						vendorId = (short)0x1D50;
-						deviceId = (short)0x60A1;
-					} else if (position-soundcardSources.length == 1) { // rtlsdr
+//					if (position-soundcardSources.length == 0) { // airspy
+//						vendorId = (short)0x1D50;
+//						deviceId = (short)0x60A1;
+//					} else 
+					if (position-soundcardSources.length == 0) { // rtlsdr // this is probablly not all the devices!
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
-					} else if (position-soundcardSources.length == 2) { // FCDPP
-						vendorId = (short)0x04D8;
-						deviceId = (short)0xFB31;
-					}
-					if (rfDevice == null) // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
-					try {
-						rfDevice = tunerManager.findDevice(vendorId, deviceId);
-					} catch (UsbException e1) {
-						// TODO Auto-generated catch block
-						e1.printStackTrace();
-					}
+					} 
+					if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
+						try {
+							rfDevice = tunerManager.findDevice(vendorId, deviceId);
+						} catch (UsbException e1) {
+							Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
+							e1.printStackTrace();
+							rfDevice = null;
+						} catch (DeviceException e) {
+							Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
+							e.printStackTrace();
+							rfDevice = null;
+						}
+					} 
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
 						stopButton();
@@ -1618,10 +1728,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				} 
 				else { // soundcard - fcd or normal
 					SourceAudio audioSource;
-					boolean fcdSelected = false;
+					int fcdSelected = 0;
+//					Config.useNCO = false;
 					try {
 						fcdSelected = usingFcd();
-						if (fcdSelected) {
+						if (fcdSelected > 0) {
 							setFcdSampleRate();
 						} else {
 							Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());	
@@ -1630,7 +1741,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
 						audioSource = setupSoundCard(highSpeed.isSelected(), Config.scSampleRate);
 						if (audioSource != null)
-							if (fcdSelected || Config.iq) {
+							if (fcdSelected > 0 || Config.iq) {
 								Log.println("IQ Source Selected");
 								boolean decoder1HS = highSpeed.isSelected();
 								if (Config.autoDecodeSpeed) {
@@ -1645,7 +1756,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								Config.passManager.setDecoder1(decoder1, iqSource1, this);
 								if (Config.autoDecodeSpeed)
 									Config.passManager.setDecoder2(decoder2, iqSource2, this);
-								txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+								txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 								setCenterFreq();
 							} else {
 								setupDecoder(highSpeed.isSelected(), audioSource, audioSource);
@@ -1656,8 +1767,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e.printStackTrace(Log.getWriter());
 						stopButton();
 					} catch (DeviceException e) {
-						Log.println("FCD Startup Error writing commands: " + e.getMessage());
+						Log.errorDialog("ERROR", "FCD Startup Error writing commands: " + e.getMessage());
 						e.printStackTrace(Log.getWriter());
+						stopButton();
+					} catch (UsbException e) {
+						Log.errorDialog("ERROR", "FCD Startup error with USB: " + e.getMessage());
+						e.printStackTrace(Log.getWriter());
+						stopButton();
 					}
 				}
 				
@@ -1694,6 +1810,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							eyePanelThread.start();
 						}
 						eyePanel.startProcessing(decoder1);
+						if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
+							if (phasorPanelThread == null) {	
+								phasorPanelThread = new Thread(phasorPanel);
+								phasorPanelThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+								phasorPanelThread.start();
+							}
+							phasorPanel.startProcessing(decoder1);
+							phasorPanel.setVisible(true);
+						} else {
+							phasorPanel.setVisible(false);
+						}
 						enableSourceSelectionComponents(false);
 						
 						if (iqSource1 != null) {
@@ -1727,9 +1854,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						e.printStackTrace();
 					}
 					if (rfDevice != null) {
-						txtFreq.setText(Long.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+						txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 						try {
-							setCenterFreq();
+							double f = setCenterFreq();
+							txtFreq.setText(Double.toString(f));
 						} catch (DeviceException e) {
 							Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 							e.printStackTrace(Log.getWriter());
@@ -1746,11 +1874,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	}
 
-	private void setCenterFreq() throws DeviceException, IOException {
+	private double setCenterFreq() throws DeviceException, IOException {
 		//String text = txtFreq.getText();
+		double freq = Config.fcdFrequency; // we fall back to this and return it if we cant parse the value
 		try {
 			txtFreq.selectAll();
-			int freq = Integer.parseInt(txtFreq.getText());
+			freq = (double)(Math.round(Double.parseDouble(txtFreq.getText())*1000)/1000.0);
 			if (iqSource1 != null)
 				(iqSource1).setCenterFreqkHz(freq);
 			if (iqSource2 != null)
@@ -1760,7 +1889,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
-					rfDevice.setFrequency(freq*1000);
+					rfDevice.setFrequency((long) (freq*1000));
 					panelFcd.updateFilter();
 				}
 			} else {
@@ -1770,7 +1899,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} catch (NumberFormatException n) {
 			// not much to say here, just catch the error
 		}
-
+		return freq;
 	}
 
 	private void stopDecoder() {
@@ -1856,10 +1985,32 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private void setMode() {
 		if (iqSource1 != null) {
-			if (psk.isSelected()) iqSource1.setMode(SourceIQ.MODE_PSK);
-			if (lowSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
-			if (highSpeed.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
-			if (auto.isSelected()) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+			if (psk.isSelected()) {
+				if (Config.useCostas) {
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+					Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+					autoViewpanel.setVisible(false);
+				} else {
+					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+					Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+					autoViewpanel.setVisible(false);
+				}
+			}
+			if (lowSpeed.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
+				autoViewpanel.setVisible(false);
+			}
+			if (highSpeed.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_FSK_HS);
+				Config.mode = SourceIQ.MODE_FSK_HS; // so it is saved for next time
+				autoViewpanel.setVisible(false);
+			}
+			if (auto.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
+				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
+				autoViewpanel.setVisible(true);
+			}
 		}
 		if (iqSource2 != null) {
 			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FSK_HS);			
@@ -1869,6 +2020,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
+		rdbtnUseNco.setEnabled(t);
+		rdbtnUseCostas.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
 		psk.setEnabled(t);
@@ -1950,15 +2103,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        }
 		}
 		*/
-		if (e.getSource() == rdbtnShowFFT) {
-			if (fftPanel != null)
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				setFFTVisible(false);
-	        } else {
-	        	setFFTVisible(true);
-	        	
-	        }
-		}
+//		if (e.getSource() == rdbtnShowFFT) {
+//			if (fftPanel != null)
+//			if (e.getStateChange() == ItemEvent.DESELECTED) {
+//				setFFTVisible(false);
+//	        } else {
+//	        	setFFTVisible(true);
+//	        	
+//	        }
+//		}
 		if (e.getSource() == autoStart) {
 			
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -1971,9 +2124,19 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == rdbtnUseNco) {
 			if (fftPanel != null)
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-					SourceIQ.useNCO = false;
+				Config.useNCO = false;
+				Log.println("NCO = false");
 	        } else {
-	        		SourceIQ.useNCO = true;
+	        	Config.useNCO = true;
+				Log.println("NCO = true");
+	        	
+	        }
+		}
+		if (e.getSource() == rdbtnUseCostas) {
+			if (fftPanel != null)
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				
+	        } else {
 	        	
 	        }
 		}
@@ -2178,7 +2341,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 		if (e.getSource() == txtFreq) {
 			try {
-				setCenterFreq();				
+				double f = setCenterFreq();
+				txtFreq.setText(Double.toString(f));
 			} catch (DeviceException e1) {
 				Log.errorDialog("ERROR loosing focus", e1.getMessage());
 				e1.printStackTrace(Log.getWriter());
@@ -2235,7 +2399,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Spacecraft sat = Config.satManager.spacecraftList.get(s);
 							if (sat.track)
 								atLeastOneTracked = true;
-							if (Config.whenAboveHorizon && aboveHorizon && sat.track && sat.aboveHorizon())
+							if ((Config.foxTelemCalcsDoppler || (Config.whenAboveHorizon && aboveHorizon)) && sat.track && sat.aboveHorizon())
 								satPosition[s].setForeground(Config.AMSAT_RED);
 							else
 								satPosition[s].setForeground(Config.AMSAT_BLUE);
@@ -2244,7 +2408,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								if (sat.satPos != null) {
 									double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 									double el = FramePart.radToDeg(sat.satPos.getElevation());
-									satPosition[s].setText("Az: " + String.format("%2.1f", az) + "    El: " + String.format("%2.1f", el));
+									String position = "" + String.format("%2.1f", az) 
+									+ " | " + String.format("%2.1f", el);
+									if (Config.foxTelemCalcsDoppler) {
+										double freq = sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz);
+										String sign="";
+										if (freq > 0) sign = "+";
+										position = position + " | " + sign+String.format("%2.3f", freq) + "kHz";
+									}
+									satPosition[s].setText(position);
 								} else {
 									String msg = "Tracked / ";
 									if (Config.whenAboveHorizon) {
@@ -2292,7 +2464,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							processStartButtonClick();
 						}
 					} else {
-						if (atLeastOneTracked) {
+						if (atLeastOneTracked && !Config.foxTelemCalcsDoppler) {
 							//rdbtnFindSignal.setEnabled(true);
 							rdbtnFindSignal.setSelected(true);
 							if (Config.iq) {

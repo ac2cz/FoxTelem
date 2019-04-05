@@ -1,5 +1,8 @@
 package decoder;
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+
+import javax.swing.SwingUtilities;
 
 import common.Config;
 import common.Log;
@@ -7,7 +10,6 @@ import common.Performance;
 import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FoxFramePart;
 import telemetry.HighSpeedHeader;
 import telemetry.PayloadCameraData;
@@ -71,7 +73,6 @@ public abstract class FoxDecoder extends Decoder {
 	protected double currentFilterFreq = 0d;   
     private int lastBitValue = 0; // store the value of the last bit for use in the bit detection algorithm
     private boolean lastBit = false;
-    private Frame decodedFrame = null;
     public Filter monitorFilter = null;
     
     /**
@@ -173,6 +174,17 @@ public abstract class FoxDecoder extends Decoder {
 					e.printStackTrace(Log.getWriter());
 				}
 			framesDecoded++;
+			try {
+				SwingUtilities.invokeAndWait(new Runnable() {
+				    public void run() { MainWindow.setTotalDecodes();}
+				});
+			} catch (InvocationTargetException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			Performance.endTimer("Store");
 		} else {
 			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");

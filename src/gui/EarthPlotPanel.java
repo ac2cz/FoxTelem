@@ -11,6 +11,7 @@ import javax.imageio.ImageIO;
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 
@@ -62,6 +63,34 @@ public class EarthPlotPanel extends GraphCanvas {
 
 		int numberOfLabels = legendHeight/labelHeight;
 		double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, false);
+			
+		if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT || graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN
+				|| graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA) {
+			int rows = 4;
+			int boxHeight = (int)legendHeight/rows;
+			legendHeight = boxHeight*rows;
+			String l = "FALSE";
+			g2.setColor(getColorGradient(0, 1, 0, 255));
+			g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + (1) * boxHeight, legendWidth*2, boxHeight);
+			if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT ) 
+				l = "OK";
+			else if (graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA ) 
+				l = "DEP";
+			g2.setColor(Color.WHITE);
+			g2.drawString(l, sideBorder + graphWidth + leftOffset+5, verticalOffset + 1 * boxHeight + (int)(boxHeight*0.8));
+
+			g2.setColor(getColorGradient(0, 1, 1, 255));
+			g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + (2) * boxHeight, legendWidth*2, boxHeight);
+			if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT ) 
+				l = "FAIL";
+			else if (graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN ) 
+				l = "TRUE";
+			else if (graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA ) 
+				l = "STWD";
+			g2.setColor(Color.WHITE);
+			g2.drawString(l, sideBorder + graphWidth + leftOffset+5, verticalOffset + 2 * boxHeight + (int)(boxHeight*0.8));
+			
+		} else
 		if (labels.length > 0) {
 			int rows = labels.length;
 			int boxHeight = (int)legendHeight/rows;
@@ -72,6 +101,7 @@ public class EarthPlotPanel extends GraphCanvas {
 			g2.drawString("("+units+")", sideBorder + graphWidth + leftOffset + 5, verticalOffset - fonth  );
 
 			g.setFont(new Font("SansSerif", Font.PLAIN, font));
+			
 			for (int i=0; i < rows; i++) {
 				int shade = getRatioPosition(minValue, maxValue, labels[i], 255);
 				g2.setColor(getColorGradient(minValue, maxValue, labels[i], 255));
@@ -169,6 +199,12 @@ public class EarthPlotPanel extends GraphCanvas {
 
 				double value = graphData[0][PayloadStore.DATA_COL][i];
 				if (Double.isNaN(value)) value = 0;
+				else {
+					if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT || graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN
+							|| graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA ) {
+						value = value + 1;
+					}
+				}
 
 				// We plot longitude horizontally
 				// We plot latitude vertically
@@ -304,8 +340,11 @@ public class EarthPlotPanel extends GraphCanvas {
     			int y = latToY(lat, graphWidth, graphHeight);
     			double val = dataGrid[v][h];
 				if (val != 0) {
-					
-					g2.setColor(getColorGradient(minValue, maxValue, val, 255));
+					if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT || graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN) {
+						g2.setColor(getColorGradient(1, 2, val, 255));
+					} else {
+						g2.setColor(getColorGradient(minValue, maxValue, val, 255));
+					}
 					g2.fillRect(x, graphHeight-y+topBorder-boxHeight, boxWidth, boxHeight);
 				}
 				//
