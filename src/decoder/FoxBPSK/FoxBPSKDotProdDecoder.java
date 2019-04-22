@@ -390,8 +390,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    // At the end of chunk processing, increment counter
 	    chunk++;
 
-		if (maxValue - minValue != 0)
-			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+//		if (maxValue - minValue != 0)
+//			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
 		//if (gain < 1) gain = 1;
 
