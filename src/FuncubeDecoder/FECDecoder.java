@@ -23,7 +23,7 @@ public class FECDecoder {
 	private static final int RSPAD = 95;
 	// Viterbi decoder constants
 	private static final int K = 7;
-	private static final int N = 2;
+	//private static final int N = 2;
 	private static final int CPOLYA = 0x4f;
 	private static final int CPOLYB = 0x6d;
 	private static final int NBITS = ((BLOCKSIZE+NROOTS*RSBLOCKS)*8+K-1);

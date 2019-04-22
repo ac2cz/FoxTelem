@@ -164,7 +164,15 @@ public abstract class Frame implements Comparable<Frame> {
 
 	public String getStpDate() {
 		if (stpDate == null) return null;
-		return Frame.stpDateFormat.format(stpDate);
+		String dt = "";
+		try {
+			dt = Frame.stpDateFormat.format(stpDate);
+		} catch (Exception e) {
+			// catch any exceptions based on random date formats the user may send to us
+			// For example we get IndexOutOfBounds, format Exceptions and others
+			Log.println("ERROR: Could not parse date preparing DB insert, ignoring - " + stpDate  + "\n" + e.getMessage());
+		}
+		return dt;
 	}
 
 	/**
@@ -222,7 +230,13 @@ public abstract class Frame implements Comparable<Frame> {
 
 			if (date != null) {
 				stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				measuredTCA = stpDateFormat.format(date);
+				try {
+					measuredTCA = stpDateFormat.format(date);
+				} catch (Exception e) {
+					// catch any exceptions based on random date formats the user may send to us
+					// For example we get IndexOutOfBounds, format Exceptions and others
+					Log.println("ERROR: Could not parse date setting pass measurement, ignoring - " + stpDate  + "\n" + e.getMessage());
+				}
 				Log.println("STP TCA set as: " + measuredTCA);
 			} else {
 				measuredTCA = NONE;
@@ -302,7 +316,15 @@ public abstract class Frame implements Comparable<Frame> {
 		String header;
 
 		stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String date = stpDateFormat.format(stpDate);
+		
+		String date = "";
+		try {
+			stpDateFormat.format(stpDate);
+		} catch (Exception e) {
+			// catch any exceptions based on random date formats the user may send to us
+			// For example we get IndexOutOfBounds, format Exceptions and others
+			Log.println("ERROR: Could not parse date getting STP Core Header, ignoring - " + stpDate  + "\n" + e.getMessage());
+		}
 
 		// These have to be sent, so cannot be NONE
 		header = "Sequence: " + sequenceNumber + "\r\n";
@@ -475,11 +497,11 @@ public abstract class Frame implements Comparable<Frame> {
 							try {
 								stpDate = stpDateFormat.parse(dt);
 							} catch (ParseException e) {
-								Log.println("ERROR - Date was not parsable. Setting to null");
+								Log.println("ERROR - Date was not parsable. Setting to null"  + "\n" + e.getMessage());
 								stpDate = null;
 								//e.printStackTrace(Log.getWriter());
 							} catch (NumberFormatException e) {
-								Log.println("ERROR - Date has number format exception. Setting to null");
+								Log.println("ERROR - Date has number format exception. Setting to null"  + "\n" + e.getMessage());
 								stpDate = null;
 							} catch (Exception e) { // we can get other unusual exceptions such as ArrayIndexOutOfBounds...
 								Log.println("ERROR - Date was not parsable. Setting to null: " + e.getMessage());
@@ -755,7 +777,13 @@ public abstract class Frame implements Comparable<Frame> {
 		//FIXME - need to make this a proper date in the DB
 		String dt = "";
 		if (stpDate != null)
+			try {
 			dt = stpDateFormat.format(stpDate);
+			} catch (Exception e) {
+				// catch any exceptions based on random date formats the user may send to us
+				// For example we get IndexOutOfBounds, format Exceptions and others
+				Log.println("ERROR: Could not parse date preparing DB insert, ignoring - " + stpDate + "\n" + e.getMessage());
+			}
 		String s = new String();
 		if (demodulator.length() > 99) demodulator = demodulator.substring(0, 99);
 		if (source.length() > 32) source = source.substring(0, 32);

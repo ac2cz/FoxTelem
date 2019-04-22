@@ -65,7 +65,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 	private final JPanel contentPanel = new JPanel();
 	JTextField name;
-	JComboBox priority;
+	JComboBox<String> priority;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -75,6 +75,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JTextField BATTERY_CURRENT_ZERO;
 	JTextField mpptResistanceError;
 	JTextField mpptSensorOffThreshold;
+	JTextField memsRestValueX, memsRestValueY, memsRestValueZ;
 	JTextField[] T0;
 	JTextField localServer;
 	JTextField localServerPort;
@@ -135,7 +136,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		String[] nums = new String[20];
 		for (int i=0; i < nums.length; i++)
 			nums[i] = ""+i;
-		priority = new JComboBox(nums); 
+		priority = new JComboBox<String>(nums); 
 		priority.setSelectedIndex(sat.priority);
 		titlePanel.add(priority);
 
@@ -271,6 +272,14 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					"The extra resistance in the RTD temperature measurement circuit", ""+sat.mpptResistanceError);
 			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
 					"The ADC value when the temperature sensor is considered off", ""+sat.mpptSensorOffThreshold);
+		}
+		if (sat.hasMemsRestValues) {
+			memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
+					"The rest value for the MEMS X rotation sensor", ""+sat.memsRestValueX);
+			memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
+					"The rest value for the MEMS Y rotation sensor", ""+sat.memsRestValueY);
+			memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
+					"The rest value for the MEMS Z rotation sensor", ""+sat.memsRestValueZ);
 		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
@@ -425,6 +434,20 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 						refreshTabs=true;
 					}
 				}
+				if (sat.hasMemsRestValues) {
+					if (sat.memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+						refreshTabs=true;
+					}
+					if (sat.memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+						refreshTabs=true;
+					}
+					if (sat.memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
+						refreshTabs=true;
+					}
+				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
@@ -479,7 +502,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowWidth");
 		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "spacecraftWindow", "windowHeight");
 		if (windowX == 0 || windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
-			setBounds(100, 100, 600, 600);
+			setBounds(100, 100, 600, 700);
 		} else {
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 		}

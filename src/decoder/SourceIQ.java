@@ -6,7 +6,6 @@ import org.jtransforms.fft.DoubleFFT_1D;
 
 import common.Config;
 import common.Log;
-import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Complex;
 import filter.ComplexOscillator;
 import filter.DcRemoval;

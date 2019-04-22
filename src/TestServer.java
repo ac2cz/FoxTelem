@@ -1,16 +1,9 @@
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketTimeoutException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-
 import common.Log;
-import telemServer.ServerProcess;
-import telemServer.StpFileProcessException;
 
 public class TestServer {
 
@@ -20,7 +13,7 @@ public class TestServer {
 		
 		ServerSocket serverSocket = null;
 		boolean listening = true;
-		ExecutorService pool = null;
+		//ExecutorService pool = null;
 
 		try {
 			serverSocket = new ServerSocket(port);

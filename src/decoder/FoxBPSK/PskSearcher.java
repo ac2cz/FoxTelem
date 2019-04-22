@@ -63,8 +63,8 @@ public class PskSearcher implements Runnable {
 		
 		//Log.println("SEARCHER STARTED: Start Freq: " + cos.getFrequency());
 		//Log.println("  searching: " + nfreq + " steps");
-		double endInc = cphase_inc_step * nfreq;
-		double endFreq = endInc * sampleRate / (2 * Math.PI);
+		//double endInc = cphase_inc_step * nfreq;
+		//double endFreq = endInc * sampleRate / (2 * Math.PI);
 		//Log.println("  to: " + (cos.getFrequency() + endFreq));
 	}
 

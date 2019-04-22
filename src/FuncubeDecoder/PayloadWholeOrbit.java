@@ -1,14 +1,15 @@
 package FuncubeDecoder;
 
 import common.Spacecraft;
-import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 
 public class PayloadWholeOrbit extends FramePart {
 
+	public static final int WOD_TYPE = 0;
+	
 	protected PayloadWholeOrbit(BitArrayLayout l) {
-		super(l);
+		super(l, WOD_TYPE);
 		// TODO Auto-generated constructor stub
 	}
 

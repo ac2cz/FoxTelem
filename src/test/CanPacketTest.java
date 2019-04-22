@@ -6,12 +6,8 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import telemetry.Cobs;
-import telemetry.CobsDecodeException;
-import telemetry.RadiationPacket;
 import telemetry.uw.CanPacket;
 import decoder.FoxBitStream;
-import decoder.FoxDecoder;
 
 /**
  * 
@@ -57,7 +53,7 @@ public class CanPacketTest {
 		
 //		int[] raw = {0x00,0x02,0x20,0x80,0x01,0x02,0x03,0x04,0x05};
 		int[] raw = {0x00,0x02,0x20,0x80,0x01,0x02,0x03,0x04,0x05};
-		CanPacket packet = new CanPacket(1,999);
+		CanPacket packet = new CanPacket(null);
 		
 		for (int i : raw)
 			packet.addNext8Bits((byte)i);

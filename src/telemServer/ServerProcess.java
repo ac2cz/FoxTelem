@@ -84,7 +84,6 @@ public class ServerProcess implements Runnable {
 			
 	}
 	
-
 	
 	/**
 	 * This is started when we have a TCP connection.  We read the data until the connection is closed
@@ -159,6 +158,8 @@ public class ServerProcess implements Runnable {
 			Log.println("STP EXCPETION: " + e.getMessage());
 			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
 			storeException(stp);
+		} catch (Exception e) {
+			Log.println("FATAL THREAD EXCPETION: " + e.getMessage());
 		} finally {
 			try { in.close();  } catch (Exception ex) { /*ignore*/}
 			try { socket.close();  } catch (Exception ex) { /*ignore*/} 

@@ -22,10 +22,8 @@
  ******************************************************************************/
 package device.rtl;
 
-import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import javax.swing.JPanel;
 import javax.usb.UsbException;
 
 import org.usb4java.Device;
@@ -34,9 +32,7 @@ import org.usb4java.LibUsbException;
 
 import common.Log;
 import device.DeviceException;
-import device.DevicePanel;
 import device.ThreadPoolManager;
-import device.TunerConfiguration;
 import device.TunerType;
 
 
@@ -72,7 +68,7 @@ public class R820TTunerController extends RTL2832TunerController
 	      0x6C, 0x83, 0x80, 0x00, 0x0F, 0x00, 0xC0, 0x30,
 	      0x48, 0xCC, 0x60, 0x00, 0x54, 0xAE, 0x4A, 0xC0 };
 	
-	private JPanel mEditor;
+	//private JPanel mEditor;
 	
 	public R820TTunerController( Device device, 
 								 DeviceDescriptor deviceDescriptor, 

@@ -395,7 +395,6 @@ public abstract class Decoder implements Runnable {
 	}
 	
 	protected void rewind(int amount) {
-		int nBytesRead = 0;
 		//Log.println("Rewinding "+ amount +" doubles from channel: " + audioChannel);
 		 audioSource.rewind(amount, audioChannel);
 	}

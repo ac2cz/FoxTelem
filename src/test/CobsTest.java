@@ -51,6 +51,7 @@ public class CobsTest {
 	public void tearDown() throws Exception {
 	}
 
+	@SuppressWarnings("unused")
 	@Test
 	public void test() {
 		
