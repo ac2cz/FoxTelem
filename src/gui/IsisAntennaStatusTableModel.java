@@ -34,16 +34,16 @@ class IsisAntennaStatusTableModel extends AbstractTableModel {
 		columnNames[2] = "Armed";
 		columnNames[3] = "Burn";
 		columnNames[4] = "Switch Ignore";
-		columnNames[5] = "ANT 1"; // B
+		columnNames[5] = "1:UHF TX"; // B
 		columnNames[6] = "Last"; // T
 		columnNames[7] = "Dep"; // S
-		columnNames[8] = "ANT 2"; // B
+		columnNames[8] = "2: VHF RX"; // B
 		columnNames[9] = "Last"; // T
 		columnNames[10] = "Dep"; // S
-		columnNames[11] = "ANT 3"; // B
+		columnNames[11] = "3: UHF TX"; // B
 		columnNames[12] = "Last"; // T
 		columnNames[13] = "Dep"; // S
-		columnNames[14] = "ANT 4"; // B
+		columnNames[14] = "4: VHF RX"; // B
 		columnNames[15] = "Last"; // T
 		columnNames[16] = "Dep"; // S
 	}
