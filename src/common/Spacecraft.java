@@ -40,6 +40,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
 	public static final int HUSKY_SAT = 6;
+	public static final int GOLF_TEE = 7;
 	public static final int FUN_CUBE1 = 100;
 	public static final int FUN_CUBE2 = 101;
 	
@@ -50,9 +51,10 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
 			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
 			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
-			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" } };
+			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" },
+			{ "amsat.golf-t.ihu.bpsk", "amsat.golf-t.ihu.bpsk" } };
 
-	public static final int MAX_FOXID = 6;
+	public static final int MAX_FOXID = 7;
 
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
