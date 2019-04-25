@@ -764,44 +764,46 @@ longer send telemetry.
 	}
 
 	// Flattened C ENUM for ICRDiagnostic aka swCmds - COMMAND NAME SPACE
-		public static final int SWCmdNSSpaceCraftOps = 1;
-		public static final int SWCmdNSTelemetry = 2;
-		public static final int SWCmdNSExperiment1 = 3;
-		public static final int SWCmdNSExperiment2 = 4;
-		public static final int SWCmdNSExperiment3 = 5;
-		public static final int SWCmdNSExperiment4 = 6;
-
-		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
-		public static final String[] SWOpsCommands = {
-		"Unknown", //0
-		"SafeMode", //1
-		"TransponderMode", //2
-		"ScienceMode", //3
-		"DisableAutosafe", //4
-		"EnableAutosafe", //5
-		"ClearMinMax", //6
-		"OpsNoop", //7
-		"ForceOffExp1", //8
-		"ForceDeployRx", //9
-		"ForceDeployTx", //0xA
-		"ResetIHU" //0xB
-		};
-
-		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
-		public static final String[] SWTlmCommands = {
-		"Unknown",
-		"Gain",
-		"WODSaveSize",
-		"Encoding",
-		"Frequency"
-		};
-
-		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
-		public static final String[] SWExp1Commands = {
-		"Unknown",
-		"CycleTiming",
-		"SetBoard"
-		};
+//		public static final int SWCmdNSSpaceCraftOps = 1;
+//		public static final int SWCmdNSTelemetry = 2;
+//		public static final int SWCmdNSExperiment1 = 3;
+//		public static final int SWCmdNSExperiment2 = 4;
+//		public static final int SWCmdNSExperiment3 = 5;
+//		public static final int SWCmdNSExperiment4 = 6;
+//		public static final int SWCmdNSCan = 7;
+//		public static final int SWCmdNSGyro = 8;
+//
+//		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
+//		public static final String[] SWOpsCommands = {
+//		"Unknown", //0
+//		"SafeMode", //1
+//		"TransponderMode", //2
+//		"ScienceMode", //3
+//		"DisableAutosafe", //4
+//		"EnableAutosafe", //5
+//		"ClearMinMax", //6
+//		"OpsNoop", //7
+//		"ForceOffExp1", //8
+//		"ForceDeployRx", //9
+//		"ForceDeployTx", //0xA
+//		"ResetIHU" //0xB
+//		};
+//
+//		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
+//		public static final String[] SWTlmCommands = {
+//		"Unknown",
+//		"Gain",
+//		"WODSaveSize",
+//		"Encoding",
+//		"Frequency"
+//		};
+//
+//		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
+//		public static final String[] SWExp1Commands = {
+//		"Unknown",
+//		"CycleTiming",
+//		"SetBoard"
+//		};
 	
 		
 	/**
@@ -820,31 +822,33 @@ longer send telemetry.
 			int nameSpace = rawValue & 0x7; // Top 3 bits of the byte hold the command namespace
 			
 			if ( nameSpace == 0)
-				s[i] = s[i] + "---";
-			else
-			switch (nameSpace) {
-
-			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
-				if (shortString)
-					s[i] = s[i] + SWOpsCommands[value];
-				else
-					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
-				break;
-			case SWCmdNSTelemetry: // Telemetry Control
-				if (shortString)
-					s[i] = s[i] + SWTlmCommands[value];
-				else
-					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
-				break;
-			case SWCmdNSExperiment1: // Experiment 1
-				if (shortString)
-					s[i] = s[i] + SWExp1Commands[value];
-				else
-					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
-			break;
-			default:
-				s[i] = s[i] + "ERR:" + nameSpace;
+				s[i] = s[i] + "-:--";
+			else {
+				s[i] = nameSpace + ":" + value;
 			}
+//			switch (nameSpace) {
+//
+//			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
+//				if (shortString)
+//					s[i] = s[i] + SWOpsCommands[value];
+//				else
+//					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
+//				break;
+//			case SWCmdNSTelemetry: // Telemetry Control
+//				if (shortString)
+//					s[i] = s[i] + SWTlmCommands[value];
+//				else
+//					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
+//				break;
+//			case SWCmdNSExperiment1: // Experiment 1
+//				if (shortString)
+//					s[i] = s[i] + SWExp1Commands[value];
+//				else
+//					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
+//			break;
+//			default:
+//				s[i] = s[i] + "ERR:" + nameSpace;
+//			}
 			rawValue = rawValue >> 3; // move to the next byte
 		}
 		return s;
@@ -914,9 +918,14 @@ longer send telemetry.
 						+ "tn " + Integer.toHexString(taskNumber) + " "
 						+ "al " + Integer.toHexString(alignment);
 			else {
-				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
-						+ " Error Type: " + ihuErrorType[errorCode] + " "
-						+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
+				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  
+				+ " ";//  Integer.toHexString(watchDogReports) + " "
+				if (errorCode < ihuErrorType.length)
+					s = s	+ " Error Type: " + ihuErrorType[errorCode] + " ";
+				else
+					s = s	+ " Error Type: " + errorCode;
+				
+				s = s	+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
 						+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ " Task Number: " + taskNumber + "- ";
 				if (taskNumber < ihuTask.length)
@@ -962,7 +971,9 @@ longer send telemetry.
 			// alignment is the next 8 bits
 			int alignment = (rawValue >> 24) & 0xff;
 
-			s[0] = errorCode + " - " + ihuErrorType[errorCode];
+			s[0] = ""+errorCode;
+			if (errorCode < ihuErrorType.length)
+				s[0] = s[0] + " - " + ihuErrorType[errorCode];
 			s[1] = Integer.toHexString(alignment);
 
 			s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
