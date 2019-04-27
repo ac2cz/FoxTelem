@@ -244,7 +244,15 @@ public class PassManager implements Runnable {
 			// the average has not completed.  If we line all of the timings up, this should not happen.
 			if (pp1.rfData != null) {
 				//System.out.println("..Checking RF Data");
-				if (Config.fromBin < pp1.rfData.getBinOfStrongestSignalInSatBand() && Config.toBin > pp1.rfData.getBinOfStrongestSignalInSatBand()) {
+				boolean spansDcSpike = false;
+				if (Config.toBin < Config.fromBin) {
+					// Then we span the central spike.  Not ideal.  We need to check forStrong Sig reading in the two parts of the FFT
+					spansDcSpike = true;
+				}
+				int n = pp1.rfData.getBinOfStrongestSignalInSatBand();
+				if ((Config.fromBin < n && n < Config.toBin) 
+						|| (spansDcSpike && Config.fromBin < n && n < pp1.iqSource.FFT_SAMPLES-2) || (spansDcSpike && 0 <= n && n < Config.toBin)) {
+				//if (Config.fromBin < pp1.rfData.getBinOfStrongestSignalInSatBand() && Config.toBin > pp1.rfData.getBinOfStrongestSignalInSatBand()) {
 					//double strongestSignal = pp1.rfData.getAvg(RfData.STRONGEST_SIG);
 					if (Config.debugSignalFinder) Log.println(sat.getIdString() + " STRONG SIG:" + pp1.rfData.rfStrongestSigSNRInSatBand);
 					if (pp1.rfData != null && pp1.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {

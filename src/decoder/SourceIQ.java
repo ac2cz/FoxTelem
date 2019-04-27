@@ -877,8 +877,8 @@ protected double[] processBytes(double[] fcdData) {
 		 */
 		double sig = 0;
 		for (int n=0; n < noiseStart; n+=2) {
-			if (fromBin*2 < n && n < toBin*2 
-					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
+			if ((fromBin*2 < n && n < toBin*2) 
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
 				sig = psd(fftData[n], fftData[n+1]);
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
@@ -889,8 +889,8 @@ protected double[] processBytes(double[] fcdData) {
 
 		for (int n=noiseStart; n< start; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
-			if (fromBin*2 < n && n < toBin*2
-					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
+			if ((fromBin*2 < n && n < toBin*2)
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = n/2;
@@ -909,8 +909,8 @@ protected double[] processBytes(double[] fcdData) {
 				newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
 			}
 			sig = psd(fftData[i], fftData[i+1]);
-			if (fromBin*2 < i && i < toBin*2
-					|| (spansDcSpike && fromBin*2 < i && i < fftData.length-2) || (spansDcSpike && 0 < i && i < toBin*2)) {
+			if ((fromBin*2 < i && i < toBin*2)
+					|| (spansDcSpike && fromBin*2 < i && i < fftData.length-2) || (spansDcSpike && 0 <= i && i < toBin*2)) {
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = i/2;
@@ -932,8 +932,8 @@ protected double[] processBytes(double[] fcdData) {
 		}
 		for (int n=end; n < noiseEnd; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
-			if (fromBin*2 < n && n < toBin*2
-					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
+			if ((fromBin*2 < n && n < toBin*2)
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
 					binOfStrongestSigInSatBand = n/2;
@@ -944,8 +944,8 @@ protected double[] processBytes(double[] fcdData) {
 		}
 
 		for (int n=noiseEnd; n < fftData.length-2; n+=2) {
-			if (fromBin*2 < n && n < toBin*2
-					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 < n && n < toBin*2)) {
+			if ((fromBin*2 < n && n < toBin*2)
+					|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
 				sig = psd(fftData[n], fftData[n+1]);
 				if (sig > strongestSigInSatBand) {
 					strongestSigInSatBand = sig;
@@ -953,7 +953,22 @@ protected double[] processBytes(double[] fcdData) {
 				}
 			}
 		}
-
+		
+		// redo strongest sig
+		if (Config.findSignal) {
+			strongestSigInSatBand = -99999;
+			binOfStrongestSigInSatBand = 0;
+			for (int n=0; n < fftData.length-2; n+=2) {
+				if ((fromBin*2 < n && n < toBin*2) 
+						|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
+					sig = psd(fftData[n], fftData[n+1]);
+					if (sig > strongestSigInSatBand) {
+						strongestSigInSatBand = sig;
+						binOfStrongestSigInSatBand = n/2;
+					}
+				}
+			}
+		}
 
 		//		fftData[0] = 0;
 		//		fftData[1] = 0;
