@@ -9,14 +9,10 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
 import java.util.TimeZone;
 
 import telemetry.Frame;
@@ -31,11 +27,10 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.FoxTime;
 import common.Log;
-import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.00 - 15 Sept 2018";
+	public static String version = "Version 1.01 - 26 May 2019";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -192,17 +187,18 @@ public class WebServiceProcess implements Runnable {
 							} catch (NumberFormatException e) {
 								out.println("Invalid sat or type");
 							}
-							if (sat != 0) {
-							try {
-								fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
-							} catch (LayoutLoadException e1) {
-								e1.printStackTrace(Log.getWriter());
-							}
-							if (raw.startsWith("C"))
-								convert = false;
-							
-							out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
-							
+							if (sat > 0) {
+								try {
+									fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+								} catch (LayoutLoadException e1) {
+									e1.printStackTrace(Log.getWriter());
+								}
+								if (raw.startsWith("C"))
+									convert = false;
+
+								if (fox1Atab != null)
+									out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+
 							} else {
 								out.println("FOX SAT Requested invalid\n");
 							}
