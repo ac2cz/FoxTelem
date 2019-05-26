@@ -954,21 +954,21 @@ protected double[] processBytes(double[] fcdData) {
 			}
 		}
 		
-		// redo strongest sig
-		if (Config.findSignal) {
-			strongestSigInSatBand = -99999;
-			binOfStrongestSigInSatBand = 0;
-			for (int n=0; n < fftData.length-2; n+=2) {
-				if ((fromBin*2 < n && n < toBin*2) 
-						|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
-					sig = psd(fftData[n], fftData[n+1]);
-					if (sig > strongestSigInSatBand) {
-						strongestSigInSatBand = sig;
-						binOfStrongestSigInSatBand = n/2;
-					}
-				}
-			}
-		}
+		// redo strongest sig to debug
+//		if (Config.findSignal) {
+//			strongestSigInSatBand = -99999;
+//			binOfStrongestSigInSatBand = 0;
+//			for (int n=0; n < fftData.length-2; n+=2) {
+//				if ((fromBin*2 < n && n < toBin*2) 
+//						|| (spansDcSpike && fromBin*2 < n && n < fftData.length-2) || (spansDcSpike && 0 <= n && n < toBin*2)) {
+//					sig = psd(fftData[n], fftData[n+1]);
+//					if (sig > strongestSigInSatBand) {
+//						strongestSigInSatBand = sig;
+//						binOfStrongestSigInSatBand = n/2;
+//					}
+//				}
+//			}
+//		}
 
 		//		fftData[0] = 0;
 		//		fftData[1] = 0;
