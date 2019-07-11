@@ -30,7 +30,7 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.01 - 26 May 2019";
+	public static String version = "Version 1.02 - 10 Jul 2019";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -263,7 +263,7 @@ public class WebServiceProcess implements Runnable {
 				out.println(d.format (satLatitude) + "," + d.format (satLongitude));
 			} else out.println("0, 0");
 		} catch (Exception e) {
-			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n");								
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n"+e+" " + e.getMessage());								
 		}
 
 	}
@@ -288,7 +288,7 @@ public class WebServiceProcess implements Runnable {
 				out.println(Frame.stpDateFormat.format(t));
 			} else out.println("0, 0" + "\n");
 		} catch (Exception e) {
-			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n");										
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n"+e.getMessage());										
 		}
 
 	}
