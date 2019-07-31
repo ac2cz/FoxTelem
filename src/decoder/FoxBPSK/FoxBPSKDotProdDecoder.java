@@ -119,7 +119,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
 		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 100; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
+		SAMPLE_WINDOW_LENGTH = 20; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
 		SEARCH_INTERVAL = (int) 1*8192/SAMPLE_WINDOW_LENGTH;
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 		symphase = bucketSize/2;

@@ -92,7 +92,7 @@ import telemetry.PayloadWODUwExperiment;
 				String debug = (Decoder.plainhex(b));
 				debugCount++;
 				Log.print(debug);
-				if (debugCount % 40 == 0) Log.println("");;
+				if (debugCount % 40 == 0) Log.println("");
 			}
 
 			if (corrupt) return;
@@ -147,10 +147,10 @@ import telemetry.PayloadWODUwExperiment;
 			else
 				Log.println("ERROR: attempt to add byte past end of frame");
 
-			if (Config.debugBytes) {
-				if ((numberBytesAdded - MAX_HEADER_SIZE) % PAYLOAD_SIZE == 0)
-					Log.println("");
-			}
+//			if (Config.debugBytes) {
+//				if ((numberBytesAdded - MAX_HEADER_SIZE) % PAYLOAD_SIZE == 0)
+//					Log.println("");
+//			}
 			bytes[numberBytesAdded] = b;
 			numberBytesAdded++;
 		}
