@@ -55,21 +55,21 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 	 */
 	int debugCount = 0;
 	protected void addToCanPackets(byte b) {
-//		if (!Config.splitCanPackets) {
-//			if (canPacket == null) {
-//				canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
-//				canPacket.captureHeaderInfo(id, uptime, resets);
-//				canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
-//			}
-//			if (canPacket.hasEndOfCanPacketsId()) return;
-//			canPacket.addNext8Bits(b);
-//			if (canPacket.isValid()) {
-//				canPackets.add(canPacket);
-//				canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
-//				canPacket.captureHeaderInfo(id, uptime, resets);
-//				canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
-//			}
-//		} else {
+		if (!Config.splitCanPackets) {
+			if (canPacket == null) {
+				canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+				canPacket.captureHeaderInfo(id, uptime, resets);
+				//canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+			}
+			if (canPacket.hasEndOfCanPacketsId()) return;
+			canPacket.addNext8Bits(b);
+			if (canPacket.isValid()) {
+				canPackets.add(canPacket);
+				canPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+				canPacket.captureHeaderInfo(id, uptime, resets);
+				//canPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+			}
+		} else {
 			if (rawCanPacket == null) {
 				rawCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT)); 
 				rawCanPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
@@ -90,7 +90,7 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 				rawCanPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
 				rawCanPacket.captureHeaderInfo(id, uptime, resets);
 			}
-//		}
+		}
 	}
 	
 	@Override

@@ -146,8 +146,9 @@ public class FoxTelemServer {
 			System.exit(1);
 		}
 
+		// Make sure CAN Packets are not split
+		Config.splitCanPackets=false;
 
-		
 		ServerSocket serverSocket = null;
         boolean listening = true;
         ExecutorService pool = null;

@@ -280,8 +280,7 @@ public class Config {
 	static public boolean debugCalcDopplerContinually = false;
 	
 	// V1.08
-	//static public boolean splitCanPackets = true;
-	
+	static public boolean splitCanPackets = true;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
