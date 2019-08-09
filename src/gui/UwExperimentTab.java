@@ -177,7 +177,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	void addModules() {
 		BitArrayLayout rad = null;
 
-		rad = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
+		rad = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
 		BitArrayLayout none = null;
 		try {
 //			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
@@ -476,28 +476,28 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					parseRadiationFrames();
 					//					for (BitArrayLayout lay : layout)
 					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
 					//					for (BitArrayLayout lay : layout)
 					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
 				}
 
 				boolean refresh = false;
 
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.CAN_LAYOUT)) {
 					//radPayload = Config.payloadStore.getLatestRad(foxId);
-					Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
+					Config.payloadStore.setUpdated(foxId, Spacecraft.CAN_LAYOUT, false);
 					refresh = true;
 				}
 				if (refresh) {
 					parseRadiationFrames();
 					//						for (BitArrayLayout lay : layout)
 					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAD_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT),
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {

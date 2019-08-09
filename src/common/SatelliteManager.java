@@ -27,6 +27,7 @@ import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
+import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 
@@ -191,6 +192,15 @@ public class SatelliteManager implements Runnable {
 							satellite = new FUNcubeSpacecraft(listOfFiles[i]);
 						else
 							satellite = new FoxSpacecraft(listOfFiles[i]);
+						int frameLayouts = satellite.numberOfFrameLayouts;
+						Log.println("Frame Layouts: " + frameLayouts);
+						for (int k=0; k < frameLayouts; k++) {
+							Log.print(" : " + satellite.frameLayout[k].name);
+							Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.FRAME_LENGTH_IN_BYTES) + " bits");
+							Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
+							Log.println("");
+						}
+						
 					} catch (FileNotFoundException e) {
 						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
 						e.printStackTrace(Log.getWriter());
@@ -240,6 +250,14 @@ public class SatelliteManager implements Runnable {
 		if (sc != null) return sc.getLayoutByCanId(id);
 		return null;
 	}
+
+	public FrameLayout getFrameLayout(int sat, int type) {
+		if (!validFoxId(sat)) return null;
+		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		if (sc != null) return sc.frameLayout[type];
+		return null;
+	}
+
 	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		if (!validFoxId(sat)) return null;

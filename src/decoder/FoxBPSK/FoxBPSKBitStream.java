@@ -39,8 +39,9 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
 		SYNC_WORD_BIT_TOLERANCE = 10;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
-		maxBytes = FoxBPSKFrame.getMaxBytes();
-		frameSize = FoxBPSKFrame.MAX_FRAME_SIZE;
+		// TODO - These need to be looked up from the satId and the frameLayout
+		maxBytes = 572; //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
+		frameSize = 476; // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
 		numberOfRsCodeWords = FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS;
 		rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
 		rsPadding[0] = 64;

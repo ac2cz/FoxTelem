@@ -563,7 +563,8 @@ public abstract class Frame implements Comparable<Frame> {
 			rsPadding[1] = 64;
 			rsPadding[2] = 65;
 			if (ServerConfig.highSpeedRsDecode)
-				if (!highSpeedRsDecode(FoxBPSKFrame.MAX_FRAME_SIZE, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
+				// TODO - This should be looked up from the FoxId and the frameLayout for the sat
+				if (!highSpeedRsDecode(476, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
 					Log.println("BPSK RS Decode Failed");
 					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
 				}
@@ -832,19 +833,19 @@ public abstract class Frame implements Comparable<Frame> {
 	
 	public void load(BufferedReader input) throws IOException {
 		if (this instanceof SlowSpeedFrame) {
-			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
-					+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
-					+ SlowSpeedFrame.MAX_TRAILER_SIZE];
+//			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
+//					+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
+//					+ SlowSpeedFrame.MAX_TRAILER_SIZE];
 			header = new SlowSpeedHeader();
 		} else if (this instanceof FoxBPSKFrame) {
-			bytes = new byte[FoxBPSKFrame.MAX_HEADER_SIZE
-								+ FoxBPSKFrame.MAX_PAYLOAD_SIZE
-								+ FoxBPSKFrame.MAX_TRAILER_SIZE];
+//			bytes = new byte[FoxBPSKFrame.MAX_HEADER_SIZE
+//								+ FoxBPSKFrame.MAX_PAYLOAD_SIZE
+//								+ FoxBPSKFrame.MAX_TRAILER_SIZE];
 			header = new FoxBPSKHeader();
 		} else {
-			bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
-					+ HighSpeedFrame.MAX_PAYLOAD_SIZE
-					+ HighSpeedFrame.MAX_TRAILER_SIZE];
+//			bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
+//					+ HighSpeedFrame.MAX_PAYLOAD_SIZE
+//					+ HighSpeedFrame.MAX_TRAILER_SIZE];
 			header = new HighSpeedHeader();
 		}
 		String line = input.readLine();
@@ -861,7 +862,7 @@ public abstract class Frame implements Comparable<Frame> {
 			stpDate = new Date(Long.parseLong(st.nextToken()));
 			length = st.nextToken();
 			//System.out.println("loaded: " + sequenceNumber);
-			for (int i = 0; i < bytes.length; i++) {
+			while (st.hasMoreTokens()) {
 
 				//bytes[i] = (byte) Integer.parseInt(st.nextToken());
 				this.addNext8Bits((byte) Integer.parseInt(st.nextToken()));

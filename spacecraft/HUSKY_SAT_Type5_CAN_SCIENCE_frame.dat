@@ -1,0 +1,8 @@
+frame_length_in_bytes=572
+header_length=8
+fec_checkbytes_length=96
+number_of_payloads=6
+number_of_rs_words=3
+payload0.name=cantelemetry
+payload0.length=456
+canPacketFrame=true

@@ -18,6 +18,7 @@ import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
+import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
@@ -54,7 +55,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" },
 			{ "amsat.golf-t.ihu.bpsk", "amsat.golf-t.ihu.bpsk" } };
 
-	public static final int MAX_FOXID = 7;
+	public static final int MAX_FOXID = 256; // experimentally increase this to allow other ids. Note the header is limited to 8 bits
 
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
@@ -72,7 +73,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String RAD_LEPF_LAYOUT = "radtelemLEPF";
 	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
 	public static final String RAD_REM_LAYOUT = "radtelemREM";
-	
+
+	// These are the layouts
+	public static final String CAN_LAYOUT = "cantelemetry";
+	public static final String WOD_CAN_LAYOUT = "wodcantelemetry";
+
+	// These are the individual CAN packets inside the layouts
 	public static final String CAN_PKT_LAYOUT = "canpacket";
 	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 	
@@ -139,7 +145,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	public int numberOfFrameLayouts = 1;
 	public String[] frameLayoutFilename;
-	//public FrameLayout[] frameLayout;
+	public FrameLayout[] frameLayout;
 	
 	// User Config
 	public boolean track = true; // default is we track a satellite
@@ -379,16 +385,16 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			// Frame Layouts
-			/**
+			
 			numberOfFrameLayouts = Integer.parseInt(getProperty("numberOfFrameLayouts"));
 			frameLayoutFilename = new String[numberOfFrameLayouts];
 			frameLayout = new FrameLayout[numberOfFrameLayouts];
 			for (int i=0; i < numberOfFrameLayouts; i++) {
 				frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
-				frameLayout[i] = new FrameLayout(frameLayoutFilename[i]);
+				frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
 				frameLayout[i].name = getProperty("frameLayout"+i+".name");
 			}
-			*/
+			
 			
 			
 			// Telemetry Layouts

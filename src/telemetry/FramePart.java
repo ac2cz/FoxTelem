@@ -9,9 +9,11 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
+import telemetry.FoxBPSK.FoxBPSKHeader;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
@@ -229,6 +231,34 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		} catch (NumberFormatException n) {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+		}
+	}
+	
+	/**
+	 * 
+	 * Factory Method to make a new Frame Part from a layout
+	 * @return
+	 */
+	public static FramePart makePayload(FoxBPSKHeader header, BitArrayLayout layout) {
+		switch (layout.name) {
+			case Spacecraft.REAL_TIME_LAYOUT:
+				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+			case Spacecraft.MAX_LAYOUT:
+				return new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+			case Spacecraft.MIN_LAYOUT:
+				return new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+			case Spacecraft.RAD_LAYOUT:
+				return new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+			case Spacecraft.WOD_LAYOUT:
+				return new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
+			case Spacecraft.WOD_RAD_LAYOUT:
+				return new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+			case Spacecraft.WOD_CAN_LAYOUT:
+				return new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_CAN_LAYOUT), header.id, header.uptime, header.resets);
+			case Spacecraft.CAN_LAYOUT:
+				return new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.CAN_LAYOUT), header.id, header.uptime, header.resets);
+			default:
+				return null;	
 		}
 	}
 }
