@@ -1,5 +1,16 @@
 #Fox 1 Telemetry Decoder Properties
 #Thu Feb 09 21:13:22 EST 2017
+numberOfFrameLayouts=5
+frameLayout0.name=All WOD
+frameLayout0.filename=FOX1E_Type0_ALL_WOD.frame
+frameLayout1.name=Health
+frameLayout1.filename=FOX1E_Type1_HEALTH.frame
+frameLayout2.name=MinMax
+frameLayout2.filename=FOX1E_Type2_MINMAX.frame
+frameLayout3.name=Realtime Beacon
+frameLayout3.filename=FOX1E_Type3_REALTIME_BEACON.frame
+frameLayout4.name=WOD Beacon
+frameLayout4.filename=FOX1E_Type4_WOD_BEACON.frame
 mpptSensorOffThreshold=1600
 mpptResistanceError=6.58
 memsRestValueX=2129
