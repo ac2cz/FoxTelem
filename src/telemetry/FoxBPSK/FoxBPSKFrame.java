@@ -114,6 +114,8 @@ import telemetry.PayloadWODUwExperiment;
 				header.copyBitsToFields(); // make sure the id is populated
 				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 				if (fox != null) {
+					if (Config.debugFrames)
+						Log.println(header.toString());
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
 					bytes = new byte[frameLayout.getInt(FrameLayout.FRAME_LENGTH_IN_BYTES)];
 					for (int k=0; k < MAX_HEADER_SIZE; k++)
@@ -130,8 +132,7 @@ import telemetry.PayloadWODUwExperiment;
 						corrupt = true;
 						return;
 					}
-					if (Config.debugFrames)
-						Log.println(header.toString());
+					
 				} else {
 					if (Config.debugFrames)
 						Log.errorDialog("ERROR","FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.\n"
