@@ -35,15 +35,18 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static String SPACECRAFT_DIR = "spacecraft";
 	public static final int ERROR_IDX = -1;
 	
+	// THESE HARD CODED LOOKUPS SHOULD NOT BE USED FOR NEW SPACECRAFT
+	// Code a paramater into the spacecraft file that might work with future hardware, e.g. hsaCanBus
+	// Or switch logic based on standard layouts defined below, or custom layouts if required e.g. camera formats
 	public static final int FOX1A = 1;
 	public static final int FOX1B = 2;
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
-	public static final int HUSKY_SAT = 6;
-	public static final int GOLF_TEE = 7;
-	public static final int FUN_CUBE1 = 100;
-	public static final int FUN_CUBE2 = 101;
+	//public static final int HUSKY_SAT = 6;
+	//public static final int GOLF_TEE = 7;
+	//public static final int FUN_CUBE1 = 100;
+	//public static final int FUN_CUBE2 = 101;
 	
 	public static final String[][] SOURCES = {
 			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
@@ -385,18 +388,19 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			// Frame Layouts
-			
-			numberOfFrameLayouts = Integer.parseInt(getProperty("numberOfFrameLayouts"));
-			frameLayoutFilename = new String[numberOfFrameLayouts];
-			frameLayout = new FrameLayout[numberOfFrameLayouts];
-			for (int i=0; i < numberOfFrameLayouts; i++) {
-				frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
-				frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
-				frameLayout[i].name = getProperty("frameLayout"+i+".name");
+			String frames = getOptionalProperty("numberOfFrameLayouts");
+			if (frames == null) 
+				numberOfFrameLayouts = 0;
+			else {
+				numberOfFrameLayouts = Integer.parseInt(frames);
+				frameLayoutFilename = new String[numberOfFrameLayouts];
+				frameLayout = new FrameLayout[numberOfFrameLayouts];
+				for (int i=0; i < numberOfFrameLayouts; i++) {
+					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
+					frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
+					frameLayout[i].name = getProperty("frameLayout"+i+".name");
+				}
 			}
-			
-			
-			
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			layoutFilename = new String[numberOfLayouts];

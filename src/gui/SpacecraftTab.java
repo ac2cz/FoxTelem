@@ -133,16 +133,11 @@ public class SpacecraftTab extends JPanel {
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
 
-		String HEALTH = "Health";
-		if (this.sat.foxId == Spacecraft.HUSKY_SAT)
-			HEALTH = "COM1";
+		String HEALTH = "IHU";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ HEALTH + "</b></body></html>", healthTab );
 
-		if (sat.foxId == Spacecraft.FOX1E) {
-			addWodTab((FoxSpacecraft)sat);
-		}
-		if (sat.foxId == Spacecraft.HUSKY_SAT) {
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_LAYOUT) != Spacecraft.ERROR_IDX) {
 			addWodTab((FoxSpacecraft)sat);
 		}
 
@@ -161,10 +156,10 @@ public class SpacecraftTab extends JPanel {
 
 			}
 		}
-		if (sat.foxId == Spacecraft.FOX1E) {
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
 			addWodRadTab((FoxSpacecraft)sat);
 		}
-		if (sat.foxId == Spacecraft.HUSKY_SAT) {
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
 			addUwWodExperimentTab((FoxSpacecraft)sat);
 		}
 	}
@@ -176,9 +171,7 @@ public class SpacecraftTab extends JPanel {
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();
 
-		String WOD = "WOD";
-		if (this.sat.foxId == Spacecraft.HUSKY_SAT)
-			WOD = "COM1 WOD";
+		String WOD = "IHU WOD";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ WOD + "</b></body></html>", wodHealthTab );
 	}

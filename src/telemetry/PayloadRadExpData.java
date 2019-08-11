@@ -76,6 +76,9 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	
 	/**
+	 * Packet Telemetry never worked on the Vanderbilt boards, so this will always return true.
+	 * 
+	 * LEGACY COMMENTS BELOW:
 	 * For Fox 1-A and Fox-1C If byte 21 onwards is zero then this is telemetry.  Zeros are not allowed in the packet format because of the
 	 * COBS routine.  So if we find zeros, this is telemetry
 	 * Fox-1D has Housekeeping telemetry.  We can never confuse this with packets.  So return true.
@@ -84,17 +87,6 @@ public class PayloadRadExpData extends FoxFramePart {
 	 * @return
 	 */
 	public boolean isTelemetry() {
-		if (id == Spacecraft.FOX1E) {
-			return true;
-		} else if (id == Spacecraft.FOX1D) {
-			return true;
-		} else
-		if (id == Spacecraft.FOX1B) {
-			return true;
-		} else // id = 1 or 3
-			for (int i=21; i < 25; i++)
-				if (fieldValue[i] != 0) return false;
-		
 		return true;
 	}
 	

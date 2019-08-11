@@ -143,27 +143,29 @@ public class SatPayloadDbStore {
 		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
 		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);
-		if (fox.foxId == Spacecraft.HUSKY_SAT)
+		if (fox.getLayoutIdxByName(Spacecraft.CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
 			initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.CAN_LAYOUT), storeMode);
-		else
+			initCanPacketTable(storeMode);
+			initCanTimestampTable();
+		} else {
 			initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT), storeMode);
-		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), storeMode);
+			initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), storeMode);
+		}
 		if (fox.hasHerci()) {
 			initHerciTables(storeMode);
 		}
 		if (fox.hasCamera()) {
 			initCameraTables();
 		}
-		if (fox.foxId == Spacecraft.FOX1E) {
+		if (fox.getLayoutIdxByName(Spacecraft.WOD_LAYOUT) != Spacecraft.ERROR_IDX) {
 			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), storeMode);
+		}
+		if (fox.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), storeMode);
 			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), storeMode);
 		}
-		if (fox.foxId == Spacecraft.HUSKY_SAT) {
-			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), storeMode);
+		if (fox.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT), storeMode);
-			initCanPacketTable(storeMode);
-			initCanTimestampTable();
 		}
 	}
 
