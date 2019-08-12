@@ -131,15 +131,22 @@ public class SatPayloadDbStore {
 		initPayloadFiles();
 	}
 	
+	private String makeTableName(String layoutName) {
+		String s = "Fox"+foxId;
+		String LAY = layoutName.toUpperCase();
+		s = s + LAY;
+		return s;
+	}
+	
 	private void initPayloadFiles() {
-//		for (int i=0; i<fox.numberOfLayouts; i++)
-//			initPayloadTable("Fox"+fox.foxId+fox.layoutName[i]+"_LOG", fox.layout[i]);
-		
-		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
-		//
 		boolean storeMode = false;
 		if (fox.hasModeInHeader)
 			storeMode = true;
+
+		// This would create all of the tables, but not backwards compatible
+//		for (int i=0; i<fox.numberOfDbLayouts; i++)
+//			initPayloadTable(fox.layout[i].name, fox.hasModeInHeader);
+		initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
 		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
 		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);
@@ -172,6 +179,9 @@ public class SatPayloadDbStore {
 	/** 
 	 *  create the tables if they do not exist
 	 */
+	private void initPayloadTable(String layoutName, boolean storeMode) {
+		initPayloadTable(makeTableName(layoutName), fox.getLayoutByName(layoutName), storeMode);
+	}
 	private void initPayloadTable(String table, BitArrayLayout layout, boolean storeMode) {
 		if (layout == null) return; // we don't need this table if there is no layout
 		String createStmt = layout.getTableCreateStmt(storeMode);
@@ -193,9 +203,6 @@ public class SatPayloadDbStore {
 		table = pictureLinesTableName;
 		createStmt = PictureScanLine.getTableCreateStmt();
 		createTable(table, createStmt);
-		//String lastImageTable = "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int,"
-		//		+ "PRIMARY KEY (date_time, id))";
-		//createTable("LAST_IMAGE_TIMESTAMP", lastImageTable);
 	}
 	
 	private void initCanPacketTable(boolean storeMode) {
@@ -239,6 +246,8 @@ public class SatPayloadDbStore {
 				createString = createString + createStmt;
 				
 				Log.println ("Creating new DB table " + table);
+				Log.println("***************************************\n"+createString+"***************************************\n");
+
 				try {
 					stmt.execute(createString);
 				} catch (SQLException ex) {

@@ -127,6 +127,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int localServerPort = 8587;
 	
 	public int numberOfLayouts = 4;
+	public int numberOfDbLayouts = 4; // if we load additional layouts for CAN BUS then this stores the core layouts
 	public String[] layoutFilename;
 	//public String[] layoutName;
 	public BitArrayLayout[] layout;
@@ -403,6 +404,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			}
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
+			numberOfDbLayouts = numberOfLayouts;
 			layoutFilename = new String[numberOfLayouts];
 			layout = new BitArrayLayout[numberOfLayouts];
 			sendLayoutLocally = new boolean[numberOfLayouts];
