@@ -1,5 +1,12 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
+numberOfModes=1
+mode0.name=BPSK 1200
+mode0.frameLengthInBytes=572
+mode0.syncWordLength=31
+mode0.header_length=8
+mode0.fec_checkbytes_length=96
+mode0.number_of_rs_words=3
 numberOfFrameLayouts=11
 frameLayout0.name=All WOD
 frameLayout0.filename=HUSKY_SAT_Type0_ALL_WOD.frame

@@ -197,7 +197,6 @@ public class SatelliteManager implements Runnable {
 							Log.println("Frame Layouts: " + frameLayouts);
 							for (int k=0; k < frameLayouts; k++) {
 								Log.print(" : " + satellite.frameLayout[k].name);
-								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.FRAME_LENGTH_IN_BYTES) + " bits");
 								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
 								Log.println("");
 							}

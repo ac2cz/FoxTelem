@@ -129,15 +129,22 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int numberOfLayouts = 4;
 	public int numberOfDbLayouts = 4; // if we load additional layouts for CAN BUS then this stores the core layouts
 	public String[] layoutFilename;
-	//public String[] layoutName;
 	public BitArrayLayout[] layout;
 	private boolean[] sendLayoutLocally;  // CURRENTLY UNUSED SO MADE PRIVATE
 	public CanFrames canFrames;
 	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
-	//public String[] lookupTableName;
 	public LookUpTable[] lookupTable;
+
+	// These are all REQUIRED for at least 1 layout, so we pull into variables, rather than leave in the properties
+	public int numberOfModes = 1;
+	public String[] modeName;
+	public int[] modeFrameLengthInBytes;
+	public int[] modeSyncWordLength;
+	public int[] modeHeaderLength;
+	public int[] modeFecCheckBytesLength;
+	public int[] modeNumberOfRsWords;
 	
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
@@ -402,6 +409,25 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 					frameLayout[i].name = getProperty("frameLayout"+i+".name");
 				}
 			}
+			// Modes - but only for post DUV sats
+			if (foxId > 5) {
+				numberOfModes = Integer.parseInt(getProperty("numberOfModes"));
+				modeName = new String[numberOfModes];
+				modeFrameLengthInBytes = new int[numberOfModes];
+				modeSyncWordLength = new int[numberOfModes];
+				modeHeaderLength = new int[numberOfModes];
+				modeFecCheckBytesLength = new int[numberOfModes];
+				modeNumberOfRsWords = new int[numberOfModes];
+				for (int i=0; i < numberOfModes; i++) {
+					modeName[i] = getProperty("mode"+i+".name");
+					modeFrameLengthInBytes[i] = Integer.parseInt(getProperty("mode"+i+".frameLengthInBytes"));
+					modeSyncWordLength[i] = Integer.parseInt(getProperty("mode"+i+".syncWordLength"));
+					modeHeaderLength[i] = Integer.parseInt(getProperty("mode"+i+".headerLength"));
+					modeFecCheckBytesLength[i] = Integer.parseInt(getProperty("mode"+i+".fecCheckBytesLength"));
+					modeNumberOfRsWords[i] = Integer.parseInt(getProperty("mode"+i+".numberOfRsWords"));
+				}
+			}
+
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			numberOfDbLayouts = numberOfLayouts;
