@@ -6,11 +6,7 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class FrameLayout {
-//	public static final String FRAME_LENGTH_IN_BYTES="frame_length_in_bytes";
 	public static final String NUMBER_OF_PAYLOADS="number_of_payloads";
-//	public static final String NUMBER_OF_RS_WORDS="number_of_rs_words";
-//	public static final String HEADER_LENGTH="header_length";
-//	public static final String FEC_CHECKBYTES_LENGTH="fec_checkbytes_length";
 	
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;
@@ -22,12 +18,6 @@ public class FrameLayout {
 		this.fileName = fileName;
 		propertiesFile = new File(fileName);
 		load();
-//		try { int i = getInt(FRAME_LENGTH_IN_BYTES); } catch (Exception e) {
-//			throw new LayoutLoadException("Invalid or missing "+FRAME_LENGTH_IN_BYTES+" in FrameLayout file: " + propertiesFile.getAbsolutePath());
-//		}
-//		try { int i = getInt(HEADER_LENGTH); } catch (Exception e) {
-//			throw new LayoutLoadException("Invalid or missing "+HEADER_LENGTH+" in FrameLayout file: " + propertiesFile.getAbsolutePath());
-//		}
 		try { int i = getInt(NUMBER_OF_PAYLOADS); } catch (Exception e) {
 			throw new LayoutLoadException("Invalid or missing "+NUMBER_OF_PAYLOADS+" in FrameLayout file: " + propertiesFile.getAbsolutePath());
 		}

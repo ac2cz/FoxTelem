@@ -8,6 +8,7 @@ import java.io.IOException;
 import common.Log;
 import common.Spacecraft;
 import decoder.Decoder;
+import decoder.FoxBPSK.FoxBPSKBitStream;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
@@ -47,35 +48,11 @@ import telemetry.PayloadWODUwExperiment;
 	 */
 	public class FoxBPSKFrame extends Frame {
 		
-//		public static final int MAX_FRAME_SIZE = 476;
 		public static final int MAX_HEADER_SIZE = 8;  // This has to be known in advance, otherwise we can't decode the id and load the frame layout
-//		public static final int PAYLOAD_SIZE = 78;
-//		public static final int MAX_PAYLOAD_SIZE = MAX_FRAME_SIZE - MAX_HEADER_SIZE; 
-//		public static final int MAX_TRAILER_SIZE = 96;
-//		
-//		public static final int NUMBER_DEFAULT_PAYLOADS = 6; 
 		
-//		public static final int ALL_WOD_FRAME = 0;
-//		public static final int REALTIME_FRAME = 1;
-//		public static final int MINMAX_FRAME = 2;
-//		public static final int REALTIME_BEACON = 3;
-//		public static final int WOD_BEACON = 4;
-//		public static final int CAN_PACKET_SCIENCE_FRAME = 5;
-//		public static final int CAN_PACKET_CAMERA_FRAME = 6;
-//		public static final int WOD_CAN_FRAME = 7;
-//		public static final int BCN_WOD_CAN1  = 8;
-//		public static final int HEALTH_CAN_MINMAX  = 9;
-//		public static final int HEALTH_CAN  = 10;
-//		public static final int TYPES_OF_FRAME = 11;
-		
-		FrameLayout frameLayout;
-		
-		private boolean canPacketFrame = false;
-
+		FrameLayout frameLayout;		
 		public FramePart[] payload;
-		
 		HighSpeedTrailer trailer = null;
-
 		byte[] headerBytes = new byte[MAX_HEADER_SIZE];
 		int numberBytesAdded = 0;
 		
@@ -117,7 +94,7 @@ import telemetry.PayloadWODUwExperiment;
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
-					bytes = new byte[frameLayout.getInt(FrameLayout.FRAME_LENGTH_IN_BYTES)];
+					bytes = new byte[FoxBPSKBitStream.FRAME_LENGTH];
 					for (int k=0; k < MAX_HEADER_SIZE; k++)
 						bytes[k] = headerBytes[k];
 					initPayloads((FoxBPSKHeader)header, frameLayout);
@@ -157,7 +134,7 @@ import telemetry.PayloadWODUwExperiment;
 				payload[4].addNext8Bits(b);
 			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*6)
 				payload[5].addNext8Bits(b);
-			else if (numberBytesAdded < frameLayout.getInt(FrameLayout.FRAME_LENGTH_IN_BYTES))
+			else if (numberBytesAdded < FoxBPSKBitStream.FRAME_LENGTH) 
 				;//trailer.addNext8Bits(b); //FEC ;
 			else
 				Log.println("ERROR: attempt to add byte past end of frame");

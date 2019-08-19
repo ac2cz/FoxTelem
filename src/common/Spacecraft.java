@@ -89,7 +89,6 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
 	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
 	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
-
 	
 	// Model Versions
 	public static final int EM = 0;
@@ -136,15 +135,6 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
 	public LookUpTable[] lookupTable;
-
-	// These are all REQUIRED for at least 1 layout, so we pull into variables, rather than leave in the properties
-	public int numberOfModes = 1;
-	public String[] modeName;
-	public int[] modeFrameLengthInBytes;
-	public int[] modeSyncWordLength;
-	public int[] modeHeaderLength;
-	public int[] modeFecCheckBytesLength;
-	public int[] modeNumberOfRsWords;
 	
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
@@ -407,24 +397,6 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
 					frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
 					frameLayout[i].name = getProperty("frameLayout"+i+".name");
-				}
-			}
-			// Modes - but only for post DUV sats
-			if (foxId > 5) {
-				numberOfModes = Integer.parseInt(getProperty("numberOfModes"));
-				modeName = new String[numberOfModes];
-				modeFrameLengthInBytes = new int[numberOfModes];
-				modeSyncWordLength = new int[numberOfModes];
-				modeHeaderLength = new int[numberOfModes];
-				modeFecCheckBytesLength = new int[numberOfModes];
-				modeNumberOfRsWords = new int[numberOfModes];
-				for (int i=0; i < numberOfModes; i++) {
-					modeName[i] = getProperty("mode"+i+".name");
-					modeFrameLengthInBytes[i] = Integer.parseInt(getProperty("mode"+i+".frameLengthInBytes"));
-					modeSyncWordLength[i] = Integer.parseInt(getProperty("mode"+i+".syncWordLength"));
-					modeHeaderLength[i] = Integer.parseInt(getProperty("mode"+i+".headerLength"));
-					modeFecCheckBytesLength[i] = Integer.parseInt(getProperty("mode"+i+".fecCheckBytesLength"));
-					modeNumberOfRsWords[i] = Integer.parseInt(getProperty("mode"+i+".numberOfRsWords"));
 				}
 			}
 
