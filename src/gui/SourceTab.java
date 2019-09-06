@@ -395,11 +395,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		rdbtnUseNco.setSelected(Config.useNCO);
 		rdbtnUseNco.setVisible(false);
 		optionsPanel.add(rdbtnUseNco);
-		rdbtnUseCostas = new JCheckBox("Costas");
-		rdbtnUseCostas.addItemListener(this);
-		rdbtnUseCostas.setSelected(Config.useCostas);
-		rdbtnUseCostas.setVisible(false);
-		optionsPanel.add(rdbtnUseCostas);
+//		rdbtnUseCostas = new JCheckBox("Costas");
+//		rdbtnUseCostas.addItemListener(this);
+//		rdbtnUseCostas.setSelected(Config.useCostas);
+//		rdbtnUseCostas.setVisible(false);
+//		optionsPanel.add(rdbtnUseCostas);
 		
 
 		btnFftZoomIn = new JButton("+");
@@ -751,7 +751,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panelFreq.add(lblkHz);
 		lblkHz.setVisible(false);
 		
-		cbRetuneCenterFrequency = new JCheckBox("Set Automatically");
+		cbRetuneCenterFrequency = new JCheckBox("Retune Automatically");
 		panelFreq.add(cbRetuneCenterFrequency);
 		cbRetuneCenterFrequency.addItemListener(this);
 		cbRetuneCenterFrequency.setSelected(Config.retuneCenterFrequency);
@@ -924,10 +924,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			lowSpeed.setSelected(true);
 			enableFilters(true);
 		} else if (Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS){
-			if (Config.useCostas)
-				Config.mode = SourceIQ.MODE_PSK_COSTAS;
-			else
-				Config.mode = SourceIQ.MODE_PSK_NC;
+//			if (Config.useCostas)
+//				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+//			else
+//				Config.mode = SourceIQ.MODE_PSK_NC;
 			psk.setSelected(true);
 			enableFilters(true);
 		}
@@ -1136,10 +1136,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			//Config.save();
 		}
 		if (e.getSource() == psk) { 
-			if (Config.useCostas)
-				Config.mode = SourceIQ.MODE_PSK_COSTAS;
-			else
-				Config.mode = SourceIQ.MODE_PSK_NC;
+//			if (Config.useCostas)
+//				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+//			else
+//				Config.mode = SourceIQ.MODE_PSK_NC;
 			Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
@@ -1579,8 +1579,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
 		} else if (this.psk.isSelected()) {
-			if (Config.useCostas) {
-				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			if (Config.mode == SourceIQ.MODE_PSK_COSTAS) {
+			//	Config.mode = SourceIQ.MODE_PSK_COSTAS;
 				if (Config.iq) {
 					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
 					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
@@ -2034,13 +2034,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void setMode() {
 		if (iqSource1 != null) {
 			if (psk.isSelected()) {
-				if (Config.useCostas) {
+				if (Config.mode == SourceIQ.MODE_PSK_COSTAS) {
 					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-					Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+					//Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
 					autoViewpanel.setVisible(false);
 				} else {
 					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
-					Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+					//Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
 					autoViewpanel.setVisible(false);
 				}
 			}
@@ -2068,8 +2068,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
-		rdbtnUseNco.setEnabled(t);
-		rdbtnUseCostas.setEnabled(t);
+//		rdbtnUseNco.setEnabled(t);
+//		rdbtnUseCostas.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
 		psk.setEnabled(t);
@@ -2491,10 +2491,19 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} catch (ArrayIndexOutOfBoundsException e) {
 						// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 					}
-					if (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)
+					if (Config.foxTelemCalcsPosition || Config.useDDEforAzEl) {
 						autoStart.setEnabled(true);
-					else
+						if (Config.foxTelemCalcsDoppler)
+							cbRetuneCenterFrequency.setEnabled(true);
+						else {
+							cbRetuneCenterFrequency.setEnabled(false);
+							cbRetuneCenterFrequency.setSelected(false);
+						}
+					} else {
 						autoStart.setEnabled(false);
+						cbRetuneCenterFrequency.setEnabled(false);
+						cbRetuneCenterFrequency.setSelected(false);
+					}
 					autoStart.setSelected(Config.whenAboveHorizon);
 					if (soundCardComboBox.getSelectedIndex() == 0) {
 						btnStartButton.setEnabled(false);

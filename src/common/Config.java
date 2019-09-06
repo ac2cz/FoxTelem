@@ -271,7 +271,7 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-	static public boolean useCostas = false;
+//	static public boolean useCostas = false;
 	public static boolean showEye = true; 
 	public static boolean showPhasor = true; 
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
@@ -719,7 +719,7 @@ public class Config {
 		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
-		properties.setProperty("useCostas", Boolean.toString(useCostas));
+//		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("showEye", Boolean.toString(showEye));
 		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
 		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
@@ -907,7 +907,7 @@ public class Config {
 		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
-		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+//		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		showEye = Boolean.parseBoolean(getProperty("showEye"));
 		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
 		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));

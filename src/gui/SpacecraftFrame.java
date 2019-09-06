@@ -83,7 +83,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	
 	JCheckBox useIHUVBatt;
 	JCheckBox track;
-
+	JComboBox cbMode;
+	
 	JButton btnCancel;
 	JButton btnSave;
 	JButton btnGetT0;
@@ -234,6 +235,9 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		
 		TitledBorder heading2 = title("Frequency and Tracking");
 		rightPanel1.setBorder(heading2);
+
+		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, Spacecraft.modes);
+		setSelection(cbMode, Spacecraft.modes, Spacecraft.modes[sat.mode]);
 				
 		telemetryDownlinkFreqkHz = addSettingsRow(rightPanel1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.telemetryDownlinkFreqkHz);
@@ -299,6 +303,36 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		contentPanel.add(footerPanel, BorderLayout.SOUTH);
 	}
 	
+	private void setSelection(JComboBox comboBox, String[] values, String value ) {
+		int i=0;
+		for (String rate : values) {
+			if (rate.equalsIgnoreCase(value))
+					break;
+			i++;
+		}
+		if (i >= values.length)
+			i = 0;
+		comboBox.setSelectedIndex(i);
+		
+	}
+	
+	private JComboBox addComboBoxRow(JPanel parent, String name, String tip, String[] values) {
+		JPanel row = new JPanel();
+		row.setLayout(new GridLayout(1,2,5,5));
+
+		//row.setLayout(new FlowLayout(FlowLayout.LEFT));
+		JLabel lbl = new JLabel(name);
+		JComboBox checkBox = new JComboBox(values);
+		checkBox.setEnabled(true);
+		checkBox.addItemListener(this);
+		checkBox.setToolTipText(tip);
+		lbl.setToolTipText(tip);
+		row.add(lbl);
+		row.add(checkBox);
+		parent.add(row);
+		parent.add(new Box.Filler(new Dimension(10,5), new Dimension(10,5), new Dimension(10,5)));
+		return checkBox;
+	}
 	private void updateTimeSeries() {
 		String[][] data = null;
 		if (sat.hasTimeZero()) {
@@ -405,6 +439,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
 					dispose = false;
 				}
+				int m = cbMode.getSelectedIndex();
+				sat.mode = m;
+				//String md = (String) cbMode.getSelectedItem();
+				
 	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
 	//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
 	//				refreshTabs = true;

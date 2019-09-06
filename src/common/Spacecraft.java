@@ -101,6 +101,13 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			"FS"
 	};
 	
+	public static String[] modes = {
+			"FSK DUV 1200",
+			"FSK 9600",
+			"BPSK 1200 (Dot Product)",
+			"BPSK 1200 (Costas)"
+	};
+	
 	public int foxId = 1;
 	public int catalogNumber = 0;
 	public String series = "FOX";
@@ -108,7 +115,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
-	public int mode = SourceIQ.MODE_PSK_NC;
+	public int mode = SourceIQ.MODE_FSK_DUV;
 	public double telemetryDownlinkFreqkHz = 145980;
 	public double minFreqBoundkHz = 145970;
 	public double maxFreqBoundkHz = 145990;
@@ -376,6 +383,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			name = getProperty("name");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
+			mode = Integer.parseInt(getProperty("mode"));
 			telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
 			minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
 			maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
@@ -537,6 +545,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("name", name);
 		properties.setProperty("description", description);
 		properties.setProperty("model", Integer.toString(model));
+		properties.setProperty("mode", Integer.toString(mode));
 		properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(telemetryDownlinkFreqkHz));
 		properties.setProperty("minFreqBoundkHz", Double.toString(minFreqBoundkHz));
 		properties.setProperty("maxFreqBoundkHz", Double.toString(maxFreqBoundkHz));

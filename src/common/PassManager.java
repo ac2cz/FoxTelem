@@ -686,34 +686,40 @@ public class PassManager implements Runnable {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
 							if (Config.iq) {
-								if (Config.retuneCenterFrequency) {
-									if (pp1 != null && pp1.iqSource != null) {
-										int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
-										// For IQ Source we can span +- the rate/2
-										// Assume we want the spacecraft to be in the middle 80% and not right at the edge
-										double maxFreq = pp1.iqSource.getCenterFreqkHz() + 0.8 * range/1000.0;
-										double minFreq = pp1.iqSource.getCenterFreqkHz() - 0.8 * range/1000.0;
-										if (sat.telemetryDownlinkFreqkHz < minFreq || sat.telemetryDownlinkFreqkHz > maxFreq) {
-											// we need to retune as the sat is outside the current band
-											double newCenterFreq = sat.telemetryDownlinkFreqkHz - 0.25 * range / 1000;
-											//if (Config.debugSignalFinder)
-											Log.println("Retuning for "+ sat.name + " downlink: " + sat.telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
-											Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
-										}
-										// If the mode is wrong we should switch modes
-										if (Config.mode != sat.mode) {
-											Config.mainWindow.inputTab.processStartButtonClick();
-											Config.mode = sat.mode;
-											Config.mainWindow.inputTab.setupMode();
-											if (Config.mode != sat.mode) // then user has an override, such as Use Costas, so remember that for this sat
-												sat.mode = Config.mode;
-											Config.mainWindow.inputTab.processStartButtonClick();
-										}
-									}
-								}
+								
 								if (Config.findSignal) {
 									stateMachine(sat);
 								} else if (Config.foxTelemCalcsDoppler) {
+									if (Config.retuneCenterFrequency) {
+										if (pp1 != null && pp1.iqSource != null) {
+											int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
+											// For IQ Source we can span +- the rate/2
+											// Assume we want the spacecraft to be in the middle 80% and not right at the edge
+											double maxFreq = pp1.iqSource.getCenterFreqkHz() + 0.8 * range/1000.0;
+											double minFreq = pp1.iqSource.getCenterFreqkHz() - 0.8 * range/1000.0;
+											if (sat.telemetryDownlinkFreqkHz < minFreq || sat.telemetryDownlinkFreqkHz > maxFreq) {
+												// we need to retune as the sat is outside the current band
+												double newCenterFreq = sat.telemetryDownlinkFreqkHz - 0.25 * range / 1000;
+												//if (Config.debugSignalFinder)
+												Log.println("Retuning for "+ sat.name + " downlink: " + sat.telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+												Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
+											}
+											// If the mode is wrong we should switch modes
+											if (Config.mode != sat.mode) {
+												// Except if in Auto and Sat mode is DUV or HS
+												if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
+													if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
+														Config.autoDecodeSpeed = false;
+													Config.mainWindow.inputTab.processStartButtonClick();
+													Config.mode = sat.mode;
+													Config.mainWindow.inputTab.setupMode();
+													if (Config.mode != sat.mode) // then user has an override, such as Use Costas, so remember that for this sat
+														sat.mode = Config.mode;
+													Config.mainWindow.inputTab.processStartButtonClick();
+												}
+											}
+										}
+									}
 									if (sat.foxId != currentSatId) { // we have a new pass for a new sat
 										lockSignal(sat, pp1);   
 									}
@@ -785,7 +791,6 @@ public class PassManager implements Runnable {
 		}
 		if (Config.foxTelemCalcsPosition) {
 			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
-			
 					SatPos pos = null;
 					try {
 						pos = sat.getCurrentPosition();
