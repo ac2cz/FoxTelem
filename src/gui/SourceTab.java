@@ -140,6 +140,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	JCheckBox rdbtnUseNco;
 	JCheckBox rdbtnUseCostas;
+	JCheckBox cbRetuneCenterFrequency;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
 	JComboBox<String> soundCardComboBox;
@@ -661,20 +662,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		group.add(auto);
 		group.add(psk);
 		
-		if (Config.autoDecodeSpeed) {
-			auto.setSelected(true);
-			enableFilters(true);
-		} else
-		if (Config.mode == SourceIQ.MODE_FSK_HS) {
-			highSpeed.setSelected(true);
-			enableFilters(false);
-		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
-			lowSpeed.setSelected(true);
-			enableFilters(true);
-		} else if (Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS){
-			psk.setSelected(true);
-			enableFilters(true);
-		}
+		setupMode();
 		
 		JPanel centerPanel = new JPanel();		
 		leftPanel.add(centerPanel, BorderLayout.CENTER);	
@@ -757,10 +745,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panelFreq.add(txtFreq);
 		txtFreq.setColumns(10);
 		txtFreq.setVisible(false);
+		txtFreq.setEnabled(!Config.retuneCenterFrequency);
 
 		lblkHz = new JLabel(" kHz   ");
 		panelFreq.add(lblkHz);
 		lblkHz.setVisible(false);
+		
+		cbRetuneCenterFrequency = new JCheckBox("Set Automatically");
+		panelFreq.add(cbRetuneCenterFrequency);
+		cbRetuneCenterFrequency.addItemListener(this);
+		cbRetuneCenterFrequency.setSelected(Config.retuneCenterFrequency);
+		cbRetuneCenterFrequency.setVisible(false);
+		
 		WFM = addRadioButton("WFM", panelFreq );
 		FM = addRadioButton("FM", panelFreq );
 		NFM = addRadioButton("NFM", panelFreq );
@@ -916,6 +912,28 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		autoViewpanel.setVisible(true);
 	}
 
+	public void setupMode() {
+		if (Config.autoDecodeSpeed) {
+			auto.setSelected(true);
+			enableFilters(true);
+		} else
+		if (Config.mode == SourceIQ.MODE_FSK_HS) {
+			highSpeed.setSelected(true);
+			enableFilters(false);
+		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
+			lowSpeed.setSelected(true);
+			enableFilters(true);
+		} else if (Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS){
+			if (Config.useCostas)
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			else
+				Config.mode = SourceIQ.MODE_PSK_NC;
+			psk.setSelected(true);
+			enableFilters(true);
+		}
+
+	}
+	
 	private JRadioButton addRadioButton(String name, JPanel panel) {
 		JRadioButton radioButton = new JRadioButton(name);
 		radioButton.setEnabled(true);
@@ -1024,6 +1042,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void setFreqVisible(boolean b) {
 		lblFreq.setVisible(b);
 		lblkHz.setVisible(b);
+		cbRetuneCenterFrequency.setVisible(b);
 		txtFreq.setVisible(b);
 		
 		WFM.setVisible(false);
@@ -1117,15 +1136,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			//Config.save();
 		}
 		if (e.getSource() == psk) { 
-			Config.mode = SourceIQ.MODE_PSK_NC;
+			if (Config.useCostas)
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			else
+				Config.mode = SourceIQ.MODE_PSK_NC;
 			Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
-				if (Config.useCostas)
-					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				else
-					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+				iqSource1.setMode(Config.mode);
 			}
 			//Config.save();
 		}
@@ -1584,7 +1603,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	/**
 	 * The user has clicked the start button.  We already know the audio Source.
 	 */
-	private void processStartButtonClick() {
+	public void processStartButtonClick() {
 		//String source = (String)soundCardComboBox.getSelectedItem();
 		int position = soundCardComboBox.getSelectedIndex();
 		lblkHz.setText(" kHz   ");
@@ -1886,6 +1905,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 
 	}
+	
+	public double setCenterFreqKhz(double freq) {
+		double f = 0;
+		txtFreq.setText(Double.toString(freq)); // trigger the change to the text field and set the center freq
+		try {
+			f = setCenterFreq();
+			txtFreq.setText(Double.toString(f));
+		} catch (DeviceException e) {
+			Log.println("ERROR setting the Center Frequency: " + e.getMessage());
+			e.printStackTrace(Log.getWriter());
+		} catch (IOException e) {
+			Log.println("ERROR setting the Center Frequency: " + e.getMessage());
+			e.printStackTrace(Log.getWriter());
+		}
+		return f;
+	}
 
 	private double setCenterFreq() throws DeviceException, IOException {
 		//String text = txtFreq.getText();
@@ -2099,23 +2134,20 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	            //Config.save();
 	        } else {
 	        	Config.debugValues=true;
-	        	
-	        	//Config.save();
 	        }
+			Config.save();
 		}
-		/*
-		if (e.getSource() == rdbtnApplyBlackmanWindow) {
+		
+		if (e.getSource() == cbRetuneCenterFrequency) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				
-	            Config.applyBlackmanWindow=false;
-	            //Config.save();
+	            Config.retuneCenterFrequency=false;
 	        } else {
-	        	Config.applyBlackmanWindow=true;
-	        	
-	        	//Config.save();
+	        	Config.retuneCenterFrequency=true;
 	        }
+			txtFreq.setEnabled(!Config.retuneCenterFrequency);
+			Config.save();
 		}
-		*/
+		
 //		if (e.getSource() == rdbtnShowFFT) {
 //			if (fftPanel != null)
 //			if (e.getStateChange() == ItemEvent.DESELECTED) {

@@ -685,7 +685,32 @@ public class PassManager implements Runnable {
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
-							if (Config.iq)
+							if (Config.iq) {
+								if (Config.retuneCenterFrequency) {
+									if (pp1 != null && pp1.iqSource != null) {
+										int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
+										// For IQ Source we can span +- the rate/2
+										// Assume we want the spacecraft to be in the middle 80% and not right at the edge
+										double maxFreq = pp1.iqSource.getCenterFreqkHz() + 0.8 * range/1000.0;
+										double minFreq = pp1.iqSource.getCenterFreqkHz() - 0.8 * range/1000.0;
+										if (sat.telemetryDownlinkFreqkHz < minFreq || sat.telemetryDownlinkFreqkHz > maxFreq) {
+											// we need to retune as the sat is outside the current band
+											double newCenterFreq = sat.telemetryDownlinkFreqkHz - 0.25 * range / 1000;
+											//if (Config.debugSignalFinder)
+											Log.println("Retuning for "+ sat.name + " downlink: " + sat.telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+											Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
+										}
+										// If the mode is wrong we should switch modes
+										if (Config.mode != sat.mode) {
+											Config.mainWindow.inputTab.processStartButtonClick();
+											Config.mode = sat.mode;
+											Config.mainWindow.inputTab.setupMode();
+											if (Config.mode != sat.mode) // then user has an override, such as Use Costas, so remember that for this sat
+												sat.mode = Config.mode;
+											Config.mainWindow.inputTab.processStartButtonClick();
+										}
+									}
+								}
 								if (Config.findSignal) {
 									stateMachine(sat);
 								} else if (Config.foxTelemCalcsDoppler) {
@@ -701,12 +726,15 @@ public class PassManager implements Runnable {
 									setFreqRangeBins(sat, pp1);
 									if (pp1 != null && pp1.iqSource != null)
 										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									if (pp2 != null && pp2.iqSource != null)
+										pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
 									break; // we only tune Doppler for the first spacecraft in the priority ordered list
 								} else {
 									// we don't have find signal on. set full range or signals calculated incorrectly
 									Config.fromBin = 0; 
 									Config.toBin = SourceIQ.FFT_SAMPLES;
 								}
+							}
 						} else {
 							if (currentSatId == sat.foxId) { // close out the pass for a previous sat
 								logEndOfPass(sat);

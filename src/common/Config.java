@@ -280,7 +280,7 @@ public class Config {
 	static public boolean debugCalcDopplerContinually = false;
 	
 	// V1.08
-	//static public boolean splitCanPackets = true;
+	static public boolean retuneCenterFrequency = false;
 	
 	
 	public static boolean missing() { 
@@ -728,7 +728,7 @@ public class Config {
 		properties.setProperty("debugCalcDopplerContinually", Boolean.toString(debugCalcDopplerContinually));
 		
 		// V1.08
-//		properties.setProperty("splitCanPackets", Boolean.toString(splitCanPackets));
+		properties.setProperty("retuneCenterFrequency", Boolean.toString(retuneCenterFrequency));
 
 		store();
 	}
@@ -916,7 +916,7 @@ public class Config {
 		debugCalcDopplerContinually = Boolean.parseBoolean(getProperty("debugCalcDopplerContinually"));
 		
 		// V1.08
-//		splitCanPackets = Boolean.parseBoolean(getProperty("splitCanPackets"));
+		retuneCenterFrequency = Boolean.parseBoolean(getProperty("retuneCenterFrequency"));
 		
 		
 		} catch (NumberFormatException nf) {

@@ -14,6 +14,7 @@ import java.util.Properties;
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import decoder.SourceIQ;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
@@ -107,6 +108,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
+	public int mode = SourceIQ.MODE_PSK_NC;
 	public double telemetryDownlinkFreqkHz = 145980;
 	public double minFreqBoundkHz = 145970;
 	public double maxFreqBoundkHz = 145990;
