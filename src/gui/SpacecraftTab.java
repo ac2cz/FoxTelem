@@ -138,29 +138,74 @@ public class SpacecraftTab extends JPanel {
 				+ HEALTH + "</b></body></html>", healthTab );
 
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_LAYOUT) != Spacecraft.ERROR_IDX) {
-			addWodTab((FoxSpacecraft)sat);
+			try {
+				addWodTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				Log.errorDialog("Layout Failure", "Failed to setup Whole Orbit Data tab for sat: " + sat.name 
+						+ "\nCheck the Spacecraft.dat file and remove this layout if it is not valid");
+			}
+
 		}
 
-		if (sat.isFox1()) {
-			for (int exp : ((FoxSpacecraft)sat).experiments) {
-				if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP)
+		for (int exp : ((FoxSpacecraft)sat).experiments) {
+			if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP)
+				try {
 					addExperimentTab((FoxSpacecraft)sat);
-				if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.name 
+							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid");
+				}
+
+			if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
+				try {
 					addCameraTab((FoxSpacecraft)sat);
-				if (exp == FoxSpacecraft.EXP_IOWA_HERCI) {
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup VT Camera tab for sat: " + sat.name 
+							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+				}
+
+			if (exp == FoxSpacecraft.EXP_IOWA_HERCI) {
+				try {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup IOWA HERCI tabs for sat: " + sat.name 
+							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 				}
-				if (exp == FoxSpacecraft.EXP_UW)
-					addUwExperimentTab((FoxSpacecraft)sat);
 
 			}
+			if (exp == FoxSpacecraft.EXP_UW)
+				try {
+					addUwExperimentTab((FoxSpacecraft)sat);
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup UW Experiement tab for sat: " + sat.name 
+							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+				}
+//			if (exp == FoxSpacecraft.ADAC)
+//				try {
+//					addExperimentTab((FoxSpacecraft)sat); // PLACEHOLDER
+//				} catch (Exception e) {
+//					Log.errorDialog("Layout Failure", "Failed to setup ADAC Experiement tab for sat: " + sat.name 
+//							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+//				}
 		}
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
+			try {
 			addWodRadTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.name 
+						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+			}
+
 		}
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
+			try {
 			addUwWodExperimentTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				Log.errorDialog("Layout Failure", "Failed to setup UW WOD tab for sat: " + sat.name 
+						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+			}
+
 		}
 	}
 

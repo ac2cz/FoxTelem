@@ -138,7 +138,7 @@ public class SatPayloadStore {
 	public int getNumberOfTelemFrames() { return getNumberOfFrames(Spacecraft.REAL_TIME_LAYOUT) 
 			+ getNumberOfFrames(Spacecraft.MAX_LAYOUT) +getNumberOfFrames(Spacecraft.MIN_LAYOUT); }
 	
-	public boolean add(int id, long uptime, int resets, FramePart f) throws IOException {
+	public boolean add(int id, long uptime, int resets, FramePart f) throws ArrayIndexOutOfBoundsException, IOException {
 		f.captureHeaderInfo(id, uptime, resets);
 		return add(f);
 	}
