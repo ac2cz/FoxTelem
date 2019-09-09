@@ -628,7 +628,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 			} else {
 				Config.displayRawValues = true;
 			}
-
+			Config.save();
 			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 			
 		}

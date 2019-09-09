@@ -192,7 +192,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 			}
 
 			parseRadiationFrames();
-			
+			Config.save();
 		}
 	}
 	public static final int NO_ROW_SELECTED = -1;

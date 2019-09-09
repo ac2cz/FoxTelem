@@ -523,7 +523,7 @@ public void itemStateChanged(ItemEvent e) {
 		} else {
 			Config.displayRawValues = true;
 		}
-
+		Config.save();
 		//			for (BitArrayLayout lay : layout)
 		//				updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 

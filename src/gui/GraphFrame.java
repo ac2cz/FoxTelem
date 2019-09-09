@@ -1389,6 +1389,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else {
 				System.out.println("No Selection ");
 			}
+			Config.save();
 		}  else if (e.getSource() == btnCopy) {
 			copyToClipboard();
 			Log.println("Graph copied to clipboard");

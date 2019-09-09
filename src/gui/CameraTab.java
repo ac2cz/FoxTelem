@@ -542,6 +542,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 			} else {
 				Config.showLatestImage = true;
 			}
+			Config.save();
 			
 		}
 

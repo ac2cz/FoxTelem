@@ -233,6 +233,7 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 				Config.useFilterNumber = i;
 
 				setFilter();
+				Config.save();
 			}
 		}
 	
@@ -249,11 +250,11 @@ public class FilterPanel extends JPanel  implements ChangeListener, ActionListen
 	    	if (source == freqSlider) {
 	    		int freq = (int)source.getValue();
 	    		Config.filterFrequency = freq;
-	    		//Config.save();
+	    		Config.save();
 	    	} else {
 	    		int len = (int)source.getValue();
 	    		Config.filterLength = len;
-	    		//Config.save();
+	    		Config.save();
 	    	}
 	    }
 	}

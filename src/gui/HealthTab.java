@@ -524,7 +524,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			} else {
 				Config.displayRawValues = true;
 			}
-//			Config.save();
+			Config.save();
 			if (realTime != null)
 				updateTabRT(realTime, false);
 			if (maxPayload != null)

@@ -992,13 +992,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 
 		if (file != null) {
-			Config.windowCurrentDirectory = file.getParent();					
+			Config.windowCurrentDirectory = file.getParent();	
+			Config.save();
 			lblFileName.setText(file.getName());
 			panelFile.setVisible(true);
 			btnStartButton.setEnabled(true);
 			cbSoundCardRate.setVisible(false);
 			return true;
 		}
+		Config.save();
 		return false;
 	}
 	
@@ -1125,7 +1127,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				enableFilters(false);
 				autoViewpanel.setVisible(false);
 				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
-				//Config.save();
+				Config.save();
 		}
 		if (e.getSource() == lowSpeed) { 
 			Config.mode = SourceIQ.MODE_FSK_DUV;
@@ -1133,7 +1135,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			enableFilters(true);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
-			//Config.save();
+			Config.save();
 		}
 		if (e.getSource() == psk) { 
 //			if (Config.useCostas)
@@ -1146,7 +1148,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (iqSource1 != null) {
 				iqSource1.setMode(Config.mode);
 			}
-			//Config.save();
+			Config.save();
 		}
 		if (e.getSource() == auto) { 
 			Config.autoDecodeSpeed = true;
@@ -1154,7 +1156,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FSK_HS);
 			autoViewpanel.setVisible(true);
-			//Config.save();
+			Config.save();
 		}
 		if (e.getSource() == viewHighSpeed) {
 			setViewDecoder2();
@@ -1166,18 +1168,20 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == iqAudio) { 
 			Config.iq = true;
 			setIQVisible(true);
+			Config.save();
 		}
 		if (e.getSource() == afAudio) { 
 			Config.iq = false;
 			setIQVisible(false);
+			Config.save();
 		}
 		if (e.getSource() == showSNR) { 
 			Config.showSNR = true;
-			
+			Config.save();
 		}
 		if (e.getSource() == showLevel) { 
 			Config.showSNR = false;
-			
+			Config.save();
 		}
 
 		if (e.getSource() == this.peakLevel) {
@@ -1186,6 +1190,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (NumberFormatException n) {
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
+			Config.save();
 		}
 
 		if (e.getSource() == this.avgLevel) {
@@ -1194,6 +1199,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (NumberFormatException n) {
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
+			Config.save();
 		}
 
 		if (e.getSource() == this.bitLevel) {
@@ -1202,6 +1208,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (NumberFormatException n) {
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
+			Config.save();
 		}
 
 		// Frequency Text Field
@@ -1218,6 +1225,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (LibUsbException e2) {
 				e2.printStackTrace(Log.getWriter());
 			}
+			Config.save();
 		}
 		
 		// SOUND CARD AND FILE COMBO BOX
@@ -1234,6 +1242,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == cbSoundCardRate) {
 			// store the value so it is saved if we exit
 			Config.scSampleRate = Integer.parseInt((String) cbSoundCardRate.getSelectedItem());
+			Config.save();
 		}
 
 		// MONITOR AUDIO BUTTON
@@ -1281,6 +1290,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				btnMonitorAudio.setText("Monitor Audio");
 				speakerComboBox.setEnabled(true);
 			}
+			Config.save();
 		}
 
 		// START BUTTON
@@ -1311,7 +1321,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				sink.setDevice(position);
 		if (position != -1) {
 			Config.audioSink = SinkAudio.getDeviceName(position);
-			//Config.save();
+			Config.save();
 		}
 
 		} catch (LineUnavailableException e1) {
@@ -1527,7 +1537,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			cbSoundCardRate.setSelectedIndex(RATE_96000_IDX);
 		else
 			cbSoundCardRate.setSelectedIndex(RATE_192000_IDX);
-
+		Config.save();
 	}
 	
 	private SourceSoundCardAudio setupSoundCard(boolean highSpeed, int sampleRate) {
@@ -1903,7 +1913,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				}
 			}
 		}
-
+		Config.startButtonPressed = SourceTab.STARTED;
+		Config.save();
 	}
 	
 	public double setCenterFreqKhz(double freq) {
@@ -1947,6 +1958,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} catch (NumberFormatException n) {
 			// not much to say here, just catch the error
 		}
+		Config.save();
 		return freq;
 	}
 
@@ -2063,6 +2075,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (iqSource2 != null) {
 			if (auto.isSelected()) iqSource2.setMode(SourceIQ.MODE_FSK_HS);			
 		}
+		Config.save();
 	}
 	
 	private void enableSourceSelectionComponents(boolean t) {
@@ -2096,7 +2109,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	Config.viewFilteredAudio=true;
 	        	//Config.save();
 	        }
-			
+			Config.save();
 		}
 		if (e.getSource() == rdbtnMonitorFilteredAudio) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -2108,6 +2121,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	monitorFiltered=true;
 	        	//Config.save();
 	        }
+			Config.save();
 		}
 		if (e.getSource() == rdbtnSquelchAudio) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -2117,6 +2131,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	Config.squelchAudio=true;
 	        	//Config.save();
 	        }
+			Config.save();
 		}
 		if (e.getSource() == rdbtnFilterOutputAudio) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -2126,6 +2141,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	Config.filterOutputAudio=true;
 	        	//Config.save();
 	        }
+			Config.save();
 		}
 		if (e.getSource() == rdbtnWriteDebugData) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -2156,6 +2172,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //	        	setFFTVisible(true);
 //	        	
 //	        }
+		Config.save();
 //		}
 		if (e.getSource() == autoStart) {
 			
@@ -2164,6 +2181,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        } else {
 	        	Config.whenAboveHorizon = true;	        	
 	        }
+			Config.save();
 		}
 		
 		if (e.getSource() == rdbtnUseNco) {
@@ -2176,6 +2194,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Log.println("NCO = true");
 	        	
 	        }
+			Config.save();
 		}
 		if (e.getSource() == rdbtnUseCostas) {
 			if (fftPanel != null)
@@ -2184,6 +2203,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        } else {
 	        	
 	        }
+			Config.save();
 		}
 		/*
 		if (e.getSource() == rdbtnUseLimiter) {
@@ -2196,6 +2216,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	
 	        	//Config.save();
 	        }
+	        Config.save();
 		}
 		*/
 		if (e.getSource() == rdbtnShowIF) {
@@ -2210,6 +2231,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //	        	int i = s.length();  // crash the GUI EDT for testing 
 	        	//Config.save();
 	        }
+			Config.save();
 		}
 		
 		
@@ -2224,7 +2246,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	//Config.save();
 	        }
 			findSignalPanel.setVisible(Config.findSignal);
-
+			Config.save();
 		}
 		
 		if (e.getSource() == rdbtnShowLog) {
@@ -2245,6 +2267,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	
 	        	//Config.save();
 	        }
+			Config.save();
 		}
 		
 	}
@@ -2367,6 +2390,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (NumberFormatException n) {
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
+			Config.save();
 		}
 
 		if (e.getSource() == this.avgLevel) {
@@ -2375,6 +2399,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (NumberFormatException n) {
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
+			Config.save();
 		}
 
 		if (e.getSource() == this.bitLevel) {
@@ -2383,6 +2408,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (NumberFormatException n) {
 				Log.errorDialog("Invalid Value", n.getMessage());
 			}
+			Config.save();
 		}
 		if (e.getSource() == txtFreq) {
 			try {
@@ -2396,6 +2422,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			} catch (LibUsbException e2) {
 				e2.printStackTrace(Log.getWriter());
 			}
+			
 		}
 		
 	}
