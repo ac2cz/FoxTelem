@@ -86,10 +86,12 @@ public class PolyPhaseFilter {
 	public double filterDouble(double[] in) {
 		if (subFilters == null) return 0;
 		double sum; 
+		int j = in.length-1;
 		int i;
 		sum = 0.0;
 		for (i = 0; i < in.length; i++) 
-			sum += subFilters[i].filter(in[i]);
+			sum += subFilters[i].filter(in[j--]);
+//			sum += subFilters[i].filter(in[i]);
 		return sum;
 	}
 	

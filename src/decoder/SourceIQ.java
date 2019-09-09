@@ -513,7 +513,7 @@ public class SourceIQ extends SourceAudio {
 			in2[decimateCount] = qMix;
 			
 			decimateCount++;
-			if (decimateCount >= decimationFactor-1) {
+			if (decimateCount == decimationFactor) {
 				decimateCount = 0;
 				double value = polyFilter.filterDouble(in);
 				double value2 = polyFilter2.filterDouble(in2);

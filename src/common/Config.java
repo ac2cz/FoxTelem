@@ -267,7 +267,7 @@ public class Config {
 	static public boolean saveFcdParams = false;
 	
 	// V1.07
-	static public boolean useNCO = false;
+	static public boolean useNCO = true;
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
@@ -714,7 +714,7 @@ public class Config {
 		
 		
 		// V1.07
-		properties.setProperty("useNCO", Boolean.toString(useNCO));
+//		properties.setProperty("useNCO", Boolean.toString(useNCO));
 		properties.setProperty("generateSecondaryPayloads", Boolean.toString(generateSecondaryPayloads));
 		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
@@ -902,7 +902,7 @@ public class Config {
 		saveFcdParams = Boolean.parseBoolean(getProperty("saveFcdParams"));
 		
 		// V1.07
-		useNCO = Boolean.parseBoolean(getProperty("useNCO"));
+//			useNCO = Boolean.parseBoolean(getProperty("useNCO"));
 		generateSecondaryPayloads = Boolean.parseBoolean(getProperty("generateSecondaryPayloads"));
 		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
