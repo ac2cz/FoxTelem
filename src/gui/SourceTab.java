@@ -751,9 +751,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panelFreq.add(lblkHz);
 		lblkHz.setVisible(false);
 		
-		cbRetuneCenterFrequency = new JCheckBox("Retune Automatically");
+		cbRetuneCenterFrequency = new JCheckBox("Retune center / Switch Modes");
 		panelFreq.add(cbRetuneCenterFrequency);
 		cbRetuneCenterFrequency.addItemListener(this);
+		cbRetuneCenterFrequency.setToolTipText("Change the center frequency if the spacecraft is outside the band.  Switch modes if needed.");
 		cbRetuneCenterFrequency.setSelected(Config.retuneCenterFrequency);
 		cbRetuneCenterFrequency.setVisible(false);
 		
@@ -1590,7 +1591,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 		} else if (this.psk.isSelected()) {
 			if (Config.mode == SourceIQ.MODE_PSK_COSTAS) {
-			//	Config.mode = SourceIQ.MODE_PSK_COSTAS;
 				if (Config.iq) {
 					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
 					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
@@ -1609,7 +1609,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	}
 	
 
-	
 	/**
 	 * The user has clicked the start button.  We already know the audio Source.
 	 */
