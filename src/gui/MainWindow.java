@@ -118,6 +118,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
+	JMenu mnHelp;
 	JMenuItem mntmManual;
 	JMenuItem mntmLeaderboard;
 	JMenuItem mntmSoftware;
@@ -500,7 +501,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnDecoder.add(chckbxmntmShowFFT);
 		chckbxmntmShowFFT.setState(Config.showFFT);
 
-		JMenu mnHelp = new JMenu("Help");
+		mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
 		mntmManual = new JMenuItem("Open Manual");
@@ -533,6 +534,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	void initSatMenu() {
+		if (mnHelp != null)
+			menuBar.remove(mnHelp);
 		if (sats !=null && mnSats != null) {
 			for (int i=0; i<sats.size(); i++) {
 				if (mntmSat[i] != null)
@@ -563,6 +566,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}
+		if (mnHelp != null)
+			menuBar.add(mnHelp);
 	}
 	
 	public void shutdownWindow() {
