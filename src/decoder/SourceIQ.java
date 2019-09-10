@@ -763,6 +763,8 @@ protected double[] processBytes(double[] fcdData) {
 	public static double average (double avg, double new_sample, int N) {
 		avg -= avg / N;
 		avg += new_sample / N;
+		if (Double.isNaN(avg)) avg = 0;
+		if (Double.isInfinite(avg)) avg = 0;
 		return avg;
 	}
 	
