@@ -689,7 +689,7 @@ public class PassManager implements Runnable {
 								
 								if (Config.findSignal) {
 									stateMachine(sat);
-								} else if (Config.foxTelemCalcsDoppler) {
+								} else if (Config.foxTelemCalcsPosition) {
 									if (Config.retuneCenterFrequency) {
 										if (pp1 != null && pp1.iqSource != null) {
 											int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
