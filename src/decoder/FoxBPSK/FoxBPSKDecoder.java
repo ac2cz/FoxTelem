@@ -190,8 +190,6 @@ public class FoxBPSKDecoder extends Decoder {
 
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder2();
 				}
 				Config.totalFrames++;
 				if (Config.uploadToServer)

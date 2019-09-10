@@ -1,6 +1,6 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
-mode=3
+mode=4
 useIHUVBatt=false
 numberOfLookupTables=4
 measurementsFileName=measurements.csv

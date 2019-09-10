@@ -244,7 +244,7 @@ public class Config {
 	static public boolean debugHerciFrames = false;
 	
 	// V1.03
-	static public boolean autoDecodeSpeed = true;
+//	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
@@ -694,7 +694,7 @@ public class Config {
 		
 		// Version 1.03 settings
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
-		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
+//		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
 		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
 		
@@ -882,7 +882,7 @@ public class Config {
 		
 		//Version 1.03
 		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
-		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
+//		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
 		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
 		

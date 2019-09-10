@@ -914,7 +914,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	}
 
 	public void setupMode() {
-		if (Config.autoDecodeSpeed) {
+		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
+			//Config.autoDecodeSpeed = true;
 			auto.setSelected(true);
 			enableFilters(true);
 		} else
@@ -1124,7 +1125,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 		if (e.getSource() == highSpeed) { 
 				Config.mode = SourceIQ.MODE_FSK_HS;
-				Config.autoDecodeSpeed = false;
+				//Config.autoDecodeSpeed = false;
 				enableFilters(false);
 				autoViewpanel.setVisible(false);
 				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
@@ -1132,7 +1133,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 		if (e.getSource() == lowSpeed) { 
 			Config.mode = SourceIQ.MODE_FSK_DUV;
-			Config.autoDecodeSpeed = false;
+			//Config.autoDecodeSpeed = false;
 			enableFilters(true);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
@@ -1143,7 +1144,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 //			else
 //				Config.mode = SourceIQ.MODE_PSK_NC;
-			Config.autoDecodeSpeed = false;
+			//Config.autoDecodeSpeed = false;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
@@ -1152,7 +1153,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.save();
 		}
 		if (e.getSource() == auto) { 
-			Config.autoDecodeSpeed = true;
+			Config.mode = SourceIQ.MODE_FSK_AUTO;
 			enableFilters(true);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FSK_HS);
@@ -1382,7 +1383,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
 				psk.setSelected(false);
-				Config.autoDecodeSpeed = false;
+				//Config.autoDecodeSpeed = false;
 			}
 		} else if (position >= this.soundcardSources.length) { // then this is a USB device IQ
 			btnStartButton.setEnabled(true);
@@ -1396,7 +1397,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
 				psk.setSelected(false);
-				Config.autoDecodeSpeed = false;
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
 			int fcdSelected = fcdSelected();
@@ -1544,14 +1544,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private SourceSoundCardAudio setupSoundCard(boolean highSpeed, int sampleRate) {
 		int position = soundCardComboBox.getSelectedIndex();
 		int circularBufferSize = sampleRate * 4;
-		if (highSpeed || Config.autoDecodeSpeed) {
+		if (highSpeed || Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			circularBufferSize = sampleRate * 4;
 		} else {
 		}		SourceSoundCardAudio audioSource = null;
 		boolean storeStereo = false;
 		if (Config.iq) storeStereo = true;
 		try {
-			if (Config.autoDecodeSpeed)
+			if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2, storeStereo); // split the audio source
 			else
 				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
@@ -1581,7 +1581,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	 */
 	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
 		
-		if (Config.autoDecodeSpeed) {
+		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			if (Config.iq) {
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 0);
@@ -1739,7 +1739,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						int rate = panelFcd.getSampleRate();
 						
 						int channels = 0;
-						if (Config.autoDecodeSpeed)
+						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							channels = 2;
 						if (position-soundcardSources.length == 2) { // FCDPP
 							setFcdSampleRate();
@@ -1751,7 +1751,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							rfDevice.setUsbSource((SourceUSB)audioSource);
 						}
 						boolean decoder1HS = highSpeed.isSelected();
-						if (Config.autoDecodeSpeed) {
+						if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 							iqSource2 = new SourceIQ(rate*2, 0,true);
 							iqSource2.setAudioSource(audioSource,1); 
 							decoder1HS = false;
@@ -1761,7 +1761,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 						
 						Config.passManager.setDecoder1(decoder1, iqSource1, this);
-						if (Config.autoDecodeSpeed)
+						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							Config.passManager.setDecoder2(decoder2, iqSource2, this);
 
 						Config.soundCard = soundCardComboBox.getItemAt(soundCardComboBox.getSelectedIndex());
@@ -1785,7 +1785,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							if (fcdSelected > 0 || Config.iq) {
 								Log.println("IQ Source Selected");
 								boolean decoder1HS = highSpeed.isSelected();
-								if (Config.autoDecodeSpeed) {
+								if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 									iqSource2 = new SourceIQ(Config.scSampleRate * 4, 0,true);
 									iqSource2.setAudioSource(audioSource,1); 
 									decoder1HS = false;
@@ -1795,7 +1795,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								
 								setupDecoder(highSpeed.isSelected(), iqSource1, iqSource2);
 								Config.passManager.setDecoder1(decoder1, iqSource1, this);
-								if (Config.autoDecodeSpeed)
+								if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 									Config.passManager.setDecoder2(decoder2, iqSource2, this);
 								txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
 								setCenterFreq();
@@ -2067,7 +2067,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			if (auto.isSelected()) {
 				iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
-				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
+				Config.mode = SourceIQ.MODE_FSK_AUTO; // so it is saved for next time
 				autoViewpanel.setVisible(true);
 			}
 		}
@@ -2519,12 +2519,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					if (Config.foxTelemCalcsPosition || Config.useDDEforAzEl) {
 						autoStart.setEnabled(true);
-						if (Config.foxTelemCalcsDoppler)
+						if ((Config.foxTelemCalcsPosition && !Config.findSignal) || Config.whenAboveHorizon)
 							cbRetuneCenterFrequency.setEnabled(true);
 						else {
 							cbRetuneCenterFrequency.setEnabled(false);
 							cbRetuneCenterFrequency.setSelected(false);
-						}
+						}							
 					} else {
 						autoStart.setEnabled(false);
 						cbRetuneCenterFrequency.setEnabled(false);

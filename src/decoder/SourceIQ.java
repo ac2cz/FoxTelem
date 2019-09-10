@@ -28,8 +28,9 @@ public class SourceIQ extends SourceAudio {
 //	public static final int MODE_WFM = 0;
 	public static final int MODE_FSK_HS = 1;
 	public static final int MODE_FSK_DUV = 0;
-	public static final int MODE_PSK_NC = 2;
-	public static final int MODE_PSK_COSTAS = 3;
+	public static final int MODE_FSK_AUTO = 2;
+	public static final int MODE_PSK_NC = 3;
+	public static final int MODE_PSK_COSTAS = 4;
 	
 	private int mode = MODE_FSK_DUV;
 	

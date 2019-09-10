@@ -1,6 +1,6 @@
 #Fox 1 Telemetry Decoder Properties
 #Thu Feb 09 21:13:22 EST 2017
-mode=3
+mode=4
 mpptSensorOffThreshold=1600
 mpptResistanceError=6.58
 memsRestValueX=2129

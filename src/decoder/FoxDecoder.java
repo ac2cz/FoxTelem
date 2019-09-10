@@ -137,7 +137,7 @@ public abstract class FoxDecoder extends Decoder {
 
 						// Capture measurements once per payload or every 5 seconds ish
 						addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
-						if (Config.autoDecodeSpeed)
+						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 					} else {
 						HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
@@ -162,7 +162,7 @@ public abstract class FoxDecoder extends Decoder {
 						}
 						// Capture measurements once per payload or every 5 seconds ish
 						addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
-						if (Config.autoDecodeSpeed)
+						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							MainWindow.inputTab.setViewDecoder2();
 					}
 
