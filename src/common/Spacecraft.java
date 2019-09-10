@@ -102,7 +102,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	};
 	
 	public static String[] modes = {
-			"FSK DUV 1200",
+			"FSK DUV 200",
 			"FSK 9600",
 			"BPSK 1200 (Dot Product)",
 			"BPSK 1200 (Costas)"
