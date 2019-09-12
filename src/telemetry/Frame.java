@@ -319,7 +319,7 @@ public abstract class Frame implements Comparable<Frame> {
 		
 		String date = "";
 		try {
-			stpDateFormat.format(stpDate);
+			date = stpDateFormat.format(stpDate);
 		} catch (Exception e) {
 			// catch any exceptions based on random date formats the user may send to us
 			// For example we get IndexOutOfBounds, format Exceptions and others
@@ -881,25 +881,29 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
-			throws UnknownHostException, IOException {
-		String header = getSTPCoreHeader();
-		header = header + getSTPExtendedHeader();
-		header = header + "\r\n";
-		byte[] headerBytes = header.getBytes();
+//	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
+//			throws UnknownHostException, IOException {
+//		String header = getSTPCoreHeader();
+//		header = header + getSTPExtendedHeader();
+//		header = header + "\r\n";
+//		byte[] headerBytes = header.getBytes();
+//
+//		int j = 0;
+//		byte[] buffer = new byte[headerBytes.length + bytes.length];
+//		for (byte b : headerBytes)
+//			buffer[j++] = b;
+//		for (byte b : bytes)
+//			buffer[j++] = b;
+//
+//		tlmServer.sendToServer(buffer, protocol);
+//		if (Config.debugFrames)
+//			Log.println(header);
+//	}
 
-		int j = 0;
-		byte[] buffer = new byte[headerBytes.length + bytes.length];
-		for (byte b : headerBytes)
-			buffer[j++] = b;
-		for (byte b : bytes)
-			buffer[j++] = b;
-
-		tlmServer.sendToServer(buffer, protocol);
-		if (Config.debugFrames)
-			Log.println(header);
-	}
-
+	/**
+	 * Get the bytes from this frame so they can be sent to a server
+	 * @return
+	 */
 	public byte[] getServerBytes() {
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();

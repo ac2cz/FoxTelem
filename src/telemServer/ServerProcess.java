@@ -141,11 +141,12 @@ public class ServerProcess implements Runnable {
 		} catch (SocketException e) {
 			Log.println("SOCKET EXCEPTION, file will not be processed");
 		} catch (IOException e) {
-			Log.println("ERROR ALERT:" + e.getMessage());
+			Log.println("ERROR ALERT:" + e);
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
-			Log.alert("FATAL: " + e.getMessage());
+			Log.alert("FATAL: " + e);
+			e.printStackTrace(Log.getWriter());
 		
 		} catch (StpFileRsDecodeException rs) {
 			Log.println("STP FILE Could not be decoded: " + rs.getMessage());
@@ -155,11 +156,13 @@ public class ServerProcess implements Runnable {
 			else
 				Log.println("ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
 		} catch (StpFileProcessException e) {
-			Log.println("STP EXCPETION: " + e.getMessage());
+			Log.println("STP EXCPETION: " + e);
+			e.printStackTrace(Log.getWriter());
 			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
 			storeException(stp);
 		} catch (Exception e) {
-			Log.println("FATAL THREAD EXCPETION: " + e.getMessage());
+			Log.println("FATAL THREAD EXCPETION: " + e);
+			e.printStackTrace(Log.getWriter());
 		} finally {
 			try { in.close();  } catch (Exception ex) { /*ignore*/}
 			try { socket.close();  } catch (Exception ex) { /*ignore*/} 

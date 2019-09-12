@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.30c - 2 Dec 2018";
+	public static String version = "Version 0.31 - 10 Sep 2019";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -191,7 +191,7 @@ public class FoxTelemServer {
             	sequence=0;
             if (retries == RETRY_LIMIT) {
             	Log.println("Max Socket Retries hit: Terminating Server");
-            	listening = false;
+            	listening = false; // Note if this error is causes because process threads are stuck then we will not Exit by setting to false, but hang
             }
         }
 

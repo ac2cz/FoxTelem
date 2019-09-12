@@ -30,7 +30,7 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.02 - 10 Jul 2019";
+	public static String version = "Version 1.03 - 10 Sep 2019";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -87,9 +87,9 @@ public class WebServiceProcess implements Runnable {
 				 * COMMAND/SAT/OPTIONS
 				 * 
 				 * The following commands are valid:
-				 * /VERSION - return the version
-				 * /getSatLatLonAtResetUptime=sat&reset&uptime
-				 * /getSatUtcForResetUptime=sat&reset&uptime
+				 * /version - return the version
+				 * /getSatLatLonAtResetUptime?sat=0&reset=00&uptime=000
+				 * /getSatUtcForResetUptime?sat=0&reset==00&uptime=000
 				 * 
 				 * LEGACY APIs:
 				 * /T0/SAT/RESET/CALL/N - Returns N T0 records for RESET logged by CALL for sat SAT
