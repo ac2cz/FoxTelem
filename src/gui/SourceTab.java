@@ -151,7 +151,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	DevicePanel panelFcd;
 	JPanel SDRpanel;
 	JRadioButton highSpeed;
-	JRadioButton psk;
+	JRadioButton pskDotProd;
+	JRadioButton pskCostas;
 	JRadioButton lowSpeed;
 	JRadioButton auto;
 	JRadioButton WFM;
@@ -646,21 +647,26 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		JLabel lblSource = new JLabel("Source");	
 		panel_2.add(lblSource);
 		lblSource.setAlignmentX(Component.LEFT_ALIGNMENT);
-		lblSource.setMinimumSize(new Dimension(180, 14));
-		lblSource.setMaximumSize(new Dimension(180, 14));
+		lblSource.setMinimumSize(new Dimension(120, 14));
+		lblSource.setMaximumSize(new Dimension(120, 14));
 		
+		JLabel fsk = new JLabel("FSK: ");
+		panel_2.add(fsk);
 		lowSpeed = addRadioButton("DUV", panel_2 );
 		highSpeed = addRadioButton("High Speed", panel_2 );
 		auto = addRadioButton("DUV + HS", panel_2 );
-		JLabel bar = new JLabel("  |  ");
+		JLabel bar = new JLabel("  |  BPSK: ");
 		panel_2.add(bar);
-		psk = addRadioButton("PSK", panel_2 );
-//		highSpeed = addRadioButton("High Speed", panel_2 );
+		pskCostas = addRadioButton("Costas", panel_2 );
+		pskCostas.setToolTipText("Use a Costas Loop to lock onto the signal and decode the BPSK");
+		pskDotProd = addRadioButton("DP", panel_2 );
+		pskDotProd.setToolTipText("Use a Dot Product decoder which is less sensitive to phase mismatch but more sensitive to noise");
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
 		group.add(auto);
-		group.add(psk);
+		group.add(pskCostas);
+		group.add(pskDotProd);
 		
 		setupMode();
 		
@@ -925,12 +931,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
-		} else if (Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS){
-//			if (Config.useCostas)
-//				Config.mode = SourceIQ.MODE_PSK_COSTAS;
-//			else
-//				Config.mode = SourceIQ.MODE_PSK_NC;
-			psk.setSelected(true);
+		} else if (Config.mode == SourceIQ.MODE_PSK_NC ){
+			pskDotProd.setSelected(true);
+			enableFilters(true);
+		} else if (Config.mode == SourceIQ.MODE_PSK_COSTAS){
+			pskCostas.setSelected(true);
 			enableFilters(true);
 		}
 
@@ -1139,12 +1144,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			Config.save();
 		}
-		if (e.getSource() == psk) { 
-//			if (Config.useCostas)
-//				Config.mode = SourceIQ.MODE_PSK_COSTAS;
-//			else
-//				Config.mode = SourceIQ.MODE_PSK_NC;
-			//Config.autoDecodeSpeed = false;
+		if (e.getSource() == pskCostas) { 
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
@@ -1152,6 +1153,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			Config.save();
 		}
+		if (e.getSource() == pskDotProd) { 
+			Config.mode = SourceIQ.MODE_PSK_NC;
+			enableFilters(false);
+			autoViewpanel.setVisible(false);
+			if (iqSource1 != null) {
+				iqSource1.setMode(Config.mode);
+			}
+			Config.save();
+	}
 		if (e.getSource() == auto) { 
 			Config.mode = SourceIQ.MODE_FSK_AUTO;
 			enableFilters(true);
@@ -1382,7 +1392,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (auto.isSelected()) { 
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
-				psk.setSelected(false);
+				pskCostas.setSelected(false);
+				pskDotProd.setSelected(false);
 				//Config.autoDecodeSpeed = false;
 			}
 		} else if (position >= this.soundcardSources.length) { // then this is a USB device IQ
@@ -1396,7 +1407,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				autoViewpanel.setVisible(false);
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
-				psk.setSelected(false);
+				pskCostas.setSelected(false);
+				pskDotProd.setSelected(false);
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
 			int fcdSelected = fcdSelected();
@@ -1589,16 +1601,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
-		} else if (this.psk.isSelected()) {
-			if (Config.mode == SourceIQ.MODE_PSK_COSTAS) {
-				if (Config.iq) {
-					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
-				} else
-					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
-			} else {
-				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
-			}
+		} else if (this.pskCostas.isSelected()) {
+			if (Config.iq) {
+				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
+			} else
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
+		} else if (this.pskDotProd.isSelected()) {
+			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
 		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
@@ -2044,16 +2054,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private void setMode() {
 		if (iqSource1 != null) {
-			if (psk.isSelected()) {
-				if (Config.mode == SourceIQ.MODE_PSK_COSTAS) {
-					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-					//Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
-					autoViewpanel.setVisible(false);
-				} else {
-					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
-					//Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
-					autoViewpanel.setVisible(false);
-				}
+			if (pskCostas.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+				//Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+				autoViewpanel.setVisible(false);
+			}
+			if (pskDotProd.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+				//Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+				autoViewpanel.setVisible(false);
 			}
 			if (lowSpeed.isSelected()) {
 				iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
@@ -2080,11 +2089,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
-//		rdbtnUseNco.setEnabled(t);
-//		rdbtnUseCostas.setEnabled(t);
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
-		psk.setEnabled(t);
+		pskCostas.setEnabled(t);
+		pskDotProd.setEnabled(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
 		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)
 			auto.setEnabled(false);
