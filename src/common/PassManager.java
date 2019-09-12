@@ -692,10 +692,13 @@ public class PassManager implements Runnable {
 										if (pp1 != null && pp1.iqSource != null) {
 											int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
 											// For IQ Source we can span +- the rate/2
-											// Assume we want the spacecraft to be in the middle of upper side band
-											double maxFreq = pp1.iqSource.getCenterFreqkHz() + 0.75 * range/1000.0;
-											double minFreq = pp1.iqSource.getCenterFreqkHz() + 0.25 * range/1000.0;
-											if (sat.telemetryDownlinkFreqkHz < minFreq || sat.telemetryDownlinkFreqkHz > maxFreq) {
+											// Assume we want the spacecraft to be in the middle of either side band.  ie not across center spike and not at ends
+											double maxFreq1 = pp1.iqSource.getCenterFreqkHz() + 0.80 * range/1000.0;
+											double aboveCenter = pp1.iqSource.getCenterFreqkHz() + 10;  // within 10kHz of Center 
+											double belowCenter = pp1.iqSource.getCenterFreqkHz() - 10;
+											double minFreq2 = pp1.iqSource.getCenterFreqkHz() - 0.80 * range/1000.0;
+											if (sat.telemetryDownlinkFreqkHz < minFreq2 || sat.telemetryDownlinkFreqkHz > maxFreq1 ||
+													(sat.telemetryDownlinkFreqkHz > belowCenter && sat.telemetryDownlinkFreqkHz < aboveCenter)) {
 												// we need to retune as the sat is outside the current band
 												double newCenterFreq = sat.telemetryDownlinkFreqkHz - 0.25 * range / 1000;
 												//if (Config.debugSignalFinder)
