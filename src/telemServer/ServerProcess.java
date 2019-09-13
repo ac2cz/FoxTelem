@@ -4,19 +4,30 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 import java.text.DateFormat;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.TimeZone;
 
 import common.Log;
+import common.Sequence;
 import telemetry.Frame;
 import telemetry.HighSpeedFrame;
 
 public class ServerProcess implements Runnable {
+	public static final String NONE = "NONE";
+	public static final int DUV_FRAME_LEN = 768; 
+	public static final int HIGH_SPEED_FRAME_LEN = 42176;
+	public static final int PSK_FRAME_LEN = 4576;
+	public static final byte[] OK = {0x4F,0x4D,0x0D,0x0A};
+	public static final byte[] FAIL = {0x46,0x41,0x0D,0x0A};
+	public static final int TIMEOUT_CONNECTION = 1000; // 1s timeout while connected
+
 	//PayloadDbStore payloadStoreX;
 	String u;
 	String p;
@@ -94,22 +105,143 @@ public class ServerProcess implements Runnable {
 
 		FileOutputStream f = null;
 		InputStream in = null;
+		OutputStream out = null;
 		String fileName;
 		File stp = null;
 		try {
+			boolean done = false;
+			boolean readingKey = true;
+			String key = "";
+			String value = "";
+			byte[] rawFrame = null;
+			int length = 0;
+			String receiver = null;
+			Date stpDate = null;
+			String frequency = NONE; // frequency when this frame received
+			String source; // The frame source subsystem
+			String rx_location = NONE; // the lat, long and altitude
+			String receiver_rf = NONE; // human description of the receiver
+			String demodulator = null; // will contain Config.VERSION
+			long sequenceNumber = Sequence.ERROR_NUMBER;
+			String measuredTCA = NONE; // time of TCA
+			String measuredTCAfrequency = NONE;
+			int lineLen = 0;
+			boolean firstColon = true;
+			char ch;
 			int b=0;
 			fileName = nextSTPFile();
 			f = new FileOutputStream(fileName);
+			socket.setSoTimeout(TIMEOUT_CONNECTION);
 			in = socket.getInputStream();
+			out = socket.getOutputStream();
 			int c;
-			while ((c = in.read()) != -1) {
+			
+//			while ((c = in.read()) != -1) {
+//				f.write(c);
+//				b++;
+//				if (b > MAX_FRAME_SIZE) 
+//					throw new StpFileProcessException(fileName,"Frame too long, probablly spam: Aborted");
+//			}
+			
+			while (!done && (c = in.read()) != -1) {
 				f.write(c);
 				b++;
 				if (b > MAX_FRAME_SIZE) 
 					throw new StpFileProcessException(fileName,"Frame too long, probablly spam: Aborted");
+				ch = (char) c;
+				if (c == 58 && firstColon) { // ':'
+					firstColon = false;
+					c = in.read(); // consume the space
+					f.write(c);
+					c = in.read();
+					f.write(c);
+					ch = (char) c; // set ch to the first character
+					readingKey = false;
+				}
+				if ( (c == 13 || c == 10)) { // CR or LF
+					c = in.read(); // consume the lf
+					f.write(c);
+					if ((length == DUV_FRAME_LEN || length == HIGH_SPEED_FRAME_LEN || length == PSK_FRAME_LEN) && lineLen == 1) {
+						// then we are ready to process
+						rawFrame = new byte[length/8];
+						for (int i=0; i<length/8; i++) {
+							c = in.read();
+							rawFrame[i] = (byte) c;
+							f.write(c);
+						}
+						done = true;
+					} else {
+						// It was a header line
+						readingKey = true;
+						firstColon = true;
+						if (key.startsWith("Length")) {
+							length = Integer.parseInt(value);
+						} else
+						if (key.equalsIgnoreCase("Receiver")) {
+							receiver = value;
+						} else
+						if (key.equalsIgnoreCase("Source")) {
+							source = value;
+						} else
+						if (key.equalsIgnoreCase("Frequency")) {
+							frequency = value;
+						} else
+						if (key.equalsIgnoreCase("Rx-location")) {
+							rx_location = value;
+						} else
+						if (key.equalsIgnoreCase("Receiver-RF")) {
+							receiver_rf = value;
+						} else
+						if (key.equalsIgnoreCase("Demodulator")) {
+							demodulator = value;
+						} else
+						if (key.endsWith("Sequence")) {
+							sequenceNumber = Long.parseLong(value);
+						} else
+						if (key.equalsIgnoreCase("MeasuredTCA")) {
+							measuredTCA = value;
+						} else
+						if (key.equalsIgnoreCase("MeasuredTCAfrequency")) {
+							measuredTCAfrequency = value;
+						} else
+						if (key.startsWith("Date")) {
+							String dt = value.replace(" UTC", "");
+							Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+							try {
+								stpDate = Frame.stpDateFormat.parse(dt);
+							} catch (ParseException e) {
+								Log.println("ERROR - Date was not parsable. Setting to null"  + "\n" + e.getMessage());
+								stpDate = null;
+							} catch (NumberFormatException e) {
+								Log.println("ERROR - Date has number format exception. Setting to null"  + "\n" + e.getMessage());
+								stpDate = null;
+							} catch (Exception e) { // we can get other unusual exceptions such as ArrayIndexOutOfBounds...
+								Log.println("ERROR - Date was not parsable. Setting to null: " + e.getMessage());
+								stpDate = null;
+								e.printStackTrace(Log.getWriter());								
+							}
+						} else {
+							// Eror, not a valid header, FAIL
+							throw new StpFileProcessException(fileName,"Invalid Header: Aborted");
+						}
+						key = "";
+						value = "";
+						lineLen = 0;
+					}
+				} else {
+					if (readingKey) 
+						key = key + ch;
+					else
+						value = value + ch;
+				}
+				lineLen++;
+
 			}
+			// Frame read successfully, send OK if client still connected
+			try {out.write(OK); Log.println("OK SENT");} catch (IOException e1) { Log.println("OK Ignored");/*ignore*/}
 			
 			in.close();
+			out.close();
 			socket.close();
 			f.close();
 			
@@ -140,15 +272,20 @@ public class ServerProcess implements Runnable {
 			
 		} catch (SocketException e) {
 			Log.println("SOCKET EXCEPTION, file will not be processed");
+			// try to send error message to client
+			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
 		} catch (IOException e) {
+			// try to send error message to client
+			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
 			Log.println("ERROR ALERT:" + e);
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
 			Log.alert("FATAL: " + e);
-			e.printStackTrace(Log.getWriter());
-		
+			e.printStackTrace(Log.getWriter());		
 		} catch (StpFileRsDecodeException rs) {
+			// try to send error message to client
+			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
 			Log.println("STP FILE Could not be decoded: " + rs.getMessage());
 			File toFile = new File(stp.getPath()+".null");
 			if (stp.renameTo(toFile))
@@ -156,15 +293,20 @@ public class ServerProcess implements Runnable {
 			else
 				Log.println("ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
 		} catch (StpFileProcessException e) {
+			// try to send error message to client
+			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
 			Log.println("STP EXCPETION: " + e);
 			e.printStackTrace(Log.getWriter());
 			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
 			storeException(stp);
 		} catch (Exception e) {
+			// try to send error message to client
+			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
 			Log.println("FATAL THREAD EXCPETION: " + e);
 			e.printStackTrace(Log.getWriter());
 		} finally {
 			try { in.close();  } catch (Exception ex) { /*ignore*/}
+			try { out.close();  } catch (Exception ex) { /*ignore*/}
 			try { socket.close();  } catch (Exception ex) { /*ignore*/} 
 			try { f.close();  } catch (Exception ex) { /*ignore*/}
 		}

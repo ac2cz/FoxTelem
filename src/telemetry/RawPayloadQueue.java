@@ -51,7 +51,7 @@ public class RawPayloadQueue extends RawQueue {
 	}
 	
 	public void init() {
-		localServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.KEEP_OPEN);
+		localServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.KEEP_OPEN, TlmServer.NO_ACK);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
