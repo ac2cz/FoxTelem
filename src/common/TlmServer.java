@@ -62,6 +62,7 @@ public class TlmServer {
 		this.hostName = hostName;
 		this.portNumber = portNumber;
 		this.autoClose = autoClose;
+		this.waitForAck = waitForAck;
 	}
 
 	public void setHostName(String hostName) {
@@ -131,7 +132,8 @@ public class TlmServer {
 			if (autoClose || socket == null) {
 				socket = new Socket();
 				socket.connect(new InetSocketAddress(hostName, portNumber), TIMEOUT_CONNECT);
-				socket.setSoTimeout(TIMEOUT_CONNECTION);
+				if (waitForAck) // then we need a timeout on the read
+					socket.setSoTimeout(TIMEOUT_CONNECTION);
 				
 				out = socket.getOutputStream();
 				in = socket.getInputStream();
