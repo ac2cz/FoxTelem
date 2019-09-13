@@ -37,6 +37,7 @@ public class WebServiceProcess implements Runnable {
 	public static final String VERSION = "version";
 	public static final String TIME = "getSatUtcAtResetUptime";
 	public static final String POSITION = "getSatLatLonAtResetUptime";
+	public static final int TIMEOUT_CONNECTION = 1000; // 1s timeout while connected
 	
 	public WebServiceProcess(PayloadDbStore db, Socket socket, int p) {
 		this.socket = socket;
@@ -52,7 +53,7 @@ public class WebServiceProcess implements Runnable {
 		String GET = null;
 		try {
 			Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
-
+			socket.setSoTimeout(TIMEOUT_CONNECTION);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new PrintWriter(socket.getOutputStream());
 
