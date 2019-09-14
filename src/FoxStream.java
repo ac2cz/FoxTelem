@@ -40,7 +40,7 @@ public class FoxStream {
 	public static String version = "Version 0.04 - 10 Sept 2019";
 	public static int port = 41043;
 	static int sequence = 0;
-	static int poolSize = 8; // max number of threads
+	static int poolSize = 16; // max number of threads
 	static final String usage = "FoxStream user database [-v]\n"
 			+ "-v - Version Information\n";
 	

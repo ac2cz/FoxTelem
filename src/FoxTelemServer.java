@@ -92,6 +92,9 @@ public class FoxTelemServer {
 		Log.showGuiDialogs = false;
 		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
+		// Avoid creating all of the tables on the server
+		Config.splitCanPackets = false;
+
 		try {
 			makeExceptionDir();
 		} catch (IOException e1) {
@@ -106,7 +109,7 @@ public class FoxTelemServer {
 		Config.serverInit(); // initialize and create the payload store.  
 
 		ServerConfig.init();
-		
+				
 		if (args.length == 3) {
 			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");

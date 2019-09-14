@@ -280,6 +280,7 @@ public class Config {
 	static public boolean debugCalcDopplerContinually = false;
 	
 	// V1.08
+	static public boolean splitCanPackets = true;
 	static public boolean retuneCenterFrequency = false;
 	
 	
