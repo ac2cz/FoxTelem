@@ -7,6 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.SocketTimeoutException;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -210,13 +211,13 @@ public class ServerProcess implements Runnable {
 							try {
 								stpDate = Frame.stpDateFormat.parse(dt);
 							} catch (ParseException e) {
-								Log.println("ERROR - Date was not parsable. Setting to null"  + "\n" + e.getMessage());
+								Log.println("-"+ socket.getInetAddress()+" ERROR - Date was not parsable. Setting to null"  + "\n" + e.getMessage());
 								stpDate = null;
 							} catch (NumberFormatException e) {
-								Log.println("ERROR - Date has number format exception. Setting to null"  + "\n" + e.getMessage());
+								Log.println("-"+ socket.getInetAddress()+" ERROR - Date has number format exception. Setting to null"  + "\n" + e.getMessage());
 								stpDate = null;
 							} catch (Exception e) { // we can get other unusual exceptions such as ArrayIndexOutOfBounds...
-								Log.println("ERROR - Date was not parsable. Setting to null: " + e.getMessage());
+								Log.println("-"+ socket.getInetAddress()+" ERROR - Date was not parsable. Setting to null: " + e.getMessage());
 								stpDate = null;
 								e.printStackTrace(Log.getWriter());								
 							}
@@ -238,7 +239,7 @@ public class ServerProcess implements Runnable {
 
 			}
 			// Frame read successfully, send OK if client still connected
-			try {out.write(OK); Log.println("OK SENT");} catch (IOException e1) { Log.println("OK Ignored");/*ignore*/}
+			try {out.write(OK); Log.println("-"+ socket.getInetAddress()+" OK SENT");} catch (IOException e1) { Log.println("-"+ socket.getInetAddress()+" OK Ignored");/*ignore*/}
 			
 			in.close();
 			out.close();
@@ -252,14 +253,14 @@ public class ServerProcess implements Runnable {
 			// null return means the file can not be recognized as an STP file or was test data
 			Frame frm = Frame.importStpFile(u, p, db, stp, false);
 			if (frm != null) {
-				Log.println("Processed: " + b + " bytes from " + frm.receiver + " for " 
+				Log.println("-"+ socket.getInetAddress()+" Processed: " + b + " bytes from " + frm.receiver + " for " 
 						+ frm.getHeader().getFoxId() + " " + frm.getHeader().getResets() + " " + frm.getHeader().getUptime() 
 						+ " " + frm.getHeader().getType() + "---" + fileName);
 				File toFile = new File(stp.getPath()+".processed");
 				if (stp.renameTo(toFile))
 					;
 				else
-					Log.println("ERROR: Could not mark file as processed: " + stp.getAbsolutePath()); // while this seems serious, we have the data and it is marked as unprocessed, so we can go back and recover
+					Log.println("-"+ socket.getInetAddress()+" ERROR: Could not mark file as processed: " + stp.getAbsolutePath()); // while this seems serious, we have the data and it is marked as unprocessed, so we can go back and recover
 			}
 			else {
 				// This was the test data and we do not care if it is processed
@@ -267,42 +268,46 @@ public class ServerProcess implements Runnable {
 				if (stp.renameTo(toFile))
 					;
 				else
-					Log.println("ERROR: Could not mark file as null data: " + stp.getAbsolutePath());
+					Log.println("-"+ socket.getInetAddress()+" ERROR: Could not mark file as null data: " + stp.getAbsolutePath());
 			}
 			
 		} catch (SocketException e) {
-			Log.println("SOCKET EXCEPTION, file will not be processed");
+			Log.println("-"+ socket.getInetAddress()+" SOCKET EXCEPTION, file will not be processed");
+			// try to send error message to client
+			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
+		} catch (SocketTimeoutException e) {
+			Log.println("-"+ socket.getInetAddress()+" SOCKET TIMEOUT EXCEPTION, file will not be processed: " + e);
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
 		} catch (IOException e) {
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
-			Log.println("ERROR ALERT:" + e);
+			Log.println("-"+ socket.getInetAddress()+" ERROR ALERT:" + e);
 			e.printStackTrace(Log.getWriter());
 			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
 			////ALERT
-			Log.alert("FATAL: " + e);
+			Log.alert("-"+ socket.getInetAddress()+" FATAL: " + e);
 			e.printStackTrace(Log.getWriter());		
 		} catch (StpFileRsDecodeException rs) {
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
-			Log.println("STP FILE Could not be decoded: " + rs.getMessage());
+			Log.println("-"+ socket.getInetAddress()+" STP FILE Could not be decoded: " + rs.getMessage());
 			File toFile = new File(stp.getPath()+".null");
 			if (stp.renameTo(toFile))
 				;
 			else
-				Log.println("ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
+				Log.println("-"+ socket.getInetAddress()+" ERROR: Could not mark failed RS Decode file as null data: " + stp.getAbsolutePath());
 		} catch (StpFileProcessException e) {
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
-			Log.println("STP EXCPETION: " + e);
+			Log.println("-"+ socket.getInetAddress()+" STP EXCPETION: " + e);
 			e.printStackTrace(Log.getWriter());
 			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
 			storeException(stp);
 		} catch (Exception e) {
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
-			Log.println("FATAL THREAD EXCPETION: " + e);
+			Log.println("-"+ socket.getInetAddress()+" FATAL THREAD EXCPETION: " + e);
 			e.printStackTrace(Log.getWriter());
 		} finally {
 			try { in.close();  } catch (Exception ex) { /*ignore*/}
@@ -319,10 +324,10 @@ public class ServerProcess implements Runnable {
 			if (f.renameTo(toFile)) {
 				;
 			} else {
-				Log.println("ERROR: Could not rename the file into the exeption dir: " + f.getPath());
+				Log.println("-"+ socket.getInetAddress()+" ERROR: Could not rename the file into the exeption dir: " + f.getPath());
 			}
 		} else
-			Log.println("Don't know which file to store as an exception");
+			Log.println("-"+ socket.getInetAddress()+" Don't know which file to store as an exception");
 	}
 
 }
