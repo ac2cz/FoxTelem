@@ -27,9 +27,7 @@ public class ServerProcess implements Runnable {
 	public static final int PSK_FRAME_LEN = 4576;
 	public static final byte[] OK = {0x4F,0x4D,0x0D,0x0A};
 	public static final byte[] FAIL = {0x46,0x41,0x0D,0x0A};
-	public static final int TIMEOUT_CONNECTION = 1000; // 1s timeout while connected
 
-	//PayloadDbStore payloadStoreX;
 	String u;
 	String p;
 	String db;
@@ -132,17 +130,10 @@ public class ServerProcess implements Runnable {
 			int b=0;
 			fileName = nextSTPFile();
 			f = new FileOutputStream(fileName);
-			socket.setSoTimeout(TIMEOUT_CONNECTION);
+			socket.setSoTimeout(ServerConfig.socketReadTimeout);
 			in = socket.getInputStream();
 			out = socket.getOutputStream();
 			int c;
-			
-//			while ((c = in.read()) != -1) {
-//				f.write(c);
-//				b++;
-//				if (b > MAX_FRAME_SIZE) 
-//					throw new StpFileProcessException(fileName,"Frame too long, probablly spam: Aborted");
-//			}
 			
 			while (!done && (c = in.read()) != -1) {
 				f.write(c);

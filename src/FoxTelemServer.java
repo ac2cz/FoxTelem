@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.32a - 16 Sep 2019";
+	public static String version = "Version 0.32b - 16 Sep 2019";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -149,8 +149,6 @@ public class FoxTelemServer {
 			System.exit(1);
 		}
 
-
-		
 		ServerSocket serverSocket = null;
         boolean listening = true;
         ExecutorService pool = null;
@@ -163,9 +161,6 @@ public class FoxTelemServer {
             Log.alert("FATAL: Could not listen on port: " + port);
         }
 
-        //ServerProcess process = null;
-        //Thread processThread;
-        
         // Start the background image processing thread
         imageProcess = new ImageProcess(initPayloadDB(u,p,db));
         imageThread = new Thread(imageProcess);
@@ -176,7 +171,6 @@ public class FoxTelemServer {
         int RETRY_LIMIT = 10;
         while (listening) {
         	try {
-        		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
         		pool.execute(new ServerProcess(u,p,db, serverSocket.accept(), sequence++));
         		retries = 0;
@@ -233,8 +227,7 @@ public class FoxTelemServer {
 		Config.payloadStore.initHerciPackets();
 	}
 	
-	
-	
+		
 	/**
 	 * Get a list of all the files in the STP dir and import them
 	 */
