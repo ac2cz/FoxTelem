@@ -118,6 +118,7 @@ public abstract class FoxBitStream extends BitStream {
 	
 	/**
 	 * Original Find Frames, called in conjunction with findSyncMarkers
+	 * UNUSED
 	 * @return
 	 */
 	public Frame findFrames() {
