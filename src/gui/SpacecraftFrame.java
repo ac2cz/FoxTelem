@@ -505,13 +505,13 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.priority = pri;
 					//refreshTabs = true; // refresh the menu list and sat list but not the tabs
 				}
-				if (localServer != null)
+				if (localServer != null) {
 					sat.localServer = localServer.getText();
-				if (localServerPort.getText().equalsIgnoreCase(""))
-					sat.localServerPort = 0;
-				else
-				if (localServerPort != null)
-					sat.localServerPort = Integer.parseInt(localServerPort.getText());
+					if (localServerPort.getText().equalsIgnoreCase(""))
+						sat.localServerPort = 0;
+					else
+						sat.localServerPort = Integer.parseInt(localServerPort.getText());
+				}
 				sat.track = track.isSelected();
 
 				if (dispose) {
