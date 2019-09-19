@@ -299,7 +299,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		eyePanel.setVisible(b);
 	}
 	public void showPhasor(boolean b) { 
-		phasorPanel.setVisible(b);
+		if (decoder1 != null && (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder))
+			phasorPanel.setVisible(b);
 	}
 
 	public boolean getShowFilterState() {
@@ -1080,7 +1081,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			audioGraph.startProcessing(decoder1);
 			eyePanel.startProcessing(decoder1);
 			if (decoder1 instanceof FoxBPSKDotProdDecoder || decoder1 instanceof FoxBPSKCostasDecoder) {
-				phasorPanel.setVisible(true);
+				phasorPanel.setVisible(Config.showPhasor);
 				phasorPanel.startProcessing(decoder1);
 			} else {
 				phasorPanel.setVisible(false);
@@ -1109,8 +1110,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 			audioGraph.startProcessing(decoder2);
 			eyePanel.startProcessing(decoder2);
-			if (decoder2 instanceof FoxBPSKDotProdDecoder || decoder2 instanceof FoxBPSKCostasDecoder)
-			phasorPanel.startProcessing(decoder2);
+//			if (decoder2 instanceof FoxBPSKDotProdDecoder || decoder2 instanceof FoxBPSKCostasDecoder)
+//				if (Config.showPhasor)
+//					phasorPanel.startProcessing(decoder2);
 			fftPanel.startProcessing(iqSource2);
 			
 			viewHighSpeed.setSelected(true);
@@ -1868,7 +1870,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								phasorPanelThread.start();
 							}
 							phasorPanel.startProcessing(decoder1);
-							phasorPanel.setVisible(true);
+							phasorPanel.setVisible(Config.showPhasor);
 						} else {
 							phasorPanel.setVisible(false);
 						}
