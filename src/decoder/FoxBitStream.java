@@ -54,7 +54,7 @@ public abstract class FoxBitStream extends BitStream {
 	protected int SYNC_WORD_LENGTH = 10; // These can be overridden in a child class if the length is different.  Update in the constructor
 	protected int DATA_WORD_LENGTH = 10; 
 	
-	protected static final int MAX_ERASURES = 16; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
+	protected static final int MAX_ERASURES = 15; // If we have more erasures than this then abandon decoding the RSCodeWord, can not let it get to 32
 	protected static final int FRAME_PROCESSED = -999;
 	
 	protected static int SYNC_WORD_BIT_TOLERANCE = 0; // if we are within this many bits, then try to decode the frame.  Set by Constructor

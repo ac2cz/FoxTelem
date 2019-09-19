@@ -263,8 +263,9 @@ public abstract class Frame implements Comparable<Frame> {
 	 * Add a whole raw frame of data.
 	 * 
 	 * @param b
+	 * @throws StpFileProcessException 
 	 */
-	public void addRawFrame(byte[] b) {
+	public void addRawFrame(byte[] b) throws FrameProcessException {
 		int byteLen = b.length;
 
 		// We process the data bytes. addNext8Bits is implemented by the
@@ -280,12 +281,17 @@ public abstract class Frame implements Comparable<Frame> {
 		foxId = header.getFoxId();
 		length = Integer.toString(byteLen * 8);
 
-		if (this instanceof SlowSpeedFrame) {
-			source = Spacecraft.SOURCES[foxId][DUV_FRAME];
-		} else if (this instanceof HighSpeedFrame){
-			source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
-		} else {
-			source = Spacecraft.SOURCES[foxId][0]; // first value
+		try {
+			if (this instanceof SlowSpeedFrame) {
+				source = Spacecraft.SOURCES[foxId][DUV_FRAME];
+			} else if (this instanceof HighSpeedFrame){
+				source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
+			} else {
+				source = Spacecraft.SOURCES[foxId][0]; // first value
+			}
+		} catch (IndexOutOfBoundsException e) {
+			// We have a corrupt FoxId
+			throw new FrameProcessException("Corrupt FoxId, frame could not be processed.  ID: " + foxId);
 		}
 
 	}
@@ -579,7 +585,12 @@ public abstract class Frame implements Comparable<Frame> {
 		frame = rawFrame; //rs.decode();
 
 
-		frm.addRawFrame(frame);
+		try {
+			frm.addRawFrame(frame);
+		} catch (FrameProcessException e) {
+			Log.println("Failed to Process STP file. FoxId is corrupt.");
+			return null;
+		}
 		frm.receiver = receiver;
 		frm.demodulator = demodulator;
 		frm.stpDate = stpDate;
