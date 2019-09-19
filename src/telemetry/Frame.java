@@ -263,8 +263,9 @@ public abstract class Frame implements Comparable<Frame> {
 	 * Add a whole raw frame of data.
 	 * 
 	 * @param b
+	 * @throws StpFileProcessException 
 	 */
-	public void addRawFrame(byte[] b) {
+	public void addRawFrame(byte[] b) throws FrameProcessException {
 		int byteLen = b.length;
 
 		// We process the data bytes. addNext8Bits is implemented by the
@@ -280,12 +281,17 @@ public abstract class Frame implements Comparable<Frame> {
 		foxId = header.getFoxId();
 		length = Integer.toString(byteLen * 8);
 
-		if (this instanceof SlowSpeedFrame) {
-			source = Spacecraft.SOURCES[foxId][DUV_FRAME];
-		} else if (this instanceof HighSpeedFrame){
-			source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
-		} else {
-			source = Spacecraft.SOURCES[foxId][0]; // first value
+		try {
+			if (this instanceof SlowSpeedFrame) {
+				source = Spacecraft.SOURCES[foxId][DUV_FRAME];
+			} else if (this instanceof HighSpeedFrame){
+				source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
+			} else {
+				source = Spacecraft.SOURCES[foxId][0]; // first value
+			}
+		} catch (IndexOutOfBoundsException e) {
+			// We have a corrupt FoxId
+			throw new FrameProcessException("Corrupt FoxId, frame could not be processed.  ID: " + foxId);
 		}
 
 	}
@@ -319,7 +325,7 @@ public abstract class Frame implements Comparable<Frame> {
 		
 		String date = "";
 		try {
-			stpDateFormat.format(stpDate);
+			date = stpDateFormat.format(stpDate);
 		} catch (Exception e) {
 			// catch any exceptions based on random date formats the user may send to us
 			// For example we get IndexOutOfBounds, format Exceptions and others
@@ -580,7 +586,12 @@ public abstract class Frame implements Comparable<Frame> {
 		frame = rawFrame; //rs.decode();
 
 
-		frm.addRawFrame(frame);
+		try {
+			frm.addRawFrame(frame);
+		} catch (FrameProcessException e) {
+			Log.println("Failed to Process STP file. FoxId is corrupt.");
+			return null;
+		}
 		frm.receiver = receiver;
 		frm.demodulator = demodulator;
 		frm.stpDate = stpDate;
@@ -882,25 +893,29 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
-			throws UnknownHostException, IOException {
-		String header = getSTPCoreHeader();
-		header = header + getSTPExtendedHeader();
-		header = header + "\r\n";
-		byte[] headerBytes = header.getBytes();
+//	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
+//			throws UnknownHostException, IOException {
+//		String header = getSTPCoreHeader();
+//		header = header + getSTPExtendedHeader();
+//		header = header + "\r\n";
+//		byte[] headerBytes = header.getBytes();
+//
+//		int j = 0;
+//		byte[] buffer = new byte[headerBytes.length + bytes.length];
+//		for (byte b : headerBytes)
+//			buffer[j++] = b;
+//		for (byte b : bytes)
+//			buffer[j++] = b;
+//
+//		tlmServer.sendToServer(buffer, protocol);
+//		if (Config.debugFrames)
+//			Log.println(header);
+//	}
 
-		int j = 0;
-		byte[] buffer = new byte[headerBytes.length + bytes.length];
-		for (byte b : headerBytes)
-			buffer[j++] = b;
-		for (byte b : bytes)
-			buffer[j++] = b;
-
-		tlmServer.sendToServer(buffer, protocol);
-		if (Config.debugFrames)
-			Log.println(header);
-	}
-
+	/**
+	 * Get the bytes from this frame so they can be sent to a server
+	 * @return
+	 */
 	public byte[] getServerBytes() {
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();

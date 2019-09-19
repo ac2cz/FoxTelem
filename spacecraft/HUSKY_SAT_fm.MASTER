@@ -1,5 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
+mode=4
+useIHUVBatt=false
 foxId=6
 BATTERY_CURRENT_ZERO=-1.834
 EXP1=9
@@ -71,8 +73,4 @@ minFreqBoundkHz=435790
 model=1
 mpptResistanceError=6.58
 mpptSensorOffThreshold=1600
-name=HuskySat
-passMeasurementsFileName=passmeasurements.csv
-telemetryDownlinkFreqkHz=435800
-track=false
-useIHUVBatt=false
+hasCanBus=true

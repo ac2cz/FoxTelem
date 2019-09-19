@@ -2,8 +2,10 @@ package decoder;
 
 import common.Config;
 import common.Log;
+import telemetry.FrameProcessException;
 import telemetry.SlowSpeedFrame;
 import fec.RsCodeWord;
+import telemServer.StpFileProcessException;
 
 /**
  * 
@@ -99,7 +101,12 @@ public class SlowSpeedBitStream extends FoxBitStream {
 			if (rs.validDecode()) {
 				SlowSpeedFrame slowSpeedFrame = new SlowSpeedFrame();
 
-				slowSpeedFrame.addRawFrame(rawFrame);
+				try {
+					slowSpeedFrame.addRawFrame(rawFrame);
+				} catch (FrameProcessException e) {
+					// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+					return null;
+				}
 
 				return slowSpeedFrame;
 			} else {

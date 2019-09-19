@@ -151,7 +151,7 @@ public class EyePanel extends JPanel implements Runnable {
 					}
 				} catch (ArrayIndexOutOfBoundsException e) {
 					// nothing to do at run time.  We switched decoders and the array length changed underneath us
-					Log.println("Ran off end of eye diagram data: a:" + a + " b:" + b);	
+					//Log.println("Ran off end of eye diagram data: a:" + a + " b:" + b);	
 				}
 
 			} else {

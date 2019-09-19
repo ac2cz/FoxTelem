@@ -3,7 +3,9 @@ package decoder;
 import common.Config;
 import common.Log;
 import fec.RsCodeWord;
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
+import telemetry.FrameProcessException;
 import telemetry.HighSpeedFrame;
 
 /**
@@ -68,7 +70,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
-		highSpeedFrame.addRawFrame(rawFrame);
+		try {
+			highSpeedFrame.addRawFrame(rawFrame);
+		} catch (FrameProcessException e) {
+			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+			return null;
+		}
 		return highSpeedFrame;
 	}
 	

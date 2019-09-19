@@ -209,7 +209,7 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 					System.out.println("No Selection ");
 				}
 			}
-
+			Config.save();
 
 		}
 

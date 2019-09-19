@@ -60,8 +60,8 @@ public class RawFrameQueue extends RawQueue {
 	}
 	
 	public void init() {
-		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.AUTO_CLOSE);
-		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort, TlmServer.AUTO_CLOSE);
+		primaryServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.AUTO_CLOSE, TlmServer.WAIT_FOR_ACK);
+		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort, TlmServer.AUTO_CLOSE, TlmServer.WAIT_FOR_ACK);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
@@ -133,7 +133,7 @@ public class RawFrameQueue extends RawQueue {
 		while(running) {
 			
 			try {
-				Thread.sleep(1000 * Config.serverTxPeriod); // refresh data periodically
+				Thread.sleep(100 * Config.serverTxPeriod); // refresh data periodically. This also throttles sending large queue.  Delay in 100ms increments
 			} catch (InterruptedException e) {
 				Log.println("ERROR: server frame queue thread interrupted");
 				e.printStackTrace(Log.getWriter());
@@ -151,7 +151,7 @@ public class RawFrameQueue extends RawQueue {
 				// try to send these frames to the server
 				// We attempt to send the first one, if unsuccessful, we try the backup server.  If still unsuccessful we drop out
 				// and try next time, unless sendToBoth is set, in which case we just send to both servers
-				while (rawSlowSpeedFrames.size() > 0 && success) {
+				if (rawSlowSpeedFrames.size() > 0 && success) {
 					// If we are in a pass, then don't send the last frame
 					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawSlowSpeedFrames.size() > 1))
 						success = sendFrame(rawSlowSpeedFrames, RAW_SLOW_SPEED_FRAMES_FILE);
@@ -162,7 +162,7 @@ public class RawFrameQueue extends RawQueue {
 						e.printStackTrace(Log.getWriter());
 					} 	
 				}
-				while (rawHighSpeedFrames.size() > 0 && success) {
+				if (rawHighSpeedFrames.size() > 0 && success) {
 					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawHighSpeedFrames.size() > 1))
 						success = sendFrame(rawHighSpeedFrames, RAW_HIGH_SPEED_FRAMES_FILE);
 					try {
@@ -172,7 +172,7 @@ public class RawFrameQueue extends RawQueue {
 						e.printStackTrace(Log.getWriter());
 					}
 				}
-				while (rawPSKFrames.size() > 0 && success) {
+				if (rawPSKFrames.size() > 0 && success) {
 					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawPSKFrames.size() > 1))
 						success = sendFrame(rawPSKFrames, RAW_PSK_FRAMES_FILE);
 					try {
@@ -208,14 +208,13 @@ public class RawFrameQueue extends RawQueue {
 		try {
 			if (frames.peek() != null) {
 				byte[] buffer = frames.peek().getServerBytes();
-				primaryServer.sendToServer(buffer, Config.serverProtocol);
-				success = true;
+				success = primaryServer.sendToServer(buffer, Config.serverProtocol);
 			}
 		} catch (UnknownHostException e) {
-			Log.println("Could not connect to primary server");
+			Log.println("Could not connect to primary server:" + e.getMessage());
 			//e.printStackTrace(Log.getWriter());
 		} catch (IOException e) {
-			Log.println("IO Exception with primary server");
+			Log.println("IO Exception with primary server: " + e.getMessage());
 			//e.printStackTrace(Log.getWriter());
 		}
 		if (running)
@@ -224,14 +223,13 @@ public class RawFrameQueue extends RawQueue {
 				Log.println("Trying Secondary Server: " + protocol + "://" + Config.secondaryServer + ":" + Config.serverPort);
 				if (frames.peek() != null) {
 					byte[] buffer = frames.peek().getServerBytes();
-					secondaryServer.sendToServer(buffer, Config.serverProtocol);
-					success = true;
+					success = secondaryServer.sendToServer(buffer, Config.serverProtocol);
 				}
 			} catch (UnknownHostException e) {
-				Log.println("Could not connect to secondary server");
+				Log.println("Could not connect to secondary server: " + e.getMessage());
 				//e.printStackTrace(Log.getWriter());
 			} catch (IOException e) {
-				Log.println("IO Exception with secondary server");
+				Log.println("IO Exception with secondary server: " + e.getMessage());
 				//e.printStackTrace(Log.getWriter());
 			}
 		if (success) // then at least one of the transmissions was successful

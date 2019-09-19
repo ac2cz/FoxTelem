@@ -67,7 +67,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	public int SEARCH_INTERVAL = 0; //set by window length. 16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
 	public static final int NSEARCHERS = 4;
 	public static final double CENTER_CARRIER = 1500;         // Center of carrier frequency search range
-	static final double CARRIER_SEARCH_RANGE = 900;    // Limits of search range above and below Carrier frequency
+	static final double CARRIER_SEARCH_RANGE = 800;    // Limits of search range above and below Carrier frequency, stay below 2400 which is twice the carrier to avoid false lock
 	int Ftotal = (int) (2 * CARRIER_SEARCH_RANGE/100.0d + 1);
 	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
 	PskSearcher[] searchers = new PskSearcher[NSEARCHERS];
@@ -550,10 +550,6 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 
 					// Capture measurements once per payload or every 5 seconds ish
 					addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
-					if (Config.autoDecodeSpeed)
-						MainWindow.inputTab.setViewDecoder2();
-
-
 				}
 				Config.totalFrames++;
 				if (Config.uploadToServer)

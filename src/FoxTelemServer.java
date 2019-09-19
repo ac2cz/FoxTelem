@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.30c - 2 Dec 2018";
+	public static String version = "Version 0.32b - 16 Sep 2019";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -92,6 +92,9 @@ public class FoxTelemServer {
 		Log.showGuiDialogs = false;
 		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
+		// Avoid creating all of the tables on the server
+		Config.splitCanPackets = false;
+
 		try {
 			makeExceptionDir();
 		} catch (IOException e1) {
@@ -106,7 +109,7 @@ public class FoxTelemServer {
 		Config.serverInit(); // initialize and create the payload store.  
 
 		ServerConfig.init();
-		
+				
 		if (args.length == 3) {
 			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");
@@ -161,9 +164,6 @@ public class FoxTelemServer {
             Log.alert("FATAL: Could not listen on port: " + port);
         }
 
-        //ServerProcess process = null;
-        //Thread processThread;
-        
         // Start the background image processing thread
         imageProcess = new ImageProcess(initPayloadDB(u,p,db));
         imageThread = new Thread(imageProcess);
@@ -174,7 +174,6 @@ public class FoxTelemServer {
         int RETRY_LIMIT = 10;
         while (listening) {
         	try {
-        		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
         		pool.execute(new ServerProcess(u,p,db, serverSocket.accept(), sequence++));
         		retries = 0;
@@ -192,7 +191,7 @@ public class FoxTelemServer {
             	sequence=0;
             if (retries == RETRY_LIMIT) {
             	Log.println("Max Socket Retries hit: Terminating Server");
-            	listening = false;
+            	listening = false; // Note if this error is causes because process threads are stuck then we will not Exit by setting to false, but hang
             }
         }
 
@@ -231,8 +230,7 @@ public class FoxTelemServer {
 		Config.payloadStore.initHerciPackets();
 	}
 	
-	
-	
+		
 	/**
 	 * Get a list of all the files in the STP dir and import them
 	 */

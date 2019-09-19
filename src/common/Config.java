@@ -62,8 +62,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.09";
-	public static String VERSION = VERSION_NUM + " - 8 Sep 2019";
+	public static String VERSION_NUM = "1.08i";
+	public static String VERSION = VERSION_NUM + " - 9 Sep 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -76,18 +76,18 @@ public class Config {
 	public static final Color PURPLE = new Color(123,6,130);
 	public static final Color AMSAT_GREEN = new Color(0,102,0);
 	
-	public static Color GRAPH1 = new Color(255,153,51); // orange
-	public static Color GRAPH2 = new Color(0,153,0); // green
-	public static Color GRAPH3 = new Color(255,51,0); // red
-	public static Color GRAPH4 = new Color(102,204,51); // bright green
-	public static Color GRAPH5 = new Color(255,204,0); // yellow
-	public static Color GRAPH6 = new Color(153,0,0); // dark red
-	public static Color GRAPH7 = new Color(51,51,102); // dark blue
-	public static Color GRAPH8 = new Color(153,102,0); // brown
-	public static Color GRAPH9 = new Color(102,102,204); // pastel purple
-	public static Color GRAPH10 = new Color(0,51,153); // deep blue
-	public static Color GRAPH11 = new Color(255,255,255); // black
-	public static Color GRAPH12 = new Color(153,153,255); // purple
+	public static final Color GRAPH1 = new Color(255,153,51); // orange
+	public static final Color GRAPH2 = new Color(0,153,0); // green
+	public static final Color GRAPH3 = new Color(255,51,0); // red
+	public static final Color GRAPH4 = new Color(102,204,51); // bright green
+	public static final Color GRAPH5 = new Color(255,204,0); // yellow
+	public static final Color GRAPH6 = new Color(153,0,0); // dark red
+	public static final Color GRAPH7 = new Color(51,51,102); // dark blue
+	public static final Color GRAPH8 = new Color(153,102,0); // brown
+	public static final Color GRAPH9 = new Color(102,102,204); // pastel purple
+	public static final Color GRAPH10 = new Color(0,51,153); // deep blue
+	public static final Color GRAPH11 = new Color(255,255,255); // black
+	public static final Color GRAPH12 = new Color(153,153,255); // purple
 	
 	public static SatelliteManager satManager;
 	static Thread satManagerThread;
@@ -181,8 +181,8 @@ public class Config {
     static public boolean ftpFiles = false;
     
     // Server
-    public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
-    public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
+    public static int serverTxPeriod = 5; // time in 100 msec chunks
+    public static int serverRetryWaitPeriod = 100; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
@@ -244,7 +244,7 @@ public class Config {
 	static public boolean debugHerciFrames = false;
 	
 	// V1.03
-	static public boolean autoDecodeSpeed = true;
+//	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
@@ -267,11 +267,11 @@ public class Config {
 	static public boolean saveFcdParams = false;
 	
 	// V1.07
-	static public boolean useNCO = false;
+	static public boolean useNCO = true;
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-	static public boolean useCostas = false;
+//	static public boolean useCostas = false;
 	public static boolean showEye = true; 
 	public static boolean showPhasor = true; 
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
@@ -281,6 +281,7 @@ public class Config {
 	
 	// V1.08
 	static public boolean splitCanPackets = true;
+	static public boolean retuneCenterFrequency = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -693,7 +694,7 @@ public class Config {
 		
 		// Version 1.03 settings
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
-		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
+//		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
 		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
 		
@@ -713,12 +714,12 @@ public class Config {
 		
 		
 		// V1.07
-		properties.setProperty("useNCO", Boolean.toString(useNCO));
+//		properties.setProperty("useNCO", Boolean.toString(useNCO));
 		properties.setProperty("generateSecondaryPayloads", Boolean.toString(generateSecondaryPayloads));
 		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
-		properties.setProperty("useCostas", Boolean.toString(useCostas));
+//		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("showEye", Boolean.toString(showEye));
 		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
 		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
@@ -727,7 +728,7 @@ public class Config {
 		properties.setProperty("debugCalcDopplerContinually", Boolean.toString(debugCalcDopplerContinually));
 		
 		// V1.08
-//		properties.setProperty("splitCanPackets", Boolean.toString(splitCanPackets));
+		properties.setProperty("retuneCenterFrequency", Boolean.toString(retuneCenterFrequency));
 
 		store();
 	}
@@ -881,7 +882,7 @@ public class Config {
 		
 		//Version 1.03
 		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
-		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
+//		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
 		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
 		
@@ -901,12 +902,12 @@ public class Config {
 		saveFcdParams = Boolean.parseBoolean(getProperty("saveFcdParams"));
 		
 		// V1.07
-		useNCO = Boolean.parseBoolean(getProperty("useNCO"));
+//			useNCO = Boolean.parseBoolean(getProperty("useNCO"));
 		generateSecondaryPayloads = Boolean.parseBoolean(getProperty("generateSecondaryPayloads"));
 		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
-		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+//		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		showEye = Boolean.parseBoolean(getProperty("showEye"));
 		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
 		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
@@ -915,7 +916,7 @@ public class Config {
 		debugCalcDopplerContinually = Boolean.parseBoolean(getProperty("debugCalcDopplerContinually"));
 		
 		// V1.08
-//		splitCanPackets = Boolean.parseBoolean(getProperty("splitCanPackets"));
+		retuneCenterFrequency = Boolean.parseBoolean(getProperty("retuneCenterFrequency"));
 		
 		
 		} catch (NumberFormatException nf) {

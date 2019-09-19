@@ -388,7 +388,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 			} else {
 				Config.displayRawValues = true;
 			}
-
+			Config.save();
 			if (hsHeader != null) {
 				updateTab(hsHeader, false);
 			}

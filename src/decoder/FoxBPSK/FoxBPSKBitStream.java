@@ -2,7 +2,9 @@ package decoder.FoxBPSK;
 
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
+import telemetry.FrameProcessException;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 
 /**
@@ -62,7 +64,12 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
 		FoxBPSKFrame bpskFrame = new FoxBPSKFrame();
-		bpskFrame.addRawFrame(rawFrame);
+		try {
+			bpskFrame.addRawFrame(rawFrame);
+		} catch (FrameProcessException e) {
+			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+			return null;
+		}
 //		String os = System.getProperty("os.name").toLowerCase();
 //		boolean b = Frame.highSpeedRsDecode(frameSize, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, "FoxTelem " + Config.VERSION + " (" + os + ")");
 //		Log.println("SELF RS CHECK:" + b);

@@ -685,10 +685,48 @@ public class PassManager implements Runnable {
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
-							if (Config.iq)
+							if (Config.iq) {
+								if ((Config.foxTelemCalcsPosition && !Config.findSignal) || Config.whenAboveHorizon) {
+									// We try to retune if FoxTelem Calc is on and FindSignal is not.
+									if (Config.retuneCenterFrequency) {
+										if (pp1 != null && pp1.iqSource != null) {
+											int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
+											// For IQ Source we can span +- the rate/2
+											// Assume we want the spacecraft to be in the middle of either side band.  ie not across center spike and not at ends
+											double maxFreq1 = pp1.iqSource.getCenterFreqkHz() + 0.80 * range/1000.0;
+											double aboveCenter = pp1.iqSource.getCenterFreqkHz() + 10;  // within 10kHz of Center 
+											double belowCenter = pp1.iqSource.getCenterFreqkHz() - 10;
+											double minFreq2 = pp1.iqSource.getCenterFreqkHz() - 0.80 * range/1000.0;
+											if (sat.telemetryDownlinkFreqkHz < minFreq2 || sat.telemetryDownlinkFreqkHz > maxFreq1 ||
+													(sat.telemetryDownlinkFreqkHz > belowCenter && sat.telemetryDownlinkFreqkHz < aboveCenter)) {
+												// we need to retune as the sat is outside the current band
+												double newCenterFreq = sat.telemetryDownlinkFreqkHz - 0.25 * range / 1000;
+												//if (Config.debugSignalFinder)
+												Log.println("Retuning for "+ sat.name + " downlink: " + sat.telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+												Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
+											}
+											// If the mode is wrong we should switch modes
+											if (Config.mode != sat.mode) {
+												// Except if in Auto and Sat mode is DUV or HS
+												//if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
+													//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
+													//	Config.autoDecodeSpeed = false;
+													if (Config.mainWindow.inputTab.STARTED)
+														Config.mainWindow.inputTab.processStartButtonClick();
+													Config.mode = sat.mode;
+													Config.mainWindow.inputTab.setupMode();
+													if (Config.mode != sat.mode) // then user has an override, such as Use Costas, so remember that for this sat
+														sat.mode = Config.mode;
+													Config.mainWindow.inputTab.processStartButtonClick();
+												//}
+											}
+										}
+									}
+								}
 								if (Config.findSignal) {
 									stateMachine(sat);
-								} else if (Config.foxTelemCalcsDoppler) {
+								} else if (Config.foxTelemCalcsPosition) {
+									
 									if (sat.foxId != currentSatId) { // we have a new pass for a new sat
 										lockSignal(sat, pp1);   
 									}
@@ -701,19 +739,21 @@ public class PassManager implements Runnable {
 									setFreqRangeBins(sat, pp1);
 									if (pp1 != null && pp1.iqSource != null)
 										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									if (pp2 != null && pp2.iqSource != null)
+										pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
 									break; // we only tune Doppler for the first spacecraft in the priority ordered list
 								} else {
 									// we don't have find signal on. set full range or signals calculated incorrectly
 									Config.fromBin = 0; 
 									Config.toBin = SourceIQ.FFT_SAMPLES;
 								}
+							}
 						} else {
 							if (currentSatId == sat.foxId) { // close out the pass for a previous sat
 								logEndOfPass(sat);
 								currentSatId = 0;
 							}
 						}
-
 					}
 				}
 				if (MainWindow.inputTab != null && !oneSatUp) {
@@ -757,7 +797,6 @@ public class PassManager implements Runnable {
 		}
 		if (Config.foxTelemCalcsPosition) {
 			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
-			
 					SatPos pos = null;
 					try {
 						pos = sat.getCurrentPosition();

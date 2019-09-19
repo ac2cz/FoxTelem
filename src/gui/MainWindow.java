@@ -118,6 +118,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
+	JMenu mnHelp;
 	JMenuItem mntmManual;
 	JMenuItem mntmLeaderboard;
 	JMenuItem mntmSoftware;
@@ -500,7 +501,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		mnDecoder.add(chckbxmntmShowFFT);
 		chckbxmntmShowFFT.setState(Config.showFFT);
 
-		JMenu mnHelp = new JMenu("Help");
+		mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
 		mntmManual = new JMenuItem("Open Manual");
@@ -533,6 +534,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	void initSatMenu() {
+		if (mnHelp != null)
+			menuBar.remove(mnHelp);
 		if (sats !=null && mnSats != null) {
 			for (int i=0; i<sats.size(); i++) {
 				if (mntmSat[i] != null)
@@ -563,6 +566,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}
+		if (mnHelp != null)
+			menuBar.add(mnHelp);
 	}
 	
 	public void shutdownWindow() {
@@ -721,34 +726,41 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
 			Config.showFilters = chckbxmntmShowFilterOptions.getState();
-				inputTab.showFilters(Config.showFilters);
+			inputTab.showFilters(Config.showFilters);
+			Config.save();	
 		}
 		
 		if (e.getSource() == chckbxmntmShowAudioOptions) {	
 			Config.showAudioOptions = chckbxmntmShowAudioOptions.getState();
 			inputTab.showAudioOptions(Config.showAudioOptions);
+			Config.save();
 	    }
 		
 		if (e.getSource() == chckbxmntmShowSourceOptions) {	
 			Config.showSourceOptions = chckbxmntmShowSourceOptions.getState();
 			inputTab.showSourceOptions(Config.showSourceOptions);
+			Config.save();
 	    }
 		
 		if (e.getSource() == chckbxmntmShowSatOptions) {	
 			Config.showSatOptions = chckbxmntmShowSatOptions.getState();
 			inputTab.showSatOptions(Config.showSatOptions);
+			Config.save();
 	    }
 		if (e.getSource() == chckbxmntmShowEye) {	
 			Config.showEye = chckbxmntmShowEye.getState();
 			inputTab.showEye(Config.showEye);
+			Config.save();
 	    }
 		if (e.getSource() == chckbxmntmShowPhasor) {	
 			Config.showPhasor = chckbxmntmShowPhasor.getState();
 			inputTab.showPhasor(Config.showPhasor);
+			Config.save();
 	    }
 		if (e.getSource() == chckbxmntmShowFFT) {	
 			Config.showFFT = chckbxmntmShowFFT.getState();
 			inputTab.showFFT(Config.showFFT);
+			Config.save();
 	    }
 		if (e.getSource() == mntmManual) {
 			try {
@@ -1003,6 +1015,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			} else
 				file = null;
 		}
+		Config.save();
 		if (file !=null) {
 			boolean refresh = false;
 			if (remove) {

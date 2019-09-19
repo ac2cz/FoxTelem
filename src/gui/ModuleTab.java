@@ -812,6 +812,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			}
 			showUptimeQuery(!showUTCtime);
 			Config.displayUTCtime = showUTCtime;
+			Config.save();
 		}
 		
 	}

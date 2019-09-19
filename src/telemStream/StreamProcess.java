@@ -5,8 +5,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.SocketException;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -23,6 +26,7 @@ public class StreamProcess implements Runnable {
 	public static final int REFRESH_PERIOD = 1000; // Check every second
 	public static final String GUEST = "guest";
 	public static final String GUEST_PASSWORD = "amsat";
+	public static final int TIMEOUT_CONNECTION = 5000; // 5s timeout while connected
 	
 	//PayloadDbStore payloadStoreX;
 	String u;
@@ -37,11 +41,6 @@ public class StreamProcess implements Runnable {
 		this.db = db;
 	}
 
-
-	// safety limit to stop massive files being sent to us
-	// Max frame size is a high speed frame plus the maximum STP Header Size, which is circa 350 bytes.  1000 used to be conservative
-	public static final int MAX_FRAME_SIZE = HighSpeedFrame.MAX_FRAME_SIZE + 1000;
-	
 	/**
 	 * This is started when we have a TCP connection.  We read the data until the connection is closed
 	 * This could be one or more STP files.
@@ -53,17 +52,17 @@ public class StreamProcess implements Runnable {
 		OutputStream out = null;
 		BufferedReader input;
 		try {
+			socket.setSoTimeout(TIMEOUT_CONNECTION);
 			in = socket.getInputStream();
-
 			input = new BufferedReader(new InputStreamReader(in));
 
 			/*  REQUIRE username and password. */
 			String username = input.readLine();
 			Log.println("Username: " + username);
 			String password = input.readLine();
-			Log.println("Pass: <***>"); // this should NOT be logged once we are live
+			Log.println("Pass: <***>"); 
 			String spacecraft_id = input.readLine();
-			Log.println("Id: " + spacecraft_id); // this should NOT be logged once we are live
+			Log.println("Id: " + spacecraft_id); // Ask for ID, but only 6 valid currently
 
 			int id = 0;
 			try {
@@ -71,6 +70,10 @@ public class StreamProcess implements Runnable {
 			} catch (NumberFormatException e) {
 				Log.println("Rejected invalid FoxId: " + spacecraft_id);
 				spacecraft_id = null;
+			}
+			if (id != 6) {
+				Log.println("Invalid FoxId for streaming: Connection closed");
+				return;
 			}
 			out = socket.getOutputStream();
 
@@ -90,12 +93,7 @@ public class StreamProcess implements Runnable {
 		} catch (SocketException e) {
 			Log.println("SOCKET EXCEPTION: " + e.getMessage());
 		} catch (IOException e) {
-			Log.println("ERROR ALERT:" + e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			// We could not read the data from the socket or write the file.  So we log an alert!  Something wrong with server
-			////ALERT
-			Log.alert("FATAL: " + e.getMessage());
-		
+			Log.println("IO ERROR:" + e.getMessage());
 		} finally {
 			try { in.close();  } catch (Exception ex) { /*ignore*/}
 			try { out.close();  } catch (Exception ex) { /*ignore*/}
@@ -111,6 +109,7 @@ public class StreamProcess implements Runnable {
 		try {
 			payloadDbStore = new PayloadDbStore(u,p,db);
 			if (!validLogin(payloadDbStore, user, pass)) {
+				Log.println("Invalid Login for streaming: Connection closed");
 				return;
 			}
 			CanPacket lastCan = (CanPacket) payloadDbStore.getLatestUwCanPacket(sat);
@@ -186,11 +185,13 @@ public class StreamProcess implements Runnable {
 			stmt = derby.createStatement();
 			r = stmt.executeQuery(update);
 			if (r.next()) {
-				
-				// TODO: We do not check the password.  You just need a valid username
-				//String password = r.getString("password");
-				//String salt = r.getString("salt");
-				return true;
+				String password = r.getString("password");
+				String salt = r.getString("salt");
+				String checkPassword = get_SHA_256_SecurePassword(pass, salt);
+				if (checkPassword.equals(password))
+					return true;
+				else
+					return false;
 			} else {
 				Log.println("Invalid username");
 				return false;  // invalid username
@@ -205,5 +206,31 @@ public class StreamProcess implements Runnable {
 		return false;
 	}
 	
+	private static String get_SHA_256_SecurePassword(String password, String salt)
+    {
+        String generatedPassword = null;
+        byte[] bytes = null;
+		try {
+		    MessageDigest digest = MessageDigest.getInstance("SHA-256");
+		    bytes = digest.digest((password + salt).getBytes("UTF-8"));
+		    for (int i=0; i< 65536; i++)
+		    	bytes = digest.digest((toByteString(bytes) + salt).getBytes("UTF-8"));
+		} catch (UnsupportedEncodingException | NoSuchAlgorithmException e) {
+		    return null;
+		}
+		
+		generatedPassword = toByteString(bytes);
+        return generatedPassword;
+    }
+     
+    
+    static String toByteString(byte[] bytes) {
+    	StringBuilder sb = new StringBuilder();
+		for(int i=0; i< bytes.length ;i++)
+		{
+		    sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+		}
+		return sb.toString();
+    }
 
 }

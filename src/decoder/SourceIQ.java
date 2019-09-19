@@ -25,9 +25,10 @@ public class SourceIQ extends SourceAudio {
 	SourceAudio upstreamAudioSource;
 	Thread upstreamAudioReadThread;
 	
-	public static final int MODE_WFM = 0;
+//	public static final int MODE_WFM = 0;
 	public static final int MODE_FSK_HS = 1;
-	public static final int MODE_FSK_DUV = 2;
+	public static final int MODE_FSK_DUV = 0;
+	public static final int MODE_FSK_AUTO = 2;
 	public static final int MODE_PSK_NC = 3;
 	public static final int MODE_PSK_COSTAS = 4;
 	
@@ -513,7 +514,7 @@ public class SourceIQ extends SourceAudio {
 			in2[decimateCount] = qMix;
 			
 			decimateCount++;
-			if (decimateCount >= decimationFactor-1) {
+			if (decimateCount == decimationFactor) {
 				decimateCount = 0;
 				double value = polyFilter.filterDouble(in);
 				double value2 = polyFilter2.filterDouble(in2);
@@ -763,6 +764,8 @@ protected double[] processBytes(double[] fcdData) {
 	public static double average (double avg, double new_sample, int N) {
 		avg -= avg / N;
 		avg += new_sample / N;
+		if (Double.isNaN(avg)) avg = 0;
+		if (Double.isInfinite(avg)) avg = 0;
 		return avg;
 	}
 	

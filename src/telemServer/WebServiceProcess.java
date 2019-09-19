@@ -30,13 +30,14 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.02 - 10 Jul 2019";
+	public static String version = "Version 1.04 - 15 Sep 2019";
 	private Socket socket = null;
 	int port = 8080;
 	
 	public static final String VERSION = "version";
 	public static final String TIME = "getSatUtcAtResetUptime";
 	public static final String POSITION = "getSatLatLonAtResetUptime";
+	public static final int TIMEOUT_CONNECTION = 1000; // 1s timeout while connected
 	
 	public WebServiceProcess(PayloadDbStore db, Socket socket, int p) {
 		this.socket = socket;
@@ -52,7 +53,7 @@ public class WebServiceProcess implements Runnable {
 		String GET = null;
 		try {
 			Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
-
+			socket.setSoTimeout(TIMEOUT_CONNECTION);
 			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 			out = new PrintWriter(socket.getOutputStream());
 
@@ -87,9 +88,9 @@ public class WebServiceProcess implements Runnable {
 				 * COMMAND/SAT/OPTIONS
 				 * 
 				 * The following commands are valid:
-				 * /VERSION - return the version
-				 * /getSatLatLonAtResetUptime=sat&reset&uptime
-				 * /getSatUtcForResetUptime=sat&reset&uptime
+				 * /version - return the version
+				 * /getSatLatLonAtResetUptime?sat=0&reset=00&uptime=000
+				 * /getSatUtcForResetUptime?sat=0&reset==00&uptime=000
 				 * 
 				 * LEGACY APIs:
 				 * /T0/SAT/RESET/CALL/N - Returns N T0 records for RESET logged by CALL for sat SAT

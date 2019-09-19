@@ -1,12 +1,17 @@
 package common;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.Arrays;
+
+import telemServer.ServerProcess;
 
 /**
  * 
@@ -39,17 +44,25 @@ public class TlmServer {
 	public static final int FTP_PORT = 22;
 	public static final boolean KEEP_OPEN = false;
 	public static final boolean AUTO_CLOSE = true;
+	public static final boolean WAIT_FOR_ACK = true;
+	public static final boolean NO_ACK = false;
+
+	public static final int TIMEOUT_CONNECT = 5000; // 5s timeout on trying to connect
+	public static final int TIMEOUT_CONNECTION = 2000; // 2s timeout for blocking read while connected
 
 	String hostName;
 	int portNumber;
 	boolean autoClose = true; // If this is false we keep the socket open, but reopen if it is closed
+	boolean waitForAck = true; // If this is true we listen for OK or FAIL from the server
 	Socket socket = null;
 	OutputStream out = null;
+	InputStream in = null;
 	
-	public TlmServer(String hostName, int portNumber, boolean autoClose) {
+	public TlmServer(String hostName, int portNumber, boolean autoClose, boolean waitForAck) {
 		this.hostName = hostName;
 		this.portNumber = portNumber;
 		this.autoClose = autoClose;
+		this.waitForAck = waitForAck;
 	}
 
 	public void setHostName(String hostName) {
@@ -92,10 +105,12 @@ public class TlmServer {
 		if (out != null)
 			try {
 				out.close();
+				in.close();
 			} catch (Exception e) {
 				// Nothing to do
 			}
 		out = null;
+		in = null;
 		if (socket != null)
 			try {
 				socket.close();
@@ -111,17 +126,28 @@ public class TlmServer {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer(byte[] buffer, int protocol) throws UnknownHostException, IOException {
-		
+	public boolean sendToServer(byte[] buffer, int protocol) throws UnknownHostException, IOException {
+		boolean success = false;
 		if (protocol == TCP) {
 			if (autoClose || socket == null) {
-				socket = new Socket(hostName, portNumber);
+				socket = new Socket();
+				socket.connect(new InetSocketAddress(hostName, portNumber), TIMEOUT_CONNECT);
+				if (waitForAck) // then we need a timeout on the read
+					socket.setSoTimeout(TIMEOUT_CONNECTION);
+				
 				out = socket.getOutputStream();
+				in = socket.getInputStream();
 			}
 
 			out.write(buffer);
-			if (autoClose)
+			if (waitForAck)
+				success = waitForAck();
+			else
+				success = true;
+			if (autoClose) {
 				close();
+			}
+			return success;
 			
 		} else {
 			DatagramSocket socket = new DatagramSocket();
@@ -131,7 +157,38 @@ public class TlmServer {
 					address, portNumber);
 			socket.send(packet);
 			socket.close();
+			return success;
 		}
 	}
-
+	
+	public static final int[] OK = {0x4F,0x4D,0x0D,0x0A};
+	public static final int[] FAIL = {0x46,0x41,0x0D,0x0A};
+	
+	private boolean waitForAck() throws IOException {
+		boolean success = false;
+		int c;
+		int i=0;
+		final int LEN=4;
+		int[] buffer = new int[LEN];
+		boolean done = false;
+		
+		while (!done && (c = in.read()) != -1) {
+			buffer[i++] = c;
+			if (i == LEN)
+				done = true;
+			if ( (c == 13 || c == 10)) { // CR or LF
+				c = in.read(); // consume the lf
+				buffer[i++] = c;
+				if (Arrays.equals(OK, buffer)) {
+					Log.println("SERVER ACK: OK");
+					return true;
+				} else {
+					Log.println("SERVER ACK: FAIL");
+					return false;
+				}
+			}
+		}
+		return success;
+	}
+	
 }

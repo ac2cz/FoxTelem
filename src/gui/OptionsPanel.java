@@ -165,6 +165,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				}
 				
 			}
+			Config.save();
 			
 		}
 		
@@ -184,6 +185,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.filterData = true;
 			}
+			Config.save();
 		}
 		if (source == useRSfec) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -191,6 +193,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useRSfec = true;
 			}
+			Config.save();
 		}
 		if (source == useRSerasures) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -198,6 +201,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useRSerasures = true;
 			}
+			Config.save();
 		}
 		if (source == logging) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -217,6 +221,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		        });
 				Log.setLogging(true);
 			}
+			Config.save();
 		}
 
 		if (source == recoverClock) { 
@@ -225,6 +230,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.recoverClock = true;
 			}
+			Config.save();
 		}
 		if (source == useAGC) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -232,6 +238,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useAGC = true;
 			}
+			Config.save();
 		}
 		if (source == debugGlitches) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -239,6 +246,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugAudioGlitches = true;
 			}
+			Config.save();
 		}
 		if (source == debugSignalFinder) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -246,6 +254,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugSignalFinder = true;
 			}
+			Config.save();
 		}
 		if (source == debugCalcDopplerContinually) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -253,6 +262,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugCalcDopplerContinually = true;
 			}
+			Config.save();
 		}
 		if (source == useNativeFileChooser) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -260,6 +270,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useNativeFileChooser = true;
 			}
+			Config.save();
 		}
 	/*
 		if (source == storePayloads) { 
@@ -268,6 +279,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.storePayloads = true;
 			}
+			Config.save();
 		}
 		if (source == highSpeed) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -275,6 +287,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.highSpeed = true;
 			}
+			Config.save();
 		}
 		*/
 		if (source == debugFrames) { 
@@ -283,6 +296,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugFrames = true;
 			}
+			Config.save();
 		}
 		if (source == debugFieldValues) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -290,6 +304,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugFieldValues = true;
 			}
+			Config.save();
 		}
 		if (source == debugCameraFrames) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -297,6 +312,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugCameraFrames = true;
 			}
+			Config.save();
 		}
 		if (source == debugClock) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -304,6 +320,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugClock = true;
 			}
+			Config.save();
 		}
 		
 		if (source == debugBits) { 
@@ -326,6 +343,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		        });
 				
 			}
+			Config.save();
 		}
 		if (source == debugBytes) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -340,6 +358,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugValues = true;
 			}
+			Config.save();
 		}
 		if (source == squelchAudio) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -347,6 +366,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.squelchAudio = true;
 			}
+			Config.save();
 		}
 		if (source == realTimePlayback) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -354,6 +374,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.realTimePlaybackOfFile = true;
 			}
+			Config.save();
 		}
 	}
 
