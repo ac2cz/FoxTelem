@@ -28,6 +28,6 @@
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="src" path="/predict4java"/>
 	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/predict4java.jar"/>
-	<classpathentry kind="lib" path="C:/Users/chris/Desktop/workspace/FoxTelem/lib/mysql-connector-java-5.1.37/mysql-connector-java-5.1.37-bin.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-8.0.13/mysql-connector-java-8.0.13.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
