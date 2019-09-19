@@ -181,8 +181,8 @@ public class Config {
     static public boolean ftpFiles = false;
     
     // Server
-    public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
-    public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
+    public static int serverTxPeriod = 5; // time in 100 msec chunks
+    public static int serverRetryWaitPeriod = 100; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
