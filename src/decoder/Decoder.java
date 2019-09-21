@@ -97,7 +97,7 @@ public abstract class Decoder implements Runnable {
 	protected int CLOCK_REOVERY_ZERO_THRESHOLD = 20; // but updated to 10 for highspeed in the code
 	public static final int MAX_VOLUME = 32000;
 	public static final int MIN_VOLUME = 600;// Use low value for 736R audio e.g. 100 ***** 600;
-	public static final int MIN_BIT_SNR = 2;// Above this threshold we unsquelch the audio
+	//public static final int MIN_BIT_SNR = 2;// Above this threshold we unsquelch the audio
 														
 	protected int BUFFER_SIZE = 0; // * 4 for sample size of 2 bytes and both channels
 	protected double[] abBufferDouble;
@@ -509,7 +509,7 @@ public abstract class Decoder implements Runnable {
         	}
         	eyeData.calcAverages();
     		if (monitorAudio && Config.squelchAudio) {
-    			if (eyeData.bitSNR < MIN_BIT_SNR) {
+    			if (eyeData.bitSNR < Config.BIT_SNR_THRESHOLD) { // trigger the squelch at the same value as the Find Signal algorithm
     				if (!squelch) {
     					Log.println("No telemetry, squelched ...");
     					// Make sure the audioSink is empty
