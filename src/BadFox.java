@@ -80,7 +80,7 @@ public class BadFox {
 	
 	@SuppressWarnings("unused")
 	private static void sendBytes() {
-		TlmServer tlmServer = new TlmServer("127.0.0.1", 41042, TlmServer.AUTO_CLOSE);
+		TlmServer tlmServer = new TlmServer("127.0.0.1", 41042, TlmServer.AUTO_CLOSE, TlmServer.NO_ACK);
 		byte[] bytes = new byte[100];
 		try {
 			tlmServer.sendToServer(bytes, TlmServer.TCP);

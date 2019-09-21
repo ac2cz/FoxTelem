@@ -69,7 +69,6 @@ public class SlowSpeedBitStream extends FoxBitStream {
 				insertedMissedBits = true;
 			}
 			byte b8 = -1;
-			lastErasureNumber = numberOfErasures;
 			if (numberOfErasures < MAX_ERASURES) // otherwise we can fast forward to end of this frame, it is bad
 				try {
 					b8 = processWord(j);
@@ -96,18 +95,18 @@ public class SlowSpeedBitStream extends FoxBitStream {
 				if (Config.useRSerasures) 
 					rs.setErasurePositions(erasurePositions, numberOfErasures);
 				rawFrame = rs.decode();
-				lastErrorsNumber = rs.getNumberOfCorrections();
 			}
 			if (rs.validDecode()) {
 				SlowSpeedFrame slowSpeedFrame = new SlowSpeedFrame();
 
 				try {
 					slowSpeedFrame.addRawFrame(rawFrame);
+					slowSpeedFrame.rsErrors = rs.getNumberOfCorrections();
+					slowSpeedFrame.rsErasures = numberOfErasures;
 				} catch (FrameProcessException e) {
 					// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
 					return null;
 				}
-
 				return slowSpeedFrame;
 			} else {
 				if (Config.debugFrames) Log.println(".. abandonded, failed RS decode");

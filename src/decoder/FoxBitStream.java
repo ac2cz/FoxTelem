@@ -63,8 +63,8 @@ public abstract class FoxBitStream extends BitStream {
 	protected boolean[] syncWord = new boolean[SYNC_WORD_LENGTH]; // The SYNC_WORD_LENGTH bit word used to find SYNC words, selected from the end of the bitStream
 	protected boolean alreadyTriedToFlipBits = false; // only try to flip the bits once, otherwise we willl try to double process every failed RS word
 	
-	public int lastErasureNumber;
-	public int lastErrorsNumber;
+	//public int lastErasureNumber;
+	//public int lastErrorsNumber;
 	
 	protected boolean findFramesWithPRN = false;
 	

@@ -125,8 +125,8 @@ public abstract class FoxDecoder extends Decoder {
 				//System.err.println("FOUND FRAME");
 				Performance.startTimer("Store");
 				// Successful frame
-				eyeData.lastErasureCount = foxBitStream.lastErasureNumber;
-				eyeData.lastErrorsCount = foxBitStream.lastErrorsNumber;
+				eyeData.lastErasureCount = decodedFrame.rsErasures;
+				eyeData.lastErrorsCount = decodedFrame.rsErrors;
 				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
 				if (Config.storePayloads) {
 					if (decodedFrame instanceof SlowSpeedFrame) {
@@ -136,7 +136,7 @@ public abstract class FoxDecoder extends Decoder {
 						if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
 
 						// Capture measurements once per payload or every 5 seconds ish
-						addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
+						addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 					} else {
@@ -161,7 +161,7 @@ public abstract class FoxDecoder extends Decoder {
 								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
 						}
 						// Capture measurements once per payload or every 5 seconds ish
-						addMeasurements(header, decodedFrame, foxBitStream.lastErrorsNumber, foxBitStream.lastErasureNumber);
+						addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							MainWindow.inputTab.setViewDecoder2();
 					}

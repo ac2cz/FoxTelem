@@ -538,8 +538,8 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 				Performance.startTimer("Store");
 				// Successful frame
-				eyeData.lastErasureCount = bitStream.lastErasureNumber;
-				eyeData.lastErrorsCount = bitStream.lastErrorsNumber;
+				eyeData.lastErasureCount = decodedFrame.rsErasures;
+				eyeData.lastErrorsCount = decodedFrame.rsErrors;
 				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
 				if (Config.storePayloads) {
 
@@ -549,7 +549,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader);
 
 					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
+					addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 				}
 				Config.totalFrames++;
 				if (Config.uploadToServer)

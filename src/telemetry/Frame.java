@@ -119,6 +119,9 @@ public abstract class Frame implements Comparable<Frame> {
 	private RtMeasurement rtMeasurement;
 	@SuppressWarnings("unused") // this is used
 	private PassMeasurement passMeasurement;
+	
+	public int rsErrors; // set by the decoder when this frame is decoded
+	public int rsErasures;
 
 	/**
 	 * This creates a new frame, freshly decoded from the satellite, and

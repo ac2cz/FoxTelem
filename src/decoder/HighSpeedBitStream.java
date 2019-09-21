@@ -49,6 +49,8 @@ public class HighSpeedBitStream extends FoxBitStream {
 	protected int[] rsPadding = RS_PADDING;
 	protected int maxBytes = HighSpeedFrame.getMaxBytes();
 	protected int frameSize = HighSpeedFrame.MAX_FRAME_SIZE;
+	int totalRsErrors = 0;
+	int totalRsErasures = 0;
 	
 	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength) {
 		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, dec);
@@ -72,6 +74,9 @@ public class HighSpeedBitStream extends FoxBitStream {
 		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
 		try {
 			highSpeedFrame.addRawFrame(rawFrame);
+			highSpeedFrame.rsErrors = totalRsErrors;
+			highSpeedFrame.rsErasures = totalRsErasures;
+
 		} catch (FrameProcessException e) {
 			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
 			return null;
@@ -171,20 +176,17 @@ public class HighSpeedBitStream extends FoxBitStream {
 		if (Config.debugFrames || Config.debugRS)
 			Log.println("CAPTURED " + bytesInFrame + " high speed bytes");
 		
-		lastErasureNumber = 0;
-		lastErrorsNumber = 0;
-		
 		// Now Decode all of the RS words and put the bytes back into the 
 		// order we started with, but now with corrected data
 		//byte[] correctedBytes = new byte[RsCodeWord.DATA_BYTES];
 		for (int i=0; i < numberOfRsCodeWords; i++) {
 			if (numberOfErasures[i] < MAX_ERASURES) {
-				lastErasureNumber += numberOfErasures[rsNum];
+				totalRsErasures += numberOfErasures[rsNum];
 				//Log.println("LAST ERASURE: " + lastErasureNumber);
 				if (Config.useRSfec) {								
 					if (Config.useRSerasures) codeWords[rsNum].setErasurePositions(erasurePositions[i], numberOfErasures[i]);
 					codeWords[i].decode();  
-					lastErrorsNumber += codeWords[i].getNumberOfCorrections();
+					totalRsErrors += codeWords[i].getNumberOfCorrections();
 					//Log.println("LAST ERRORS: " + lastErrorsNumber);
 					if (!codeWords[i].validDecode()) {
 						// We had a failure to decode, so the frame is corrupt
