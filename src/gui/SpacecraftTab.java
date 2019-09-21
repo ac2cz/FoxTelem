@@ -133,7 +133,7 @@ public class SpacecraftTab extends JPanel {
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
 
-		String HEALTH = "IHU";
+		String HEALTH = "Health";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ HEALTH + "</b></body></html>", healthTab );
 
@@ -216,7 +216,7 @@ public class SpacecraftTab extends JPanel {
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();
 
-		String WOD = "IHU WOD";
+		String WOD = "WOD";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ WOD + "</b></body></html>", wodHealthTab );
 	}
