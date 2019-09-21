@@ -1,6 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
 mode=4
+name=Husky
 useIHUVBatt=false
 foxId=6
 BATTERY_CURRENT_ZERO=-1.834
@@ -67,6 +68,7 @@ lookupTable2.filename=HUSKY_SAT_ihutempSN22.tab
 lookupTable2=IHU_TEMP
 lookupTable3.filename=HUSKY_isisAntTemp.tab
 lookupTable3=HUSKY_ISIS_ANT_TEMP
+telemetryDownlinkFreqkHz=435800
 maxFreqBoundkHz=435810
 measurementsFileName=measurements.csv
 minFreqBoundkHz=435790
@@ -74,3 +76,5 @@ model=1
 mpptResistanceError=6.58
 mpptSensorOffThreshold=1600
 hasCanBus=true
+passMeasurementsFileName=passmeasurements.csv
+canFileDir=HuskySat
