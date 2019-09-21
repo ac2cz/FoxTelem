@@ -813,10 +813,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
 		} catch (FileNotFoundException e) {
-			// The file was not found on the server.  This is probablly because there was no data for this spacecraft
-			
-			Log.println("ERROR reading/writing the server data to: " + file + "\n" +
-					e.getMessage());
+			// The file was not found on the server.  This is probablly because there was no data for this spacecraft or we have the URL wrong.
+			Log.errorDialog("ERROR", "File not available for download: " + urlString + "\nCheck that the internet connection is working to the site\n" +
+					e);
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
 			return;
@@ -1020,8 +1019,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			boolean refresh = false;
 			if (remove) {
 				int n = Log.optionYNdialog("Delete the spacecraft config file?",
-						file.getName() + "\n\nYou will be able to install the spacecraft again if you want, but local settings such\n"
-								+ "as frequency ranges will be lost.  Stored telemetry will not be removed.  Delete for now?\n\n");
+						file.getName() + "\n\nYou will be able to install the spacecraft again if you want, local settings such\n"
+								+ "as frequency ranges will be kept.  Stored telemetry will not be removed.  Delete for now?\n\n");
 				if (n == JOptionPane.NO_OPTION) {
 					refresh = false;
 				} else {

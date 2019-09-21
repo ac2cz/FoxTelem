@@ -181,7 +181,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		properties = new Properties();
 		propertiesFile = fileName;	
 		user_properties = new Properties();
-		userPropertiesFile = new File(fileName.getAbsolutePath() + ".user");	
+		String userFileName = fileName.getAbsolutePath().replaceAll(".dat", ".user");
+		userPropertiesFile = new File(userFileName);	
 		tleList = new SortedTleList(10);
 	}
 	

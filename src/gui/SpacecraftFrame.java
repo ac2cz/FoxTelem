@@ -517,8 +517,10 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				if (dispose) {
 					sat.save();
 					Config.initSatelliteManager();
-					if (rebuildMenu)
+					if (rebuildMenu) {
 						Config.mainWindow.initSatMenu();
+						MainWindow.frame.repaint();
+					}
 					this.dispose();
 					if (refreshTabs)
 						MainWindow.refreshTabs(false);
