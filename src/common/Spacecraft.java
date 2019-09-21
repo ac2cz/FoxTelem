@@ -120,22 +120,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int foxId = 1;
 	public int catalogNumber = 0;
 	public String series = "FOX";
-	public String name = "Fox-1A";
-	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
 	public String canFileDir = "HuskySat";
 	public int mode = SourceIQ.MODE_FSK_DUV;
-	public double telemetryDownlinkFreqkHz = 145980;
-	public double minFreqBoundkHz = 145970;
-	public double maxFreqBoundkHz = 145990;
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
-	
-	public String localServer = ""; // default to blank, otherwise we try to send to the local server
-	public int localServerPort = 8587;
-	
+		
 	public int numberOfLayouts = 4;
 	public int numberOfDbLayouts = 4; // if we load additional layouts for CAN BUS then this stores the core layouts
 	public String[] layoutFilename;
@@ -160,7 +152,18 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public FrameLayout[] frameLayout;
 	
 	// User Config
-	public boolean track = true; // default is we track a satellite
+	public static final String USER_ = "user_";
+	public Properties user_properties; // Java properties file for user defined values
+	public File userPropertiesFile;
+	public String user_name = "Fox-1A";
+	public int user_priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
+	public boolean user_track = true; // default is we track a satellite
+	public double user_telemetryDownlinkFreqkHz = 145980;
+	public double user_minFreqBoundkHz = 145970;
+	public double user_maxFreqBoundkHz = 145990;
+	public String user_localServer = ""; // default to blank, otherwise we try to send to the local server
+	public int user_localServerPort = 8587;
+
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
 	public double satPosErrorCode; // Store the error code when we return null for the position
 	public boolean hasCanBus;
@@ -177,6 +180,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public Spacecraft(File fileName ) throws LayoutLoadException, IOException {
 		properties = new Properties();
 		propertiesFile = fileName;	
+		user_properties = new Properties();
+		userPropertiesFile = new File(fileName.getAbsolutePath() + ".user");	
 		tleList = new SortedTleList(10);
 	}
 	
@@ -354,8 +359,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public boolean sendToLocalServer() {
-		if (localServer == null) return false;
-		if (localServer.equalsIgnoreCase(""))
+		if (user_localServer == null) return false;
+		if (user_localServer.equalsIgnoreCase(""))
 			return false;
 		else
 			return true;
@@ -374,6 +379,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return false;
 	}
 	
+	/**
+	 * This loads all of the settings including those that are overridden by the user_ settings.  It they do not
+	 * exist yet then they are initialized here
+	 * @throws LayoutLoadException
+	 */
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
 		FileInputStream f = null;
@@ -389,13 +399,13 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		try {
 			foxId = Integer.parseInt(getProperty("foxId"));
 			catalogNumber = Integer.parseInt(getProperty("catalogNumber"));			
-			name = getProperty("name");
+			user_name = getProperty("name");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
 			mode = Integer.parseInt(getProperty("mode"));
-			telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
-			minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
-			maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
+			user_telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
+			user_minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
+			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			// Frame Layouts
 			String frames = getOptionalProperty("numberOfFrameLayouts");
@@ -437,9 +447,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			
 			String t = getOptionalProperty("track");
 			if (t == null) 
-				track = true;
+				user_track = true;
 			else 
-				track = Boolean.parseBoolean(t);
+				user_track = Boolean.parseBoolean(t);
 			String s = getOptionalProperty("series");
 			if (s == null) 
 				series = "FOX";
@@ -447,14 +457,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				series = s;
 			String serv = getOptionalProperty("localServer");
 			if (serv == null) 
-				localServer = null;
+				user_localServer = null;
 			else 
-				localServer = serv;
+				user_localServer = serv;
 			String p = getOptionalProperty("localServerPort");
 			if (p == null) 
-				localServerPort = 0;
+				user_localServerPort = 0;
 			else 
-				localServerPort = Integer.parseInt(p);
+				user_localServerPort = Integer.parseInt(p);
 //			for (int i=0; i < numberOfLayouts; i++) {
 //				String l = getOptionalProperty("sendLayoutLocally"+i);
 //				if (l != null)
@@ -464,9 +474,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 //			}
 			String pri = getOptionalProperty("priority");
 			if (pri == null) 
-				priority = 1;
+				user_priority = 1;
 			else 
-				priority = Integer.parseInt(pri);
+				user_priority = Integer.parseInt(pri);
 			String c = getOptionalProperty("hasCanBus");
 			if (c == null) 
 				hasCanBus = false;
@@ -487,6 +497,56 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			e.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
 		}
+	}
+	
+	protected void load_user_params() throws LayoutLoadException {
+		// try to load the properties from a file
+		FileInputStream f = null;
+		try {
+			f=new FileInputStream(userPropertiesFile);
+			user_properties.load(f);
+			f.close();
+		} catch (IOException e) {
+			if (f!=null) try { f.close(); } catch (Exception e1) {};
+			//throw new LayoutLoadException("Could not load spacecraft user settings from: " + userPropertiesFile.getAbsolutePath());
+			// File does not exist, init
+			save_user_params();
+
+		}
+		try {
+			user_name = getUserProperty("name");
+			user_telemetryDownlinkFreqkHz = Double.parseDouble(getUserProperty("telemetryDownlinkFreqkHz"));			
+			user_minFreqBoundkHz = Double.parseDouble(getUserProperty("minFreqBoundkHz"));
+			user_maxFreqBoundkHz = Double.parseDouble(getUserProperty("maxFreqBoundkHz"));
+			
+			String t = getOptionalUserProperty("track");
+			if (t == null) 
+				user_track = true;
+			else 
+				user_track = Boolean.parseBoolean(t);
+			String serv = getOptionalUserProperty("localServer");
+			if (serv == null) 
+				user_localServer = null;
+			else 
+				user_localServer = serv;
+			String p = getOptionalUserProperty("localServerPort");
+			if (p == null) 
+				user_localServerPort = 0;
+			else 
+				user_localServerPort = Integer.parseInt(p);
+			String pri = getOptionalUserProperty("priority");
+			if (pri == null) 
+				user_priority = 1;
+			else 
+				user_priority = Integer.parseInt(pri);
+
+		} catch (NumberFormatException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );
+		} catch (NullPointerException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );		
+		} 
 	}
 	
 	/**
@@ -526,6 +586,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		}
 		return value;
 	}
+	
+	protected String getOptionalUserProperty(String key) throws LayoutLoadException {
+		String value = user_properties.getProperty(key);
+		if (value == null) {
+			return null;
+		}
+		return value;
+	}
 
 	protected String getProperty(String key) throws LayoutLoadException {
 		String value = properties.getProperty(key);
@@ -535,40 +603,73 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		}
 		return value;
 	}
-	protected void store() {
-		FileInputStream f = null;
-		try {
-			f=new FileInputStream(propertiesFile);
-			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
-			f.close();
-		} catch (FileNotFoundException e1) {
-			if (f!=null) try { f.close(); } catch (Exception e2) {};
-			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
-			e1.printStackTrace(Log.getWriter());
-		} catch (IOException e1) {
-			if (f!=null) try { f.close(); } catch (Exception e3) {};
-			Log.errorDialog("ERROR", "Error writing spacecraft file");
-			e1.printStackTrace(Log.getWriter());
+	
+	protected String getUserProperty(String key) throws LayoutLoadException {
+		String value = user_properties.getProperty(key);
+		if (value == null) {
+			throw new LayoutLoadException("Missing user data value: " + key + " when loading Spacecraft file: \n" + userPropertiesFile.getAbsolutePath() );
+//			throw new NullPointerException();
 		}
+		return value;
 	}
+	
+	// Can now only store user properties.
+//	protected void store() {
+//		FileInputStream f = null;
+//		try {
+//			f=new FileInputStream(propertiesFile);
+//			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
+//			f.close();
+//		} catch (FileNotFoundException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e2) {};
+//			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
+//			e1.printStackTrace(Log.getWriter());
+//		} catch (IOException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e3) {};
+//			Log.errorDialog("ERROR", "Error writing spacecraft file");
+//			e1.printStackTrace(Log.getWriter());
+//		}
+//	}
 	protected void save() {
 		
 		properties.setProperty("foxId", Integer.toString(foxId));
 		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
-		properties.setProperty("name", name);
 		properties.setProperty("description", description);
 		properties.setProperty("model", Integer.toString(model));
 		properties.setProperty("mode", Integer.toString(mode));
-		properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(telemetryDownlinkFreqkHz));
-		properties.setProperty("minFreqBoundkHz", Double.toString(minFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Double.toString(maxFreqBoundkHz));
-		properties.setProperty("track", Boolean.toString(track));
 		
-		if (localServer != null) {
-			properties.setProperty("localServer",localServer);
-			properties.setProperty("localServerPort", Integer.toString(localServerPort));
+	}
+	
+	protected void store_user_params() {
+		FileOutputStream f = null;
+		try {
+			f=new FileOutputStream(userPropertiesFile);
+			user_properties.store(f, "Fox 1 Telemetry Decoder User Spacecraft Properties");
+			f.close();
+		} catch (FileNotFoundException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e2) {};
+			Log.errorDialog("ERROR", "Could not write spacecraft user properties file. Check permissions on run directory or on the file");
+			e1.printStackTrace(Log.getWriter());
+		} catch (IOException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e3) {};
+			Log.errorDialog("ERROR", "Error writing spacecraft user properties file");
+			e1.printStackTrace(Log.getWriter());
 		}
-		properties.setProperty("priority", Integer.toString(priority));
+	}
+	
+	protected void save_user_params() {
+		
+		user_properties.setProperty("name", user_name);
+		user_properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(user_telemetryDownlinkFreqkHz));
+		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
+		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
+		user_properties.setProperty("track", Boolean.toString(user_track));
+		
+		if (user_localServer != null) {
+			user_properties.setProperty("localServer",user_localServer);
+			user_properties.setProperty("localServerPort", Integer.toString(user_localServerPort));
+		}
+		user_properties.setProperty("priority", Integer.toString(user_priority));
 	}
 	
 	public String getIdString() {
@@ -579,15 +680,15 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public String toString() {
-		return name;
+		return user_name;
 	}
 	
 	@Override
 	public int compareTo(Spacecraft s2) {
-		if (priority == s2.priority) 
-			return name.compareTo(s2.name);
-		else if (priority < s2.priority) return -1;
-		else if (priority > s2.priority) return 1;
+		if (user_priority == s2.user_priority) 
+			return user_name.compareTo(s2.user_name);
+		else if (user_priority < s2.user_priority) return -1;
+		else if (user_priority > s2.user_priority) return 1;
 		return -1;
 	}
 	

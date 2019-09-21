@@ -443,7 +443,7 @@ longer send telemetry.
 			
 		case BitArrayLayout.CONVERT_BATTERY_CURRENT:
 			double d = (double)rawValue;
-			d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * ((FoxSpacecraft)fox).BATTERY_CURRENT_ZERO + 2)*1000;
+			d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * ((FoxSpacecraft)fox).user_BATTERY_CURRENT_ZERO + 2)*1000;
 			return d;
 		case BitArrayLayout.CONVERT_SOLAR_PANEL:
 			return rawValue * VOLTAGE_STEP_FOR_3V_SENSORS/SOLAR_PANEL_SCALING_FACTOR;
@@ -452,11 +452,11 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
 			return solarPanelTempTable.lookupValue(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
-			if (rawValue < fox.mpptSensorOffThreshold) return ERROR_VALUE;
+			if (rawValue < fox.user_mpptSensorOffThreshold) return ERROR_VALUE;
 			double raw = (double)rawValue;
 			double vadc = raw * VOLTAGE_STEP_FOR_2V5_SENSORS;
 			double v =  (vadc - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
-			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - fox.mpptResistanceError;
+			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - fox.user_mpptResistanceError;
 			
 			// Cubic fit using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
 			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);
@@ -604,9 +604,9 @@ longer send telemetry.
 		
 		if (fox.hasMemsRestValues) {
 			int restValue = 0;
-			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.memsRestValueX;	
-			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.memsRestValueY;
-			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.memsRestValueZ;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
 			memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(restValue);
 			memsZeroValue = memsZeroValue/2;
 		}

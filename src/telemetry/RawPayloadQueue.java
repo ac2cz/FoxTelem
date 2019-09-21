@@ -174,9 +174,9 @@ public class RawPayloadQueue extends RawQueue {
 				if (frames.peek() != null) {
 					Spacecraft sat = Config.satManager.getSpacecraft(frames.peek().foxId);
 					if (sat.sendToLocalServer()) {
-						localServer.setHostName(sat.localServer);
-						localServer.setPort(sat.localServerPort);
-						Log.println("Trying Local Server: TCP://" + sat.localServer + ":" + sat.localServerPort);
+						localServer.setHostName(sat.user_localServer);
+						localServer.setPort(sat.user_localServerPort);
+						Log.println("Trying Local Server: TCP://" + sat.user_localServer + ":" + sat.user_localServerPort);
 						byte[][] buffer = frames.peek().getPayloadBytes();
 						for (byte[] b : buffer)
 							localServer.sendToServer(b, protocol);

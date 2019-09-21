@@ -184,8 +184,8 @@ public class PassManager implements Runnable {
 
 	private void setFreqRangeBins(Spacecraft spacecraft, PassParams pp) {
 		if (pp.foxDecoder != null && pp.iqSource != null) {
-			Config.toBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.maxFreqBoundkHz*1000));
-			Config.fromBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.minFreqBoundkHz*1000));
+			Config.toBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.user_maxFreqBoundkHz*1000));
+			Config.fromBin = pp.iqSource.getBinFromFreqHz((long) (spacecraft.user_minFreqBoundkHz*1000));
 //			if (Config.fromBin > SourceIQ.FFT_SAMPLES/2 && Config.toBin < SourceIQ.FFT_SAMPLES/2) {
 //				Config.toBin = 0;
 //				Config.fromBin = pp.iqSource.getBinFromFreqHz(spacecraft.minFreqBoundkHz*1000);
@@ -680,7 +680,7 @@ public class PassManager implements Runnable {
 				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
-					if (sat.track) atLeastOneTracked = true;
+					if (sat.user_track) atLeastOneTracked = true;
 					if (MainWindow.inputTab != null) {
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
@@ -697,12 +697,12 @@ public class PassManager implements Runnable {
 											double aboveCenter = pp1.iqSource.getCenterFreqkHz() + 10;  // within 10kHz of Center 
 											double belowCenter = pp1.iqSource.getCenterFreqkHz() - 10;
 											double minFreq2 = pp1.iqSource.getCenterFreqkHz() - 0.80 * range/1000.0;
-											if (sat.telemetryDownlinkFreqkHz < minFreq2 || sat.telemetryDownlinkFreqkHz > maxFreq1 ||
-													(sat.telemetryDownlinkFreqkHz > belowCenter && sat.telemetryDownlinkFreqkHz < aboveCenter)) {
+											if (sat.user_telemetryDownlinkFreqkHz < minFreq2 || sat.user_telemetryDownlinkFreqkHz > maxFreq1 ||
+													(sat.user_telemetryDownlinkFreqkHz > belowCenter && sat.user_telemetryDownlinkFreqkHz < aboveCenter)) {
 												// we need to retune as the sat is outside the current band
-												double newCenterFreq = sat.telemetryDownlinkFreqkHz - 0.25 * range / 1000;
+												double newCenterFreq = sat.user_telemetryDownlinkFreqkHz - 0.25 * range / 1000;
 												//if (Config.debugSignalFinder)
-												Log.println("Retuning for "+ sat.name + " downlink: " + sat.telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+												Log.println("Retuning for "+ sat.user_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
 												Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
 											}
 											// If the mode is wrong we should switch modes
@@ -733,7 +733,7 @@ public class PassManager implements Runnable {
 									// we set the spacecraft ranges but no find signal panel
 									// Doppler is displayed and we tune the signal for the active spacecraft only if up
 									// We have to pass a delta from the center frequency to the nco
-									double dopplerShiftedFreq = sat.telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz*1000);
+									double dopplerShiftedFreq = sat.user_telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz*1000);
 									//DecimalFormat d3 = new DecimalFormat("0.000");
 									//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
 									setFreqRangeBins(sat, pp1);
@@ -781,7 +781,7 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
-		if (!sat.track) return false;
+		if (!sat.user_track) return false;
 		if (Config.whenAboveHorizon && Config.useDDEforAzEl) {
 			String satString = null;
 			SatPc32DDE satPC = new SatPc32DDE();
@@ -789,7 +789,7 @@ public class PassManager implements Runnable {
 			if (connected) {
 				satString = satPC.satellite;
 				//Log.println("SATPC32: " + satString);
-				if (satString != null && satString.equalsIgnoreCase(sat.name)) {
+				if (satString != null && satString.equalsIgnoreCase(sat.user_name)) {
 					return true;
 				}
 			}

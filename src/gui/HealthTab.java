@@ -225,15 +225,15 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
 		if (rt == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_name + " is missing the layout definition for "
 					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else 	if (max == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_name + " is missing the layout definition for "
 					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else if (min == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_name + " is missing the layout definition for "
 					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else

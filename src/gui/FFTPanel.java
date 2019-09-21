@@ -459,15 +459,15 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 				if (Config.findSignal)
 					if (fox != null) {
-						g.drawString(Config.passManager.getStateName() + ": "+fox.name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
+						g.drawString(Config.passManager.getStateName() + ": "+fox.user_name, graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize  );
 					} else
 						g.drawString("Scanning..", graphWidth-5*Config.graphAxisFontSize, 4*Config.graphAxisFontSize );
 				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
-					if (sat.track) {
-						int fromSatBin = iqSource.getBinFromFreqHz((long) (sat.minFreqBoundkHz*1000));
-						int toSatBin = iqSource.getBinFromFreqHz((long) (sat.maxFreqBoundkHz*1000));
+					if (sat.user_track) {
+						int fromSatBin = iqSource.getBinFromFreqHz((long) (sat.user_minFreqBoundkHz*1000));
+						int toSatBin = iqSource.getBinFromFreqHz((long) (sat.user_maxFreqBoundkHz*1000));
 					
 						if (fromSatBin > SourceIQ.FFT_SAMPLES/2 && toSatBin < SourceIQ.FFT_SAMPLES/2) {
 							toSatBin = 0;
@@ -484,8 +484,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 							int c2 = getRatioPosition(0, fftSamples, lowerSelection, graphWidth);
 							g2.drawLine(c2+sideBorder, topBorder+5, c2+sideBorder, zeroPoint);
 							int c3 = (c1 + c2)/2;
-							c3 = c3 - sat.name.length()/3*Config.graphAxisFontSize;
-							g.drawString(sat.name, c3+sideBorder, topBorder + 15 );
+							c3 = c3 - sat.user_name.length()/3*Config.graphAxisFontSize;
+							g.drawString(sat.user_name, c3+sideBorder, topBorder + 15 );
 						}
 					}
 				}

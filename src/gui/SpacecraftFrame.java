@@ -125,7 +125,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 
 		//JLabel lName = new JLabel("Name: " + sat.name);
 		name = addSettingsRow(titlePanel, 15, "Name", 
-				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.name);
+				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.user_name);
 		titlePanel.add(name);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
 		titlePanel.add(lId);
@@ -138,7 +138,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		for (int i=0; i < nums.length; i++)
 			nums[i] = ""+i;
 		priority = new JComboBox<String>(nums); 
-		priority.setSelectedIndex(sat.priority);
+		priority.setSelectedIndex(sat.user_priority);
 		titlePanel.add(priority);
 
 		// Left Column - Fixed Params that can not be changed
@@ -202,15 +202,15 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		JPanel localServerPanel = new JPanel();
 		leftPanel.add(localServerPanel);
 		
-		if (sat.localServer != null) {
+		if (sat.user_localServer != null) {
 			TitledBorder localServerPanelHeader = title("COSMOS TCP Interface");
 			localServerPanel.setBorder(localServerPanelHeader);
 			localServerPanel.setLayout(new BoxLayout(localServerPanel, BoxLayout.Y_AXIS));
 
 			localServer = addSettingsRow(localServerPanel, 15, "Server", 
-					"The IP address or domain name of the local server", "" + sat.localServer);
+					"The IP address or domain name of the local server", "" + sat.user_localServer);
 			localServerPort = addSettingsRow(localServerPanel, 15, "Port", 
-					"The port of the local Server", ""+sat.localServerPort);
+					"The port of the local Server", ""+sat.user_localServerPort);
 			
 			/*
 			sendLayoutToServer = new JCheckBox[sat.numberOfLayouts];
@@ -240,12 +240,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		setSelection(cbMode, Spacecraft.modes, Spacecraft.modes[sat.mode]);
 				
 		telemetryDownlinkFreqkHz = addSettingsRow(rightPanel1, 15, "Downlink Freq (kHz)", 
-				"The nominal downlink frequency of the spacecraft", ""+sat.telemetryDownlinkFreqkHz);
+				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
 		minFreqBoundkHz = addSettingsRow(rightPanel1, 15, "Lower Freq Bound (kHz)", 
-				"The lower frequency boundry when we are searching for the spacecraft signal", ""+sat.minFreqBoundkHz);
+				"The lower frequency boundry when we are searching for the spacecraft signal", ""+sat.user_minFreqBoundkHz);
 		maxFreqBoundkHz = addSettingsRow(rightPanel1, 15, "Upper Freq Bound (kHz)", 
-				"The upper frequency boundry when we are searching for the spacecraft signal", ""+sat.maxFreqBoundkHz);
-		track = addCheckBoxRow("Track when Find Signal Enabled", "When Find Signal is enabled include this satellite in the search", sat.track, rightPanel1 );
+				"The upper frequency boundry when we are searching for the spacecraft signal", ""+sat.user_maxFreqBoundkHz);
+		track = addCheckBoxRow("Track when Find Signal Enabled", "When Find Signal is enabled include this satellite in the search", sat.user_track, rightPanel1 );
 		rightPanel1.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		JPanel rightPanel2 = new JPanel();
@@ -256,7 +256,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		rightPanel2.setBorder(heading3);
 
 		BATTERY_CURRENT_ZERO = addSettingsRow(rightPanel2, 25, "Battery Current Zero", 
-				"The calibration paramater for zero battery current", ""+sat.BATTERY_CURRENT_ZERO);
+				"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
 
 		rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
 				"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
@@ -273,17 +273,17 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
 		if (sat.hasMpptSettings) {
 			mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
-					"The extra resistance in the RTD temperature measurement circuit", ""+sat.mpptResistanceError);
+					"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
 			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
-					"The ADC value when the temperature sensor is considered off", ""+sat.mpptSensorOffThreshold);
+					"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
 		}
 		if (sat.hasMemsRestValues) {
 			memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
-					"The rest value for the MEMS X rotation sensor", ""+sat.memsRestValueX);
+					"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
 			memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
-					"The rest value for the MEMS Y rotation sensor", ""+sat.memsRestValueY);
+					"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
 			memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
-					"The rest value for the MEMS Z rotation sensor", ""+sat.memsRestValueZ);
+					"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
 		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
@@ -432,9 +432,9 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					throw new NumberFormatException("The Frequency fields must contain a valid frequency in kHz");
 				}
 				if (minFreq < maxFreq) {
-					sat.telemetryDownlinkFreqkHz = downlinkFreq;
-					sat.minFreqBoundkHz = minFreq;
-					sat.maxFreqBoundkHz = maxFreq;
+					sat.user_telemetryDownlinkFreqkHz = downlinkFreq;
+					sat.user_minFreqBoundkHz = minFreq;
+					sat.user_maxFreqBoundkHz = maxFreq;
 				} else {
 					Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
 					dispose = false;
@@ -456,33 +456,33 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	//				refreshTabs = true;
 	//			}
 				
-				if (sat.BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
-					sat.BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
+				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
+					sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
 					refreshTabs=true;
 				}
 
 				if (sat.hasMpptSettings) {
-					if (sat.mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
-						sat.mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+					if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+						sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
 						refreshTabs=true;
 					}
 
-					if (sat.mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
-						sat.mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+					if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+						sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
 						refreshTabs=true;
 					}
 				}
 				if (sat.hasMemsRestValues) {
-					if (sat.memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
-						sat.memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+					if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
 						refreshTabs=true;
 					}
-					if (sat.memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
-						sat.memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+					if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
 						refreshTabs=true;
 					}
-					if (sat.memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
-						sat.memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
+					if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
 						refreshTabs=true;
 					}
 				}
@@ -490,8 +490,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
 				}
-				if (!sat.name.equalsIgnoreCase(name.getText())) {
-					sat.name = name.getText();
+				if (!sat.user_name.equalsIgnoreCase(name.getText())) {
+					sat.user_name = name.getText();
 					refreshTabs = true;
 				}
 				int pri = 99;
@@ -500,19 +500,19 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				} catch (NumberFormatException e2) {
 					
 				}
-				if (sat.priority != pri) {
+				if (sat.user_priority != pri) {
 					rebuildMenu = true;
-					sat.priority = pri;
+					sat.user_priority = pri;
 					//refreshTabs = true; // refresh the menu list and sat list but not the tabs
 				}
 				if (localServer != null) {
-					sat.localServer = localServer.getText();
+					sat.user_localServer = localServer.getText();
 					if (localServerPort.getText().equalsIgnoreCase(""))
-						sat.localServerPort = 0;
+						sat.user_localServerPort = 0;
 					else
-						sat.localServerPort = Integer.parseInt(localServerPort.getText());
+						sat.user_localServerPort = Integer.parseInt(localServerPort.getText());
 				}
-				sat.track = track.isSelected();
+				sat.user_track = track.isSelected();
 
 				if (dispose) {
 					sat.save();

@@ -138,6 +138,13 @@ public class SatelliteManager implements Runnable {
 							} else {
 								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
 								try {
+									// Temporarily try to load this to init the user paramaters if they have not already been copied over
+									try {
+										FoxSpacecraft satellite = new FoxSpacecraft(targetFile);
+									} catch (LayoutLoadException e) {
+										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+										e.printStackTrace(Log.getWriter()); // but log if user has that enabled
+									}
 									SatPayloadStore.copyFile(listOfFiles[i], targetFile);
 								} catch (IOException e) {
 									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
@@ -192,15 +199,15 @@ public class SatelliteManager implements Runnable {
 							satellite = new FUNcubeSpacecraft(listOfFiles[i]);
 						else
 							satellite = new FoxSpacecraft(listOfFiles[i]);
-						int frameLayouts = satellite.numberOfFrameLayouts;
-						if (frameLayouts > 0) {
-							Log.println("Frame Layouts: " + frameLayouts);
-							for (int k=0; k < frameLayouts; k++) {
-								Log.print(" : " + satellite.frameLayout[k].name);
-								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
-								Log.println("");
-							}
-						}
+//						int frameLayouts = satellite.numberOfFrameLayouts;
+//						if (frameLayouts > 0) {
+//							Log.println("Frame Layouts: " + frameLayouts);
+//							for (int k=0; k < frameLayouts; k++) {
+//								Log.print(" : " + satellite.frameLayout[k].name);
+//								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
+//								Log.println("");
+//							}
+//						}
 						
 					} catch (FileNotFoundException e) {
 						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
@@ -294,7 +301,7 @@ public class SatelliteManager implements Runnable {
 
 	public boolean haveSpacecraft(String name) {
 		for (int i=0; i < spacecraftList.size(); i++) {
-			if (spacecraftList.get(i).name.equalsIgnoreCase(name))
+			if (spacecraftList.get(i).user_name.equalsIgnoreCase(name))
 				return true;
 		}
 		return false;
@@ -302,7 +309,7 @@ public class SatelliteManager implements Runnable {
 	
 	public Spacecraft getSpacecraftByName(String name) {
 		for (int i=0; i < spacecraftList.size(); i++) {
-			if (spacecraftList.get(i).name.equalsIgnoreCase(name))
+			if (spacecraftList.get(i).user_name.equalsIgnoreCase(name))
 				return spacecraftList.get(i);
 		}
 		return null;
@@ -502,15 +509,15 @@ public class SatelliteManager implements Runnable {
 				// Calculate the sat positions, which caches them in each sat
 				for (int s=0; s < spacecraftList.size(); s++) {
 					Spacecraft sat = spacecraftList.get(s);
-					if (sat.track) {
+					if (sat.user_track) {
 						if (Config.GROUND_STATION != null)
 							if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
 								// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
-								sat.track = false;
+								sat.user_track = false;
 								sat.save();
 								Log.errorDialog("MISSING GROUND STATION", "FoxTelem is configured to calculate the spacecraft position, but your ground station\n"
 										+ "is not defined.  Go to the settings tab and setup the ground station position or turn of calculation of the spacecraft position.\n"
-										+ "Tracking will be disabled for " + sat.name + ".");
+										+ "Tracking will be disabled for " + sat.user_name + ".");
 								sat.satPos = null;
 							} else {
 								try {

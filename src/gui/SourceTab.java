@@ -515,9 +515,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s] = new JPanel();
 			satRows[s].setLayout(new FlowLayout(FlowLayout.LEFT));
 			satPanel.add(satRows[s]);
-			satName[s] = new JLabel(sat.priority + "/"+sat.name + "   ");
+			satName[s] = new JLabel(sat.user_priority + "/"+sat.user_name + "   ");
 			satPosition[s] = new JLabel("Not Tracked");
-			if (sat.track) {
+			if (sat.user_track) {
 				satPosition[s].setText("Tracked");
 				oneTracked = true;
 			}
@@ -2478,21 +2478,21 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 						for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 							Spacecraft sat = Config.satManager.spacecraftList.get(s);
-							if (sat.track)
+							if (sat.user_track)
 								atLeastOneTracked = true;
-							if ((Config.foxTelemCalcsDoppler || (Config.whenAboveHorizon && aboveHorizon)) && sat.track && sat.aboveHorizon())
+							if ((Config.foxTelemCalcsDoppler || (Config.whenAboveHorizon && aboveHorizon)) && sat.user_track && sat.aboveHorizon())
 								satPosition[s].setForeground(Config.AMSAT_RED);
 							else
 								satPosition[s].setForeground(Config.AMSAT_BLUE);
 
-							if (Config.foxTelemCalcsPosition && sat.track) {
+							if (Config.foxTelemCalcsPosition && sat.user_track) {
 								if (sat.satPos != null) {
 									double az = FramePart.radToDeg(sat.satPos.getAzimuth());
 									double el = FramePart.radToDeg(sat.satPos.getElevation());
 									String position = "" + String.format("%2.1f", az) 
 									+ " | " + String.format("%2.1f", el);
 									if (Config.foxTelemCalcsDoppler) {
-										double freq = sat.satPos.getDopplerFrequency(sat.telemetryDownlinkFreqkHz);
+										double freq = sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz);
 										String sign="";
 										if (freq > 0) sign = "+";
 										position = position + " | " + sign+String.format("%2.3f", freq) + "kHz";
@@ -2512,10 +2512,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 										msg = msg + "No Position";
 									satPosition[s].setText(msg);
 								}
-							} else if (Config.useDDEforAzEl && sat.track) {
+							} else if (Config.useDDEforAzEl && sat.user_track) {
 								satPosition[s].setText("Tracked via SATPC32");
 							} else {
-								if (sat.track)
+								if (sat.user_track)
 									satPosition[s].setText("Tracked");
 								else {
 									satPosition[s].setText("Not Tracked");
@@ -2588,7 +2588,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	public void mouseClicked(MouseEvent e) {
 		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 			if (e.getSource() == satPosition[s]) {
-				Config.satManager.spacecraftList.get(s).track = !Config.satManager.spacecraftList.get(s).track;
+				Config.satManager.spacecraftList.get(s).user_track = !Config.satManager.spacecraftList.get(s).user_track;
 				((FoxSpacecraft)Config.satManager.spacecraftList.get(s)).save();
 			}
 		}
