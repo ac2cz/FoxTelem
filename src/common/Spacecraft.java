@@ -124,6 +124,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public String description = "";
 	public int model;
+	public String canFileDir = "HuskySat";
 	public int mode = SourceIQ.MODE_FSK_DUV;
 	public double telemetryDownlinkFreqkHz = 145980;
 	public double minFreqBoundkHz = 145970;
@@ -472,6 +473,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			else 
 				hasCanBus =  Boolean.parseBoolean(c);
 			if (hasCanBus) {
+				this.canFileDir = getProperty("canFileDir");
 				loadCanLayouts();
 			}
 
@@ -493,7 +495,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	 */
 	private void loadCanLayouts() {
 		try {
-			canFrames = new CanFrames(this.name+ File.separator +"frames.csv");
+			canFrames = new CanFrames(this.canFileDir+ File.separator +"frames.csv");
 			int canLayoutNum = canFrames.NUMBER_OF_FIELDS;
 			Log.println("Loading " + canLayoutNum + " CAN Layouts");
 			BitArrayLayout[] existingLayouts = layout;
@@ -502,7 +504,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			for (BitArrayLayout l : existingLayouts)
 				layout[i++] = l;
 			for (String frameName : canFrames.frame) {
-				layout[i] = new BitArrayLayout(this.name+ File.separator + frameName + ".csv");
+				layout[i] = new BitArrayLayout(this.canFileDir+ File.separator + frameName + ".csv");
 				layout[i].name = frameName;
 				i++;
 			}

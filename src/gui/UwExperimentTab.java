@@ -372,6 +372,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 			scrollPane.setVisible(false);
 		}
 
+		displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
+				getTotalPackets());
 		MainWindow.frame.repaint();
 	}
 
@@ -445,6 +447,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	
 	private int getTotalPackets() {
 		int total = 0;
+		if (showRawBytes.isSelected())
+			total = Config.payloadStore.getNumberOfFrames(fox.foxId, Spacecraft.CAN_PKT_LAYOUT);
+		else
 		for (int id : fox.canFrames.canId) {
 			if (!in(WodUwExperimentTab.wod_ids, id) ) {
 				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);

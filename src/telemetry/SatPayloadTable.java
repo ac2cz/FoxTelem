@@ -660,8 +660,6 @@ public class SatPayloadTable {
 						if (f.type >= 600) // this is a high speed record
 							pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
 							Config.payloadStore.add(f.id, f.uptime, f.resets,pk);
-
-
 					}
 				}
 			}

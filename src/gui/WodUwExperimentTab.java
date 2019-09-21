@@ -116,7 +116,8 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		packetScrollPane.setVisible(true);
 		scrollPane.setVisible(false);
 	}
-
+	displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
+			getTotalPackets());
 	MainWindow.frame.repaint();
 }
 
@@ -134,6 +135,9 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	
 	private int getTotalPackets() {
 		int total = 0;
+		if (showRawBytes.isSelected())
+			total = Config.payloadStore.getNumberOfFrames(fox.foxId, Spacecraft.WOD_CAN_PKT_LAYOUT);
+		else
 		for (int id : wod_ids) {
 			BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
 			total += Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
