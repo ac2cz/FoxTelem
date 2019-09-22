@@ -313,28 +313,11 @@ public abstract class FoxDecoder extends Decoder {
 		}
 	}
 
-
-	
 	protected void processBitsWindow() {
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			foxBitStream.addBit(middleSample[i]);
 		}
 		
-//		Performance.startTimer("debugValues");
-//
-//    	if (Config.debugValues /*&& framesDecoded == writeAfterFrame*/) {
-//    		printBucketsValues();
-//    	}
-//
-//    	Performance.endTimer("debugValues");
-//
-//    	Performance.startTimer("findSync");
-//    	boolean found = foxBitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
-//    	Performance.endTimer("findSync");
-//    	if (found) {
-//    		processPossibleFrame();
-//    	}
-    	
     	ArrayList<Frame> frames = foxBitStream.findFrames(SAMPLE_WINDOW_LENGTH);
     	if (frames != null) {
 			processPossibleFrame(frames);

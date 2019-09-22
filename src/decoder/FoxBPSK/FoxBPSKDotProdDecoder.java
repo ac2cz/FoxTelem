@@ -117,7 +117,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	@Override
 	protected void init() {
 		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
-		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
+		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength(), BITS_PER_SECOND_1200);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 100; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
 		SEARCH_INTERVAL = (int) 1*8192/SAMPLE_WINDOW_LENGTH;

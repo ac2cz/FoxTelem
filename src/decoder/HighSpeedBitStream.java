@@ -1,5 +1,7 @@
 package decoder;
 
+import java.util.Date;
+
 import common.Config;
 import common.Log;
 import fec.RsCodeWord;
@@ -52,9 +54,8 @@ public class HighSpeedBitStream extends FoxBitStream {
 	int totalRsErrors = 0;
 	int totalRsErasures = 0;
 	
-	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength) {
-		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, dec);
-		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
+	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
+		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, HIGH_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
 		SYNC_WORD_BIT_TOLERANCE = 0; // this is too CPU intensive for large frames
 	}
@@ -68,7 +69,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 	 * The corrected data is re-allocated, again round robin, into a rawFrame.  This frame should
 	 * then contain the data BACK in the original order, but with corrections made
 	 */
-	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition) {
+	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
@@ -76,7 +77,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 			highSpeedFrame.addRawFrame(rawFrame);
 			highSpeedFrame.rsErrors = totalRsErrors;
 			highSpeedFrame.rsErasures = totalRsErasures;
-
+			highSpeedFrame.setStpDate(timeOfStartSync);
 		} catch (FrameProcessException e) {
 			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
 			return null;

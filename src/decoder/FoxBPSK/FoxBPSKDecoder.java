@@ -47,7 +47,7 @@ public class FoxBPSKDecoder extends Decoder {
 	@Override
 	protected void init() {
 		Log.println("Initializing 1200bps BPSK decoder: ");
-		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength());
+		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength(), BITS_PER_SECOND_1200);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit

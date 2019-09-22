@@ -165,6 +165,10 @@ public abstract class Frame implements Comparable<Frame> {
 		return s;
 	}
 
+	public void setStpDate(Date stp) {
+		stpDate = stp;
+	}
+	
 	public String getStpDate() {
 		if (stpDate == null) return null;
 		String dt = "";

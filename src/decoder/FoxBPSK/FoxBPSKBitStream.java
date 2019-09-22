@@ -36,8 +36,8 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 	public static final int DATA_LENGTH = 476; 
 	public static final int NUMBER_OF_RS_CODEWORDS = 3;
 	
-	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLength) {
-		super(dec, wordLength, syncWordLength);
+	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLength, int bitsPerSecond) {
+		super(dec, wordLength, syncWordLength, bitsPerSecond);
 		SYNC_WORD_LENGTH = syncWordLength;
 		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
 		SYNC_WORD_BIT_TOLERANCE = 10;

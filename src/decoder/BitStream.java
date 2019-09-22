@@ -15,8 +15,9 @@ public class BitStream extends CircularBuffer {
 	
 	Decoder decoder;
 	
-	public BitStream(int initialSize, Decoder decoder) {
+	public BitStream(int initialSize, Decoder decoder, int syncWordDistance) {
 		super(initialSize);
+		SYNC_WORD_DISTANCE = syncWordDistance;
 		this.decoder = decoder;
 
 	}

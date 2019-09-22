@@ -1,6 +1,8 @@
 package decoder;
 
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 
 import common.Config;
 import common.Log;
@@ -63,8 +65,8 @@ public abstract class FoxBitStream extends BitStream {
 	protected boolean[] syncWord = new boolean[SYNC_WORD_LENGTH]; // The SYNC_WORD_LENGTH bit word used to find SYNC words, selected from the end of the bitStream
 	protected boolean alreadyTriedToFlipBits = false; // only try to flip the bits once, otherwise we willl try to double process every failed RS word
 	
-	//public int lastErasureNumber;
-	//public int lastErrorsNumber;
+	private long millisecondsBetweenSyncWords;
+	private double millisecondsPerBit;
 	
 	protected boolean findFramesWithPRN = false;
 	
@@ -72,11 +74,13 @@ public abstract class FoxBitStream extends BitStream {
 	 * Initialize the array with enough room to hold 6 frames worth of bits
 	 * We should never reach this because we purge bits once we exceed 4 frames in length
 	 */
-	public FoxBitStream(int size, int wordLength, int syncWordLength, Decoder dec) {
-		super(size, dec);
+	public FoxBitStream(int size, int wordLength, int syncWordLength, int syncWordDistance, Decoder dec, double millisecondsPerBit) {
+		super(size, dec, syncWordDistance);
 		SYNC_WORD_LENGTH = syncWordLength;
 		DATA_WORD_LENGTH = wordLength;
 		syncWord = new boolean[syncWordLength];
+		this.millisecondsPerBit = millisecondsPerBit;
+		millisecondsBetweenSyncWords = (long) (millisecondsPerBit * SYNC_WORD_DISTANCE);
 	}
 	
 	/**
@@ -86,6 +90,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * @param windowLength
 	 * @return true if we found the SYNC word
 	 */
+	@Deprecated
 	public boolean findSyncMarkers(int windowLength) {
 		boolean found = false;
 		if (this.size() < SYNC_WORD_LENGTH) return false;
@@ -121,92 +126,93 @@ public abstract class FoxBitStream extends BitStream {
 	 * UNUSED
 	 * @return
 	 */
-	public Frame findFrames() {
-		
-		Performance.startTimer("findFrames:checks");
-		
-		if (this instanceof FoxBPSKBitStream)
-			checkMissingStartSYNC(0, new FoxBPSKHeader());
-		else if (Config.mode == SourceIQ.MODE_FSK_HS)
-			checkMissingStartSYNC(0, new HighSpeedHeader());
-		else
-			checkMissingStartSYNC(0, new SlowSpeedHeader()); 
-		checkMissingMiddleSYNC();
-		//checkLongFramesForMissingEndSYNC();
-		//checkLongFramesForMissingStartSYNC();
-
-		Performance.endTimer("findFrames:checks");
-
-		int start = 0;
-		int end = 0;
-
-		Performance.startTimer("findFrames:decode");
-
-		for (int i=0; i<syncWords.size()-1; i++ ) {
-			start = syncWords.get(i);
-			for (int e=i+1; e<syncWords.size(); e++) {
-				end = syncWords.get(e);
-				if (end >= this.size()) end = start; // this is off the end of the array, so we don't want to process it
-				if (start != FRAME_PROCESSED) {
-					int missedBits = 0;
-					int repairPosition = 0;
-					int shortLen = SYNC_WORD_DISTANCE;
-					if (Config.insertMissingBits)
-						shortLen = SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE;
-					
-					if (end-start >= shortLen && end-start <= SYNC_WORD_DISTANCE) {
-						missedBits = SYNC_WORD_DISTANCE - (end-start);
-						if (Config.insertMissingBits && missedBits > 0) {
-							repairPosition = checkShortFrame(start, end);
-							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition +  " total: " + (totalBits + repairPosition));
-						}
-						if (newFrame(start, end)) {
-							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");
-							alreadyTriedToFlipBits = false; // reset the flag, in case we need to flip the bit stream
-							Frame frame = decodeFrame(start,end, missedBits, repairPosition);	
-
-							if (frame == null) {
-								if (!alreadyTriedToFlipBits) {
-									alreadyTriedToFlipBits = true;
-									decoder.flipReceivedBits = !decoder.flipReceivedBits;
-									//Log.println("..trying Flipped bits");
-									Frame flipFrame = decodeFrame(start, end, missedBits, repairPosition); 
-									if (flipFrame != null) {
-										// it worked, so flip the whole bitstream and we carry on
-										Log.println("DECODER: Flipped bits");
-										// flip any bits left
-										flipBitStream();
-										return flipFrame;
-									} else {
-										// was not a flip bit issue
-										decoder.flipReceivedBits = !decoder.flipReceivedBits;
-										framesTried.add(new SyncPair(start,end));
-										return null;
-									}
-								} else {
-									framesTried.add(new SyncPair(start,end));
-									return null;
-								}
-							}
-							// We have a successful frame, so we now know the position of the two SYNC words was good
-							// We should ALWAYS try to decode exactly the frame after this, so we ADD a SYNCWORD if one does not already exist
-				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE)) syncWords.add(end+SYNC_WORD_DISTANCE);
-				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*2)) syncWords.add(end+SYNC_WORD_DISTANCE*2);
-				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*3))syncWords.add(end+SYNC_WORD_DISTANCE*3);
-				//			Log.println("AUTO ADDED NEXT SYNC WORD AT: "+ (int)(end+SYNC_WORD_DISTANCE));
-							// Consume all of the bits up to this point, but not the end SYNC word
-							removeBits(0, end-SYNC_WORD_LENGTH);
-							framesTried = new ArrayList<SyncPair>(); // reset this, which is only supposed to stop us iterative retrying same frame
-							return frame;
-						}
-					}
-				}
-			}
-		}
-		Performance.endTimer("findFrames:decode");
-
-		return null;
-	}
+//	@Deprecated
+//	public Frame findFrames() {
+//		
+//		Performance.startTimer("findFrames:checks");
+//		
+//		if (this instanceof FoxBPSKBitStream)
+//			checkMissingStartSYNC(0, new FoxBPSKHeader());
+//		else if (Config.mode == SourceIQ.MODE_FSK_HS)
+//			checkMissingStartSYNC(0, new HighSpeedHeader());
+//		else
+//			checkMissingStartSYNC(0, new SlowSpeedHeader()); 
+//		checkMissingMiddleSYNC();
+//		//checkLongFramesForMissingEndSYNC();
+//		//checkLongFramesForMissingStartSYNC();
+//
+//		Performance.endTimer("findFrames:checks");
+//
+//		int start = 0;
+//		int end = 0;
+//
+//		Performance.startTimer("findFrames:decode");
+//
+//		for (int i=0; i<syncWords.size()-1; i++ ) {
+//			start = syncWords.get(i);
+//			for (int e=i+1; e<syncWords.size(); e++) {
+//				end = syncWords.get(e);
+//				if (end >= this.size()) end = start; // this is off the end of the array, so we don't want to process it
+//				if (start != FRAME_PROCESSED) {
+//					int missedBits = 0;
+//					int repairPosition = 0;
+//					int shortLen = SYNC_WORD_DISTANCE;
+//					if (Config.insertMissingBits)
+//						shortLen = SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE;
+//					
+//					if (end-start >= shortLen && end-start <= SYNC_WORD_DISTANCE) {
+//						missedBits = SYNC_WORD_DISTANCE - (end-start);
+//						if (Config.insertMissingBits && missedBits > 0) {
+//							repairPosition = checkShortFrame(start, end);
+//							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition +  " total: " + (totalBits + repairPosition));
+//						}
+//						if (newFrame(start, end)) {
+//							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");
+//							alreadyTriedToFlipBits = false; // reset the flag, in case we need to flip the bit stream
+//							Frame frame = decodeFrame(start,end, missedBits, repairPosition);	
+//
+//							if (frame == null) {
+//								if (!alreadyTriedToFlipBits) {
+//									alreadyTriedToFlipBits = true;
+//									decoder.flipReceivedBits = !decoder.flipReceivedBits;
+//									//Log.println("..trying Flipped bits");
+//									Frame flipFrame = decodeFrame(start, end, missedBits, repairPosition); 
+//									if (flipFrame != null) {
+//										// it worked, so flip the whole bitstream and we carry on
+//										Log.println("DECODER: Flipped bits");
+//										// flip any bits left
+//										flipBitStream();
+//										return flipFrame;
+//									} else {
+//										// was not a flip bit issue
+//										decoder.flipReceivedBits = !decoder.flipReceivedBits;
+//										framesTried.add(new SyncPair(start,end));
+//										return null;
+//									}
+//								} else {
+//									framesTried.add(new SyncPair(start,end));
+//									return null;
+//								}
+//							}
+//							// We have a successful frame, so we now know the position of the two SYNC words was good
+//							// We should ALWAYS try to decode exactly the frame after this, so we ADD a SYNCWORD if one does not already exist
+//				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE)) syncWords.add(end+SYNC_WORD_DISTANCE);
+//				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*2)) syncWords.add(end+SYNC_WORD_DISTANCE*2);
+//				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*3))syncWords.add(end+SYNC_WORD_DISTANCE*3);
+//				//			Log.println("AUTO ADDED NEXT SYNC WORD AT: "+ (int)(end+SYNC_WORD_DISTANCE));
+//							// Consume all of the bits up to this point, but not the end SYNC word
+//							removeBits(0, end-SYNC_WORD_LENGTH);
+//							framesTried = new ArrayList<SyncPair>(); // reset this, which is only supposed to stop us iterative retrying same frame
+//							return frame;
+//						}
+//					}
+//				}
+//			}
+//		}
+//		Performance.endTimer("findFrames:decode");
+//
+//		return null;
+//	}
 	
 	/**
 	 * Add the bits from the current processed window.  For each bit added check to see if the previous N bits are
@@ -236,8 +242,9 @@ public abstract class FoxBitStream extends BitStream {
 				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
 						!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
 					// We found a sync word
+					Date timeOfSync = Calendar.getInstance().getTime();
 					if (Config.debugFrames) {
-						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1) + " total:" + (totalBits + i + 1));
+						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1) + " total:" + (totalBits + i + 1) + " at: " + timeOfSync);
 						int last = 0;
 						for (int s : syncWords) {
 							Log.print(s + "-" + (s-last)+", ");
@@ -246,7 +253,7 @@ public abstract class FoxBitStream extends BitStream {
 						Log.println("");
 						printBitArray(syncWord);
 					}
-					frames = tryToProcessFrames(i+1);
+					frames = tryToProcessFrames(timeOfSync, i+1);
 					// we do not exit as we have to add the remaining bits in the window, which are the start of the next frame
 				} 
 				// now shift the bits and continue looking for frame marker
@@ -268,19 +275,23 @@ public abstract class FoxBitStream extends BitStream {
 	 * We have a sync word at this bit position, try to process a frame or frames
 	 * @param bitPosition
 	 */
-	private ArrayList<Frame> tryToProcessFrames(int end) {
+	private ArrayList<Frame> tryToProcessFrames(Date timeOfFinalSync, int end) {
+		// Find the time at the start of the first bit of the SyncWord that begins this frame.  
+		// This was the time on the spacecraft when transmission of the frame began
+		Date timeOfStartSync = new Date(timeOfFinalSync.getTime() - millisecondsBetweenSyncWords - (long)(SYNC_WORD_LENGTH * millisecondsPerBit));
 		int END = end;
 		ArrayList<Frame> frames = new ArrayList<Frame>();
 		int start = end - SYNC_WORD_DISTANCE;
 		int missedBits = 0;
 		int repairPosition = 0;
 		while (start > 0) {
-			Frame frame = decodeFrame(start,end, missedBits, repairPosition);
+			Frame frame = decodeFrame(start,end, missedBits, repairPosition, timeOfFinalSync);
 			if (frame != null) {
 				// We found a frame
 				frames.add(frame);
 				end = end - SYNC_WORD_DISTANCE;
 				start = start - SYNC_WORD_DISTANCE;
+				timeOfStartSync = new Date(timeOfStartSync.getTime() - millisecondsBetweenSyncWords);
 			} else {
 				start = -1;
 			}
@@ -313,7 +324,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * of data that follows them.
 	 * 
 	 */
-	public abstract Frame decodeFrame(int start, int end, int missedBits, int repairPosition);
+	public abstract Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfFinalSync);
 
 
 	protected int checkShortFrame(int start, int end) {
