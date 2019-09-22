@@ -1,5 +1,7 @@
 package decoder.FoxBPSK;
 
+import java.util.Date;
+
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
 import telemServer.StpFileProcessException;
@@ -56,7 +58,7 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 	 * Attempt to decode the PSK 1200bps Speed Frame
 	 * 
 	 */
-	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition) {
+	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		// ADD in the next SYNC WORD to help the decoder
@@ -66,6 +68,9 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		FoxBPSKFrame bpskFrame = new FoxBPSKFrame();
 		try {
 			bpskFrame.addRawFrame(rawFrame);
+			bpskFrame.rsErrors = totalRsErrors;
+			bpskFrame.rsErasures = totalRsErasures;
+			bpskFrame.setStpDate(timeOfStartSync);
 		} catch (FrameProcessException e) {
 			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
 			return null;

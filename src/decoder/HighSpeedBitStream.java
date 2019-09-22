@@ -51,8 +51,8 @@ public class HighSpeedBitStream extends FoxBitStream {
 	protected int[] rsPadding = RS_PADDING;
 	protected int maxBytes = HighSpeedFrame.getMaxBytes();
 	protected int frameSize = HighSpeedFrame.MAX_FRAME_SIZE;
-	int totalRsErrors = 0;
-	int totalRsErasures = 0;
+	protected int totalRsErrors = 0;
+	protected int totalRsErasures = 0;
 	
 	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
 		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, HIGH_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);

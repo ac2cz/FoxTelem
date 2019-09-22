@@ -222,8 +222,8 @@ public class HighSpeedFrame extends Frame {
 	}
 	
 	public String toString() {
-		String s = new String();
-		s = "\n" + header.toString() + 
+		String s = "AMSAT FOX-1 High Speed Telemetry Captured at: " + getStpDate() + "\n";
+		s = s + header.toString() + 
 				"\n\n"+ rtPayload.toString() + 
 				"\n\n"+ maxPayload.toString() +
 				"\n\n"+ minPayload.toString() +

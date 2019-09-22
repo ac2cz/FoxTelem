@@ -120,6 +120,11 @@ import telemetry.PayloadWODUwExperiment;
 					return;
 				}
 				payload[0].addNext8Bits(b); // add the first byte to the first payload
+				
+				/*
+				 * This is the start of the section that deals with FRAMES defined in the Frames LAYOUT
+				 * STILL TO BE CODED.  CURRENTLY STUCK WITH EXACTLY 6 PAYLOADS EQUAL LENGTH....
+				 */
 			} else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")) {
 				payload[0].addNext8Bits(b);
 			} else if (frameLayout.getBoolean("canPacketFrame") && numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*6)
@@ -395,6 +400,7 @@ import telemetry.PayloadWODUwExperiment;
 
 		public String toString() {
 			String s = new String();
+			s = s + "AMSAT FOX-1 BPSK Telemetry Captured at DATE: " + getStpDate() + "\n"; 
 			s = header.toString();
 			
 			if (payload != null) {

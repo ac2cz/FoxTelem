@@ -113,8 +113,7 @@ public class SlowSpeedHeader extends Header {
 		String s = new String();
 
 		
-		s = s + "AMSAT FOX-1 Telemetry Captured at: " + getCaptureDate() + "\n" 
-				+ "ID: " + FoxDecoder.dec(id) 
+		s = s 	+ "ID: " + FoxDecoder.dec(id) 
 				+ " RESET COUNT: " + FoxDecoder.dec(resets)
 				+ " UPTIME: " + FoxDecoder.dec(uptime)
 				+ " TYPE: " + FoxDecoder.dec(type);

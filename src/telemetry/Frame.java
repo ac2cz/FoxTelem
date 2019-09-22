@@ -173,6 +173,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (stpDate == null) return null;
 		String dt = "";
 		try {
+			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 			dt = Frame.stpDateFormat.format(stpDate);
 		} catch (Exception e) {
 			// catch any exceptions based on random date formats the user may send to us

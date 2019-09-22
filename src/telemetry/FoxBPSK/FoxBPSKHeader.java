@@ -70,8 +70,7 @@ public class FoxBPSKHeader extends Header {
 	public String toString() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + "AMSAT FOX-1 BPSK Telemetry Captured at: " + reportDate() + "\n" 
-				+ "ID: " + FoxDecoder.dec(id) 
+		s = s	+ "ID: " + FoxDecoder.dec(id) 
 				+ " RESET COUNT: " + FoxDecoder.dec(resets)
 				+ " UPTIME: " + FoxDecoder.dec(uptime)
 				+ " TYPE: " + FoxDecoder.dec(type);

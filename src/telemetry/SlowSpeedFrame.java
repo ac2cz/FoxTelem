@@ -112,7 +112,8 @@ public class SlowSpeedFrame extends Frame {
 	}
 	
 	public String toString() {
-		return "\n" + header.toString() 
+		String s = "AMSAT FOX-1 Telemetry Captured at: " + getStpDate() + "\n"; 
+		return s + header.toString() 
 				+ "\n\n"+ payload.toString() + "\n"; //\n"+ fecTrailer.toString() + "\n";
 	}
 
