@@ -28,7 +28,7 @@ public class PayloadWODRad extends PayloadRadExpData {
 	public void captureHeaderInfo(int id, long uptime, int resets) {
 		copyBitsToFields();
 		this.id = id;
-		this.captureDate = fileDateStamp();
+		this.reportDate = fileDateStamp();
 	}
 	
 	@Override

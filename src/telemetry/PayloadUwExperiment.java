@@ -90,7 +90,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 					byte[] data = rawCanPacket.getBytes();
 					BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.getID());
 					if (canLayout == null) Log.errorDialog("ERROR", "Missing CAN Layout for CAN ID: "+rawCanPacket.getID());
-					CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
+					CanPacket newPacket = new CanPacket(id, resets, uptime, reportDate, data, canLayout);
 					if (canLayout.name.equalsIgnoreCase(Spacecraft.CAN_PKT_LAYOUT)) { // then we got the default layout, we dont have a layout for this CAN ID
 						//newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET); -- not really this type.  That is what goes in canpacket layout and that is already written
 						// nowhere to add this, so we do nothing.  Might in future write in an error log, but the bytes will be identical to the raw layout

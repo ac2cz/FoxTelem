@@ -141,7 +141,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
-		this.captureDate = date;
+		this.reportDate = date;
 		epoch = Integer.valueOf(st.nextToken()).intValue();
 		headerTime = Long.valueOf(st.nextToken()).longValue();
 		packetTimestamp = Long.valueOf(st.nextToken()).longValue();
@@ -191,7 +191,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	public String toFile() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
 		+ epoch + "," + headerTime + "," + packetTimestamp + "," ;
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";

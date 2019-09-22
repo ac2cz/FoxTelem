@@ -787,7 +787,7 @@ public class SatPayloadDbStore {
 					payload.resets = r.getInt("resets");
 					payload.uptime = r.getLong("uptime");
 					payload.type = r.getInt("type");
-					payload.captureDate = r.getString("captureDate");
+					payload.reportDate = r.getString("captureDate");
 					payload.pkt_id = r.getInt("pkt_id");
 					payload.init();
 					payload.rawBits = null; // no binary array when loaded from database
@@ -877,7 +877,7 @@ public class SatPayloadDbStore {
 				payload.resets = r.getInt("resets");
 				payload.uptime = r.getLong("uptime");
 				payload.type = r.getInt("type");
-				payload.captureDate = r.getString("captureDate");
+				payload.reportDate = r.getString("captureDate");
 				if (payload instanceof CanPacket)
 					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
 				payload.init();

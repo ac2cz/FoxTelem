@@ -254,7 +254,7 @@ public class PayloadRadExpData extends FoxFramePart {
 	public String toFile() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + FoxDecoder.dec(fieldValue[i]) + ",";
 			//s = s + FoxDecoder.hex(fieldValue[i]) + ",";

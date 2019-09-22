@@ -238,7 +238,7 @@ longer send telemetry.
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
-		this.captureDate = date;
+		this.reportDate = date;
 		init();
 		rawBits = null; // no binary array when loaded from file, even if the local init creates one
 		load(st);
@@ -249,7 +249,7 @@ longer send telemetry.
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
-		this.captureDate = date;
+		this.reportDate = date;
 		init();
 		for (byte b : data) {
 			addNext8Bits(b);
@@ -272,7 +272,7 @@ longer send telemetry.
 		this.id = results.getInt("id");
 		this.resets = results.getInt("resets");
 		this.uptime = results.getLong("uptime");
-		this.captureDate = results.getString("captureDate");
+		this.reportDate = results.getString("captureDate");
 		init();
 		rawBits = null; // no binary array when loaded from database
 		for (int i=0; i < fieldValue.length; i++) {

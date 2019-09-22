@@ -71,7 +71,7 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 					BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.getID());
 					if (canLayout == null) Log.errorDialog("ERROR", "Missing CAN WOD Layout for CAN ID: "+rawCanPacket.getID());
 
-					CanPacket newPacket = new CanPacket(id, resets, uptime, captureDate, data, canLayout);
+					CanPacket newPacket = new CanPacket(id, resets, uptime, reportDate, data, canLayout);
 					newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM);
 					splitPackets.add(newPacket);
 				}

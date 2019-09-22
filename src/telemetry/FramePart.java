@@ -24,7 +24,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
 	public long uptime;  // The Uptime captured from the header.  Time in seconds from Reset.  For non Fox Spacecraft this is the UTC milliseconds since the date epoch
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
-	protected String captureDate; // the date/time that this was captured
+	protected String reportDate; // the date/time that this was written to the file.  NOT the same as the STP date, which is just on the frame.
 	protected int type; // the type of this payload. Zero if the spacecraft does not use types
 	public int newMode = FoxSpacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
 	public static final double NO_POSITION_DATA = -999.0;
@@ -47,10 +47,10 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		this.id = id;
 		this.uptime = uptime;
 		this.resets = resets;
-		if (captureDate == null)
-			this.captureDate = fileDateStamp(); // snap the current time
+		if (reportDate == null)
+			this.reportDate = fileDateStamp(); // snap the current time
 		else
-			this.captureDate = captureDate;
+			this.reportDate = reportDate;
 //		this.newMode = mode; // this is zero unless the mode was on the header.
 	}
 	
@@ -120,7 +120,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public long getUptime() { return uptime; }
 	public int getResets() { return resets; }
 	public int getType() { return type; }
-	public String getCaptureDate() { return captureDate; }
+	public String getCaptureDate() { return reportDate; }
 	
 	public static String fileDateStamp() {
 		
@@ -170,7 +170,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public String toFile(boolean storeMode) {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		
 		// If we have the mode in the header we save it here
 		if (storeMode)
@@ -193,7 +193,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
-		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
+		s = s + "values ('" + this.reportDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
 		if (newMode != FoxSpacecraft.NO_MODE)
 			s = s + newMode+",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {

@@ -237,7 +237,7 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		for (int i=0; i<getLength(); i++)
 			data[i] = (byte) fieldValue[i+this.ID_BYTES]; // skips the id fields
 		
-		PcanPacket pcan = new PcanPacket(captureDate, id, resets, uptime, type, canId, (byte)getLength(), data);
+		PcanPacket pcan = new PcanPacket(reportDate, id, resets, uptime, type, canId, (byte)getLength(), data);
 		return pcan;
 	}
 	

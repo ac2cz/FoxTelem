@@ -184,7 +184,7 @@ public class PayloadCameraData extends FoxFramePart {
 		copyBitsToFields();
 		String s = new String();
 		for (PictureScanLine line : pictureLines) {
-			s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+			s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 			s = s + line.toString() + "\n";
 		}
 		return s;
