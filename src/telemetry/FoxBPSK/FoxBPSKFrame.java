@@ -360,11 +360,11 @@ import telemetry.PayloadWODUwExperiment;
 				for (int i=0; i< payload.length; i++) {
 					// if this payload should be output then add to the byte buffer
 					if (payload[i] instanceof PayloadUwExperiment) {
-						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(); 
+						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
 						totalBuffers += buffer.length; 
 					}
 					if (payload[i] instanceof PayloadWODUwExperiment) {
-						byte[][] buffer = ((PayloadWODUwExperiment)payload[i]).getCANPacketBytes(); 
+						byte[][] buffer = ((PayloadWODUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
 						totalBuffers += buffer.length; 
 					}
 				}
@@ -374,14 +374,14 @@ import telemetry.PayloadWODUwExperiment;
 				for (int p=0; p< payload.length; p++) {
 					// if this payload should be output then add its byte buffers to the output
 					if (payload[p] instanceof PayloadUwExperiment) {
-						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(); 
+						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
 						for (int j=0; j < buffer.length; j++) {
 							allBuffers[j + startPosition] = buffer[j];
 						}
 						startPosition += buffer.length;
 					}
 					if (payload[p] instanceof PayloadWODUwExperiment) {
-						byte[][] buffer = ((PayloadWODUwExperiment)payload[p]).getCANPacketBytes(); 
+						byte[][] buffer = ((PayloadWODUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
 						for (int j=0; j < buffer.length; j++) {
 							allBuffers[j + startPosition] = buffer[j];
 						}

@@ -50,9 +50,9 @@ public class PcanPacket {
 	private int type;
 	@SuppressWarnings("unused") // not currently used, but might be
 	private int foxId;
-	private String createDate;
+	private Date createDate;
 	
-	public PcanPacket(String createDate, int foxid, int resets, long uptime, int type, int id, byte len, byte[] data) {
+	public PcanPacket(Date createDate, int foxid, int resets, long uptime, int type, int id, byte len, byte[] data) {
 		canId = id;
 		this.foxId = foxid;
 		this.resets = resets;
@@ -64,19 +64,19 @@ public class PcanPacket {
 			canData[i] = data[i];
 	}
 	
-	private Date parseDate(String strDate) {
-		DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
-		Date date = null;
-		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		try {
-			date = dateFormat.parse(strDate);
-		} catch (ParseException e) {
-					// We don't do anything in this case, the date will be null
-					date = null;
-		}
-
-		return date;
-	}
+//	private Date parseDate(String strDate) {
+//		DateFormat dateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+//		Date date = null;
+//		dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+//		try {
+//			date = dateFormat.parse(strDate);
+//		} catch (ParseException e) {
+//					// We don't do anything in this case, the date will be null
+//					date = null;
+//		}
+//
+//		return date;
+//	}
 	
 	/**
 	 * Get a set of bytes in Big Endian order that conform to the PCAN layout
@@ -103,8 +103,8 @@ public class PcanPacket {
 		//for (int i=0; i<tag.length; i++) 
 		//	buffer[4+i] = tag[i];
 				
-		Date dt = parseDate(createDate);
-		long date_long = dt.getTime();
+		//Date dt = parseDate(createDate);
+		long date_long = createDate.getTime();
 		byte[] timeBytes = Decoder.bigEndian8(date_long); 
 		
 		// For some reason the spec wants the 4 low bytes of the timestamp first, even though it specifies big endian order overall

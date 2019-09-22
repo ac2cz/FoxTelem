@@ -14,6 +14,14 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DateFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
+import java.util.TimeZone;
+
 import common.Log;
 import telemetry.FramePart;
 import telemetry.HighSpeedFrame;
@@ -101,6 +109,9 @@ public class StreamProcess implements Runnable {
 		}
 	}
 	
+	public static final DateFormat dateFormat = new SimpleDateFormat(
+			"yyyyMMddHHmmss", Locale.ENGLISH);
+	
 	private void streamTelemetry(String user, String pass, int sat, OutputStream out) throws SQLException  {
 		boolean streaming=true;
 
@@ -125,7 +136,7 @@ public class StreamProcess implements Runnable {
 					// we send everything or everything since last connection
 					lastPktId = payloadDbStore.getLastCanId(sat, user);
 				}
-
+			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 			while (streaming) {
 				
 				String where = "where pkt_id > '" + lastPktId + "'";
@@ -135,7 +146,14 @@ public class StreamProcess implements Runnable {
 				int prevPktId = lastPktId;
 				int count=0;
 				for (FramePart can : canPacketsList) {
-					PcanPacket pc = ((CanPacket)can).getPCanPacket();
+					Date captureDate;
+					try {
+						captureDate = dateFormat.parse(can.getCaptureDate());
+					} catch (ParseException e) {
+						Log.println("ERROR: Could not parse captureDate.  Setting to current time: " + can.id + " "+ can.resets + ":" + can.uptime +" " + can.getType());
+						captureDate = Calendar.getInstance().getTime(); // this is really worst case.  NULL might have been better
+					}
+					PcanPacket pc = ((CanPacket)can).getPCanPacket(captureDate);
 					byte[] bytes = pc.getBytes();
 					try {
 						out.write(bytes);  // This does not fail if the socket closed.  It fails on the write after that!

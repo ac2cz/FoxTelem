@@ -103,7 +103,7 @@ public abstract class Frame implements Comparable<Frame> {
 	public String rx_location = NONE; // the lat, long and altitude
 	public String receiver_rf = NONE; // human description of the receiver
 	public String demodulator; // will contain Config.VERSION
-	private Date stpDate;
+	protected Date stpDate;
 	public long sequenceNumber = Sequence.ERROR_NUMBER;
 
 	private String measuredTCA = NONE; // time of TCA

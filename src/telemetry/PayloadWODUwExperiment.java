@@ -1,6 +1,7 @@
 package telemetry;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.StringTokenizer;
 
 import common.Config;
@@ -158,8 +159,8 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 		return s;
 	}
 	
-	public byte[][] getCANPacketBytes() {
-		return PayloadUwExperiment.getCANPacketBytes(canPackets);
+	public byte[][] getCANPacketBytes(Date createDate) {
+		return PayloadUwExperiment.getCANPacketBytes(canPackets, createDate);
 	}
 
 }

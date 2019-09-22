@@ -2,6 +2,7 @@ package telemetry.uw;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Date;
 import java.util.StringTokenizer;
 
 import common.Config;
@@ -230,14 +231,14 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		return s;
 	}
 	
-	public PcanPacket getPCanPacket() {
+	public PcanPacket getPCanPacket(Date createDate) {
 		copyBitsToFields();
 		if (!isValid()) return null;
 		byte[] data = new byte[getLength()];
 		for (int i=0; i<getLength(); i++)
 			data[i] = (byte) fieldValue[i+this.ID_BYTES]; // skips the id fields
 		
-		PcanPacket pcan = new PcanPacket(reportDate, id, resets, uptime, type, canId, (byte)getLength(), data);
+		PcanPacket pcan = new PcanPacket(createDate, id, resets, uptime, type, canId, (byte)getLength(), data);
 		return pcan;
 	}
 	
