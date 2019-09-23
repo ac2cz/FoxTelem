@@ -125,24 +125,36 @@ import telemetry.PayloadWODUwExperiment;
 				 * This is the start of the section that deals with FRAMES defined in the Frames LAYOUT
 				 * STILL TO BE CODED.  CURRENTLY STUCK WITH EXACTLY 6 PAYLOADS EQUAL LENGTH....
 				 */
-			} else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")) {
-				payload[0].addNext8Bits(b);
-			} else if (frameLayout.getBoolean("canPacketFrame") && numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*6)
-				payload[0].addNext8Bits(b);
-			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*2)
-				payload[1].addNext8Bits(b);
-			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*3)
-				payload[2].addNext8Bits(b);
-			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*4)
-				payload[3].addNext8Bits(b);
-			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*5)
-				payload[4].addNext8Bits(b);
-			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*6)
-				payload[5].addNext8Bits(b);
-			else if (numberBytesAdded < FoxBPSKBitStream.FRAME_LENGTH) 
-				;//trailer.addNext8Bits(b); //FEC ;
-			else
-				Log.println("ERROR: attempt to add byte past end of frame");
+				
+			} else {
+				// try to add the byte to a payload, step through each of them
+				int maxByte = MAX_HEADER_SIZE;
+				int minByte = MAX_HEADER_SIZE;
+				for (int p=0; p < frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); p++) {
+					maxByte += frameLayout.getInt("payload"+p+".length");
+					if (numberBytesAdded >= minByte && numberBytesAdded < maxByte) {
+						payload[p].addNext8Bits(b);
+					}
+					minByte += frameLayout.getInt("payload"+p+".length");
+				}
+			}
+				
+//			} else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")) {
+//				payload[0].addNext8Bits(b);
+//			} else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*2)
+//				payload[1].addNext8Bits(b);
+//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*3)
+//				payload[2].addNext8Bits(b);
+//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*4)
+//				payload[3].addNext8Bits(b);
+//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*5)
+//				payload[4].addNext8Bits(b);
+//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*6)
+//				payload[5].addNext8Bits(b);
+//			else if (numberBytesAdded < FoxBPSKBitStream.FRAME_LENGTH) 
+//				;//trailer.addNext8Bits(b); //FEC ;
+//			else
+//				Log.println("ERROR: attempt to add byte past end of frame");
 
 //			if (Config.debugBytes) {
 //				if ((numberBytesAdded - MAX_HEADER_SIZE) % PAYLOAD_SIZE == 0)
@@ -162,8 +174,6 @@ import telemetry.PayloadWODUwExperiment;
 				payload[i] = (FoxFramePart) FramePart.makePayload(header, layout);
 			}
 		}
-		
-		
 		
 		/**
 		 *  Here is how the frames are defined in the IHU for Husky:

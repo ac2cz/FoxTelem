@@ -1,4 +1,5 @@
 name,priority,id,#NAME?,msp_cat,gnd_health,#NAME?,#NAME?,data_length,senders,description,added to dbc
+mode,18,730,0x2DA,cat_none,gnd_none,302252858,0x1204033a,1,com_1,Mode that COM_1 is in,yes
 sync_1,0,17,0x011,cat_brd,gnd_health,6357009,0x00610011,0,ppt,Sync1 Pulse (Every 2 seconds),yes
 bdot_tumble_status,18,32,0x020,cat_adcs,gnd_health,308740128,0x12670020,1,-,Whether the BDot is tumbling,yes
 dist_solar_deploy,2,20,0x014,,,33554452,0x02000014,0,-,Command to deploy the solar panels,descoped
