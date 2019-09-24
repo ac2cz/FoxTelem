@@ -484,7 +484,9 @@ public class SourceIQ extends SourceAudio {
 	int decimateCount = 0;
 	double[] in ;
 	double[] in2 ;
+	double pfValue, pfValue2;
 
+	double iMixNco, qMixNco;
 	/**
 	 * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
 	 * @param fcdData
@@ -496,7 +498,7 @@ public class SourceIQ extends SourceAudio {
 		
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
-			double id, qd;
+			//double id, qd;
 
 			id = fcdData[j];
 			qd = fcdData[j+1];
@@ -507,18 +509,18 @@ public class SourceIQ extends SourceAudio {
 			c = nco.nextSample();
 			c.normalize();
 			// Mix 
-			double iMix = gain*id * c.geti() + gain*qd*c.getq();
-			double qMix = gain*qd * c.geti() - gain*id*c.getq();
+			iMixNco = gain*id * c.geti() + gain*qd*c.getq();
+			qMixNco = gain*qd * c.geti() - gain*id*c.getq();
 
-			in[decimateCount] = iMix;
-			in2[decimateCount] = qMix;
+			in[decimateCount] = iMixNco;
+			in2[decimateCount] = qMixNco;
 			
 			decimateCount++;
 			if (decimateCount == decimationFactor) {
 				decimateCount = 0;
-				double value = polyFilter.filterDouble(in);
-				double value2 = polyFilter2.filterDouble(in2);
-				audioData[j/(2*decimationFactor)] = fm.demodulate(value, value2);
+				pfValue = polyFilter.filterDouble(in);
+				pfValue2 = polyFilter2.filterDouble(in2);
+				audioData[j/(2*decimationFactor)] = fm.demodulate(pfValue, pfValue2);
 			}
 			
 			// i and q go into consecutive spaces in the complex FFT data input
@@ -552,7 +554,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 		sumLockLevel = 0;
 		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
 		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
-			double id, qd;
+			//double id, qd;
 
 			id = fcdData[j];
 			qd = fcdData[j+1];
@@ -613,6 +615,7 @@ protected double[] processPSKBytes(double[] fcdData) {
 		return audioData; 
 	}
 
+double id, qd;
 /**
  * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
  * We cache the read bytes in case we need to adjust for the clock
@@ -633,7 +636,7 @@ protected double[] processBytes(double[] fcdData) {
 	
 	// DC Filter the incoming data
 	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
-		double id, qd;
+		
 		id = fcdData[j];
 		qd = fcdData[j+1];
 		// filter out any DC from I/Q signals
@@ -769,6 +772,7 @@ protected double[] processBytes(double[] fcdData) {
 		return avg;
 	}
 	
+	int overlapLength;
 	private void inverseFFT(double[] fftData) {
 		fft.complexInverse(fftData, true); // true means apply scaling - but it does not work?
 	
@@ -777,7 +781,7 @@ protected double[] processBytes(double[] fcdData) {
 		// We request samplesToRead bytes from the source
 		// That data becomes 2 iq samples
 
-		int overlapLength = filterWidth*2; // te amount of overlap we need is equal to the length of the filter
+		overlapLength = filterWidth*2; // te amount of overlap we need is equal to the length of the filter
 		overlapLength = 0;
 			
 		for (int o=0; o < overlapLength; o++) {
@@ -1267,9 +1271,10 @@ protected double[] processBytes(double[] fcdData) {
 		return iMix + qMix;
 	}
 	
+	double psk = 0.0;
 	private double pskDemod(double i, double q, int sample) {
 		ssbOffset = 0;
-		double psk = costasLoop(i, q, sample);
+		psk = costasLoop(i, q, sample);
 		if (this.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
 			
 			// only scan if we have a signal, but any signal in the sat band triggers this
@@ -1327,9 +1332,10 @@ protected double[] processBytes(double[] fcdData) {
 	public double getError() { return error; }
 	public double getCostasFrequency() { return costasLoopFreq; }
 	
-	Complex c;
+	Complex c = new Complex(0,0);
+	double lockGain = 1;
 	private double costasLoop(double i, double q, int sample) {
-		c = nco.nextSample();
+		nco.nextSample(c);
 		c.normalize();
 		// Mix 
 		iMix = i * c.geti() + q*c.getq();
@@ -1342,7 +1348,7 @@ protected double[] processBytes(double[] fcdData) {
 		phasorData[2*sample+1] = fq*5;
 
 
-		double lockGain = gain;
+		lockGain = gain;
 		if (lockGain < 1) lockGain = 1;
 		ri = SourceIQ.fullwaveRectify(fi*lockGain);
 		rq = SourceIQ.fullwaveRectify(fq*lockGain);

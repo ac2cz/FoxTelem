@@ -22,6 +22,19 @@ public class ComplexOscillator {
 		return c;
 	}
 	
+	/**
+	 * Pass by reference example to avoid new in audio loop
+	 * @param c
+	 * @return
+	 */
+	public Complex nextSample(Complex c) {
+		double i = cosOsc.nextSample();
+		double q = sinOsc.nextSample();
+		c.i = i;
+		c.q = q;
+		return c;
+	}
+	
 	public void changePhase(double phaseIncrement) {
 		cosOsc.changePhase(phaseIncrement);
 		sinOsc.changePhase(phaseIncrement);

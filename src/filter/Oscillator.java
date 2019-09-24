@@ -97,11 +97,13 @@ public abstract class Oscillator {
 	public double getPhaseIncrement() {
 		return phaseIncrement;
 	}
-	
+
+	// avoid memory alloc in audio loop
+	double value = 0; 
+	int idx = 0;
 	public double nextSample() {
-		double value = 0;
 		incPhase(phaseIncrement);
-		int idx = ((int)((phase * (double)TABLE_SIZE/(2 * Math.PI))))%TABLE_SIZE;
+		idx = ((int)((phase * (double)TABLE_SIZE/(2 * Math.PI))))%TABLE_SIZE;
 		if (idx < 0 || idx > sinTable.length)
 			;//System.err.println("NEG IDX ERROR: " + idx + " phase:" + phase + " inc:"+phaseIncrement);
 		else
