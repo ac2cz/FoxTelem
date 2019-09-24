@@ -97,7 +97,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
 	public static final int CONVERT_JAVA_DATE = 33;
-	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
+	public static final int CONVERT_ICR_SW_COMMAND_COUNT = 34;
 	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
 	public static final int CONVERT_WOD_STORED = 36;
 	public static final int CONVERT_LT_TXRX_TEMP = 37;

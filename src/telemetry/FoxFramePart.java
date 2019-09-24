@@ -371,8 +371,8 @@ longer send telemetry.
 			s = softErrorStringFox1A(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
 			s = softErrorString84488(getRawValue(name), true);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
-			Log.errorDialog("ERROR", "CONVERSION 34 - ICR COMMAND COUNT is Unused");; //s = icrCommandCount(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT) {
+			s = icrSwCommandCount(getRawValue(name), true);	
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
 			s = icrDiagnosticString(getRawValue(name), true);	
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
@@ -498,7 +498,7 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_SOFT_ERROR_84488:
 			return rawValue;
-		case BitArrayLayout.CONVERT_ICR_COMMAND_COUNT:
+		case BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT:
 			return rawValue;
 		case BitArrayLayout.CONVERT_ICR_DIAGNOSTIC:
 			return rawValue;
@@ -888,24 +888,37 @@ longer send telemetry.
 		return s;
 	}
 	
+	public static String icrSwCommandCount(int rawValue, boolean shortString) {
+		String s = new String();
+		
+		// 1 bit for Reply Time Checking bit
+		int timeMarker = (rawValue) & 0x1;
+					
+		// 11 MSBs are software command number
+		int softwareCmds = (rawValue >> 1) & 0xfff;
+
+		if (shortString)
+			s = s + " rtc:" + timeMarker 
+					+ " sw:" + softwareCmds;
+		else
+			s = s + " Reply Time Checking: " + timeMarker
+			+ " SW Cmds: " + softwareCmds;
+
+		return s;
+	}
+	
 	public static String icrCommandCount(int rawValue, boolean shortString) {
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
 			// First 12 bits are the hardware commands 
 			int hardwareCmds = rawValue & 0xfff ;
 
-			// 1 bit for Reply Time Checking bit
-			int timeMarker = (rawValue >> 12) & 0x1;
-			
-			// 11 MSBs are software command number
-			int softwareCmds = (rawValue >> 13) & 0xfff;
+			String swCmds = icrSwCommandCount((rawValue >> 12) & 0xfff, shortString);
 			
 			if (shortString)
-				s = s + "hw:" + hardwareCmds + " rtc:" + timeMarker 
-						+ "sw:" + softwareCmds;
+				s = s + "hw:" + hardwareCmds + swCmds;
 			else
-				s = s + "HW Cmds: " + hardwareCmds  + " Reply Time Checking: " + timeMarker
-				+ " SW Cmds: " + softwareCmds;
+				s = s + "HW Cmds: " + hardwareCmds  + swCmds;
 		}
 		return s;
 		}

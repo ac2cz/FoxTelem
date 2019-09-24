@@ -51,4 +51,4 @@
 49,wodSpecificDownlink,I2CfailureRF,1,-,17,Computer Hardware,3,4,0,RF I2C,RF I2C Bus failure indicator
 50,wodSpecificDownlink,WodCRCError,1,-,1,Spacecraft Status,4,8,0,CRC Error,CRC Error on this WOD entry
 51,wodSpecificDownlink,hwCmdCnt,6,-,1,Command Receiver (ICR),6,4,0,HW Command Count,Number of hardware commands since last reset
-52,wodSpecificDownlink,swCmdCnt,6,-,1,Command Receiver (ICR),6,5,0,SW Command Count,Number of software commands since last reset
+52,wodSpecificDownlink,swCmdCnt,6,-,34,Command Receiver (ICR),6,5,0,SW Command Count,Number of software commands since last reset
