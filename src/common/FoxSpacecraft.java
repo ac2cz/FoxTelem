@@ -584,7 +584,7 @@ public class FoxSpacecraft extends Spacecraft{
 
 	public String toString() {
 
-		return this.user_name; //"Fox-" + getIdString();
+		return this.user_display_name; //"Fox-" + getIdString();
 
 	}
 }

@@ -128,8 +128,8 @@ public class SatelliteManager implements Runnable {
 							Date targetDate = new Date(targetFile.lastModified());
 							Date masterDate = new Date(listOfFiles[i].lastModified());
 							int n = Log.optionYNdialog("Overwrite Existing spacecraft config file",
-									"There is a newer spacecraft file available in the installation directory. Do you want to replace your local file?\n"
-									+ "The local file contains any changes you have made to the spacecraft, such as Freqency Bounds.\n"
+									"There is a newer spacecraft file available in the installation directory. You should replace your local file.\n"
+									+ "Local changes you have made to the spacecraft, such as Freqency Bounds, will be preserved.\n"
 									+ "Existing File ("+targetDate+"): " + targetFile.getPath() +"\nwill be replaced with\n"
 									+ "Master Copy ("+masterDate+"): " + listOfFiles[i].getPath());
 										
@@ -299,17 +299,17 @@ public class SatelliteManager implements Runnable {
 		return s.hasHerci();
 	}
 
-	public boolean haveSpacecraft(String name) {
+	public boolean haveSpacecraftDisplayName(String name) {
 		for (int i=0; i < spacecraftList.size(); i++) {
-			if (spacecraftList.get(i).user_name.equalsIgnoreCase(name))
+			if (spacecraftList.get(i).user_display_name.equalsIgnoreCase(name))
 				return true;
 		}
 		return false;
 	}
 	
-	public Spacecraft getSpacecraftByName(String name) {
+	public Spacecraft getSpacecraftByKepsName(String name) {
 		for (int i=0; i < spacecraftList.size(); i++) {
-			if (spacecraftList.get(i).user_name.equalsIgnoreCase(name))
+			if (spacecraftList.get(i).user_keps_name.equalsIgnoreCase(name))
 				return spacecraftList.get(i);
 		}
 		return null;
@@ -466,7 +466,7 @@ public class SatelliteManager implements Runnable {
 			is.close();
 			for (FoxTLE ftle : tles) {
 				String name = ftle.getName();
-				Spacecraft spacecraft = this.getSpacecraftByName(name);
+				Spacecraft spacecraft = this.getSpacecraftByKepsName(name);
 				if (spacecraft != null) {
 					Log.println("Stored TLE for: " + name);
 					spacecraft.addTLE(ftle);
@@ -517,7 +517,7 @@ public class SatelliteManager implements Runnable {
 								sat.save();
 								Log.errorDialog("MISSING GROUND STATION", "FoxTelem is configured to calculate the spacecraft position, but your ground station\n"
 										+ "is not defined.  Go to the settings tab and setup the ground station position or turn of calculation of the spacecraft position.\n"
-										+ "Tracking will be disabled for " + sat.user_name + ".");
+										+ "Tracking will be disabled for " + sat.user_display_name + ".");
 								sat.satPos = null;
 							} else {
 								try {

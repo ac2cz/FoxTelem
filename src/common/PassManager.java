@@ -702,7 +702,7 @@ public class PassManager implements Runnable {
 												// we need to retune as the sat is outside the current band
 												double newCenterFreq = sat.user_telemetryDownlinkFreqkHz - 0.25 * range / 1000;
 												//if (Config.debugSignalFinder)
-												Log.println("Retuning for "+ sat.user_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+												Log.println("Retuning for "+ sat.user_display_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
 												Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
 											}
 											// If the mode is wrong we should switch modes
@@ -789,7 +789,7 @@ public class PassManager implements Runnable {
 			if (connected) {
 				satString = satPC.satellite;
 				//Log.println("SATPC32: " + satString);
-				if (satString != null && satString.equalsIgnoreCase(sat.user_name)) {
+				if (satString != null && satString.equalsIgnoreCase(sat.user_keps_name)) {
 					return true;
 				}
 			}

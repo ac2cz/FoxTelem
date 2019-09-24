@@ -19,6 +19,7 @@ layout5.parentLayout=radtelemetry
 lookupTable0.filename=FOX1D_rssiFM.tab
 layout1.filename=FOX1D_maxtelemetry.csv
 name=AO-92
+displayName=AO-92
 layout6.filename=FOX1D_hshercitelemetry.csv
 description=Fox-1D is a 1U CubeSat with U/v and L/v FM transponders and experiments onboard from the Penn State University, Rochester Institute of Technology, University of Iowa and Virginia Tech
 numberOfLayouts=9

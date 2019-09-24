@@ -64,6 +64,7 @@ import common.FoxSpacecraft;
 public class SpacecraftFrame extends JDialog implements ItemListener, ActionListener, FocusListener, WindowListener {
 
 	private final JPanel contentPanel = new JPanel();
+	JTextField displayName;
 	JTextField name;
 	JComboBox<String> priority;
 	JTextField telemetryDownlinkFreqkHz;
@@ -118,20 +119,31 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	private void addFields() {
 		JPanel titlePanel = new JPanel();
 		contentPanel.add(titlePanel, BorderLayout.NORTH);
-		titlePanel.setLayout(new FlowLayout(FlowLayout.LEFT));
+		titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
+		
+		JPanel titlePanel1 = new JPanel();
+		titlePanel.add(titlePanel1, BorderLayout.NORTH);
+		titlePanel1.setLayout(new FlowLayout(FlowLayout.LEFT));
 
+		JPanel titlePanel2 = new JPanel();
+		titlePanel.add(titlePanel2, BorderLayout.NORTH);
+		titlePanel2.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
 		TitledBorder heading0 = title("Identification");
 		titlePanel.setBorder(heading0);
 
 		//JLabel lName = new JLabel("Name: " + sat.name);
-		name = addSettingsRow(titlePanel, 15, "Name", 
-				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.user_name);
-		titlePanel.add(name);
+		name = addSettingsRow(titlePanel1, 8, "Name (for Keps)", 
+				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.user_keps_name);
+		titlePanel1.add(name);
+		displayName = addSettingsRow(titlePanel2, 15, "Display Name", 
+				"This name is use used as a label on Graphs and Tabs", ""+sat.user_display_name);
+		titlePanel2.add(displayName);
 		JLabel lId = new JLabel("     ID: " + sat.foxId);
-		titlePanel.add(lId);
+		titlePanel1.add(lId);
 
 		JLabel lblPriority = new JLabel("    Priority");
-		titlePanel.add(lblPriority);
+		titlePanel1.add(lblPriority);
 		String tip = "The highest priority spacecraft is tracked if more than one is above the horizon";
 		lblPriority.setToolTipText(tip);
 		String[] nums = new String[20];
@@ -139,7 +151,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 			nums[i] = ""+i;
 		priority = new JComboBox<String>(nums); 
 		priority.setSelectedIndex(sat.user_priority);
-		titlePanel.add(priority);
+		titlePanel1.add(priority);
 
 		// Left Column - Fixed Params that can not be changed
 		JPanel leftPanel = new JPanel();
@@ -396,6 +408,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		lblDisplayModuleFont.setToolTipText(tip);
 		panel.add(lblDisplayModuleFont);
 		JTextField textField = new JTextField(value);
+		textField.setToolTipText(tip);
 		panel.add(textField);
 		textField.setColumns(length);
 		textField.addActionListener(this);
@@ -490,8 +503,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
 				}
-				if (!sat.user_name.equalsIgnoreCase(name.getText())) {
-					sat.user_name = name.getText();
+				if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
+					sat.user_keps_name = name.getText();
+				}
+				if (!sat.user_display_name.equalsIgnoreCase(displayName.getText())) {
+					sat.user_display_name = displayName.getText();
+					rebuildMenu = true;
 					refreshTabs = true;
 				}
 				int pri = 99;

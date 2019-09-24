@@ -690,12 +690,12 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private void calcTitle() {
 		//BitArrayLayout layout = getLayout(payloadType);
 		if (!(plotType == SKY_PLOT) && (fieldName.length > 1 || fieldName2 != null))
-			displayTitle = fox.user_name;
+			displayTitle = fox.user_display_name;
 		else {
 			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
 			if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
 					payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
-				displayTitle = fox.user_name + " " + displayTitle;
+				displayTitle = fox.user_display_name + " " + displayTitle;
 			if (conversionType == BitArrayLayout.CONVERT_FREQ) {
 				int freqOffset = (int) fox.user_telemetryDownlinkFreqkHz;
 				displayTitle = title + " delta from " + freqOffset + " kHz";

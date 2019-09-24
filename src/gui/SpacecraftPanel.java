@@ -56,7 +56,7 @@ public class SpacecraftPanel extends JPanel {
 	
 	public SpacecraftPanel(Spacecraft s) {
 		fox = s;
-		JLabel title = new JLabel(fox.user_name);
+		JLabel title = new JLabel(fox.user_display_name);
 		add(title);
 	}
 }

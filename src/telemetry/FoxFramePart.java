@@ -8,6 +8,7 @@ import java.util.TimeZone;
 
 import common.Spacecraft;
 import common.FoxSpacecraft;
+import common.Log;
 import decoder.FoxBitStream;
 import gui.GraphPanel;
 
@@ -371,7 +372,7 @@ longer send telemetry.
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
 			s = softErrorString84488(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
-			s = icrCommandCount(getRawValue(name), true);
+			Log.errorDialog("ERROR", "CONVERSION 34 - ICR COMMAND COUNT is Unused");; //s = icrCommandCount(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
 			s = icrDiagnosticString(getRawValue(name), true);	
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
@@ -671,7 +672,10 @@ longer send telemetry.
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
 			if (fox.hasImprovedCommandReceiver) {
-				return icrCommandCount(value, shortString);
+				if (fox.foxId == Spacecraft.FOX1E)
+					return icrCommandCountFox1E(value, shortString);
+				else
+					return icrCommandCount(value, shortString);
 			} else {
 			if (shortString)
 				return "Count: " + value;
@@ -865,7 +869,7 @@ longer send telemetry.
 		return result;
 	}
 	
-	public static String icrCommandCount(int rawValue, boolean shortString) {
+	public static String icrCommandCountFox1E(int rawValue, boolean shortString) {
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
 			// First 8 bits are the hardware commands 
@@ -880,6 +884,28 @@ longer send telemetry.
 			else
 				s = s + "Number of Hardware Cmds: " + hardwareCmds  + " "
 				+ " Software Cmds: " + softwareCmds;
+		}
+		return s;
+	}
+	
+	public static String icrCommandCount(int rawValue, boolean shortString) {
+		String s = new String();
+		if (rawValue != ERROR_VALUE) {
+			// First 12 bits are the hardware commands 
+			int hardwareCmds = rawValue & 0xfff ;
+
+			// 1 bit for Reply Time Checking bit
+			int timeMarker = (rawValue >> 12) & 0x1;
+			
+			// 11 MSBs are software command number
+			int softwareCmds = (rawValue >> 13) & 0xfff;
+			
+			if (shortString)
+				s = s + "hw:" + hardwareCmds + " rtc:" + timeMarker 
+						+ "sw:" + softwareCmds;
+			else
+				s = s + "HW Cmds: " + hardwareCmds  + " Reply Time Checking: " + timeMarker
+				+ " SW Cmds: " + softwareCmds;
 		}
 		return s;
 		}

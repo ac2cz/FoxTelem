@@ -515,7 +515,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satRows[s] = new JPanel();
 			satRows[s].setLayout(new FlowLayout(FlowLayout.LEFT));
 			satPanel.add(satRows[s]);
-			satName[s] = new JLabel(sat.user_priority + "/"+sat.user_name + "   ");
+			satName[s] = new JLabel(sat.user_priority + "/"+sat.user_display_name + "   ");
 			satPosition[s] = new JLabel("Not Tracked");
 			if (sat.user_track) {
 				satPosition[s].setText("Tracked");

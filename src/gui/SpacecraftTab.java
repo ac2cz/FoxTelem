@@ -141,7 +141,7 @@ public class SpacecraftTab extends JPanel {
 			try {
 				addWodTab((FoxSpacecraft)sat);
 			} catch (Exception e) {
-				Log.errorDialog("Layout Failure", "Failed to setup Whole Orbit Data tab for sat: " + sat.user_name 
+				Log.errorDialog("Layout Failure", "Failed to setup Whole Orbit Data tab for sat: " + sat.user_display_name 
 						+ "\nCheck the Spacecraft.dat file and remove this layout if it is not valid");
 			}
 
@@ -152,7 +152,7 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
-					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_name 
+					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid");
 				}
 
@@ -160,7 +160,7 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addCameraTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
-					Log.errorDialog("Layout Failure", "Failed to setup VT Camera tab for sat: " + sat.user_name 
+					Log.errorDialog("Layout Failure", "Failed to setup VT Camera tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 				}
 
@@ -169,7 +169,7 @@ public class SpacecraftTab extends JPanel {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
-					Log.errorDialog("Layout Failure", "Failed to setup IOWA HERCI tabs for sat: " + sat.user_name 
+					Log.errorDialog("Layout Failure", "Failed to setup IOWA HERCI tabs for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 				}
 
@@ -178,7 +178,7 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addUwExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
-					Log.errorDialog("Layout Failure", "Failed to setup UW Experiement tab for sat: " + sat.user_name 
+					Log.errorDialog("Layout Failure", "Failed to setup UW Experiement tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 				}
 //			if (exp == FoxSpacecraft.ADAC)
@@ -193,7 +193,7 @@ public class SpacecraftTab extends JPanel {
 			try {
 			addWodRadTab((FoxSpacecraft)sat);
 			} catch (Exception e) {
-				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_name 
+				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
 						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 			}
 
@@ -202,7 +202,7 @@ public class SpacecraftTab extends JPanel {
 			try {
 			addUwWodExperimentTab((FoxSpacecraft)sat);
 			} catch (Exception e) {
-				Log.errorDialog("Layout Failure", "Failed to setup UW WOD tab for sat: " + sat.user_name 
+				Log.errorDialog("Layout Failure", "Failed to setup UW WOD tab for sat: " + sat.user_display_name 
 						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 			}
 

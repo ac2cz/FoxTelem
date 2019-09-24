@@ -2,6 +2,7 @@
 #Sun Jun 17 18:10:34 EDT 2018
 mode=4
 name=Husky
+displayName=Husky
 useIHUVBatt=false
 foxId=6
 BATTERY_CURRENT_ZERO=-1.834

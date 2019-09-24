@@ -155,7 +155,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String USER_ = "user_";
 	public Properties user_properties; // Java properties file for user defined values
 	public File userPropertiesFile;
-	public String user_name = "Fox-1A";
+	public String user_display_name = "Fox-1A";
+	public String user_keps_name = "Fox-1A";
 	public int user_priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public boolean user_track = true; // default is we track a satellite
 	public double user_telemetryDownlinkFreqkHz = 145980;
@@ -400,7 +401,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		try {
 			foxId = Integer.parseInt(getProperty("foxId"));
 			catalogNumber = Integer.parseInt(getProperty("catalogNumber"));			
-			user_name = getProperty("name");
+			user_keps_name = getProperty("name");
+			user_display_name = getProperty("displayName");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
 			mode = Integer.parseInt(getProperty("mode"));
@@ -515,7 +517,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 
 		}
 		try {
-			user_name = getUserProperty("name");
+			user_keps_name = getUserProperty("name");
 			user_telemetryDownlinkFreqkHz = Double.parseDouble(getUserProperty("telemetryDownlinkFreqkHz"));			
 			user_minFreqBoundkHz = Double.parseDouble(getUserProperty("minFreqBoundkHz"));
 			user_maxFreqBoundkHz = Double.parseDouble(getUserProperty("maxFreqBoundkHz"));
@@ -540,13 +542,20 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
+			user_display_name = getUserProperty("displayName");
 
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );
+		} catch (LayoutLoadException L) {
+			Log.errorDialog("Initialization Error for User Properties", "For: "+user_keps_name+". If this is a new Spacecraft file then new values will be initialized.");
+			save_user_params();
 		} catch (NullPointerException nf) {
-			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );		
+			//nf.printStackTrace(Log.getWriter());
+			//throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );	
+			// missing a value is OK, we must have it from the MASTER file.  It will get saved at next save.
+			Log.errorDialog("Initialization Corruption for User Properties", "For: "+user_keps_name+". If this is a new Spacecraft file then new values will be initialized.");
+			save_user_params();
 		} 
 	}
 	
@@ -660,7 +669,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	protected void save_user_params() {
 		
-		user_properties.setProperty("name", user_name);
+		user_properties.setProperty("name", user_keps_name);
+		user_properties.setProperty("displayName", user_display_name);
 		user_properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(user_telemetryDownlinkFreqkHz));
 		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
@@ -681,13 +691,13 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public String toString() {
-		return user_name;
+		return user_display_name;
 	}
 	
 	@Override
 	public int compareTo(Spacecraft s2) {
 		if (user_priority == s2.user_priority) 
-			return user_name.compareTo(s2.user_name);
+			return user_display_name.compareTo(s2.user_display_name);
 		else if (user_priority < s2.user_priority) return -1;
 		else if (user_priority > s2.user_priority) return 1;
 		return -1;

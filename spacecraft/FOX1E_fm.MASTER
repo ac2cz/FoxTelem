@@ -8,6 +8,7 @@ model=1
 mpptResistanceError=6.58
 mpptSensorOffThreshold=1600
 name=Fox-1E
+displayName=Fox-1E
 BATTERY_CURRENT_ZERO=-1.834
 hasImprovedCommandReceiver=true
 EXP1=6

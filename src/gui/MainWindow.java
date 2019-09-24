@@ -562,7 +562,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 		mntmSat = new JMenuItem[sats.size()];
 		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem(sats.get(i).user_name);
+			mntmSat[i] = new JMenuItem(sats.get(i).user_display_name);
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}
