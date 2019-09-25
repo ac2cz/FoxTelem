@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.Box;
 import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 
 import common.Config;
@@ -74,9 +75,9 @@ public class WodHealthTab extends HealthTab {
 		}
 	}
 
-	protected void displayRow(int fromRow, int row) {
-		long reset_l = (long)table.getValueAt(row, HealthTableModel.RESET_COL);
-    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+	protected void displayRow(JTable rtTable, int fromRow, int row) {
+		long reset_l = (long)rtTable.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)rtTable.getValueAt(row, HealthTableModel.UPTIME_COL);
     	int reset = (int)reset_l;
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
@@ -86,9 +87,9 @@ public class WodHealthTab extends HealthTab {
     	if (fromRow == NO_ROW_SELECTED)
     		fromRow = row;
     	if (fromRow <= row)
-    		table.setRowSelectionInterval(fromRow, row);
+    		rtTable.setRowSelectionInterval(fromRow, row);
     	else
-    		table.setRowSelectionInterval(row, fromRow);
+    		rtTable.setRowSelectionInterval(row, fromRow);
        	displayLatLong();
 	}
 	

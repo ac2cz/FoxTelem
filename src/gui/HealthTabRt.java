@@ -4,6 +4,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import javax.swing.Box;
 import javax.swing.JLabel;
+import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import common.Config;
 import common.FoxSpacecraft;
@@ -13,11 +14,7 @@ import telemetry.FoxFramePart;
 
 public class HealthTabRt extends HealthTab {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 1L;
-
 
 	public HealthTabRt(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_ALL);
@@ -52,17 +49,13 @@ public class HealthTabRt extends HealthTab {
 
 		lblMinResetsValue = addReset(topPanel2, "Min:");
 		lblMinUptimeValue = addUptime(topPanel2, "");
-		
-		
-		
-
 
 	}
 	
 	@Override
-	protected void displayRow(int fromRow, int row) {
-		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
-    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+	protected void displayRow(JTable rtTable, int fromRow, int row) {
+		long reset_l = (long) rtTable.getValueAt(row, HealthTableModel.RESET_COL);
+    	long uptime = (long)rtTable.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
@@ -78,16 +71,24 @@ public class HealthTabRt extends HealthTab {
     	if (fromRow == NO_ROW_SELECTED)
     		fromRow = row;
     	if (fromRow <= row)
-    		table.setRowSelectionInterval(fromRow, row);
+    		rtTable.setRowSelectionInterval(fromRow, row);
     	else
-    		table.setRowSelectionInterval(row, fromRow);
+    		rtTable.setRowSelectionInterval(row, fromRow);
 	}
 	
 	@Override
 	public void parseFrames() {
-		String[][] data = Config.payloadStore.getRtData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
-		if (data.length > 0) {
+		String[][] data = null;
+		
+		if (healthTableToDisplay == DISPLAY_RT)
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.REAL_TIME_LAYOUT);
+		if (healthTableToDisplay == DISPLAY_MAX)
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.MAX_LAYOUT);
+		if (healthTableToDisplay == DISPLAY_MIN)
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse, Spacecraft.MIN_LAYOUT);
+		if (data != null && data.length > 0) {
 			parseTelemetry(data);
+			displayTable();
 			MainWindow.frame.repaint();
 		}		
 	}

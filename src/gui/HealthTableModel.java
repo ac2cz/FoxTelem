@@ -10,13 +10,15 @@ public class HealthTableModel  extends AbstractTableModel {
     private long[][] data = null;
 	public static final int RESET_COL = 0;
 	public static final int UPTIME_COL = 1;
+	public static final int TYPE_COL = 2;
 
     HealthTableModel(BitArrayLayout lay) {
-		columnNames = new String[lay.fieldName.length+2];
+		columnNames = new String[lay.fieldName.length+3];
 		columnNames[RESET_COL] = "RESET";
 		columnNames[UPTIME_COL] = "UPTIME";
-		for (int k=0; k<columnNames.length-2; k++) 
-			columnNames[k+2] = lay.fieldName[k];
+		columnNames[TYPE_COL] = "TYPE";
+		for (int k=0; k<columnNames.length-3; k++) 
+			columnNames[k+3] = lay.fieldName[k];
 	}
 	
     public void setData(long[][] d) { 
