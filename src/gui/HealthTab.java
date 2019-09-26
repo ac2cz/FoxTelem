@@ -223,33 +223,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 		
-		rtBut = new JRadioButton("RT");
-		bottomPanel.add(rtBut);
-		rtBut.addActionListener(this);
-		maxBut = new JRadioButton("MAX");
-		bottomPanel.add(maxBut);
-		maxBut.addActionListener(this);
-		minBut = new JRadioButton("MIN");
-		bottomPanel.add(minBut);
-		minBut.addActionListener(this);
-		
-		ButtonGroup group = new ButtonGroup();
-		group.add(rtBut);
-		group.add(maxBut);
-		group.add(minBut);
-		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay");
-		if (healthTableToDisplay == DISPLAY_RT) {
-			rtBut.setSelected(true);
-		} else if (healthTableToDisplay == DISPLAY_MAX) {
-			maxBut.setSelected(true);
-		} else {
-			minBut.setSelected(true);
-		}
 		addBottomFilter();
-
-		// force the next labels to the right side of screen
-		
-		
+	
 		lblCaptureDate = new JLabel(CAPTURE_DATE);
 		lblCaptureDate.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 10/11)));
 		lblCaptureDate.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
@@ -425,29 +400,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	private void displayResets(JLabel lblResetsValue, int u) {
 		lblResetsValue.setText("" + u);
 	}
-	
-	/*
-	protected void displayMode(int safeMode, int scienceMode) {
-		// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
-		// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same		
-		if (realTime != null && minPayload != null && maxPayload != null) {
-			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
-				lblModeValue.setText("DATA");
-			return;
-		}
-		// Otherwise this is based on the Max/Min bits passed.  If the values are not 0/1 then we ignore
-		if (safeMode > 1 || scienceMode > 1)
-			return;
-		if (scienceMode == 1)
-			lblModeValue.setText("SCIENCE");
-		else if (safeMode == 1)
-			lblModeValue.setText("SAFE");
-		else {
-			lblModeValue.setText("TRANSPONDER");
-		}
-	}
-	*/
-	
+		
 	protected void displayMode() {
 		String mode = FoxSpacecraft.modeNames[FoxSpacecraft.SAFE_MODE];
 		if (fox.hasModeInHeader) {
@@ -547,8 +500,11 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 				if ((data[i][j]) != null)
 					if (Config.displayRawRadData)
 						tableData[data.length-i-1][j] = Long.parseLong(data[i][j]);
-					else
+					else {
+						// Run the conversion
+						
 						tableData[data.length-i-1][j] = Long.parseLong(data[i][j]);
+					}
 			}
 		}
 
@@ -613,30 +569,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	}	
 	
 	@Override
-	public void actionPerformed(ActionEvent e) {
-		super.actionPerformed(e);
-		if (e.getSource() == rtBut) {
-			healthTableToDisplay = DISPLAY_RT;
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay", healthTableToDisplay);
-      		//Log.println("RT Picked");
-      		parseFrames();
-		}
-		if (e.getSource() == maxBut) {
-			healthTableToDisplay = DISPLAY_MAX;
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay", healthTableToDisplay);
-     		//Log.println("MAX Picked");
-     		parseFrames();
-			
-		}
-		if (e.getSource() == minBut) {
-			healthTableToDisplay = DISPLAY_MIN;
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay", healthTableToDisplay);
-     		//Log.println("MIN Picked");
-     		parseFrames();
-		}
-	}
-	
-	@Override
 	public void itemStateChanged(ItemEvent e) {
 		super.itemStateChanged(e);
 		Object source = e.getItemSelectable();
@@ -666,7 +598,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 				updateTabMin(minPayload);
 			//parseFrames();
 		}
-		
 		
 	}
 	

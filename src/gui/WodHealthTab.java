@@ -95,7 +95,9 @@ public class WodHealthTab extends HealthTab {
 	
 	@Override
 	public void parseFrames() {
-		String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+		//String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+		String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.WOD_LAYOUT);
+
 		if (data.length > 0) {
 			parseTelemetry(data);
 			MainWindow.frame.repaint();

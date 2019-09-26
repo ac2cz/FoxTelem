@@ -805,7 +805,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getTableData(period, id, fromReset, fromUptime, returnType, reverse, layout);
+				return store.getTableData(period, id, fromReset, fromUptime, reverse, returnType, layout);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
