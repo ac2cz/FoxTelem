@@ -935,12 +935,12 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		for (SatPayloadStore store : payloadStore)
 			if (store != null)
 				store.offloadSegments();
-	//	for (SatPictureStore store : pictureStore)
-	//		if (store != null)
-	//			store.deleteAll();
-	//	for (SatMeasurementStore store : measurementStore)
-	//		if (store != null)
-	//			store.deleteAll();
+//		for (SatMeasurementStore store : measurementStore)
+//			if (store != null)
+//				store.offloadSegments();
+//		for (SatPictureStore store : pictureStore)
+//			if (store != null)
+//				store.offloadSegments();
 
 	}
 	
