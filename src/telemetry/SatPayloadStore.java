@@ -47,7 +47,7 @@ import common.FoxSpacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
-	private Spacecraft fox;
+	private FoxSpacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
 	//private boolean initRad2 = false;
@@ -64,7 +64,7 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
-		fox = Config.satManager.getSpacecraft(foxId);
+		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(foxId);
 		
 		try {
 			initPayloadFiles();
@@ -90,7 +90,7 @@ public class SatPayloadStore {
 	private void initPayloadFiles() throws IOException {
 		records = new SatPayloadTable[fox.numberOfLayouts];
 		for (int i=0; i<fox.numberOfLayouts; i++)
-			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name);
+			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name, fox.hasModeInHeader);
 	}
 	
 	public void setUpdatedAll() {
@@ -138,7 +138,7 @@ public class SatPayloadStore {
 	public int getNumberOfTelemFrames() { return getNumberOfFrames(Spacecraft.REAL_TIME_LAYOUT) 
 			+ getNumberOfFrames(Spacecraft.MAX_LAYOUT) +getNumberOfFrames(Spacecraft.MIN_LAYOUT); }
 	
-	public boolean add(int id, long uptime, int resets, FramePart f) throws IOException {
+	public boolean add(int id, long uptime, int resets, FramePart f) throws ArrayIndexOutOfBoundsException, IOException {
 		f.captureHeaderInfo(id, uptime, resets);
 		return add(f);
 	}
@@ -256,10 +256,17 @@ public class SatPayloadStore {
 		
 	}
 		
-	public FramePart getLatest(int id, int reset, long uptime, String layout) throws IOException {
+	public FramePart getLatest(int id, int reset, long uptime, String layout, boolean prev) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getFrame(id, uptime, reset); 
+			return records[i].getFrame(id, uptime, reset, prev); 
+		return null;
+	}
+	
+	public FramePart getLatest(int id, int reset, long uptime, int type, String layout, boolean prev) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getFrame(id, uptime, reset, type, prev); 
 		return null;
 	}
 
@@ -282,8 +289,8 @@ public class SatPayloadStore {
 		return getLatest(Spacecraft.MIN_LAYOUT);
 	}
 
-	public PayloadRadExpData getLatestRad() throws IOException {
-		return (PayloadRadExpData) getLatest(Spacecraft.RAD_LAYOUT);
+	public FoxFramePart getLatestRad() throws IOException {
+		return (FoxFramePart) getLatest(Spacecraft.RAD_LAYOUT);
 	}
 
 	public RadiationTelemetry getLatestRadTelem() throws IOException {
@@ -296,7 +303,7 @@ public class SatPayloadStore {
 			return getLatestRadTelem();
 		int i = fox.getLayoutIdxByName(Spacecraft.RAD2_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return (RadiationTelemetry) records[i].getFrame(id, uptime, resets);
+			return (RadiationTelemetry) records[i].getFrame(id, uptime, resets, false);
 		return null;
 	}
 
@@ -415,6 +422,14 @@ public class SatPayloadStore {
 		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_RAD2_LAYOUT);
 	}
 	
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		BitArrayLayout l = fox.getLayoutByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, l.fieldName.length, returnType, reverse);
+		return null;	
+	}
+	
 	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout) throws IOException {
 		int i = fox.getLayoutIdxByName(layout);
 		BitArrayLayout l = fox.getLayoutByName(layout);
@@ -447,10 +462,17 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse) throws IOException {
 		int i = fox.getLayoutIdxByName(Spacecraft.HERCI_HS_PKT_LAYOUT);
 		if (i != Spacecraft.ERROR_IDX)
-			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH, reverse); // FIXME - LENGTH NOT CORECT
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, MAX_HERCI_PACKET_DATA_LENGTH, type, reverse); // FIXME - LENGTH NOT CORECT
+		return null;
+	}
+	
+	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
+		int i = fox.getLayoutIdxByName(Spacecraft.HERCI_HS_LAYOUT);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getPayloadData(period, id, fromReset, fromUptime, PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE, true, reverse); 
 		return null;
 	}
 

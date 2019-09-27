@@ -16,8 +16,10 @@ import java.util.StringTokenizer;
 import javax.swing.JOptionPane;
 
 import telemetry.PayloadStore;
+import telemetry.SatPayloadTable;
 import common.Config;
 import common.Log;
+import common.Spacecraft;
 import common.FoxSpacecraft;
 
 /**
@@ -306,10 +308,12 @@ public class SatMeasurementStore {
         	n.printStackTrace(Log.getWriter());
         } catch (NoSuchElementException n) {
         	// File is corrupt, so better tell the user
-        	Log.errorDialog("FATAL: CORRUPT FILE", "Can not load logfile, it appears to be corrupt.  You need to fix or remove the file for FoxTelem to load\n"
-        			+ "Log: " + log);
+        	//Log.errorDialog("FATAL: CORRUPT FILE", "Can not load logfile, it appears to be corrupt.  You need to fix or remove the file for FoxTelem to load\n" + "Log: " + log);
         	n.printStackTrace(Log.getWriter());
-        	System.exit(1);
+        	Log.errorDialog("ERROR: Corrupted record", 
+        			"Can not load logfile, it appears to be corrupt. If this is test data \nuse File>Delete Payloads once FoxTelem has started" +
+					"\nThis record will be ignored.");
+			// we are done and can finish
         } finally {
         	try {
 				dis.close();
@@ -330,14 +334,22 @@ public class SatMeasurementStore {
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 		} 
+		boolean appendNewLine = false;
 		File aFile = new File(log );
 		if(!aFile.exists()){
 			aFile.createNewFile();
+		} else {
+			// the file was not new, so check to see if the last written line finsihed correctly, otherwise clean it up.
+			if (!SatPayloadTable.newLineExists(log) ) {
+				appendNewLine = true;
+			}
 		}
 		//Log.println("Saving: " + log);
 		//use buffering and append to the existing file
 		Writer output = new BufferedWriter(new FileWriter(aFile, true));
 		try {
+			if (appendNewLine)
+				output.write( "\n" );
 			if (measurement instanceof RtMeasurement)
 				output.write( ((RtMeasurement)measurement).toFile() + "\n" );		
 			else
@@ -347,8 +359,7 @@ public class SatMeasurementStore {
 			// Make sure it is closed even if we hit an error
 			output.flush();
 			output.close();
-		}
-		
+		}	
 	}
 
 	/**
@@ -413,10 +424,11 @@ public class SatMeasurementStore {
 		} 
         String oldlog = "Fox"+foxId+OLD_PASS_LOG;
         String log = "Fox"+foxId+PASS_LOG;
-		Log.println("CONVERTING " + oldlog + " to " + log);
+		
 		File aFile = new File(dir + oldlog );
 		if(aFile.exists()){
 			// then convert it
+			Log.println("CONVERTING " + oldlog + " to " + log);
 			load(oldlog, true);
 			Log.println("Loaded: " + this.passRecords.size() + " records");
 			for(Measurement m: this.passRecords) {
@@ -424,6 +436,26 @@ public class SatMeasurementStore {
 				save(p,log);	
 			}
 		}
+	}
+
+	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		if (payloadType == Spacecraft.MEASUREMENTS) {
+			try {
+				return rtRecords.getNumberOfPayloadsBetweenTimestamps(reset, uptime, toReset, toUptime);
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+				return 0;
+			} 
+		}
+		else if (payloadType == Spacecraft.PASS_MEASUREMENTS){
+			try {
+				return passRecords.getNumberOfPayloadsBetweenTimestamps(reset, uptime, toReset, toUptime);
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+				return 0;
+			} 
+		}
+		return 0;
 	}
 	
 }

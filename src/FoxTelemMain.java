@@ -7,8 +7,6 @@ import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
@@ -513,12 +511,26 @@ public class FoxTelemMain {
 	static String seriousErrorMsg;
 	static String logFileDir = null;
 	
+	static int REQUIRED_JAVA_VERSION = 8;
+	
 	public static void main(String[] args) {
+		try {
+			String javaVersion = System.getProperty("java.specification.version");
+			int release = Integer.parseInt(javaVersion.split("\\.")[1]);  // need to escape the period and take the second part
+			if (release < REQUIRED_JAVA_VERSION) {
+				Log.errorDialog("Java Version Error", "FoxTelem needs Java Version "+REQUIRED_JAVA_VERSION+" or higher.  You are using Java Version: " + release  +"\n"
+						+ "Please install a later version of Java.");
+				System.exit(1);
+			}
+		} catch (Exception e) {
+			; // Failure to check the version is not fatal.  Ignore and hope the user got it right
+		}
+		
 		ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, "Initializing AMSAT FoxTelem, please wait ...", false);
 		initProgress.setVisible(true);
 		int arg = 0;
 		while (arg < args.length) {
-			if (args[arg].startsWith("-") || args[arg].startsWith("/")) { // this is a switch
+			if (args[arg].startsWith("-")) { // this is a switch
 			if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("-help")) || (args[arg].equalsIgnoreCase("--help"))) {
 				System.out.println(HELP);
 				System.exit(0);
@@ -602,6 +614,7 @@ public class FoxTelemMain {
 		
 	}
 	
+	public static Exception launchException;
 	/**
 	 * Start the GUI
 	 */
@@ -631,21 +644,24 @@ public class FoxTelemMain {
 					Config.mainWindow.setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg")));
 					Config.mainWindow.setVisible(true);
 				} catch (Exception e) {
+					launchException = e;
 					Log.println("SERIOUS ERROR - Uncaught and thrown from GUI");
 					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the spacecraft files then\n"
 							+ "try reverting to an older version, or install the standard files.  \n"
 							+ "If that does not work then you can try deleting the FoxTelem.properties\n"
 							+ "file in your home directory, in a sub directory called .FoxTelem, though this\n"
-							+ "will delete your settings\n";
+							+ "will delete your settings\n"; 
+			           
 					e.printStackTrace();
 					e.printStackTrace(Log.getWriter());
 					EventQueue.invokeLater(new Runnable() {
 				        @Override
 				        public void run(){
 				        	Frame frm = new Frame();
+				        	String stacktrace = Log.makeShortTrace(launchException.getStackTrace()); 
 				        	JOptionPane.showMessageDialog(frm,
 				        			seriousErrorMsg,
-									"SERIOUS ERROR - Uncaught and thrown from GUI",
+									"SERIOUS ERROR - Uncaught and thrown from GUI\n"+launchException.getMessage()+"\n"+stacktrace,
 									JOptionPane.ERROR_MESSAGE) ;
 				        	System.exit(99);
 							
@@ -701,11 +717,9 @@ public class FoxTelemMain {
 		}
 
 		protected void handleException(String tname, Throwable thrown) {
-			thrown.printStackTrace(Log.getWriter());
-			StringWriter sw = new StringWriter();
-			thrown.printStackTrace(new PrintWriter(sw));
-            String stacktrace = sw.toString();
-			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + "\n" + stacktrace);
+            String stacktrace = Log.makeShortTrace(thrown.getStackTrace());  
+                    
+			Log.errorDialog("SERIOUS EDT ERROR", "Exception on " + tname + ":" + thrown +"\n" + stacktrace);
 		}
 	}
 

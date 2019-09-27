@@ -1,35 +1,31 @@
 package decoder.FoxBPSK;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
+
+import javax.swing.SwingUtilities;
+
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
+import decoder.CodePRN;
 import decoder.Decoder;
-import decoder.FoxBitStream;
-import decoder.SlowSpeedBitStream;
 import decoder.SourceAudio;
 import filter.AGCFilter;
 import filter.DcRemoval;
 import gui.MainWindow;
-import telemetry.FoxFramePart;
 import telemetry.Frame;
-import telemetry.HighSpeedFrame;
-import telemetry.HighSpeedHeader;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
 
 public class FoxBPSKDecoder extends Decoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
-	public static final int SYNC_WORD_LENGTH = 15;
+//	public static final int SYNC_WORD_LENGTH = 15;
+//	public static final int SYNC_WORD_LENGTH = 31;
 	private int clockOffset = 0;
 	private double[] cosTab;
 	private double[] sinTab;
@@ -51,10 +47,9 @@ public class FoxBPSKDecoder extends Decoder {
 	@Override
 	protected void init() {
 		Log.println("Initializing 1200bps BPSK decoder: ");
-
-		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, SYNC_WORD_LENGTH);
+		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength(), BITS_PER_SECOND_1200);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
-		SAMPLE_WINDOW_LENGTH = 40;  
+		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
 
 		BUFFER_SIZE =  SAMPLE_WINDOW_LENGTH * bucketSize;
@@ -110,7 +105,7 @@ public class FoxBPSKDecoder extends Decoder {
 	protected void sampleBuckets() {
 		int maxValue = 0;
 		int minValue = 0;
-		int DESIRED_RANGE =50000;
+		int DESIRED_RANGE =60000;
 		
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int s=0; s < bucketSize; s++) {
@@ -134,6 +129,7 @@ public class FoxBPSKDecoder extends Decoder {
 			else
 				eyeData.setOffsetHigh(i, SAMPLE_WIDTH, offset);
 		}
+		
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		
 		int offset = recoverClockOffset();
@@ -142,6 +138,7 @@ public class FoxBPSKDecoder extends Decoder {
 		//	Scanner scanner = new Scanner(System.in);
 		//		System.out.println("Press enter");
 		//	String username = scanner.next();
+		
 	}
 
 
@@ -160,80 +157,74 @@ public class FoxBPSKDecoder extends Decoder {
 
 	protected double[] recoverClock(int factor) {
 
-		/*
-	    	if (clockOffset > 0) {
-	    	// There are 40 samples in a 1200bps bucket. The clock offset 
-	    		double[] clockData = new double[clockOffset];
-	    		if (Config.debugClock) Log.println("Advancing clock " + clockOffset + " samples");
-	    		int nBytesRead = read(clockData);
-	    		if (nBytesRead != (clockOffset)) {
-	    			if (Config.debugClock) Log.println("ERROR: Could not advance clock");
-	    		} else {
-	    			// This is the new clock offsest
-	    			// Reprocess the data in the current window
-	    			return clockData;
-	    		}
-	    	} else {
-	    		if (Config.debugClock) Log.println("PSK CLOCK STABLE");
-	    		return null;
-	    	}
-		 */
 		return null;
 	}
 
 	@Override
 	protected void processBitsWindow() {
 		Performance.startTimer("findSync");
-		boolean found = bitStream.findSyncMarkers(SAMPLE_WINDOW_LENGTH);
+		ArrayList<Frame> frames = bitStream.findFrames(SAMPLE_WINDOW_LENGTH);
 		Performance.endTimer("findSync");
-		if (found) {
-			processPossibleFrame();
+		if (frames != null) {
+			processPossibleFrame(frames);
 		}
 	}
 
 	private Frame decodedFrame = null;
-	/**
-	 *  THIS IS THE FOX-1A-D decode, used for TESTING ONLY.  This needs to be replaced with the routine to decode 1E frames
-	 */
-	protected void processPossibleFrame() {
+	protected void processPossibleFrame(ArrayList<Frame> frames) {
 
-		//Performance.startTimer("findFrames");
-		decodedFrame = bitStream.findFrames();
-		//Performance.endTimer("findFrames");
-		if (decodedFrame != null && !decodedFrame.corrupt) {
-			Performance.startTimer("Store");
-			// Successful frame
-			eyeData.lastErasureCount = bitStream.lastErasureNumber;
-			eyeData.lastErrorsCount = bitStream.lastErrorsNumber;
-			//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
-			if (Config.storePayloads) {
+		FoxSpacecraft sat = null;
+		for (Frame decodedFrame : frames)
+			if (decodedFrame != null && !decodedFrame.corrupt) {
+				Performance.startTimer("Store");
+				// Successful frame
+				eyeData.lastErasureCount = decodedFrame.rsErasures;
+				eyeData.lastErrorsCount = decodedFrame.rsErrors;
+				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
+				if (Config.storePayloads) {
 
-				FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-				FoxBPSKHeader header = hsf.getHeader();
-				hsf.savePayloads();;
+					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
+					FoxBPSKHeader header = hsf.getHeader();
+					sat = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader);
 
-				// Capture measurements once per payload or every 5 seconds ish
-				addMeasurements(header, decodedFrame, bitStream.lastErrorsNumber, bitStream.lastErasureNumber);
-				if (Config.autoDecodeSpeed)
-					MainWindow.inputTab.setViewDecoder2();
-
-
-			}
-			Config.totalFrames++;
-			if (Config.uploadToServer)
-				try {
-					Config.rawFrameQueue.add(decodedFrame);
-				} catch (IOException e) {
-					// Don't pop up a dialog here or the user will get one for every frame decoded.
-					// Write to the log only
-					e.printStackTrace(Log.getWriter());
+					// Capture measurements once per payload or every 5 seconds ish
+					addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 				}
-			framesDecoded++;
-			Performance.endTimer("Store");
-		} else {
-			if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
-			//clockLocked = false;
-		}
+				Config.totalFrames++;
+				if (Config.uploadToServer)
+					try {
+						Config.rawFrameQueue.add(decodedFrame);
+					} catch (IOException e) {
+						// Don't pop up a dialog here or the user will get one for every frame decoded.
+						// Write to the log only
+						e.printStackTrace(Log.getWriter());
+					}
+				if (sat != null && sat.sendToLocalServer())
+					try {
+						Config.rawPayloadQueue.add(decodedFrame);
+					} catch (IOException e) {
+						// Don't pop up a dialog here or the user will get one for every frame decoded.
+						// Write to the log only
+						e.printStackTrace(Log.getWriter());
+					}
+				framesDecoded++;
+				try {
+					SwingUtilities.invokeAndWait(new Runnable() {
+						public void run() { MainWindow.setTotalDecodes();}
+					});
+				} catch (InvocationTargetException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				} catch (InterruptedException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
+				Performance.endTimer("Store");
+			} else {
+				if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
+				//clockLocked = false;
+			}
 	}
 
 	/**
@@ -341,7 +332,7 @@ public class FoxBPSKDecoder extends Decoder {
 	private double dmBitPhase = 0.0;
 	private double[] dmLastIQ = new double[2];
 	
-	private int debugCount = 0;
+	//private int debugCount = 0;
 
 	/**
 	 * Demodulate the DBPSK signal, adjust the clock if needed to stay in sync.  Populate the bit buffer

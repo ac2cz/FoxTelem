@@ -1,4 +1,4 @@
-38,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+39,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,MIN,BATT_A_V,12,V,4,NONE,0,0,0,NONE,Battery pair A low voltage raw value (0-2.5V scale)
 1,MIN,BATT_B_V,12,V,4,NONE,0,0,0,NONE,Battery pair B low voltage raw value (0-3.3V scale)
 2,MIN,BATT_C_V,12,V,4,NONE,0,0,0,NONE,Battery pair C low voltage raw value (0-5.0V scale)
@@ -37,3 +37,4 @@
 35,MIN,SafeModeIndication,1,-,21,NONE,0,0,0,NONE,State: 1 = Safe Mode Active
 36,MIN,AutoSafeModeActive,1,-,21,NONE,0,0,0,NONE,State: 1 = Auto Safe Mode Active
 37,MIN,AutoSafeModeAllowed,1,-,21,NONE,0,0,0,NONE,State: 1 = Auto Safe Mode Allowed
+38,MIN,Pad,20,-,0,NONE,0,0,0,NONE,NONE

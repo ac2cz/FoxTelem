@@ -56,6 +56,10 @@ public abstract class BitArray {
 
 	protected BitArray(BitArrayLayout l) {
 		layout = l;
+		if (layout != null ) {
+			rawBits = new boolean[layout.getMaxNumberOfBits()];
+			fieldValue = new int[layout.NUMBER_OF_FIELDS];
+		}
 	}
 	
 	public boolean hasFieldName(String name) {
@@ -98,7 +102,7 @@ public abstract class BitArray {
 		if (rawBits != null) { // only convert if we actually have a raw binary array.  Otherwise this was loaded from a file and we do not want to convert
 			resetBitPosition();
 			for (int i=0; i < layout.fieldName.length; i++) {
-				if (layout.fieldName[i].startsWith(PAD)) {  // ignore pad values and set the results to zero
+				if (layout.fieldName[i] == null || layout.fieldName[i].startsWith(PAD)) {  // ignore pad values and set the results to zero
 					nextbits(layout.fieldBitLength[i]);
 					fieldValue[i] = 0;
 				} else

@@ -1,0 +1,11 @@
+10,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,sun_valid,8,-,0,rc_adcs_sp_14,1,1,0,sun_valid,Sum of last 255 processed sun sensor valid bits,
+5,CAN,sunb_avg,16,60/32767º,0,rc_adcs_sp_14,1,2,0,sunb_avg,Average beta value from the sun sensor,
+6,CAN,sunb_max,16,60/32767º,0,rc_adcs_sp_14,1,3,0,sunb_max,Maximum beta value from the sun sensor,
+7,CAN,sunb_min,16,60/32767º,0,rc_adcs_sp_14,1,4,0,sunb_min,Minimum beta value from the sun sensor,
+8,CAN,rc_adcs_sp_6_mag1_valid,8,-,0,rc_adcs_sp_14,1,5,0,rc_adcs_sp_6_mag1_valid,Sum of last 255 processed mag valid bits,
+9,CAN,rc_adcs_sp_6_mag2_valid,8,-,0,rc_adcs_sp_14,1,6,0,rc_adcs_sp_6_mag2_valid,Sum of last 255 processed mag valid bits,

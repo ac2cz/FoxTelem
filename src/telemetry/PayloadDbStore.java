@@ -4,17 +4,16 @@ import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
+import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -57,16 +56,14 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	//private List<FramePart> payloadQueue;
 	
-	protected Connection derby;
+	public Connection derby;
 
 	static String url = "jdbc:mysql://localhost:3306/"; //FOXDB?autoReconnect=true";
     static String db = "FOXDB";
 	static String user = "g0kla";
     static String password = "amsatfox";
 
-	private final int INITIAL_QUEUE_SIZE = 1000;
 	SatPayloadDbStore[] payloadStore;
-	//SatPictureStore[] pictureStore;
 	
 	public PayloadDbStore(String u, String pw, String database) {
 		db = database;
@@ -140,6 +137,18 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		}
 	}
 	
+	public void initHerciPackets() {
+		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+		for (int s=0; s<sats.size(); s++) {
+			if (sats.get(s).isFox1()) {
+				FoxSpacecraft fox = (FoxSpacecraft)sats.get(s);
+				if (fox.hasHerci()) {
+					payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
+					payloadStore[s].initHerciPackets();
+				}
+			}
+		}
+	}
 	public Connection getConnection() throws SQLException {
 		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
             derby = DriverManager.getConnection(url + db + "?autoReconnect=true", user, password);
@@ -465,16 +474,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public boolean addStpHeader(Frame f) {
-
-		Statement stmt = null;
-		String update = "insert into STP_HEADER";
-		update = update + f.getInsertStmt();
-		//Log.println("SQL:" + update);
+		PreparedStatement ps = null;
 		try {
 			derby = getConnection();
-			stmt = derby.createStatement();
+			ps = f.getPreparedInsertStmt(derby);
+			
 			@SuppressWarnings("unused")
-			int r = stmt.executeUpdate(update);
+			int count = ps.executeUpdate();
 		} catch (SQLException e) {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_DUPLICATE) ) {  // duplicate
 				Log.println("DUPLICATE RECORD, not stored");
@@ -484,11 +490,11 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			}
 			return false;
 		} finally {
-			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
 		}
 		return true;
 	}
-
+	
 	public boolean updateStpHeader(Frame f) throws StpFileProcessException {
 
 		Statement stmt = null;
@@ -563,10 +569,50 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	@Override
 	public FramePart getLatest(int id, String layout) {
-		// TODO Auto-generated method stub
+//		SatPayloadDbStore store = getPayloadStoreById(id);
+//		if (store != null)
+//			try {
+//				return store.getLatest(layout);
+//			} catch (SQLException e) {
+//				e.printStackTrace(Log.getWriter());
+//				return null;
+//			}
 		return null;
 	}
 
+	public SortedFramePartArrayList selectCanPackets(int id, String where) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.selectCanPackets(where);
+		return null;
+	}
+	
+	public int getLastCanId(int id, String user) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getLastCanId(user);
+		return 0;
+	}
+	
+	public CanPacket getLatestUwCanPacket(int id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatestUwCanPacket();
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
+		return null;
+	}
+	
+	public boolean storeLastCanId(int id, String date, int pkt_id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.storeLastCanId(date, pkt_id);
+		return false;
+	}
+	
 	public PayloadRtValues getLatestRt(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -900,7 +946,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -982,13 +1028,38 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+	public FramePart getFramePart(int id, int reset, long uptime, String layout, boolean prev) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public String[][] getWODRadData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout) {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType,
+			boolean reverse, String layout) {
 		// TODO Auto-generated method stub
 		return null;
 	}

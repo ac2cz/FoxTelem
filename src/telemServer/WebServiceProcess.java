@@ -9,27 +9,35 @@ import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.text.DecimalFormat;
 import java.text.ParseException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.TimeZone;
 
-import com.mysql.jdbc.exceptions.MySQLSyntaxErrorException;
-
 import telemetry.Frame;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
+import uk.me.g4dpz.satellite.SatPos;
 import common.Config;
 import common.FoxSpacecraft;
+import common.FoxTime;
 import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 0.21 - 12 Feb 2017";
+	public static String version = "Version 1.04 - 15 Sep 2019";
 	private Socket socket = null;
 	int port = 8080;
+	
+	public static final String VERSION = "version";
+	public static final String TIME = "getSatUtcAtResetUptime";
+	public static final String POSITION = "getSatLatLonAtResetUptime";
+	public static final int TIMEOUT_CONNECTION = 1000; // 1s timeout while connected
 	
 	public WebServiceProcess(PayloadDbStore db, Socket socket, int p) {
 		this.socket = socket;
@@ -40,17 +48,20 @@ public class WebServiceProcess implements Runnable {
 
 	@Override
 	public void run() {
+		BufferedReader in = null;
+		PrintWriter out = null;
+		String GET = null;
 		try {
 			Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
-
-			BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-			PrintWriter out = new PrintWriter(socket.getOutputStream());
+			socket.setSoTimeout(TIMEOUT_CONNECTION);
+			in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+			out = new PrintWriter(socket.getOutputStream());
 
 			// read the data sent. 
 			// stop reading once a blank line is hit. This
 			// blank line signals the end of the client HTTP headers.
 			String str = ".";
-			String GET = in.readLine();
+			GET = in.readLine();
 			if (GET != null) {
 				Log.println(GET);
 				String[] requestLine = GET.split(" "); // GET <path> HTTP/1.1
@@ -77,17 +88,45 @@ public class WebServiceProcess implements Runnable {
 				 * COMMAND/SAT/OPTIONS
 				 * 
 				 * The following commands are valid:
-				 * /VERSION - return the version
+				 * /version - return the version
+				 * /getSatLatLonAtResetUptime?sat=0&reset=00&uptime=000
+				 * /getSatUtcForResetUptime?sat=0&reset==00&uptime=000
+				 * 
+				 * LEGACY APIs:
 				 * /T0/SAT/RESET/CALL/N - Returns N T0 records for RESET logged by CALL for sat SAT
 				 * /FRAME/SAT/TYPE - Return the latest frame of type TYPE for SAT
 				 * /FIELD/SAT/NAME/R|C/N/RESET/UPTIME - Return N R-RAW or C-CONVERTED values for field NAME from sat SAT from RESET and UPTIME
 				 * 
 				 */
 				String[] path = request.split("/");
-				if (path.length > 0) { // VERSION COMMAND
-					if (path[1].equalsIgnoreCase("version")) {
+				
+				if (path.length == 0) {
+					out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
+				} else { 
+					String[] params = path[1].split("\\?");
+
+					switch (params[0]) {
+					case VERSION:
 						out.println("Fox Web Service..." + version);
-					} else if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
+						return;
+					case POSITION:
+						if (params.length == 2) {
+							getSatLatLonAtResetUptime(params[1], out);
+							return;	
+						}
+					case TIME:
+						if (params.length == 2) {
+							getSatUtcForResetUptime(params[1], out);
+							return;	
+						}
+					default:
+						//out.println("Amsat API Malformed Request");  // put this message back in if NO LEGACY APIs
+						break;
+					}
+					
+					
+					// LEGACY APIs in old format
+					if (path[1].equalsIgnoreCase("T0")) { // T0 COMMAND
 						if (path.length == 6) {
 							try {
 								String t0 = calculateT0(out, Integer.parseInt(path[2]), Integer.parseInt(path[3]), path[4],  Integer.parseInt(path[5]));
@@ -103,6 +142,7 @@ public class WebServiceProcess implements Runnable {
 						if (path.length == 4) {
 							PayloadRtValues rt = null;
 							int sat = 1;
+							@SuppressWarnings("unused")
 							int type = 1;
 							try {
 								sat = Integer.parseInt(path[2]);
@@ -148,17 +188,18 @@ public class WebServiceProcess implements Runnable {
 							} catch (NumberFormatException e) {
 								out.println("Invalid sat or type");
 							}
-							if (sat != 0) {
-							try {
-								fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
-							} catch (LayoutLoadException e1) {
-								e1.printStackTrace(Log.getWriter());
-							}
-							if (raw.startsWith("C"))
-								convert = false;
-							
-							out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
-							
+							if (sat > 0) {
+								try {
+									fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+								} catch (LayoutLoadException e1) {
+									e1.printStackTrace(Log.getWriter());
+								}
+								if (raw.startsWith("C"))
+									convert = false;
+
+								if (fox1Atab != null)
+									out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+
 							} else {
 								out.println("FOX SAT Requested invalid\n");
 							}
@@ -167,28 +208,99 @@ public class WebServiceProcess implements Runnable {
 						}
 					}
 				}
-			} else {
-				out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
 			}
 
 			out.flush();
-			out.close();
-			in.close();
-			socket.close();
 		} catch (IOException e) {
 			Log.println("ERROR: IO Exception in Webservice" + e.getMessage());
 			e.printStackTrace(Log.getWriter());
 		} finally {
-			try {
-				socket.close();
-			} catch (IOException e) {
-				// ignore
-			}
+			try { out.close(); } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			try { in.close();  } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			try { socket.close();  } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			try { payloadDbStore.closeConnection(); } catch (Exception e) {e.printStackTrace(Log.getWriter());}
+			Log.println("Finished Request: " + GET);
 		}
-
-
 	}
 
+	public static final String SAT = "sat";
+	public static final String RESET = "reset";
+	public static final String UPTIME = "uptime";
+
+	HashMap<String, String> consumeArgs(String in) {
+		HashMap<String, String> args = new HashMap<String, String>();
+		String[] params = in.split("&");
+		for (String p : params) {
+			String[] keyVal = p.split("=");
+			if (keyVal.length > 1)
+				args.put(keyVal[0], keyVal[1]);
+		}
+		return args;
+	}
+	
+	/**
+	 * Calculate and return the position
+	 * amsat.org/getPositionAtResetUptime&sat&reset&uptime
+	 * @param path
+	 */
+	private void getSatLatLonAtResetUptime(String args, PrintWriter out) {
+		DecimalFormat d = new DecimalFormat("00.000000");
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
+		if (satId == null) return;
+		if (satReset == null) return;
+		if (satUptime == null) return;
+
+		try {
+			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			int reset = Integer.parseInt(satReset);
+			long uptime = Long.parseLong(satUptime);
+			if (fox != null) {
+				SatPos pos = fox.getSatellitePosition(reset, uptime);
+				double satLatitude = FramePart.latRadToDeg (pos.getLatitude());
+				double satLongitude = FramePart.lonRadToDeg(pos.getLongitude());
+				out.println(d.format (satLatitude) + "," + d.format (satLongitude));
+			} else out.println("0, 0");
+		} catch (Exception e) {
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n"+e+" " + e.getMessage());								
+		}
+
+	}
+	
+	private void getSatUtcForResetUptime(String args, PrintWriter out) {
+		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
+		if (satId == null) return;
+		if (satReset == null) return;
+		if (satUptime == null) return;
+		
+		try {
+			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			int reset = Integer.parseInt(satReset);
+			long uptime = Long.parseLong(satUptime);
+			if (fox != null) {
+				Date t = fox.getUtcForReset(reset, uptime);
+				out.println(Frame.stpDateFormat.format(t));
+			} else out.println("0, 0" + "\n");
+		} catch (Exception e) {
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n"+e.getMessage());										
+		}
+
+	}
+	
+	String calculateSpacecraftTime(FoxSpacecraft fox) {
+		Date currentDate = new Date();
+		FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
+		
+		return foxTime.getReset() + ", " + foxTime.getUptime();
+	}
+	
 	String calculateT0(PrintWriter out, int sat, int reset, String receiver, int num) {
 		Statement stmt = null;
 		Frame.stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
@@ -203,11 +315,13 @@ public class WebServiceProcess implements Runnable {
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
 		s = s + "<table><tr><th>STP Date</th><th>Uptime</th><th>Estimated T0</th></tr>";
 		
+		Connection derby = null;
+		ResultSet r = null;
 		try {
-			Connection derby = payloadDbStore.getConnection();
+			derby = payloadDbStore.getConnection();
 			stmt = derby.createStatement();
 			//Log.println(update);
-			ResultSet r = stmt.executeQuery(update);
+			r = stmt.executeQuery(update);
 			int size = 0;
 			int i=0;
 			if (r.last()) {
@@ -246,7 +360,9 @@ public class WebServiceProcess implements Runnable {
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint("calculateT0", e);
 			return e.toString();
+		} finally {
+			try { r.close(); } catch (SQLException e) {e.printStackTrace(Log.getWriter());}
+			try { stmt.close(); } catch (SQLException e) {e.printStackTrace(Log.getWriter());}
 		}
-		
 	}
 }

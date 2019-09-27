@@ -6,7 +6,6 @@ import java.util.StringTokenizer;
 
 import common.Config;
 import common.FoxSpacecraft;
-import decoder.FoxDecoder;
 
 /**
  * 
@@ -34,20 +33,19 @@ public class PayloadRtValues extends FoxFramePart {
 	//public static final int NUMBER_OF_FIELDS = 43;
 	
 	public PayloadRtValues(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_REAL_TIME, lay);
 	}
 	
 	public PayloadRtValues(ResultSet r, BitArrayLayout lay) throws SQLException {
-		super(r, lay);
+		super(r, TYPE_REAL_TIME, lay);
 	}
 	
 	public PayloadRtValues(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);	
+		super(id, resets, uptime, TYPE_REAL_TIME, date, st, lay);	
 	}
 
 	protected void init() {
-		type = TYPE_REAL_TIME;
-		fieldValue = new int[layout.NUMBER_OF_FIELDS];
+		// Any local init goes here
 	}
 	
 	public String toWebString() {

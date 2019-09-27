@@ -5,6 +5,8 @@ import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
+import common.Log;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -36,6 +38,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 	}
 
 	public boolean addToEnd(T img) {
+		if (img == null) throw new NullPointerException("NULL INSERT ERROR");
 		return super.add(img);
 	}
 	
@@ -69,7 +72,20 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 	
 	public boolean add(T img) throws NullPointerException {
 		if (img == null) return false;
-		int pos = Collections.binarySearch(this, img);
+		int pos = 0;;
+		try {
+		pos = Collections.binarySearch(this, img);
+		} catch (NullPointerException e) {
+			// This should not happen so print lots of debug
+			int i = 0;
+			Log.println(">>> Null adding to SortedArrayList:\n"+ img + " to list\n" + e.getStackTrace());
+			Log.println("RECORDS:" + this.size());
+			for (T t: this) {
+				Log.println(i+":"+t);
+				i++;
+			}
+			throw new NullPointerException("Null adding "+ img + " to SortedArrayList\n");
+		}
 	    if (pos < 0) {
 	        add(-pos-1, img);
 	        return true;

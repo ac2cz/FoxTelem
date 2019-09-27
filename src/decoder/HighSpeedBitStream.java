@@ -1,9 +1,13 @@
 package decoder;
 
+import java.util.Date;
+
 import common.Config;
 import common.Log;
 import fec.RsCodeWord;
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
+import telemetry.FrameProcessException;
 import telemetry.HighSpeedFrame;
 
 /**
@@ -47,10 +51,11 @@ public class HighSpeedBitStream extends FoxBitStream {
 	protected int[] rsPadding = RS_PADDING;
 	protected int maxBytes = HighSpeedFrame.getMaxBytes();
 	protected int frameSize = HighSpeedFrame.MAX_FRAME_SIZE;
+	protected int totalRsErrors = 0;
+	protected int totalRsErasures = 0;
 	
-	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength) {
-		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, dec);
-		SYNC_WORD_DISTANCE = HIGH_SPEED_SYNC_WORD_DISTANCE;
+	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
+		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, HIGH_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
 		SYNC_WORD_BIT_TOLERANCE = 0; // this is too CPU intensive for large frames
 	}
@@ -64,11 +69,19 @@ public class HighSpeedBitStream extends FoxBitStream {
 	 * The corrected data is re-allocated, again round robin, into a rawFrame.  This frame should
 	 * then contain the data BACK in the original order, but with corrections made
 	 */
-	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition) {
+	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
-		highSpeedFrame.addRawFrame(rawFrame);
+		try {
+			highSpeedFrame.addRawFrame(rawFrame);
+			highSpeedFrame.rsErrors = totalRsErrors;
+			highSpeedFrame.rsErasures = totalRsErasures;
+			highSpeedFrame.setStpDate(timeOfStartSync);
+		} catch (FrameProcessException e) {
+			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+			return null;
+		}
 		return highSpeedFrame;
 	}
 	
@@ -94,7 +107,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		}
 		int[] numberOfErasures = new int[numberOfRsCodeWords];
 		
-		if (rawFrame.length != SYNC_WORD_DISTANCE/10-1)
+		if (rawFrame.length != (SYNC_WORD_DISTANCE-this.SYNC_WORD_LENGTH)/10)
 			Log.println("WARNING: Frame length " + rawFrame.length + " bytes is different to default SYNC word distance "+ (SYNC_WORD_DISTANCE/10-1));
 
 		// We have found a frame, so process it. start is the first bit of data
@@ -127,6 +140,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 						erasurePositions[rsNum][numberOfErasures[rsNum]] = f;
 						numberOfErasures[rsNum]++;
 					} else {
+						if (Config.debugFrames) {
+							int total=0;
+							for (int e1 : numberOfErasures)
+								total += e1;
+							Log.println("MAX ERASURES HIT: RS Decode Abandoned. Total: " + total);
+						}
 						return null;
 					}
 				}
@@ -158,31 +177,33 @@ public class HighSpeedBitStream extends FoxBitStream {
 		if (Config.debugFrames || Config.debugRS)
 			Log.println("CAPTURED " + bytesInFrame + " high speed bytes");
 		
-		lastErasureNumber = 0;
-		lastErrorsNumber = 0;
-		
 		// Now Decode all of the RS words and put the bytes back into the 
 		// order we started with, but now with corrected data
 		//byte[] correctedBytes = new byte[RsCodeWord.DATA_BYTES];
 		for (int i=0; i < numberOfRsCodeWords; i++) {
 			if (numberOfErasures[i] < MAX_ERASURES) {
-				lastErasureNumber += numberOfErasures[rsNum];
+				totalRsErasures += numberOfErasures[rsNum];
 				//Log.println("LAST ERASURE: " + lastErasureNumber);
 				if (Config.useRSfec) {								
 					if (Config.useRSerasures) codeWords[rsNum].setErasurePositions(erasurePositions[i], numberOfErasures[i]);
 					codeWords[i].decode();  
-					lastErrorsNumber += codeWords[i].getNumberOfCorrections();
+					totalRsErrors += codeWords[i].getNumberOfCorrections();
 					//Log.println("LAST ERRORS: " + lastErrorsNumber);
 					if (!codeWords[i].validDecode()) {
 						// We had a failure to decode, so the frame is corrupt
-						Log.println("FAILED RS DECODE FOR HS WORD " + i);
+						if (Config.debugFrames) Log.println("FAILED RS DECODE FOR HS WORD " + i);
 						return null;
 					} else {
 						//Log.println("RS Decoder Successful for HS Data");
 					}
 				}
 			} else {
-				if (Config.debugFrames || Config.debugRS) Log.println("Too many erasures, failure to decode");
+				if (Config.debugFrames || Config.debugRS) {
+					int total=0;
+					for (int e : numberOfErasures)
+						total += e;
+					Log.println("Too many erasures, failure to decode.  Total:" + total);
+				}
 				return null;
 			}
 		}

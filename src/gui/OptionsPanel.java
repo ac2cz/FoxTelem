@@ -53,10 +53,12 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JCheckBox debugFrames;
 	JCheckBox debugFieldValues;
 	JCheckBox debugCameraFrames;
-	JCheckBox debugBits;
+	JCheckBox debugBits, debugBytes;
+	JCheckBox debugValues;
 	JCheckBox debugClock;
 	JCheckBox debugGlitches;
 	JCheckBox debugSignalFinder;
+	JCheckBox debugCalcDopplerContinually;
 	JCheckBox filterData;
 	JCheckBox useRSfec;
 	JCheckBox useRSerasures;
@@ -100,14 +102,18 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		//recoverClock.setEnabled(false);
 		debugFrames = addCheckBox("Debug Frames", "Print information about the decoded frames into the debug log", Config.debugFrames );
 		debugFieldValues = addCheckBox("Debug Fields", "Write all of the decoded fields in the payloads to the debug log", Config.debugFieldValues );
-		debugCameraFrames = addCheckBox("Debug Camera Frames", "Write the entire contents of the camera frame to the debug log", Config.debugCameraFrames );
+//		debugCameraFrames = addCheckBox("Debug Camera Frames", "Write the entire contents of the camera frame to the debug log", Config.debugCameraFrames );
 		debugBits = addCheckBox("Debug Bits", "Write very verbose debug information at the bit level", Config.debugBits );
+		debugBytes = addCheckBox("Debug Bytes", "Write the hex bytes in a frame when it is decoded", Config.debugBytes );
+		debugValues = addCheckBox("Debug Values", "Display Debug information for bit values on the audio screen", Config.debugValues );
+		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
 		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
 //		storePayloads = addCheckBox("Store Payloads", Config.storePayloads );
 //		highSpeed = addCheckBox("Decode 9k6", Config.highSpeed );
 	//	useAGC = addCheckBox("Use AGC", Config.useAGC );
 		debugGlitches = addCheckBox("Debug missed audio", "Write to debug log when significant audio is being missed from the soundcard", Config.debugAudioGlitches );
 		debugSignalFinder = addCheckBox("Debug Find Signal", "Write debug to show the workings of the signal finder and the pass measurements", Config.debugSignalFinder );
+		debugCalcDopplerContinually = addCheckBox("Debug (Calc) Doppler Continually", "Calculate doppler continually for debugging.  Calculates first sat in the priority order.", Config.debugCalcDopplerContinually );
 		useNativeFileChooser = addCheckBox("Use Native File Chooser", "Use the OS native file chooser", Config.useNativeFileChooser );
 		//squelchAudio = addCheckBox("Squelch Decoder", Config.squelchAudio );
 		//realTimePlayback = addCheckBox("Slow Down Playback", Config.realTimePlaybackOfFile );
@@ -125,7 +131,10 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			debugCount.setForeground(Color.RED);
 			add(debugCount);
 		}
-		this.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
+		// min, pref, max - each is Hor, Vert
+		this.add(new Box.Filler(new Dimension(0,0), new Dimension(100,0), new Dimension(1000,0)));
+
+		//this.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 	}
 	
 	private JCheckBox addCheckBox(String name, String tip, boolean value) {
@@ -156,6 +165,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				}
 				
 			}
+			Config.save();
 			
 		}
 		
@@ -175,6 +185,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.filterData = true;
 			}
+			Config.save();
 		}
 		if (source == useRSfec) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -182,6 +193,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useRSfec = true;
 			}
+			Config.save();
 		}
 		if (source == useRSerasures) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -189,6 +201,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useRSerasures = true;
 			}
+			Config.save();
 		}
 		if (source == logging) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -208,6 +221,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		        });
 				Log.setLogging(true);
 			}
+			Config.save();
 		}
 
 		if (source == recoverClock) { 
@@ -216,6 +230,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.recoverClock = true;
 			}
+			Config.save();
 		}
 		if (source == useAGC) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -223,6 +238,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useAGC = true;
 			}
+			Config.save();
 		}
 		if (source == debugGlitches) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -230,6 +246,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugAudioGlitches = true;
 			}
+			Config.save();
 		}
 		if (source == debugSignalFinder) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -237,6 +254,15 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugSignalFinder = true;
 			}
+			Config.save();
+		}
+		if (source == debugCalcDopplerContinually) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugCalcDopplerContinually = false;
+			} else {
+				Config.debugCalcDopplerContinually = true;
+			}
+			Config.save();
 		}
 		if (source == useNativeFileChooser) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -244,6 +270,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.useNativeFileChooser = true;
 			}
+			Config.save();
 		}
 	/*
 		if (source == storePayloads) { 
@@ -252,6 +279,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.storePayloads = true;
 			}
+			Config.save();
 		}
 		if (source == highSpeed) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -259,6 +287,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.highSpeed = true;
 			}
+			Config.save();
 		}
 		*/
 		if (source == debugFrames) { 
@@ -267,6 +296,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugFrames = true;
 			}
+			Config.save();
 		}
 		if (source == debugFieldValues) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -274,6 +304,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugFieldValues = true;
 			}
+			Config.save();
 		}
 		if (source == debugCameraFrames) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -281,6 +312,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugCameraFrames = true;
 			}
+			Config.save();
 		}
 		if (source == debugClock) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -288,6 +320,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.debugClock = true;
 			}
+			Config.save();
 		}
 		
 		if (source == debugBits) { 
@@ -310,6 +343,22 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		        });
 				
 			}
+			Config.save();
+		}
+		if (source == debugBytes) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugBytes = false;
+			} else {
+				Config.debugBytes = true;
+			}
+		}
+		if (source == debugValues) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugValues = false;
+			} else {
+				Config.debugValues = true;
+			}
+			Config.save();
 		}
 		if (source == squelchAudio) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -317,6 +366,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.squelchAudio = true;
 			}
+			Config.save();
 		}
 		if (source == realTimePlayback) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -324,6 +374,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			} else {
 				Config.realTimePlaybackOfFile = true;
 			}
+			Config.save();
 		}
 	}
 

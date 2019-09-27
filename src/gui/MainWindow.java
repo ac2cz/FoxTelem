@@ -8,6 +8,8 @@ import javax.swing.JPanel;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.FileDialog;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -37,10 +39,6 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
-
 import common.Config;
 import common.DesktopApi;
 import common.Log;
@@ -50,16 +48,17 @@ import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
+import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JFileChooser;
 
 import org.rauschig.jarchivelib.Archiver;
 import org.rauschig.jarchivelib.ArchiverFactory;
 
-import telemServer.StpFileProcessException;
-import telemetry.Frame;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
+import telemetry.SatPayloadStore;
 
 import com.apple.eawt.Application;
 
@@ -111,16 +110,31 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JMenuItem mntmStopDecoder;
 	static JMenuItem[] mntmSat;
 	static ArrayList<Spacecraft> sats;
+	// Swing File Chooser
+	JFileChooser fc = null;
+	//AWT file chooser for the Mac
+	FileDialog fd = null;
 	JMenu mnSats;
 	JMenuBar menuBar;
 	JMenuItem mntmSettings;
 	static JMenuItem mntmDelete;
+	JMenu mnHelp;
 	JMenuItem mntmManual;
 	JMenuItem mntmLeaderboard;
 	JMenuItem mntmSoftware;
 	JMenuItem mntmAbout;
+	JMenuItem mntmSatAdd;
+	JMenuItem mntmSatRemove;
 	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
+	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
+	JCheckBoxMenuItem chckbxmntmShowSatOptions;
+	JCheckBoxMenuItem chckbxmntmShowEye;
+	JCheckBoxMenuItem chckbxmntmShowPhasor;
+	JCheckBoxMenuItem chckbxmntmShowFFT;
+
+	JCheckBoxMenuItem chckbxmntmShowSourceOptions;
+	static JPanel bottomPanel;
 	
 	// GUI components
 	static JTabbedPane tabbedPane;
@@ -135,9 +149,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
+	static JLabel lblLocalQueued;
 	private static String TOTAL_RECEIVED_FRAMES = "Frames: ";
 	private static String TOTAL_DECODES = "Payloads: ";
-	private static String TOTAL_QUEUED = "Queued: ";
+	private static String TOTAL_QUEUED = "Queue: ";
+	private static String LOCAL_QUEUED = "/ ";
 	private static String AUDIO_MISSED = "Audio missed: ";
 		
 	private static int totalMissed;
@@ -176,7 +192,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTab.setBorder(new EmptyBorder(5, 5, 5, 5));
 		tabbedPane.addTab( "<html><body leftmargin=15 topmargin=8 marginwidth=15 marginheight=5>Input</body></html>", inputTab );
 
-		JPanel bottomPanel = new JPanel();
+		bottomPanel = new JPanel();
 		getContentPane().add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BorderLayout ());
 		JPanel rightBottom = new JPanel();
@@ -220,10 +236,17 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
 		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
-		lblTotalQueued.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
-		lblTotalQueued.setToolTipText("The number of frames that need to be sent to the Amsat telemetry server");
+		lblTotalQueued.setBorder(new EmptyBorder(2, 2, 2, 2) ); // top left bottom right
+		lblTotalQueued.setToolTipText("The number of frames that need to be sent to the Amsat / Local telemetry servers");
 		rightBottom.add(lblTotalQueued );
 		bottomPanel.add(rightBottom, BorderLayout.EAST);
+
+		lblLocalQueued = new JLabel("");  // This starts blank and then appears if there are actual frames
+		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblLocalQueued.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblLocalQueued.setToolTipText("The number of payloads that need to be sent to the Local telemetry server");
+		rightBottom.add(lblLocalQueued );
+		
 		
 		addHealthTabs();
 		
@@ -231,7 +254,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//pack(); // pack all in as tight as possible
 
 		// Once the main window is up we check the version info
-		updateManager = new UpdateManager();
+		updateManager = new UpdateManager(false);
 		updateManagerThread = new Thread(updateManager);
 		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		updateManagerThread.start();
@@ -239,6 +262,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		inputTabThread = new Thread(inputTab);
 		inputTabThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		inputTabThread.start();
+		
+		fd = new FileDialog(MainWindow.frame, "Select Spacecraft file",FileDialog.LOAD);
+	//	fd.setFile("*.MASTER");
+	//} else {
+		fc = new JFileChooser();
+		// initialize the file chooser
+		
 		
 		// We are fully up, remove the database loading message
 		Config.fileProgress.updateProgress(100);
@@ -312,7 +342,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				lblAudioMissed.setForeground(Color.RED);
 			else
 				lblAudioMissed.setForeground(Color.BLACK);
+			lblAudioMissed.invalidate();
+			bottomPanel.validate();
 		}
+		
 	}
 
 	public static void setTotalDecodes() {
@@ -320,15 +353,30 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			int total = 0;
 			total = Config.payloadStore.getTotalNumberOfFrames();
 			lblTotalDecodes.setText(TOTAL_DECODES + total);
+			lblTotalFrames.invalidate();
 		}
 		if (lblTotalFrames != null) { 
 			lblTotalFrames.setText(TOTAL_RECEIVED_FRAMES + Config.totalFrames);
+			lblTotalFrames.invalidate();
 		}
+		bottomPanel.validate();
 	}
 
 	public static void setTotalQueued(int total) {
-		if (lblTotalQueued !=null) // make sure we have initialized before we try to update from another thread
+		if (lblTotalQueued !=null) {// make sure we have initialized before we try to update from another thread
 			lblTotalQueued.setText(TOTAL_QUEUED + total);
+			lblTotalQueued.invalidate();
+			bottomPanel.validate();
+		}
+	}
+
+	public static void setLocalQueued(int localTotal) {
+		if (lblLocalQueued !=null) {// make sure we have initialized before we try to update from another thread
+			lblLocalQueued.setText(LOCAL_QUEUED + localTotal);
+			lblLocalQueued.invalidate();
+			bottomPanel.validate();
+		}
+		
 	}
 
 	/**
@@ -415,7 +463,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		initSatMenu();
 		
-		JMenu mnOptions = new JMenu("Options");
+		//JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
 		
 		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
@@ -423,11 +471,37 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		chckbxmntmShowFilterOptions.setState(Config.showFilters);
 		chckbxmntmShowFilterOptions.addActionListener(this);
 		
-		chckbxmntmShowDecoderOptions = new JCheckBoxMenuItem("Show Audio Options");
-		chckbxmntmShowDecoderOptions.addActionListener(this);
-		mnOptions.add(chckbxmntmShowDecoderOptions);
-		
-		JMenu mnHelp = new JMenu("Help");
+		chckbxmntmShowAudioOptions = new JCheckBoxMenuItem("Show Audio Options");
+		chckbxmntmShowAudioOptions.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowAudioOptions);
+		chckbxmntmShowAudioOptions.setState(Config.showAudioOptions);
+
+		chckbxmntmShowSourceOptions = new JCheckBoxMenuItem("Show Source");
+		chckbxmntmShowSourceOptions.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowSourceOptions);
+		chckbxmntmShowSourceOptions.setState(Config.showSourceOptions);
+
+		chckbxmntmShowSatOptions = new JCheckBoxMenuItem("Show Sat Status");
+		chckbxmntmShowSatOptions.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowSatOptions);
+		chckbxmntmShowSatOptions.setState(Config.showSatOptions);
+
+		chckbxmntmShowEye = new JCheckBoxMenuItem("Show Eye");
+		chckbxmntmShowEye.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowEye);
+		chckbxmntmShowEye.setState(Config.showEye);
+
+		chckbxmntmShowPhasor = new JCheckBoxMenuItem("Show Phasor");
+		chckbxmntmShowPhasor.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowPhasor);
+		chckbxmntmShowPhasor.setState(Config.showPhasor);
+
+		chckbxmntmShowFFT = new JCheckBoxMenuItem("Show FFT");
+		chckbxmntmShowFFT.addActionListener(this);
+		mnDecoder.add(chckbxmntmShowFFT);
+		chckbxmntmShowFFT.setState(Config.showFFT);
+
+		mnHelp = new JMenu("Help");
 		menuBar.add(mnHelp);
 
 		mntmManual = new JMenuItem("Open Manual");
@@ -460,6 +534,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	void initSatMenu() {
+		if (mnHelp != null)
+			menuBar.remove(mnHelp);
 		if (sats !=null && mnSats != null) {
 			for (int i=0; i<sats.size(); i++) {
 				if (mntmSat[i] != null)
@@ -470,16 +546,28 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			
 		}
 		mnSats = new JMenu("Spacecraft");
+		
 		menuBar.add(mnSats);
 
+		mntmSatAdd = new JMenuItem("Add");
+		mnSats.add(mntmSatAdd);
+		mntmSatAdd.addActionListener(this);
+		mntmSatRemove = new JMenuItem("Remove");
+		mnSats.add(mntmSatRemove);
+		mntmSatRemove.addActionListener(this);
+		
+		mnSats.addSeparator();
+		
 		sats = Config.satManager.getSpacecraftList();
 
 		mntmSat = new JMenuItem[sats.size()];
 		for (int i=0; i<sats.size(); i++) {
-			mntmSat[i] = new JMenuItem(sats.get(i).name);
+			mntmSat[i] = new JMenuItem(sats.get(i).user_display_name);
 			mnSats.add(mntmSat[i]);
 			mntmSat[i].addActionListener(this);
 		}
+		if (mnHelp != null)
+			menuBar.add(mnHelp);
 	}
 	
 	public void shutdownWindow() {
@@ -609,6 +697,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 				Config.payloadStore.deleteAll();
 				Config.rawFrameQueue.delete();
+				Config.rawPayloadQueue.delete();
 				Config.totalFrames = 0;
 				refreshTabs(true);
 				fileProgress.updateProgress(100);
@@ -625,16 +714,54 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				}
 			}
 		}
+		
+		if (e.getSource() == mntmSatAdd) {
+			addSpacecraft(false);
+		}
+
+		if (e.getSource() == mntmSatRemove) {
+			addSpacecraft(true);
+		}
+
+		
 		if (e.getSource() == chckbxmntmShowFilterOptions) {	
 			Config.showFilters = chckbxmntmShowFilterOptions.getState();
-				inputTab.showFilters(Config.showFilters);
+			inputTab.showFilters(Config.showFilters);
+			Config.save();	
 		}
 		
-		if (e.getSource() == chckbxmntmShowDecoderOptions) {	
-			//inputTab.showDecoderOptions(chckbxmntmShowDecoderOptions.getState());
-	}
+		if (e.getSource() == chckbxmntmShowAudioOptions) {	
+			Config.showAudioOptions = chckbxmntmShowAudioOptions.getState();
+			inputTab.showAudioOptions(Config.showAudioOptions);
+			Config.save();
+	    }
 		
+		if (e.getSource() == chckbxmntmShowSourceOptions) {	
+			Config.showSourceOptions = chckbxmntmShowSourceOptions.getState();
+			inputTab.showSourceOptions(Config.showSourceOptions);
+			Config.save();
+	    }
 		
+		if (e.getSource() == chckbxmntmShowSatOptions) {	
+			Config.showSatOptions = chckbxmntmShowSatOptions.getState();
+			inputTab.showSatOptions(Config.showSatOptions);
+			Config.save();
+	    }
+		if (e.getSource() == chckbxmntmShowEye) {	
+			Config.showEye = chckbxmntmShowEye.getState();
+			inputTab.showEye(Config.showEye);
+			Config.save();
+	    }
+		if (e.getSource() == chckbxmntmShowPhasor) {	
+			Config.showPhasor = chckbxmntmShowPhasor.getState();
+			inputTab.showPhasor(Config.showPhasor);
+			Config.save();
+	    }
+		if (e.getSource() == chckbxmntmShowFFT) {	
+			Config.showFFT = chckbxmntmShowFFT.getState();
+			inputTab.showFFT(Config.showFFT);
+			Config.save();
+	    }
 		if (e.getSource() == mntmManual) {
 			try {
 				DesktopApi.browse(new URI(HelpAbout.MANUAL));
@@ -686,10 +813,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
 		} catch (FileNotFoundException e) {
-			// The file was not found on the server.  This is probablly because there was no data for this spacecraft
-			
-			Log.println("ERROR reading/writing the server data to: " + file + "\n" +
-					e.getMessage());
+			// The file was not found on the server.  This is probablly because there was no data for this spacecraft or we have the URL wrong.
+			Log.errorDialog("ERROR", "File not available for download: " + urlString + "\nCheck that the internet connection is working to the site\n" +
+					e);
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
 			return;
@@ -775,10 +901,15 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (n == JOptionPane.NO_OPTION) {
 			return;
 		}
+		
+		ProgressPanel fileProgress = new ProgressPanel(this, "Deleting existing data, please wait ...", false);
+		fileProgress.setVisible(true);
+
+		Config.payloadStore.deleteAll();
+		fileProgress.updateProgress(100);
 
 		// Get the server data for each spacecraft we have
 		sats = Config.satManager.getSpacecraftList();
-		int i=0;
 		for (Spacecraft sat : sats) {
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up
@@ -806,6 +937,144 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 	}
 	
+	/**
+	 * Allow the user to choose a new spacecraft file to add.  They can pick a .master or .dat file.
+	 */
+	private void addSpacecraft(boolean remove) {
+		File file = null;
+		File destinationDir = null;
+		File dir = null;
+		if (remove) {
+			dir = new File(Config.currentDir+"/spacecraft");
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				dir = new File(Config.logFileDirectory+"/spacecraft");
+			} 		
+		} else {
+			dir = new File(Config.currentDir+"/spacecraft");
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				destinationDir = new File(Config.logFileDirectory+"/spacecraft");
+			} else {
+				destinationDir = dir;
+			}
+		}
+		
+		if(Config.useNativeFileChooser) { // not on windows because native dir chooser does not work) {
+			// use the native file dialog on the mac
+			if (remove) {
+				fd.setFile("*.dat");
+				fd.setTitle("Select spacecraft DAT file to remove");
+			} else {
+				fd.setFile("*.MASTER");
+				fd.setTitle("Select spacecraft MASTER file to install");
+			}
+			if (dir != null) {
+				fd.setDirectory(dir.getAbsolutePath());
+			}
+			fd.setVisible(true);
+			String filename = fd.getFile();
+			String dirname = fd.getDirectory();
+			if (filename == null) {
+				Log.println("You cancelled the choice");
+				file = null;
+			} else {
+				Log.println("File: " + filename);
+				Log.println("DIR: " + dirname);
+				file = new File(dirname + filename);
+			}	
+		} else {
+			fc.setPreferredSize(new Dimension(Config.windowFcWidth, Config.windowFcHeight));
+			if (remove) {
+				fc.setDialogTitle("Select spacecraft DAT file to remove");
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "Spacecraft files", "dat");
+				fc.setFileFilter(filter);
+				fc.setApproveButtonText("Remove");
+			} else {
+				fc.setDialogTitle("Select spacecraft MASTER file to install");
+				FileNameExtensionFilter filter = new FileNameExtensionFilter(
+				        "Spacecraft files", "MASTER");
+				fc.setFileFilter(filter);
+				fc.setApproveButtonText("Add");
+			}
+			if (dir != null)
+				fc.setCurrentDirectory(dir);
+			// This toggles the details view on
+			//		Action details = fc.getActionMap().get("viewTypeDetails");
+			//		details.actionPerformed(null);
+
+			int returnVal = fc.showOpenDialog(this);
+			Config.windowFcHeight = fc.getHeight();
+			Config.windowFcWidth = fc.getWidth();		
+			
+			//Config.save();
+			if (returnVal == JFileChooser.APPROVE_OPTION) {
+				file = fc.getSelectedFile();
+				Log.println("File: " + file.getName());
+				Log.println("DIR: " + file.getPath());
+			} else
+				file = null;
+		}
+		Config.save();
+		if (file !=null) {
+			boolean refresh = false;
+			if (remove) {
+				int n = Log.optionYNdialog("Delete the spacecraft config file?",
+						file.getName() + "\n\nYou will be able to install the spacecraft again if you want, local settings such\n"
+								+ "as frequency ranges will be kept.  Stored telemetry will not be removed.  Delete for now?\n\n");
+				if (n == JOptionPane.NO_OPTION) {
+					refresh = false;
+				} else {
+					
+					try {
+						SatPayloadStore.remove(file.getAbsolutePath());
+						refresh = true;
+					} catch (IOException e) {
+						Log.errorDialog("ERROR removing File", "\nCould not remove the spacecraft file\n"+e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+
+			} else {
+				String targetName = file.getName().replace(".MASTER", ".dat");
+				File targetFile = new File(destinationDir.getPath()+ File.separator + targetName);
+				boolean copy = true;
+
+				Log.println("Installing " + file.getAbsolutePath() + " as " + targetFile.getAbsolutePath());
+
+				if (targetFile.exists()) {
+					int n = Log.optionYNdialog("Overwrite Existing spacecraft config file?",
+							targetFile.getName() + "\n\nThis spacecraft is already installed.  Overwrite it?\n\n");
+
+					if (n == JOptionPane.NO_OPTION) {
+						copy = false;
+					} else {
+						copy = true;
+					}
+				}
+				if (copy) {
+					try {
+						SatPayloadStore.copyFile(file, targetFile);
+						refresh = true;
+					} catch (IOException e) {
+						Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+			}
+			if (refresh) {
+				Config.initSatelliteManager();
+				Config.initPayloadStore();
+				Config.initPassManager();
+				Config.initSequence();
+				Config.initServerQueue();
+				Config.mainWindow.initSatMenu();
+				MainWindow.refreshTabs(false);
+				Config.fileProgress.updateProgress(100);
+			}
+		}
+	}
+
+
 	/**
 	 * Save properties that are not captured realtime.  This is mainly generic properties such as the size of the
 	 * window that are not tied to a control that we have added.

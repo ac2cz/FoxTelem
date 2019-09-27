@@ -1,0 +1,12 @@
+11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,epoch,32,s^-8 since J2000 ,0,rc_adcs_estim_8,1,1,0,epoch,Epoch used in position and velocity calculation,
+5,CAN,epoch_overflow,8,s^-8 since J2000 ,0,rc_adcs_estim_8,1,2,0,epoch_overflow,Epoch used in position and velocity calculation,
+6,CAN,sc_above_gs,1,-,0,rc_adcs_estim_8,1,3,0,sc_above_gs,Boolean indicating whether the s/c thinks it is above the UW ground station or not.,
+7,CAN,sc_in_sun,1,-,0,rc_adcs_estim_8,1,4,0,sc_in_sun,Boolean indicating whether the s/c thinks it is in the sun or not.,
+8,CAN,sgp4_flag,8,-,0,rc_adcs_estim_8,1,5,0,sgp4_flag,Flag telling what mode ESTIM is propagating the orbit in,
+9,CAN,tle_id,1,-,0,rc_adcs_estim_8,1,6,0,tle_id,TLE ID valid bit,
+10,CAN,JUNK,13,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

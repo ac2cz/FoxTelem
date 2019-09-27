@@ -68,8 +68,6 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	SatMeasurementStore[] measurementStore;
 	
 	public PayloadStore() {
-		
-
 		payloadQueue = new SortedFramePartArrayList(INITIAL_QUEUE_SIZE);
 		measurementQueue = new SortedMeasurementArrayList(INITIAL_QUEUE_SIZE);
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
@@ -390,6 +388,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (IOException e) {
 				// FIXME We dont want to stop the decoder but we want to warn the user...
 				e.printStackTrace(Log.getWriter());
+			} catch (Exception e) {
+				// Something bad happened
+				Log.errorDialog("ERROR", "Could parse and save frame for sat: " + id + " reset: " + resets + " uptime: " + uptime + " type: " + f.type
+						+ "\nCheck if the correct frame layouts are being used for this spacecrat");
 			}
 		return false;
 	}
@@ -513,11 +515,26 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 
 	@Override
-	public FramePart getFramePart(int id, int reset, long uptime, String layout) {
+	public FramePart getFramePart(int id, int reset, long uptime, String layout, boolean prev) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getLatest(id, reset, uptime, layout);
+				return store.getLatest(id, reset, uptime, layout, prev);
+			} catch (FileNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+	
+	public FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(id, reset, uptime, type, layout, prev);
 			} catch (FileNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -589,7 +606,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 
-	public PayloadRadExpData getLatestRad(int id) {
+	public FoxFramePart getLatestRad(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -779,6 +796,24 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param fromUptime
 	 * @return
 	 */
+	@Override
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout)  {
+		return getTableData(period, id, fromReset, fromUptime, false, reverse, layout);
+	}
+	
+	public String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout)  {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getTableData(period, id, fromReset, fromUptime, reverse, returnType, layout);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+
+	
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -827,11 +862,22 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
-				return store.getHerciPacketData(period, id, fromReset, fromUptime, reverse);
+				return store.getHerciPacketData(period, id, fromReset, fromUptime, type, reverse);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace(Log.getWriter());
+			}
+		return null;
+	}
+	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getHerciHsData(period, id, fromReset, fromUptime, reverse);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace(Log.getWriter());
@@ -912,44 +958,51 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (InterruptedException e) {
 				Log.println("ERROR: PayloadStore thread interrupted");
 				e.printStackTrace(Log.getWriter());
-			} 	
-			if (payloadQueue.size() > 0) {
-				while (payloadQueue.size() > 0) {
-					FramePart f = payloadQueue.get(0);
-					if (f == null) {
-						Log.println("NULL RECORD IN THE Q");
-					} else {
-						if (Config.debugFieldValues)
-							Log.println(f.toString() + "\n");
-						if (f instanceof PayloadCameraData)
-							addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
-						else
-							addToFile(f.id, f.uptime, f.resets, f);
-					}
-					payloadQueue.remove(0);
-					Thread.yield(); // don't hog the thread or we block when trying to add new payloads
-				}
 			}
 			offloadSegments();
-			if (measurementQueue.size() > 0) {
-				while (measurementQueue.size() > 0) {
-					Measurement f = measurementQueue.get(0);
-					if (f == null) {
-						Log.println("NULL RECORD IN THE MEASUREMENT Q");
-					} else {
-						if (Config.debugFieldValues)
-							Log.println(f.toString() + "\n");
-						addToFile(f.id, f);
-						measurementQueue.remove(0);
+			if (this.initialized()) {
+				if (payloadQueue.size() > 0) {
+					while (payloadQueue.size() > 0) {
+						FramePart f = payloadQueue.get(0);
+						if (f == null) {
+							Log.println("NULL RECORD IN THE Q");
+						} else {
+							if (Config.debugFieldValues) {
+								Log.println(f.toString() + "\n");
+							}
+							if (f instanceof PayloadCameraData)
+								addToPictureFile(f.id, f.uptime, f.resets, (PayloadCameraData)f);
+							else
+								addToFile(f.id, f.uptime, f.resets, f);
+						}
+						payloadQueue.remove(0);
 						Thread.yield(); // don't hog the thread or we block when trying to add new payloads
 					}
 				}
+				if (measurementQueue.size() > 0) {
+					while (measurementQueue.size() > 0) {
+						Measurement f = measurementQueue.get(0);
+						if (f == null) {
+							Log.println("NULL RECORD IN THE MEASUREMENT Q");
+						} else {
+							if (Config.debugFieldValues)
+								Log.println(f.toString() + "\n");
+							addToFile(f.id, f);
+							measurementQueue.remove(0);
+							Thread.yield(); // don't hog the thread or we block when trying to add new payloads
+						}
+					}
+				}
 			}
-		}
+		}			
 		done = true;
 	}
 
 	public void initRad2() {
+		
+	}
+	
+	public void initHerciPackets() {
 		
 	}
 	
@@ -987,11 +1040,18 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public int getNumberOfPayloadsBetweenTimestamps(int id, int reset, long uptime, int toReset, long toUptime, String payloadType) {
+		if (payloadType == Spacecraft.MEASUREMENTS || payloadType == Spacecraft.PASS_MEASUREMENTS) {
+			SatMeasurementStore store = getMeasurementStoreById(id);
+			if (store != null)
+				return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
+		}
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
 		return 0;
 	}
+
+	
 
 
 

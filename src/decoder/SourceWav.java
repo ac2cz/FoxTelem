@@ -101,6 +101,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("SourceWav");
 		running = true;
 		done = false;
 		Log.println("WAV Source START");
@@ -163,7 +164,9 @@ public class SourceWav extends SourceAudio implements Runnable {
 							else
 								for (int chan=0; chan < channels; chan++)
 									circularDoubleBuffer[chan].add(a,b);
-						} else {
+						} else { // we have only mono and we need to know which channel to take the data from
+							if (!Config.useLeftStereoChannel)
+								a = b; // use the audio from the right channel
 							if (channels == 0)
 								circularDoubleBuffer[0].add(a);
 							else

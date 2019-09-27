@@ -1,0 +1,9 @@
+8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,spam_on_z_mtq_x,16,1/73 nT,0,rc_adcs_bdot_5,1,1,0,spam_on_z_mtq_x,the averages of one axis of magnetometer readings during one axis of the last spam,
+5,CAN,spam_on_z_mtq_y,16,1/73 nT,0,rc_adcs_bdot_5,1,2,0,spam_on_z_mtq_y,the averages of one axis of magnetometer readings during one axis of the last spam,
+6,CAN,spam_on_z_mtq_z,16,1/73 nT,0,rc_adcs_bdot_5,1,3,0,spam_on_z_mtq_z,the averages of one axis of magnetometer readings during one axis of the last spam,
+7,CAN,JUNK,16,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

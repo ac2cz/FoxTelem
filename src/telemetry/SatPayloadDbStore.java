@@ -2,10 +2,12 @@ package telemetry;
 
 
 import gui.MainWindow;
+import telemetry.uw.CanPacket;
 
 import java.io.File;
 import java.io.IOException;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -47,6 +49,7 @@ import common.FoxSpacecraft;
  */
 public class SatPayloadDbStore {
 
+	// MySQL error codes
 	public static final String ERR_TABLE_DOES_NOT_EXIST = "42S02";
 	public static final String ERR_DUPLICATE = "23000";
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
@@ -67,6 +70,8 @@ public class SatPayloadDbStore {
 	public static String WOD_LOG = "WODTELEMETRY";
 	public static String WOD_RAD_LOG = "WODRADTELEMETRY";
 	public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
+	public static String UW_CAN_PACKET_LOG = "UW_CAN_PACKET";
+	public static String UW_CAN_PACKET_TIMESTAMP = "UW_CAN_PACKET_TIMESTAMP";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -81,6 +86,8 @@ public class SatPayloadDbStore {
 	public String wodTableName;
 	public String wodRadTableName;
 	public String wodRadTelemTableName;
+	public String uwCanPacketTableName;
+	public String uwCanPacketTimestampTableName;
 	
 	boolean updatedRt = true;
 	boolean updatedMax = true;
@@ -94,6 +101,7 @@ public class SatPayloadDbStore {
 	boolean updatedWod = true;
 	boolean updatedWodRad = true;
 	boolean updatedWodRadTelem = true;
+	boolean updatedUwCanPacket = true;
 	
 	PayloadDbStore payloadDbStore;
 	
@@ -118,44 +126,71 @@ public class SatPayloadDbStore {
 		wodTableName = "Fox"+foxId+WOD_LOG;
 		wodRadTableName = "Fox"+foxId+WOD_RAD_LOG;
 		wodRadTelemTableName = "Fox"+foxId+WOD_RAD_TELEM_LOG;
+		uwCanPacketTableName = "Fox"+foxId+UW_CAN_PACKET_LOG;
+		uwCanPacketTimestampTableName = "Fox"+foxId+UW_CAN_PACKET_TIMESTAMP;
 		initPayloadFiles();
 	}
 	
+	private String makeTableName(String layoutName) {
+		String s = "Fox"+foxId;
+		String LAY = layoutName.toUpperCase();
+		s = s + LAY;
+		return s;
+	}
+	
 	private void initPayloadFiles() {
-//		for (int i=0; i<fox.numberOfLayouts; i++)
-//			initPayloadTable("Fox"+fox.foxId+fox.layoutName[i]+"_LOG", fox.layout[i]);
-		
-		// We need to make sure that the names if the tables are 100% backwards compatible with the legacy names
-		//
-		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), false);
-		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), false);
-		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), false);
-		initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT), false);
-		initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), false);
+		boolean storeMode = false;
+		if (fox.hasModeInHeader)
+			storeMode = true;
+
+		// This would create all of the tables, but not backwards compatible
+//		for (int i=0; i<fox.numberOfDbLayouts; i++)
+//			initPayloadTable(fox.layout[i].name, fox.hasModeInHeader);
+		initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
+		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
+		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
+		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);
+		if (fox.getLayoutIdxByName(Spacecraft.CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
+			initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.CAN_LAYOUT), storeMode);
+			initCanPacketTable(storeMode);
+			initCanTimestampTable();
+		} else {
+			initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.RAD_LAYOUT), storeMode);
+			initPayloadTable(radTelemTableName, fox.getLayoutByName(Spacecraft.RAD2_LAYOUT), storeMode);
+		}
 		if (fox.hasHerci()) {
-			initHerciTables();
+			initHerciTables(storeMode);
 		}
 		if (fox.hasCamera()) {
 			initCameraTables();
 		}
-		if (fox.foxId == Spacecraft.FOX1E) {
-			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), true);
-			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), true);
-			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), true);
+		if (fox.getLayoutIdxByName(Spacecraft.WOD_LAYOUT) != Spacecraft.ERROR_IDX) {
+			initPayloadTable(wodTableName, fox.getLayoutByName(Spacecraft.WOD_LAYOUT), storeMode);
+		}
+		if (fox.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT), storeMode);
+			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), storeMode);
+		}
+		if (fox.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
+			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT), storeMode);
 		}
 	}
 
 	/** 
 	 *  create the tables if they do not exist
 	 */
-	private void initPayloadTable(String table, BitArrayLayout layout, boolean wod) {
-		String createStmt = layout.getTableCreateStmt(wod);
+	private void initPayloadTable(String layoutName, boolean storeMode) {
+		initPayloadTable(makeTableName(layoutName), fox.getLayoutByName(layoutName), storeMode);
+	}
+	private void initPayloadTable(String table, BitArrayLayout layout, boolean storeMode) {
+		if (layout == null) return; // we don't need this table if there is no layout
+		String createStmt = layout.getTableCreateStmt(storeMode);
 		createTable(table, createStmt);
 	}
 
-	private void initHerciTables() {
-		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT), false);
-		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT), false);
+	private void initHerciTables(boolean storeMode) {
+		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT), storeMode);
+		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT), storeMode);
 		String table = herciHSPacketTableName;
 		String createStmt = HerciHighSpeedPacket.getTableCreateStmt();
 		createTable(table, createStmt);
@@ -168,9 +203,33 @@ public class SatPayloadDbStore {
 		table = pictureLinesTableName;
 		createStmt = PictureScanLine.getTableCreateStmt();
 		createTable(table, createStmt);
-		//String lastImageTable = "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int,"
-		//		+ "PRIMARY KEY (date_time, id))";
-		//createTable("LAST_IMAGE_TIMESTAMP", lastImageTable);
+	}
+	
+	private void initCanPacketTable(boolean storeMode) {
+		String table = uwCanPacketTableName;
+		BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT);
+		String s = new String();
+		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (storeMode)
+			s = s + "newMode int,";
+		for (int i=0; i < lay.fieldName.length; i++) {
+			s = s + lay.fieldName[i] + " int,\n";
+		}
+		// We use serial for the type, except for type 4 where we use it for the payload number.  This allows us to have
+		// multiple high speed records with the same reset and uptime
+		s = s + "pkt_id int(11) NOT NULL AUTO_INCREMENT,";
+		s = s + "PRIMARY KEY (pkt_id),";
+		s = s + "UNIQUE KEY (id, resets, uptime, type)" + ")";
+		createTable(table, s);
+	}
+	
+	private void initCanTimestampTable() {
+		String table = uwCanPacketTimestampTableName;
+		String s = new String();
+		s = s + "(username varchar(255) not null,"
+				+ "last_pkt_id int(11) NOT NULL,";
+				s = s + "PRIMARY KEY (username))";
+		createTable(table, s);
 	}
 	
 	private void createTable(String table, String createStmt) {
@@ -187,6 +246,8 @@ public class SatPayloadDbStore {
 				createString = createString + createStmt;
 				
 				Log.println ("Creating new DB table " + table);
+				Log.println("***************************************\n"+createString+"***************************************\n");
+
 				try {
 					stmt.execute(createString);
 				} catch (SQLException ex) {
@@ -508,6 +569,14 @@ public class SatPayloadDbStore {
 			return insert(herciHSHeaderTableName, f);
 		} else if (f instanceof HerciHighSpeedPacket ) {
 			return insert(herciHSPacketTableName, (HerciHighSpeedPacket)f);
+		} else if (f instanceof PayloadWODUwExperiment ) {
+			updatedWodRad=true;
+			return insert(wodRadTableName, (PayloadWODUwExperiment)f);
+		} else if (f instanceof PayloadUwExperiment ) {
+			updatedRad=true;
+			return insert(radTableName, (PayloadUwExperiment)f);
+		} else if (f instanceof CanPacket ) {
+			return insert(uwCanPacketTableName, (CanPacket)f);
 		}
 		return false;
 	}
@@ -699,7 +768,49 @@ public class SatPayloadDbStore {
 		return null;
 	}
 	
-	@SuppressWarnings("unused")
+	SortedFramePartArrayList selectCanPackets(String where) {
+		Statement stmt = null;
+		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
+		update = update + uwCanPacketTableName + " " + where + " ORDER BY pkt_id";
+		ResultSet r = null;
+		SortedFramePartArrayList frameParts = new SortedFramePartArrayList(60);
+
+		try {
+			Connection derby = payloadDbStore.getConnection();
+			stmt = derby.createStatement();
+			//Log.println(update);
+			r = stmt.executeQuery(update);
+			if (r != null) {
+				while (r.next()) {
+					CanPacket payload = new CanPacket(Config.satManager.getLayoutByName(foxId, Spacecraft.CAN_PKT_LAYOUT));
+					payload.id = r.getInt("id");
+					payload.resets = r.getInt("resets");
+					payload.uptime = r.getLong("uptime");
+					payload.type = r.getInt("type");
+					payload.reportDate = r.getString("captureDate");
+					payload.pkt_id = r.getInt("pkt_id");
+					payload.init();
+					payload.rawBits = null; // no binary array when loaded from database
+					for (int i=0; i < payload.fieldValue.length; i++) {
+						payload.fieldValue[i] = r.getInt(payload.layout.fieldName[i]);
+					}
+					frameParts.add(payload);
+				}
+			} else {
+				frameParts = null;
+			}
+			return frameParts;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("selectLatest:"+uwCanPacketTableName, e);
+			try { r.close(); stmt.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (r != null) r.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
+		return null;
+	}
+	
+	
 	private SortedArrayList<PictureScanLine> selectImageLines(String table, String where) {
 		Statement stmt = null;
 		String update = "";
@@ -749,7 +860,11 @@ public class SatPayloadDbStore {
 	
 	private void selectLatest(String table, FoxFramePart payload) {
 		Statement stmt = null;
-		String update = "  SELECT * FROM " + table + " ORDER BY resets DESC, uptime DESC LIMIT 1"; // Derby Syntax FETCH FIRST ROW ONLY";
+		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
+		if (payload instanceof CanPacket)
+			update = update + " pkt_id DESC LIMIT 1"; 
+		else
+			update = update + " resets DESC, uptime DESC, type DESC LIMIT 1"; 
 		ResultSet r = null;
 
 		try {
@@ -761,7 +876,10 @@ public class SatPayloadDbStore {
 				payload.id = r.getInt("id");
 				payload.resets = r.getInt("resets");
 				payload.uptime = r.getLong("uptime");
-				payload.captureDate = r.getString("captureDate");
+				payload.type = r.getInt("type");
+				payload.reportDate = r.getString("captureDate");
+				if (payload instanceof CanPacket)
+					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
 				payload.init();
 				payload.rawBits = null; // no binary array when loaded from database
 				for (int i=0; i < payload.fieldValue.length; i++) {
@@ -779,6 +897,20 @@ public class SatPayloadDbStore {
 			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
 		}
 		payload = null;
+	}
+	
+//	public FramePart getLatest(String layout) throws SQLException {
+//		BitArrayLayout lay = fox.getLayoutByName(layout);
+//		String tableName = lay.getTableName();
+//		FoxFramePart payload = FramePart.makePayload(lay);
+//		selectLatest(tableName, payload);
+//		return payload;
+//	}
+	
+	public CanPacket getLatestUwCanPacket() throws SQLException {
+		CanPacket payload = new CanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
+		selectLatest(uwCanPacketTableName, payload);
+		return payload;
 	}
 	
 	public PayloadRtValues getLatestRt() throws SQLException {
@@ -859,6 +991,111 @@ public class SatPayloadDbStore {
 		}
 	}
 
+	public void initHerciPackets() {
+		int k = 0;
+		int p = 0;
+		ResultSet rs = null;
+		String where = "select * from " + this.herciHSTableName;
+		Statement stmt = null;
+		try {
+			//Log.println("SQL:" + update);
+			Connection derby = payloadDbStore.getConnection();
+			stmt = derby.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+			rs = stmt.executeQuery(where);
+			
+			while (rs.next()) {
+				PayloadHERCIhighSpeed f = new PayloadHERCIhighSpeed(rs, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT));
+				int type = rs.getInt(5); // Column 5 is the Type.  We need to get this as we increment them 601, 602, 603 for the identical reset/uptime
+				k++;
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					pk.type = type*1000 + 900 + i;  // This will give a type formatted like 601903
+					add(pk);
+					p++;
+					updatedHerciPacket = true;
+				}
+				
+			}
+			Log.println("Processed " + k + " HERCI HS FRAMES generating " + p + " mini packets");
+
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("initRad2", e);
+		} finally {
+			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
+	}
+	
+	public boolean storeLastCanId(String user, int pkt_id) {
+		PreparedStatement ps = null;
+		PreparedStatement ps2 = null;
+		try {
+			Connection derby = payloadDbStore.getConnection();
+			ps = derby.prepareStatement(
+				      "UPDATE "+ uwCanPacketTimestampTableName +" SET last_pkt_id = ? where username = ?");
+
+			// set the preparedstatement parameters
+		    ps.setInt(1,pkt_id);
+		    ps.setString(2,user);
+		    
+		    int rows = ps.executeUpdate();
+			if (rows > 0) {
+				return true;
+			} else {
+				Log.println("Could not update the CAN pkt id for " + user + " trying INSERT");
+				ps2 = derby.prepareStatement(
+					      "INSERT INTO "+ uwCanPacketTimestampTableName +" (username, last_pkt_id) VALUES (?, ?)");
+
+				// set the preparedstatement parameters
+			    ps2.setString(1,user);
+			    ps2.setInt(2,pkt_id);
+			    
+			    rows = ps2.executeUpdate();
+			    if (rows > 0) {
+					return true;
+				} else {
+					Log.println("ERROR: Could not insert the CAN pkt id "+pkt_id+" for " + user);
+					return false; 
+				}
+			}
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check Password SQL:", e);
+		} finally {
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
+			try { if (ps2 != null) ps2.close(); } catch (SQLException e2) {};
+		}
+		return false;
+	}
+	
+	public int getLastCanId(String user) {
+		PreparedStatement ps = null;
+		ResultSet rs = null;
+		int pktId = 0;
+		try {
+			Connection derby = payloadDbStore.getConnection();
+			ps = derby.prepareStatement("SELECT last_pkt_id from "+ uwCanPacketTimestampTableName +" where username = ?");
+		    ps.setString(1,user);
+		    
+		    rs = ps.executeQuery();
+			
+		    while (rs.next()) {
+		    	pktId = rs.getInt("last_pkt_id");	
+			}
+			return pktId;
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check Password SQL:", e);
+			try { rs.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { ps.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
+		}
+		return 0;
+	}
+	
+
 	/**
 	 * Return an array of radiation data with "period" entries for this sat id and from the given reset and
 	 * uptime.
@@ -926,6 +1163,7 @@ public class SatPayloadDbStore {
 		return resultSet;
 	}
 
+	/*
 	private ResultSet selectRows(String table, String name, String where, int numberOfRows) {
 		Statement stmt = null;
 		String update = "";
@@ -951,7 +1189,7 @@ public class SatPayloadDbStore {
 		return null;
 		
 	}
-
+*/
     
 	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs = null;

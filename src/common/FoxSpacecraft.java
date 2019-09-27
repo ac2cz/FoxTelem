@@ -19,6 +19,10 @@ import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRtValues;
+import telemetry.SortedFramePartArrayList;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
@@ -52,12 +56,40 @@ import uk.me.g4dpz.satellite.TLE;
 public class FoxSpacecraft extends Spacecraft{
 	
 	public static final int EXP_EMPTY = 0;
-	public static final int EXP_VULCAN = 1; // This is the 1A LEP experiment
+	public static final int EXP_VANDERBILT_LEP = 1; // This is the 1A LEP experiment
 	public static final int EXP_VT_CAMERA = 2;
 	public static final int EXP_IOWA_HERCI = 3;
 	public static final int EXP_RAD_FX_SAT = 4;
 	public static final int EXP_VT_CAMERA_LOW_RES = 5;
 	public static final int EXP_VANDERBILT_VUC = 6; // This is the controller and does not have its own telem file
+	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
+	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
+	public static final int EXP_UW = 9; // University of Washington
+	public static final int ADAC = 10; // Ragnaroc
+	
+	public static final String SAFE_MODE_IND = "SafeModeIndication";
+	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
+	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
+	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
+	
+	public static final int NO_MODE = 0;
+	public static final int SAFE_MODE = 1;
+	public static final int TRANSPONDER_MODE = 2;
+	public static final int DATA_MODE = 3;
+	public static final int SCIENCE_MODE = 4;
+	public static final int HEALTH_MODE = 5;
+	public static final int CAMERA_MODE = 6;
+	
+	public static final String[] modeNames = {
+		"UNKNOWN",
+		"SAFE",
+		"TRANSPONDER",
+		"DATA",
+		"SCIENCE",
+		"HEALTH",
+		"CAMERA"
+	};
 	
 	public static final String[] expNames = {
 		"Empty",
@@ -66,19 +98,30 @@ public class FoxSpacecraft extends Spacecraft{
 		"University of Iowa HERCI",
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
-		"Vanderbilt VUC"
+		"Vanderbilt VUC",
+		"Vanderbilt LEP",
+		"Vanderbilt REM",
+		"Vanderbilt LEPF",
+		"University of Washington Experiment",
+		"ADAC"
 	};
 	
 	
 	public int IHU_SN = 0;
 	public int[] experiments = {EXP_EMPTY, EXP_EMPTY, EXP_EMPTY, EXP_EMPTY};
 	
-	
-	// Calibration
-	public double BATTERY_CURRENT_ZERO = 0;
-	public double mpptResistanceError = 6.58d;
-	public int mpptSensorOffThreshold = 1600;
+	public boolean hasImprovedCommandReceiver = false;
+	public boolean hasModeInHeader = false;
 	public boolean hasMpptSettings = false;
+	public boolean hasMemsRestValues = false;
+	
+	// User settings - Calibration
+	public double user_BATTERY_CURRENT_ZERO = 0;
+	public double user_mpptResistanceError = 6.58d;
+	public int user_mpptSensorOffThreshold = 1600;
+	public int user_memsRestValueX = 0;
+	public int user_memsRestValueY = 0;
+	public int user_memsRestValueZ = 0;
 	
 	// layout flags
 	public boolean useIHUVBatt = false;
@@ -97,8 +140,11 @@ public class FoxSpacecraft extends Spacecraft{
 			timeZero = null;
 		}
 		measurementLayout = new BitArrayLayout(measurementsFileName);
-		if (passMeasurementsFileName != null)
+		measurementLayout.name=MEASUREMENTS;
+		if (passMeasurementsFileName != null) {
 			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
+			passMeasurementLayout.name = PASS_MEASUREMENTS;
+		}
 		loadTleHistory(); // DOnt call this until the Name and FoxId are set
 		positionCache = new SpacecraftPositionCache(foxId);
 	}
@@ -221,22 +267,37 @@ public class FoxSpacecraft extends Spacecraft{
 	}
 	
 	public void save() {
-		super.save();
-		properties.setProperty("IHU_SN", Integer.toString(IHU_SN));
-		for (int i=0; i< experiments.length; i++)
-			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
+//		super.save();
+//		properties.setProperty("IHU_SN", Integer.toString(IHU_SN));
+//		for (int i=0; i< experiments.length; i++)
+//			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
+//		
+//		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
+//		properties.setProperty("measurementsFileName", measurementsFileName);
+//		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
+//				
+//		properties.setProperty("hasModeInHeader", Boolean.toString(hasModeInHeader));
+//		store();
 		
-		properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(BATTERY_CURRENT_ZERO));
-		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
-		properties.setProperty("measurementsFileName", measurementsFileName);
-		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
-		
+		// Only the user params can be changed and saved
+		save_user_params();
+	}
+	
+	public void save_user_params() {
+		super.save_user_params();
+		user_properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(user_BATTERY_CURRENT_ZERO));
 		if (this.hasMpptSettings) {
-			properties.setProperty("mpptResistanceError", Double.toString(mpptResistanceError));
-			properties.setProperty("mpptSensorOffThreshold", Integer.toString(mpptSensorOffThreshold));
+			user_properties.setProperty("mpptResistanceError", Double.toString(user_mpptResistanceError));
+			user_properties.setProperty("mpptSensorOffThreshold", Integer.toString(user_mpptSensorOffThreshold));
+		}
+		if (hasMemsRestValues) {
+			user_properties.setProperty("memsRestValueX", Integer.toString(user_memsRestValueX));
+			user_properties.setProperty("memsRestValueY", Integer.toString(user_memsRestValueY));
+			user_properties.setProperty("memsRestValueZ", Integer.toString(user_memsRestValueZ));			
 		}
 		
-		store();
+		user_properties.setProperty("hasModeInHeader", Boolean.toString(hasModeInHeader));
+		store_user_params();
 	
 	}
 	
@@ -288,6 +349,11 @@ public class FoxSpacecraft extends Spacecraft{
 		return hasContent;
 	}
 	
+	/**
+	 * This loads all of the settings including those that are overridden by the user_ settings.  It they do not
+	 * exist yet then they are initialized here
+	 * @throws LayoutLoadException
+	 */
 	protected void load() throws LayoutLoadException {
 		super.load();
 		try {
@@ -295,7 +361,7 @@ public class FoxSpacecraft extends Spacecraft{
 			for (int i=0; i< experiments.length; i++)
 				experiments[i] = Integer.parseInt(getProperty("EXP"+(i+1)));
 			
-			BATTERY_CURRENT_ZERO = Double.parseDouble(getProperty("BATTERY_CURRENT_ZERO"));
+			user_BATTERY_CURRENT_ZERO = Double.parseDouble(getProperty("BATTERY_CURRENT_ZERO"));
 		
 			useIHUVBatt = Boolean.parseBoolean(getProperty("useIHUVBatt"));
 
@@ -303,14 +369,37 @@ public class FoxSpacecraft extends Spacecraft{
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
 			String error = getOptionalProperty("mpptResistanceError");
 			if (error != null) {
-				mpptResistanceError = Double.parseDouble(error);
+				user_mpptResistanceError = Double.parseDouble(error);
 				hasMpptSettings = true;
 			}
 			String threshold = getOptionalProperty("mpptSensorOffThreshold");
 			if (threshold != null) {
-				mpptSensorOffThreshold = Integer.parseInt(threshold);
+				user_mpptSensorOffThreshold = Integer.parseInt(threshold);
 				hasMpptSettings = true;
 			}
+			String icr = getOptionalProperty("hasImprovedCommandReceiver");
+			if (icr != null) {
+				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
+			}
+			String mode = getOptionalProperty("hasModeInHeader");
+			if (mode != null) {
+				hasModeInHeader = Boolean.parseBoolean(getProperty("hasModeInHeader"));
+			}
+			String mems_x = getOptionalProperty("memsRestValueX");
+			if (mems_x != null) {
+				user_memsRestValueX = Integer.parseInt(mems_x);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_y = getOptionalProperty("memsRestValueY");
+			if (mems_y != null) {
+				user_memsRestValueY = Integer.parseInt(mems_y);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_z = getOptionalProperty("memsRestValueZ");
+			if (mems_z != null) {
+				user_memsRestValueZ = Integer.parseInt(mems_z);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -318,12 +407,49 @@ public class FoxSpacecraft extends Spacecraft{
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath());		
 		}
-
+		load_user_params();
 	}
 	
+	protected void load_user_params() throws LayoutLoadException {
+		super.load_user_params();
+		
+		try {
+			user_BATTERY_CURRENT_ZERO = Double.parseDouble(getUserProperty("BATTERY_CURRENT_ZERO"));
+		
+			String error = getOptionalUserProperty("mpptResistanceError");
+			if (error != null) {
+				user_mpptResistanceError = Double.parseDouble(error);
+				hasMpptSettings = true;
+			}
+			String threshold = getOptionalUserProperty("mpptSensorOffThreshold");
+			if (threshold != null) {
+				user_mpptSensorOffThreshold = Integer.parseInt(threshold);
+				hasMpptSettings = true;
+			}
+			String mems_x = getOptionalUserProperty("memsRestValueX");
+			if (mems_x != null) {
+				user_memsRestValueX = Integer.parseInt(mems_x);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_y = getOptionalUserProperty("memsRestValueY");
+			if (mems_y != null) {
+				user_memsRestValueY = Integer.parseInt(mems_y);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+			String mems_z = getOptionalUserProperty("memsRestValueZ");
+			if (mems_z != null) {
+				user_memsRestValueZ = Integer.parseInt(mems_z);
+				hasMemsRestValues = true;
+			} else hasMemsRestValues = false;
+		} catch (NumberFormatException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
+		} catch (NullPointerException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Missing FOX data value when loading Spacecraft file: " + propertiesFile.getAbsolutePath());		
+		}
+	}
 	
-	
-
 	/**
 	 * Return true if one of the experiment slots contains the Virginia Tech Camera
 	 * @return
@@ -367,9 +493,98 @@ public class FoxSpacecraft extends Spacecraft{
 		return id;
 	}
 	
+	public static String getModeString(int mode) {
+		return FoxSpacecraft.modeNames[mode];
+	}
+	
+	/**
+	 * Return the mode of the spacecraft based in the most recent RT, MAX, MIN and EXP payloads
+	 * @param realTime
+	 * @param maxPaylaod
+	 * @param minPayload
+	 * @param radPayload
+	 * @return
+	 */
+	public static int determine1A1DMode(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, FramePart radPayload) {
+		if (realTime != null && minPayload != null && maxPayload != null) {
+			if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
+				return DATA_MODE;
+		}
+		// Otherwise, if RAD received more recently than max/min and RT
+		// In the compare, a -ve result means older, because the reset or uptime is less
+		// So a result >0 means the object calling the compare is newer
+		if (radPayload != null)
+			if (realTime != null && radPayload.compareTo(realTime) > 0)
+				if (maxPayload == null && minPayload == null)
+					return TRANSPONDER_MODE;
+				else if (maxPayload != null && radPayload.compareTo(maxPayload) > 0)
+					if (minPayload == null)
+						return TRANSPONDER_MODE;
+					else if (radPayload.compareTo(minPayload) > 0)
+						return TRANSPONDER_MODE;
+		
+		// Otherwise find the most recent max/min
+		// if we have just a max payload, or we have both and max is more recent or the same
+		if ((minPayload == null && maxPayload != null) || (maxPayload != null && minPayload != null && maxPayload.compareTo(minPayload) >=0)) {
+			if (maxPayload.getRawValue(SCIENCE_MODE_IND) == 1)
+				return SCIENCE_MODE;
+			else if (maxPayload.getRawValue(SAFE_MODE_IND) == 1)
+				return SAFE_MODE;
+			else
+				return TRANSPONDER_MODE;
+		} else if (minPayload != null) {  // this is the case when we have both and min is more recent
+			if (minPayload.getRawValue(SCIENCE_MODE_IND) == 1)
+				return SCIENCE_MODE;
+			else if (minPayload.getRawValue(SAFE_MODE_IND) == 1)
+				return SAFE_MODE;
+			else
+				return TRANSPONDER_MODE;
+		}
+		// return default
+		return TRANSPONDER_MODE;
+	}
+	public String determineModeFromHeader() {
+		// Mode is stored in the header
+		// Find the most recent frame and return the mode that it has
+		SortedFramePartArrayList payloads = new SortedFramePartArrayList(numberOfLayouts);
+		int maxLayouts = 4; // First four layouts are rt, max, min, exp
+		for (int i=0; i <= maxLayouts && i < layout.length; i++) {
+			//System.err.println("Checking mode in: "+layout[i].name );
+			payloads.add(Config.payloadStore.getLatest(foxId, layout[i].name));
+		}
+
+		int mode = NO_MODE;
+		if (payloads.size() > 0)
+			mode = payloads.get(payloads.size()-1).newMode;
+		return getModeString(mode);
+	}
+
+	public static String OLDdetermineModeFromHeader(PayloadRtValues realTime, PayloadMaxValues maxPayload, PayloadMinValues minPayload, 
+			FramePart radPayload) {
+		// Mode is stored in the header
+		// Find the most recent frame and return the mode that it has
+		SortedFramePartArrayList payloads = new SortedFramePartArrayList(4);
+		if (realTime != null) payloads.add(realTime);
+		if (maxPayload != null) payloads.add(maxPayload);
+		if (minPayload != null) payloads.add(minPayload);
+		if (radPayload != null) payloads.add(radPayload);
+		int mode = NO_MODE;
+		if (payloads.size() > 0)
+			mode = payloads.get(payloads.size()-1).newMode;
+		return getModeString(mode);
+	}
+	
+	public static String determineModeString(FoxSpacecraft fox, PayloadRtValues realTime, PayloadMaxValues maxPayload, 
+			PayloadMinValues minPayload, FramePart radPayload) {
+		int mode;
+
+		mode = determine1A1DMode(realTime, maxPayload, minPayload, radPayload);
+		return getModeString(mode);
+	}
+
 	public String toString() {
 
-		return this.name; //"Fox-" + getIdString();
+		return this.user_display_name; //"Fox-" + getIdString();
 
 	}
 }

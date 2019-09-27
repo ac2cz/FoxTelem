@@ -89,12 +89,13 @@ public class AirspyDevice extends device.TunerController
 	public static final int IF_GAIN_MIN = 0;
 	public static final int IF_GAIN_MAX = 15;
 	public static final int IF_GAIN_DEFAULT = 9;
-	public static final long FREQUENCY_MIN = 24000000l;
-	public static final long FREQUENCY_MAX = 1800000000l;
+	public static final long FREQUENCY_MIN = 24000l;
+	public static final long FREQUENCY_MAX = 1800000l;
 	public static final long FREQUENCY_DEFAULT = 101100000;
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.90;
 	public static final AirspySampleRate DEFAULT_SAMPLE_RATE =
 			new AirspySampleRate( 1, 3000000, "3.00 MHz" );
+			//new AirspySampleRate( 1, 3000000, "3.00 MHz" );
 	public static final long USB_TIMEOUT_MS = 2000l; //milliseconds
 	public static final byte USB_ENDPOINT = (byte)0x81;
 	public static final byte USB_INTERFACE = (byte)0x0;
@@ -134,7 +135,7 @@ public class AirspyDevice extends device.TunerController
 	public AirspyDevice( Device device,ThreadPoolManager threadPoolManager ) 
 										  throws DeviceException 
 	{
-		//super( FREQUENCY_MIN, FREQUENCY_MAX, 0, USABLE_BANDWIDTH_PERCENT );
+		super( "Airspy", FREQUENCY_MIN, FREQUENCY_MAX );
 		
 		mDevice = device;
 		name = "USBAirspy";
@@ -465,6 +466,7 @@ public class AirspyDevice extends device.TunerController
 	@Override
 	public int setFrequency( long frequency ) throws DeviceException
 	{
+		frequency = frequency/1000;
 		if( FREQUENCY_MIN <= frequency && frequency <= FREQUENCY_MAX )
 		{
 			ByteBuffer buffer = ByteBuffer.allocateDirect( 4 );

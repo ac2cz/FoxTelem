@@ -14,6 +14,9 @@ public class ServerConfig {
 	public static boolean slowSpeedRsDecode=true;
 	public static boolean highSpeedRsDecode=true;
 
+	// Version 0.32b
+	public static int socketReadTimeout=1000;
+	
 	public static void init() {
 		properties = new Properties();
 		load();
@@ -21,6 +24,7 @@ public class ServerConfig {
 	public static void save() {
 		properties.setProperty("slowSpeedRsDecode", Boolean.toString(slowSpeedRsDecode));
 		properties.setProperty("highSpeedRsDecode", Boolean.toString(highSpeedRsDecode));
+		properties.setProperty("socketReadTimeout", Integer.toString(socketReadTimeout));
 		store();
 	}
 
@@ -59,6 +63,7 @@ public class ServerConfig {
 		try {
 			slowSpeedRsDecode = Boolean.parseBoolean(getProperty("slowSpeedRsDecode"));
 			highSpeedRsDecode = Boolean.parseBoolean(getProperty("highSpeedRsDecode"));
+			socketReadTimeout = Integer.parseInt(getProperty("socketReadTimeout"));
 
 		} catch (NumberFormatException nf) {
 			Log.println("FATAL: Could not load properties: " + nf.getMessage());

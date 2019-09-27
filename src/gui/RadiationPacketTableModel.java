@@ -1,7 +1,5 @@
 package gui;
 
-import javax.swing.table.AbstractTableModel;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

@@ -28,7 +28,7 @@ public class HighSpeedHeader extends Header {
 	
 	
 	public HighSpeedHeader() {
-		super();
+		super(TYPE_HIGH_SPEED_HEADER);
 		MAX_BYTES = HighSpeedFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 	}
@@ -50,8 +50,7 @@ public class HighSpeedHeader extends Header {
 		copyBitsToFields();
 		String s = new String();
 
-		s = s + "AMSAT FOX-1 High Speed Telemetry Captured at: " + reportDate() + "\n" 
-				+ "ID: " + FoxDecoder.dec(id) 
+		s = s + "ID: " + FoxDecoder.dec(id) 
 				+ " RESET COUNT: " + FoxDecoder.dec(resets)
 				+ " UPTIME: " + FoxDecoder.dec(uptime);
 		

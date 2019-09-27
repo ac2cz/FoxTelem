@@ -3,7 +3,11 @@
 #File named .dat should be in the logfiles directory and is loaded by FoxTelem
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=false
+mode=0
 mpptResistanceError=6.58
+memsRestValueX=2009
+memsRestValueY=2033
+memsRestValueZ=1993
 mpptSensorOffThreshold=1600
 numberOfLookupTables=3
 measurementsFileName=measurements.csv
@@ -15,6 +19,7 @@ layout5.parentLayout=radtelemetry
 lookupTable0.filename=RadFxSat_rssiFM.tab
 layout1.filename=RadFxSat_maxtelemetry.csv
 name=AO-91
+displayName=AO-91
 description=RadFxSat (Fox-1B) is a 1U CubeSat with U/v transponders and three radiation experiments from Vanderbilt University.
 numberOfLayouts=6
 track=false

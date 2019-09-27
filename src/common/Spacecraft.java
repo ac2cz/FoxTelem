@@ -1,62 +1,66 @@
 package common;
 
-import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
+import decoder.SourceIQ;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
+import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
+import telemetry.uw.CanFrames;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
 import uk.me.g4dpz.satellite.SatelliteFactory;
 import uk.me.g4dpz.satellite.TLE;
 
-public abstract class Spacecraft {
+public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;
 	
 	public static String SPACECRAFT_DIR = "spacecraft";
 	public static final int ERROR_IDX = -1;
 	
+	// THESE HARD CODED LOOKUPS SHOULD NOT BE USED FOR NEW SPACECRAFT
+	// Code a paramater into the spacecraft file that might work with future hardware, e.g. hsaCanBus
+	// Or switch logic based on standard layouts defined below, or custom layouts if required e.g. camera formats
 	public static final int FOX1A = 1;
 	public static final int FOX1B = 2;
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
 	public static final int FOX1E = 5;
-	public static final int FUN_CUBE1 = 100;
-	public static final int FUN_CUBE2 = 101;
+	//public static final int HUSKY_SAT = 6;
+	//public static final int GOLF_TEE = 7;
+	//public static final int FUN_CUBE1 = 100;
+	//public static final int FUN_CUBE2 = 101;
 	
-	// Primary Payloads
-//	public static String RT_LOG = "";
-//	public static String MAX_LOG = "";
-//	public static String MIN_LOG = "";
-//	public static String RAD_LOG = "";
+	public static final String[][] SOURCES = {
+			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
+			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
+			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
+			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
+			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
+			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
+			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" },
+			{ "amsat.golf-t.ihu.bpsk", "amsat.golf-t.ihu.bpsk" } };
 
-	// Secondary payloads - decoded from the primary payloads
-//	public static String RAD_TELEM_LOG = "";
+	public static final int MAX_FOXID = 256; // experimentally increase this to allow other ids. Note the header is limited to 8 bits
 
-//	public static String HERCI_LOG = "";
-//	public static String HERCI_HEADER_LOG = "";
-//	public static String HERCI_PACKET_LOG = "";
 	// Layout Types
 	public static final String DEBUG_LAYOUT = "DEBUG";
 	public static final String REAL_TIME_LAYOUT = "rttelemetry";
@@ -73,11 +77,19 @@ public abstract class Spacecraft {
 	public static final String RAD_LEPF_LAYOUT = "radtelemLEPF";
 	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
 	public static final String RAD_REM_LAYOUT = "radtelemREM";
+
+	// These are the layouts
+	public static final String CAN_LAYOUT = "cantelemetry";
+	public static final String WOD_CAN_LAYOUT = "wodcantelemetry";
+
+	// These are the individual CAN packets inside the layouts
+	public static final String CAN_PKT_LAYOUT = "canpacket";
+	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
 	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
-
+	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
 	
 	// Model Versions
 	public static final int EM = 0;
@@ -97,27 +109,34 @@ public abstract class Spacecraft {
 			"FS"
 	};
 	
+	public static String[] modes = {
+			"FSK DUV 200",
+			"FSK 9600",
+			"FSK Auto",
+			"BPSK 1200 (Dot Product)",
+			"BPSK 1200 (Costas)"
+	};
+	
 	public int foxId = 1;
 	public int catalogNumber = 0;
-	public String series = "Fox";
-	public String name = "Fox-1A";
+	public String series = "FOX";
 	public String description = "";
 	public int model;
-	public int telemetryDownlinkFreqkHz = 145980;
-	public int minFreqBoundkHz = 145970;
-	public int maxFreqBoundkHz = 145990;
+	public String canFileDir = "HuskySat";
+	public int mode = SourceIQ.MODE_FSK_DUV;
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
-	
+		
 	public int numberOfLayouts = 4;
+	public int numberOfDbLayouts = 4; // if we load additional layouts for CAN BUS then this stores the core layouts
 	public String[] layoutFilename;
-	//public String[] layoutName;
 	public BitArrayLayout[] layout;
-	 	
+	private boolean[] sendLayoutLocally;  // CURRENTLY UNUSED SO MADE PRIVATE
+	public CanFrames canFrames;
+	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
-	//public String[] lookupTableName;
 	public LookUpTable[] lookupTable;
 	
 	public String measurementsFileName;
@@ -125,13 +144,30 @@ public abstract class Spacecraft {
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 	
+	public static final String MEASUREMENTS = "measurements";
+	public static final String PASS_MEASUREMENTS = "passmeasurements";
+	
 	public int numberOfFrameLayouts = 1;
 	public String[] frameLayoutFilename;
-	//public FrameLayout[] frameLayout;
+	public FrameLayout[] frameLayout;
 	
 	// User Config
-	public boolean track = true; // default is we track a satellite
+	public static final String USER_ = "user_";
+	public Properties user_properties; // Java properties file for user defined values
+	public File userPropertiesFile;
+	public String user_display_name = "Fox-1A";
+	public String user_keps_name = "Fox-1A";
+	public int user_priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
+	public boolean user_track = true; // default is we track a satellite
+	public double user_telemetryDownlinkFreqkHz = 145980;
+	public double user_minFreqBoundkHz = 145970;
+	public double user_maxFreqBoundkHz = 145990;
+	public String user_localServer = ""; // default to blank, otherwise we try to send to the local server
+	public int user_localServerPort = 8587;
+
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
+	public double satPosErrorCode; // Store the error code when we return null for the position
+	public boolean hasCanBus;
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
 	
@@ -145,6 +181,9 @@ public abstract class Spacecraft {
 	public Spacecraft(File fileName ) throws LayoutLoadException, IOException {
 		properties = new Properties();
 		propertiesFile = fileName;	
+		user_properties = new Properties();
+		String userFileName = fileName.getAbsolutePath().replaceAll(".dat", ".user");
+		userPropertiesFile = new File(userFileName);	
 		tleList = new SortedTleList(10);
 	}
 	
@@ -171,6 +210,18 @@ public abstract class Spacecraft {
 		if (i != ERROR_IDX)
 				return layout[i];
 		return null;
+	}
+	
+	public BitArrayLayout getLayoutByCanId(int canId) {
+		if (!hasCanBus) return null;
+		if (canFrames == null) return null;
+		String name = canFrames.getNameByCanId(canId);
+		if (name != null) {
+			int i = getLayoutIdxByName(name);
+			if (i != ERROR_IDX)
+				return layout[i];
+		}
+		return getLayoutByName(Spacecraft.CAN_PKT_LAYOUT); // try to return the default instead. We dont have this CAN ID
 	}
 
 	public LookUpTable getLookupTableByName(String name) {
@@ -199,7 +250,7 @@ public abstract class Spacecraft {
 	 * @throws IOException 
 	 */
 	protected void loadTleHistory() {
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -210,7 +261,8 @@ public abstract class Spacecraft {
 			is = new FileInputStream(f);
 			tleList = FoxTLE.importFoxSat(is);
 		} catch (IOException e) {
-			e.printStackTrace(Log.getWriter()); // No TLE, but this is not viewed as fatal.  It should be fixed by Kep check
+			Log.println("TLE file not loaded: " + file);
+			//e.printStackTrace(Log.getWriter()); // No TLE, but this is not viewed as fatal.  It should be fixed by Kep check
 		} finally {
 			try {
 				if (is != null) is.close();
@@ -223,7 +275,7 @@ public abstract class Spacecraft {
 	}
 	
 	private void saveTleHistory() throws IOException {
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "FOX" + this.foxId + ".tle";
+		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -252,7 +304,10 @@ public abstract class Spacecraft {
 	protected TLE getTLEbyDate(DateTime dateTime) throws PositionCalcException {
 		if (tleList == null) return null;
 		TLE t = tleList.getTleByDate(dateTime);
-		if (t==null) throw new PositionCalcException(FramePart.NO_TLE);
+		if (t==null) {
+			satPosErrorCode = FramePart.NO_TLE;
+			throw new PositionCalcException(FramePart.NO_TLE);
+		}
 		return t;
 	}
 	
@@ -268,7 +323,10 @@ public abstract class Spacecraft {
 	public SatPos calcSatellitePosition(DateTime timeNow) throws PositionCalcException {
 		final TLE tle = getTLEbyDate(timeNow);
 //		if (Config.debugFrames) Log.println("TLE Selected fOR date: " + timeNow + " used TLE epoch " + tle.getEpoch());
-		if (tle == null) throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
+		if (tle == null) {
+			satPosErrorCode = FramePart.NO_TLE;
+			throw new PositionCalcException(FramePart.NO_TLE); // We have no keps
+		}
 		final Satellite satellite = SatelliteFactory.createSatellite(tle);
         final SatPos satellitePosition = satellite.getPosition(Config.GROUND_STATION, timeNow.toDate());
 		return satellitePosition;
@@ -290,7 +348,9 @@ public abstract class Spacecraft {
 	}
 
 	public SatPos getCurrentPosition() throws PositionCalcException {
-		if (satPos == null) throw new PositionCalcException(FramePart.NO_POSITION_DATA);
+		if (satPos == null) {
+			throw new PositionCalcException(FramePart.NO_POSITION_DATA);
+		}
 		return satPos;
 	}
 	
@@ -300,41 +360,77 @@ public abstract class Spacecraft {
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
 	}
 	
+	public boolean sendToLocalServer() {
+		if (user_localServer == null) return false;
+		if (user_localServer.equalsIgnoreCase(""))
+			return false;
+		else
+			return true;
+	}
+	
+	/**
+	 * Returns true if this layout should be sent to the local server
+	 * @param name
+	 * @return
+	 */
+	public boolean shouldSendLayout(String name) {
+		for (int i=0; i<numberOfLayouts; i++)
+			if (layout[i].name.equals(name))
+				if (sendLayoutLocally[i])
+					return true;
+		return false;
+	}
+	
+	/**
+	 * This loads all of the settings including those that are overridden by the user_ settings.  It they do not
+	 * exist yet then they are initialized here
+	 * @throws LayoutLoadException
+	 */
 	protected void load() throws LayoutLoadException {
 		// try to load the properties from a file
+		FileInputStream f = null;
 		try {
-			FileInputStream f=new FileInputStream(propertiesFile);
+			f=new FileInputStream(propertiesFile);
 			properties.load(f);
+			f.close();
 		} catch (IOException e) {
+			if (f!=null) try { f.close(); } catch (Exception e1) {};
 			throw new LayoutLoadException("Could not load spacecraft files: " + propertiesFile.getAbsolutePath());
+			
 		}
 		try {
 			foxId = Integer.parseInt(getProperty("foxId"));
 			catalogNumber = Integer.parseInt(getProperty("catalogNumber"));			
-			name = getProperty("name");
+			user_keps_name = getProperty("name");
+			user_display_name = getProperty("displayName");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
-			telemetryDownlinkFreqkHz = Integer.parseInt(getProperty("telemetryDownlinkFreqkHz"));			
-			minFreqBoundkHz = Integer.parseInt(getProperty("minFreqBoundkHz"));
-			maxFreqBoundkHz = Integer.parseInt(getProperty("maxFreqBoundkHz"));
+			mode = Integer.parseInt(getProperty("mode"));
+			user_telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
+			user_minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
+			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			// Frame Layouts
-			/**
-			numberOfFrameLayouts = Integer.parseInt(getProperty("numberOfFrameLayouts"));
-			frameLayoutFilename = new String[numberOfFrameLayouts];
-			frameLayout = new FrameLayout[numberOfFrameLayouts];
-			for (int i=0; i < numberOfFrameLayouts; i++) {
-				frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
-				frameLayout[i] = new FrameLayout(frameLayoutFilename[i]);
-				frameLayout[i].name = getProperty("frameLayout"+i+".name");
+			String frames = getOptionalProperty("numberOfFrameLayouts");
+			if (frames == null) 
+				numberOfFrameLayouts = 0;
+			else {
+				numberOfFrameLayouts = Integer.parseInt(frames);
+				frameLayoutFilename = new String[numberOfFrameLayouts];
+				frameLayout = new FrameLayout[numberOfFrameLayouts];
+				for (int i=0; i < numberOfFrameLayouts; i++) {
+					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
+					frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
+					frameLayout[i].name = getProperty("frameLayout"+i+".name");
+				}
 			}
-			*/
-			
-			
+
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
+			numberOfDbLayouts = numberOfLayouts;
 			layoutFilename = new String[numberOfLayouts];
 			layout = new BitArrayLayout[numberOfLayouts];
+			sendLayoutLocally = new boolean[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
@@ -352,12 +448,48 @@ public abstract class Spacecraft {
 				lookupTable[i].name = getProperty("lookupTable"+i);
 			}
 			
-			
 			String t = getOptionalProperty("track");
 			if (t == null) 
-				track = true;
+				user_track = true;
 			else 
-				track = Boolean.parseBoolean(t);
+				user_track = Boolean.parseBoolean(t);
+			String s = getOptionalProperty("series");
+			if (s == null) 
+				series = "FOX";
+			else 
+				series = s;
+			String serv = getOptionalProperty("localServer");
+			if (serv == null) 
+				user_localServer = null;
+			else 
+				user_localServer = serv;
+			String p = getOptionalProperty("localServerPort");
+			if (p == null) 
+				user_localServerPort = 0;
+			else 
+				user_localServerPort = Integer.parseInt(p);
+//			for (int i=0; i < numberOfLayouts; i++) {
+//				String l = getOptionalProperty("sendLayoutLocally"+i);
+//				if (l != null)
+//					sendLayoutLocally[i] = Boolean.parseBoolean(l);
+//				else
+//					sendLayoutLocally[i] = false;
+//			}
+			String pri = getOptionalProperty("priority");
+			if (pri == null) 
+				user_priority = 1;
+			else 
+				user_priority = Integer.parseInt(pri);
+			String c = getOptionalProperty("hasCanBus");
+			if (c == null) 
+				hasCanBus = false;
+			else 
+				hasCanBus =  Boolean.parseBoolean(c);
+			if (hasCanBus) {
+				this.canFileDir = getProperty("canFileDir");
+				loadCanLayouts();
+			}
+
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -370,8 +502,103 @@ public abstract class Spacecraft {
 		}
 	}
 	
+	protected void load_user_params() throws LayoutLoadException {
+		// try to load the properties from a file
+		FileInputStream f = null;
+		try {
+			f=new FileInputStream(userPropertiesFile);
+			user_properties.load(f);
+			f.close();
+		} catch (IOException e) {
+			if (f!=null) try { f.close(); } catch (Exception e1) {};
+			//throw new LayoutLoadException("Could not load spacecraft user settings from: " + userPropertiesFile.getAbsolutePath());
+			// File does not exist, init
+			save_user_params();
+
+		}
+		try {
+			user_keps_name = getUserProperty("name");
+			user_telemetryDownlinkFreqkHz = Double.parseDouble(getUserProperty("telemetryDownlinkFreqkHz"));			
+			user_minFreqBoundkHz = Double.parseDouble(getUserProperty("minFreqBoundkHz"));
+			user_maxFreqBoundkHz = Double.parseDouble(getUserProperty("maxFreqBoundkHz"));
+			
+			String t = getOptionalUserProperty("track");
+			if (t == null) 
+				user_track = true;
+			else 
+				user_track = Boolean.parseBoolean(t);
+			String serv = getOptionalUserProperty("localServer");
+			if (serv == null) 
+				user_localServer = null;
+			else 
+				user_localServer = serv;
+			String p = getOptionalUserProperty("localServerPort");
+			if (p == null) 
+				user_localServerPort = 0;
+			else 
+				user_localServerPort = Integer.parseInt(p);
+			String pri = getOptionalUserProperty("priority");
+			if (pri == null) 
+				user_priority = 1;
+			else 
+				user_priority = Integer.parseInt(pri);
+			user_display_name = getUserProperty("displayName");
+
+		} catch (NumberFormatException nf) {
+			nf.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );
+		} catch (LayoutLoadException L) {
+			Log.errorDialog("Initialization Error for User Properties", "For: "+user_keps_name+". If this is a new Spacecraft file then new values will be initialized.");
+			save_user_params();
+		} catch (NullPointerException nf) {
+			//nf.printStackTrace(Log.getWriter());
+			//throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );	
+			// missing a value is OK, we must have it from the MASTER file.  It will get saved at next save.
+			Log.errorDialog("Initialization Corruption for User Properties", "For: "+user_keps_name+". If this is a new Spacecraft file then new values will be initialized.");
+			save_user_params();
+		} 
+	}
+	
+	/**
+	 * We have a CAN Bus and need to load the additional layouts for CAN Packts
+	 * These are defined in frames.csv in a subdirectory with the name of the spacecraft
+	 */
+	private void loadCanLayouts() {
+		try {
+			canFrames = new CanFrames(this.canFileDir+ File.separator +"frames.csv");
+			int canLayoutNum = canFrames.NUMBER_OF_FIELDS;
+			Log.println("Loading " + canLayoutNum + " CAN Layouts");
+			BitArrayLayout[] existingLayouts = layout;
+			layout = new BitArrayLayout[layout.length+canLayoutNum];
+			int i = 0;
+			for (BitArrayLayout l : existingLayouts)
+				layout[i++] = l;
+			for (String frameName : canFrames.frame) {
+				layout[i] = new BitArrayLayout(this.canFileDir+ File.separator + frameName + ".csv");
+				layout[i].name = frameName;
+				i++;
+			}
+			numberOfLayouts = layout.length;
+		} catch (FileNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (LayoutLoadException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		//layout[i] = new BitArrayLayout(layoutFilename[i]);
+	}
+	
 	protected String getOptionalProperty(String key) throws LayoutLoadException {
 		String value = properties.getProperty(key);
+		if (value == null) {
+			return null;
+		}
+		return value;
+	}
+	
+	protected String getOptionalUserProperty(String key) throws LayoutLoadException {
+		String value = user_properties.getProperty(key);
 		if (value == null) {
 			return null;
 		}
@@ -386,28 +613,74 @@ public abstract class Spacecraft {
 		}
 		return value;
 	}
-	protected void store() {
+	
+	protected String getUserProperty(String key) throws LayoutLoadException {
+		String value = user_properties.getProperty(key);
+		if (value == null) {
+			throw new LayoutLoadException("Missing user data value: " + key + " when loading Spacecraft file: \n" + userPropertiesFile.getAbsolutePath() );
+//			throw new NullPointerException();
+		}
+		return value;
+	}
+	
+	// Can now only store user properties.
+//	protected void store() {
+//		FileInputStream f = null;
+//		try {
+//			f=new FileInputStream(propertiesFile);
+//			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
+//			f.close();
+//		} catch (FileNotFoundException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e2) {};
+//			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
+//			e1.printStackTrace(Log.getWriter());
+//		} catch (IOException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e3) {};
+//			Log.errorDialog("ERROR", "Error writing spacecraft file");
+//			e1.printStackTrace(Log.getWriter());
+//		}
+//	}
+	protected void save() {
+		
+		properties.setProperty("foxId", Integer.toString(foxId));
+		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
+		properties.setProperty("description", description);
+		properties.setProperty("model", Integer.toString(model));
+		properties.setProperty("mode", Integer.toString(mode));
+		
+	}
+	
+	protected void store_user_params() {
+		FileOutputStream f = null;
 		try {
-			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
+			f=new FileOutputStream(userPropertiesFile);
+			user_properties.store(f, "Fox 1 Telemetry Decoder User Spacecraft Properties");
+			f.close();
 		} catch (FileNotFoundException e1) {
-			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
+			if (f!=null) try { f.close(); } catch (Exception e2) {};
+			Log.errorDialog("ERROR", "Could not write spacecraft user properties file. Check permissions on run directory or on the file");
 			e1.printStackTrace(Log.getWriter());
 		} catch (IOException e1) {
-			Log.errorDialog("ERROR", "Error writing spacecraft file");
+			if (f!=null) try { f.close(); } catch (Exception e3) {};
+			Log.errorDialog("ERROR", "Error writing spacecraft user properties file");
 			e1.printStackTrace(Log.getWriter());
 		}
 	}
-	protected void save() {
-		properties.setProperty("foxId", Integer.toString(foxId));
-		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
-		properties.setProperty("name", name);
-		properties.setProperty("description", description);
-		properties.setProperty("model", Integer.toString(model));
-		properties.setProperty("telemetryDownlinkFreqkHz", Integer.toString(telemetryDownlinkFreqkHz));
-		properties.setProperty("minFreqBoundkHz", Integer.toString(minFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
-		properties.setProperty("maxFreqBoundkHz", Integer.toString(maxFreqBoundkHz));
-		properties.setProperty("track", Boolean.toString(track));
+	
+	protected void save_user_params() {
+		
+		user_properties.setProperty("name", user_keps_name);
+		user_properties.setProperty("displayName", user_display_name);
+		user_properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(user_telemetryDownlinkFreqkHz));
+		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
+		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
+		user_properties.setProperty("track", Boolean.toString(user_track));
+		
+		if (user_localServer != null) {
+			user_properties.setProperty("localServer",user_localServer);
+			user_properties.setProperty("localServerPort", Integer.toString(user_localServerPort));
+		}
+		user_properties.setProperty("priority", Integer.toString(user_priority));
 	}
 	
 	public String getIdString() {
@@ -418,7 +691,16 @@ public abstract class Spacecraft {
 	}
 	
 	public String toString() {
-		return name;
+		return user_display_name;
+	}
+	
+	@Override
+	public int compareTo(Spacecraft s2) {
+		if (user_priority == s2.user_priority) 
+			return user_display_name.compareTo(s2.user_display_name);
+		else if (user_priority < s2.user_priority) return -1;
+		else if (user_priority > s2.user_priority) return 1;
+		return -1;
 	}
 	
 }

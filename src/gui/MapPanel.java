@@ -49,11 +49,11 @@ public class MapPanel extends JPanel {
        setImage(filePath);
     }
 
-    public void setImage( String filePath) {
+    private void setImage( String filePath) {
     	try {                
             image = ImageIO.read(new File(filePath));
          } catch (IOException ex) {
-              // handle exception...
+              Log.errorDialog("ERROR", "Could not set map image: " + filePath +"\n" + ex.getMessage());
          }
     }
 

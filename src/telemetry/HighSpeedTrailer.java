@@ -27,7 +27,7 @@ public class HighSpeedTrailer extends FoxFramePart	 {
 	int[] fecBytes = new int[MAX_BYTES];
 	
 	HighSpeedTrailer() {
-		super(new BitArrayLayout());
+		super(TYPE_HIGH_SPEED_HEADER, new BitArrayLayout());
 	}
 	
 	@Override

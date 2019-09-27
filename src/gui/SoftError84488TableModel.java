@@ -2,8 +2,8 @@ package gui;
 
 import javax.swing.table.AbstractTableModel;
 
+@SuppressWarnings("serial")
 public class SoftError84488TableModel extends AbstractTableModel {
-	@SuppressWarnings("serial")
 	String[] columnNames = null;
 	private String[][] data = null;
 
@@ -12,8 +12,8 @@ public class SoftError84488TableModel extends AbstractTableModel {
 		columnNames[0] = "Resets";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "DAC Overflows";
-		columnNames[3] = "I2C Retries";	
-		columnNames[4] = "I2C Retries";	
+		columnNames[3] = "I2C1 Retries";	
+		columnNames[4] = "I2C2 Retries";	
 		columnNames[5] = "SPI Retreies";
 		columnNames[6] = "MRAM CRCs";
 

@@ -19,8 +19,8 @@ public class WodRadiationTelemetry extends RadiationTelemetry {
 	@Override
 	protected void init() {
 		type = TYPE_WOD_RAD_TELEM_DATA;
-		rawBits = new boolean[MAX_BYTES*8];
-		fieldValue = new int[layout.NUMBER_OF_FIELDS];
+		//rawBits = new boolean[MAX_BYTES*8];
+		//fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 	
 	

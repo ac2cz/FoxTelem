@@ -1,5 +1,6 @@
 package measure;
 
+import java.io.IOException;
 import telemetry.SortedArrayList;
 
 /**
@@ -31,13 +32,48 @@ public class SortedMeasurementArrayList extends SortedArrayList<Measurement> {
 	}
 
 	public int getNearestFrameIndex(int id, long uptime, int resets) {
-	    	// start searching from the beginning where reset and uptime should be the lowest
-	    	for (int i=0; i<this.size(); i++) { 
-	    		Measurement f = this.get(i);
-	            if (f.id == id && f.reset >= resets && f.uptime >= uptime)
-	            	return i;
-	    	}
-	        return -1;
+		// start searching from the beginning where reset and uptime should be the lowest
+    	// could probablly optimize this with binary search aglo but needs to be implement from scatch as not an exact match
+    	// First check special case where we have value off the end
+    	if (this.size() == 0) return -1;
+    	if (resets > this.get(size()-1).reset) return size()-1;
+    	if (resets == this.get(size()-1).reset && uptime > this.get(size()-1).uptime) return size()-1;
+    	
+    	for (int i=0; i<this.size(); i++) { 
+    		Measurement f = this.get(i);
+    		if (compare(f, id, uptime, resets) <= 0)
+            	return i;
+    	}
+        return -1;
 	    }
 
+	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
+		int number = 0;
+		int id = get(0).id; // id is the same for all records in this table
+		
+		int start = getNearestFrameIndex(id, uptime, reset);
+		int end = getNearestFrameIndex(id, toUptime, toReset);
+		if (end == -1) end = this.size();
+		if (start < end)
+			number = end - start;
+
+		return number;
+	}
+	
+	private int compare(Measurement p, int id, long uptime, int resets) {
+    	if (resets == p.reset && uptime == p.uptime) 
+    		return 0;
+    	else if (resets < p.reset)
+    		return -1;
+    	else if (resets > p.reset)
+    		return +1;
+    	
+    	else if (resets == p.reset) {	
+    		if (uptime < p.uptime)
+    			return -1;
+    		if (uptime > p.uptime)
+    			return +1;
+    	} 
+    	return +1;
+    }
 }

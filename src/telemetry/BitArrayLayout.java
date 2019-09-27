@@ -59,6 +59,9 @@ public class BitArrayLayout {
 
 	public String[] shortName = null;
 	public String[] description = null;
+	
+	private int numberOfBits = 0;
+	private int numberOfBytes = 0;
 
 	public static final int CONVERT_NONE = 0;
 	public static final int CONVERT_INTEGER = 1;
@@ -94,15 +97,35 @@ public class BitArrayLayout {
 	public static final int CONVERT_HERCI_MICRO_PKT_SOURCE = 31;
 	public static final int CONVERT_HERCI_MICRO_PKT_HEX = 32;
 	public static final int CONVERT_JAVA_DATE = 33;
-	public static final int CONVERT_ICR_COMMAND_COUNT = 34;
+	public static final int CONVERT_ICR_SW_COMMAND_COUNT = 34;
 	public static final int CONVERT_ICR_DIAGNOSTIC = 35;
 	public static final int CONVERT_WOD_STORED = 36;
-	public static final int CONVERT_FOX1E_TXRX_TEMP = 37;
-	public static final int CONVERT_FOX1E_PA_CURRENT = 38;
+	public static final int CONVERT_LT_TXRX_TEMP = 37;
+	public static final int CONVERT_LT_PA_CURRENT = 38;
 	public static final int CONVERT_SOFT_ERROR_84488 = 39;
+	public static final int CONVERT_LT_TX_FWD_PWR = 40;
+	public static final int CONVERT_LT_TX_REF_PWR = 41;
+	public static final int CONVERT_LT_VGA = 42;
+	public static final int CONVERT_ICR_VOLT_SENSOR = 43;
+	public static final int CONVERT_STATUS_ENABLED = 44;
+	public static final int CONVERT_COM1_ACCELEROMETER = 45;
+	public static final int CONVERT_COM1_MAGNETOMETER = 46;
+	public static final int CONVERT_COM1_SPIN = 47;
+	public static final int CONVERT_COM1_GYRO_TEMP = 48;
+	public static final int CONVERT_COM1_ISIS_ANT_TEMP = 49; // COM1
+	public static final int CONVERT_COM1_ISIS_ANT_TIME = 50; // COM1
+	public static final int CONVERT_COM1_ISIS_ANT_STATUS = 51; // COM1
+	public static final int CONVERT_COM1_SOLAR_PANEL = 52; // COM1
+	public static final int CONVERT_COM1_TX_FWD_PWR = 53; // COM1
+	public static final int CONVERT_COM1_TX_REF_PWR = 54; // COM1
+	public static final int CONVERT_HUSKY_UW_DIST_BOARD_STATUS = 55; // COM1
+	public static final int CONVERT_COM1_RSSI = 56; // COM1
+	public static final int CONVERT_COM1_ICR_2V5_SENSOR = 57; // COM1
+	public static final int CONVERT_COM1_BUS_VOLTAGE = 58; // COM1
 	
 	/**
 	 * Create an empty layout for manual init
+	 * Note that if this is called, the BitArray is not initialized.  So it must also be setup manually
 	 */
 	public BitArrayLayout() {
 		
@@ -116,6 +139,18 @@ public class BitArrayLayout {
 	 */
 	public BitArrayLayout(String f) throws FileNotFoundException, LayoutLoadException {
 		load(f);
+	}
+	
+	/**
+	 * Calculate and return the total number of bits across all fields
+	 * @return
+	 */
+	public int getMaxNumberOfBits() {
+		return numberOfBits;
+	}
+	
+	public int getMaxNumberOfBytes() {
+		return numberOfBytes;
 	}
 	
 	public boolean isSecondaryPayload() {
@@ -182,7 +217,20 @@ public class BitArrayLayout {
 			return (shortName[pos]);
 		}
 	}
-	
+
+	public String getModuleByName(String name) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == ERROR_POSITION) {
+			return "";
+		} else {
+			return (module[pos]);
+		}
+	}
+
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
@@ -233,10 +281,10 @@ public class BitArrayLayout {
 			e.printStackTrace(Log.getWriter());
 
 		} catch (NumberFormatException n) {
-			Log.errorDialog("NUMBER FORMAT EXCEPTION", n.getMessage());
+			Log.errorDialog("NUMBER FORMAT EXCEPTION", "In layout: " + fileName+"\n" + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (IndexOutOfBoundsException n) {
-			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout at Index: " + n.getMessage());
+			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout "+fileName+"\n at Index: " + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (NoSuchElementException n) {
 			Log.errorDialog("Missing Field in Layout File", "Halted loading " + fileName);
@@ -244,15 +292,20 @@ public class BitArrayLayout {
 		}
 		if (NUMBER_OF_FIELDS != field) throw new LayoutLoadException("Error loading fields from " + fileName +
 				". Expected " + NUMBER_OF_FIELDS + " fields , but loaded " + field);
-
+		if (fieldBitLength != null) {
+			numberOfBits = 0;
+			for (int i=0; i < fieldBitLength.length; i++) {
+				numberOfBits += fieldBitLength[i];
+			}
+			numberOfBytes = (int)(Math.ceil(numberOfBits / 8.0));
+		}
 	}
 	
-	public String getTableCreateStmt(boolean wod) {
+	public String getTableCreateStmt(boolean storeMode) {
 		String s = new String();
-		if (wod)
-			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, satLatitude float, satLongitude float, satAltitude float,";
-		else
-			s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		s = s + "(captureDate varchar(14), id int, resets int, uptime bigint, type int, ";
+		if (storeMode)
+			s = s + "newMode int,";
 		for (int i=0; i < fieldName.length; i++) {
 			s = s + fieldName[i] + " int,\n";
 		}

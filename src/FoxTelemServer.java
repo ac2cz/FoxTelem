@@ -42,7 +42,7 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.26 - 25 Dec 2017";
+	public static String version = "Version 0.32b - 16 Sep 2019";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
@@ -50,7 +50,8 @@ public class FoxTelemServer {
 	static final String usage = "FoxServer user database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
 			+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
 			+ "-f <dir> - Read the stp files in the specified directory and fix the STP_HEADER table db\n"
-			+ "-r - Reprocess the radiation data and generate the secondary payloads\n";
+			+ "-r - Reprocess the radiation data and generate the secondary payloads\n"
+			+ "-hpk - Reprocess the Herci High Speed data and generate the packet payloads\n";
 	
 	static Thread imageThread;
 	static ImageProcess imageProcess;
@@ -91,6 +92,9 @@ public class FoxTelemServer {
 		Log.showGuiDialogs = false;
 		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
 
+		// Avoid creating all of the tables on the server
+		Config.splitCanPackets = false;
+
 		try {
 			makeExceptionDir();
 		} catch (IOException e1) {
@@ -105,11 +109,15 @@ public class FoxTelemServer {
 		Config.serverInit(); // initialize and create the payload store.  
 
 		ServerConfig.init();
-		
+				
 		if (args.length == 3) {
 			if ((args[2].equalsIgnoreCase("-r")) ) {
 				Log.println("AMSAT Fox Server. \nPROCESS RAD DATA: ");
-				processRadData();
+				processRadData(u,p,db);
+				System.exit(0);
+			} else if ((args[2].equalsIgnoreCase("-hpk")) ) {
+				Log.println("AMSAT Fox Server. \nPROCESS HERCI PACKET DATA: ");
+				processHerciPktData(u,p,db);
 				System.exit(0);
 			} else {
 				System.out.println(usage);
@@ -141,8 +149,9 @@ public class FoxTelemServer {
 			System.exit(1);
 		}
 
+		// Make sure CAN Packets are not split
+		Config.splitCanPackets=false;
 
-		
 		ServerSocket serverSocket = null;
         boolean listening = true;
         ExecutorService pool = null;
@@ -155,35 +164,41 @@ public class FoxTelemServer {
             Log.alert("FATAL: Could not listen on port: " + port);
         }
 
-        //ServerProcess process = null;
-        //Thread processThread;
-        
         // Start the background image processing thread
         imageProcess = new ImageProcess(initPayloadDB(u,p,db));
         imageThread = new Thread(imageProcess);
         imageThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
         imageThread.start();
         
+        int retries = 0;
+        int RETRY_LIMIT = 10;
         while (listening) {
         	try {
-        		//process = new ServerProcess(serverSocket.accept(), sequence++);
         		Log.println("Waiting for connection ...");
         		pool.execute(new ServerProcess(u,p,db, serverSocket.accept(), sequence++));
+        		retries = 0;
         	}  catch (SocketTimeoutException s) {
         		Log.println("Socket timed out! - trying to continue	");
+        		retries++;
+        		try { Thread.sleep(1000); } catch (InterruptedException e1) {	}
         	} catch (IOException e) {
-        		// TODO Auto-generated catch block
         		e.printStackTrace(Log.getWriter());
+        		Log.println("Socket Error: waiting to see if we recover: " + e.getMessage());
+        		retries++;
+        		try { Thread.sleep(1000); } catch (InterruptedException e1) {	}
         	}
             if (sequence == MAX_SEQUENCE)
             	sequence=0;
+            if (retries == RETRY_LIMIT) {
+            	Log.println("Max Socket Retries hit: Terminating Server");
+            	listening = false; // Note if this error is causes because process threads are stuck then we will not Exit by setting to false, but hang
+            }
         }
 
         try {
 			serverSocket.close();
 			pool.shutdown();
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace(Log.getWriter());
 		}
     }
@@ -205,10 +220,17 @@ public class FoxTelemServer {
 		}
 	}
 
-	private static void processRadData() {
+	private static void processRadData(String u, String p, String db) {
+		Config.payloadStore = initPayloadDB(u,p,db);
 		Config.payloadStore.initRad2();
 	}
 	
+	private static void processHerciPktData(String u, String p, String db) {
+		Config.payloadStore = initPayloadDB(u,p,db);
+		Config.payloadStore.initHerciPackets();
+	}
+	
+		
 	/**
 	 * Get a list of all the files in the STP dir and import them
 	 */

@@ -3,7 +3,6 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,8 +26,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
-import javax.swing.border.EmptyBorder;
-
 import common.Config;
 import common.FoxSpacecraft;
 import common.FoxTime;
@@ -36,7 +33,6 @@ import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadWOD;
 
 /**
  * 
@@ -89,7 +85,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	public static String DEFAULT_END_UTC = NOW;
 	public String START_UTC = DEFAULT_START_UTC;
 	public String END_UTC = DEFAULT_END_UTC;	
-	public static final int MAX_SAMPLES = 9999;
+	public static final int MAX_SAMPLES = 99999;
 	
 	protected int fonth = 0; // font height for footer. MUST set in the class that inherits from this
 	
@@ -98,9 +94,9 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 //	private JLabel lblPlot;
 	JLabel lblSamplePeriod; // The number of samples to grab for each graph
 	protected JTextField txtSamplePeriod;
-	private JLabel lblAvg;
-	JLabel lblAvgPeriod; 
-	private JTextField txtAvgPeriod;
+//	private JLabel lblAvg;
+//	JLabel lblAvgPeriod; 
+//	private JTextField txtAvgPeriod;
 	private JLabel lblFromReset;
 	private JTextField textFromReset;
 	
@@ -289,6 +285,55 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 //		}
 	}
 	
+	protected void makeDisplayModules(BitArrayLayout[] layouts,int moduleType) throws LayoutLoadException {
+		// TODO - for this to work it needs to add them to the top but leave room for what is there already.  Bottom does not work
+		int topLength = 0;//   /2;
+		int bottomLength = layouts.length; //layouts.length - topLength;
+		String[] topModuleNames = new String[topLength];
+		int[] topModuleLines = new int[topLength];
+		String[] bottomModuleNames = new String[bottomLength];
+		int[] bottomModuleLines = new int[bottomLength];
+		int numOfTopModules = 0;
+		int numOfBottomModules = 0;
+		
+		// Process each layout 1 by 1.  
+		int moduleNum = 0;
+		for (BitArrayLayout rt : layouts) {
+			if (moduleNum < topLength) {
+				topModuleNames[moduleNum] = rt.module[4]; // ignore the ID fields
+				topModuleLines[moduleNum] = rt.NUMBER_OF_FIELDS-5; // we display them all except 4 id and junk
+				numOfTopModules++;
+			} else {
+				bottomModuleNames[moduleNum-topLength] = rt.module[4];
+				bottomModuleLines[moduleNum-topLength] = rt.NUMBER_OF_FIELDS-5; // we display them all except 4 id and junk
+				numOfBottomModules++;				
+			}
+			moduleNum++;
+		}
+			
+		if (topLength > 0)
+		topModules = new DisplayModule[numOfTopModules];
+		if (bottomLength > 0)
+		bottomModules = new DisplayModule[numOfBottomModules];
+
+		// Process the top Modules
+		if (topLength > 0)		
+		for (int i=0; i < numOfTopModules; i++) {
+			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
+			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], layouts[i]);
+			topHalf.add(topModules[i]);
+		}
+
+		// then bottom
+		if (bottomLength > 0)
+		for (int i=0; i < numOfBottomModules; i++) {
+			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, moduleType);
+			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], layouts[i]);
+			bottomHalf.add(bottomModules[i]);
+		}
+		
+	}
+	
 	/**
 	 * Analyze the layouts that have been loaded and determine the list of modules and lines that should be used in 
 	 * the display
@@ -367,15 +412,15 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			}
 			bottomHalf.add(bottomModules[i]);
 		}
-		
+
 	}
 
 	private void addModuleLines(DisplayModule displayModule, String topModuleName, int topModuleLine, BitArrayLayout rt) throws LayoutLoadException {
 		for (int j=0; j<rt.NUMBER_OF_FIELDS; j++) {
 			if (rt.module[j].equals(topModuleName)) {
 				//Log.println("Adding:" + rt.shortName[j]);
-				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName +
-				".\nModule: " + topModuleName +
+				if (rt.moduleLinePosition[j] > topModuleLine) throw new LayoutLoadException("Found error in Layout File: "+ rt.fileName + " field: " + j +
+						".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				try {
 					if (rt.name.equals(Spacecraft.WOD_LAYOUT)) rt.moduleDisplayType[j] = DisplayModule.DISPLAY_WOD;
@@ -383,13 +428,13 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 				} catch (NullPointerException e) {
 					throw new LayoutLoadException("Found NULL item error in Layout File: "+ rt.fileName +
 							".\nModule: " + topModuleName +
-									" has " + topModuleLine + " lines, but error adding " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
+							" has " + topModuleLine + " lines, but error adding " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				}
-				}
+			}
 		}
 
 	}
-	
+
 	private String formatUnits(String unit) {
 		if (unit.equals("-") || unit.equalsIgnoreCase(BitArrayLayout.NONE)) return "";
 		unit = " ("+unit+")";
@@ -698,6 +743,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			if (SAMPLES > MAX_SAMPLES) {
 				SAMPLES = MAX_SAMPLES;
 				text = Integer.toString(MAX_SAMPLES);
+				txtSamplePeriod.setText(text);
 			}
 			//System.out.println(SAMPLES);
 
@@ -766,6 +812,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			}
 			showUptimeQuery(!showUTCtime);
 			Config.displayUTCtime = showUTCtime;
+			Config.save();
 		}
 		
 	}
@@ -787,8 +834,6 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		} else if (e.getSource() == this.textFromUptime) {
 		//	parseTextFields();
 			
-		} else if (e.getSource() == this.txtAvgPeriod) {
-		//		parseAvgPeriod();
 		}
 		
 	}

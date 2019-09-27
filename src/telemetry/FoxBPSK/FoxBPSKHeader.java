@@ -1,12 +1,22 @@
 package telemetry.FoxBPSK;
 
 import common.Config;
+import common.FoxSpacecraft;
+import common.Spacecraft;
 import decoder.FoxDecoder;
+import telemetry.FramePart;
 import telemetry.Header;
 
 public class FoxBPSKHeader extends Header {
+	// Extended Mode Bits that are only in FoxId 6 and later
+	int safeMode;
+	int healthMode;
+	int scienceMode;
+	int cameraMode;
+	int minorVersion;
 	
 	public FoxBPSKHeader() {
+		super(TYPE_EXTENDED_HEADER);
 		MAX_BYTES = FoxBPSKFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 	}
@@ -21,11 +31,30 @@ public class FoxBPSKHeader extends Header {
 		type = nextbits(4);
 		if (id == 0) // then take the foxId from the next 8 bits
 			id = nextbits(8);
+		if (id > Spacecraft.FOX1E) { // Post Fox-1E BPSK has mode in header
+			safeMode = nextbits(1);
+			healthMode = nextbits(1);
+			scienceMode = nextbits(1);
+			cameraMode = nextbits(1);
+			minorVersion = nextbits(4);
+		}
+		setMode();
 	}
+
+	public void setMode() {
+		newMode = FoxSpacecraft.NO_MODE;
+		if (id > Spacecraft.FOX1E) {
+			if (safeMode != 0 ) newMode = FoxSpacecraft.SAFE_MODE;
+			if (healthMode != 0 ) newMode = FoxSpacecraft.HEALTH_MODE;
+			if (scienceMode != 0 ) newMode = FoxSpacecraft.SCIENCE_MODE;
+			if (cameraMode != 0 ) newMode = FoxSpacecraft.CAMERA_MODE;
+		}
 	
+	}
+
 	public boolean isValid() {
 		copyBitsToFields();
-		if (Config.satManager.validFoxId(id) && isValidType(type))
+		if (Config.satManager.validFoxId(id))
 			return true;
 		return false;
 	}
@@ -41,11 +70,13 @@ public class FoxBPSKHeader extends Header {
 	public String toString() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + "AMSAT FOX-1 BPSK Telemetry Captured at: " + reportDate() + "\n" 
-				+ "ID: " + FoxDecoder.dec(id) 
+		s = s	+ "ID: " + FoxDecoder.dec(id) 
 				+ " RESET COUNT: " + FoxDecoder.dec(resets)
 				+ " UPTIME: " + FoxDecoder.dec(uptime)
 				+ " TYPE: " + FoxDecoder.dec(type);
+		
+		if (id > Spacecraft.FOX1E)
+			s = s + " - MODE: " + newMode;
 		return s;
 	}
 }

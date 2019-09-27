@@ -22,15 +22,19 @@ import common.Log;
  */
 public class FoxService {
 
-	public static String version = "Version 0.26 - 25 Dec 2017";
 	public static int port = 8080;
-	int poolSize = 100;
+	int poolSize = 8;
+	static String usage = "Usage: FoxService user database port";
 	
 	public static void main(String args[]) throws IOException {
 		FoxService ws = new FoxService();
 		String u,p, db;
+		if (args.length < 1) {
+			System.out.println(usage);
+			System.exit(1);
+		}
 		if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
-			System.out.println("AMSAT Fox Web Service. Version " + version);
+			System.out.println("AMSAT Fox Web Service. Version " + WebServiceProcess.version);
 			System.exit(0);
 		}
 		if (args.length == 3) {
@@ -50,9 +54,8 @@ public class FoxService {
 				System.exit(1);
 			}
 			ws.start(u,p,db);
-
 		} else {
-			System.out.println("Usage: FoxService user database port");
+			System.out.println(usage);
 			System.exit(1);
 		}
 	}
@@ -77,11 +80,11 @@ public class FoxService {
         ExecutorService pool = null;
 
         try {
-            serverSocket = new ServerSocket(port);
-            pool = Executors.newFixedThreadPool(poolSize);
-            } catch (IOException e) {
-            Log.println("Could not listen on port: " + port);
-            System.exit(-1);
+        	serverSocket = new ServerSocket(port);
+        	pool = Executors.newFixedThreadPool(poolSize);
+        } catch (IOException e) {
+        	Log.println("Could not listen on port: " + port);
+        	System.exit(-1);
         }
 
         while (listening) {

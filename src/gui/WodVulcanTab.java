@@ -9,6 +9,7 @@ import common.Spacecraft;
 import telemetry.FoxFramePart;
 import telemetry.RadiationTelemetry;
 
+@SuppressWarnings("serial")
 public class WodVulcanTab extends VulcanTab {
 
 	public WodVulcanTab(FoxSpacecraft sat) {
@@ -62,13 +63,14 @@ public class WodVulcanTab extends VulcanTab {
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD2_LAYOUT), false);
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD2_LAYOUT, false), false);
     	
     	table.setRowSelectionInterval(row, row);
 	}
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("WodVulcanTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

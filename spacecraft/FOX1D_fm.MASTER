@@ -3,7 +3,13 @@
 #File named .dat should be in the logfiles directory and is loaded by FoxTelem
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=true
+mode=2
 numberOfLookupTables=3
+mpptResistanceError=6.58
+mpptSensorOffThreshold=1600
+memsRestValueX=2170
+memsRestValueY=2090
+memsRestValueZ=2079
 measurementsFileName=measurements.csv
 model=1
 layout0.filename=FOX1A_debug.csv
@@ -12,7 +18,8 @@ passMeasurementsFileName=passmeasurements.csv
 layout5.parentLayout=radtelemetry
 lookupTable0.filename=FOX1D_rssiFM.tab
 layout1.filename=FOX1D_maxtelemetry.csv
-name=Fox-1D
+name=AO-92
+displayName=AO-92
 layout6.filename=FOX1D_hshercitelemetry.csv
 description=Fox-1D is a 1U CubeSat with U/v and L/v FM transponders and experiments onboard from the Penn State University, Rochester Institute of Technology, University of Iowa and Virginia Tech
 numberOfLayouts=9

@@ -6,11 +6,8 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 
-import javax.swing.JPanel;
-
 import common.Config;
 import common.FoxSpacecraft;
-import common.Log;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
 import predict.PositionCalcException;
@@ -77,7 +74,7 @@ public abstract class GraphCanvas extends MapPanel {
 		for (int i=0; i<graphFrame.fieldName.length; i++) {
 			if (graphFrame.SAMPLES > showDialogThreshold)
 				fileProgress.updateProgress((int)(100*i/totalFields));
-			if (graphFrame.showLatest == graphFrame.SHOW_LIVE)
+			if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 				reverse=true;
 			if (payloadType == FoxFramePart.TYPE_REAL_TIME)
 				graphData[i] = Config.payloadStore.getRtGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
@@ -85,6 +82,8 @@ public abstract class GraphCanvas extends MapPanel {
 				graphData[i] = Config.payloadStore.getMaxGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 			else if (payloadType == FoxFramePart.TYPE_MIN_VALUES)
 				graphData[i] = Config.payloadStore.getMinGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+			else if (payloadType == FoxFramePart.TYPE_RAD_EXP_DATA)
+				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.RAD_LAYOUT, true, reverse);
 			else if (payloadType == FoxFramePart.TYPE_RAD_TELEM_DATA)
 				graphData[i] = Config.payloadStore.getRadTelemGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 			else if (payloadType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
@@ -95,8 +94,10 @@ public abstract class GraphCanvas extends MapPanel {
 				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
 			else if  (payloadType == FoxFramePart.TYPE_WOD) 
 				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_LAYOUT, true, reverse);
-			else if  (payloadType == FoxFramePart.TYPE_WOD_RAD) 
-				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false, reverse);
+			else if  (payloadType == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA) 
+				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD2_LAYOUT, false, reverse);
+			else if (payloadType == FoxFramePart.TYPE_WOD_RAD)
+				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, true, reverse);
 			
 			if (graphFrame.plotType == GraphFrame.EARTH_PLOT)
 				graphData[i] = addPositionData(graphData[i]);
@@ -124,8 +125,8 @@ public abstract class GraphCanvas extends MapPanel {
 					graphData2[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
 				else if (payloadType == FoxFramePart.TYPE_WOD)
 					graphData2[i] = Config.payloadStore.getGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_LAYOUT, true, reverse);
-				else if (payloadType == FoxFramePart.TYPE_WOD_RAD)
-					graphData2[i] = Config.payloadStore.getGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD_LAYOUT, false, reverse);		
+				else if (payloadType == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA)
+					graphData2[i] = Config.payloadStore.getGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, Spacecraft.WOD_RAD2_LAYOUT, false, reverse);		
 			}
 		}
 		
@@ -259,8 +260,8 @@ public abstract class GraphCanvas extends MapPanel {
 							
 				}
 
-				
-				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
+				if (graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_ENABLED 
+						|| graphType == BitArrayLayout.CONVERT_STATUS_BIT || graphType == BitArrayLayout.CONVERT_BOOLEAN) {
 					maxValue = 2;
 					minValue = 0;		
 				}
@@ -296,7 +297,8 @@ public abstract class GraphCanvas extends MapPanel {
 				
 				boolean intStep = false;
 				if (graphType == BitArrayLayout.CONVERT_INTEGER || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS 
-						|| graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_BOOLEAN
+						|| graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
+						|| graphType == BitArrayLayout.CONVERT_BOOLEAN
 						|| graphType == BitArrayLayout.CONVERT_STATUS_BIT)
 					intStep = true;
 				// calculate the label step size
@@ -314,8 +316,11 @@ public abstract class GraphCanvas extends MapPanel {
 				if (axisPosition > 0) fudge = sideBorder + (int)(Config.graphAxisFontSize);
 				
 				g2.setColor(graphTextColor);
-				g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
-				
+				if (Config.displayRawValues)
+					g2.drawString("(RAW)", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
+				else
+					g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
+			
 				for (int v=0; v < numberOfLabels; v++) {
 					
 					int pos = getRatioPosition(minValue, maxValue, labels[v], graphHeight);
@@ -383,6 +388,17 @@ public abstract class GraphCanvas extends MapPanel {
 							
 						} 
 
+						if (graphType == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+							drawLabel = false;
+							if (labels[v] == 2) {
+								s = "Enabled";
+								drawLabel = true;
+							}
+							if (labels[v] == 1) {
+								s = "Disabled";
+								drawLabel = true;
+							}	
+						} 
 						
 						if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
 							drawLabel = false;
@@ -549,6 +565,7 @@ public abstract class GraphCanvas extends MapPanel {
 	}
 	
 	public static int getRatioPosition(double min, double max, double value, int dimension) {
+		if (max == min) return 0;
 		double ratio = (max - value) / (max - min);
 		int position = (int)Math.round(dimension * ratio);
 		return dimension-position;

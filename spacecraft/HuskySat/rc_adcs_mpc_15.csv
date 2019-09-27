@@ -1,0 +1,8 @@
+7,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,point_true,8,-,0,rc_adcs_mpc_15,1,1,0,point_true,Proportion of samples where attitude is within 20 degrees of commanded vector,
+5,CAN,sc_mode,8,-,0,rc_adcs_mpc_15,1,2,0,sc_mode,The current operating mode of the ADCS system,
+6,CAN,JUNK,48,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

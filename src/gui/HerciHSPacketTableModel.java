@@ -21,21 +21,23 @@ package gui;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-@SuppressWarnings({ "serial", "unchecked" })
+@SuppressWarnings({ "serial"})
 class HerciHsPacketTableModel extends FoxTelemTableModel {
 	
 	HerciHsPacketTableModel() {
-		columnNames = new String[11];
+		columnNames = new String[12];
 		columnNames[0] = "RESET";
 		columnNames[1] = "UPTIME";
-		columnNames[2] = "ACQUIRE TIME";
-		columnNames[3] = "TYPE";
-		columnNames[4] = "LEN";
-		columnNames[5] = "RTI";
-		columnNames[6] = "SEG";
-		columnNames[7] = "ST1";
-		columnNames[8] = "ST2";
-		columnNames[9] = "ST3";
-		columnNames[10] = "COUNT DATA (30 x 1-second integrated counts)";
+		columnNames[2] = "FOX SEQ";
+		
+		columnNames[3] = "ACQUIRE TIME";
+		columnNames[4] = "TYPE";
+		columnNames[5] = "LEN";
+		columnNames[6] = "RTI";
+		columnNames[7] = "SEG";
+		columnNames[8] = "ST1";
+		columnNames[9] = "ST2";
+		columnNames[10] = "ST3";
+		columnNames[11] = "COUNT DATA (30 x 1-second integrated counts)";
 	}
 }

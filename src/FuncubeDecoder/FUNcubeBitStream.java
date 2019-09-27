@@ -1,12 +1,11 @@
 package FuncubeDecoder;
 
-import common.Config;
 import common.Log;
 import decoder.BitStream;
 import decoder.Decoder;
 
 public class FUNcubeBitStream extends BitStream {
-
+	private static final long serialVersionUID = 1L;
 	private static final int FEC_BITS_SIZE = 5200;
 	private static final int FEC_BLOCK_SIZE = 256;
 	private static final int SYNC_VECTOR_SIZE = 65;
@@ -29,7 +28,6 @@ public class FUNcubeBitStream extends BitStream {
 		boolean found = false;
 		if (this.size() < (FEC_BITS_SIZE)) return false; // we don't have enough bits to try a correlation
 		int start = this.size()-FEC_BITS_SIZE;
-		int y=0;
 		int corr = 0;
 		for (int i=start; i < SYNC_VECTOR_SIZE; i++) {
 			byte b = (byte)(this.get(i*80) ? 1: -1);

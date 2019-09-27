@@ -1,10 +1,8 @@
 package telemServer;
 
 import java.io.IOException;
-import java.net.Socket;
 import java.sql.SQLException;
 
-import common.Config;
 import common.Log;
 import telemetry.PayloadDbStore;
 

@@ -31,7 +31,7 @@ public class TableSeg implements Comparable<TableSeg> {
 	private boolean loaded = false;
 	String fileName;
 	long lastAccess;
-	private static final int STALE_PERIOD = 10000; // Keep the stale period short. 60 seconds
+	private static final int STALE_PERIOD = 60*1000; // Keep the stale period short. In milliseconds
 	
 	/**
 	 * Create a new segment and give it a filename
@@ -106,6 +106,6 @@ public class TableSeg implements Comparable<TableSeg> {
 	}
 	
 	public String toString() {
-		return fromReset+","+fromUptime+","+records;
+		return fileName + ": "+fromReset+","+fromUptime+","+records;
 	}
 }

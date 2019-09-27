@@ -56,12 +56,13 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, MouseListener {
+public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener, MouseListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 226;
 	PayloadHERCIhighSpeed hsPayload;
-
+	HerciHighspeedHeader hsHeader;
+	
 	JLabel lblFramesDecoded;
 	JLabel lblHSpayload;
 	int displayRows = PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE/32+1;
@@ -175,9 +176,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-		
+		column = table.getColumnModel().getColumn(2);
+		column.setPreferredWidth(55);
 		for (int i=0; i<PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; i++) {
-			column = table.getColumnModel().getColumn(i+2);
+			column = table.getColumnModel().getColumn(i+3);
 			if (i <100)
 				column.setPreferredWidth(25);
 			else
@@ -190,27 +192,29 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		column = packetTable.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		column = packetTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(55);
+		column = packetTable.getColumnModel().getColumn(3);
 		column.setPreferredWidth(90);
 
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(35);
 		column = packetTable.getColumnModel().getColumn(4);
 		column.setPreferredWidth(35);
-
 		column = packetTable.getColumnModel().getColumn(5);
-		column.setPreferredWidth(55);
+		column.setPreferredWidth(35);
 
 		column = packetTable.getColumnModel().getColumn(6);
+		column.setPreferredWidth(55);
+
+		column = packetTable.getColumnModel().getColumn(7);
 		column.setPreferredWidth(35);
 		
-		column = packetTable.getColumnModel().getColumn(7);
-		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(8);
 		column.setPreferredWidth(45);
 		column = packetTable.getColumnModel().getColumn(9);
 		column.setPreferredWidth(45);
-
 		column = packetTable.getColumnModel().getColumn(10);
+		column.setPreferredWidth(45);
+
+		column = packetTable.getColumnModel().getColumn(11);
 		column.setPreferredWidth(600);
 
 		if (showRawBytes.isSelected()) {
@@ -224,23 +228,25 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	}
 
 	private void parseMiniPackets() {
-		String[][] rawData = Config.payloadStore.getHerciPacketData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+		String[][] rawData = Config.payloadStore.getHerciPacketData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse);
 		String[][] data = new String[rawData.length][9];
-		long[][] keydata = new long[rawData.length][2];
+		long[][] keydata = new long[rawData.length][3];
 		
 		//for (int k =0; k < rawData.length; k++) {
 		for (int k =rawData.length-1; k >= 0; k--) {
 			keydata[rawData.length-k-1][0] = Long.parseLong(rawData[k][0]);
 			keydata[rawData.length-k-1][1] = Long.parseLong(rawData[k][1]);
-			data[rawData.length-k-1][0] = rawData[k][2] + ":" + rawData[k][4];  //acquire time
-			data[rawData.length-k-1][1] = rawData[k][5];
-			data[rawData.length-k-1][2] = rawData[k][6];
-			data[rawData.length-k-1][3] = ""+Integer.parseInt(rawData[k][7])/40+":"+Integer.parseInt(rawData[k][7])%40; //rti
-			for (int j=8; j<12; j++) {
-				data[rawData.length-k-1][j-4] = FoxDecoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
+			keydata[rawData.length-k-1][2] = Long.parseLong(rawData[k][2]);
+			
+			data[rawData.length-k-1][0] = rawData[k][3] + ":" + rawData[k][5];  //acquire time
+			data[rawData.length-k-1][1] = rawData[k][6];
+			data[rawData.length-k-1][2] = rawData[k][7];
+			data[rawData.length-k-1][3] = ""+Integer.parseInt(rawData[k][8])/40+":"+Integer.parseInt(rawData[k][8])%40; //rti
+			for (int j=9; j<13; j++) {
+				data[rawData.length-k-1][j-5] = FoxDecoder.hex(Integer.parseInt(rawData[k][j]) & 0xFF);
 			}
 			data[rawData.length-k-1][8] = "";
-			for (int j=13; j<rawData[k].length; j++) {
+			for (int j=14; j<rawData[k].length; j++) {
 				if (rawData[k][j] != null)
 					data[rawData.length-k-1][8] = data[rawData.length-k-1][8] + FoxDecoder.plainhex(Integer.parseInt(rawData[k][j]) & 0xFF) +" ";
 			}
@@ -253,19 +259,33 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 	private void parseRawBytes() {
 		if (hsPayload == null) return;
-		String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
-		long[][] keydata = new long[1][2];
-		for (int i = 0; i < rawData.length; i ++) {
-			keydata[i][0] = (long)(hsPayload.getResets());
-			keydata[i][1] = hsPayload.getUptime();
-
+		String[][] rawData = Config.payloadStore.getHerciHsData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
+		//String[][] rawData = new String[1][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
+		String[][] data = new String[rawData.length][PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE];
+		long[][] keydata = new long[rawData.length][3];
+		int j = 0;
+		for (int i = rawData.length-1; i >=0 ; i--) {
+			int reset = (int)(Integer.parseInt(rawData[i][0]));
+			long uptime = (long)(Long.parseLong(rawData[i][1]));	
+			int type = (int)(Integer.parseInt(rawData[i][2]));
+			/* this needs to be able to store the results as as string, not long
+			if (showUTCtime) {
+				keydata[i][1] = fox.getUtcTimeForReset(reset, uptime);
+				keydata[i][0] = fox.getUtcDateForReset(reset, uptime);	
+			} else {
+			*/
+				keydata[j][0] = (long)(reset);
+				keydata[j][1] = uptime;
+				keydata[j][2] = type;
+		//	}
 			for (int k =0; k < PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE; k++) {
-				rawData[i][k] = FoxDecoder.plainhex(hsPayload.fieldValue[k] & 0xff);
+				data[j][k] = FoxDecoder.plainhex(Integer.parseInt(rawData[i][k+3]) & 0xff);
 			}
+			j++;
 		}
 		
 		if (rawData.length > 0) {
-			radTableModel.setData(keydata,rawData);
+			radTableModel.setData(keydata,data);
 		}
 	}
 	
@@ -289,9 +309,10 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 	
 	
 	public void updateTab(FramePart rad,boolean refreshTable) {
+		if (!Config.payloadStore.initialized()) return;
 		if (rad == null) return;
+		hsHeader = (HerciHighspeedHeader) rad; // Cache this in case show raw is toggled
 		lblHSpayload.setText("HERCI EXPERIMENT PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + rad.getResets() + " Uptime:" + rad.getUptime() );
-		
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
@@ -311,6 +332,7 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 
 	@Override
 	public void run() {
+		Thread.currentThread().setName("HerciHSTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;
@@ -366,10 +388,9 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 			} else {
 				Config.displayRawValues = true;
 			}
-
-			if (hsPayload != null) {
-				parseRadiationFrames();
-				updateTab(hsPayload, true);
+			Config.save();
+			if (hsHeader != null) {
+				updateTab(hsHeader, false);
 			}
 			
 		}
@@ -387,36 +408,56 @@ public class HerciHSTab extends RadiationTab implements Runnable, ItemListener, 
 		parseRadiationFrames();
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	protected void displayRow(JTable table, int fromRow, int row) {
+		long type_l = 0;
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-    	//Log.println("RESET: " + reset_l);
-    	//Log.println("UPTIME: " + uptime);
-    	int reset = (int)reset_l;
-    	this.hsPayload = (PayloadHERCIhighSpeed) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_LAYOUT);
-    	updateTab((HerciHighspeedHeader) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.HERCI_HS_HEADER_LAYOUT), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	type_l = (long)table.getValueAt(row, HerciHSTableModel.TYPE_COL);
+    	
+    	Log.println("RESET: " + reset_l);
+    	Log.println("UPTIME: " + uptime);
+    	Log.println("TYPE: " + type_l);
+    	int reset = (int)reset_l;
+    	int type = (int)type_l;
+    	int headerType = 0;
+    	if (table.getModel() instanceof HerciHSTableModel)
+    		headerType = type + 200;
+    	else {
+    		type = (int)(type/1000);
+    		headerType = type + 200; // FIXME - these hard coded numbers should be tied back to the base types 600 / 800
+    		
+    	}
+    	Log.println("Header Type: " + headerType);
+    	this.hsPayload = (PayloadHERCIhighSpeed) Config.payloadStore.getFramePart(foxId, reset, uptime, type, Spacecraft.HERCI_HS_LAYOUT, false);
+    	updateTab((HerciHighspeedHeader) Config.payloadStore.getFramePart(foxId, reset, uptime, headerType, Spacecraft.HERCI_HS_HEADER_LAYOUT, false), false);
+    	
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
-	public void mouseClicked(MouseEvent e) {
-
-		if (showRawBytes.isSelected()) {
-			int row = table.rowAtPoint(e.getPoint());
-			int col = table.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(table, row);
-			}
-		} else {
-			int row = packetTable.rowAtPoint(e.getPoint());
-			int col = packetTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(packetTable, row);
-			}
-		}
-	}
+//	public void mouseClicked(MouseEvent e) {
+//
+//		if (showRawBytes.isSelected()) {
+//			int row = table.rowAtPoint(e.getPoint());
+//			int col = table.columnAtPoint(e.getPoint());
+//			if (row >= 0 && col >= 0) {
+//				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+//				displayRow(table, row);
+//			}
+//		} else {
+//			int row = packetTable.rowAtPoint(e.getPoint());
+//			int col = packetTable.columnAtPoint(e.getPoint());
+//			if (row >= 0 && col >= 0) {
+//				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+//				displayRow(packetTable, row);
+//			}
+//		}
+//	}
 
 		@Override
 	public void mouseEntered(MouseEvent e) {

@@ -1,16 +1,13 @@
 package decoder.FoxBPSK;
 
-import common.Config;
-import common.Log;
+import java.util.Date;
+
 import decoder.Decoder;
-import decoder.FoxBitStream;
 import decoder.HighSpeedBitStream;
-import decoder.LookupException;
+import telemServer.StpFileProcessException;
 import telemetry.Frame;
-import telemetry.HighSpeedFrame;
-import telemetry.SlowSpeedFrame;
+import telemetry.FrameProcessException;
 import telemetry.FoxBPSK.FoxBPSKFrame;
-import fec.RsCodeWord;
 
 /**
  * 
@@ -36,17 +33,19 @@ import fec.RsCodeWord;
  */
 @SuppressWarnings("serial")
 public class FoxBPSKBitStream extends HighSpeedBitStream {
-	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 5735; 
-	public static int NUMBER_OF_RS_CODEWORDS = 3;
+	public static final int SLOW_SPEED_SYNC_WORD_DISTANCE = 5720; 
+	public static final int FRAME_LENGTH = 572; 
+	public static final int DATA_LENGTH = 476; 
+	public static final int NUMBER_OF_RS_CODEWORDS = 3;
 	
-	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLnegth) {
-		super(dec, wordLength, syncWordLnegth);
-		SYNC_WORD_LENGTH = syncWordLnegth;
-		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
+	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLength, int bitsPerSecond) {
+		super(dec, wordLength, syncWordLength, bitsPerSecond);
+		SYNC_WORD_LENGTH = syncWordLength;
+		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
 		SYNC_WORD_BIT_TOLERANCE = 10;
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
-		maxBytes = FoxBPSKFrame.getMaxBytes();
-		frameSize = FoxBPSKFrame.MAX_FRAME_SIZE;
+		maxBytes = FRAME_LENGTH; //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
+		frameSize = DATA_LENGTH; // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
 		numberOfRsCodeWords = FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS;
 		rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
 		rsPadding[0] = 64;
@@ -59,7 +58,7 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 	 * Attempt to decode the PSK 1200bps Speed Frame
 	 * 
 	 */
-	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition) {
+	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		// ADD in the next SYNC WORD to help the decoder
@@ -67,7 +66,15 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
 		FoxBPSKFrame bpskFrame = new FoxBPSKFrame();
-		bpskFrame.addRawFrame(rawFrame);
+		try {
+			bpskFrame.addRawFrame(rawFrame);
+			bpskFrame.rsErrors = totalRsErrors;
+			bpskFrame.rsErasures = totalRsErasures;
+			bpskFrame.setStpDate(timeOfStartSync);
+		} catch (FrameProcessException e) {
+			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+			return null;
+		}
 //		String os = System.getProperty("os.name").toLowerCase();
 //		boolean b = Frame.highSpeedRsDecode(frameSize, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, "FoxTelem " + Config.VERSION + " (" + os + ")");
 //		Log.println("SELF RS CHECK:" + b);

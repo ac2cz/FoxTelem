@@ -15,13 +15,12 @@ import java.util.Properties;
 
 import javax.swing.JOptionPane;
 
-import decoder.HighSpeedBitStream;
 import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
-import telemetry.PayloadDbStore;
 import telemetry.PayloadStore;
-import decoder.SlowSpeedBitStream;
 import telemetry.RawFrameQueue;
+import telemetry.RawPayloadQueue;
+import telemetry.RawQueue;
 import uk.me.g4dpz.satellite.GroundStationPosition;
 
 /**
@@ -56,13 +55,15 @@ public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
 	public static MainWindow mainWindow;
+	static UpdateManager updateManager; // for server only
+	static Thread updateManagerThread; // for server only
 	
 	public static boolean logDirFromPassedParam = false; // true if we started up with a logFile dir passed in on the command line
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.06f";
-	public static String VERSION = VERSION_NUM + " - 25 Dec 2017";
+	public static String VERSION_NUM = "1.08j";
+	public static String VERSION = VERSION_NUM + " - 19 Sep 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -75,18 +76,18 @@ public class Config {
 	public static final Color PURPLE = new Color(123,6,130);
 	public static final Color AMSAT_GREEN = new Color(0,102,0);
 	
-	public static Color GRAPH1 = new Color(255,153,51); // orange
-	public static Color GRAPH2 = new Color(0,153,0); // green
-	public static Color GRAPH3 = new Color(255,51,0); // red
-	public static Color GRAPH4 = new Color(102,204,51); // bright green
-	public static Color GRAPH5 = new Color(255,204,0); // yellow
-	public static Color GRAPH6 = new Color(153,0,0); // dark red
-	public static Color GRAPH7 = new Color(51,51,102); // dark blue
-	public static Color GRAPH8 = new Color(153,102,0); // brown
-	public static Color GRAPH9 = new Color(102,102,204); // pastel purple
-	public static Color GRAPH10 = new Color(0,51,153); // deep blue
-	public static Color GRAPH11 = new Color(255,255,255); // black
-	public static Color GRAPH12 = new Color(153,153,255); // purple
+	public static final Color GRAPH1 = new Color(255,153,51); // orange
+	public static final Color GRAPH2 = new Color(0,153,0); // green
+	public static final Color GRAPH3 = new Color(255,51,0); // red
+	public static final Color GRAPH4 = new Color(102,204,51); // bright green
+	public static final Color GRAPH5 = new Color(255,204,0); // yellow
+	public static final Color GRAPH6 = new Color(153,0,0); // dark red
+	public static final Color GRAPH7 = new Color(51,51,102); // dark blue
+	public static final Color GRAPH8 = new Color(153,102,0); // brown
+	public static final Color GRAPH9 = new Color(102,102,204); // pastel purple
+	public static final Color GRAPH10 = new Color(0,51,153); // deep blue
+	public static final Color GRAPH11 = new Color(255,255,255); // black
+	public static final Color GRAPH12 = new Color(153,153,255); // purple
 	
 	public static SatelliteManager satManager;
 	static Thread satManagerThread;
@@ -95,9 +96,13 @@ public class Config {
 	
 	public static FoxPayloadStore payloadStore;
 	static Thread payloadStoreThread;
-	public static RawFrameQueue rawFrameQueue;
+	public static RawQueue rawFrameQueue;
 	// We have one queue for the whole application
 	static Thread rawFrameQueueThread;
+	// another queue for a local server
+	public static RawQueue rawPayloadQueue;
+	static Thread rawPayloadQueueThread;
+
 	//public static Filter filter = null; // This is set when the GUI initializes.  This decoder gets the filter from here
 	//public static int currentSampleRate = 48000; // this is the actual sample rate we are using in the decoder and is not saved.  
 	public static double filterFrequency = 200;
@@ -127,6 +132,9 @@ public class Config {
 	static public boolean recoverClock = true;
 	static public boolean writeDebugWavFile = false;
 	static public boolean debugValues = false;
+	static public boolean decoderPaused = false;
+	static public boolean decoderPlay = false;
+	static public int windowsProcessed = 0;
 	static public boolean debugPerformance = false;
 	static public boolean debugClock = false;
 	static public boolean debugBits = false;
@@ -173,8 +181,8 @@ public class Config {
     static public boolean ftpFiles = false;
     
     // Server
-    public static int serverTxPeriod = 5; // time in secs (no point being more frequent than time to download a frame)
-    public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
+    public static int serverTxPeriod = 5; // time in 100 msec chunks
+    public static int serverRetryWaitPeriod = 100; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
@@ -195,8 +203,8 @@ public class Config {
 	public static int windowY = 100;
 	public static int windowFcHeight = 600;
 	public static int windowFcWidth = 600;
-	public static int fcdFrequency = 145930;  // the default frequency we set the FCD to if this is a fresh install
-	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
+	public static double fcdFrequency = 145930.0;  // the default frequency we set the FCD to if this is a fresh install
+/////////////	public static int selectedBin = 192/4; // the bin in the fcd display that was last selected
 	public static final int DEFAULT_FROM_BIN = 0;
 	public static final int DEFAULT_TO_BIN = SourceIQ.FFT_SAMPLES;
 	public static int fromBin = DEFAULT_FROM_BIN; 
@@ -221,9 +229,9 @@ public class Config {
 	static public int graphAxisFontSize = 12;
 	static public boolean useNativeFileChooser = true;
 	
-	static public boolean showSNR = true;
-	static public double SCAN_SIGNAL_THRESHOLD = 10d; // This is peak signal to average noise.  Strongest signal needs to be above this
-	static public double ANALYZE_SNR_THRESHOLD = 4.5d; // This is average signal in the pass band to average noise outside the passband
+	static public boolean showSNR = true; // toggles if we are looking at SNR of strongest signal or Avg
+	static public double SCAN_SIGNAL_THRESHOLD = 12d; // This is strongest signal in sat band to average noise.  Strongest signal needs to be above this
+	static public double ANALYZE_SNR_THRESHOLD = 2.5d; // This is average signal in the filter band to average noise outside the filter
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
@@ -236,7 +244,7 @@ public class Config {
 	static public boolean debugHerciFrames = false;
 	
 	// V1.03
-	static public boolean autoDecodeSpeed = true;
+//	static public boolean autoDecodeSpeed = true;
 	static public boolean swapIQ = false;
 	static public boolean generateSecondaryPayloads = false;  // this MUST not be defaulted to on because it can cause a start up crash.  Test only
 	
@@ -253,7 +261,28 @@ public class Config {
 	static public boolean whenAboveHorizon = false;
 	
 	// V1.06
-	static public boolean insertMissingBits = false;
+	static public boolean insertMissingBits = true;
+	//static public boolean useLongPRN = true;
+	static public boolean firstRun106 = false; // first time user is running version 1.06 - now set to false for 1.07
+	static public boolean saveFcdParams = false;
+	
+	// V1.07
+	static public boolean useNCO = true;
+	public static boolean showAudioOptions = true; 
+	public static boolean showSatOptions = true; 
+	public static boolean showSourceOptions = true; 
+//	static public boolean useCostas = false;
+	public static boolean showEye = true; 
+	public static boolean showPhasor = true; 
+	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
+	static public boolean foxTelemCalcsDoppler = false;
+	public static boolean showFFT = true; 
+	static public boolean debugCalcDopplerContinually = false;
+	
+	// V1.08
+	static public boolean splitCanPackets = true;
+	static public boolean retuneCenterFrequency = false;
+	static public boolean debugSegs = false; // set to true to print out every seg load
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -276,7 +305,7 @@ public class Config {
 					"\nFoxTelem needs to save the program settings.  The directory is either not accessible or not writable\n");
 		}
 		
-		System.out.println("Set Home to: " + homeDirectory);
+		Log.println("Set Home to: " + homeDirectory);
 	}
 	
 	public static void basicInit() {
@@ -291,7 +320,12 @@ public class Config {
 	}		
 	public static void serverInit() {
 		basicInit();
-		//initPayloadDB(u,p,db);
+		
+		// Init the update manager.  This is done from the MainWindow for the client
+		updateManager = new UpdateManager(true);
+		updateManagerThread = new Thread(updateManager);
+		updateManagerThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		updateManagerThread.start();
 		
 	}
 	
@@ -335,6 +369,15 @@ public class Config {
 		initPassManager();
 		// Start this last or we get a null pointer exception if it tries to access the data before it is loaded
 		initServerQueue();
+		if (firstRun106) {
+			SCAN_SIGNAL_THRESHOLD = 14d; 
+			ANALYZE_SNR_THRESHOLD = 2.5d; 
+			firstRun106 = false;
+			Log.infoDialog("First run of 1.06", "This is the first time you are running version 1.06 of FoxTelem.  The Find Signal algorithm\n"
+					+ "has been updated and the default values for Peak, SNR and Bit SNR have been set to new default values.\n"
+					+ "You can adjust these again to any value you want, but peak should now be set slightly higher and the\n"
+					+ "Signal To Noise measure slightly lower.  The Eye (bit) Signal To Noise has remained the same\n");
+		}
 	}
 
 	public static String getLogFileDirectory() {
@@ -420,6 +463,12 @@ public class Config {
 		rawFrameQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		rawFrameQueueThread.start();
 
+		if (rawPayloadQueueThread != null) { rawPayloadQueue.stopProcessing(); }
+		rawPayloadQueue = new RawPayloadQueue();
+		rawPayloadQueueThread = new Thread(rawPayloadQueue);
+		rawPayloadQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		rawPayloadQueueThread.start();
+
 	}
 	
 	private static void setOs() {
@@ -432,9 +481,10 @@ public class Config {
 		}
 		 if (isLinuxOs()) {
 		        final File file = new File("/etc", "os-release");
+		        BufferedReader bufferedReader = null;
 		        try {
 		        	FileInputStream fis = new FileInputStream(file);
-		            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(fis));
+		            bufferedReader = new BufferedReader(new InputStreamReader(fis));
 		            String string;
 		            while ((string = bufferedReader.readLine()) != null) {
 		                if (string.toLowerCase().contains("raspbian")) {
@@ -444,9 +494,16 @@ public class Config {
 		                    }
 		                }
 		            }
+		            
 		        } catch (final Exception e) {
 		           // e.printStackTrace();
 		        	Log.println("Linux but not Raspberry Pi");
+		        } finally {
+		        	try {
+						if (bufferedReader != null) bufferedReader.close();
+					} catch (IOException e) {
+						// Ignore
+					}
 		        }
 		    }
 	}
@@ -598,8 +655,8 @@ public class Config {
 		properties.setProperty("windowWidth", Integer.toString(windowWidth));
 		properties.setProperty("windowX", Integer.toString(windowX));
 		properties.setProperty("windowY", Integer.toString(windowY));
-		properties.setProperty("fcdFrequency", Integer.toString(fcdFrequency));
-		properties.setProperty("selectedBin", Integer.toString(selectedBin));
+		properties.setProperty("fcdFrequency", Double.toString(fcdFrequency));
+/////////////		properties.setProperty("selectedBin", Integer.toString(selectedBin));
 		properties.setProperty("windowCurrentDirectory", windowCurrentDirectory);
 		properties.setProperty("csvCurrentDirectory", csvCurrentDirectory);
 		properties.setProperty("logFileDirectory", logFileDirectory);
@@ -638,7 +695,7 @@ public class Config {
 		
 		// Version 1.03 settings
 		properties.setProperty("debugHerciFrames", Boolean.toString(debugHerciFrames));
-		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
+//		properties.setProperty("autoDecodeSpeed", Boolean.toString(autoDecodeSpeed));
 		properties.setProperty("flipReceivedBits2", Boolean.toString(flipReceivedBits2));
 		properties.setProperty("swapIQ", Boolean.toString(swapIQ));
 		
@@ -652,8 +709,29 @@ public class Config {
 		properties.setProperty("foxTelemCalcsPosition", Boolean.toString(foxTelemCalcsPosition));
 		properties.setProperty("whenAboveHorizon", Boolean.toString(whenAboveHorizon));
 		properties.setProperty("insertMissingBits", Boolean.toString(insertMissingBits));
+		//properties.setProperty("useLongPRN", Boolean.toString(useLongPRN));
+		properties.setProperty("firstRun106", Boolean.toString(firstRun106));
+		properties.setProperty("saveFcdParams", Boolean.toString(saveFcdParams));
 		
 		
+		// V1.07
+//		properties.setProperty("useNCO", Boolean.toString(useNCO));
+		properties.setProperty("generateSecondaryPayloads", Boolean.toString(generateSecondaryPayloads));
+		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
+		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
+		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
+//		properties.setProperty("useCostas", Boolean.toString(useCostas));
+		properties.setProperty("showEye", Boolean.toString(showEye));
+		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
+		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
+		properties.setProperty("foxTelemCalcsDoppler", Boolean.toString(foxTelemCalcsDoppler));
+		properties.setProperty("showFFT", Boolean.toString(showFFT));
+		properties.setProperty("debugCalcDopplerContinually", Boolean.toString(debugCalcDopplerContinually));
+		
+		// V1.08
+		properties.setProperty("retuneCenterFrequency", Boolean.toString(retuneCenterFrequency));
+		properties.setProperty("debugSegs", Boolean.toString(debugSegs));
+
 		store();
 	}
 	
@@ -758,8 +836,8 @@ public class Config {
 		windowWidth = Integer.parseInt(getProperty("windowWidth"));
 		windowX = Integer.parseInt(getProperty("windowX"));
 		windowY = Integer.parseInt(getProperty("windowY"));
-		fcdFrequency = Integer.parseInt(getProperty("fcdFrequency"));
-		selectedBin = Integer.parseInt(getProperty("selectedBin"));
+		fcdFrequency = Double.parseDouble(getProperty("fcdFrequency"));
+///////////		selectedBin = Integer.parseInt(getProperty("selectedBin"));
 		windowCurrentDirectory = getProperty("windowCurrentDirectory");
 		if (windowCurrentDirectory == null) windowCurrentDirectory = "";
 		csvCurrentDirectory = getProperty("csvCurrentDirectory");
@@ -806,7 +884,7 @@ public class Config {
 		
 		//Version 1.03
 		debugHerciFrames = Boolean.parseBoolean(getProperty("debugHerciFrames"));
-		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
+//		autoDecodeSpeed = Boolean.parseBoolean(getProperty("autoDecodeSpeed"));
 		flipReceivedBits2 = Boolean.parseBoolean(getProperty("flipReceivedBits2"));
 		swapIQ = Boolean.parseBoolean(getProperty("swapIQ"));
 		
@@ -821,6 +899,27 @@ public class Config {
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
+		//useLongPRN = Boolean.parseBoolean(getProperty("useLongPRN"));
+		firstRun106 = Boolean.parseBoolean(getProperty("firstRun106"));
+		saveFcdParams = Boolean.parseBoolean(getProperty("saveFcdParams"));
+		
+		// V1.07
+//			useNCO = Boolean.parseBoolean(getProperty("useNCO"));
+		generateSecondaryPayloads = Boolean.parseBoolean(getProperty("generateSecondaryPayloads"));
+		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
+		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
+		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
+//		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		showEye = Boolean.parseBoolean(getProperty("showEye"));
+		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
+		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
+		foxTelemCalcsDoppler = Boolean.parseBoolean(getProperty("foxTelemCalcsDoppler"));
+		showFFT = Boolean.parseBoolean(getProperty("showFFT"));
+		debugCalcDopplerContinually = Boolean.parseBoolean(getProperty("debugCalcDopplerContinually"));
+		
+		// V1.08
+		retuneCenterFrequency = Boolean.parseBoolean(getProperty("retuneCenterFrequency"));
+		debugSegs = Boolean.parseBoolean(getProperty("debugSegs"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

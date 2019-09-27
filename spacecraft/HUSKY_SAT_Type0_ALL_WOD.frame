@@ -1,0 +1,14 @@
+number_of_payloads=6
+payload0.name=wodcantelemetry
+payload0.length=78
+payload1.name=wodtelemetry
+payload1.length=78
+payload2.name=wodcantelemetry
+payload2.length=78
+payload3.name=wodtelemetry
+payload3.length=78
+payload4.name=wodcantelemetry
+payload4.length=78
+payload5.name=wodtelemetry
+payload5.length=78
+canPacketFrame=false

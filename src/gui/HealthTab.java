@@ -9,21 +9,19 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 
 import javax.swing.JPanel;
+import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.KeyStroke;
-import javax.swing.ListSelectionModel;
-
 import java.awt.BorderLayout;
 import java.awt.Font;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.ButtonGroup;
 import javax.swing.InputMap;
-import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 
@@ -31,7 +29,9 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.RadiationTelemetry;
+import telemetry.PayloadMaxValues;
+import telemetry.PayloadMinValues;
+import telemetry.PayloadRtValues;
 
 import java.awt.Dimension;
 
@@ -45,11 +45,8 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import decoder.SourceIQ;
-
 import java.awt.Color;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.TimeZone;
 
@@ -79,8 +76,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	
 	public final int DEFAULT_DIVIDER_LOCATION = 500;
 	public static final String HEALTHTAB = "HEALTHTAB";
-	public static final String SAFE_MODE_IND = "SafeModeIndication";
-	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
+
 	private static final String LIVE = "Live ";
 	private static final String DISPLAY = "Selected ";
 	
@@ -119,6 +115,9 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	private static final String RESETS = "  Resets: ";
 	protected static final String DECODED = "Telemetry Payloads Decoded: ";
 	protected static final String CAPTURE_DATE = "Captured: ";
+	public static final int DISPLAY_RT = 0;
+	public static final int DISPLAY_MAX = 1;
+	public static final int DISPLAY_MIN = 2;
 	
 	protected JPanel topPanel;
 	protected JPanel topPanel1;
@@ -127,8 +126,21 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	int splitPaneHeight = 0;
 	JSplitPane splitPane;
 	
-	HealthTableModel healthTableModel;
-	JTable table;
+	HealthTableModel rtTableModel;
+	HealthTableModel minTableModel;
+	HealthTableModel maxTableModel;
+	JTable rtTable;
+	JTable maxTable;
+	JTable minTable;
+	
+	JScrollPane rtScrollPane;
+	JScrollPane maxScrollPane;
+	JScrollPane minScrollPane;
+	
+	JRadioButton rtBut;
+	JRadioButton maxBut;
+	JRadioButton minBut;
+	protected int healthTableToDisplay;
 	
 	public HealthTab(FoxSpacecraft spacecraft, int displayType) {
 		fox = spacecraft;
@@ -197,7 +209,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
-	        	  Log.println("SplitPane: " + splitPaneHeight);
+	        	  //Log.println("SplitPane: " + splitPaneHeight);
 	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
@@ -212,10 +224,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 		
 		addBottomFilter();
-
-		// force the next labels to the right side of screen
-		
-		
+	
 		lblCaptureDate = new JLabel(CAPTURE_DATE);
 		lblCaptureDate.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 10/11)));
 		lblCaptureDate.setBorder(new EmptyBorder(5, 2, 5, 10) ); // top left bottom right
@@ -231,15 +240,15 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
 		if (rt == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else 	if (max == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else if (min == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else
@@ -251,13 +260,93 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			System.exit(1);
 		}
 		
-		addTable(healthPanel, rt);
+		rtTableModel = new HealthTableModel(rt);
+		rtTable = new JTable(rtTableModel);
+		rtScrollPane = addTable(rtTable, rtTableModel, healthPanel, rt);
+
+		maxTableModel = new HealthTableModel(max);
+		maxTable = new JTable(maxTableModel);
+		maxScrollPane = addTable(maxTable, maxTableModel, healthPanel, max);
+
+		minTableModel = new HealthTableModel(min);
+		minTable = new JTable(minTableModel);
+		minScrollPane = addTable(minTable, minTableModel, healthPanel, min);
+
+		displayTable();
+		
+		String PREV = "prev";
+		String NEXT = "next";
+		
+		InputMap inMap = rtTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = rtTable.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = rtTable.getSelectedRow();
+				if (row > 0)
+					displayRow(rtTable, NO_ROW_SELECTED, row-1);
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = rtTable.getSelectedRow();
+				if (row < rtTable.getRowCount()-1)
+					displayRow(rtTable, NO_ROW_SELECTED, row+1);        
+			}
+		});
+		
+		InputMap inMapMax = maxTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMapMax.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMapMax.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMapMax = maxTable.getActionMap();
+
+		actMapMax.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = maxTable.getSelectedRow();
+				if (row > 0)
+					displayRow(maxTable, NO_ROW_SELECTED, row-1);
+			}
+		});
+		actMapMax.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = maxTable.getSelectedRow();
+				if (row < maxTable.getRowCount()-1)
+					displayRow(maxTable, NO_ROW_SELECTED, row+1);        
+			}
+		});
+
+		
+	}
+
+	protected void displayTable() {
+		if (healthTableToDisplay == DISPLAY_RT) {
+			rtScrollPane.setVisible(true);
+			maxScrollPane.setVisible(false);
+			minScrollPane.setVisible(false);
+		} else if (healthTableToDisplay == DISPLAY_MAX) {
+			rtScrollPane.setVisible(false);
+			maxScrollPane.setVisible(true);
+			minScrollPane.setVisible(false);
+		} else {
+			rtScrollPane.setVisible(false);
+			maxScrollPane.setVisible(false);
+			minScrollPane.setVisible(true);
+		}
+
 	}
 	
-	private void addTable(JPanel centerPanel, BitArrayLayout rt) {
-		healthTableModel = new HealthTableModel(rt);
-		
-		table = new JTable(healthTableModel);
+	private JScrollPane addTable(JTable table, HealthTableModel healthTableModel, JPanel centerPanel, BitArrayLayout rt) {
+
 		table.setAutoCreateRowSorter(true);
 //		listSelectionModel = table.getSelectionModel();
  //       listSelectionModel.addListSelectionListener(new SharedListSelectionHandler());
@@ -269,34 +358,9 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		table.setFillsViewportHeight(true);
 		table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		//table.setMinimumSize(new Dimension(6200, 6000));
-		
-		String PREV = "prev";
-		String NEXT = "next";
-		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
-		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
-		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
-		ActionMap actMap = table.getActionMap();
 
-		actMap.put(PREV, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				// System.out.println("PREV");
-				int row = table.getSelectedRow();
-				if (row > 0)
-					displayRow(row-1);
-			}
-		});
-		actMap.put(NEXT, new AbstractAction() {
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				//    System.out.println("NEXT");
-				int row = table.getSelectedRow();
-				if (row < table.getRowCount()-1)
-					displayRow(row+1);        
-			}
-		});
 		centerPanel.add(scrollPane);
-
+		return scrollPane;
 	}
 
 	protected JLabel addReset(JPanel topPanel2, String type) {
@@ -336,26 +400,20 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	private void displayResets(JLabel lblResetsValue, int u) {
 		lblResetsValue.setText("" + u);
 	}
-
-	protected void displayMode(int safeMode, int scienceMode) {
 		
-		if (scienceMode == 1)
-			lblModeValue.setText("SCIENCE");
-		else if (safeMode == 1)
-			lblModeValue.setText("SAFE");
-		else {
-			// If the last received telemetry was from a High Speed Frame, then we are in DATA mode, otherwise TRANSPONDER
-			// We know the last frame was High Speed if the Uptime for RT, MAX, MIN are the same
-			if (realTime != null && minPayload != null && maxPayload != null) {
-				if (realTime.uptime == minPayload.uptime && minPayload.uptime == maxPayload.uptime)				
-					lblModeValue.setText("DATA");
-				else
-					lblModeValue.setText("TRANSPONDER");
-			} else
-				lblModeValue.setText("TRANSPONDER");
+	protected void displayMode() {
+		String mode = FoxSpacecraft.modeNames[FoxSpacecraft.SAFE_MODE];
+		if (fox.hasModeInHeader) {
+			FramePart sciencePayload = Config.payloadStore.getLatest(fox.foxId, FoxSpacecraft.CAN_PKT_LAYOUT);
+			mode = fox.determineModeFromHeader();
+		} else {
+			FramePart radPayload = Config.payloadStore.getLatestRad(foxId);
+			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
 		}
+		if (lblModeValue != null)
+			lblModeValue.setText(mode);
 	}
-
+	
 	/**
 	 * Given the Fox ID, display the actual number of the spacecraft
 	 * @param u
@@ -398,7 +456,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	}
 	
 	public void updateTabRT(FramePart realTime2, boolean refreshTable) {
-		
+		if (!Config.payloadStore.initialized()) return;
+		realTime = realTime2;
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
@@ -424,34 +483,46 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			lblLive.setForeground(Color.BLACK);
 			lblLive.setText(DISPLAY);
 		}
+		displayMode();
+//		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
+		
 	}
 	
 
 	protected void parseTelemetry(String data[][]) {	
 
 		// Now put the telemetry packets into the table data structure
-		long[][] packetData = new long[data.length][data[0].length];
+		long[][] tableData = new long[data.length][data[0].length];
 		for (int i=0; i < data.length; i++) { 
-			packetData[data.length-i-1][0] = Long.parseLong(data[i][0]);
-			packetData[data.length-i-1][1] = Long.parseLong(data[i][1]);
+			tableData[data.length-i-1][0] = Long.parseLong(data[i][0]);
+			tableData[data.length-i-1][1] = Long.parseLong(data[i][1]);
 			for (int j=2; j< data[0].length; j++) {
 				if ((data[i][j]) != null)
 					if (Config.displayRawRadData)
-						packetData[data.length-i-1][j] = Long.parseLong(data[i][j]);
-					else
-						packetData[data.length-i-1][j] = Long.parseLong(data[i][j]);
+						tableData[data.length-i-1][j] = Long.parseLong(data[i][j]);
+					else {
+						// Run the conversion
+						
+						tableData[data.length-i-1][j] = Long.parseLong(data[i][j]);
+					}
 			}
 		}
 
 		if (data.length > 0) {
-			healthTableModel.setData(packetData);
+			// RT MAX MIN SWITCH
+			if (healthTableToDisplay == DISPLAY_RT) {
+				rtTableModel.setData(tableData);
+			} else if (healthTableToDisplay == DISPLAY_MAX) {
+				maxTableModel.setData(tableData);
+			} else {
+				minTableModel.setData(tableData);
+			}
 		}
-		//(Config.payloadStore.getLatestRadTelem(foxId));
-		//updateTab(packets.get(packets.size()-1));
 	}
 	
 	public void updateTabMax(FramePart maxPayload2) {
-		
+		if (!Config.payloadStore.initialized()) return;
+		maxPayload = maxPayload2;
 	//	System.out.println("GOT MAX PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 	
 		for (DisplayModule mod : topModules) {
@@ -468,12 +539,14 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		displayUptime(lblMaxUptimeValue, maxPayload2.getUptime());
 		displayResets(lblMaxResetsValue, maxPayload2.getResets());
 		displayCaptureDate(maxPayload2.getCaptureDate());
-		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
+//		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
+		displayMode();
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
 	public void updateTabMin(FramePart minPayload2) {
-		
+		if (!Config.payloadStore.initialized()) return;
+		minPayload = minPayload2;
 	//	System.out.println("GOT MIN PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 
 		for (DisplayModule mod : topModules) {
@@ -490,12 +563,14 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		displayUptime(lblMinUptimeValue, minPayload2.getUptime());
 		displayResets(lblMinResetsValue, minPayload2.getResets());
 		displayCaptureDate(minPayload2.getCaptureDate());
-		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
+		displayMode();
+//		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
 	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
 		Object source = e.getItemSelectable();
 		
 		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
@@ -505,53 +580,60 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			} else {
 				Config.displayRawValues = true;
 			}
-//			Config.save();
+			Config.save();
 			if (realTime != null)
 				updateTabRT(realTime, false);
 			if (maxPayload != null)
 				updateTabMax(maxPayload);
 			if (minPayload != null)
 				updateTabMin(minPayload);
-		}
-		if (source == cbUTC) {
-
-			showUTCtime = !showUTCtime;
-			if (showUTCtime) {
-				parseTextFields();
-				//textToUtc.setText();
-				txtSamplePeriod.setText(Integer.toString(SAMPLES));
-				
-			} else {
-				parseUTCFields();
-				txtSamplePeriod.setText(Integer.toString(SAMPLES));
-			}
-			showUptimeQuery(!showUTCtime);
-			parseFrames();
-			/*
-			if (realTime != null)
-				updateTabRT(realTime, false);
-			if (maxPayload != null)
-				updateTabMax(maxPayload);
-			if (minPayload != null)
-				updateTabMin(minPayload);
-				*/
 		}
 		
+		if (source == cbUTC) {
+			if (realTime != null)
+				updateTabRT(realTime, false);
+			if (maxPayload != null)
+				updateTabMax(maxPayload);
+			if (minPayload != null)
+				updateTabMin(minPayload);
+			//parseFrames();
+		}
 		
 	}
 	
+	public static final int NO_ROW_SELECTED = -1;
 	
-	
-	protected abstract void displayRow(int row);
+	protected abstract void displayRow(JTable table, int fromRow, int toRow);
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		int fromRow = NO_ROW_SELECTED;
 		
+		JTable table;
+		
+		// RT MAX MIN SWITCH
+		if (healthTableToDisplay == DISPLAY_RT) {
+			table = rtTable;
+		} else if (healthTableToDisplay == DISPLAY_MAX) {
+			table = maxTable;
+		} else {
+			table = minTable;
+		}
+		// row is the one we clicked on
 		int row = table.rowAtPoint(e.getPoint());
         int col = table.columnAtPoint(e.getPoint());
+        
+        if (e.isShiftDown()) {
+        	// from row is the first in the selection.  It equals row if we clicked above the current selected row
+			fromRow = table.getSelectedRow();
+			int n = table.getSelectedRowCount();
+			if (row == fromRow)
+				fromRow = fromRow + n-1;
+		}
+		
         if (row >= 0 && col >= 0) {
         	//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-        	displayRow(row);
+        	displayRow(table, fromRow, row);
         }
 	}
 	@Override

@@ -125,7 +125,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	long packetTimestamp; // the 32 bit timestamp when the packet was generated - calculated
 	
 	HerciHighSpeedPacket(int sat, int r, long u, int e, long t, BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_HERCI_HS_PACKET, lay);
 		resets = r;
 		uptime = u;
 		epoch = e;
@@ -137,11 +137,11 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	}
 
 	public HerciHighSpeedPacket(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(new BitArrayLayout());
+		super(TYPE_HERCI_HS_PACKET, new BitArrayLayout());
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
-		this.captureDate = date;
+		this.reportDate = date;
 		epoch = Integer.valueOf(st.nextToken()).intValue();
 		headerTime = Long.valueOf(st.nextToken()).longValue();
 		packetTimestamp = Long.valueOf(st.nextToken()).longValue();
@@ -191,7 +191,7 @@ public class HerciHighSpeedPacket extends FoxFramePart {
 	public String toFile() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + "," 
 		+ epoch + "," + headerTime + "," + packetTimestamp + "," ;
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
@@ -409,13 +409,17 @@ return pkt_time + delta + epoch;
 	public static String getTableCreateStmt() {
 		String s = new String();
 		s = s + "(date_time timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, id int, resets int, uptime bigint, type int, "
-		 + "pktType int, "
-		 + "length int, "
-		 + "truncTime int,"
-		 + "segmentation int,"
-		 + "st1 int,"
-		 + "st2 int,"
-		 + "st3 int,";
+				+ "epoch int," 
+				+ "headerTime int," 
+				+ "packetTimestamp int,"
+				+ "pktType int, "
+				+ "length int, "
+				+ "truncTime int,"
+				+ "segmentation int,"
+				+ "st1 int,"
+				+ "st2 int,"
+				+ "st3 int,";
+
 		 
 		for (int i=NUMBER_OF_HEADER_FIELDS; i< MAX_PACKET_BYTES; i++ )
 			s = s + "byte" + i + " int NOT NULL DEFAULT 0,";
@@ -427,6 +431,9 @@ return pkt_time + delta + epoch;
 		copyBitsToFields();
 		String s = new String();
 		s = s + " (id, resets, uptime, type, \n";
+		s = s + "epoch,\n";
+		s = s + "headerTime,\n";
+		s = s + "packetTimestamp,\n";
 		s = s + "pktType,\n";
 		s = s + "length,\n";
 		s = s + "truncTime,\n";
@@ -438,7 +445,8 @@ return pkt_time + delta + epoch;
 			s = s + "byte" + i + " ,\n";
 		s = s + "byte" + (NUMBER_OF_FIELDS-1) + " )\n";
 		
-		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ",\n";
+		s = s + "values (" + this.id + ", " + resets + ", " + uptime + ", " + type + ","
+				+ epoch + "," + headerTime + "," + packetTimestamp  + ",\n";
 		s = s + fieldValue[TYPE_FIELD]+",\n";
 		s = s + fieldValue[LENGTH_FIELD]+",\n";
 		s = s + fieldValue[TIME_FIELD]+",\n";

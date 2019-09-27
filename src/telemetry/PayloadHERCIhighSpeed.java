@@ -1,5 +1,7 @@
 package telemetry;
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.StringTokenizer;
 
@@ -142,7 +144,7 @@ public class PayloadHERCIhighSpeed extends FoxFramePart {
 	long time; // captured from the telem header
 	
 	public PayloadHERCIhighSpeed(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_HERCI_HIGH_SPEED_DATA, lay);
 	}
 
 	/**
@@ -154,15 +156,18 @@ public class PayloadHERCIhighSpeed extends FoxFramePart {
 	 * @param st
 	 */
 	public PayloadHERCIhighSpeed(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);
+		super(id, resets, uptime, TYPE_HERCI_HIGH_SPEED_DATA, date, st, lay);
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
+	}
+	
+	public PayloadHERCIhighSpeed(ResultSet r, BitArrayLayout lay) throws SQLException {
+		super(r, TYPE_HERCI_HIGH_SPEED_DATA, lay);
 	}
 
 	@Override
 	protected void init() {
 		MAX_BYTES = MAX_PAYLOAD_SIZE;
-		fieldValue = new int[MAX_PAYLOAD_SIZE];  // we declare this as the max payload size rather than the size of the layout so that we include all of the minipackets
-		type = FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA;
+//		fieldValue = new int[MAX_PAYLOAD_SIZE];  // we declare this as the max payload size rather than the size of the layout so that we include all of the minipackets
 	}
 
 	/**
@@ -226,7 +231,7 @@ public class PayloadHERCIhighSpeed extends FoxFramePart {
 	public String toFile() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			//s = s + Decoder.dec(fieldValue[i]) + ",";
 			s = s + fieldValue[i] + ",";

@@ -3,7 +3,11 @@
 #File named .dat should be in the logfiles directory and is loaded by FoxTelem
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=true
+mode=0
 numberOfLookupTables=3
+memsRestValueX=2058
+memsRestValueY=2068
+memsRestValueZ=2090
 measurementsFileName=measurements.csv
 model=1
 layout0.filename=FOX1A_debug.csv
@@ -12,7 +16,8 @@ passMeasurementsFileName=passmeasurements.csv
 layout5.parentLayout=radtelemetry
 lookupTable0.filename=FOX1C_rssiFM.tab
 layout1.filename=FOX1C_maxtelemetry.csv
-name=Fox-1Cliff
+name=AO-95
+displayName=AO-95
 description=Fox-1C is a 1U CubeSat with U/v and L/v FM transponders and experiments from Penn State University, Rochester Institute of Technology, Vanderbilt University and Virginia Tech
 numberOfLayouts=6
 track=false

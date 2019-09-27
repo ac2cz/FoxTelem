@@ -71,7 +71,7 @@ ItemListener {
 
 		if (sat.isFox1()) {
 			FoxSpacecraft fox = (FoxSpacecraft) sat;
-			satellite = new DisplayModule(fox, fox.name, 9,
+			satellite = new DisplayModule(fox, fox.user_display_name, 9,
 					DisplayModule.DISPLAY_MEASURES);
 			centerPanel.add(satellite);
 			satellite.addName(1, "Bit Sig to Noise (-)",
@@ -94,7 +94,7 @@ ItemListener {
 
 		if (sat.isFox1()) {
 			FoxSpacecraft fox = (FoxSpacecraft) sat;
-			passes = new DisplayModule(fox, fox.name + " passes", 9,
+			passes = new DisplayModule(fox, fox.user_display_name + " passes", 9,
 					DisplayModule.DISPLAY_PASS_MEASURES);
 			centerPanel.add(passes);
 			passes.addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
@@ -138,6 +138,7 @@ ItemListener {
 
 	@Override
 	public void run() {
+		Thread.currentThread().setName("MyMeasurementsTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;

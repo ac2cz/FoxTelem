@@ -12,25 +12,17 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.util.ArrayList;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
-import javax.swing.InputMap;
 import javax.swing.JCheckBox;
-import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
-import javax.swing.KeyStroke;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.AbstractTableModel;
@@ -41,7 +33,6 @@ import telemetry.CobsDecodeException;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadRadExpData;
 import telemetry.RadiationPacket;
 import telemetry.RadiationTelemetry;
 import common.Config;
@@ -71,7 +62,7 @@ import common.FoxSpacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class VulcanTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
+public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String VULCANTAB = "VULCANTAB";
 	private static final String DECODED = "Radiation Payloads Decoded: ";
@@ -149,7 +140,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 			rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 		BitArrayLayout none = null;
 		if (rad == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.name + " is missing the layout definition for "
+			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.RAD2_LAYOUT+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else 
@@ -318,7 +309,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	
 	
 	protected void parseRadiationFrames() {
-		
+		if (!Config.payloadStore.initialized()) return;
 		if (Config.displayRawRadData) {
 			String[][] data = Config.payloadStore.getRadData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 			if (data != null && data.length > 0)
@@ -367,7 +358,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 			RadiationTelemetry radTelem = null;
 			radTelem = new RadiationTelemetry(Integer.valueOf(data[i][0]), Long.valueOf(data[i][1]), this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT));
 			radTelem.rawBits = null; // otherwise we will overwrite the data we side load in
-			for (int k=2; k<this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).NUMBER_OF_FIELDS+2; k++) {  // Add 2 to skip past reset uptime
+			for (int k=2; k<this.fox.getLayoutByName(Spacecraft.RAD2_LAYOUT).NUMBER_OF_FIELDS; k++) {  // Add 2 to skip past reset uptime
 				try {
 					int val = Integer.valueOf(data[i][k]);
 					radTelem.fieldValue[k-2] = val;
@@ -559,7 +550,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	}
 	
 	public void updateTab(FramePart rad, boolean refreshTable) {
-		
+		if (!Config.payloadStore.initialized()) return;
 	//	if (rad != null)
 	//	System.out.println("DISPLAY PAYLOAD FROM payloadStore: Resets " + rad.getResets() + " Uptime: " + rad.getUptime() + "\n" + rad + "\n");
 		if (rad != null) {
@@ -586,6 +577,7 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("VulcanTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;
@@ -636,22 +628,27 @@ public class VulcanTab extends RadiationTab implements ItemListener, Runnable, M
 			} else {
 				Config.displayRawValues = true;
 			}
-
+			Config.save();
 			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 			
 		}
 		
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	protected void displayRow(JTable table, int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT), false);
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT, false), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
 

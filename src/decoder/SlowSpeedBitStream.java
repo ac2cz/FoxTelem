@@ -1,9 +1,13 @@
 package decoder;
 
+import java.util.Date;
+
 import common.Config;
 import common.Log;
+import telemetry.FrameProcessException;
 import telemetry.SlowSpeedFrame;
 import fec.RsCodeWord;
+import telemServer.StpFileProcessException;
 
 /**
  * 
@@ -31,9 +35,8 @@ import fec.RsCodeWord;
 public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	
-	public SlowSpeedBitStream(Decoder dec, int wordLength, int syncWordLength) {
-		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, wordLength, syncWordLength, dec);
-		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE;
+	public SlowSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
+		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, wordLength, syncWordLength, SLOW_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;
 		SYNC_WORD_BIT_TOLERANCE = 10;
 	}
@@ -41,7 +44,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 	/**
 	 * Given a section of the bit stream between two sync words, attempt to decode it
 	 */
-	public SlowSpeedFrame decodeFrame(int start, int end, int missedBits, int repairPosition ) {
+	public SlowSpeedFrame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
 		boolean insertedMissedBits = false;
 		byte[] rawFrame = new byte[SlowSpeedFrame.getMaxBytes()]; // The decoded 8b bytes ready to be passed to the fec decoder
 		int[] erasurePositions = new int[SlowSpeedFrame.getMaxBytes()];
@@ -50,7 +53,6 @@ public class SlowSpeedBitStream extends FoxBitStream {
 		if (rawFrame.length != SYNC_WORD_DISTANCE/10-1)
 			Log.println("ERROR: Frame length " + rawFrame.length + " bytes is different to SYNC word distance "+ (SYNC_WORD_DISTANCE/10-1));
 		
-
 		// We have found a frame, so process it. start is the first bit of data
 		// end is the first bit after the second SYNC word.  We do not 
 		// want to pass the SYNC word to the FRAME, so we process all the 
@@ -67,7 +69,6 @@ public class SlowSpeedBitStream extends FoxBitStream {
 				insertedMissedBits = true;
 			}
 			byte b8 = -1;
-			lastErasureNumber = numberOfErasures;
 			if (numberOfErasures < MAX_ERASURES) // otherwise we can fast forward to end of this frame, it is bad
 				try {
 					b8 = processWord(j);
@@ -94,13 +95,19 @@ public class SlowSpeedBitStream extends FoxBitStream {
 				if (Config.useRSerasures) 
 					rs.setErasurePositions(erasurePositions, numberOfErasures);
 				rawFrame = rs.decode();
-				lastErrorsNumber = rs.getNumberOfCorrections();
 			}
 			if (rs.validDecode()) {
-				SlowSpeedFrame slowSpeedFrame = new SlowSpeedFrame();
-
-				slowSpeedFrame.addRawFrame(rawFrame);
-
+				SlowSpeedFrame slowSpeedFrame = new SlowSpeedFrame();  // This creates empty frame with STP date to now
+				// Adjust the STP Date based on the position in the bit stream
+				slowSpeedFrame.setStpDate(timeOfStartSync);
+				try {
+					slowSpeedFrame.addRawFrame(rawFrame);
+					slowSpeedFrame.rsErrors = rs.getNumberOfCorrections();
+					slowSpeedFrame.rsErasures = numberOfErasures;
+				} catch (FrameProcessException e) {
+					// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+					return null;
+				}
 				return slowSpeedFrame;
 			} else {
 				if (Config.debugFrames) Log.println(".. abandonded, failed RS decode");

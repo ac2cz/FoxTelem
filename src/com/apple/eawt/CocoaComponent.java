@@ -4,6 +4,7 @@ import java.awt.Canvas;
 import java.awt.Dimension;
 import java.awt.Graphics;
 
+@SuppressWarnings("serial")
 public abstract class CocoaComponent extends Canvas {
 	
 	public CocoaComponent() {}

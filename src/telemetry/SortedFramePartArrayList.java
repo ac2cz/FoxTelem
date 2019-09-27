@@ -1,7 +1,5 @@
 package telemetry;
 
-import java.util.Collections;
-
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -79,7 +77,8 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets) {
-    	return getNearestFrameIndex(id, uptime, resets, 0);
+    	if (this.size() == 0) return -1;
+    	return getNearestFrameIndex(id, uptime, resets, get(0).type);
     }
     
     public int getNearestFrameIndex(int id, long uptime, int resets, int type) {
@@ -94,6 +93,29 @@ public class SortedFramePartArrayList extends SortedArrayList<FramePart> {
     		FramePart f = this.get(i);
     		if (compare(f, id, uptime, resets, type) <= 0)
             	return i;
+    	}
+        return -1;
+    }
+
+    public int getNearestPrevFrameIndex(int id, long uptime, int resets) {
+    	return getNearestPrevFrameIndex(id, uptime, resets, get(0).type);
+    }
+
+    public int getNearestPrevFrameIndex(int id, long uptime, int resets, int type) {
+    	// start searching from the beginning where reset and uptime should be the lowest\
+    	if (this.size() == 0) return -1;
+    	// First check special case where we have value off the end, we return the last value
+    	if (resets > this.get(size()-1).resets) return size()-1;
+    	if (resets == this.get(size()-1).resets && uptime > this.get(size()-1).uptime) return size()-1;
+    	
+    	// Otherwise we search
+    	for (int i=0; i<this.size(); i++) { 
+    		FramePart f = this.get(i);
+    		if (compare(f, id, uptime, resets, type) == 0) {
+            	return i;
+    		} else if (compare(f, id, uptime, resets, type) < 0) {
+            	return i-1;
+    		}
     	}
         return -1;
     }

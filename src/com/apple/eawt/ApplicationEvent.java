@@ -2,6 +2,7 @@ package com.apple.eawt;
 
 import java.util.EventObject;
 
+@SuppressWarnings("serial")
 @Deprecated
 public class ApplicationEvent extends EventObject {
 

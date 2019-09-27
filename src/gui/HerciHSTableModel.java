@@ -22,14 +22,16 @@ import telemetry.PayloadHERCIhighSpeed;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-@SuppressWarnings({ "serial", "unchecked" })
+@SuppressWarnings({ "serial" })
 class HerciHSTableModel extends FoxTelemTableModel {
+	public static final int TYPE_COL = 2;
 	
     HerciHSTableModel() {
-		columnNames = new String[PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE+2];
+		columnNames = new String[PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE+3];
 		columnNames[0] = "RESET";
 		columnNames[1] = "UPTIME";
+		columnNames[2] = "FOX SEQ";
 		for (int k=0; k<868; k++) 
-			columnNames[k+2] = ""+k;
+			columnNames[k+3] = ""+k;
 	}
 }

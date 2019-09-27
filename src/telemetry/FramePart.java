@@ -9,13 +9,11 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
-import org.joda.time.DateTime;
-
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import decoder.FoxDecoder;
+import telemetry.FoxBPSK.FoxBPSKHeader;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
@@ -26,8 +24,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
 	public long uptime;  // The Uptime captured from the header.  Time in seconds from Reset.  For non Fox Spacecraft this is the UTC milliseconds since the date epoch
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
-	protected String captureDate; // the date/time that this was captured
+	protected String reportDate; // the date/time that this was written to the file.  NOT the same as the STP date, which is just on the frame.
 	protected int type; // the type of this payload. Zero if the spacecraft does not use types
+	public int newMode = FoxSpacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
 	public static final double NO_POSITION_DATA = -999.0;
 	public static final double NO_T0 = -998.0;
 	public static final double NO_TLE = -997.0;
@@ -37,16 +36,22 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	double satLongitude = NO_POSITION_DATA; // from -180 to 180
 	double satAltitude = NO_POSITION_DATA;
 	
-	protected FramePart(BitArrayLayout l) {
+	protected FramePart(BitArrayLayout l, int type) {
 		super(l);
+		this.type = type;
 		// TODO Auto-generated constructor stub
 	}
 
+//	public void captureHeaderInfo(int id, long uptime, int resets, String captureDate, int mode) {
 	public void captureHeaderInfo(int id, long uptime, int resets) {
 		this.id = id;
 		this.uptime = uptime;
 		this.resets = resets;
-		this.captureDate = fileDateStamp();
+		if (reportDate == null)
+			this.reportDate = fileDateStamp(); // snap the current time
+		else
+			this.reportDate = reportDate;
+//		this.newMode = mode; // this is zero unless the mode was on the header.
 	}
 	
 	public double getSatLatitude() { return satLatitude; }
@@ -66,9 +71,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			//if (Config.debugFrames)
 			//	Log.println("POSITION captured : " + resets + ":" + uptime + " Type: " + type + " at " + satLatitude + " " + satLongitude);
 		} else {
-			satLatitude = NO_T0;
-			satLongitude = NO_T0;
-			satAltitude = NO_T0;
+			satLatitude = NO_POSITION_DATA;
+			satLongitude = NO_POSITION_DATA;
+			satAltitude = NO_POSITION_DATA;
 		}
 	}
 
@@ -111,14 +116,11 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return lon;
 	}
 
-	private void defaultValue(double val) {
-		val = NO_POSITION_DATA;
-	}
 	public int getFoxId() { return id; }
 	public long getUptime() { return uptime; }
 	public int getResets() { return resets; }
 	public int getType() { return type; }
-	public String getCaptureDate() { return captureDate; }
+	public String getCaptureDate() { return reportDate; }
 	
 	public static String fileDateStamp() {
 		
@@ -165,14 +167,19 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * can then be written to a file
 	 * @return
 	 */
-	public String toFile() {
+	public String toFile(boolean storeMode) {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		
+		// If we have the mode in the header we save it here
+		if (storeMode)
+			s = s + newMode + ",";
+		
 		for (int i=0; i < layout.fieldName.length-1; i++) {
-			s = s + FoxDecoder.dec(getRawValue(layout.fieldName[i])) + ",";
+			s = s + getRawValue(layout.fieldName[i]) + ",";
 		}
-		s = s + FoxDecoder.dec(getRawValue(layout.fieldName[layout.fieldName.length-1]));
+		s = s + getRawValue(layout.fieldName[layout.fieldName.length-1]);
 		return s;
 	}
 	
@@ -180,11 +187,15 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		copyBitsToFields();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, \n";
+		if (newMode != FoxSpacecraft.NO_MODE)
+			s = s + "newMode,";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
-		s = s + "values ('" + this.captureDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
+		s = s + "values ('" + this.reportDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
+		if (newMode != FoxSpacecraft.NO_MODE)
+			s = s + newMode+",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + fieldValue[i] + ",\n";
 		}
@@ -212,13 +223,42 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					fieldValue[i++] = Integer.valueOf(s).intValue();
 			}
 		} catch (NoSuchElementException e) {
-			// we are done and can finish
+			// we are done and can finish. The line was terminated and is corrupt.
 		} catch (ArrayIndexOutOfBoundsException e) {
 			// Something nasty happened when we were loading, so skip this record and log an error
-			Log.println("ERROR: Too many fields: " + e.getMessage() + " Could not load field "+i+ " frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+			Log.errorDialog("ERROR: Too many fields: Index out of bounds", "Layout: " + layout.name +"\n" + e + 
+					" Could not load field "+i+ " SAT: " + this.id + " Reset:" + this.resets + " Up:" + this.uptime + " Type:" + this.type);
 		} catch (NumberFormatException n) {
 			Log.println("ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
 			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Invalid number:  " + n.getMessage() + " Could not load frame " + this.id + " " + this.resets + " " + this.uptime + " " + this.type);
+		}
+	}
+	
+	/**
+	 * 
+	 * Factory Method to make a new Frame Part from a layout
+	 * @return
+	 */
+	public static FramePart makePayload(FoxBPSKHeader header, BitArrayLayout layout) {
+		switch (layout.name) {
+			case Spacecraft.REAL_TIME_LAYOUT:
+				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+			case Spacecraft.MAX_LAYOUT:
+				return new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+			case Spacecraft.MIN_LAYOUT:
+				return new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+			case Spacecraft.RAD_LAYOUT:
+				return new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+			case Spacecraft.WOD_LAYOUT:
+				return new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
+			case Spacecraft.WOD_RAD_LAYOUT:
+				return new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+			case Spacecraft.WOD_CAN_LAYOUT:
+				return new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_CAN_LAYOUT), header.id, header.uptime, header.resets);
+			case Spacecraft.CAN_LAYOUT:
+				return new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.CAN_LAYOUT), header.id, header.uptime, header.resets);
+			default:
+				return null;	
 		}
 	}
 }

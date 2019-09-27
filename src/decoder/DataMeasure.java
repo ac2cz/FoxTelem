@@ -25,7 +25,7 @@ package decoder;
  *
  *
  */
-public abstract class DataMeasure {
+public abstract class DataMeasure implements Runnable {
 	private long lastAverageTime = 0;
 	protected long AVERAGE_PERIOD = 500; // 1000 = 1 sec average time
 	
@@ -34,6 +34,7 @@ public abstract class DataMeasure {
 	double[] avg;
 	double[] sd;
 	int[] numOf;
+	boolean running = true;
 
 	protected int MEASURES = 0;
 	
@@ -45,20 +46,38 @@ public abstract class DataMeasure {
     	numOf = new int[MEASURES];
 	}
 	
+	
+	public void stopProcessing() {
+		running = false;
+	}
+	
 	protected boolean readyToAverage() {
 		long now = System.nanoTime()/1000000; // get time in ms
 		long averageTime = now - lastAverageTime;
 		
 		if (averageTime > AVERAGE_PERIOD) {
 			lastAverageTime = now;
-			
-			for (int i=0; i < MEASURES; i++) {
-				avg[i] = sum[i] / numOf[i];
-				sd[i] = Math.sqrt( ( (sumOfSquares[i] - ( (sum[i]*sum[i]) / numOf[i]) )/ ((double)numOf[i]-1)) );
-			}
 			return true;
 		}
 		return false;
+	}
+
+	protected void runAverage() {
+		for (int i=0; i < MEASURES; i++) {
+			double a = sum[i] / numOf[i];
+			if (!Double.isNaN(a) && Double.isFinite(a)) {
+				avg[i] = a;
+				sd[i] = Math.sqrt( ( (sumOfSquares[i] - ( (sum[i]*sum[i]) / numOf[i]) )/ ((double)numOf[i]-1)) );		
+			}
+			
+			// Now store the value as the average and reset the number
+			if (!Double.isNaN(avg[i]) && Double.isFinite(avg[i])) {
+				sum[i] = avg[i];
+				numOf[i] = 1;
+				sumOfSquares[i] = avg[i]*avg[i]; 
+				//Log.println("SUM:" + sum[i] + "Sq:" + sumOfSquares[i]);
+			}
+		}
 	}
 
 	public double getAvg(int key) { 
@@ -78,11 +97,13 @@ public abstract class DataMeasure {
 	}
 	
     public void reset() {
+    	readyToAverage(); // resets the timer
     	for (int i=0; i < MEASURES; i++) {
     		sum[i] = 0; //sumOfHighs / numOfHighs;  
     		sumOfSquares[i] = 0; //sumOfHighSquares / numOfHighs;  
     		numOf[i] = 0;
     	}
+    	
     }
 
 }

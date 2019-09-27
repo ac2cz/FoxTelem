@@ -1,9 +1,13 @@
 #Fox 1 Telemetry Decoder Properties
-#Sat Nov 26 18:12:20 EST 2016
+#Sat Sept 22 18:12:20 EST 2019
 #File named .dat should be in the logfiles directory and is loaded by FoxTelem
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=true
+mode=0
 numberOfLookupTables=3
+memsRestValueX=2087
+memsRestValueY=2101
+memsRestValueZ=2045
 measurementsFileName=measurements.csv
 model=1
 layout0.filename=FOX1A_debug.csv
@@ -13,6 +17,7 @@ layout5.parentLayout=radtelemetry
 lookupTable0.filename=FOX1A_rssiFM.tab
 layout1.filename=FOX1A_maxtelemetry.csv
 name=AO-85
+displayName=AO-85
 description=Fox-1A is a 1U CubeSat with a U/v FM voice transponder and onboard experiments from Penn State University and Vanderbilt University
 numberOfLayouts=6
 track=true

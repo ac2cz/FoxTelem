@@ -1,5 +1,7 @@
 package decoder;
 
+import common.Log;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -27,64 +29,83 @@ package decoder;
  */
 public class RfData extends DataMeasure {
 
-    public static final int PEAK = 0; // The peak signal within the filter width
-    public static final int BIN = 1; // The bin that the peak signal is in within the filter width
-    public static final int NOISE = 2; // The average level of the noise by sampling half the filter width either side of the filter
-    public static final int AVGSIG = 3; // The average signal in the filter width.
-    public static final int STRONGEST_SIG = 4;
-    public static final int STRONGEST_BIN = 5;
-    public double rfSNR; // Average SNR in the filter band of the receiver
-    public double strongestSigRfSNR; // A quick and dirty estimate of the SNR of a strong signal outside the filter band
-    
-    protected long AVERAGE_PERIOD = 150; // 1000 = 1 sec average time.  Each FFT window is processed in 2ms
-    
+    public static final int PEAK_SIGNAL_IN_FILTER_WIDTH = 0; // The peak signal within the filter width
+    public static final int BIN_OF_PEAK_SIGNAL_IN_FILTER_WIDTH = 1; // The bin that the peak signal is in within the filter width
+    public static final int NOISE_OUTSIDE_FILTER_WIDTH = 2; // The average level of the noise by sampling half the filter width either side of the filter
+    public static final int AVGSIG_IN_FILTER_WIDTH = 3; // The average signal in the filter width.
+    public static final int STRONGEST_SIGNAL_IN_SAT_BAND = 4;
+    public static final int BIN_OF_STRONGEST_SIGNAL_IN_SAT_BAND = 5;
+    public double rfSNRInFilterWidth; // Average SNR in the filter band of the receiver
+    public double rfStrongestSigSNRInSatBand; // A quick and dirty estimate of the SNR of a strong signal outside the filter band
+        
     double binBandwidth;
     SourceIQ iqSource;
     
     public RfData(SourceIQ iq) {
+    	AVERAGE_PERIOD = 100; //1000 = 1 sec average time.  Each FFT window is processed in 2ms
     	MEASURES = 6;
     	iqSource = iq;
     	init();
     }
     
-	public int getBinOfPeakSignal() {
-		return (int)getAvg(BIN);
+	public int getBinOfPeakSignalInFilterWidth() {
+		return (int)getAvg(BIN_OF_PEAK_SIGNAL_IN_FILTER_WIDTH);
 	}
 
-	public int getBinOfStrongestSignal() {
-		return (int)getAvg(STRONGEST_BIN);
+	public int getBinOfStrongestSignalInSatBand() {
+		return (int)getAvg(BIN_OF_STRONGEST_SIGNAL_IN_SAT_BAND);
 	}
 
 	
-	public long getPeakFrequency() {
-		return iqSource.getFrequencyFromBin(getBinOfPeakSignal());
+	public long getFrequencyOfPeakSignalInFilterWidth() {
+		return iqSource.getFrequencyFromBin(getBinOfPeakSignalInFilterWidth());
 	}
 
-	public long getStrongestFrequency() {
-		return iqSource.getFrequencyFromBin(getBinOfStrongestSignal());
+	public long getFrequencyOfStrongestSignalInSatBand() {
+		return iqSource.getFrequencyFromBin(getBinOfStrongestSignalInSatBand());
+	}
+	
+	@Override
+	public void run() {
+		Thread.currentThread().setName("RfData");
+		while(running) {
+			try {
+				Thread.sleep(1);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				Log.println(e.getMessage());
+			}
+			if (readyToAverage()) {
+				runAverage();
+				calcAverages();
+			}
+		}
+		
+	}
+	
+	public void stopProcessing() {
+		running = false;
+		Log.println("RfData STOPPING");
 	}
 
-	public void calcAverages() {
-    	if (readyToAverage()) {
-    		
-			if (getAvg(AVGSIG) != 0 && getAvg(NOISE) != 0) {
-				double p = getAvg(AVGSIG);
-				double n = getAvg(NOISE);
+	private void calcAverages() {    		
+			if (getAvg(AVGSIG_IN_FILTER_WIDTH) != 0 && getAvg(NOISE_OUTSIDE_FILTER_WIDTH) != 0) {
+				double p = getAvg(AVGSIG_IN_FILTER_WIDTH);
+				double n = getAvg(NOISE_OUTSIDE_FILTER_WIDTH);
 				if (p < -10 && p > -150)
 					if (n < -10 && n > -150)
 						if (p > n) // we don't store negative values as the signal we are after has to be above the noise
-							rfSNR = (p - n);  // these are in dB so subtract rather than divide
+							rfSNRInFilterWidth = (p - n);  // these are in dB so subtract rather than divide
 			}
-			if (getAvg(STRONGEST_SIG) != 0 && getAvg(NOISE) != 0) {
-				double p = getAvg(STRONGEST_SIG);
-				double n = getAvg(NOISE);
+			if (getAvg(STRONGEST_SIGNAL_IN_SAT_BAND) != 0 && getAvg(NOISE_OUTSIDE_FILTER_WIDTH) != 0) {
+				double p = getAvg(STRONGEST_SIGNAL_IN_SAT_BAND); 
+				double n = getAvg(NOISE_OUTSIDE_FILTER_WIDTH);
+				
 				if (p < -10 && p > -150)
 					if (n < -10 && n > -150)
 						if (p > n)
-							strongestSigRfSNR = (p - n);  // these are in dB so subtract rather than divide
+							rfStrongestSigSNRInSatBand = (p - n);  // these are in dB so subtract rather than divide
 			}
-    		reset();
-    	}
     }
 
     /**
@@ -94,16 +115,20 @@ public class RfData extends DataMeasure {
      * @param sig
      * @param n
      */
-	public void setPeakSignal(double p, int b, double sig, double n) {
-		setValue(PEAK, p);
-		setValue(BIN, b);
-		setValue(AVGSIG, sig);
-		setValue(NOISE, n);
+	public void setPeakSignalInFilterWidth(double p, int b, double sig, double n) {
+		setValue(PEAK_SIGNAL_IN_FILTER_WIDTH, p);
+		setValue(BIN_OF_PEAK_SIGNAL_IN_FILTER_WIDTH, b);
+		setValue(AVGSIG_IN_FILTER_WIDTH, sig);
+		setValue(NOISE_OUTSIDE_FILTER_WIDTH, n);
 	}
 	
 	public void setStrongestSignal(double sig, int b) {
-		setValue(STRONGEST_SIG, sig);
-		setValue(STRONGEST_BIN, b);
+		setValue(STRONGEST_SIGNAL_IN_SAT_BAND, sig);
+		setValue(BIN_OF_STRONGEST_SIGNAL_IN_SAT_BAND, b);
 		
 	}
+
+
+
+	
 }

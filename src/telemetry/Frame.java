@@ -6,6 +6,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.ParseException;
@@ -15,7 +17,6 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
-
 import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import telemServer.StpFileRsDecodeException;
@@ -26,6 +27,7 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
+import common.Spacecraft;
 import common.FoxSpacecraft;
 import common.TlmServer;
 import decoder.HighSpeedBitStream;
@@ -86,19 +88,12 @@ public abstract class Frame implements Comparable<Frame> {
 	public static final int DUV_FRAME_LEN = 768; 
 	public static final int HIGH_SPEED_FRAME_LEN = 42176;
 	public static final int PSK_FRAME_LEN = 4576;
-	
-	public static final String[][] SOURCES = {
-			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
-			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
-			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
-			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
-			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
-			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" } };
+
 
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
 	public static final String NONE = "NONE";
 	public boolean corrupt = false;;
-	private int foxId = 0;
+	public int foxId = 0;
 	public String receiver = NONE; // unique name (usually callsign) chosen by
 									// the user. May vary over life of program
 									// usage, so stored
@@ -108,7 +103,7 @@ public abstract class Frame implements Comparable<Frame> {
 	public String rx_location = NONE; // the lat, long and altitude
 	public String receiver_rf = NONE; // human description of the receiver
 	public String demodulator; // will contain Config.VERSION
-	private Date stpDate;
+	protected Date stpDate;
 	public long sequenceNumber = Sequence.ERROR_NUMBER;
 
 	private String measuredTCA = NONE; // time of TCA
@@ -124,6 +119,9 @@ public abstract class Frame implements Comparable<Frame> {
 	private RtMeasurement rtMeasurement;
 	@SuppressWarnings("unused") // this is used
 	private PassMeasurement passMeasurement;
+	
+	public int rsErrors; // set by the decoder when this frame is decoded
+	public int rsErasures;
 
 	/**
 	 * This creates a new frame, freshly decoded from the satellite, and
@@ -167,9 +165,22 @@ public abstract class Frame implements Comparable<Frame> {
 		return s;
 	}
 
+	public void setStpDate(Date stp) {
+		stpDate = stp;
+	}
+	
 	public String getStpDate() {
 		if (stpDate == null) return null;
-		return Frame.stpDateFormat.format(stpDate);
+		String dt = "";
+		try {
+			stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			dt = Frame.stpDateFormat.format(stpDate);
+		} catch (Exception e) {
+			// catch any exceptions based on random date formats the user may send to us
+			// For example we get IndexOutOfBounds, format Exceptions and others
+			Log.println("ERROR: Could not parse date preparing DB insert, ignoring - " + stpDate  + "\n" + e.getMessage());
+		}
+		return dt;
 	}
 
 	/**
@@ -209,6 +220,10 @@ public abstract class Frame implements Comparable<Frame> {
 		if (m.getStringValue(PassMeasurement.TCA) != null)
 			strDate = m.getStringValue(PassMeasurement.TCA);
 
+		if (strDate.equals(PassMeasurement.DEFAULT_VALUE)) {
+			Log.println("TCA Could not be measured");
+			measuredTCA = NONE;
+		} else
 		if (strDate != null) {
 			Log.println("Got TCA: " + strDate);
 			Date date = null;
@@ -216,13 +231,20 @@ public abstract class Frame implements Comparable<Frame> {
 				date = FoxFramePart.fileDateFormat.parse(strDate);
 			} catch (ParseException e) {
 				// We don't do anything in this case, the date will be null
-				e.printStackTrace();
+				Log.println("Error parsing TCA date:");
+				e.printStackTrace(Log.getWriter());
 				date = null;
 			}
 
 			if (date != null) {
 				stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				measuredTCA = stpDateFormat.format(date);
+				try {
+					measuredTCA = stpDateFormat.format(date);
+				} catch (Exception e) {
+					// catch any exceptions based on random date formats the user may send to us
+					// For example we get IndexOutOfBounds, format Exceptions and others
+					Log.println("ERROR: Could not parse date setting pass measurement, ignoring - " + stpDate  + "\n" + e.getMessage());
+				}
 				Log.println("STP TCA set as: " + measuredTCA);
 			} else {
 				measuredTCA = NONE;
@@ -240,7 +262,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @throws IOException
 	 */
 	public Frame(BufferedReader input) throws IOException {
-		load(input);
+		
 	}
 
 	abstract public void addNext8Bits(byte b);
@@ -249,8 +271,9 @@ public abstract class Frame implements Comparable<Frame> {
 	 * Add a whole raw frame of data.
 	 * 
 	 * @param b
+	 * @throws StpFileProcessException 
 	 */
-	public void addRawFrame(byte[] b) {
+	public void addRawFrame(byte[] b) throws FrameProcessException {
 		int byteLen = b.length;
 
 		// We process the data bytes. addNext8Bits is implemented by the
@@ -266,12 +289,17 @@ public abstract class Frame implements Comparable<Frame> {
 		foxId = header.getFoxId();
 		length = Integer.toString(byteLen * 8);
 
-		if (this instanceof SlowSpeedFrame) {
-			source = SOURCES[foxId][DUV_FRAME];
-		} else if (this instanceof HighSpeedFrame){
-			source = SOURCES[foxId][HIGH_SPEED_FRAME];
-		} else {
-			source = SOURCES[foxId][0]; // first value
+		try {
+			if (this instanceof SlowSpeedFrame) {
+				source = Spacecraft.SOURCES[foxId][DUV_FRAME];
+			} else if (this instanceof HighSpeedFrame){
+				source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
+			} else {
+				source = Spacecraft.SOURCES[foxId][0]; // first value
+			}
+		} catch (IndexOutOfBoundsException e) {
+			// We have a corrupt FoxId
+			throw new FrameProcessException("Corrupt FoxId, frame could not be processed.  ID: " + foxId);
 		}
 
 	}
@@ -302,7 +330,15 @@ public abstract class Frame implements Comparable<Frame> {
 		String header;
 
 		stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-		String date = stpDateFormat.format(stpDate);
+		
+		String date = "";
+		try {
+			date = stpDateFormat.format(stpDate);
+		} catch (Exception e) {
+			// catch any exceptions based on random date formats the user may send to us
+			// For example we get IndexOutOfBounds, format Exceptions and others
+			Log.println("ERROR: Could not parse date getting STP Core Header, ignoring - " + stpDate  + "\n" + e.getMessage());
+		}
 
 		// These have to be sent, so cannot be NONE
 		header = "Sequence: " + sequenceNumber + "\r\n";
@@ -475,12 +511,16 @@ public abstract class Frame implements Comparable<Frame> {
 							try {
 								stpDate = stpDateFormat.parse(dt);
 							} catch (ParseException e) {
-								Log.println("ERROR - Date was not parsable. Setting to null");
+								Log.println("ERROR - Date was not parsable. Setting to null"  + "\n" + e.getMessage());
 								stpDate = null;
 								//e.printStackTrace(Log.getWriter());
 							} catch (NumberFormatException e) {
-								Log.println("ERROR - Date was not parsable. Setting to null");
+								Log.println("ERROR - Date has number format exception. Setting to null"  + "\n" + e.getMessage());
 								stpDate = null;
+							} catch (Exception e) { // we can get other unusual exceptions such as ArrayIndexOutOfBounds...
+								Log.println("ERROR - Date was not parsable. Setting to null: " + e.getMessage());
+								stpDate = null;
+								e.printStackTrace(Log.getWriter());								
 							}
 						}
 						key = "";
@@ -537,7 +577,8 @@ public abstract class Frame implements Comparable<Frame> {
 			rsPadding[1] = 64;
 			rsPadding[2] = 65;
 			if (ServerConfig.highSpeedRsDecode)
-				if (!highSpeedRsDecode(FoxBPSKFrame.MAX_FRAME_SIZE, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
+				// TODO - This should be looked up from the FoxId and the frameLayout for the sat
+				if (!highSpeedRsDecode(476, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
 					Log.println("BPSK RS Decode Failed");
 					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
 				}
@@ -553,7 +594,12 @@ public abstract class Frame implements Comparable<Frame> {
 		frame = rawFrame; //rs.decode();
 
 
-		frm.addRawFrame(frame);
+		try {
+			frm.addRawFrame(frame);
+		} catch (FrameProcessException e) {
+			Log.println("Failed to Process STP file. FoxId is corrupt.");
+			return null;
+		}
 		frm.receiver = receiver;
 		frm.demodulator = demodulator;
 		frm.stpDate = stpDate;
@@ -590,7 +636,7 @@ public abstract class Frame implements Comparable<Frame> {
 		String versionString[] = demodulator.split(" ");
 		int major = Config.parseVersionMajor(versionString[1]);
 		int minor = Config.parseVersionMinor(versionString[1]);
-		String point = Config.parseVersionPoint(versionString[1]);
+		//String point = Config.parseVersionPoint(versionString[1]);
 		//Log.println("RS Decode for: " + demodulator + " "+ major +" "+ minor +" "+ point);
 		
 		RsCodeWord[] codeWords = new RsCodeWord[numOfCodewords];
@@ -676,10 +722,9 @@ public abstract class Frame implements Comparable<Frame> {
 					//duvFrames++;
 				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-					//System.out.println("Storing: " + hsf);
-					FoxBPSKHeader header = hsf.getHeader();
-					for (int i=0; i<FoxBPSKFrame.NUMBER_DEFAULT_PAYLOADS; i++ )
-						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), hsf.payload[i]))
+					FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(hsf.header.id);
+					// For BPSK the header is stored on the frame and the timestamp info is saved
+					if (!hsf.savePayloads(payloadStore, fox.hasModeInHeader))
 							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add PSK record to database");;
 				} else {
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
@@ -746,12 +791,19 @@ public abstract class Frame implements Comparable<Frame> {
 		return s;
 	}
 	
-	public String getInsertStmt() {
-	//	java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
-		//FIXME - need to omake this a proper date in the DB
+	public PreparedStatement getPreparedInsertStmt(Connection con) throws SQLException {
+				
+		//java.sql.Date sqlDate = new java.sql.Date(stpDate.getTime());
+		//FIXME - need to make this a proper date in the DB
 		String dt = "";
 		if (stpDate != null)
+			try {
 			dt = stpDateFormat.format(stpDate);
+			} catch (Exception e) {
+				// catch any exceptions based on random date formats the user may send to us
+				// For example we get IndexOutOfBounds, format Exceptions and others
+				Log.println("ERROR: Could not parse date preparing DB insert, ignoring - " + stpDate + "\n" + e.getMessage());
+			}
 		String s = new String();
 		if (demodulator.length() > 99) demodulator = demodulator.substring(0, 99);
 		if (source.length() > 32) source = source.substring(0, 32);
@@ -761,7 +813,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (receiver_rf.length() > 50) receiver_rf = receiver_rf.substring(0, 50);
 		if (measuredTCA.length() > 32) measuredTCA = measuredTCA.substring(0, 32);
 		if (measuredTCAfrequency.length() > 32) measuredTCAfrequency = measuredTCAfrequency.substring(0, 32);
-		s = s + " (stpDate,  id, resets, uptime, type, \n";
+		s = s + "insert into STP_HEADER (stpDate,  id, resets, uptime, type, \n";
 		s = s + "sequenceNumber,\n";
 		s = s + "length,\n";
 		s = s + "source,\n";
@@ -772,35 +824,49 @@ public abstract class Frame implements Comparable<Frame> {
 		s = s + "demodulator,\n";
 		s = s + "measuredTCA,\n";
 		s = s + "measuredTCAfrequency)\n";
-		
-		s = s + "values ('" + dt + "', " + this.foxId + ", " + header.resets + ", " + header.uptime + ", " + header.type + ",\n";
-		s = s + sequenceNumber+",\n";
-		s = s + length+",\n";
-		s = s + "'" + source+"',\n";
-		s = s + "'" + receiver+"',\n";
-		s = s + "'" + frequency+"',\n";
-		s = s + "'" + rx_location+"',\n";
-		s = s + "'" + receiver_rf+"',\n";
-		s = s + "'" + demodulator+"',\n";
-		s = s + "'" + measuredTCA+"',\n";
-		s = s + "'" + measuredTCAfrequency+"')\n";
-		return s;
-	}
 
+		s = s + "values (?, ?, ?, ?, ?,"
+				+ "?,?,?,?,?,?,?,?,?,?)";
+
+		java.sql.PreparedStatement ps = con.prepareStatement(s);
+		
+		ps.setString(1, dt);
+		ps.setInt(2, foxId);
+		ps.setInt(3, header.resets);
+		ps.setLong(4, header.uptime);
+		ps.setInt(5, header.type);
+		ps.setLong(6, sequenceNumber);
+		ps.setString(7, length);
+		ps.setString(8, source);
+		ps.setString(9, receiver);
+		ps.setString(10, frequency);
+		ps.setString(11, rx_location);
+		ps.setString(12, receiver_rf);
+		ps.setString(13, demodulator);
+		ps.setString(14, measuredTCA);
+		ps.setString(15, measuredTCAfrequency);
+
+		return ps;
+		
+	}
 	
 	public void load(BufferedReader input) throws IOException {
-		if (this instanceof SlowSpeedFrame)
-			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
-					+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
-					+ SlowSpeedFrame.MAX_TRAILER_SIZE];
-		else if (this instanceof FoxBPSKFrame)
-			bytes = new byte[FoxBPSKFrame.MAX_HEADER_SIZE
-								+ FoxBPSKFrame.MAX_PAYLOAD_SIZE
-								+ FoxBPSKFrame.MAX_TRAILER_SIZE];
-		else
-			bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
-					+ HighSpeedFrame.MAX_PAYLOAD_SIZE
-					+ HighSpeedFrame.MAX_TRAILER_SIZE];
+		if (this instanceof SlowSpeedFrame) {
+//			bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
+//					+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
+//					+ SlowSpeedFrame.MAX_TRAILER_SIZE];
+			header = new SlowSpeedHeader();
+		} else if (this instanceof FoxBPSKFrame) {
+//			bytes = new byte[FoxBPSKFrame.MAX_HEADER_SIZE
+//								+ FoxBPSKFrame.MAX_PAYLOAD_SIZE
+//								+ FoxBPSKFrame.MAX_TRAILER_SIZE];
+			header = new FoxBPSKHeader();
+		} else {
+//			bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
+//					+ HighSpeedFrame.MAX_PAYLOAD_SIZE
+//					+ HighSpeedFrame.MAX_TRAILER_SIZE];
+			header = new HighSpeedHeader();
+		}
 		String line = input.readLine();
 		if (line != null) {
 			StringTokenizer st = new StringTokenizer(line, ",");
@@ -814,10 +880,11 @@ public abstract class Frame implements Comparable<Frame> {
 			demodulator = insertComma(st.nextToken());
 			stpDate = new Date(Long.parseLong(st.nextToken()));
 			length = st.nextToken();
-			// System.out.println("loaded: " + this.getSTPHeader());
-			for (int i = 0; i < bytes.length; i++) {
+			//System.out.println("loaded: " + sequenceNumber);
+			while (st.hasMoreTokens()) {
 
-				bytes[i] = (byte) Integer.parseInt(st.nextToken());
+				//bytes[i] = (byte) Integer.parseInt(st.nextToken());
+				this.addNext8Bits((byte) Integer.parseInt(st.nextToken()));
 				// System.out.println("loaded: " + i + " - " + bytes[i]);
 			}
 		}
@@ -834,8 +901,30 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @param hostName
 	 * @param port
 	 */
-	public void sendToServer(TlmServer tlmServer, int protocol)
-			throws UnknownHostException, IOException {
+//	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
+//			throws UnknownHostException, IOException {
+//		String header = getSTPCoreHeader();
+//		header = header + getSTPExtendedHeader();
+//		header = header + "\r\n";
+//		byte[] headerBytes = header.getBytes();
+//
+//		int j = 0;
+//		byte[] buffer = new byte[headerBytes.length + bytes.length];
+//		for (byte b : headerBytes)
+//			buffer[j++] = b;
+//		for (byte b : bytes)
+//			buffer[j++] = b;
+//
+//		tlmServer.sendToServer(buffer, protocol);
+//		if (Config.debugFrames)
+//			Log.println(header);
+//	}
+
+	/**
+	 * Get the bytes from this frame so they can be sent to a server
+	 * @return
+	 */
+	public byte[] getServerBytes() {
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();
 		header = header + "\r\n";
@@ -848,9 +937,20 @@ public abstract class Frame implements Comparable<Frame> {
 		for (byte b : bytes)
 			buffer[j++] = b;
 
-		tlmServer.sendToServer(buffer, protocol);
 		if (Config.debugFrames)
 			Log.println(header);
+		return buffer;
+	}
+	
+	/**
+	 * Send Payload bytes to local server if it is configured
+	 * This returns an array of byte arrays.  One byte array per payload in the frame.
+	 * Override in child class
+	 * 
+	 */
+	public byte[][] getPayloadBytes() {
+		return null;
 	}
 
+	
 }

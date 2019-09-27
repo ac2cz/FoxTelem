@@ -1,0 +1,13 @@
+12,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,balancer_auto_state,1,-,0,rc_eps_batt_4,1,1,0,balancer_auto_state,No description provided,
+5,CAN,balancer_state,1,-,0,rc_eps_batt_4,1,2,0,balancer_state,State of the battery balancer. enabeling the battery balancer only gives it permission to ballance. ,
+6,CAN,heater_auto_state,1,-,0,rc_eps_batt_4,1,3,0,heater_auto_state,No description provided,
+7,CAN,heater_state,1,-,0,rc_eps_batt_4,1,4,0,heater_state,State of the battery heater switch,
+8,CAN,voltage_avg,16,raw voltage,0,rc_eps_batt_4,1,5,0,voltage_avg,Battery voltage from the coulomb counter on the battery board. Most accurate but only on when the EPS power domain is on.,
+9,CAN,voltage_max,16,raw voltage,0,rc_eps_batt_4,1,6,0,voltage_max,Battery voltage from the coulomb counter on the battery board. Most accurate but only on when the EPS power domain is on.,
+10,CAN,voltage_min,16,raw voltage,0,rc_eps_batt_4,1,7,0,voltage_min,Battery voltage from the coulomb counter on the battery board. Most accurate but only on when the EPS power domain is on.,
+11,CAN,JUNK,12,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

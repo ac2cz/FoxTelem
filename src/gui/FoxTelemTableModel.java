@@ -27,10 +27,12 @@ abstract class FoxTelemTableModel extends AbstractTableModel {
 	String[] columnNames = null;
 	private long[][] keyData = null;
     private String[][] data = null;
+    int keys = 2;
 
 	
     public void setData(long[][] kd, String[][] d) { 
     	keyData = kd;
+    	keys = keyData[0].length;
     	data = d;
     	fireTableDataChanged();
     }
@@ -52,14 +54,17 @@ abstract class FoxTelemTableModel extends AbstractTableModel {
     }
 
     public Object getValueAt(int row, int col) {
-    	if (col < 2)
+    	if (col < keys)
     		if (keyData != null && keyData.length > 0)
     			return keyData[row][col];
     		else 
     			return null;
     	else 		
     		if (data != null && data.length > 0)
-    			return data[row][col-2];
+    			if (keyData != null)
+    				return data[row][col-keys];
+    			else
+    				return data[row][col];
     		else 
     			return null;
     }
@@ -67,6 +72,7 @@ abstract class FoxTelemTableModel extends AbstractTableModel {
 
     @SuppressWarnings({ "unchecked", "rawtypes" })
 	public Class getColumnClass(int c) {
+    	if (getValueAt(0,c) == null) return Integer.class;
         return getValueAt(0, c).getClass();
     }
 

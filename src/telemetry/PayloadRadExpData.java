@@ -39,25 +39,31 @@ public class PayloadRadExpData extends FoxFramePart {
 	public static final String WOD_UPTIME = "WODTimestampUptime";
 	public static final String WOD_CRC_ERROR = "WodCRCError";
 	
+	// Fox-1E Radiation constants
+	public static final int ACTIVE = 3;
+	public static final String STATE2 = "State2";
+	public static final String STATE3 = "State3";
+	public static final String STATE4 = "State4";
+	
+	
 	public PayloadRadExpData(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_RAD_EXP_DATA, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
-		rawBits = new boolean[MAX_BYTES*8];
+//		rawBits = new boolean[MAX_BYTES*8];
 		
 	}
 	
 	public PayloadRadExpData(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);
+		super(id, resets, uptime, TYPE_RAD_EXP_DATA, date, st, lay);
 //		MAX_BYTES = MAX_PAYLOAD_RAD_SIZE;
 	}
 
 	public PayloadRadExpData(ResultSet r, BitArrayLayout lay) throws SQLException {
-		super(r, lay);
+		super(r, TYPE_RAD_EXP_DATA, lay);
 	}
 	
 	protected void init() {
-		fieldValue = new int[layout.fieldName.length];
-		type = TYPE_RAD_EXP_DATA;
+
 	}
 	
 	/*
@@ -70,6 +76,9 @@ public class PayloadRadExpData extends FoxFramePart {
 	
 	
 	/**
+	 * Packet Telemetry never worked on the Vanderbilt boards, so this will always return true.
+	 * 
+	 * LEGACY COMMENTS BELOW:
 	 * For Fox 1-A and Fox-1C If byte 21 onwards is zero then this is telemetry.  Zeros are not allowed in the packet format because of the
 	 * COBS routine.  So if we find zeros, this is telemetry
 	 * Fox-1D has Housekeeping telemetry.  We can never confuse this with packets.  So return true.
@@ -78,45 +87,49 @@ public class PayloadRadExpData extends FoxFramePart {
 	 * @return
 	 */
 	public boolean isTelemetry() {
-		if (id == Spacecraft.FOX1E) {
-			return true;
-		} else if (id == Spacecraft.FOX1D) {
-			return true;
-		} else
-		if (id == Spacecraft.FOX1B) {
-			return true;
-		} else // id = 1 or 3
-			for (int i=21; i < 25; i++)
-				if (fieldValue[i] != 0) return false;
-		
 		return true;
 	}
 	
+	/**
+	 * We have two peculiarities for the Fox-1E radiation telemetry.  The VUC telemetry is the first 10 bytes, as it is for the other
+	 * spacecraft.  The next ten to sixteen bytes are then the telemetry for the active experiment.  It is not in chunks like Fox-1B.
+	 * However, the layout file has the telemetry layout for each experiment in chunks anyway, so we can pick which layout we want without 
+	 * having lots of additional layout files.  We use the State of the experiments to determine which telemetry
+	 * layout to use.  The layouts start at fixed positions, so we offset by an appropriate amount and then artificially put the telemetry bytes
+	 * into that part of the RadiationTelemetry layout.  It is then converted and formatted according to the layout for that section.
+	 *
+	 * @param radTelem
+	 */
 	protected void calcFox1ETelemetry(RadiationTelemetry radTelem) {
 		for (int k=0; k<10; k++) { // add the first 10 bytes 
 			radTelem.addNext8Bits(fieldValue[k]);
 		}
 		radTelem.copyBitsToFields();
-		int offset=0;
-		if (radTelem.getRawValue("State2") == 3)  // 3 = Active
-			offset=10;
-		else if (radTelem.getRawValue("State3") == 3)
-			offset=20;
-		else if (radTelem.getRawValue("State4") == 3)
-			offset=30;
-
+		int offset=0;  
+		int length=0; // Default is that we display nothing
+		if (radTelem.getRawValue(STATE2) == ACTIVE) { // LEPF is 2
+			offset=0;
+			length = 16;
+		} else if (radTelem.getRawValue(STATE3) == ACTIVE) {// LEP is 3
+			offset=16;
+			length = 10;
+		} else if (radTelem.getRawValue(STATE4) == ACTIVE) { // REM is 4
+			offset=26;
+			length = 16;
+		} 
 		// Pretend there is a gap, so that the layout works like Fox-1B
-		for (int k=10; k<10+offset; k++) { 
+		for (int k=0; k<offset; k++) { 
 			radTelem.addNext8Bits(0);
 		}
-		// Now flow the rest of the data in
-		for (int k=10+offset; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
-			radTelem.addNext8Bits(fieldValue[k]);
+		// Now flow the rest of the data in, 
+		for (int k=10+offset; k<10+offset+length; k++) { 
+			radTelem.addNext8Bits(fieldValue[k-offset]);
 		}
 		radTelem.copyBitsToFields();
+		
 		// Now we copy the extra Fox Fields at the end, but we put them directly in the fields.  Fox computer is little endian, but the data so far
 		// was big endian.  We could remember that and convert each part correctly, or we can leverage the fact that the extra Fox Fields we already
-		// converted correctly in the core radiation  record.
+		// converted correctly in the core radiation record.
 		// Note that subsequently calling copyBitsToFields will eradicate this copy, so we add a BLOCK COPY BITS boolean
 		radTelem.blockCopyBits = true;
 		copyFieldValue(EXP1_BOARD_NUM, radTelem);
@@ -144,7 +157,7 @@ public class PayloadRadExpData extends FoxFramePart {
 			return radTelem;
 		} else {
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
-			for (int k=0; k<RadiationTelemetry.MAX_RAD_TELEM_BYTES; k++) { 
+			for (int k=0; k<radTelem.getMaxBytes(); k++) { 
 				radTelem.addNext8Bits(fieldValue[k]);
 			}
 			return radTelem;
@@ -241,7 +254,7 @@ public class PayloadRadExpData extends FoxFramePart {
 	public String toFile() {
 		copyBitsToFields();
 		String s = new String();
-		s = s + captureDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
+		s = s + reportDate + "," + id + "," + resets + "," + uptime + "," + type + ",";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + FoxDecoder.dec(fieldValue[i]) + ",";
 			//s = s + FoxDecoder.hex(fieldValue[i]) + ",";

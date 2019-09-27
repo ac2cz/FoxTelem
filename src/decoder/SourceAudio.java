@@ -78,6 +78,14 @@ public abstract class SourceAudio implements Runnable {
 		this.channels = channels;
 		storeStereo = stereo;
 	}
+	
+	public void rewind(int amount, int chan) {
+		try {
+			circularDoubleBuffer[chan].decStartPointer(amount);
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("Non Fatal Error.  Rewind before buffer data: " + e.getMessage());
+		}
+	}
 
 	public int read(double[] abData, int chan) {
 		//int bytesRead = 0; 

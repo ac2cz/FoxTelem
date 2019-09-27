@@ -42,11 +42,13 @@ public class EyeData extends DataMeasure {
     
     public static final int HIGH = 0;
     public static final int LOW = 1;
+    public static final int BIT = 2;
     
-    protected long AVERAGE_PERIOD = 700; // 1000 = 1 sec average time
-   
+    public int clockOffset = 0; // store the offset so we can print it for debug
+    
     public EyeData(int l, int b) {
-    	MEASURES = 2;
+    	MEASURES = 3;
+    	AVERAGE_PERIOD = 400; // 350ms to measure a window of 70 bits. 1000 = 1 sec average time
     	init();
     	
     	SAMPLE_WINDOW_LENGTH = l;
@@ -58,15 +60,20 @@ public class EyeData extends DataMeasure {
 
     }
     
+	@Override
+	public void run() {
+		Thread.currentThread().setName("EyeData");
+		// No thread, sychronous with the decoder windows
+	}
     public void calcAverages() {
     	if (readyToAverage()) {
+    		runAverage();
 			double noise = sd[LOW] + sd[HIGH];
 			double signal = avg[HIGH] - avg[LOW];
 			if (signal != 0 && noise != 0) {
 				bitSNR = (signal/noise);
 			}
-			reset();
-			
+			reset();	
 		}
     }
     
@@ -79,10 +86,12 @@ public class EyeData extends DataMeasure {
     
     public void setHigh(int value) {
     	setValue(HIGH, value);
+    	setValue(BIT, value);
     }
 
     public void setLow(int value) {
     	setValue(LOW,value);
+    	setValue(BIT, value);
     }
 
     public void setOffsetLow(int i, int width, int offset) {
@@ -90,22 +99,31 @@ public class EyeData extends DataMeasure {
     	for (int w=-width; w<width; w++)
     		value += getOffsetValue(i, bucketSize/2+w, offset);
         setValue(LOW,value/(width*2));
+        setValue(BIT, value/(width*2));
     }
     public void setOffsetHigh(int i, int width, int offset) {
     	int value = 0;
     	for (int w=-width; w<width; w++)
     		value += getOffsetValue(i, bucketSize/2+w, offset);
     	setValue(HIGH,value/(width*2));
+    	setValue(BIT, value/(width*2));
     }
     
     private int getOffsetValue(int i, int j, int offset) {
     	int value = 0;
-    	if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-    		value = eyeData[i-1][j+bucketSize+offset];
+    	if (offset < 0 && j < Math.abs(offset) && i == 0) // copy from previous data set
+			value = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
+		else if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
+			value = eyeData[i-1][j+bucketSize+offset];
 		else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
 			value = eyeData[i+1][bucketSize-1-j+offset];
-		else if (j+offset >=0 && j+offset < bucketSize)
+		else if (j+offset >=0 && j+offset < bucketSize) // copy from the current
 			value = eyeData[i][j+offset];
+		else {
+			// There is no data to copy.  Out offset is looking into the future
+			//buffer[a][b++] = 0;
+			//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
+		}
     	return value;
     }
     /*
@@ -115,6 +133,7 @@ public class EyeData extends DataMeasure {
 	 * However, we sampled at 9600, vs 48000.  So we have 4 identical samples in a row.
 	 */
     public void offsetEyeData(int offset) {
+    	clockOffset = offset;
     	int[][] buffer = new int[SAMPLE_WINDOW_LENGTH][];
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			buffer[i] = new int[bucketSize];
@@ -124,12 +143,7 @@ public class EyeData extends DataMeasure {
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			for (int j=0; j < bucketSize; j+=1) {
 				if (eyeData !=null && a < SAMPLE_WINDOW_LENGTH && b < bucketSize) {
-					if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-						buffer[a][b++] = eyeData[i-1][j+bucketSize+offset];
-					else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
-						buffer[a][b++] = eyeData[i+1][bucketSize-1-j+offset];
-					else if (j+offset >=0 && j+offset < bucketSize)
-						buffer[a][b++] = eyeData[i][j+offset];
+					buffer[a][b++] = getOffsetValue(i,j,offset);
 				}
 			}
 			b=0;

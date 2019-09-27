@@ -40,7 +40,7 @@ public class CircularDoubleBuffer {
 		doubles = new double[size];
 		bufferSize = size;
 //		startPointer = bufferSize - 1; // initialize this to the end of the array, otherwise we can not write data to it
-		Log.println("Created circular BYTE buffer with " + bufferSize + " bytes");
+		Log.println("Created circular Double buffer with " + bufferSize + " bytes");
 	}
 
 	public int getStartPointer() { return startPointer; }
@@ -59,9 +59,7 @@ public class CircularDoubleBuffer {
 		return size;	
 		
 	}
-
 	
-
 	public boolean add(double one, double two) {
 		if (endPointer+1 == startPointer) {
 			throw new IndexOutOfBoundsException("End pointer has reached start pointer");
@@ -102,7 +100,6 @@ public class CircularDoubleBuffer {
 	}
 	
 	private int incPointer(int pointer, int amount) {
-
 		int p = pointer + amount;
 		if (p >= bufferSize) {
 			// We need to wrap around the array
@@ -110,6 +107,16 @@ public class CircularDoubleBuffer {
 		}
 		return p;
 	}
+
+	private int decPointer(int pointer, int amount) {
+		int p = pointer - amount;
+		if (p < 0) {
+			// We need to wrap around the array
+			p = p + bufferSize;
+		}
+		return p;
+	}
+
 	
 	/**
 	 * This returns the ith element of the virtual array starting from the startPointer.
@@ -143,6 +150,29 @@ public class CircularDoubleBuffer {
 			}
 		}
 		startPointer = incPointer(startPointer, amount);
+	}
+	
+	/**
+	 * Rewind the start pointer
+	 * @param amount
+	 */
+	public void decStartPointer(int amount) {
+		// snapshot the value to avoid failing the check due to a race condition
+		int e = endPointer;
+		if (e < startPointer ) {
+			// then the startPointer needs to remain more than the end pointer after the decrement
+			if (startPointer - amount <= e)
+				throw new IndexOutOfBoundsException("Attempt to decrement start pointer " + startPointer + " by "+amount + " past end pointer " + e);
+		} else {
+			// end pointer is greater than the start pointer,  only need to worry if it wraps around
+			if (startPointer - amount < 0) {
+				int testPointer = decPointer(startPointer, amount);
+				if (testPointer <= endPointer)
+					throw new IndexOutOfBoundsException("Attempt to decrement start pointer past end pointer (wraps)" + startPointer + " past end pointer " + e);
+			}
+		}
+		
+		startPointer = decPointer(startPointer, amount);
 	}
 	
 	/**

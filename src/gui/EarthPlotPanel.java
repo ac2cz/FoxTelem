@@ -3,13 +3,15 @@ package gui;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics;
-import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.text.DecimalFormat;
+
+import javax.imageio.ImageIO;
 
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
-import telemetry.CameraJpeg;
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
 
@@ -24,21 +26,27 @@ public class EarthPlotPanel extends GraphCanvas {
 	
 	EarthPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
 		super(t, conversionType, plType, gf, sat);
-		sideBorder = sideBorder + 50;
-		sideLabelOffset = sideLabelOffset + 50;
+		sideBorder = sideBorder + 20;
+		sideLabelOffset = sideLabelOffset + 30;
 		updateGraphData("EarthPlotPanel.new");
 	}
 	
 	private void setImage() {
+		try {
 		if (graphFrame.mapType == GraphFrame.COLOR_MAP_EQUIRECTANGULAR) {
 			mapProjection = RECTANGULAR_PROJECTION;
-			setImage(this.getClass().getResource("/images/Equirectangular_projection_SW.jpg").getFile());
+				image = ImageIO.read(this.getClass().getResource("/images/Equirectangular_projection_SW.jpg"));
+			//setImage(this.getClass().getResource());
 //		else if (graphFrame.mapType == GraphFrame.COLOR_MAP_MERCATOR)
 //			setImage("C:\\Users\\chris\\Desktop\\workspace\\FoxTelem\\src\\images\\Mercator_projection_SW.jpg");	
 		} else if (graphFrame.mapType == GraphFrame.LINE_MAP_EQUIRECTANGULAR) {
 			mapProjection = RECTANGULAR_PROJECTION;
-			setImage(this.getClass().getResource("/images/1280px-World_V2.0.jpg").getFile());	
+			image = ImageIO.read(this.getClass().getResource("/images/map_outline.jpg"));
+			//setImage(this.getClass().getResource("/images/map_outline.jpg"));	
 			//setImage(this.getClass().getResource("/images/WorldCoastLine_EquiRectangular.jpg").getFile());	
+		}
+		} catch (IOException e) {
+			 Log.errorDialog("ERROR", "Could not set map image: " + "\n" + e.getMessage());
 		}
 	}
 	
@@ -55,6 +63,34 @@ public class EarthPlotPanel extends GraphCanvas {
 
 		int numberOfLabels = legendHeight/labelHeight;
 		double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, false);
+			
+		if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT || graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN
+				|| graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA) {
+			int rows = 4;
+			int boxHeight = (int)legendHeight/rows;
+			legendHeight = boxHeight*rows;
+			String l = "FALSE";
+			g2.setColor(getColorGradient(0, 1, 0, 255));
+			g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + (1) * boxHeight, legendWidth*2, boxHeight);
+			if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT ) 
+				l = "OK";
+			else if (graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA ) 
+				l = "DEP";
+			g2.setColor(Color.WHITE);
+			g2.drawString(l, sideBorder + graphWidth + leftOffset+5, verticalOffset + 1 * boxHeight + (int)(boxHeight*0.8));
+
+			g2.setColor(getColorGradient(0, 1, 1, 255));
+			g2.fillRect(sideBorder + graphWidth + leftOffset, verticalOffset + (2) * boxHeight, legendWidth*2, boxHeight);
+			if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT ) 
+				l = "FAIL";
+			else if (graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN ) 
+				l = "TRUE";
+			else if (graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA ) 
+				l = "STWD";
+			g2.setColor(Color.WHITE);
+			g2.drawString(l, sideBorder + graphWidth + leftOffset+5, verticalOffset + 2 * boxHeight + (int)(boxHeight*0.8));
+			
+		} else
 		if (labels.length > 0) {
 			int rows = labels.length;
 			int boxHeight = (int)legendHeight/rows;
@@ -65,6 +101,7 @@ public class EarthPlotPanel extends GraphCanvas {
 			g2.drawString("("+units+")", sideBorder + graphWidth + leftOffset + 5, verticalOffset - fonth  );
 
 			g.setFont(new Font("SansSerif", Font.PLAIN, font));
+			
 			for (int i=0; i < rows; i++) {
 				int shade = getRatioPosition(minValue, maxValue, labels[i], 255);
 				g2.setColor(getColorGradient(minValue, maxValue, labels[i], 255));
@@ -162,6 +199,12 @@ public class EarthPlotPanel extends GraphCanvas {
 
 				double value = graphData[0][PayloadStore.DATA_COL][i];
 				if (Double.isNaN(value)) value = 0;
+				else {
+					if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT || graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN
+							|| graphFrame.conversionType == BitArrayLayout.CONVERT_ANTENNA ) {
+						value = value + 1;
+					}
+				}
 
 				// We plot longitude horizontally
 				// We plot latitude vertically
@@ -225,6 +268,15 @@ public class EarthPlotPanel extends GraphCanvas {
 			String s = f2.format(labels[v]);
 
 			g2.drawString(s, sideLabelOffset, pos+(int)(Config.graphAxisFontSize/2)); 
+			
+			if (graphFrame.showHorizontalLines) {
+				g2.setColor(Color.GRAY);
+				g2.drawLine(sideBorder-5, pos+topBorder, graphWidth+sideBorder, pos+topBorder);
+				g2.setColor(graphTextColor);
+			} else
+				g.drawLine(sideBorder-5, pos+topBorder, sideBorder+5, pos+topBorder);
+				
+			
 		}
 		g2.setColor(graphAxisColor);
 		
@@ -248,7 +300,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		
 		// Draw baseline at the zero point
 		g2.setColor(graphAxisColor);
-		g2.drawLine(sideLabelOffset, zeroPoint, graphWidth+sideBorder, zeroPoint);
+		g2.drawLine(sideLabelOffset+sideBorder, zeroPoint, graphWidth+sideBorder, zeroPoint);
 		g2.setColor(graphTextColor);
 		int offset = 0;
 		//g2.drawString("Longitude", sideLabelOffset, zeroPoint+1*Config.graphAxisFontSize + offset );
@@ -262,6 +314,10 @@ public class EarthPlotPanel extends GraphCanvas {
 			int timepos = getRatioPosition(minHor, maxHor, timelabels[h], graphWidth);
 			g2.setColor(graphTextColor);
 			g2.drawString(""+(long)timelabels[h], timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
+			if (graphFrame.showVerticalLines) {
+				g2.setColor(Color.GRAY);
+				g.drawLine(timepos+sideBorder, graphHeight + topBorder+5, timepos+sideBorder, topBorder);
+			}
 		}
 		
 		if (noLatLonReadings) {
@@ -284,8 +340,11 @@ public class EarthPlotPanel extends GraphCanvas {
     			int y = latToY(lat, graphWidth, graphHeight);
     			double val = dataGrid[v][h];
 				if (val != 0) {
-					
-					g2.setColor(getColorGradient(minValue, maxValue, val, 255));
+					if (graphFrame.conversionType == BitArrayLayout.CONVERT_STATUS_BIT || graphFrame.conversionType == BitArrayLayout.CONVERT_BOOLEAN) {
+						g2.setColor(getColorGradient(1, 2, val, 255));
+					} else {
+						g2.setColor(getColorGradient(minValue, maxValue, val, 255));
+					}
 					g2.fillRect(x, graphHeight-y+topBorder-boxHeight, boxWidth, boxHeight);
 				}
 				//
@@ -301,7 +360,7 @@ public class EarthPlotPanel extends GraphCanvas {
 		if (shade <0) shade = 0;
 		shade = 255-shade; // we want min signal white and max black
 
-		int r1 = 200;
+		/*int r1 = 200;
 		int r2 = 100;
 		int grn1=0;
 		int grn2 = 0;
@@ -312,6 +371,8 @@ public class EarthPlotPanel extends GraphCanvas {
 		int r = (int) ((1.0-p) * r1 + p * r2 + 0.5);
 		int g = (int) ((1.0-p) * grn1 + p * grn2 + 0.5);
 		int b = (int) ((1.0-p) * b1 + p * b2 + 0.5);
+		 *
+		 */
 		
 		//g2.setColor(new Color(shade,shade,shade));
 		return new Color(255-shade,0,shade, alpha);

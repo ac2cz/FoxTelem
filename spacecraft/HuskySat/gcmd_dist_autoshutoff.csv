@@ -1,0 +1,12 @@
+11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,bdot,2,-,0,gcmd_dist_autoshutoff,1,1,0,bdot,Whether autoshutoff is enabled on the power domain,
+5,CAN,com2,2,-,0,gcmd_dist_autoshutoff,1,2,0,com2,Whether autoshutoff is enabled on the power domain,
+6,CAN,eps,2,-,0,gcmd_dist_autoshutoff,1,3,0,eps,Whether autoshutoff is enabled on the power domain,
+7,CAN,estim,2,-,0,gcmd_dist_autoshutoff,1,4,0,estim,Whether autoshutoff is enabled on the power domain,
+8,CAN,ppt,2,-,0,gcmd_dist_autoshutoff,1,5,0,ppt,Whether autoshutoff is enabled on the power domain,
+9,CAN,rahs,2,-,0,gcmd_dist_autoshutoff,1,6,0,rahs,Whether autoshutoff is enabled on the power domain,
+10,CAN,JUNK,52,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

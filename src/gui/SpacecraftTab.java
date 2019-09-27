@@ -133,36 +133,95 @@ public class SpacecraftTab extends JPanel {
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
 
+		String HEALTH = "Health";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ "Health" + "</b></body></html>", healthTab );
+				+ HEALTH + "</b></body></html>", healthTab );
 
-		if (sat.isFox1()) {
-			for (int exp : ((FoxSpacecraft)sat).experiments) {
-				if (exp == FoxSpacecraft.EXP_VULCAN)
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_LAYOUT) != Spacecraft.ERROR_IDX) {
+			try {
+				addWodTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				Log.errorDialog("Layout Failure", "Failed to setup Whole Orbit Data tab for sat: " + sat.user_display_name 
+						+ "\nCheck the Spacecraft.dat file and remove this layout if it is not valid");
+			}
+
+		}
+
+		for (int exp : ((FoxSpacecraft)sat).experiments) {
+			if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP)
+				try {
 					addExperimentTab((FoxSpacecraft)sat);
-				if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_display_name 
+							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid");
+				}
+
+			if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
+				try {
 					addCameraTab((FoxSpacecraft)sat);
-				if (exp == FoxSpacecraft.EXP_IOWA_HERCI) {
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup VT Camera tab for sat: " + sat.user_display_name 
+							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+				}
+
+			if (exp == FoxSpacecraft.EXP_IOWA_HERCI) {
+				try {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup IOWA HERCI tabs for sat: " + sat.user_display_name 
+							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
 				}
+
 			}
+			if (exp == FoxSpacecraft.EXP_UW)
+				try {
+					addUwExperimentTab((FoxSpacecraft)sat);
+				} catch (Exception e) {
+					Log.errorDialog("Layout Failure", "Failed to setup UW Experiement tab for sat: " + sat.user_display_name 
+							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+				}
+//			if (exp == FoxSpacecraft.ADAC)
+//				try {
+//					addExperimentTab((FoxSpacecraft)sat); // PLACEHOLDER
+//				} catch (Exception e) {
+//					Log.errorDialog("Layout Failure", "Failed to setup ADAC Experiement tab for sat: " + sat.name 
+//							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+//				}
 		}
-		if (sat.foxId == Spacecraft.FOX1E) {
-			addWodTabs((FoxSpacecraft)sat);
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
+			try {
+			addWodRadTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
+						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+			}
+
+		}
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
+			try {
+			addUwWodExperimentTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				Log.errorDialog("Layout Failure", "Failed to setup UW WOD tab for sat: " + sat.user_display_name 
+						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
+			}
+
 		}
 	}
 
-	private void addWodTabs(FoxSpacecraft fox) {
+	private void addWodTab(FoxSpacecraft fox) {
 		
 		wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
 		wodHealthThread = new Thread(wodHealthTab);
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();
 
+		String WOD = "WOD";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ "WOD" + "</b></body></html>", wodHealthTab );
-		
+				+ WOD + "</b></body></html>", wodHealthTab );
+	}
+	
+	private void addWodRadTab(FoxSpacecraft fox) {
 		wodRadiationTab = new WodVulcanTab(fox);
 		wodRadiationThread = new Thread((VulcanTab)wodRadiationTab);
 		wodRadiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -182,6 +241,29 @@ public class SpacecraftTab extends JPanel {
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" VU Rad ("+ fox.getIdString() + ")</body></html>", radiationTab );
+
+	}
+	
+	private void addUwExperimentTab(FoxSpacecraft fox) {
+
+		radiationTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_UW);
+		radiationThread = new Thread((UwExperimentTab)radiationTab);
+		radiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		radiationThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+		"CAN Pkts</body></html>", radiationTab);
+
+	}
+
+	private void addUwWodExperimentTab(FoxSpacecraft fox) {
+		wodRadiationTab = new WodUwExperimentTab(fox);
+		wodRadiationThread = new Thread((WodUwExperimentTab)wodRadiationTab);
+		wodRadiationThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodRadiationThread.start();
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "CAN Pkt WOD" + "</b></body></html>", wodRadiationTab );
 
 	}
 

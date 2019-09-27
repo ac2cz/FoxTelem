@@ -1,0 +1,12 @@
+11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,CAN,UW_ID0,8,NONE,0,NONE,0,0,0,ID0,CAN ID with Length Encoded
+1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
+2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
+3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
+4,CAN,gain_x,8,-,0,gcmd_bdot_pole_override,1,1,0,gain_x,Percentage dipole gain on x axis,
+5,CAN,gain_y,8,-,0,gcmd_bdot_pole_override,1,2,0,gain_y,Percentage dipole gain on y axis,
+6,CAN,gain_z,8,-,0,gcmd_bdot_pole_override,1,3,0,gain_z,Percentage dipole gain on z axis,
+7,CAN,x,2,-,0,gcmd_bdot_pole_override,1,4,0,x,Flips the dipole signs on bdot x axis before sending command to mtq,
+8,CAN,y,2,-,0,gcmd_bdot_pole_override,1,5,0,y,Flips the dipole signs on bdot y axis before sending command to mtq,
+9,CAN,z,2,-,0,gcmd_bdot_pole_override,1,6,0,z,Flips the dipole signs on bdot z axis before sending command to mtq,
+10,CAN,JUNK,34,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

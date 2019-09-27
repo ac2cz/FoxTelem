@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
-import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
@@ -15,15 +14,11 @@ import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
 import javax.swing.JTable;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
-import javax.swing.event.ListSelectionEvent;
-import javax.swing.event.ListSelectionListener;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.AbstractTableModel;
@@ -62,7 +57,7 @@ import decoder.FoxDecoder;
  *
  */
 @SuppressWarnings("serial")
-public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, MouseListener {
+public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String HERCITAB = "HERCITAB";
 	private static final String DECODED = "Housekeeping Payloads Decoded: ";
@@ -293,7 +288,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, 
 	
 	
 	public void updateTab(FramePart rad, boolean refreshTable) {
-		
+		if (!Config.payloadStore.initialized()) return;
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
@@ -311,6 +306,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, 
 	
 	@Override
 	public void run() {
+		Thread.currentThread().setName("HerciLSTab");
 		running = true;
 		done = false;
 		boolean justStarted = true;
@@ -366,7 +362,7 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, 
 			} else {
 				Config.displayRawValues = true;
 			}
-
+			Config.save();
 			updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 			
 		}
@@ -378,35 +374,40 @@ public class HerciLSTab extends RadiationTab implements ItemListener, Runnable, 
 		
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	protected void displayRow(JTable table, int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT), false);
+    	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD2_LAYOUT, false), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
-	public void mouseClicked(MouseEvent e) {
-
-		if (showRawBytes.isSelected()) {
-			int row = table.rowAtPoint(e.getPoint());
-			int col = table.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(table, row);
-			}
-		} else {
-			int row = packetTable.rowAtPoint(e.getPoint());
-			int col = packetTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
-				displayRow(packetTable, row);
-			}
-		}
-	}
+//	public void mouseClicked(MouseEvent e) {
+//
+//		if (showRawBytes.isSelected()) {
+//			int row = table.rowAtPoint(e.getPoint());
+//			int col = table.columnAtPoint(e.getPoint());
+//			if (row >= 0 && col >= 0) {
+//				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+//				displayRow(table, row);
+//			}
+//		} else {
+//			int row = packetTable.rowAtPoint(e.getPoint());
+//			int col = packetTable.columnAtPoint(e.getPoint());
+//			if (row >= 0 && col >= 0) {
+//				//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
+//				displayRow(packetTable, row);
+//			}
+//		}
+//	}
 
 	@Override
 	public void mouseEntered(MouseEvent e) {

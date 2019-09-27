@@ -28,11 +28,18 @@ public abstract class Header extends FoxFramePart {
 	
 	public abstract String toString();
 
-	protected Header() {
-		super(new BitArrayLayout());
+	protected Header(int type) {
+		super(type, new BitArrayLayout());
 	}
 	
 	protected void init() { }
+	
+	/**
+	 * Override the getMaxBytes in FoxFramePart because it uses the layout and the Header has no layout.
+	 */
+	public int getMaxBytes() {
+		return MAX_BYTES;
+	}
 
 	@Override
 	public void copyBitsToFields() {

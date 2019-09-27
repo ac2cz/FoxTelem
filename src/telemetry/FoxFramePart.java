@@ -8,6 +8,7 @@ import java.util.TimeZone;
 
 import common.Spacecraft;
 import common.FoxSpacecraft;
+import common.Log;
 import decoder.FoxBitStream;
 import gui.GraphPanel;
 
@@ -57,10 +58,21 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
 	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
 	
+	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
+	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
+	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
+	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
+	public static final int TYPE_UW_CAN_PACKET_TELEM = 17; // UW Can packets split into their ids
+	
+	// These are infrastructure and not saved to Disk
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
 	public static final int TYPE_HIGH_SPEED_HEADER = 100;
 	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
+	public static final int TYPE_CAMERA_SCAN_LINE_COUNT = 102;
+	public static final int TYPE_HERCI_LINE_COUNT = 103;
+	public static final int TYPE_EXTENDED_HEADER = 104;
+	
 	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
 	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
 	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
@@ -110,8 +122,9 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int UNKNOWN = 15;
 	public static final int IHU_SW_VERSION = 14;
 	//public static final int BUS_VOLTAGE_OVER_2 = 15;
-
-	
+	public static final int ISISStatus = 16;
+	public static final int IHU_TEMP_CALIBRATION_VOLTAGE = 17;
+	public static final int AUTO_SAFE_VOLTAGES = 18;
 	
 	// Flattened C ENUM for IHU Errors
 	public static final String[] ihuErrorType = {
@@ -221,21 +234,33 @@ longer send telemetry.
 	
 	protected int MAX_BYTES = 78;  // This provides enough storage to cover the zero filled bytes at the end of the Slow, High Speed frames or 1E frames
 	
-	public FoxFramePart(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(lay);
+	public FoxFramePart(int id, int resets, long uptime, int type, String date, StringTokenizer st, BitArrayLayout lay) {
+		super(lay, type);
 		this.id = id;
 		this.resets = resets;
 		this.uptime = uptime;
-		this.captureDate = date;
+		this.reportDate = date;
 		init();
 		rawBits = null; // no binary array when loaded from file, even if the local init creates one
 		load(st);
 	}
 	
-	public FoxFramePart(BitArrayLayout lay) {
-		super(lay);
+	public FoxFramePart(int id, int resets, long uptime, int type, String date, byte[] data, BitArrayLayout lay) {
+		super(lay, type);
+		this.id = id;
+		this.resets = resets;
+		this.uptime = uptime;
+		this.reportDate = date;
 		init();
-		rawBits = new boolean[MAX_BYTES*8];
+		for (byte b : data) {
+			addNext8Bits(b);
+		}
+		copyBitsToFields();
+	}
+	
+	public FoxFramePart(int type, BitArrayLayout lay) {
+		super(lay, type);
+		init();
 	}
 	
 	/**
@@ -243,12 +268,12 @@ longer send telemetry.
 	 * @param results
 	 * @throws SQLException 
 	 */
-	public FoxFramePart(ResultSet results, BitArrayLayout lay) throws SQLException {
-		super(lay);
+	public FoxFramePart(ResultSet results, int type, BitArrayLayout lay) throws SQLException {
+		super(lay, type);
 		this.id = results.getInt("id");
 		this.resets = results.getInt("resets");
 		this.uptime = results.getLong("uptime");
-		this.captureDate = results.getString("captureDate");
+		this.reportDate = results.getString("captureDate");
 		init();
 		rawBits = null; // no binary array when loaded from database
 		for (int i=0; i < fieldValue.length; i++) {
@@ -264,8 +289,8 @@ longer send telemetry.
 
 	public abstract boolean isValid();
 	
-	public int getMaxBytes() { return MAX_BYTES; }
-	public int getMaxBits() { return rawBits.length; }
+	public int getMaxBytes() { return layout.getMaxNumberOfBytes(); }
+	public int getMaxBits() { return layout.getMaxNumberOfBits(); }
 	
 	public boolean isValidType(int t) {
 		if (t == TYPE_DEBUG) return true;
@@ -316,12 +341,20 @@ longer send telemetry.
 				s = "Stowed";
 			else
 				s = "Deployed";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {  
+				s = isisAntennaStatus(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
 			int value = getRawValue(name);
 			if (value == 0)
 				s = "OK";
 			else
 				s = "FAIL";
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+			int value = getRawValue(name);
+			if (value == 1)
+				s = "Enabled";
+			else
+				s = "Disabled";
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BOOLEAN) {
 			int value = getRawValue(name);
 			if (value == 1)
@@ -338,15 +371,21 @@ longer send telemetry.
 			s = softErrorStringFox1A(getRawValue(name), true);
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
 			s = softErrorString84488(getRawValue(name), true);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_COMMAND_COUNT) {
-			s = icrCommandCount(getRawValue(name), true);
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT) {
+			s = icrSwCommandCount(getRawValue(name), true);	
 		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
-			s = icrDiagnosticString(getRawValue(name), true);			
+			s = icrDiagnosticString(getRawValue(name), true);	
+		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
+			double val = getRawValue(name);
+			if (val >= 1500) return "OK";
+			else return "FAIL";
 		} else {
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
 				s = "-----";
-			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY) {
+			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY 
+					|| layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
+					|| layout.conversion[pos] == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
 				s = String.format("%1.2f", dvalue);
 			} else {
 				s = String.format("%2.1f", dvalue);
@@ -405,7 +444,7 @@ longer send telemetry.
 			
 		case BitArrayLayout.CONVERT_BATTERY_CURRENT:
 			double d = (double)rawValue;
-			d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * ((FoxSpacecraft)fox).BATTERY_CURRENT_ZERO + 2)*1000;
+			d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * ((FoxSpacecraft)fox).user_BATTERY_CURRENT_ZERO + 2)*1000;
 			return d;
 		case BitArrayLayout.CONVERT_SOLAR_PANEL:
 			return rawValue * VOLTAGE_STEP_FOR_3V_SENSORS/SOLAR_PANEL_SCALING_FACTOR;
@@ -414,11 +453,11 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
 			return solarPanelTempTable.lookupValue(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
-			if (rawValue < fox.mpptSensorOffThreshold) return ERROR_VALUE;
+			if (rawValue < fox.user_mpptSensorOffThreshold) return ERROR_VALUE;
 			double raw = (double)rawValue;
 			double vadc = raw * VOLTAGE_STEP_FOR_2V5_SENSORS;
 			double v =  (vadc - MPPT_RTD_AMP_FACTOR) / (MPPT_RTD_AMP_GAIN);
-			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - fox.mpptResistanceError;
+			double r = v / FoxFramePart.MPPT_RTD_CONSTANT_CURERNT - fox.user_mpptResistanceError;
 			
 			// Cubic fit using equation from http://www.mosaic-industries.com/embedded-systems/microcontroller-projects/temperature-measurement/platinum-rtd-sensors/resistance-calibration-table
 			double t = -247.29+2.3992*r+0.00063962*Math.pow(r,2)+(0.0000010241)*Math.pow(r,3);
@@ -443,7 +482,8 @@ longer send telemetry.
 			value = value / 256.0d;
 			return value ;
 		case BitArrayLayout.CONVERT_MEMS_ROTATION:
-			return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
+			return calcMemsValue(rawValue, name, fox);
+			//return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
 		case BitArrayLayout.CONVERT_RSSI:
 			return fox.getLookupTableByName(Spacecraft.RSSI_LOOKUP).lookupValue(rawValue);
 		case BitArrayLayout.CONVERT_IHU_TEMP:
@@ -458,24 +498,122 @@ longer send telemetry.
 			return rawValue;
 		case BitArrayLayout.CONVERT_SOFT_ERROR_84488:
 			return rawValue;
-		case BitArrayLayout.CONVERT_ICR_COMMAND_COUNT:
+		case BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT:
 			return rawValue;
 		case BitArrayLayout.CONVERT_ICR_DIAGNOSTIC:
 			return rawValue;
 		case BitArrayLayout.CONVERT_WOD_STORED:
 			return rawValue * 4;
-		case BitArrayLayout.CONVERT_FOX1E_TXRX_TEMP:
+		case BitArrayLayout.CONVERT_LT_TXRX_TEMP:
 			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 			volts = volts / 2;
 			return 100 * volts - 50; // TMP36 sensor conversion graph is a straight line where 0.5V is 0C and 0.01V rise is 1C increase.  So 0.75V is 25C
-		case BitArrayLayout.CONVERT_FOX1E_PA_CURRENT:
+		case BitArrayLayout.CONVERT_LT_PA_CURRENT:
 			double voltspa = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
 			voltspa = voltspa / 2;
 			double pacurrent = voltspa/PA_CURRENT_INA194_FACTOR/0.1; 
 			return 1000* pacurrent;
+		case BitArrayLayout.CONVERT_LT_TX_FWD_PWR:
+			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2;
+			double y = 1.6707*Math.pow(x, 3) - 12.954*Math.pow(x,2)+ 37.706*x - 14.388;
+			return Math.pow(10, y/10);
+		case BitArrayLayout.CONVERT_LT_TX_REF_PWR:
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			y = 0.1921*Math.pow(x, 3) + 14.663*Math.pow(x,2)+ 11.56*x - 1.8544;
+			if (y < 0) y = 0;  // Power can not be negative
+			return y;
+		case BitArrayLayout.CONVERT_LT_VGA:
+			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			volts = volts / 2;
+			return volts;
+		case BitArrayLayout.CONVERT_ICR_VOLT_SENSOR:
+			volts = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS;
+			volts = volts * 99/75; // based in voltage divider on the ICR of 24k/75k
+			return volts;
+		case BitArrayLayout.CONVERT_COM1_SPIN:
+			double spin = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			spin = spin / 131.0 ; // 131 per dps
+			return spin;
+		case BitArrayLayout.CONVERT_COM1_ACCELEROMETER:
+			double acc = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			acc = acc / 16384.0 ; // 16384 per g.  If we want this in m/s * 9.80665 
+			return acc;
+		case BitArrayLayout.CONVERT_COM1_MAGNETOMETER:
+			double mag = rawValue - 32768; // signed 16 bit with 32768 added by IHU
+			mag = mag * 0.6 ; // 0.6 micro Tesla per count value 
+			return mag;
+		case BitArrayLayout.CONVERT_COM1_GYRO_TEMP:
+			double temp = rawValue * 0.1 - 40; // 0 is -40 then increments in 1/10 degree per raw value
+			return temp;
+		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_TEMP:
+			double V = (3.3 / 1023) * 1000 *  rawValue;
+			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue((int)V);
+			return antTemp;
+		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_TIME:
+			double time = rawValue / 20.0d; // deploy time in 50ms steps
+			return time;
+		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS:
+			return rawValue;
+		case BitArrayLayout.CONVERT_COM1_TX_FWD_PWR:
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2;
+			y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
+			return Math.pow(10, y/10);
+		case BitArrayLayout.CONVERT_COM1_TX_REF_PWR:
+			x = rawValue * 1000* VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			y = 0.1727*x - 34.583;
+			return Math.pow(10, y/10);
+		case BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS:
+			// TODO - this does not match what Eric sent in conversion document..
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			return x;
+		case BitArrayLayout.CONVERT_COM1_RSSI:
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2;
+			y = 46.566*x - 135.54;
+			return y;
+		case BitArrayLayout.CONVERT_COM1_ICR_2V5_SENSOR:
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
+			return x;
+		case BitArrayLayout.CONVERT_COM1_SOLAR_PANEL:
+			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.324; 
+			return x;
+		case BitArrayLayout.CONVERT_COM1_BUS_VOLTAGE:
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = x / 2 ;
+			x = x / 0.2424;
+			return x;
 		}
 		
-		return ERROR_VALUE;
+		return rawValue; // no conversion, return as is
+	}
+	
+	/**
+	 * Calculate the MEMS rotation value based in the rest values saved in the spacecraft config file, if
+	 * they exist.  Otherwise use the default values from the data sheet.
+	 * @param value
+	 * @param name
+	 * @param fox
+	 * @return
+	 */
+	private static double calcMemsValue(int value, String name, FoxSpacecraft fox) {
+		double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+		volts = volts / 2;
+		double memsZeroValue = MEMS_ZERO_VALUE_VOLTS;
+		double result = 0;
+		
+		if (fox.hasMemsRestValues) {
+			int restValue = 0;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
+			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
+			memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(restValue);
+			memsZeroValue = memsZeroValue/2;
+		}
+		
+	    result = (volts - memsZeroValue)/MEMS_VOLT_PER_DPS;
+		return result;
 	}
 	
 	/**
@@ -533,8 +671,11 @@ longer send telemetry.
 				+ Integer.toHexString(n4) + " "+ Integer.toHexString(n5) + " "+ Integer.toHexString(n6);
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
-			if (fox.foxId == Spacecraft.FOX1E) {
-				return icrCommandCount(value, shortString);
+			if (fox.hasImprovedCommandReceiver) {
+				if (fox.foxId == Spacecraft.FOX1E)
+					return icrCommandCountFox1E(value, shortString);
+				else
+					return icrCommandCount(value, shortString);
 			} else {
 			if (shortString)
 				return "Count: " + value;
@@ -561,31 +702,36 @@ longer send telemetry.
 			return "XXXX";
 		case 10: // unused
 			return "XXXX";
-		case GYRO1Z: // Gyro1Z
+		case GYRO1Z: // Gyro1Z - this is the "extra" Z axis reading.  We have 2 chips, each with 2 axis.  So we have Z twice
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			if (shortString)
 				//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
 			else
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
 			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			int cameraChecksumErrors = (rawValue >> 20) & 0xff; // last 8 bits
+			double vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+			vRef = vRef/2;
+			int cameraChecksumErrors = (rawValue >> 24) & 0xff; // last 8 bits
+			cameraChecksumErrors = cameraChecksumErrors - 1; // This is initialized to 1, so we subtract that initial value
 			if (shortString)
-				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro1V (V): " + GraphPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro1V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
+				return "Gyro1V (V): " + GraphPanel.roundToSignificantFigures(vRef,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
 				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			int hsAudioBufferUnderflows = (rawValue >> 20) & 0xff; // last 8 bits
+			vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+			vRef = vRef/2;
+			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3);
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures((value * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(vRef,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		case IHU_SW_VERSION: // Version of the software on the IHU
 			int swType = (rawValue >> 8) & 0xff;
@@ -593,53 +739,77 @@ longer send telemetry.
 			int swMinor = (rawValue >> 24) & 0xff;
 			
 			return "IHU SW: " + Character.toString((char) swType) + fox.foxId + "." + Character.toString((char) swMajor) + Character.toString((char) swMinor);
+		case ISISStatus: // Version of the software on the IHU
+			int antStatus = (rawValue >> 8) & 0xffff; // shift away the type byte and get 16 bit status
+			
+			// Bus status - 0 - did not try to read, 1 tried and failed, tried and succeeded
+			int bus0 = (rawValue >> 24) & 0xf;
+			int bus1 = (rawValue >> 28) & 0xf;
+			return "ISIS Status: " + Integer.toHexString(antStatus) + " " + Integer.toHexString(bus0) + " "+Integer.toHexString(bus1);
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
 			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value),3) + "V";
+		case IHU_TEMP_CALIBRATION_VOLTAGE: // IHU measurement of bus voltage
+			value = (rawValue >> 8) & 0xffffff;  // 24 bits of temp calibration
+			return "IHU Temp Cal: " + value;
+		case AUTO_SAFE_VOLTAGES:
+			int value1 = (rawValue >> 8) & 0xfff; // 12 bit value after the type
+			double voltageIn = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value1);
+			int value2 = (rawValue >> 20) & 0xfff; // last 12 bits
+			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value2);
+			if (shortString)
+				return "AS Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
+						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
+			else
+				return "Auto Safe Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
+						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
 		}
 		return "-----" + type;
 	}
 
 	// Flattened C ENUM for ICRDiagnostic aka swCmds - COMMAND NAME SPACE
-		public static final int SWCmdNSSpaceCraftOps = 1;
-		public static final int SWCmdNSTelemetry = 2;
-		public static final int SWCmdNSExperiment1 = 3;
-		public static final int SWCmdNSExperiment2 = 4;
-		public static final int SWCmdNSExperiment3 = 5;
-		public static final int SWCmdNSExperiment4 = 6;
-
-		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
-		public static final String[] SWOpsCommands = {
-		"Unknown", //0
-		"SafeMode", //1
-		"TransponderMode", //2
-		"ScienceMode", //3
-		"DisableAutosafe", //4
-		"EnableAutosafe", //5
-		"ClearMinMax", //6
-		"OpsNoop", //7
-		"ForceOffExp1", //8
-		"ForceDeployRx", //9
-		"ForceDeployTx", //0xA
-		"ResetIHU" //0xB
-		};
-
-		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
-		public static final String[] SWTlmCommands = {
-		"Unknown",
-		"Gain",
-		"WODSaveSize",
-		"Encoding",
-		"Frequency"
-		};
-
-		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
-		public static final String[] SWExp1Commands = {
-		"Unknown",
-		"CycleTiming",
-		"SetBoard"
-		};
+//		public static final int SWCmdNSSpaceCraftOps = 1;
+//		public static final int SWCmdNSTelemetry = 2;
+//		public static final int SWCmdNSExperiment1 = 3;
+//		public static final int SWCmdNSExperiment2 = 4;
+//		public static final int SWCmdNSExperiment3 = 5;
+//		public static final int SWCmdNSExperiment4 = 6;
+//		public static final int SWCmdNSCan = 7;
+//		public static final int SWCmdNSGyro = 8;
+//
+//		// Flattened C ENUM for ICRDiagnostic Command names in Ops Namespace
+//		public static final String[] SWOpsCommands = {
+//		"Unknown", //0
+//		"SafeMode", //1
+//		"TransponderMode", //2
+//		"ScienceMode", //3
+//		"DisableAutosafe", //4
+//		"EnableAutosafe", //5
+//		"ClearMinMax", //6
+//		"OpsNoop", //7
+//		"ForceOffExp1", //8
+//		"ForceDeployRx", //9
+//		"ForceDeployTx", //0xA
+//		"ResetIHU" //0xB
+//		};
+//
+//		// Flattened C ENUM for ICRDiagnostic Command names in Tlm Namespace
+//		public static final String[] SWTlmCommands = {
+//		"Unknown",
+//		"Gain",
+//		"WODSaveSize",
+//		"Encoding",
+//		"Frequency"
+//		};
+//
+//		// Flattened C ENUM for ICRDiagnostic Command names in Exp1 Namespace
+//		public static final String[] SWExp1Commands = {
+//		"Unknown",
+//		"CycleTiming",
+//		"SetBoard"
+//		};
 	
+		
 	/**
 	 * The Diagnostic String for the Improved Command Receiver shows a ring of the last commands.  There are 32 bits holding up
 	 * to four commands.  Each byte has the top 3 bits that hold the namespace and 5 bits for the command name	
@@ -656,31 +826,33 @@ longer send telemetry.
 			int nameSpace = rawValue & 0x7; // Top 3 bits of the byte hold the command namespace
 			
 			if ( nameSpace == 0)
-				s[i] = s[i] + "---";
-			else
-			switch (nameSpace) {
-
-			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
-				if (shortString)
-					s[i] = s[i] + "Ops";
-				else
-					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
-				break;
-			case SWCmdNSTelemetry: // Telemetry Control
-				if (shortString)
-					s[i] = s[i] + "Tlm";
-				else
-					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
-				break;
-			case SWCmdNSExperiment1: // Experiment 1
-				if (shortString)
-					s[i] = s[i] + "Exp1";
-				else
-					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
-			break;
-			default:
-				s[i] = s[i] + "ERR:" + nameSpace;
+				s[i] = s[i] + "-:--";
+			else {
+				s[i] = nameSpace + ":" + value;
 			}
+//			switch (nameSpace) {
+//
+//			case SWCmdNSSpaceCraftOps: // Spacecraft Operations
+//				if (shortString)
+//					s[i] = s[i] + SWOpsCommands[value];
+//				else
+//					s[i] = s[i] + "Ops: " + SWOpsCommands[value];
+//				break;
+//			case SWCmdNSTelemetry: // Telemetry Control
+//				if (shortString)
+//					s[i] = s[i] + SWTlmCommands[value];
+//				else
+//					s[i] = s[i] + "Tlm: " + SWTlmCommands[value];
+//				break;
+//			case SWCmdNSExperiment1: // Experiment 1
+//				if (shortString)
+//					s[i] = s[i] + SWExp1Commands[value];
+//				else
+//					s[i] = s[i] + "Exp1: " + SWExp1Commands[value];
+//			break;
+//			default:
+//				s[i] = s[i] + "ERR:" + nameSpace;
+//			}
 			rawValue = rawValue >> 3; // move to the next byte
 		}
 		return s;
@@ -697,7 +869,7 @@ longer send telemetry.
 		return result;
 	}
 	
-	public static String icrCommandCount(int rawValue, boolean shortString) {
+	public static String icrCommandCountFox1E(int rawValue, boolean shortString) {
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
 			// First 8 bits are the hardware commands 
@@ -712,6 +884,41 @@ longer send telemetry.
 			else
 				s = s + "Number of Hardware Cmds: " + hardwareCmds  + " "
 				+ " Software Cmds: " + softwareCmds;
+		}
+		return s;
+	}
+	
+	public static String icrSwCommandCount(int rawValue, boolean shortString) {
+		String s = new String();
+		
+		// 1 bit for Reply Time Checking bit
+		int timeMarker = (rawValue) & 0x1;
+					
+		// 11 MSBs are software command number
+		int softwareCmds = (rawValue >> 1) & 0xfff;
+
+		if (shortString)
+			s = s + " rtc:" + timeMarker 
+					+ " sw:" + softwareCmds;
+		else
+			s = s + " Reply Time Checking: " + timeMarker
+			+ " SW Cmds: " + softwareCmds;
+
+		return s;
+	}
+	
+	public static String icrCommandCount(int rawValue, boolean shortString) {
+		String s = new String();
+		if (rawValue != ERROR_VALUE) {
+			// First 12 bits are the hardware commands 
+			int hardwareCmds = rawValue & 0xfff ;
+
+			String swCmds = icrSwCommandCount((rawValue >> 12) & 0xfff, shortString);
+			
+			if (shortString)
+				s = s + "hw:" + hardwareCmds + swCmds;
+			else
+				s = s + "HW Cmds: " + hardwareCmds  + swCmds;
 		}
 		return s;
 		}
@@ -749,17 +956,23 @@ longer send telemetry.
 						+ "nf " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ "tn " + Integer.toHexString(taskNumber) + " "
 						+ "al " + Integer.toHexString(alignment);
-			else
-				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  + " "//  Integer.toHexString(watchDogReports) + " "
-						+ " Error Type: " + ihuErrorType[errorCode] + " "
-						+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
+			else {
+				s = s + "Watchdog Reports: " + FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports))  
+				+ " ";//  Integer.toHexString(watchDogReports) + " "
+				if (errorCode < ihuErrorType.length)
+					s = s	+ " Error Type: " + ihuErrorType[errorCode] + " ";
+				else
+					s = s	+ " Error Type: " + errorCode;
+				
+				s = s	+ " MRAM Error Count: " + Integer.toHexString(mramErrorCount) + " "
 						+ " Non Fatal Error Count: " + Integer.toHexString(nonFatalErrorCount) + " "
 						+ " Task Number: " + taskNumber + "- ";
-			if (taskNumber < ihuTask.length)
-				s = s + ihuTask[taskNumber];
-			else
-				s = s + "Unknown";
-			s = s + " Alignment: " + alignment;
+				if (taskNumber < ihuTask.length)
+					s = s + ihuTask[taskNumber];
+				else
+					s = s + "Unknown";
+				s = s + " Alignment: " + alignment;
+			}
 		}
 		return s;
 	}
@@ -797,7 +1010,9 @@ longer send telemetry.
 			// alignment is the next 8 bits
 			int alignment = (rawValue >> 24) & 0xff;
 
-			s[0] = errorCode + " - " + ihuErrorType[errorCode];
+			s[0] = ""+errorCode;
+			if (errorCode < ihuErrorType.length)
+				s[0] = s[0] + " - " + ihuErrorType[errorCode];
 			s[1] = Integer.toHexString(alignment);
 
 			s[2] =  FoxBitStream.stringBitArray(FoxBitStream.intToBin9(watchDogReports));
@@ -814,6 +1029,70 @@ longer send telemetry.
 		return s;
 	}
 
+	public static String[] isisAntennaStatusArray(int rawValue, boolean shortString) {
+		String[] s = new String[16];
+		if (rawValue == 9999) {
+			for (int i=0; i< s.length; i++)
+				s[i] = "";
+			return s;
+		}
+		// First bit is the ARM bit 
+		int ARM = rawValue & 0x1;  // ARM
+		int A4B = (rawValue >> 1) & 0x1;  // A4B
+		int A4T = (rawValue >> 2) & 0x1;  // A4T
+		int A4S = (rawValue >> 3) & 0x1;  // A4S
+		int INDB = (rawValue >> 4) & 0x1; // INDB
+		int A3B = (rawValue >> 5) & 0x1;  // A3B
+		int A3T = (rawValue >> 6) & 0x1;  // A3T
+		int A3S = (rawValue >> 7) & 0x1;  // A3S
+		int IG = (rawValue >> 8) & 0x1;   // IG
+		int A2B = (rawValue >> 9) & 0x1;  // A2B
+		int A2T = (rawValue >> 10) & 0x1;  // A2T
+		int A2S = (rawValue >> 11) & 0x1;  // A2S
+		int zero = (rawValue >> 12) & 0x1; // zero
+		int A1B = (rawValue >> 13) & 0x1;  // A1B
+		int A1T = (rawValue >> 14) & 0x1;  // A1T
+		int A1S = (rawValue >> 15) & 0x1;  // A1S
+
+		if (shortString) {
+			if (ARM == 1) s[0] = "ARM "; else s[0] = "";
+			if (INDB == 1) s[1] = "BURN "; else s[1] = "";
+			if (IG == 1) s[2] = "IG "; else s[2] = "";
+			if (A1S == 1) s[3] = "N "; else s[3] = "Y ";
+			if (A2S == 1) s[4] = "N "; else s[4] = "Y ";
+			if (A3S == 1) s[5] = "N "; else s[5] = "Y ";
+			if (A4S == 1) s[6] = "N "; else s[6] = "Y ";
+		} else {
+			if (ARM == 1) s[0] = "ARMED"; else s[0] = "NO";
+			if (INDB == 1) s[1] = "ACT"; else s[1] = "NONE";
+			if (IG == 1) s[2] = "YES"; else s[2] = "NO";
+			if (A1B == 1) s[3] = "ACT"; else s[3] = "NOT ACT";
+			if (A1T == 1) s[4] = "TIMEOUT"; else s[4] = "---";
+			if (A1S == 1) s[5] = "NO"; else s[5] = "YES";
+			if (A2B == 1) s[6] = "ACT"; else s[6] = "NOT ACT";
+			if (A2T == 1) s[7] = "TIMEOUT"; else s[7] = "--";
+			if (A2S == 1) s[8] = "NO"; else s[8] = "YES";
+			if (A3B == 1) s[9] = "ACT"; else s[9] = "NOT ACT";
+			if (A3T == 1) s[10] = "TIMEOUT"; else s[10] = "--";
+			if (A3S == 1) s[11] = "NO"; else s[11] = "YES";
+			if (A4B == 1) s[12] = "ACT"; else s[12] = "NOT ACT";
+			if (A4T == 1) s[13] = "TIMEOUT"; else s[13] = "--";
+			if (A4S == 1) s[14] = "NO"; else s[14] = "YES";
+			s[15] = ""+zero;
+		}
+		return s;
+	}
+
+	public static String isisAntennaStatus(int rawValue, boolean shortString) {
+		String[] s = isisAntennaStatusArray(rawValue, shortString);
+		String result = "---";
+		if (s[0] != null)
+			result = s[0];
+		for (int i=1; i< s.length; i++)
+			if (s[i] != null)
+				result = result + s[i];
+		return result;
+	}
 
 	/**
 	 * Decode the IHU Soft error bits

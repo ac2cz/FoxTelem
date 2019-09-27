@@ -77,6 +77,7 @@ public class HighSpeedFrame extends Frame {
 
 	public HighSpeedFrame(BufferedReader input) throws IOException {
 		super(input);
+		load(input);
 	}
 	
 	public HighSpeedHeader getHeader() { return (HighSpeedHeader)header; }
@@ -221,8 +222,8 @@ public class HighSpeedFrame extends Frame {
 	}
 	
 	public String toString() {
-		String s = new String();
-		s = "\n" + header.toString() + 
+		String s = "AMSAT FOX-1 High Speed Telemetry Captured at: " + getStpDate() + "\n";
+		s = s + header.toString() + 
 				"\n\n"+ rtPayload.toString() + 
 				"\n\n"+ maxPayload.toString() +
 				"\n\n"+ minPayload.toString() +

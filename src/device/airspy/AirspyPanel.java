@@ -561,9 +561,9 @@ public class AirspyPanel extends DevicePanel implements ItemListener, ActionList
     /**
      * Read the configuration from the device
      */
-    private void getConfig() {
-    	
-    }
+//    private void getConfig() {
+//    	
+//    }
     
 	private void loadConfig() {
 		try {

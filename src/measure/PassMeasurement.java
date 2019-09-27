@@ -50,6 +50,7 @@ public class PassMeasurement extends Measurement {
 	public static final String TOTAL_PAYLOADS = "TOTAL_PAYLOADS";
 	
 	public static final long ERR = -99999;
+	public static final String DEFAULT_VALUE = "-----";
 
 	/**
 	 * Load a past measurement from disk
@@ -145,7 +146,7 @@ public class PassMeasurement extends Measurement {
 					}
 				} else if (layout.conversion[i] == BitArrayLayout.CONVERT_FREQ) {
 					if (fieldValue[i] == 0)
-						return "-----";
+						return DEFAULT_VALUE;
 					else {
 						return ""+fieldValue[i];
 					}

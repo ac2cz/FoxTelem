@@ -1,5 +1,6 @@
 package device;
 
+@SuppressWarnings("serial")
 public class SourceException extends DeviceException {
 
 	public SourceException(String string) {

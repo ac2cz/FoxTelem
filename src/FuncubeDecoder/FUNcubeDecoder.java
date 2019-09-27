@@ -1,10 +1,5 @@
 package FuncubeDecoder;
 
-import java.io.IOException;
-
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.UnsupportedAudioFileException;
-
 import common.Config;
 import common.Log;
 import decoder.Decoder;
@@ -83,14 +78,12 @@ public class FUNcubeDecoder extends Decoder {
 
 	
 	protected void sampleBucketsVCO() {
-		int avgClockOffset = 0;
 
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			sampleNumber++;
 			double sampleSum = 0;
 			int samples = 0;
 			
-			int clockSample1 = 0, clockSample2 = 0, clockSample3 = 0;
 
 			// Multiple and sum the samples with the previous bit
 			for (int s=0; s < bucketSize; s++) {
@@ -136,7 +129,6 @@ public class FUNcubeDecoder extends Decoder {
 	}
 	protected void sampleBuckets1BitDelay() {
 		long avgClockOffset = 0;
-		double scale = MAX_VOLUME/32767*32767;
 		double maxBitEnergy = 0;
 		int maxBitEnergyIdx = 0;
 		int sumMaxBitEnergyIdx = 0;
@@ -322,13 +314,10 @@ public class FUNcubeDecoder extends Decoder {
 	private static final double BIT_PHASE_INC = 1.0/(double)DOWN_SAMPLE_RATE;
 	private static final double BIT_TIME = 1.0/(double)BIT_RATE;
 
-
-
-	private AudioFormat format;
 	private boolean decodeOK = false;
 	private byte[] decoded = new byte[FEC_BLOCK_SIZE];
 	private FECDecoder decoder = new FECDecoder();
-	private int cntRaw, cntDS, cntBit, cntFEC, cntDec, dmErrBits;
+	private int  dmErrBits;
 	private double energy1, energy2;
 
 	// debugging stuff
@@ -365,7 +354,7 @@ public class FUNcubeDecoder extends Decoder {
 			dsPos--;
 			if (dsPos<0)
 				dsPos=DOWN_SAMPLE_FILTER_SIZE-1;
-			cntRaw++;
+			
 		}
 		
 		private double[][] dmBuf = new double[MATCHED_FILTER_SIZE][2];
@@ -440,7 +429,6 @@ public class FUNcubeDecoder extends Decoder {
 							dmFECBits[n] = (byte)(dmFECCorr[n]==1 ? 0xc0 : 0x40);
 						}
 						dmErrBits=decoder.FECDecode(dmFECBits, decoded);
-						cntFEC++;
 						dmMaxCorr=0;
 						decodeOK = dmErrBits<0 ? false : true;
 						Log.println("FEC DECODE: " + decodeOK);
@@ -456,7 +444,6 @@ public class FUNcubeDecoder extends Decoder {
 					}
 					if (dmCorr > dmMaxCorr)
 						dmMaxCorr=dmCorr;
-					cntBit++;
 				}
 			}
 			// half-way into next bit? reset peak energy point
@@ -477,7 +464,6 @@ public class FUNcubeDecoder extends Decoder {
 					}
 				}
 			}
-			cntDS++;
 		}
 
 }

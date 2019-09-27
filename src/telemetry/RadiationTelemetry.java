@@ -357,7 +357,7 @@ public class RadiationTelemetry extends FoxFramePart {
 			"HOUSEKEEPING" //F - 15
 		};
 	public RadiationTelemetry(int r, long u, BitArrayLayout l) {
-		super(l);
+		super(TYPE_RAD_TELEM_DATA, l);
 		resets = r;
 		uptime = u;
 		
@@ -365,14 +365,14 @@ public class RadiationTelemetry extends FoxFramePart {
 	}
 
 	public RadiationTelemetry(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);	
+		super(id, resets, uptime, TYPE_RAD_TELEM_DATA, date, st, lay);	
 	}
 
 	@Override
 	protected void init() {
 		type = TYPE_RAD_TELEM_DATA;
-		rawBits = new boolean[MAX_RAD_TELEM_BYTES*8];
-		fieldValue = new int[layout.NUMBER_OF_FIELDS];
+		//rawBits = new boolean[MAX_RAD_TELEM_BYTES*8];
+		//fieldValue = new int[layout.NUMBER_OF_FIELDS];
 	}
 
 	public String getStringValue(String name, Spacecraft fox) {

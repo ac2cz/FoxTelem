@@ -231,6 +231,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 	 */
 	@Override
 	public void run() {
+		Thread.currentThread().setName("SourceSoundCard");
 		done = false;
 		running = true;
 		try {

@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import common.Config;
 import common.Log;
 import common.Performance;
-import gui.MainWindow;
 
 @SuppressWarnings("serial")
 public class BitStream extends CircularBuffer {
@@ -16,8 +15,9 @@ public class BitStream extends CircularBuffer {
 	
 	Decoder decoder;
 	
-	public BitStream(int initialSize, Decoder decoder) {
+	public BitStream(int initialSize, Decoder decoder, int syncWordDistance) {
 		super(initialSize);
+		SYNC_WORD_DISTANCE = syncWordDistance;
 		this.decoder = decoder;
 
 	}
@@ -46,6 +46,8 @@ public class BitStream extends CircularBuffer {
 		}
 	}
 	
+	protected long totalBits = 0;  // add this to the current bits to get the total bits in the frame
+	
 	/**
 	 * Remove bits from the bit list and update the position of any
 	 * frameMarker Candidates
@@ -53,6 +55,7 @@ public class BitStream extends CircularBuffer {
 	 */
 	public void removeBits(int start, int end) {
 		if (Config.debugFrames) Log.println("Purging " + (end - start) + " bits");
+		totalBits = totalBits + (end-start);
 /*		if (Config.debugFrames) {
 			if (Config.iq)
 			Log.println("Pass State: " + Config.passManager.getState() + ""

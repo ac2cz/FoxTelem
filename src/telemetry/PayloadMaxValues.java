@@ -3,8 +3,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.StringTokenizer;
 
-import decoder.FoxDecoder;
-
 /**
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz
@@ -30,22 +28,20 @@ public class PayloadMaxValues extends FoxFramePart {
 //	public static final int NUMBER_OF_FIELDS = 38;
 
 	public PayloadMaxValues(BitArrayLayout lay) {
-		super(lay);
+		super(TYPE_MAX_VALUES, lay);
 	}
 	
 	public PayloadMaxValues(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, date, st, lay);
+		super(id, resets, uptime, TYPE_MAX_VALUES, date, st, lay);
 	}
 	
 	public PayloadMaxValues(ResultSet r, BitArrayLayout lay) throws SQLException {
-		super(r, lay);
+		super(r, TYPE_MAX_VALUES, lay);
 	}
 
 	protected void init() {
-	type = TYPE_MAX_VALUES;
-			
-	fieldValue = new int[layout.fieldName.length];
-}
+		
+	}
 
 
 	@Override
