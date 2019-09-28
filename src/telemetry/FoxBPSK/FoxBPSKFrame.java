@@ -16,13 +16,7 @@ import telemetry.Frame;
 import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.HighSpeedTrailer;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
 import telemetry.PayloadUwExperiment;
-import telemetry.PayloadWOD;
-import telemetry.PayloadWODRad;
 import telemetry.PayloadWODUwExperiment;
 
 /**

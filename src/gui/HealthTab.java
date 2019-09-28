@@ -20,7 +20,6 @@ import java.awt.Font;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -404,7 +403,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 	protected void displayMode() {
 		String mode = FoxSpacecraft.modeNames[FoxSpacecraft.SAFE_MODE];
 		if (fox.hasModeInHeader) {
-			FramePart sciencePayload = Config.payloadStore.getLatest(fox.foxId, FoxSpacecraft.CAN_PKT_LAYOUT);
 			mode = fox.determineModeFromHeader();
 		} else {
 			FramePart radPayload = Config.payloadStore.getLatestRad(foxId);

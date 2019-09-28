@@ -6,13 +6,9 @@ import java.util.Date;
 
 import common.Config;
 import common.Log;
-import common.Performance;
-import decoder.FoxBPSK.FoxBPSKBitStream;
 import telemetry.Frame;
 import telemetry.FoxFramePart;
-import telemetry.HighSpeedHeader;
 import telemetry.SlowSpeedHeader;
-import telemetry.FoxBPSK.FoxBPSKHeader;
 
 /**
  * 
@@ -309,13 +305,13 @@ public abstract class FoxBitStream extends BitStream {
 	 * @param end
 	 * @return
 	 */
-	private boolean newFrame(int start, int end) {
-		for (int i=0; i<framesTried.size(); i++) {
-			if (framesTried.get(i).equals(start, end))
-				return false;
-		}
-		return true;
-	}
+//	private boolean newFrame(int start, int end) {
+//		for (int i=0; i<framesTried.size(); i++) {
+//			if (framesTried.get(i).equals(start, end))
+//				return false;
+//		}
+//		return true;
+//	}
 	
 	
 	/**

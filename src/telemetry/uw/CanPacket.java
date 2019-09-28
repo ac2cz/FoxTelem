@@ -99,7 +99,6 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	}
 	
 	public byte[] getBytes() {
-		int len = getLength();
 		if (isValid()) {
 			byte[] data = new byte[getLength() + ID_BYTES];
 			if (bytes.length < getLength() + ID_BYTES) return null;
@@ -236,7 +235,7 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 		if (!isValid()) return null;
 		byte[] data = new byte[getLength()];
 		for (int i=0; i<getLength(); i++)
-			data[i] = (byte) fieldValue[i+this.ID_BYTES]; // skips the id fields
+			data[i] = (byte) fieldValue[i+CanPacket.ID_BYTES]; // skips the id fields
 		
 		PcanPacket pcan = new PcanPacket(createDate, id, resets, uptime, type, canId, (byte)getLength(), data);
 		return pcan;

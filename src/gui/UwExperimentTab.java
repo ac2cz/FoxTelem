@@ -9,8 +9,6 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.util.ArrayList;
-
 import javax.swing.BoxLayout;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -20,7 +18,6 @@ import javax.swing.JTable;
 import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
-import javax.swing.border.TitledBorder;
 import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.table.AbstractTableModel;
@@ -31,13 +28,11 @@ import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadUwExperiment;
 import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
 import common.FoxSpacecraft;
-import decoder.FoxDecoder;
 
 /**
  * 

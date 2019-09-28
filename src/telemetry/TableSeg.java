@@ -1,7 +1,5 @@
 package telemetry;
 
-import java.util.Date;
-
 /**
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz

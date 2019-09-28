@@ -11,8 +11,6 @@ import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
-import telemServer.ServerProcess;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

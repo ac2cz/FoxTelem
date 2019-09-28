@@ -42,16 +42,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		// TODO Auto-generated constructor stub
 	}
 
-//	public void captureHeaderInfo(int id, long uptime, int resets, String captureDate, int mode) {
 	public void captureHeaderInfo(int id, long uptime, int resets) {
 		this.id = id;
 		this.uptime = uptime;
 		this.resets = resets;
 		if (reportDate == null)
 			this.reportDate = fileDateStamp(); // snap the current time
-		else
-			this.reportDate = reportDate;
-//		this.newMode = mode; // this is zero unless the mode was on the header.
 	}
 	
 	public double getSatLatitude() { return satLatitude; }

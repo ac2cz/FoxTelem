@@ -7,10 +7,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.NoSuchElementException;
-import java.util.StringTokenizer;
-
 import common.Log;
-import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
 /**
@@ -70,7 +67,6 @@ public class CanFrames {
 	}
 
 	public String getNameByCanId(int id) {
-		int pos = ERROR_POSITION;
 		for (int i=0; i < canId.length; i++) {
 			if (id == canId[i])
 				return frame[i];
@@ -79,7 +75,6 @@ public class CanFrames {
 	}
 
 	public String getGroundByCanId(int id) {
-		int pos = ERROR_POSITION;
 		for (int i=0; i < canId.length; i++) {
 			if (id == canId[i])
 				return groundClass[i];
@@ -88,14 +83,12 @@ public class CanFrames {
 	}
 	
 	public String getSenderByCanId(int id) {
-		int pos = ERROR_POSITION;
 		for (int i=0; i < canId.length; i++) {
 			if (id == canId[i])
 				return senders[i];
 		}
 		return null;
 	}
-
 
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 
@@ -138,11 +131,15 @@ public class CanFrames {
 				if (values != null) {
 					frame[field] = values[0];
 					priority[field] = Integer.valueOf(values[1]).intValue();
+					@SuppressWarnings("unused")
 					String id = values[2];
+					@SuppressWarnings("unused")
 					String id_hex = values[3];
+					@SuppressWarnings("unused")
 					String msp_cat = values[4];
 					groundClass[field] = values[5];
 					canId[field] = Integer.valueOf(values[6]).intValue();
+					@SuppressWarnings("unused")
 					String canid_hex = values[7];
 					dataLength[field] = Integer.valueOf(values[8]).intValue();
 					senders[field] = values[9];

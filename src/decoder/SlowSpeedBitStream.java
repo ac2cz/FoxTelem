@@ -7,7 +7,6 @@ import common.Log;
 import telemetry.FrameProcessException;
 import telemetry.SlowSpeedFrame;
 import fec.RsCodeWord;
-import telemServer.StpFileProcessException;
 
 /**
  * 

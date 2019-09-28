@@ -114,15 +114,25 @@ public class ServerProcess implements Runnable {
 			String value = "";
 			byte[] rawFrame = null;
 			int length = 0;
+			@SuppressWarnings("unused")
 			String receiver = null;
+			@SuppressWarnings("unused")
 			Date stpDate = null;
+			@SuppressWarnings("unused")
 			String frequency = NONE; // frequency when this frame received
+			@SuppressWarnings("unused")
 			String source; // The frame source subsystem
+			@SuppressWarnings("unused")
 			String rx_location = NONE; // the lat, long and altitude
+			@SuppressWarnings("unused")
 			String receiver_rf = NONE; // human description of the receiver
+			@SuppressWarnings("unused")
 			String demodulator = null; // will contain Config.VERSION
+			@SuppressWarnings("unused")
 			long sequenceNumber = Sequence.ERROR_NUMBER;
+			@SuppressWarnings("unused")
 			String measuredTCA = NONE; // time of TCA
+			@SuppressWarnings("unused")
 			String measuredTCAfrequency = NONE;
 			int lineLen = 0;
 			boolean firstColon = true;

@@ -18,7 +18,7 @@ public class FrameLayout {
 		this.fileName = fileName;
 		propertiesFile = new File(fileName);
 		load();
-		try { int i = getInt(NUMBER_OF_PAYLOADS); } catch (Exception e) {
+		try { getInt(NUMBER_OF_PAYLOADS); } catch (Exception e) {
 			throw new LayoutLoadException("Invalid or missing "+NUMBER_OF_PAYLOADS+" in FrameLayout file: " + propertiesFile.getAbsolutePath());
 		}
 	}

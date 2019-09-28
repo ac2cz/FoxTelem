@@ -8,7 +8,6 @@ import java.util.TimeZone;
 
 import common.Spacecraft;
 import common.FoxSpacecraft;
-import common.Log;
 import decoder.FoxBitStream;
 import gui.GraphPanel;
 

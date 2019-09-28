@@ -251,7 +251,7 @@ public class PassManager implements Runnable {
 				}
 				int n = pp1.rfData.getBinOfStrongestSignalInSatBand();
 				if ((Config.fromBin < n && n < Config.toBin) 
-						|| (spansDcSpike && Config.fromBin < n && n < pp1.iqSource.FFT_SAMPLES-2) || (spansDcSpike && 0 <= n && n < Config.toBin)) {
+						|| (spansDcSpike && Config.fromBin < n && n < SourceIQ.FFT_SAMPLES-2) || (spansDcSpike && 0 <= n && n < Config.toBin)) {
 				//if (Config.fromBin < pp1.rfData.getBinOfStrongestSignalInSatBand() && Config.toBin > pp1.rfData.getBinOfStrongestSignalInSatBand()) {
 					//double strongestSignal = pp1.rfData.getAvg(RfData.STRONGEST_SIG);
 					if (Config.debugSignalFinder) Log.println(sat.getIdString() + " STRONG SIG:" + pp1.rfData.rfStrongestSigSNRInSatBand);
@@ -703,7 +703,7 @@ public class PassManager implements Runnable {
 												double newCenterFreq = sat.user_telemetryDownlinkFreqkHz - 0.25 * range / 1000;
 												//if (Config.debugSignalFinder)
 												Log.println("Retuning for "+ sat.user_display_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
-												Config.mainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
+												MainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
 											}
 											// If the mode is wrong we should switch modes
 											if (Config.mode != sat.mode) {
@@ -711,13 +711,13 @@ public class PassManager implements Runnable {
 												//if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
 													//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
 													//	Config.autoDecodeSpeed = false;
-													if (Config.mainWindow.inputTab.STARTED)
-														Config.mainWindow.inputTab.processStartButtonClick();
+													if (SourceTab.STARTED)
+														MainWindow.inputTab.processStartButtonClick();
 													Config.mode = sat.mode;
-													Config.mainWindow.inputTab.setupMode();
+													MainWindow.inputTab.setupMode();
 													if (Config.mode != sat.mode) // then user has an override, such as Use Costas, so remember that for this sat
 														sat.mode = Config.mode;
-													Config.mainWindow.inputTab.processStartButtonClick();
+													MainWindow.inputTab.processStartButtonClick();
 												//}
 											}
 										}

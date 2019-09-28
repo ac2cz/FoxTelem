@@ -14,7 +14,7 @@ public class FUNcubeBitStream extends BitStream {
 	};
 	
 	public FUNcubeBitStream(int initialSize, Decoder decoder) {
-		super(initialSize, decoder);
+		super(initialSize, decoder, FEC_BITS_SIZE);
 		SYNC_WORD_DISTANCE = FEC_BITS_SIZE; // for the purge, set the distance (which is not used) to the frame size
 		PURGE_THRESHOLD = FEC_BITS_SIZE * 5;
 	}

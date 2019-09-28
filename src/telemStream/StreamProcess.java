@@ -24,7 +24,6 @@ import java.util.TimeZone;
 
 import common.Log;
 import telemetry.FramePart;
-import telemetry.HighSpeedFrame;
 import telemetry.PayloadDbStore;
 import telemetry.SortedFramePartArrayList;
 import telemetry.uw.CanPacket;

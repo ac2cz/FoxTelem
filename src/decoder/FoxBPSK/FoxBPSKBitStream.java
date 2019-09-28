@@ -4,7 +4,6 @@ import java.util.Date;
 
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
-import telemServer.StpFileProcessException;
 import telemetry.Frame;
 import telemetry.FrameProcessException;
 import telemetry.FoxBPSK.FoxBPSKFrame;

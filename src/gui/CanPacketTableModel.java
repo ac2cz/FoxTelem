@@ -1,7 +1,5 @@
 package gui;
 
-import common.Config;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

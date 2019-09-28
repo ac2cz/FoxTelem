@@ -5,7 +5,6 @@ import java.util.Date;
 import common.Config;
 import common.Log;
 import fec.RsCodeWord;
-import telemServer.StpFileProcessException;
 import telemetry.Frame;
 import telemetry.FrameProcessException;
 import telemetry.HighSpeedFrame;

@@ -84,7 +84,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	
 	JCheckBox useIHUVBatt;
 	JCheckBox track;
-	JComboBox cbMode;
+	JComboBox<String> cbMode;
 	
 	JButton btnCancel;
 	JButton btnSave;
@@ -315,7 +315,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		contentPanel.add(footerPanel, BorderLayout.SOUTH);
 	}
 	
-	private void setSelection(JComboBox comboBox, String[] values, String value ) {
+	private void setSelection(JComboBox<String> comboBox, String[] values, String value ) {
 		int i=0;
 		for (String rate : values) {
 			if (rate.equalsIgnoreCase(value))
@@ -328,13 +328,13 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		
 	}
 	
-	private JComboBox addComboBoxRow(JPanel parent, String name, String tip, String[] values) {
+	private JComboBox<String> addComboBoxRow(JPanel parent, String name, String tip, String[] values) {
 		JPanel row = new JPanel();
 		row.setLayout(new GridLayout(1,2,5,5));
 
 		//row.setLayout(new FlowLayout(FlowLayout.LEFT));
 		JLabel lbl = new JLabel(name);
-		JComboBox checkBox = new JComboBox(values);
+		JComboBox<String> checkBox = new JComboBox<String>(values);
 		checkBox.setEnabled(true);
 		checkBox.addItemListener(this);
 		checkBox.setToolTipText(tip);

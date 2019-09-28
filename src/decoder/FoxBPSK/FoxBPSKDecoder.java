@@ -10,7 +10,6 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
-import common.Spacecraft;
 import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.SourceAudio;
@@ -170,7 +169,6 @@ public class FoxBPSKDecoder extends Decoder {
 		}
 	}
 
-	private Frame decodedFrame = null;
 	protected void processPossibleFrame(ArrayList<Frame> frames) {
 
 		FoxSpacecraft sat = null;

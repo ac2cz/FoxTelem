@@ -4,7 +4,6 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
-import telemetry.FramePart;
 import telemetry.Header;
 
 public class FoxBPSKHeader extends Header {

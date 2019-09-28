@@ -140,6 +140,7 @@ public class SatelliteManager implements Runnable {
 								try {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
+										@SuppressWarnings("unused")
 										FoxSpacecraft satellite = new FoxSpacecraft(targetFile);
 									} catch (LayoutLoadException e) {
 										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
