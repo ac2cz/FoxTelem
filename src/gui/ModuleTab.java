@@ -463,6 +463,12 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		}
 	
 	}
+	
+	@Override
+	public void stopProcessing() {
+		closeGraphs();
+		super.stopProcessing();
+	}
 
 	
 	public void closeGraphs() {

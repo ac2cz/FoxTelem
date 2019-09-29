@@ -121,6 +121,12 @@ ItemListener {
 			passes.showGraphs();
 
 	}
+	
+	@Override
+	public void stopProcessing() {
+		closeGraphs();
+		super.stopProcessing();
+	}
 
 	public void openGraphs() {
 		if (satellite != null)
