@@ -87,9 +87,14 @@ public class PayloadRadExpData extends FoxFramePart {
 	 * @return
 	 */
 	public boolean isTelemetry() {
+		if (id == Spacecraft.FOX1A || id == Spacecraft.FOX1C) {
+			for (int i=21; i < 25; i++)
+				if (fieldValue[i] != 0) return false;
+		}
+
 		return true;
 	}
-	
+
 	/**
 	 * We have two peculiarities for the Fox-1E radiation telemetry.  The VUC telemetry is the first 10 bytes, as it is for the other
 	 * spacecraft.  The next ten to sixteen bytes are then the telemetry for the active experiment.  It is not in chunks like Fox-1B.

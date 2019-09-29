@@ -46,7 +46,7 @@ import telemetry.uw.CanPacket;
 public class SatPayloadTable {
 
 	public static final int MAX_DATA_LENGTH = 62;
-	public static final int MAX_SEGMENT_SIZE = 10;
+	public static final int MAX_SEGMENT_SIZE = 1000;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
 	private String fileName; // this is the path and filename for this table
@@ -560,8 +560,10 @@ public class SatPayloadTable {
 			updated = true;
 			if (seg.records == MAX_SEGMENT_SIZE) {
 				// We need to add a new segment with this as the first record
-				seg = new TableSeg(f.resets, f.uptime, baseFileName);
-				tableIdx.add(seg);
+				TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);
+				boolean added = tableIdx.add(newseg);
+				if (added) // fails to add if reset/uptime has not changed, e.g. if all records from the same highspeed record.  Only issue in testing if segments very short
+					seg = newseg; 
 			}
 			save(f, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
 			seg.records++;
