@@ -487,17 +487,26 @@ public class SatPayloadStore {
 		
 	}
 	*/
-	
+
 	public void offloadSegments() {
+		while (deleteLock)
+			try {
+				Thread.sleep(10); // wait
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+
 		for (int i=0; i<fox.numberOfLayouts; i++)
 			records[i].offloadSegments();
 	}
 
+	boolean deleteLock = false;
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
 	 */
 	public void deleteAll() {
-
+		deleteLock = true;
 		try {
 			for (int i=0; i<fox.numberOfLayouts; i++)
 				records[i].remove();
@@ -509,7 +518,7 @@ public class SatPayloadStore {
 					"Error Deleting Payload Files for FoxId:"+foxId+", check permissions",
 					JOptionPane.ERROR_MESSAGE) ;
 		}
-
+		deleteLock = false;
 	}
 	
 	/**

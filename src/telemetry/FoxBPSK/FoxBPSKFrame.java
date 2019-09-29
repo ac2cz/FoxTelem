@@ -341,6 +341,7 @@ import telemetry.PayloadWODUwExperiment;
 					} else
 						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
 							return false;
+					payload[i].rawBits = null; // free memory associated with the bits
 				}
 			}
 			return true;			

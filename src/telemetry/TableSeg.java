@@ -1,5 +1,7 @@
 package telemetry;
 
+import common.Config;
+
 /**
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz
@@ -29,7 +31,7 @@ public class TableSeg implements Comparable<TableSeg> {
 	private boolean loaded = false;
 	String fileName;
 	long lastAccess;
-	private static final int STALE_PERIOD = 60*1000; // Keep the stale period short. In milliseconds
+	//private static final int STALE_PERIOD = 60*1000; // Keep the stale period short. In milliseconds
 	
 	/**
 	 * Create a new segment and give it a filename
@@ -72,7 +74,7 @@ public class TableSeg implements Comparable<TableSeg> {
 		if (loaded) {
 			long now = System.nanoTime()/1000000;
 			long elapsed = now - lastAccess;
-			if (elapsed > STALE_PERIOD)
+			if (elapsed > Config.timeUntilTableSegOffloaded)
 				return true;
 		}
 		return false;

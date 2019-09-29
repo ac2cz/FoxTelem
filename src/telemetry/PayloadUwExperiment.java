@@ -152,6 +152,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 				p.newMode = newMode;
 			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 				return false;
+			p.rawBits = null; // free up the bit array
 		}
 		if (splitPackets != null && splitPackets.size() > 0) {
 			j = 0;
@@ -164,6 +165,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 					p.newMode = newMode;
 				if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
 					return false;
+				p.rawBits = null; // free up the bit array
 			}
 		}
 

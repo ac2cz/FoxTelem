@@ -46,7 +46,7 @@ import telemetry.uw.CanPacket;
 public class SatPayloadTable {
 
 	public static final int MAX_DATA_LENGTH = 62;
-	public static final int MAX_SEGMENT_SIZE = 1000;
+	public static final int MAX_SEGMENT_SIZE = 10;
 	private SortedArrayList<TableSeg> tableIdx; // The map of data on disk and the parts of it that are loaded
 	private static final int INITIAL_SIZE = 2; // inital number of table parts
 	private String fileName; // this is the path and filename for this table
@@ -516,6 +516,11 @@ public class SatPayloadTable {
 			rtRecords.trimToSize(); // now try to reclaim the space
 	}
 	
+	/**
+	 * Offload this segment.  Assume that sement on disk and a continuous run of records in memory are
+	 * the same.  This may not be exact in some edge cases, so we may leave a record or two in memory.
+	 * @param seg
+	 */
 	private void offloadSeg(TableSeg seg) {
 		if (rtRecords == null || rtRecords.size() == 0) return;
 		if (Config.debugSegs) Log.println("Offloaded SEG: " + seg.toString());
@@ -523,11 +528,14 @@ public class SatPayloadTable {
 		int removed = 0;
 		seg.setLoaded(false);
 		for (int i=0; i<rtRecords.size();i++) {
-			FramePart f = rtRecords.get(i);
-			if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
-				// we have the first record, so we offload them
-				foundStart = true;
+			if (!foundStart) {
+				FramePart f = rtRecords.get(i);
+				if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
+					// we have the first record, so we offload them
+					foundStart = true;
+				}
 			}
+			// Now if we found start we can remove the record and subsequent ones
 			if (foundStart) {
 				rtRecords.remove(i);
 				removed++;
