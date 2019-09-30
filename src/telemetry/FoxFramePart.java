@@ -727,10 +727,10 @@ longer send telemetry.
 			vRef = vRef/2;
 			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(vRef,3);
+				return "Gyro2V (V): " + GraphPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2V (dps): " + GraphPanel.roundToSignificantFigures(vRef,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (V): " + GraphPanel.roundToSignificantFigures(vRef,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		case IHU_SW_VERSION: // Version of the software on the IHU
 			int swType = (rawValue >> 8) & 0xff;
