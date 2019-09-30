@@ -49,6 +49,10 @@ public class SlowSpeedFrame extends Frame {
 	
 	public SlowSpeedFrame(BufferedReader input) throws IOException {
 		super(input);
+		header = new SlowSpeedHeader();
+		bytes = new byte[SlowSpeedFrame.MAX_HEADER_SIZE
+							+ SlowSpeedFrame.MAX_PAYLOAD_SIZE
+							+ SlowSpeedFrame.MAX_TRAILER_SIZE];
 		load(input);
 	}
 	

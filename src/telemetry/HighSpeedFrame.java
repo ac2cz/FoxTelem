@@ -77,6 +77,10 @@ public class HighSpeedFrame extends Frame {
 
 	public HighSpeedFrame(BufferedReader input) throws IOException {
 		super(input);
+		header = new HighSpeedHeader();
+		bytes = new byte[HighSpeedFrame.MAX_HEADER_SIZE
+							+ HighSpeedFrame.MAX_PAYLOAD_SIZE
+							+ HighSpeedFrame.MAX_TRAILER_SIZE];
 		load(input);
 	}
 	

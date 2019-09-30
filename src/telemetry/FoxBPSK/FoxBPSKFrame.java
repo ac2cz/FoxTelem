@@ -61,6 +61,7 @@ import telemetry.PayloadWODUwExperiment;
 
 		public FoxBPSKFrame(BufferedReader input) throws IOException {
 			super(input);
+			header = new FoxBPSKHeader();
 			load(input);
 		}
 		
