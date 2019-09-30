@@ -1393,10 +1393,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			auto.setEnabled(false);
 			if (auto.isSelected()) { 
 				lowSpeed.setSelected(true);
-				highSpeed.setSelected(false);
-				pskCostas.setSelected(false);
-				pskDotProd.setSelected(false);
-				//Config.autoDecodeSpeed = false;
+				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
+				autoViewpanel.setVisible(false);
 			}
 		} else if (position >= this.soundcardSources.length) { // then this is a USB device IQ
 			btnStartButton.setEnabled(true);
