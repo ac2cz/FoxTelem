@@ -17,8 +17,10 @@ import java.sql.Statement;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
 
@@ -33,9 +35,10 @@ public class StreamProcess implements Runnable {
 	public static final int REFRESH_PERIOD = 1000; // Check every second
 	public static final String GUEST = "guest";
 	public static final String GUEST_PASSWORD = "amsat";
-	public static final int TIMEOUT_CONNECTION = 5000; // 5s timeout while connected
+	public static final int TIMEOUT_CONNECTION = 5*1000; // 5s timeout while connected
 	
-	//PayloadDbStore payloadStoreX;
+	static HashSet<String> connectedUsers = new HashSet<String>(); // the list of users logged in right now
+	
 	String u;
 	String p;
 	String db;
@@ -65,11 +68,11 @@ public class StreamProcess implements Runnable {
 
 			/*  REQUIRE username and password. */
 			String username = input.readLine();
-			Log.println("Username: " + username);
+			//Log.println("Username: " + username);
 			String password = input.readLine();
-			Log.println("Pass: <***>"); 
+			//Log.println("Pass: <***>"); 
 			String spacecraft_id = input.readLine();
-			Log.println("Id: " + spacecraft_id); // Ask for ID, but only 6 valid currently
+			//Log.println("Id: " + spacecraft_id); // Ask for ID, but only 6 valid currently
 
 			int id = 0;
 			try {
@@ -83,19 +86,28 @@ public class StreamProcess implements Runnable {
 				return;
 			}
 			out = socket.getOutputStream();
+			
+			if (connectedUsers.contains(username)) {
+				Log.println(username + " already logged in: Connection closed");
+				username = null;
+			}
 
-			if (username != null && password != null && spacecraft_id != null)
+			if (username != null && password != null && spacecraft_id != null) {
+				connectedUsers.add(username);
 				try {
 					streamTelemetry(username, password, id, out);
 				} catch (SQLException e) {
 					Log.println("ERROR: with SQL TRANS" + e.getMessage());
 					e.printStackTrace(Log.getWriter());
 				}
+			}
 
 			in.close();
 			out.close();
 			socket.close();
-			Log.println("Connection closed to: " + socket.getInetAddress());
+			if (username != null)
+				connectedUsers.remove(username);
+			Log.println("Connection closed to: " + username +" " + socket.getInetAddress());
 
 		} catch (SocketException e) {
 			Log.println("SOCKET EXCEPTION: " + e.getMessage());
@@ -121,6 +133,8 @@ public class StreamProcess implements Runnable {
 			if (!validLogin(payloadDbStore, user, pass)) {
 				Log.println("Invalid Login for streaming: Connection closed");
 				return;
+			} else {
+				Log.println("Logged in for streaming: " + u);
 			}
 			CanPacket lastCan = (CanPacket) payloadDbStore.getLatestUwCanPacket(sat);
 			int lastPktId;
@@ -140,8 +154,8 @@ public class StreamProcess implements Runnable {
 				
 				String where = "where pkt_id > '" + lastPktId + "'";
 				
-				//payloadDbStore.derby.setAutoCommit(false); // use a transaction to make sure packets are not written with the same timestamp, but after we query
-				SortedFramePartArrayList canPacketsList = payloadDbStore.selectCanPackets(sat, where);
+				payloadDbStore.derby.setAutoCommit(false); // use a transaction to make sure packets are not written with the same timestamp, but after we query
+				ArrayList<FramePart> canPacketsList = payloadDbStore.selectCanPackets(sat, where);
 				int prevPktId = lastPktId;
 				int count=0;
 				for (FramePart can : canPacketsList) {
@@ -163,7 +177,7 @@ public class StreamProcess implements Runnable {
 						lastPktId = lastCan.pkt_id;
 						if (!user.equalsIgnoreCase(GUEST))
 							payloadDbStore.storeLastCanId(sat, user, lastPktId);
-						//Log.println("lastCan =: " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan );
+						//Log.println(user + "=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );
 					} catch (IOException e) {
 						// Client likely disconnected
 						streaming = false;
@@ -175,9 +189,9 @@ public class StreamProcess implements Runnable {
 					} 
 				}
 				if (count > 0) {
-					Log.println("Sent: " + count + " CAN packets to: " + socket.getInetAddress() );
-				}
-				//payloadDbStore.derby.commit();
+					Log.println("Sent: " + user + " " + count + " CAN packets to: " + socket.getInetAddress() );
+				} 
+				payloadDbStore.derby.commit();
 				
 				if (streaming) {
 					try {

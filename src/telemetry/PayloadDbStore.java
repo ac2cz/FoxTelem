@@ -580,7 +580,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	public SortedFramePartArrayList selectCanPackets(int id, String where) {
+	public ArrayList<FramePart> selectCanPackets(int id, String where) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.selectCanPackets(where);

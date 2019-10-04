@@ -72,6 +72,8 @@ public class SatPayloadDbStore {
 	public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
 	public static String UW_CAN_PACKET_LOG = "UW_CAN_PACKET";
 	public static String UW_CAN_PACKET_TIMESTAMP = "UW_CAN_PACKET_TIMESTAMP";
+	public static String CAN_LOG = "CANTELEMETRY";
+	public static String WOD_CAN_LOG = "WODCANTELEMETRY";
 	
 	public String rtTableName;
 	public String maxTableName;
@@ -151,6 +153,7 @@ public class SatPayloadDbStore {
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
 		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);
 		if (fox.getLayoutIdxByName(Spacecraft.CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
+			radTableName = "Fox"+foxId+CAN_LOG;
 			initPayloadTable(radTableName, fox.getLayoutByName(Spacecraft.CAN_LAYOUT), storeMode);
 			initCanPacketTable(storeMode);
 			initCanTimestampTable();
@@ -172,6 +175,7 @@ public class SatPayloadDbStore {
 			initPayloadTable(wodRadTelemTableName, fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT), storeMode);
 		}
 		if (fox.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
+			wodRadTableName = "Fox"+foxId+WOD_CAN_LOG;
 			initPayloadTable(wodRadTableName, fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT), storeMode);
 		}
 	}
@@ -768,12 +772,12 @@ public class SatPayloadDbStore {
 		return null;
 	}
 	
-	SortedFramePartArrayList selectCanPackets(String where) {
+	ArrayList<FramePart> selectCanPackets(String where) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
 		update = update + uwCanPacketTableName + " " + where + " ORDER BY pkt_id";
 		ResultSet r = null;
-		SortedFramePartArrayList frameParts = new SortedFramePartArrayList(60);
+		ArrayList<FramePart> frameParts = new ArrayList<FramePart>(60);
 
 		try {
 			Connection derby = payloadDbStore.getConnection();
