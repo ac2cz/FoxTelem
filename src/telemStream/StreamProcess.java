@@ -180,15 +180,6 @@ public class StreamProcess implements Runnable {
 					try {
 						out.write(bytes);  // This does not fail if the socket closed.  It fails on the write after that!
 						out.flush();
-						String resp = in.readLine(); // listen for ACK or fail
-						Log.print(user + ": " + resp + " ");
-						count++;
-						lastCan = (CanPacket)can; // make a note each time we send one
-						prevPktId = lastPktId;
-						lastPktId = lastCan.pkt_id;
-						if (!user.equalsIgnoreCase(GUEST))
-							payloadDbStore.storeLastCanId(sat, user, lastPktId);
-						Log.println("=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );
 					} catch (IOException e) {
 						// Client likely disconnected or was kicked out
 						streaming = false;
@@ -196,6 +187,27 @@ public class StreamProcess implements Runnable {
 						lastPktId = prevPktId;
 						if (!user.equalsIgnoreCase(GUEST))
 							payloadDbStore.storeLastCanId(sat, user, lastPktId);
+						break;
+					} 
+					try {
+						String resp = in.readLine(); // listen for ACK.   But this times out as soon as socket disconnected
+						Log.print(user + ": " + resp + " ");
+						if (resp != null && resp.equalsIgnoreCase("ACK")) {
+							count++;
+							lastCan = (CanPacket)can; // make a note each time we send one
+							prevPktId = lastPktId;
+							lastPktId = lastCan.pkt_id;
+							if (!user.equalsIgnoreCase(GUEST))
+								payloadDbStore.storeLastCanId(sat, user, lastPktId);
+							Log.println("=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );							
+						} else {
+							// something went wrong and we got a different response
+							// We likely need to send this data again.  Drop out of the loop but don't mark this as sent
+							break;
+						}
+					} catch (IOException e) {
+						// Client likely disconnected or was kicked out
+						streaming = false;
 						break;
 					} 
 				}
