@@ -388,18 +388,18 @@ public class FoxSpacecraft extends Spacecraft{
 			String mems_x = getOptionalProperty("memsRestValueX");
 			if (mems_x != null) {
 				user_memsRestValueX = Integer.parseInt(mems_x);
-				hasMemsRestValues = true;
-			} else hasMemsRestValues = false;
+			} 
 			String mems_y = getOptionalProperty("memsRestValueY");
 			if (mems_y != null) {
 				user_memsRestValueY = Integer.parseInt(mems_y);
-				hasMemsRestValues = true;
-			} else hasMemsRestValues = false;
+			} 
 			String mems_z = getOptionalProperty("memsRestValueZ");
 			if (mems_z != null) {
 				user_memsRestValueZ = Integer.parseInt(mems_z);
+			} 
+			if (user_memsRestValueX != 0 && user_memsRestValueY != 0 & user_memsRestValueZ != 0)
 				hasMemsRestValues = true;
-			} else hasMemsRestValues = false;
+
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
@@ -429,18 +429,17 @@ public class FoxSpacecraft extends Spacecraft{
 			String mems_x = getOptionalUserProperty("memsRestValueX");
 			if (mems_x != null) {
 				user_memsRestValueX = Integer.parseInt(mems_x);
-				hasMemsRestValues = true;
-			} else hasMemsRestValues = false;
+			}
 			String mems_y = getOptionalUserProperty("memsRestValueY");
 			if (mems_y != null) {
 				user_memsRestValueY = Integer.parseInt(mems_y);
-				hasMemsRestValues = true;
-			} else hasMemsRestValues = false;
+			}
 			String mems_z = getOptionalUserProperty("memsRestValueZ");
 			if (mems_z != null) {
 				user_memsRestValueZ = Integer.parseInt(mems_z);
+			}
+			if (user_memsRestValueX != 0 && user_memsRestValueY != 0 & user_memsRestValueZ != 0)
 				hasMemsRestValues = true;
-			} else hasMemsRestValues = false;
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt FOX data found when loading Spacecraft file: " + propertiesFile.getAbsolutePath() );
