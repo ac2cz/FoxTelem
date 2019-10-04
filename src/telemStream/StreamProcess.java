@@ -20,6 +20,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -37,7 +38,7 @@ public class StreamProcess implements Runnable {
 	public static final String GUEST_PASSWORD = "amsat";
 	public static final int TIMEOUT_CONNECTION = 5*1000; // 5s timeout while connected
 	
-	static HashSet<String> connectedUsers = new HashSet<String>(); // the list of users logged in right now
+	static HashMap<String, Boolean> connectedUsers = new HashMap<String, Boolean>(); // the list of users logged in right now
 	
 	String u;
 	String p;
@@ -87,15 +88,18 @@ public class StreamProcess implements Runnable {
 			}
 			out = socket.getOutputStream();
 			
-			if (connectedUsers.contains(username)) {
-				Log.println(username + " already logged in: Connection closed");
-				username = null;
-			}
-
 			if (username != null && password != null && spacecraft_id != null) {
-				connectedUsers.add(username);
+				if (connectedUsers.containsKey(username)) {
+					Log.println(username + " already logged in: Connection being closed");
+					connectedUsers.put(username, false); // set to false, which will log out the existing users
+				} else
+					connectedUsers.put(username, true);
 				try {
-					streamTelemetry(username, password, id, out);
+					while (connectedUsers.get(username) != null && connectedUsers.get(username) == false)
+						; // wait until the other account is logged out
+					if (connectedUsers.get(username) == null)
+						connectedUsers.put(username, true);
+					streamTelemetry(username, password, id, out, input);
 				} catch (SQLException e) {
 					Log.println("ERROR: with SQL TRANS" + e.getMessage());
 					e.printStackTrace(Log.getWriter());
@@ -105,8 +109,12 @@ public class StreamProcess implements Runnable {
 			in.close();
 			out.close();
 			socket.close();
-			if (username != null)
-				connectedUsers.remove(username);
+			if (username != null) {
+				if (connectedUsers.get(username) == false) // we were logged out, so do not remove
+					connectedUsers.put(username, true);
+				else
+					connectedUsers.remove(username);
+			}
 			Log.println("Connection closed to: " + username +" " + socket.getInetAddress());
 
 		} catch (SocketException e) {
@@ -123,7 +131,7 @@ public class StreamProcess implements Runnable {
 	public static final DateFormat dateFormat = new SimpleDateFormat(
 			"yyyyMMddHHmmss", Locale.ENGLISH);
 	
-	private void streamTelemetry(String user, String pass, int sat, OutputStream out) throws SQLException  {
+	private void streamTelemetry(String user, String pass, int sat, OutputStream out, BufferedReader in) throws SQLException  {
 		boolean streaming=true;
 
 		PayloadDbStore payloadDbStore = null;
@@ -168,18 +176,21 @@ public class StreamProcess implements Runnable {
 					}
 					PcanPacket pc = ((CanPacket)can).getPCanPacket(captureDate);
 					byte[] bytes = pc.getBytes();
+					if (connectedUsers.get(user) != null && connectedUsers.get(user) == true) 
 					try {
 						out.write(bytes);  // This does not fail if the socket closed.  It fails on the write after that!
 						out.flush();
+						String resp = in.readLine(); // listen for ACK or fail
+						Log.print(user + ": " + resp + " ");
 						count++;
 						lastCan = (CanPacket)can; // make a note each time we send one
 						prevPktId = lastPktId;
 						lastPktId = lastCan.pkt_id;
 						if (!user.equalsIgnoreCase(GUEST))
 							payloadDbStore.storeLastCanId(sat, user, lastPktId);
-						//Log.println(user + "=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );
+						Log.println("=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );
 					} catch (IOException e) {
-						// Client likely disconnected
+						// Client likely disconnected or was kicked out
 						streaming = false;
 						if (count > 0) count = count -1;
 						lastPktId = prevPktId;
@@ -193,6 +204,10 @@ public class StreamProcess implements Runnable {
 				} 
 				payloadDbStore.derby.commit();
 				
+				if (connectedUsers.get(user) == null || connectedUsers.get(user) == false) {
+					streaming = false; // we have been logged out
+					Log.println(user + " kicked out..");
+				}
 				if (streaming) {
 					try {
 						Thread.sleep(REFRESH_PERIOD);
