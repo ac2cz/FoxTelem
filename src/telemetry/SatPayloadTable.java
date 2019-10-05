@@ -166,7 +166,9 @@ public class SatPayloadTable {
 	 */
 	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
+		deleteLock = true;
 		loadSegments(fromReset, fromUptime, period, reverse);
+		
 		int start = 0;
 		int end = 0;
 		
@@ -214,7 +216,7 @@ public class SatPayloadTable {
 			for (int k=0; k<results[r].length; k++)
 				resultSet[r][k+offset] = ""+results[r][k];
 		}
-		
+		deleteLock = false;
 		return resultSet;
 	}
 	
@@ -231,6 +233,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+		deleteLock = true;
 		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
 		int end = 0;
@@ -285,6 +288,7 @@ public class SatPayloadTable {
 			resultSet[PayloadStore.LON_COL] = lon;
 			
 		}
+		deleteLock = false;
 		return resultSet;
 	}
 		
@@ -341,6 +345,7 @@ public class SatPayloadTable {
 	 * @throws IOException
 	 */
 	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
+		deleteLock = true;
 		int fromSeg = findFirstSeg(reset, uptime);
 		int toSeg = findFirstSeg(toReset, toUptime);
 		int number = 0;
@@ -359,7 +364,7 @@ public class SatPayloadTable {
 		int end = rtRecords.getNearestFrameIndex(id, toUptime, toReset);
 		if (start < end)
 			number = end - start;
-
+		deleteLock = false;
 		return number;
 	}
 	
@@ -466,6 +471,7 @@ public class SatPayloadTable {
 	 * @throws IOException
 	 */
 	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
+		deleteLock = true;
 		int total = 0;
 		if (reverse) {
 			// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
@@ -502,9 +508,19 @@ public class SatPayloadTable {
 					if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 				}
 		}
+		deleteLock = false;
 	}
 	
+	boolean deleteLock = false;
+	
 	public void offloadSegments() {
+		while (deleteLock)
+			try {
+				Thread.sleep(10); // wait
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		boolean resized = false;
 		for (TableSeg seg : tableIdx) {
 			if (seg.isStale()) {
