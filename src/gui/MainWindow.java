@@ -813,20 +813,25 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos.getChannel().transferFrom(rbc, 0, Long.MAX_VALUE);
 			fos.close();
 		} catch (FileNotFoundException e) {
-			// The file was not found on the server.  This is probablly because there was no data for this spacecraft or we have the URL wrong.
-			Log.errorDialog("ERROR", "File not available for download: " + urlString + "\nCheck that the internet connection is working to the site\n" +
+			// The file was not found on the server.  This is probably because there was no data for this spacecraft or we have the URL wrong.
+			Log.errorDialog("ERROR", "File not downloaded successfully from: " + urlString 
+					+ "\nCheck that the internet connection is working to the site.  Check the download destination is valid\n\n" +
 					e);
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
 			return;
 		} catch (MalformedURLException e) {
-			Log.errorDialog("ERROR", "ERROR can't access the server data at: " + urlString );
+			Log.errorDialog("ERROR", "ERROR can't access the server data.  Is the URL correct?  Tried downloading from: " 
+					+ urlString
+					+ "\n\n" + e);
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
 			return;
 		} catch (IOException e) {
-			Log.errorDialog("ERROR", "ERROR reading/writing the server data from server: " + file  + "\n+"
-					+ e.getMessage() );
+			Log.errorDialog("ERROR", "ERROR reading from the server or writing to the file on disk.\n"
+					+ "Check the local disk is writable for:\n" + file  + "\n"
+					+ "and this server URL is correct:\n" + urlString + "\n\n"
+					+ e );
 			e.printStackTrace(Log.getWriter());
 			fileProgress.updateProgress(100);
 			return;
@@ -848,14 +853,15 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			try {
 				archiver.extract(archive, destination);
 			} catch (IOException e) {
-				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-						+ e.getMessage() );
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\nCheck if the download URL is correct.\n\n"
+						+ e );
 				e.printStackTrace(Log.getWriter());
 				decompressProgress.updateProgress(100);
 				return;
 			} catch (IllegalArgumentException e) {
-				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\n+"
-						+ e.getMessage() );
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\nThe compression program could not "
+						+ "process the file.  Perhaps the filename is invalid?\n\n"
+						+ e );
 				e.printStackTrace(Log.getWriter());
 				decompressProgress.updateProgress(100);
 				return;

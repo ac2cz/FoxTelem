@@ -20,7 +20,6 @@ import telemServer.ServerConfig;
 import telemServer.StpFileProcessException;
 import telemServer.StpFileRsDecodeException;
 import telemetry.FoxBPSK.FoxBPSKFrame;
-import telemetry.FoxBPSK.FoxBPSKHeader;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import common.Config;
