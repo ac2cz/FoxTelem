@@ -74,13 +74,16 @@ public class SatelliteManager implements Runnable {
 		File masterFolder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
 		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
-		loadSats(folder);
+		loadSats(masterFolder, folder);
 	}
 	
 	/**
 	 * We check to see if we already have .dat files in the local directory.  If we have none, then we ask if each should be installed from the MASTER
 	 * installation folder.  If we already have some then the timestamps on those files are checked and the user is warned if there are newer files
 	 * in the spacecraft folder.  This would typically only be the case the first time FoxTelem is run after a new installation.
+	 * 
+	 * The MASTER file is not copied in full, only the user settings are copied.  To do this we load the requested master file and then
+	 * save the .dat file.
 	 * 
 	 * @param masterFolder
 	 * @param folder
@@ -115,7 +118,15 @@ public class SatelliteManager implements Runnable {
 							if (n == JOptionPane.YES_OPTION) {
 								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
 								try {
-									SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+									//SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+									// Temporarily try to load this to init the user paramaters if they have not already been copied over
+									try {
+										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										satellite.save();
+									} catch (LayoutLoadException e) {
+										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+										e.printStackTrace(Log.getWriter()); // but log if user has that enabled
+									}
 								} catch (IOException e) {
 									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
 									e.printStackTrace();
@@ -140,13 +151,14 @@ public class SatelliteManager implements Runnable {
 								try {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										@SuppressWarnings("unused")
-										FoxSpacecraft satellite = new FoxSpacecraft(targetFile);
+										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										satellite.save();
 									} catch (LayoutLoadException e) {
 										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
 										e.printStackTrace(Log.getWriter()); // but log if user has that enabled
 									}
-									SatPayloadStore.copyFile(listOfFiles[i], targetFile);
+									
+									//SatPayloadStore.copyFile(listOfFiles[i], targetFile);
 								} catch (IOException e) {
 									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
 									e.printStackTrace();
@@ -185,21 +197,24 @@ public class SatelliteManager implements Runnable {
 		return folder;
 	}
 	
-	private void loadSats(File folder) {
+	private void loadSats(File masterFolder, File folder) {
 		File[] listOfFiles = folder.listFiles();
 		Pattern pattern = Pattern.compile("AO-73");
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
 				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".dat")) {
 					Log.println("Loading spacecraft from: " + listOfFiles[i].getName());
+					String masterFile = listOfFiles[i].getName().replace(".dat", ".MASTER");
+					File masterFileName = new File(masterFolder.getAbsolutePath() + File.separator + masterFile);
 					Spacecraft satellite = null;
 					try {
 						//FIXME - HACK FOR FCUBE
 						Matcher matcher = pattern.matcher(listOfFiles[i].getName());
 						if (matcher.find())
-							satellite = new FUNcubeSpacecraft(listOfFiles[i]);
+							satellite = new FUNcubeSpacecraft(masterFileName, listOfFiles[i]);
 						else
-							satellite = new FoxSpacecraft(listOfFiles[i]);
+							satellite = new FoxSpacecraft(masterFileName, listOfFiles[i]);
+						// Debug print for frame layouts
 //						int frameLayouts = satellite.numberOfFrameLayouts;
 //						if (frameLayouts > 0) {
 //							Log.println("Frame Layouts: " + frameLayouts);
@@ -211,11 +226,19 @@ public class SatelliteManager implements Runnable {
 //						}
 						
 					} catch (FileNotFoundException e) {
-						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
+						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() 
+								+ "\n\nIf this is an old Enginnering Model file that ends in _em, then try "
+								+ "removing it from the spacecrat menu\n"
+								+ "(even though it will not be shown in the list) and then re-add the Flight Model.\n"
+								+ "This satellite will not be loaded");
 						e.printStackTrace(Log.getWriter());
 						satellite = null;
 					} catch (LayoutLoadException e) {
-						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() + "\nThis satellite will not be loaded");
+						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() 
+								+ "\n\nIf this is an old Enginnering Model file that ends in _em, then try "
+								+ "removing it from the spacecrat menu\n"
+								+ "(even though it will not be shown in the list) and then re-add the Flight Model.\n"
+								+ "This satellite will not be loaded");
 						e.printStackTrace(Log.getWriter());
 						satellite = null;
 					} catch (IOException e) {

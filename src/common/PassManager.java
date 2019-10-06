@@ -706,17 +706,17 @@ public class PassManager implements Runnable {
 												MainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
 											}
 											// If the mode is wrong we should switch modes
-											if (Config.mode != sat.mode) {
+											if (Config.mode != sat.user_mode) {
 												// Except if in Auto and Sat mode is DUV or HS
 												//if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
 													//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
 													//	Config.autoDecodeSpeed = false;
 													if (SourceTab.STARTED)
 														MainWindow.inputTab.processStartButtonClick();
-													Config.mode = sat.mode;
+													Config.mode = sat.user_mode;
 													MainWindow.inputTab.setupMode();
-													if (Config.mode != sat.mode) // then user has an override, such as Use Costas, so remember that for this sat
-														sat.mode = Config.mode;
+													if (Config.mode != sat.user_mode) // then user has an override, such as Use Costas, so remember that for this sat
+														sat.user_mode = Config.mode;
 													MainWindow.inputTab.processStartButtonClick();
 												//}
 											}

@@ -123,7 +123,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public String description = "";
 	public int model;
 	public String canFileDir = "HuskySat";
-	public int mode = SourceIQ.MODE_FSK_DUV;
+	public int user_mode = SourceIQ.MODE_FSK_DUV;
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
@@ -178,12 +178,20 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
             "2 40967 064.7791 061.1881 0209866 223.3946 135.0462 14.74939952014747"};
 	*/
 	
-	public Spacecraft(File fileName ) throws LayoutLoadException, IOException {
+	/**
+	 * Initialize the spacecraft settings
+	 * 
+	 * @param masterFileName
+	 * @param userFileName
+	 * @throws LayoutLoadException
+	 * @throws IOException
+	 */
+	public Spacecraft(File masterFileName, File userFileName ) throws LayoutLoadException, IOException {
 		properties = new Properties();
-		propertiesFile = fileName;	
+		propertiesFile = masterFileName;	
 		user_properties = new Properties();
-		String userFileName = fileName.getAbsolutePath().replaceAll(".dat", ".user");
-		userPropertiesFile = new File(userFileName);	
+//		String userFileName = fileName.getAbsolutePath().replaceAll(".dat", ".user");
+		userPropertiesFile = userFileName;	
 		tleList = new SortedTleList(10);
 	}
 	
@@ -395,7 +403,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			f.close();
 		} catch (IOException e) {
 			if (f!=null) try { f.close(); } catch (Exception e1) {};
-			throw new LayoutLoadException("Could not load spacecraft files: " + propertiesFile.getAbsolutePath());
+			throw new LayoutLoadException("Could not load spacecraft.  File is missing: " + propertiesFile.getAbsolutePath());
 			
 		}
 		try {
@@ -405,7 +413,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			user_display_name = getProperty("displayName");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
-			mode = Integer.parseInt(getProperty("mode"));
+			user_mode = Integer.parseInt(getProperty("user_mode"));
 			user_telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
 			user_minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
@@ -518,6 +526,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		}
 		try {
 			user_keps_name = getUserProperty("name");
+			user_mode = Integer.parseInt(getUserProperty("user_mode"));
+
 			user_telemetryDownlinkFreqkHz = Double.parseDouble(getUserProperty("telemetryDownlinkFreqkHz"));			
 			user_minFreqBoundkHz = Double.parseDouble(getUserProperty("minFreqBoundkHz"));
 			user_maxFreqBoundkHz = Double.parseDouble(getUserProperty("maxFreqBoundkHz"));
@@ -640,15 +650,17 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 //			e1.printStackTrace(Log.getWriter());
 //		}
 //	}
-	protected void save() {
-		
-		properties.setProperty("foxId", Integer.toString(foxId));
-		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
-		properties.setProperty("description", description);
-		properties.setProperty("model", Integer.toString(model));
-		properties.setProperty("mode", Integer.toString(mode));
-		
-	}
+	
+	abstract protected void save();
+//	{
+//		
+//		properties.setProperty("foxId", Integer.toString(foxId));
+//		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
+//		properties.setProperty("description", description);
+//		properties.setProperty("model", Integer.toString(model));
+//		properties.setProperty("mode", Integer.toString(mode));
+//		
+//	}
 	
 	protected void store_user_params() {
 		FileOutputStream f = null;
@@ -675,6 +687,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
 		user_properties.setProperty("track", Boolean.toString(user_track));
+		user_properties.setProperty("user_mode", Integer.toString(user_mode));
 		
 		if (user_localServer != null) {
 			user_properties.setProperty("localServer",user_localServer);

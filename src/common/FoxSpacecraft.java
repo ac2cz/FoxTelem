@@ -129,8 +129,8 @@ public class FoxSpacecraft extends Spacecraft{
 	ArrayList<Long> timeZero = null;
 	SpacecraftPositionCache positionCache;
 	
-	public FoxSpacecraft(File fileName ) throws LayoutLoadException, IOException {
-		super(fileName);
+	public FoxSpacecraft(File masterFileName, File userFileName) throws LayoutLoadException, IOException {
+		super(masterFileName, userFileName);
 		load(); // don't call load until this constructor has started and the variables have been initialized
 		try {
 			loadTimeZeroSeries(null);

@@ -3,7 +3,7 @@
 #File named .dat should be in the logfiles directory and is loaded by FoxTelem
 #File named .MASTER should not be edited and is a backup copy in the installation directory
 useIHUVBatt=false
-mode=0
+user_mode=0
 mpptResistanceError=6.58
 memsRestValueX=2009
 memsRestValueY=2033

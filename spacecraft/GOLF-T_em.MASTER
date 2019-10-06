@@ -67,3 +67,4 @@ passMeasurementsFileName=passmeasurements.csv
 telemetryDownlinkFreqkHz=435800
 track=false
 useIHUVBatt=false
+user_mode=4

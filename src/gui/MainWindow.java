@@ -58,6 +58,7 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
+import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 
 import com.apple.eawt.Application;
@@ -1025,8 +1026,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			boolean refresh = false;
 			if (remove) {
 				int n = Log.optionYNdialog("Delete the spacecraft config file?",
-						file.getName() + "\n\nYou will be able to install the spacecraft again if you want, local settings such\n"
-								+ "as frequency ranges will be kept.  Stored telemetry will not be removed.  Delete for now?\n\n");
+						file.getName() + "\n\nYou will be able to install the spacecraft again if you want. Local settings such\n"
+								+ "as frequency ranges will be lost.  Stored telemetry will not be removed.  Delete for now?\n\n");
 				if (n == JOptionPane.NO_OPTION) {
 					refresh = false;
 				} else {
@@ -1049,17 +1050,32 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 				if (targetFile.exists()) {
 					int n = Log.optionYNdialog("Overwrite Existing spacecraft config file?",
-							targetFile.getName() + "\n\nThis spacecraft is already installed.  Overwrite it?\n\n");
+							targetFile.getName() + "\n\nThis spacecraft is already installed.  Overwrite it and reset to default settings?\n\n");
 
 					if (n == JOptionPane.NO_OPTION) {
 						copy = false;
 					} else {
 						copy = true;
+						try {
+							SatPayloadStore.remove(targetFile.getAbsolutePath());
+							refresh = true;
+						} catch (IOException e) {
+							Log.errorDialog("ERROR removing existing File", "\nCould not overwrite the existing spacecraft file\n"+e.getMessage());
+							e.printStackTrace(Log.getWriter());
+							copy = false;
+						}
 					}
 				}
 				if (copy) {
 					try {
-						SatPayloadStore.copyFile(file, targetFile);
+						//SatPayloadStore.copyFile(file, targetFile);
+						try {
+							FoxSpacecraft satellite = new FoxSpacecraft(file, targetFile);
+							satellite.save();
+						} catch (LayoutLoadException e) {
+							// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+							e.printStackTrace(Log.getWriter()); // but log if user has that enabled
+						}
 						refresh = true;
 					} catch (IOException e) {
 						Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());

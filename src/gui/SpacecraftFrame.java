@@ -249,7 +249,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		rightPanel1.setBorder(heading2);
 
 		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, Spacecraft.modes);
-		setSelection(cbMode, Spacecraft.modes, Spacecraft.modes[sat.mode]);
+		setSelection(cbMode, Spacecraft.modes, Spacecraft.modes[sat.user_mode]);
 				
 		telemetryDownlinkFreqkHz = addSettingsRow(rightPanel1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
@@ -453,7 +453,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					dispose = false;
 				}
 				int m = cbMode.getSelectedIndex();
-				sat.mode = m;
+				sat.user_mode = m;
 				//String md = (String) cbMode.getSelectedItem();
 				
 	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {

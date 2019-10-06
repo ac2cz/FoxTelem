@@ -30,8 +30,8 @@ public class FUNcubeSpacecraft extends Spacecraft {
 	//public BitArrayLayout highResLayout;
 	//public BitArrayLayout fitterLayout;
 		
-	public FUNcubeSpacecraft(File fileName) throws LayoutLoadException, IOException {
-		super(fileName);
+	public FUNcubeSpacecraft(File masterfileName, File fileName) throws LayoutLoadException, IOException {
+		super(masterfileName, fileName);
 		load();
 		
 		
@@ -59,7 +59,7 @@ public class FUNcubeSpacecraft extends Spacecraft {
 
 	@Override
 	protected void save() {
-		super.save();
+		//super.save();
 	}
 
 }
