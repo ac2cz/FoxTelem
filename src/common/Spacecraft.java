@@ -189,7 +189,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public Spacecraft(File masterFileName, File userFileName ) throws LayoutLoadException, IOException {
 		properties = new Properties();
 		propertiesFile = masterFileName;	
-		user_properties = new Properties();
+		
 //		String userFileName = fileName.getAbsolutePath().replaceAll(".dat", ".user");
 		userPropertiesFile = userFileName;	
 		tleList = new SortedTleList(10);
@@ -410,10 +410,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			foxId = Integer.parseInt(getProperty("foxId"));
 			catalogNumber = Integer.parseInt(getProperty("catalogNumber"));			
 			user_keps_name = getProperty("name");
-			user_display_name = getProperty("displayName");
 			description = getProperty("description");
 			model = Integer.parseInt(getProperty("model"));
-			user_mode = Integer.parseInt(getProperty("user_mode"));
 			user_telemetryDownlinkFreqkHz = Double.parseDouble(getProperty("telemetryDownlinkFreqkHz"));			
 			user_minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
@@ -497,6 +495,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				this.canFileDir = getProperty("canFileDir");
 				loadCanLayouts();
 			}
+			user_mode = Integer.parseInt(getProperty("user_mode"));
+			user_display_name = getProperty("displayName");
 
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
@@ -515,6 +515,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		FileInputStream f = null;
 		try {
 			f=new FileInputStream(userPropertiesFile);
+			user_properties = new Properties();
 			user_properties.load(f);
 			f.close();
 		} catch (IOException e) {
@@ -526,7 +527,6 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		}
 		try {
 			user_keps_name = getUserProperty("name");
-			user_mode = Integer.parseInt(getUserProperty("user_mode"));
 
 			user_telemetryDownlinkFreqkHz = Double.parseDouble(getUserProperty("telemetryDownlinkFreqkHz"));			
 			user_minFreqBoundkHz = Double.parseDouble(getUserProperty("minFreqBoundkHz"));
@@ -552,13 +552,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
+			user_mode = Integer.parseInt(getUserProperty("user_mode"));
 			user_display_name = getUserProperty("displayName");
 
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft user settings: " + userPropertiesFile.getAbsolutePath() );
 		} catch (LayoutLoadException L) {
-			Log.errorDialog("Initialization Error for User Properties", "For: "+user_keps_name+". If this is a new Spacecraft file then new values will be initialized.");
+			Log.infoDialog("Paramater Missing when loading User Spacecraft Properties", "For: "+user_keps_name+". If this is a new Spacecraft file or an upgrade then new values will be initialized.");
 			save_user_params();
 		} catch (NullPointerException nf) {
 			//nf.printStackTrace(Log.getWriter());
@@ -680,7 +681,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	protected void save_user_params() {
-		
+		user_properties = new Properties(); // clean record ready to save
 		user_properties.setProperty("name", user_keps_name);
 		user_properties.setProperty("displayName", user_display_name);
 		user_properties.setProperty("telemetryDownlinkFreqkHz", Double.toString(user_telemetryDownlinkFreqkHz));

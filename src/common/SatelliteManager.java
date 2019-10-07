@@ -152,6 +152,14 @@ public class SatelliteManager implements Runnable {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
 										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										// Then remove the existing .dat fi;e
+										try {
+											SatPayloadStore.remove(targetFile.getAbsolutePath());
+										} catch (IOException e) {
+											Log.errorDialog("ERROR removing existing File", "\nCould not overwrite the existing spacecraft file\n"+e.getMessage());
+											e.printStackTrace(Log.getWriter());
+										}
+										// And save the new one
 										satellite.save();
 									} catch (LayoutLoadException e) {
 										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
