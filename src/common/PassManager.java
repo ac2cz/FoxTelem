@@ -801,7 +801,7 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
-		if (Config.whenAboveHorizon || Config.foxTelemCalcsPosition || Config.useDDEforAzEl)
+		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler)
 			return satIsUp(sat);
 		return true;
 	}
