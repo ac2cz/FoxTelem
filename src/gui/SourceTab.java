@@ -2530,11 +2530,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} catch (ArrayIndexOutOfBoundsException e) {
 						// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 					}
+					
+					// This logic sets the widgets on/off depending on what is selected in the settings
 					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
 						autoStart.setEnabled(true);
 						if (Config.foxTelemCalcsPosition && !Config.findSignal)
 							cbRetuneCenterFrequency.setEnabled(true);
-						else {
+						else if (Config.whenAboveHorizon) {
+							cbRetuneCenterFrequency.setEnabled(true);
+						} else {
 							cbRetuneCenterFrequency.setEnabled(false);
 							cbRetuneCenterFrequency.setSelected(false);
 						}							

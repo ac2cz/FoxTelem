@@ -695,6 +695,8 @@ public class PassManager implements Runnable {
 								}
 								if (Config.findSignal) {
 									stateMachine(sat);
+									if (Config.whenAboveHorizon)
+										break; // only find the signal for the highest priority sat if in autoStart mode
 								} else if (Config.foxTelemCalcsPosition && Config.foxTelemCalcsDoppler) {
 									if (sat.foxId != currentSatId) { // we have a new pass for a new sat
 										lockSignal(sat, pp1);   

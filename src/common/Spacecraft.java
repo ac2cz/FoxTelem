@@ -15,6 +15,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import decoder.SourceIQ;
+import measure.SatPc32DDE;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
@@ -363,6 +364,19 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public boolean aboveHorizon() {
+//		if (Config.useDDEforAzEl) {
+//			String satString = null;
+//			SatPc32DDE satPC = new SatPc32DDE();
+//			boolean connected = satPC.connect();
+//			if (connected) {
+//				satString = satPC.satellite;
+//				//Log.println("SATPC32: " + satString);
+//				if (satString != null && satString.equalsIgnoreCase(user_keps_name)) {
+//					return true;
+//				}
+//			}
+//			return false;
+//		}
 		if (satPos == null)
 			return false;
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
