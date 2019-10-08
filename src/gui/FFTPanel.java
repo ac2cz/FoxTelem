@@ -226,7 +226,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		//if (rfData != null)
 		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
 		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
-		if (Config.trackSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
+		if (Config.findSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
 			//		Config.passManager.getState() == PassManager.FADED)

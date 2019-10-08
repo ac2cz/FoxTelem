@@ -316,7 +316,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		cbUploadToServer = addCheckBoxRow("Upload to Server", "Select this if you want to send your collected data to the AMSAT telemetry server",
 				Config.uploadToServer, rightcolumnpanel0 );
 		rdbtnTrackSignal = addCheckBoxRow("Find Signal","Find and follow the signal. Record the frequency of the downlink.  Useful if you are trying to measure the actual spacecraft downlink frequency.",
-				Config.trackSignal, rightcolumnpanel0);
+				Config.findSignal, rightcolumnpanel0);
 		useUDP = true;
 		if (Config.serverProtocol == TlmServer.TCP)
 			useUDP = false;
@@ -626,7 +626,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				Config.foxTelemCalcsPosition = cbFoxTelemCalcsPosition.isSelected();
 				Config.foxTelemCalcsDoppler = cbFoxTelemCalcsDoppler.isSelected();
 				Config.whenAboveHorizon = cbWhenAboveHorizon.isSelected();
-				Config.trackSignal = rdbtnTrackSignal.isSelected();
+				Config.findSignal = rdbtnTrackSignal.isSelected();
 				/*
 				if (cbUseUDP.isSelected()) {
 					Config.serverPort = Config.udpPort;
@@ -834,10 +834,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		}
 		if (e.getSource() == rdbtnTrackSignal) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
-	            Config.trackSignal=false;
+	            Config.findSignal=false;
 	            //Config.save();
 	        } else {
-	        	Config.trackSignal=true;
+	        	Config.findSignal=true;
 	        	cbFoxTelemCalcsDoppler.setSelected(false);
 	        	//Config.save();
 	        }

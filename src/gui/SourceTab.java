@@ -195,6 +195,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	FileDialog fd = null;
 	
 	// Variables
+	public static final String RETUNE_AND_SWITCH_MODE = "Retune center / Switch Modes";
+	public static final String SWITCH_MODE = "Auto Switch Modes";
 	public static final String FUNCUBE1 = "FUNcube Dongle V1.0";
 	public static final String FUNCUBE2 = "FUNcube Dongle V2.0";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
@@ -758,12 +760,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panelFreq.add(lblkHz);
 		lblkHz.setVisible(false);
 		
-		cbRetuneCenterFrequency = new JCheckBox("Retune center / Switch Modes");
+		cbRetuneCenterFrequency = new JCheckBox(RETUNE_AND_SWITCH_MODE);
 		panelFreq.add(cbRetuneCenterFrequency);
 		cbRetuneCenterFrequency.addItemListener(this);
 		cbRetuneCenterFrequency.setToolTipText("Change the center frequency if the spacecraft is outside the band.  Switch modes if needed.");
 		cbRetuneCenterFrequency.setSelected(Config.retuneCenterFrequency);
-		cbRetuneCenterFrequency.setVisible(false);
+		//cbRetuneCenterFrequency.setVisible(false);
 		
 		WFM = addRadioButton("WFM", panelFreq );
 		FM = addRadioButton("FM", panelFreq );
@@ -1047,12 +1049,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
 			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
 		} 
+		if (b)
+			cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
+		else
+			cbRetuneCenterFrequency.setText(SWITCH_MODE);
 	}
 	
 	private void setFreqVisible(boolean b) {
 		lblFreq.setVisible(b);
 		lblkHz.setVisible(b);
-		cbRetuneCenterFrequency.setVisible(b);
+//		cbRetuneCenterFrequency.setVisible(b);
 		txtFreq.setVisible(b);
 		
 		WFM.setVisible(false);
@@ -2468,7 +2474,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					boolean atLeastOneTracked = false;
 					try {
 						if (Config.satManager.updated) {
-
 							atLeastOneTracked = buildTrackedSpacecraftList();	
 							Config.satManager.updated = false;
 						}
@@ -2478,7 +2483,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Spacecraft sat = Config.satManager.spacecraftList.get(s);
 							if (sat.user_track)
 								atLeastOneTracked = true;
-							if ((Config.foxTelemCalcsDoppler || (Config.whenAboveHorizon && aboveHorizon)) && sat.user_track && sat.aboveHorizon())
+							if ((Config.foxTelemCalcsPosition || (Config.whenAboveHorizon && aboveHorizon)) && sat.user_track && sat.aboveHorizon())
 								satPosition[s].setForeground(Config.AMSAT_RED);
 							else
 								satPosition[s].setForeground(Config.AMSAT_BLUE);
@@ -2525,9 +2530,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					} catch (ArrayIndexOutOfBoundsException e) {
 						// We changed the size of the spacecraft array.  Do nothing.  This will fix itself
 					}
-					if (Config.foxTelemCalcsPosition || Config.useDDEforAzEl) {
+					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
 						autoStart.setEnabled(true);
-						if ((Config.foxTelemCalcsPosition && !Config.findSignal) || Config.whenAboveHorizon)
+						if (Config.foxTelemCalcsPosition && !Config.findSignal)
 							cbRetuneCenterFrequency.setEnabled(true);
 						else {
 							cbRetuneCenterFrequency.setEnabled(false);
@@ -2552,20 +2557,24 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							processStartButtonClick();
 						}
 					} else {
-						if (atLeastOneTracked && !Config.foxTelemCalcsDoppler) {
-							//rdbtnFindSignal.setEnabled(true);
-							rdbtnFindSignal.setSelected(true);
-							if (Config.iq) {
-								findSignalPanel.setVisible(true);
-							}
-						} else {
-							rdbtnFindSignal.setEnabled(false);
-							rdbtnFindSignal.setSelected(false);
-							findSignalPanel.setVisible(false);
-						}
 						btnStartButton.setEnabled(true);
 						lblWhenAboveHorizon.setVisible(false);
 					}
+					
+					if (Config.iq && (atLeastOneTracked && !Config.foxTelemCalcsDoppler)) {
+						//rdbtnFindSignal.setEnabled(true);
+						rdbtnFindSignal.setSelected(true);
+						Config.findSignal = true;
+						if (Config.iq) {
+							findSignalPanel.setVisible(true);
+						}
+					} else {
+						rdbtnFindSignal.setEnabled(false);
+						rdbtnFindSignal.setSelected(false);
+						Config.findSignal = false;
+						findSignalPanel.setVisible(false);
+					}
+					
 					
 					// These are just debug values
 					if (Config.debugValues && !unpause.isVisible()) {

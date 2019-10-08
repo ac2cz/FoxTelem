@@ -221,8 +221,8 @@ public class Config {
 	static public boolean applyBlackmanWindow = false; // false means use Tukey
 	public static boolean useLimiter = false;
 	static public boolean showIF = false;
-	static public boolean trackSignal = true;
-	static public boolean findSignal = false;
+	//static public boolean trackSignal = true; 
+	static public boolean findSignal = false; // this is the find signal algorithm and not includes the functionality of trackSignal which follows the signal
 	static public boolean storePayloads = true; // write the payloads to the flat file database
 	
 	static public int displayModuleFontSize = 12;
@@ -670,7 +670,7 @@ public class Config {
 		
 		properties.setProperty("displayUTCtime", Boolean.toString(displayUTCtime));
 		properties.setProperty("storePayloads", Boolean.toString(storePayloads));
-		properties.setProperty("trackSignal", Boolean.toString(trackSignal));
+//		properties.setProperty("trackSignal", Boolean.toString(trackSignal));
 		properties.setProperty("findSignal", Boolean.toString(findSignal));
 		
 		properties.setProperty("displayModuleFontSize", Integer.toString(displayModuleFontSize));
@@ -856,7 +856,7 @@ public class Config {
 		
 		displayUTCtime = Boolean.parseBoolean(getProperty("displayUTCtime"));
 		storePayloads = Boolean.parseBoolean(getProperty("storePayloads"));
-		trackSignal = Boolean.parseBoolean(getProperty("trackSignal"));
+//		trackSignal = Boolean.parseBoolean(getProperty("trackSignal"));
 		findSignal = Boolean.parseBoolean(getProperty("findSignal"));
 		
 		displayModuleFontSize = Integer.parseInt(getProperty("displayModuleFontSize"));

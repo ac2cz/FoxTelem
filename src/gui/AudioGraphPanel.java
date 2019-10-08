@@ -221,7 +221,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		
 		int stepSize = 1;
 		//int spaceSize = 1;
-			
+		try {	
 		if (audioData != null && audioData.length > 0) {
 			if (audioData.length > graphWidth) {
 				stepSize = (int) Math.round((audioData.length)/graphWidth);
@@ -268,6 +268,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				}
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
+				
 				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
 						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues)
 					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
@@ -365,6 +366,9 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 							" Capacity: "+foxDecoder.getAudioBufferCapacity(), getWidth()-200, 20 );
 
 				}
+		}
+		} catch (ClassCastException e) {
+			// ignore - likely the decoder switched just as we were painting the screen
 		}
 		//sample.setText("sample: " + s++);
 	}
