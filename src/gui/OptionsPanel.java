@@ -60,7 +60,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JCheckBox debugSignalFinder;
 	JCheckBox debugCalcDopplerContinually;
 	JCheckBox filterData;
-	JCheckBox useRSfec;
+//	JCheckBox useRSfec;
 	JCheckBox useRSerasures;
 	JCheckBox squelchAudio;
 	JCheckBox useAGC;
@@ -106,7 +106,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		debugBits = addCheckBox("Debug Bits", "Write very verbose debug information at the bit level", Config.debugBits );
 		debugBytes = addCheckBox("Debug Bytes", "Write the hex bytes in a frame when it is decoded", Config.debugBytes );
 		debugValues = addCheckBox("Debug Values", "Display Debug information for bit values on the audio screen", Config.debugValues );
-		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
+//		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
 		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
 //		storePayloads = addCheckBox("Store Payloads", Config.storePayloads );
 //		highSpeed = addCheckBox("Decode 9k6", Config.highSpeed );
@@ -187,14 +187,14 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			}
 			Config.save();
 		}
-		if (source == useRSfec) { 
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.useRSfec = false;
-			} else {
-				Config.useRSfec = true;
-			}
-			Config.save();
-		}
+//		if (source == useRSfec) { 
+//			if (e.getStateChange() == ItemEvent.DESELECTED) {
+//				Config.useRSfec = false;
+//			} else {
+//				Config.useRSfec = true;
+//			}
+//			Config.save();
+//		}
 		if (source == useRSerasures) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.useRSerasures = false;
