@@ -402,7 +402,7 @@ public class SatelliteManager implements Runnable {
 			long date = httpCon.getLastModified();
 			httpCon.disconnect();
 			Date kepsDate = new Date(date);
-			if (kepsDate.getTime() <= lm.getTime()) { // then dont try to update it
+			if (date != 0 && (kepsDate.getTime() <= lm.getTime())) { // then dont try to update it.  Date 0 means we could not get a date, so this will likely fail to process anyway
 				Log.println(".. keps are current");
 				filetmp = file;
 			} else {
@@ -417,27 +417,29 @@ public class SatelliteManager implements Runnable {
 				Log.println(" ... closing input stream ..");
 				rbc.close();
 			}
-			// Always process the file because it is quick and the user may have changed the name of a spacecraft
-			// The code throws away duplicate keps with the same epoch
-			// Now lets see if we have a good file.  If we did not, it will throw an exception
-			Log.println(" ... parsing file ..");
-			parseTleFile(filetmp);
-			// this is a good file so we can now use it as the default
-			Log.println(" ... remove and rename ..");
-			if (!file.equalsIgnoreCase(filetmp)) {
-				// We downloaded a new file so rename tmp as the new file
-				SatPayloadStore.remove(file);
-				SatPayloadStore.copyFile(f1, f2);
+			File tmp = new File(filetmp);
+			if (tmp.exists()) {
+				// Always process the file because it is quick and the user may have changed the name of a spacecraft
+				// The code throws away duplicate keps with the same epoch
+				// Now lets see if we have a good file.  If we did not, it will throw an exception
+				Log.println(" ... parsing file ..");
+				parseTleFile(filetmp);
+				// this is a good file so we can now use it as the default
+				Log.println(" ... remove and rename ..");
+				if (!file.equalsIgnoreCase(filetmp)) {
+					// We downloaded a new file so rename tmp as the new file
+					SatPayloadStore.remove(file);
+					SatPayloadStore.copyFile(f1, f2);
+				}
+				try {
+					Thread.sleep(20);
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				if (!file.equalsIgnoreCase(filetmp))
+					SatPayloadStore.remove(file + ".tmp");
 			}
-			try {
-				Thread.sleep(20);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (!file.equalsIgnoreCase(filetmp))
-				SatPayloadStore.remove(file + ".tmp");
-			return;
 
 		} catch (MalformedURLException e) {
 			Log.println("Invalid location for Keps file: " + file);
