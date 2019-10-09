@@ -15,7 +15,6 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import decoder.SourceIQ;
-import measure.SatPc32DDE;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;

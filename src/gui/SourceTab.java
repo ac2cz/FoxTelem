@@ -2534,7 +2534,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					// This logic sets the widgets on/off depending on what is selected in the settings
 					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
 						autoStart.setEnabled(true);
-						if (Config.foxTelemCalcsPosition && !Config.findSignal)
+						if ((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal)
 							cbRetuneCenterFrequency.setEnabled(true);
 						else if (Config.whenAboveHorizon) {
 							cbRetuneCenterFrequency.setEnabled(true);
