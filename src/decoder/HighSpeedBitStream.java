@@ -69,6 +69,8 @@ public class HighSpeedBitStream extends FoxBitStream {
 	 * then contain the data BACK in the original order, but with corrections made
 	 */
 	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
+		totalRsErrors = 0;
+		totalRsErasures = 0;
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
