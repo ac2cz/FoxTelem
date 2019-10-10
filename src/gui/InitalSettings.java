@@ -92,7 +92,7 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		title.setFont(new Font("SansSerif", Font.BOLD, 14));
 		
 		title.setText("AMSAT Fox Satellite Decoder");
-		lab.setText("It looks like this is the first time you have run the FoxTelem program. You must choose a directory to store the the decoded data.");
+		lab.setText("It looks like this is the first time you have run the FoxTelem program. You must choose a directory to store the decoded data.");
 		lab2.setText("Also note that configuration settings will be saved in:  " + Config.homeDirectory);
 		lab3.setText("If you want to run multiple copies of FoxTelem, using different settings, then hit cancel and rerun passing the ");
 		lab4.setText("logFile directory name as a paramater.  Otherwise choose a logFile directory below.  See the manual for details.");
