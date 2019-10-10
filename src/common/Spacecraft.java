@@ -199,9 +199,17 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		tleList = new SortedTleList(10);
 	}
 	
+	/**
+	 * This is a routine that determines if we can cast to FoxSpeacecrft, but currently everything can, so we return true
+	 * If this is used in the future then we need to be careful about the functionality that is turned on/off by it
+	 * It is not removed because the points in the code that call this may well be important switch points in the future and
+	 * it is easier to return true here than remove the calls and later try to work out where they were.
+	 * @return
+	 */
 	public boolean isFox1() {
-		if (foxId < 10) return true;
-		return false;
+		return true;
+//		if (foxId < 10) return true;
+//		return false;
 	}
 	
 	public int getLayoutIdxByName(String name) {

@@ -485,9 +485,7 @@ public class FoxSpacecraft extends Spacecraft{
 		else if (foxId == 3) id = "1Cliff";
 		else if (foxId == 4) id = "1D";
 		else if (foxId == 5) id = "1E";
-		else if (foxId == 6) id = "1F";
-		else if (foxId == 7) id = "1G";
-		else id = Integer.toString(foxId);
+		else id = Integer.toString(foxId); // after the "fox-1" spacecraft just use the fox id
 
 		return id;
 	}
