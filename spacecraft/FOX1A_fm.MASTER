@@ -1,7 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Sat Sept 22 18:12:20 EST 2019
 #File named .dat should be in the logfiles directory and is loaded by FoxTelem
-#File named .MASTER should not be edited and is a backup copy in the installation directory
+#File named .MASTER should not be edited and is a backup copy in the installation directory 
 useIHUVBatt=true
 user_mode=0
 numberOfLookupTables=3
@@ -46,3 +46,6 @@ catalogNumber=0
 layout2.name=rttelemetry
 layout4.name=radtelemetry
 IHU_SN=7
+numberOfSources=2
+source0.name=ihu.duv
+source1.name=ihu.highspeed

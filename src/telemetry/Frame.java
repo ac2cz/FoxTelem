@@ -286,18 +286,21 @@ public abstract class Frame implements Comparable<Frame> {
 		foxId = header.getFoxId();
 		length = Integer.toString(byteLen * 8);
 
+		// TODO - this should be set by the DECODER which knows what type of format it is decoding
+		source = "amsat.fox-" + fox.getIdString() + ".";
 		try {
 			if (this instanceof SlowSpeedFrame) {
-				source = Spacecraft.SOURCES[foxId][DUV_FRAME];
+				source = source + fox.sourceName[DUV_FRAME];
 			} else if (this instanceof HighSpeedFrame){
-				source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
+				source = source + fox.sourceName[HIGH_SPEED_FRAME];
 			} else {
-				source = Spacecraft.SOURCES[foxId][0]; // first value
+				source = source + fox.sourceName[0]; // first value
 			}
 		} catch (IndexOutOfBoundsException e) {
 			// We have a corrupt FoxId
-			throw new FrameProcessException("Corrupt FoxId, frame could not be processed.  ID: " + foxId);
+			throw new FrameProcessException("Source missing in Spacecraft File, frame could not be processed.  ID: " + foxId + "\n" +e);
 		}
+		source = source.toLowerCase();
 
 	}
 

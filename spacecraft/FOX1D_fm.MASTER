@@ -56,3 +56,6 @@ layout2.name=rttelemetry
 layout4.name=radtelemetry
 IHU_SN=10
 layout6.name=herciHSdata
+numberOfSources=2
+source0.name=ihu.duv
+source1.name=ihu.highspeed

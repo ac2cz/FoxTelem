@@ -124,7 +124,7 @@ public class SatelliteManager implements Runnable {
 										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
 										satellite.save();
 									} catch (LayoutLoadException e) {
-										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+										Log.errorDialog("ERROR Loading Spacecraft File", "Could not load spacecraft file "+ targetFile + "\n" + e);
 										e.printStackTrace(Log.getWriter()); // but log if user has that enabled
 									}
 								} catch (IOException e) {

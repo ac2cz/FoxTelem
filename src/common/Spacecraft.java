@@ -50,15 +50,15 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	//public static final int FUN_CUBE1 = 100;
 	//public static final int FUN_CUBE2 = 101;
 	
-	public static final String[][] SOURCES = {
-			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
-			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
-			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
-			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
-			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
-			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
-			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" },
-			{ "amsat.golf-t.ihu.bpsk", "amsat.golf-t.ihu.bpsk" } };
+//	public static final String[][] SOURCES = {
+//			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
+//			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
+//			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
+//			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
+//			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
+//			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
+//			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" },
+//			{ "amsat.golf-t.ihu.bpsk", "amsat.golf-t.ihu.bpsk" } };
 
 	public static final int MAX_FOXID = 256; // experimentally increase this to allow other ids. Note the header is limited to 8 bits
 
@@ -139,6 +139,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
 	public LookUpTable[] lookupTable;
+	
+	public int numberOfSources = 2;
+	public String[] sourceName;
 	
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
@@ -456,6 +459,13 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
 				layout[i].name = getProperty("layout"+i+".name");
 				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
+			}
+			
+			// sources
+			numberOfSources = Integer.parseInt(getProperty("numberOfSources"));
+			sourceName = new String[numberOfSources];
+			for (int i=0; i < numberOfSources; i++) {
+				sourceName[i] = getProperty("source"+i+".name");
 			}
 
 			// Lookup Tables

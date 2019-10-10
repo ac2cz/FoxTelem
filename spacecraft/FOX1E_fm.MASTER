@@ -65,3 +65,5 @@ passMeasurementsFileName=passmeasurements.csv
 telemetryDownlinkFreqkHz=435750
 track=false
 useIHUVBatt=false
+numberOfSources=1
+source0.name=ihu.bpsk
