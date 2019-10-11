@@ -507,12 +507,8 @@ public abstract class Frame implements Comparable<Frame> {
 							stpDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 							try {
 								stpDate = stpDateFormat.parse(dt);
-							} catch (ParseException e) {
-								Log.println("ERROR - Date was not parsable. Setting to null"  + "\n" + e.getMessage());
-								stpDate = null;
-								//e.printStackTrace(Log.getWriter());
-							} catch (NumberFormatException e) {
-								Log.println("ERROR - Date has number format exception. Setting to null"  + "\n" + e.getMessage());
+							} catch (ParseException | NumberFormatException e) {
+								Log.println("ERROR - Date was not parsable. Setting to null"  + "\n" + e.getClass() + "\n" + e.getMessage());
 								stpDate = null;
 							} catch (Exception e) { // we can get other unusual exceptions such as ArrayIndexOutOfBounds...
 								Log.println("ERROR - Date was not parsable. Setting to null: " + e.getMessage());
