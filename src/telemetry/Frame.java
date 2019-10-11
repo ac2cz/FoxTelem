@@ -280,10 +280,10 @@ public abstract class Frame implements Comparable<Frame> {
 		// which in turn allocate the bits to the correct fields.
 		for (int i = 0; i < byteLen; i++)
 			addNext8Bits(b[i]);
-
 		// At this point we grab the decoded foxId and length in bits, ready for
 		// transmission to the server
 		foxId = header.getFoxId();
+		if (fox == null) throw new FrameProcessException("Invalid Fox Id: " + foxId + ", can not process frame");
 		length = Integer.toString(byteLen * 8);
 
 		// TODO - this should be set by the DECODER which knows what type of format it is decoding

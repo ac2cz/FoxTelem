@@ -44,11 +44,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final int FOX1B = 2;
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
-	public static final int FOX1E = 5;
+//	public static final int FOX1E = 5;
 	//public static final int HUSKY_SAT = 6;
 	//public static final int GOLF_TEE = 7;
 	//public static final int FUN_CUBE1 = 100;
 	//public static final int FUN_CUBE2 = 101;
+
+	public static final int FIRST_FOXID_WITH_MODE_IN_HEADER = 6;
+
 	
 //	public static final String[][] SOURCES = {
 //			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },

@@ -30,7 +30,7 @@ public class FoxBPSKHeader extends Header {
 		type = nextbits(4);
 		if (id == 0) // then take the foxId from the next 8 bits
 			id = nextbits(8);
-		if (id > Spacecraft.FOX1E) { // Post Fox-1E BPSK has mode in header
+		if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) { // Post Fox-1E BPSK has mode in header
 			safeMode = nextbits(1);
 			healthMode = nextbits(1);
 			scienceMode = nextbits(1);
@@ -42,7 +42,7 @@ public class FoxBPSKHeader extends Header {
 
 	public void setMode() {
 		newMode = FoxSpacecraft.NO_MODE;
-		if (id > Spacecraft.FOX1E) {
+		if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) {
 			if (safeMode != 0 ) newMode = FoxSpacecraft.SAFE_MODE;
 			if (healthMode != 0 ) newMode = FoxSpacecraft.HEALTH_MODE;
 			if (scienceMode != 0 ) newMode = FoxSpacecraft.SCIENCE_MODE;
@@ -74,7 +74,7 @@ public class FoxBPSKHeader extends Header {
 				+ " UPTIME: " + FoxDecoder.dec(uptime)
 				+ " TYPE: " + FoxDecoder.dec(type);
 		
-		if (id > Spacecraft.FOX1E)
+		if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER)
 			s = s + " - MODE: " + newMode;
 		return s;
 	}

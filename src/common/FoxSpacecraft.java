@@ -111,6 +111,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public int[] experiments = {EXP_EMPTY, EXP_EMPTY, EXP_EMPTY, EXP_EMPTY};
 	
 	public boolean hasImprovedCommandReceiver = false;
+	public boolean hasImprovedCommandReceiverII = false;
 	public boolean hasModeInHeader = false;
 	public boolean hasMpptSettings = false;
 	public boolean hasMemsRestValues = false;
@@ -381,6 +382,10 @@ public class FoxSpacecraft extends Spacecraft{
 			if (icr != null) {
 				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
 			}
+			String icr2 = getOptionalProperty("hasImprovedCommandReceiverII");
+			if (icr2 != null) {
+				hasImprovedCommandReceiverII = Boolean.parseBoolean(icr2);
+			}
 			String mode = getOptionalProperty("hasModeInHeader");
 			if (mode != null) {
 				hasModeInHeader = Boolean.parseBoolean(getProperty("hasModeInHeader"));
@@ -475,6 +480,16 @@ public class FoxSpacecraft extends Spacecraft{
 	public boolean hasHerci() {
 		for (int i=0; i< experiments.length; i++)
 			if (experiments[i] == EXP_IOWA_HERCI) return true;
+		return false;
+	}
+	
+	/**
+	 * Return true if one of the experiment slots contains the HERCI experiment
+	 * @return
+	 */
+	public boolean hasExperiment(int e) {
+		for (int i=0; i< experiments.length; i++)
+			if (experiments[i] == e) return true;
 		return false;
 	}
 	

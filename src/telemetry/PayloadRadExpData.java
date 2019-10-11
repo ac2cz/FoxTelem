@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
@@ -155,7 +156,8 @@ public class PayloadRadExpData extends FoxFramePart {
 	 */
 	public RadiationTelemetry calculateTelemetryPalyoad() {
 		//if (isTelemetry()) {
-		if (id == Spacecraft.FOX1E) {
+		FoxSpacecraft fox = (FoxSpacecraft)Config.satManager.getSpacecraft(id);
+		if (fox.hasExperiment(FoxSpacecraft.EXP_VANDERBILT_REM) && fox.hasExperiment(FoxSpacecraft.EXP_VANDERBILT_LEPF)) {
 			// We cheat because the layout has each experiment 10 bytes appart but the 10 comes in the same 10 bytes.  This is in contrast to 1A and 1B
 			RadiationTelemetry radTelem = new RadiationTelemetry(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			calcFox1ETelemetry(radTelem);

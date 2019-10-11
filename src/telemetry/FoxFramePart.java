@@ -671,15 +671,14 @@ longer send telemetry.
 		case COMMAND_COUNT: // CommandCount - number of commands received since boot
 			value = (rawValue >> 8) & 0xffffff; // 24 bit value after the type
 			if (fox.hasImprovedCommandReceiver) {
-				if (fox.foxId == Spacecraft.FOX1E)
-					return icrCommandCountFox1E(value, shortString);
-				else
-					return icrCommandCount(value, shortString);
+				return icrCommandCountFox1E(value, shortString);
+			} else if (fox.hasImprovedCommandReceiverII) {
+				return icrCommandCount(value, shortString);
 			} else {
-			if (shortString)
-				return "Count: " + value;
-			else
-				return "Number of commands received since boot: " + value;
+				if (shortString)
+					return "Count: " + value;
+				else
+					return "Number of commands received since boot: " + value;
 			}
 		case I2C1_ERRORS: // I2C1Errors
 			int writeTimeout = (rawValue >> 8) & 0xff;
