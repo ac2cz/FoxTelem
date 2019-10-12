@@ -388,10 +388,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			} catch (IOException e) {
 				// FIXME We dont want to stop the decoder but we want to warn the user...
 				e.printStackTrace(Log.getWriter());
-//			} catch (Exception e) {
-//				// Something bad happened
-//				Log.errorDialog("ERROR", "Could not parse and save frame for sat: " + id + " reset: " + resets + " uptime: " + uptime + " type: " + f.type
-//						+ "\nCheck if the correct frame layouts are being used for this spacecrat");
+			} catch (Exception e) {
+				// Something bad happened
+				Log.errorDialog("ERROR", "Could not parse and save frame for sat: " + id + " reset: " + resets + " uptime: " + uptime + " type: " + f.type
+						+ "\n" + e
+						+ "\nCheck if the correct frame layouts are being used for this spacecrat");
 			}
 		return false;
 	}
