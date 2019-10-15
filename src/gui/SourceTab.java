@@ -279,6 +279,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 		showSourceOptions(Config.showSourceOptions);
 		showAudioOptions(Config.showAudioOptions);
+		enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
 	}
 	
 	public void showFilters(boolean b) { 
@@ -2095,19 +2096,23 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
-		highSpeed.setEnabled(t);
-		lowSpeed.setEnabled(t);
-		pskCostas.setEnabled(t);
-		pskDotProd.setEnabled(t);
+		enableSourceModeSelectionComponents(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
 		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)
 			auto.setEnabled(false);
-		else
-			auto.setEnabled(t);
 		iqAudio.setEnabled(t);
 		afAudio.setEnabled(t);
 		MainWindow.enableSourceSelection(t);
 	}
+
+	private void enableSourceModeSelectionComponents(boolean t) {
+		highSpeed.setEnabled(t);
+		lowSpeed.setEnabled(t);
+		pskCostas.setEnabled(t);
+		pskDotProd.setEnabled(t);
+		auto.setEnabled(t);
+	}
+
 	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
@@ -2174,6 +2179,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	Config.retuneCenterFrequency=true;
 	        }
 			txtFreq.setEnabled(!Config.retuneCenterFrequency);
+			enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
 			Config.save();
 		}
 		
@@ -2533,10 +2539,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					
 					// This logic sets the widgets on/off depending on what is selected in the settings
 					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
+						// This means we can enable auto start
 						autoStart.setEnabled(true);
-						if ((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal)
+						if ((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) { 
+							// This means we can enable auto mode changes
 							cbRetuneCenterFrequency.setEnabled(true);
-						else if (Config.whenAboveHorizon) {
+						} else if (Config.whenAboveHorizon) {
+							// This also means we can enable auto mode changes
 							cbRetuneCenterFrequency.setEnabled(true);
 						} else {
 							cbRetuneCenterFrequency.setEnabled(false);
@@ -2551,6 +2560,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					if (soundCardComboBox.getSelectedIndex() == 0) {
 						btnStartButton.setEnabled(false);
 					} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
+						// This means we can actually AUTO START or STOP
 						rdbtnFindSignal.setEnabled(false);
 						btnStartButton.setEnabled(false);
 						lblWhenAboveHorizon.setVisible(true);
@@ -2566,6 +2576,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					
 					if (Config.iq && (atLeastOneTracked && !Config.foxTelemCalcsDoppler)) {
+						// This means we are in FIND SIGNAL mode
 						//rdbtnFindSignal.setEnabled(true);
 						rdbtnFindSignal.setSelected(true);
 						Config.findSignal = true;
@@ -2573,6 +2584,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							findSignalPanel.setVisible(true);
 						}
 					} else {
+						// Otherwise FIND SIGNAL is not allowed
 						rdbtnFindSignal.setEnabled(false);
 						rdbtnFindSignal.setSelected(false);
 						Config.findSignal = false;
