@@ -167,59 +167,63 @@ public class SatPayloadTable {
 	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
 		deleteLock = true;
-		loadSegments(fromReset, fromUptime, period, reverse);
-		
-		int start = 0;
-		int end = 0;
-		
-		if (reverse) { // then we take records nearest the end
-			start = rtRecords.size()-period;
-			end = rtRecords.size();
-		} else {
-			// we need to find the start point
-			start = rtRecords.getNearestFrameIndex(id, fromUptime, fromReset);
-			if (start == -1 ) start = rtRecords.size()-period;
-			end = start + period;
-		}
-		if (end > rtRecords.size()) end = rtRecords.size();
-		if (end < start) end = start;
-		if (start < 0) start = 0;
-		if (start > rtRecords.size()) start = rtRecords.size();
-		
-		int[][] results = new int[end-start][];
-		String[] upTime = new String[end-start];
-		String[] resets = new String[end-start];
-		String[] type = null;
-		
-		if (returnType)
-			type = new String[end-start];
-		
-		int j = results.length-1;
-		for (int i=end-1; i>= start; i--) {
-			//System.out.println(rtRecords.size());
-			results[j] = rtRecords.get(i).getFieldValues();
+		try {
+			loadSegments(fromReset, fromUptime, period, reverse);
+
+			int start = 0;
+			int end = 0;
+
+			if (reverse) { // then we take records nearest the end
+				start = rtRecords.size()-period;
+				end = rtRecords.size();
+			} else {
+				// we need to find the start point
+				start = rtRecords.getNearestFrameIndex(id, fromUptime, fromReset);
+				if (start == -1 ) start = rtRecords.size()-period;
+				end = start + period;
+			}
+			if (end > rtRecords.size()) end = rtRecords.size();
+			if (end < start) end = start;
+			if (start < 0) start = 0;
+			if (start > rtRecords.size()) start = rtRecords.size();
+
+			int[][] results = new int[end-start][];
+			String[] upTime = new String[end-start];
+			String[] resets = new String[end-start];
+			String[] type = null;
+
 			if (returnType)
-				type[j] = ""+rtRecords.get(i).type; // get type returns a different type for some payloads, e.g. HerciPackets.  Reference directly
-			upTime[j] = ""+rtRecords.get(i).getUptime();
-			resets[j--] = ""+rtRecords.get(i).getResets();
+				type = new String[end-start];
+
+			int j = results.length-1;
+			for (int i=end-1; i>= start; i--) {
+				//System.out.println(rtRecords.size());
+				results[j] = rtRecords.get(i).getFieldValues();
+				if (returnType)
+					type[j] = ""+rtRecords.get(i).type; // get type returns a different type for some payloads, e.g. HerciPackets.  Reference directly
+				upTime[j] = ""+rtRecords.get(i).getUptime();
+				resets[j--] = ""+rtRecords.get(i).getResets();
+			}
+
+			// Create a results set, with reset, uptime and the data on the same line
+			int offset = 2;
+			if (returnType) offset = 3;
+			String[][] resultSet = new String[end-start][length+offset];   // removed +1 to debug CAN Pkt display issue 8/14/2018
+			for (int r=0; r< end-start; r++) {
+				resultSet[r][0] = resets[r];
+				resultSet[r][1] = upTime[r];
+				if (returnType)
+					resultSet[r][2] = type[r];
+				for (int k=0; k<results[r].length; k++)
+					resultSet[r][k+offset] = ""+results[r][k];
+			}
+
+			return resultSet;
+		} finally {
+			deleteLock = false;
 		}
-		
-		// Create a results set, with reset, uptime and the data on the same line
-		int offset = 2;
-		if (returnType) offset = 3;
-		String[][] resultSet = new String[end-start][length+offset];   // removed +1 to debug CAN Pkt display issue 8/14/2018
-		for (int r=0; r< end-start; r++) {
-			resultSet[r][0] = resets[r];
-			resultSet[r][1] = upTime[r];
-			if (returnType)
-				resultSet[r][2] = type[r];
-			for (int k=0; k<results[r].length; k++)
-				resultSet[r][k+offset] = ""+results[r][k];
-		}
-		deleteLock = false;
-		return resultSet;
 	}
-	
+
 	/**
 	 * Return a single field so that it can be graphed or analyzed
 	 * @param name
@@ -234,6 +238,7 @@ public class SatPayloadTable {
 	 */
 	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		deleteLock = true;
+		try {
 		loadSegments(fromReset, fromUptime, period, reverse);
 		int start = 0;
 		int end = 0;
@@ -288,8 +293,11 @@ public class SatPayloadTable {
 			resultSet[PayloadStore.LON_COL] = lon;
 			
 		}
-		deleteLock = false;
+		
 		return resultSet;
+		} finally {
+			deleteLock = false;
+		}
 	}
 		
 	/**
@@ -346,6 +354,7 @@ public class SatPayloadTable {
 	 */
 	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
 		deleteLock = true;
+		try {
 		int fromSeg = findFirstSeg(reset, uptime);
 		int toSeg = findFirstSeg(toReset, toUptime);
 		int number = 0;
@@ -364,8 +373,11 @@ public class SatPayloadTable {
 		int end = rtRecords.getNearestFrameIndex(id, toUptime, toReset);
 		if (start < end)
 			number = end - start;
-		deleteLock = false;
+		
 		return number;
+		} finally {
+			deleteLock = false;
+		}
 	}
 	
 	/**
@@ -472,43 +484,46 @@ public class SatPayloadTable {
 	 */
 	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
 		deleteLock = true;
-		int total = 0;
-		if (reverse) {
-			// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
-			// So we first calculate where to start
-			int startIdx = 0;
-			for (int i=tableIdx.size()-1; i>=0; i--) {
-				total += tableIdx.get(i).records;
-				if (total >= number) {
-					startIdx = i;
-					break;
+		try {
+			int total = 0;
+			if (reverse) {
+				// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
+				// So we first calculate where to start
+				int startIdx = 0;
+				for (int i=tableIdx.size()-1; i>=0; i--) {
+					total += tableIdx.get(i).records;
+					if (total >= number) {
+						startIdx = i;
+						break;
+					}
 				}
-			}
-			total = 0;
-			// Now start index is the first segment we need to load, so now load them if needed
-			for (int i=startIdx; i<tableIdx.size(); i++) {
-				if (!tableIdx.get(i).isLoaded()) {
-					load(tableIdx.get(i));
-				} else {
-					tableIdx.get(i).accessed();
-				}
-				total += tableIdx.get(i).records;
-				
-			}
-			//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
-		} else {
-			int i = findFirstSeg(reset, uptime);
-			// Then we need to load segment at i and start counting from here
-			//System.err.println("Loading from seg: "+i);
-			if (i >= 0)
-				while(i < tableIdx.size()) {
-					if (!tableIdx.get(i).isLoaded())
+				total = 0;
+				// Now start index is the first segment we need to load, so now load them if needed
+				for (int i=startIdx; i<tableIdx.size(); i++) {
+					if (!tableIdx.get(i).isLoaded()) {
 						load(tableIdx.get(i));
-					total += tableIdx.get(i++).records;
-					if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
+					} else {
+						tableIdx.get(i).accessed();
+					}
+					total += tableIdx.get(i).records;
+
 				}
+				//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
+			} else {
+				int i = findFirstSeg(reset, uptime);
+				// Then we need to load segment at i and start counting from here
+				//System.err.println("Loading from seg: "+i);
+				if (i >= 0)
+					while(i < tableIdx.size()) {
+						if (!tableIdx.get(i).isLoaded())
+							load(tableIdx.get(i));
+						total += tableIdx.get(i++).records;
+						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
+					}
+			}
+		} finally {
+			deleteLock = false;
 		}
-		deleteLock = false;
 	}
 	
 	boolean deleteLock = false;
@@ -569,6 +584,8 @@ public class SatPayloadTable {
 	 * @param f
 	 */
 	public boolean save(FramePart f) throws IOException {
+		deleteLock = true;
+		try {
 		// Make sure this segment is loaded, or create an empty segment if it does not exist
 		TableSeg seg = loadSeg(f.resets, f.uptime, false);
 		if (rtRecords.add(f)) {
@@ -585,11 +602,15 @@ public class SatPayloadTable {
 			seg.records++;
 			saveIdx();
 			//return rtRecords.add(f);
+			
 			return true;
 		} else {
 			if (Config.debugFieldValues) Log.println("DUPLICATE RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 		}
-		return false;
+			return false;
+		} finally {
+			deleteLock = false;
+		}
 	}
 	
 	/**
@@ -605,7 +626,7 @@ public class SatPayloadTable {
         createNewFile(log);
  
         BufferedReader dis = new BufferedReader(new FileReader(log));
-
+        deleteLock = true;
         try {
         	while ((line = dis.readLine()) != null) {
         		if (line != null) {
@@ -623,6 +644,7 @@ public class SatPayloadTable {
         	Log.println(n.getMessage());
         } finally {
         	dis.close();
+        	deleteLock = false;
         }
 
 	}
@@ -775,7 +797,11 @@ public class SatPayloadTable {
 			if (rtRecords != null && rt != null) {
 				if (storeMode)
 					rt.newMode = mode;
+				try {
 				rtRecords.add(rt);
+				} catch (NullPointerException e) {
+					rtRecords.add(rt); // try again, sometimes we get an issue from the SortedArrayList
+				}
 			}
 			return rt;
 		} catch (NoSuchElementException e) {
@@ -799,12 +825,10 @@ public class SatPayloadTable {
 //			Log.errorDialog("LOAD ERROR - DEBUG MESSAGE", "ERROR: Null Pointer:  " + n.getMessage() + " Could not load frame " + id + " " + resets + " " + uptime + " " + type);
 //			return null;
 //		}
-
+		
 	}
 	
 	public void convert() throws IOException {
-		
-		
         String log = getDir()+baseFileName+".log";
 		String line;
 		int linesAdded = 0;

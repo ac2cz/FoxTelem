@@ -80,10 +80,10 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 			int i = 0;
 			Log.println(">>> Null adding to SortedArrayList:\n"+ img + " to list\n" + e.getStackTrace());
 			Log.println("RECORDS:" + this.size());
-			for (T t: this) {
-				Log.println(i+":"+t);
-				i++;
-			}
+//			for (T t: this) {
+//				Log.println(i+":"+t);
+//				i++;
+//			}
 			throw new NullPointerException("Null adding "+ img + " to SortedArrayList\n");
 		}
 	    if (pos < 0) {
