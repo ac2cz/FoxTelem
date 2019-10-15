@@ -169,8 +169,8 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 				dir = new File(Config.logFileDirectory);
 			}
-			if(Config.useNativeFileChooser && !Config.isWindowsOs()) { // not on windows because native dir chooser does not work
-				// use the native file dialog on the mac
+			if(Config.isMacOs()) { // not on windows/Linux because native dir chooser does not work
+				// use the native file DIR dialog on the mac
 				System.setProperty("apple.awt.fileDialogForDirectories", "true");
 				FileDialog fd =
 						new FileDialog(this, "Choose Directory for Log Files",FileDialog.LOAD);
@@ -209,7 +209,6 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 					System.out.println("No Selection ");
 				}
 			}
-			Config.save();
 
 		}
 
