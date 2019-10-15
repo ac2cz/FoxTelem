@@ -965,7 +965,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			}
 		}
 		
-		if(Config.useNativeFileChooser) { // not on windows because native dir chooser does not work) {
+		if(Config.useNativeFileChooser && !Config.isLinuxOs()) { // not on Linux because the Native File Chooser does not filter files 
 			// use the native file dialog on the mac
 			if (remove) {
 				fd.setFile("*.dat");
