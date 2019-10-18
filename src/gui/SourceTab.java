@@ -195,7 +195,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	FileDialog fd = null;
 	
 	// Variables
-	public static final String RETUNE_AND_SWITCH_MODE = "Retune center / Switch Modes";
+	public static final String RETUNE_AND_SWITCH_MODE = "Retune center / Switch modes";
 	public static final String SWITCH_MODE = "Auto Switch Modes";
 	public static final String FUNCUBE1 = "FUNcube Dongle V1.0";
 	public static final String FUNCUBE2 = "FUNcube Dongle V2.0";
