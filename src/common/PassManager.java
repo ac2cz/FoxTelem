@@ -689,7 +689,8 @@ public class PassManager implements Runnable {
 								if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
 									// We try to retune if FoxTelem Calc is on and FindSignal is not.
 									if (Config.retuneCenterFrequency) {
-										retunedCenterFreqIfNeeded(sat);
+										if (Config.foxTelemCalcsDoppler)
+											retunedCenterFreqIfNeeded(sat);
 										switchedModeIfNeeded(sat);
 									}
 								}
