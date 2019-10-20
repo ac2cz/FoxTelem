@@ -198,7 +198,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	// Variables
 	public static final String RETUNE_AND_SWITCH_MODE = "Retune center / Switch modes";
+	public static final String RETUNE_AND_SWITCH_MODE_TIP = "Change the center frequency if the spacecraft is outside the band.  Switch modes if needed.";
 	public static final String SWITCH_MODE = "Auto Switch Modes";
+	public static final String SWITCH_MODE_TIP = "Automatically switch the source modes if needed.e.g. FSK to BPSK";
 	public static final String FUNCUBE1 = "FUNcube Dongle V1.0";
 	public static final String FUNCUBE2 = "FUNcube Dongle V2.0";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
@@ -776,7 +778,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		cbRetuneCenterFrequency = new JCheckBox(RETUNE_AND_SWITCH_MODE);
 		panelFreq.add(cbRetuneCenterFrequency);
 		cbRetuneCenterFrequency.addItemListener(this);
-		cbRetuneCenterFrequency.setToolTipText("Change the center frequency if the spacecraft is outside the band.  Switch modes if needed.");
+		cbRetuneCenterFrequency.setToolTipText(RETUNE_AND_SWITCH_MODE_TIP);
 		cbRetuneCenterFrequency.setSelected(Config.retuneCenterFrequency);
 		//cbRetuneCenterFrequency.setVisible(false);
 		
@@ -1062,10 +1064,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
 			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
 		} 
-		if (b)
-			cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
-		else
-			cbRetuneCenterFrequency.setText(SWITCH_MODE);
 	}
 	
 	private void setFreqVisible(boolean b) {
@@ -2550,6 +2548,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					
 					// This logic sets the widgets on/off depending on what is selected in the settings
+					if (Config.iq && Config.foxTelemCalcsDoppler) {
+						cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
+						cbRetuneCenterFrequency.setToolTipText(RETUNE_AND_SWITCH_MODE_TIP);
+					} else {
+						cbRetuneCenterFrequency.setText(SWITCH_MODE);
+						cbRetuneCenterFrequency.setToolTipText(SWITCH_MODE_TIP);
+					}
 					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
 						// This means we can enable auto start
 						autoStart.setEnabled(true);
