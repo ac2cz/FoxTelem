@@ -717,6 +717,7 @@ public class PassManager implements Runnable {
 									// we don't have find signal on. set full range or signals calculated incorrectly
 									Config.fromBin = 0; 
 									Config.toBin = SourceIQ.FFT_SAMPLES;
+									break; // this is a mode for the lab, we don't cycle through the spacecraft
 								}
 							} else { // not in IQ mode, but still may want to switch modes
 								if (satIsUp(sat))
@@ -803,7 +804,7 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
-		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler)
+		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler || Config.useDDEforAzEl)
 			return satIsUp(sat);
 		return true;
 	}

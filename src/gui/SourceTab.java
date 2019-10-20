@@ -177,6 +177,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JScrollPane logScrollPane;
 	JCheckBox autoStart;
 	JPanel sourcePanel, audioOutputPanel;
+	JLabel lblWarnNoFindSignal;
+	JPanel warnNoTrackingPanel;
 	
 	FilterPanel filterPanel;
 	
@@ -318,8 +320,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 	}
 
-	private void buildOptionsRow(JPanel parent, String layout, JPanel optionsPanel) {
-		parent.add(optionsPanel, layout);
+	private void buildOptionsRow(JPanel parent, String layout, JPanel optionsPanelmain) {
+		parent.add(optionsPanelmain, layout);
+
+		optionsPanelmain.setLayout(new BorderLayout());
+		JPanel optionsPanel = new JPanel();
+		optionsPanelmain.add(optionsPanel, BorderLayout.CENTER);
+		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS));
 
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS));
 //		optionsPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -339,7 +346,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else {
 			showLevel.setSelected(true);
 		}
-
+		warnNoTrackingPanel = new JPanel();
+		warnNoTrackingPanel.setLayout(new BorderLayout());
+		//warnNoTrackingPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(400,1), new Dimension(1500,1)), BorderLayout.CENTER);
+		lblWarnNoFindSignal = new JLabel("WARNING: Find Signal and Doppler Tracking are both disabled"); 
+		warnNoTrackingPanel.add(lblWarnNoFindSignal, BorderLayout.EAST);
+		optionsPanelmain.add(warnNoTrackingPanel,BorderLayout.EAST);
 
 		/*
 		rdbtnApplyBlackmanWindow = new JCheckBox("Blackman IF (vs Tukey)");
@@ -2575,11 +2587,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						lblWhenAboveHorizon.setVisible(false);
 					}
 					
+					// This is the logic that determines if we are in FindSignal mode and what should be displayed
 					if (Config.iq && (atLeastOneTracked && !Config.foxTelemCalcsDoppler)) {
+						if (!Config.findSignal) {
+							// Warn the user that NO TRACKING IS ON
+							warnNoTrackingPanel.setVisible(true);
+						} else {
+							warnNoTrackingPanel.setVisible(false);
+						}
+					} else {
+						warnNoTrackingPanel.setVisible(false);
+					}
+					if (Config.findSignal) {
 						// This means we are in FIND SIGNAL mode
 						//rdbtnFindSignal.setEnabled(true);
 						rdbtnFindSignal.setSelected(true);
-						Config.findSignal = true;
+						//Config.findSignal = true;
 						if (Config.iq) {
 							findSignalPanel.setVisible(true);
 						}
@@ -2587,7 +2610,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						// Otherwise FIND SIGNAL is not allowed
 						rdbtnFindSignal.setEnabled(false);
 						rdbtnFindSignal.setSelected(false);
-						Config.findSignal = false;
+						//Config.findSignal = false;
 						findSignalPanel.setVisible(false);
 					}
 					
