@@ -45,6 +45,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.SplitPaneUI;
@@ -352,6 +353,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		warnNoTrackingPanel.setLayout(new BorderLayout());
 		//warnNoTrackingPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(400,1), new Dimension(1500,1)), BorderLayout.CENTER);
 		lblWarnNoFindSignal = new JLabel("WARNING: Find Signal and Doppler Tracking are both disabled"); 
+		lblWarnNoFindSignal.setForeground(Config.AMSAT_RED);
+		lblWarnNoFindSignal.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		warnNoTrackingPanel.add(lblWarnNoFindSignal, BorderLayout.EAST);
 		optionsPanelmain.add(warnNoTrackingPanel,BorderLayout.EAST);
 
