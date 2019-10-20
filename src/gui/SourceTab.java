@@ -259,6 +259,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		sourcePanel = new JPanel();
 		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
+		enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
 		
 		if (soundCardComboBox.getSelectedIndex() != 0) {
 			if (Config.startButtonPressed) {
@@ -279,7 +280,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 		showSourceOptions(Config.showSourceOptions);
 		showAudioOptions(Config.showAudioOptions);
-		enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
 	}
 	
 	public void showFilters(boolean b) { 
@@ -937,10 +937,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			enableFilters(true);
 		} else if (Config.mode == SourceIQ.MODE_PSK_NC ){
 			pskDotProd.setSelected(true);
-			enableFilters(true);
+			enableFilters(false);
 		} else if (Config.mode == SourceIQ.MODE_PSK_COSTAS){
 			pskCostas.setSelected(true);
-			enableFilters(true);
+			enableFilters(false);
 		}
 
 	}
