@@ -213,7 +213,7 @@ public class PassManager implements Runnable {
 			setFreqRangeBins(spacecraft, pp1);
 			initParams(pp1);
 			if (pp2.foxDecoder != null) {
-				setFreqRangeBins(spacecraft, pp2);
+				//setFreqRangeBins(spacecraft, pp2);
 				initParams(pp2);
 			}
 			return SCAN;
@@ -399,8 +399,8 @@ public class PassManager implements Runnable {
 			e.printStackTrace();
 		}
 		setFreqRangeBins(spacecraft, pp1);
-		if (pp2 != null)
-		setFreqRangeBins(spacecraft, pp2);
+		//if (pp2 != null)
+		//setFreqRangeBins(spacecraft, pp2);
 
 		if (foundFoxSignal(spacecraft, pp1)) {
 //			lockSignal(sat, pp1);
