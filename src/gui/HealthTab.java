@@ -324,6 +324,29 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			}
 		});
 
+		InputMap inMapMin = minTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMapMin.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMapMin.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMapMin = minTable.getActionMap();
+
+		actMapMin.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = minTable.getSelectedRow();
+				if (row > 0)
+					displayRow(minTable, NO_ROW_SELECTED, row-1);
+			}
+		});
+		actMapMin.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = minTable.getSelectedRow();
+				if (row < minTable.getRowCount()-1)
+					displayRow(minTable, NO_ROW_SELECTED, row+1);        
+			}
+		});
 		
 	}
 
