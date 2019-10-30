@@ -916,13 +916,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//btnMonitorAudio.setEnabled(false);
 		panelCombo.add(speakerComboBox);
 		
-		if (Config.soundCard != null && !Config.soundCard.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
-			soundCardComboBox.setSelectedItem(Config.soundCard);
-		}
-
-		if (Config.audioSink != null && !Config.audioSink.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
-			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
-		}
 		autoViewpanel = new JPanel();
 		autoViewpanel.add(new Box.Filler(new Dimension(10,1), new Dimension(40,1), new Dimension(1500,1)));
 		JLabel view = new JLabel("View ");
@@ -938,6 +931,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //			autoViewpanel.setVisible(true);
 //		else
 		autoViewpanel.setVisible(true);
+		
+		if (Config.soundCard != null && !Config.soundCard.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
+			soundCardComboBox.setSelectedItem(Config.soundCard);
+		}
+
+		if (Config.audioSink != null && !Config.audioSink.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
+			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
+		}
+		
 	}
 
 	public void setupMode() {

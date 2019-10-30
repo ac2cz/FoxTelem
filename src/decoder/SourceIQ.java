@@ -512,9 +512,13 @@ public class SourceIQ extends SourceAudio {
 			iMixNco = gain*id * c.geti() + gain*qd*c.getq();
 			qMixNco = gain*qd * c.geti() - gain*id*c.getq();
 
+			try {
 			in[decimateCount] = iMixNco;
 			in2[decimateCount] = qMixNco;
-			
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// we likely changed the rate, warn user
+				Log.errorDialog("ERROR WITH DECIMATION RATE", "Try stopping and starting the decoder to reset the decimation rate");
+			}
 			decimateCount++;
 			if (decimateCount == decimationFactor) {
 				decimateCount = 0;
