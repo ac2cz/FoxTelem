@@ -3,7 +3,7 @@ AMSAT Fox-1 Telemetry Decoder
 
  @author chris.e.thompson g0kla/ac2cz
  
- Copyright (C) 2015 amsat.org
+ Copyright (C) 2015-2019 amsat.org
 
  This program is free software: you can redistribute it and/or modify
  it under the terms of the GNU General Public License as published by

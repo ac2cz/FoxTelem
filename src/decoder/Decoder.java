@@ -434,51 +434,30 @@ public abstract class Decoder implements Runnable {
         	if (nBytesRead >= 0) {
         		Performance.startTimer("Read");
                 nBytesRead = read(abBufferDouble);
-                
-                if (Config.debugBytes) 
-                	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
-        		Performance.endTimer("Read");
-        		Performance.startTimer("Filter");
- 
-//                if (!(this instanceof FoxBPSKDecoder) && Config.filterData) { 
-                if (Config.filterData) { 
-                	//SourceAudio.getDoublesFromBytes(abData, stereo, abBufferDouble);
-                	/**
-                	 * Note that the filter converts the byte values to doubles and then back, so that
-                	 * we can play the filtered audio back to the user if requested.
-                	 */
-                	//filteredData = filter.filter(abData); //filters[Config.useFilterNumber].filter(abData);
-                	filter.filter(abBufferDouble, abBufferDoubleFiltered);
-                	//SourceAudio.getBytesFromDoubles(abBufferDoubleFiltered, abBufferDoubleFiltered.length, stereo, filteredData);
-                } else
-                	abBufferDoubleFiltered = abBufferDouble;
-                if (Config.filterOutputAudio) {
-//                	monitorFilter.filter(abBufferDouble, abBufferDouble);
- //               	SourceAudio.getBytesFromDoubles(abBufferDouble, abBufferDouble.length, stereo, abData);
-                }
-                Performance.endTimer("Filter");
-                Performance.startTimer("Monitor");
-
-                Performance.endTimer("Monitor");
-                Performance.startTimer("Bucket");
-
-                bucketData(abBufferDoubleFiltered);
-                Performance.endTimer("Bucket");
-
-                if (monitorAudio && !squelch && !Config.monitorFilteredAudio) {
+                if (monitorAudio && !squelch && !(this instanceof FoxBPSKDotProdDecoder) && !Config.monitorFilteredAudio) {
                 	if (sink != null)
-                		
                 		try {
-                			double[] buffer = abBufferDouble;
-                			if (this instanceof FoxBPSKDotProdDecoder)
-                				buffer = Arrays.copyOfRange(abBufferDouble, 0, ((FoxBPSKDotProdDecoder)this).samples_processed);
-                			sink.write(buffer);
+                			sink.write(abBufferDouble);
                 		} catch (Exception se ) {
                 			// Failure to write the audio should not be fatal
                 			// If we print an error here the log will fill
                 		}
                 }
-                if (monitorAudio && !squelch && Config.monitorFilteredAudio) {
+                if (Config.debugBytes) 
+                	if (nBytesRead != abBufferDouble.length) Log.println("ERROR: COULD NOT READ FULL BUFFER");
+        		Performance.endTimer("Read");
+        		
+        		Performance.startTimer("Filter"); 
+                if (Config.filterData) { 
+                	filter.filter(abBufferDouble, abBufferDoubleFiltered);
+                } else
+                	abBufferDoubleFiltered = abBufferDouble;
+                if (Config.filterOutputAudio) {
+                }
+                Performance.endTimer("Filter");
+                
+                Performance.startTimer("Monitor");
+                if (monitorAudio && !squelch && (this instanceof FoxBPSKDotProdDecoder || Config.monitorFilteredAudio)) {
                 	if (sink != null)
                 	try {
                 		double[] buffer = abBufferDoubleFiltered;
@@ -490,16 +469,18 @@ public abstract class Decoder implements Runnable {
             			// If we print an error here the log will fill
             		}
                 }
+                Performance.endTimer("Monitor");
+                Performance.startTimer("Bucket");
 
+                bucketData(abBufferDoubleFiltered);
+                Performance.endTimer("Bucket");
         	}
-
 
         	Performance.startTimer("Sample");
         	sampleBuckets();
         	Performance.endTimer("Sample");
 
         	Performance.startTimer("ClockSync");
-
         	if (!clockLocked) {
         		double[] clockAdvance;
         		clockAdvance = recoverClock(1);
@@ -560,7 +541,6 @@ public abstract class Decoder implements Runnable {
         cleanup();
         done = true;
 		Performance.printResults();		
-
     }
 	
 	

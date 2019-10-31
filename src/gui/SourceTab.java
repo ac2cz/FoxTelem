@@ -45,6 +45,7 @@ import javax.swing.JTextField;
 import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
 import javax.swing.border.BevelBorder;
+import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.plaf.SplitPaneUI;
@@ -177,6 +178,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JScrollPane logScrollPane;
 	JCheckBox autoStart;
 	JPanel sourcePanel, audioOutputPanel;
+	JLabel lblWarnNoFindSignal;
+	JPanel warnNoTrackingPanel;
 	
 	FilterPanel filterPanel;
 	
@@ -195,8 +198,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	FileDialog fd = null;
 	
 	// Variables
-	public static final String RETUNE_AND_SWITCH_MODE = "Retune center / Switch Modes";
+	public static final String RETUNE_AND_SWITCH_MODE = "Retune center / Switch modes";
+	public static final String RETUNE_AND_SWITCH_MODE_TIP = "Change the center frequency if the spacecraft is outside the band.  Switch modes if needed.";
 	public static final String SWITCH_MODE = "Auto Switch Modes";
+	public static final String SWITCH_MODE_TIP = "Automatically switch the source modes if needed.e.g. FSK to BPSK";
 	public static final String FUNCUBE1 = "FUNcube Dongle V1.0";
 	public static final String FUNCUBE2 = "FUNcube Dongle V2.0";
 //	public static final String FUNCUBE = "XXXXXXX";  // hack to disable the func cube option
@@ -259,6 +264,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		sourcePanel = new JPanel();
 		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
+		enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
 		
 		if (soundCardComboBox.getSelectedIndex() != 0) {
 			if (Config.startButtonPressed) {
@@ -317,8 +323,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 	}
 
-	private void buildOptionsRow(JPanel parent, String layout, JPanel optionsPanel) {
-		parent.add(optionsPanel, layout);
+	private void buildOptionsRow(JPanel parent, String layout, JPanel optionsPanelmain) {
+		parent.add(optionsPanelmain, layout);
+
+		optionsPanelmain.setLayout(new BorderLayout());
+		JPanel optionsPanel = new JPanel();
+		optionsPanelmain.add(optionsPanel, BorderLayout.CENTER);
+		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS));
 
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.X_AXIS));
 //		optionsPanel.setLayout(new FlowLayout(FlowLayout.LEFT));
@@ -338,7 +349,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else {
 			showLevel.setSelected(true);
 		}
-
+		warnNoTrackingPanel = new JPanel();
+		warnNoTrackingPanel.setLayout(new BorderLayout());
+		//warnNoTrackingPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(400,1), new Dimension(1500,1)), BorderLayout.CENTER);
+		lblWarnNoFindSignal = new JLabel("WARNING: Find Signal and Doppler Tracking are both disabled"); 
+		lblWarnNoFindSignal.setForeground(Config.AMSAT_RED);
+		lblWarnNoFindSignal.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
+		warnNoTrackingPanel.add(lblWarnNoFindSignal, BorderLayout.EAST);
+		optionsPanelmain.add(warnNoTrackingPanel,BorderLayout.EAST);
 
 		/*
 		rdbtnApplyBlackmanWindow = new JCheckBox("Blackman IF (vs Tukey)");
@@ -763,7 +781,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		cbRetuneCenterFrequency = new JCheckBox(RETUNE_AND_SWITCH_MODE);
 		panelFreq.add(cbRetuneCenterFrequency);
 		cbRetuneCenterFrequency.addItemListener(this);
-		cbRetuneCenterFrequency.setToolTipText("Change the center frequency if the spacecraft is outside the band.  Switch modes if needed.");
+		cbRetuneCenterFrequency.setToolTipText(RETUNE_AND_SWITCH_MODE_TIP);
 		cbRetuneCenterFrequency.setSelected(Config.retuneCenterFrequency);
 		//cbRetuneCenterFrequency.setVisible(false);
 		
@@ -898,13 +916,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//btnMonitorAudio.setEnabled(false);
 		panelCombo.add(speakerComboBox);
 		
-		if (Config.soundCard != null && !Config.soundCard.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
-			soundCardComboBox.setSelectedItem(Config.soundCard);
-		}
-
-		if (Config.audioSink != null && !Config.audioSink.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
-			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
-		}
 		autoViewpanel = new JPanel();
 		autoViewpanel.add(new Box.Filler(new Dimension(10,1), new Dimension(40,1), new Dimension(1500,1)));
 		JLabel view = new JLabel("View ");
@@ -920,6 +931,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //			autoViewpanel.setVisible(true);
 //		else
 		autoViewpanel.setVisible(true);
+		
+		if (Config.soundCard != null && !Config.soundCard.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
+			soundCardComboBox.setSelectedItem(Config.soundCard);
+		}
+
+		if (Config.audioSink != null && !Config.audioSink.equalsIgnoreCase(Config.NO_SOUND_CARD_SELECTED)) {
+			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
+		}
+		
 	}
 
 	public void setupMode() {
@@ -936,10 +956,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			enableFilters(true);
 		} else if (Config.mode == SourceIQ.MODE_PSK_NC ){
 			pskDotProd.setSelected(true);
-			enableFilters(true);
+			enableFilters(false);
 		} else if (Config.mode == SourceIQ.MODE_PSK_COSTAS){
 			pskCostas.setSelected(true);
-			enableFilters(true);
+			enableFilters(false);
 		}
 
 	}
@@ -1049,10 +1069,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
 			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
 		} 
-		if (b)
-			cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
-		else
-			cbRetuneCenterFrequency.setText(SWITCH_MODE);
 	}
 	
 	private void setFreqVisible(boolean b) {
@@ -2095,19 +2111,23 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
-		highSpeed.setEnabled(t);
-		lowSpeed.setEnabled(t);
-		pskCostas.setEnabled(t);
-		pskDotProd.setEnabled(t);
+		enableSourceModeSelectionComponents(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
 		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)
 			auto.setEnabled(false);
-		else
-			auto.setEnabled(t);
 		iqAudio.setEnabled(t);
 		afAudio.setEnabled(t);
 		MainWindow.enableSourceSelection(t);
 	}
+
+	private void enableSourceModeSelectionComponents(boolean t) {
+		highSpeed.setEnabled(t);
+		lowSpeed.setEnabled(t);
+		pskCostas.setEnabled(t);
+		pskDotProd.setEnabled(t);
+		auto.setEnabled(t);
+	}
+
 	
 	@Override
 	public void itemStateChanged(ItemEvent e) {
@@ -2174,6 +2194,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        	Config.retuneCenterFrequency=true;
 	        }
 			txtFreq.setEnabled(!Config.retuneCenterFrequency);
+			enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
 			Config.save();
 		}
 		
@@ -2532,11 +2553,21 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					
 					// This logic sets the widgets on/off depending on what is selected in the settings
+					if (Config.iq && Config.foxTelemCalcsDoppler) {
+						cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
+						cbRetuneCenterFrequency.setToolTipText(RETUNE_AND_SWITCH_MODE_TIP);
+					} else {
+						cbRetuneCenterFrequency.setText(SWITCH_MODE);
+						cbRetuneCenterFrequency.setToolTipText(SWITCH_MODE_TIP);
+					}
 					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
+						// This means we can enable auto start
 						autoStart.setEnabled(true);
-						if (Config.foxTelemCalcsPosition && !Config.findSignal)
+						if ((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) { 
+							// This means we can enable auto mode changes
 							cbRetuneCenterFrequency.setEnabled(true);
-						else if (Config.whenAboveHorizon) {
+						} else if (Config.whenAboveHorizon) {
+							// This also means we can enable auto mode changes
 							cbRetuneCenterFrequency.setEnabled(true);
 						} else {
 							cbRetuneCenterFrequency.setEnabled(false);
@@ -2551,6 +2582,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					if (soundCardComboBox.getSelectedIndex() == 0) {
 						btnStartButton.setEnabled(false);
 					} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
+						// This means we can actually AUTO START or STOP
 						rdbtnFindSignal.setEnabled(false);
 						btnStartButton.setEnabled(false);
 						lblWhenAboveHorizon.setVisible(true);
@@ -2565,17 +2597,30 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						lblWhenAboveHorizon.setVisible(false);
 					}
 					
+					// This is the logic that determines if we are in FindSignal mode and what should be displayed
 					if (Config.iq && (atLeastOneTracked && !Config.foxTelemCalcsDoppler)) {
+						if (!Config.findSignal) {
+							// Warn the user that NO TRACKING IS ON
+							warnNoTrackingPanel.setVisible(true);
+						} else {
+							warnNoTrackingPanel.setVisible(false);
+						}
+					} else {
+						warnNoTrackingPanel.setVisible(false);
+					}
+					if (Config.findSignal) {
+						// This means we are in FIND SIGNAL mode
 						//rdbtnFindSignal.setEnabled(true);
 						rdbtnFindSignal.setSelected(true);
-						Config.findSignal = true;
+						//Config.findSignal = true;
 						if (Config.iq) {
 							findSignalPanel.setVisible(true);
 						}
 					} else {
+						// Otherwise FIND SIGNAL is not allowed
 						rdbtnFindSignal.setEnabled(false);
 						rdbtnFindSignal.setSelected(false);
-						Config.findSignal = false;
+						//Config.findSignal = false;
 						findSignalPanel.setVisible(false);
 					}
 					

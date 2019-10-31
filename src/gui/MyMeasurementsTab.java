@@ -156,6 +156,7 @@ ItemListener {
 				Log.println("ERROR: Measurement thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
+			if (satellite != null) // make sure we are initialized, avoid race condition
 			if (Config.payloadStore.getUpdatedMeasurement(sat.foxId)) {
 
 				rtMeasurement = Config.payloadStore
@@ -196,6 +197,7 @@ ItemListener {
 							Integer.toString(erase));
 				}
 			}
+			if (passes != null) // make sure we have initialized, avoid race condition
 			if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
 				passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
 				if (passMeasurement != null) {

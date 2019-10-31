@@ -58,6 +58,8 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 	 * 
 	 */
 	public Frame decodeFrame(int start, int end, int missedBits, int repairPosition, Date timeOfStartSync) {
+		totalRsErrors = 0;
+		totalRsErasures = 0;
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
 		// ADD in the next SYNC WORD to help the decoder

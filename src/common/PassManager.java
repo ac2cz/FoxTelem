@@ -213,7 +213,7 @@ public class PassManager implements Runnable {
 			setFreqRangeBins(spacecraft, pp1);
 			initParams(pp1);
 			if (pp2.foxDecoder != null) {
-				setFreqRangeBins(spacecraft, pp2);
+				//setFreqRangeBins(spacecraft, pp2);
 				initParams(pp2);
 			}
 			return SCAN;
@@ -399,8 +399,8 @@ public class PassManager implements Runnable {
 			e.printStackTrace();
 		}
 		setFreqRangeBins(spacecraft, pp1);
-		if (pp2 != null)
-		setFreqRangeBins(spacecraft, pp2);
+		//if (pp2 != null)
+		//setFreqRangeBins(spacecraft, pp2);
 
 		if (foundFoxSignal(spacecraft, pp1)) {
 //			lockSignal(sat, pp1);
@@ -689,7 +689,8 @@ public class PassManager implements Runnable {
 								if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
 									// We try to retune if FoxTelem Calc is on and FindSignal is not.
 									if (Config.retuneCenterFrequency) {
-										retunedCenterFreqIfNeeded(sat);
+										if (Config.foxTelemCalcsDoppler)
+											retunedCenterFreqIfNeeded(sat);
 										switchedModeIfNeeded(sat);
 									}
 								}
@@ -717,6 +718,7 @@ public class PassManager implements Runnable {
 									// we don't have find signal on. set full range or signals calculated incorrectly
 									Config.fromBin = 0; 
 									Config.toBin = SourceIQ.FFT_SAMPLES;
+									break; // this is a mode for the lab, we don't cycle through the spacecraft
 								}
 							} else { // not in IQ mode, but still may want to switch modes
 								if (satIsUp(sat))
@@ -803,7 +805,7 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
-		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler)
+		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler || Config.useDDEforAzEl)
 			return satIsUp(sat);
 		return true;
 	}

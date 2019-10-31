@@ -725,8 +725,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 				dir = new File(Config.logFileDirectory);
 			}
-			if(Config.useNativeFileChooser && !Config.isWindowsOs()) { // not on windows because native dir chooser does not work) {
-				// use the native file dialog on the mac
+			if(Config.isMacOs()) { // not on Linx/windows because native dir chooser does not work) {
+				// use the native file DIR dialog on the mac by default
 				System.setProperty("apple.awt.fileDialogForDirectories", "true");
 				FileDialog fd =
 						new FileDialog(this, "Choose Directory for Log Files",FileDialog.LOAD);
