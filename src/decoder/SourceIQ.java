@@ -99,9 +99,9 @@ public class SourceIQ extends SourceAudio {
 	int dist = 0; // the offset distance
 	
 	// Only needed for Legacy NCO
-	private static final int SINCOS_SIZE = 256;
-	private double[] sinTab = new double[SINCOS_SIZE];
-	private double[] cosTab = new double[SINCOS_SIZE];
+//	private static final int SINCOS_SIZE = 256;
+//	private double[] sinTab = new double[SINCOS_SIZE];
+//	private double[] cosTab = new double[SINCOS_SIZE];
 	
 	RfData rfData;
 	Thread rfDataThread;
@@ -117,10 +117,10 @@ public class SourceIQ extends SourceAudio {
 
 		// Legacy Oscillator
 		// NCO
-		for (int n=0; n<SINCOS_SIZE; n++) {
-			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
-			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
-		}
+//		for (int n=0; n<SINCOS_SIZE; n++) {
+//			sinTab[n] = Math.sin(n*2.0*Math.PI/SINCOS_SIZE);
+//			cosTab[n] = Math.cos(n*2.0*Math.PI/SINCOS_SIZE);
+//		}
 	}
 
 	public void setAudioSource(SourceAudio as, int chan) {
@@ -287,6 +287,7 @@ public class SourceIQ extends SourceAudio {
 	/**
 	 * 47Hz resolution has worked well in FoxTelem for the FCD.  ie 4096 length FFT.  To preserve that fidelity we calculate the nearest 
 	 * power of 2 that gives that resolution, given a sampleRate, up to a maximum of 2^16
+	 * Note that this fidelity is only needed if we are performing an FFT Filter. Not needed for NCO.
 	 */
 	private void setFFTsize() {
 		
@@ -404,8 +405,6 @@ public class SourceIQ extends SourceAudio {
 		rfDataThread.start();
 	}
 	
-	boolean skippedOneByte = false;
-	double a, b;
 	@Override
 	public void run() {
 		Thread.currentThread().setName("SourceIQ");
@@ -912,13 +911,14 @@ protected double[] processBytes(double[] fcdData) {
 		}
 //		double sigList[] = new double[(end-start+2)/2];
 		for (int i = start; i <= end; i+=2) {
-			if (Config.applyBlackmanWindow) {
-				newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
-				newData[k+1] = fftData[i + 1] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]);	
-			} else {
-				newData[k] = fftData[i] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]) ;
-				newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
-			}
+			if (!Config.useNCO)
+				if (Config.applyBlackmanWindow) {
+					newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
+					newData[k+1] = fftData[i + 1] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]);	
+				} else {
+					newData[k] = fftData[i] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]) ;
+					newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
+				}
 			sig = psd(fftData[i], fftData[i+1]);
 			if ((fromBin*2 < i && i < toBin*2)
 					|| (spansDcSpike && fromBin*2 < i && i < fftData.length-2) || (spansDcSpike && 0 <= i && i < toBin*2)) {
@@ -984,10 +984,11 @@ protected double[] processBytes(double[] fcdData) {
 		//		fftData[0] = 0;
 		//		fftData[1] = 0;
 		// Write the DC bins - seem to need this for the blackman filter
-		if (Config.applyBlackmanWindow) {
-			newData[0] = iAvg / (filterBins * 2);
-			newData[1] = qAvg / (filterBins * 2);
-		}
+		if (!Config.useNCO)
+			if (Config.applyBlackmanWindow) {
+				newData[0] = iAvg / (filterBins * 2);
+				newData[1] = qAvg / (filterBins * 2);
+			}
 		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
 		//		if (Config.debugSignalFinder) {
@@ -1005,9 +1006,10 @@ protected double[] processBytes(double[] fcdData) {
 		// store the strongest sigs - STRONGEST_SIGNAL_IN_SAT_BAND
 		rfData.setStrongestSignal(strongestSigInSatBand, binOfStrongestSigInSatBand);
 
-		for (int i = 0; i < fftData.length; i+=1) {
-			fftData[i] = newData[i];			
-		}
+		if (!Config.useNCO)
+			for (int i = 0; i < fftData.length; i+=1) {
+				fftData[i] = newData[i];			
+			}
 
 		//return newData;
 	}
