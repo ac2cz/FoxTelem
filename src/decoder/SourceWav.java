@@ -120,9 +120,9 @@ public class SourceWav extends SourceAudio implements Runnable {
 
 	    long lastLoopTime = System.nanoTime();
 	    final long OPTIMAL_TIME_FOR_1_SAMPLE = 1000000000 / (int)audioFormat.getSampleRate();
-	    System.err.println("OPT TIME:" + OPTIMAL_TIME_FOR_1_SAMPLE + "ns");
-	    System.err.println("RATE:" + audioFormat.getSampleRate());
-	    System.err.println("FRAME:" + audioFormat.getFrameSize());
+//	    System.err.println("OPT TIME:" + OPTIMAL_TIME_FOR_1_SAMPLE + "ns");
+//	    System.err.println("RATE:" + audioFormat.getSampleRate());
+//	    System.err.println("FRAME:" + audioFormat.getFrameSize());
 
 	    while (running) {
 
@@ -148,7 +148,6 @@ public class SourceWav extends SourceAudio implements Runnable {
 	    			}
 	    			//Log.println("No room in Buffer");
 	    		}
-		    	lastLoopTime = System.nanoTime();
 	    		for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
 	    			if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
 	    				byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
@@ -180,18 +179,21 @@ public class SourceWav extends SourceAudio implements Runnable {
 	    						circularDoubleBuffer[chan].add(a);
 	    			}
 	    		}
-	    		long loopTime = System.nanoTime() - lastLoopTime;
-	    		long sleepTime_ms =  ((OPTIMAL_TIME_FOR_1_SAMPLE * (nBytesRead/audioFormat.getFrameSize())) - loopTime) / 1000000;
-	    		if (sleepTime_ms > 0)
-	    			try {
-	    				Thread.sleep( sleepTime_ms );
-	    				//Main.debug("Sleep for:" + sleepTime);
-	    			} catch (InterruptedException e) {
-	    				System.err.println("Mainloop Sleep Interrupted!");
-	    				// TODO Auto-generated catch block
-	    				//e.printStackTrace();
-	    			} else
-	    				Thread.yield();
+	    		if (!Config.turboWavFilePlayback) {
+	    			long loopTime = System.nanoTime() - lastLoopTime;
+	    			long sleepTime_ms =  ((OPTIMAL_TIME_FOR_1_SAMPLE * (nBytesRead/audioFormat.getFrameSize())) - loopTime) / 1000000;
+	    			if (sleepTime_ms > 0)
+	    				try {
+	    					Thread.sleep( sleepTime_ms );
+	    					//Main.debug("Sleep for:" + sleepTime);
+	    				} catch (InterruptedException e) {
+	    					System.err.println("Mainloop Sleep Interrupted!");
+	    					// TODO Auto-generated catch block
+	    					//e.printStackTrace();
+	    				} else
+	    					Thread.yield();
+	    			lastLoopTime = System.nanoTime();
+	    		}
 	    	}
 	    }
 	    framesProcessed = totalFrames;

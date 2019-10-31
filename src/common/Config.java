@@ -284,6 +284,7 @@ public class Config {
 	static public boolean retuneCenterFrequency = false;
 	static public boolean debugSegs = false; // set to true to print out every seg load
 	static public int timeUntilTableSegOffloaded = 60*1000;
+	static public boolean turboWavFilePlayback = false;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -734,6 +735,7 @@ public class Config {
 		properties.setProperty("retuneCenterFrequency", Boolean.toString(retuneCenterFrequency));
 		properties.setProperty("debugSegs", Boolean.toString(debugSegs));
 		properties.setProperty("timeUntilTableSegOffloaded", Integer.toString(timeUntilTableSegOffloaded));
+		properties.setProperty("turboWavFilePlayback", Boolean.toString(turboWavFilePlayback));
 
 		store();
 	}
@@ -924,6 +926,7 @@ public class Config {
 		retuneCenterFrequency = Boolean.parseBoolean(getProperty("retuneCenterFrequency"));
 		debugSegs = Boolean.parseBoolean(getProperty("debugSegs"));
 		timeUntilTableSegOffloaded = Integer.parseInt(getProperty("timeUntilTableSegOffloaded"));
+		turboWavFilePlayback = Boolean.parseBoolean(getProperty("turboWavFilePlayback"));
 
 		} catch (NumberFormatException nf) {
 			catchException();

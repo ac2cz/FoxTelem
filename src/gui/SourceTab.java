@@ -180,6 +180,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JPanel sourcePanel, audioOutputPanel;
 	JLabel lblWarnNoFindSignal;
 	JPanel warnNoTrackingPanel;
+	JCheckBox cbTurboWavFilePlayback;
 	
 	FilterPanel filterPanel;
 	
@@ -846,6 +847,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		progressBar.setValue(0);
         progressBar.setStringPainted(true);
 		
+        cbTurboWavFilePlayback = new JCheckBox("Fast playback (not recommended)");
+        cbTurboWavFilePlayback.setSelected(Config.turboWavFilePlayback);
+        cbTurboWavFilePlayback.addItemListener(this);
+        panelFile.add(cbTurboWavFilePlayback);
 		panelFile.setVisible(false);
 		
 //		log = new JTextArea();
@@ -2148,31 +2153,41 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				monitorFiltered=false;
 	            Config.monitorFilteredAudio=false;
-	            //Config.save();
+	            Config.save();
 	        } else {
 	        	Config.monitorFilteredAudio=true;
 	        	monitorFiltered=true;
-	        	//Config.save();
+	        	Config.save();
+	        }
+			Config.save();
+		}
+		if (e.getSource() == cbTurboWavFilePlayback) {
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+	            Config.turboWavFilePlayback=false;
+	            Config.save();
+	        } else {
+	        	Config.turboWavFilePlayback=true;
+	        	Config.save();
 	        }
 			Config.save();
 		}
 		if (e.getSource() == rdbtnSquelchAudio) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 	            Config.squelchAudio=false;
-	            //Config.save();
+	            Config.save();
 	        } else {
 	        	Config.squelchAudio=true;
-	        	//Config.save();
+	        	Config.save();
 	        }
 			Config.save();
 		}
 		if (e.getSource() == rdbtnFilterOutputAudio) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 	            Config.filterOutputAudio=false;
-	            //Config.save();
+	            Config.save();
 	        } else {
 	        	Config.filterOutputAudio=true;
-	        	//Config.save();
+	        	Config.save();
 	        }
 			Config.save();
 		}
