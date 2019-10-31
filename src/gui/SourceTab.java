@@ -1687,8 +1687,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
 							try {
-								double f = setCenterFreq();
-								txtFreq.setText(Double.toString(f));
+								txtFreq.setText(Double.toString(Config.fcdFrequency)); // trigger the change to the text field and set the center freq
+								setCenterFreq();
 							} catch (DeviceException e) {
 								Log.println("ERROR setting the Center Frequency: " + e.getMessage());
 								e.printStackTrace(Log.getWriter());
