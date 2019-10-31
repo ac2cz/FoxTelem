@@ -42,7 +42,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 
 	//boolean fileDone = false;
 	byte[] readBuffer;
-	public static final int DEFAULT_READ_BUFFER_SIZE = 512 * 32; // about 5 ms at 48k sample rate;
+	public static final int DEFAULT_READ_BUFFER_SIZE = 512 * 128; // long enough to avoid clicks  with timing loop
 	
 	AudioInputStream audioStream = null; // The object used to read the stream of data from the wave file
 	
@@ -148,6 +148,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 	    			}
 	    			//Log.println("No room in Buffer");
 	    		}
+    			lastLoopTime = System.nanoTime();
 	    		for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
 	    			if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
 	    				byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
@@ -192,7 +193,6 @@ public class SourceWav extends SourceAudio implements Runnable {
 	    					//e.printStackTrace();
 	    				} else
 	    					Thread.yield();
-	    			lastLoopTime = System.nanoTime();
 	    		}
 	    	}
 	    }
