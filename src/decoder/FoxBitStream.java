@@ -250,6 +250,23 @@ public abstract class FoxBitStream extends BitStream {
 						printBitArray(syncWord);
 					}
 					frames = tryToProcessFrames(timeOfSync, i+1);
+					if (frames == null || frames.isEmpty()) {
+						if (!alreadyTriedToFlipBits) {
+							//alreadyTriedToFlipBits = true;
+							decoder.flipReceivedBits = !decoder.flipReceivedBits;
+							Log.println("..trying Flipped bits");
+							frames = tryToProcessFrames(timeOfSync, i+1);
+							if (frames != null && !frames.isEmpty()) {
+								// it worked, so flip the whole bitstream and we carry on
+								Log.println("DECODER: Flipped bits");
+								// flip any bits left
+								flipBitStream();
+							} else {
+								// was not a flip bit issue
+								decoder.flipReceivedBits = !decoder.flipReceivedBits;
+							}
+						} 
+					}
 					// we do not exit as we have to add the remaining bits in the window, which are the start of the next frame
 				} 
 				// now shift the bits and continue looking for frame marker
