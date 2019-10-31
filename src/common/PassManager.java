@@ -805,13 +805,13 @@ public class PassManager implements Runnable {
 	 * @return
 	 */
 	private boolean trackSpacecraft(Spacecraft sat) {
-		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler || Config.useDDEforAzEl)
+		if (!sat.user_track) return false;
+		if (Config.whenAboveHorizon || Config.foxTelemCalcsDoppler)
 			return satIsUp(sat);
 		return true;
 	}
 	
 	private boolean satIsUp(Spacecraft sat) {
-		if (!sat.user_track) return false;
 		if (Config.useDDEforAzEl) {
 			String satString = null;
 			SatPc32DDE satPC = new SatPc32DDE();
