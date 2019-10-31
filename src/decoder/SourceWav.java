@@ -42,7 +42,7 @@ public class SourceWav extends SourceAudio implements Runnable {
 
 	//boolean fileDone = false;
 	byte[] readBuffer;
-	public static final int DEFAULT_READ_BUFFER_SIZE = 512 * 4; // about 5 ms at 48k sample rate;
+	public static final int DEFAULT_READ_BUFFER_SIZE = 512 * 32; // about 5 ms at 48k sample rate;
 	
 	AudioInputStream audioStream = null; // The object used to read the stream of data from the wave file
 	
@@ -117,75 +117,92 @@ public class SourceWav extends SourceAudio implements Runnable {
 				e1.printStackTrace(Log.getWriter());
 				running = false;
 			}
- 
-		while (running) {
-//			Log.println("wav running");
-			if (audioStream != null) {
-					int nBytesRead = 0;
-					if (circularDoubleBuffer[0].getCapacity() > readBuffer.length) {
-						try {
-							nBytesRead = audioStream.read(readBuffer, 0, readBuffer.length);
-							bytesRead = bytesRead + nBytesRead;
-							framesProcessed = framesProcessed + nBytesRead/frameSize;
-							// Check we have not stopped mid read
-							if (audioStream == null) running = false; else if (!(audioStream.available() > 0)) running = false;
-						} catch (IOException e) {
-							Log.errorDialog("ERROR", "Failed to read from file " + fileName) ;
-							e.printStackTrace(Log.getWriter());
-						}
-					} else {
-						try {
-							Thread.sleep(1);
-						} catch (InterruptedException e) {
-							// TODO Auto-generated catch block
-							e.printStackTrace();
-						}
-						//Log.println("No room in Buffer");
-					}
-					for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
-						//circularDoubleBuffer.add(readBuffer[i]);
-						if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
-							byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
-							if (audioFormat.isBigEndian()) {
-								b = Decoder.bigEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
-							} else {
-								b = Decoder.littleEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
-							}
-						}
-						byte[] ia = {readBuffer[i],readBuffer[i+1]};
-						if (audioFormat.isBigEndian()) {
-							a = Decoder.bigEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
-						} else {
-							a = Decoder.littleEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
-						}
-						if (audioFormat.getFrameSize() == 4 && storeStereo) {
-							if (channels == 0)
-								circularDoubleBuffer[0].add(a,b);
-							else
-								for (int chan=0; chan < channels; chan++)
-									circularDoubleBuffer[chan].add(a,b);
-						} else { // we have only mono and we need to know which channel to take the data from
-							if (!Config.useLeftStereoChannel)
-								a = b; // use the audio from the right channel
-							if (channels == 0)
-								circularDoubleBuffer[0].add(a);
-							else
-								for (int chan=0; chan < channels; chan++)
-									circularDoubleBuffer[chan].add(a);
-						}
-					}
 
-			}
-		}
-		framesProcessed = totalFrames;
-		cleanup(); // This might cause the decoder to miss the end of a file (testing inconclusive) but it also ensure the file is close and stops an error if run again very quickly
-		running = false;
-		try {
-			Thread.sleep(100);
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-		}
-		Log.println("WAV Source EXIT");
+	    long lastLoopTime = System.nanoTime();
+	    final long OPTIMAL_TIME_FOR_1_SAMPLE = 1000000000 / (int)audioFormat.getSampleRate();
+	    System.err.println("OPT TIME:" + OPTIMAL_TIME_FOR_1_SAMPLE + "ns");
+	    System.err.println("RATE:" + audioFormat.getSampleRate());
+	    System.err.println("FRAME:" + audioFormat.getFrameSize());
+
+	    while (running) {
+
+	    	if (audioStream != null) {
+	    		int nBytesRead = 0;
+	    		if (circularDoubleBuffer[0].getCapacity() > readBuffer.length) {
+	    			try {
+	    				nBytesRead = audioStream.read(readBuffer, 0, readBuffer.length);
+	    				bytesRead = bytesRead + nBytesRead;
+	    				framesProcessed = framesProcessed + nBytesRead/frameSize;
+	    				// Check we have not stopped mid read
+	    				if (audioStream == null) running = false; else if (!(audioStream.available() > 0)) running = false;
+	    			} catch (IOException e) {
+	    				Log.errorDialog("ERROR", "Failed to read from file " + fileName) ;
+	    				e.printStackTrace(Log.getWriter());
+	    			}
+	    		} else {
+	    			try {
+	    				Thread.sleep(1);
+	    			} catch (InterruptedException e) {
+	    				// TODO Auto-generated catch block
+	    				e.printStackTrace();
+	    			}
+	    			//Log.println("No room in Buffer");
+	    		}
+		    	lastLoopTime = System.nanoTime();
+	    		for(int i=0; i< nBytesRead; i+=audioFormat.getFrameSize()) {
+	    			if (audioFormat.getFrameSize() == 4) {  // STEREO DATA because 4 bytes and 2 bytes are used for each channel
+	    				byte[] ib = {readBuffer[i+2],readBuffer[i+3]};
+	    				if (audioFormat.isBigEndian()) {
+	    					b = Decoder.bigEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+	    				} else {
+	    					b = Decoder.littleEndian2(ib, audioFormat.getSampleSizeInBits())/ 32768.0;
+	    				}
+	    			}
+	    			byte[] ia = {readBuffer[i],readBuffer[i+1]};
+	    			if (audioFormat.isBigEndian()) {
+	    				a = Decoder.bigEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+	    			} else {
+	    				a = Decoder.littleEndian2(ia, audioFormat.getSampleSizeInBits())/ 32768.0;
+	    			}
+	    			if (audioFormat.getFrameSize() == 4 && storeStereo) {
+	    				if (channels == 0)
+	    					circularDoubleBuffer[0].add(a,b);
+	    				else
+	    					for (int chan=0; chan < channels; chan++)
+	    						circularDoubleBuffer[chan].add(a,b);
+	    			} else { // we have only mono and we need to know which channel to take the data from
+	    				if (!Config.useLeftStereoChannel)
+	    					a = b; // use the audio from the right channel
+	    				if (channels == 0)
+	    					circularDoubleBuffer[0].add(a);
+	    				else
+	    					for (int chan=0; chan < channels; chan++)
+	    						circularDoubleBuffer[chan].add(a);
+	    			}
+	    		}
+	    		long loopTime = System.nanoTime() - lastLoopTime;
+	    		long sleepTime_ms =  ((OPTIMAL_TIME_FOR_1_SAMPLE * (nBytesRead/audioFormat.getFrameSize())) - loopTime) / 1000000;
+	    		if (sleepTime_ms > 0)
+	    			try {
+	    				Thread.sleep( sleepTime_ms );
+	    				//Main.debug("Sleep for:" + sleepTime);
+	    			} catch (InterruptedException e) {
+	    				System.err.println("Mainloop Sleep Interrupted!");
+	    				// TODO Auto-generated catch block
+	    				//e.printStackTrace();
+	    			} else
+	    				Thread.yield();
+	    	}
+	    }
+	    framesProcessed = totalFrames;
+	    cleanup(); // This might cause the decoder to miss the end of a file (testing inconclusive) but it also ensure the file is close and stops an error if run again very quickly
+	    running = false;
+	    try {
+	    	Thread.sleep(100);
+	    } catch (InterruptedException e) {
+	    	e.printStackTrace();
+	    }
+	    Log.println("WAV Source EXIT");
 	}
 
 	public int getPercentProgress() {
