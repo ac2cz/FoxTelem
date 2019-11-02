@@ -159,8 +159,10 @@ public class WodUwExperimentTab extends UwExperimentTab {
 				Log.println("ERROR: HealthTab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
-			if (Config.displayRawValues != showRawValues.isSelected()) {
-				showRawValues.setSelected(Config.displayRawValues);
+			if (Config.displayRawRadData != showRawBytes.isSelected()) {
+				showRawBytes.setSelected(Config.displayRawRadData);
+				parseRadiationFrames();
+				updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_CAN_LAYOUT)) {
