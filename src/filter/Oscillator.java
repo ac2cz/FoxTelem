@@ -104,7 +104,7 @@ public abstract class Oscillator {
 	public double nextSample() {
 		incPhase(phaseIncrement);
 		idx = ((int)((phase * (double)TABLE_SIZE/(2 * Math.PI))))%TABLE_SIZE;
-		if (idx < 0 || idx > sinTable.length)
+		if (idx < 0 || idx >= sinTable.length)
 			;//System.err.println("NEG IDX ERROR: " + idx + " phase:" + phase + " inc:"+phaseIncrement);
 		else
 			value = sinTable[idx];
