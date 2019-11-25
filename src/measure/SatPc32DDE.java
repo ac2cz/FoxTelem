@@ -32,6 +32,7 @@ public class SatPc32DDE {
 
 	public static final String CONNECT_FAIL_ERROR_CODE = "0x400a";
 
+	// This stores the results from the last request
 	public String satellite;
 	public double azimuth;
 	public double elevation;
@@ -59,7 +60,8 @@ public class SatPc32DDE {
 					el = el.replaceAll(",",".");
 					elevation = Double.parseDouble(el);
 					downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
-					//System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
+					if (Config.debugDDE)
+					System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
 
 					return true;
 				} else {

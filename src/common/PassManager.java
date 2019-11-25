@@ -638,7 +638,8 @@ public class PassManager implements Runnable {
 		running = false;
 	}
 	
-	SatPc32DDE satPC = null;
+	//SatPc32DDE satPC = null;
+	boolean satPC32Connected = false;
 	
 	@Override
 	public void run() {
@@ -679,10 +680,15 @@ public class PassManager implements Runnable {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			if (Config.useDDEforAzEl || Config.useDDEforFreq) {
+				if (Config.satPC == null || satPC32Connected == false) {
+					Config.satPC = new SatPc32DDE();
+				}
+				satPC32Connected = Config.satPC.connect();
+			}
 			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
 				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
-				satPC = null; // request position from SatPC32 if that is required, but only once for the set of sats
 				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
@@ -823,17 +829,12 @@ public class PassManager implements Runnable {
 	private boolean satIsUp(Spacecraft sat) {
 		if (Config.useDDEforAzEl) {
 			String satString = null;
-			if (satPC == null) {
-				satPC = new SatPc32DDE(); // this s requested the first time we come through the sat list
-
-				boolean connected = satPC.connect();
-				if (connected) {
-					satString = satPC.satellite;
-					//Log.println("SATPC32: " + satString);
-				}
+			if (satPC32Connected) {
+				satString = Config.satPC.satellite;
+				//Log.println("SATPC32: " + satString);
 			}
 			if (satString != null && satString.equalsIgnoreCase(sat.user_keps_name)) {
-				if (satPC.elevation > 0)
+				if (Config.satPC.elevation > 0)
 					return true;
 			}
 
