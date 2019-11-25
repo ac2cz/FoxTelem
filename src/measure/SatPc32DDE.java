@@ -31,65 +31,61 @@ import common.Log;
 public class SatPc32DDE {
 
 	public static final String CONNECT_FAIL_ERROR_CODE = "0x400a";
-	
+
 	public String satellite;
 	public double azimuth;
 	public double elevation;
 	public long downlinkFrequency;
-	
+
 	public boolean connect() {
 		String ddeString = null;
-		try
-		{
-		    final DDEClientConversation conversation = new DDEClientConversation();
-		    
-		    conversation.connect("SatPC32", "SatPcDdeConv");
-		    try
-		    {
-		        // Requesting DDE String
-		        ddeString = conversation.request("SatPcDdeItem");
-		      //  Log.println("SatPC32: " + ddeString);
-		        if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
-		        String parts[] = ddeString.split(" ");
-		        satellite = parts[0].substring(2, parts[0].length());
-		        String az = parts[1].substring(2, parts[1].length());
-		        az = az.replaceAll(",","."); // in case we have European formatting
-		        azimuth = Double.parseDouble(az);
-		        String el = parts[2].substring(2, parts[2].length());
-		        el = el.replaceAll(",",".");
-		        elevation = Double.parseDouble(el);
-		        downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
-		        //System.out.println("Sat: " + satellite);
-		        //System.out.println("Az: " + azimuth);
-		        //System.out.println("El: " + elevation);
-		        //System.out.println("Freq: " + downlinkFrequency);
-		        
-		        // Sending "close()" command
-		        conversation.execute("[close()]");
-		        return true;
-		        } else {
-		        	conversation.execute("[close()]");
-			        return false;
-			        	
-		        }
-		    }
-		    finally
-		    {
-		        conversation.disconnect();
-		    }
+		DDEClientConversation conversation = null;
+		try {
+			conversation = new DDEClientConversation();
+			conversation.setTimeout(100); // 100ms second timeout
+			conversation.connect("SatPC32", "SatPcDdeConv");
+
+			try {
+				// Requesting DDE String
+				ddeString = conversation.request("SatPcDdeItem");
+				//  Log.println("SatPC32: " + ddeString);
+				if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
+					String parts[] = ddeString.split(" ");
+					satellite = parts[0].substring(2, parts[0].length());
+					String az = parts[1].substring(2, parts[1].length());
+					az = az.replaceAll(",","."); // in case we have European formatting
+					azimuth = Double.parseDouble(az);
+					String el = parts[2].substring(2, parts[2].length());
+					el = el.replaceAll(",",".");
+					elevation = Double.parseDouble(el);
+					downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
+					//System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
+
+					return true;
+				} else {
+					return false;
+
+				}
+			} finally {
+				if (conversation != null) {
+					// Sending "close()" command
+					//try { conversation.execute("[close()]"); } catch (DDEException e) {/* do nothing */	}
+					try { conversation.disconnect(); } catch (DDEException e) { Log.println("DDEException while disconnecting: " + e.getMessage());/* do nothing */	}
+				}
+			}
+
 		}
-		catch (DDEMLException e)
-		{
+		catch (DDEMLException e) {
 			if (e.getErrorCode() == 0x400a)
 				;// we can ignore failed connection error.  SatPC32 is not open
 			else
-		    Log.println("DDEMLException: 0x" + Integer.toHexString(e.getErrorCode())
-		                       + " " + e.getMessage());
-		    return false;
+				Log.println("DDEMLException: 0x" + Integer.toHexString(e.getErrorCode())
+				+ " " + e.getMessage());
+			return false;
 		}		
 		catch (DDEException e) {
-		    Log.println("DDEException: " + e.getMessage());
-		    return false;
+			Log.println("DDEException: " + e.getMessage());
+			return false;
 		}
 		catch (UnsatisfiedLinkError e) {
 			Log.errorDialog("MISSING DDE DLLs", "FoxTelem could not find the JavaDDE.dll or JavaDDEx64.dll files.  They need to be in the same\n"
@@ -112,8 +108,8 @@ public class SatPc32DDE {
 				Log.println("Cannot parse the DDE message: " + ddeString + "\nNumber format error: " + e.getMessage());
 			else
 				Log.println("Cannot parse the DDE message.  \nNumber format error: " + e.getMessage());
-		    return false;
-			
+			return false;
+
 		}
 	}
 }

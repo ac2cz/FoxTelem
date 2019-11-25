@@ -638,6 +638,8 @@ public class PassManager implements Runnable {
 		running = false;
 	}
 	
+	SatPc32DDE satPC = null;
+	
 	@Override
 	public void run() {
 		
@@ -645,6 +647,7 @@ public class PassManager implements Runnable {
 		done = false;
 		newPass = false;
 		int currentSatId = 0;
+		
 		
 		/**
 		 * We run in a loop checking each spacecraft that the user has configured for tracking. 
@@ -668,8 +671,10 @@ public class PassManager implements Runnable {
 			try {
 				if (Config.foxTelemCalcsDoppler)
 					Thread.sleep(1000);
-				else
+				if (Config.iq)
 					Thread.sleep(100);
+				else
+					Thread.sleep(5000); // AF mode, just to see if mode needs change, check once per frame
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -677,6 +682,7 @@ public class PassManager implements Runnable {
 			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
 				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
+				satPC = null; // request position from SatPC32 if that is required, but only once for the set of sats
 				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
@@ -721,13 +727,16 @@ public class PassManager implements Runnable {
 									break; // this is a mode for the lab, we don't cycle through the spacecraft
 								}
 							} else { // not in IQ mode, but still may want to switch modes
-								if (satIsUp(sat))
+								if (satIsUp(sat)) {
 									if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
 										if (Config.retuneCenterFrequency) {
 											switchedModeIfNeeded(sat);
 										}
-										break; // only for the highest priority sat that is up
+										
 									}
+									break; // only for the highest priority sat that is up
+								}
+								
 							}
 						} else {
 							if (currentSatId == sat.foxId) { // close out the pass for a previous sat
@@ -814,15 +823,20 @@ public class PassManager implements Runnable {
 	private boolean satIsUp(Spacecraft sat) {
 		if (Config.useDDEforAzEl) {
 			String satString = null;
-			SatPc32DDE satPC = new SatPc32DDE();
-			boolean connected = satPC.connect();
-			if (connected) {
-				satString = satPC.satellite;
-				//Log.println("SATPC32: " + satString);
-				if (satString != null && satString.equalsIgnoreCase(sat.user_keps_name)) {
-					return true;
+			if (satPC == null) {
+				satPC = new SatPc32DDE(); // this s requested the first time we come through the sat list
+
+				boolean connected = satPC.connect();
+				if (connected) {
+					satString = satPC.satellite;
+					//Log.println("SATPC32: " + satString);
 				}
 			}
+			if (satString != null && satString.equalsIgnoreCase(sat.user_keps_name)) {
+				if (satPC.elevation > 0)
+					return true;
+			}
+
 			return false;
 		}
 		if (Config.foxTelemCalcsPosition) {
