@@ -2552,7 +2552,29 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 									satPosition[s].setText(msg);
 								}
 							} else if (Config.useDDEforAzEl && sat.user_track) {
-								satPosition[s].setText("Tracked via SATPC32");
+								if (Config.satPC != null && Config.satPC.conversation != null && Config.satPC.satellite != null) {
+									if (Config.satPC.satellite.equalsIgnoreCase(sat.user_keps_name)) {
+										double az = Config.satPC.azimuth;
+										double el = Config.satPC.elevation;
+										if (el > 0)
+											satPosition[s].setForeground(Config.AMSAT_RED);
+										else
+											satPosition[s].setForeground(Config.AMSAT_BLUE);
+										String position = "" + String.format("%2.1f", az) 
+										+ " | " + String.format("%2.1f", el);
+										
+//											double freq = sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz);
+//											String sign="";
+//											if (freq > 0) sign = "+";
+//											position = position + " | " + sign+String.format("%2.3f", freq) + "kHz";
+										
+										satPosition[s].setText(position);
+									} else {
+										satPosition[s].setText("Tracked via SATPC32");
+									}
+								} else {
+									satPosition[s].setText("SATPC32 - not found");
+								}
 							} else {
 								if (sat.user_track)
 									satPosition[s].setText("Tracked");

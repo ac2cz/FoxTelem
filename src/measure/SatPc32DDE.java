@@ -33,6 +33,8 @@ public class SatPc32DDE {
 	public static final String CONNECT_FAIL_ERROR_CODE = "0x400a";
 
 	// This stores the results from the last request
+	public DDEClientConversation conversation = null;
+
 	public String satellite;
 	public double azimuth;
 	public double elevation;
@@ -40,7 +42,6 @@ public class SatPc32DDE {
 
 	public boolean connect() {
 		String ddeString = null;
-		DDEClientConversation conversation = null;
 		try {
 			conversation = new DDEClientConversation();
 			conversation.setTimeout(100); // 100ms second timeout
@@ -61,12 +62,12 @@ public class SatPc32DDE {
 					elevation = Double.parseDouble(el);
 					downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
 					if (Config.debugDDE)
-					System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
+						System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
 
 					return true;
 				} else {
+					satellite = "NONE";
 					return false;
-
 				}
 			} finally {
 				if (conversation != null) {
@@ -83,10 +84,12 @@ public class SatPc32DDE {
 			else
 				Log.println("DDEMLException: 0x" + Integer.toHexString(e.getErrorCode())
 				+ " " + e.getMessage());
+			satellite = null;
 			return false;
 		}		
 		catch (DDEException e) {
 			Log.println("DDEException: " + e.getMessage());
+			satellite = null;
 			return false;
 		}
 		catch (UnsatisfiedLinkError e) {
@@ -95,6 +98,7 @@ public class SatPc32DDE {
 					+ "The DDE connection to SatPC32 has been disabled.");
 			Config.useDDEforAzEl = false;
 			Config.useDDEforFreq = false;
+			satellite = null;
 			return false;
 		}
 		catch (NoClassDefFoundError e) {
@@ -103,6 +107,7 @@ public class SatPc32DDE {
 					+ "The DDE connection to SatPC32 has been disabled.");
 			Config.useDDEforAzEl = false;
 			Config.useDDEforFreq = false;
+			satellite = null;
 			return false;
 		}
 		catch (NumberFormatException e) {
@@ -110,8 +115,8 @@ public class SatPc32DDE {
 				Log.println("Cannot parse the DDE message: " + ddeString + "\nNumber format error: " + e.getMessage());
 			else
 				Log.println("Cannot parse the DDE message.  \nNumber format error: " + e.getMessage());
+			satellite = null;
 			return false;
-
 		}
 	}
 }

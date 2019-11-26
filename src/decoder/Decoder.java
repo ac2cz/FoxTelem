@@ -685,12 +685,11 @@ public abstract class Decoder implements Runnable {
 		if (Config.useDDEforAzEl) {
 			//satPC = new SatPc32DDE();
 			//boolean connected = satPC.connect();
-			if (Config.satPC != null) {
+			if (Config.satPC != null && Config.satPC.satellite != null) {
 				if (Config.satPC.satellite.equalsIgnoreCase(sat.user_keps_name)) {
 					rtMeasurement.setAzimuth(Config.satPC.azimuth);
 					rtMeasurement.setElevation(Config.satPC.elevation);
 				}
-
 			}
 		} else if (Config.foxTelemCalcsPosition){
 			// We use FoxTelem Predict calculation, but only if we have the lat/lon set

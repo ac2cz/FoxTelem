@@ -681,7 +681,7 @@ public class PassManager implements Runnable {
 				e.printStackTrace();
 			}
 			if (Config.useDDEforAzEl || Config.useDDEforFreq) {
-				if (Config.satPC == null || satPC32Connected == false) {
+				if (Config.satPC == null) {
 					Config.satPC = new SatPc32DDE();
 				}
 				satPC32Connected = Config.satPC.connect();
