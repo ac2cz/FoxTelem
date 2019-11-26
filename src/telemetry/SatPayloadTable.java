@@ -605,7 +605,7 @@ public class SatPayloadTable {
 			
 			return true;
 		} else {
-			if (Config.debugFieldValues) Log.println("DUPLICATE RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
+			if (Config.debugFieldValues) Log.println("DUPLICATE (or corrupt) RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 		}
 			return false;
 		} finally {

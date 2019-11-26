@@ -390,8 +390,9 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 				e.printStackTrace(Log.getWriter());
 			} catch (Exception e) {
 				// Something bad happened
-				Log.errorDialog("ERROR", "Could parse and save frame for sat: " + id + " reset: " + resets + " uptime: " + uptime + " type: " + f.type
-						+ "\nCheck if the correct frame layouts are being used for this spacecrat");
+				Log.errorDialog("ERROR", "Could not parse and save frame for sat: " + id + " reset: " + resets + " uptime: " + uptime + " type: " + f.type
+						+ "\nCheck if the correct frame layouts are being used for this spacecraft"
+						+ "\nError details:\n" + e);
 			}
 		return false;
 	}

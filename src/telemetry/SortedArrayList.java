@@ -84,7 +84,8 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 //				Log.println(i+":"+t);
 //				i++;
 //			}
-			throw new NullPointerException("Null adding "+ img + " to SortedArrayList\n");
+			return false; // this is corrupt in some way and can not be added
+			//throw new NullPointerException("Null adding "+ img + " to SortedArrayList\n");
 		}
 	    if (pos < 0) {
 	        add(-pos-1, img);
