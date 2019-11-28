@@ -66,7 +66,7 @@ public class SatPc32DDE {
 
 					return true;
 				} else {
-					satellite = "NONE";
+					satellite = "NONE"; // put something in here so that the SourceTab says "Tracked"
 					return false;
 				}
 			} finally {
