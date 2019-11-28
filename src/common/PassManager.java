@@ -362,11 +362,10 @@ public class PassManager implements Runnable {
 
 		passMeasurement = new PassMeasurement(spacecraft.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
 		if (Config.useDDEforAzEl) {
-			SatPc32DDE satPC = new SatPc32DDE();
-			boolean connected = satPC.connect();
-			if (connected && passMeasurement != null) {
-				passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)satPC.azimuth);
-			}
+			if (Config.satPC != null && Config.satPC.satellite != null)
+				if (passMeasurement != null) {
+					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)Config.satPC.azimuth);
+				}
 		} else if (Config.foxTelemCalcsPosition) {
 			if (passMeasurement != null) {
 				try {
@@ -447,10 +446,8 @@ public class PassManager implements Runnable {
 		if (passMeasurement != null) {
 			passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
 			if (Config.useDDEforAzEl) { // store end Azimuth too
-				SatPc32DDE satPC = new SatPc32DDE();
-				boolean connected = satPC.connect();
-				if (connected) {
-					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)satPC.azimuth);
+				if (Config.satPC != null && Config.satPC.satellite != null) {
+					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)Config.satPC.azimuth);
 				}
 			} else if (Config.foxTelemCalcsPosition) {
 				if (passMeasurement != null) {
@@ -684,7 +681,8 @@ public class PassManager implements Runnable {
 				if (Config.satPC == null) {
 					Config.satPC = new SatPc32DDE();
 				}
-				satPC32Connected = Config.satPC.connect();
+				if (Config.satPC != null )
+					satPC32Connected = Config.satPC.request();
 			}
 			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error

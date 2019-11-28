@@ -26,11 +26,15 @@ import common.Log;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * This is stored in Config as a single instance of the class for the whole program.  We only connect once.
+ * If the class is instantiated and the connection is not null then we have connected.  The satellite
+ * should be NONE if nothing is up or a valid value.
  *
  */
 public class SatPc32DDE {
 
-	public static final String CONNECT_FAIL_ERROR_CODE = "0x400a";
+	public static final int CONNECT_FAIL_ERROR_CODE = 0x400a;
 
 	// This stores the results from the last request
 	public DDEClientConversation conversation = null;
@@ -40,56 +44,89 @@ public class SatPc32DDE {
 	public double elevation;
 	public long downlinkFrequency;
 
-	public boolean connect() {
-		String ddeString = null;
-		try {
+	public SatPc32DDE() {
+		connectConversation();
+	}
+
+	public void connectConversation() {
+		if (conversation != null) {
+			// check if still alive
+		}
+		if (conversation == null) {
 			conversation = new DDEClientConversation();
 			conversation.setTimeout(100); // 100ms second timeout
-			conversation.connect("SatPC32", "SatPcDdeConv");
-
 			try {
-				// Requesting DDE String
-				ddeString = conversation.request("SatPcDdeItem");
-				//  Log.println("SatPC32: " + ddeString);
-				if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
-					String parts[] = ddeString.split(" ");
-					satellite = parts[0].substring(2, parts[0].length());
-					String az = parts[1].substring(2, parts[1].length());
-					az = az.replaceAll(",","."); // in case we have European formatting
-					azimuth = Double.parseDouble(az);
-					String el = parts[2].substring(2, parts[2].length());
-					el = el.replaceAll(",",".");
-					elevation = Double.parseDouble(el);
-					downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
-					if (Config.debugDDE)
-						System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
-
-					return true;
-				} else {
-					satellite = "NONE"; // put something in here so that the SourceTab says "Tracked"
-					return false;
-				}
-			} finally {
-				if (conversation != null) {
-					// Sending "close()" command
-					//try { conversation.execute("[close()]"); } catch (DDEException e) {/* do nothing */	}
-					try { conversation.disconnect(); } catch (DDEException e) { Log.println("DDEException while disconnecting: " + e.getMessage());/* do nothing */	}
-				}
+				conversation.connect("SatPC32", "SatPcDdeConv");
+			} catch (DDEException e) {
+				conversation = null;
+				; // no error message if we can't connect.  SatPC32 is closed
 			}
-
 		}
+	}
+	
+	public void disconnect() {
+		if (conversation != null) {
+			// Sending "close()" command
+			//try { conversation.execute("[close()]"); } catch (DDEException e) {/* do nothing */	}
+			try { conversation.disconnect(); } catch (DDEException e) { Log.println("DDEException while disconnecting: " + e.getMessage());/* do nothing */	}
+		}
+		conversation = null;
+	}
+
+	/**
+	 * Request the data from the DDE Server.  Satellite is set to null if we fail, NONE if the sat is not
+	 * returned but the connection is good, otherwise to a valid value.
+	 * 
+	 * The return value indicates if the request was successful.  You need to lool at the data to see if the sat is up
+	 * @return
+	 */
+	public boolean request() {
+		String ddeString = null;
+
+		connectConversation();
+		
+		if (conversation == null) {
+			satellite = null;
+			return false; 
+		}
+		try {
+			// Requesting DDE String
+			ddeString = conversation.request("SatPcDdeItem");
+			//  Log.println("SatPC32: " + ddeString);
+			if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
+				String parts[] = ddeString.split(" ");
+				satellite = parts[0].substring(2, parts[0].length());
+				String az = parts[1].substring(2, parts[1].length());
+				az = az.replaceAll(",","."); // in case we have European formatting
+				azimuth = Double.parseDouble(az);
+				String el = parts[2].substring(2, parts[2].length());
+				el = el.replaceAll(",",".");
+				elevation = Double.parseDouble(el);
+				downlinkFrequency = Long.parseLong(parts[5].substring(2, parts[5].length()));
+				if (Config.debugDDE)
+					System.out.println("DDE Sat: " + satellite + " Az: " + azimuth + " El: " + elevation + " Freq: " + downlinkFrequency);
+
+				return true;
+			} else {
+				satellite = "NONE"; // put something in here so that the SourceTab says "Tracked"
+				return true; // request was still successful
+			}
+		}
+
 		catch (DDEMLException e) {
-			if (e.getErrorCode() == 0x400a)
+			if (e.getErrorCode() == CONNECT_FAIL_ERROR_CODE)
 				;// we can ignore failed connection error.  SatPC32 is not open
 			else
 				Log.println("DDEMLException: 0x" + Integer.toHexString(e.getErrorCode())
 				+ " " + e.getMessage());
 			satellite = null;
+			disconnect();
 			return false;
 		}		
 		catch (DDEException e) {
-			Log.println("DDEException: " + e.getMessage());
+			Log.println("DDEException in request: " + e.getMessage());
 			satellite = null;
+			disconnect();
 			return false;
 		}
 		catch (UnsatisfiedLinkError e) {
@@ -99,6 +136,7 @@ public class SatPc32DDE {
 			Config.useDDEforAzEl = false;
 			Config.useDDEforFreq = false;
 			satellite = null;
+			disconnect();
 			return false;
 		}
 		catch (NoClassDefFoundError e) {
@@ -108,6 +146,7 @@ public class SatPc32DDE {
 			Config.useDDEforAzEl = false;
 			Config.useDDEforFreq = false;
 			satellite = null;
+			disconnect();
 			return false;
 		}
 		catch (NumberFormatException e) {
@@ -116,7 +155,11 @@ public class SatPc32DDE {
 			else
 				Log.println("Cannot parse the DDE message.  \nNumber format error: " + e.getMessage());
 			satellite = null;
+			disconnect();
 			return false;
+		} finally {
+			
 		}
 	}
+	
 }
