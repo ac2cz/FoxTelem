@@ -116,7 +116,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		packetScrollPane.setVisible(true);
 		scrollPane.setVisible(false);
 	}
-	displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
+	displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT),
 			getTotalPackets());
 	MainWindow.frame.repaint();
 }
