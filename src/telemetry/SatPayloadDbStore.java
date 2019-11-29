@@ -881,7 +881,8 @@ public class SatPayloadDbStore {
 				payload.resets = r.getInt("resets");
 				payload.uptime = r.getLong("uptime");
 				payload.type = r.getInt("type");
-				payload.newMode = r.getInt("newMode");
+				if (fox.hasModeInHeader)
+					payload.newMode = r.getInt("newMode");
 				payload.reportDate = r.getString("captureDate");
 				if (payload instanceof CanPacket)
 					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
