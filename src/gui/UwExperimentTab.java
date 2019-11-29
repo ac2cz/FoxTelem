@@ -527,7 +527,9 @@ public void itemStateChanged(ItemEvent e) {
 		//			for (BitArrayLayout lay : layout)
 		//				updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 
-		updateTab(Config.payloadStore.getLatestRad(foxId), true);  // we don't have RAD2 conversion for the Experiment Payloads so just get RAD.
+		updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
+
+		//updateTab(Config.payloadStore.getLatestRad(foxId), true);  // we don't have RAD2 conversion for the Experiment Payloads so just get RAD.
 
 	}
 }
@@ -539,20 +541,22 @@ public void parseFrames() {
 }
 
 protected void displayRow(JTable table, int fromRow, int row) {
-
-	//		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
-	//    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-	//    	//Log.println("RESET: " + reset);
-	//    	//Log.println("UPTIME: " + uptime);
-	//    	int reset = (int)reset_l;
-	//    	updateTab((PayloadUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAD_LAYOUT, false), false);
-	//    	
-	//    	if (fromRow == NO_ROW_SELECTED)
-	//    		fromRow = row;
-	//    	if (fromRow <= row)
-	//    		table.setRowSelectionInterval(fromRow, row);
-	//    	else
-	//    		table.setRowSelectionInterval(row, fromRow);
+	if (Config.displayRawRadData) {
+			long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+	    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+	    	//Log.println("RESET: " + reset_l);
+	    	//Log.println("UPTIME: " + uptime);
+	    	int reset = (int)reset_l;
+	    	updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.CAN_LAYOUT, false), false);
+	} else {
+		updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
+	}
+	if (fromRow == NO_ROW_SELECTED)
+		fromRow = row;
+	if (fromRow <= row)
+		table.setRowSelectionInterval(fromRow, row);
+	else
+		table.setRowSelectionInterval(row, fromRow);
 }
 
 //	public void mouseClicked(MouseEvent e) {
