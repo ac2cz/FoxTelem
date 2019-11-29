@@ -600,6 +600,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			for (String frameName : canFrames.frame) {
 				layout[i] = new BitArrayLayout(this.canFileDir+ File.separator + frameName + ".csv");
 				layout[i].name = frameName;
+				layout[i].parentLayout = "cantelemetry"; // give it any name so that it has a parent and is not a top level "payload"
 				i++;
 			}
 			numberOfLayouts = layout.length;
