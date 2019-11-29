@@ -736,7 +736,7 @@ public abstract class Decoder implements Runnable {
 				//if (satPC == null)
 				//	satPC = new SatPc32DDE();
 				//boolean connected = satPC.connect();
-				if (Config.satPC != null) {
+				if (Config.satPC != null && Config.satPC.satellite != null) {
 					if (Config.satPC.satellite.equalsIgnoreCase(sat.user_keps_name))
 						rtMeasurement.setCarrierFrequency(Config.satPC.downlinkFrequency);
 				}
