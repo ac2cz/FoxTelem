@@ -827,7 +827,7 @@ public class PassManager implements Runnable {
 	private boolean satIsUp(Spacecraft sat) {
 		if (Config.useDDEforAzEl) {
 			String satString = null;
-			if (satPC32Connected) {
+			if (satPC32Connected && Config.satPC != null && Config.satPC.satellite != null) {
 				satString = Config.satPC.satellite;
 				//Log.println("SATPC32: " + satString);
 			}

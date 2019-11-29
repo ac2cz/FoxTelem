@@ -881,6 +881,7 @@ public class SatPayloadDbStore {
 				payload.resets = r.getInt("resets");
 				payload.uptime = r.getLong("uptime");
 				payload.type = r.getInt("type");
+				payload.newMode = r.getInt("newMode");
 				payload.reportDate = r.getString("captureDate");
 				if (payload instanceof CanPacket)
 					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
@@ -941,6 +942,11 @@ public class SatPayloadDbStore {
 		return rad;
 	}
 
+	public PayloadUwExperiment getLatestUwExp() throws SQLException {
+		PayloadUwExperiment rad = new PayloadUwExperiment(fox.getLayoutByName(Spacecraft.CAN_LAYOUT), 0, 0, 0);
+		selectLatest(radTableName, rad);
+		return rad;
+	}
 
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 

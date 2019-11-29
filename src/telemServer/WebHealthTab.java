@@ -6,6 +6,7 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
+import common.Config;
 import common.FoxSpacecraft;
 import gui.DisplayModule;
 import telemetry.BitArrayLayout;
@@ -18,6 +19,8 @@ import telemetry.PayloadMinValues;
 import telemetry.PayloadRadExpData;
 import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
+import telemetry.PayloadUwExperiment;
+import telemetry.SortedFramePartArrayList;
 
 public class WebHealthTab {
 	FoxSpacecraft fox;
@@ -102,8 +105,14 @@ public class WebHealthTab {
 	
 	public String toString() {
 		String s = "";
+		String mode = "UNKNOWN";
+		if (fox.hasModeInHeader) { // Post Fox-1E BPSK has mode in header
+			PayloadUwExperiment expPayload = payloadDbStore.getLatestUwExp(fox.foxId);
+			mode = determineModeFromHeader(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, expPayload);
+		} else {
 		PayloadRadExpData radPayload = payloadDbStore.getLatestRad(fox.foxId);
-		String mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
+			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
+		}
 		if (payloadRt != null) {
 			
 			s = s + "<h1 class='entry-title'>Fox "+ fox.getIdString()+"</h1>";
@@ -171,6 +180,28 @@ public class WebHealthTab {
 		s= s+ "</table>";
 		}
 		return s;
+	}
+	
+	/**
+	 * Local copy of this routine that does not use Config.payloadstore
+	 * @return
+	 */
+	public String determineModeFromHeader(FoxSpacecraft fox, PayloadRtValues payloadRt, PayloadMaxValues payloadMax, 
+			PayloadMinValues payloadMin, PayloadUwExperiment expPayload) {
+		// Mode is stored in the header
+		// Find the most recent frame and return the mode that it has
+		SortedFramePartArrayList payloads = new SortedFramePartArrayList(fox.numberOfLayouts);
+		int maxLayouts = 4; // First four layouts are rt, max, min, exp
+		
+		payloads.add(payloadRt);
+		payloads.add(payloadMax);
+		payloads.add(payloadMin);
+		payloads.add(expPayload);
+		
+		int mode = fox.NO_MODE;
+		if (payloads.size() > 0)
+			mode = payloads.get(payloads.size()-1).newMode;
+		return fox.getModeString(mode);
 	}
 	
 	private String buildModule(int i) {
