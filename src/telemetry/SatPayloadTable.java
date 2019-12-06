@@ -164,7 +164,7 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
+	public synchronized String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
 		deleteLock = true;
 		try {
@@ -236,7 +236,7 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+	synchronized double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		deleteLock = true;
 		try {
 		loadSegments(fromReset, fromUptime, period, reverse);
@@ -352,7 +352,7 @@ public class SatPayloadTable {
 	 * @return the number of records in the range
 	 * @throws IOException
 	 */
-	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
+	protected synchronized int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
 		deleteLock = true;
 		try {
 		int fromSeg = findFirstSeg(reset, uptime);
@@ -482,7 +482,7 @@ public class SatPayloadTable {
 	 * @param number
 	 * @throws IOException
 	 */
-	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
+	private synchronized void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
 		boolean existingLock = deleteLock;
 		deleteLock = true;
 		try {
@@ -532,7 +532,7 @@ public class SatPayloadTable {
 	
 	boolean deleteLock = false;
 	
-	public void offloadSegments() {
+	public synchronized void offloadSegments() {
 		while (deleteLock)
 			try {
 				Thread.sleep(10); // wait
@@ -586,7 +586,7 @@ public class SatPayloadTable {
 	 * Save a new record to disk		
 	 * @param f
 	 */
-	public boolean save(FramePart f) throws IOException {
+	public synchronized boolean save(FramePart f) throws IOException {
 		deleteLock = true;
 		try {
 		// Make sure this segment is loaded, or create an empty segment if it does not exist
@@ -623,7 +623,7 @@ public class SatPayloadTable {
 	 * @param log
 	 * @throws IOException 
 	 */
-	public void load(TableSeg seg) throws IOException {
+	public synchronized void load(TableSeg seg) throws IOException {
 		String log = getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName;
         String line;
         createNewFile(log);

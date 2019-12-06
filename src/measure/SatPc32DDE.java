@@ -39,22 +39,39 @@ public class SatPc32DDE {
 	// This stores the results from the last request
 	public DDEClientConversation conversation = null;
 
-	public String satellite;
-	public double azimuth;
-	public double elevation;
-	public long downlinkFrequency;
-
+	String satellite;
+	double azimuth;
+	double elevation;
+	long downlinkFrequency;
+	
 	public SatPc32DDE() {
 		connectConversation();
 	}
+	
+	public String getSatellite() {
+		connectConversation();
+		return satellite;
+	}
 
-	public void connectConversation() {
-		if (conversation != null) {
-			// check if still alive
-		}
+	public double getAzimuth() {
+		connectConversation();
+		return azimuth;
+	}
+
+	public double getElevation() {
+		connectConversation();
+		return elevation;
+	}
+
+	public long getDownlinkFrequency() {
+		connectConversation();
+		return downlinkFrequency;
+	}
+
+	public synchronized void connectConversation() {
 		if (conversation == null) {
 			conversation = new DDEClientConversation();
-			conversation.setTimeout(100); // 100ms second timeout
+			conversation.setTimeout(1000); // 1000ms timeout
 			try {
 				conversation.connect("SatPC32", "SatPcDdeConv");
 			} catch (DDEException e) {
@@ -64,7 +81,7 @@ public class SatPc32DDE {
 		}
 	}
 	
-	public void disconnect() {
+	public synchronized void disconnect() {
 		if (conversation != null) {
 			// Sending "close()" command
 			//try { conversation.execute("[close()]"); } catch (DDEException e) {/* do nothing */	}
@@ -80,7 +97,7 @@ public class SatPc32DDE {
 	 * The return value indicates if the request was successful.  You need to lool at the data to see if the sat is up
 	 * @return
 	 */
-	public boolean request() {
+	public synchronized boolean request() {
 		String ddeString = null;
 
 		connectConversation();
@@ -161,5 +178,4 @@ public class SatPc32DDE {
 			
 		}
 	}
-	
 }

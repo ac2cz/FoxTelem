@@ -2552,10 +2552,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 									satPosition[s].setText(msg);
 								}
 							} else if (Config.useDDEforAzEl && sat.user_track) {
-								if (Config.satPC != null && Config.satPC.conversation != null && Config.satPC.satellite != null) {
-									if (Config.satPC.satellite.equalsIgnoreCase(sat.user_keps_name)) {
-										double az = Config.satPC.azimuth;
-										double el = Config.satPC.elevation;
+								if (Config.satPC != null && Config.satPC.conversation != null) {
+									String satName = Config.satPC.getSatellite();
+									if (satName != null && satName.equalsIgnoreCase(sat.user_keps_name)) {
+										double az = Config.satPC.getAzimuth();
+										double el = Config.satPC.getElevation();
 										if (el > 0)
 											satPosition[s].setForeground(Config.AMSAT_RED);
 										else

@@ -685,10 +685,11 @@ public abstract class Decoder implements Runnable {
 		if (Config.useDDEforAzEl) {
 			//satPC = new SatPc32DDE();
 			//boolean connected = satPC.connect();
-			if (Config.satPC != null && Config.satPC.satellite != null) {
-				if (Config.satPC.satellite.equalsIgnoreCase(sat.user_keps_name)) {
-					rtMeasurement.setAzimuth(Config.satPC.azimuth);
-					rtMeasurement.setElevation(Config.satPC.elevation);
+			if (Config.satPC != null) {
+				String satName = Config.satPC.getSatellite();
+				if (satName!= null && satName.equalsIgnoreCase(sat.user_keps_name)) {
+					rtMeasurement.setAzimuth(Config.satPC.getAzimuth());
+					rtMeasurement.setElevation(Config.satPC.getElevation());
 				}
 			}
 		} else if (Config.foxTelemCalcsPosition){
@@ -736,9 +737,10 @@ public abstract class Decoder implements Runnable {
 				//if (satPC == null)
 				//	satPC = new SatPc32DDE();
 				//boolean connected = satPC.connect();
-				if (Config.satPC != null && Config.satPC.satellite != null) {
-					if (Config.satPC.satellite.equalsIgnoreCase(sat.user_keps_name))
-						rtMeasurement.setCarrierFrequency(Config.satPC.downlinkFrequency);
+				if (Config.satPC != null) {
+					String satName = Config.satPC.getSatellite();
+					if (satName != null && satName.equalsIgnoreCase(sat.user_keps_name))
+						rtMeasurement.setCarrierFrequency(Config.satPC.getDownlinkFrequency());
 				}
 			} else {
 				// Do nothing for now.  Need to work out how to get doppler from predict

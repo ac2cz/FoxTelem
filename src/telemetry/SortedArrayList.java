@@ -71,7 +71,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 		return true;
 	}
 	
-	public boolean add(T img) throws NullPointerException {
+	public synchronized boolean add(T img) throws NullPointerException {
 		if (img == null) return false;
 		deleteLock = true;
 		try {
@@ -100,7 +100,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 		}
 	}
 	
-	public T remove(int i) {
+	public synchronized T remove(int i) {
 		while (deleteLock)
 			try {
 				Thread.sleep(10); // wait
@@ -111,7 +111,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 		return super.remove(i);
 	}
 	
-	public void trimToSize() {
+	public synchronized void trimToSize() {
 		while (deleteLock)
 			try {
 				Thread.sleep(10); // wait
