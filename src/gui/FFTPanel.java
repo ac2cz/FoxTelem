@@ -219,6 +219,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	int avgBin = 0;
 	int avgNum = 0;
 	private void retune() {
+		if (iqSource == null) return; // likely we are switching decoders or just started
 		// auto tune
         int selectedBin = iqSource.getSelectedBin();
         int targetBin = 0;

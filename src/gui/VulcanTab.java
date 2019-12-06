@@ -41,7 +41,7 @@ import common.Spacecraft;
 import common.FoxSpacecraft;
 
 /**
- * 
+ * 	`
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz
  *

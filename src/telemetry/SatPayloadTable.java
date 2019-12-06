@@ -483,6 +483,7 @@ public class SatPayloadTable {
 	 * @throws IOException
 	 */
 	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
+		boolean existingLock = deleteLock;
 		deleteLock = true;
 		try {
 			int total = 0;
@@ -515,14 +516,17 @@ public class SatPayloadTable {
 				//System.err.println("Loading from seg: "+i);
 				if (i >= 0)
 					while(i < tableIdx.size()) {
-						if (!tableIdx.get(i).isLoaded())
+						if (!tableIdx.get(i).isLoaded()) {
 							load(tableIdx.get(i));
+						} else {
+							tableIdx.get(i).accessed();
+						}
 						total += tableIdx.get(i++).records;
 						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 					}
 			}
 		} finally {
-			deleteLock = false;
+			deleteLock = existingLock; // if this was already set then leave it set. e.g. called from data load
 		}
 	}
 	
@@ -548,7 +552,7 @@ public class SatPayloadTable {
 	}
 	
 	/**
-	 * Offload this segment.  Assume that sement on disk and a continuous run of records in memory are
+	 * Offload this segment.  Assume that segment on disk and a continuous run of records in memory are
 	 * the same.  This may not be exact in some edge cases, so we may leave a record or two in memory.
 	 * @param seg
 	 */
@@ -561,10 +565,11 @@ public class SatPayloadTable {
 		for (int i=0; i<rtRecords.size();i++) {
 			if (!foundStart) {
 				FramePart f = rtRecords.get(i);
-				if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
-					// we have the first record, so we offload them
-					foundStart = true;
-				}
+				if (f != null)
+					if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
+						// we have the first record, so we offload them
+						foundStart = true;
+					}
 			}
 			// Now if we found start we can remove the record and subsequent ones
 			if (foundStart) {
@@ -574,9 +579,7 @@ public class SatPayloadTable {
 					break; // we are done
 				}
 			}
-		}
-		
-		
+		}		
 	}
 	
 	/**

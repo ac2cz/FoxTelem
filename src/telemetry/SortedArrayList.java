@@ -32,7 +32,8 @@ import common.Log;
 @SuppressWarnings("serial")
 public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 
-
+	boolean deleteLock = false;
+	
 	public SortedArrayList(int i) {
 		super(i);
 	}
@@ -72,26 +73,53 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 	
 	public boolean add(T img) throws NullPointerException {
 		if (img == null) return false;
-		int pos = 0;;
+		deleteLock = true;
 		try {
-		pos = Collections.binarySearch(this, img);
-		} catch (NullPointerException e) {
-			// This should not happen so print lots of debug
-			int i = 0;
-			Log.println(">>> Null adding to SortedArrayList:\n"+ img + " to list\n" + e.getStackTrace());
-			Log.println("RECORDS:" + this.size());
-//			for (T t: this) {
-//				Log.println(i+":"+t);
-//				i++;
-//			}
-			return false; // this is corrupt in some way and can not be added
-			//throw new NullPointerException("Null adding "+ img + " to SortedArrayList\n");
+			int pos = 0;;
+			try {
+				pos = Collections.binarySearch(this, img);
+			} catch (NullPointerException e) {
+				// This should not happen so print lots of debug
+				int i = 0;
+				Log.println(">>> Null adding to SortedArrayList:\n"+ img + " to list\n" + e.getStackTrace());
+				Log.println("RECORDS:" + this.size());
+				//			for (T t: this) {
+				//				Log.println(i+":"+t);
+				//				i++;
+				//			}
+				return false; // this is corrupt in some way and can not be added
+				//throw new NullPointerException("Null adding "+ img + " to SortedArrayList\n");
+			}
+			if (pos < 0) {
+				add(-pos-1, img);
+				return true;
+			}
+			return false; // this was already in the list and would be a duplicate
+		} finally {
+			deleteLock = false;
 		}
-	    if (pos < 0) {
-	        add(-pos-1, img);
-	        return true;
-	    }
-		return false; // this was already in the list and would be a duplicate
+	}
+	
+	public T remove(int i) {
+		while (deleteLock)
+			try {
+				Thread.sleep(10); // wait
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		return super.remove(i);
+	}
+	
+	public void trimToSize() {
+		while (deleteLock)
+			try {
+				Thread.sleep(10); // wait
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		super.trimToSize();
 	}
 	
 	/**
