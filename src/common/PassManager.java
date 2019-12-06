@@ -362,9 +362,9 @@ public class PassManager implements Runnable {
 
 		passMeasurement = new PassMeasurement(spacecraft.foxId, SatMeasurementStore.PASS_MEASUREMENT_TYPE);
 		if (Config.useDDEforAzEl) {
-			if (Config.satPC != null && Config.satPC.satellite != null)
+			if (Config.satPC != null && Config.satPC.getSatellite() != null)
 				if (passMeasurement != null) {
-					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)Config.satPC.azimuth);
+					passMeasurement.setRawValue(PassMeasurement.START_AZIMUTH, (long)Config.satPC.getAzimuth());
 				}
 		} else if (Config.foxTelemCalcsPosition) {
 			if (passMeasurement != null) {
@@ -446,8 +446,8 @@ public class PassManager implements Runnable {
 		if (passMeasurement != null) {
 			passMeasurement.setLOS(); // store the LOS in case we do not get any more data.
 			if (Config.useDDEforAzEl) { // store end Azimuth too
-				if (Config.satPC != null && Config.satPC.satellite != null) {
-					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)Config.satPC.azimuth);
+				if (Config.satPC != null && Config.satPC.getSatellite() != null) {
+					passMeasurement.setRawValue(PassMeasurement.END_AZIMUTH, (long)Config.satPC.getAzimuth());
 				}
 			} else if (Config.foxTelemCalcsPosition) {
 				if (passMeasurement != null) {
@@ -827,12 +827,12 @@ public class PassManager implements Runnable {
 	private boolean satIsUp(Spacecraft sat) {
 		if (Config.useDDEforAzEl) {
 			String satString = null;
-			if (satPC32Connected && Config.satPC != null && Config.satPC.satellite != null) {
-				satString = Config.satPC.satellite;
+			if (satPC32Connected && Config.satPC != null) {
+				satString = Config.satPC.getSatellite();
 				//Log.println("SATPC32: " + satString);
 			}
 			if (satString != null && satString.equalsIgnoreCase(sat.user_keps_name)) {
-				if (Config.satPC.elevation > 0)
+				if (Config.satPC.getElevation() > 0)
 					return true;
 			}
 
