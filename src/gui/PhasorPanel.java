@@ -136,6 +136,7 @@ public class PhasorPanel extends JPanel implements Runnable {
 	 */
 	public void paintComponent(Graphics g) {
 		super.paintComponent( g ); // call superclass's paintComponent  
+		
 		Graphics2D g2 = ( Graphics2D ) g; // cast g to Graphics2D  
 
 		// Have 5 pix border
@@ -156,6 +157,7 @@ public class PhasorPanel extends JPanel implements Runnable {
 		int y = 0,x = border*2+1;
 
 		g2.setColor(GRAPH_COLOR);
+		try {
 		if (phasorData != null) {
 			for (int j=0; j < phasorData.length/2; j+=2) {	
 				//			x = (int) (border*2 + phasorData[2*j]*(graphWidth-border*2));
@@ -189,6 +191,9 @@ public class PhasorPanel extends JPanel implements Runnable {
 			g.drawString("Clk Offset  "+clockOffset, 10  + border, 40    );
 		g.drawString("Errors  "+errors, graphWidth/2 - 70  + border, graphHeight - 10  );
 		g.drawString("Erasures  "+erasures, graphWidth/2 - 0  + border, graphHeight - 10  );
+		} catch (NullPointerException e) {
+			Log.println("NullPointer plotting phasor:" + e);
+		}
 	}
 
 }

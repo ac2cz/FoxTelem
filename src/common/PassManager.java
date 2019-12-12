@@ -692,6 +692,7 @@ public class PassManager implements Runnable {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.user_track) atLeastOneTracked = true;
 					if (MainWindow.inputTab != null) {
+						
 						if (trackSpacecraft(sat)) {
 							oneSatUp = true;
 							MainWindow.inputTab.startDecoding();
@@ -715,14 +716,19 @@ public class PassManager implements Runnable {
 									// we set the spacecraft ranges but no find signal panel
 									// Doppler is displayed and we tune the signal for the active spacecraft only if up
 									// We have to pass a delta from the center frequency to the nco
-									double dopplerShiftedFreq = sat.user_telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz*1000);
+									double dopplerShiftedFreq = 0;
+									if (sat != null && sat.satPos != null)
+										dopplerShiftedFreq = sat.user_telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz*1000);
 									//DecimalFormat d3 = new DecimalFormat("0.000");
 									//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
-									setFreqRangeBins(sat, pp1);
-									if (pp1 != null && pp1.iqSource != null)
-										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
-									if (pp2 != null && pp2.iqSource != null)
-										pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									if (dopplerShiftedFreq != 0) {
+										setFreqRangeBins(sat, pp1);
+										if (pp1 != null && pp1.iqSource != null)
+											pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+										if (pp2 != null && pp2.iqSource != null)
+											pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									}
+									
 									break; // we only tune Doppler for the first spacecraft in the priority ordered list that passes trackSpacecraft(sat)
 								} else {
 									// we don't have find signal on. set full range or signals calculated incorrectly
