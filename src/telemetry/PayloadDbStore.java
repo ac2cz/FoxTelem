@@ -663,6 +663,20 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 
 	}
+	
+	public PayloadUwExperiment getLatestUwExp(int id) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatestUwExp();
+			} catch (SQLException e) {
+				errorPrint("getLatestUwExp", e);
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
+		return null;
+
+	}
 
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 

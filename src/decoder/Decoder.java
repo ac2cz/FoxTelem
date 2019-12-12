@@ -679,18 +679,18 @@ public abstract class Decoder implements Runnable {
 		rtMeasurement.setBitSNR(eyeData.bitSNR);
 		rtMeasurement.setErrors(lastErrorsNumber);
 		rtMeasurement.setErasures(lastErasureNumber);
-		SatPc32DDE satPC = null;
+		//SatPc32DDE satPC = null;
 		Spacecraft sat = Config.satManager.getSpacecraft(header.id);
 		SatPos pos = null;
 		if (Config.useDDEforAzEl) {
-			satPC = new SatPc32DDE();
-			boolean connected = satPC.connect();
-			if (connected) {
-				if (Config.useDDEforAzEl) {
-					rtMeasurement.setAzimuth(satPC.azimuth);
-					rtMeasurement.setElevation(satPC.elevation);
+			//satPC = new SatPc32DDE();
+			//boolean connected = satPC.connect();
+			if (Config.satPC != null) {
+				String satName = Config.satPC.getSatellite();
+				if (satName!= null && satName.equalsIgnoreCase(sat.user_keps_name)) {
+					rtMeasurement.setAzimuth(Config.satPC.getAzimuth());
+					rtMeasurement.setElevation(Config.satPC.getElevation());
 				}
-
 			}
 		} else if (Config.foxTelemCalcsPosition){
 			// We use FoxTelem Predict calculation, but only if we have the lat/lon set
@@ -734,11 +734,14 @@ public abstract class Decoder implements Runnable {
 			rtMeasurement.setRfSNR(rfSnr);
 		} else {
 			if (Config.useDDEforFreq) {
-				if (satPC == null)
-					satPC = new SatPc32DDE();
-				boolean connected = satPC.connect();
-				if (connected)
-					rtMeasurement.setCarrierFrequency(satPC.downlinkFrequency);
+				//if (satPC == null)
+				//	satPC = new SatPc32DDE();
+				//boolean connected = satPC.connect();
+				if (Config.satPC != null) {
+					String satName = Config.satPC.getSatellite();
+					if (satName != null && satName.equalsIgnoreCase(sat.user_keps_name))
+						rtMeasurement.setCarrierFrequency(Config.satPC.getDownlinkFrequency());
+				}
 			} else {
 				// Do nothing for now.  Need to work out how to get doppler from predict
 				/* Use Fox Predict calcualtion for frequency in AF mode

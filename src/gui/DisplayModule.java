@@ -142,6 +142,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public static final int DISPLAY_MEASURES = 9;
 	public static final int DISPLAY_PASS_MEASURES = 10;
 	public static final int DISPLAY_UW = 11;
+	public static final int DISPLAY_WOD_UW = 12;
 	public static final int DISPLAY_MIN_AND_MAX_ONLY = 15;
 	public static final int DISPLAY_WOD = 16;
 	public static final int DISPLAY_HERCI = 20;
@@ -537,12 +538,16 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_UW) {
+					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
+					conversion = lay.getConversionByName(fieldName[i]);
+					units = lay.getUnitsByName(fieldName[i]);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_UW_EXPERIMENT, fox, plotType);
+				}
+				else if (moduleType == DISPLAY_WOD_UW) {
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT);
 					conversion = lay.getConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_EXP_DATA, fox, plotType);
-
-					// This is a CAN Packet then we need to know the layout as each is different
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_UW_WOD_EXPERIMENT, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0

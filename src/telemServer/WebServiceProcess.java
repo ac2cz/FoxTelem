@@ -30,7 +30,7 @@ import common.Log;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.05 - 4 Oct 2019";
+	public static String version = "Version 1.06 - 29 Nov 2019";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -101,7 +101,7 @@ public class WebServiceProcess implements Runnable {
 				String[] path = request.split("/");
 				
 				if (path.length == 0) {
-					out.println("<H2>AMSAT FOX WEB SERVICE</H2>");
+					out.println("AMSAT FOX WEB SERVICE running<br>" + version + "<br>by Chris Thompson G0KLA");
 				} else { 
 					String[] params = path[1].split("\\?");
 
@@ -212,8 +212,11 @@ public class WebServiceProcess implements Runnable {
 
 			out.flush();
 		} catch (IOException e) {
-			Log.println("ERROR: IO Exception in Webservice" + e.getMessage());
+			Log.println("ERROR: IO Exception in Webservice: " + e.getMessage());
 			e.printStackTrace(Log.getWriter());
+		} catch (Exception e) {
+				Log.println("ERROR: Unexpected Exception in Webservice: " + e.getMessage());
+				e.printStackTrace(Log.getWriter());
 		} finally {
 			try { out.close(); } catch (Exception e) {e.printStackTrace(Log.getWriter());}
 			try { in.close();  } catch (Exception e) {e.printStackTrace(Log.getWriter());}

@@ -164,7 +164,7 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
+	public synchronized String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
 		if (rtRecords == null) return null;
 		deleteLock = true;
 		try {
@@ -236,7 +236,7 @@ public class SatPayloadTable {
 	 * @return
 	 * @throws IOException 
 	 */
-	double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+	synchronized double[][] getGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		deleteLock = true;
 		try {
 		loadSegments(fromReset, fromUptime, period, reverse);
@@ -352,7 +352,7 @@ public class SatPayloadTable {
 	 * @return the number of records in the range
 	 * @throws IOException
 	 */
-	protected int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
+	protected synchronized int getNumberOfPayloadsBetweenTimestamps(int reset, long uptime, int toReset, long toUptime) throws IOException {
 		deleteLock = true;
 		try {
 		int fromSeg = findFirstSeg(reset, uptime);
@@ -482,7 +482,8 @@ public class SatPayloadTable {
 	 * @param number
 	 * @throws IOException
 	 */
-	private void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
+	private synchronized void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
+		boolean existingLock = deleteLock;
 		deleteLock = true;
 		try {
 			int total = 0;
@@ -515,20 +516,23 @@ public class SatPayloadTable {
 				//System.err.println("Loading from seg: "+i);
 				if (i >= 0)
 					while(i < tableIdx.size()) {
-						if (!tableIdx.get(i).isLoaded())
+						if (!tableIdx.get(i).isLoaded()) {
 							load(tableIdx.get(i));
+						} else {
+							tableIdx.get(i).accessed();
+						}
 						total += tableIdx.get(i++).records;
 						if (total >= number+MAX_SEGMENT_SIZE) break; // add an extra segment because often we start from the segment before
 					}
 			}
 		} finally {
-			deleteLock = false;
+			deleteLock = existingLock; // if this was already set then leave it set. e.g. called from data load
 		}
 	}
 	
 	boolean deleteLock = false;
 	
-	public void offloadSegments() {
+	public synchronized void offloadSegments() {
 		while (deleteLock)
 			try {
 				Thread.sleep(10); // wait
@@ -548,7 +552,7 @@ public class SatPayloadTable {
 	}
 	
 	/**
-	 * Offload this segment.  Assume that sement on disk and a continuous run of records in memory are
+	 * Offload this segment.  Assume that segment on disk and a continuous run of records in memory are
 	 * the same.  This may not be exact in some edge cases, so we may leave a record or two in memory.
 	 * @param seg
 	 */
@@ -561,10 +565,11 @@ public class SatPayloadTable {
 		for (int i=0; i<rtRecords.size();i++) {
 			if (!foundStart) {
 				FramePart f = rtRecords.get(i);
-				if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
-					// we have the first record, so we offload them
-					foundStart = true;
-				}
+				if (f != null)
+					if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
+						// we have the first record, so we offload them
+						foundStart = true;
+					}
 			}
 			// Now if we found start we can remove the record and subsequent ones
 			if (foundStart) {
@@ -574,16 +579,14 @@ public class SatPayloadTable {
 					break; // we are done
 				}
 			}
-		}
-		
-		
+		}		
 	}
 	
 	/**
 	 * Save a new record to disk		
 	 * @param f
 	 */
-	public boolean save(FramePart f) throws IOException {
+	public synchronized boolean save(FramePart f) throws IOException {
 		deleteLock = true;
 		try {
 		// Make sure this segment is loaded, or create an empty segment if it does not exist
@@ -605,7 +608,7 @@ public class SatPayloadTable {
 			
 			return true;
 		} else {
-			if (Config.debugFieldValues) Log.println("DUPLICATE RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
+			if (Config.debugFieldValues) Log.println("DUPLICATE (or corrupt) RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 		}
 			return false;
 		} finally {
@@ -620,7 +623,7 @@ public class SatPayloadTable {
 	 * @param log
 	 * @throws IOException 
 	 */
-	public void load(TableSeg seg) throws IOException {
+	public synchronized void load(TableSeg seg) throws IOException {
 		String log = getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName;
         String line;
         createNewFile(log);

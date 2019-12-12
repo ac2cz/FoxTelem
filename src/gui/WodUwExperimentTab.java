@@ -31,7 +31,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		rad = fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT);
 		BitArrayLayout none = null;
 		try {
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
+			analyzeModules(rad, none, none, DisplayModule.DISPLAY_WOD_UW);
 			//makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
@@ -116,23 +116,30 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		packetScrollPane.setVisible(true);
 		scrollPane.setVisible(false);
 	}
-	displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
+	displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT),
 			getTotalPackets());
 	MainWindow.frame.repaint();
 }
 
-	
-	protected void displayRow(JTable table, int row) {
-		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
-    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-    	//Log.println("RESET: " + reset);
-    	//Log.println("UPTIME: " + uptime);
-    	int reset = (int)reset_l;
-    	updateTab((PayloadWODUwExperiment) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_CAN_LAYOUT, false), false);
-    	
-    	table.setRowSelectionInterval(row, row);
+	protected void displayRow(JTable table, int fromRow, int row) {
+		if (Config.displayRawRadData) {
+				long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+		    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+		    	Log.println("RESET: " + reset_l);
+		    	Log.println("UPTIME: " + uptime);
+		    	int reset = (int)reset_l;
+		    	updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_CAN_LAYOUT, false), false);
+		} else {
+			updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
+		}
+		if (fromRow == NO_ROW_SELECTED)
+			fromRow = row;
+		if (fromRow <= row)
+			table.setRowSelectionInterval(fromRow, row);
+		else
+			table.setRowSelectionInterval(row, fromRow);
 	}
-	
+		
 	private int getTotalPackets() {
 		int total = 0;
 		if (showRawBytes.isSelected())

@@ -2,6 +2,7 @@ package common;
 
 import gui.MainWindow;
 import gui.ProgressPanel;
+import measure.SatPc32DDE;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -57,6 +58,8 @@ public class Config {
 	public static MainWindow mainWindow;
 	static UpdateManager updateManager; // for server only
 	static Thread updateManagerThread; // for server only
+	
+	public static SatPc32DDE satPC = null; // DDE Connection to SatCP32
 	
 	public static boolean logDirFromPassedParam = false; // true if we started up with a logFile dir passed in on the command line
 	
@@ -285,6 +288,8 @@ public class Config {
 	static public boolean debugSegs = false; // set to true to print out every seg load
 	static public int timeUntilTableSegOffloaded = 60*1000;
 	static public boolean turboWavFilePlayback = false;
+	static public boolean debugDDE = false;
+	
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );

@@ -604,6 +604,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private void shutdown() {
+		if (Config.satPC != null) Config.satPC.disconnect();
 		inputTab.shutdown();
 		Log.println("Window Closed");
 		Log.close();
