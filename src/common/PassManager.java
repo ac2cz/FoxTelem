@@ -95,6 +95,11 @@ public class PassManager implements Runnable {
 	
 	static final int MIN_FREQ_READINGS_FOR_TCA = 10;
 	
+	public double lastAz;
+	public double lastEl;
+	public double lastDoppler;
+	public String lastSatUp = null;
+	
 	public PassManager( ) {
 		//satelliteManager = satMan;
 		//foxSpacecraft = satMan.spacecraftList;
@@ -662,6 +667,8 @@ public class PassManager implements Runnable {
 		 *    Config.iq - true if FoxTelem is the SDR.  Otherwise we don't bother with all this, we are in AF mode
 		 *    Config.whenAboveHorizon - the decoder is frozen until a spacecraft that is tracked is above the horizon
 		 *  
+		 *  If we are publishing position information then it is cached here.  It is not sent from here to
+		 *  avoid an issue if the thread crashes or hangs
 		 *  
 		 */
 		while (running) {
@@ -687,7 +694,6 @@ public class PassManager implements Runnable {
 			//if (Config.findSignal) {
 				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
 				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
-				
 				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 					Spacecraft sat = Config.satManager.spacecraftList.get(s);
 					if (sat.user_track) atLeastOneTracked = true;
@@ -717,16 +723,23 @@ public class PassManager implements Runnable {
 									// Doppler is displayed and we tune the signal for the active spacecraft only if up
 									// We have to pass a delta from the center frequency to the nco
 									double dopplerShiftedFreq = 0;
-									if (sat != null && sat.satPos != null)
+									if (sat != null && sat.satPos != null) {
 										dopplerShiftedFreq = sat.user_telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz*1000);
-									//DecimalFormat d3 = new DecimalFormat("0.000");
-									//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
-									if (dopplerShiftedFreq != 0) {
-										setFreqRangeBins(sat, pp1);
-										if (pp1 != null && pp1.iqSource != null)
-											pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
-										if (pp2 != null && pp2.iqSource != null)
-											pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
+										//DecimalFormat d3 = new DecimalFormat("0.000");
+										//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
+										if (dopplerShiftedFreq != 0) {
+											setFreqRangeBins(sat, pp1);
+											if (pp1 != null && pp1.iqSource != null)
+												pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+											if (pp2 != null && pp2.iqSource != null)
+												pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
+										}
+										// Cache the position information here, a sat is up
+										lastSatUp = sat.user_keps_name;
+										this.lastAz = sat.satPos.getAzimuth();
+										this.lastEl = sat.satPos.getElevation();
+										this.lastDoppler = dopplerShiftedFreq;
+
 									}
 									
 									break; // we only tune Doppler for the first spacecraft in the priority ordered list that passes trackSpacecraft(sat)
@@ -753,6 +766,7 @@ public class PassManager implements Runnable {
 								logEndOfPass(sat);
 								currentSatId = 0;
 							}
+							lastSatUp = null;
 						}
 					}
 				}

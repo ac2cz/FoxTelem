@@ -109,7 +109,7 @@ public class SatPc32DDE {
 		try {
 			// Requesting DDE String
 			ddeString = conversation.request("SatPcDdeItem");
-			//  Log.println("SatPC32: " + ddeString);
+			  Log.println("SatPC32: " + ddeString);
 			if (ddeString.length() > 0 && !ddeString.startsWith("**")) {
 				String parts[] = ddeString.split(" ");
 				satellite = parts[0].substring(2, parts[0].length());

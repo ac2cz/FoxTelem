@@ -3,6 +3,8 @@ package common;
 import gui.MainWindow;
 import gui.ProgressPanel;
 import measure.SatPc32DDE;
+import publishAzEl.AzElPublisher;
+import publishAzEl.AzElPublisherProcess;
 
 import java.awt.Color;
 import java.io.BufferedReader;
@@ -65,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.09b";
-	public static String VERSION = VERSION_NUM + " - 12 Dec 2019";
+	public static String VERSION_NUM = "1.09b (AzEl)";
+	public static String VERSION = VERSION_NUM + " - 15 Dec 2019";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -106,6 +108,11 @@ public class Config {
 	public static RawQueue rawPayloadQueue;
 	static Thread rawPayloadQueueThread;
 
+	// Thread to publish position information
+	public static AzElPublisher azElPublisher;
+	static Thread azElPublishThread;
+
+	
 	//public static Filter filter = null; // This is set when the GUI initializes.  This decoder gets the filter from here
 	//public static int currentSampleRate = 48000; // this is the actual sample rate we are using in the decoder and is not saved.  
 	public static double filterFrequency = 200;
@@ -290,6 +297,9 @@ public class Config {
 	static public boolean turboWavFilePlayback = false;
 	static public boolean debugDDE = false;
 	
+	// V1.09
+	static public boolean publishAzEl = true;
+	
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -385,6 +395,7 @@ public class Config {
 					+ "You can adjust these again to any value you want, but peak should now be set slightly higher and the\n"
 					+ "Signal To Noise measure slightly lower.  The Eye (bit) Signal To Noise has remained the same\n");
 		}
+		initAzElPubProcess();
 	}
 
 	public static String getLogFileDirectory() {
@@ -476,6 +487,16 @@ public class Config {
 		rawPayloadQueueThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		rawPayloadQueueThread.start();
 
+	}
+	
+	public static void initAzElPubProcess() {
+		if (Config.publishAzEl) {
+			if (azElPublishThread != null) { azElPublisher.stopProcessing(); }
+			azElPublisher = new AzElPublisher(43045);
+			azElPublishThread = new Thread(azElPublisher);
+			azElPublishThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+			azElPublishThread.start();
+		}
 	}
 	
 	private static void setOs() {
@@ -742,6 +763,9 @@ public class Config {
 		properties.setProperty("timeUntilTableSegOffloaded", Integer.toString(timeUntilTableSegOffloaded));
 		properties.setProperty("turboWavFilePlayback", Boolean.toString(turboWavFilePlayback));
 
+		// V1.09
+		properties.setProperty("publishAzEl", Boolean.toString(publishAzEl));
+		
 		store();
 	}
 	
@@ -933,6 +957,10 @@ public class Config {
 		timeUntilTableSegOffloaded = Integer.parseInt(getProperty("timeUntilTableSegOffloaded"));
 		turboWavFilePlayback = Boolean.parseBoolean(getProperty("turboWavFilePlayback"));
 
+		// V1.09
+		publishAzEl = Boolean.parseBoolean(getProperty("publishAzEl"));
+		
+		
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {
