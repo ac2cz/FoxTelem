@@ -82,9 +82,12 @@ try:
                 if ("Structure:" in fields[0]):
                     if ("header" not in fields[1]):
                         if (not type == "CANHealth" and not type == "CANWOD"):
-                            if ("common" in fields[1]):
+                            if ("commonDownlink" in fields[1]):
                                 print("COMMON:" + fields[0] + " " + fields[1])
                                 commonStructure = processStructure(type, infile)
+                            if ("common2Downlink" in fields[1]):
+                                print("COMMON2:" + fields[0] + " " + fields[1])
+                                common2Structure = processStructure(type, infile)
                         if (type in fields[1]):
                             print("TYPE: " + fields[0] + " " + fields[1])
                             typeStructure = processStructure(type, infile)
@@ -97,7 +100,7 @@ except UnicodeDecodeError as e:
     
 if (not type == "CANHealth" and not type == "CANWOD"):
     if (commonStructure == ""):
-        print ("ERROR: No data found in the file.  Is it a CSV file?")
+        print ("ERROR: No data found for common structure in the file.  Is it a CSV file?")
         exit(1)
 # Open the output file and write out the header and the structures
 outfile = open(outFileName, "w" )
@@ -115,6 +118,8 @@ outfile.write(str(lineNum) + "," +
     "DESCRIPTION" + '\n')
 if (not type == "CANHealth" and not type == "CANWOD"):
     outfile.write(commonStructure)
+if (common2Structure != ""):
+    outfile.write(common2Structure)
 outfile.write(typeStructure) 
 outfile.close()
 infile.close()
