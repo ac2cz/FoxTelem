@@ -118,7 +118,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		//squelchAudio = addCheckBox("Squelch Decoder", Config.squelchAudio );
 		//realTimePlayback = addCheckBox("Slow Down Playback", Config.realTimePlaybackOfFile );
 		ssFrameLength = new JLabel("DUV Frame Length: " + (SlowSpeedBitStream.SLOW_SPEED_SYNC_WORD_DISTANCE-10) + " bits");
-		hsFrameLength = new JLabel("HS Frame Length: " + (HighSpeedBitStream.HIGH_SPEED_SYNC_WORD_DISTANCE-10) + " bits");
+		hsFrameLength = new JLabel("HS Frame Length: " + (HighSpeedBitStream.FOX_HIGH_SPEED_SYNC_WORD_DISTANCE-10) + " bits");
 		add(ssFrameLength);
 		add(hsFrameLength);
 		if (Config.writeDebugWavFile) {

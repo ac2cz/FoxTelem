@@ -43,7 +43,7 @@ import telemetry.HighSpeedFrame;
  */
 @SuppressWarnings("serial")
 public class HighSpeedBitStream extends FoxBitStream {
-	public static int HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
+	public static int FOX_HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;
 	protected int numberOfRsCodeWords = NUMBER_OF_RS_CODEWORDS;
 	public static final int[] RS_PADDING = {3,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4};
@@ -53,9 +53,9 @@ public class HighSpeedBitStream extends FoxBitStream {
 	protected int totalRsErrors = 0;
 	protected int totalRsErasures = 0;
 	
-	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
-		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, HIGH_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);
-		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
+	public HighSpeedBitStream(Decoder dec, int syncWordDistance, int wordLength, int syncWordLength, int bitRate) {
+		super(syncWordDistance*5, dec, syncWordDistance, wordLength,syncWordLength,   1000 / (double)bitRate);
+		PURGE_THRESHOLD = syncWordDistance * 3;	
 		SYNC_WORD_BIT_TOLERANCE = 0; // this is too CPU intensive for large frames
 	}
 

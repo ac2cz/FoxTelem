@@ -144,6 +144,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	public int numberOfSources = 2;
 	public String[] sourceName;
+	public int[] sourceFrameLength;
+	public int[] sourceDataLength;
+	public int[] sourceHeaderLength;
+	public int[] sourceTrailerLength;
+	public int[] sourceRsWords;
+	public int[][] sourceRsPadding;
 	
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
@@ -478,6 +484,33 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				sourceName[i] = getProperty("source"+i+".name");
 			}
 
+			// Source details
+			String frameLength = getOptionalProperty("source0.frame_length");
+			if (frames == null) {
+			} else {
+				sourceFrameLength = new int[numberOfSources];
+				sourceDataLength = new int[numberOfSources];
+				sourceHeaderLength = new int[numberOfSources];
+				sourceTrailerLength = new int[numberOfSources];
+				sourceRsWords = new int[numberOfSources];
+				sourceRsPadding = new int[numberOfSources][];
+
+
+				for (int i=0; i < numberOfSources; i++) {
+					sourceName[i] = getProperty("source"+i+".name");
+					sourceFrameLength[i] = Integer.parseInt(getProperty("source"+i+".frame_length"));
+					sourceDataLength[i] = Integer.parseInt(getProperty("source"+i+".data_length"));
+					sourceHeaderLength[i] = Integer.parseInt(getProperty("source"+i+".header_length"));
+					sourceTrailerLength[i] = Integer.parseInt(getProperty("source"+i+".trailer_length"));
+					sourceRsWords[i] = Integer.parseInt(getProperty("source"+i+".rs_words"));
+					String rs_padding = getProperty("source"+i+".rs_padding");
+					String[] pads = rs_padding.split(",");
+					sourceRsPadding[i] = new int[pads.length];
+					int j = 0;
+					for (String p : pads)
+						sourceRsPadding[i][j++] = Integer.parseInt(p);
+				}
+			}
 			// Lookup Tables
 			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
 			lookupTableFilename = new String[numberOfLookupTables];
@@ -669,34 +702,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return value;
 	}
 	
-	// Can now only store user properties.
-//	protected void store() {
-//		FileInputStream f = null;
-//		try {
-//			f=new FileInputStream(propertiesFile);
-//			properties.store(new FileOutputStream(propertiesFile), "Fox 1 Telemetry Decoder Properties");
-//			f.close();
-//		} catch (FileNotFoundException e1) {
-//			if (f!=null) try { f.close(); } catch (Exception e2) {};
-//			Log.errorDialog("ERROR", "Could not write spacecraft file. Check permissions on run directory or on the file");
-//			e1.printStackTrace(Log.getWriter());
-//		} catch (IOException e1) {
-//			if (f!=null) try { f.close(); } catch (Exception e3) {};
-//			Log.errorDialog("ERROR", "Error writing spacecraft file");
-//			e1.printStackTrace(Log.getWriter());
-//		}
-//	}
 	
 	abstract protected void save();
-//	{
-//		
-//		properties.setProperty("foxId", Integer.toString(foxId));
-//		properties.setProperty("catalogNumber", Integer.toString(catalogNumber));
-//		properties.setProperty("description", description);
-//		properties.setProperty("model", Integer.toString(model));
-//		properties.setProperty("mode", Integer.toString(mode));
-//		
-//	}
+
 	
 	protected void store_user_params() {
 		FileOutputStream f = null;

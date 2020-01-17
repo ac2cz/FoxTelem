@@ -232,6 +232,25 @@ public class SatelliteManager implements Runnable {
 //								Log.println("");
 //							}
 //						}
+						// Debug print for sources
+						int sources = satellite.numberOfSources;
+						if (sources > 0) {
+							Log.println("Sources: " + sources);
+							for (int k=0; k < sources; k++) {
+								Log.println("" + satellite.sourceName[k]);
+								if (satellite.sourceFrameLength != null) {
+									Log.println(" - frame length: " + satellite.sourceFrameLength[k]);
+									Log.println(" - data length: " + satellite.sourceDataLength[k]);
+									Log.println(" - header length: " + satellite.sourceHeaderLength[k]);
+									Log.println(" - trailer length: " + satellite.sourceTrailerLength[k]);
+									Log.println(" - rs words: " + satellite.sourceRsWords[k]);
+									Log.print(" - padding: ");
+									for (int p=0; p<satellite.sourceRsPadding[k].length; p++)
+										Log.print(" " + satellite.sourceRsPadding[k][p]);
+									Log.println("");
+								}
+							}
+						}
 						
 					} catch (FileNotFoundException e) {
 						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() 

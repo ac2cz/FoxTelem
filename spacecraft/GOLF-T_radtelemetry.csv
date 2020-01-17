@@ -1,0 +1,8 @@
+7,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,rad,data,464,-,0,NONE,0,0,0,NONE,0x01 specifies Fox-1A (each Fox satellite will have a unique ID)
+1,rad,pad1,136,-,0,NONE,0,0,0,NONE,Room for optional more science data
+2,rad,exp1BoardNum,8,-,0,NONE,0,0,0,Exp1 Board Number,Experiment Board Active
+3,rad,WODTimestampUptime,32,s,1,WOD,8,2,0,Uptime,Time Whole Orbit Data was collected
+4,rad,WODTimestampReset,16,-,1,WOD,8,1,0,Reset Count,Time Whole Orbit Data was collected
+5,rad,WodCRCError,8,-,0,NONE,0,0,0,NONE,TBD
+6,rad,pad3,72,-,0,NONE,0,0,0,Pad1,Make it even

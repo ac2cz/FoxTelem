@@ -26,7 +26,7 @@ import filter.IirFilter;
 import filter.RaisedCosineFilter;
 import filter.RootRaisedCosineFilter;
 
-public class FoxBPSKCostasDecoder extends Decoder {
+public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;
 	public static final int WORD_LENGTH = 10;
 	//private double sumClockError = 0;
@@ -54,14 +54,8 @@ public class FoxBPSKCostasDecoder extends Decoder {
 
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
-	/**
-	 * This holds the stream of bits that we have not decoded. Once we have several
-	 * SYNC words, this is flushed of processed bits.
-	 */
-	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
-
-	public FoxBPSKCostasDecoder(SourceAudio as, int chan, int mode) {
-		super("1200bps BPSK", as, chan);
+	public FoxBPSKCostasDecoder(SourceAudio as, int chan, int mode, int syncWordDistance, int wordLength, int bitsPerSecond, int frameLength, int dataLength) {
+		super("1200bps BPSK", as, chan, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
 		this.mode = mode;
 		init();
 	}
@@ -69,7 +63,6 @@ public class FoxBPSKCostasDecoder extends Decoder {
 	@Override
 	protected void init() {
 		Log.println("Initializing 1200bps Costas Loop BPSK decoder: ");
-		bitStream = new FoxBPSKBitStream(this, WORD_LENGTH, CodePRN.getSyncWordLength(), BITS_PER_SECOND_1200);
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 40; //40;  
 		bucketSize = currentSampleRate / BITS_PER_SECOND; // Number of samples that makes up one bit
@@ -321,92 +314,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 		return avg;
 	}
 
-	/**
-	 * Determine if the bit sampling buckets are aligned with the data. This is calculated when the
-	 * buckets are sampled
-	 * 
-	 */
-	@Override
-	public int recoverClockOffset() {
-
-		return 0;//clockOffset;
-	}
-
-	protected double[] recoverClock(int factor) {
-
-		return null;
-	}
-
-	@Override
-	protected void processBitsWindow() {
-		Performance.startTimer("findSync");
-		ArrayList<Frame> frames = bitStream.findFrames(SAMPLE_WINDOW_LENGTH);
-		Performance.endTimer("findSync");
-		if (frames != null) {
-			processPossibleFrame(frames);
-		}
-	}
-
-	/**
-	 *  Decode the frame
-	 */
-	protected void processPossibleFrame(ArrayList<Frame> frames) {
-
-		FoxSpacecraft sat = null;
-		for (Frame decodedFrame : frames) {
-			if (decodedFrame != null && !decodedFrame.corrupt) {
-				Performance.startTimer("Store");
-				// Successful frame
-				eyeData.lastErasureCount = decodedFrame.rsErasures;
-				eyeData.lastErrorsCount = decodedFrame.rsErrors;
-				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
-				if (Config.storePayloads) {
-
-					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-					FoxBPSKHeader header = hsf.getHeader();
-					sat = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
-					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader);
-
-					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
-				}
-				Config.totalFrames++;
-				if (Config.uploadToServer)
-					try {
-						Config.rawFrameQueue.add(decodedFrame);
-					} catch (IOException e) {
-						// Don't pop up a dialog here or the user will get one for every frame decoded.
-						// Write to the log only
-						e.printStackTrace(Log.getWriter());
-					}
-				if (sat != null && sat.sendToLocalServer())
-					try {
-						Config.rawPayloadQueue.add(decodedFrame);
-					} catch (IOException e) {
-						// Don't pop up a dialog here or the user will get one for every frame decoded.
-						// Write to the log only
-						e.printStackTrace(Log.getWriter());
-					}
-				framesDecoded++;
-				try {
-					SwingUtilities.invokeAndWait(new Runnable() {
-						public void run() { MainWindow.setTotalDecodes();}
-					});
-				} catch (InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
-				}
-				Performance.endTimer("Store");
-			} else {
-				if (Config.debugBits) Log.println("SYNC marker found but frame not decoded\n");
-				//clockLocked = false;
-			}
-		}
-	}
-
+	
 	public double getError() { return error; }
 	public double getFrequency() { return nco.getFrequency(); }
 	public double getLockLevel() { return avgLockLevel; }

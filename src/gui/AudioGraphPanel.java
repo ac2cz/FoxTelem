@@ -157,16 +157,18 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			
 				if (buffer != null) {
 					audioData = buffer;		
-					if (foxDecoder instanceof FoxBPSKDecoder) 
+					if (foxDecoder instanceof FoxBPSKDecoder) {
 						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();	
-					if (foxDecoder instanceof FoxBPSKCostasDecoder ) {
-						pskAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandData();
 						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
 					}
-					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
-						pskAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandData();
-						pskQAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandQData();	
-					}
+//					if (foxDecoder instanceof FoxBPSKCostasDecoder ) {
+//						pskAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandData();
+//						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
+//					}
+//					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
+//						pskAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandData();
+//						pskQAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandQData();	
+//					}
 				}
 
 				this.repaint();

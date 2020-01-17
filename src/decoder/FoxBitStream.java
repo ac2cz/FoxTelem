@@ -70,7 +70,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * Initialize the array with enough room to hold 6 frames worth of bits
 	 * We should never reach this because we purge bits once we exceed 4 frames in length
 	 */
-	public FoxBitStream(int size, int wordLength, int syncWordLength, int syncWordDistance, Decoder dec, double millisecondsPerBit) {
+	public FoxBitStream(int size, Decoder dec, int syncWordDistance, int wordLength, int syncWordLength,  double millisecondsPerBit) {
 		super(size, dec, syncWordDistance);
 		SYNC_WORD_LENGTH = syncWordLength;
 		DATA_WORD_LENGTH = wordLength;

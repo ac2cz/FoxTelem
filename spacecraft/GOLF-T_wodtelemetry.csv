@@ -1,0 +1,72 @@
+71,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,wodSpecificDownlink,Xspin,16,dps,47,Experiments,5,1,3,X Rotation,Angular Velocity around X Axis
+1,wodSpecificDownlink,Yspin,16,dps,47,Experiments,5,2,3,Y Rotation,Angular Veolcity around Y Axis
+2,wodSpecificDownlink,Zspin,16,dps,47,Experiments,5,3,3,Z Rotation,Angular Veolcity around Z Axis
+3,wodSpecificDownlink,Xaccel,16,g,45,Experiments,5,4,3,X Acceleration,Acceleration along X axis
+4,wodSpecificDownlink,Yaccel,16,g,45,Experiments,5,5,3,Y Acceleration,Acceleration along Y  axis
+5,wodSpecificDownlink,Zaccel,16,g,45,Experiments,5,6,3,Z Acceleration,Acceleration along Z axis
+6,wodSpecificDownlink,Xmag,16,uT,46,Experiments,5,7,3,X Magnetometer,Angular Veolcity around X Axis
+7,wodSpecificDownlink,Ymag,16,uT,46,Experiments,5,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+8,wodSpecificDownlink,Zmag,16,uT,46,Experiments,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+9,wodSpecificDownlink,busV,8,V,2,Solar Panels,6,1,3,Bus Voltage,Vbatt Bus voltage
+10,wodSpecificDownlink,TxPAi,8,mA,10,Radio,1,1,3,PA Current,Transmit power amplifier current
+11,wodSpecificDownlink,TxTemp,8,C,37,Radio,1,2,3,TX Temperature,Transmitter card temperature
+12,wodSpecificDownlink,FwdPower,8,mW,40,Radio,1,3,3,Fwd Power,Receiver card temperature
+13,wodSpecificDownlink,rssi,8,dBm,14,Command Receiver (ICR),4,1,3,RSSI,Received Signal Strength Indication
+14,wodSpecificDownlink,ReflectedPwr,8,mW,41,Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
+15,wodSpecificDownlink,ICR3VProt,8,V,3,Command Receiver (ICR),4,2,3,3V Prot,ICR 3V Proteted
+16,wodSpecificDownlink,ICR2dot5V,8,V,2,Command Receiver (ICR),4,3,3,2.5V,ICR 2.5V
+17,wodSpecificDownlink,MinusYVolts,8,-,52,Solar Panels,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
+18,wodSpecificDownlink,MinusXVolts,8,-,52,Solar Panels,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
+19,wodSpecificDownlink,XVolts,8,-,52,Solar Panels,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
+20,wodSpecificDownlink,YVolts,8,-,52,Solar Panels,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+21,wodSpecificDownlink,MinusYTemp,8,-,52,Solar Panels,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+22,wodSpecificDownlink,MinusXTemp,8,-,52,Solar Panels,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+23,wodSpecificDownlink,XTemp,8,-,52,Solar Panels,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
+24,wodSpecificDownlink,YTemp,8,-,52,Solar Panels,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+25,wodSpecificDownlink,LtVGACtl,8,V,42,Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+26,wodSpecificDownlink,RT1Temp,8,-,0,NONE,0,0,3,RT-IHU Primary Temp,Primary RT-IHU Board Temp
+27,wodSpecificDownlink,RT2Temp,8,-,0,NONE,0,0,3,RT-IHU Secondary Temp,Secondary RT-IHU Board Temp
+28,wodSpecificDownlink,IHUcpuTemp,8,C,15,Computer Hardware,2,1,3,Temperature,Internal Temperature of IHU
+29,wodSpecificDownlink,gTemp,16,C,48,Experiments,5,10,3,Gyro Temp,Gyro temperature
+30,wodSpecificDownlink,CSS1,8,-,0,NONE,0,0,3,CSS #1,Coarse Sun Sensor Values
+31,wodSpecificDownlink,CSS2,8,-,0,NONE,0,0,3,CSS #2,Coarse Sun Sensor Values
+32,wodSpecificDownlink,CSS3,8,-,0,NONE,0,0,3,CSS #3,Coarse Sun Sensor Values
+33,wodSpecificDownlink,CSS4,8,-,0,NONE,0,0,3,CSS #4,Coarse Sun Sensor Values
+34,wodSpecificDownlink,CSS5,8,-,0,NONE,0,0,3,CSS #5,Coarse Sun Sensor Values
+35,wodSpecificDownlink,CSS6,8,-,0,NONE,0,0,3,CSS #6,Coarse Sun Sensor Values
+36,wodSpecificDownlink,CSS7,8,-,0,NONE,0,0,3,CSS #7,Coarse Sun Sensor Values
+37,wodSpecificDownlink,CSS8,8,-,0,NONE,0,0,3,CSS #8,Coarse Sun Sensor Values
+38,wodSpecificDownlink,CIU3V3_1,8,-,52,NONE,0,0,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+39,wodSpecificDownlink,CIU3V3_2,8,-,0,NONE,0,0,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+40,wodSpecificDownlink,CIUVsys,8,-,0,NONE,0,0,3,CIU 6V Vsys,6V power on CIU aka Vsys
+41,wodSpecificDownlink,CIU12v,8,-,0,NONE,0,0,3,CIU 12V Supply,12V Power From EPS
+42,wodSpecificDownlink,Power10GHz,8,-,0,NONE,0,0,3,SSPA Power,Power output of the 10GHz SSPA
+43,wodSpecificDownlink,pad1,24,-,0,NONE,0,0,3,Filler,Pad
+44,wodSpecificDownlink,DeploySenseCan,8,-,0,NONE,0,0,3,Deploy Sense via CAN,TBD
+45,wodSpecificDownlink,DeploySenseI2c,8,-,0,NONE,0,0,3,Deploy Sense via I2c,TBD
+46,wodSpecificDownlink,PrimaryRTActive,1,-,0,NONE,0,0,3,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
+47,wodSpecificDownlink,AutoSafeAllowed,1,-,1,NONE,0,0,3,Auto Safe Allowed,Autosafe Allowed
+48,wodSpecificDownlink,AutoSafeModeActive,1,-,0,NONE,0,0,3,Auto Safe,Autosafe Mode Active
+49,wodSpecificDownlink,I2CfailureSunSense,1,-,0,NONE,0,0,3,I2c CSS,Coarse Sun Sensor I2c failure
+50,wodSpecificDownlink,I2CfailureSolarV,1,-,0,NONE,0,0,3,I2c Solar,Solar Voltage I2c failure
+51,wodSpecificDownlink,I2CfailureRF,1,-,17,Computer Hardware,2,4,3,I2C RF,RF I2C Bus failure indicator
+52,wodSpecificDownlink,I2CfailureICR,1,-,17,Computer Hardware,2,3,3,I2cICR,Antenna is not communicating over bus 2
+53,wodSpecificDownlink,I2CFailureDeploy,1,-,17,Computer Hardware,2,2,3,I2c Deploy,Antenna is not communicating over bus 1
+54,wodSpecificDownlink,TLMresets,8,-,1,Computer Hardware,2,5,3,Ground Resets,Number of times command stations reset stored telemetry
+55,wodSpecificDownlink,wodSize,8,000s,1,Spacecraft Status,3,1,3,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+56,wodSpecificDownlink,swCmds,32,-,35,Command Receiver (ICR),4,4,3,Diagnostic,ICR Diagnostic information
+57,wodSpecificDownlink,hwCmdCnt,8,-,1,Command Receiver (ICR),4,5,3,HW Command Count,Number of hardware commands since last reset
+58,wodSpecificDownlink,swCmdCnt,8,-,1,Command Receiver (ICR),4,6,3,SW Command Count,Number of software commands since last reset
+59,wodSpecificDownlink,CIUResetCnt1,8,-,0,NONE,0,0,3,CIU Reset Cnt,TBD
+60,wodSpecificDownlink,CIUResetCnt2,8,-,0,NONE,0,0,3,CIU Reset Cnt,None
+61,wodSpecificDownlink,DCT1Status,8,-,0,NONE,0,0,3,Primary DCT Status,TBD
+62,wodSpecificDownlink,DCT2Status,8,-,0,NONE,0,0,3,Secondary DCT Status,TBD
+63,wodSpecificDownlink,pad2,8,-,0,NONE,0,0,3,Filler,TBD
+64,wodSpecificDownlink,IHUhardError,32,-,19,Computer Hardware,2,6,3,IHU Hard Error Data,Reason for last reset
+65,wodSpecificDownlink,IHUsoftError,32,-,20,Spacecraft Status,3,2,3,Soft Error,Diagnostic Data on IHU Software Errors
+66,wodSpecificDownlink,IHUdiagData1,32,-,18,Spacecraft Status,3,3,3,Diagnostic Info,Diagnostic Data on IHU Performance
+67,wodSpecificDownlink,WODTimestampUptime,32,s,1,WOD,7,1,0,Uptime,Time Whole Orbit Data was collected
+68,wodSpecificDownlink,WODTimestampReset,16,-,1,WOD,7,2,0,Reset Count,Time Whole Orbit Data was collected
+69,wodSpecificDownlink,WodCRCError,8,-,0,NONE,0,3,0,NONE,TBD
+70,wodSpecificDownlink,pad1,8,-,0,NONE,0,0,0,pad to longword,TBD

@@ -31,21 +31,22 @@ import telemetry.FoxBPSK.FoxBPSKFrame;
  *
  */
 @SuppressWarnings("serial")
-public class FoxBPSKBitStream extends HighSpeedBitStream {
-	public static final int FOX_BPSK_SPEED_SYNC_WORD_DISTANCE = 5720 + 31; 
-//	public static final int FRAME_LENGTH = 572; 
-//	public static final int DATA_LENGTH = 476; 
+public class GolfBPSKBitStream extends HighSpeedBitStream {
+	public static final int SLOW_SPEED_SYNC_WORD_DISTANCE = 6600; 
+	public static final int FRAME_LENGTH = 660; 
+	public static final int DATA_LENGTH = 564; 
 	public static final int NUMBER_OF_RS_CODEWORDS = 3;
 	
-	public FoxBPSKBitStream(Decoder dec, int syncWordDistance, int wordLength, int syncWordLength, int bitsPerSecond, int frameLength, int dataLength) {
-		super(dec, syncWordDistance, wordLength, syncWordLength, bitsPerSecond);
-		//SYNC_WORD_LENGTH = syncWordLength;
-	//	SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
+	public GolfBPSKBitStream(Decoder dec, int wordLength, int syncWordLength, int bitsPerSecond) {
+		super(dec, wordLength, syncWordLength, bitsPerSecond);
+		SYNC_WORD_LENGTH = syncWordLength;
+		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
 		SYNC_WORD_BIT_TOLERANCE = 10;
-		maxBytes = frameLength; //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
-		frameSize = dataLength; // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
-		numberOfRsCodeWords = FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS;
-		rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
+		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
+		maxBytes = FRAME_LENGTH; //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
+		frameSize = DATA_LENGTH; // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
+		numberOfRsCodeWords = GolfBPSKBitStream.NUMBER_OF_RS_CODEWORDS;
+		rsPadding = new int[GolfBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
 		rsPadding[0] = 64;
 		rsPadding[1] = 64;
 		rsPadding[2] = 65;
@@ -61,9 +62,6 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		totalRsErasures = 0;
 		byte[] rawFrame = decodeBytes(start, end, missedBits, repairPosition);
 		if (rawFrame == null) return null;
-		// ADD in the next SYNC WORD to help the decoder
-		// This is a nice idea and even works sometimes, but we need to make sure it does not cause a crash if it is off the end of the data.
-		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
 		FoxBPSKFrame bpskFrame = new FoxBPSKFrame();
 		try {

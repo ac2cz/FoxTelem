@@ -6,16 +6,39 @@ import sys
 
 lineNum = 0;
 
+
+def setIfDef(line):
+    "This checks to see if this line is an IFDEF with a valid keyword"
+    global DEFIF #otherwise the assignment below automagically creates a local variable
+    if ("endif" in line):
+        DEFIF = True
+        #print('ENDIF: ' + line)
+        #print ('DEFIF set to: ' + str(DEFIF))
+        return DEFIF
+    if ("ifdef" in line):
+        fields = line.split(",")
+        define = fields[0].split(" ")
+        #print('define : ' , define)
+        if (len(define) > 1 and (define[1] in DEFINE_KEYWORDS)):
+            print('Includng IFDEF: ' + define[1])
+            DEFIF = True
+        else:
+            print('Excluding IFDEF: ' + define[1])
+            DEFIF = False
+        #print ('DEFIF set to: ' + str(DEFIF))
+    return DEFIF
+
 def processStructure(type, file):
     "This processes a structure section of the document"
     global lineNum #otherwise the assignment below automagically creates a local lineNum variable
     structure = ""
     columns = [2, 3, 7, 6, 13, 14, 15, 16, 1, 8]
     for line in file:
+        DEFIF = setIfDef(line)
         fields = line.split(',')
         if ('END' in fields[0]):
             return structure
-        if ("//" not in fields[0]):
+        if (DEFIF and "endif" not in fields[0] and "ifdef" not in fields[0] and "//" not in fields[0]):
             structure += str(lineNum)
             lineNum = lineNum + 1
             structure += ','
@@ -38,7 +61,7 @@ def processStructure(type, file):
                 structure += fields[col].rstrip('\n')
             structure += '\n'
 
-if len(sys.argv) <= 3:
+if len(sys.argv) < 4:
     print ('Usage: genSpacecraft <FOXID> <rt|max|min|rad|wod|CAN|CANWOD> <fileName.csv>')
     print ('Generate the spacecraft files needed for FoxTelem from the csv file that defines the downlink specification')
     sys.exit(1)
@@ -46,8 +69,15 @@ if len(sys.argv) <= 3:
 foxId = sys.argv[1]    
 type = sys.argv[2]
 fileName = sys.argv[3]
+DEFINE_KEYWORDS = []
+if len(sys.argv) > 4:
+    DEFINES = sys.argv[4] # used for ifdef statements. Can be multiple words.
+    DEFINE_KEYWORDS = DEFINES.split(' ') # make a list of any words
+print ("defines " , DEFINE_KEYWORDS)
 outFileName = foxId + '_rttelemetry.csv'
-commonStructure = "";
+commonStructure = ""
+common2Structure = ""
+DEFIF = True # true if we out outside ifdef or inside a valid ifdef
 
 if (type.lower() == "max"):
     outFileName = foxId + '_maxtelemetry.csv'
@@ -76,12 +106,13 @@ fields = []
 try:
     with open(fileName) as infile:
         for line in infile:
+            DEFIF = setIfDef(line)
             fields = line.split(',')
-            # make sure this is not a comment row
-            if ("//" not in fields[0]):            
+            # make sure this is not a comment row or excluded by ifdef
+            if (DEFIF and "endif" not in fields[0] and "ifdef" not in fields[0] and "//" not in fields[0]):
                 if ("Structure:" in fields[0]):
                     if ("header" not in fields[1]):
-                        if (not type == "CANHealth" and not type == "CANWOD"):
+                        if (not type.lower() == "rad" and not type.lower() == "canhealth" and not type.lower() == "canwod"):
                             if ("commonDownlink" in fields[1]):
                                 print("COMMON:" + fields[0] + " " + fields[1])
                                 commonStructure = processStructure(type, infile)
@@ -98,7 +129,7 @@ except UnicodeDecodeError as e:
     print (fields)
     exit(1)
     
-if (not type == "CANHealth" and not type == "CANWOD"):
+if (not type.lower() == "rad" and not type.lower() == "canhealth" and not type.lower() == "canwod"):
     if (commonStructure == ""):
         print ("ERROR: No data found for common structure in the file.  Is it a CSV file?")
         exit(1)

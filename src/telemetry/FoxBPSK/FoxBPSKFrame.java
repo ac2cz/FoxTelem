@@ -89,7 +89,7 @@ import telemetry.PayloadWODUwExperiment;
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
-					bytes = new byte[FoxBPSKBitStream.FRAME_LENGTH];
+					bytes = new byte[fox.sourceFrameLength[0]]; ///////  THIS IS HARD CODED TO SOURCE 1,  SHOULD BE PASSED IN // TODO
 					for (int k=0; k < MAX_HEADER_SIZE; k++)
 						bytes[k] = headerBytes[k];
 					initPayloads((FoxBPSKHeader)header, frameLayout);
@@ -116,11 +116,10 @@ import telemetry.PayloadWODUwExperiment;
 				}
 				payload[0].addNext8Bits(b); // add the first byte to the first payload
 				
-				/*
-				 * This is the start of the section that deals with FRAMES defined in the Frames LAYOUT
-				 * STILL TO BE CODED.  CURRENTLY STUCK WITH EXACTLY 6 PAYLOADS EQUAL LENGTH....
-				 */
-				
+			/*
+			 * This is the start of the section that deals with FRAMES defined in the Frames LAYOUT
+			 * 
+			 */	
 			} else {
 				// try to add the byte to a payload, step through each of them
 				int maxByte = MAX_HEADER_SIZE;
@@ -134,27 +133,6 @@ import telemetry.PayloadWODUwExperiment;
 				}
 			}
 				
-//			} else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")) {
-//				payload[0].addNext8Bits(b);
-//			} else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*2)
-//				payload[1].addNext8Bits(b);
-//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*3)
-//				payload[2].addNext8Bits(b);
-//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*4)
-//				payload[3].addNext8Bits(b);
-//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*5)
-//				payload[4].addNext8Bits(b);
-//			else if (numberBytesAdded < MAX_HEADER_SIZE + frameLayout.getInt("payload0.length")*6)
-//				payload[5].addNext8Bits(b);
-//			else if (numberBytesAdded < FoxBPSKBitStream.FRAME_LENGTH) 
-//				;//trailer.addNext8Bits(b); //FEC ;
-//			else
-//				Log.println("ERROR: attempt to add byte past end of frame");
-
-//			if (Config.debugBytes) {
-//				if ((numberBytesAdded - MAX_HEADER_SIZE) % PAYLOAD_SIZE == 0)
-//					Log.println("");
-//			}
 			if (numberBytesAdded >= MAX_HEADER_SIZE)
 				bytes[numberBytesAdded] = b;
 			else
@@ -170,161 +148,7 @@ import telemetry.PayloadWODUwExperiment;
 			}
 		}
 		
-		/**
-		 *  Here is how the frames are defined in the IHU for Husky:
-		 *  
-              //0 ALL_WOD_FRAME -- 3 HK WOD, 3 CAN WOD
-            {WOD_CAN_PAYLOAD6, WOD_HK_PAYLOAD5,  WOD_CAN_PAYLOAD6, WOD_HK_PAYLOAD5,  WOD_CAN_PAYLOAD6, WOD_HK_PAYLOAD5},
-
-            //1 HEALTH_FRAME -- 2 HK WOD, 2 CAN WOD, 1 CAN, 1 HK
-            {WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5, HK_PAYLOAD1,HEALTH_CAN_PAYLOAD4},
-
-            //2 MINMAX_FRAME -- 2 HK WOD, 2 CAN WOD, 1 MIN, 1 MAX
-            {WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5,MAX_VALS_PAYLOAD2,MIN_VALS_PAYLOAD3},
-
-            //3 HEALTH_BEACON -- 1 HK, 5 HK WOD
-            {HK_PAYLOAD1, WOD_HK_PAYLOAD5,  WOD_HK_PAYLOAD5, WOD_HK_PAYLOAD5,  WOD_HK_PAYLOAD5, WOD_HK_PAYLOAD5},
-
-            //4 WOD_BEACON -- 6 HK WOD
-            {WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5, WOD_HK_PAYLOAD5, WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5},
-
-            //5 SCIENCE_FRAME -- 6 CAN
-            {HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4},
-
-            //6 CAMERA_FRAME -- 6 CAN
-            {HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4},
-
-            //7 WOD_CAN_FRAME -- 2 WOD HK, 2 WOD CAN, 2 CAN
-            {WOD_CAN_PAYLOAD6, WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4},
-
-            //8 BCN_WOD_CAN1 -- 2 WOD HK, 1 WOD CAN, 3 CAN
-            {WOD_CAN_PAYLOAD6, WOD_HK_PAYLOAD5,WOD_HK_PAYLOAD5,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4},
-
-            //9 HEALTH_CAN_MINMAX -- 1 HK, 1 Min, 1 Max, 1 CAN, 1 WOD HK, 1 WOD CAN
-            {HK_PAYLOAD1, MIN_VALS_PAYLOAD3, MAX_VALS_PAYLOAD2,WOD_CAN_PAYLOAD6,WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6},
-
-            //10 HEALTH_CAN -- 1 HK, 3 CAN, 1 WOD CAN, 1 WOD HK
-            {HK_PAYLOAD1, HEALTH_CAN_PAYLOAD4, HEALTH_CAN_PAYLOAD4,HEALTH_CAN_PAYLOAD4,WOD_HK_PAYLOAD5,WOD_CAN_PAYLOAD6},
-		 *
-		 * @param type
-		 */
-//		private void initPayloads(int foxId, int type) {
-//			BitArrayLayout WOD_CAN_PAYLOAD6 = Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT);
-//			BitArrayLayout HEALTH_CAN_PAYLOAD4 = Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT);
-//			
-//			switch (type) {
-//			case ALL_WOD_FRAME:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i+=2 ) {
-//					if (foxId == FoxSpacecraft.HUSKY_SAT) {
-//						payload[i] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//					} else {
-//						payload[i] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));						
-//					}
-//					payload[i+1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				}
-//				break;
-//			case REALTIME_FRAME:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				if (foxId == FoxSpacecraft.HUSKY_SAT) {
-//					payload[0] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				} else
-//					payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
-//				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				if (foxId == FoxSpacecraft.HUSKY_SAT) {
-//					payload[2] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				} else
-//					payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
-//				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[4] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-//				if (foxId == FoxSpacecraft.HUSKY_SAT) {
-//					payload[5] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				} else
-//					payload[5] = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-//				break;
-//			case MINMAX_FRAME:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				if (foxId == FoxSpacecraft.HUSKY_SAT) {
-//					payload[0] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				} else
-//					payload[0] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
-//				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				if (foxId == FoxSpacecraft.HUSKY_SAT) {
-//					payload[2] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				} else
-//					payload[2] = new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
-//				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[4] = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
-//				payload[5] = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
-//				break;
-//			case REALTIME_BEACON:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				payload[0] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-//				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[2] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[4] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[5] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				break;
-//			case WOD_BEACON:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				for (int i=0; i<NUMBER_DEFAULT_PAYLOADS; i++ ) {
-//					payload[i] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				}
-//				break;
-//			case CAN_PACKET_SCIENCE_FRAME:
-//				payload = new FoxFramePart[1];
-//				payload[0] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				canPacketFrame = true;
-//				break;
-//			case CAN_PACKET_CAMERA_FRAME:
-//				payload = new FoxFramePart[1];
-//				payload[0] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				canPacketFrame = true;
-//				break;
-//			case WOD_CAN_FRAME:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				payload[0] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[2] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				payload[3] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[4] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				payload[5] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				break;
-//			case BCN_WOD_CAN1:
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				payload[0] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				payload[1] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[2] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[3] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				payload[4] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				payload[5] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				break;
-//			case HEALTH_CAN_MINMAX :
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				payload[0] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-//				payload[1] = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
-//				payload[2] = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
-//				payload[3] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				payload[4] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[5] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				break;
-//			case HEALTH_CAN  :
-//				payload = new FoxFramePart[NUMBER_DEFAULT_PAYLOADS];
-//				payload[0] = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-//				payload[1] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				payload[2] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				payload[3] = new PayloadUwExperiment(HEALTH_CAN_PAYLOAD4, header.id, header.uptime, header.resets);
-//				payload[4] = new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
-//				payload[5] = new PayloadWODUwExperiment(WOD_CAN_PAYLOAD6, header.id, header.uptime, header.resets);
-//				break;
-//			default:
-//				// Need some error handling here in case the frame is invalid
-//				// Though in testing we get a crash, which is perhaps what we want, as this should never be reachable
-//				break;
-//			}
-//		}
-
+		
 		public boolean savePayloads(FoxPayloadStore payloadStore, boolean storeMode) {
 			int serial = 0;
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
@@ -347,14 +171,6 @@ import telemetry.PayloadWODUwExperiment;
 			}
 			return true;			
 		}
-		
-//		public static int getMaxDataBytes() {
-//			return MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE;
-//		}
-//		
-//		public static int getMaxBytes() {
-//			return MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE + MAX_TRAILER_SIZE;
-//		}
 
 		/**
 		 * Get a buffer containing all of the CAN Packets in this frame.  There may be multiple payloads that have CAN Packets,

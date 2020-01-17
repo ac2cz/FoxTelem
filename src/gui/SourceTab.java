@@ -1620,6 +1620,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	 */
 	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
 		
+		int frameLength = 572;
+		int dataLength = 476;
+		int wordLength = 10;
+		int bitsPerSecond = 1200;
+		int syncWordDistance = 5720 + 31;
+		int rs_words = 3;
+		int[] rs_padding = {64,64,65};
+		
 		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			if (Config.iq) {
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
@@ -1628,14 +1636,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
+			
+			//// GOLF DECODER LAUNCHED HERE
 		} else if (this.pskCostas.isSelected()) {
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
 			} else
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
 		} else if (this.pskDotProd.isSelected()) {
-			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
+			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
 		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
