@@ -68,6 +68,7 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
+import decoder.FoxBPSK.FoxBPSKBitStream;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import device.TunerController;
@@ -1642,32 +1643,34 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			int dataLength = 476;
 			int wordLength = 10;
 			int bitsPerSecond = 1200;
-			int syncWordDistance = 5720 + 31;
+			int syncWordLength = 31;
+			int syncWordDistance = 5720 + syncWordLength;
 			int rs_words = 3;
 			int[] rs_padding = {64,64,65};
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.FOX_FORMAT);
 			} else
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.FOX_FORMAT);
 		} else if (this.pskGolfBpsk.isSelected()) {
 			// TEST DATA FOR GOLF FORMAT
 			int frameLength = 660;
 			int dataLength = 564;
 			int wordLength = 10;
 			int bitsPerSecond = 1200;
-			int syncWordDistance = 6600 + 31;
+			int syncWordLength = 31;
+			int syncWordDistance = 6600 + syncWordLength;
 			int rs_words = 3;
 			int[] rs_padding = {35,35,35};
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.GOLF_FORMAT);
 			} else
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.GOLF_FORMAT);
 //		} else if (this.pskDotProd.isSelected()) {
 //			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
 //					wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);

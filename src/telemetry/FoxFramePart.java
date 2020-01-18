@@ -71,6 +71,7 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_CAMERA_SCAN_LINE_COUNT = 102;
 	public static final int TYPE_HERCI_LINE_COUNT = 103;
 	public static final int TYPE_EXTENDED_HEADER = 104;
+	public static final int TYPE_GOLF_HEADER = 105;
 	
 	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
 	// Correspondingly TYPE 600+ are reserved for Herci HS payloads

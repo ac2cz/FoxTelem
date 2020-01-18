@@ -27,10 +27,10 @@ public abstract class FoxBPSKDecoder extends Decoder {
 	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
 	
 	public FoxBPSKDecoder(String n, SourceAudio as, int chan, int syncWordDistance, int wordLength, int bitsPerSecond, 
-			int frameLength, int dataLength, int rsWords, int[] rsPadding) {
+			int frameLength, int dataLength, int rsWords, int[] rsPadding, boolean golfFormat) {
 		super(n, as, chan);
 		bitStream = new FoxBPSKBitStream(this, syncWordDistance, wordLength, CodePRN.getSyncWordLength(), bitsPerSecond, 
-				frameLength, dataLength, rsWords, rsPadding);
+				frameLength, dataLength, rsWords, rsPadding, golfFormat);
 
 	}
 	

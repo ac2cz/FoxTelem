@@ -235,7 +235,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * Factory Method to make a new Frame Part from a layout
 	 * @return
 	 */
-	public static FramePart makePayload(FoxBPSKHeader header, BitArrayLayout layout) {
+	public static FramePart makePayload(Header header, BitArrayLayout layout) {
 		switch (layout.name) {
 			case Spacecraft.REAL_TIME_LAYOUT:
 				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));

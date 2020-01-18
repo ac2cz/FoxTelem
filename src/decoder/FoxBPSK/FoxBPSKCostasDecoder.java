@@ -55,8 +55,9 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
 	public FoxBPSKCostasDecoder(SourceAudio as, int chan, int mode, int syncWordDistance, int wordLength, int bitsPerSecond, 
-			int frameLength, int dataLength, int rsWords, int[] rsPadding) {
-		super("1200bps BPSK", as, chan, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength, rsWords, rsPadding);
+			int frameLength, int dataLength, int rsWords, int[] rsPadding, boolean golfFormat) {
+		super("1200bps BPSK", as, chan, syncWordDistance, wordLength, bitsPerSecond, frameLength, 
+				dataLength, rsWords, rsPadding, golfFormat);
 		this.mode = mode;
 		init();
 	}

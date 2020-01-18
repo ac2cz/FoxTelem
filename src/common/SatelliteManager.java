@@ -223,15 +223,15 @@ public class SatelliteManager implements Runnable {
 						else
 							satellite = new FoxSpacecraft(masterFileName, listOfFiles[i]);
 						// Debug print for frame layouts
-//						int frameLayouts = satellite.numberOfFrameLayouts;
-//						if (frameLayouts > 0) {
-//							Log.println("Frame Layouts: " + frameLayouts);
-//							for (int k=0; k < frameLayouts; k++) {
-//								Log.print(" : " + satellite.frameLayout[k].name);
-//								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
-//								Log.println("");
-//							}
-//						}
+						int frameLayouts = satellite.numberOfFrameLayouts;
+						if (frameLayouts > 0) {
+							Log.println("Frame Layouts: " + frameLayouts);
+							for (int k=0; k < frameLayouts; k++) {
+								Log.print(" : " + satellite.frameLayout[k].name);
+								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
+								Log.println("");
+							}
+						}
 						// Debug print for sources
 						int sources = satellite.numberOfSources;
 						if (sources > 0) {
