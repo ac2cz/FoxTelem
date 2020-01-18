@@ -29,8 +29,8 @@ public class SourceIQ extends SourceAudio {
 	public static final int MODE_FSK_HS = 1;
 	public static final int MODE_FSK_DUV = 0;
 	public static final int MODE_FSK_AUTO = 2;
-	public static final int MODE_PSK_NC = 3;
-	public static final int MODE_PSK_COSTAS = 4;
+	public static final int MODE_PSK_GOLF = 3;
+	public static final int MODE_PSK_FOX = 4;
 	
 	private int mode = MODE_FSK_DUV;
 	
@@ -199,7 +199,7 @@ public class SourceIQ extends SourceAudio {
 //		if (f > sampleRate / 2) f = sampleRate/2;
 //		if (f < -1* sampleRate/ 2) f = -1* sampleRate/2;
 		freq = f;
-		if (nco != null && mode != MODE_PSK_COSTAS)
+		if (nco != null && mode != MODE_PSK_FOX)
 			nco.setFrequency(freq);
 		Config.selectedFrequency = freq;
 	}
@@ -296,7 +296,7 @@ public class SourceIQ extends SourceAudio {
 			samplesToRead = 3840 /2;
 			return;
 		}
-		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS || Config.useNCO) {
+		if (mode == MODE_PSK_GOLF || mode == MODE_PSK_FOX || Config.useNCO) {
 			FFT_SAMPLES=4096;
 			samplesToRead = 3840 /2;
 			return;			
@@ -421,9 +421,9 @@ public class SourceIQ extends SourceAudio {
 				nBytesRead = upstreamAudioSource.read(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
 					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
-				if (mode == MODE_PSK_COSTAS)
+				if (mode == MODE_PSK_FOX)
 					outputData = processPSKBytes(fcdData);
-				else if (mode == MODE_PSK_NC)
+				else if (mode == MODE_PSK_GOLF)
 					outputData = processBytes(fcdData);
 				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
@@ -629,7 +629,7 @@ double id, qd;
  * @return
  */
 protected double[] processBytes(double[] fcdData) {
-	if (!(mode == MODE_PSK_NC) && Config.useNCO) {
+	if (!(mode == MODE_PSK_GOLF) && Config.useNCO) {
 		Log.errorDialog("FATAL", "Trying to run non NCO decoder with Config.useNCO set");
 		return new double[0];
 	}
@@ -683,14 +683,14 @@ protected double[] processBytes(double[] fcdData) {
 
 	if (Config.showIF) calcPsd();
 
-	if (mode == MODE_PSK_NC) 
+	if (mode == MODE_PSK_GOLF) 
 		;
 	else
 		inverseFFT(fftData);
 	int d=0;
 	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
 	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-		if (mode == MODE_PSK_NC)
+		if (mode == MODE_PSK_GOLF)
 			demodAudio[d++] = ncoDownconvert(fcdData[j], fcdData[j+1]);
 		else
 			demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	

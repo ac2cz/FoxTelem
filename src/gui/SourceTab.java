@@ -140,7 +140,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JButton btnFftZoomOut;
 	
 	JCheckBox rdbtnUseNco;
-	JCheckBox rdbtnUseCostas;
+//	JCheckBox rdbtnUseCostas;
 	JCheckBox cbRetuneCenterFrequency;
 	JComboBox<String> speakerComboBox;
 	JButton btnStartButton;
@@ -152,8 +152,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	DevicePanel panelFcd;
 	JPanel SDRpanel;
 	JRadioButton highSpeed;
-	JRadioButton pskDotProd;
-	JRadioButton pskCostas;
+//	JRadioButton pskDotProd;
+//	JRadioButton pskCostas;
+	JRadioButton pskFoxBpsk;
+	JRadioButton pskGolfBpsk;
 	JRadioButton lowSpeed;
 	JRadioButton auto;
 	JRadioButton WFM;
@@ -679,16 +681,20 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		auto = addRadioButton("DUV + HS", panel_2 );
 		JLabel bar = new JLabel("  |  BPSK: ");
 		panel_2.add(bar);
-		pskCostas = addRadioButton("Costas", panel_2 );
-		pskCostas.setToolTipText("Use a Costas Loop to lock onto the signal and decode the BPSK");
-		pskDotProd = addRadioButton("DP", panel_2 );
-		pskDotProd.setToolTipText("Use a Dot Product decoder which is less sensitive to phase mismatch but more sensitive to noise");
+//		pskCostas = addRadioButton("Costas", panel_2 );
+//		pskCostas.setToolTipText("Use a Costas Loop to lock onto the signal and decode the BPSK");
+//		pskDotProd = addRadioButton("DP", panel_2 );
+//		pskDotProd.setToolTipText("Use a Dot Product decoder which is less sensitive to phase mismatch but more sensitive to noise");
+		pskFoxBpsk = addRadioButton("Fox", panel_2 );
+		pskFoxBpsk.setToolTipText("Use Fox BPSK decoder");
+		pskGolfBpsk = addRadioButton("Golf", panel_2 );
+		pskGolfBpsk.setToolTipText("Use Golf BPSK decoder");
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
 		group.add(auto);
-		group.add(pskCostas);
-		group.add(pskDotProd);
+		group.add(pskFoxBpsk);
+		group.add(pskGolfBpsk);
 		
 		setupMode();
 		
@@ -959,11 +965,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
-		} else if (Config.mode == SourceIQ.MODE_PSK_NC ){
-			pskDotProd.setSelected(true);
+		} else if (Config.mode == SourceIQ.MODE_PSK_GOLF ){
+			pskGolfBpsk.setSelected(true);
 			enableFilters(false);
-		} else if (Config.mode == SourceIQ.MODE_PSK_COSTAS){
-			pskCostas.setSelected(true);
+		} else if (Config.mode == SourceIQ.MODE_PSK_FOX){
+			pskFoxBpsk.setSelected(true);
 			enableFilters(false);
 		}
 
@@ -1173,8 +1179,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			Config.save();
 		}
-		if (e.getSource() == pskCostas) { 
-				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+		if (e.getSource() == pskFoxBpsk) { 
+				Config.mode = SourceIQ.MODE_PSK_FOX;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
@@ -1182,8 +1188,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			Config.save();
 		}
-		if (e.getSource() == pskDotProd) { 
-			Config.mode = SourceIQ.MODE_PSK_NC;
+		if (e.getSource() == pskGolfBpsk) { 
+			Config.mode = SourceIQ.MODE_PSK_GOLF;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
@@ -1434,8 +1440,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				autoViewpanel.setVisible(false);
 				lowSpeed.setSelected(true);
 				highSpeed.setSelected(false);
-				pskCostas.setSelected(false);
-				pskDotProd.setSelected(false);
+				pskFoxBpsk.setSelected(false);
+				pskGolfBpsk.setSelected(false);
 			}
 		} else { // its not a file so its a sound card or FCD that was picked
 			int fcdSelected = fcdSelected();
@@ -1619,15 +1625,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	 * @param highSpeed
 	 */
 	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
-		
-		int frameLength = 572;
-		int dataLength = 476;
-		int wordLength = 10;
-		int bitsPerSecond = 1200;
-		int syncWordDistance = 5720 + 31;
-		int rs_words = 3;
-		int[] rs_padding = {64,64,65};
-		
+
+
 		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			if (Config.iq) {
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
@@ -1637,15 +1636,41 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
 			
-			//// GOLF DECODER LAUNCHED HERE
-		} else if (this.pskCostas.isSelected()) {
+		} else if (this.pskFoxBpsk.isSelected()) {
+			// TEST DATA FOR FOX FORMAT
+			int frameLength = 572;
+			int dataLength = 476;
+			int wordLength = 10;
+			int bitsPerSecond = 1200;
+			int syncWordDistance = 5720 + 31;
+			int rs_words = 3;
+			int[] rs_padding = {64,64,65};
 			if (Config.iq) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
+				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
 			} else
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
-		} else if (this.pskDotProd.isSelected()) {
-			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, 
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+		} else if (this.pskGolfBpsk.isSelected()) {
+			// TEST DATA FOR GOLF FORMAT
+			int frameLength = 660;
+			int dataLength = 564;
+			int wordLength = 10;
+			int bitsPerSecond = 1200;
+			int syncWordDistance = 6600 + 31;
+			int rs_words = 3;
+			int[] rs_padding = {35,35,35};
+			if (Config.iq) {
+				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+			} else
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, 
+						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+//		} else if (this.pskDotProd.isSelected()) {
+//			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
+//					wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
 		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
@@ -2091,13 +2116,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	private void setMode() {
 		if (iqSource1 != null) {
-			if (pskCostas.isSelected()) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+			if (pskFoxBpsk.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
 				//Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
 				autoViewpanel.setVisible(false);
 			}
-			if (pskDotProd.isSelected()) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+			if (pskGolfBpsk.isSelected()) {
+				iqSource1.setMode(SourceIQ.MODE_PSK_GOLF);
 				//Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
 				autoViewpanel.setVisible(false);
 			}
@@ -2138,8 +2163,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceModeSelectionComponents(boolean t) {
 		highSpeed.setEnabled(t);
 		lowSpeed.setEnabled(t);
-		pskCostas.setEnabled(t);
-		pskDotProd.setEnabled(t);
+		pskFoxBpsk.setEnabled(t);
+		pskGolfBpsk.setEnabled(t);
 		auto.setEnabled(t);
 	}
 
@@ -2255,15 +2280,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	        }
 			Config.save();
 		}
-		if (e.getSource() == rdbtnUseCostas) {
-			if (fftPanel != null)
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				
-	        } else {
-	        	
-	        }
-			Config.save();
-		}
+//		if (e.getSource() == rdbtnUseCostas) {
+//			if (fftPanel != null)
+//			if (e.getStateChange() == ItemEvent.DESELECTED) {
+//				
+//	        } else {
+//	        	
+//	        }
+//			Config.save();
+//		}
 		/*
 		if (e.getSource() == rdbtnUseLimiter) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {

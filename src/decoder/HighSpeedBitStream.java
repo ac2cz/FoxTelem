@@ -216,7 +216,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 //		System.out.println("Bytes in Frame: " + bytesInFrame);
 		f=0;
 		rsNum=0;
-
+		boolean needsPaddingOffset = false;
 		boolean readingParity = false;
 		// We have corrected the bytes, now allocate back to the rawFrame and add to the frame
 		for (int i=0; i < bytesInFrame; i++) {
@@ -225,21 +225,45 @@ public class HighSpeedBitStream extends FoxBitStream {
 				//	Log.println("PARITY");
 					readingParity=true;
 					rsNum=0;
-					f++;
+					
+					int firstPad = rsPadding[0];
+					for (int p=0; p< rsPadding.length; p++) {
+						if (rsPadding[p] != firstPad)
+							needsPaddingOffset=true;
+					}
+					if (needsPaddingOffset) {
+//						System.err.println("WE NEED OFFSET to padding");
+						f++; // put in an initial offset
+					}
 				}
 				
 				if (readingParity) {
 					// Need to offset the parity bytes according to the padding.
-					// This is different for Fox-1E vs others with HS
+					// If all of the padding is the same then there is no offset needed.
+					// But if the offset is different for diff code words, then some will need to be shifted by 1 bytes
+					// e.g. on Fox-1E the padding is 64, 64, 65.  So the final code word has more padding, meaning the data is shorter
+					// so the parity starts one byte later
 					// The first pad is the standard.  Any with larger pad need offset
-					if (rsPadding[0] == rsPadding[rsNum] ) { // we have the same padding
+					// However, we first scanned above to see if any offset is needed.  Because all could be the same except the last
+					if (needsPaddingOffset) {
+						if (rsPadding[0] == rsPadding[rsNum] ) { // we have the same padding as the first
+//							Log.print(i+ " RS PAD: "+rsNum+ " - " + f + " :"); 
+//							Log.println(""+codeWords[rsNum].getByte(f));
+							rawFrame[i] = codeWords[rsNum++].getByte(f);
+						} else { // we have 1 bit of extra pad, so don't need the initial offset
+//							Log.print(i+ " RS PAD OFF: "+rsNum+ " - " + (f-1) + " :"); 
+//							Log.println(""+codeWords[rsNum].getByte(f-1));
+							rawFrame[i] = codeWords[rsNum++].getByte(f-1);
+						}						
+					} else {
+						// its simple, just read
+//						Log.print(i+ " RS PAD: "+rsNum+ " - " + f + " :"); 
+//						Log.println(""+codeWords[rsNum].getByte(f));
 						rawFrame[i] = codeWords[rsNum++].getByte(f);
-					} else { // we have 1 bit of extra pad
-						rawFrame[i] = codeWords[rsNum++].getByte(f-1);
 					}
 				} else {
-				//	Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
-				//	Log.println(""+codeWords[rsNum].getByte(f));
+//					Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
+//					Log.println(""+codeWords[rsNum].getByte(f));
 					rawFrame[i] = codeWords[rsNum++].getByte(f);
 				}
 				

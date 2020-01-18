@@ -101,8 +101,9 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 	Complex c;
 	double[] phasorData;
 
-	public FoxBPSKDotProdDecoder(SourceAudio as, int chan, int mode, int syncWordDistance, int wordLength, int bitsPerSecond, int frameLength, int dataLength) {
-		super("1200bps BPSK", as, chan,  syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength);
+	public FoxBPSKDotProdDecoder(SourceAudio as, int chan, int mode, int syncWordDistance, int wordLength, int bitsPerSecond, 
+			int frameLength, int dataLength, int rsWords, int[] rsPadding) {
+		super("1200bps BPSK", as, chan,  syncWordDistance, wordLength, bitsPerSecond, frameLength, dataLength, rsWords, rsPadding);
 		this.mode = mode;
 		init();
 	}

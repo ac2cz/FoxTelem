@@ -35,20 +35,22 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 	public static final int FOX_BPSK_SPEED_SYNC_WORD_DISTANCE = 5720 + 31; 
 //	public static final int FRAME_LENGTH = 572; 
 //	public static final int DATA_LENGTH = 476; 
-	public static final int NUMBER_OF_RS_CODEWORDS = 3;
+//	public static final int NUMBER_OF_RS_CODEWORDS = 3;
 	
-	public FoxBPSKBitStream(Decoder dec, int syncWordDistance, int wordLength, int syncWordLength, int bitsPerSecond, int frameLength, int dataLength) {
+	public FoxBPSKBitStream(Decoder dec, int syncWordDistance, int wordLength, int syncWordLength, 
+			int bitsPerSecond, int frameLength, int dataLength, int rsWords, int[] rsPadding) {
 		super(dec, syncWordDistance, wordLength, syncWordLength, bitsPerSecond);
 		//SYNC_WORD_LENGTH = syncWordLength;
 	//	SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
 		SYNC_WORD_BIT_TOLERANCE = 10;
 		maxBytes = frameLength; //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
 		frameSize = dataLength; // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
-		numberOfRsCodeWords = FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS;
-		rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
-		rsPadding[0] = 64;
-		rsPadding[1] = 64;
-		rsPadding[2] = 65;
+		numberOfRsCodeWords = rsWords;
+		this.rsPadding = rsPadding;
+//		rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
+//		rsPadding[0] = 64;
+//		rsPadding[1] = 64;
+//		rsPadding[2] = 65;
 		findFramesWithPRN = true;
 	}
 	
