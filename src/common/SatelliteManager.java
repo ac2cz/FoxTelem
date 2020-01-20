@@ -261,7 +261,7 @@ public class SatelliteManager implements Runnable {
 							for (int k=0; k < sources; k++) {
 								Log.println("" + satellite.sourceName[k]);
 								
-								if (satellite.sourceFormat != null) {
+								if (satellite.sourceFormat != null && satellite.sourceFormat[k] != null) {
 									Log.print(" : " + satellite.sourceFormat[k].name);									
 									Log.println(" - frame length: " + satellite.sourceFormat[k].getInt(TelemFormat.FRAME_LENGTH));
 									Log.println(" - data length: " + satellite.sourceFormat[k].getInt(TelemFormat.DATA_LENGTH));

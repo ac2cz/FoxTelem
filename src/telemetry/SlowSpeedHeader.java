@@ -85,7 +85,7 @@ Array index   Value
 public class SlowSpeedHeader extends Header {
 	
 	public SlowSpeedHeader() {
-		super(TYPE_SLOW_SPEED_HEADER);
+		super(TYPE_SLOW_SPEED_HEADER, new BitArrayLayout());
 		MAX_BYTES = SlowSpeedFrame.MAX_HEADER_SIZE;
 		rawBits = new boolean[MAX_BYTES*8];
 	}

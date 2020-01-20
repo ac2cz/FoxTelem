@@ -8,7 +8,6 @@ import telemetry.Frame;
 import telemetry.FrameProcessException;
 import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
-import telemetry.GolfBPSK.GolfBPSKFrame;
 
 /**
  * 
@@ -65,9 +64,9 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
 		Frame bpskFrame;
-		if (telemFormat.name.equalsIgnoreCase("GOLF_BPSK"))  // TODO - dont hard code here.  Factory method in satManager??  Or do we now have enough in Telem format for one frame class
-			bpskFrame = new GolfBPSKFrame(telemFormat);
-		else
+//		if (telemFormat.name.equalsIgnoreCase("GOLF_BPSK"))  // TODO - dont hard code here.  Factory method in satManager??  Or do we now have enough in Telem format for one frame class
+//			bpskFrame = new GolfBPSKFrame(telemFormat);
+//		else
 			bpskFrame = new FoxBPSKFrame(telemFormat);
 		
 		try {

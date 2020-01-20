@@ -48,6 +48,7 @@ import telemetry.TelemFormat;
 		public FramePart[] payload;
 		HighSpeedTrailer trailer = null;
 		byte[] headerBytes;
+		BitArrayLayout headerLayout;
 		int numberBytesAdded = 0;
 		
 		/**
@@ -57,14 +58,16 @@ import telemetry.TelemFormat;
 		public FoxBPSKFrame(TelemFormat telemFormat) {
 			super();
 			this.telemFormat = telemFormat;
-			header = new FoxBPSKHeader(telemFormat);
+			headerLayout = telemFormat.getHeaderLayout();
+			//header = new FoxBPSKHeader(headerLayout, telemFormat);
 			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
 		}
 
 		public FoxBPSKFrame(TelemFormat telemFormat, BufferedReader input) throws IOException {
 			super(input);
 			this.telemFormat = telemFormat;
-			header = new FoxBPSKHeader(telemFormat);
+			headerLayout = telemFormat.getHeaderLayout();
+			header = new FoxBPSKHeader(headerLayout, telemFormat);
 			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
 			load(input);
 		}
@@ -83,7 +86,7 @@ import telemetry.TelemFormat;
 			if (corrupt) return;
 			if (numberBytesAdded < telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				if (header == null)
-					header = new FoxBPSKHeader(telemFormat);
+					header = new FoxBPSKHeader(headerLayout, telemFormat);
 				header.addNext8Bits(b);
 			} else if (numberBytesAdded == telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				// first non header byte

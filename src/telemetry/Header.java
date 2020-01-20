@@ -28,8 +28,8 @@ public abstract class Header extends FoxFramePart {
 	
 	public abstract String toString();
 
-	protected Header(int type) {
-		super(type, new BitArrayLayout());
+	protected Header(int type, BitArrayLayout layout) {
+		super(type, layout);
 	}
 	
 	protected void init() { }
@@ -43,11 +43,15 @@ public abstract class Header extends FoxFramePart {
 
 	@Override
 	public void copyBitsToFields() {
-		resetBitPosition();
-		id = nextbits(3);
-		resets = nextbits(16);
-		uptime = nextbits(25);
-		
+		if (this.layout.fieldName != null) {
+			super.copyBitsToFields();
+		} else {
+			// We have no layout, this is a legacy FOX header
+			resetBitPosition();
+			id = nextbits(3);
+			resets = nextbits(16);
+			uptime = nextbits(25);
+		}
 	}
 
 	

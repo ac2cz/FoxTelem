@@ -4,6 +4,7 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
+import telemetry.BitArrayLayout;
 import telemetry.Header;
 import telemetry.TelemFormat;
 
@@ -15,9 +16,15 @@ public class FoxBPSKHeader extends Header {
 	int cameraMode;
 	int minorVersion;
 	TelemFormat telemFormat;
-	
-	public FoxBPSKHeader(TelemFormat telemFormat) {
-		super(TYPE_EXTENDED_HEADER);
+	public static final String ID_FIELD = "satelliteId";
+	public static final String TYPE_FIELD = "type";
+	public static final String RESET_FIELD = "resetCnt";
+	public static final String UPTIME_FIELD = "uptime";
+	public static final String PROTOCOL_VERSION_FIELD = "protocolVersion";
+	public static final String MODES_FIELD = "modes";
+
+	public FoxBPSKHeader(BitArrayLayout layout, TelemFormat telemFormat) {
+		super(TYPE_EXTENDED_HEADER, layout);
 		this.telemFormat = telemFormat;
 		MAX_BYTES = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 		rawBits = new boolean[MAX_BYTES*8];
@@ -29,18 +36,29 @@ public class FoxBPSKHeader extends Header {
 	 * Take the bits from the raw bit array and copy them into the fields
 	 */
 	public void copyBitsToFields() {
-		super.copyBitsToFields();
-		type = nextbits(4);
-		if (id == 0) // then take the foxId from the next 8 bits
-			id = nextbits(8);
-		if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) { // Post Fox-1E BPSK has mode in header
-			safeMode = nextbits(1);
-			healthMode = nextbits(1);
-			scienceMode = nextbits(1);
-			cameraMode = nextbits(1);
-			minorVersion = nextbits(4);
+		if (this.layout.fieldName != null) {
+			// We have a layout, so use that.  GOLF-T and later
+			super.copyBitsToFields();
+			id = getRawValue(ID_FIELD);
+			resets = getRawValue(RESET_FIELD);
+			uptime = getRawValue(UPTIME_FIELD);
+			type = getRawValue(TYPE_FIELD);
+			minorVersion = getRawValue(PROTOCOL_VERSION_FIELD);
+			int modes = getRawValue(MODES_FIELD);
+		} else {
+			super.copyBitsToFields();
+			type = nextbits(4);
+			if (id == 0) // then take the foxId from the next 8 bits
+				id = nextbits(8);
+			if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) { // Post Fox-1E BPSK has mode in header
+				safeMode = nextbits(1);
+				healthMode = nextbits(1);
+				scienceMode = nextbits(1);
+				cameraMode = nextbits(1);
+				minorVersion = nextbits(4);
+			}
+			setMode();
 		}
-		setMode();
 	}
 
 	public void setMode() {
