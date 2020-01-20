@@ -226,7 +226,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 		//if (rfData != null)
 		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
-		if (iqSource.getMode() != SourceIQ.MODE_PSK_FOX)
+		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
 		if (Config.findSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
@@ -238,7 +238,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			avgBin = avgBin + targetBin;
 			avgNum++;
 			
-			if (iqSource.getMode() == SourceIQ.MODE_PSK_GOLF) {
+			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC) {
 				TUNE_THRESHOLD = 50; // 1.5 second to average over - less chance we jump away between or prev sample and the signal if sho
 				if (Config.passManager.getState() == PassManager.FADED) 
 					tuneDelay = 0; // dont tune
@@ -492,7 +492,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				}
 			}
 			
-			if (iqSource.getMode() == SourceIQ.MODE_PSK_FOX) {
+			if (iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS) {
 				int lock = (int) Math.round(iqSource.getLockLevel());
 				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
 					g2.setColor(Color.BLUE);
