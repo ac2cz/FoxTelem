@@ -80,137 +80,6 @@ public abstract class FoxBitStream extends BitStream {
 	}
 	
 	/**
-	 * Search through windowLength bits and test to see if the last
-	 * SYNC_WORD_LENGTH bits are a frame marker.  If it is, then add the position of the first bit of data that
-	 * FOLLOWS the SYNC marker to the syncWords array
-	 * @param windowLength
-	 * @return true if we found the SYNC word
-	 */
-	@Deprecated
-	public boolean findSyncMarkers(int windowLength) {
-		boolean found = false;
-		if (this.size() < SYNC_WORD_LENGTH) return false;
-		for (int i=this.size()-windowLength; i < this.size(); i++) {
-			syncWord[syncWordbitPosition++] = this.get(i);
-			if (syncWordbitPosition > SYNC_WORD_LENGTH-1) {
-				syncWordbitPosition = SYNC_WORD_LENGTH-1;
-				// Check the last SYNC_WORD_LENGTH bits in the bit stream for the end of frame market
-				int word = binToInt(syncWord);
-				if ((findFramesWithPRN && CodePRN.probabllyFrameMarker(syncWord ) ) ||
-				//if ((findFramesWithPRN && (word == CodePRN.FRAME )) ||
-				//if ((findFramesWithPRN && CodePRN.equals(syncWord ) ) ||
-				!findFramesWithPRN && (word == Code8b10b.FRAME || word == Code8b10b.NOT_FRAME)) {
-					found = true;
-					//if (!haveSyncWordAtBit(i+1)) {
-						syncWords.add(i+1);
-						if (Config.debugFrames) {
-							Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1) + " total:" + (totalBits + i + 1));
-							printBitArray(syncWord);
-						}
-					//}
-				} 
-				// now shift the bits and continue looking for frame marker
-				for (int k=1; k<SYNC_WORD_LENGTH; k++)
-					syncWord[k-1] = syncWord[k];
-			} 
-		}
-		return found;
-	}
-	
-	/**
-	 * Original Find Frames, called in conjunction with findSyncMarkers
-	 * UNUSED
-	 * @return
-	 */
-//	@Deprecated
-//	public Frame findFrames() {
-//		
-//		Performance.startTimer("findFrames:checks");
-//		
-//		if (this instanceof FoxBPSKBitStream)
-//			checkMissingStartSYNC(0, new FoxBPSKHeader());
-//		else if (Config.mode == SourceIQ.MODE_FSK_HS)
-//			checkMissingStartSYNC(0, new HighSpeedHeader());
-//		else
-//			checkMissingStartSYNC(0, new SlowSpeedHeader()); 
-//		checkMissingMiddleSYNC();
-//		//checkLongFramesForMissingEndSYNC();
-//		//checkLongFramesForMissingStartSYNC();
-//
-//		Performance.endTimer("findFrames:checks");
-//
-//		int start = 0;
-//		int end = 0;
-//
-//		Performance.startTimer("findFrames:decode");
-//
-//		for (int i=0; i<syncWords.size()-1; i++ ) {
-//			start = syncWords.get(i);
-//			for (int e=i+1; e<syncWords.size(); e++) {
-//				end = syncWords.get(e);
-//				if (end >= this.size()) end = start; // this is off the end of the array, so we don't want to process it
-//				if (start != FRAME_PROCESSED) {
-//					int missedBits = 0;
-//					int repairPosition = 0;
-//					int shortLen = SYNC_WORD_DISTANCE;
-//					if (Config.insertMissingBits)
-//						shortLen = SYNC_WORD_DISTANCE - SYNC_WORD_BIT_TOLERANCE;
-//					
-//					if (end-start >= shortLen && end-start <= SYNC_WORD_DISTANCE) {
-//						missedBits = SYNC_WORD_DISTANCE - (end-start);
-//						if (Config.insertMissingBits && missedBits > 0) {
-//							repairPosition = checkShortFrame(start, end);
-//							if (Config.debugFrames) Log.println("Ready to insert "+missedBits+ " missed bits at " + repairPosition +  " total: " + (totalBits + repairPosition));
-//						}
-//						if (newFrame(start, end)) {
-//							if (Config.debugFrames) Log.println("FRAME from bits " + start + " to " + end + " length " + (end-start) + " bits " + (end-start)/10 + " bytes");
-//							alreadyTriedToFlipBits = false; // reset the flag, in case we need to flip the bit stream
-//							Frame frame = decodeFrame(start,end, missedBits, repairPosition);	
-//
-//							if (frame == null) {
-//								if (!alreadyTriedToFlipBits) {
-//									alreadyTriedToFlipBits = true;
-//									decoder.flipReceivedBits = !decoder.flipReceivedBits;
-//									//Log.println("..trying Flipped bits");
-//									Frame flipFrame = decodeFrame(start, end, missedBits, repairPosition); 
-//									if (flipFrame != null) {
-//										// it worked, so flip the whole bitstream and we carry on
-//										Log.println("DECODER: Flipped bits");
-//										// flip any bits left
-//										flipBitStream();
-//										return flipFrame;
-//									} else {
-//										// was not a flip bit issue
-//										decoder.flipReceivedBits = !decoder.flipReceivedBits;
-//										framesTried.add(new SyncPair(start,end));
-//										return null;
-//									}
-//								} else {
-//									framesTried.add(new SyncPair(start,end));
-//									return null;
-//								}
-//							}
-//							// We have a successful frame, so we now know the position of the two SYNC words was good
-//							// We should ALWAYS try to decode exactly the frame after this, so we ADD a SYNCWORD if one does not already exist
-//				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE)) syncWords.add(end+SYNC_WORD_DISTANCE);
-//				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*2)) syncWords.add(end+SYNC_WORD_DISTANCE*2);
-//				//			if (!haveSyncWordAtBit(end+SYNC_WORD_DISTANCE*3))syncWords.add(end+SYNC_WORD_DISTANCE*3);
-//				//			Log.println("AUTO ADDED NEXT SYNC WORD AT: "+ (int)(end+SYNC_WORD_DISTANCE));
-//							// Consume all of the bits up to this point, but not the end SYNC word
-//							removeBits(0, end-SYNC_WORD_LENGTH);
-//							framesTried = new ArrayList<SyncPair>(); // reset this, which is only supposed to stop us iterative retrying same frame
-//							return frame;
-//						}
-//					}
-//				}
-//			}
-//		}
-//		Performance.endTimer("findFrames:decode");
-//
-//		return null;
-//	}
-	
-	/**
 	 * Add the bits from the current processed window.  For each bit added check to see if the previous N bits are
 	 * a sync word.  If they are try to process it as a frame.  If that is successful and enough bits remain, try to 
 	 * process a previous frame and continue until no more bits
@@ -240,7 +109,9 @@ public abstract class FoxBitStream extends BitStream {
 					// We found a sync word
 					Date timeOfSync = Calendar.getInstance().getTime();
 					if (Config.debugFrames) {
-						Log.println("SYNC WORD "+ syncWords.size() + " ADDED AT: "+ (i+1) + " total:" + (totalBits + i + 1) + " at: " + timeOfSync);
+						Log.println("SYNC WORD "+ syncWords.size() + " FROM " + (i-SYNC_WORD_LENGTH) + " total:" 
+					+ (totalBits + i -SYNC_WORD_LENGTH) + " DATA STARTS: "+ (i) + " total:" + (totalBits + i) 
+					+ " at: " + timeOfSync);
 						int last = 0;
 						for (int s : syncWords) {
 							Log.print(s + "-" + (s-last)+", ");
@@ -393,6 +264,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * Search to see if there is a header before this SYNC word indicating that we missed a SYNC
 	 * Otherwise we throw this data away
 	 */
+	@Deprecated
 	protected void checkMissingStartSYNC(int n, FoxFramePart header) {
 		int start = syncWords.get(n);
 		
@@ -438,6 +310,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * CURRENTLY UNUSED
 	 */
 	@SuppressWarnings("unused")
+	@Deprecated
 	private void checkLongFramesForMissingStartSYNC() {
 		int start = 0;
 		int end = 0;
@@ -460,6 +333,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * Look for a double length frame and conclude that the middle SYNC is missing,
 	 * so insert a SYNC word at that point
 	 */
+	@Deprecated
 	protected void checkMissingMiddleSYNC() {
 		int start = 0;
 		int end = 0;
@@ -515,12 +389,13 @@ public abstract class FoxBitStream extends BitStream {
 			}
 		}
 			 */
-			if (Config.debugBits) Log.print(j + ": 10b:" + FoxDecoder.hex(word));	
+			// Print position and add 1 to total so it matches the windowPosition in the audioGraph
+			if (Config.debugBits) Log.print((totalBits + j - 1) + ": " + j + ": 10b:" + FoxDecoder.hex(word));	
 			if (Config.debugBits) Log.print(" 8b:" + FoxDecoder.hex(word8b) + "\n");
 			if (Config.debugBits) printBitArray(intToBin8(word8b));
 			return word8b;
 		} catch (LookupException e) {
-			if (Config.debugBits) Log.print(j + ": 10b:" + FoxDecoder.hex(word));	
+			if (Config.debugBits) Log.print((totalBits + j - 1) +": " + j + ": 10b:" + FoxDecoder.hex(word));	
 			if (Config.debugBits) Log.print(" 8b: -1" + "\n\n");
 			
 			throw e;

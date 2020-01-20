@@ -15,6 +15,7 @@ import decoder.Decoder;
 import decoder.SourceAudio;
 import gui.MainWindow;
 import telemetry.Frame;
+import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
 
@@ -24,13 +25,11 @@ public abstract class FoxBPSKDecoder extends Decoder {
 	 * This holds the stream of bits that we have not decoded. Once we have several
 	 * SYNC words, this is flushed of processed bits.
 	 */
-	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
+//	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
 	
-	public FoxBPSKDecoder(String n, SourceAudio as, int chan, int syncWordDistance, int wordLength, int bitsPerSecond, 
-			int frameLength, int dataLength, int rsWords, int[] rsPadding, boolean golfFormat) {
+	public FoxBPSKDecoder(String n, SourceAudio as, int chan, TelemFormat telemFormat) {
 		super(n, as, chan);
-		bitStream = new FoxBPSKBitStream(this, syncWordDistance, wordLength, CodePRN.getSyncWordLength(), bitsPerSecond, 
-				frameLength, dataLength, rsWords, rsPadding, golfFormat);
+		bitStream = new FoxBPSKBitStream(this, telemFormat);
 
 	}
 	

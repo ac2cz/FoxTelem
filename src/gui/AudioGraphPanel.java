@@ -56,6 +56,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	JLabel sample;
 	int s = 0;
 	JLabel title;
+	int bitValue = 10;
 	
 	boolean showFilteredAudio = false;
 	
@@ -157,18 +158,18 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			
 				if (buffer != null) {
 					audioData = buffer;		
-					if (foxDecoder instanceof FoxBPSKDecoder) {
-						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();	
-						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
-					}
-//					if (foxDecoder instanceof FoxBPSKCostasDecoder ) {
-//						pskAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandData();
+//					if (foxDecoder instanceof FoxBPSKDecoder) {
+//						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();	
 //						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
 //					}
-//					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
-//						pskAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandData();
-//						pskQAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandQData();	
-//					}
+					if (foxDecoder instanceof FoxBPSKCostasDecoder ) {
+						pskAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandData();
+						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
+					}
+					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
+						pskAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandData();
+						pskQAudioData = ((FoxBPSKDotProdDecoder)foxDecoder).getBasebandQData();	
+					}
 				}
 
 				this.repaint();
@@ -253,7 +254,16 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
 				x = border*2 + i*(graphWidth-border*2)/audioData.length;
 
+				
 				if (Config.debugValues && foxDecoder != null) {
+					if (pskAudioData[i] > 1000) {
+					//	pskAudioData[i] = pskAudioData[i] - 10000; // rescale
+						bitValue = 1;
+					}
+					if (pskAudioData[i] < -1000) {
+					//	pskAudioData[i] = pskAudioData[i] + 10000;			
+						bitValue = 0;
+					}
 					// If we are on a bucket boundry, draw a line and label the bit
 					// We have foxDecoder.SAMPLE_WINDOW_LENGTH buckets
 					// The audio data has decoder.bucketSize samples per bucket
@@ -262,7 +272,16 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 						g2.setColor(Color.BLACK);
 						g2.drawLine(x, 0, x, graphHeight);
 						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize-2));
-						g.drawString(""+((Config.windowsProcessed-1)*foxDecoder.getSampleWindowLength()+bitCount), x-25, graphHeight-20 );
+						g.drawString(""+(Config.windowStartBit+bitCount), x-25, graphHeight-20 );
+						if (foxDecoder.middleSample[bitCount])
+							bitValue = 1;
+						else
+							bitValue = 0;
+						g2.setColor(Color.RED);
+						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize*2));
+						g.drawString(""+bitValue,x-25, graphHeight-100);
+							
+						g2.setColor(Color.BLACK);
 						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 						bucketPositionCount = 0;
 						bitCount++;

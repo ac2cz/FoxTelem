@@ -23,6 +23,7 @@ import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.LookUpTable;
+import telemetry.TelemFormat;
 import telemetry.uw.CanFrames;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
@@ -32,6 +33,7 @@ import uk.me.g4dpz.satellite.TLE;
 public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;
+	SatelliteManager satManager;
 	
 	public static String SPACECRAFT_DIR = "spacecraft";
 	public static final int ERROR_IDX = -1;
@@ -43,24 +45,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final int FOX1B = 2;
 	public static final int FOX1C = 3;
 	public static final int FOX1D = 4;
-//	public static final int FOX1E = 5;
-	//public static final int HUSKY_SAT = 6;
-	//public static final int GOLF_TEE = 7;
-	//public static final int FUN_CUBE1 = 100;
-	//public static final int FUN_CUBE2 = 101;
 
 	public static final int FIRST_FOXID_WITH_MODE_IN_HEADER = 6;
-
-	
-//	public static final String[][] SOURCES = {
-//			{ "amsat.fox-test.ihu.duv", "amsat.fox-test.ihu.highspeed" },
-//			{ "amsat.fox-1a.ihu.duv", "amsat.fox-1a.ihu.highspeed" },
-//			{ "amsat.fox-1b.ihu.duv", "amsat.fox-1b.ihu.highspeed" },
-//			{ "amsat.fox-1c.ihu.duv", "amsat.fox-1c.ihu.highspeed" },
-//			{ "amsat.fox-1d.ihu.duv", "amsat.fox-1d.ihu.highspeed" },
-//			{ "amsat.fox-1e.ihu.bpsk", "amsat.fox-1e.ihu.bpsk" },
-//			{ "amsat.husky_sat.ihu.bpsk", "amsat.husky_sat.ihu.bpsk" },
-//			{ "amsat.golf-t.ihu.bpsk", "amsat.golf-t.ihu.bpsk" } };
 
 	public static final int MAX_FOXID = 256; // experimentally increase this to allow other ids. Note the header is limited to 8 bits
 
@@ -144,12 +130,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	public int numberOfSources = 2;
 	public String[] sourceName;
-	public int[] sourceFrameLength;
-	public int[] sourceDataLength;
-	public int[] sourceHeaderLength;
-	public int[] sourceTrailerLength;
-	public int[] sourceRsWords;
-	public int[][] sourceRsPadding;
+	public String[] sourceFormatName;
+	public TelemFormat[] sourceFormat;
 	
 	public String measurementsFileName;
 	public String passMeasurementsFileName;
@@ -198,11 +180,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	 * @throws LayoutLoadException
 	 * @throws IOException
 	 */
-	public Spacecraft(File masterFileName, File userFileName ) throws LayoutLoadException, IOException {
+	public Spacecraft(SatelliteManager satManager, File masterFileName, File userFileName ) throws LayoutLoadException, IOException {
+		this.satManager = satManager;
 		properties = new Properties();
 		propertiesFile = masterFileName;	
 		
-//		String userFileName = fileName.getAbsolutePath().replaceAll(".dat", ".user");
 		userPropertiesFile = userFileName;	
 		tleList = new SortedTleList(10);
 	}
@@ -485,31 +467,16 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			}
 
 			// Source details
-			String frameLength = getOptionalProperty("source0.frame_length");
-			if (frames == null) {
+			String format = getOptionalProperty("source0.formatName");
+			if (format == null) {
 			} else {
-				sourceFrameLength = new int[numberOfSources];
-				sourceDataLength = new int[numberOfSources];
-				sourceHeaderLength = new int[numberOfSources];
-				sourceTrailerLength = new int[numberOfSources];
-				sourceRsWords = new int[numberOfSources];
-				sourceRsPadding = new int[numberOfSources][];
-
-
+				sourceFormat = new TelemFormat[numberOfSources];
+				sourceFormatName = new String[numberOfSources];
 				for (int i=0; i < numberOfSources; i++) {
-					sourceName[i] = getProperty("source"+i+".name");
-					sourceFrameLength[i] = Integer.parseInt(getProperty("source"+i+".frame_length"));
-					sourceDataLength[i] = Integer.parseInt(getProperty("source"+i+".data_length"));
-					sourceHeaderLength[i] = Integer.parseInt(getProperty("source"+i+".header_length"));
-					sourceTrailerLength[i] = Integer.parseInt(getProperty("source"+i+".trailer_length"));
-					sourceRsWords[i] = Integer.parseInt(getProperty("source"+i+".rs_words"));
-					String rs_padding = getProperty("source"+i+".rs_padding");
-					String[] pads = rs_padding.split(",");
-					sourceRsPadding[i] = new int[pads.length];
-					int j = 0;
-					for (String p : pads)
-						sourceRsPadding[i][j++] = Integer.parseInt(p);
-				}
+					sourceFormatName[i] = getProperty("source"+i+".formatName");
+					sourceFormat[i] = satManager.getFormatByName(sourceFormatName[i]);
+				}				
+
 			}
 			// Lookup Tables
 			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
@@ -520,7 +487,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				lookupTable[i] = new LookUpTable(lookupTableFilename[i]);
 				lookupTable[i].name = getProperty("lookupTable"+i);
 			}
-			
+
 			String t = getOptionalProperty("track");
 			if (t == null) 
 				user_track = true;
@@ -570,7 +537,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
 		} catch (NullPointerException nf) {
 			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("Missing data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );		
+			throw new LayoutLoadException("NULL data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());

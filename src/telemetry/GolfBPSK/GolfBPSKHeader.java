@@ -5,6 +5,7 @@ import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.Header;
+import telemetry.TelemFormat;
 
 public class GolfBPSKHeader extends Header {
 	// Extended Mode Bits that are only in FoxId 6 and later
@@ -12,10 +13,12 @@ public class GolfBPSKHeader extends Header {
 	int healthMode;
 	int transponderEnabled;
 	int minorVersion;
+	TelemFormat telemFormat;
 	
-	public GolfBPSKHeader() {
+	public GolfBPSKHeader(TelemFormat telemFormat) {
 		super(TYPE_GOLF_HEADER);
-		MAX_BYTES = GolfBPSKFrame.MAX_HEADER_SIZE;
+		this.telemFormat = telemFormat;
+		MAX_BYTES = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 		rawBits = new boolean[MAX_BYTES*8];
 	}
 	

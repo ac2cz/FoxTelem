@@ -5,6 +5,7 @@ import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.Header;
+import telemetry.TelemFormat;
 
 public class FoxBPSKHeader extends Header {
 	// Extended Mode Bits that are only in FoxId 6 and later
@@ -13,10 +14,12 @@ public class FoxBPSKHeader extends Header {
 	int scienceMode;
 	int cameraMode;
 	int minorVersion;
+	TelemFormat telemFormat;
 	
-	public FoxBPSKHeader() {
+	public FoxBPSKHeader(TelemFormat telemFormat) {
 		super(TYPE_EXTENDED_HEADER);
-		MAX_BYTES = FoxBPSKFrame.MAX_HEADER_SIZE;
+		this.telemFormat = telemFormat;
+		MAX_BYTES = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 		rawBits = new boolean[MAX_BYTES*8];
 	}
 	

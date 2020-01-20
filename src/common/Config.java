@@ -138,6 +138,7 @@ public class Config {
 	static public boolean decoderPaused = false;
 	static public boolean decoderPlay = false;
 	static public int windowsProcessed = 0;
+	static public int windowStartBit = 0;
 	static public boolean debugPerformance = false;
 	static public boolean debugClock = false;
 	static public boolean debugBits = false;

@@ -18,6 +18,7 @@ import telemetry.FramePart;
 import telemetry.HighSpeedTrailer;
 import telemetry.PayloadUwExperiment;
 import telemetry.PayloadWODUwExperiment;
+import telemetry.TelemFormat;
 
 /**
 	 * 
@@ -42,26 +43,29 @@ import telemetry.PayloadWODUwExperiment;
 	 */
 	public class FoxBPSKFrame extends Frame {
 		
-		public static final int MAX_HEADER_SIZE = 8;  // This has to be known in advance, otherwise we can't decode the id and load the frame layout
-		
-		FrameLayout frameLayout;		
+		FrameLayout frameLayout;
+		TelemFormat telemFormat;
 		public FramePart[] payload;
 		HighSpeedTrailer trailer = null;
-		byte[] headerBytes = new byte[MAX_HEADER_SIZE];
+		byte[] headerBytes;
 		int numberBytesAdded = 0;
 		
 		/**
 		 * Initialize the frame.  At this point we do not know which spacecraft it is for.  We reserve enough bytes for the header.
 		 * Once the header is decoded we can allocate the rest of the bytes for the frame
 		 */
-		public FoxBPSKFrame() {
+		public FoxBPSKFrame(TelemFormat telemFormat) {
 			super();
-			header = new FoxBPSKHeader();
+			this.telemFormat = telemFormat;
+			header = new FoxBPSKHeader(telemFormat);
+			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
 		}
 
-		public FoxBPSKFrame(BufferedReader input) throws IOException {
+		public FoxBPSKFrame(TelemFormat telemFormat, BufferedReader input) throws IOException {
 			super(input);
-			header = new FoxBPSKHeader();
+			this.telemFormat = telemFormat;
+			header = new FoxBPSKHeader(telemFormat);
+			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
 			load(input);
 		}
 		
@@ -77,11 +81,11 @@ import telemetry.PayloadWODUwExperiment;
 			}
 
 			if (corrupt) return;
-			if (numberBytesAdded < MAX_HEADER_SIZE) {
+			if (numberBytesAdded < telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				if (header == null)
-					header = new FoxBPSKHeader();
+					header = new FoxBPSKHeader(telemFormat);
 				header.addNext8Bits(b);
-			} else if (numberBytesAdded == MAX_HEADER_SIZE) {
+			} else if (numberBytesAdded == telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				// first non header byte
 				header.copyBitsToFields(); // make sure the id is populated
 				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
@@ -89,8 +93,8 @@ import telemetry.PayloadWODUwExperiment;
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
-					bytes = new byte[fox.sourceFrameLength[0]]; ///////  THIS IS HARD CODED TO SOURCE 1,  SHOULD BE PASSED IN // TODO
-					for (int k=0; k < MAX_HEADER_SIZE; k++)
+					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
+					for (int k=0; k < telemFormat.getInt(TelemFormat.HEADER_LENGTH); k++)
 						bytes[k] = headerBytes[k];
 					initPayloads((FoxBPSKHeader)header, frameLayout);
 //					initPayloads(header.id, header.getType());
@@ -122,8 +126,8 @@ import telemetry.PayloadWODUwExperiment;
 			 */	
 			} else {
 				// try to add the byte to a payload, step through each of them
-				int maxByte = MAX_HEADER_SIZE;
-				int minByte = MAX_HEADER_SIZE;
+				int maxByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
+				int minByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 				for (int p=0; p < frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); p++) {
 					maxByte += frameLayout.getInt("payload"+p+".length");
 					if (numberBytesAdded >= minByte && numberBytesAdded < maxByte) {
@@ -133,7 +137,7 @@ import telemetry.PayloadWODUwExperiment;
 				}
 			}
 				
-			if (numberBytesAdded >= MAX_HEADER_SIZE)
+			if (numberBytesAdded >= telemFormat.getInt(TelemFormat.HEADER_LENGTH))
 				bytes[numberBytesAdded] = b;
 			else
 				headerBytes[numberBytesAdded] = b;

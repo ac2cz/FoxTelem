@@ -78,10 +78,13 @@ public abstract class Frame implements Comparable<Frame> {
 	protected FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
+	// TODO - These should really be looked up from the formats loaded in Config.satManager
 	public static final int DUV_FRAME = 0; 
 	public static final int HIGH_SPEED_FRAME = 1;
 	public static final int PSK_FRAME = 2;
+	public static final int GOLF_BPSK_FRAME = 3;
 	
+	// TODO - These should be looked up from the formats loaded in Config.satManager.  They are frame_length * 8
 	public static final int DUV_FRAME_LEN = 768; 
 	public static final int HIGH_SPEED_FRAME_LEN = 42176;
 	public static final int PSK_FRAME_LEN = 4576;
@@ -552,7 +555,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (length == DUV_FRAME_LEN) {
 			frm = new SlowSpeedFrame();
 		} else if (length == PSK_FRAME_LEN){
-			frm = new FoxBPSKFrame();
+			frm = new FoxBPSKFrame(Config.satManager.getFormatByName("FOX_BPSK")); // TO DO - hard coded the format. We should lookup from the length
 		} else {
 			frm = new HighSpeedFrame();
 		}

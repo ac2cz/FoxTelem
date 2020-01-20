@@ -1071,7 +1071,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					try {
 						//SatPayloadStore.copyFile(file, targetFile);
 						try {
-							FoxSpacecraft satellite = new FoxSpacecraft(file, targetFile);
+							FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
 							satellite.save();
 						} catch (LayoutLoadException e) {
 							// But ingnore any errors.  Hopefully the new MASTER file will fix it!

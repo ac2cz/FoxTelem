@@ -17,6 +17,7 @@ import filter.Complex;
 import filter.DcRemoval;
 import gui.MainWindow;
 import telemetry.Frame;
+import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
 import filter.ComplexOscillator;
@@ -101,10 +102,8 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 	Complex c;
 	double[] phasorData;
 
-	public FoxBPSKDotProdDecoder(SourceAudio as, int chan, int mode, int syncWordDistance, int wordLength, int bitsPerSecond, 
-			int frameLength, int dataLength, int rsWords, int[] rsPadding, boolean golfFormat) {
-		super("1200bps BPSK", as, chan,  syncWordDistance, wordLength, bitsPerSecond, frameLength, 
-				dataLength, rsWords, rsPadding, golfFormat);
+	public FoxBPSKDotProdDecoder(SourceAudio as, int chan, int mode, TelemFormat telemFormat) {
+		super("1200bps BPSK", as, chan,  telemFormat);
 		this.mode = mode;
 		init();
 	}

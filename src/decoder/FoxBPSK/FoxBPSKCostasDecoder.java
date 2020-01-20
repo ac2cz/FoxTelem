@@ -18,6 +18,7 @@ import filter.AGCFilter;
 import filter.DcRemoval;
 import gui.MainWindow;
 import telemetry.Frame;
+import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
 import filter.Complex;
@@ -54,10 +55,8 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
-	public FoxBPSKCostasDecoder(SourceAudio as, int chan, int mode, int syncWordDistance, int wordLength, int bitsPerSecond, 
-			int frameLength, int dataLength, int rsWords, int[] rsPadding, boolean golfFormat) {
-		super("1200bps BPSK", as, chan, syncWordDistance, wordLength, bitsPerSecond, frameLength, 
-				dataLength, rsWords, rsPadding, golfFormat);
+	public FoxBPSKCostasDecoder(SourceAudio as, int chan, int mode, TelemFormat telemFormat) {
+		super("1200bps BPSK", as, chan, telemFormat);
 		this.mode = mode;
 		init();
 	}
@@ -234,9 +233,11 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 							thisSample = false;
 						lastPhase = thisPhase;
 						bitStream.addBit(thisSample);
+						middleSample[i] = thisSample;
 
-						if (Config.debugValues)
+						if (Config.debugValues) {
 							psk = psk*1.5;
+						}
 						//eyeValue = (int) (psk*-32768);
 						//HERE WE DO THE GARDNER ALGORITHM AND UPDATE THE SAMPLE POINTS WITH WRAP.
 						// Gardner Error calculation

@@ -30,6 +30,7 @@ import telemetry.BitArrayLayout;
 import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
+import telemetry.TelemFormat;
 
 /**
  * 
@@ -63,6 +64,7 @@ public class SatelliteManager implements Runnable {
 	public boolean updated = true; // true when we have first been created or the sats have been updated and layout needs to change
 	
 	public ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
+	public ArrayList<TelemFormat> telemFormats = new ArrayList<TelemFormat>();
 	
 	public SatelliteManager()  {
 		init();
@@ -72,6 +74,7 @@ public class SatelliteManager implements Runnable {
 	
 	public void init() {
 		File masterFolder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
+		loadFormats(masterFolder);
 		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
 		loadSats(masterFolder, folder);
@@ -121,7 +124,7 @@ public class SatelliteManager implements Runnable {
 									//SatPayloadStore.copyFile(listOfFiles[i], targetFile);
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										FoxSpacecraft satellite = new FoxSpacecraft(this, listOfFiles[i], targetFile);
 										satellite.save();
 									} catch (LayoutLoadException e) {
 										Log.errorDialog("ERROR Loading Spacecraft File", "Could not load spacecraft file "+ targetFile + "\n" + e);
@@ -151,7 +154,7 @@ public class SatelliteManager implements Runnable {
 								try {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										FoxSpacecraft satellite = new FoxSpacecraft(this, listOfFiles[i], targetFile);
 										// Then remove the existing .dat fi;e
 										try {
 											SatPayloadStore.remove(targetFile.getAbsolutePath());
@@ -204,6 +207,25 @@ public class SatelliteManager implements Runnable {
 				
 		return folder;
 	}
+
+	private void loadFormats(File masterFolder) {
+		File[] listOfFiles = masterFolder.listFiles();
+		if (listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".format")) {
+					Log.println("Loading format from: " + listOfFiles[i].getName());
+					TelemFormat format;
+					try {
+						format = new TelemFormat(listOfFiles[i].getAbsolutePath());
+						telemFormats.add(format);
+					} catch (LayoutLoadException e) {
+						Log.errorDialog("ERROR loading telem format " + listOfFiles[i].getAbsolutePath(), e.getMessage() + "\nThis format will not be loaded");
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+			}
+		}
+	}
 	
 	private void loadSats(File masterFolder, File folder) {
 		File[] listOfFiles = folder.listFiles();
@@ -219,9 +241,9 @@ public class SatelliteManager implements Runnable {
 						//FIXME - HACK FOR FCUBE
 						Matcher matcher = pattern.matcher(listOfFiles[i].getName());
 						if (matcher.find())
-							satellite = new FUNcubeSpacecraft(masterFileName, listOfFiles[i]);
+							satellite = new FUNcubeSpacecraft(this, masterFileName, listOfFiles[i]);
 						else
-							satellite = new FoxSpacecraft(masterFileName, listOfFiles[i]);
+							satellite = new FoxSpacecraft(this, masterFileName, listOfFiles[i]);
 						// Debug print for frame layouts
 						int frameLayouts = satellite.numberOfFrameLayouts;
 						if (frameLayouts > 0) {
@@ -232,21 +254,24 @@ public class SatelliteManager implements Runnable {
 								Log.println("");
 							}
 						}
-						// Debug print for sources
+						// Debug print for sources for this sat
 						int sources = satellite.numberOfSources;
 						if (sources > 0) {
 							Log.println("Sources: " + sources);
 							for (int k=0; k < sources; k++) {
 								Log.println("" + satellite.sourceName[k]);
-								if (satellite.sourceFrameLength != null) {
-									Log.println(" - frame length: " + satellite.sourceFrameLength[k]);
-									Log.println(" - data length: " + satellite.sourceDataLength[k]);
-									Log.println(" - header length: " + satellite.sourceHeaderLength[k]);
-									Log.println(" - trailer length: " + satellite.sourceTrailerLength[k]);
-									Log.println(" - rs words: " + satellite.sourceRsWords[k]);
+								
+								if (satellite.sourceFormat != null) {
+									Log.print(" : " + satellite.sourceFormat[k].name);									
+									Log.println(" - frame length: " + satellite.sourceFormat[k].getInt(TelemFormat.FRAME_LENGTH));
+									Log.println(" - data length: " + satellite.sourceFormat[k].getInt(TelemFormat.DATA_LENGTH));
+									Log.println(" - header length: " + satellite.sourceFormat[k].getInt(TelemFormat.HEADER_LENGTH));
+									Log.println(" - trailer length: " + satellite.sourceFormat[k].getInt(TelemFormat.TRAILER_LENGTH));
+									Log.println(" - rs words: " + satellite.sourceFormat[k].getInt(TelemFormat.RS_WORDS));
 									Log.print(" - padding: ");
-									for (int p=0; p<satellite.sourceRsPadding[k].length; p++)
-										Log.print(" " + satellite.sourceRsPadding[k][p]);
+									int[] padding = satellite.sourceFormat[k].getPaddingArray();
+									for (int p=0; p<padding.length; p++)
+										Log.print(" " + padding[p]);
 									Log.println("");
 								}
 							}
@@ -357,6 +382,23 @@ public class SatelliteManager implements Runnable {
 		}
 		return false;
 	}
+
+	public TelemFormat getFormatByName(String name) {
+		for (int i=0; i < telemFormats.size(); i++) {
+			if (telemFormats.get(i).name.equalsIgnoreCase(name))
+				return telemFormats.get(i);
+		}
+		return null;
+	}
+
+	public TelemFormat getFormatByFrameLength(int len) {
+		for (int i=0; i < telemFormats.size(); i++) {
+			if (telemFormats.get(i).getInt(TelemFormat.FRAME_LENGTH) == len)
+				return telemFormats.get(i);
+		}
+		return null;
+	}
+
 	
 	public Spacecraft getSpacecraftByKepsName(String name) {
 		for (int i=0; i < spacecraftList.size(); i++) {

@@ -119,7 +119,7 @@ public abstract class Decoder implements Runnable {
      * SYNC words, this is flushed of processed bits.
      */
   //  protected BitStream bitStream = null;  // Hold bits until we turn them into decoded frames
-    protected FoxBitStream foxBitStream = null;
+    protected FoxBitStream bitStream = null;
     
     protected int averageMax;
     protected int averageMin;
@@ -475,6 +475,8 @@ public abstract class Decoder implements Runnable {
                 bucketData(abBufferDoubleFiltered);
                 Performance.endTimer("Bucket");
         	}
+
+    		Config.windowStartBit = (int) (bitStream.getStartOfWindowBit()+1); // Get the number of the next bit to be stored for display in AudioPanel
 
         	Performance.startTimer("Sample");
         	sampleBuckets();

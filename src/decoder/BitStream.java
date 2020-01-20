@@ -48,6 +48,10 @@ public class BitStream extends CircularBuffer {
 	
 	protected long totalBits = 0;  // add this to the current bits to get the total bits in the frame
 	
+	public long getStartOfWindowBit() {
+		return totalBits + this.size()-1;
+	}
+	
 	/**
 	 * Remove bits from the bit list and update the position of any
 	 * frameMarker Candidates

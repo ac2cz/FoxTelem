@@ -77,6 +77,7 @@ import device.DevicePanel;
 import device.TunerManager;
 import device.fcd.FCDTunerController;
 import telemetry.FramePart;
+import telemetry.TelemFormat;
 
 import javax.swing.JProgressBar;
 import javax.swing.event.PopupMenuListener;
@@ -1639,38 +1640,36 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			
 		} else if (this.pskFoxBpsk.isSelected()) {
 			// TEST DATA FOR FOX FORMAT
-			int frameLength = 572;
-			int dataLength = 476;
-			int wordLength = 10;
-			int bitsPerSecond = 1200;
-			int syncWordLength = 31;
-			int syncWordDistance = 5720 + syncWordLength;
-			int rs_words = 3;
-			int[] rs_padding = {64,64,65};
+//			int frameLength = 572;
+//			int dataLength = 476;
+//			int wordLength = 10;
+//			int bitsPerSecond = 1200;
+//			int syncWordLength = 31;
+//			int syncWordDistance = 5720 + syncWordLength;
+//			int rs_words = 3;
+//			int[] rs_padding = {64,64,65};
+			TelemFormat telemFormat = Config.satManager.getFormatByName("FOX_BPSK");
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.FOX_FORMAT);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			} else
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.FOX_FORMAT);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
 		} else if (this.pskGolfBpsk.isSelected()) {
 			// TEST DATA FOR GOLF FORMAT
-			int frameLength = 660;
-			int dataLength = 564;
-			int wordLength = 10;
-			int bitsPerSecond = 1200;
-			int syncWordLength = 31;
-			int syncWordDistance = 6600 + syncWordLength;
-			int rs_words = 3;
-			int[] rs_padding = {35,35,35};
+//			int frameLength = 660;
+//			int dataLength = 564;
+//			int wordLength = 10;
+//			int bitsPerSecond = 1200;
+//			int syncWordLength = 31;
+//			int syncWordDistance = 6600 + syncWordLength;
+//			int rs_words = 3;
+//			int[] rs_padding = {35,35,35};
+			TelemFormat telemFormat = Config.satManager.getFormatByName("GOLF_BPSK");
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_FOX);
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.GOLF_FORMAT);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			} else
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, syncWordDistance, 
-						wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding, FoxBPSKBitStream.GOLF_FORMAT);
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
 //		} else if (this.pskDotProd.isSelected()) {
 //			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
 //					wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
