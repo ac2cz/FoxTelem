@@ -20,10 +20,10 @@ def setIfDef(line):
         define = fields[0].split(" ")
         #print('define : ' , define)
         if (len(define) > 1 and (define[1] in DEFINE_KEYWORDS)):
-            print('Includng IFDEF: ' + define[1])
+            #print('Includng IFDEF: ' + define[1])
             DEFIF = True
         else:
-            print('Excluding IFDEF: ' + define[1])
+            #print('Excluding IFDEF: ' + define[1])
             DEFIF = False
         #print ('DEFIF set to: ' + str(DEFIF))
     return DEFIF
@@ -73,7 +73,7 @@ DEFINE_KEYWORDS = []
 if len(sys.argv) > 4:
     DEFINES = sys.argv[4] # used for ifdef statements. Can be multiple words.
     DEFINE_KEYWORDS = DEFINES.split(' ') # make a list of any words
-print ("defines " , DEFINE_KEYWORDS)
+#print ("defines " , DEFINE_KEYWORDS)
 outFileName = foxId + '_rttelemetry.csv'
 commonStructure = ""
 common2Structure = ""
