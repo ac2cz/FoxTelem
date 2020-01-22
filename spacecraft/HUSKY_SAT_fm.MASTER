@@ -83,3 +83,4 @@ passMeasurementsFileName=passmeasurements.csv
 canFileDir=HuskySat
 numberOfSources=1
 source0.name=ihu.bpsk
+source0.formatName=FOX_BPSK
