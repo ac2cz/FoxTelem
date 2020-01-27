@@ -242,7 +242,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
 				if ( pskAudioData != null && i < pskAudioData.length && 
-						(foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder ||
+						(foxDecoder instanceof FoxBPSKDotProdDecoder ||
 						    (foxDecoder instanceof FoxBPSKCostasDecoder && 
 								 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE
 							) 
@@ -287,10 +287,11 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 						bitCount++;
 					}
 				}
+				// ***** PLOT the AUDIO DATA ****** //
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
 				
-				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
+				if ((foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
 						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues)
 					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
 				else
@@ -300,7 +301,8 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
+				// ***** PLOT THE PSK AUDIO DATA ***** //
+				if ((foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
 						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) ) {
 					if (foxDecoder instanceof FoxBPSKCostasDecoder && (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ) && pskAudioData != null && i < pskAudioData.length) {
 						int lock = (int)Math.round(((FoxBPSKCostasDecoder)foxDecoder).getLockLevel());
@@ -357,7 +359,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		if (foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder  &&
+		if (foxDecoder instanceof FoxBPSKDotProdDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder  &&
 				((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues) {
 			g2.drawLine(0, graphHeight/4+border, graphWidth, graphHeight/4+border);
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);

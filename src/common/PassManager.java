@@ -702,7 +702,7 @@ public class PassManager implements Runnable {
 									if (Config.retuneCenterFrequency) {
 										if (Config.foxTelemCalcsDoppler)
 											retunedCenterFreqIfNeeded(sat);
-										switchedModeIfNeeded(sat);
+										switchedFormatIfNeeded(sat);
 									}
 								}
 								if (Config.findSignal) {
@@ -740,7 +740,7 @@ public class PassManager implements Runnable {
 								if (satIsUp(sat)) {
 									if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
 										if (Config.retuneCenterFrequency) {
-											switchedModeIfNeeded(sat);
+											switchedFormatIfNeeded(sat);
 										}
 										
 									}
@@ -797,19 +797,19 @@ public class PassManager implements Runnable {
 		return false;
 	}
 	
-	private boolean switchedModeIfNeeded(Spacecraft sat) {
+	private boolean switchedFormatIfNeeded(Spacecraft sat) {
 		// If the mode is wrong we should switch modes
-		if (Config.mode != sat.user_mode) {
+		if (Config.format != sat.user_format) {
 			// Except if in Auto and Sat mode is DUV or HS
 			//if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
 				//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
 				//	Config.autoDecodeSpeed = false;
 				if (SourceTab.STARTED)
 					MainWindow.inputTab.processStartButtonClick();
-				Config.mode = sat.user_mode;
-				MainWindow.inputTab.setupMode();
-				if (Config.mode != sat.user_mode) // then user has an override, such as Use Costas, so remember that for this sat
-					sat.user_mode = Config.mode;
+				Config.format = sat.user_format;
+				MainWindow.inputTab.setupFormat();
+				if (Config.format != sat.user_format) // then user has an override, such as Use Costas, so remember that for this sat
+					sat.user_format = Config.format;
 				MainWindow.inputTab.processStartButtonClick();
 			//}
 			return true;

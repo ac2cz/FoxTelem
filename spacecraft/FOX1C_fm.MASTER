@@ -48,4 +48,4 @@ source0.name=ihu.duv
 source1.name=ihu.highspeed
 track=false
 useIHUVBatt=true
-user_mode=0
+user_format=0

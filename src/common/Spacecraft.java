@@ -15,6 +15,7 @@ import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
 import decoder.SourceIQ;
+import gui.SourceTab;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
@@ -98,21 +99,13 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			"FS"
 	};
 	
-	public static String[] modes = {
-			"FSK DUV 200",
-			"FSK HS 9600",
-			"FSK DUV + HS",
-			"BPSK 1200 (Dot Product)",
-			"BPSK 1200 (Costas)"
-	};
-	
 	public int foxId = 1;
 	public int catalogNumber = 0;
 	public String series = "FOX";
 	public String description = "";
 	public int model;
 	public String canFileDir = "HuskySat";
-	public int user_mode = SourceIQ.MODE_FSK_DUV;
+	public int user_format = SourceTab.FORMAT_FSK_DUV;
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
@@ -529,7 +522,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				this.canFileDir = getProperty("canFileDir");
 				loadCanLayouts();
 			}
-			user_mode = Integer.parseInt(getProperty("user_mode"));
+			user_format = Integer.parseInt(getProperty("user_format"));
 			user_display_name = getProperty("displayName");
 
 		} catch (NumberFormatException nf) {
@@ -586,7 +579,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
-			user_mode = Integer.parseInt(getUserProperty("user_mode"));
+			user_format = Integer.parseInt(getUserProperty("user_format"));
 			user_display_name = getUserProperty("displayName");
 
 		} catch (NumberFormatException nf) {
@@ -698,7 +691,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
 		user_properties.setProperty("track", Boolean.toString(user_track));
-		user_properties.setProperty("user_mode", Integer.toString(user_mode));
+		user_properties.setProperty("user_format", Integer.toString(user_format));
 		
 		if (user_localServer != null) {
 			user_properties.setProperty("localServer",user_localServer);

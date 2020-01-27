@@ -68,7 +68,6 @@ import decoder.SourceIQ;
 import decoder.SourceSoundCardAudio;
 import decoder.SourceUSB;
 import decoder.SourceWav;
-import decoder.FoxBPSK.FoxBPSKBitStream;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import device.TunerController;
@@ -194,6 +193,20 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	static final int RATE_96000_IDX = 2;
 	static final int RATE_192000_IDX = 3;
 	
+	public static final int FORMAT_FSK_HS = 1;
+	public static final int FORMAT_FSK_DUV = 0;
+	public static final int FORMAT_FSK_AUTO = 2;
+	public static final int FORMAT_PSK_FOX = 3;
+	public static final int FORMAT_PSK_GOLF = 4;
+	
+	public static String[] formats = {
+			"FSK DUV 200",
+			"FSK HS 9600",
+			"FSK DUV + HS",
+			"BPSK 1200 (Fox)",
+			"BPSK 1200 (Golf)"
+	};
+
 	private Task task;
 	Thread progressThread;
 	
@@ -698,7 +711,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		group.add(pskFoxBpsk);
 		group.add(pskGolfBpsk);
 		
-		setupMode();
+		setupFormat();
 		
 		JPanel centerPanel = new JPanel();		
 		leftPanel.add(centerPanel, BorderLayout.CENTER);	
@@ -955,23 +968,23 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 	}
 
-	public void setupMode() {
-		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
+	public void setupFormat() {
+		if (Config.format == FORMAT_FSK_AUTO) {
 			//Config.autoDecodeSpeed = true;
 			auto.setSelected(true);
 			enableFilters(true);
 		} else
-		if (Config.mode == SourceIQ.MODE_FSK_HS) {
+		if (Config.format == FORMAT_FSK_HS) {
 			highSpeed.setSelected(true);
 			enableFilters(false);
-		} else if (Config.mode == SourceIQ.MODE_FSK_DUV){
+		} else if (Config.format == FORMAT_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
-		} else if (Config.mode == SourceIQ.MODE_PSK_NC ){
-			pskGolfBpsk.setSelected(true);
-			enableFilters(false);
-		} else if (Config.mode == SourceIQ.MODE_PSK_COSTAS){
+		} else if (Config.format == FORMAT_PSK_FOX ){
 			pskFoxBpsk.setSelected(true);
+			enableFilters(false);
+		} else if (Config.format == FORMAT_PSK_GOLF){
+			pskGolfBpsk.setSelected(true);
 			enableFilters(false);
 		}
 
@@ -1182,7 +1195,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.save();
 		}
 		if (e.getSource() == pskFoxBpsk) { 
+			Config.format = FORMAT_PSK_FOX;
+			if (Config.useCostas)
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			else
+				Config.mode = SourceIQ.MODE_PSK_NC;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
@@ -1191,7 +1208,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.save();
 		}
 		if (e.getSource() == pskGolfBpsk) { 
-			Config.mode = SourceIQ.MODE_PSK_NC;
+			Config.format = FORMAT_PSK_GOLF;
+			if (Config.useCostas)
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			else
+				Config.mode = SourceIQ.MODE_PSK_NC;
 			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
@@ -1628,8 +1649,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	 */
 	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
 
-
-		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
+		if (Config.format == FORMAT_FSK_AUTO) {
 			if (Config.iq) {
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 0);
@@ -1649,11 +1669,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //			int rs_words = 3;
 //			int[] rs_padding = {64,64,65};
 			TelemFormat telemFormat = Config.satManager.getFormatByName("FOX_BPSK");
-			if (Config.iq) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
-			} else
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+			if (Config.useCostas) {
+				if (Config.iq) {
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+				} else {
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+				} 
+			} else {
+				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+			}
 		} else if (this.pskGolfBpsk.isSelected()) {
 			// TEST DATA FOR GOLF FORMAT
 //			int frameLength = 660;
@@ -1665,14 +1690,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //			int rs_words = 3;
 //			int[] rs_padding = {35,35,35};
 			TelemFormat telemFormat = Config.satManager.getFormatByName("GOLF_BPSK");
+			if (Config.useCostas) {
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			} else
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
-//		} else if (this.pskDotProd.isSelected()) {
-//			decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, syncWordDistance, 
-//					wordLength, bitsPerSecond, frameLength, dataLength, rs_words, rs_padding);
+			} else {
+				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+			}
 		} else if (highSpeed) {
 			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
@@ -2119,13 +2145,23 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void setMode() {
 		if (iqSource1 != null) {
 			if (pskFoxBpsk.isSelected()) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				//Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+				if (Config.useCostas) {
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+					Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+				} else {
+					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+					Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+				}
 				autoViewpanel.setVisible(false);
 			}
 			if (pskGolfBpsk.isSelected()) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_NC);
-				//Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+				if (Config.useCostas) {
+					iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+					Config.mode = SourceIQ.MODE_PSK_COSTAS; // so it is saved for next time
+				} else {
+					iqSource1.setMode(SourceIQ.MODE_PSK_NC);
+					Config.mode = SourceIQ.MODE_PSK_NC; // so it is saved for next time
+				}
 				autoViewpanel.setVisible(false);
 			}
 			if (lowSpeed.isSelected()) {

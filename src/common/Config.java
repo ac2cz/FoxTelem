@@ -2,6 +2,7 @@ package common;
 
 import gui.MainWindow;
 import gui.ProgressPanel;
+import gui.SourceTab;
 import measure.SatPc32DDE;
 
 import java.awt.Color;
@@ -65,8 +66,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.09d";
-	public static String VERSION = VERSION_NUM + " - 15 Jan 2020";
+	public static String VERSION_NUM = "1.09e";
+	public static String VERSION = VERSION_NUM + " - 27 Jan 2020";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -160,6 +161,7 @@ public class Config {
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
     public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
+    public static int format = SourceTab.FORMAT_FSK_DUV; 
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -275,7 +277,7 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-//	static public boolean useCostas = false;
+	static public boolean useCostas = true;
 	public static boolean showEye = true; 
 	public static boolean showPhasor = true; 
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
@@ -729,7 +731,6 @@ public class Config {
 		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
-//		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("showEye", Boolean.toString(showEye));
 		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
 		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
@@ -742,6 +743,10 @@ public class Config {
 		properties.setProperty("debugSegs", Boolean.toString(debugSegs));
 		properties.setProperty("timeUntilTableSegOffloaded", Integer.toString(timeUntilTableSegOffloaded));
 		properties.setProperty("turboWavFilePlayback", Boolean.toString(turboWavFilePlayback));
+
+		// V1.09
+		properties.setProperty("useCostas", Boolean.toString(useCostas));
+		properties.setProperty("format", Integer.toString(format));
 
 		store();
 	}
@@ -920,7 +925,6 @@ public class Config {
 		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
-//		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		showEye = Boolean.parseBoolean(getProperty("showEye"));
 		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
 		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
@@ -933,6 +937,10 @@ public class Config {
 		debugSegs = Boolean.parseBoolean(getProperty("debugSegs"));
 		timeUntilTableSegOffloaded = Integer.parseInt(getProperty("timeUntilTableSegOffloaded"));
 		turboWavFilePlayback = Boolean.parseBoolean(getProperty("turboWavFilePlayback"));
+
+		// V1.09
+		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		format = Integer.parseInt(getProperty("format"));
 
 		} catch (NumberFormatException nf) {
 			catchException();

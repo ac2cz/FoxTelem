@@ -1,6 +1,6 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
-foxId=8
+foxId=70
 name=Golf-T
 displayName=Golf-T
 description=GOLF-T is a 3U CubeSat designed to test next generation capabilities for higher orbits including larger solar panels needed for modern SDR radios and pointing to maximise power collection
@@ -58,7 +58,7 @@ passMeasurementsFileName=passmeasurements.csv
 telemetryDownlinkFreqkHz=435800
 track=false
 useIHUVBatt=false
-user_mode=4
+user_format=4
 numberOfSources=2
 source0.name=lihu.bpsk
 source0.formatName=GOLF_BPSK
