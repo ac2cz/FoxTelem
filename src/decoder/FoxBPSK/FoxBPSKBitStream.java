@@ -2,6 +2,8 @@ package decoder.FoxBPSK;
 
 import java.util.Date;
 
+import common.Config;
+import common.Log;
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
 import telemetry.Frame;
@@ -67,7 +69,9 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 //		if (telemFormat.name.equalsIgnoreCase("GOLF_BPSK"))  // TODO - dont hard code here.  Factory method in satManager??  Or do we now have enough in Telem format for one frame class
 //			bpskFrame = new GolfBPSKFrame(telemFormat);
 //		else
-			bpskFrame = new FoxBPSKFrame(telemFormat);
+		if (Config.debugFrames)
+			Log.println("Decoding frame with Format: " + telemFormat);
+		bpskFrame = new FoxBPSKFrame(telemFormat);
 		
 		try {
 			bpskFrame.addRawFrame(rawFrame);

@@ -1,9 +1,9 @@
 name=GOLF_BPSK
 mode=BPSK
 bps=1200
-frame_length=663
-data_length=567
-header_length=15
+frame_length=660
+data_length=564
+header_length=12
 header_layout_file=GOLF-T_header.csv
 trailer_length=96
 word_length=10

@@ -97,5 +97,11 @@ public class TelemFormat {
 	public boolean getBoolean(String key) {
 		return Boolean.parseBoolean(properties.getProperty(key));
 	}
+	
+	public String toString() {
+		String s = "";
+		s = s + name;
+		return s;
+	}
 
 }

@@ -5,4 +5,4 @@
 3,header,uptime,32,-,0,NONE,0,0,0,FoxId,Spacecraft Id
 4,header,protocolVersion,8,-,0,NONE,0,0,0,FoxId,Spacecraft Id
 5,header,modes,8,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-6,header,pad1,40,-,0,NONE,0,0,0,FoxId,Spacecraft Id
+6,header,pad1,16,-,0,NONE,0,0,0,FoxId,Spacecraft Id

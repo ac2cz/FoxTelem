@@ -90,8 +90,18 @@ import telemetry.TelemFormat;
 				header.addNext8Bits(b);
 			} else if (numberBytesAdded == telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				// first non header byte
-				header.copyBitsToFields(); // make sure the id is populated
-				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+				try {
+					header.copyBitsToFields(); // make sure the id is populated
+					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+				} catch (ArrayIndexOutOfBoundsException e) {
+					if (Config.debugFrames)
+						Log.errorDialog("ERROR","The header length in the format file may not agree with the header layout.  Decode not possible.\n"
+								+ "Turn off Debug Frames to prevent this message in future.");
+					else
+						Log.println("ERROR: The header length in the format file may not agree with the header layout.  Decode not possible.");							
+					corrupt = true;
+					return;
+				}
 				if (fox != null) {
 					if (Config.debugFrames)
 						Log.println(header.toString());
