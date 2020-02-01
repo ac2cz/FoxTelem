@@ -228,6 +228,7 @@ public abstract class FoxBitStream extends BitStream {
 		// We look for a new sync word in the current window of bits.  We add each bit one by one
 		// and see if the previous N bits are the sync word.  We might have just the last bit in this window
 		for (int i=this.size()-windowLength-SYNC_WORD_LENGTH; i < this.size(); i++) {
+			if (i < 0) return null; // not enough bits.  We may have purged mid attempt?
 			syncWord[syncWordbitPosition++] = this.get(i);
 			if (syncWordbitPosition > SYNC_WORD_LENGTH-1) {
 				syncWordbitPosition = SYNC_WORD_LENGTH-1;

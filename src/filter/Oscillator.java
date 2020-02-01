@@ -104,10 +104,11 @@ public abstract class Oscillator {
 	public double nextSample() {
 		incPhase(phaseIncrement);
 		idx = ((int)((phase * (double)TABLE_SIZE/(2 * Math.PI))))%TABLE_SIZE;
-		if (idx < 0 || idx >= sinTable.length)
-			;//System.err.println("NEG IDX ERROR: " + idx + " phase:" + phase + " inc:"+phaseIncrement);
-		else
+		try {
 			value = sinTable[idx];
+		} catch (ArrayIndexOutOfBoundsException e) {
+			; // ignore and just return the last value.  This seems to be a startup / closedown or extreme shift issue
+		}
 		return value;
 	}
 	
