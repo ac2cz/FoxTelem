@@ -226,8 +226,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 
 		//if (rfData != null)
 		//Log.println("TRACK: " + Config.trackSignal + " live: " + liveData + " sig: " + rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH));
-		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
-		if (Config.findSignal && liveData && rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
+//		if (iqSource.getMode() != SourceIQ.MODE_PSK_COSTAS)
+		if (Config.findSignal && liveData && rfData.rfSNRInFilterWidth > Config.ANALYZE_SNR_THRESHOLD) { //&& rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH) > TRACK_SIGNAL_THRESHOLD) {
 			//if (Config.passManager.getState() == PassManager.DECODE || 
 			//		Config.passManager.getState() == PassManager.ANALYZE ||
 			//		Config.passManager.getState() == PassManager.FADED)
@@ -238,11 +238,12 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			avgBin = avgBin + targetBin;
 			avgNum++;
 			
-			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC) {
-				TUNE_THRESHOLD = 50; // 1.5 second to average over - less chance we jump away between or prev sample and the signal if sho
-				if (Config.passManager.getState() == PassManager.FADED) 
-					tuneDelay = 0; // dont tune
-				else
+			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC || iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS) {
+				TUNE_THRESHOLD = 10; // 30 = 1 second 55 = 1.5 second to average over - less chance we jump away between or prev sample and the signal if sho
+//				if (Config.passManager.getState() == PassManager.FADED) 
+					//tuneDelay = 0; // dont tune
+//					tuneDelay++; // tune slowly even when faded
+//				else
 					tuneDelay++; // tune slowly
 			} else {
 				TUNE_THRESHOLD = 100; // ~3 second average time
@@ -452,7 +453,8 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			
 			// draw line either side of signal
 			g2.setColor(Color.gray);
-			g2.drawLine(lower+sideBorder, topBorder, lower+sideBorder, zeroPoint);
+//			if (!(iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS || iqSource.getMode() == SourceIQ.MODE_PSK_NC)) 
+				g2.drawLine(lower+sideBorder, topBorder, lower+sideBorder, zeroPoint);
 			g2.drawLine(upper+sideBorder, topBorder, upper+sideBorder, zeroPoint);
 
 			
@@ -492,21 +494,21 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				}
 			}
 			
-			if (iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS) {
-				int lock = (int) Math.round(iqSource.getLockLevel());
-				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
-					g2.setColor(Color.BLUE);
-//					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
-					g.drawString("Locked "+lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
-				} else {
-					g2.setColor(Color.gray);
-					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
-				}
-				g2.setColor(Color.gray);
-				g.drawString("Costas Error: " + Math.round(iqSource.getError()*1E3), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ Config.graphAxisFontSize)  );
-				g.drawString("Carrier: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 )  );
-
-			}
+//			if (iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS) {
+//				int lock = (int) Math.round(iqSource.getLockLevel());
+//				if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
+//					g2.setColor(Color.BLUE);
+////					g.drawString("Locked", graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+//					g.drawString("Locked "+lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+//				} else {
+//					g2.setColor(Color.gray);
+//					g.drawString("Lock: " + lock, graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+//				}
+//				g2.setColor(Color.gray);
+//				g.drawString("Costas Error: " + Math.round(iqSource.getError()*1E3), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2+ Config.graphAxisFontSize)  );
+//				g.drawString("Carrier: " + Math.round(iqSource.getCostasFrequency()), graphWidth-5*Config.graphAxisFontSize, (int) ( graphHeight/2 )  );
+//
+//			}
 			
 			if (rfData != null) {
 				g2.setColor(Config.AMSAT_BLUE);

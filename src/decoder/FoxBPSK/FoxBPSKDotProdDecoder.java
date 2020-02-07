@@ -175,19 +175,21 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	}
 
 	protected void sampleBuckets() {
-//		double maxValue = 0;
-//		double minValue = 0;
-//		double DESIRED_RANGE = 1;
+		double maxValue = 0;
+		double minValue = 0;
+		double DESIRED_RANGE = 1.2;
 		
 		// dataValues is already bucketed, but we don't want that.
 		// we use abBufferDoubleFiltered which has DC balance and some AGC but nothing else
 		// abBufferDoubleFiltered is BUFFER_SIZE long
-//		for (int j=0; j<BUFFER_SIZE; j+=2) {
-//			if (abBufferDoubleFiltered[j] > maxValue) maxValue = abBufferDoubleFiltered[j];
-//			if (abBufferDoubleFiltered[j] < minValue) minValue = abBufferDoubleFiltered[j];
-//			abBufferDoubleFiltered[j] = audioIDcFilter.filter(abBufferDoubleFiltered[j]);
-//			abBufferDoubleFiltered[j+1] = audioQDcFilter.filter(abBufferDoubleFiltered[j+1]);
-//		}
+		for (int j=0; j<BUFFER_SIZE; j+=2) {
+			if (abBufferDoubleFiltered[j] > maxValue) maxValue = abBufferDoubleFiltered[j];
+			if (abBufferDoubleFiltered[j] < minValue) minValue = abBufferDoubleFiltered[j];
+			abBufferDoubleFiltered[j] = abBufferDoubleFiltered[j] * gain;
+			abBufferDoubleFiltered[j+1] = abBufferDoubleFiltered[j+1] * gain;
+			//abBufferDoubleFiltered[j] = audioIDcFilter.filter(abBufferDoubleFiltered[j]);
+			//abBufferDoubleFiltered[j+1] = audioQDcFilter.filter(abBufferDoubleFiltered[j+1]);
+		}
 
 		// Perform a brute force search periodically
 		if (chunk % SEARCH_INTERVAL == 0) {
@@ -389,10 +391,10 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    // At the end of chunk processing, increment counter
 	    chunk++;
 
-//		if (maxValue - minValue != 0)
-//			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+		if (maxValue - minValue != 0)
+			gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
-		//if (gain < 1) gain = 1;
+		if (gain < 1) gain = 1;
 
 	}
 	

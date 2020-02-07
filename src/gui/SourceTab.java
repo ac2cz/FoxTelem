@@ -1629,6 +1629,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
 		} else if (this.pskCostas.isSelected()) {
+			if (iqSource1 != null && iqSource1.runPSKthroughNCO)
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
+			else
 			if (Config.iq) {
 				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE);
