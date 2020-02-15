@@ -137,10 +137,10 @@ public class StreamProcess implements Runnable {
 		try {
 			payloadDbStore = new PayloadDbStore(u,p,db);
 			if (!validLogin(payloadDbStore, user, pass)) {
-				Log.println("Invalid Login for streaming: Connection closed");
+				Log.println(user + ": Invalid Login for streaming: Connection closed");
 				return;
 			} else {
-				Log.println("Logged in for streaming: " + u);
+				Log.println(user + ":Logged in for streaming..");
 			}
 			CanPacket lastCan = (CanPacket) payloadDbStore.getLatestUwCanPacket(sat);
 			int lastPktId;
@@ -155,6 +155,7 @@ public class StreamProcess implements Runnable {
 					// we send everything or everything since last connection
 					lastPktId = payloadDbStore.getLastCanId(sat, user);
 				}
+			Log.println(user + ":Last CAN ID: " + lastPktId);
 			dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 			while (streaming) {
 				
@@ -164,12 +165,14 @@ public class StreamProcess implements Runnable {
 				ArrayList<FramePart> canPacketsList = payloadDbStore.selectCanPackets(sat, where);
 				int prevPktId = lastPktId;
 				int count=0;
+				if (canPacketsList.size() > 0)
+					Log.println(user + ": ready to send: " + canPacketsList.size());
 				for (FramePart can : canPacketsList) {
 					Date captureDate;
 					try {
 						captureDate = dateFormat.parse(can.getCaptureDate());
 					} catch (ParseException e) {
-						Log.println("ERROR: Could not parse captureDate.  Setting to current time: " + can.id + " "+ can.resets + ":" + can.uptime +" " + can.getType());
+						Log.println(user + ":ERROR: Could not parse captureDate.  Setting to current time: " + can.id + " "+ can.resets + ":" + can.uptime +" " + can.getType());
 						captureDate = Calendar.getInstance().getTime(); // this is really worst case.  NULL might have been better
 					}
 					PcanPacket pc = ((CanPacket)can).getPCanPacket(captureDate);
@@ -189,7 +192,7 @@ public class StreamProcess implements Runnable {
 					} 
 					try {
 						String resp = in.readLine(); // listen for ACK.   But this times out as soon as socket disconnected
-						Log.print(user + ": " + resp + " ");
+						//Log.print(user + ": " + resp + " ");
 						if (resp != null && resp.equalsIgnoreCase("ACK")) {
 							count++;
 							lastCan = (CanPacket)can; // make a note each time we send one
@@ -197,7 +200,7 @@ public class StreamProcess implements Runnable {
 							lastPktId = lastCan.pkt_id;
 							if (!user.equalsIgnoreCase(GUEST))
 								payloadDbStore.storeLastCanId(sat, user, lastPktId);
-							Log.println("=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );							
+							//Log.println(user + ":=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );							
 						} else {
 							// something went wrong and we got a different response
 							// We likely need to send this data again.  Drop out of the loop but don't mark this as sent
@@ -210,13 +213,13 @@ public class StreamProcess implements Runnable {
 					} 
 				}
 				if (count > 0) {
-					Log.println("Sent: " + user + " " + count + " CAN packets to: " + socket.getInetAddress() );
+					Log.println(user + ": Sent: " + count + " CAN packets to: " + socket.getInetAddress() );
 				} 
 				payloadDbStore.derby.commit();
 				
 				if (connectedUsers.get(user) == null || connectedUsers.get(user) == false) {
 					streaming = false; // we have been logged out
-					Log.println(user + " kicked out..");
+					Log.println(user + ": kicked out..");
 				}
 				if (streaming) {
 					try {
@@ -249,7 +252,7 @@ public class StreamProcess implements Runnable {
 				else
 					return false;
 			} else {
-				Log.println("Invalid username");
+				Log.println(user + ":Invalid username");
 				return false;  // invalid username
 			}
 		} catch (SQLException e) {
