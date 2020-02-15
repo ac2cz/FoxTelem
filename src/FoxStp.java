@@ -4,21 +4,27 @@ import common.Config;
 import common.Log;
 import telemServer.StpFileProcessException;
 import telemetry.Frame;
+import telemetry.FoxBPSK.FoxBPSKFrame;
 
 public class FoxStp {
 
 	public static final String version = "Version 0.1 - 7 December 2015";
-	public static final String usage = "FoxStp [-vr] <stp>\n-v - Version Information\n-r - Output raw values\n"
+	public static final String usage = "FoxStp [-vrW] <stp>\n"
+			+ "-v - Verbose\n"
+			+ "-r - Output raw values\n"
+			+ "-W - Output timestamps for WOD only\n"
 			+ "stp - The STP file to process\n";
+	
+	static boolean wodTimestampsOnly = false;
+	
 	public static void main(String[] args) {
-		// Need server Logging and Server Config.  Do not want to mix the config with FoxTelem
-		Config.logging = false;
+		Config.logging = false; // Don't log or this foes in the server log file
 		//Log.init("FoxServer");
 		Log.showGuiDialogs = false;
-		Log.setStdoutEcho(false); // everything goes in the server log.  Any messages to stdout or stderr are a serious bug of some kinds
-
-
+		Log.setStdoutEcho(false); // everything goes to stdout or stderr if this is true
+		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
+		Config.foxTelemCalcsPosition = false;  // make sure we dont try to get TLEs
 		Config.basicInit(); // initialize sequence and spacecraft.  No storage.
 
 		if (args.length > 0) {
@@ -27,10 +33,14 @@ public class FoxStp {
 				System.exit(0);
 			}
 			if ((args[0].equalsIgnoreCase("-v")) ||args[0].equalsIgnoreCase("-version")) {
-				System.out.println("FoxStp. Version " + version);
-				System.exit(0);
+				Log.setStdoutEcho(true); // everything goes to stdout or stderr if this is true
 			}
 
+			if ((args[0].equalsIgnoreCase("-W")) ) {
+				wodTimestampsOnly = true;
+				processStpFile(args[1]);
+				System.exit(0);
+			}
 			if ((args[0].equalsIgnoreCase("-r")) ) {
 			
 			}
@@ -50,9 +60,14 @@ public class FoxStp {
 
 	private static void processStpFile(String f) {
 		try {
-			Frame decodedFrame = Frame.loadStp(f);
+			Frame decodedFrame = Frame.loadStp(f, false);
 			if (decodedFrame != null && !decodedFrame.corrupt) {
-				System.out.println(decodedFrame.toString());
+				if (wodTimestampsOnly) {
+					FoxBPSKFrame bpsk = (FoxBPSKFrame)decodedFrame;
+					System.out.print(decodedFrame.toWodTimestampString(bpsk.getHeader().resets, bpsk.getHeader().getUptime()));
+				} else {
+					System.out.println(decodedFrame.toString());
+				}
 			}
 		} catch (StpFileProcessException e) {
 			Log.println("ERROR PROCESSING: " + e.getMessage());

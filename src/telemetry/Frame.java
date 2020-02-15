@@ -410,7 +410,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @throws StpFileProcessException 
 	 * @throws LayoutLoadException
 	 */
-	public static Frame loadStp(String fileName) throws IOException, StpFileProcessException {
+	public static Frame loadStp(String fileName, boolean rerunRsDecode) throws IOException, StpFileProcessException {
 		//String stpDir = fileName;
 		//if (!dir.equalsIgnoreCase("")) {
 		//	stpDir = dir + File.separator + fileName;
@@ -553,36 +553,39 @@ public abstract class Frame implements Comparable<Frame> {
 		} else {
 			frm = new HighSpeedFrame();
 		}
-		
-		if (length == DUV_FRAME_LEN) {
-			if (ServerConfig.slowSpeedRsDecode) {
-				RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
-				if (!rs.validDecode()) {
-					Log.println("RS Decode Failed");
-					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+
+		if (rerunRsDecode) {
+
+			if (length == DUV_FRAME_LEN) {
+				if (ServerConfig.slowSpeedRsDecode) {
+					RsCodeWord rs = new RsCodeWord(rawFrame, RsCodeWord.DATA_BYTES-SlowSpeedFrame.MAX_HEADER_SIZE-SlowSpeedFrame.MAX_PAYLOAD_SIZE);
+					if (!rs.validDecode()) {
+						Log.println("RS Decode Failed");
+						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED RS DECODE " + fileName);
+					}
 				}
+			} else if(length == PSK_FRAME_LEN) {
+				// High Speed Frame
+				// Log.println("RS Decode for: " + length/8 + " byte frame..");
+				int[] rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
+				rsPadding[0] = 64;
+				rsPadding[1] = 64;
+				rsPadding[2] = 65;
+				if (ServerConfig.highSpeedRsDecode)
+					// TODO - This should be looked up from the FoxId and the frameLayout for the sat
+					if (!highSpeedRsDecode(476, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
+						Log.println("BPSK RS Decode Failed");
+						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
+					}
+			} else if(length == HIGH_SPEED_FRAME_LEN) {
+				// High Speed Frame
+				// Log.println("RS Decode for: " + length/8 + " byte frame..");
+				if (ServerConfig.highSpeedRsDecode)
+					if (!highSpeedRsDecode(HighSpeedFrame.MAX_FRAME_SIZE, HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS, HighSpeedBitStream.RS_PADDING, rawFrame, demodulator)) {
+						Log.println("HIGH SPEED RS Decode Failed");
+						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
+					}
 			}
-		} else if(length == PSK_FRAME_LEN) {
-			// High Speed Frame
-			// Log.println("RS Decode for: " + length/8 + " byte frame..");
-			int[] rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
-			rsPadding[0] = 64;
-			rsPadding[1] = 64;
-			rsPadding[2] = 65;
-			if (ServerConfig.highSpeedRsDecode)
-				// TODO - This should be looked up from the FoxId and the frameLayout for the sat
-				if (!highSpeedRsDecode(476, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
-					Log.println("BPSK RS Decode Failed");
-					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
-				}
-		} else if(length == HIGH_SPEED_FRAME_LEN) {
-			// High Speed Frame
-			// Log.println("RS Decode for: " + length/8 + " byte frame..");
-			if (ServerConfig.highSpeedRsDecode)
-				if (!highSpeedRsDecode(HighSpeedFrame.MAX_FRAME_SIZE, HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS, HighSpeedBitStream.RS_PADDING, rawFrame, demodulator)) {
-					Log.println("HIGH SPEED RS Decode Failed");
-					throw new StpFileRsDecodeException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
-				}
 		}
 		frame = rawFrame; //rs.decode();
 
@@ -689,7 +692,7 @@ public abstract class Frame implements Comparable<Frame> {
 	public static Frame importStpFile(String u, String p, String db, File f, boolean delete) throws StpFileProcessException {
 		PayloadDbStore payloadStore = null;
 		try {
-			Frame decodedFrame = Frame.loadStp(f.getPath());
+			Frame decodedFrame = Frame.loadStp(f.getPath(), true);
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 
 				/*
@@ -930,5 +933,7 @@ public abstract class Frame implements Comparable<Frame> {
 		return null;
 	}
 
-	
+	public String toWodTimestampString(int reset, long uptime) {
+		return null;
+	}
 }
