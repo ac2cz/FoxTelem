@@ -248,7 +248,7 @@ public class FoxTelemServer {
 				if (listOfFiles[i].isFile() ) {
 					//Log.print("Loading STP data from: " + listOfFiles[i].getName());
 					try {
-						Frame f = Frame.loadStp(listOfFiles[i].getPath());
+						Frame f = Frame.loadStp(listOfFiles[i].getPath(), true);
 						if (f == null || f.corrupt) {
 							// null data - try to delete it but do nothing if we can not (so don't check the return code
 						} else{
