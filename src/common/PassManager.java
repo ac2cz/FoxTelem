@@ -478,9 +478,10 @@ public class PassManager implements Runnable {
 		long startTime = System.nanoTime()/1000000; // get time in ms
 		long fadeTime = 0;
 		int fade_period = FADE_PERIOD;
-		if (pp1.iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS || pp1.iqSource.getMode() == SourceIQ.MODE_FSK_HS)
-			fade_period = PSK_FADE_PERIOD;
-		
+		if (pp1 != null && pp1.iqSource != null) // make sure we did not end the pass
+			if (pp1.iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS || pp1.iqSource.getMode() == SourceIQ.MODE_FSK_HS)
+				fade_period = PSK_FADE_PERIOD;
+
 		while (fadeTime < fade_period) {
 			
 			try {
