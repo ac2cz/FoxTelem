@@ -32,11 +32,16 @@ import telemetry.uw.PcanPacket;
 
 public class StreamProcess implements Runnable {
 	public static final int REFRESH_PERIOD = 1000; // Check every second
+	public static final int HEARTBEAT_PERIOD = 60; // Number of REFRESH PERIODS before we sent a heatbeat
+	int heartBeatCount = 0;
 	public static final String GUEST = "guest";
 	public static final String GUEST_PASSWORD = "amsat";
 	public static final int TIMEOUT_CONNECTION = 5*1000; // 5s timeout while connected
 	
 	static HashMap<String, Boolean> connectedUsers = new HashMap<String, Boolean>(); // the list of users logged in right now
+
+	
+	byte[] heartBeatPacket;
 	
 	String u;
 	String p;
@@ -57,6 +62,11 @@ public class StreamProcess implements Runnable {
 	public void run() {
 		Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
 
+		Date now = new Date();
+		byte[] data = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+		PcanPacket heartBeat = new PcanPacket(now, 6, 0, 0l, 0, 0, (byte)00, data);
+		heartBeatPacket = heartBeat.getBytes();
+		
 		InputStream in = null;
 		OutputStream out = null;
 		BufferedReader input;
@@ -85,29 +95,38 @@ public class StreamProcess implements Runnable {
 				return;
 			}
 			out = socket.getOutputStream();
-			
+
 			if (username != null && password != null && spacecraft_id != null) {
-				if (connectedUsers.containsKey(username)) {
-					Log.println(username + " already logged in: Connection being closed");
-					connectedUsers.put(username, false); // set to false, which will log out the existing users
-				} else
-					connectedUsers.put(username, true);
-				try {
-					while (connectedUsers.get(username) != null && connectedUsers.get(username) == false)
-						; // wait until the other account is logged out
-					if (connectedUsers.get(username) == null)
+				if (username.equalsIgnoreCase(GUEST)) {
+					try {
+						streamTelemetry(username, password, id, out, input);
+					} catch (SQLException e) {
+						Log.println("ERROR: with SQL TRANS" + e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
+				} else {
+					if (connectedUsers.containsKey(username)) {
+						Log.println(username + " already logged in: Connection being closed");
+						connectedUsers.put(username, false); // set to false, which will log out the existing users
+					} else
 						connectedUsers.put(username, true);
-					streamTelemetry(username, password, id, out, input);
-				} catch (SQLException e) {
-					Log.println("ERROR: with SQL TRANS" + e.getMessage());
-					e.printStackTrace(Log.getWriter());
+					try {
+						while (connectedUsers.get(username) != null && connectedUsers.get(username) == false)
+							; // wait until the other account is logged out
+						if (connectedUsers.get(username) == null)
+							connectedUsers.put(username, true);
+						streamTelemetry(username, password, id, out, input);
+					} catch (SQLException e) {
+						Log.println("ERROR: with SQL TRANS" + e.getMessage());
+						e.printStackTrace(Log.getWriter());
+					}
 				}
 			}
 
 			in.close();
 			out.close();
 			socket.close();
-			if (username != null) {
+			if (username != null && !username.equalsIgnoreCase(GUEST)) {
 				if (connectedUsers.get(username) == false) // we were logged out, so do not remove
 					connectedUsers.put(username, true);
 				else
@@ -131,7 +150,7 @@ public class StreamProcess implements Runnable {
 	
 	private void streamTelemetry(String user, String pass, int sat, OutputStream out, BufferedReader in) throws SQLException  {
 		boolean streaming=true;
-
+		heartBeatCount = 0;
 		PayloadDbStore payloadDbStore = null;
 
 		try {
@@ -177,24 +196,28 @@ public class StreamProcess implements Runnable {
 					}
 					PcanPacket pc = ((CanPacket)can).getPCanPacket(captureDate);
 					byte[] bytes = pc.getBytes();
-					if (connectedUsers.get(user) != null && connectedUsers.get(user) == true) 
-					try {
-						out.write(bytes);  // This does not fail if the socket closed.  It fails on the write after that!
-						out.flush();
-					} catch (IOException e) {
-						// Client likely disconnected or was kicked out
+					if (user.equalsIgnoreCase(GUEST) || (connectedUsers.get(user) != null && connectedUsers.get(user) == true)) {
+						try {
+							out.write(bytes);  // This does not fail if the socket closed.  It fails on the write after that!
+							out.flush();
+						} catch (IOException e) {
+							// Client likely disconnected or was kicked out
+							streaming = false;
+							if (count > 0) count = count -1;
+							lastPktId = prevPktId;
+							if (!user.equalsIgnoreCase(GUEST))
+								payloadDbStore.storeLastCanId(sat, user, lastPktId);
+							break;
+						} 
+					} else {
 						streaming = false;
-						if (count > 0) count = count -1;
-						lastPktId = prevPktId;
-						if (!user.equalsIgnoreCase(GUEST))
-							payloadDbStore.storeLastCanId(sat, user, lastPktId);
-						break;
-					} 
+					}
 					try {
 						String resp = in.readLine(); // listen for ACK.   But this times out as soon as socket disconnected
 						//Log.print(user + ": " + resp + " ");
 						if (resp != null && resp.equalsIgnoreCase("ACK")) {
 							count++;
+							heartBeatCount = 0; // no need to check the connection
 							lastCan = (CanPacket)can; // make a note each time we send one
 							prevPktId = lastPktId;
 							lastPktId = lastCan.pkt_id;
@@ -203,7 +226,8 @@ public class StreamProcess implements Runnable {
 							//Log.println(user + ":=> PktId: "+ lastPktId + " : " + lastCan.resets + ":" + lastCan.uptime +" " + lastCan.getType() );							
 						} else {
 							// something went wrong and we got a different response
-							// We likely need to send this data again.  Drop out of the loop but don't mark this as sent
+							// Assume connection broken
+							streaming = false;
 							break;
 						}
 					} catch (IOException e) {
@@ -216,12 +240,21 @@ public class StreamProcess implements Runnable {
 					Log.println(user + ": Sent: " + count + " CAN packets to: " + socket.getInetAddress() );
 				} 
 				payloadDbStore.derby.commit();
-				
-				if (connectedUsers.get(user) == null || connectedUsers.get(user) == false) {
-					streaming = false; // we have been logged out
-					Log.println(user + ": kicked out..");
-				}
+
+				if (!user.equalsIgnoreCase(GUEST))
+					if (connectedUsers.get(user) == null || connectedUsers.get(user) == false) {
+						streaming = false; // we have been logged out
+						Log.println(user + ": kicked out..");
+					}
 				if (streaming) {
+					// heartBeatCount++; // comment out to disable heartbeat
+					if (heartBeatCount >= HEARTBEAT_PERIOD) {
+						// send a heartbeat packet
+						boolean alive = sendHeartBeat(user, out, in);
+						if (!alive) 
+							streaming = false;
+						heartBeatCount = 0;
+					}
 					try {
 						Thread.sleep(REFRESH_PERIOD);
 					} catch (InterruptedException e1) {
@@ -233,7 +266,35 @@ public class StreamProcess implements Runnable {
 			try { if (payloadDbStore != null) payloadDbStore.closeConnection(); } catch (Exception e) {	}
 		}
 	}
-	
+
+	private boolean sendHeartBeat(String user, OutputStream out, BufferedReader in) {
+		Log.print(user + ": HEARTBEAT .." );
+		try {
+			out.write(heartBeatPacket);  // This does not fail if the socket closed.  It fails on the write after that!
+			out.flush();
+		} catch (IOException e) {
+			Log.println(user + " DEAD" );
+			return false;
+		} 
+		try {
+			String resp = in.readLine(); // listen for ACK.   But this times out as soon as socket disconnected
+			//Log.print(user + ": " + resp + " ");
+			if (resp != null && resp.equalsIgnoreCase("ACK")) {
+				Log.println(user + " ALIVE" );
+				return true;
+			} else {
+				// something went wrong and we got a different response
+				// We likely need to send this data again.  Drop out of the loop but don't mark this as sent
+				Log.println(user + " NO ACK.." );
+				return true;
+			}
+		} catch (IOException e) {
+			// Client likely disconnected or was kicked out
+			Log.println(user + " NO RESPONSE" );
+			return false;
+		}
+	}
+
 	private boolean validLogin(PayloadDbStore db, String user, String pass) {
 		Statement stmt = null;
 		String update = "  SELECT password, salt FROM users where username= '" + user + "'"; // Derby Syntax FETCH FIRST ROW ONLY";
