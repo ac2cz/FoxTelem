@@ -423,10 +423,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		lblResetsValue.setText("" + u);
 	}
 		
-	protected void displayMode() {
+	protected void displayMode(int newMode) {
 		String mode = FoxSpacecraft.modeNames[FoxSpacecraft.SAFE_MODE];
 		if (fox.hasModeInHeader) {
-			mode = fox.determineModeFromHeader();
+			mode = fox.getModeString(newMode);
 		} else {
 			FramePart radPayload = Config.payloadStore.getLatestRad(foxId);
 			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
@@ -504,7 +504,8 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			lblLive.setForeground(Color.BLACK);
 			lblLive.setText(DISPLAY);
 		}
-		displayMode();
+		int newMode = 0;
+		displayMode(realTime2.newMode);
 //		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
 		
 	}
@@ -561,7 +562,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		displayResets(lblMaxResetsValue, maxPayload2.getResets());
 		displayCaptureDate(maxPayload2.getCaptureDate());
 //		displayMode(maxPayload2.getRawValue(SAFE_MODE_IND), maxPayload2.getRawValue(SCIENCE_MODE_IND));
-		displayMode();
+		displayMode(maxPayload2.newMode);
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}
 
@@ -584,7 +585,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		displayUptime(lblMinUptimeValue, minPayload2.getUptime());
 		displayResets(lblMinResetsValue, minPayload2.getResets());
 		displayCaptureDate(minPayload2.getCaptureDate());
-		displayMode();
+		displayMode(minPayload2.newMode);
 //		displayMode(minPayload2.getRawValue(SAFE_MODE_IND),  minPayload2.getRawValue(SCIENCE_MODE_IND));
 		displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 	}	
