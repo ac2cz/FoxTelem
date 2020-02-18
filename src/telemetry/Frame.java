@@ -707,9 +707,10 @@ public abstract class Frame implements Comparable<Frame> {
 				}
 				*/
 				payloadStore = new PayloadDbStore(u,p,db);
-				if (!payloadStore.addStpHeader(decodedFrame))
-					throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
+				
 				if (decodedFrame instanceof SlowSpeedFrame) {
+					if (!payloadStore.addStpHeader(decodedFrame))
+						throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
 					FoxFramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
@@ -719,10 +720,21 @@ public abstract class Frame implements Comparable<Frame> {
 				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 					FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(hsf.header.id);
+					if (hsf.header.id == 6) { // better if this was not hardcoded and was in the spacecraft file
+						// We are husky sat and the MRAM is broken.  Need to see if this was a reset
+						int newReset = payloadStore.checkForNewReset(hsf.header.id, hsf.header.uptime, decodedFrame.stpDate);
+						hsf.header.copyBitsToFields(); // make sure it is all initialized
+						hsf.header.id = newReset; // put in the calculated reset
+						hsf.header.rawBits = null; // make sure the updated reset is not overwritten
+					}
+					if (!payloadStore.addStpHeader(decodedFrame))
+						throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 					// For BPSK the header is stored on the frame and the timestamp info is saved
 					if (!hsf.savePayloads(payloadStore, fox.hasModeInHeader))
 							throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add PSK record to database");;
 				} else {
+					if (!payloadStore.addStpHeader(decodedFrame))
+						throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 					HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 					HighSpeedHeader header = hsf.getHeader();
 					PayloadRtValues payload = hsf.getRtPayload();

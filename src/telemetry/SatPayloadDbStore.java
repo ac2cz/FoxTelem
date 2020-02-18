@@ -12,6 +12,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JOptionPane;
 
@@ -1104,6 +1105,96 @@ public class SatPayloadDbStore {
 			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
 		}
 		return 0;
+	}
+	
+	/**
+	 * Given the current reset (likely always 1) and the uptime, is this a new reset?  If so, update the reset 
+	 * table with estimated T0 and return the new reset number. Block with a transaction during this whole process.
+	 * 
+	 * @param currentReset
+	 * @param uptime
+	 * @param stepDate
+	 * @return
+	 */
+	public int checkForNewReset(int id, long uptime, Date stpDate) {
+		PreparedStatement ps = null, ps1 = null, ps2 = null;
+		ResultSet rs = null, rs1 = null;
+		java.sql.Date T0 = null;
+		int currentReset = 0;
+		int newReset = 0;
+		
+		Connection conn = null;
+		try {
+			conn = payloadDbStore.getConnection();
+			conn.setAutoCommit(false);
+			
+			// first get the current reset
+			ps = conn.prepareStatement("SELECT max(resets) from T0_LOG where id = ?");
+		    ps.setInt(1,id);
+		    
+		    rs = ps.executeQuery();
+			
+		    while (rs.next()) {
+		    	currentReset = rs.getInt("resets");	
+			}
+			
+			ps1 = conn.prepareStatement("SELECT T0_date_time from T0_LOG where id = ? and resets = ?");
+		    ps1.setInt(1,id);
+		    ps1.setInt(2,currentReset);
+		    
+		    rs = ps1.executeQuery();
+			
+		    while (rs1.next()) {
+		    	T0 = rs1.getDate("T0_date_time");	
+			}
+		    
+		    // We have T0 for the current reset.  Given the uptime that we have, is it valid for this reset and this stpDate
+		    long stpSeconds = stpDate.getTime();
+		    long T0Seconds = T0.getTime();
+		    
+		    if (Math.abs(stpSeconds - T0Seconds - uptime) > 60) {
+		    	// we have had a reset. 
+		    	Log.println("*** HUSKY NON MRAM LOGGED RESET DETECTED ....");
+		    	newReset = currentReset + 1;
+		    	// We have a reset, so insert a new T0 row
+		    		ps2 = conn.prepareStatement(
+		    				"INSERT INTO T0_LOG (id, resets, T0_date_time) VALUES (?, ?, ?)");
+
+		    		// set the preparedstatement parameters
+		    		ps2.setInt(1,id);
+		    		ps2.setInt(2,newReset);
+
+		    		int rows = ps2.executeUpdate();
+		    		if (rows > 0) {
+		    			conn.commit();
+		    			return newReset;
+		    		} else {
+		    			Log.println("ERROR: Could not insert the new reset number" + newReset);
+		    		    conn.rollback();
+		    			return -1; 
+		    		}
+		    } else {
+		    	// we use the current reset, return that
+		    	conn.commit();
+    			return newReset;
+		    }
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check Password SQL:", e);
+			
+			try { conn.rollback(); rs.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (rs1 != null) rs1.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (ps1 != null) ps1.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (ps2 != null) ps2.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
+			try { if (rs1 != null) rs.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
+			try { if (ps1 != null) ps1.close(); } catch (SQLException e2) {};
+			try { if (ps2 != null) ps2.close(); } catch (SQLException e2) {};
+		}
+		// we should not end up here, something went wrong
+		return -1;
 	}
 	
 

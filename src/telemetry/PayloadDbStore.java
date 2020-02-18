@@ -9,6 +9,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
+import java.util.Date;
+
 import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
@@ -86,7 +88,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
             }
 
             initStpHeaderTable();
-            
+            initT0LogTable();
         } catch (SQLException ex) {
            Log.println(ex.getMessage());
            System.err.print("FATAL: Could not connect to DB");
@@ -464,6 +466,42 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			} else {
 				PayloadDbStore.errorPrint("initStpHeaderTable", e);
 				Log.alert("FATAL: Could not access the STP HEADER table");
+				
+			}
+		} finally {
+			try { if (select != null) select.close(); } catch (SQLException e2) {};
+			try { if (stmt != null) stmt.close(); } catch (SQLException e2) {};
+		}
+	}
+
+	private void initT0LogTable() {
+		String table = "T0_LOG";
+		Statement stmt = null;
+		ResultSet select = null;
+		try {
+			derby = getConnection();
+			stmt = derby.createStatement();
+			select = stmt.executeQuery("select 1 from " + table + " LIMIT 1");
+			
+		} catch (SQLException e) {
+			
+			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
+				String createString = "CREATE TABLE " + table + " ";
+				createString = createString +  
+				"(id int, resets int, uptime bigint, "
+						+ "T0_date_time timestamp NOT NULL,";
+				createString = createString + "PRIMARY KEY (id, resets))";;
+				
+				Log.println ("Creating new DB table " + table);
+				try {
+					stmt.execute(createString);
+				} catch (SQLException ex) {
+					PayloadDbStore.errorPrint("initT0LogTable", ex);
+					Log.alert("FATAL: Could not create T0_LOG table");
+				}
+			} else {
+				PayloadDbStore.errorPrint("initT0LogTable", e);
+				Log.alert("FATAL: Could not access the T0_LOG table");
 				
 			}
 		} finally {
@@ -1078,6 +1116,15 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public int checkForNewReset(int id, long uptime, Date stpDate) {
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.checkForNewReset(id, uptime, stpDate);
+		return -1;
+	}
+
+	
 
 
 
