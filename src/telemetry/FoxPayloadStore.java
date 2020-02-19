@@ -144,5 +144,5 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout);
 	public abstract String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout);
 	
-	public abstract int checkForNewReset(int id, long uptime, Date stepDate);
+	public abstract int checkForNewReset(int id, long uptime, Date stepDate, int resetOnFrame);
 }

@@ -488,8 +488,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			if ( e.getSQLState().equals(SatPayloadDbStore.ERR_TABLE_DOES_NOT_EXIST) ) {  // table does not exist
 				String createString = "CREATE TABLE " + table + " ";
 				createString = createString +  
-				"(id int, resets int, uptime bigint, "
-						+ "T0_date_time timestamp NOT NULL,";
+				"(id int, resets int, "
+						+ "T0_estimate_date_time timestamp NOT NULL,";
 				createString = createString + "PRIMARY KEY (id, resets))";;
 				
 				Log.println ("Creating new DB table " + table);
@@ -1117,10 +1117,10 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public int checkForNewReset(int id, long uptime, Date stpDate) {
+	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.checkForNewReset(id, uptime, stpDate);
+			return store.checkForNewReset(id, uptime, stpDate, resetOnFrame);
 		return -1;
 	}
 

@@ -16,6 +16,10 @@ public class ServerConfig {
 
 	// Version 0.32b
 	public static int socketReadTimeout=1000;
+
+	// Version 0.34
+	public static int newResetCheckThreshold=60;
+	public static int newResetCheckUptimeMax=15000;
 	
 	public static void init() {
 		properties = new Properties();
@@ -25,6 +29,8 @@ public class ServerConfig {
 		properties.setProperty("slowSpeedRsDecode", Boolean.toString(slowSpeedRsDecode));
 		properties.setProperty("highSpeedRsDecode", Boolean.toString(highSpeedRsDecode));
 		properties.setProperty("socketReadTimeout", Integer.toString(socketReadTimeout));
+		properties.setProperty("newResetCheckThreshold", Integer.toString(newResetCheckThreshold));
+		properties.setProperty("newResetCheckUptimeMax", Integer.toString(newResetCheckUptimeMax));
 		store();
 	}
 
@@ -64,6 +70,8 @@ public class ServerConfig {
 			slowSpeedRsDecode = Boolean.parseBoolean(getProperty("slowSpeedRsDecode"));
 			highSpeedRsDecode = Boolean.parseBoolean(getProperty("highSpeedRsDecode"));
 			socketReadTimeout = Integer.parseInt(getProperty("socketReadTimeout"));
+			newResetCheckThreshold = Integer.parseInt(getProperty("newResetCheckThreshold"));
+			newResetCheckUptimeMax = Integer.parseInt(getProperty("newResetCheckUptimeMax"));
 
 		} catch (NumberFormatException nf) {
 			Log.println("FATAL: Could not load properties: " + nf.getMessage());
