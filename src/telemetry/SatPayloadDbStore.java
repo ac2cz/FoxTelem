@@ -1123,8 +1123,12 @@ public class SatPayloadDbStore {
 		Timestamp T0 = null;
 		int currentReset = 0;
 		
-		long stpSeconds = stpDate.getTime()/1000;
-		
+		long stpSeconds = 0; // init to 0 and then if the stpDate is null it will show up as a bad clock for the station
+		if (stpDate != null)
+			stpSeconds = stpDate.getTime()/1000;
+		Date now = new Date();
+		long nowSeconds = now.getTime()/1000;
+				
 		Connection conn = null;
 		try {
 			conn = payloadDbStore.getConnection();
@@ -1139,7 +1143,15 @@ public class SatPayloadDbStore {
 		    while (rs.next()) {
 		    	currentReset = rs.getInt("reset");	
 			}
-			
+
+			long stpDiff = Math.abs(nowSeconds - stpSeconds);
+			if (stpDiff > ServerConfig.groundStationClockThreshold) {
+				// then we don't trust this frame.  It is from a station with a bad clock
+	    		Log.println("*** Frame ignored for RESET CHECK: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff + " from current time");
+	    		conn.commit();
+    			return currentReset; // we just ASSUME this belongs in the current reset.  Maybe the server was down and these were queued...
+			}
+
 		    if (resetOnFrame - currentReset == 1) { // this may never happen, or we might jump a few resets
 		    	// Then we had a normal reset, write it in the log
 	    		Log.println("*** HUSKY NORMAL RESET DETECTED ....");
