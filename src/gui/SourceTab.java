@@ -1691,14 +1691,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //			int[] rs_padding = {35,35,35};
 			TelemFormat telemFormat = Config.satManager.getFormatByName("GOLF_BPSK");
 			if (Config.useCostas) {
-			if (iqSource1 != null && iqSource1.runPSKthroughNCO)
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE);
-			else
-			if (Config.iq) {
-				iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
-			} else
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+				if (iqSource1 != null && iqSource1.runPSKthroughNCO)
+					decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+				else
+					if (Config.iq) {
+						iqSource1.setMode(SourceIQ.MODE_PSK_COSTAS);
+						decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+					} else
+						decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
 			} else {
 				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			}
