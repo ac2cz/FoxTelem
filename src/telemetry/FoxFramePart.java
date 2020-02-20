@@ -416,7 +416,9 @@ longer send telemetry.
 			double y = ((ConversionCurve) conversion).calculate(rawValue);
 			return y;
 		} else if (conversion instanceof ConversionLookUpTable) {
-			
+			ConversionLookUpTable table = (ConversionLookUpTable)conversion;
+			double x = table.lookupValue(rawValue);
+			return x;
 		} else {
 			
 		}

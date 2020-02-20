@@ -2,6 +2,7 @@ package FuncubeDecoder;
 
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
 import telemetry.FramePart;
 
 public class PayloadFitterMessages extends FramePart {
@@ -29,6 +30,12 @@ public class PayloadFitterMessages extends FramePart {
 	public String toString() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }
