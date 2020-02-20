@@ -11,6 +11,8 @@ import filter.ComplexOscillator;
 import filter.DcRemoval;
 import filter.IirFilter;
 import filter.PolyPhaseFilter;
+import filter.Delay;
+import filter.HilbertTransform;
 
 /**
  * The IQ Source takes an audio source that it reads from.  It then processes the IQ audio and produces and
@@ -24,6 +26,8 @@ public class SourceIQ extends SourceAudio {
 	// not care where the audio comes from or how it gets into the buffer
 	SourceAudio upstreamAudioSource;
 	Thread upstreamAudioReadThread;
+	
+	public boolean runPSKthroughNCO = true;
 	
 //	public static final int MODE_WFM = 0;
 	public static final int MODE_FSK_HS = 1;
@@ -94,6 +98,9 @@ public class SourceIQ extends SourceAudio {
 	PolyPhaseFilter polyFilter;
 	PolyPhaseFilter polyFilter2;
 	
+	HilbertTransform ht;
+	Delay delay;
+	
 	boolean fftDataFresh = false;
 	public boolean offsetFFT = true;
 	int dist = 0; // the offset distance
@@ -107,6 +114,8 @@ public class SourceIQ extends SourceAudio {
 	Thread rfDataThread;
 	double[] phasorData;
 	
+	private int ssbOffset = -1400; // tune this far below or above the signal for optimal decode
+
 	public SourceIQ(int circularDoubleBufferSize, int chan, boolean hs) {
 		super("IQ Source" + hs, circularDoubleBufferSize, chan, false);
 		highSpeed = hs;
@@ -154,6 +163,9 @@ public class SourceIQ extends SourceAudio {
 	public int getAudioBufferCapacity() { return upstreamAudioSource.circularDoubleBuffer[upstreamChannel].getCapacity(); }
 	
 	public int getFilterWidth() { return filterWidth; }
+	public void setSSBOffset(int s) { ssbOffset=s;}	
+	public int getSSBOffset() { return ssbOffset;}
+	public int getSSBOffsetInBins() { return (int)(ssbOffset/binBandwidth);}
 	public double getCenterFreqkHz() { return centerFreq; }
 	public void setCenterFreqkHz(double freq) { 
 		centerFreq = freq; 
@@ -199,9 +211,11 @@ public class SourceIQ extends SourceAudio {
 //		if (f > sampleRate / 2) f = sampleRate/2;
 //		if (f < -1* sampleRate/ 2) f = -1* sampleRate/2;
 		freq = f;
-		if (nco != null && mode != MODE_PSK_COSTAS)
-			nco.setFrequency(freq);
 		Config.selectedFrequency = freq;
+		if (runPSKthroughNCO && mode == MODE_PSK_COSTAS)  // not sure if this makes a difference, more testing needed
+			return;
+		if (nco != null) // && mode != MODE_PSK_COSTAS)
+			nco.setFrequency(freq);
 	}
 	
 	public double getSelectedFrequency() {
@@ -339,7 +353,11 @@ public class SourceIQ extends SourceAudio {
 		binBandwidth = IQ_SAMPLE_RATE/(double)FFT_SAMPLES;
 		
 			
-		if (mode == MODE_FSK_HS) {
+		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {		
+			setFilterWidth(5000); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
+			ht = new HilbertTransform(AF_SAMPLE_RATE, 255); // audio bandwidth and length
+			delay = new Delay((255-1)/2);
+		} else if (mode == MODE_FSK_HS) {
 			if (Config.useNCO) 
 				setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
 			else
@@ -422,9 +440,15 @@ public class SourceIQ extends SourceAudio {
 				if (nBytesRead != fcdData.length)
 					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
 				if (mode == MODE_PSK_COSTAS)
-					outputData = processPSKBytes(fcdData);
+					if (runPSKthroughNCO)
+						outputData = processNCOBytes(fcdData);
+					else
+						outputData = processPSKBytes(fcdData);
 				else if (mode == MODE_PSK_NC)
-					outputData = processBytes(fcdData);
+					if (runPSKthroughNCO)
+						outputData = processNCOBytes(fcdData);
+					else
+						outputData = processBytes(fcdData);
 				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
 				else
@@ -483,7 +507,7 @@ public class SourceIQ extends SourceAudio {
 	int decimateCount = 0;
 	double[] in ;
 	double[] in2 ;
-	double pfValue, pfValue2;
+	double pfValue, pfValue2, audioI, audioQ;
 
 	double iMixNco, qMixNco;
 	/**
@@ -505,6 +529,9 @@ public class SourceIQ extends SourceAudio {
 			id = iDcFilter.filter(id);
 			qd = qDcFilter.filter(qd);
 			
+			if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) // effectively USB
+				nco.setFrequency(freq+ssbOffset); //-1400); // ssboffset -ve for USB demod
+
 			c = nco.nextSample();
 			c.normalize();
 			// Mix 
@@ -523,7 +550,14 @@ public class SourceIQ extends SourceAudio {
 				decimateCount = 0;
 				pfValue = polyFilter.filterDouble(in);
 				pfValue2 = polyFilter2.filterDouble(in2);
-				audioData[j/(2*decimationFactor)] = fm.demodulate(pfValue, pfValue2);
+				if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {
+					//Demodulate ssb
+					audioQ = ht.filter(pfValue);
+					audioI = delay.filter(pfValue2);
+					//double audio = audioI - audioQ; // LSB
+					audioData[j/(2*decimationFactor)] = audioI + audioQ; // USB
+				} else
+					audioData[j/(2*decimationFactor)] = fm.demodulate(pfValue, pfValue2);
 			}
 			
 			// i and q go into consecutive spaces in the complex FFT data input
@@ -851,6 +885,9 @@ protected double[] processBytes(double[] fcdData) {
 		int filterBins = filterWidth*2;
 
 		int start = binIndex - filterBins;
+//		if (mode == SourceIQ.MODE_PSK_COSTAS || mode == SourceIQ.MODE_PSK_NC)
+//			start = binIndex; // USB demod, so we do not look at lower sideband
+
 		if (start < 0) start = 0;
 		int end = binIndex + filterBins;
 		if (end > fftData.length-2) end = fftData.length-2;
@@ -1265,10 +1302,8 @@ protected double[] processBytes(double[] fcdData) {
 	}//end getAudioFormat
 
 
-	int ssbOffset = 0;
-
 	private double ncoDownconvert(double i, double q) {
-		nco.setFrequency(freq+2000); // ssboffset
+		nco.setFrequency(freq+ssbOffset); // ssboffset
 		c = nco.nextSample();
 		c.normalize();
 		// Mix 

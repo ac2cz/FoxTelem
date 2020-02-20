@@ -775,7 +775,7 @@ public class SatPayloadDbStore {
 	ArrayList<FramePart> selectCanPackets(String where) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
-		update = update + uwCanPacketTableName + " " + where + " ORDER BY pkt_id";
+		update = update + uwCanPacketTableName + " " + where + " ORDER BY pkt_id limit 1000";
 		ResultSet r = null;
 		ArrayList<FramePart> frameParts = new ArrayList<FramePart>(60);
 

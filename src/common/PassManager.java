@@ -87,6 +87,7 @@ public class PassManager implements Runnable {
 	final int SNR_PERIOD = 1800; //ms - we pause for this if rfAvg signal > analyze threshold.  We then measure the Bit SNR.  Needs to be long enough to wait for swoop
 	final int DECODE_PERIOD = 2000; //ms
 	final int FADE_PERIOD = 125 * 1000; //ms - need to wait for the length of a beacon to see if this is still a pass
+	final int PSK_FADE_PERIOD = 2 * 1000; //ms - need to wait only for 1 frame then search again..
 	
 	private int state = INIT;
 	private boolean newPass = false; // true if we are starting a new pass and need to be give the reset/uptime
@@ -476,7 +477,12 @@ public class PassManager implements Runnable {
 
 		long startTime = System.nanoTime()/1000000; // get time in ms
 		long fadeTime = 0;
-		while (fadeTime < FADE_PERIOD) {
+		int fade_period = FADE_PERIOD;
+		if (pp1 != null && pp1.iqSource != null) // make sure we did not end the pass
+			if (pp1.iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS || pp1.iqSource.getMode() == SourceIQ.MODE_FSK_HS)
+				fade_period = PSK_FADE_PERIOD;
+
+		while (fadeTime < fade_period) {
 			
 			try {
 				Thread.sleep(SNR_PERIOD);

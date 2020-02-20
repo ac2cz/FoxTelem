@@ -174,6 +174,15 @@ public class SatPc32DDE {
 			satellite = null;
 			disconnect();
 			return false;
+		} catch (StringIndexOutOfBoundsException e) {
+			if (ddeString != null) 
+				Log.println("Cannot parse the DDE message: " + ddeString + "\nIndex ouf of bounds error: " + e.getMessage());
+			else
+				Log.println("Cannot parse the DDE message.  \nIndex out of bounds error: " + e.getMessage());
+			satellite = null;
+			disconnect();
+			return false;
+			
 		} finally {
 			
 		}

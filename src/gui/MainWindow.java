@@ -880,6 +880,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (id == 3) return "fox1c";
 		if (id == 4) return "fox1d";
 		if (id == 5) return "fox1e";
+		if (id == 6) return "husky";
 		return null;
 	}
 	

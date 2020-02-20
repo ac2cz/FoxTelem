@@ -32,8 +32,8 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	public static final int WORD_LENGTH = 10;
 	//private double sumClockError = 0;
 	private int samplePoint = 20;
-	public static final int AUDIO_MODE = 0;
-	public static final int PSK_MODE = 1;
+	public static final int AUDIO_MODE = 0; // means just take final audio of the bits and decode, which is used in IQ mode!
+	public static final int PSK_MODE = 1; // this actually decodes the PSK and confusingly is used in AF mode
 	public int mode = AUDIO_MODE;
 
 	DcRemoval audioDcFilter;
@@ -322,12 +322,14 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	public double getFrequency() { return nco.getFrequency(); }
 	public double getLockLevel() { return avgLockLevel; }
 
-	Complex c;
+	Complex c = new Complex(0d, 0d); // to avoid allocation in audio loop
+	double iFil;
+	
 	private double costasLoop(double i, double q, int bucketNumber, int sample) {
-		c = nco.nextSample();
+		nco.nextSample(c);
 		c.normalize();
 		// Mix 
-		double iFil = dataFilter.filterDouble(i);
+		iFil = dataFilter.filterDouble(i);
 		iMix = iFil * c.geti(); // + q*c.getq();
 		qMix = iFil * -1*c.getq(); // - i*c.getq();
 		// Filter

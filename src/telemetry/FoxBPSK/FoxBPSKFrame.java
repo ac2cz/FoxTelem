@@ -17,6 +17,7 @@ import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.HighSpeedTrailer;
 import telemetry.PayloadUwExperiment;
+import telemetry.PayloadWOD;
 import telemetry.PayloadWODUwExperiment;
 import telemetry.TelemFormat;
 
@@ -235,6 +236,21 @@ import telemetry.TelemFormat;
 
 			}
 			return allBuffers;				
+		}
+		
+		public String toWodTimestampString(int r, long u) {
+			String s = new String();			
+			if (payload != null) {
+				for (int i=0; i < payload.length; i++) {
+					if (payload[i] instanceof PayloadWOD) {
+						s = s + r + ", " + u + ", ";
+						payload[i].copyBitsToFields();
+						s = s + payload[i].resets + ", " + payload[i].uptime + "\n";
+					}
+				}
+			} 
+			
+			return s;
 		}
 
 		public String toString() {

@@ -184,9 +184,9 @@ public class HealthTabRt extends HealthTab {
 						justStarted = false;
 					}
 				}
-				if (fox.hasModeInHeader) { // || Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-					displayMode();
-				}
+//				if (fox.hasModeInHeader) { // || Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+//					displayMode(0);
+//				}
 				
 
 			}
