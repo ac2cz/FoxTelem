@@ -723,7 +723,7 @@ public abstract class Frame implements Comparable<Frame> {
 					FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(hsf.header.id);
 					if (hsf.header.id == 6) { // better if this was not hardcoded and was in the spacecraft file
 						// We are husky sat and the MRAM is broken.  Need to see if this was a reset
-						newReset = payloadStore.checkForNewReset(hsf.header.id, hsf.header.uptime, decodedFrame.stpDate, hsf.header.resets);
+						newReset = payloadStore.checkForNewReset(hsf.header.id, hsf.header.uptime, decodedFrame.stpDate, hsf.header.resets, decodedFrame.receiver);
 						if (newReset == -1) throw new StpFileProcessException(f.getName(), "Failed to process file: Could not get the reset");
 						hsf.header.copyBitsToFields(); // make sure it is all initialized
 						hsf.header.resets = newReset; // put in the calculated reset

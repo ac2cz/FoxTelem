@@ -1054,7 +1054,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame) {
+	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame, String groundStation) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

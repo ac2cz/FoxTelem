@@ -1,9 +1,12 @@
 package telemServer;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Properties;
 
 import common.Log;
@@ -11,6 +14,9 @@ import common.Log;
 public class ServerConfig {
 	public static Properties properties; // Java properties file for user defined values
 	public static final String propertiesFileName = "FoxTelemServer.properties";
+	public static ArrayList<String> trustedGroundStations;
+	public static final String TRUSTED_GROUNDSTATION_FILENAME = "trusted_ground_stations.txt";
+	
 	public static boolean slowSpeedRsDecode=true;
 	public static boolean highSpeedRsDecode=true;
 
@@ -21,11 +27,38 @@ public class ServerConfig {
 	public static int newResetCheckThreshold=30;
 	public static int newResetCheckUptimeMax=15000;
 	public static int groundStationClockThreshold=60;
+	public static boolean debugResetCheck=true;
 	
 	public static void init() {
 		properties = new Properties();
+		try {
+			loadTrustedGroundStations();
+		} catch (IOException e) {
+			Log.alert("FATAL: Cannot load the trusted stations list: " + e);
+		}
 		load();
 	}
+	
+	public static boolean isTrustedGroundStation(String groundStation) {
+		for (String station : trustedGroundStations)
+			if (station.equalsIgnoreCase( groundStation))
+				return true;
+		return false;
+	}
+	
+	private static void loadTrustedGroundStations() throws IOException {
+		trustedGroundStations = new ArrayList<String>();
+		BufferedReader bufReader = new BufferedReader(new FileReader(TRUSTED_GROUNDSTATION_FILENAME));
+
+		String line = bufReader.readLine();
+		while (line != null) {
+			trustedGroundStations.add(line);
+			line = bufReader.readLine();
+		}
+
+		bufReader.close();
+	}
+
 	public static void save() {
 		properties.setProperty("slowSpeedRsDecode", Boolean.toString(slowSpeedRsDecode));
 		properties.setProperty("highSpeedRsDecode", Boolean.toString(highSpeedRsDecode));
@@ -33,6 +66,7 @@ public class ServerConfig {
 		properties.setProperty("newResetCheckThreshold", Integer.toString(newResetCheckThreshold));
 		properties.setProperty("newResetCheckUptimeMax", Integer.toString(newResetCheckUptimeMax));
 		properties.setProperty("groundStationClockThreshold", Integer.toString(groundStationClockThreshold));
+		properties.setProperty("debugResetCheck", Boolean.toString(debugResetCheck));
 		store();
 	}
 
@@ -75,6 +109,7 @@ public class ServerConfig {
 			newResetCheckThreshold = Integer.parseInt(getProperty("newResetCheckThreshold"));
 			newResetCheckUptimeMax = Integer.parseInt(getProperty("newResetCheckUptimeMax"));
 			groundStationClockThreshold = Integer.parseInt(getProperty("groundStationClockThreshold"));
+			debugResetCheck = Boolean.parseBoolean(getProperty("debugResetCheck"));
 
 		} catch (NumberFormatException nf) {
 			Log.println("FATAL: Could not load properties: " + nf.getMessage());

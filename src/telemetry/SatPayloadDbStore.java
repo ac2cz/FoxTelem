@@ -1117,7 +1117,7 @@ public class SatPayloadDbStore {
 	 * @param stepDate
 	 * @return
 	 */
-	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame) {
+	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame, String groundStation) {
 		PreparedStatement ps = null, ps1 = null, ps2 = null;
 		ResultSet rs = null, rs1 = null;
 		Timestamp T0 = null;
@@ -1147,10 +1147,22 @@ public class SatPayloadDbStore {
 			long stpDiff = Math.abs(nowSeconds - stpSeconds);
 			if (stpDiff > ServerConfig.groundStationClockThreshold) {
 				// then we don't trust this frame.  It is from a station with a bad clock
-	    		Log.println("*** Frame ignored for RESET CHECK: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff + " from current time");
+				if (ServerConfig.debugResetCheck)
+					Log.println("*** Frame ignored for RESET CHECK: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff + " from current time");
 	    		conn.commit();
     			return currentReset; // we just ASSUME this belongs in the current reset.  Maybe the server was down and these were queued...
 			}
+			
+			if (!ServerConfig.isTrustedGroundStation(groundStation)) {
+				// then we don't trust this ground station to roll the reset or update the T0
+				if (ServerConfig.debugResetCheck)
+					Log.println("*** Ground station not trusted: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff + " from current time");
+	    		conn.commit();
+    			return currentReset; // we just ASSUME this belongs in the current reset.  Maybe the server was down and these were queued...
+				
+			}
+			if (ServerConfig.debugResetCheck)
+				Log.println("### Trusted station: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff + " from current time");
 
 		    if (resetOnFrame - currentReset == 1) { // this may never happen, or we might jump a few resets
 		    	// Then we had a normal reset, write it in the log
@@ -1197,6 +1209,8 @@ public class SatPayloadDbStore {
 
 		    if (T0Seconds == 0 || (uptime < ServerConfig.newResetCheckUptimeMax)) {// after this time assume we already have the reset
 		    	long diff = Math.abs(stpSeconds - (T0Seconds + uptime));
+		    	if (ServerConfig.debugResetCheck)
+		    		Log.println("### Trusted station: diff to T0: " + diff);
 		    	if (diff > ServerConfig.newResetCheckThreshold) {
 		    		// we have had a reset. 
 		    		Log.println("*** HUSKY NON MRAM LOGGED RESET DETECTED ....");

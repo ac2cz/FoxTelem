@@ -1117,10 +1117,10 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame) {
+	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame, String groundStation) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
-			return store.checkForNewReset(id, uptime, stpDate, resetOnFrame);
+			return store.checkForNewReset(id, uptime, stpDate, resetOnFrame, groundStation);
 		return -1;
 	}
 
