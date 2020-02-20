@@ -382,34 +382,35 @@ public class RadiationTelemetry extends FoxFramePart {
 				pos = i;
 		}
 		String s = "-----";
+		int conv = layout.getIntConversionByPos(pos);
 		// Special Formatting
 		if (pos == -1) 
 			;//System.err.println("ERROR: No Index for Field:" + name);
-		else if (layout.conversion[pos] == BitArrayLayout.CONVERT_VULCAN_STATUS) {
+		else if (conv == BitArrayLayout.CONVERT_VULCAN_STATUS) {
 			int value = getRawValue(name);
 			try {
 				s = RadiationPacket.radPacketState[value];
 			} catch (ArrayIndexOutOfBoundsException e) {
 				s = "???";
 			}
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_16_SEC_UPTIME) {
+		} else if (conv == BitArrayLayout.CONVERT_16_SEC_UPTIME) {
 				int value = getRawValue(name);
 				s = Integer.toString(value * 16);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_SOURCE) {
+		} else if (conv == BitArrayLayout.CONVERT_HERCI_SOURCE) {
 			int value = getRawValue(name);
 			try {
 				s = herciSource[value];
 			} catch (ArrayIndexOutOfBoundsException e) {
 				s = "???";
 			}
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_HEX) {
+		} else if (conv == BitArrayLayout.CONVERT_HERCI_HEX) {
 			int value = getRawValue(name);
 			s="";
 			for (int i=0; i<2; i++) {
 				s = FoxDecoder.plainhex(value & 0xff) + " " + s; // we get the least sig byte each time, so new bytes go on the front
 				value = value >> 8 ;
 			}
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_HEX) {
+		} else if (conv == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_HEX) {
 			int value = getRawValue(name);
 
 			s = FoxDecoder.plainhex(value & 0xff);
@@ -427,14 +428,14 @@ public class RadiationTelemetry extends FoxFramePart {
 				value = value >> 8 ;
 			}
 			s=s+"\"";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_TYP) {
+		} else if (conv == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_TYP) {
 			int value = getRawValue(name);
 			try {
 				s = herciMicroPktTyp[value];
 			} catch (ArrayIndexOutOfBoundsException e) {
 				s = "???";
 			}
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_SOURCE) {
+		} else if (conv == BitArrayLayout.CONVERT_HERCI_MICRO_PKT_SOURCE) {
 			int value = getRawValue(name);
 			try {
 				s = herciMicroPktSource[value];

@@ -516,20 +516,20 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 						graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
-					conversion = fox.passMeasurementLayout.getConversionByName(fieldName[i]);
+					conversion = fox.passMeasurementLayout.getIntConversionByName(fieldName[i]);
 					units = fox.passMeasurementLayout.getUnitsByName(fieldName[i]);
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.PASS_MEASUREMENT_TYPE, fox, plotType);
 				} 
 				else if (moduleType == DISPLAY_MEASURES) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
-					conversion = fox.measurementLayout.getConversionByName(fieldName[i]);
+					conversion = fox.measurementLayout.getIntConversionByName(fieldName[i]);
 					units = fox.measurementLayout.getUnitsByName(fieldName[i]);
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  SatMeasurementStore.RT_MEASUREMENT_TYPE, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_VULCAN  || moduleType == DisplayModule.DISPLAY_WOD_VULCAN) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
-					conversion = lay.getConversionByName(fieldName[i]);
+					conversion = lay.getIntConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
 					if (moduleType == DisplayModule.DISPLAY_WOD_VULCAN) {
 					//	Log.errorDialog("NOT YET IMPLEMENTED", "Need to define TELEM layout for WOD RAD and pass to the graph");
@@ -539,27 +539,27 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 				}
 				else if (moduleType == DISPLAY_UW) {
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
-					conversion = lay.getConversionByName(fieldName[i]);
+					conversion = lay.getIntConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_UW_EXPERIMENT, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_WOD_UW) {
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT);
-					conversion = lay.getConversionByName(fieldName[i]);
+					conversion = lay.getIntConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_UW_WOD_EXPERIMENT, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
-					conversion = lay.getConversionByName(fieldName[i]);
+					conversion = lay.getIntConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_HERCI_SCIENCE_HEADER, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
-					conversion = lay.getConversionByName(fieldName[i]);
+					conversion = lay.getIntConversionByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
 					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, fox, plotType);
 				}

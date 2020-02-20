@@ -24,7 +24,7 @@ package telemetry;
  * Look up table for the temperature sensors on the battery board
  *
  */
-public class LookUpTableBatteryTemp extends LookUpTable {
+public class LookUpTableBatteryTemp extends ConversionLookUpTable {
 
 LookUpTableBatteryTemp() {
 

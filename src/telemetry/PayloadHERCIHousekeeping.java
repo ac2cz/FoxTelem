@@ -360,14 +360,14 @@ public class PayloadHERCIHousekeeping extends FoxFramePart {
 		// Special Formatting
 		if (pos == -1) {
 			;//System.err.println("ERROR: No Index for Field:" + name);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_SOURCE) {
+		} else if (layout.getIntConversionByPos(pos) == BitArrayLayout.CONVERT_HERCI_SOURCE) {
 			int value = getRawValue(name);
 			try {
 				s = herciSource[value];
 			} catch (ArrayIndexOutOfBoundsException e) {
 				s = "???";
 			}
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HERCI_HEX) {
+		} else if (layout.getIntConversionByPos(pos) == BitArrayLayout.CONVERT_HERCI_HEX) {
 			s="";
 			int value = getRawValue(name);
 			for (int i=0; i<4; i++) {

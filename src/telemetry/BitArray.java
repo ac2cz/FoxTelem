@@ -67,7 +67,7 @@ public abstract class BitArray {
 	}
 	
 	public int getConversionByName(String name) {
-		return layout.getConversionByName(name);
+		return layout.getIntConversionByName(name);
 		
 	}
 	
@@ -162,7 +162,22 @@ public abstract class BitArray {
 
 		if (pos != -1) {
 			int value = fieldValue[pos];
-			double result = convertRawValue(name, value, layout.conversion[pos], fox);
+			double result = 0.0;
+			if (fox.useConversionCoeffs) { // use a modern conversion soft coded
+				// Need to know if this is a static, curve or table conversion
+				String convName = layout.getConversionNameByPos(pos);
+				Conversion conv = fox.getConversionByName(convName);
+				if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric
+					int convInt = 0;
+					try {
+						convInt = Integer.parseInt(convName);
+					} catch (NumberFormatException e) { convInt = 0;}
+					result = convertRawValue(name, value, convInt, fox);
+				} else
+					result = convertCoeffRawValue(name, value, conv, fox);				
+			} else {
+				result = convertRawValue(name, value, layout.getIntConversionByPos(pos), fox);
+			}
 			return result;
 		}
 		return ERROR_VALUE;
@@ -170,5 +185,6 @@ public abstract class BitArray {
 
 	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
 	
+	public abstract double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox );	
 	
 }

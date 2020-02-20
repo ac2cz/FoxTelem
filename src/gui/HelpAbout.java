@@ -56,7 +56,7 @@ public class HelpAbout extends JDialog implements ActionListener {
 	private final String FOX = "http://ww2.amsat.org/?page_id=1113";
 	public final static String MANUAL = "foxtelem_manual.pdf";
 	public final static String LEADERBOARD = "http://www.amsat.org/tlm/";
-	public final static String SOFTWARE = "http://amsat.us/FoxTelem/";
+	public final static String SOFTWARE = "http://www.g0kla.com/foxtelem/";
 	JButton btnClose;
 	
 	/**
@@ -99,7 +99,7 @@ public class HelpAbout extends JDialog implements ActionListener {
 		JPanel southPanel = new JPanel();
 		panel.add(southPanel, BorderLayout.SOUTH);
 
-		JLabel lblAmsatFoxaTelemetry = new JLabel("<html><h2>AMSAT Fox-1 Telemetry Decoder</h2></html>");
+		JLabel lblAmsatFoxaTelemetry = new JLabel("<html><h2>AMSAT Telemetry Decoder and Analysis</h2></html>");
 		lblAmsatFoxaTelemetry.setForeground(Color.BLUE);
 		northApanel.add(lblAmsatFoxaTelemetry);
 
@@ -134,7 +134,7 @@ public class HelpAbout extends JDialog implements ActionListener {
 		//centerPanelWrapper.add(scrollPane);
 		panel.add(scrollPane, BorderLayout.CENTER);
 		
-		addLine("<html><br><b><u>The Fox1 Engineering Team</b></u></html>", centerPanel);
+		addLine("<html><br><b><u>The original Fox1 Engineering Team</b></u></html>", centerPanel);
 		addLine("<html><table style='mso-cellspacing: 0in' cellspacing='0' cellpadding='2' >"
 				+"<tr><tbody><td><b>Jerry Buxton N0JY</b></td><td>Program Manager</td>"
 				+ "		<td><b>Tony Monteiro AA2TX (SK)</b></td><td>Original driving force</td></tr>"

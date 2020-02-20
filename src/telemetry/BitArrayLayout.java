@@ -49,7 +49,7 @@ public class BitArrayLayout {
 	public static final String NONE = "NONE";
 	
 	public String[] fieldName = null;  // name of the field that the bits correspond to
-	public int[] conversion = null; // the conversion routine to change raw bits into a real value
+	public String[] conversion = null; // the conversion routine to change raw bits into a real value
 	public String[] fieldUnits = null; // the units as they would be displayed on a graph e.g. C for Celcius
 	public int[] fieldBitLength = null; // the number of bits in this field
 	public String[] module = null; // the module on the display screen that this would be shown in e.g. Radio
@@ -165,17 +165,44 @@ public class BitArrayLayout {
 		}
 		return false;
 	}
-	
-	public int getConversionByName(String name) {
+
+	public String getConversionNameByPos(int pos) {
+		return conversion[pos];
+	}
+
+	public String getConversionNameByName(String name) {
 		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
 			if (name.equalsIgnoreCase(fieldName[i]))
 				pos = i;
 		}
 		if (pos == ERROR_POSITION) {
-			return BitArrayLayout.CONVERT_NONE;
+			return NONE;
 		} else {
-			return (conversion[pos]);
+			return getConversionNameByPos(pos);
+		}
+	}
+
+	public int getIntConversionByPos(int pos) {
+		int c = 0;
+		try {
+			c = Integer.parseInt(conversion[pos]);
+		} catch (NumberFormatException e) {
+			return CONVERT_NONE; // no conversion
+		}
+		return (c);
+	}
+
+	public int getIntConversionByName(String name) {
+		int pos = ERROR_POSITION;
+		for (int i=0; i < fieldName.length; i++) {
+			if (name.equalsIgnoreCase(fieldName[i]))
+				pos = i;
+		}
+		if (pos == ERROR_POSITION) {
+			return CONVERT_NONE;
+		} else {
+			return getIntConversionByPos(pos);
 		}
 	}
 
@@ -245,7 +272,7 @@ public class BitArrayLayout {
 			StringTokenizer header = new StringTokenizer(line, ",");
 			NUMBER_OF_FIELDS = Integer.valueOf(header.nextToken()).intValue();			
 			fieldName = new String[NUMBER_OF_FIELDS];		
-			conversion = new int[NUMBER_OF_FIELDS];
+			conversion = new String[NUMBER_OF_FIELDS];
 			fieldBitLength = new int[NUMBER_OF_FIELDS];
 			fieldUnits = new String[NUMBER_OF_FIELDS];
 			module = new String[NUMBER_OF_FIELDS];
@@ -266,7 +293,7 @@ public class BitArrayLayout {
 					fieldName[field] = st.nextToken();
 					fieldBitLength[field] = Integer.valueOf(st.nextToken()).intValue();
 					fieldUnits[field] = st.nextToken();
-					conversion[field] = Integer.valueOf(st.nextToken()).intValue();
+					conversion[field] = st.nextToken(); //Integer.valueOf(st.nextToken()).intValue();
 					module[field] = st.nextToken();					
 					moduleNum[field] = Integer.valueOf(st.nextToken()).intValue();
 					moduleLinePosition[field] = Integer.valueOf(st.nextToken()).intValue();

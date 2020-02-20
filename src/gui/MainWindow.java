@@ -387,7 +387,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		this.setTitle("Fox 1 Telemetry Analysis Tool ");
+		this.setTitle("AMSAT Telemetry Analysis Tool ");
 		addWindowListener(this);
 		addWindowStateListener(this);
 

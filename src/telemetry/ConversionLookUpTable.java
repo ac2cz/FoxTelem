@@ -42,15 +42,14 @@ import common.Log;
  * 
  *
  */
-public class LookUpTable {
+public class ConversionLookUpTable extends Conversion{
 	
-	public String name; // the name, which is stored in the spacecraft file and used to index the tables
 	protected Map<Integer, Double> table = new LinkedHashMap<Integer, Double>();
 
 	/**
 	 * Called for a static table where the values are not loaded from a file
 	 */
-	public LookUpTable() {
+	public ConversionLookUpTable() {
 		
 	}
 	
@@ -60,7 +59,7 @@ public class LookUpTable {
 	 * @throws LayoutLoadException 
 	 * @throws FileNotFoundException 
 	 */
-	public LookUpTable(String fileName) throws FileNotFoundException, LayoutLoadException {
+	public ConversionLookUpTable(String fileName) throws FileNotFoundException, LayoutLoadException {
 		load(fileName);
 	}
 	
@@ -219,5 +218,11 @@ public class LookUpTable {
 			n.printStackTrace(Log.getWriter());
 		}
 
+	}
+	
+	public String toString() {
+		String s = "";
+		s = s + "Lookup Table: " + name;
+		return s;
 	}
 }

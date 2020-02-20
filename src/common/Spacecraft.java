@@ -1,14 +1,18 @@
 package common;
 
+import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
@@ -20,10 +24,12 @@ import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
+import telemetry.ConversionCurve;
 import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.LookUpTable;
+import telemetry.ConversionLookUpTable;
 import telemetry.TelemFormat;
 import telemetry.uw.CanFrames;
 import uk.me.g4dpz.satellite.SatPos;
@@ -119,7 +125,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
-	public LookUpTable[] lookupTable;
+	public ConversionLookUpTable[] lookupTable;
 	
 	public int numberOfSources = 2;
 	public String[] sourceName;
@@ -157,6 +163,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public boolean hasCanBus;
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
+	
+	public boolean useConversionCoeffs = false;
+	private HashMap<String, Conversion> conversions;
 	
 	/*
 	final String[] testTLE = {
@@ -203,7 +212,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	public int getLookupIdxByName(String name) {
 		for (int i=0; i<numberOfLookupTables; i++)
-			if (lookupTable[i].name.equalsIgnoreCase(name))
+			if (lookupTable[i].getName().equalsIgnoreCase(name))
 				return i;
 		return ERROR_IDX;
 	}
@@ -227,7 +236,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		return getLayoutByName(Spacecraft.CAN_PKT_LAYOUT); // try to return the default instead. We dont have this CAN ID
 	}
 
-	public LookUpTable getLookupTableByName(String name) {
+	public Conversion getConversionByName(String name) {
+		Conversion conv = conversions.get(name);
+		return conv;
+	}
+
+	public ConversionLookUpTable getLookupTableByName(String name) {
 		int i = getLookupIdxByName(name);
 		if (i != ERROR_IDX)
 				return lookupTable[i];
@@ -424,6 +438,11 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			user_minFreqBoundkHz = Double.parseDouble(getProperty("minFreqBoundkHz"));
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
+			useConversionCoeffs = getOptionalBooleanProperty("useConversionCoeffs");
+			if (useConversionCoeffs)
+				conversions = new HashMap<String, Conversion>();
+
+			
 			// Frame Layouts
 			String frames = getOptionalProperty("numberOfFrameLayouts");
 			if (frames == null) 
@@ -436,6 +455,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
 					frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
 					frameLayout[i].name = getProperty("frameLayout"+i+".name");
+				}
+			}
+			
+			// Conversions
+			if (useConversionCoeffs) {
+				String conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
+				if (conversionCurvesFileName != null) {
+					loadConversionCurves(FoxSpacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
 				}
 			}
 
@@ -474,11 +501,20 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			// Lookup Tables
 			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
 			lookupTableFilename = new String[numberOfLookupTables];
-			lookupTable = new LookUpTable[numberOfLookupTables];
+			lookupTable = new ConversionLookUpTable[numberOfLookupTables];
 			for (int i=0; i < numberOfLookupTables; i++) {
 				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
-				lookupTable[i] = new LookUpTable(lookupTableFilename[i]);
-				lookupTable[i].name = getProperty("lookupTable"+i);
+				lookupTable[i] = new ConversionLookUpTable(lookupTableFilename[i]);
+				lookupTable[i].setName(getProperty("lookupTable"+i));
+				if (useConversionCoeffs) {
+		        	if (conversions.containsKey(lookupTable[i].getName())) {
+		        		// we have a namespace clash, warn the user
+		        		Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + lookupTable[i].getName());
+		        	} else {
+		        		conversions.put(lookupTable[i].getName(), lookupTable[i]);
+		        		Log.println("Stored: " + lookupTable[i]);
+		        	}
+				}
 			}
 
 			String t = getOptionalProperty("track");
@@ -534,6 +570,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		} catch (FileNotFoundException e) {
 			e.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+			throw new LayoutLoadException("File load error: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
 		}
 	}
 	
@@ -635,7 +674,16 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		}
 		return value;
 	}
-	
+
+	protected boolean getOptionalBooleanProperty(String key) throws LayoutLoadException {
+		String value = properties.getProperty(key);
+		if (value == null) {
+			return false;
+		}
+		boolean b = Boolean.parseBoolean(value);
+		return b;
+	}
+
 	protected String getOptionalUserProperty(String key) throws LayoutLoadException {
 		String value = user_properties.getProperty(key);
 		if (value == null) {
@@ -699,6 +747,29 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		}
 		user_properties.setProperty("priority", Integer.toString(user_priority));
 	}
+	
+	private void loadConversionCurves(String conversionCurvesFileName) throws FileNotFoundException, IOException {
+		try (BufferedReader br = new BufferedReader(new FileReader(conversionCurvesFileName))) {
+		    String line = br.readLine(); // read the header, which we ignore
+		    while ((line = br.readLine()) != null) {
+		        String[] values = line.split(",");
+		        try {
+		        	ConversionCurve conversion = new ConversionCurve(values);
+		        	if (conversions.containsKey(conversion.getName())) {
+		        		// we have a namespace clash, warn the user
+		        		Log.errorDialog("DUPLICATE CURVE NAME", this.user_keps_name + "- Conversion Curve already defined and will not be stored: " + conversion.getName());
+		        	} else {
+		        		conversions.put(conversion.getName(), conversion);
+		        		Log.println("Stored: " + conversion);
+		        	}
+		        } catch (IllegalArgumentException e) {
+		        	Log.println("Could not load conversion: " + e);
+		        	// ignore this corrupt row
+		        }
+		    }
+		}
+	}
+	
 	
 	public String getIdString() {
 		String id = "??";

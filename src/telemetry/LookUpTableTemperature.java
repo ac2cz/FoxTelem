@@ -25,7 +25,7 @@ package telemetry;
  * 
  *
  */
-public class LookUpTableTemperature extends LookUpTable {
+public class LookUpTableTemperature extends ConversionLookUpTable {
 	
 	//public static void main(String[] args) {
 	//	TempLookUpTable tab = new TempLookUpTable();

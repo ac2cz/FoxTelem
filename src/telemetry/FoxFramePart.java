@@ -319,7 +319,7 @@ longer send telemetry.
 
 
 	/**
-	 * Get the string represetnation of a field in this framePart.  Run any conversion
+	 * Get the string representation of a field in this framePart.  Run any conversion
 	 * routine assigned to this field
 	 * @param name
 	 * @return
@@ -331,51 +331,52 @@ longer send telemetry.
 				pos = i;
 		}
 		String s = "-----";
+		int conv = layout.getIntConversionByPos(pos);
 		// Special Formatting
 		if (pos == -1) 
 			;//System.err.println("ERROR: No Index for Field:" + name);
 		else
-		if (layout.conversion[pos] == BitArrayLayout.CONVERT_ANTENNA) {
+		if (conv == BitArrayLayout.CONVERT_ANTENNA) {
 			int value = getRawValue(name);
 			if (value == 0)
 				s = "Stowed";
 			else
 				s = "Deployed";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {  
+		} else if (conv == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {  
 				s = isisAntennaStatus(getRawValue(name), true);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_BIT) {
+		} else if (conv == BitArrayLayout.CONVERT_STATUS_BIT) {
 			int value = getRawValue(name);
 			if (value == 0)
 				s = "OK";
 			else
 				s = "FAIL";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+		} else if (conv == BitArrayLayout.CONVERT_STATUS_ENABLED) {
 			int value = getRawValue(name);
 			if (value == 1)
 				s = "Enabled";
 			else
 				s = "Disabled";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BOOLEAN) {
+		} else if (conv == BitArrayLayout.CONVERT_BOOLEAN) {
 			int value = getRawValue(name);
 			if (value == 1)
 				s = "TRUE";
 			else
 				s = "FALSE";
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_INTEGER) {
+		} else if (conv == BitArrayLayout.CONVERT_INTEGER) {
 			s = Long.toString(Math.round(getRawValue(name)));
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
+		} else if (conv == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
 			s = ihuDiagnosticString(getRawValue(name), true, (FoxSpacecraft)fox);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HARD_ERROR) {
+		} else if (conv == BitArrayLayout.CONVERT_HARD_ERROR) {
 			s = hardErrorString(getRawValue(name), true);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR) {
+		} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR) {
 			s = softErrorStringFox1A(getRawValue(name), true);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
+		} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
 			s = softErrorString84488(getRawValue(name), true);
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT) {
+		} else if (conv == BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT) {
 			s = icrSwCommandCount(getRawValue(name), true);	
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
+		} else if (conv == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
 			s = icrDiagnosticString(getRawValue(name), true);	
-		} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
+		} else if (conv == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
 			double val = getRawValue(name);
 			if (val >= 1500) return "OK";
 			else return "FAIL";
@@ -383,9 +384,9 @@ longer send telemetry.
 			double dvalue = getDoubleValue(name, fox);
 			if (dvalue == ERROR_VALUE) {
 				s = "-----";
-			} else if (layout.conversion[pos] == BitArrayLayout.CONVERT_BATTERY 
-					|| layout.conversion[pos] == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
-					|| layout.conversion[pos] == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
+			} else if (conv == BitArrayLayout.CONVERT_BATTERY 
+					|| conv == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
+					|| conv == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
 				s = String.format("%1.2f", dvalue);
 			} else {
 				s = String.format("%2.1f", dvalue);
@@ -401,6 +402,27 @@ longer send telemetry.
 	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
 		return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
 	}
+	
+	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox) {
+		return convertCoeffRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
+	}
+
+	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, FoxSpacecraft fox) {
+		if (conversion instanceof ConversionCurve) {
+//			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+//			x = x / 2;
+//			double y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
+//			return Math.pow(10, y/10);
+			double y = ((ConversionCurve) conversion).calculate(rawValue);
+			return y;
+		} else if (conversion instanceof ConversionLookUpTable) {
+			
+		} else {
+			
+		}
+		return 9999;
+	}
+	
 	/**
 	 * Given a raw value, BitArrayLayout.CONVERT_it into the actual value that we can display based on the
 	 * conversion type passed.  Field name is also used in some conversions, e.g. the batteries
