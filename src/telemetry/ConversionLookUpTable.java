@@ -49,8 +49,8 @@ public class ConversionLookUpTable extends Conversion{
 	/**
 	 * Called for a static table where the values are not loaded from a file
 	 */
-	public ConversionLookUpTable() {
-		
+	public ConversionLookUpTable(String name) {
+		super(name);
 	}
 	
 	/**
@@ -59,7 +59,8 @@ public class ConversionLookUpTable extends Conversion{
 	 * @throws LayoutLoadException 
 	 * @throws FileNotFoundException 
 	 */
-	public ConversionLookUpTable(String fileName) throws FileNotFoundException, LayoutLoadException {
+	public ConversionLookUpTable(String name, String fileName) throws FileNotFoundException, LayoutLoadException {
+		super(name);
 		load(fileName);
 	}
 	
@@ -88,7 +89,8 @@ public class ConversionLookUpTable extends Conversion{
 	 * @param lookUpkKey
 	 * @return
 	 */
-	public double lookupValue(int lookUpKey) {
+	public double calculate(double x) {
+		int lookUpKey = (int)x;
 		Iterator<Entry<Integer, Double>> it = table.entrySet().iterator();
 		double lastValue = 0;
 		int lastKey = 0;

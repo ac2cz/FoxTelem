@@ -504,14 +504,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			lookupTable = new ConversionLookUpTable[numberOfLookupTables];
 			for (int i=0; i < numberOfLookupTables; i++) {
 				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
-				lookupTable[i] = new ConversionLookUpTable(lookupTableFilename[i]);
-				lookupTable[i].setName(getProperty("lookupTable"+i));
+				String tableName = getProperty("lookupTable"+i);
+				lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
 				if (useConversionCoeffs) {
 		        	if (conversions.containsKey(lookupTable[i].getName())) {
 		        		// we have a namespace clash, warn the user
-		        		Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + lookupTable[i].getName());
+		        		Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
 		        	} else {
-		        		conversions.put(lookupTable[i].getName(), lookupTable[i]);
+		        		conversions.put(tableName, lookupTable[i]);
 		        		Log.println("Stored: " + lookupTable[i]);
 		        	}
 				}
@@ -564,9 +564,9 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("Corrupt data found: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
-		} catch (NullPointerException nf) {
-			nf.printStackTrace(Log.getWriter());
-			throw new LayoutLoadException("NULL data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );		
+//		} catch (NullPointerException nf) {
+//			nf.printStackTrace(Log.getWriter());
+//			throw new LayoutLoadException("NULL data value: "+ nf.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );		
 		} catch (FileNotFoundException e) {
 			e.printStackTrace(Log.getWriter());
 			throw new LayoutLoadException("File not found: "+ e.getMessage() + "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath());
@@ -753,6 +753,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		    String line = br.readLine(); // read the header, which we ignore
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
+		        if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
 		        try {
 		        	ConversionCurve conversion = new ConversionCurve(values);
 		        	if (conversions.containsKey(conversion.getName())) {

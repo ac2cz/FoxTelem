@@ -27,7 +27,7 @@ package telemetry;
 public class LookUpTableBatteryTemp extends ConversionLookUpTable {
 
 LookUpTableBatteryTemp() {
-
+	super("LookUpTableBatteryTemp");
 	table.put(608,-55.0);
 	table.put(612,-54.0);
 	table.put(616,-53.0);

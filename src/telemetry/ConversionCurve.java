@@ -33,6 +33,7 @@ public class ConversionCurve extends Conversion {
 	private String description;
 	
 	public ConversionCurve(String[] values) {
+		super(values[0]);
 		if (values == null) throw new IllegalArgumentException("Conversion File row null");
 		if (values.length != CSF_FILE_ROW_LENGTH) throw new IllegalArgumentException("Conversion File row has wrong number of values: " + values.length);
 		name = values[0];
@@ -62,7 +63,7 @@ public class ConversionCurve extends Conversion {
 	
 	public String toString() {
 		String s = "";
-		s = s + name + ": " + a + " + " + b + "x + " + c + "x^2 + " + d + "x^3 + " + e + "x^4 + " + f + "x^5 + ";
+		s = s + name + ": " + a + " + " + b + "x + " + c + "x^2 + " + d + "x^3 + " + e + "x^4 + " + f + "x^5 ";
 		return s;
 	}
 }

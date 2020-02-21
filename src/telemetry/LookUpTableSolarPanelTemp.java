@@ -27,7 +27,7 @@ package telemetry;
 public class LookUpTableSolarPanelTemp extends ConversionLookUpTable {
 
 	LookUpTableSolarPanelTemp() {
-
+		super("LookUpTableSolarPanelTemp");
 		table.put(2998,95.0);
 		table.put(3002,90.0);
 		table.put(3006,85.0);

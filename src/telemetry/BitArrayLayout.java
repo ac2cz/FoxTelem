@@ -122,6 +122,7 @@ public class BitArrayLayout {
 	public static final int CONVERT_COM1_RSSI = 56; // COM1
 	public static final int CONVERT_COM1_ICR_2V5_SENSOR = 57; // COM1
 	public static final int CONVERT_COM1_BUS_VOLTAGE = 58; // COM1
+	public static final int CONVERT_ROOT_10 = 59; // COM1 PWR calc component
 	
 	/**
 	 * Create an empty layout for manual init

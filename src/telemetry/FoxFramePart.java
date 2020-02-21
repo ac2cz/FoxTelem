@@ -399,30 +399,33 @@ longer send telemetry.
 		return s;
 	}
 	
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
-		return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
-	}
-	
-	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox) {
+	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 		return convertCoeffRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
 	}
 
-	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, FoxSpacecraft fox) {
-		if (conversion instanceof ConversionCurve) {
-//			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
-//			x = x / 2;
-//			double y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
-//			return Math.pow(10, y/10);
-			double y = ((ConversionCurve) conversion).calculate(rawValue);
-			return y;
-		} else if (conversion instanceof ConversionLookUpTable) {
-			ConversionLookUpTable table = (ConversionLookUpTable)conversion;
-			double x = table.lookupValue(rawValue);
-			return x;
-		} else {
-			
-		}
-		return 9999;
+	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, FoxSpacecraft fox) {
+		double x = conversion.calculate(rawValue);
+		return x; 
+		
+//		if (conversion instanceof ConversionCurve) {
+////			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+////			x = x / 2;
+////			double y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
+////			return Math.pow(10, y/10);
+//			double y = ((ConversionCurve) conversion).calculate(rawValue);
+//			return y;
+//		} else if (conversion instanceof ConversionLookUpTable) {
+//			ConversionLookUpTable table = (ConversionLookUpTable)conversion;
+//			double x = table.calculate(rawValue);
+//			return x;
+//		} else {
+//			
+//		}
+//		return 9999;
+	}
+
+	protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox) {
+		return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
 	}
 	
 	/**
@@ -433,7 +436,7 @@ longer send telemetry.
 	 * @param conversion
 	 * @return
 	 */
-	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
+	protected double convertRawValue(String name, double rawValue, int conversion, FoxSpacecraft fox ) {
 		
 	//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 		switch (conversion) {
@@ -458,13 +461,13 @@ longer send telemetry.
 				return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_B_SCALING_FACTOR;
 			if (name.equalsIgnoreCase("BATT_C_V"))  // then this is fox
 				if (((FoxSpacecraft)fox).useIHUVBatt)
-					return fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+					return fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 				else
 					return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_C_SCALING_FACTOR;
 			return ERROR_VALUE;
 
 		case BitArrayLayout.CONVERT_BATTERY_TEMP:
-			return batteryTempTable.lookupValue(rawValue);
+			return batteryTempTable.calculate(rawValue);
 			
 		case BitArrayLayout.CONVERT_BATTERY_CURRENT:
 			double d = (double)rawValue;
@@ -475,7 +478,7 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL:
 			return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS * MPPT_SOLAR_PANEL_SCALING_FACTOR;
 		case BitArrayLayout.CONVERT_SOLAR_PANEL_TEMP:
-			return solarPanelTempTable.lookupValue(rawValue) ;
+			return solarPanelTempTable.calculate(rawValue) ;
 		case BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP:
 			if (rawValue < fox.user_mpptSensorOffThreshold) return ERROR_VALUE;
 			double raw = (double)rawValue;
@@ -488,7 +491,7 @@ longer send telemetry.
 			
 			return t;
 		case BitArrayLayout.CONVERT_TEMP:
-			return temperatureTable.lookupValue(rawValue);
+			return temperatureTable.calculate(rawValue);
 		case BitArrayLayout.CONVERT_PA_CURRENT:
 			double paVolts = rawValue * VOLTAGE_STEP_FOR_3V_SENSORS;
 			double paCurrent = paVolts / PA_CURRENT_INA194_FACTOR/PA_CURRENT_SHUNT_RESISTOR_FACTOR;
@@ -506,12 +509,12 @@ longer send telemetry.
 			value = value / 256.0d;
 			return value ;
 		case BitArrayLayout.CONVERT_MEMS_ROTATION:
-			return calcMemsValue(rawValue, name, fox);
+			return calcMemsValue((int)rawValue, name, fox);
 			//return (rawValue * VOLTAGE_STEP_FOR_3V_SENSORS - MEMS_ZERO_VALUE_VOLTS)/MEMS_VOLT_PER_DPS;
 		case BitArrayLayout.CONVERT_RSSI:
-			return fox.getLookupTableByName(Spacecraft.RSSI_LOOKUP).lookupValue(rawValue);
+			return fox.getLookupTableByName(Spacecraft.RSSI_LOOKUP).calculate(rawValue);
 		case BitArrayLayout.CONVERT_IHU_TEMP:
-			return fox.getLookupTableByName(Spacecraft.IHU_TEMP_LOOKUP).lookupValue(rawValue);
+			return fox.getLookupTableByName(Spacecraft.IHU_TEMP_LOOKUP).calculate(rawValue);
 		case BitArrayLayout.CONVERT_STATUS_BIT:
 			return rawValue;
 		case BitArrayLayout.CONVERT_IHU_DIAGNOSTIC:
@@ -529,16 +532,16 @@ longer send telemetry.
 		case BitArrayLayout.CONVERT_WOD_STORED:
 			return rawValue * 4;
 		case BitArrayLayout.CONVERT_LT_TXRX_TEMP:
-			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			volts = volts / 2;
 			return 100 * volts - 50; // TMP36 sensor conversion graph is a straight line where 0.5V is 0C and 0.01V rise is 1C increase.  So 0.75V is 25C
 		case BitArrayLayout.CONVERT_LT_PA_CURRENT:
-			double voltspa = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			double voltspa = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			voltspa = voltspa / 2;
 			double pacurrent = voltspa/PA_CURRENT_INA194_FACTOR/0.1; 
 			return 1000* pacurrent;
 		case BitArrayLayout.CONVERT_LT_TX_FWD_PWR:
-			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			x = x / 2;
 			double y = 1.6707*Math.pow(x, 3) - 12.954*Math.pow(x,2)+ 37.706*x - 14.388;
 			return Math.pow(10, y/10);
@@ -548,7 +551,7 @@ longer send telemetry.
 			if (y < 0) y = 0;  // Power can not be negative
 			return y;
 		case BitArrayLayout.CONVERT_LT_VGA:
-			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			volts = volts / 2;
 			return volts;
 		case BitArrayLayout.CONVERT_ICR_VOLT_SENSOR:
@@ -572,18 +575,25 @@ longer send telemetry.
 			return temp;
 		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_TEMP:
 			double V = (3.3 / 1023) * 1000 *  rawValue;
-			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).lookupValue((int)V);
+			double antTemp = fox.getLookupTableByName(Spacecraft.HUSKY_SAT_ISIS_ANT_TEMP).calculate((int)V);
 			return antTemp;
 		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_TIME:
 			double time = rawValue / 20.0d; // deploy time in 50ms steps
 			return time;
 		case BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS:
 			return rawValue;
+		case BitArrayLayout.CONVERT_ROOT_10:
+			return Math.pow(10, rawValue/10);
 		case BitArrayLayout.CONVERT_COM1_TX_FWD_PWR:
-			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			//System.err.println("RAW: " + rawValue); 
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			x = x / 2;
+			//System.err.println("X: " + x); 
 			y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
-			return Math.pow(10, y/10);
+			//System.err.println("Y: " + y); 
+			double z = Math.pow(10, y/10);
+			//System.err.println("Z: " + z); 
+			return z;
 		case BitArrayLayout.CONVERT_COM1_TX_REF_PWR:
 			x = rawValue * 1000* VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
 			y = 0.1727*x - 34.583;
@@ -593,7 +603,7 @@ longer send telemetry.
 			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.758; // where 0.758 is the voltage divider
 			return x;
 		case BitArrayLayout.CONVERT_COM1_RSSI:
-			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			x = x / 2;
 			y = 46.566*x - 135.54;
 			return y;
@@ -604,7 +614,7 @@ longer send telemetry.
 			x = rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/0.324; 
 			return x;
 		case BitArrayLayout.CONVERT_COM1_BUS_VOLTAGE:
-			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
+			x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 			x = x / 2 ;
 			x = x / 0.2424;
 			return x;
@@ -622,7 +632,7 @@ longer send telemetry.
 	 * @return
 	 */
 	private static double calcMemsValue(int value, String name, FoxSpacecraft fox) {
-		double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+		double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value);
 		volts = volts / 2;
 		double memsZeroValue = MEMS_ZERO_VALUE_VOLTS;
 		double result = 0;
@@ -632,7 +642,7 @@ longer send telemetry.
 			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
 			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
 			if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
-			memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(restValue);
+			memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(restValue);
 			memsZeroValue = memsZeroValue/2;
 		}
 		
@@ -735,7 +745,7 @@ longer send telemetry.
 			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			double vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+			double vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value);
 			vRef = vRef/2;
 			int cameraChecksumErrors = (rawValue >> 24) & 0xff; // last 8 bits
 			cameraChecksumErrors = cameraChecksumErrors - 1; // This is initialized to 1, so we subtract that initial value
@@ -747,7 +757,7 @@ longer send telemetry.
 				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value);
+			vRef = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value);
 			vRef = vRef/2;
 			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
@@ -771,15 +781,15 @@ longer send telemetry.
 			return "ISIS Status: " + Integer.toHexString(antStatus) + " " + Integer.toHexString(bus0) + " "+Integer.toHexString(bus1);
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
-			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value),3) + "V";
+			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value),3) + "V";
 		case IHU_TEMP_CALIBRATION_VOLTAGE: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xffffff;  // 24 bits of temp calibration
 			return "IHU Temp Cal: " + value;
 		case AUTO_SAFE_VOLTAGES:
 			int value1 = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			double voltageIn = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value1);
+			double voltageIn = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value1);
 			int value2 = (rawValue >> 20) & 0xfff; // last 12 bits
-			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(value2);
+			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value2);
 			if (shortString)
 				return "AS Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
 						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
