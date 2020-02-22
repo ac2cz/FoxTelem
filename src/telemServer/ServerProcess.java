@@ -67,6 +67,23 @@ public class ServerProcess implements Runnable {
 		
 	}
 	
+	String exceptionDir() throws IOException {
+		Date today = Calendar.getInstance().getTime();
+		String year = datePartName(today, yearDirName);
+		String month = datePartName(today, monthDirName);
+		String day = datePartName(today, dayDirName);
+		String fileName = datePartName(today, fileDateName);
+		
+		makeDir(year);
+		makeDir(year + File.separator + month);
+		makeDir(year + File.separator + month + File.separator + day);
+		String exception = year + File.separator + month + File.separator + day 
+				+ File.separator + "exception";
+		makeDir(exception);
+		return exception;
+		
+	}
+	
 	public static String datePartName(Date today, DateFormat df) {
 		df.setTimeZone(TimeZone.getTimeZone("UTC"));
 		String reportDate = df.format(today);
@@ -301,10 +318,14 @@ public class ServerProcess implements Runnable {
 		} catch (StpFileProcessException e) {
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
-			Log.println("-"+ socket.getInetAddress()+" STP EXCPETION: " + e);
-			e.printStackTrace(Log.getWriter());
+			Log.println("-"+ socket.getInetAddress()+" STP EXCPETION: " + e.getMessage());
+			//e.printStackTrace(Log.getWriter());
 			// We could not process the file so try to store it as an exception, something wrong with the data or we could not write to the DB
-			storeException(stp);
+			try {
+				storeException(stp);
+			} catch (IOException e1) {
+				Log.println("-"+ socket.getInetAddress()+" ERROR: Could not rename the file into the exeption dir: " + e1);
+			}
 		} catch (Exception e) {
 			// try to send error message to client
 			try {out.write(FAIL);} catch (IOException e1) { /*ignore*/}
@@ -318,10 +339,11 @@ public class ServerProcess implements Runnable {
 		}
 	}
 
-	private void storeException(File f) {
+	private void storeException(File f) throws IOException {
 		
 		if (f != null) {
-			File toFile = new File("exceptions" + File.separator + f.getName()+".ex");
+			String exceptions = exceptionDir();
+			File toFile = new File(exceptions + File.separator + f.getName()+".ex");
 			if (f.renameTo(toFile)) {
 				;
 			} else {
