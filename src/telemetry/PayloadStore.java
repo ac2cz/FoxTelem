@@ -7,6 +7,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Date;
 
 import measure.Measurement;
 import measure.PassMeasurement;
@@ -1049,6 +1050,12 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getNumberOfPayloadsBetweenTimestamps(id, reset, uptime, toReset, toUptime, payloadType);
+		return 0;
+	}
+
+	@Override
+	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame, String groundStation) {
+		// TODO Auto-generated method stub
 		return 0;
 	}
 

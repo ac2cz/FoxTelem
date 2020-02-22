@@ -2,6 +2,8 @@ package telemetry;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.Date;
+
 import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
@@ -142,5 +144,5 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean returnType, boolean reverse, String layout);
 	public abstract String[][] getTableData(int period, int id, int fromReset, long fromUptime, boolean reverse, String layout);
 	
-
+	public abstract int checkForNewReset(int id, long uptime, Date stepDate, int resetOnFrame, String groundStation);
 }

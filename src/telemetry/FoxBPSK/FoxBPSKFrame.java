@@ -326,12 +326,13 @@ import telemetry.PayloadWODUwExperiment;
 //			}
 //		}
 
-		public boolean savePayloads(FoxPayloadStore payloadStore, boolean storeMode) {
+		public boolean savePayloads(FoxPayloadStore payloadStore, boolean storeMode, int newReset) {
 			int serial = 0;
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
 			for (int i=0; i<payload.length; i++ ) {
 				if (payload[i] != null) {
 					payload[i].copyBitsToFields();
+					payload[i].resets = newReset;
 					if (storeMode)
 						payload[i].newMode = header.newMode;
 					if (payload[i] instanceof PayloadUwExperiment) { 
@@ -341,7 +342,7 @@ import telemetry.PayloadWODUwExperiment;
 						((PayloadWODUwExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
 						serial = serial + ((PayloadWODUwExperiment)payload[i]).canPackets.size();
 					} else
-						if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload[i]))
+						if (!payloadStore.add(header.getFoxId(), header.getUptime(), newReset, payload[i]))
 							return false;
 					payload[i].rawBits = null; // free memory associated with the bits
 				}

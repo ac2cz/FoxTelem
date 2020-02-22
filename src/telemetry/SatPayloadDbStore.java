@@ -2,6 +2,7 @@ package telemetry;
 
 
 import gui.MainWindow;
+import telemServer.ServerConfig;
 import telemetry.uw.CanPacket;
 
 import java.io.File;
@@ -11,7 +12,9 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Date;
 
 import javax.swing.JOptionPane;
 
@@ -1104,6 +1107,181 @@ public class SatPayloadDbStore {
 			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
 		}
 		return 0;
+	}
+	
+	/**
+	 * Given the current reset (likely always 1) and the uptime, is this a new reset?  If so, update the reset 
+	 * table with estimated T0 and return the new reset number. Block with a transaction during this whole process.
+	 * 
+	 * Additionally, does this uptime make sense?  Reject a record if the uptime is in the future.
+	 * 
+	 * @param uptime
+	 * @param stepDate
+	 * @return
+	 */
+	public int checkForNewReset(int id, long uptime, Date stpDate, int resetOnFrame, String groundStation) {
+		PreparedStatement ps = null, ps1 = null, ps2 = null;
+		ResultSet rs = null, rs1 = null;
+		Timestamp T0 = null;
+		int currentReset = 0;
+		
+		long stpSeconds = 0; // init to 0 and then if the stpDate is null it will show up as a bad clock for the station
+		if (stpDate != null)
+			stpSeconds = stpDate.getTime()/1000;
+		Date now = new Date();
+		long nowSeconds = now.getTime()/1000;
+		long T0Seconds = 0;
+				
+		Connection conn = null;
+		try {
+			conn = payloadDbStore.getConnection();
+			conn.setAutoCommit(false);
+			
+			// first get the current reset
+			ps = conn.prepareStatement("SELECT max(resets) as reset from T0_LOG where id = ?");
+		    ps.setInt(1,id);
+		    rs = ps.executeQuery();
+		    while (rs.next()) {
+		    	currentReset = rs.getInt("reset");	
+			}
+		    
+		    // Then get T0 for the current reset
+		    ps1 = conn.prepareStatement("SELECT T0_estimate_date_time from T0_LOG where id = ? and resets = ?");
+		    ps1.setInt(1,id);
+		    ps1.setInt(2,currentReset);
+		    rs1 = ps1.executeQuery();
+		    while (rs1.next()) {
+		    	T0 = rs1.getTimestamp("T0_estimate_date_time");	
+			}
+		     
+		    if (T0 != null) // if there was a row in the table then set T0Seconds.
+		    	T0Seconds = T0.getTime()/1000;
+
+			long stpDiff2Now = Math.abs(nowSeconds - stpSeconds); // store difference from server clock to the stp timestamp
+			long stpDiff2T0 = Math.abs(stpSeconds - (T0Seconds + uptime)); // store difference from stp timestamp to T0 + uptime
+			
+			// Check if this is a real time record and if the senders clock looks accurate
+			if (stpDiff2Now > ServerConfig.groundStationClockThreshold) {
+				// Not a real time record. If stpDate still agrees with T0 + uptime then its a delayed frame, else reject it
+		    	if (stpDiff2T0 < ServerConfig.groundStationClockThreshold) {
+		    		if (ServerConfig.debugResetCheck)
+			    		Log.println("### DELAYED frame: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
+		    		conn.commit();
+	    			return currentReset; // we just ASSUME this belongs in the current reset.  Maybe the server was down and these were queued...
+		    	}
+				if (ServerConfig.debugResetCheck)
+					Log.println("*** DELAYED Frame REJECTED: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
+	    		conn.commit();
+    			return -1; // We reject this record
+			}
+			
+			if (!ServerConfig.isTrustedGroundStation(groundStation)) {
+				// What appears to be a real time record, but we don't trust this station to roll the reset.  So check if the uptime + T0
+				// agrees with stpDate.  Otherwise REJECT (for now)
+				if (stpDiff2T0 < ServerConfig.groundStationClockThreshold) {
+					conn.commit();
+	    			return currentReset; // Not trusted but the stp record agrees with T0 so post it
+				}
+				if (ServerConfig.debugResetCheck)
+					Log.println("*** RT Frame REJECTED: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
+	    		conn.commit();
+    			return -1; // We reject this record
+			}
+			
+			// Otherwise we have a trusted station and the stpDate shows its a real time record
+			if (ServerConfig.debugResetCheck)
+				Log.println("### Trusted station: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff2Now + " from current time");
+
+			// In the unlikely event that we have a reset value on this frame that has incremented from the current reset, then process as a new reset
+		    if (resetOnFrame - currentReset == 1) { // this may never happen, or we might jump a few resets
+		    	// Then we had a normal reset, write it in the log
+	    		Log.println("*** HUSKY NORMAL RESET DETECTED ....");
+	    		Log.println("*** stpDate: " + stpDate + " " + stpSeconds);
+	    		Log.println("*** uptime: " + uptime);
+	    		currentReset = resetOnFrame;
+	    		// We have a reset, so insert a new T0 row
+	    		ps2 = conn.prepareStatement(
+	    				"INSERT INTO T0_LOG (id, resets, T0_estimate_date_time) VALUES (?, ?, ?)");
+
+	    		// set the preparedstatement parameters
+	    		ps2.setInt(1,id);
+	    		ps2.setInt(2,currentReset);
+	    		Timestamp newT0estimate = new Timestamp((stpSeconds - uptime)*1000);
+	    		ps2.setTimestamp(3,newT0estimate);
+
+	    		int rows = ps2.executeUpdate();
+	    		if (rows > 0) {
+	    			conn.commit();
+	    			return currentReset;
+	    		} else {
+	    			Log.println("ERROR: Could not insert the new reset number" + currentReset);
+	    			conn.rollback();
+	    			return currentReset; // this was a genuine reset, so we do not want to ignore the data 
+	    		}
+		    }
+		    
+		    // Otherwise we need to check if this record should roll the reset
+		    // We proceed if T0 is not set - this is only in the situation where we first run the algorithm and the T0 row is missing
+		    // We also check that the uptime is low.  This is a safety check and may not be needed. It can be configured to a high number if we want
+		    if (T0Seconds == 0 || (uptime < ServerConfig.newResetCheckUptimeMax)) {
+		    	
+		    	long diff = Math.abs(stpSeconds - (T0Seconds + uptime));
+		    	if (ServerConfig.debugResetCheck)
+		    		Log.println("### Trusted station: diff to T0: " + diff);
+		    	if (diff > ServerConfig.newResetCheckThreshold) {
+		    		// we have had a reset. 
+		    		Log.println("*** HUSKY NON MRAM LOGGED RESET DETECTED ....");
+		    		Log.println("*** stpDate: " + stpDate + " " + stpSeconds);
+		    		Log.println("*** TO: " + T0 + " " + T0Seconds);
+		    		Log.println("*** uptime: " + uptime);
+		    		Log.println("*** DIFF: " + diff);
+		    		if (T0Seconds != 0) // increment the reset unless this is the first time we insert a row for this genuine reset
+		    			currentReset = currentReset + 1;
+		    		// We have a reset, so insert a new T0 row
+		    		ps2 = conn.prepareStatement(
+		    				"INSERT INTO T0_LOG (id, resets, T0_estimate_date_time) VALUES (?, ?, ?)");
+
+		    		// set the preparedstatement parameters
+		    		ps2.setInt(1,id);
+		    		ps2.setInt(2,currentReset);
+		    		Timestamp newT0estimate = new Timestamp((stpSeconds - uptime)*1000);
+		    		ps2.setTimestamp(3,newT0estimate);
+
+		    		int rows = ps2.executeUpdate();
+		    		if (rows > 0) {
+		    			conn.commit();
+		    			return currentReset;
+		    		} else {
+		    			Log.println("ERROR: Could not insert the new reset number" + currentReset);
+		    			conn.rollback();
+		    			return -1; 
+		    		}
+		    	}
+		    }
+		    // we use the current reset and return that
+		    conn.commit();
+		    return currentReset;
+
+		} catch (SQLException e) {
+			PayloadDbStore.errorPrint("ERROR Check SQL:", e);
+			
+			try { conn.rollback(); rs.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (rs1 != null) rs1.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (ps1 != null) ps1.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+			try { if (ps2 != null) ps2.close();	} catch (SQLException e1) { e1.printStackTrace(); }
+		} finally {
+			try { if (rs != null) rs.close(); } catch (SQLException e2) {};
+			try { if (rs1 != null) rs.close(); } catch (SQLException e2) {};
+			try { if (ps != null) ps.close(); } catch (SQLException e2) {};
+			try { if (ps1 != null) ps1.close(); } catch (SQLException e2) {};
+			try { if (ps2 != null) ps2.close(); } catch (SQLException e2) {};
+			
+			// Make sure we are back out of the transaction
+			try { if (conn != null) conn.setAutoCommit(true); } catch (SQLException e2) {};	
+		}
+		// we should not end up here, something went wrong
+		return -1;
 	}
 	
 

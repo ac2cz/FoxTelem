@@ -43,11 +43,12 @@ public abstract class Header extends FoxFramePart {
 
 	@Override
 	public void copyBitsToFields() {
-		resetBitPosition();
-		id = nextbits(3);
-		resets = nextbits(16);
-		uptime = nextbits(25);
-		
+		if (rawBits != null) { // only convert if we actually have a raw binary array.  Otherwise this was loaded from a file and we do not want to convert
+			resetBitPosition();
+			id = nextbits(3);
+			resets = nextbits(16);
+			uptime = nextbits(25);
+		}
 	}
 
 	
