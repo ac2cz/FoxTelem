@@ -65,8 +65,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.08z2";
-	public static String VERSION = VERSION_NUM + " - 22 Feb 2020";
+	public static String VERSION_NUM = "1.08z3";
+	public static String VERSION = VERSION_NUM + " - 23 Feb 2020";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -79,18 +79,18 @@ public class Config {
 	public static final Color PURPLE = new Color(123,6,130);
 	public static final Color AMSAT_GREEN = new Color(0,102,0);
 	
-	public static final Color GRAPH1 = new Color(255,153,51); // orange
-	public static final Color GRAPH2 = new Color(0,153,0); // green
+	public static final Color GRAPH1 = new Color(205,103,01); // orange
+	public static final Color GRAPH2 = new Color(0,103,0); // green
 	public static final Color GRAPH3 = new Color(255,51,0); // red
 	public static final Color GRAPH4 = new Color(102,204,51); // bright green
-	public static final Color GRAPH5 = new Color(255,204,0); // yellow
-	public static final Color GRAPH6 = new Color(153,0,0); // dark red
-	public static final Color GRAPH7 = new Color(51,51,102); // dark blue
-	public static final Color GRAPH8 = new Color(153,102,0); // brown
-	public static final Color GRAPH9 = new Color(102,102,204); // pastel purple
-	public static final Color GRAPH10 = new Color(0,51,153); // deep blue
-	public static final Color GRAPH11 = new Color(255,255,255); // black
-	public static final Color GRAPH12 = new Color(153,153,255); // purple
+	public static final Color GRAPH5 = new Color(153,0,0); // dark red
+	public static final Color GRAPH6 = new Color(51,51,102); // dark blue
+	public static final Color GRAPH7 = new Color(153,102,0); // brown
+	public static final Color GRAPH8 = new Color(102,102,204); // pastel purple
+	public static final Color GRAPH9 = new Color(0,51,153); // deep blue
+	public static final Color GRAPH10 = new Color(255,255,255); // black
+	public static final Color GRAPH11 = new Color(153,153,255); // purple
+	public static final Color GRAPH12 = new Color(255,204,0); // yellow
 	
 	public static SatelliteManager satManager;
 	static Thread satManagerThread;
