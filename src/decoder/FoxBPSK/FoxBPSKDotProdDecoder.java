@@ -547,7 +547,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 					FoxBPSKHeader header = hsf.getHeader();
 					sat = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
-					int newReset = header.resets;
+					int newReset = sat.getCurrentReset(header.resets, header.uptime);
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
 
 					// Capture measurements once per payload or every 5 seconds ish

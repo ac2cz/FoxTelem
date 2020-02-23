@@ -1,10 +1,14 @@
 package common;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Writer;
+import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -16,6 +20,7 @@ import java.util.TimeZone;
 import org.joda.time.DateTime;
 
 import predict.PositionCalcException;
+import telemServer.ServerConfig;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
@@ -114,6 +119,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public boolean hasModeInHeader = false;
 	public boolean hasMpptSettings = false;
 	public boolean hasMemsRestValues = false;
+	public boolean hasFixedReset = false;
 	
 	// User settings - Calibration
 	public double user_BATTERY_CURRENT_ZERO = 0;
@@ -151,6 +157,45 @@ public class FoxSpacecraft extends Spacecraft{
 
 	public static final DateFormat timeDateFormat = new SimpleDateFormat("HH:mm:ss");
 	public static final DateFormat dateDateFormat = new SimpleDateFormat("dd MMM yy");
+	
+	public int getCurrentReset(int resetOnFrame, long uptime) {
+		if (!hasFixedReset) return resetOnFrame;
+		if (hasTimeZero()) {
+			int reset = timeZero.size()-1; // we have one entry per reset
+			
+			long T0Seconds = timeZero.get(reset)/1000;;
+			Date now = new Date();
+			long nowSeconds = now.getTime()/1000;
+			long newT0estimate = (nowSeconds - uptime)*1000;
+			
+			if (resetOnFrame == reset + 1) {
+				// somehow we had a normal reset
+				// Add a new reset for this
+				timeZero.add(newT0estimate);
+				try {
+					saveTimeZeroSeries();
+				} catch (IOException e) {
+					e.printStackTrace(Log.getWriter());
+				}
+				return resetOnFrame;
+			}
+			
+			long diff = Math.abs(nowSeconds - (T0Seconds + uptime));
+	    	if (uptime < Config.newResetCheckUptimeMax)	
+	    		if (diff > Config.newResetCheckThreshold) {
+	    			Log.println("*** HUSKY RESET DETECTED ...." + diff);
+	    			timeZero.add(newT0estimate);
+	    			try {
+						saveTimeZeroSeries();
+					} catch (IOException e) {
+						e.printStackTrace(Log.getWriter());
+					}
+	    			return reset + 1;
+	    		}
+			return reset;
+		} else 
+		return resetOnFrame;
+	}
 	
 	public boolean hasTimeZero() { 
 		if (timeZero == null) return false;
@@ -300,12 +345,39 @@ public class FoxSpacecraft extends Spacecraft{
 		store_user_params();
 	
 	}
-	
+
+	public void saveTimeZeroSeries() throws IOException {
+
+		String log = "FOX"+ foxId + Config.t0UrlFile;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			log = Config.logFileDirectory + File.separator + log;
+			Log.println("Loading: " + log);
+		}
+
+		//use buffering and replace the existing file
+		File aFile = new File(log );
+		Writer output = new BufferedWriter(new FileWriter(aFile, false));
+		int r = 0;
+
+		try {
+			for (long l : timeZero) {
+				output.write(r +"," + l + "\n" );
+				output.flush();
+				r++;
+			}
+		} finally {
+			// Make sure it is closed even if we hit an error
+			output.flush();
+			output.close();
+		}
+
+	}
+
 	public boolean loadTimeZeroSeries(String log) throws FileNotFoundException {
 		timeZero = new ArrayList<Long>(100);
-        String line = null;
-        if (log == null) { // then use the default
-        	log = "FOX"+ foxId + Config.t0UrlFile;
+		String line = null;
+		if (log == null) { // then use the default
+			log = "FOX"+ foxId + Config.t0UrlFile;
         	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
         		log = Config.logFileDirectory + File.separator + log;
         		Log.println("Loading: " + log);
@@ -384,6 +456,10 @@ public class FoxSpacecraft extends Spacecraft{
 			String mode = getOptionalProperty("hasModeInHeader");
 			if (mode != null) {
 				hasModeInHeader = Boolean.parseBoolean(getProperty("hasModeInHeader"));
+			}
+			String fixedReset = getOptionalProperty("hasFixedReset");
+			if (fixedReset != null) {
+				hasFixedReset = Boolean.parseBoolean(getProperty("hasFixedReset"));
 			}
 			String mems_x = getOptionalProperty("memsRestValueX");
 			if (mems_x != null) {

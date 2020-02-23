@@ -289,7 +289,8 @@ public class Config {
 	static public int timeUntilTableSegOffloaded = 60*1000;
 	static public boolean turboWavFilePlayback = false;
 	static public boolean debugDDE = false;
-	
+	static public int newResetCheckThreshold = 60; // seconds tolerance to match the spacecrafts clock for reset check
+	static public int newResetCheckUptimeMax = 15000;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -741,7 +742,9 @@ public class Config {
 		properties.setProperty("debugSegs", Boolean.toString(debugSegs));
 		properties.setProperty("timeUntilTableSegOffloaded", Integer.toString(timeUntilTableSegOffloaded));
 		properties.setProperty("turboWavFilePlayback", Boolean.toString(turboWavFilePlayback));
-
+		properties.setProperty("newResetCheckThreshold", Integer.toString(newResetCheckThreshold));
+		properties.setProperty("newResetCheckUptimeMax", Integer.toString(newResetCheckUptimeMax));
+		
 		store();
 	}
 	
@@ -932,7 +935,9 @@ public class Config {
 		debugSegs = Boolean.parseBoolean(getProperty("debugSegs"));
 		timeUntilTableSegOffloaded = Integer.parseInt(getProperty("timeUntilTableSegOffloaded"));
 		turboWavFilePlayback = Boolean.parseBoolean(getProperty("turboWavFilePlayback"));
-
+		newResetCheckThreshold = Integer.parseInt(getProperty("newResetCheckThreshold"));
+		newResetCheckUptimeMax = Integer.parseInt(getProperty("newResetCheckUptimeMax"));
+		
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {

@@ -48,8 +48,9 @@ import javax.swing.JOptionPane;
 
 public class UpdateManager implements Runnable {
 
-	private final static long CHECK_PERIOD = 1*60*60*1000; // check every hourly for changes
+	private final static long CHECK_PERIOD = 1*60*60*1000; // check every hour for changes
 	private final static long SERVER_UPDATE_PERIOD = 4*60*60*1000; // check every 4 hours for server changes
+	private final static long T0_UPDATE_PERIOD = 1 * 60*60* 1000; // check every hour to see if T0 changed
 	public final static long KEP_UPDATE_PERIOD = 7*24*60*60*1000; // check every 7 days for TLE changes
 	private boolean server = false;
 	
@@ -311,6 +312,21 @@ public class UpdateManager implements Runnable {
 						Log.println("Can not read the server paramaters, skipping");
 						e1.printStackTrace(Log.getWriter());
 					}
+				}
+			
+			if (!server)
+				if (elapsed % T0_UPDATE_PERIOD == 0) {
+					if (Config.downloadT0FromServer) {
+						ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+						for (int i=0; i<sats.size(); i++) {
+							if (sats.get(i).isFox1()) {
+								FoxSpacecraft fox = (FoxSpacecraft) sats.get(i);
+								if (fox.hasFixedReset) {
+									updateT0((FoxSpacecraft)sats.get(i));
+								}
+							}
+						}
+					}	
 				}
 			
 			if (elapsed % KEP_UPDATE_PERIOD == 0) {

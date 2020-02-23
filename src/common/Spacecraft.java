@@ -195,9 +195,10 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		tleList = new SortedTleList(10);
 	}
 	
+	@Deprecated
 	public boolean isFox1() {
-		if (foxId < 10) return true;
-		return false;
+		//if (foxId < 10) return true;
+		return true;
 	}
 	
 	public int getLayoutIdxByName(String name) {
