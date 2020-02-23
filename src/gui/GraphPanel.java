@@ -111,6 +111,7 @@ public class GraphPanel extends GraphCanvas {
 		int leftOffset = (int) (longestWord * 1.25* fontw + 20); // the point where we start drawing the box from the right edge of the graph
 		
 		g.setFont(new Font("SansSerif", Font.PLAIN, font));
+		g2.setColor(Color.BLACK);
 		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,leftOffset-10 , 9 + fonth * rows +1  );
 		g2.setColor(Color.WHITE);
 		g2.fillRect(sideBorder + graphWidth - leftOffset, titleHeight + 5, leftOffset-11 , 9 + fonth * rows  );
