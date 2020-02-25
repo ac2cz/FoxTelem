@@ -943,7 +943,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * Override in child class
 	 * 
 	 */
-	public byte[][] getPayloadBytes() {
+	public byte[][] getPayloadBytes(int newReset) {
 		return null;
 	}
 

@@ -8,6 +8,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.JOptionPane;
 
 import common.Config;
+import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import common.TlmServer;
@@ -172,12 +173,16 @@ public class RawPayloadQueue extends RawQueue {
 		if (Config.satManager != null)
 			try {
 				if (frames.peek() != null) {
-					Spacecraft sat = Config.satManager.getSpacecraft(frames.peek().foxId);
+					Frame frame = frames.peek();
+					FoxSpacecraft sat = (FoxSpacecraft) Config.satManager.getSpacecraft(frame.header.id);
 					if (sat.sendToLocalServer()) {
 						localServer.setHostName(sat.user_localServer);
 						localServer.setPort(sat.user_localServerPort);
-						Log.println("Trying Local Server: TCP://" + sat.user_localServer + ":" + sat.user_localServerPort);
-						byte[][] buffer = frames.peek().getPayloadBytes();
+						// Need to work out what the right reset is
+						int newReset = sat.getCurrentReset(frame.header.resets, frame.header.uptime);
+						Log.println("Trying COSMOS Server: TCP://" + sat.user_localServer + ":" 
+						+ sat.user_localServerPort + "reset: "+ newReset);
+						byte[][] buffer = frames.peek().getPayloadBytes(newReset);
 						for (byte[] b : buffer)
 							localServer.sendToServer(b, protocol);
 						success = true;

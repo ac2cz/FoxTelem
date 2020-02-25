@@ -173,21 +173,33 @@ public class PayloadUwExperiment extends FoxFramePart {
 
 	}
 	
-	public byte[][] getCANPacketBytes(Date createDate) {
-		return getCANPacketBytes(canPackets, createDate);
+	public byte[][] getCANPacketBytes(Date createDate, int newReset) {
+		return getCANPacketBytes(canPackets, createDate, newReset);
 	}
 	
 	/**
 	 * Get all the Can Packets Bytes in this Payload as an array of payload byte arrays
 	 * @return
 	 */
+	static public byte[][] getCANPacketBytes(ArrayList<CanPacket> canPackets, Date createDate, int newReset) {
+		byte[][] buffers = new byte[canPackets.size()][];
+		int i=0;
+		for (CanPacket p : canPackets) {
+			PcanPacket pc = p.getPCanPacket(createDate, newReset);
+//			if (Config.debugFrames)
+//				Log.println("PCAN: " + pc);
+			buffers[i++] = pc.getBytes(); 
+		}
+		return buffers;
+	}
+	
 	static public byte[][] getCANPacketBytes(ArrayList<CanPacket> canPackets, Date createDate) {
 		byte[][] buffers = new byte[canPackets.size()][];
 		int i=0;
 		for (CanPacket p : canPackets) {
 			PcanPacket pc = p.getPCanPacket(createDate);
-		//	if (Config.debugFrames)
-		//		Log.println("PCAN: " + pc);
+//			if (Config.debugFrames)
+//				Log.println("PCAN: " + pc);
 			buffers[i++] = pc.getBytes(); 
 		}
 		return buffers;

@@ -363,7 +363,7 @@ import telemetry.PayloadWODUwExperiment;
 		 * so we need to check all of them.  First we gather the bytes from each payload in the PCAN format.  We return an 
 		 * array of those byte arrays.  The calling routine will send each PCAN packet individually
 		 */
-		public byte[][] getPayloadBytes() {
+		public byte[][] getPayloadBytes(int newReset) {
 
 			byte[][] allBuffers = null;
 
@@ -373,7 +373,7 @@ import telemetry.PayloadWODUwExperiment;
 				for (int i=0; i< payload.length; i++) {
 					// if this payload should be output then add to the byte buffer
 					if (payload[i] instanceof PayloadUwExperiment) {
-						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(stpDate); 
+						byte[][] buffer = ((PayloadUwExperiment)payload[i]).getCANPacketBytes(stpDate, newReset); 
 						totalBuffers += buffer.length; 
 					}
 					if (payload[i] instanceof PayloadWODUwExperiment) {
@@ -387,7 +387,7 @@ import telemetry.PayloadWODUwExperiment;
 				for (int p=0; p< payload.length; p++) {
 					// if this payload should be output then add its byte buffers to the output
 					if (payload[p] instanceof PayloadUwExperiment) {
-						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(stpDate); 
+						byte[][] buffer = ((PayloadUwExperiment)payload[p]).getCANPacketBytes(stpDate, newReset); 
 						for (int j=0; j < buffer.length; j++) {
 							allBuffers[j + startPosition] = buffer[j];
 						}
