@@ -132,7 +132,7 @@ public class FoxBPSKDecoder extends Decoder {
 		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
 		
 		int offset = recoverClockOffset();
-		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
+		eyeData.clockOffset = offset; // rotate the data so that it matches the clock offset
 
 		//	Scanner scanner = new Scanner(System.in);
 		//		System.out.println("Press enter");
@@ -188,7 +188,7 @@ public class FoxBPSKDecoder extends Decoder {
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
 
 					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
+					addMeasurements(header.id, newReset, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 				}
 				Config.totalFrames++;
 				if (Config.uploadToServer)

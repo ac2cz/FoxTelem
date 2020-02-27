@@ -221,7 +221,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 					else {
 						// ALL END OF BIT LOGIC TO DO WITH BIT CHOICE MUST GO HERE TO BE IN SYNC
 
-						//					System.err.print("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
+						//System.err.println("Bit: " + bitPosition + " Sample: " +((Config.windowsProcessed-1)*SAMPLE_WINDOW_LENGTH+i) + " " + psk + " >>");
 						YnMinus2Sample = YnSample;
 						YnSample = psk;
 
@@ -289,8 +289,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 		//System.err.println(DESIRED_RANGE + " " + maxValue + " " + minValue + " " +gain);
 		if (gain < 1) gain = 1;
 
-		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
-
+		eyeData.clockOffset = offset; // rotate the data so that it matches the clock offset
 	}
 
 	public void incFreq () {
@@ -369,7 +368,7 @@ public class FoxBPSKCostasDecoder extends Decoder {
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
 
 					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
+					addMeasurements(header.id, newReset, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 				}
 				Config.totalFrames++;
 				if (Config.uploadToServer)

@@ -355,7 +355,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    }
 
 		int offset = 0;//-1*(symphase)%bucketSize;
-		eyeData.offsetEyeData(offset); // rotate the data so that it matches the clock offset
+		eyeData.clockOffset = offset; // rotate the data so that it matches the clock offset
 
 	    // Move carefully to next chunk, allowing for overlap of last/first symbol used for differential decoding and for timing skew
 	    samples_processed = bucketSize * (symbol_count-1); // this ignores the first symbol which as not processed and puts the last symbol as our new first symbol
@@ -551,7 +551,7 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
 
 					// Capture measurements once per payload or every 5 seconds ish
-					addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
+					addMeasurements(header.id, newReset, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 				}
 				Config.totalFrames++;
 				if (Config.uploadToServer)

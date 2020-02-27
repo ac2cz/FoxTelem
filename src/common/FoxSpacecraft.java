@@ -177,6 +177,8 @@ public class FoxSpacecraft extends Spacecraft{
 				} catch (IOException e) {
 					e.printStackTrace(Log.getWriter());
 				}
+				if (Config.debugFrames)
+					Log.println("SAVING RESET: " + resetOnFrame);
 				return resetOnFrame;
 			}
 			
@@ -190,11 +192,18 @@ public class FoxSpacecraft extends Spacecraft{
 					} catch (IOException e) {
 						e.printStackTrace(Log.getWriter());
 					}
+					if (Config.debugFrames)
+						Log.println("SAVING RESET: " + (reset+1));
 	    			return reset + 1;
 	    		}
+			if (Config.debugFrames)
+				Log.println("SAVING RESET: " + reset);
 			return reset;
-		} else 
-		return resetOnFrame;
+		} else {
+			if (Config.debugFrames)
+				Log.println("SAVING RESET: " + resetOnFrame);
+			return resetOnFrame;
+		}
 	}
 	
 	public boolean hasTimeZero() { 

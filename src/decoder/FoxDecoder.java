@@ -136,7 +136,7 @@ public abstract class FoxDecoder extends Decoder {
 						if (Config.storePayloads) Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload);
 
 						// Capture measurements once per payload or every 5 seconds ish
-						addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
+						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 					} else {
@@ -161,7 +161,7 @@ public abstract class FoxDecoder extends Decoder {
 								Config.payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), herciDataSet);
 						}
 						// Capture measurements once per payload or every 5 seconds ish
-						addMeasurements(header, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
+						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 							MainWindow.inputTab.setViewDecoder2();
 					}
