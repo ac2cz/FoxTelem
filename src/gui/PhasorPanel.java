@@ -161,9 +161,9 @@ public class PhasorPanel extends JPanel implements Runnable {
 		if (phasorData != null) {
 			for (int j=0; j < phasorData.length/2; j+=2) {	
 				//			x = (int) (border*2 + phasorData[2*j]*(graphWidth-border*2));
-				x = GraphCanvas.getRatioPosition(-1, 1, phasorData[2*j]*0.5, graphWidth);
+				x = GraphCanvas.getRatioPosition(-1, 1, phasorData[2*j]*0.4, graphWidth);
 				//			y = (int) (graphHeight/2+graphHeight/2.5*phasorData[2*j+1] + border);
-				y = GraphCanvas.getRatioPosition(-1, 1, phasorData[2*j+1]*0.5, graphHeight);
+				y = GraphCanvas.getRatioPosition(-1, 1, phasorData[2*j+1]*0.4, graphHeight);
 				if (j==0) {
 					lastx = x;
 					lasty = (int)y;
