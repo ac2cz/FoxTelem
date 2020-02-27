@@ -66,7 +66,6 @@ public class EyePanel extends JPanel implements Runnable {
 	private int errors;
 	private int erasures;
 	private int clockOffset;
-	private int offsetType;
 	//private double bitErrorRate;
 
 	EyeData eyeData;
@@ -133,7 +132,6 @@ public class EyePanel extends JPanel implements Runnable {
 					errors = eyeData.lastErrorsCount;
 					erasures = eyeData.lastErasureCount;
 					clockOffset = eyeData.clockOffset;
-					offsetType = eyeData.offsetType;
 				}
 			}
 			if (decoder != null && data != null ) { 
@@ -235,6 +233,9 @@ public class EyePanel extends JPanel implements Runnable {
 					}
 				}
 			} catch (NullPointerException e) {
+				// this means the buffer was changed while we were drawing it
+				//Log.println("Eye Data buffer changed while drawing it");
+			} catch (ArrayIndexOutOfBoundsException e) {
 				// this means the buffer was changed while we were drawing it
 				//Log.println("Eye Data buffer changed while drawing it");
 			}
