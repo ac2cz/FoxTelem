@@ -352,12 +352,12 @@ public class FoxBPSKDotProdDecoder extends Decoder {
 	    	boolean thisSample = false;
 	    	if (data[i] > 0) thisSample = true;
 			bitStream.addBit(thisSample);
-			if (thisSample == true) // do this opposite as the eye is flipped for Dot Prod (looks better)
-				//eyeData.setLow((int)(((baseband_i[middleSamplePosition]*baseband_i[middleSamplePosition] + baseband_q[middleSamplePosition]*baseband_q[middleSamplePosition])-2)*-32767.0));
-				eyeData.setLow((int) ((pskAudioData[middleSamplePosition]+0.5)*-32767.0)); // take the middle of the bit as the eye sample
+			if (thisSample == true) 
+				//eyeData.setLow((int) ((pskAudioData[middleSamplePosition]+0.5)*-32767.0)); // take the middle of the bit as the eye sample
+				eyeData.setHigh((int)( data[i])*256);
 			else
-				//eyeData.setHigh((int)(((baseband_i[middleSamplePosition]*baseband_i[middleSamplePosition] + baseband_q[middleSamplePosition]*baseband_q[middleSamplePosition])-2)*32767.0));
-				eyeData.setHigh((int)( (pskAudioData[middleSamplePosition]+0.5)*32767.0));
+				//eyeData.setHigh((int)( (pskAudioData[middleSamplePosition]+0.5)*32767.0));
+				eyeData.setLow((int)( data[i])*256);
 	    }
 
 		int offset = 0;//-1*(symphase)%bucketSize;
