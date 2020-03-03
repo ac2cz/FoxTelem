@@ -66,8 +66,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.09f";
-	public static String VERSION = VERSION_NUM + " - 20 Feb 2020";
+	public static String VERSION_NUM = "1.09f2";
+	public static String VERSION = VERSION_NUM + " - 2 Mar 2020";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -233,7 +233,7 @@ public class Config {
 	
 	static public int displayModuleFontSize = 12;
 	static public int graphAxisFontSize = 12;
-	static public boolean useNativeFileChooser = true; // true for windows/mac, false for Linux
+	static public boolean useNativeFileChooser = false; // false for windows/mac, false for Linux. 
 	
 	static public boolean showSNR = true; // toggles if we are looking at SNR of strongest signal or Avg
 	static public double SCAN_SIGNAL_THRESHOLD = 12d; // This is strongest signal in sat band to average noise.  Strongest signal needs to be above this
