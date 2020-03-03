@@ -99,10 +99,9 @@ public class FoxSpacecraft extends Spacecraft{
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
 		"Vanderbilt VUC",
-		"Vanderbilt LEP",
 		"Vanderbilt REM",
 		"Vanderbilt LEPF",
-		"University of Washington Experiment",
+		"CAN Packet Interface",
 		"ADAC"
 	};
 	
