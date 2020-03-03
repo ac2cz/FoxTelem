@@ -1,6 +1,8 @@
 package FuncubeDecoder;
 
+import common.Spacecraft;
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
 import telemetry.FramePart;
 
 public class PayloadRealTime extends FramePart {
@@ -26,6 +28,14 @@ public class PayloadRealTime extends FramePart {
 	public String toString() {
 		copyBitsToFields();
 		return "FUNcube RealTime id:"+id;
+	}
+
+
+
+	@Override
+	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

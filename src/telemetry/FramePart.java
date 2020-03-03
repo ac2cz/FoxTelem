@@ -153,11 +153,6 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		return ""+getDoubleValue(name, fox);
 	}
 
-	@Override
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	/**
 	 * Output the set of fields in this framePart as a set of comma separated values in a string.  This 
 	 * can then be written to a file

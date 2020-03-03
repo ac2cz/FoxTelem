@@ -4,6 +4,7 @@ import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
 import telemetry.FoxFramePart;
 
 public class FUNcubeHeader extends BitArray {
@@ -53,6 +54,12 @@ public class FUNcubeHeader extends BitArray {
 				+ " TYPE: " + FoxDecoder.dec(type);
 		
 		return s;
+	}
+
+	@Override
+	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 }

@@ -1216,7 +1216,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				String unit = layout.getUnitsByName(variables.get(position));
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
-					conversionType2 = layout.getConversionByName(variables.get(position));
+					conversionType2 = layout.getIntConversionByName(variables.get(position));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
 					i=0;

@@ -24,10 +24,10 @@ package telemetry;
  * Look up table for the temperature sensors on the battery board
  *
  */
-public class LookUpTableBatteryTemp extends LookUpTable {
+public class LookUpTableBatteryTemp extends ConversionLookUpTable {
 
 LookUpTableBatteryTemp() {
-
+	super("LookUpTableBatteryTemp");
 	table.put(608,-55.0);
 	table.put(612,-54.0);
 	table.put(616,-53.0);

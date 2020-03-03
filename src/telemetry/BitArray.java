@@ -67,7 +67,7 @@ public abstract class BitArray {
 	}
 	
 	public int getConversionByName(String name) {
-		return layout.getConversionByName(name);
+		return layout.getIntConversionByName(name);
 		
 	}
 	
@@ -162,13 +162,34 @@ public abstract class BitArray {
 
 		if (pos != -1) {
 			int value = fieldValue[pos];
-			double result = convertRawValue(name, value, layout.conversion[pos], fox);
+			double result = value; // initialize the result to the value we start with, in case its a pipeline
+			if (fox.useConversionCoeffs) { // use a modern conversion soft coded
+				// Need to know if this is a static, curve or table conversion
+				String convName = layout.getConversionNameByPos(pos);
+		//		if (convName.equalsIgnoreCase("IHU_ADC|com1_tx_fwd_pwr|59"))
+		//			System.out.println("STOP");
+				String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
+				for (String singleConv : conversions) {
+					Conversion conv = fox.getConversionByName(singleConv);
+					if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric
+						int convInt = 0;
+						try {
+							convInt = Integer.parseInt(singleConv);
+						} catch (NumberFormatException e) { convInt = 0;}
+						result = convertRawValue(name, result, convInt, fox);
+					} else
+						result = convertCoeffRawValue(name, result, conv, fox);	
+				}
+			} else {
+				result = convertRawValue(name, value, layout.getIntConversionByPos(pos), fox);
+			}
 			return result;
 		}
 		return ERROR_VALUE;
 	}
-
-	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
 	
+	protected abstract double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox );	
+	
+	protected abstract double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox );	
 	
 }

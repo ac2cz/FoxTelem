@@ -387,7 +387,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		this.setTitle("Fox 1 Telemetry Analysis Tool ");
+		this.setTitle("AMSAT Telemetry Analysis Tool ");
 		addWindowListener(this);
 		addWindowStateListener(this);
 
@@ -1075,7 +1075,8 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 							FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
 							satellite.save();
 						} catch (LayoutLoadException e) {
-							// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+							Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
+							// But carry on.  Hopefully the new MASTER file will fix it!
 							e.printStackTrace(Log.getWriter()); // but log if user has that enabled
 						}
 						refresh = true;
