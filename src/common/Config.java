@@ -66,7 +66,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.08z5";
-	public static String VERSION = VERSION_NUM + " - 26 Feb 2020";
+	public static String VERSION = VERSION_NUM + " - 3 Mar 2020";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
