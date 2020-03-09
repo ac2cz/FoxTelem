@@ -198,6 +198,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	 * it is easier to return true here than remove the calls and later try to work out where they were.
 	 * @return
 	 */
+	@Deprecated
 	public boolean isFox1() {
 		return true;
 //		if (foxId < 10) return true;

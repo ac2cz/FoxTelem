@@ -45,6 +45,7 @@ public class EyeData extends DataMeasure {
     public static final int BIT = 2;
     
     public int clockOffset = 0; // store the offset so we can print it for debug
+    public int offsetType = 0;
     
     public EyeData(int l, int b) {
     	MEASURES = 3;
@@ -78,11 +79,19 @@ public class EyeData extends DataMeasure {
     }
     
     public boolean isFresh() { return eyeDataFresh; }
-    public void setFreshData(boolean b) { eyeDataFresh = b; }
+    public void setFreshData(boolean b) { 
+    	eyeDataFresh = b;
+    }
     public void setData(int window, int j, int value) { 
     	eyeData[window][j] = value;
     }
-    public int[][] getData() { return eyeData; }
+    public int[][] getData() { 
+    	if (clockOffset != 0) {
+    		int[][] buffer = offsetEyeData(clockOffset);
+    		return buffer; 
+    	} else
+    		return eyeData;
+    }
     
     public void setHigh(int value) {
     	setValue(HIGH, value);
@@ -109,31 +118,69 @@ public class EyeData extends DataMeasure {
     	setValue(BIT, value/(width*2));
     }
     
+    /**
+     * We have a value in bucket i at bucket position j and we want to move it by offset
+     * There are 5 cases to consider:
+     * 1/ WRAP BACK offset is -ve and bucket position j is less then offset and we are in the first bucket
+     * 
+     * 2/ PREV offset is -ve and bucket position j is less then offset and we are in any bucket except the first
+     * 
+     * 3/ NEXT offset is +ve and j + offset takes us outside the bucket and we are not in the last bucket
+     * 
+     * 4/ CURRENT offset is 0 or +ve and j + offset >= 0 and j + offset keeps us in the current bucket
+     * 
+     * 5/ WRAP FWD
+     * 
+     * @param i
+     * @param j
+     * @param offset
+     * @return
+     */
     private int getOffsetValue(int i, int j, int offset) {
     	int value = 0;
-    	if (offset < 0 && j < Math.abs(offset) && i == 0) // copy from previous data set
-			value = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
-		else if (offset < 0 && j < Math.abs(offset) && i >= 1) // copy from previous
-			value = eyeData[i-1][j+bucketSize+offset];
-		else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) // copy from next
-			value = eyeData[i+1][bucketSize-1-j+offset];
-		else if (j+offset >=0 && j+offset < bucketSize) // copy from the current
-			value = eyeData[i][j+offset];
-		else {
-			// There is no data to copy.  Out offset is looking into the future
-			//buffer[a][b++] = 0;
-			//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
-		}
+    	// Case 1 - WRAP -VE
+    	if (offset < 0) {
+    		if (j < Math.abs(offset) && i == 0) {// copy from previous data set
+    			value = eyeData[SAMPLE_WINDOW_LENGTH-1][j+bucketSize+offset];
+    			offsetType = 1;
+    			// PREV
+    		} else if (j < Math.abs(offset) && i > 0) {// copy from previous
+    			value = eyeData[i-1][j+bucketSize+offset];
+    			offsetType = 2;
+    			// CURRENT -VE
+    		} else if (j >= Math.abs(offset)) { // copy from the current
+    			value = eyeData[i][j+offset];
+    			offsetType = 5;
+    		}
+    	}
+    	if (offset > 0) { // note that all our offsets are -ve, but this is for future decoders maybe..
+    		// NEXT
+    	} else if (offset > 0 && j + offset >= bucketSize && i < SAMPLE_WINDOW_LENGTH-1) { // copy from next
+    		value = eyeData[i+1][bucketSize-1-j+offset];
+    		offsetType = 3;
+    		// CURRENT +VE
+    	} else if (offset > 0 && j+offset < bucketSize) { // copy from the current
+    		value = eyeData[i][j+offset];
+    		offsetType = 4;
+    		// WRAP +VE
+    	} else if (offset > 0 && j + offset >= bucketSize && i == SAMPLE_WINDOW_LENGTH-1) {// copy from next data set
+    		offsetType = 6;
+    		// There is no data to copy.  Out offset is looking into the future, so wrap
+    		value = eyeData[0][bucketSize-1-j+offset];
+    		//buffer[a][b++] = 0;
+    		//System.err.println("EYE ERROR:i" + i + " j:" + j + " off:" + offset);
+    	}
     	return value;
     }
+
     /*
 	 * Tricky to make the eye diagram work for the PSK decoder because we do not move the clock.  Instead we have an offset, so 
 	 * we need to work out where each bucket starts.  We get the offset from the decoder and use that the shuffle the samples
 	 * backwards or forwards.  Then we can draw the eye diagram in the normal way.
-	 * However, we sampled at 9600, vs 48000.  So we have 4 identical samples in a row.
 	 */
-    public void offsetEyeData(int offset) {
+    private int[][] offsetEyeData(int offset) {
     	clockOffset = offset;
+    	
     	int[][] buffer = new int[SAMPLE_WINDOW_LENGTH][];
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
 			buffer[i] = new int[bucketSize];
@@ -149,6 +196,6 @@ public class EyeData extends DataMeasure {
 			b=0;
 			a++;
 		}
-    	eyeData = buffer;
+    	return buffer;
     }
 }

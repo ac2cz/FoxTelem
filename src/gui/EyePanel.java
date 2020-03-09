@@ -235,6 +235,9 @@ public class EyePanel extends JPanel implements Runnable {
 			} catch (NullPointerException e) {
 				// this means the buffer was changed while we were drawing it
 				//Log.println("Eye Data buffer changed while drawing it");
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// this means the buffer was changed while we were drawing it
+				//Log.println("Eye Data buffer changed while drawing it");
 			}
 
 		} else {
@@ -271,8 +274,10 @@ public class EyePanel extends JPanel implements Runnable {
 		//g.drawString("LOW:"+avgLow, graphWidth/2 + 10  + border, graphHeight - 30  );
 
 		g2.setColor(Color.GRAY);
-		if (Config.debugValues) 	
+		if (Config.debugValues) {
 			g.drawString("Clk Offset  "+clockOffset, 10  + border, 40    );
+			//g.drawString("Offset Typ  "+offsetType, 10  + border, 60    );
+		}
 		g.drawString("Errors  "+errors, graphWidth/2 - 70  + border, graphHeight - 10  );
 		g.drawString("Erasures  "+erasures, graphWidth/2 - 0  + border, graphHeight - 10  );
 		//g.drawString("BER:"+bitErrorRate, graphWidth/2 + 35  + border, graphHeight - 10  );

@@ -80,18 +80,18 @@ public class Config {
 	public static final Color PURPLE = new Color(123,6,130);
 	public static final Color AMSAT_GREEN = new Color(0,102,0);
 	
-	public static final Color GRAPH1 = new Color(255,153,51); // orange
-	public static final Color GRAPH2 = new Color(0,153,0); // green
+	public static final Color GRAPH1 = new Color(205,103,01); // orange
+	public static final Color GRAPH2 = new Color(0,103,0); // green
 	public static final Color GRAPH3 = new Color(255,51,0); // red
 	public static final Color GRAPH4 = new Color(102,204,51); // bright green
-	public static final Color GRAPH5 = new Color(255,204,0); // yellow
-	public static final Color GRAPH6 = new Color(153,0,0); // dark red
-	public static final Color GRAPH7 = new Color(51,51,102); // dark blue
-	public static final Color GRAPH8 = new Color(153,102,0); // brown
-	public static final Color GRAPH9 = new Color(102,102,204); // pastel purple
-	public static final Color GRAPH10 = new Color(0,51,153); // deep blue
-	public static final Color GRAPH11 = new Color(255,255,255); // black
-	public static final Color GRAPH12 = new Color(153,153,255); // purple
+	public static final Color GRAPH5 = new Color(153,0,0); // dark red
+	public static final Color GRAPH6 = new Color(51,51,102); // dark blue
+	public static final Color GRAPH7 = new Color(153,102,0); // brown
+	public static final Color GRAPH8 = new Color(102,102,204); // pastel purple
+	public static final Color GRAPH9 = new Color(0,51,153); // deep blue
+	public static final Color GRAPH10 = new Color(255,255,255); // black
+	public static final Color GRAPH11 = new Color(153,153,255); // purple
+	public static final Color GRAPH12 = new Color(255,204,0); // yellow
 	
 	public static SatelliteManager satManager;
 	static Thread satManagerThread;
@@ -292,7 +292,8 @@ public class Config {
 	static public int timeUntilTableSegOffloaded = 60*1000;
 	static public boolean turboWavFilePlayback = false;
 	static public boolean debugDDE = false;
-	
+	static public int newResetCheckThreshold = 60; // seconds tolerance to match the spacecrafts clock for reset check
+	static public int newResetCheckUptimeMax = 15000;
 	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
@@ -743,7 +744,9 @@ public class Config {
 		properties.setProperty("debugSegs", Boolean.toString(debugSegs));
 		properties.setProperty("timeUntilTableSegOffloaded", Integer.toString(timeUntilTableSegOffloaded));
 		properties.setProperty("turboWavFilePlayback", Boolean.toString(turboWavFilePlayback));
-
+		properties.setProperty("newResetCheckThreshold", Integer.toString(newResetCheckThreshold));
+		properties.setProperty("newResetCheckUptimeMax", Integer.toString(newResetCheckUptimeMax));
+		
 		// V1.09
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("format", Integer.toString(format));
@@ -937,7 +940,9 @@ public class Config {
 		debugSegs = Boolean.parseBoolean(getProperty("debugSegs"));
 		timeUntilTableSegOffloaded = Integer.parseInt(getProperty("timeUntilTableSegOffloaded"));
 		turboWavFilePlayback = Boolean.parseBoolean(getProperty("turboWavFilePlayback"));
-
+		newResetCheckThreshold = Integer.parseInt(getProperty("newResetCheckThreshold"));
+		newResetCheckUptimeMax = Integer.parseInt(getProperty("newResetCheckUptimeMax"));
+		
 		// V1.09
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		format = Integer.parseInt(getProperty("format"));

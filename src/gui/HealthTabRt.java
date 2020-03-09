@@ -184,11 +184,10 @@ public class HealthTabRt extends HealthTab {
 						justStarted = false;
 					}
 				}
-//				if (fox.hasModeInHeader) { // || Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-//					displayMode(0);
-//				}
-				
-
+				if (showLatest == GraphFrame.SHOW_LIVE)
+					if (fox.hasModeInHeader) { 
+						displayMode(fox.determineModeFromHeader());
+					}
 			}
 			//System.out.println("Health tab running: " + running);
 		}

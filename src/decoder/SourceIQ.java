@@ -542,11 +542,11 @@ public class SourceIQ extends SourceAudio {
 			in[decimateCount] = iMixNco;
 			in2[decimateCount] = qMixNco;
 			} catch (ArrayIndexOutOfBoundsException e) {
-				// we likely changed the rate, warn user
-				Log.errorDialog("ERROR WITH DECIMATION RATE", "Try stopping and starting the decoder to reset the decimation rate");
+				// we likely changed the rate, but usually we can recover from this. Try to ignore
+				Log.println("ERROR WITH DECIMATION RATE. count:" + decimateCount + " rate:" + decimationFactor);
 			}
 			decimateCount++;
-			if (decimateCount == decimationFactor) {
+			if (decimateCount >= decimationFactor) {
 				decimateCount = 0;
 				pfValue = polyFilter.filterDouble(in);
 				pfValue2 = polyFilter2.filterDouble(in2);

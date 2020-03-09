@@ -340,7 +340,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 						lasty2 = (int)y2;
 
 						if ((foxDecoder instanceof FoxBPSKDotProdDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder 
-								&& (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ))) && pskAudioData != null && i < pskAudioData.length) {
+								&& (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ))) && pskQAudioData != null && i < pskQAudioData.length) {
 							// 2nd trace
 							g2.setColor(Color.RED);
 							x3 = border*2 + i*(graphWidth-border*2)/pskQAudioData.length;

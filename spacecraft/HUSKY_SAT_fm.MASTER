@@ -16,6 +16,7 @@ description=HUSKY SAT is a 3U CubeSat with a V/u Linear transponder, 1k2 PSK tel
 hasCanBus=true
 hasImprovedCommandReceiverII=true
 hasModeInHeader=true
+hasFixedReset=true
 numberOfFrameLayouts=11
 numberOfLayouts=9
 numberOfLookupTables=4

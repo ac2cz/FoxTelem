@@ -431,6 +431,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			FramePart radPayload = Config.payloadStore.getLatestRad(foxId);
 			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
 		}
+		displayMode(mode);
+	}
+	
+	protected void displayMode(String mode) {
 		if (lblModeValue != null)
 			lblModeValue.setText(mode);
 	}

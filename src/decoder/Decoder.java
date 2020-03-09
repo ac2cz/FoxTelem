@@ -667,22 +667,22 @@ public abstract class Decoder implements Runnable {
 		
 	}
 	
-	protected void addMeasurements(Header header, Frame frame, int lastErrorsNumber, int lastErasureNumber) {
+	protected void addMeasurements(int id, int resets, long uptime, Frame frame, int lastErrorsNumber, int lastErasureNumber) {
 		// Pass Measurements
 		if (Config.passManager.isNewPass()) {
 			Log.println("Setting reset/uptime for new pass");
-			Config.passManager.setStartResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+			Config.passManager.setStartResetUptime(id, resets, uptime);
 		} else {
-			Config.passManager.setLastResetUptime(header.getFoxId(), header.getResets(), header.getUptime());
+			Config.passManager.setLastResetUptime(id, resets, uptime);
 		}
 
 		// Real time measurements
-		RtMeasurement rtMeasurement = new RtMeasurement(header.getFoxId(), header.getResets(), header.getUptime(), SatMeasurementStore.RT_MEASUREMENT_TYPE);
+		RtMeasurement rtMeasurement = new RtMeasurement(id, resets, uptime, SatMeasurementStore.RT_MEASUREMENT_TYPE);
 		rtMeasurement.setBitSNR(eyeData.bitSNR);
 		rtMeasurement.setErrors(lastErrorsNumber);
 		rtMeasurement.setErasures(lastErasureNumber);
 		//SatPc32DDE satPC = null;
-		Spacecraft sat = Config.satManager.getSpacecraft(header.id);
+		Spacecraft sat = Config.satManager.getSpacecraft(id);
 		SatPos pos = null;
 		if (Config.useDDEforAzEl) {
 			//satPC = new SatPc32DDE();
@@ -700,7 +700,7 @@ public abstract class Decoder implements Runnable {
 				if (Config.GROUND_STATION.getLatitude() == 0 && Config.GROUND_STATION.getLongitude() == 0) {
 					// We have a dummy Ground station which is fine for sat position calc but not for Az, El calc.
 				} else {
-					sat = Config.satManager.getSpacecraft(header.id);
+					sat = Config.satManager.getSpacecraft(id);
 					try {
 						//DateTime satTime = null;
 						//if (sat.isFox1())
@@ -711,7 +711,7 @@ public abstract class Decoder implements Runnable {
 							pos = sat.getCurrentPosition();
 						//}
 						if (Config.debugFrames)
-							Log.println("Fox at: " + header.resets + ":" + header.uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
+							Log.println("Fox at: " + resets + ":" + uptime +" - " + FramePart.latRadToDeg(pos.getLatitude()) + " : " + FramePart.lonRadToDeg(pos.getLongitude()));
 					} catch (PositionCalcException e) {
 						// We wont get NO T0 as we are using the current time, but we may have missing keps.  We ignore as the user knows from the GUI
 /*						if (e.errorCode == FramePart.NO_TLE)
@@ -761,7 +761,7 @@ public abstract class Decoder implements Runnable {
 			}
 		}
 		
-		Config.payloadStore.add(header.getFoxId(), rtMeasurement);		
+		Config.payloadStore.add(id, rtMeasurement);		
 		frame.setMeasurement(rtMeasurement);
 	}	
 	

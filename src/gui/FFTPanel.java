@@ -701,6 +701,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if (iqSource == null) return;
     //	int selectedBin = iqSource.getSelectedBin();
     	int selectedBin = iqSource.getSelectedBin();
 
