@@ -227,7 +227,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, FoxSpacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -235,7 +235,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.title = title;
 		this.conversionType = conversionType;
 		
-		layout = getLayout(plType);
+		if (lay == null)
+			this.layout = getLayout(plType);
+		else
+			this.layout = lay;
 		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);

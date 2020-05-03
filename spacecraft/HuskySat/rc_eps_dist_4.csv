@@ -3,8 +3,8 @@
 1,CAN,UW_ID1,8,NONE,0,NONE,0,0,0,ID1,CAN ID with Length Encoded
 2,CAN,UW_ID2,8,NONE,0,NONE,0,0,0,ID2,CAN ID with Length Encoded
 3,CAN,UW_ID3,8,NONE,0,NONE,0,0,0,ID3,CAN ID with Length Encoded
-4,CAN,com1_c_avg,16,raw node current,0,rc_eps_dist_4,1,1,0,com1_c_avg,COM1 domain current average,
-5,CAN,com1_c_max,16,raw node current,0,rc_eps_dist_4,1,2,0,com1_c_max,COM1 domain current maximum,
-6,CAN,com1_c_min,16,raw node current,0,rc_eps_dist_4,1,3,0,com1_c_min,COM1 domain current minimum,
-7,CAN,com1_state,8,-,0,rc_eps_dist_4,1,4,0,com1_state,COM1 domain state,
+4,CAN,com1_state,8,A,0,COM1 Current: rc_eps_dist_4,1,1,0,State,COM1 Domain State: 0 ON|1 OFF_MANUAL|2 OFF_OVERCURRENT|3 OFF_UNDER_VOLT|4 OFF_INITIAL|5 UNKNOWN
+5,CAN,com1_c_min,16,A,0,COM1 Current: rc_eps_dist_4,1,2,0,Min,COM1 domain current minimum
+6,CAN,com1_c_max,16,A,0,COM1 Current: rc_eps_dist_4,1,3,0,Max,COM1 domain current maximum
+7,CAN,com1_c_avg,16,A,0,COM1 Current: rc_eps_dist_4,1,4,0,Avg,COM1 domain current maximum
 8,CAN,JUNK,8,NONE,0,NONE,0,0,0,Junk,Unexpected bytes at the end of the CAN Packet

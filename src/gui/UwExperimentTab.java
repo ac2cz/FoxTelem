@@ -78,7 +78,14 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	boolean displayTelem = true;
 	
 	BitArrayLayout[] layout;
-	int[] ids = {309920562, 309920256, 309330499};
+	int[] ids = {308871750, // RC_EPS_DIST_4 
+				 308871681, // RC_EPS_BAT_2
+				 307823128,  // RC_EPS_GEN_9
+				 0x12590215,  // RC_EPS_GEN_6
+				 0x12590216, // RC_EPS_GEN_7
+				 0x12590217, // RC_EPS_GEN_8
+				 0x12590250 // RX_EPS_DIST_14
+				 };
 	 
 	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
 		super();
@@ -175,9 +182,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		rad = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
 		BitArrayLayout none = null;
 		try {
-//			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
-
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
+//			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW); // add the experiment header to the top
+			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);	// add the CAN to the bottom
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -425,18 +431,15 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
-				if (mod != null)
-					mod.updateRtValues(rad);
-			}
-			if (bottomModules != null)
-				for (BitArrayLayout lay : layout) {
-					// TODO - this is very inefficient.  The module should take the layout as a param and it should just update itself
-					FramePart can = Config.payloadStore.getLatest(fox.foxId, lay.name);
-					for (DisplayModule mod : bottomModules) {
-						if (mod != null)
-							mod.updateRtValues(can);
+				if (mod != null) {
+					if (mod.getTelemLayout() != null) {
+						FramePart data = Config.payloadStore.getLatest(foxId, mod.getTelemLayout().name);
+						if (data != null)
+							mod.updateRtValues(data);
 					}
 				}
+			}
+			
 		}
 	}
 	
