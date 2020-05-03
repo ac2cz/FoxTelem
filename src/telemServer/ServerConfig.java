@@ -27,6 +27,7 @@ public class ServerConfig {
 	public static int newResetCheckThreshold=30;
 	public static int newResetCheckUptimeMax=15000;
 	public static int groundStationClockThreshold=60;
+	public static int realTimeReceptionThreshold=30;
 	public static boolean debugResetCheck=true;
 	
 	public static void init() {
@@ -67,6 +68,7 @@ public class ServerConfig {
 		properties.setProperty("newResetCheckUptimeMax", Integer.toString(newResetCheckUptimeMax));
 		properties.setProperty("groundStationClockThreshold", Integer.toString(groundStationClockThreshold));
 		properties.setProperty("debugResetCheck", Boolean.toString(debugResetCheck));
+		properties.setProperty("realTimeReceptionThreshold", Integer.toString(realTimeReceptionThreshold));
 		store();
 	}
 
@@ -110,6 +112,7 @@ public class ServerConfig {
 			newResetCheckUptimeMax = Integer.parseInt(getProperty("newResetCheckUptimeMax"));
 			groundStationClockThreshold = Integer.parseInt(getProperty("groundStationClockThreshold"));
 			debugResetCheck = Boolean.parseBoolean(getProperty("debugResetCheck"));
+			realTimeReceptionThreshold = Integer.parseInt(getProperty("realTimeReceptionThreshold"));
 
 		} catch (NumberFormatException nf) {
 			Log.println("FATAL: Could not load properties: " + nf.getMessage());

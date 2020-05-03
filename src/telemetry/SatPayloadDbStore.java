@@ -1160,107 +1160,82 @@ public class SatPayloadDbStore {
 			long stpDiff2Now = Math.abs(nowSeconds - stpSeconds); // store difference from server clock to the stp timestamp
 			long stpDiff2T0 = Math.abs(stpSeconds - (T0Seconds + uptime)); // store difference from stp timestamp to T0 + uptime
 			
-			// Check if this is a real time record and if the senders clock looks accurate
-			if (stpDiff2Now > ServerConfig.groundStationClockThreshold) {
-				// Not a real time record. If stpDate still agrees with T0 + uptime then its a delayed frame, else reject it
-		    	if (stpDiff2T0 < ServerConfig.groundStationClockThreshold) {
-		    		if (ServerConfig.debugResetCheck)
-			    		Log.println("### DELAYED frame: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
+			
+			if (ServerConfig.isTrustedGroundStation(groundStation)) {
+				// Logic here for trusted stations
+
+				// Check if this is a real time record and if the senders clock looks accurate
+				if (stpDiff2Now > ServerConfig.realTimeReceptionThreshold) {
+					// Not a real time record. For a trusted station this is fatal
+					if (ServerConfig.debugResetCheck)
+						Log.println("### NON RT Frame REJECTED from trusted: " + groundStation +": " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
 		    		conn.commit();
-	    			return currentReset; // we just ASSUME this belongs in the current reset.  Maybe the server was down and these were queued...
-		    	}
-				if (ServerConfig.debugResetCheck)
-					Log.println("*** DELAYED Frame REJECTED: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
-	    		conn.commit();
-    			return -1; // We reject this record
-			}
-			
-			if (!ServerConfig.isTrustedGroundStation(groundStation)) {
-				// What appears to be a real time record, but we don't trust this station to roll the reset.  So check if the uptime + T0
-				// agrees with stpDate.  Otherwise REJECT (for now)
-				if (stpDiff2T0 < ServerConfig.groundStationClockThreshold) {
-					conn.commit();
-	    			return currentReset; // Not trusted but the stp record agrees with T0 so post it
+	    			return -1; // We reject this record
 				}
+				
+				/* Otherwise we need to check if this record should roll the reset
+				 * We proceed if T0 is not set - this is only in the situation where we first run the algorithm and the T0 row is missing
+				 * We also check that the uptime is low.  This is a safety check and ensures T0 has not drifted too far.
+				 */
+				if (T0Seconds == 0 || (uptime < ServerConfig.newResetCheckUptimeMax)) {	
+					if (ServerConfig.debugResetCheck)
+						Log.println("*** Trusted station: " + groundStation +": " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
+			    	if (stpDiff2T0 > ServerConfig.newResetCheckThreshold) {
+			    		// we have had a reset. 
+			    		Log.println("*** HUSKY NON MRAM LOGGED RESET DETECTED ...." + groundStation +": ");
+			    		Log.println("*** stpDate: " + groundStation +": " + stpDate + " " + stpSeconds);
+			    		Log.println("*** TO: " + groundStation +": " + T0 + " " + T0Seconds);
+			    		Log.println("*** uptime: " + groundStation +": " + uptime);
+			    		Log.println("*** DIFF: " + groundStation +": " + stpDiff2T0);
+			    		if (T0Seconds != 0) // increment the reset unless this is the first time we insert a row for this genuine reset
+			    			currentReset = currentReset + 1;
+			    		// We have a reset, so insert a new T0 row
+			    		ps2 = conn.prepareStatement(
+			    				"INSERT INTO T0_LOG (id, resets, T0_estimate_date_time) VALUES (?, ?, ?)");
+
+			    		// set the preparedstatement parameters
+			    		ps2.setInt(1,id);
+			    		ps2.setInt(2,currentReset);
+			    		Timestamp newT0estimate = new Timestamp((stpSeconds - uptime)*1000);
+			    		ps2.setTimestamp(3,newT0estimate);
+
+			    		int rows = ps2.executeUpdate();
+			    		if (rows > 0) {
+			    			conn.commit();
+			    			return currentReset;
+			    		} else {
+			    			Log.println("ERROR: Could not insert the new reset number" + currentReset + " from " + groundStation);
+			    			conn.rollback();
+			    			return -1; 
+			    		}
+			    	}
+				}
+				 // we use the current reset and return that
+			    conn.commit();
+			    return currentReset;
+			} else {
+				// Logic for non trusted stations
+				int gsct = ServerConfig.groundStationClockThreshold;
+				
+				// Check if we have less than the resetCheck threshold of uptime.  
+				// This means that T0 is tightly defined and we are near a reset.
+				// There is more danger of delayed frames being from a previous reset
+				if (uptime > ServerConfig.newResetCheckUptimeMax) {	
+					gsct = 3 * gsct;
+				}
+				if (stpDiff2T0 < gsct) {
+					conn.commit();
+	    			return currentReset; // Not trusted but the stp record agrees with T0 so post it in current reset
+				}
+				// Otherwise we reject the frame
 				if (ServerConfig.debugResetCheck)
-					Log.println("*** RT Frame REJECTED: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
-	    		conn.commit();
-    			return -1; // We reject this record
+					Log.println("### DELAYED Frame REJECTED: " + groundStation +": uptime: " + uptime + " stp: " + stpDate + ": " + stpDiff2T0 + " from T0 + uptime and " + stpDiff2Now + " from current time");
+				conn.commit();
+				return -1; // We reject this record
+
 			}
 			
-			// Otherwise we have a trusted station and the stpDate shows its a real time record
-			if (ServerConfig.debugResetCheck)
-				Log.println("### Trusted station: stpDate: " + stpDate + " " + stpSeconds + ": " + stpDiff2Now + " from current time");
-
-			// In the unlikely event that we have a reset value on this frame that has incremented from the current reset, then process as a new reset
-		    if (resetOnFrame - currentReset == 1) { // this may never happen, or we might jump a few resets
-		    	// Then we had a normal reset, write it in the log
-	    		Log.println("*** HUSKY NORMAL RESET DETECTED ....");
-	    		Log.println("*** stpDate: " + stpDate + " " + stpSeconds);
-	    		Log.println("*** uptime: " + uptime);
-	    		currentReset = resetOnFrame;
-	    		// We have a reset, so insert a new T0 row
-	    		ps2 = conn.prepareStatement(
-	    				"INSERT INTO T0_LOG (id, resets, T0_estimate_date_time) VALUES (?, ?, ?)");
-
-	    		// set the preparedstatement parameters
-	    		ps2.setInt(1,id);
-	    		ps2.setInt(2,currentReset);
-	    		Timestamp newT0estimate = new Timestamp((stpSeconds - uptime)*1000);
-	    		ps2.setTimestamp(3,newT0estimate);
-
-	    		int rows = ps2.executeUpdate();
-	    		if (rows > 0) {
-	    			conn.commit();
-	    			return currentReset;
-	    		} else {
-	    			Log.println("ERROR: Could not insert the new reset number" + currentReset);
-	    			conn.rollback();
-	    			return currentReset; // this was a genuine reset, so we do not want to ignore the data 
-	    		}
-		    }
-		    
-		    // Otherwise we need to check if this record should roll the reset
-		    // We proceed if T0 is not set - this is only in the situation where we first run the algorithm and the T0 row is missing
-		    // We also check that the uptime is low.  This is a safety check and may not be needed. It can be configured to a high number if we want
-		    if (T0Seconds == 0 || (uptime < ServerConfig.newResetCheckUptimeMax)) {
-		    	
-		    	long diff = Math.abs(stpSeconds - (T0Seconds + uptime));
-		    	if (ServerConfig.debugResetCheck)
-		    		Log.println("### Trusted station: diff to T0: " + diff);
-		    	if (diff > ServerConfig.newResetCheckThreshold) {
-		    		// we have had a reset. 
-		    		Log.println("*** HUSKY NON MRAM LOGGED RESET DETECTED ....");
-		    		Log.println("*** stpDate: " + stpDate + " " + stpSeconds);
-		    		Log.println("*** TO: " + T0 + " " + T0Seconds);
-		    		Log.println("*** uptime: " + uptime);
-		    		Log.println("*** DIFF: " + diff);
-		    		if (T0Seconds != 0) // increment the reset unless this is the first time we insert a row for this genuine reset
-		    			currentReset = currentReset + 1;
-		    		// We have a reset, so insert a new T0 row
-		    		ps2 = conn.prepareStatement(
-		    				"INSERT INTO T0_LOG (id, resets, T0_estimate_date_time) VALUES (?, ?, ?)");
-
-		    		// set the preparedstatement parameters
-		    		ps2.setInt(1,id);
-		    		ps2.setInt(2,currentReset);
-		    		Timestamp newT0estimate = new Timestamp((stpSeconds - uptime)*1000);
-		    		ps2.setTimestamp(3,newT0estimate);
-
-		    		int rows = ps2.executeUpdate();
-		    		if (rows > 0) {
-		    			conn.commit();
-		    			return currentReset;
-		    		} else {
-		    			Log.println("ERROR: Could not insert the new reset number" + currentReset);
-		    			conn.rollback();
-		    			return -1; 
-		    		}
-		    	}
-		    }
-		    // we use the current reset and return that
-		    conn.commit();
-		    return currentReset;
+		   
 
 		} catch (SQLException e) {
 			PayloadDbStore.errorPrint("ERROR Check SQL:", e);
