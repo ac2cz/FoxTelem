@@ -85,3 +85,5 @@ canFileDir=HuskySat
 numberOfSources=1
 source0.name=ihu.bpsk
 source0.formatName=FOX_BPSK
+useConversionCoeffs=true
+conversionCurvesFileName=HUSKY_SAT_conversion_curves.csv
