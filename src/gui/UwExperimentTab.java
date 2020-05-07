@@ -78,7 +78,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	boolean displayTelem = true;
 	
 	BitArrayLayout[] layout;
-	int[] ids = {308871750, // RC_EPS_DIST_4 
+	public static int[] ids = {308871750, // RC_EPS_DIST_4 
 				 308871681, // RC_EPS_BAT_2
 				 307823128,  // RC_EPS_GEN_9
 				 0x12590215,  // RC_EPS_GEN_6
@@ -95,7 +95,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		
 		int j = 0;
 		layout = new BitArrayLayout[ids.length];
-		 for (int canid : ids)
+		for (int canid : ids)
 			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
 
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
@@ -174,6 +174,12 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		
 		// initial populate
 		parseRadiationFrames();
+	}
+	
+	public static boolean inCanIds(int id) {
+		for (int canid : ids)
+			if (id == canid) return true;
+		return false;
 	}
 	
 	void addModules() {

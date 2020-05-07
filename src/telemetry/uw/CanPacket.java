@@ -188,12 +188,12 @@ public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
 	}
 
 	
-	protected static int getIdfromRawID(int canPacketId) {
+	public static int getIdfromRawID(int canPacketId) {
 		int id = canPacketId & 0x1FFFFFFF; // 3 MSB are the Length, so ignore that and take the rest as the id
 		return id;
 	}
 	
-	protected static int getLengthfromRawID(int canPacketId) {
+	public static int getLengthfromRawID(int canPacketId) {
 		int length = (canPacketId >> 29) & 0x7; // We want just the 3 MSB as the length
 		return length + 1;
 	}

@@ -154,6 +154,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 
+	public int getQueuedFramesSize() {
+		return payloadQueue.size();
+	}
+	
 	public boolean hasQueuedMeasurements() {
 		if (measurementQueue.size() > 0) return true;
 		return false;
@@ -361,6 +365,13 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return 0;
 	}
 	*/
+	
+	public SortedFramePartArrayList getFrameParts(int id, int fromReset, long fromUptime, int period, boolean reverse, String layout) throws IOException {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getFrameParts(fromReset, fromUptime, period, reverse, layout);
+		return null;
+	}
 	
 	public int getNumberOfPictureCounters(int id) { 
 		SatPictureStore store = getPictureStoreById(id);

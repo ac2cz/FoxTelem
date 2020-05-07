@@ -67,6 +67,13 @@ public class SatPayloadTable {
 		updated = true;
 	}
 	
+	public SortedFramePartArrayList getFrameParts(int fromReset, long fromUptime, int period, boolean reverse) throws IOException {
+		if (rtRecords == null) return null;
+		loadSegments(fromReset, fromUptime, period, reverse);
+		//if (rtRecords == null) return null;
+		return rtRecords;
+	}
+	
 	public void setUpdated(boolean t) { updated = t; }
 	public boolean getUpdated() { return updated; }
 	
@@ -153,6 +160,7 @@ public class SatPayloadTable {
 	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean reverse) throws IOException {
 		return getPayloadData(period, id, fromReset, fromUptime, length, false, reverse);
 	}
+	
 	
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
@@ -485,8 +493,8 @@ public class SatPayloadTable {
 	private synchronized void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
 		boolean existingLock = deleteLock;
 		deleteLock = true;
+		int total = 0;
 		try {
-			int total = 0;
 			if (reverse) {
 				// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
 				// So we first calculate where to start
@@ -509,7 +517,7 @@ public class SatPayloadTable {
 					total += tableIdx.get(i).records;
 
 				}
-				//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
+//				System.err.println("Success we got: "+total+" records and needed "+number);
 			} else {
 				int i = findFirstSeg(reset, uptime);
 				// Then we need to load segment at i and start counting from here

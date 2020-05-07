@@ -58,8 +58,13 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
+import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
+import telemetry.SortedFramePartArrayList;
+import telemetry.uw.CanPacket;
 
 import com.apple.eawt.Application;
 
@@ -929,12 +934,74 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				downloadServerData(dir);
 			}
 		}
+		
+		Config.save(); // make sure any changed settings saved
+		Config.initPayloadStore();
+		
+		int pkts = 0;
+		
+		for (Spacecraft sat : sats) {
+			// We can not rely on the name of the spacecraft being the same as the directory name on the server
+			// because the user can change it.  So we have a hard coded routine to look it up
+			if (sat.hasCanBus) {
+				ProgressPanel splitProgress = new ProgressPanel(this, "Splitting can packets, please wait ...", false);
+				splitProgress.setVisible(true);
+				// generate the local can packets as they are not stored on the server
+				SortedFramePartArrayList canPackets;
+				int total = 0;
+				
+				try {
+					// search forward (not in reverse) and grab all the records.
+					canPackets = Config.payloadStore.getFrameParts(sat.foxId, 0, 0, 99999999, true, Spacecraft.CAN_PKT_LAYOUT);
+
+					for (FramePart p : canPackets) {
+						total++;
+						if (p.getType() == FoxFramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
+							pkts++;
+							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
+							int length = CanPacket.getLengthfromRawID(ihuPacketId);
+							int canId = CanPacket.getIdfromRawID(ihuPacketId);
+							if (UwExperimentTab.inCanIds(canId)) {
+								byte[] data = new byte[CanPacket.ID_BYTES+length];
+								for (int i=0;i<data.length; i++)
+									data[i] = (byte) p.fieldValue[i];
+								BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(sat.foxId, canId);
+								if (canLayout != null) { 
+									CanPacket newPacket = new CanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
+									if (p.getType() > 1400)
+										newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
+									//									if (newPacket.getType() > 1700)
+									//										System.err.println("Won't store: " + canLayout.name + " type: " + newPacket.getType() + " p type: " + p.getType());
+									//									else
+									Config.payloadStore.add(sat.foxId, p.uptime, p.resets, newPacket);
+								}
+							}
+						}
+					}
+				} catch (IOException e) {
+					Log.errorDialog("ERROR", "Could not split the can packets\n" + e);
+				}
+				//System.err.println("Split: " + total + " pkts:" + pkts);
+				splitProgress.updateProgress(100);
+			}
+		}
+		
+		ProgressPanel queueStatus = new ProgressPanel(this, "Post processing can packets. Remaining:", false);
+		queueStatus.setVisible(true);
+		while (Config.payloadStore.hasQueuedFrames()) {
+			queueStatus.updateProgress(Config.payloadStore.getQueuedFramesSize());
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		queueStatus.updateProgress(100);
 
 		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
 		refreshProgress.setVisible(true);
 		
-		Config.save(); // make sure any changed settings saved
-		Config.initPayloadStore();
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
@@ -944,6 +1011,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);
 		
+		
+		
+		Config.fileProgress.updateProgress(100);
 	}
 	
 	/**

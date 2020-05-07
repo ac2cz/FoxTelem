@@ -16,6 +16,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public boolean initialized() { return loaded; }
 	public abstract boolean hasQueuedFrames();
+	public abstract int getQueuedFramesSize();
 
 	public abstract boolean hasQueuedMeasurements();
 
@@ -78,6 +79,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
+	public abstract SortedFramePartArrayList getFrameParts(int id, int fromReset, long fromUptime, int period, boolean reverse, String layout) throws IOException;
 	public abstract FramePart getLatest(int id, String layout);
 	public abstract FramePart getLatestRt(int id);
 	public abstract FramePart getLatestMax(int id);
