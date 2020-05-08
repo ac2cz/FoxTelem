@@ -290,7 +290,7 @@ public abstract class Frame implements Comparable<Frame> {
 		length = Integer.toString(byteLen * 8);
 
 		// TODO - this should be set by the DECODER which knows what type of format it is decoding
-		source = "amsat.fox-" + fox.getIdString() + ".";
+		source = "";
 		try {
 			if (this instanceof SlowSpeedFrame) {
 				source = source + fox.sourceName[DUV_FRAME];

@@ -1124,6 +1124,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return -1;
 	}
 
+	@Override
+	public int getQueuedFramesSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public SortedFramePartArrayList getFrameParts(int id, int fromReset, long fromUptime, int period, boolean reverse,
+			String layout) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
 	
 
 

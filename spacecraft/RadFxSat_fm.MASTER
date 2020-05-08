@@ -51,3 +51,4 @@ source1.name=ihu.highspeed
 track=false
 useIHUVBatt=false
 user_mode=0
+user_format=2

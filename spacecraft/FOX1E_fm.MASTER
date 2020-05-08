@@ -66,5 +66,5 @@ telemetryDownlinkFreqkHz=435750
 track=false
 useIHUVBatt=false
 numberOfSources=1
-source0.name=ihu.bpsk
+source0.name=amsat.fox-1e.ihu.bpsk
 source0.formatName=FOX_BPSK

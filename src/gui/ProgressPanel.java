@@ -42,7 +42,7 @@ public class ProgressPanel extends JDialog implements ActionListener {
 	
 	public void updateProgress(int p) {
 		if (p == 100) this.dispose();
-		setTitle(title + " (" + p + "%)");
+		setTitle(title + " (" + p + ")");
 	}
 
 }

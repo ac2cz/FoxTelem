@@ -79,7 +79,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	
 	BitArrayLayout[] layout;
 	public static int[] ids = {308871750, // RC_EPS_DIST_4 
-				 308871681, // RC_EPS_BAT_2
+				 308871681, // RC_EPS_BATT_2
+				 0x12690204, // RC_EPS_BATT_5
 				 307823128,  // RC_EPS_GEN_9
 				 0x12590215,  // RC_EPS_GEN_6
 				 0x12590216, // RC_EPS_GEN_7
