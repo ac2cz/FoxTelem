@@ -970,24 +970,33 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 	public void setupFormat() {
 		if (Config.format == FORMAT_FSK_AUTO) {
-			//Config.autoDecodeSpeed = true;
 			auto.setSelected(true);
 			enableFilters(true);
+			Config.mode = SourceIQ.MODE_FSK_AUTO;
 		} else
 		if (Config.format == FORMAT_FSK_HS) {
 			highSpeed.setSelected(true);
 			enableFilters(false);
+			Config.mode = SourceIQ.MODE_FSK_HS;
 		} else if (Config.format == FORMAT_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
+			Config.mode = SourceIQ.MODE_FSK_DUV;
 		} else if (Config.format == FORMAT_PSK_FOX ){
 			pskFoxBpsk.setSelected(true);
 			enableFilters(false);
+			if (Config.useCostas)
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			else
+				Config.mode = SourceIQ.MODE_PSK_NC;
 		} else if (Config.format == FORMAT_PSK_GOLF){
 			pskGolfBpsk.setSelected(true);
 			enableFilters(false);
+			if (Config.useCostas)
+				Config.mode = SourceIQ.MODE_PSK_COSTAS;
+			else
+				Config.mode = SourceIQ.MODE_PSK_NC;
 		}
-
 	}
 	
 	private JRadioButton addRadioButton(String name, JPanel panel) {
@@ -1649,7 +1658,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	 */
 	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
 
-		if (Config.format == FORMAT_FSK_AUTO) {
+		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			if (Config.iq) {
 				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 0);
@@ -2145,7 +2154,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		stopDecoder();
 		STARTED = false;
 		btnStartButton.setText("Start");
-		enableSourceSelectionComponents(true);
+		if (!(Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0))
+			enableSourceSelectionComponents(true);
 	}
 	
 	private void setMode() {
@@ -2703,6 +2713,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						rdbtnFindSignal.setEnabled(false);
 						btnStartButton.setEnabled(false);
 						lblWhenAboveHorizon.setVisible(true);
+//						enableSourceModeSelectionComponents(false);
 						if (aboveHorizon && !STARTED) {
 							processStartButtonClick();
 						}

@@ -794,8 +794,8 @@ public class PassManager implements Runnable {
 					(sat.user_telemetryDownlinkFreqkHz > belowCenter && sat.user_telemetryDownlinkFreqkHz < aboveCenter)) {
 				// we need to retune as the sat is outside the current band or too near center spike
 				double newCenterFreq = sat.user_telemetryDownlinkFreqkHz - 0.25 * range / 1000;
-				//if (Config.debugSignalFinder)
-				Log.println("Retuning for "+ sat.user_display_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+				if (Config.debugSignalFinder)
+					Log.println("Retuning for "+ sat.user_display_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
 				MainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
 				return true;
 			}
@@ -811,7 +811,7 @@ public class PassManager implements Runnable {
 				//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
 				//	Config.autoDecodeSpeed = false;
 				if (SourceTab.STARTED)
-					MainWindow.inputTab.processStartButtonClick();
+					MainWindow.inputTab.processStartButtonClick(); // stop the decoder
 				Config.format = sat.user_format;
 				MainWindow.inputTab.setupFormat();
 				if (Config.format != sat.user_format) // then user has an override, such as Use Costas, so remember that for this sat
