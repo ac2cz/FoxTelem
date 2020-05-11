@@ -1154,8 +1154,8 @@ longer send telemetry.
 		String s = new String();
 		if (rawValue != ERROR_VALUE) {
 			int DACoverflows = rawValue & 0xff;
-			int I2C1Retries = (rawValue >> 4) & 0x0f;
-			int I2C2Retries = (rawValue >> 4) & 0x0f;
+			int I2C1Retries = (rawValue >> 8) & 0x0f;
+			int I2C2Retries = (rawValue >> 12) & 0x0f;
 			int SPIRetries = (rawValue >> 16) & 0xff;
 			int MramCRCs = (rawValue >> 24) & 0xff;
 
