@@ -190,10 +190,10 @@ public class HighSpeedBitStream extends FoxBitStream {
 		//byte[] correctedBytes = new byte[RsCodeWord.DATA_BYTES];
 		for (int i=0; i < numberOfRsCodeWords; i++) {
 			if (numberOfErasures[i] < MAX_ERASURES) {
-				totalRsErasures += numberOfErasures[rsNum];
+				totalRsErasures += numberOfErasures[i];
 				//Log.println("LAST ERASURE: " + lastErasureNumber);
 				if (Config.useRSfec) {								
-					if (Config.useRSerasures) codeWords[rsNum].setErasurePositions(erasurePositions[i], numberOfErasures[i]);
+					if (Config.useRSerasures) codeWords[i].setErasurePositions(erasurePositions[i], numberOfErasures[i]);
 					codeWords[i].decode();  
 					totalRsErrors += codeWords[i].getNumberOfCorrections();
 					//Log.println("LAST ERRORS: " + lastErrorsNumber);
