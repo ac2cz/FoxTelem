@@ -203,7 +203,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			"FSK DUV 200",
 			"FSK HS 9600",
 			"FSK DUV + HS",
-			"BPSK 1200 (Fox)",
+			"BPSK 1200 (Husky)",
 			"BPSK 1200 (Golf)"
 	};
 
@@ -700,8 +700,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		pskCostas.setToolTipText("Use a Costas Loop to lock onto the signal and decode the BPSK");
 //		pskDotProd = addRadioButton("DP", panel_2 );
 //		pskDotProd.setToolTipText("Use a Dot Product decoder which is less sensitive to phase mismatch but more sensitive to noise");
-		pskFoxBpsk = addRadioButton("Fox", panel_2 );
-		pskFoxBpsk.setToolTipText("Use Fox BPSK decoder");
+		pskFoxBpsk = addRadioButton("Husky", panel_2 );
+		pskFoxBpsk.setToolTipText("Use Husky BPSK decoder");
 		pskGolfBpsk = addRadioButton("Golf", panel_2 );
 		pskGolfBpsk.setToolTipText("Use Golf BPSK decoder");
 		ButtonGroup group = new ButtonGroup();

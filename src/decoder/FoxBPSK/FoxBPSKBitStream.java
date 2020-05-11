@@ -48,7 +48,7 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		maxBytes = telemFormat.getInt(TelemFormat.FRAME_LENGTH); //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
 		frameSize = telemFormat.getInt(TelemFormat.DATA_LENGTH); // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
 		numberOfRsCodeWords = telemFormat.getInt(TelemFormat.RS_WORDS);
-		this.rsPadding = rsPadding;
+		this.rsPadding = telemFormat.getPaddingArray();
 		findFramesWithPRN = true;
 	}
 	

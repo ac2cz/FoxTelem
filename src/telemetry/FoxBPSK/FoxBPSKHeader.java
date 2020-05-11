@@ -36,28 +36,30 @@ public class FoxBPSKHeader extends Header {
 	 * Take the bits from the raw bit array and copy them into the fields
 	 */
 	public void copyBitsToFields() {
-		if (this.layout.fieldName != null) {
-			// We have a layout, so use that.  GOLF-T and later
-			super.copyBitsToFields();
-			id = getRawValue(ID_FIELD);
-			resets = getRawValue(RESET_FIELD);
-			uptime = getRawValue(UPTIME_FIELD);
-			type = getRawValue(TYPE_FIELD);
-			minorVersion = getRawValue(PROTOCOL_VERSION_FIELD);
-			int modes = getRawValue(MODES_FIELD);
-		} else {
-			super.copyBitsToFields();
-			type = nextbits(4);
-			if (id == 0) // then take the foxId from the next 8 bits
-				id = nextbits(8);
-			if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) { // Post Fox-1E BPSK has mode in header
-				safeMode = nextbits(1);
-				healthMode = nextbits(1);
-				scienceMode = nextbits(1);
-				cameraMode = nextbits(1);
-				minorVersion = nextbits(4);
+		if (rawBits != null) { // only convert if we actually have a raw binary array.  Otherwise this was loaded from a file and we do not want to convert
+			if (this.layout.fieldName != null) {
+				// We have a layout, so use that.  GOLF-T and later
+				super.copyBitsToFields();
+				id = getRawValue(ID_FIELD);
+				resets = getRawValue(RESET_FIELD);
+				uptime = getRawValue(UPTIME_FIELD);
+				type = getRawValue(TYPE_FIELD);
+				minorVersion = getRawValue(PROTOCOL_VERSION_FIELD);
+				int modes = getRawValue(MODES_FIELD);
+			} else {
+				super.copyBitsToFields();
+				type = nextbits(4);
+				if (id == 0) // then take the foxId from the next 8 bits
+					id = nextbits(8);
+				if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) { // Post Fox-1E BPSK has mode in header
+					safeMode = nextbits(1);
+					healthMode = nextbits(1);
+					scienceMode = nextbits(1);
+					cameraMode = nextbits(1);
+					minorVersion = nextbits(4);
+				}
+				setMode();
 			}
-			setMode();
 		}
 	}
 

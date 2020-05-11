@@ -304,7 +304,6 @@ public abstract class Frame implements Comparable<Frame> {
 			throw new FrameProcessException("Source missing in Spacecraft File, frame could not be processed.  ID: " + foxId + "\n" +e);
 		}
 		source = source.toLowerCase();
-
 	}
 
 	/**
@@ -573,13 +572,14 @@ public abstract class Frame implements Comparable<Frame> {
 			} else if(length == PSK_FRAME_LEN) {
 				// High Speed Frame
 				// Log.println("RS Decode for: " + length/8 + " byte frame..");
-				int[] rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
-				rsPadding[0] = 64;
-				rsPadding[1] = 64;
-				rsPadding[2] = 65;
+				TelemFormat format = Config.satManager.getFormatByName("FOX_BPSK");
+				int[] rsPadding = format.getPaddingArray();
+//				rsPadding[0] = 64;
+//				rsPadding[1] = 64;
+//				rsPadding[2] = 65;
 				if (ServerConfig.highSpeedRsDecode)
 					// TODO - This should be looked up from the FoxId and the frameLayout for the sat
-					if (!highSpeedRsDecode(476, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
+					if (!highSpeedRsDecode(476, rsPadding.length, rsPadding, rawFrame, demodulator)) {
 						Log.println("BPSK RS Decode Failed");
 						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
 					}
