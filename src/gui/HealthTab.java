@@ -7,6 +7,9 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
+import java.lang.reflect.Field;
 
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
@@ -16,6 +19,7 @@ import javax.swing.JTable;
 import javax.swing.KeyStroke;
 import java.awt.BorderLayout;
 import java.awt.Font;
+import java.awt.Rectangle;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
@@ -71,13 +75,13 @@ import java.util.TimeZone;
  *
  */
 @SuppressWarnings("serial")
-public abstract class HealthTab extends ModuleTab implements MouseListener, ItemListener, ActionListener, Runnable {
+public abstract class HealthTab extends ModuleTab implements PropertyChangeListener, MouseListener, ItemListener, ActionListener, Runnable {
 	
-	public final int DEFAULT_DIVIDER_LOCATION = 500;
+	public final int DEFAULT_DIVIDER_LOCATION = 5000;
 	public static final String HEALTHTAB = "HEALTHTAB";
 
-	private static final String LIVE = "Live ";
-	private static final String DISPLAY = "Selected ";
+	private static final String LIVE = "Latest ";
+	private static final String DISPLAY = "Historical ";
 	
 	JPanel centerPanel;
 	
@@ -177,7 +181,7 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		lblLive = new JLabel(LIVE);
 		lblLive.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
 		lblLive.setForeground(Config.AMSAT_RED);
-//		topPanel2.add(lblLive);
+		topPanel2.add(lblLive);
 		
 		centerPanel = new JPanel();
 		add(centerPanel, BorderLayout.CENTER);
@@ -191,7 +195,6 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		initDisplayHalves(centerPanel);
 		
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight");
-
 		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				centerPanel, healthPanel);
@@ -202,17 +205,21 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		else
 			splitPane.setDividerLocation(DEFAULT_DIVIDER_LOCATION);
 		
-		SplitPaneUI spui = splitPane.getUI();
-	    if (spui instanceof BasicSplitPaneUI) {
-	      // Setting a mouse listener directly on split pane does not work, because no events are being received.
-	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
-	          public void mouseReleased(MouseEvent e) {
-	        	  splitPaneHeight = splitPane.getDividerLocation();
-	        	  //Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
-	          }
-	      });
-	    }
+		if (Config.isWindowsOs()) // then the divider is too small to see
+			splitPane.setDividerSize((int) (splitPane.getDividerSize() * 3));
+		captureSplitPaneHeight(); // this will also lock us to the bottom at startup if needed.
+		
+//		SplitPaneUI spui = splitPane.getUI();
+//	    if (spui instanceof BasicSplitPaneUI) {
+//	      // Setting a mouse listener directly on split pane does not work, because no events are being received.
+//	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
+//	    	  public void mouseReleased(MouseEvent e) {
+//	    		captureSplitPaneHeight();  
+//	    	  }
+//	      });
+//	    }
+	    
+	    splitPane.addPropertyChangeListener("dividerLocation", this);
 		//Provide minimum sizes for the two components in the split pane
 		Dimension minimumSize = new Dimension(100, 50);
 		healthPanel.setMinimumSize(minimumSize);
@@ -286,8 +293,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
 				int row = rtTable.getSelectedRow();
-				if (row > 0)
+				if (row > 0) {
 					displayRow(rtTable, NO_ROW_SELECTED, row-1);
+					scrollToRow(rtTable, row-1);
+				}
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
@@ -295,8 +304,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
 				int row = rtTable.getSelectedRow();
-				if (row < rtTable.getRowCount()-1)
-					displayRow(rtTable, NO_ROW_SELECTED, row+1);        
+				if (row < rtTable.getRowCount()-1) {
+					displayRow(rtTable, NO_ROW_SELECTED, row+1);     
+					scrollToRow(rtTable, row+1);
+				}
 			}
 		});
 		
@@ -310,8 +321,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
 				int row = maxTable.getSelectedRow();
-				if (row > 0)
+				if (row > 0) {
 					displayRow(maxTable, NO_ROW_SELECTED, row-1);
+					scrollToRow(maxTable, row-1);
+				}
 			}
 		});
 		actMapMax.put(NEXT, new AbstractAction() {
@@ -319,8 +332,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
 				int row = maxTable.getSelectedRow();
-				if (row < maxTable.getRowCount()-1)
-					displayRow(maxTable, NO_ROW_SELECTED, row+1);        
+				if (row < maxTable.getRowCount()-1) {
+					displayRow(maxTable, NO_ROW_SELECTED, row+1);   
+					scrollToRow(maxTable, row+1);
+				}
 			}
 		});
 
@@ -334,8 +349,10 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
 				int row = minTable.getSelectedRow();
-				if (row > 0)
+				if (row > 0) {
 					displayRow(minTable, NO_ROW_SELECTED, row-1);
+					scrollToRow(minTable, row-1);
+				}
 			}
 		});
 		actMapMin.put(NEXT, new AbstractAction() {
@@ -343,11 +360,52 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
 				int row = minTable.getSelectedRow();
-				if (row < minTable.getRowCount()-1)
-					displayRow(minTable, NO_ROW_SELECTED, row+1);        
+				if (row < minTable.getRowCount()-1) {
+					displayRow(minTable, NO_ROW_SELECTED, row+1);     
+					scrollToRow(minTable, row+1);
+				}
 			}
 		});
 		
+	}
+	
+	public void propertyChange(PropertyChangeEvent e) {
+		captureSplitPaneHeight();
+	}
+	
+	private void captureSplitPaneHeight() {
+		splitPaneHeight = splitPane.getDividerLocation();
+		System.err.println("SplitPane: " + splitPaneHeight);
+		if (splitPaneHeight >= splitPane.getMaximumDividerLocation()) {
+			System.err.println("HIDE");
+			Field m = null;
+			try {
+				m = BasicSplitPaneUI.class.getDeclaredField("keepHidden");
+				m.setAccessible(true);
+				m.set(splitPane.getUI(), true);
+			} catch (NoSuchFieldException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (SecurityException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			} catch (IllegalArgumentException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} catch (IllegalAccessException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
+		}
+		showLiveOrHistorical();  
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
+	}
+	
+	private void scrollToRow(JTable table, int row) {
+		Rectangle cellRect = table.getCellRect(row, 0, false);
+		if (cellRect != null) {
+			table.scrollRectToVisible(cellRect);
+		}
 	}
 
 	protected void displayTable() {
@@ -501,19 +559,22 @@ public abstract class HealthTab extends ModuleTab implements MouseListener, Item
 		
 		if (refreshTable)
 			parseFrames();
-		if (refreshTable) {
-			lblLive.setForeground(Config.AMSAT_RED);
-			lblLive.setText(LIVE);
-		} else {
-			lblLive.setForeground(Color.BLACK);
-			lblLive.setText(DISPLAY);
-		}
+		showLiveOrHistorical();
 		int newMode = 0;
 		displayMode(realTime2.newMode);
 //		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
 		
 	}
 	
+	private void showLiveOrHistorical() {
+		if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) {
+			lblLive.setForeground(Color.BLACK);
+			lblLive.setText(LIVE);
+		} else {
+			lblLive.setForeground(Config.AMSAT_RED);
+			lblLive.setText(DISPLAY);
+		}
+	}
 
 	protected void parseTelemetry(String data[][]) {	
 

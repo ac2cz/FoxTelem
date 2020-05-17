@@ -146,7 +146,7 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null) {
-						if (showLatest == GraphFrame.SHOW_LIVE)
+						if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) 
 							updateTabMax(maxPayload);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
@@ -156,7 +156,7 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
 					if (minPayload != null) {
-						if (showLatest == GraphFrame.SHOW_LIVE)
+						if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) 
 							updateTabMin(minPayload);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
@@ -168,7 +168,7 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT)) {
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
-						if (showLatest == GraphFrame.SHOW_LIVE)
+						if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation())
 							updateTabRT(realTime, true);
 						//displayMode(0);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
@@ -184,10 +184,13 @@ public class HealthTabRt extends HealthTab {
 						justStarted = false;
 					}
 				}
-				if (showLatest == GraphFrame.SHOW_LIVE)
+				//if (showLatest == GraphFrame.SHOW_LIVE)
+//				System.err.println("Split at/max:" + + splitPane.getDividerLocation() + "/"+ splitPane.getMaximumDividerLocation());
+				if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) {
 					if (fox.hasModeInHeader) { 
 						displayMode(fox.determineModeFromHeader());
 					}
+				}
 			}
 			//System.out.println("Health tab running: " + running);
 		}
