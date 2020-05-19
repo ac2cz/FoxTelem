@@ -2,8 +2,12 @@ package gui;
 
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.event.ActionEvent;
+
 import javax.swing.Box;
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
+import javax.swing.JRadioButton;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 
@@ -28,6 +32,19 @@ public class WodHealthTab extends HealthTab {
 	
 	public WodHealthTab(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_WOD);
+		TAB_TYPE = "wod";
+		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+			hideTables(true);
+		} else {
+			if (splitPaneHeight != 0) 
+				splitPane.setDividerLocation(splitPaneHeight);
+			else
+				splitPane.setDividerLocation(DEFAULT_DIVIDER_LOCATION);
+		}
+		//captureSplitPaneHeight(); // this will also lock us to the bottom at startup if needed.
+		showLiveOrHistorical();  
 		
 		topPanel1.add(new Box.Filler(new Dimension(14,fonth), new Dimension(1600,fonth), new Dimension(1600,fonth)));
 
@@ -49,6 +66,29 @@ public class WodHealthTab extends HealthTab {
 		
 		lblSatLatitudeValue = addTopPanelValue(topPanel2, "Footprint   Latitude:");
 		lblSatLongitudeValue = addTopPanelValue(topPanel2, "Longitude:");
+		
+	}
+
+	@Override
+	protected void addBottomFilter() {
+		// Bottom panel
+		currentBut = new JRadioButton("Current");
+		bottomPanel.add(currentBut);
+		currentBut.addActionListener(this);
+		rtBut = new JRadioButton("History");
+		bottomPanel.add(rtBut);
+		rtBut.addActionListener(this);
+
+		ButtonGroup group = new ButtonGroup();
+		group.add(currentBut);
+		group.add(rtBut);
+		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay");
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+			currentBut.setSelected(true);
+		} else if (healthTableToDisplay == DISPLAY_RT) {
+			rtBut.setSelected(true);
+		}
+		super.addBottomFilter();
 	}
 	
 	private void displayLatLong() {
@@ -100,6 +140,7 @@ public class WodHealthTab extends HealthTab {
 
 		if (data.length > 0) {
 			parseTelemetry(data);
+			displayTable();
 			MainWindow.frame.repaint();
 		}		
 	}
@@ -126,9 +167,11 @@ public class WodHealthTab extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_LAYOUT)) {
 					realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
 					if (realTime != null) {
-						if (showLatest == GraphFrame.SHOW_LIVE) {
+						if (healthTableToDisplay == DISPLAY_CURRENT) {
 							updateTabRT(realTime, true);
 							displayLatLong();
+						} else {
+							parseFrames();
 						}
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT));
 						//System.out.println("UPDATED RT Data: ");
@@ -151,5 +194,31 @@ public class WodHealthTab extends HealthTab {
 		}
 		done = true;
 	}
+	
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		super.actionPerformed(e);
+		if (e.getSource() == rtBut) {
+			healthTableToDisplay = DISPLAY_RT;
+			hideTables(false);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
+      		//Log.println("RT Picked");
+      		parseFrames();
+		}
+
+		if (e.getSource() == currentBut) {
+			healthTableToDisplay = DISPLAY_CURRENT;
+			hideTables(true);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
+     		//Log.println("MIN Picked");
+      		
+      		realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
+      		
+      		if (realTime != null)
+      			updateTabRT(realTime, true);
+     		parseFrames();
+		}
+		showLiveOrHistorical();
+	}	
 
 }

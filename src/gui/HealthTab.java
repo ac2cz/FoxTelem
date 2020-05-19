@@ -82,6 +82,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 
 	private static final String LIVE = "Latest ";
 	private static final String DISPLAY = "Historical ";
+	protected String TAB_TYPE = "health";
 	
 	JPanel centerPanel;
 	
@@ -118,9 +119,10 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	private static final String RESETS = "  Resets: ";
 	protected static final String DECODED = "Telemetry Payloads Decoded: ";
 	protected static final String CAPTURE_DATE = "Captured: ";
-	public static final int DISPLAY_RT = 0;
-	public static final int DISPLAY_MAX = 1;
-	public static final int DISPLAY_MIN = 2;
+	public static final int DISPLAY_CURRENT = 0;
+	public static final int DISPLAY_RT = 1;
+	public static final int DISPLAY_MAX = 2;
+	public static final int DISPLAY_MIN = 3;
 	
 	protected JPanel topPanel;
 	protected JPanel topPanel1;
@@ -140,6 +142,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	JScrollPane maxScrollPane;
 	JScrollPane minScrollPane;
 	
+	JRadioButton currentBut;
 	JRadioButton rtBut;
 	JRadioButton maxBut;
 	JRadioButton minBut;
@@ -193,21 +196,14 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.X_AXIS));
 		
 		initDisplayHalves(centerPanel);
-		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight");
-		
+				
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				centerPanel, healthPanel);
-		splitPane.setOneTouchExpandable(true);
+		splitPane.setOneTouchExpandable(false);
 		splitPane.setContinuousLayout(true); // repaint as we resize, otherwise we can not see the moved line against the dark background
-		if (splitPaneHeight != 0) 
-			splitPane.setDividerLocation(splitPaneHeight);
-		else
-			splitPane.setDividerLocation(DEFAULT_DIVIDER_LOCATION);
 		
-		if (Config.isWindowsOs()) // then the divider is too small to see
-			splitPane.setDividerSize((int) (splitPane.getDividerSize() * 3));
-		captureSplitPaneHeight(); // this will also lock us to the bottom at startup if needed.
+		//if (Config.isWindowsOs()) // then the divider is too small to see
+		//	splitPane.setDividerSize((int) (splitPane.getDividerSize() * 3));
 		
 //		SplitPaneUI spui = splitPane.getUI();
 //	    if (spui instanceof BasicSplitPaneUI) {
@@ -370,35 +366,47 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	}
 	
 	public void propertyChange(PropertyChangeEvent e) {
-		captureSplitPaneHeight();
+		//captureSplitPaneHeight();
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+			hideTables(true);
+		} 
+		showLiveOrHistorical();  
+		splitPaneHeight = splitPane.getDividerLocation();
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight", splitPaneHeight);
+		//System.err.println(TAB_TYPE + " set to split:" + splitPaneHeight);
+		//Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay", healthTableToDisplay);
 	}
 	
-	private void captureSplitPaneHeight() {
-		splitPaneHeight = splitPane.getDividerLocation();
-		System.err.println("SplitPane: " + splitPaneHeight);
-		if (splitPaneHeight >= splitPane.getMaximumDividerLocation()) {
-			System.err.println("HIDE");
-			Field m = null;
-			try {
-				m = BasicSplitPaneUI.class.getDeclaredField("keepHidden");
-				m.setAccessible(true);
-				m.set(splitPane.getUI(), true);
-			} catch (NoSuchFieldException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			} catch (SecurityException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			} catch (IllegalArgumentException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			} catch (IllegalAccessException e1) {
-				// TODO Auto-generated catch block
-				e1.printStackTrace();
-			}
+	protected void hideTables(boolean hide) {
+		//System.err.println("HIDE");
+		if (hide) {
+			splitPane.setDividerLocation(5000);
+		} else {
+			splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
+			if (splitPaneHeight == 0)
+				splitPaneHeight = splitPane.getMaximumDividerLocation()/2;
+			if (splitPaneHeight >= splitPane.getMaximumDividerLocation())
+				splitPaneHeight = splitPane.getMaximumDividerLocation()/2;
+			splitPane.setDividerLocation(splitPaneHeight);
 		}
-		showLiveOrHistorical();  
-		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "splitPaneHeight", splitPaneHeight);
+		Field m = null;
+		try {
+			m = BasicSplitPaneUI.class.getDeclaredField("keepHidden");
+			m.setAccessible(true);
+			m.set(splitPane.getUI(), hide);
+		} catch (NoSuchFieldException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (SecurityException e2) {
+			// TODO Auto-generated catch block
+			e2.printStackTrace();
+		} catch (IllegalArgumentException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		} catch (IllegalAccessException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
 	}
 	
 	private void scrollToRow(JTable table, int row) {
@@ -409,7 +417,11 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	}
 
 	protected void displayTable() {
-		if (healthTableToDisplay == DISPLAY_RT) {
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+			rtScrollPane.setVisible(false);
+			maxScrollPane.setVisible(false);
+			minScrollPane.setVisible(false);
+		} else if (healthTableToDisplay == DISPLAY_RT) {
 			rtScrollPane.setVisible(true);
 			maxScrollPane.setVisible(false);
 			minScrollPane.setVisible(false);
@@ -566,8 +578,8 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		
 	}
 	
-	private void showLiveOrHistorical() {
-		if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) {
+	protected void showLiveOrHistorical() {
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
 			lblLive.setForeground(Color.BLACK);
 			lblLive.setText(LIVE);
 		} else {

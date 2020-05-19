@@ -125,8 +125,8 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		if (Config.displayRawRadData) {
 				long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
 		    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-		    	Log.println("RESET: " + reset_l);
-		    	Log.println("UPTIME: " + uptime);
+		    	//Log.println("RESET: " + reset_l);
+		    	//Log.println("UPTIME: " + uptime);
 		    	int reset = (int)reset_l;
 		    	updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_CAN_LAYOUT, false), false);
 		} else {

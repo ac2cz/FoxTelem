@@ -3,6 +3,7 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.beans.PropertyChangeEvent;
 
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
@@ -22,6 +23,19 @@ public class HealthTabRt extends HealthTab {
 
 	public HealthTabRt(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_ALL);
+		TAB_TYPE = "health";
+		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+			hideTables(true);
+		} else {
+			if (splitPaneHeight != 0) 
+				splitPane.setDividerLocation(splitPaneHeight);
+			else
+				splitPane.setDividerLocation(DEFAULT_DIVIDER_LOCATION);
+		}
+		//captureSplitPaneHeight(); // this will also lock us to the bottom at startup if needed.
+		showLiveOrHistorical();  
 		
 		lblMode = new JLabel(MODE);
 		lblMode.setFont(new Font("SansSerif", Font.BOLD, (int)(Config.displayModuleFontSize * 14/11)));
@@ -57,6 +71,9 @@ public class HealthTabRt extends HealthTab {
 	
 	@Override
 	protected void addBottomFilter() {
+		currentBut = new JRadioButton("Current");
+		bottomPanel.add(currentBut);
+		currentBut.addActionListener(this);
 		rtBut = new JRadioButton("RT");
 		bottomPanel.add(rtBut);
 		rtBut.addActionListener(this);
@@ -68,11 +85,14 @@ public class HealthTabRt extends HealthTab {
 		minBut.addActionListener(this);
 		
 		ButtonGroup group = new ButtonGroup();
+		group.add(currentBut);
 		group.add(rtBut);
 		group.add(maxBut);
 		group.add(minBut);
-		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay");
-		if (healthTableToDisplay == DISPLAY_RT) {
+		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "health"+"healthTableToDisplay");
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+			currentBut.setSelected(true);
+		} else if (healthTableToDisplay == DISPLAY_RT) {
 			rtBut.setSelected(true);
 		} else if (healthTableToDisplay == DISPLAY_MAX) {
 			maxBut.setSelected(true);
@@ -110,7 +130,9 @@ public class HealthTabRt extends HealthTab {
 	@Override
 	public void parseFrames() {
 		String[][] data = null;
-		
+
+		if (healthTableToDisplay == DISPLAY_CURRENT) {
+		}
 		if (healthTableToDisplay == DISPLAY_RT)
 			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.REAL_TIME_LAYOUT);
 		if (healthTableToDisplay == DISPLAY_MAX)
@@ -121,7 +143,8 @@ public class HealthTabRt extends HealthTab {
 			parseTelemetry(data);
 			displayTable();
 			MainWindow.frame.repaint();
-		}		
+		}
+
 	}
 
 
@@ -146,7 +169,7 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null) {
-						if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) 
+						if (healthTableToDisplay == DISPLAY_CURRENT) 
 							updateTabMax(maxPayload);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
@@ -156,7 +179,7 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
 					minPayload = Config.payloadStore.getLatestMin(foxId);
 					if (minPayload != null) {
-						if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) 
+						if (healthTableToDisplay == DISPLAY_CURRENT) 
 							updateTabMin(minPayload);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
@@ -168,8 +191,10 @@ public class HealthTabRt extends HealthTab {
 				if (Config.payloadStore.getUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT)) {
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
-						if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation())
+						if (healthTableToDisplay == DISPLAY_CURRENT)
 							updateTabRT(realTime, true);
+						else
+							parseFrames();
 						//displayMode(0);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 						//System.out.println("UPDATED RT Data: ");
@@ -186,7 +211,7 @@ public class HealthTabRt extends HealthTab {
 				}
 				//if (showLatest == GraphFrame.SHOW_LIVE)
 //				System.err.println("Split at/max:" + + splitPane.getDividerLocation() + "/"+ splitPane.getMaximumDividerLocation());
-				if (splitPane.getDividerLocation() >= splitPane.getMaximumDividerLocation()) {
+				if (healthTableToDisplay == DISPLAY_CURRENT) {
 					if (fox.hasModeInHeader) { 
 						displayMode(fox.determineModeFromHeader());
 					}
@@ -196,28 +221,50 @@ public class HealthTabRt extends HealthTab {
 		}
 		done = true;
 	}
-
+	
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		super.actionPerformed(e);
 		if (e.getSource() == rtBut) {
 			healthTableToDisplay = DISPLAY_RT;
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay", healthTableToDisplay);
+			hideTables(false);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "health"+"healthTableToDisplay", healthTableToDisplay);
       		//Log.println("RT Picked");
       		parseFrames();
 		}
 		if (e.getSource() == maxBut) {
 			healthTableToDisplay = DISPLAY_MAX;
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay", healthTableToDisplay);
+			hideTables(false);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "health"+"healthTableToDisplay", healthTableToDisplay);
      		//Log.println("MAX Picked");
      		parseFrames();
 			
 		}
 		if (e.getSource() == minBut) {
 			healthTableToDisplay = DISPLAY_MIN;
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "healthTableToDisplay", healthTableToDisplay);
+			hideTables(false);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "health"+"healthTableToDisplay", healthTableToDisplay);
      		//Log.println("MIN Picked");
      		parseFrames();
 		}
+		if (e.getSource() == currentBut) {
+			healthTableToDisplay = DISPLAY_CURRENT;
+			hideTables(true);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "health"+"healthTableToDisplay", healthTableToDisplay);
+     		//Log.println("MIN Picked");
+      		
+      		realTime = Config.payloadStore.getLatestRt(foxId);
+      		minPayload = Config.payloadStore.getLatestMin(foxId);
+      		maxPayload = Config.payloadStore.getLatestMax(foxId);
+      		
+      		if (realTime != null)
+				updateTabRT(realTime, false);
+			if (maxPayload != null)
+				updateTabMax(maxPayload);
+			if (minPayload != null)
+				updateTabMin(minPayload);
+     		parseFrames();
+		}
+		showLiveOrHistorical();
 	}	
 }

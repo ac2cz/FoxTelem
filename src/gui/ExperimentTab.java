@@ -97,7 +97,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		actMap.put(PREV, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				 System.out.println("PREV");
+				// System.out.println("PREV");
 				int row = table.getSelectedRow();
 				if (row > 0)
 					displayRow(table,NO_ROW_SELECTED, row-1);
@@ -106,7 +106,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		actMap.put(NEXT, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				    System.out.println("NEXT");
+				  //  System.out.println("NEXT");
 				int row = table.getSelectedRow();
 				if (row < table.getRowCount()-1)
 					displayRow(table,NO_ROW_SELECTED, row+1);        

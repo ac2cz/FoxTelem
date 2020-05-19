@@ -122,7 +122,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private ArrayList<String> variables;
 	
 	public FoxSpacecraft fox;
-	public static final String LIVE_TEXT = "Live";
+	public static final String LIVE_TEXT = "Last";
 	public static final String RANGE_TEXT = "Range";
 	public static final String NEXT_TEXT = "Next";
 	public static String NOW = "now";
@@ -528,7 +528,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textToUtc.addFocusListener(this);
 				
 		btnLatest = new JButton(LIVE_TEXT);
-		btnLatest.setForeground(Config.AMSAT_RED);
+//		btnLatest.setForeground(Config.AMSAT_RED);
 		btnLatest.setMargin(new Insets(0,0,0,0));
 		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
 		btnLatest.addActionListener(this);		
@@ -572,7 +572,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			lblFromUTC.setText(BEFORE_UTC);
 			lblFromReset.setText(BEFORE_RESET);
 			btnLatest.setText(LIVE_TEXT);
-			btnLatest.setForeground(Config.AMSAT_RED);
+//			btnLatest.setForeground(Config.AMSAT_RED);
 			lblFromReset.setVisible(show);
 			textFromReset.setVisible(show);
 			lblFromUptime.setVisible(show);

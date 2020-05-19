@@ -147,7 +147,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
-	        	  Log.println("SplitPane: " + splitPaneHeight);
+	        	  //Log.println("SplitPane: " + splitPaneHeight);
 	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });

@@ -63,7 +63,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	public static final int SHOW_RANGE = 2;
 	public static final int SHOW_NEXT = 1;
 	public int showLatest = GraphFrame.SHOW_LIVE;
-	public static final String LIVE_TEXT = "Live";
+	public static final String LIVE_TEXT = "Last";
 	public static final String RANGE_TEXT = "Range";
 	public static final String NEXT_TEXT = "Next";
 	public static String NOW = "now";
@@ -244,7 +244,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		textToUtc.addFocusListener(this);
 				
 		btnLatest = new JButton(LIVE_TEXT);
-		btnLatest.setForeground(Config.AMSAT_RED);
+//		btnLatest.setForeground(Config.AMSAT_RED);
 		btnLatest.setMargin(new Insets(0,0,0,0));
 		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
 		btnLatest.addActionListener(this);		
@@ -524,7 +524,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			lblFromUTC.setText(BEFORE_UTC);
 			lblFromReset.setText(BEFORE_RESET);
 			btnLatest.setText(LIVE_TEXT);
-			btnLatest.setForeground(Config.AMSAT_RED);
+			//btnLatest.setForeground(Config.AMSAT_RED);
 			lblFromReset.setVisible(show);
 			textFromReset.setVisible(show);
 			lblFromUptime.setVisible(show);
