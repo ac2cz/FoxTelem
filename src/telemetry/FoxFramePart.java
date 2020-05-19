@@ -787,15 +787,15 @@ longer send telemetry.
 			return "IHU Temp Cal: " + value;
 		case AUTO_SAFE_VOLTAGES:
 			int value1 = (rawValue >> 8) & 0xfff; // 12 bit value after the type
-			double voltageIn = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value1);
+			double voltageIn = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value1)/2;
 			int value2 = (rawValue >> 20) & 0xfff; // last 12 bits
-			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value2);
+			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value2)/2;
 			if (shortString)
-				return "AS Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
-						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
+				return "AS Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/24,3) +
+						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/24,3);
 			else
-				return "Auto Safe Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/25,3) +
-						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/25,3);
+				return "Auto Safe Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/24,3) +
+						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/24,3);
 		}
 		return "-----" + type;
 	}
