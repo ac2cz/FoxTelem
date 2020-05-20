@@ -277,7 +277,7 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-	static public boolean useCostas = true;
+	static public boolean useCostas = false;
 	public static boolean showEye = true; 
 	public static boolean showPhasor = true; 
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to

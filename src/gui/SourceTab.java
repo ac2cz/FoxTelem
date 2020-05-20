@@ -203,7 +203,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			"FSK DUV 200",
 			"FSK HS 9600",
 			"FSK DUV + HS",
-			"BPSK 1200 (Husky)",
+			"BPSK 1200 (Fox/Husky)",
 			"BPSK 1200 (Golf)"
 	};
 
@@ -283,7 +283,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		buildLeftPanel(topPanel,  BorderLayout.CENTER, sourcePanel);
 
 		enableSourceModeSelectionComponents(!Config.retuneCenterFrequency);
-		
+		autoViewpanel.setVisible(false); // default this to off.  It is displayed when start button pressed (or not)		
 		if (soundCardComboBox.getSelectedIndex() != 0) {
 			if (Config.startButtonPressed) {
 				// Wait for the database to be ready then press the start button
@@ -700,10 +700,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		pskCostas.setToolTipText("Use a Costas Loop to lock onto the signal and decode the BPSK");
 //		pskDotProd = addRadioButton("DP", panel_2 );
 //		pskDotProd.setToolTipText("Use a Dot Product decoder which is less sensitive to phase mismatch but more sensitive to noise");
-		pskFoxBpsk = addRadioButton("Husky", panel_2 );
-		pskFoxBpsk.setToolTipText("Use Husky BPSK decoder");
+		pskFoxBpsk = addRadioButton("Fox/Husky", panel_2 );
+		pskFoxBpsk.setToolTipText("Use Fox-1E/Husky-Sat BPSK decoder");
 		pskGolfBpsk = addRadioButton("Golf", panel_2 );
-		pskGolfBpsk.setToolTipText("Use Golf BPSK decoder");
+		pskGolfBpsk.setToolTipText("Use Golf-T BPSK decoder");
 		ButtonGroup group = new ButtonGroup();
 		group.add(lowSpeed);
 		group.add(highSpeed);
@@ -973,15 +973,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			auto.setSelected(true);
 			enableFilters(true);
 			Config.mode = SourceIQ.MODE_FSK_AUTO;
-		} else
-		if (Config.format == FORMAT_FSK_HS) {
+			Config.save();
+		} else if (Config.format == FORMAT_FSK_HS) {
 			highSpeed.setSelected(true);
 			enableFilters(false);
 			Config.mode = SourceIQ.MODE_FSK_HS;
+			Config.save();
 		} else if (Config.format == FORMAT_FSK_DUV){
 			lowSpeed.setSelected(true);
 			enableFilters(true);
 			Config.mode = SourceIQ.MODE_FSK_DUV;
+			Config.save();
 		} else if (Config.format == FORMAT_PSK_FOX ){
 			pskFoxBpsk.setSelected(true);
 			enableFilters(false);
@@ -989,6 +991,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			else
 				Config.mode = SourceIQ.MODE_PSK_NC;
+			Config.save();
 		} else if (Config.format == FORMAT_PSK_GOLF){
 			pskGolfBpsk.setSelected(true);
 			enableFilters(false);
@@ -996,6 +999,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			else
 				Config.mode = SourceIQ.MODE_PSK_NC;
+			Config.save();
 		}
 	}
 	
@@ -1186,16 +1190,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == play) {
 			Config.decoderPlay = true;
 		}
-	
+
 		if (e.getSource() == highSpeed) { 
-				Config.mode = SourceIQ.MODE_FSK_HS;
-				//Config.autoDecodeSpeed = false;
-				enableFilters(false);
-				autoViewpanel.setVisible(false);
-				if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
-				Config.save();
+			Config.format = FORMAT_FSK_HS;
+			Config.mode = SourceIQ.MODE_FSK_HS;
+			//Config.autoDecodeSpeed = false;
+			enableFilters(false);
+			autoViewpanel.setVisible(false);
+			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
+			Config.save();
 		}
 		if (e.getSource() == lowSpeed) { 
+			Config.format = FORMAT_FSK_DUV;
 			Config.mode = SourceIQ.MODE_FSK_DUV;
 			//Config.autoDecodeSpeed = false;
 			enableFilters(true);
@@ -1230,6 +1236,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.save();
 	}
 		if (e.getSource() == auto) { 
+			Config.format = FORMAT_FSK_AUTO;
 			Config.mode = SourceIQ.MODE_FSK_AUTO;
 			enableFilters(true);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
@@ -1458,6 +1465,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			auto.setEnabled(false);
 			if (auto.isSelected()) { 
 				lowSpeed.setSelected(true);
+				Config.format = FORMAT_FSK_DUV;
 				Config.mode = SourceIQ.MODE_FSK_DUV; // so it is saved for next time
 				autoViewpanel.setVisible(false);
 			}
