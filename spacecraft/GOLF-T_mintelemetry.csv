@@ -1,72 +1,90 @@
-71,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,minDownlink,Xspin,16,dps,47,NONE,5,1,3,X Rotation,Angular Velocity around X Axis
-1,minDownlink,Yspin,16,dps,47,NONE,5,2,3,Y Rotation,Angular Veolcity around Y Axis
-2,minDownlink,Zspin,16,dps,47,NONE,5,3,3,Z Rotation,Angular Veolcity around Z Axis
-3,minDownlink,Xaccel,16,g,45,NONE,5,4,3,X Acceleration,Acceleration along X axis
-4,minDownlink,Yaccel,16,g,45,NONE,5,5,3,Y Acceleration,Acceleration along Y  axis
-5,minDownlink,Zaccel,16,g,45,NONE,5,6,3,Z Acceleration,Acceleration along Z axis
-6,minDownlink,Xmag,16,uT,46,NONE,5,7,3,X Magnetometer,Angular Veolcity around X Axis
-7,minDownlink,Ymag,16,uT,46,NONE,5,8,3,Y Magnetometer,Angular Veolcity around Y Axis
-8,minDownlink,Zmag,16,uT,46,NONE,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-9,minDownlink,busV,8,V,2,NONE,6,1,3,Bus Voltage,Vbatt Bus voltage
-10,minDownlink,TxPAi,8,mA,10,NONE,1,1,3,PA Current,Transmit power amplifier current
-11,minDownlink,TxTemp,8,C,37,NONE,1,2,3,TX Temperature,Transmitter card temperature
-12,minDownlink,FwdPower,8,mW,40,NONE,1,3,3,Fwd Power,Receiver card temperature
-13,minDownlink,rssi,8,dBm,14,NONE,4,1,3,RSSI,Received Signal Strength Indication
-14,minDownlink,ReflectedPwr,8,mW,41,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
-15,minDownlink,ICR3VProt,8,V,3,NONE,4,2,3,3V Prot,ICR 3V Proteted
-16,minDownlink,ICR2dot5V,8,V,2,NONE,4,3,3,2.5V,ICR 2.5V
-17,minDownlink,MinusYVolts,8,-,52,NONE,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-18,minDownlink,MinusXVolts,8,-,52,NONE,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-19,minDownlink,XVolts,8,-,52,NONE,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-20,minDownlink,YVolts,8,-,52,NONE,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-21,minDownlink,MinusYTemp,8,-,52,NONE,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-22,minDownlink,MinusXTemp,8,-,52,NONE,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-23,minDownlink,XTemp,8,-,52,NONE,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-24,minDownlink,YTemp,8,-,52,NONE,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
-25,minDownlink,LtVGACtl,8,V,42,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-26,minDownlink,RT1Temp,8,-,0,NONE,7,1,3,Primary Temp,Primary RT-IHU Board Temp
-27,minDownlink,RT2Temp,8,-,0,NONE,7,2,3,RT-IHU Secondary Temp,Secondary RT-IHU Board Temp
-28,minDownlink,IHUcpuTemp,8,C,15,NONE,2,1,3,Temperature,Internal Temperature of IHU
-29,minDownlink,gTemp,16,C,48,NONE,5,10,3,Gyro Temp,Gyro temperature
-30,minDownlink,CSS1,8,-,0,NONE,8,1,3,CSS #1,Coarse Sun Sensor Values
-31,minDownlink,CSS2,8,-,0,NONE,8,2,3,CSS #2,Coarse Sun Sensor Values
-32,minDownlink,CSS3,8,-,0,NONE,8,3,3,CSS #3,Coarse Sun Sensor Values
-33,minDownlink,CSS4,8,-,0,NONE,8,4,3,CSS #4,Coarse Sun Sensor Values
-34,minDownlink,CSS5,8,-,0,NONE,8,5,3,CSS #5,Coarse Sun Sensor Values
-35,minDownlink,CSS6,8,-,0,NONE,8,6,3,CSS #6,Coarse Sun Sensor Values
-36,minDownlink,CSS7,8,-,0,NONE,8,7,3,CSS #7,Coarse Sun Sensor Values
-37,minDownlink,CSS8,8,-,0,NONE,8,8,3,CSS #8,Coarse Sun Sensor Values
-38,minDownlink,CIU3V3_1,8,-,52,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
-39,minDownlink,CIU3V3_2,8,-,0,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
-40,minDownlink,CIUVsys,8,-,0,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
-41,minDownlink,CIU12v,8,-,0,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
-42,minDownlink,Power10GHz,8,-,0,NONE,1,6,3,SSPA Power,Power output of the 10GHz SSPA
-43,minDownlink,pad1,24,-,0,NONE,0,0,3,Filler,Pad
-44,minDownlink,DeploySenseCan,8,-,0,NONE,1,7,3,Deploy Sense via CAN,TBD
-45,minDownlink,DeploySenseI2c,8,-,0,NONE,1,8,3,Deploy Sense via I2c,TBD
-46,minDownlink,PrimaryRTActive,1,-,0,NONE,7,3,3,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
-47,minDownlink,AutoSafeAllowed,1,-,1,NONE,3,5,3,Auto Safe Allowed,Autosafe Allowed
-48,minDownlink,AutoSafeModeActive,1,-,0,NONE,3,4,3,Auto Safe,Autosafe Mode Active
-49,minDownlink,I2CfailureSunSense,1,-,0,NONE,2,6,3,I2c CSS,Coarse Sun Sensor I2c failure
-50,minDownlink,I2CfailureSolarV,1,-,0,NONE,2,5,3,I2c Solar,Solar Voltage I2c failure
-51,minDownlink,I2CfailureRF,1,-,17,NONE,2,4,3,I2C RF,RF I2C Bus failure indicator
-52,minDownlink,I2CfailureICR,1,-,17,NONE,2,3,3,I2cICR,Antenna is not communicating over bus 2
-53,minDownlink,I2CFailureDeploy,1,-,17,NONE,2,2,3,I2c Deploy,Antenna is not communicating over bus 1
-54,minDownlink,TLMresets,8,-,1,NONE,2,7,3,Ground Resets,Number of times command stations reset stored telemetry
-55,minDownlink,wodSize,8,000s,1,NONE,3,1,3,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
-56,minDownlink,swCmds,32,-,35,NONE,4,4,3,Diagnostic,ICR Diagnostic information
-57,minDownlink,hwCmdCnt,8,-,1,NONE,4,5,3,HW Command Count,Number of hardware commands since last reset
-58,minDownlink,swCmdCnt,8,-,1,NONE,4,6,3,SW Command Count,Number of software commands since last reset
-59,minDownlink,CIUResetCnt1,8,-,0,NONE,9,5,3,CIU Reset Cnt,TBD
-60,minDownlink,CIUResetCnt2,8,-,0,NONE,9,6,3,CIU Reset Cnt,None
-61,minDownlink,DCT1Status,8,-,0,NONE,9,7,3,Primary DCT Status,TBD
-62,minDownlink,DCT2Status,8,-,0,NONE,9,8,3,Secondary DCT Status,TBD
-63,minDownlink,pad2,8,-,0,NONE,0,0,3,Filler,TBD
-64,minDownlink,IHUhardError,32,-,19,NONE,2,8,3,IHU Hard Error Data,Reason for last reset
-65,minDownlink,IHUsoftError,32,-,20,NONE,3,2,3,Soft Error,Diagnostic Data on IHU Software Errors
-66,minDownlink,IHUdiagData1,32,-,18,NONE,3,3,3,Diagnostic Info,Diagnostic Data on IHU Performance
-67,minDownlink,minTimestampUptime,32,s,1,Min Max,10,5,0,Min Uptime,Timestamp Resets
-68,minDownlink,minTimestampReset,16,s,1,Min Max,10,4,0,Min Reset,Timestamp uptime
-69,minDownlink,minCRCerror,8,-,0,Min Max,10,6,0,Min CRC Error,TBD
-70,minDownlink,pad2,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
+89,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,minDownlink,inSafeMode,1,-,0,NONE,3,1,3,Safe Mode,Are we in safe mode?
+1,minDownlink,inHealthMode,1,-,0,NONE,3,2,3,Health Mode,Are we in health mode?
+2,minDownlink,transponderEnabled,1,-,0,NONE,3,3,3,Transponder,Is the transponder enabled
+3,minDownlink,inScienceMode,1,-,0,NONE,3,4,3,Science Mode,Are we in science mode?
+4,minDownlink,pad10,4,-,0,NONE,0,0,0,Pad10,Pad
+5,minDownlink,ReflectedPwr,8,mW,41,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
+6,minDownlink,ICR3VProt,8,V,3,NONE,4,2,3,3V Prot,ICR 3V Proteted
+7,minDownlink,ICR2dot5V,8,V,2,NONE,4,3,3,2.5V,ICR 2.5V
+8,minDownlink,Xspin,16,dps,47,NONE,5,1,3,X Rotation,Angular Velocity around X Axis
+9,minDownlink,Yspin,16,dps,47,NONE,5,2,3,Y Rotation,Angular Veolcity around Y Axis
+10,minDownlink,Zspin,16,dps,47,NONE,5,3,3,Z Rotation,Angular Veolcity around Z Axis
+11,minDownlink,Xaccel,16,g,45,NONE,5,4,3,X Acceleration,Acceleration along X axis
+12,minDownlink,Yaccel,16,g,45,NONE,5,5,3,Y Acceleration,Acceleration along Y  axis
+13,minDownlink,Zaccel,16,g,45,NONE,5,6,3,Z Acceleration,Acceleration along Z axis
+14,minDownlink,Xmag,16,uT,46,NONE,5,7,3,X Magnetometer,Angular Veolcity around X Axis
+15,minDownlink,Ymag,16,uT,46,NONE,5,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+16,minDownlink,Zmag,16,uT,46,NONE,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+17,minDownlink,gTemp,16,C,48,NONE,5,10,3,Gyro Temp,Gyro temperature
+18,minDownlink,busV,8,V,2,NONE,6,1,3,Bus Voltage,Vbatt Bus voltage
+19,minDownlink,TxPAi,8,mA,10,NONE,1,1,3,PA Current,Transmit power amplifier current
+20,minDownlink,TxTemp,8,C,37,NONE,1,2,3,TX Temperature,Transmitter card temperature
+21,minDownlink,FwdPower,8,mW,40,NONE,1,3,3,Fwd Power,Receiver card temperature
+22,minDownlink,rssi,8,dBm,14,NONE,4,1,3,RSSI,Received Signal Strength Indication
+23,minDownlink,MinusYVolts,8,-,52,NONE,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
+24,minDownlink,MinusXVolts,8,-,52,NONE,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
+25,minDownlink,XVolts,8,-,52,NONE,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
+26,minDownlink,YVolts,8,-,52,NONE,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+27,minDownlink,MinusYTemp,8,-,52,NONE,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+28,minDownlink,MinusXTemp,8,-,52,NONE,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+29,minDownlink,XTemp,8,-,52,NONE,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
+30,minDownlink,YTemp,8,-,52,NONE,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+31,minDownlink,LtVGACtl,8,V,42,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+32,minDownlink,RT1Temp,8,-,0,NONE,7,1,3,Primary Temp,Primary RT-IHU Board Temp
+33,minDownlink,RT2Temp,8,-,0,NONE,7,2,3,RT-IHU Secondary Temp,Secondary RT-IHU Board Temp
+34,minDownlink,IHUcpuTemp,8,C,15,NONE,2,1,3,Temperature,Internal Temperature of IHU
+35,minDownlink,moduTemp,8,C,0,NONE,2,2,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+36,minDownlink,CSS1,8,-,0,NONE,8,1,3,CSS #1,Coarse Sun Sensor Values
+37,minDownlink,CSS2,8,-,0,NONE,8,2,3,CSS #2,Coarse Sun Sensor Values
+38,minDownlink,CSS3,8,-,0,NONE,8,3,3,CSS #3,Coarse Sun Sensor Values
+39,minDownlink,CSS4,8,-,0,NONE,8,4,3,CSS #4,Coarse Sun Sensor Values
+40,minDownlink,CSS5,8,-,0,NONE,8,5,3,CSS #5,Coarse Sun Sensor Values
+41,minDownlink,CSS6,8,-,0,NONE,8,6,3,CSS #6,Coarse Sun Sensor Values
+42,minDownlink,CSS7,8,-,0,NONE,8,7,3,CSS #7,Coarse Sun Sensor Values
+43,minDownlink,CSS8,8,-,0,NONE,8,8,3,CSS #8,Coarse Sun Sensor Values
+44,minDownlink,CIU3V3_1,8,-,52,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+45,minDownlink,CIU3V3_2,8,-,0,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+46,minDownlink,CIUVsys,8,-,0,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
+47,minDownlink,CIU12v,8,-,0,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
+48,minDownlink,Power10GHz,8,-,0,NONE,1,6,3,SSPA Power,Power output of the 10GHz SSPA
+49,minDownlink,pad11,8,-,0,NONE,0,0,3,Filler,Pad
+50,minDownlink,DeploySenseCan,8,-,0,NONE,1,7,3,Deploy Sense via CAN,TBD
+51,minDownlink,DeploySenseI2c,8,-,0,NONE,1,8,3,Deploy Sense via I2c,TBD
+52,minDownlink,PrimaryRTActive,1,-,0,NONE,7,3,3,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
+53,minDownlink,AutoSafeAllowed,1,-,1,NONE,3,5,3,Auto Safe Allowed,Autosafe Allowed
+54,minDownlink,AutoSafeModeActive,1,-,0,NONE,3,6,3,Auto Safe,Autosafe Mode Active
+55,minDownlink,I2CfailureSunSense,1,-,0,NONE,2,3,3,I2c CSS,Coarse Sun Sensor I2c failure
+56,minDownlink,I2CfailureSolarV,1,-,0,NONE,2,4,3,I2c Solar,Solar Voltage I2c failure
+57,minDownlink,pad12,1,-,0,NONE,2,5,3,Pad12,-
+58,minDownlink,I2CfailureICR,1,-,17,NONE,2,6,3,I2cICR,Antenna is not communicating over bus 2
+59,minDownlink,I2CFailureDeploy,1,-,17,NONE,2,7,3,I2c Deploy,Antenna is not communicating over bus 1
+60,minDownlink,TLMresets,8,-,1,NONE,2,8,3,Ground Resets,Number of times command stations reset stored telemetry
+61,minDownlink,wodSize,8,000s,1,NONE,3,7,3,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+62,minDownlink,swCmds,32,-,35,NONE,4,4,3,Diagnostic,ICR Diagnostic information
+63,minDownlink,hwCmdCnt,8,-,1,NONE,4,5,3,HW Command Count,Number of hardware commands since last reset
+64,minDownlink,swCmdCntICR,8,-,1,NONE,4,6,3,SW Command Count ICR,Number of software commands since last reset
+65,minDownlink,swCmdCntDCT,8,-,1,NONE,4,7,3,SW Command Count DCT,Number of software commands since last reset
+66,minDownlink,Pad3,8,-,0,NONE,0,0,0,Pad to replace RF switch,-
+67,minDownlink,CIUResetCnt1,8,-,0,NONE,9,5,3,CIU Reset Cnt,TBD
+68,minDownlink,CIUResetCnt2,8,-,0,NONE,9,6,3,CIU Reset Cnt,None
+69,minDownlink,DCT1Status,8,-,0,NONE,9,7,3,Primary DCT Status,TBD
+70,minDownlink,DCT2Status,8,-,0,NONE,9,8,3,Secondary DCT Status,TBD
+71,minDownlink,LMRAMstatus,8,-,0,NONE,0,0,3,LIHU MRAM Status,TBD
+72,minDownlink,PrimMRAMstatus,8,-,0,NONE,2,9,3,RT-IHU Primary MRAM Status,Status of the primary MRAM
+73,minDownlink,SecndMRAMstatus,8,-,0,NONE,2,10,3,RT-IHU Secondary MRAM Status,Status of the secondary MRAM
+74,minDownlink,ModuLO,8,-,0,NONE,2,11,3,Modulator Reg 0,Modulator Register 0
+75,minDownlink,ModuGain,8,-,0,NONE,2,12,3,Modulator Reg 1,Modulator Register 1
+76,minDownlink,ModuTemp,8,-,0,NONE,2,13,3,Modulator Reg 5,Modulator Register 5
+77,minDownlink,ModuMode,8,-,0,NONE,2,14,3,Modulator Reg 8,Modulator Register 8
+78,minDownlink,DCT1PwrCnt,8,-,0,NONE,2,15,3,Load Switch Flag Count,TBD
+79,minDownlink,DCT2PwrCnt,8,-,0,NONE,2,16,3,Load Switch Flag Count,TBD
+80,minDownlink,PA1PwrCnt,8,-,0,NONE,2,17,3,Load Switch Flag Count,TBD
+81,minDownlink,PA2PwrCnt,8,-,0,NONE,2,18,3,Load Switch Flag Count,TBD
+82,minDownlink,IHUhardError,32,-,19,NONE,2,19,3,IHU Hard Error Data,Reason for last reset
+83,minDownlink,IHUsoftError,32,-,20,NONE,3,8,3,Soft Error,Diagnostic Data on IHU Software Errors
+84,minDownlink,spare1,32,-,0,NONE,0,0,0,Spare,Diagnostic Data on IHU Performance
+85,minDownlink,minTimestampUptime,32,s,1,Min Max,10,5,0,Min Uptime,Timestamp Resets
+86,minDownlink,minTimestampReset,16,s,1,Min Max,10,4,0,Min Reset,Timestamp uptime
+87,minDownlink,minCRCerror,8,-,0,Min Max,10,6,0,Min CRC Error,TBD
+88,minDownlink,pad14,8,-,0,NONE,0,0,0,Filler,Make same length as WOD

@@ -1,8 +1,9 @@
-7,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+8,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,header,satelliteID,8,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-1,header,type,8,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-2,header,resetCnt,16,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-3,header,uptime,32,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-4,header,protocolVersion,8,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-5,header,modes,8,-,0,NONE,0,0,0,FoxId,Spacecraft Id
-6,header,pad1,16,-,0,NONE,0,0,0,FoxId,Spacecraft Id
+1,header,type,8,-,0,NONE,0,0,0,Type,Frame Type
+2,header,resetCnt,16,-,0,NONE,0,0,0,Resets,Number of Resets since launch
+3,header,uptime,32,-,0,NONE,0,0,0,Uptime,Uptime in Seconds since last reset
+4,header,protocolVersion,8,-,0,NONE,0,0,0,Protocol Ver,Downlink Specification Version Number
+5,header,versionMajor,8,-,0,NONE,0,0,0,Major,Software Major Version
+6,header,versionMinor,8,-,0,NONE,0,0,0,Minor,Software minor version
+7,header,pad1,8,-,0,NONE,0,0,0,FoxId,Padding to word boundry
