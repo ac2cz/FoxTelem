@@ -315,7 +315,7 @@ longer send telemetry.
 		String reportDate = reportDateFormat.format(today);
 		return reportDate;
 	}
-	
+
 
 
 	/**
@@ -331,72 +331,92 @@ longer send telemetry.
 				pos = i;
 		}
 		String s = "-----";
-		int conv = layout.getIntConversionByPos(pos);
-		// Special Formatting
-		if (pos == -1) 
-			;//System.err.println("ERROR: No Index for Field:" + name);
-		else
-		if (conv == BitArrayLayout.CONVERT_ANTENNA) {
-			int value = getRawValue(name);
-			if (value == 0)
-				s = "Stowed";
-			else
-				s = "Deployed";
-		} else if (conv == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {  
-				s = isisAntennaStatus(getRawValue(name), true);
-		} else if (conv == BitArrayLayout.CONVERT_STATUS_BIT) {
-			int value = getRawValue(name);
-			if (value == 0)
-				s = "OK";
-			else
-				s = "FAIL";
-		} else if (conv == BitArrayLayout.CONVERT_STATUS_ENABLED) {
-			int value = getRawValue(name);
-			if (value == 1)
-				s = "Enabled";
-			else
-				s = "Disabled";
-		} else if (conv == BitArrayLayout.CONVERT_BOOLEAN) {
-			int value = getRawValue(name);
-			if (value == 1)
-				s = "TRUE";
-			else
-				s = "FALSE";
-		} else if (conv == BitArrayLayout.CONVERT_INTEGER) {
-			s = Long.toString(Math.round(getRawValue(name)));
-		} else if (conv == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
-			s = ihuDiagnosticString(getRawValue(name), true, (FoxSpacecraft)fox);
-		} else if (conv == BitArrayLayout.CONVERT_HARD_ERROR) {
-			s = hardErrorString(getRawValue(name), true);
-		} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR) {
-			s = softErrorStringFox1A(getRawValue(name), true);
-		} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
-			s = softErrorString84488(getRawValue(name), true);
-		} else if (conv == BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT) {
-			s = icrSwCommandCount(getRawValue(name), true);	
-		} else if (conv == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
-			s = icrDiagnosticString(getRawValue(name), true);	
-		} else if (conv == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
-			double val = getRawValue(name);
-			if (val >= 1500) return "OK";
-			else return "FAIL";
-		} else {
-			double dvalue = getDoubleValue(name, fox);
-			if (dvalue == ERROR_VALUE) {
-				s = "-----";
-			} else if (conv == BitArrayLayout.CONVERT_BATTERY 
-					|| conv == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
-					|| conv == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
-				s = String.format("%1.2f", dvalue);
+		if (pos != -1) {
+			// Check if this is a simple numeric legacy conversion
+			String convName = layout.getConversionNameByPos(pos);
+			int conv = -1;
+			try {
+				conv = Integer.parseInt(convName);
+			} catch (NumberFormatException e) { conv = -1;}
+			if (conv != -1) {
+				// This is a legacy conversion, get the value and apply any formatting
+				double dvalue = getDoubleValue(name, fox);
+				s = legacyStringConversion(conv, dvalue, fox);
 			} else {
-				s = String.format("%2.1f", dvalue);
+				double dvalue = getDoubleValue(name, fox);
+				if (dvalue == ERROR_VALUE) {
+					s = "-----";
+				} else {
+					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
+					int convInt = 0;
+					try {
+						convInt = Integer.parseInt(conversions[conversions.length-1]);
+					} catch (NumberFormatException e) { convInt = 0;}
+					s = legacyStringConversion(convInt, (int)dvalue, fox);
+				}
 			}
-			
 		}
 		if (s.length() < 5)
 			for (int k=0; k < (5 - s.length()); k++)
 				s = " " + s;
 		return s;
+	}
+	
+	private String legacyStringConversion(int conv, double value, Spacecraft fox) {
+		String s = "-----";
+		if (value == ERROR_VALUE) {
+			s = "-----";
+		} else
+		if (conv == BitArrayLayout.CONVERT_ANTENNA) {
+			if (value == 0)
+				s = "Stowed";
+			else
+				s = "Deployed";
+		} else if (conv == BitArrayLayout.CONVERT_COM1_ISIS_ANT_STATUS) {  
+			s = isisAntennaStatus((int)value, true);
+		} else if (conv == BitArrayLayout.CONVERT_STATUS_BIT) {
+			if (value == 0)
+				s = "OK";
+			else
+				s = "FAIL";
+		} else if (conv == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+			if (value == 1)
+				s = "Enabled";
+			else
+				s = "Disabled";
+		} else if (conv == BitArrayLayout.CONVERT_BOOLEAN) {
+			if (value == 1)
+				s = "TRUE";
+			else
+				s = "FALSE";
+		} else if (conv == BitArrayLayout.CONVERT_INTEGER) {
+			s = Long.toString((long) value);
+		} else if (conv == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
+			s = ihuDiagnosticString((int) value, true, (FoxSpacecraft)fox);
+		} else if (conv == BitArrayLayout.CONVERT_HARD_ERROR) {
+			s = hardErrorString((int) value, true);
+		} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR) {
+			s = softErrorStringFox1A((int) value, true);
+		} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR_84488) {
+			s = softErrorString84488((int) value, true);
+		} else if (conv == BitArrayLayout.CONVERT_ICR_SW_COMMAND_COUNT) {
+			s = icrSwCommandCount((int) value, true);	
+		} else if (conv == BitArrayLayout.CONVERT_ICR_DIAGNOSTIC) {
+			s = icrDiagnosticString((int) value, true);	
+		} else if (conv == BitArrayLayout.CONVERT_HUSKY_UW_DIST_BOARD_STATUS) {
+			if (value >= 1500) return "OK";
+			else return "FAIL";
+		} else if (conv == BitArrayLayout.CONVERT_BATTERY 
+					|| conv == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
+					|| conv == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
+				s = String.format("%1.2f", value);
+		} else {
+				s = String.format("%2.1f", value);
+		}
+
+		
+		return s;
+		
 	}
 	
 	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
@@ -406,22 +426,6 @@ longer send telemetry.
 	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, FoxSpacecraft fox) {
 		double x = conversion.calculate(rawValue);
 		return x; 
-		
-//		if (conversion instanceof ConversionCurve) {
-////			double x = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).lookupValue(rawValue);
-////			x = x / 2;
-////			double y = 1.7685*Math.pow(x, 3) - 13.107*Math.pow(x,2)+ 36.436*x - 13.019;
-////			return Math.pow(10, y/10);
-//			double y = ((ConversionCurve) conversion).calculate(rawValue);
-//			return y;
-//		} else if (conversion instanceof ConversionLookUpTable) {
-//			ConversionLookUpTable table = (ConversionLookUpTable)conversion;
-//			double x = table.calculate(rawValue);
-//			return x;
-//		} else {
-//			
-//		}
-//		return 9999;
 	}
 
 	protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox) {

@@ -132,7 +132,7 @@ public abstract class BitArray {
 
 	/**
 	 * Return the raw integer value of this field, specified by its name.  Used to store in the
-	 * file and to display to the user when "raw" values are chosen.  This would be the actual DAC
+	 * file and to display to the user when "raw" values are chosen.  This would be the actual ADC
 	 * value sent down from the spacecraft, for example.
 	 * @param name
 	 * @return
@@ -171,7 +171,7 @@ public abstract class BitArray {
 				String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
 				for (String singleConv : conversions) {
 					Conversion conv = fox.getConversionByName(singleConv);
-					if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric
+					if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric. String conversions ignored here
 						int convInt = 0;
 						try {
 							convInt = Integer.parseInt(singleConv);
