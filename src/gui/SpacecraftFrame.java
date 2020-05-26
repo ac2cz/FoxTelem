@@ -257,7 +257,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				"The lower frequency boundry when we are searching for the spacecraft signal", ""+sat.user_minFreqBoundkHz);
 		maxFreqBoundkHz = addSettingsRow(rightPanel1, 15, "Upper Freq Bound (kHz)", 
 				"The upper frequency boundry when we are searching for the spacecraft signal", ""+sat.user_maxFreqBoundkHz);
-		track = addCheckBoxRow("Track when Find Signal Enabled", "When Find Signal is enabled include this satellite in the search", sat.user_track, rightPanel1 );
+		track = addCheckBoxRow("Track this spacecraft", "When Doppler tracking or Find Signal is enabled include this satellite", sat.user_track, rightPanel1 );
 		rightPanel1.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		JPanel rightPanel2 = new JPanel();

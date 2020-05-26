@@ -2583,6 +2583,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		aboveHorizon = false;
 	}
 	
+	public boolean isStarted() { return STARTED; }
+	
 	/**
 	 * Method that checks to see if the decoder should be started or stopped.  The start/stop methods can be called from the pass manager.
 	 * Note that this new thread is no longer part of the Event Dispatch thread.  Any changes to the GUI must be passed back to that thread.
