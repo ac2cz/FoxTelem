@@ -81,6 +81,10 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	// These are the individual CAN packets inside the layouts
 	public static final String CAN_PKT_LAYOUT = "canpacket";
 	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
+
+	public static final String WOD_RAG_LAYOUT = "wodragtelemetry";
+	public static final String RAG_LAYOUT = "ragtelemetry";
+
 	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";

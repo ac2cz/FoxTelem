@@ -205,7 +205,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		rightBottom.setLayout(new BoxLayout(rightBottom, BoxLayout.X_AXIS));
 		
 		lblVersion = new JLabel("Version " + Config.VERSION);
-		lblVersion.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblVersion.setFont(new Font("SansSerif", Font.BOLD, (int)(0.8f * lblVersion.getFont().getSize2D())));
+		Font footerFont = lblVersion.getFont();
+	//	lblVersion.setFont(footerFont);
 	//	lblVersion.setMinimumSize(new Dimension(1600, 14)); // forces the next label to the right side of the screen
 	//	lblVersion.setMaximumSize(new Dimension(1600, 14));
 		lblVersion.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
@@ -216,39 +218,45 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			lblLogFileDir = new JLabel("Logs: Current Directory");
 		else
 			lblLogFileDir = new JLabel("Logs: " + Config.logFileDirectory);
-		lblLogFileDir.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblLogFileDir.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblLogFileDir.setFont(footerFont);
 		//lblLogFileDir.setMinimumSize(new Dimension(1600, 14)); // forces the next label to the right side of the screen
 		//lblLogFileDir.setMaximumSize(new Dimension(1600, 14));
 		lblLogFileDir.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		bottomPanel.add(lblLogFileDir, BorderLayout.CENTER );
 
 		lblAudioMissed = new JLabel(AUDIO_MISSED);
-		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblAudioMissed.setFont(footerFont);
 		lblAudioMissed.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblAudioMissed.setToolTipText("The number of audio buffers missed");
 		rightBottom.add(lblAudioMissed );
 
 		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
-		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalFrames.setFont(footerFont);
 		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblTotalFrames.setToolTipText("Total number of frames received since FoxTelem restart (including duplicates)");
 		rightBottom.add(lblTotalFrames );
 		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
-		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalDecodes.setFont(footerFont);
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
-		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalQueued.setFont(footerFont);
 		lblTotalQueued.setBorder(new EmptyBorder(2, 2, 2, 2) ); // top left bottom right
 		lblTotalQueued.setToolTipText("The number of frames that need to be sent to the Amsat / Local telemetry servers");
 		rightBottom.add(lblTotalQueued );
 		bottomPanel.add(rightBottom, BorderLayout.EAST);
 
 		lblLocalQueued = new JLabel("");  // This starts blank and then appears if there are actual frames
-		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblLocalQueued.setFont(footerFont);
 		lblLocalQueued.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblLocalQueued.setToolTipText("The number of payloads that need to be sent to the Local telemetry server");
 		rightBottom.add(lblLocalQueued );

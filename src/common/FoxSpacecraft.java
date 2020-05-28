@@ -70,7 +70,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
 	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
 	public static final int EXP_UW = 9; // University of Washington
-	public static final int ADAC = 10; // Ragnaroc
+	public static final int RAG_ADAC = 10; // Ragnaroc
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
@@ -107,7 +107,7 @@ public class FoxSpacecraft extends Spacecraft{
 		"Vanderbilt REM",
 		"Vanderbilt LEPF",
 		"CAN Packet Interface",
-		"ADAC"
+		"Ragnaroc ADAC"
 	};
 	
 	

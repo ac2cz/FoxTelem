@@ -1,7 +1,7 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
 user_format=3
-name=Husky
+name=HO-107
 displayName=Husky
 useIHUVBatt=false
 foxId=6

@@ -21,19 +21,19 @@ public class PayloadHighRes extends FramePart {
 	}
 
 	@Override
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
 	public String toString() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
-	public double convertCoeffRawValue(String name, int rawValue, Conversion conversion, Spacecraft fox) {
+	protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 		// TODO Auto-generated method stub
 		return 0;
 	}

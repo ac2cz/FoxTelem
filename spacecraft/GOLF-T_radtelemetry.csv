@@ -1,12 +1,61 @@
-11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,rad,inSafeMode,1,-,0,Spacecraft Status,3,1,0,Safe Mode,Are we in safe mode?
-1,rad,inHealthMode,1,-,0,Spacecraft Status,3,2,0,Health Mode,Are we in health mode?
-2,rad,transponderEnabled,1,-,0,Spacecraft Status,3,3,0,Transponder Enabled,Is the transponder enabled
-3,rad,pad6,5,-,0,Spacecraft Status,3,4,0,pad6,Pad
-4,rad,data,464,-,0,NONE,0,0,0,NONE,Opaque data from radiation experiment
-5,rad,pad7,288,-,0,NONE,0,0,0,NONE,Room for optional more science data
-6,rad,exp1BoardNum,8,-,0,NONE,0,0,0,Exp1 Board Number,Experiment Board Active
-7,rad,WODTimestampUptime,32,s,1,WOD,8,2,0,Uptime,Time Whole Orbit Data was collected
-8,rad,WODTimestampReset,16,-,1,WOD,8,1,0,Reset Count,Time Whole Orbit Data was collected
-9,rad,WodCRCError,8,-,0,NONE,0,0,0,NONE,TBD
-10,rad,pad0,8,-,-,NONE,0,0,0,-,-
+60,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,rad,data0,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+1,rad,data1,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+2,rad,data2,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+3,rad,data3,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+4,rad,data4,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+5,rad,data5,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+6,rad,data6,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+7,rad,data7,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+8,rad,data8,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+9,rad,data9,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+10,rad,data10,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+11,rad,data11,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+12,rad,data12,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+13,rad,data13,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+14,rad,data14,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+15,rad,data15,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+16,rad,data16,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+17,rad,data17,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+18,rad,data18,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+19,rad,data19,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+20,rad,data20,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+21,rad,data21,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+22,rad,data22,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+23,rad,data23,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+24,rad,data24,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+25,rad,data25,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+26,rad,data26,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+27,rad,data27,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+28,rad,data28,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+29,rad,data29,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+30,rad,data30,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+31,rad,data31,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+32,rad,data32,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+33,rad,data33,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+34,rad,data34,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+35,rad,data35,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+36,rad,data36,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+37,rad,data37,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+38,rad,data38,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+39,rad,data39,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+40,rad,data40,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+41,rad,data41,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+42,rad,data42,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+43,rad,data43,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+44,rad,data44,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+45,rad,data45,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+46,rad,data46,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+47,rad,data47,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+48,rad,data48,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+49,rad,data49,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+50,rad,data50,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+51,rad,data51,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+52,rad,data52,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+53,rad,data53,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+54,rad,data54,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+55,rad,data55,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+56,rad,data56,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+57,rad,data57,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+58,rad,exp1BoardNum,8,-,0,NONE,0,0,0,Exp1 Board Number,Experiment Board Active
+59,rad,pad20,8,-,0,NONE,0,0,0,NONE,TBD

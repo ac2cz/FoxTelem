@@ -1,0 +1,15 @@
+number_of_payloads=7
+payload0.name=rttelemetry
+payload0.length=96
+payload1.name=radtelemetry
+payload1.length=60
+payload2.name=ragtelemetry
+payload2.length=84
+payload3.name=mintelemetry
+payload3.length=64
+payload4.name=wodtelemetry
+payload4.length=92
+payload5.name=radwodtelemetry
+payload5.length=68
+payload6.name=ragwodtelemetry
+payload6.length=92
