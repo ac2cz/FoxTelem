@@ -358,7 +358,7 @@ longer send telemetry.
 					try {
 						convInt = Integer.parseInt(conversions[conversions.length-1]);
 					} catch (NumberFormatException e) { convInt = 0;}
-					s = legacyStringConversion(convInt, (int)dvalue, fox);
+					s = legacyStringConversion(convInt, dvalue, fox);
 				}
 			}
 		}

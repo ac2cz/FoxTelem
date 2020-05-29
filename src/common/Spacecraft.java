@@ -165,6 +165,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
 	public double satPosErrorCode; // Store the error code when we return null for the position
 	public boolean hasCanBus;
+	public boolean hasFrameCrc;
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
 	
@@ -565,6 +566,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			}
 			user_format = Integer.parseInt(getProperty("user_format"));
 			user_display_name = getProperty("displayName");
+			
+			String crc = getOptionalProperty("hasFrameCrc");
+			if (crc == null) 
+				hasFrameCrc = true;
+			else 
+				hasFrameCrc = Boolean.parseBoolean(crc);
 
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
@@ -758,7 +765,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		    String line = br.readLine(); // read the header, which we ignore
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
-		        if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
+		       // if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
 		        try {
 		        	ConversionCurve conversion = new ConversionCurve(values);
 		        	if (conversions.containsKey(conversion.getName())) {

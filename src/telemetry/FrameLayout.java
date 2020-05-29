@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class FrameLayout {
-	public static final String NUMBER_OF_PAYLOADS="number_of_payloads";
+	public static final String NUMBER_OF_PAYLOADS = "number_of_payloads";
+	public static final String PAYLOAD = "payload";
+	public static final String DOT_LENGTH = ".length";
 	
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;

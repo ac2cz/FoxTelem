@@ -338,7 +338,7 @@ public class SatelliteManager implements Runnable {
 	public FrameLayout getFrameLayout(int sat, int type) {
 		if (!validFoxId(sat)) return null;
 		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) return sc.frameLayout[type];
+		if (sc != null && sc.frameLayout != null) return sc.frameLayout[type];
 		return null;
 	}
 

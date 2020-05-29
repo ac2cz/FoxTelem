@@ -7,8 +7,10 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import common.Log;
 import common.Spacecraft;
+import decoder.Crc32;
 import decoder.Decoder;
 import decoder.FoxBPSK.FoxBPSKBitStream;
+import sun.security.krb5.internal.crypto.crc32;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
@@ -49,8 +51,13 @@ import telemetry.TelemFormat;
 		public FramePart[] payload;
 		HighSpeedTrailer trailer = null;
 		byte[] headerBytes;
+		byte[] dataBytes;
 		BitArrayLayout headerLayout;
 		int numberBytesAdded = 0;
+		int c = 0;
+		int crc = 0;
+		int crcLength = 4; // bytes
+		byte[] crcBytes = new byte[crcLength];
 		
 		/**
 		 * Initialize the frame.  At this point we do not know which spacecraft it is for.  We reserve enough bytes for the header.
@@ -80,8 +87,8 @@ import telemetry.TelemFormat;
 			if (Config.debugBytes) {
 				String debug = (Decoder.plainhex(b));
 				debugCount++;
-				Log.print(debug);
-				if (debugCount % 40 == 0) Log.println("");
+				Log.print(numberBytesAdded + ": " + debug + " ");
+				if (debugCount % 20 == 0) Log.println("");
 			}
 
 			if (corrupt) return;
@@ -107,9 +114,24 @@ import telemetry.TelemFormat;
 					if (Config.debugFrames)
 						Log.println(header.toString());
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
+					if (frameLayout == null) {
+						if (Config.debugFrames)
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " has no frame layout. Decode not possible.\n"
+									+ "Turn off Debug Frames to prevent this message in future.");
+						else
+							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " has no frame layout. Decode not possible.");
+						
+						corrupt = true;
+						return;
+					}
 					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
-					for (int k=0; k < telemFormat.getInt(TelemFormat.HEADER_LENGTH); k++)
+					if (fox.hasFrameCrc)
+						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
+//						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
+					for (int k=0; k < telemFormat.getInt(TelemFormat.HEADER_LENGTH); k++) {
 						bytes[k] = headerBytes[k];
+						dataBytes[k] = headerBytes[k];
+					}
 					initPayloads((FoxBPSKHeader)header, frameLayout);
 //					initPayloads(header.id, header.getType());
 					if (payload[0] == null) {
@@ -143,7 +165,7 @@ import telemetry.TelemFormat;
 				int maxByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 				int minByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 				for (int p=0; p < frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); p++) {
-					maxByte += frameLayout.getInt("payload"+p+".length");
+					maxByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
 					if (numberBytesAdded >= minByte && numberBytesAdded < maxByte) {
 						try {
 							payload[p].addNext8Bits(b);
@@ -153,17 +175,41 @@ import telemetry.TelemFormat;
 							return;
 						}
 					} 
-					minByte += frameLayout.getInt("payload"+p+".length");
+					minByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
+				}
+			}
+			if (fox != null && fox.hasFrameCrc) {
+				// TODO - probablly not the right place to do this.  Should be in BitStream then we can avoid processing the frame at all if it fails
+				if (numberBytesAdded > telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength-1  
+						&& numberBytesAdded <= telemFormat.getInt(TelemFormat.DATA_LENGTH)-1)
+					crcBytes[c++] = b;
+				if (numberBytesAdded == telemFormat.getInt(TelemFormat.DATA_LENGTH)-1) {
+					crc = Decoder.littleEndian4(crcBytes);
+					if (Config.debugBytes || Config.debugFrames) {
+						Log.println("=> Frame CRC: " + Decoder.plainhex(crc));
+					}
+					// Now calculate the CRC for all data bytes received so far
+					int calculatedCrc = crc32.byte2crc32(dataBytes);
+					int myCalculatedCrc = Crc32.crc32(dataBytes);
+					
+					if (Config.debugBytes || Config.debugFrames) {
+						Log.println("=> Sun Calculated CRC: " + Decoder.plainhex(calculatedCrc));
+						Log.println("=> My Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
+					}
 				}
 			}
 				
-			if (numberBytesAdded >= telemFormat.getInt(TelemFormat.HEADER_LENGTH))
+			if (numberBytesAdded >= telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				bytes[numberBytesAdded] = b;
-			else
+				if (fox != null && fox.hasFrameCrc && numberBytesAdded < telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength)
+					dataBytes[numberBytesAdded] = b; 
+			} else {
 				headerBytes[numberBytesAdded] = b;
+			}
+			
 			numberBytesAdded++;
 		}
-
+		
 		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
 			payload = new FoxFramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
 			for (int i=0; i<frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); i+=1 ) {
@@ -196,6 +242,8 @@ import telemetry.TelemFormat;
 						if (!payloadStore.add(header.getFoxId(), header.getUptime(), newReset, payload[i]))
 							return false;
 					payload[i].rawBits = null; // free memory associated with the bits
+					headerBytes = null; // free memory 
+					dataBytes = null; // free memory
 				}
 			}
 			return true;			

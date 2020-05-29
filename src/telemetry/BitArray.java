@@ -158,8 +158,10 @@ public abstract class BitArray {
 		
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
-			if (name.equalsIgnoreCase(layout.fieldName[i]))
+			if (name.equalsIgnoreCase(layout.fieldName[i])) {
 				pos = i;
+				break;
+			}
 		}
 
 		if (pos != -1) {
