@@ -62,6 +62,8 @@ public abstract class BitArray {
 		}
 	}
 	
+	public BitArrayLayout getLayout() { return layout; }
+	
 	public boolean hasFieldName(String name) {
 		return layout.hasFieldName(name);
 	}

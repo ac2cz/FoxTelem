@@ -516,9 +516,9 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					conversion = rtPayload.getConversionByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
 					if (rtPayload instanceof PayloadWOD)
-						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD, null, fox, plotType);
+						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD, rtPayload.getLayout(), fox, plotType);
 					else
-						graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, null, fox, plotType);
+						graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, rtPayload.getLayout(), fox, plotType);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getIntConversionByName(fieldName[i]);
