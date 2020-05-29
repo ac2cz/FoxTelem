@@ -261,8 +261,8 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addRagExperimentTab(FoxSpacecraft fox) {
 
-		ragExperimentTab = new RagExperimentTab(fox, DisplayModule.DISPLAY_VULCAN);
-		ragExperimentThread = new Thread((RagExperimentTab)ragExperimentTab);
+		ragExperimentTab = new RagAdacTab(fox, DisplayModule.DISPLAY_VULCAN);
+		ragExperimentThread = new Thread((RagAdacTab)ragExperimentTab);
 		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		ragExperimentThread.start();
 

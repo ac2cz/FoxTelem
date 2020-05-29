@@ -63,6 +63,12 @@ public abstract class FoxFramePart extends FramePart {
 	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
 	public static final int TYPE_UW_CAN_PACKET_TELEM = 17; // UW Can packets split into their ids
 	
+	// Golf
+	public static final int TYPE_RAG_TELEM = 18; // UW Can packets from WOD for HuskySat
+	public static final int TYPE_WOD_RAG = 19; // UW Can packets split into their ids
+
+	
+	
 	// These are infrastructure and not saved to Disk
 	public static final int TYPE_SLOW_SPEED_HEADER = 98;
 	public static final int TYPE_SLOW_SPEED_TRAILER = 99;

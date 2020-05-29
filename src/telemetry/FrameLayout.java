@@ -52,4 +52,9 @@ public class FrameLayout {
 		return Boolean.parseBoolean(properties.getProperty(key));
 	}
 
+	public String toString() {
+		String s = name;
+		return s;
+	}
+	
 }

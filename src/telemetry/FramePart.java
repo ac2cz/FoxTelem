@@ -248,6 +248,10 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				return new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_CAN_LAYOUT), header.id, header.uptime, header.resets);
 			case Spacecraft.CAN_LAYOUT:
 				return new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.CAN_LAYOUT), header.id, header.uptime, header.resets);
+			case Spacecraft.RAG_LAYOUT:
+				return new PayloadRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
+			case Spacecraft.WOD_RAG_LAYOUT:
+				return new PayloadWODRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAG_LAYOUT), header.id, header.uptime, header.resets);
 			default:
 				return null;	
 		}

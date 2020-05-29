@@ -1,0 +1,36 @@
+35,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,RAD,VUC_STATE,4,NONE,27,VU Controller,1,1,5,Status,Status of the Vanderbilt University Controller
+1,RAD,VUC_RESTARTS,8,NONE,1,VU Controller,1,2,5,Restarts,Number of restarts by the Vanderbilt University Controller
+2,RAD,VUC_UPTIME,20,s,25,VU Controller,1,3,5,Uptime,Uptime of the Vanderbilt University Controller
+3,RAD,State1,4,NONE,27,VU Experiment 1,2,1,5,State,Vulcan Experiment 1 State
+4,RAD,State2,4,NONE,27,LEPF (Experiment 2),3,1,5,State,Vulcan Experiment 2 State
+5,RAD,State3,4,NONE,27,LEP (Experiment 3),4,1,5,State,Vulcan Experiment 3 State
+6,RAD,State4,4,NONE,27,REM (Experiment 4),5,1,5,State,Vulcan Experiment 4 State
+7,RAD,Power1,8,mW,0,VU Experiment 1,2,2,5,Power,Vulcan Experiment 1 Power
+8,RAD,Power2,8,mW,0,LEPF (Experiment 2),3,2,5,Power,Vulcan Experiment 2 Power
+9,RAD,Power3,8,mW,0,LEP (Experiment 3),4,2,5,Power,Vulcan Experiment 3 Power
+10,RAD,Power4,8,mW,0,REM (Experiment 4),5,2,5,Power,Vulcan Experiment 4 Power
+11,RAD,LEPF_RESTARTS,8,NONE,1,LEPF (Experiment 2),3,3,5,Resets,Number of restarts by the LEPF Experiment
+12,RAD,LEPF_UPTIME,16,16 sec,25,LEPF (Experiment 2),3,4,5,Uptime,Uptime of the LEPF Experiment
+13,RAD,LEPF_CORE_VOLTAGE,8,mV,25,LEPF (Experiment 2),3,5,5,Core Voltage,Core Voltage
+14,RAD,LEPF_HV_SEU_LIVETIME,32,NONE,1,LEPF (Experiment 2),3,6,5,HV SEU Livetime,Livetime for the HV Single Event Upsets
+15,RAD,LEPF_HV_UPSETS,16,NONE,1,LEPF (Experiment 2),3,7,5,HV Upsets,Number of HV Single Event Upsets
+16,RAD,LEPF_LV_SEU_UPTIME,32,NONE,1,LEPF (Experiment 2),3,8,5,LV SEU Uptime,Livetime for the LV Single Event Upsets
+17,RAD,LEPF_LV_UPSETS,16,NONE,1,LEPF (Experiment 2),3,9,5,LV Upsets,Number of LV Single Event Upsets
+18,RAD,LEP_RESETS,8,NONE,1,LEP (Experiment 3),4,3,5,Resets,Number of times the LEP Experiment has reset
+19,RAD,LEP_UPTIME,24,16 sec,25,LEP (Experiment 3),4,4,5,Uptime,Uptime of the LEP Experiment
+20,RAD,LEP_SEU_LIVETIME,32,s,1,LEP (Experiment 3),4,5,5,SEU Livetime,LEP Single Event Upset Livetime
+21,RAD,LEP_UPSETS,16,NONE,1,LEP (Experiment 3),4,6,5,Memory Errors,Cumulative number of memory upsets in LEP Experiment
+22,RAD,REM_RESETS,8,NONE,1,REM (Experiment 4),5,3,5,Resets,Number of times the REM Experiment has reset
+23,RAD,REM_UPTIME,16,16 sec,25,REM (Experiment 4),5,4,5,Uptime,Uptime of the REM Experiment
+24,RAD,REM_CORE_VOLTAGE,8,mV,25,REM (Experiment 4),5,5,5,Core Voltage,REM Core Voltage
+25,RAD,REM_HV_SEU_LIVETIME,32,NONE,1,REM (Experiment 4),5,6,5,HV SEU Livetime,Livetime for the HV Single Event Upsets
+26,RAD,REM_HV_UPSETS,16,NONE,1,REM (Experiment 4),5,7,5,HV Upsets,Number of HV Single Event Upsets
+27,RAD,REM_LV_SEU_UPTIME,32,NONE,1,REM (Experiment 4),5,8,5,LV SEU Uptime,Livetime for the LV Single Event Upsets
+28,RAD,REM_LV_UPSETS,16,NONE,1,REM (Experiment 4),5,9,5,LV Upsets,Number of LV Single Event Upsets
+29,RAD,pad1,8,NONE,0,NONE,0,0,0,pad1,None
+30,RAD,exp1BoardNum,3,NONE,1,VU Controller,1,4,0,Active Board,Which Experiment Board is Active
+31,RAD,WODTimestampReset,16,NONE,1,VU Controller,1,5,0,Fox WOD Resets,Reset when this WOD record was captured
+32,RAD,WODTimestampUptime,25,s,1,VU Controller,1,6,0,Fox WOD Uptime,Uptime when this WOD record was captured
+33,RAD,WodCRCError,1,NONE,1,VU Controller,1,7,0,CRC Error,Memory error (WOD only)
+34,RAD,pad3,6,NONE,0,NONE,0,0,0,Byte 65,None

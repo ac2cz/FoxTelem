@@ -460,6 +460,7 @@ public class SatelliteManager implements Runnable {
 		try {
 			website = new URL(urlString);
 			HttpURLConnection httpCon = (HttpURLConnection) website.openConnection();
+			httpCon.setReadTimeout(1000);
 			long date = httpCon.getLastModified();
 			httpCon.disconnect();
 			Date kepsDate = new Date(date);

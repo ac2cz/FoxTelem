@@ -1,0 +1,65 @@
+64,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,wodrad,data0,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+1,wodrad,data1,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+2,wodrad,data2,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+3,wodrad,data3,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+4,wodrad,data4,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+5,wodrad,data5,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+6,wodrad,data6,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+7,wodrad,data7,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+8,wodrad,data8,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+9,wodrad,data9,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+10,wodrad,data10,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+11,wodrad,data11,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+12,wodrad,data12,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+13,wodrad,data13,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+14,wodrad,data14,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+15,wodrad,data15,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+16,wodrad,data16,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+17,wodrad,data17,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+18,wodrad,data18,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+19,wodrad,data19,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+20,wodrad,data20,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+21,wodrad,data21,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+22,wodrad,data22,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+23,wodrad,data23,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+24,wodrad,data24,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+25,wodrad,data25,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+26,wodrad,data26,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+27,wodrad,data27,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+28,wodrad,data28,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+29,wodrad,data29,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+30,wodrad,data30,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+31,wodrad,data31,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+32,wodrad,data32,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+33,wodrad,data33,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+34,wodrad,data34,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+35,wodrad,data35,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+36,wodrad,data36,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+37,wodrad,data37,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+38,wodrad,data38,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+39,wodrad,data39,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+40,wodrad,data40,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+41,wodrad,data41,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+42,wodrad,data42,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+43,wodrad,data43,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+44,wodrad,data44,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+45,wodrad,data45,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+46,wodrad,data46,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+47,wodrad,data47,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+48,wodrad,data48,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+49,wodrad,data49,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+50,wodrad,data50,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+51,wodrad,data51,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+52,wodrad,data52,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+53,wodrad,data53,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+54,wodrad,data54,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+55,wodrad,data55,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+56,wodrad,data56,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+57,wodrad,data57,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
+58,wodrad,exp1BoardNum,8,-,0,NONE,0,0,0,Exp1 Board Number,Experiment Board Active
+59,wodrad,pad20,8,-,0,NONE,0,0,0,NONE,TBD
+60,wodrad,RadWODTimestampSeconds,32,s,1,WOD,8,2,0,Uptime,Time Whole Orbit Data was collected
+61,wodrad,RadWODTimestampReset,16,-,1,WOD,8,1,0,Reset Count,Time Whole Orbit Data was collected
+62,wodrad,WodCRCError,8,-,0,NONE,0,0,0,NONE,TBD
+63,wodrad,pad0,8,-,0,NONE,0,0,0,NONE,TBD

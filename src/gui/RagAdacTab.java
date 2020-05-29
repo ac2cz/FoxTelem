@@ -55,7 +55,7 @@ import common.FoxSpacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class RagExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
+public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
 	public static final String RAGTAB = "RAGEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";
@@ -77,7 +77,7 @@ public class RagExperimentTab extends ExperimentTab implements ItemListener, Run
 
 	BitArrayLayout layout;
 
-	public RagExperimentTab(FoxSpacecraft sat, int displayType)  {
+	public RagAdacTab(FoxSpacecraft sat, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;

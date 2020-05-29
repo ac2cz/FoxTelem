@@ -145,8 +145,14 @@ import telemetry.TelemFormat;
 				for (int p=0; p < frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); p++) {
 					maxByte += frameLayout.getInt("payload"+p+".length");
 					if (numberBytesAdded >= minByte && numberBytesAdded < maxByte) {
-						payload[p].addNext8Bits(b);
-					}
+						try {
+							payload[p].addNext8Bits(b);
+						} catch (Exception e) {
+							Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout);
+							corrupt = true;
+							return;
+						}
+					} 
 					minByte += frameLayout.getInt("payload"+p+".length");
 				}
 			}
@@ -162,6 +168,10 @@ import telemetry.TelemFormat;
 			payload = new FoxFramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
 			for (int i=0; i<frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); i+=1 ) {
 				BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, frameLayout.getPayloadName(i));
+				if (layout == null) {
+					payload[0] = null; // cause us to drop out
+					return;
+				}
 				payload[i] = (FoxFramePart) FramePart.makePayload(header, layout);
 			}
 		}

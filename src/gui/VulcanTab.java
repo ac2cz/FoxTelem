@@ -133,25 +133,25 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
 		BitArrayLayout rad = null;
-
+		String layoutName = Spacecraft.RAD2_LAYOUT;
 		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
-			rad = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
-		else
-			rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+			layoutName = Spacecraft.WOD_RAD2_LAYOUT;
+
+		rad = fox.getLayoutByName(layoutName);
 		BitArrayLayout none = null;
 		if (rad == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ "" + Spacecraft.RAD2_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+					+ "" + layoutName+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else 
-		try {
-			analyzeModules(rad, none, none, displayType);
-		} catch (LayoutLoadException e) {
-			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			System.exit(1);
-		}
-		
+			try {
+				analyzeModules(rad, none, none, displayType);
+			} catch (LayoutLoadException e) {
+				Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+				e.printStackTrace(Log.getWriter());
+				System.exit(1);
+			}
+
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
 		splitPane.setOneTouchExpandable(true);
