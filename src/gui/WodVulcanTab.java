@@ -1,5 +1,7 @@
 package gui;
 
+import java.awt.event.ItemEvent;
+
 import javax.swing.JTable;
 
 import common.Config;
@@ -55,6 +57,25 @@ public class WodVulcanTab extends VulcanTab {
 		}
 		
 		MainWindow.frame.repaint();
+	}
+	
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
+		Object source = e.getItemSelectable();
+		
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+			Config.save();
+			updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
+			
+		}
+		
 	}
 	
 	protected void displayRow(JTable table, int row) {
