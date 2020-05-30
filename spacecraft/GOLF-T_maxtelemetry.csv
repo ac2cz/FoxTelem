@@ -38,13 +38,13 @@
 36,maxDownlink,CSS6,8,-,0,NONE,8,6,3,CSS #6,Coarse Sun Sensor Values
 37,maxDownlink,CSS7,8,-,0,NONE,8,7,3,CSS #7,Coarse Sun Sensor Values
 38,maxDownlink,CSS8,8,-,0,NONE,8,8,3,CSS #8,Coarse Sun Sensor Values
-39,maxDownlink,CIU3V3_1,8,-,52,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
-40,maxDownlink,CIU3V3_2,8,-,0,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
-41,maxDownlink,CIUVsys,8,-,0,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
-42,maxDownlink,CIU12v,8,-,0,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
-43,maxDownlink,Power10GHz,8,-,0,NONE,1,6,3,SSPA Power,Power output of the 10GHz SSPA
+39,maxDownlink,CIU3V3_1,8,V,0,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+40,maxDownlink,CIU3V3_2,8,V,0,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+41,maxDownlink,CIUVsys,8,V,0,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
+42,maxDownlink,CIU12v,8,V,0,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
+43,maxDownlink,Power10GHz,8,mW,0,NONE,1,6,3,SSPA Power,Power output of the 10GHz SSPA
 44,maxDownlink,pad11,16,-,0,NONE,0,0,3,Filler,Pad
 45,maxDownlink,maxTimestampUptime,32,s,1,Min Max,10,2,0,Max Uptime,Timestamp Resets
 46,maxDownlink,maxTimestampReset,16,s,1,Min Max,10,1,0,Max Reset,Timestamp uptime
-47,maxDownlink,maxCRCerror,8,-,0,Min Max,10,3,0,Max CRC Error,-
+47,maxDownlink,maxCRCerror,8,-,1,Min Max,10,3,0,Max CRC Error,CRC Error for the Max Payload
 48,maxDownlink,pad0,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
