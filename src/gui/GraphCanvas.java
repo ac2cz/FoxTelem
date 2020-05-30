@@ -320,6 +320,7 @@ public abstract class GraphCanvas extends MapPanel {
 				int zeroPoint = graphHeight + topBorder; // 10 is the default font size
 
 				DecimalFormat f1 = new DecimalFormat("0.0");
+				DecimalFormat f3 = new DecimalFormat("0.00");
 				DecimalFormat f2 = new DecimalFormat("0");
 				
 				int fudge = 0; // fudge factor so that labels on the right axis are offset by the side border, otherwise they would be drawn to left of axis
@@ -338,8 +339,10 @@ public abstract class GraphCanvas extends MapPanel {
 					String s = null;
 					if (labels[v] == Math.round(labels[v]))
 						s = f2.format(labels[v]);
-					else
+					else if (f1.format(labels[v]).equalsIgnoreCase(""+labels[v]))
 						s = f1.format(labels[v]);
+					else
+						s = f3.format(labels[v]);
 					
 					boolean drawLabel = true;
 					// dont draw a label at the zero point or just below it because we have axis labels there, unless

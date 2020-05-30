@@ -414,7 +414,9 @@ longer send telemetry.
 			else return "FAIL";
 		} else if (conv == BitArrayLayout.CONVERT_BATTERY 
 					|| conv == BitArrayLayout.CONVERT_ICR_VOLT_SENSOR
-					|| conv == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL) {
+					|| conv == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL
+					|| conv == BitArrayLayout.CONVERT_COM1_ACCELEROMETER
+					|| conv == BitArrayLayout.CONVERT_LT_VGA) {
 				s = String.format("%1.2f", value);
 		} else {
 				s = String.format("%2.1f", value);
