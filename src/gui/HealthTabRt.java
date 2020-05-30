@@ -139,9 +139,10 @@ public class HealthTabRt extends HealthTab {
 			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.MAX_LAYOUT);
 		if (healthTableToDisplay == DISPLAY_MIN)
 			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.MIN_LAYOUT);
+		
+		displayTable();
 		if (data != null && data.length > 0) {
 			parseTelemetry(data);
-			displayTable();
 			MainWindow.frame.repaint();
 		}
 
