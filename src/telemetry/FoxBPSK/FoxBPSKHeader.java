@@ -21,7 +21,9 @@ public class FoxBPSKHeader extends Header {
 	public static final String RESET_FIELD = "resetCnt";
 	public static final String UPTIME_FIELD = "uptime";
 	public static final String PROTOCOL_VERSION_FIELD = "protocolVersion";
-	public static final String MODES_FIELD = "modes";
+	public static final String SAFE_MODE = "inSafeMode";
+	public static final String HEALTH_MODE = "inHealthMode";
+	public static final String SCIENCE_MODE = "inScienceMode";
 
 	public FoxBPSKHeader(BitArrayLayout layout, TelemFormat telemFormat) {
 		super(TYPE_EXTENDED_HEADER, layout);
@@ -45,7 +47,10 @@ public class FoxBPSKHeader extends Header {
 				uptime = getRawValue(UPTIME_FIELD);
 				type = getRawValue(TYPE_FIELD);
 				minorVersion = getRawValue(PROTOCOL_VERSION_FIELD);
-				int modes = getRawValue(MODES_FIELD);
+				safeMode = getRawValue(SAFE_MODE);
+				healthMode = getRawValue(HEALTH_MODE);
+				scienceMode = getRawValue(SCIENCE_MODE);
+				setMode();
 			} else {
 				super.copyBitsToFields();
 				type = nextbits(4);
