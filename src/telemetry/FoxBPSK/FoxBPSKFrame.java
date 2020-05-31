@@ -10,7 +10,6 @@ import common.Spacecraft;
 import decoder.Crc32;
 import decoder.Decoder;
 import decoder.FoxBPSK.FoxBPSKBitStream;
-import sun.security.krb5.internal.crypto.crc32;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
@@ -87,7 +86,7 @@ import telemetry.TelemFormat;
 			if (Config.debugBytes) {
 				String debug = (Decoder.plainhex(b));
 				debugCount++;
-				Log.print(numberBytesAdded + ": " + debug + " ");
+				Log.print("0x" + debug + ",");
 				if (debugCount % 20 == 0) Log.println("");
 			}
 
@@ -186,15 +185,15 @@ import telemetry.TelemFormat;
 				if (numberBytesAdded == telemFormat.getInt(TelemFormat.DATA_LENGTH)-1) {
 					crc = Decoder.littleEndian4(crcBytes);
 					if (Config.debugBytes || Config.debugFrames) {
-						Log.println("=> Frame CRC: " + Decoder.plainhex(crc));
+						Log.print("=> Frame CRC: " + Decoder.plainhex(crc));
 					}
 					// Now calculate the CRC for all data bytes received so far
-					int calculatedCrc = crc32.byte2crc32(dataBytes);
+					//int calculatedCrc = crc32.byte2crc32(dataBytes);
 					int myCalculatedCrc = Crc32.crc32(dataBytes);
 					
 					if (Config.debugBytes || Config.debugFrames) {
-						Log.println("=> Sun Calculated CRC: " + Decoder.plainhex(calculatedCrc));
-						Log.println("=> My Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
+						//Log.println("=> Sun Calculated CRC: " + Decoder.plainhex(calculatedCrc));
+						Log.println(" => Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
 					}
 				}
 			}
