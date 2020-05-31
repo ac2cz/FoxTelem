@@ -1133,10 +1133,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder1.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 		} catch (IllegalArgumentException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			e1.printStackTrace(Log.getWriter());
 		} catch (LineUnavailableException e1) {
 			// TODO Auto-generated catch block
-			e1.printStackTrace();
+			
+			e1.printStackTrace(Log.getWriter());
 		}
 		if (decoder1 != null) {
 			audioGraph.startProcessing(decoder1);
@@ -1163,10 +1164,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					decoder2.setMonitorAudio(sink, Config.monitorAudio, speakerComboBox.getSelectedIndex());
 			} catch (IllegalArgumentException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				e1.printStackTrace(Log.getWriter());
 			} catch (LineUnavailableException e1) {
 				// TODO Auto-generated catch block
-				e1.printStackTrace();
+				e1.printStackTrace(Log.getWriter());
 			}
 
 			audioGraph.startProcessing(decoder2);
@@ -1412,8 +1413,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 		} catch (LineUnavailableException e1) {
 			JOptionPane.showMessageDialog(this,
-					e1.toString(),
-					"LINE UNAVAILABLE ERROR",
+					"Your Operating System says the soundcard is not available to monitor the audio.  Error is:\n" + e1.toString(),
+					"ERROR",
 				    JOptionPane.ERROR_MESSAGE) ;
 			//e1.printStackTrace();
 			
@@ -1642,8 +1643,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
 		} catch (LineUnavailableException e1) {
 			JOptionPane.showMessageDialog(this,
-					e1.toString(),
-					"LINE UNAVAILABLE ERROR",
+					"Your operating system says the device or soundcard is not available.  Error is:\n"+e1.toString(),
+					"ERROR",
 				    JOptionPane.ERROR_MESSAGE) ;
 			e1.printStackTrace(Log.getWriter());
 			stopButton();
@@ -1956,7 +1957,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
 							e.printStackTrace(Log.getWriter());
 						} catch (LineUnavailableException e) {
-							Log.errorDialog("ERROR", "Can't monitor the audio " + e.getMessage());
+							Log.errorDialog("ERROR", "Can't monitor the audio.  Is the soundcard working? Error is:\n" + e.getMessage());
 							e.printStackTrace(Log.getWriter());
 						}
 
