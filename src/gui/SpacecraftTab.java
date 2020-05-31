@@ -261,8 +261,10 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addRagExperimentTab(FoxSpacecraft fox) {
 
-		ragExperimentTab = new RagAdacTab(fox, DisplayModule.DISPLAY_VULCAN);
-		ragExperimentThread = new Thread((RagAdacTab)ragExperimentTab);
+		ragExperimentTab = new NamedExperimentTab(fox, "Ragnaroc Attitude Determination and Control", 
+				fox.getLayoutByName(Spacecraft.RAG_LAYOUT),
+				fox.getLayoutByName(Spacecraft.RAG_LAYOUT), DisplayModule.DISPLAY_VULCAN);
+		ragExperimentThread = new Thread((NamedExperimentTab)ragExperimentTab);
 		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		ragExperimentThread.start();
 

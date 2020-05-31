@@ -488,16 +488,16 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	
 	}
 	
-	public void openGraphs(int payloadType) {
+	public void openGraphs() {
 		if (topModules != null)
 		for (DisplayModule mod : topModules) {
-			if (mod != null)
-			mod.openGraphs(payloadType);
+			if (mod != null && mod.rtPayload != null)
+			mod.openGraphs(mod.rtPayload.getType());
 		}
 		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
-			if (mod != null)
-			mod.openGraphs(payloadType);
+			if (mod != null && mod.rtPayload != null)
+			mod.openGraphs(mod.rtPayload.getType());
 		}
 	
 	}

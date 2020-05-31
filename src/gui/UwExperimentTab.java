@@ -511,7 +511,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
+						openGraphs();
 						justStarted = false;
 					}
 				}

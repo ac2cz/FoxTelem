@@ -368,7 +368,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.HERCI_HS_LAYOUT));
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_REAL_TIME);
+						openGraphs();
 						justStarted = false;
 					}
 				}

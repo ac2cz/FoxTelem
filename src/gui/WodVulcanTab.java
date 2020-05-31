@@ -114,7 +114,7 @@ public class WodVulcanTab extends VulcanTab {
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_WOD_RAD);
+							openGraphs();
 							justStarted = false;
 						}
 					}

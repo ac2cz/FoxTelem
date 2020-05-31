@@ -17,6 +17,46 @@ import telemetry.FoxBPSK.FoxBPSKHeader;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
+	public static final int TYPE_DEBUG = 0;
+	public static final int TYPE_REAL_TIME = 1;
+	public static final int TYPE_MAX_VALUES = 2;
+	public static final int TYPE_MIN_VALUES = 3;
+	public static final int TYPE_CAMERA_DATA = 5;
+	public static final int TYPE_RAD_EXP_DATA = 4; // This is both Vulcan and HERCI
+	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
+	public static final int TYPE_RAD_TELEM_DATA = 7;  // Translated both Vulcan and HERCI HK
+	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
+	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
+	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
+	
+	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
+	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
+	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
+	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
+	public static final int TYPE_UW_CAN_PACKET_TELEM = 17; // UW Can packets split into their ids
+	
+	// Golf
+	public static final int TYPE_RAG_TELEM = 18; // UW Can packets from WOD for HuskySat
+	public static final int TYPE_WOD_RAG = 19; // UW Can packets split into their ids
+
+	// These are infrastructure and not saved to Disk
+	public static final int TYPE_SLOW_SPEED_HEADER = 98;
+	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
+	public static final int TYPE_HIGH_SPEED_HEADER = 100;
+	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
+	public static final int TYPE_CAMERA_SCAN_LINE_COUNT = 102;
+	public static final int TYPE_HERCI_LINE_COUNT = 103;
+	public static final int TYPE_EXTENDED_HEADER = 104;
+	public static final int TYPE_GOLF_HEADER = 105;
+	
+	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
+	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
+	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
+	// Correspondingly TYPE 900+ are reserved for Herci Packets payloads
+	// Correspondingly TYPE 700+ are reserved for Rad Telemetry payloads
+	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	
@@ -231,7 +271,11 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * @return
 	 */
 	public static FramePart makePayload(Header header, BitArrayLayout layout) {
-		switch (layout.name) {
+		return makePayload(header, layout.name);
+	}
+	
+	public static FramePart makePayload(Header header, String layoutName) {
+		switch (layoutName) {
 			case Spacecraft.REAL_TIME_LAYOUT:
 				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
 			case Spacecraft.MAX_LAYOUT:
@@ -251,6 +295,33 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			case Spacecraft.RAG_LAYOUT:
 				return new PayloadRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
 			case Spacecraft.WOD_RAG_LAYOUT:
+				return new PayloadWODRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAG_LAYOUT), header.id, header.uptime, header.resets);
+			default:
+				return null;	
+		}
+	}
+	
+	public static FramePart makePayload(Header header, int type) {
+		switch (type) {
+			case TYPE_REAL_TIME:
+				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+			case TYPE_MAX_VALUES:
+				return new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+			case TYPE_MIN_VALUES:
+				return new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+			case TYPE_RAD_EXP_DATA:
+				return new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+			case TYPE_WOD:
+				return new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
+			case TYPE_WOD_RAD:
+				return new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+			case TYPE_UW_WOD_EXPERIMENT:
+				return new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_CAN_LAYOUT), header.id, header.uptime, header.resets);
+			case TYPE_UW_CAN_PACKET:
+				return new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.CAN_LAYOUT), header.id, header.uptime, header.resets);
+			case TYPE_RAG_TELEM:
+				return new PayloadRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
+			case TYPE_WOD_RAG:
 				return new PayloadWODRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAG_LAYOUT), header.id, header.uptime, header.resets);
 			default:
 				return null;	

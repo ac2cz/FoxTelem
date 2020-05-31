@@ -183,7 +183,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_WOD_RAD);
+						openGraphs();
 						justStarted = false;
 					}
 				}

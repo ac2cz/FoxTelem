@@ -206,7 +206,7 @@ public class HealthTabRt extends HealthTab {
 					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_REAL_TIME);
+						openGraphs();
 						justStarted = false;
 					}
 				}

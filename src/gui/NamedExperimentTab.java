@@ -55,9 +55,8 @@ import common.FoxSpacecraft;
  *
  */
 @SuppressWarnings("serial")
-public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
+public class NamedExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
 
-	public static final String RAGTAB = "RAGEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";
 	public final int DEFAULT_DIVIDER_LOCATION = 350;
 
@@ -66,8 +65,8 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 	JLabel lblFramesDecoded;
 
 	//JCheckBox showRawBytes;
-	ExperimentLayoutTableModel ragTableModel;
-	RagPacketTableModel ragPacketTableModel;
+	ExperimentLayoutTableModel expTableModel;
+	RagPacketTableModel expPacketTableModel; // translated values put in layout2
 
 	JPanel healthPanel;
 	JPanel topHalfPackets;
@@ -75,18 +74,20 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 
 	boolean displayTelem = true;
 
-	BitArrayLayout layout;
+	BitArrayLayout layout; // raw values
+	BitArrayLayout layout2; // translated format
 
-	public RagAdacTab(FoxSpacecraft sat, int displayType)  {
+	public NamedExperimentTab(FoxSpacecraft sat, String displayName, BitArrayLayout displayLayout, BitArrayLayout displayLayout2, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;
-		NAME = fox.toString() + " Ragnaroc Attitude Determination and Control";
+		NAME = fox.toString() + " " + displayName;
 
 		int j = 0;
-		layout = fox.getLayoutByName(Spacecraft.RAG_LAYOUT);
+		this.layout = displayLayout;
+		this.layout2 = displayLayout2;
 
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, RAGTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, layout.name, "splitPaneHeight");
 
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -118,19 +119,19 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
 		BitArrayLayout none = null;
-		if (layout == null ) {
+		if (layout2 == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ "" + Spacecraft.RAG_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+					+ NAME + "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else 
 			try {
-				analyzeModules(layout, none, none, displayType);
+				analyzeModules(layout2, none, none, displayType);
 			} catch (LayoutLoadException e) {
 				Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 				e.printStackTrace(Log.getWriter());
 				System.exit(1);
 			}
-
+		
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
 		splitPane.setOneTouchExpandable(true);
@@ -147,7 +148,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 				public void mouseReleased(MouseEvent e) {
 					splitPaneHeight = splitPane.getDividerLocation();
 					//Log.println("SplitPane: " + splitPaneHeight);
-					Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, RAGTAB, "splitPaneHeight", splitPaneHeight);
+					Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, layout.name, "splitPaneHeight", splitPaneHeight);
 				}
 			});
 		}
@@ -164,9 +165,9 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 
 		addBottomFilter();
 
-		ragTableModel = new ExperimentLayoutTableModel(layout);
-		ragPacketTableModel = new RagPacketTableModel();
-		addTables(ragTableModel,ragPacketTableModel);
+		expTableModel = new ExperimentLayoutTableModel(layout);
+		expPacketTableModel = new RagPacketTableModel();
+		addTables(expTableModel,expPacketTableModel);
 
 		addPacketModules();
 		topHalfPackets.setVisible(false);
@@ -185,8 +186,8 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 	}
 
 
-	protected void addTables(AbstractTableModel ragTableModel, AbstractTableModel ragPacketTableModel) {
-		super.addTables(ragTableModel, ragPacketTableModel);
+	protected void addTables(AbstractTableModel expTableModel, AbstractTableModel ragPacketTableModel) {
+		super.addTables(expTableModel, ragPacketTableModel);
 
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment( JLabel.CENTER );
@@ -222,10 +223,10 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 	protected void parseRadiationFrames() {
 		if (!Config.payloadStore.initialized()) return;
 		String[][] data = null;
-		data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.RAG_LAYOUT);				
+		data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);				
 		if (Config.displayRawRadData) {
 			if (data != null && data.length > 0)
-				parseRawBytes(data,ragTableModel);
+				parseRawBytes(data,expTableModel);
 		} else {
 			if (data != null && data.length > 0) {
 				parseTelemetry(data);
@@ -240,7 +241,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 			scrollPane.setVisible(false);
 		}
 
-		displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAG_LAYOUT));
+		displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 		MainWindow.frame.repaint();
 	}
 
@@ -262,7 +263,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 
 		if (packetData.length > 0) {
 
-			ragPacketTableModel.setData(keyPacketData, packetData);
+			expPacketTableModel.setData(keyPacketData, packetData);
 		}
 
 	}
@@ -303,31 +304,31 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 					parseRadiationFrames();
 					//					for (BitArrayLayout lay : layout)
 					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAG_LAYOUT), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
 					//					for (BitArrayLayout lay : layout)
 					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAG_LAYOUT), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 				}
 
 				boolean refresh = false;
 
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAG_LAYOUT)) {
+				if (Config.payloadStore.getUpdated(foxId, layout.name)) {
 					//radPayload = Config.payloadStore.getLatestRad(foxId);
-					Config.payloadStore.setUpdated(foxId, Spacecraft.RAG_LAYOUT, false);
+					Config.payloadStore.setUpdated(foxId, layout.name, false);
 					refresh = true;
 				}
 				if (refresh) {
 					parseRadiationFrames();
 					//						for (BitArrayLayout lay : layout)
 					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
-					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAG_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAG_LAYOUT));
+					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
+						openGraphs();
 						justStarted = false;
 					}
 				}
@@ -350,7 +351,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 				Config.displayRawValues = true;
 			}
 			Config.save();
-			updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAG_LAYOUT), true);
+			updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 
 		}
 	}
@@ -368,9 +369,9 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 			//Log.println("RESET: " + reset_l);
 			//Log.println("UPTIME: " + uptime);
 			int reset = (int)reset_l;
-			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.RAG_LAYOUT, false), false);
+			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
 		} else {
-			updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.RAG_LAYOUT), true);
+			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 		}
 		if (fromRow == NO_ROW_SELECTED)
 			fromRow = row;

@@ -613,7 +613,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_RAD_TELEM_DATA);
+							openGraphs();
 							justStarted = false;
 						}
 					}

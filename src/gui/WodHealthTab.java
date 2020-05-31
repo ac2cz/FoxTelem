@@ -182,7 +182,7 @@ public class WodHealthTab extends HealthTab {
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_LAYOUT, false);
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_WOD);
+						openGraphs();
 						justStarted = false;
 					}
 				}
