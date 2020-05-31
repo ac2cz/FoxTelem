@@ -90,7 +90,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	
 	boolean displayTelem = true;
 	
-	RadiationTableModel radTableModel;
+	ExperimentLayoutTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 	
 	public VulcanTab(FoxSpacecraft sat, int displayType)  {
@@ -136,8 +136,14 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		String layoutName = Spacecraft.RAD2_LAYOUT;
 		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
 			layoutName = Spacecraft.WOD_RAD2_LAYOUT;
-
 		rad = fox.getLayoutByName(layoutName);
+		
+		BitArrayLayout rawLayout = null;
+		String rawlayoutName = Spacecraft.RAD_LAYOUT;
+		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+			rawlayoutName = Spacecraft.WOD_RAD2_LAYOUT;
+		rawLayout = fox.getLayoutByName(rawlayoutName);
+		
 		BitArrayLayout none = null;
 		if (rad == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
@@ -202,7 +208,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		decodePacket.setVisible(false);
 
 		addBottomFilter();
-		radTableModel = new RadiationTableModel();
+		radTableModel = new ExperimentLayoutTableModel(rawLayout);
 		radPacketTableModel = new RadiationPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
@@ -231,7 +237,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		
-		for (int i=0; i<58; i++) {
+		for (int i=0; i<table.getColumnCount()-2; i++) {
 			column = table.getColumnModel().getColumn(i+2);
 			column.setPreferredWidth(25);
 		}

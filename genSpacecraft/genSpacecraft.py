@@ -71,7 +71,7 @@ def processStructure(type, file):
                 print("Breaking long field: " + fields[2] + " into " + str(numOfRows)+ " bytes")
                 fields[3] = "8"  # make this a repeating 8 bit field
                 for i in range(0, numOfRows):
-                    fields[2] = fieldName + str(i)  # name this as a repeating 8 bit field
+                    fields[2] = str(i)  # name this as a repeating 8 bit field
                     structure += processColumns(fields, columns)
             else:
                 structure += processColumns(fields, columns)

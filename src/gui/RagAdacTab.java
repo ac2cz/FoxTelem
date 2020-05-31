@@ -66,7 +66,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 	JLabel lblFramesDecoded;
 
 	//JCheckBox showRawBytes;
-	RagTableModel ragTableModel;
+	ExperimentLayoutTableModel ragTableModel;
 	RagPacketTableModel ragPacketTableModel;
 
 	JPanel healthPanel;
@@ -164,7 +164,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 
 		addBottomFilter();
 
-		ragTableModel = new RagTableModel();
+		ragTableModel = new ExperimentLayoutTableModel(layout);
 		ragPacketTableModel = new RagPacketTableModel();
 		addTables(ragTableModel,ragPacketTableModel);
 
@@ -198,7 +198,7 @@ public class RagAdacTab extends ExperimentTab implements ItemListener, Runnable,
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		
-		for (int i=0; i<84; i++) {
+		for (int i=0; i<table.getColumnCount()-2; i++) {
 			column = table.getColumnModel().getColumn(i+2);
 			column.setPreferredWidth(25);
 		}

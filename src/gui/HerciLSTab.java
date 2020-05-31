@@ -68,7 +68,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 	JLabel lblFramesDecoded;
 		
 	//JCheckBox showRawBytes;
-	RadiationTableModel radTableModel;
+	ExperimentLayoutTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 
 	JPanel healthPanel;
@@ -173,7 +173,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 
 		addBottomFilter();
 		
-		radTableModel = new RadiationTableModel();
+		radTableModel = new ExperimentLayoutTableModel(rad);
 		radPacketTableModel = new RadiationPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
