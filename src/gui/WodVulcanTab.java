@@ -78,7 +78,8 @@ public class WodVulcanTab extends VulcanTab {
 		
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	@Override
+	protected void displayRow(JTable table, int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
@@ -86,7 +87,12 @@ public class WodVulcanTab extends VulcanTab {
     	int reset = (int)reset_l;
     	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD2_LAYOUT, false), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
 	@Override
@@ -96,28 +102,28 @@ public class WodVulcanTab extends VulcanTab {
 		done = false;
 		boolean justStarted = true;
 		while(running) {
-			
+
 			try {
 				Thread.sleep(500); // refresh data once a second
 			} catch (InterruptedException e) {
-				Log.println("ERROR: HealthTab thread interrupted");
+				Log.println("ERROR: WOD Vulcan Tab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
 			if (Config.displayRawValues != showRawValues.isSelected()) {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
-						Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
-						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
-						parseRadiationFrames();
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
-						MainWindow.setTotalDecodes();
-						if (justStarted) {
-							openGraphs();
-							justStarted = false;
-						}
+				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
+					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
+					parseRadiationFrames();
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
+					MainWindow.setTotalDecodes();
+					if (justStarted) {
+						openGraphs();
+						justStarted = false;
 					}
+				}
 			}
 		}
 		done = true;
