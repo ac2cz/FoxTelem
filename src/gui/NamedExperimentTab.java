@@ -223,11 +223,13 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	protected void parseRadiationFrames() {
 		if (!Config.payloadStore.initialized()) return;
 		String[][] data = null;
-		data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);				
+					
 		if (Config.displayRawRadData) {
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);	
 			if (data != null && data.length > 0)
 				parseRawBytes(data,expTableModel);
 		} else {
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout2.name);	
 			if (data != null && data.length > 0) {
 				parseTelemetry(data);
 			}
@@ -302,28 +304,21 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					//					for (BitArrayLayout lay : layout)
-					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					//					for (BitArrayLayout lay : layout)
-					//						updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 				}
 
 				boolean refresh = false;
 
 				if (Config.payloadStore.getUpdated(foxId, layout.name)) {
-					//radPayload = Config.payloadStore.getLatestRad(foxId);
 					Config.payloadStore.setUpdated(foxId, layout.name, false);
 					refresh = true;
 				}
 				if (refresh) {
 					parseRadiationFrames();
-					//						for (BitArrayLayout lay : layout)
-					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 					MainWindow.setTotalDecodes();
@@ -332,7 +327,6 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 						justStarted = false;
 					}
 				}
-
 			}
 		}
 		done = true;

@@ -1,6 +1,8 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.util.ArrayList;
+
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -38,25 +40,26 @@ public class SpacecraftTab extends JPanel {
 
 	Spacecraft sat;
 	JTabbedPane tabbedPane;
-	ModuleTab experimentTab;
-	ModuleTab ragExperimentTab;
-	HealthTab healthTab;
-	CameraTab cameraTab;
-	HerciHSTab herciTab;
+//	ModuleTab experimentTab;
+//	ModuleTab ragExperimentTab;
+//	HealthTab healthTab;
+//	CameraTab cameraTab;
+//	HerciHSTab herciTab;
 	MyMeasurementsTab measurementsTab;
-	ModuleTab wodExperimentTab;
-	HealthTab wodHealthTab;
+//	ModuleTab wodExperimentTab;
+//	HealthTab wodHealthTab;
 	
 	// We have one health thread per health tab
-	Thread healthThread;
-	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
-	Thread experimentThread;
-	Thread ragExperimentThread;
-	Thread cameraThread;
-	Thread herciThread;
-	Thread measurementThread;
-	Thread wodHealthThread;
-	Thread wodExperimentThread;
+	ArrayList<Thread> tabThreads;
+//	Thread healthThread;
+//	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
+//	Thread experimentThread;
+//	Thread ragExperimentThread;
+//	Thread cameraThread;
+//	Thread herciThread;
+//	Thread measurementThread;
+//	Thread wodHealthThread;
+//	Thread wodExperimentThread;
 	
 	public SpacecraftTab(Spacecraft s) {
 		sat = s;
@@ -64,18 +67,17 @@ public class SpacecraftTab extends JPanel {
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		setLayout(new BorderLayout(0, 0));
 		add(tabbedPane, BorderLayout.CENTER);
+		tabThreads = new ArrayList<Thread>();
 		addHealthTabs();
 		addMeasurementsTab(sat);
 	}
 	
 	public void showGraphs() {
-		healthTab.showGraphs();
-		experimentTab.showGraphs();
-		ragExperimentTab.showGraphs();
-		herciTab.showGraphs();
-		measurementsTab.showGraphs();
-		wodHealthTab.showGraphs();
-		wodExperimentTab.showGraphs();
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+		   ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
+		   if (tab != null)
+			   tab.showGraphs();
+		}
 	}
 
 	public void refreshXTabs(FoxSpacecraft fox, boolean closeGraphs) {
@@ -85,35 +87,13 @@ public class SpacecraftTab extends JPanel {
 	
 	public void closeTabs(FoxSpacecraft fox, boolean closeGraphs) {
 		sat = fox;
-		
-		if (closeGraphs) healthTab.closeGraphs();
-		tabbedPane.remove(healthTab);
-
-		if (closeGraphs) experimentTab.closeGraphs();
-		tabbedPane.remove(experimentTab);
-		
-		if (closeGraphs) ragExperimentTab.closeGraphs();
-		tabbedPane.remove(ragExperimentTab);
-
-		if (herciTab != null)
-			if (closeGraphs) herciTab.closeGraphs();
-		tabbedPane.remove(herciTab);
-
-		if (cameraTab != null)
-			tabbedPane.remove(cameraTab);
-		
-		if (wodHealthTab != null)
-		if (closeGraphs) wodHealthTab.closeGraphs();
-		tabbedPane.remove(wodHealthTab);
-
-		if (wodExperimentTab != null)
-		if (closeGraphs) wodExperimentTab.closeGraphs();
-		tabbedPane.remove(wodExperimentTab);
-
-		if(closeGraphs)
-			measurementsTab.closeGraphs();
-		tabbedPane.remove(measurementsTab);
-
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
+			if (tab != null) {
+				if (closeGraphs) tab.closeGraphs();
+				tab.remove(tab);
+			}
+		}
 	}
 	
 	public void createTabs(Spacecraft fox) {
@@ -122,23 +102,22 @@ public class SpacecraftTab extends JPanel {
 	}
 
 	public void stop() {
-		stopThreads(healthTab);
-		stopThreads(experimentTab);
-		stopThreads(ragExperimentTab);
-		stopThreads(cameraTab);
-		stopThreads(herciTab);
-		stopThreads(wodHealthTab);
-		stopThreads(wodExperimentTab);
-		stopThreads (measurementsTab);
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
+			if (tab != null) {
+				stopThreads(tab);
+			}
+		}
 	}
 	
 	private void addHealthTabs() {
 		stop();
 		
-		healthTab = new HealthTabRt((FoxSpacecraft)sat);
-		healthThread = new Thread(healthTab);
+		HealthTabRt healthTab = new HealthTabRt((FoxSpacecraft)sat);
+		Thread healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
+		tabThreads.add(healthThread);
 
 		String HEALTH = "Health";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
@@ -148,6 +127,7 @@ public class SpacecraftTab extends JPanel {
 			try {
 				addWodTab((FoxSpacecraft)sat);
 			} catch (Exception e) {
+				e.printStackTrace(Log.getWriter());
 				Log.errorDialog("Layout Failure", "Failed to setup Whole Orbit Data tab for sat: " + sat.user_display_name 
 						+ "\nCheck the Spacecraft.dat file and remove this layout if it is not valid\n" + e);
 			}
@@ -159,6 +139,7 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
 				}
@@ -167,6 +148,7 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addRagExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup Ragnaroc Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
 				}
@@ -175,6 +157,7 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addCameraTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup VT Camera tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
@@ -184,6 +167,7 @@ public class SpacecraftTab extends JPanel {
 					addHerciHSTab((FoxSpacecraft)sat);
 					addHerciLSTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup IOWA HERCI tabs for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
@@ -193,21 +177,16 @@ public class SpacecraftTab extends JPanel {
 				try {
 					addUwExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup UW Experiement tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
-//			if (exp == FoxSpacecraft.ADAC)
-//				try {
-//					addExperimentTab((FoxSpacecraft)sat); // PLACEHOLDER
-//				} catch (Exception e) {
-//					Log.errorDialog("Layout Failure", "Failed to setup ADAC Experiement tab for sat: " + sat.name 
-//							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid");
-//				}
 		}
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
 			try {
 			addWodExpTab((FoxSpacecraft)sat);
 			} catch (Exception e) {
+				e.printStackTrace(Log.getWriter());
 				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
 						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 			}
@@ -217,8 +196,20 @@ public class SpacecraftTab extends JPanel {
 			try {
 			addUwWodExperimentTab((FoxSpacecraft)sat);
 			} catch (Exception e) {
+				e.printStackTrace(Log.getWriter());
 				Log.errorDialog("Layout Failure", "Failed to setup UW WOD tab for sat: " + sat.user_display_name 
 						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
+			}
+
+		}
+		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAG_LAYOUT) != Spacecraft.ERROR_IDX) {
+			try {
+			addWodRagExpTab((FoxSpacecraft)sat);
+			} catch (Exception e) {
+				e.printStackTrace(Log.getWriter());
+				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
+						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
+				
 			}
 
 		}
@@ -226,10 +217,11 @@ public class SpacecraftTab extends JPanel {
 
 	private void addWodTab(FoxSpacecraft fox) {
 		
-		wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
-		wodHealthThread = new Thread(wodHealthTab);
+		WodHealthTab wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
+		Thread wodHealthThread = new Thread(wodHealthTab);
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();
+		tabThreads.add(wodHealthThread);
 
 		String WOD = "WOD";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
@@ -237,10 +229,11 @@ public class SpacecraftTab extends JPanel {
 	}
 	
 	private void addWodExpTab(FoxSpacecraft fox) {
-		wodExperimentTab = new WodVulcanTab(fox);
-		wodExperimentThread = new Thread((VulcanTab)wodExperimentTab);
+		WodVulcanTab wodExperimentTab = new WodVulcanTab(fox);
+		Thread wodExperimentThread = new Thread((VulcanTab)wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodExperimentThread.start();
+		tabThreads.add(wodExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "VU Rad WOD" + "</b></body></html>", wodExperimentTab );
@@ -249,10 +242,11 @@ public class SpacecraftTab extends JPanel {
 
 	private void addExperimentTab(FoxSpacecraft fox) {
 		
-		experimentTab = new VulcanTab(fox, DisplayModule.DISPLAY_VULCAN);
-		experimentThread = new Thread((VulcanTab)experimentTab);
+		VulcanTab experimentTab = new VulcanTab(fox, DisplayModule.DISPLAY_VULCAN);
+		Thread experimentThread = new Thread((VulcanTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
+		tabThreads.add(experimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" VU Rad ("+ fox.getIdString() + ")</body></html>", experimentTab );
@@ -261,24 +255,40 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addRagExperimentTab(FoxSpacecraft fox) {
 
-		ragExperimentTab = new NamedExperimentTab(fox, "Ragnaroc Attitude Determination and Control", 
+		NamedExperimentTab ragExperimentTab = new NamedExperimentTab(fox, "Ragnaroc Attitude Determination and Control", 
 				fox.getLayoutByName(Spacecraft.RAG_LAYOUT),
 				fox.getLayoutByName(Spacecraft.RAG_LAYOUT), DisplayModule.DISPLAY_VULCAN);
-		ragExperimentThread = new Thread((NamedExperimentTab)ragExperimentTab);
+		Thread ragExperimentThread = new Thread(ragExperimentTab);
 		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		ragExperimentThread.start();
+		tabThreads.add(ragExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		"ADAC</body></html>", ragExperimentTab);
 
 	}
 	
+	private void addWodRagExpTab(FoxSpacecraft fox) {
+		WodNamedExperimentTab wodExperimentTab = new WodNamedExperimentTab(fox, "Ragnaroc Attitude Determination and Control", 
+				fox.getLayoutByName(Spacecraft.WOD_RAG_LAYOUT),
+				fox.getLayoutByName(Spacecraft.WOD_RAG_LAYOUT), DisplayModule.DISPLAY_VULCAN);
+		Thread wodExperimentThread = new Thread(wodExperimentTab);
+		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		wodExperimentThread.start();
+		tabThreads.add(wodExperimentThread);
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "ADAC WOD" + "</b></body></html>", wodExperimentTab );
+
+	}
+	
 	private void addUwExperimentTab(FoxSpacecraft fox) {
 
-		experimentTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_UW);
-		experimentThread = new Thread((UwExperimentTab)experimentTab);
+		UwExperimentTab experimentTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_UW);
+		Thread experimentThread = new Thread((UwExperimentTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
+		tabThreads.add(experimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		"CAN Pkts</body></html>", experimentTab);
@@ -286,10 +296,11 @@ public class SpacecraftTab extends JPanel {
 	}
 
 	private void addUwWodExperimentTab(FoxSpacecraft fox) {
-		wodExperimentTab = new WodUwExperimentTab(fox);
-		wodExperimentThread = new Thread((WodUwExperimentTab)wodExperimentTab);
+		WodUwExperimentTab wodExperimentTab = new WodUwExperimentTab(fox);
+		Thread wodExperimentThread = new Thread((WodUwExperimentTab)wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodExperimentThread.start();
+		tabThreads.add(wodExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "CAN Pkt WOD" + "</b></body></html>", wodExperimentTab );
@@ -298,10 +309,11 @@ public class SpacecraftTab extends JPanel {
 
 	private void addHerciLSTab(FoxSpacecraft fox) {
 
-		experimentTab = new HerciLSTab(fox);
-		experimentThread = new Thread((HerciLSTab)experimentTab);
+		HerciLSTab experimentTab = new HerciLSTab(fox);
+		Thread experimentThread = new Thread((HerciLSTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
+		tabThreads.add(experimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" HERCI HK ("+ fox.getIdString() + ")</body></html>", experimentTab);
@@ -309,11 +321,12 @@ public class SpacecraftTab extends JPanel {
 	}
 	
 	private void addHerciHSTab(FoxSpacecraft fox) {
-		herciTab = new HerciHSTab(fox);
-		herciThread = new Thread(herciTab);
+		HerciHSTab herciTab = new HerciHSTab(fox);
+		Thread herciThread = new Thread(herciTab);
 			
 		herciThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		herciThread.start();
+		tabThreads.add(herciThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" HERCI ("+ fox.getIdString() + ")</body></html>", herciTab);
@@ -321,10 +334,11 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addCameraTab(FoxSpacecraft fox) {
 
-		cameraTab = new CameraTab(fox);
-		cameraThread = new Thread(cameraTab);
+		CameraTab cameraTab = new CameraTab(fox);
+		Thread cameraThread = new Thread(cameraTab);
 		cameraThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		cameraThread.start();
+		tabThreads.add(cameraThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" Camera ("+ fox.getIdString() + ")</body></html>", cameraTab);
@@ -343,9 +357,10 @@ public class SpacecraftTab extends JPanel {
 		measurementsTab = new MyMeasurementsTab(fox);
 		measurementsTab.setBorder(new EmptyBorder(5, 5, 5, 5));
 		tabbedPane.addTab( "<html><body leftmargin=5 topmargin=8 marginwidth=5 marginheight=5>Measurements</body></html>", measurementsTab );
-		measurementThread = new Thread(measurementsTab);
+		Thread measurementThread = new Thread(measurementsTab);
 		measurementThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		measurementThread.start();
+		tabThreads.add(measurementThread);
 		
 	}
 	
@@ -364,19 +379,25 @@ public class SpacecraftTab extends JPanel {
 	}
 
 	public void closeGraphs() {
-		healthTab.closeGraphs();
-		if (experimentTab != null)
-			experimentTab.closeGraphs();
-		if (ragExperimentTab != null)
-			ragExperimentTab.closeGraphs();
-		if (wodHealthTab != null)
-			wodHealthTab.closeGraphs();
-		if (wodExperimentTab != null)
-			wodExperimentTab.closeGraphs();
-		if (herciTab != null)
-			herciTab.closeGraphs();
-		
-		measurementsTab.closeGraphs();
+		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
+			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
+			if (tab != null) {
+				tab.closeGraphs();
+			}
+		}
+//		healthTab.closeGraphs();
+//		if (experimentTab != null)
+//			experimentTab.closeGraphs();
+//		if (ragExperimentTab != null)
+//			ragExperimentTab.closeGraphs();
+//		if (wodHealthTab != null)
+//			wodHealthTab.closeGraphs();
+//		if (wodExperimentTab != null)
+//			wodExperimentTab.closeGraphs();
+//		if (herciTab != null)
+//			herciTab.closeGraphs();
+//		
+//		measurementsTab.closeGraphs();
 	}
 
 }
