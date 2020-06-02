@@ -209,6 +209,7 @@ public class HealthTabRt extends HealthTab {
 						openGraphs();
 						justStarted = false;
 					}
+					MainWindow.frame.repaint();
 				}
 				//if (showLatest == GraphFrame.SHOW_LIVE)
 //				System.err.println("Split at/max:" + + splitPane.getDividerLocation() + "/"+ splitPane.getMaximumDividerLocation());
@@ -219,6 +220,7 @@ public class HealthTabRt extends HealthTab {
 				}
 			}
 			//System.out.println("Health tab running: " + running);
+			displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 		}
 		done = true;
 	}

@@ -185,10 +185,8 @@ public class WodHealthTab extends HealthTab {
 						openGraphs();
 						justStarted = false;
 					}
+					MainWindow.frame.repaint();
 				}
-				
-				
-
 			}
 			//System.out.println("Health tab running: " + running);
 			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT));

@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
@@ -177,8 +178,17 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		parseRadiationFrames();
 	}
 
+	int total;
 	protected void displayFramesDecoded(int u) {
-		lblFramesDecoded.setText(DECODED + u);
+		total = u;
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				lblFramesDecoded.setText(DECODED + total);
+				lblFramesDecoded.invalidate();
+				topPanel.validate();
+			}
+		});
+	
 	}
 
 	private void addPacketModules() {
@@ -300,6 +310,18 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				e.printStackTrace(Log.getWriter());
 			} 			
 			if (foxId != 0 && Config.payloadStore.initialized()) {
+				if (Config.payloadStore.getUpdated(foxId, layout.name)) {
+					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
+					Config.payloadStore.setUpdated(foxId, layout.name, false);
+					MainWindow.setTotalDecodes();
+					parseRadiationFrames(); //which also repaints the window
+					if (justStarted) {
+						openGraphs();
+						justStarted = false;
+					}
+					MainWindow.frame.repaint();
+				}
 				// If either of these are toggled then redisplay the results
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
@@ -310,24 +332,8 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 					showRawValues.setSelected(Config.displayRawValues);
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 				}
-
-				boolean refresh = false;
-
-				if (Config.payloadStore.getUpdated(foxId, layout.name)) {
-					Config.payloadStore.setUpdated(foxId, layout.name, false);
-					refresh = true;
-				}
-				if (refresh) {
-					parseRadiationFrames();
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
-					MainWindow.setTotalDecodes();
-					if (justStarted) {
-						openGraphs();
-						justStarted = false;
-					}
-				}
 			}
+			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 		}
 		done = true;
 	}

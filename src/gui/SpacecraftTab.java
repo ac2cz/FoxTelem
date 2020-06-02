@@ -50,16 +50,16 @@ public class SpacecraftTab extends JPanel {
 //	HealthTab wodHealthTab;
 	
 	// We have one health thread per health tab
-	ArrayList<Thread> tabThreads;
-//	Thread healthThread;
-//	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
-//	Thread experimentThread;
-//	Thread ragExperimentThread;
-//	Thread cameraThread;
-//	Thread herciThread;
-//	Thread measurementThread;
-//	Thread wodHealthThread;
-//	Thread wodExperimentThread;
+//	ArrayList<Thread> tabThreads;
+	Thread healthThread;
+	// We have one radiation thread and camera thread per Radiation Experiment/Camera tab
+	Thread experimentThread;
+	Thread ragExperimentThread;
+	Thread cameraThread;
+	Thread herciThread;
+	Thread measurementThread;
+	Thread wodHealthThread;
+	Thread wodExperimentThread;
 	
 	public SpacecraftTab(Spacecraft s) {
 		sat = s;
@@ -67,7 +67,7 @@ public class SpacecraftTab extends JPanel {
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		setLayout(new BorderLayout(0, 0));
 		add(tabbedPane, BorderLayout.CENTER);
-		tabThreads = new ArrayList<Thread>();
+//		tabThreads = new ArrayList<Thread>();
 		addHealthTabs();
 		addMeasurementsTab(sat);
 	}
@@ -114,10 +114,10 @@ public class SpacecraftTab extends JPanel {
 		stop();
 		
 		HealthTabRt healthTab = new HealthTabRt((FoxSpacecraft)sat);
-		Thread healthThread = new Thread(healthTab);
+		healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
-		tabThreads.add(healthThread);
+//		tabThreads.add(healthThread);
 
 		String HEALTH = "Health";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
@@ -218,10 +218,10 @@ public class SpacecraftTab extends JPanel {
 	private void addWodTab(FoxSpacecraft fox) {
 		
 		WodHealthTab wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
-		Thread wodHealthThread = new Thread(wodHealthTab);
+		wodHealthThread = new Thread(wodHealthTab);
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();
-		tabThreads.add(wodHealthThread);
+//		tabThreads.add(wodHealthThread);
 
 		String WOD = "WOD";
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
@@ -230,10 +230,10 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addWodExpTab(FoxSpacecraft fox) {
 		WodVulcanTab wodExperimentTab = new WodVulcanTab(fox);
-		Thread wodExperimentThread = new Thread((VulcanTab)wodExperimentTab);
+		wodExperimentThread = new Thread((VulcanTab)wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodExperimentThread.start();
-		tabThreads.add(wodExperimentThread);
+//		tabThreads.add(wodExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "VU Rad WOD" + "</b></body></html>", wodExperimentTab );
@@ -243,10 +243,10 @@ public class SpacecraftTab extends JPanel {
 	private void addExperimentTab(FoxSpacecraft fox) {
 		
 		VulcanTab experimentTab = new VulcanTab(fox, DisplayModule.DISPLAY_VULCAN);
-		Thread experimentThread = new Thread((VulcanTab)experimentTab);
+		experimentThread = new Thread((VulcanTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
-		tabThreads.add(experimentThread);
+//		tabThreads.add(experimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" VU Rad ("+ fox.getIdString() + ")</body></html>", experimentTab );
@@ -258,10 +258,10 @@ public class SpacecraftTab extends JPanel {
 		NamedExperimentTab ragExperimentTab = new NamedExperimentTab(fox, "Ragnaroc Attitude Determination and Control", 
 				fox.getLayoutByName(Spacecraft.RAG_LAYOUT),
 				fox.getLayoutByName(Spacecraft.RAG_LAYOUT), DisplayModule.DISPLAY_VULCAN);
-		Thread ragExperimentThread = new Thread(ragExperimentTab);
+		ragExperimentThread = new Thread(ragExperimentTab);
 		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		ragExperimentThread.start();
-		tabThreads.add(ragExperimentThread);
+//		tabThreads.add(ragExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		"ADAC</body></html>", ragExperimentTab);
@@ -272,10 +272,10 @@ public class SpacecraftTab extends JPanel {
 		WodNamedExperimentTab wodExperimentTab = new WodNamedExperimentTab(fox, "Ragnaroc Attitude Determination and Control", 
 				fox.getLayoutByName(Spacecraft.WOD_RAG_LAYOUT),
 				fox.getLayoutByName(Spacecraft.WOD_RAG_LAYOUT), DisplayModule.DISPLAY_VULCAN);
-		Thread wodExperimentThread = new Thread(wodExperimentTab);
+		wodExperimentThread = new Thread(wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodExperimentThread.start();
-		tabThreads.add(wodExperimentThread);
+//		tabThreads.add(wodExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "ADAC WOD" + "</b></body></html>", wodExperimentTab );
@@ -285,10 +285,10 @@ public class SpacecraftTab extends JPanel {
 	private void addUwExperimentTab(FoxSpacecraft fox) {
 
 		UwExperimentTab experimentTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_UW);
-		Thread experimentThread = new Thread((UwExperimentTab)experimentTab);
+		experimentThread = new Thread((UwExperimentTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
-		tabThreads.add(experimentThread);
+//		tabThreads.add(experimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		"CAN Pkts</body></html>", experimentTab);
@@ -297,10 +297,10 @@ public class SpacecraftTab extends JPanel {
 
 	private void addUwWodExperimentTab(FoxSpacecraft fox) {
 		WodUwExperimentTab wodExperimentTab = new WodUwExperimentTab(fox);
-		Thread wodExperimentThread = new Thread((WodUwExperimentTab)wodExperimentTab);
+		wodExperimentThread = new Thread((WodUwExperimentTab)wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodExperimentThread.start();
-		tabThreads.add(wodExperimentThread);
+//		tabThreads.add(wodExperimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "CAN Pkt WOD" + "</b></body></html>", wodExperimentTab );
@@ -310,10 +310,10 @@ public class SpacecraftTab extends JPanel {
 	private void addHerciLSTab(FoxSpacecraft fox) {
 
 		HerciLSTab experimentTab = new HerciLSTab(fox);
-		Thread experimentThread = new Thread((HerciLSTab)experimentTab);
+		experimentThread = new Thread((HerciLSTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
-		tabThreads.add(experimentThread);
+//		tabThreads.add(experimentThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" HERCI HK ("+ fox.getIdString() + ")</body></html>", experimentTab);
@@ -322,11 +322,11 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addHerciHSTab(FoxSpacecraft fox) {
 		HerciHSTab herciTab = new HerciHSTab(fox);
-		Thread herciThread = new Thread(herciTab);
+		herciThread = new Thread(herciTab);
 			
 		herciThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		herciThread.start();
-		tabThreads.add(herciThread);
+//		tabThreads.add(herciThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" HERCI ("+ fox.getIdString() + ")</body></html>", herciTab);
@@ -335,10 +335,10 @@ public class SpacecraftTab extends JPanel {
 	private void addCameraTab(FoxSpacecraft fox) {
 
 		CameraTab cameraTab = new CameraTab(fox);
-		Thread cameraThread = new Thread(cameraTab);
+		cameraThread = new Thread(cameraTab);
 		cameraThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		cameraThread.start();
-		tabThreads.add(cameraThread);
+//		tabThreads.add(cameraThread);
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" Camera ("+ fox.getIdString() + ")</body></html>", cameraTab);
@@ -360,7 +360,7 @@ public class SpacecraftTab extends JPanel {
 		Thread measurementThread = new Thread(measurementsTab);
 		measurementThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		measurementThread.start();
-		tabThreads.add(measurementThread);
+//		tabThreads.add(measurementThread);
 		
 	}
 	

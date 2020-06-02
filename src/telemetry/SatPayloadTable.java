@@ -602,6 +602,7 @@ public class SatPayloadTable {
 		if (rtRecords.add(f)) {
 		//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
 			updated = true;
+			System.out.println(this.fileName + " TABLE UPDATED");
 			if (seg.records == MAX_SEGMENT_SIZE) {
 				// We need to add a new segment with this as the first record
 				TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);

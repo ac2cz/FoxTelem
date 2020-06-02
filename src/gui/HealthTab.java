@@ -37,6 +37,7 @@ import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
 
 import java.awt.Dimension;
+import java.awt.EventQueue;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
@@ -519,8 +520,16 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		lblIdValue.setText(id);
 	}
 
+	int total;
 	protected void displayFramesDecoded(int u) {
-		lblFramesDecodedValue.setText(Integer.toString(u));
+		total = u;
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				lblFramesDecodedValue.setText(DECODED + total);
+				lblFramesDecodedValue.invalidate();
+				topPanel.validate();
+			}
+		});
 	}
 	
 	private void displayCaptureDate(String u) {

@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -259,8 +260,16 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 				
 	}
 
+	int total;
 	protected void displayFramesDecoded(int u) {
-		lblFramesDecoded.setText(DECODED + u);
+		total = u;
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				lblFramesDecoded.setText(DECODED + total);
+				lblFramesDecoded.invalidate();
+				topPanel.getParent().validate();
+			}
+		});
 	}
 	
 	private void addPacketModules() {
@@ -607,17 +616,19 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 
 				if (foxId != 0)
 					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 						parseFrames();
 						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs();
 							justStarted = false;
 						}
+						MainWindow.frame.repaint();
 					}
 			}
+			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 		}
 		done = true;
 	}
