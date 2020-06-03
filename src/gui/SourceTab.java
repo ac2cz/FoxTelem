@@ -2573,6 +2573,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		}
 		
 	}
+	
+	public boolean sdrSelected() {
+		if (soundCardComboBox.getSelectedIndex() >= soundcardSources.length)
+			return true;
+		return false; // otherwise its a soundcard
+	}
 
 	private boolean aboveHorizon = false;
 	

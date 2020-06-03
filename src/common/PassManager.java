@@ -819,9 +819,13 @@ public class PassManager implements Runnable {
 		// If the mode is wrong we should switch modes
 		if (Config.format != sat.user_format) {
 			// Except if in Auto and Sat mode is DUV or HS
-			//if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
-			//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
-			//	Config.autoDecodeSpeed = false;
+			if (MainWindow.inputTab.sdrSelected() && sat.user_format == SourceTab.FORMAT_FSK_AUTO) {
+				sat.user_format = SourceTab.FORMAT_FSK_DUV; // we can't switch to auto mode for SDR, pick DUV
+				if (Config.format == sat.user_format)
+					return false; // we are already in DUV
+				// otherwise process change as through the user requested DUV
+			}
+			
 			if (SourceTab.STARTED)
 				MainWindow.inputTab.processStartButtonClick(); // stop the decoder
 			Config.format = sat.user_format;

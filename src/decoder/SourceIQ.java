@@ -11,6 +11,7 @@ import filter.ComplexOscillator;
 import filter.DcRemoval;
 import filter.IirFilter;
 import filter.PolyPhaseFilter;
+import sun.awt.SunToolkit.IllegalThreadException;
 import filter.Delay;
 import filter.HilbertTransform;
 
@@ -432,7 +433,14 @@ public class SourceIQ extends SourceAudio {
 		startAudioThread();
 		
 		Log.println("IQ Source START. Running="+running);
+		try {
 		init();
+		} catch (IllegalThreadStateException e) {
+			Log.errorDialog("ERROR", "Trying to start a second Decoder when not supported by the hardware\n"
+					+ "Perhaps DUV and HS were selected for an SDR that can not be opened twice. \n"
+					+ "Set the decoder to one mode and restart FoxTelem.");
+			running = false;
+		}
 		while (running) {
 			int nBytesRead = 0;
 			if (circularDoubleBuffer[channel].getCapacity() > fcdData.length) {
