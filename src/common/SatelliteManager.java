@@ -399,6 +399,13 @@ public class SatelliteManager implements Runnable {
 		return null;
 	}
 
+	public Spacecraft getSpacecraftByDisplayName(String name) {
+		for (int i=0; i < spacecraftList.size(); i++) {
+			if (spacecraftList.get(i).user_display_name.equalsIgnoreCase(name))
+				return spacecraftList.get(i);
+		}
+		return null;
+	}
 	
 	public Spacecraft getSpacecraftByKepsName(String name) {
 		for (int i=0; i < spacecraftList.size(); i++) {

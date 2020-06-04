@@ -829,26 +829,26 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos.close();
 		} catch (FileNotFoundException e) {
 			// The file was not found on the server.  This is probably because there was no data for this spacecraft or we have the URL wrong.
+			fileProgress.updateProgress(100);
 			Log.errorDialog("ERROR", "File not downloaded successfully from: " + urlString 
 					+ "\nCheck that the internet connection is working to the site.  Check the download destination is valid\n\n" +
 					e);
 			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
 			return;
 		} catch (MalformedURLException e) {
+			fileProgress.updateProgress(100);
 			Log.errorDialog("ERROR", "ERROR can't access the server data.  Is the URL correct?  Tried downloading from: " 
 					+ urlString
 					+ "\n\n" + e);
 			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
 			return;
 		} catch (IOException e) {
+			fileProgress.updateProgress(100);
 			Log.errorDialog("ERROR", "ERROR reading from the server or writing to the file on disk.\n"
 					+ "Check the local disk is writable for:\n" + file  + "\n"
 					+ "and this server URL is correct:\n" + urlString + "\n\n"
 					+ e );
 			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
 			return;
 		}
 
@@ -868,17 +868,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			try {
 				archiver.extract(archive, destination);
 			} catch (IOException e) {
-				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\nCheck if the download URL is correct.\n\n"
+				decompressProgress.updateProgress(100);
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data for "+dir +"\n"
+						+ "Check if the download URL is correct.\n\n"
 						+ e );
 				e.printStackTrace(Log.getWriter());
-				decompressProgress.updateProgress(100);
 				return;
 			} catch (IllegalArgumentException e) {
-				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\nThe compression program could not "
-						+ "process the file.  Perhaps the filename is invalid?\n\n"
+				decompressProgress.updateProgress(100);
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data for "+dir +"\n"
+						+ "The compression program could not process the file.  Perhaps the filename is invalid?\n\n"
 						+ e );
 				e.printStackTrace(Log.getWriter());
-				decompressProgress.updateProgress(100);
 				return;
 			}
 
@@ -905,6 +906,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			return;
 					
 		}
+		
+		ServerDownloadDialog downloadDialog = new ServerDownloadDialog(this, true);
+		downloadDialog.setVisible(true);
+	}
+	
+	public void downloadServerData(ArrayList<Spacecraft> sats) {
 		String message = "Do you want to download server data to REPLACE your existing data?\n"
 				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
 				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
@@ -931,7 +938,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		fileProgress.updateProgress(100);
 
 		// Get the server data for each spacecraft we have
-		sats = Config.satManager.getSpacecraftList();
+//		sats = Config.satManager.getSpacecraftList();
 		for (Spacecraft sat : sats) {
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up
@@ -1017,10 +1024,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		refreshProgress.updateProgress(100);
 		
 		// We are fully updated, remove the database loading message
-		Config.fileProgress.updateProgress(100);
-		
-		
-		
 		Config.fileProgress.updateProgress(100);
 	}
 	
