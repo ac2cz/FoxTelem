@@ -128,9 +128,8 @@ public class SatPayloadStore {
 	public int getNumberOfFrames(String layout) { 
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX) {
-			//if (!fox.layout[i].isSecondaryPayload())
-				return records[i].getSize();
-			//return 0;
+			if (records[i] == null) return 0;
+			return records[i].getSize();
 		}
 		return 0;
 	}
