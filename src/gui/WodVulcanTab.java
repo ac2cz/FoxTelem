@@ -100,6 +100,7 @@ public class WodVulcanTab extends VulcanTab {
 		Thread.currentThread().setName("WodVulcanTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 
@@ -113,12 +114,12 @@ public class WodVulcanTab extends VulcanTab {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
-					int x = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT);
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT);
+				if (frames != currentFrames) {
 					//System.out.println("WOD RAD TAB UPDATED, has " + x);
 					
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
-					displayFramesDecoded(x);
+					displayFramesDecoded(frames);
 					MainWindow.setTotalDecodes();
 					parseRadiationFrames(); // this also repaints the window to show all changes
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
@@ -129,7 +130,6 @@ public class WodVulcanTab extends VulcanTab {
 					MainWindow.frame.repaint();
 				}
 			}
-			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
 		}
 		done = true;
 	}

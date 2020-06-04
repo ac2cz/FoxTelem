@@ -470,6 +470,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		Thread.currentThread().setName("UwTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -497,7 +498,8 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 				boolean refresh = false;
 
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.CAN_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT);
+				if (frames != currentFrames) {
 					//radPayload = Config.payloadStore.getLatestRad(foxId);
 					Config.payloadStore.setUpdated(foxId, Spacecraft.CAN_LAYOUT, false);
 					refresh = true;
@@ -507,7 +509,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					//						for (BitArrayLayout lay : layout)
 					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
+					displayFramesDecoded(frames,
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {

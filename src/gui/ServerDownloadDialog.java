@@ -99,7 +99,8 @@ public class ServerDownloadDialog extends JDialog implements ActionListener {
 		//list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		list.setLayoutOrientation(JList.VERTICAL); //.HORIZONTAL_WRAP);
 		list.setVisibleRowCount(-1);
-//		setSelectedValues(list, ((MainWindow)getParent()).satManager.getSelectedSats());
+		ListModel model = list.getModel();
+		list.setSelectionInterval(0, ((DefaultListModel) model).getSize()-1);
 		
 		JScrollPane listScroller = new JScrollPane(list);
 		listScroller.setPreferredSize(new Dimension(100, 200));

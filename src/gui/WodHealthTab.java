@@ -151,6 +151,7 @@ public class WodHealthTab extends HealthTab {
 		running = true;
 		done = false;
 		boolean justStarted = true;
+		int currentFrames = 0;
 		while(running) {
 			try {
 				Thread.sleep(500); // refresh data once a second
@@ -164,7 +165,8 @@ public class WodHealthTab extends HealthTab {
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT);
+				if (frames != currentFrames) {
 					realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
 					if (realTime != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT) {
@@ -173,7 +175,7 @@ public class WodHealthTab extends HealthTab {
 						} else {
 							parseFrames();
 						}
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT));
+						displayFramesDecoded(frames);
 						//System.out.println("UPDATED RT Data: ");
 					} else {
 						//System.out.println("NO new RT Data: ");
@@ -189,7 +191,6 @@ public class WodHealthTab extends HealthTab {
 				}
 			}
 			//System.out.println("Health tab running: " + running);
-			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT));
 		}
 		done = true;
 	}

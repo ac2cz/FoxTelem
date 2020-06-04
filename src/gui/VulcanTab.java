@@ -595,6 +595,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		Thread.currentThread().setName("VulcanTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -614,11 +615,12 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 					updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 				}
 
-				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+				if (foxId != 0) {
+					int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT);
+					if (frames != currentFrames) {
 						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 						parseFrames();
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						displayFramesDecoded(frames);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
@@ -627,8 +629,8 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 						}
 						MainWindow.frame.repaint();
 					}
+				}
 			}
-			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
 		}
 		done = true;
 	}

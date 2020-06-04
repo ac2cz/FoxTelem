@@ -151,6 +151,9 @@ public class HealthTabRt extends HealthTab {
 
 	@Override
 	public void run() {
+		int currentRtFrames = 0;
+		int currentMaxFrames = 0;
+		int currentMinFrames = 0;
 		Thread.currentThread().setName("HealthTabRt");
 		running = true;
 		done = false;
@@ -167,29 +170,36 @@ public class HealthTabRt extends HealthTab {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MAX_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.MAX_LAYOUT);
+				if (frames != currentMaxFrames) {
+					currentMaxFrames = frames;
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT) 
 							updateTabMax(maxPayload);
-						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
+					displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					MainWindow.setTotalDecodes();
 				}
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.MIN_LAYOUT)) {
+				frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.MAX_LAYOUT);
+				if (frames != currentMinFrames) {
+					currentMinFrames = frames;
 					minPayload = Config.payloadStore.getLatestMin(foxId);
 					if (minPayload != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT) 
 							updateTabMin(minPayload);
-						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
+						
 					}
+					displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
 					MainWindow.setTotalDecodes();
 				}
 
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT)) {
+				frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.REAL_TIME_LAYOUT);
+				if (frames != currentRtFrames) {
+					currentRtFrames = frames;
 					realTime = Config.payloadStore.getLatestRt(foxId);
 					if (realTime != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT)
@@ -220,7 +230,6 @@ public class HealthTabRt extends HealthTab {
 				}
 			}
 			//System.out.println("Health tab running: " + running);
-			displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 		}
 		done = true;
 	}

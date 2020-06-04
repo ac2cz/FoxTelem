@@ -159,6 +159,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		Thread.currentThread().setName("UwWODTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -174,12 +175,13 @@ public class WodUwExperimentTab extends UwExperimentTab {
 				updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_CAN_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT);
+				if (frames != currentFrames) {
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_CAN_LAYOUT, false);
 
 					parseRadiationFrames();
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT),
+					displayFramesDecoded(frames,
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {

@@ -300,6 +300,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		Thread.currentThread().setName("UwTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 
@@ -310,7 +311,8 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				e.printStackTrace(Log.getWriter());
 			} 			
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdated(foxId, layout.name)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, layout.name);
+				if (frames != currentFrames) {
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 					Config.payloadStore.setUpdated(foxId, layout.name, false);
@@ -333,7 +335,6 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 				}
 			}
-			displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 		}
 		done = true;
 	}

@@ -309,6 +309,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 		Thread.currentThread().setName("HerciLSTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -330,21 +331,22 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 					
 				}
 
-				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+				if ((foxId != 0) && Config.payloadStore.initialized()) {
+					int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT);
+					if (frames != currentFrames) {
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 
 						parseRadiationFrames();
 						updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME), true);
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						displayFramesDecoded(frames);
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
 							openGraphs();
 							justStarted = false;
 						}
 					}
-				
+				}
 			}
 		}
 		done = true;
