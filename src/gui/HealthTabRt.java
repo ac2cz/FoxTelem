@@ -182,7 +182,7 @@ public class HealthTabRt extends HealthTab {
 					displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					MainWindow.setTotalDecodes();
 				}
-				frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.MAX_LAYOUT);
+				frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.MIN_LAYOUT);
 				if (frames != currentMinFrames) {
 					currentMinFrames = frames;
 					minPayload = Config.payloadStore.getLatestMin(foxId);

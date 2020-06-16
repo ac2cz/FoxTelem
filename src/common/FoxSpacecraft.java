@@ -107,7 +107,8 @@ public class FoxSpacecraft extends Spacecraft{
 		"Vanderbilt REM",
 		"Vanderbilt LEPF",
 		"CAN Packet Interface",
-		"Ragnaroc ADAC"
+		"Ragnaroc ADAC",
+		"L-Band Downshifter"
 	};
 	
 	
