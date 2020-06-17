@@ -17,7 +17,7 @@
  ******************************************************************************/
 package device.airspy;
 
-import javax.xml.bind.annotation.XmlAttribute;
+//import javax.xml.bind.annotation.XmlAttribute;
 
 import device.TunerConfiguration;
 import device.TunerType;
@@ -54,7 +54,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 	    return TunerType.AIRSPY_R820T;
     }
 
-	@XmlAttribute( name = "sample_rate" )
+//	@XmlAttribute( name = "sample_rate" )
 	public int getSampleRate()
 	{
 		return mSampleRate;
@@ -65,7 +65,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mSampleRate = sampleRate;
 	}
 	
-	@XmlAttribute( name = "gain" )
+//	@XmlAttribute( name = "gain" )
 	public Gain getGain()
 	{
 		return mGain;
@@ -76,7 +76,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mGain = gain;
 	}
 	
-	@XmlAttribute( name = "if_gain" )
+//	@XmlAttribute( name = "if_gain" )
 	public int getIFGain()
 	{
 		return mIFGain;
@@ -87,7 +87,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mIFGain = gain;
 	}
 	
-	@XmlAttribute( name = "mixer_gain" )
+//	@XmlAttribute( name = "mixer_gain" )
 	public int getMixerGain()
 	{
 		return mMixerGain;
@@ -98,7 +98,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mMixerGain = gain;
 	}
 
-	@XmlAttribute( name = "lna_gain" )
+//	@XmlAttribute( name = "lna_gain" )
 	public int getLNAGain()
 	{
 		return mLNAGain;
@@ -109,7 +109,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mLNAGain = gain;
 	}
 
-	@XmlAttribute( name = "mixer_agc" )
+//	@XmlAttribute( name = "mixer_agc" )
 	public boolean isMixerAGC()
 	{
 		return mMixerAGC;
@@ -120,7 +120,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mMixerAGC = enabled;
 	}
 
-	@XmlAttribute( name = "lna_agc" )
+//	@XmlAttribute( name = "lna_agc" )
 	public boolean isLNAAGC()
 	{
 		return mLNAAGC;
@@ -131,7 +131,7 @@ public class AirspyTunerConfiguration extends TunerConfiguration
 		mLNAAGC = enabled;
 	}
 
-	@XmlAttribute( name = "frequency_correction" )
+//	@XmlAttribute( name = "frequency_correction" )
 	public double getFrequencyCorrection()
 	{
 		return mFrequencyCorrection;

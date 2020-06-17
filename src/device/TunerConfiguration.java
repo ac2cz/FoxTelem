@@ -17,14 +17,14 @@
  ******************************************************************************/
 package device;
 
-import javax.xml.bind.annotation.XmlAttribute;
-import javax.xml.bind.annotation.XmlType;
+//import javax.xml.bind.annotation.XmlAttribute;
+//import javax.xml.bind.annotation.XmlType;
 
 
 /**
  * Abstract class to hold a named configuration for a specific type of tuner
  */
-@XmlType( name = "tuner_configuration" )
+//@XmlType( name = "tuner_configuration" )
 public abstract class TunerConfiguration
 {
 	protected String mName;
@@ -53,7 +53,7 @@ public abstract class TunerConfiguration
 		return mName;
 	}
 
-	@XmlAttribute( name = "name" )
+//	@XmlAttribute( name = "name" )
 	public String getName()
 	{
 		return mName;
@@ -64,7 +64,7 @@ public abstract class TunerConfiguration
 		mName = name;
 	}
 
-	@XmlAttribute( name = "unique_id" )
+//	@XmlAttribute( name = "unique_id" )
 	public String getUniqueID()
 	{
 		return mUniqueID;
@@ -75,7 +75,7 @@ public abstract class TunerConfiguration
 		mUniqueID = id;;
 	}
 	
-	@XmlAttribute( name = "assigned" )
+//	@XmlAttribute( name = "assigned" )
 	public boolean isAssigned()
 	{
 		return mAssigned;
@@ -86,7 +86,7 @@ public abstract class TunerConfiguration
 		mAssigned = assigned;
 	}
 	
-	@XmlAttribute( name = "frequency" )
+//	@XmlAttribute( name = "frequency" )
 	public long getFrequency()
 	{
 		return mFrequency;
@@ -97,6 +97,6 @@ public abstract class TunerConfiguration
 		mFrequency = frequency;
 	}
 	
-	@XmlAttribute( name = "tuner_type" )
+//	@XmlAttribute( name = "tuner_type" )
 	public abstract TunerType getTunerType();
 }

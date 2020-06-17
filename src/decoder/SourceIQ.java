@@ -11,7 +11,6 @@ import filter.ComplexOscillator;
 import filter.DcRemoval;
 import filter.IirFilter;
 import filter.PolyPhaseFilter;
-import sun.awt.SunToolkit.IllegalThreadException;
 import filter.Delay;
 import filter.HilbertTransform;
 
