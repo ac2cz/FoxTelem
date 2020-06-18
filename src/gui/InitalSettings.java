@@ -70,6 +70,7 @@ public class InitalSettings extends JDialog implements ActionListener, WindowLis
 		super(owner, modal);
 		setTitle("Welcome to the Amsat Fox Telemetry Analysis Tool");
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		//setAlwaysOnTop(true);
 		//setBounds(100, 100, 650, 200);
 		//this.setResizable(false);
 		contentPane = new JPanel();

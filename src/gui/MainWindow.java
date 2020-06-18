@@ -907,7 +907,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					
 		}
 		
-		ServerDownloadDialog downloadDialog = new ServerDownloadDialog(this, true);
+		ServerDownloadDialog downloadDialog = new ServerDownloadDialog(this, false);
 		downloadDialog.setVisible(true);
 	}
 	

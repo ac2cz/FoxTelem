@@ -18,7 +18,7 @@ public class ProgressPanel extends JDialog implements ActionListener {
 		title = message;
 		setTitle(message);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setAlwaysOnTop(true);
+//		setAlwaysOnTop(true);
 //		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		int x = 100;
 		int y = 100;
