@@ -906,9 +906,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			return;
 					
 		}
-		
-		ServerDownloadDialog downloadDialog = new ServerDownloadDialog(this, false);
-		downloadDialog.setVisible(true);
+		if (Config.satManager.spacecraftList.size() > 1) {
+			ServerDownloadDialog downloadDialog = new ServerDownloadDialog(this, false);
+			downloadDialog.setVisible(true);
+		} else {
+			downloadServerData(Config.satManager.spacecraftList);
+		}
 	}
 	
 	public void downloadServerData(ArrayList<Spacecraft> sats) {
