@@ -313,6 +313,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, layout.name);
 				if (frames != currentFrames) {
+					currentFrames = frames;
 					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
 					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 					Config.payloadStore.setUpdated(foxId, layout.name, false);

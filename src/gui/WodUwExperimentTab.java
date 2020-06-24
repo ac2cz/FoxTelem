@@ -177,6 +177,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT);
 				if (frames != currentFrames) {
+					currentFrames = frames;
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_CAN_LAYOUT, false);
 
 					parseRadiationFrames();

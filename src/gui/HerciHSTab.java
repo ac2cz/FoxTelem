@@ -359,7 +359,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 				}
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.HERCI_HS_LAYOUT);
 				if (frames != currentFrames) {
-
+					currentFrames = frames;
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
 					Config.payloadStore.setUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT, false);
 

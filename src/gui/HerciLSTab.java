@@ -334,6 +334,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 				if ((foxId != 0) && Config.payloadStore.initialized()) {
 					int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT);
 					if (frames != currentFrames) {
+						currentFrames = frames;
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 

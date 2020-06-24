@@ -447,7 +447,7 @@ public class SatPayloadTable {
 				} 
 				// case 2:
 				if (i == 0) 
-					if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
+					if (tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime > uptime) { // load this.  It might have the data we need and its the earliest segment
 						loadnow = true;
 					}
 				//case 4:

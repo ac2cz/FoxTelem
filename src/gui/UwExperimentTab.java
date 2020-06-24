@@ -500,6 +500,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT);
 				if (frames != currentFrames) {
+					currentFrames = frames;
 					//radPayload = Config.payloadStore.getLatestRad(foxId);
 					Config.payloadStore.setUpdated(foxId, Spacecraft.CAN_LAYOUT, false);
 					refresh = true;

@@ -167,6 +167,7 @@ public class WodHealthTab extends HealthTab {
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT);
 				if (frames != currentFrames) {
+					currentFrames = frames;
 					realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
 					if (realTime != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT) {

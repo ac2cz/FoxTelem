@@ -178,7 +178,7 @@ import telemetry.TelemFormat;
 				}
 			}
 			if (fox != null && fox.hasFrameCrc) {
-				// TODO - probablly not the right place to do this.  Should be in BitStream then we can avoid processing the frame at all if it fails
+				// TODO - probablly not the right place to do this.  Should be in BitStream then we can avoid processing the frame at all if it fails.  But then we need to know the foxid before decoding the frame..
 				if (numberBytesAdded > telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength-1  
 						&& numberBytesAdded <= telemFormat.getInt(TelemFormat.DATA_LENGTH)-1)
 					crcBytes[c++] = b;
@@ -193,7 +193,11 @@ import telemetry.TelemFormat;
 					
 					if (Config.debugBytes || Config.debugFrames) {
 						//Log.println("=> Sun Calculated CRC: " + Decoder.plainhex(calculatedCrc));
-						Log.println(" => Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
+						Log.print(" => Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
+						if (crc == myCalculatedCrc) 
+							Log.println(" .. pass");
+						else
+							Log.println("***** FAIL *****");
 					}
 				}
 			}

@@ -391,23 +391,23 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 			splitPane.setDividerLocation(splitPaneHeight);
 		}
 		Field m = null;
-		try {
-			m = BasicSplitPaneUI.class.getDeclaredField("keepHidden");
-			m.setAccessible(true);
-			m.set(splitPane.getUI(), hide);
-		} catch (NoSuchFieldException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (SecurityException e2) {
-			// TODO Auto-generated catch block
-			e2.printStackTrace();
-		} catch (IllegalArgumentException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		} catch (IllegalAccessException e1) {
-			// TODO Auto-generated catch block
-			e1.printStackTrace();
-		}
+//		try {
+//			m = BasicSplitPaneUI.class.getDeclaredField("keepHidden");
+//			m.setAccessible(true);
+//			m.set(splitPane.getUI(), hide);
+//		} catch (NoSuchFieldException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		} catch (SecurityException e2) {
+//			// TODO Auto-generated catch block
+//			e2.printStackTrace();
+//		} catch (IllegalArgumentException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		} catch (IllegalAccessException e1) {
+//			// TODO Auto-generated catch block
+//			e1.printStackTrace();
+//		}
 	}
 	
 	private void scrollToRow(JTable table, int row) {

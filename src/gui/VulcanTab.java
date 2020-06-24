@@ -618,6 +618,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 				if (foxId != 0) {
 					int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT);
 					if (frames != currentFrames) {
+						currentFrames = frames;
 						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 						parseFrames();
 						displayFramesDecoded(frames);
