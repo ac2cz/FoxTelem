@@ -1,85 +1,94 @@
-84,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+93,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,realtimeDownlink,ReflectedPwr,8,mW,41,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,realtimeDownlink,ICR3VProt,8,V,8_bit_voltage,Command Receivers,4,2,3,3V Prot,ICR 3V Proteted
 2,realtimeDownlink,ICR2dot5V,8,V,8_bit_voltage,Command Receivers,4,3,3,2.5V,ICR 2.5V
 3,realtimeDownlink,gTemp,8,C,8_bit_temp,Experiments,5,10,3,Gyro Temp,Gyro temperature
-4,realtimeDownlink,Xspin,16,dps,47,Experiments,5,1,3,X Rotation,Angular Velocity around X Axis
-5,realtimeDownlink,Yspin,16,dps,47,Experiments,5,2,3,Y Rotation,Angular Veolcity around Y Axis
-6,realtimeDownlink,Zspin,16,dps,47,Experiments,5,3,3,Z Rotation,Angular Veolcity around Z Axis
-7,realtimeDownlink,Xaccel,16,g,45,Experiments,5,4,3,X Acceleration,Acceleration along X axis
-8,realtimeDownlink,Yaccel,16,g,45,Experiments,5,5,3,Y Acceleration,Acceleration along Y  axis
-9,realtimeDownlink,Zaccel,16,g,45,Experiments,5,6,3,Z Acceleration,Acceleration along Z axis
-10,realtimeDownlink,Xmag,16,uT,46,Experiments,5,7,3,X Magnetometer,Angular Veolcity around X Axis
-11,realtimeDownlink,Ymag,16,uT,46,Experiments,5,8,3,Y Magnetometer,Angular Veolcity around Y Axis
-12,realtimeDownlink,Zmag,16,uT,46,Experiments,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-13,realtimeDownlink,pad12,8,-,0,NONE,0,0,3,Filler,Pad
-14,realtimeDownlink,busV,8,V,golf-t_bus_voltage,Solar Panels,6,1,3,Bus Voltage,Vbatt Bus voltage
-15,realtimeDownlink,TxPAi,8,mA,golf-t_tx_current,Legacy Radio,1,1,3,PA Current,Transmit power amplifier current
-16,realtimeDownlink,TxTemp,8,C,8_bit_temp,Legacy Radio,1,2,3,TX Temperature,Transmitter card temperature
-17,realtimeDownlink,FwdPower,8,mW,40,Legacy Radio,1,3,3,Fwd Power,Receiver card temperature
-18,realtimeDownlink,rssi,8,dBm,RSSI,Command Receivers,4,1,3,RSSI,Received Signal Strength Indication
-19,realtimeDownlink,MinusYVolts,8,V,52,Solar Panels,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-20,realtimeDownlink,MinusXVolts,8,V,52,Solar Panels,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-21,realtimeDownlink,XVolts,8,V,52,Solar Panels,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-22,realtimeDownlink,YVolts,8,V,52,Solar Panels,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-23,realtimeDownlink,MinusYTemp,8,C,52,Solar Panels,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-24,realtimeDownlink,MinusXTemp,8,C,52,Solar Panels,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-25,realtimeDownlink,XTemp,8,C,52,Solar Panels,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-26,realtimeDownlink,YTemp,8,C,52,Solar Panels,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
-27,realtimeDownlink,LtVGACtl,8,V,8_bit_voltage,Legacy Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-28,realtimeDownlink,RT1Temp,8,C,8_bit_temp,RT-IHU,7,1,3,Primary Temp,Primary RT-IHU Board Temp
-29,realtimeDownlink,RT2Temp,8,C,8_bit_temp,RT-IHU,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
-30,realtimeDownlink,IHUcpuTemp,8,C,8_bit_temp,Legacy IHU,2,1,3,Temperature,Internal Temperature of IHU
-31,realtimeDownlink,moduTemp,8,C,8_bit_temp,Legacy Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-32,realtimeDownlink,CSS1,8,-,0,Sun Sensors,8,1,3,CSS #1,Coarse Sun Sensor Values
-33,realtimeDownlink,CSS2,8,-,0,Sun Sensors,8,2,3,CSS #2,Coarse Sun Sensor Values
-34,realtimeDownlink,CSS3,8,-,0,Sun Sensors,8,3,3,CSS #3,Coarse Sun Sensor Values
-35,realtimeDownlink,CSS4,8,-,0,Sun Sensors,8,4,3,CSS #4,Coarse Sun Sensor Values
-36,realtimeDownlink,CSS5,8,-,0,Sun Sensors,8,5,3,CSS #5,Coarse Sun Sensor Values
-37,realtimeDownlink,CSS6,8,-,0,Sun Sensors,8,6,3,CSS #6,Coarse Sun Sensor Values
-38,realtimeDownlink,CSS7,8,-,0,Sun Sensors,8,7,3,CSS #7,Coarse Sun Sensor Values
-39,realtimeDownlink,CSS8,8,-,0,Sun Sensors,8,8,3,CSS #8,Coarse Sun Sensor Values
-40,realtimeDownlink,CIU3V3_1,8,V,0,CIU,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
-41,realtimeDownlink,CIU3V3_2,8,V,0,CIU,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
-42,realtimeDownlink,CIUVsys,8,V,0,CIU,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
-43,realtimeDownlink,CIU12v,8,V,0,CIU,9,4,3,CIU 12V Supply,12V Power From EPS
-44,realtimeDownlink,Power10GHz,8,mW,0,SDR Radio,11,1,3,SSPA Power,Power output of the 10GHz SSPA
-45,realtimeDownlink,ZynqTemp,8,c,8_bit_temp,SDR Radio,11,2,4,SDR Zynq Temp,SDR Zynq temp
-46,realtimeDownlink,SDRTcvrTemp,8,-,8_bit_temp,SDR Radio,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
-47,realtimeDownlink,DeploySenseCan,8,-,16,Spacecraft Status,3,6,0,Deploy Sense via CAN,TBD
-48,realtimeDownlink,DeploySenseI2c,8,-,16,Spacecraft Status,3,7,0,Deploy Sense via I2c,TBD
-49,realtimeDownlink,PrimaryRTActive,1,-,21,RT-IHU,7,3,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
-50,realtimeDownlink,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
-51,realtimeDownlink,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
-52,realtimeDownlink,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
-53,realtimeDownlink,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
-54,realtimeDownlink,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder,-
-55,realtimeDownlink,I2CfailureICR,1,-,17,Command Receivers,4,4,0,I2cICR,Antenna is not communicating over bus 2
-56,realtimeDownlink,I2CFailureDeploy,1,-,17,Spacecraft Status,3,8,0,I2c Deploy,Antenna is not communicating over bus 1
-57,realtimeDownlink,TLMresets,8,-,1,Min Max,10,7,0,Ground Resets,Number of times command stations reset stored telemetry
-58,realtimeDownlink,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
-59,realtimeDownlink,swCmds,32,-,35,Command Receivers,4,5,0,Diagnostic,ICR Diagnostic information
-60,realtimeDownlink,hwCmdCnt,8,-,1,Command Receivers,4,6,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
-61,realtimeDownlink,swCmdCntICR,8,-,34,Command Receivers,4,7,0,SW Cmd Cnt ICR,Number of software commands since last reset
-62,realtimeDownlink,swCmdCntDCT,8,-,34,Command Receivers,4,8,0,SW Cmd Cnt DCT,Number of software commands since last reset
-63,realtimeDownlink,DCT1Status,8,-,1,RT-IHU,7,10,0,Primary DCT Status,TBD
-64,realtimeDownlink,DCT2Status,8,-,1,RT-IHU,7,11,0,Secndry DCT Status,TBD
-65,realtimeDownlink,LMRAMstatus,8,-,1,Legacy IHU,2,4,0,LIHU MRAM Status,TBD
-66,realtimeDownlink,PrimMRAMstatus,8,-,1,RT-IHU,7,4,0,Primary MRAM Status,Status of the primary MRAM
-67,realtimeDownlink,SecndMRAMstatus,8,-,1,RT-IHU,7,5,0,Secndry MRAM Status,Status of the secondary MRAM
-68,realtimeDownlink,ModuLO,8,-,1,Legacy Radio,1,6,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-69,realtimeDownlink,ModuGain,8,-,1,Legacy Radio,1,8,0,Modulator Reg 1,Modulator Register 1 - Gain
-70,realtimeDownlink,ModuPhaseOff,8,-,1,Legacy Radio,1,9,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
-71,realtimeDownlink,ModuMode,8,-,1,Legacy Radio,1,10,0,Modulator Reg 8,Modulator Register 8 - Mode
-72,realtimeDownlink,CIUResetCnt1,8,-,1,CIU,9,5,0,CIU 1 Reset Cnt,Piower Reset Count for CIU Bus 1
-73,realtimeDownlink,CIUResetCnt2,8,-,1,CIU,9,6,0,CIU 2 Reset Cnt,Piower Reset Count for CIU Bus 2
-74,realtimeDownlink,DCT1PwrCnt,8,-,1,RT-IHU,7,6,0,DCT1  Reset Cnt,Power Reset Count for DCT1
-75,realtimeDownlink,DCT2PwrCnt,8,-,1,RT-IHU,7,7,0,DCT2  Reset Cnt,Power Reset Count for DCT2
-76,realtimeDownlink,PA1PwrCnt,8,-,1,RT-IHU,7,8,0,PA1  Reset Cnt,Power Reset Count for PA1
-77,realtimeDownlink,PA2PwrCnt,8,-,1,RT-IHU,7,9,0,PA2  Reset Cnt,Power Reset Count for PA2
-78,realtimeDownlink,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
-79,realtimeDownlink,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-80,realtimeDownlink,Pad3,6,-,0,NONE,0,0,0,Pad,-
-81,realtimeDownlink,IHUhardError,32,-,19,Legacy IHU,2,5,0,IHU Hard Error Data,Reason for last reset
-82,realtimeDownlink,IHUsoftError,32,-,20,Spacecraft Status,3,4,0,Soft Error,Diagnostic Data on IHU Software Errors
-83,realtimeDownlink,IHUdiagData1,32,-,18,Spacecraft Status,3,5,0,Diagnostic Info 1,Diagnostic Data on IHU Performance
+4,realtimeDownlink,Xspin,8,dps,8_bit_spin,Experiments,5,1,3,X Rotation,Angular Velocity around X Axis
+5,realtimeDownlink,Yspin,8,dps,8_bit_spin,Experiments,5,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,realtimeDownlink,Zspin,8,dps,8_bit_spin,Experiments,5,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,realtimeDownlink,Xaccel,8,g,8_bit_accel,Experiments,5,4,3,X Acceleration,Acceleration along X axis
+8,realtimeDownlink,Yaccel,8,g,8_bit_accel,Experiments,5,5,3,Y Acceleration,Acceleration along Y  axis
+9,realtimeDownlink,Zaccel,8,g,8_bit_accel,Experiments,5,6,3,Z Acceleration,Acceleration along Z axis
+10,realtimeDownlink,Xmag,8,uT,8_bit_mag,Experiments,5,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,realtimeDownlink,Ymag,8,uT,8_bit_mag,Experiments,5,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,realtimeDownlink,Zmag,8,uT,8_bit_mag,Experiments,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,realtimeDownlink,0,8,-,0,NONE,0,0,3,Filler,Pad
+14,realtimeDownlink,1,8,-,0,NONE,0,0,3,Filler,Pad
+15,realtimeDownlink,2,8,-,0,NONE,0,0,3,Filler,Pad
+16,realtimeDownlink,3,8,-,0,NONE,0,0,3,Filler,Pad
+17,realtimeDownlink,4,8,-,0,NONE,0,0,3,Filler,Pad
+18,realtimeDownlink,5,8,-,0,NONE,0,0,3,Filler,Pad
+19,realtimeDownlink,6,8,-,0,NONE,0,0,3,Filler,Pad
+20,realtimeDownlink,7,8,-,0,NONE,0,0,3,Filler,Pad
+21,realtimeDownlink,8,8,-,0,NONE,0,0,3,Filler,Pad
+22,realtimeDownlink,deorbitTemp,8,-,8_bit_temp,Experiments,5,11,3,Deorbit temp,Deorbit Device Temp
+23,realtimeDownlink,busV,8,V,golf-t_bus_voltage,Solar Panels,6,1,3,Bus Voltage,Vbatt Bus voltage
+24,realtimeDownlink,TxPAi,8,mA,golf-t_tx_current,Legacy Radio,1,1,3,PA Current,Transmit power amplifier current
+25,realtimeDownlink,TxTemp,8,C,8_bit_temp,Legacy Radio,1,2,3,TX Temperature,Transmitter card temperature
+26,realtimeDownlink,FwdPower,8,mW,40,Legacy Radio,1,3,3,Fwd Power,Receiver card temperature
+27,realtimeDownlink,rssi,8,dBm,RSSI,Command Receivers,4,1,3,RSSI,Received Signal Strength Indication
+28,realtimeDownlink,MinusYVolts,8,V,52,Solar Panels,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
+29,realtimeDownlink,MinusXVolts,8,V,52,Solar Panels,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
+30,realtimeDownlink,XVolts,8,V,52,Solar Panels,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
+31,realtimeDownlink,YVolts,8,V,52,Solar Panels,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+32,realtimeDownlink,MinusYTemp,8,C,52,Solar Panels,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+33,realtimeDownlink,MinusXTemp,8,C,52,Solar Panels,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+34,realtimeDownlink,XTemp,8,C,52,Solar Panels,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
+35,realtimeDownlink,YTemp,8,C,52,Solar Panels,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+36,realtimeDownlink,LtVGACtl,8,V,8_bit_voltage,Legacy Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+37,realtimeDownlink,RT1Temp,8,C,8_bit_temp,RT-IHU,7,1,3,Primary Temp,Primary RT-IHU Board Temp
+38,realtimeDownlink,RT2Temp,8,C,8_bit_temp,RT-IHU,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
+39,realtimeDownlink,IHUcpuTemp,8,C,8_bit_temp,Legacy IHU,2,1,3,Temperature,Internal Temperature of IHU
+40,realtimeDownlink,moduTemp,8,C,8_bit_temp,Legacy Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+41,realtimeDownlink,CSS1,8,-,0,Sun Sensors,8,1,3,CSS #1,Coarse Sun Sensor Values
+42,realtimeDownlink,CSS2,8,-,0,Sun Sensors,8,2,3,CSS #2,Coarse Sun Sensor Values
+43,realtimeDownlink,CSS3,8,-,0,Sun Sensors,8,3,3,CSS #3,Coarse Sun Sensor Values
+44,realtimeDownlink,CSS4,8,-,0,Sun Sensors,8,4,3,CSS #4,Coarse Sun Sensor Values
+45,realtimeDownlink,CSS5,8,-,0,Sun Sensors,8,5,3,CSS #5,Coarse Sun Sensor Values
+46,realtimeDownlink,CSS6,8,-,0,Sun Sensors,8,6,3,CSS #6,Coarse Sun Sensor Values
+47,realtimeDownlink,CSS7,8,-,0,Sun Sensors,8,7,3,CSS #7,Coarse Sun Sensor Values
+48,realtimeDownlink,CSS8,8,-,0,Sun Sensors,8,8,3,CSS #8,Coarse Sun Sensor Values
+49,realtimeDownlink,CIU3V3_1,8,V,8_bit_voltage,CIU,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+50,realtimeDownlink,CIU3V3_2,8,V,8_bit_voltage,CIU,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+51,realtimeDownlink,CIUVsys,8,V,8_bit_voltage,CIU,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
+52,realtimeDownlink,CIU12v,8,V,0,CIU,9,4,3,CIU 12V Supply,12V Power From EPS
+53,realtimeDownlink,Power10GHz,8,mW,0,SDR Radio,11,1,3,SSPA Power,Power output of the 10GHz SSPA
+54,realtimeDownlink,ZynqTemp,8,c,8_bit_temp,SDR Radio,11,2,4,SDR Zynq Temp,SDR Zynq temp
+55,realtimeDownlink,SDRTcvrTemp,8,-,8_bit_temp,SDR Radio,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
+56,realtimeDownlink,DeploySenseCan,8,-,16,Spacecraft Status,3,6,0,Deploy Sense via CAN,TBD
+57,realtimeDownlink,DeploySenseI2c,8,-,16,Spacecraft Status,3,7,0,Deploy Sense via I2c,TBD
+58,realtimeDownlink,PrimaryRTActive,1,-,21,RT-IHU,7,3,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
+59,realtimeDownlink,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
+60,realtimeDownlink,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
+61,realtimeDownlink,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
+62,realtimeDownlink,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
+63,realtimeDownlink,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder,-
+64,realtimeDownlink,I2CfailureICR,1,-,17,Command Receivers,4,4,0,I2cICR,Antenna is not communicating over bus 2
+65,realtimeDownlink,I2CFailureDeploy,1,-,17,Spacecraft Status,3,8,0,I2c Deploy,Antenna is not communicating over bus 1
+66,realtimeDownlink,TLMresets,8,-,1,Min Max,10,7,0,Ground Resets,Number of times command stations reset stored telemetry
+67,realtimeDownlink,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+68,realtimeDownlink,swCmds,32,-,35,Command Receivers,4,5,0,Diagnostic,ICR Diagnostic information
+69,realtimeDownlink,hwCmdCnt,8,-,1,Command Receivers,4,6,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
+70,realtimeDownlink,swCmdCntICR,8,-,34,Command Receivers,4,7,0,SW Cmd Cnt ICR,Number of software commands since last reset
+71,realtimeDownlink,swCmdCntDCT,8,-,34,Command Receivers,4,8,0,SW Cmd Cnt DCT,Number of software commands since last reset
+72,realtimeDownlink,DCT1Status,8,-,1,RT-IHU,7,10,0,Primary DCT Status,TBD
+73,realtimeDownlink,DCT2Status,8,-,1,RT-IHU,7,11,0,Secndry DCT Status,TBD
+74,realtimeDownlink,LMRAMstatus,8,-,1,Legacy IHU,2,4,0,LIHU MRAM Status,TBD
+75,realtimeDownlink,PrimMRAMstatus,8,-,1,RT-IHU,7,4,0,Primary MRAM Status,Status of the primary MRAM
+76,realtimeDownlink,SecndMRAMstatus,8,-,1,RT-IHU,7,5,0,Secndry MRAM Status,Status of the secondary MRAM
+77,realtimeDownlink,ModuLO,8,-,1,Legacy Radio,1,6,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+78,realtimeDownlink,ModuGain,8,-,1,Legacy Radio,1,8,0,Modulator Reg 1,Modulator Register 1 - Gain
+79,realtimeDownlink,ModuPhaseOff,8,-,1,Legacy Radio,1,9,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+80,realtimeDownlink,ModuMode,8,-,1,Legacy Radio,1,10,0,Modulator Reg 8,Modulator Register 8 - Mode
+81,realtimeDownlink,CIUResetCnt1,8,-,1,CIU,9,5,0,CIU 1 Reset Cnt,Piower Reset Count for CIU Bus 1
+82,realtimeDownlink,CIUResetCnt2,8,-,1,CIU,9,6,0,CIU 2 Reset Cnt,Piower Reset Count for CIU Bus 2
+83,realtimeDownlink,DCT1PwrCnt,8,-,1,RT-IHU,7,6,0,DCT1  Reset Cnt,Power Reset Count for DCT1
+84,realtimeDownlink,DCT2PwrCnt,8,-,1,RT-IHU,7,7,0,DCT2  Reset Cnt,Power Reset Count for DCT2
+85,realtimeDownlink,PA1PwrCnt,8,-,1,RT-IHU,7,8,0,PA1  Reset Cnt,Power Reset Count for PA1
+86,realtimeDownlink,PA2PwrCnt,8,-,1,RT-IHU,7,9,0,PA2  Reset Cnt,Power Reset Count for PA2
+87,realtimeDownlink,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
+88,realtimeDownlink,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+89,realtimeDownlink,Pad3,6,-,0,NONE,0,0,0,Pad,-
+90,realtimeDownlink,IHUhardError,32,-,19,Legacy IHU,2,5,0,IHU Hard Error Data,Reason for last reset
+91,realtimeDownlink,IHUsoftError,32,-,20,Spacecraft Status,3,4,0,Soft Error,Diagnostic Data on IHU Software Errors
+92,realtimeDownlink,IHUdiagData1,32,-,18,Spacecraft Status,3,5,0,Diagnostic Info 1,Diagnostic Data on IHU Performance
