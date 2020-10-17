@@ -1,4 +1,4 @@
-60,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+54,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,maxDownlink,ReflectedPwr,8,mW,41,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,maxDownlink,ICR3VProt,8,V,8_bit_voltage,NONE,4,2,3,3V Prot,ICR 3V Proteted
 2,maxDownlink,ICR2dot5V,8,V,8_bit_voltage,NONE,4,3,3,2.5V,ICR 2.5V
@@ -12,50 +12,44 @@
 10,maxDownlink,Xmag,8,uT,8_bit_mag,NONE,5,7,3,X Magnetometer,Angular Veolcity around X Axis
 11,maxDownlink,Ymag,8,uT,8_bit_mag,NONE,5,8,3,Y Magnetometer,Angular Veolcity around Y Axis
 12,maxDownlink,Zmag,8,uT,8_bit_mag,NONE,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-13,maxDownlink,0,8,-,0,NONE,0,0,3,Filler,Pad
-14,maxDownlink,1,8,-,0,NONE,0,0,3,Filler,Pad
-15,maxDownlink,2,8,-,0,NONE,0,0,3,Filler,Pad
-16,maxDownlink,3,8,-,0,NONE,0,0,3,Filler,Pad
-17,maxDownlink,4,8,-,0,NONE,0,0,3,Filler,Pad
-18,maxDownlink,5,8,-,0,NONE,0,0,3,Filler,Pad
-19,maxDownlink,6,8,-,0,NONE,0,0,3,Filler,Pad
-20,maxDownlink,7,8,-,0,NONE,0,0,3,Filler,Pad
-21,maxDownlink,8,8,-,0,NONE,0,0,3,Filler,Pad
-22,maxDownlink,deorbitTemp,8,-,8_bit_temp,NONE,5,11,3,Deorbit temp,Deorbit Device Temp
-23,maxDownlink,busV,8,V,golf-t_bus_voltage,NONE,6,1,3,Bus Voltage,Vbatt Bus voltage
-24,maxDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,1,1,3,PA Current,Transmit power amplifier current
-25,maxDownlink,TxTemp,8,C,8_bit_temp,NONE,1,2,3,TX Temperature,Transmitter card temperature
-26,maxDownlink,FwdPower,8,mW,40,NONE,1,3,3,Fwd Power,Receiver card temperature
-27,maxDownlink,rssi,8,dBm,RSSI,NONE,4,1,3,RSSI,Received Signal Strength Indication
-28,maxDownlink,MinusYVolts,8,V,52,NONE,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-29,maxDownlink,MinusXVolts,8,V,52,NONE,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-30,maxDownlink,XVolts,8,V,52,NONE,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-31,maxDownlink,YVolts,8,V,52,NONE,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-32,maxDownlink,MinusYTemp,8,C,52,NONE,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-33,maxDownlink,MinusXTemp,8,C,52,NONE,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-34,maxDownlink,XTemp,8,C,52,NONE,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-35,maxDownlink,YTemp,8,C,52,NONE,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
-36,maxDownlink,LtVGACtl,8,V,8_bit_voltage,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-37,maxDownlink,RT1Temp,8,C,8_bit_temp,NONE,7,1,3,Primary Temp,Primary RT-IHU Board Temp
-38,maxDownlink,RT2Temp,8,C,8_bit_temp,NONE,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
-39,maxDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,2,1,3,Temperature,Internal Temperature of IHU
-40,maxDownlink,moduTemp,8,C,8_bit_temp,NONE,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-41,maxDownlink,CSS1,8,-,0,NONE,8,1,3,CSS #1,Coarse Sun Sensor Values
-42,maxDownlink,CSS2,8,-,0,NONE,8,2,3,CSS #2,Coarse Sun Sensor Values
-43,maxDownlink,CSS3,8,-,0,NONE,8,3,3,CSS #3,Coarse Sun Sensor Values
-44,maxDownlink,CSS4,8,-,0,NONE,8,4,3,CSS #4,Coarse Sun Sensor Values
-45,maxDownlink,CSS5,8,-,0,NONE,8,5,3,CSS #5,Coarse Sun Sensor Values
-46,maxDownlink,CSS6,8,-,0,NONE,8,6,3,CSS #6,Coarse Sun Sensor Values
-47,maxDownlink,CSS7,8,-,0,NONE,8,7,3,CSS #7,Coarse Sun Sensor Values
-48,maxDownlink,CSS8,8,-,0,NONE,8,8,3,CSS #8,Coarse Sun Sensor Values
-49,maxDownlink,CIU3V3_1,8,V,8_bit_voltage,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
-50,maxDownlink,CIU3V3_2,8,V,8_bit_voltage,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
-51,maxDownlink,CIUVsys,8,V,8_bit_voltage,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
-52,maxDownlink,CIU12v,8,V,0,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
-53,maxDownlink,Power10GHz,8,mW,0,NONE,11,1,3,SSPA Power,Power output of the 10GHz SSPA
-54,maxDownlink,ZynqTemp,8,c,8_bit_temp,NONE,11,2,4,SDR Zynq Temp,SDR Zynq temp
-55,maxDownlink,SDRTcvrTemp,8,-,8_bit_temp,NONE,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
-56,maxDownlink,maxTimestampUptime,32,s,1,Min Max,10,2,0,Max Uptime,Timestamp Resets
-57,maxDownlink,maxTimestampReset,16,s,1,Min Max,10,1,0,Max Reset,Timestamp uptime
-58,maxDownlink,maxCRCerror,8,-,1,Min Max,10,3,0,Max CRC Error,CRC Error for the Max Payload
-59,maxDownlink,pad0,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
+13,maxDownlink,DCT1Power,8,mW,1,NONE,7,3,3,Primary RF Power,Primary DCT RF Power
+14,maxDownlink,DCT2Power,8,mW,1,NONE,7,4,3,Secndry RF Power,Secondary DCT RF Power
+15,maxDownlink,pad12,24,-,0,NONE,0,0,3,Filler,Pad
+16,maxDownlink,deorbitTemp,8,-,8_bit_temp,NONE,5,11,3,Deorbit temp,Deorbit Device Temp
+17,maxDownlink,busV,8,V,golf-t_bus_voltage,NONE,6,1,3,Bus Voltage,Vbatt Bus voltage
+18,maxDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,1,1,3,PA Current,Transmit power amplifier current
+19,maxDownlink,TxTemp,8,C,8_bit_temp,NONE,1,2,3,TX Temperature,Transmitter card temperature
+20,maxDownlink,FwdPower,8,mW,40,NONE,1,3,3,Fwd Power,Receiver card temperature
+21,maxDownlink,rssi,8,dBm,RSSI,NONE,4,1,3,RSSI,Received Signal Strength Indication
+22,maxDownlink,MinusYVolts,8,V,52,NONE,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
+23,maxDownlink,MinusXVolts,8,V,52,NONE,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
+24,maxDownlink,XVolts,8,V,52,NONE,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
+25,maxDownlink,YVolts,8,V,52,NONE,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+26,maxDownlink,MinusYTemp,8,C,52,NONE,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+27,maxDownlink,MinusXTemp,8,C,52,NONE,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+28,maxDownlink,XTemp,8,C,52,NONE,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
+29,maxDownlink,YTemp,8,C,52,NONE,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+30,maxDownlink,LtVGACtl,8,V,8_bit_voltage,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+31,maxDownlink,RT1Temp,8,C,8_bit_temp,NONE,7,1,3,Primary Temp,Primary RT-IHU Board Temp
+32,maxDownlink,RT2Temp,8,C,8_bit_temp,NONE,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
+33,maxDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,2,1,3,Temperature,Internal Temperature of IHU
+34,maxDownlink,moduTemp,8,C,8_bit_temp,NONE,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+35,maxDownlink,CSS1,8,-,0,NONE,8,1,3,CSS #1,Coarse Sun Sensor Values
+36,maxDownlink,CSS2,8,-,0,NONE,8,2,3,CSS #2,Coarse Sun Sensor Values
+37,maxDownlink,CSS3,8,-,0,NONE,8,3,3,CSS #3,Coarse Sun Sensor Values
+38,maxDownlink,CSS4,8,-,0,NONE,8,4,3,CSS #4,Coarse Sun Sensor Values
+39,maxDownlink,CSS5,8,-,0,NONE,8,5,3,CSS #5,Coarse Sun Sensor Values
+40,maxDownlink,CSS6,8,-,0,NONE,8,6,3,CSS #6,Coarse Sun Sensor Values
+41,maxDownlink,CSS7,8,-,0,NONE,8,7,3,CSS #7,Coarse Sun Sensor Values
+42,maxDownlink,CSS8,8,-,0,NONE,8,8,3,CSS #8,Coarse Sun Sensor Values
+43,maxDownlink,CIU3V3_1,8,V,8_bit_voltage,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+44,maxDownlink,CIU3V3_2,8,V,8_bit_voltage,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+45,maxDownlink,CIUVsys,8,V,8_bit_voltage,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
+46,maxDownlink,CIU12v,8,V,0,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
+47,maxDownlink,Power10GHz,8,mW,0,NONE,11,1,3,SSPA Power,Power output of the 10GHz SSPA
+48,maxDownlink,ZynqTemp,8,c,8_bit_temp,NONE,11,2,4,SDR Zynq Temp,SDR Zynq temp
+49,maxDownlink,SDRTcvrTemp,8,-,8_bit_temp,NONE,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
+50,maxDownlink,maxTimestampUptime,32,s,1,Min Max,10,2,0,Max Uptime,Timestamp Resets
+51,maxDownlink,maxTimestampReset,16,s,1,Min Max,10,1,0,Max Reset,Timestamp uptime
+52,maxDownlink,maxCRCerror,8,-,1,Min Max,10,3,0,Max CRC Error,CRC Error for the Max Payload
+53,maxDownlink,pad0,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
