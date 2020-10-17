@@ -139,6 +139,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
 	 */
+	public abstract void delete(Spacecraft sat);
 	public abstract void deleteAll();	
 	
 	public abstract void initRad2();

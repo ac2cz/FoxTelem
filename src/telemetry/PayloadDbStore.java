@@ -793,7 +793,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				store.deleteAll();
 		
 	}
-	
+
+	/**
+	 * Delete all of the log files.  This is called from the main window by the user
+	 */
+	public void delete(Spacecraft sat ) {
+		for (SatPayloadDbStore store : payloadStore) {
+			if(store != null && sat.foxId == store.foxId) {
+				if (store != null)
+					store.deleteAll();
+			}
+		}
+	}
+
 	public static void errorPrint(String cause, Throwable e) {
 		if (e instanceof SQLException)
 			SQLExceptionPrint(cause, (SQLException)e);
