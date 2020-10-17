@@ -937,12 +937,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ProgressPanel fileProgress = new ProgressPanel(this, "Deleting existing data, please wait ...", false);
 		fileProgress.setVisible(true);
 
-		Config.payloadStore.deleteAll();
 		fileProgress.updateProgress(100);
 
 		// Get the server data for each spacecraft we have
 //		sats = Config.satManager.getSpacecraftList();
 		for (Spacecraft sat : sats) {
+			
+			Config.payloadStore.delete(sat);
+
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up
 			String dir = getFoxServerDir(sat.foxId);
