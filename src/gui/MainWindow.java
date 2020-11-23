@@ -206,7 +206,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		rightBottom.setLayout(new BoxLayout(rightBottom, BoxLayout.X_AXIS));
 		
 		lblVersion = new JLabel("Version " + Config.VERSION);
-		lblVersion.setFont(new Font("SansSerif", Font.BOLD, (int)(0.8f * lblVersion.getFont().getSize2D())));
+		lblVersion.setFont(new Font("SansSerif", Font.BOLD, (int)(0.9f * lblVersion.getFont().getSize2D())));
 		Font footerFont = lblVersion.getFont();
 	//	lblVersion.setFont(footerFont);
 	//	lblVersion.setMinimumSize(new Dimension(1600, 14)); // forces the next label to the right side of the screen
