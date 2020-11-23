@@ -427,6 +427,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		if (e.getSource() == btnGetT0) {
 			MainWindow.updateManager.updateT0(sat);
 			updateTimeSeries();
+			Log.infoDialog("Time Zero Downloaded", "Time Zero (T0) was downloaded from the server for each reset.  This will not automatically\n"
+					+ "update any open graphs.  You can toggle UTC on/off to refresh the time base on a graph.");
 		}
 		if (e.getSource() == btnCancel) {
 			this.dispose();
