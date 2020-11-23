@@ -92,7 +92,7 @@ public class PhasorPanel extends JPanel implements Runnable {
 		Log.println("STARTING PHASOR PANEL THREAD");
 		while(running) {
 			try {
-				Thread.sleep(1000/50); // approx 1/50 sec refresh
+				Thread.sleep(1000/10); // approx 1/50 sec refresh
 			} catch (InterruptedException e) {
 				Log.println("ERROR: Phasor Diagram thread interrupted");
 			} 

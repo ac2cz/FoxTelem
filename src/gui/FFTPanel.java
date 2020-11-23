@@ -197,7 +197,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 				rfData = iqSource.getRfData();
 			}
 			try {
-				Thread.sleep(1000/30); // 30Hz
+				Thread.sleep(1000/10); // 30Hz
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			} 

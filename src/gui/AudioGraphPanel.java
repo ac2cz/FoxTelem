@@ -143,7 +143,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		while(running) {
 			
 			try {
-				Thread.sleep(1000/60); // approx 1/60 sec refresh
+				Thread.sleep(1000/10); // approx 1/60 sec refresh
 			} catch (InterruptedException e) {
 				Log.println("ERROR: Audiograph thread interrupted");
 				//e.printStackTrace();
@@ -189,6 +189,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		running = false;
 		//source.drain();
 	}
+	boolean firstRun = true;
 	
 	/*
 	 * Draw on a panel, where x is horizontal from left to right and y is vertical from top to bottom
@@ -198,7 +199,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	public void paintComponent(Graphics g) {
 		super.paintComponent( g ); // call superclass's paintComponent  
 		Graphics2D g2 = ( Graphics2D ) g; // cast g to Graphics2D  
-		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+		if (firstRun) {
+			g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+			firstRun = false;
+		}
 		// Have 5 pix border
 		int border = 5;
 		int graphHeight = getHeight() - border;
@@ -308,19 +312,19 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 						int lock = (int)Math.round(((FoxBPSKCostasDecoder)foxDecoder).getLockLevel());
 						if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
 							g2.setColor(Color.BLUE);
-							g.drawString("Locked " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+			//				g.drawString("Locked " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						} else {
 							g2.setColor(Color.gray);
-							g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+			//				g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						}
-						g2.setColor(Color.gray);
-						g.drawString("Costas Error: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+			//			g2.setColor(Color.gray);
+						//g.drawString("Costas Error: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						g.drawString("Carrier: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					}
 					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
 						g2.setColor(Color.gray);
 						g.drawString("Carrier: " + Math.round(((FoxBPSKDotProdDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
-						g.drawString("Offset: " + (((FoxBPSKDotProdDecoder)foxDecoder).getOffset()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+						//g.drawString("Offset: " + (((FoxBPSKDotProdDecoder)foxDecoder).getOffset()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						
 					}
 					if (pskAudioData != null && pskAudioData.length > 0) {
