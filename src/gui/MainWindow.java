@@ -11,6 +11,7 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
@@ -397,6 +398,26 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+		int screenHeight = screenSize.height;
+		int screenWidth = screenSize.width;
+		
+		Log.println("Display is: " + screenWidth + " x " + screenHeight);
+		
+		int windowWidth = Config.windowX + Config.windowWidth;
+		
+		if (windowWidth > screenWidth) {
+			//Config.windowX = (int) (Config.windowX * (Config.windowX / (double)windowWidth));
+			Config.windowWidth = screenWidth - Config.windowX;
+			
+		}
+		int windowHeight = Config.windowY + Config.windowHeight;
+		if (windowHeight > screenHeight) {
+			Log.println("Window is too tall: " + screenHeight + " vs " + windowHeight);
+			//Config.windowY = (int) (Config.windowY * (Config.windowY / (double)windowHeight));
+			Config.windowHeight = screenHeight - Config.windowY;
+			Log.println("Set windowY: " + Config.windowY + " height " + Config.windowHeight);
+		}
 		setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
