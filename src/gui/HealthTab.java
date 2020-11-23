@@ -525,7 +525,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		total = u;
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
-				lblFramesDecodedValue.setText(DECODED + total);
+				lblFramesDecodedValue.setText(""+total);
 				lblFramesDecodedValue.invalidate();
 				topPanel.validate();
 			}
