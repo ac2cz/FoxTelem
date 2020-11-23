@@ -770,13 +770,14 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		        	ConversionCurve conversion = new ConversionCurve(values);
 		        	if (conversions.containsKey(conversion.getName())) {
 		        		// we have a namespace clash, warn the user
-		        		Log.errorDialog("DUPLICATE CURVE NAME", this.user_keps_name + "- Conversion Curve already defined and will not be stored: " + conversion.getName());
+		        		Log.errorDialog("DUPLICATE CURVE NAME", this.user_keps_name + "- Conversion Curve already defined. This duplicate name will not be stored: " + conversion.getName());
 		        	} else {
 		        		conversions.put(conversion.getName(), conversion);
 		        		Log.println("Stored: " + conversion);
 		        	}
 		        } catch (IllegalArgumentException e) {
 		        	Log.println("Could not load conversion: " + e);
+		        	Log.errorDialog("CORRUPT CONVERSION: ", e.toString());
 		        	// ignore this corrupt row
 		        }
 		    }

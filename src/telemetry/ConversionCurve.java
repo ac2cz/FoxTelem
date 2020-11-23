@@ -35,7 +35,7 @@ public class ConversionCurve extends Conversion {
 	public ConversionCurve(String[] values) {
 		super(values[0]);
 		if (values == null) throw new IllegalArgumentException("Conversion File row null");
-		if (values.length != CSF_FILE_ROW_LENGTH) throw new IllegalArgumentException("Conversion File row has wrong number of values: " + values.length);
+		if (values.length < CSF_FILE_ROW_LENGTH) throw new IllegalArgumentException("Conversion File row has wrong number of values: " + values.length);
 		name = values[0];
 		try {
 			a = Double.parseDouble(values[1]);
@@ -45,7 +45,7 @@ public class ConversionCurve extends Conversion {
 			e = Double.parseDouble(values[5]);
 			f = Double.parseDouble(values[6]);
 		} catch ( NumberFormatException e ) {
-			throw new IllegalArgumentException(name + ": Coeeficients are not all parsable numbers");
+			throw new IllegalArgumentException("For Curve " + name + ", coeeficients are not all parsable numbers");
 		}
 		description = values[7];
 	}
@@ -63,7 +63,7 @@ public class ConversionCurve extends Conversion {
 	
 	public String toString() {
 		String s = "";
-		s = s + name + ": " + a + " + " + b + "x + " + c + "x^2 + " + d + "x^3 + " + e + "x^4 + " + f + "x^5 ";
+		s = s + name + ": " + a + " + " + b + "x + " + c + "x^2 + " + d + "x^3 + " + e + "x^4 + " + f + "x^5 " + description;
 		return s;
 	}
 }
