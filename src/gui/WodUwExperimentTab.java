@@ -83,6 +83,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 			int number = 0;
 			for (int id : wod_ids) {
 				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+				if (lay == null) return; // something went wrong.  Maybe we are removing the tab
 				int total = Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
 				if (total > 0) {
 					String[] row = new String[5];
@@ -149,6 +150,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		else
 		for (int id : wod_ids) {
 			BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+			if (lay == null) return 0; // something went wrong, maybe we are removing the tab
 			total += Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
 		}
 		return total;
