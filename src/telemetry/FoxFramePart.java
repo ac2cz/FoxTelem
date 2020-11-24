@@ -327,7 +327,7 @@ longer send telemetry.
 				s = "TRUE";
 			else
 				s = "FALSE";
-		} else if (conv == BitArrayLayout.CONVERT_INTEGER) {
+		} else if ((conv == BitArrayLayout.CONVERT_INTEGER) || (conv == BitArrayLayout.CONVERT_WOD_STORED)) {
 			s = Long.toString((long) value);
 		} else if (conv == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
 			s = ihuDiagnosticString((int) value, true, (FoxSpacecraft)fox);
