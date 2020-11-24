@@ -1,16 +1,7 @@
 package gui;
 
-import java.awt.event.ItemEvent;
-
-import javax.swing.JTable;
-
-import common.Config;
 import common.FoxSpacecraft;
-import common.Log;
-import common.Spacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
-import telemetry.RadiationTelemetry;
 
 @SuppressWarnings("serial")
 public class WodNamedExperimentTab extends NamedExperimentTab {

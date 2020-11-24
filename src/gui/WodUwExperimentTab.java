@@ -9,9 +9,7 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadWODUwExperiment;
 
 @SuppressWarnings("serial")
 public class WodUwExperimentTab extends UwExperimentTab {

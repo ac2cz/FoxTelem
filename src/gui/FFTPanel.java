@@ -62,7 +62,7 @@ import java.awt.event.MouseListener;
  */
 @SuppressWarnings("serial")
 public class FFTPanel extends JPanel implements Runnable, MouseListener {
-	private static final float TRACK_SIGNAL_THRESHOLD = -80;
+	//private static final float TRACK_SIGNAL_THRESHOLD = -80;
 	Spacecraft fox;
 	
 	int fftSamples = 0;

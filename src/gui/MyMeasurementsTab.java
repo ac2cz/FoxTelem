@@ -69,7 +69,7 @@ ItemListener {
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		add(scrollPane, BorderLayout.CENTER);
 
-		if (sat.isFox1()) {
+		//if (sat.isFox1()) {
 			FoxSpacecraft fox = (FoxSpacecraft) sat;
 			satellite = new DisplayModule(fox, fox.user_display_name, 9,
 					DisplayModule.DISPLAY_MEASURES);
@@ -90,10 +90,10 @@ ItemListener {
 					DisplayModule.DISPLAY_MEASURES);
 			satellite.addName(8, "RS Erasures", RtMeasurement.ERASURES,
 					DisplayModule.DISPLAY_MEASURES);
-		}
+		//}
 
-		if (sat.isFox1()) {
-			FoxSpacecraft fox = (FoxSpacecraft) sat;
+		//if (sat.isFox1()) {
+		//	FoxSpacecraft fox = (FoxSpacecraft) sat;
 			passes = new DisplayModule(fox, fox.user_display_name + " passes", 9,
 					DisplayModule.DISPLAY_PASS_MEASURES);
 			centerPanel.add(passes);
@@ -105,7 +105,7 @@ ItemListener {
 			passes.addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
-		}
+		//}
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));

@@ -184,10 +184,10 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	}
 	
 	void addModules() {
-		BitArrayLayout rad = null;
+		//BitArrayLayout rad = null;
 
-		rad = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
-		BitArrayLayout none = null;
+		//rad = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
+		//BitArrayLayout none = null;
 		try {
 //			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW); // add the experiment header to the top
 			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);	// add the CAN to the bottom

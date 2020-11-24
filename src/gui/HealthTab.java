@@ -4,13 +4,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
-import java.lang.reflect.Field;
-
 import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
@@ -41,8 +38,6 @@ import java.awt.EventQueue;
 
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.SoftBevelBorder;
-import javax.swing.plaf.SplitPaneUI;
-import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.swing.border.BevelBorder;
 
 import common.Config;
@@ -390,7 +385,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 				splitPaneHeight = splitPane.getMaximumDividerLocation()/2;
 			splitPane.setDividerLocation(splitPaneHeight);
 		}
-		Field m = null;
+//		Field m = null;
 //		try {
 //			m = BasicSplitPaneUI.class.getDeclaredField("keepHidden");
 //			m.setAccessible(true);
@@ -497,7 +492,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	protected void displayMode(int newMode) {
 		String mode = FoxSpacecraft.modeNames[FoxSpacecraft.SAFE_MODE];
 		if (fox.hasModeInHeader) {
-			mode = fox.getModeString(newMode);
+			mode = FoxSpacecraft.getModeString(newMode);
 		} else {
 			FramePart radPayload = Config.payloadStore.getLatestRad(foxId);
 			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
@@ -581,7 +576,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		if (refreshTable)
 			parseFrames();
 		showLiveOrHistorical();
-		int newMode = 0;
+		//int newMode = 0;
 		displayMode(realTime2.newMode);
 //		displayMode(99,99); // we call this just in case we are in DATA mode so that we set the label correctly
 		

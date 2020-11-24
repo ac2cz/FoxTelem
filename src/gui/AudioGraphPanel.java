@@ -12,7 +12,6 @@ import common.Log;
 import decoder.Decoder;
 import decoder.SourceIQ;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
-import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 
 /**

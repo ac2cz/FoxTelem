@@ -1,13 +1,6 @@
 package telemetry;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.StringTokenizer;
-
-import common.Config;
-import common.Log;
-import common.Spacecraft;
-import telemetry.uw.CanPacket;
 
 public class PayloadWODRagAdac extends FoxFramePart {
 	public static final String WOD_RESETS = "WODTimestampReset";

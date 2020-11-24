@@ -9,7 +9,6 @@ import javax.swing.JOptionPane;
 
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
-import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import common.Config;
 import common.Log;
@@ -22,7 +21,6 @@ import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.FramePart;
-import telemetry.Header;
 import uk.me.g4dpz.satellite.SatPos;
 
 /**

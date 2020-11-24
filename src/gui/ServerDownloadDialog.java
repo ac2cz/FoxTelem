@@ -21,14 +21,13 @@ import javax.swing.ListModel;
 import javax.swing.border.EmptyBorder;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 
 public class ServerDownloadDialog extends JDialog implements ActionListener {
-
+	private static final long serialVersionUID = 1L;
 	JButton btnSave, btnCancel,btnClear, btnSelectAll;
-	JList list;
+	JList<String> list;
 	
 	public ServerDownloadDialog(JFrame owner, boolean modal) {
 		super(owner, modal);
@@ -75,15 +74,17 @@ public class ServerDownloadDialog extends JDialog implements ActionListener {
 		JPanel centerpanel = new JPanel();
 		contentPane.add(centerpanel, BorderLayout.CENTER);
 		
-		DefaultListModel listModel = new DefaultListModel();
+		DefaultListModel<String> listModel = new DefaultListModel<String>();
 		List<Spacecraft> names = Config.satManager.spacecraftList;
 		for (Spacecraft sat : names)
 			listModel.addElement(sat.user_display_name);
 
-		list = new JList(listModel);
+		list = new JList<String>(listModel);
 		list.setSelectionModel(new DefaultListSelectionModel() 
 		{
-		    @Override
+			private static final long serialVersionUID = 1L;
+
+			@Override
 		    public void setSelectionInterval(int index0, int index1) 
 		    {
 		        if(list.isSelectedIndex(index0)) 
@@ -99,8 +100,8 @@ public class ServerDownloadDialog extends JDialog implements ActionListener {
 		//list.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION );
 		list.setLayoutOrientation(JList.VERTICAL); //.HORIZONTAL_WRAP);
 		list.setVisibleRowCount(-1);
-		ListModel model = list.getModel();
-		list.setSelectionInterval(0, ((DefaultListModel) model).getSize()-1);
+		ListModel<String> model = list.getModel();
+		list.setSelectionInterval(0, ((DefaultListModel<String>) model).getSize()-1);
 		
 		JScrollPane listScroller = new JScrollPane(list);
 		listScroller.setPreferredSize(new Dimension(100, 200));
@@ -109,7 +110,7 @@ public class ServerDownloadDialog extends JDialog implements ActionListener {
 		centerpanel.add(listScroller);
 	}
 	
-	public void setSelectedValues(JList list, List<String> values) {
+	public void setSelectedValues(JList<String> list, List<String> values) {
 	    list.clearSelection();
 	    for (String value : values) {
 	        //list.setSelectedValue(value, false);
@@ -120,10 +121,10 @@ public class ServerDownloadDialog extends JDialog implements ActionListener {
 	    }
 	}
 	
-	public int getIndex(ListModel model, Object value) {
+	public int getIndex(ListModel<String> model, Object value) {
 	    if (value == null) return -1;
 	    if (model instanceof DefaultListModel) {
-	        return ((DefaultListModel) model).indexOf(value);
+	        return ((DefaultListModel<String>) model).indexOf(value);
 	    }
 	    for (int i = 0; i < model.getSize(); i++) {
 	        if (value.equals(model.getElementAt(i))) return i;
@@ -139,8 +140,8 @@ public class ServerDownloadDialog extends JDialog implements ActionListener {
 			this.dispose();
 		}
 		if (e.getSource() == btnSelectAll) {
-			ListModel model = list.getModel();
-			list.setSelectionInterval(0, ((DefaultListModel) model).getSize()-1);
+			ListModel<String> model = list.getModel();
+			list.setSelectionInterval(0, ((DefaultListModel<String>) model).getSize()-1);
 		}
 		if (e.getSource() == btnClear) {
 			list.clearSelection();

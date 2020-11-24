@@ -3,8 +3,6 @@ package gui;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
-import java.beans.PropertyChangeEvent;
-
 import javax.swing.Box;
 import javax.swing.ButtonGroup;
 import javax.swing.JLabel;

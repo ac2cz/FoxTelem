@@ -116,7 +116,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 						e.printStackTrace(Log.getWriter());
 					}
 				}
-				if (sats.get(s).isFox1())
+				//if (sats.get(s).isFox1())
 					if (((FoxSpacecraft)sats.get(s)).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 				measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
 				Config.fileProgress.updateProgress(100 * s / sats.size());

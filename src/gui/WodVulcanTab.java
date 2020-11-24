@@ -8,7 +8,6 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import telemetry.FoxFramePart;
 import telemetry.RadiationTelemetry;
 
 @SuppressWarnings("serial")

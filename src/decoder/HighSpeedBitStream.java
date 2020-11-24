@@ -118,7 +118,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		int f=0; // position in the Rs code words as we allocate bits to them
 		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
 		
-		int debugCount = 0;
+		//int debugCount = 0;
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
 		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
 			if (Config.insertMissingBits && !insertedMissedBits && missedBits > 0 && j >= repairPosition) {

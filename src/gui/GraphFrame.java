@@ -1561,7 +1561,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 			for (int i=0; i< graphData[0][0].length; i++) {
 				String s;
-				if (this.showUTCtime && fox.isFox1()) {
+				if (this.showUTCtime /* && fox.isFox1() */) {
 					FoxSpacecraft fox2 = (FoxSpacecraft)fox;
 					if (fox2.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
 						s = fox2.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 

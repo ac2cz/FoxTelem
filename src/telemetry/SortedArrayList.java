@@ -80,7 +80,7 @@ public class SortedArrayList<T extends Comparable<T>> extends ArrayList<T> {
 				pos = Collections.binarySearch(this, img);
 			} catch (NullPointerException e) {
 				// This should not happen so print lots of debug
-				int i = 0;
+				//int i = 0;
 				Log.println(">>> Null adding to SortedArrayList:\n"+ img + " to list\n" + e.getStackTrace());
 				Log.println("RECORDS:" + this.size());
 				//			for (T t: this) {

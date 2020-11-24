@@ -25,10 +25,8 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
-import common.Spacecraft;
 import common.FoxSpacecraft;
 import decoder.HighSpeedBitStream;
-import decoder.FoxBPSK.FoxBPSKBitStream;
 import fec.RsCodeWord;
 
 /**

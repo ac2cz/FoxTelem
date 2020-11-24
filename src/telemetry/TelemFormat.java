@@ -32,7 +32,10 @@ public class TelemFormat {
 		load();
 		
 		// TODO, should confirm that whole format is valid here
-		try { name = get(NAME); int i = name.length(); } catch (Exception e) {
+		try { 
+			name = get(NAME); 
+			//int i = name.length(); 
+		} catch (Exception e) {
 			throw new LayoutLoadException("Invalid or missing "+NAME+" in Telem Format file: " + propertiesFile.getAbsolutePath());
 		}
 		try { 

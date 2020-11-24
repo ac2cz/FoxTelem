@@ -5,11 +5,9 @@ import java.awt.event.WindowListener;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
-import common.Config;
-
 public class SpacecraftEditorWindow extends JFrame implements WindowListener {
 
-	
+	private static final long serialVersionUID = 1L;
 	public SpacecraftEditorWindow() {
 		initialize();
 		JPanel mainPanel = new JPanel();

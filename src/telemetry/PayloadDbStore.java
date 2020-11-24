@@ -142,13 +142,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public void initHerciPackets() {
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		for (int s=0; s<sats.size(); s++) {
-			if (sats.get(s).isFox1()) {
+			//if (sats.get(s).isFox1()) {
 				FoxSpacecraft fox = (FoxSpacecraft)sats.get(s);
 				if (fox.hasHerci()) {
 					payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
 					payloadStore[s].initHerciPackets();
 				}
-			}
+			//}
 		}
 	}
 	public Connection getConnection() throws SQLException {

@@ -17,7 +17,6 @@ import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
-import gui.GraphCanvas;
 
 /** 
  * FOX 1 Telemetry Decoder

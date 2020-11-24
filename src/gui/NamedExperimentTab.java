@@ -31,7 +31,6 @@ import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import common.Config;
 import common.Log;
-import common.Spacecraft;
 import common.FoxSpacecraft;
 
 /**
@@ -84,7 +83,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		foxId = fox.foxId;
 		NAME = fox.toString() + " " + displayName;
 
-		int j = 0;
+		//int j = 0;
 		this.layout = displayLayout;
 		this.layout2 = displayLayout2;
 

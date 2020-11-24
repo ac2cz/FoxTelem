@@ -1,26 +1,12 @@
 package decoder.FoxBPSK;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-
-import javax.swing.SwingUtilities;
-
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
-import common.Performance;
-import decoder.CodePRN;
-import decoder.Decoder;
 import decoder.SourceAudio;
 import decoder.SourceIQ;
 import filter.AGCFilter;
 import filter.DcRemoval;
-import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.TelemFormat;
-import telemetry.FoxBPSK.FoxBPSKFrame;
-import telemetry.FoxBPSK.FoxBPSKHeader;
 import filter.Complex;
 import filter.ComplexOscillator;
 import filter.IirFilter;

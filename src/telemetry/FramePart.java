@@ -14,7 +14,6 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import telemetry.FoxBPSK.FoxBPSKHeader;
 import telemetry.uw.CanPacket;
 import uk.me.g4dpz.satellite.SatPos;
 

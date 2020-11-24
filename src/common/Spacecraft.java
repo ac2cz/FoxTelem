@@ -11,14 +11,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import decoder.SourceIQ;
 import gui.SourceTab;
 import predict.FoxTLE;
 import predict.PositionCalcException;

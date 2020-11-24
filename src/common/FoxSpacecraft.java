@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.TimeZone;
 import org.joda.time.DateTime;
 
 import predict.PositionCalcException;
-import telemServer.ServerConfig;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;

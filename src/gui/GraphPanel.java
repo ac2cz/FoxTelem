@@ -364,13 +364,13 @@ public class GraphPanel extends GraphCanvas {
 
 				}
 				if (graphFrame.showUTCtime) {
-					if (fox.isFox1()) {
+					//if (fox.isFox1()) {
 						FoxSpacecraft fox2 = (FoxSpacecraft)fox;
 						if (fox2.hasTimeZero(resets) && resets != NO_TIME_VALUE) {
 							g2.drawString(fox2.getUtcTimeForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
 							g2.drawString(""+fox2.getUtcDateForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);
 						}
-					}
+					//}
 				}
 				g2.setColor(graphAxisColor);
 				if (graphFrame.showVerticalLines) {
@@ -555,7 +555,7 @@ public class GraphPanel extends GraphCanvas {
 			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
 				int nextx = 0; 
-				int lastMidPoint = 0;
+				//int lastMidPoint = 0;
 				int lastx2 = sideBorder+1;
 				int lasty = graphHeight/2;
 				int lasty2 = graphHeight/2;
@@ -614,7 +614,7 @@ public class GraphPanel extends GraphCanvas {
 					//				System.out.println(x + " value " + value);
 					if (i == start) {
 						lastx=x;
-						lastMidPoint = x;
+						//lastMidPoint = x;
 						lastx2=x2;
 						lasty=y;
 						lasty2=y2;

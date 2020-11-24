@@ -1,25 +1,12 @@
 package decoder.FoxBPSK;
 
-import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import javax.swing.SwingUtilities;
-
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
-import common.Performance;
-import decoder.CodePRN;
-import decoder.Decoder;
 import decoder.SourceAudio;
 import filter.AGCFilter;
 import filter.Complex;
 import filter.DcRemoval;
-import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.TelemFormat;
-import telemetry.FoxBPSK.FoxBPSKFrame;
-import telemetry.FoxBPSK.FoxBPSKHeader;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.DotProduct;
@@ -342,7 +329,7 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 //	    	y = 127.5 + gain * data[i];
 //	    	y = (y > 255) ? 255 : ((y < 0) ? 0 : y);
 	    	//symbolq((int)y+" "); // Pass to FEC decoder thread
-	    	int middleSamplePosition = (int) (symphase+bucketSize/2.0+(i)*bucketSize);
+	    	//int middleSamplePosition = (int) (symphase+bucketSize/2.0+(i)*bucketSize);
 	    	boolean thisSample = false;
 	    	if (data[i] > 0) thisSample = true;
 			bitStream.addBit(thisSample);

@@ -26,7 +26,6 @@ import org.usb4java.DeviceDescriptor;
 import common.Log;
 import device.DeviceException;
 import device.DevicePanel;
-import device.fcd.FcdProPlusPanel;
 
 public class FCD2TunerController extends FCDTunerController
 {

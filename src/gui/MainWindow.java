@@ -744,10 +744,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
-				if (sats.get(i).isFox1()) {
+				//if (sats.get(i).isFox1()) {
 					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
 					f.setVisible(true);
-				}
+				//}
 			}
 		}
 		
@@ -979,7 +979,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		Config.save(); // make sure any changed settings saved
 		Config.initPayloadStore();
 		
-		int pkts = 0;
+		//int pkts = 0;
 		
 		for (Spacecraft sat : sats) {
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
@@ -989,16 +989,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				splitProgress.setVisible(true);
 				// generate the local can packets as they are not stored on the server
 				SortedFramePartArrayList canPackets;
-				int total = 0;
+				//int total = 0;
 				
 				try {
 					// search forward (not in reverse) and grab all the records.
 					canPackets = Config.payloadStore.getFrameParts(sat.foxId, 0, 0, 99999999, true, Spacecraft.CAN_PKT_LAYOUT);
 
 					for (FramePart p : canPackets) {
-						total++;
+						//total++;
 						if (p.getType() == FoxFramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
-							pkts++;
+							//pkts++;
 							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
 							int length = CanPacket.getLengthfromRawID(ihuPacketId);
 							int canId = CanPacket.getIdfromRawID(ihuPacketId);

@@ -34,7 +34,7 @@ public class ConversionCurve extends Conversion {
 	
 	public ConversionCurve(String[] values) {
 		super(values[0]);
-		if (values == null) throw new IllegalArgumentException("Conversion File row null");
+		//if (values == null) throw new IllegalArgumentException("Conversion File row null");
 		if (values.length < CSF_FILE_ROW_LENGTH) throw new IllegalArgumentException("Conversion File row has wrong number of values: " + values.length);
 		name = values[0];
 		try {

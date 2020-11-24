@@ -10,7 +10,6 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
-import decoder.CodePRN;
 import decoder.Decoder;
 import decoder.SourceAudio;
 import gui.MainWindow;

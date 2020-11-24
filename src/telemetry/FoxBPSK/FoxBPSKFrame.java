@@ -9,7 +9,6 @@ import common.Log;
 import common.Spacecraft;
 import decoder.Crc32;
 import decoder.Decoder;
-import decoder.FoxBPSK.FoxBPSKBitStream;
 import telemetry.BitArrayLayout;
 import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
