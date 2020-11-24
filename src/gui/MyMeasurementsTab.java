@@ -162,8 +162,6 @@ ItemListener {
 				rtMeasurement = Config.payloadStore
 						.getLatestMeasurement(sat.foxId);
 				if (rtMeasurement != null) {
-					Config.payloadStore.setUpdatedMeasurement(sat.foxId, false);
-
 					double snr = GraphPanel.roundToSignificantFigures(
 							rtMeasurement
 							.getRawValue(RtMeasurement.BIT_SNR), 3);
@@ -196,12 +194,12 @@ ItemListener {
 					satellite.updateSingleValue(8,
 							Integer.toString(erase));
 				}
+				Config.payloadStore.setUpdatedMeasurement(sat.foxId, false);
 			}
 			if (passes != null) // make sure we have initialized, avoid race condition
 			if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
 				passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
 				if (passMeasurement != null) {
-					Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
 					//Log.println("Updated Pass Params Table");
 					passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
 					passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
@@ -212,6 +210,7 @@ ItemListener {
 					passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
 					passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
 				}
+				Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
 			}
 
 			if (justStarted) {
