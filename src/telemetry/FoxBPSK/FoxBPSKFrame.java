@@ -125,10 +125,12 @@ import telemetry.TelemFormat;
 					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
 					if (fox.hasFrameCrc)
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
-//						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
+					else
+						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)];
 					for (int k=0; k < telemFormat.getInt(TelemFormat.HEADER_LENGTH); k++) {
 						bytes[k] = headerBytes[k];
-						dataBytes[k] = headerBytes[k];
+						if (fox.hasFrameCrc)
+							dataBytes[k] = headerBytes[k];
 					}
 					initPayloads((FoxBPSKHeader)header, frameLayout);
 //					initPayloads(header.id, header.getType());

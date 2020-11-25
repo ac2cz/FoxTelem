@@ -163,7 +163,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public SatPos satPos; // cache the position when it gets calculated so others can read it
 	public double satPosErrorCode; // Store the error code when we return null for the position
 	public boolean hasCanBus;
-	public boolean hasFrameCrc;
+	public boolean hasFrameCrc = false;
 	
 	private SortedTleList tleList; // this is a list of TLEs loaded from the history file.  We search this for historical TLEs
 	
@@ -567,7 +567,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 			
 			String crc = getOptionalProperty("hasFrameCrc");
 			if (crc == null) 
-				hasFrameCrc = true;
+				hasFrameCrc = false;
 			else 
 				hasFrameCrc = Boolean.parseBoolean(crc);
 
