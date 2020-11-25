@@ -9,8 +9,10 @@ import javax.swing.JPanel;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.DisplayMode;
 import java.awt.FileDialog;
 import java.awt.Font;
+import java.awt.GraphicsDevice;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -398,26 +400,34 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-		int screenHeight = screenSize.height;
-		int screenWidth = screenSize.width;
+		// This is simple but does not work on multiple displays.  It gets from the detault
+//		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//		Dimension screenSize = device..getScreenSize();
+//		int screenHeight = screenSize.height;
+//		int screenWidth = screenSize.width;
 		
-		Log.println("Display is: " + screenWidth + " x " + screenHeight);
+		// This is more complex and gets the raw screen size, so does not cope with scaling
+//		GraphicsDevice device = this.getGraphicsConfiguration().getDevice();
+//		DisplayMode display = device.getDisplayMode();
+//		int screenHeight = display.getHeight();
+//		int screenWidth = display.getWidth();
 		
-		int windowWidth = Config.windowX + Config.windowWidth;
+//		Log.println("Display is: " + screenWidth + " x " + screenHeight);
 		
-		if (windowWidth > screenWidth) {
-			//Config.windowX = (int) (Config.windowX * (Config.windowX / (double)windowWidth));
-			Config.windowWidth = screenWidth - Config.windowX;
+//		int windowFarRight = Config.windowX + Config.windowWidth;
+		
+//		if (windowFarRight > screenWidth) {
+//			Config.windowWidth = screenWidth - Config.windowX;
 			
-		}
-		int windowHeight = Config.windowY + Config.windowHeight;
-		if (windowHeight > screenHeight) {
-			Log.println("Window is too tall: " + screenHeight + " vs " + windowHeight);
-			//Config.windowY = (int) (Config.windowY * (Config.windowY / (double)windowHeight));
-			Config.windowHeight = screenHeight - Config.windowY;
-			Log.println("Set windowY: " + Config.windowY + " height " + Config.windowHeight);
-		}
+//		}
+//		int windowBottom = Config.windowY + Config.windowHeight;
+//		Log.println("Window is : " + screenHeight + " vs " + windowBottom);
+		
+//		if (windowBottom > screenHeight) {
+//			Log.println("Window is too tall: " + screenHeight + " vs " + windowBottom);
+//			Config.windowHeight = screenHeight - Config.windowY;
+//			Log.println("Set windowY: " + Config.windowY + " height " + Config.windowHeight);
+//		}
 		setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
