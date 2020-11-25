@@ -74,7 +74,7 @@ public class SatMeasurementStore {
 	public SatMeasurementStore(int id) {
 		foxId = id;
 		initArrays();
-
+				
 		try {
 			rtFileName = "Fox"+id+RT_LOG;
 			passFileName = "Fox"+id+PASS_LOG;
@@ -130,6 +130,14 @@ public class SatMeasurementStore {
 		updatedPass = true;
 	}
 
+	public int getNumberOfMeasurements() {
+		return rtRecords.size();
+	}
+	
+	public int getNumberOfPassMeasurements() {
+		return passRecords.size();
+	}
+	
 	/**
 	 * Add a measurement set to this Sats store
 	 * @param id

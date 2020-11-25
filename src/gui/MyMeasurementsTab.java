@@ -148,6 +148,9 @@ ItemListener {
 		running = true;
 		done = false;
 		boolean justStarted = true;
+		int currentRtFrames = 0;
+		int currentPassFrames = 0;
+		int frames = 0;
 
 		while (running) {
 			try {
@@ -156,61 +159,67 @@ ItemListener {
 				Log.println("ERROR: Measurement thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
-			if (satellite != null) // make sure we are initialized, avoid race condition
-			if (Config.payloadStore.getUpdatedMeasurement(sat.foxId)) {
+			if (satellite != null) { // make sure we are initialized, avoid race condition
+				frames = Config.payloadStore.getNumberOfMeasurements(sat.foxId);
+				if (frames != currentRtFrames) {
+					currentRtFrames = frames;
 
-				rtMeasurement = Config.payloadStore
-						.getLatestMeasurement(sat.foxId);
-				if (rtMeasurement != null) {
-					double snr = GraphPanel.roundToSignificantFigures(
-							rtMeasurement
-							.getRawValue(RtMeasurement.BIT_SNR), 3);
-					satellite.updateSingleValue(1, Double.toString(snr));
-					double rfsnr = GraphPanel
-							.roundToSignificantFigures(rtMeasurement
-									.getRawValue(RtMeasurement.RF_SNR), 3);
-					satellite.updateSingleValue(2,
-							Double.toString(rfsnr));
-					double power = GraphPanel
-							.roundToSignificantFigures(rtMeasurement
-									.getRawValue(RtMeasurement.RF_POWER), 3);
-					satellite.updateSingleValue(3,
-							Double.toString(power));
-					long freq = (long) rtMeasurement
-							.getRawValue(RtMeasurement.CARRIER_FREQ);
-					satellite.updateSingleValue(4, Long.toString(freq));
-					int az = (int) rtMeasurement
-							.getRawValue(RtMeasurement.AZ);
-					satellite.updateSingleValue(5, Integer.toString(az));
-					int el = (int) rtMeasurement
-							.getRawValue(RtMeasurement.EL);
-					satellite.updateSingleValue(6, Integer.toString(el));
-					int err = (int) rtMeasurement
-							.getRawValue(RtMeasurement.ERRORS);
-					satellite
-					.updateSingleValue(7, Integer.toString(err));
-					int erase = (int) rtMeasurement
-							.getRawValue(RtMeasurement.ERASURES);
-					satellite.updateSingleValue(8,
-							Integer.toString(erase));
+					rtMeasurement = Config.payloadStore
+							.getLatestMeasurement(sat.foxId);
+					if (rtMeasurement != null) {
+						double snr = GraphPanel.roundToSignificantFigures(
+								rtMeasurement
+								.getRawValue(RtMeasurement.BIT_SNR), 3);
+						satellite.updateSingleValue(1, Double.toString(snr));
+						double rfsnr = GraphPanel
+								.roundToSignificantFigures(rtMeasurement
+										.getRawValue(RtMeasurement.RF_SNR), 3);
+						satellite.updateSingleValue(2,
+								Double.toString(rfsnr));
+						double power = GraphPanel
+								.roundToSignificantFigures(rtMeasurement
+										.getRawValue(RtMeasurement.RF_POWER), 3);
+						satellite.updateSingleValue(3,
+								Double.toString(power));
+						long freq = (long) rtMeasurement
+								.getRawValue(RtMeasurement.CARRIER_FREQ);
+						satellite.updateSingleValue(4, Long.toString(freq));
+						int az = (int) rtMeasurement
+								.getRawValue(RtMeasurement.AZ);
+						satellite.updateSingleValue(5, Integer.toString(az));
+						int el = (int) rtMeasurement
+								.getRawValue(RtMeasurement.EL);
+						satellite.updateSingleValue(6, Integer.toString(el));
+						int err = (int) rtMeasurement
+								.getRawValue(RtMeasurement.ERRORS);
+						satellite
+						.updateSingleValue(7, Integer.toString(err));
+						int erase = (int) rtMeasurement
+								.getRawValue(RtMeasurement.ERASURES);
+						satellite.updateSingleValue(8,
+								Integer.toString(erase));
+					}
+					Config.payloadStore.setUpdatedMeasurement(sat.foxId, false);
 				}
-				Config.payloadStore.setUpdatedMeasurement(sat.foxId, false);
 			}
-			if (passes != null) // make sure we have initialized, avoid race condition
-			if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
-				passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
-				if (passMeasurement != null) {
-					//Log.println("Updated Pass Params Table");
-					passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
-					passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
-					passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
-					passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
-					passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
-					passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
-					passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
-					passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
+			if (passes != null) {// make sure we have initialized, avoid race condition
+				frames = Config.payloadStore.getNumberOfPassMeasurements(sat.foxId);
+				if (frames != currentPassFrames) {
+					currentPassFrames = frames;
+					passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
+					if (passMeasurement != null) {
+						//Log.println("Updated Pass Params Table");
+						passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
+						passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
+						passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
+						passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
+						passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
+						passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
+						passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
+						passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
+					}
+					Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
 				}
-				Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
 			}
 
 			if (justStarted) {

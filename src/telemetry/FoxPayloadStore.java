@@ -32,6 +32,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract void setUpdatedMeasurement(int id, boolean u);
 	public abstract boolean getUpdatedPassMeasurement(int id);
 	public abstract void setUpdatedPassMeasurement(int id, boolean u);
+	public abstract int getNumberOfMeasurements(int id);
+	public abstract int getNumberOfPassMeasurements(int id);
 	
 	public abstract int getTotalNumberOfFrames();
 	public abstract int getTotalNumberOfFrames(String lay);

@@ -500,6 +500,20 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 	
+	public int getNumberOfMeasurements(int id) {
+		SatMeasurementStore store = getMeasurementStoreById(id);
+		if (store != null)
+			return store.getNumberOfMeasurements();
+		return 0;
+	}
+	
+	public int getNumberOfPassMeasurements(int id) {
+		SatMeasurementStore store = getMeasurementStoreById(id);
+		if (store != null)
+			return store.getNumberOfPassMeasurements();
+		return 0;
+	}
+	
 	public RtMeasurement getLatestMeasurement(int id) {
 		SatMeasurementStore store = getMeasurementStoreById(id);
 		if (store != null)

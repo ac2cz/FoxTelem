@@ -1149,6 +1149,18 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Override
+	public int getNumberOfMeasurements(int id) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getNumberOfPassMeasurements(int id) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
 	
 
 
