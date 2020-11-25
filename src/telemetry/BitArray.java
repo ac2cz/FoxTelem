@@ -168,21 +168,31 @@ public abstract class BitArray {
 			int value = fieldValue[pos];
 			double result = value; // initialize the result to the value we start with, in case its a pipeline
 			if (fox.useConversionCoeffs) { // use a modern conversion soft coded
-				// Need to know if this is a static, curve or table conversion
+				
 				String convName = layout.getConversionNameByPos(pos);
-		//		if (convName.equalsIgnoreCase("IHU_ADC|com1_tx_fwd_pwr|59"))
-		//			System.out.println("STOP");
+				if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
+					System.out.println("STOP");
 				String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
 				for (String singleConv : conversions) {
-					Conversion conv = fox.getConversionByName(singleConv);
-					if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric. String conversions ignored here
-						int convInt = 0;
-						try {
-							convInt = Integer.parseInt(singleConv);
-						} catch (NumberFormatException e) { convInt = 0;}
-						result = convertRawValue(name, result, convInt, fox);
-					} else
-						result = convertCoeffRawValue(name, result, conv, fox);	
+					singleConv = singleConv.trim();
+					// First check the reserved words for formatting
+					if (singleConv.equalsIgnoreCase(BitArrayLayout.FMT_INT) 
+							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_F)
+							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_1F)
+							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_2F)) {
+						// we skip, this is applied in string formatting later
+					} else {
+						// Need to know if this is a static, curve or table conversion
+						Conversion conv = fox.getConversionByName(singleConv);
+						if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric. String conversions ignored here
+							int convInt = 0;
+							try {
+								convInt = Integer.parseInt(singleConv);
+							} catch (NumberFormatException e) { convInt = 0;}
+							result = convertRawValue(name, result, convInt, fox);
+						} else
+							result = convertCoeffRawValue(name, result, conv, fox);	
+					}
 				}
 			} else {
 				result = convertRawValue(name, value, layout.getIntConversionByPos(pos), fox);

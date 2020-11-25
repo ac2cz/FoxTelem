@@ -272,6 +272,8 @@ longer send telemetry.
 		if (pos != -1) {
 			// Check if this is a simple numeric legacy conversion
 			String convName = layout.getConversionNameByPos(pos);
+			if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
+				System.out.println("STOP");
 			int conv = -1;
 			try {
 				conv = Integer.parseInt(convName);
@@ -286,11 +288,22 @@ longer send telemetry.
 					s = "-----";
 				} else {
 					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
-					int convInt = 0;
-					try {
-						convInt = Integer.parseInt(conversions[conversions.length-1]);
-					} catch (NumberFormatException e) { convInt = 0;}
-					s = legacyStringConversion(convInt, dvalue, fox);
+					String lastConv = conversions[conversions.length-1].trim();
+					// First check the reserved words for formatting in final field
+					if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_INT)) {
+						s = Long.toString((long) dvalue);
+					} else if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_F) 
+							|| lastConv.equalsIgnoreCase(BitArrayLayout.FMT_1F)) {
+						s = String.format("%2.1f", dvalue);
+					} else if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_2F)) {
+						s = String.format("%1.2f", dvalue);
+					} else {
+						int convInt = 0;
+						try {
+							convInt = Integer.parseInt(lastConv);
+						} catch (NumberFormatException e) { convInt = 0;}
+						s = legacyStringConversion(convInt, dvalue, fox);
+					}
 				}
 			}
 		}
