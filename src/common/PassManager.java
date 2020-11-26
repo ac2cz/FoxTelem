@@ -138,6 +138,13 @@ public class PassManager implements Runnable {
 		passMeasurement.setStartResetUptime(reset, uptime);
 		newPass = false;
 	}
+	
+	public void incCrcFailure() {
+		if (passMeasurement != null) {
+			long crc = passMeasurement.getRawValue(PassMeasurement.CRC_FAILURES);
+			passMeasurement.setRawValue(PassMeasurement.CRC_FAILURES, crc+1);
+		}
+	}
 
 	public void setLastResetUptime(int id, int reset, long uptime) {
 		lastReset = reset;

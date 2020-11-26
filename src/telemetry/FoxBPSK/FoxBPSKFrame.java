@@ -123,13 +123,13 @@ import telemetry.TelemFormat;
 						return;
 					}
 					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
-					if (fox.hasFrameCrc)
+					if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
 					else
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)];
 					for (int k=0; k < telemFormat.getInt(TelemFormat.HEADER_LENGTH); k++) {
 						bytes[k] = headerBytes[k];
-						if (fox.hasFrameCrc)
+						if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 							dataBytes[k] = headerBytes[k];
 					}
 					initPayloads((FoxBPSKHeader)header, frameLayout);
@@ -178,8 +178,9 @@ import telemetry.TelemFormat;
 					minByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
 				}
 			}
-			if (fox != null && fox.hasFrameCrc) {
-				// TODO - probablly not the right place to do this.  Should be in BitStream then we can avoid processing the frame at all if it fails.  But then we need to know the foxid before decoding the frame..
+			if (fox != null && fox.hasFrameCrc && Config.calculateBPSKCrc) {
+				// Check the CRC on the frame.  This frame has already been error corrected and passed RS Decode
+				// This is an extra check to reject frames that erroniously pass the RS Decode.
 				if (numberBytesAdded > telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength-1  
 						&& numberBytesAdded <= telemFormat.getInt(TelemFormat.DATA_LENGTH)-1)
 					crcBytes[c++] = b;
@@ -197,15 +198,19 @@ import telemetry.TelemFormat;
 						Log.print(" => Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
 						if (crc == myCalculatedCrc) 
 							Log.println(" .. pass");
-						else
-							Log.println("***** FAIL *****");
+						else {
+							Log.println(" ***** FAIL ***** Frame Rejected");
+							Config.passManager.incCrcFailure();
+							corrupt = true;
+							return;
+						}
 					}
 				}
 			}
 				
 			if (numberBytesAdded >= telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				bytes[numberBytesAdded] = b;
-				if (fox != null && fox.hasFrameCrc && numberBytesAdded < telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength)
+				if (fox != null && fox.hasFrameCrc && Config.calculateBPSKCrc && numberBytesAdded < telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength)
 					dataBytes[numberBytesAdded] = b; 
 			} else {
 				headerBytes[numberBytesAdded] = b;

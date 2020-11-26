@@ -295,6 +295,10 @@ public class Config {
 	static public int newResetCheckThreshold = 60; // seconds tolerance to match the spacecrafts clock for reset check
 	static public int newResetCheckUptimeMax = 15000;
 	
+	//V1.10
+	static public boolean calculateBPSKCrc = true;
+	
+	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
@@ -750,6 +754,9 @@ public class Config {
 		// V1.09
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("format", Integer.toString(format));
+		
+		// V1.10
+		properties.setProperty("calculateBPSKCrc", Boolean.toString(calculateBPSKCrc));
 
 		store();
 	}
@@ -947,6 +954,9 @@ public class Config {
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		format = Integer.parseInt(getProperty("format"));
 
+		// V1.10
+		calculateBPSKCrc = Boolean.parseBoolean(getProperty("calculateBPSKCrc"));
+		
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {

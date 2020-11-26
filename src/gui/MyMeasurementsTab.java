@@ -94,8 +94,12 @@ ItemListener {
 
 		//if (sat.isFox1()) {
 		//	FoxSpacecraft fox = (FoxSpacecraft) sat;
-			passes = new DisplayModule(fox, fox.user_display_name + " passes", 9,
+			if (sat.hasFrameCrc)
+			passes = new DisplayModule(fox, fox.user_display_name + " passes", 10,
 					DisplayModule.DISPLAY_PASS_MEASURES);
+			else
+				passes = new DisplayModule(fox, fox.user_display_name + " passes", 9,
+						DisplayModule.DISPLAY_PASS_MEASURES);
 			centerPanel.add(passes);
 			passes.addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(2, "TCA",	PassMeasurement.TCA, DisplayModule.DISPLAY_RT_ONLY);
@@ -105,6 +109,8 @@ ItemListener {
 			passes.addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
+			if (sat.hasFrameCrc)
+				passes.addName(9, "CRC Failures", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
 		//}
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);

@@ -48,6 +48,7 @@ public class PassMeasurement extends Measurement {
 	public static final String END_AZIMUTH = "END_AZIMUTH";
 	public static final String MAX_ELEVATION = "MAX_ELEVATION";
 	public static final String TOTAL_PAYLOADS = "TOTAL_PAYLOADS";
+	public static final String CRC_FAILURES = "CRC_FAILURES";
 	
 	public static final long ERR = -99999;
 	public static final String DEFAULT_VALUE = "-----";
