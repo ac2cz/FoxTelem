@@ -188,6 +188,16 @@ public class ConversionLookUpTable extends Conversion{
 	    return value;
 	}
 	
+	/**
+	 * Return the passed value as a String
+	 * @param lookUpkKey
+	 * @return
+	 */
+	public String calculateString(double x) {
+		String s = String.format("%2.1f", x);
+		return s;
+	}
+	
 	protected void load(String fileName) throws FileNotFoundException, LayoutLoadException {
 
 		String line;

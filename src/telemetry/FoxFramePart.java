@@ -268,27 +268,31 @@ longer send telemetry.
 			if (name.equalsIgnoreCase(layout.fieldName[i]))
 				pos = i;
 		}
+		// First calculate the value as normal, converting the raw value
+		double dvalue = getDoubleValue(name, fox);
 		String s = "-----";
 		if (pos != -1) {
 			// Check if this is a simple numeric legacy conversion
 			String convName = layout.getConversionNameByPos(pos);
-			if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
-				System.out.println("STOP");
+			//if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
+			//	System.out.println("STOP");
 			int conv = -1;
 			try {
 				conv = Integer.parseInt(convName);
 			} catch (NumberFormatException e) { conv = -1;}
 			if (conv != -1) {
 				// This is a legacy conversion, get the value and apply any formatting
-				double dvalue = getDoubleValue(name, fox);
 				s = legacyStringConversion(conv, dvalue, fox);
 			} else {
-				double dvalue = getDoubleValue(name, fox);
+				// This is a curve, lookup table or string lookup table.  Potentially a pipeline of them.
 				if (dvalue == ERROR_VALUE) {
 					s = "-----";
 				} else {
 					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
+					// If this is a pipeline then all of the conversions have been run to calculate the dvalue.  
+					// We only care about the final conversion to get a string value
 					String lastConv = conversions[conversions.length-1].trim();
+					
 					// First check the reserved words for formatting in final field
 					if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_INT)) {
 						s = Long.toString((long) dvalue);
@@ -298,11 +302,19 @@ longer send telemetry.
 					} else if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_2F)) {
 						s = String.format("%1.2f", dvalue);
 					} else {
-						int convInt = 0;
-						try {
-							convInt = Integer.parseInt(lastConv);
-						} catch (NumberFormatException e) { convInt = 0;}
-						s = legacyStringConversion(convInt, dvalue, fox);
+						// Get the conversion for the last conversion in the pipeline
+						Conversion conversion = fox.getConversionByName(lastConv);
+						if (conversion == null) { // use legacy conversion, remain backwards compatible if name is numeric. 
+							int convInt = 0;
+							try {
+								convInt = Integer.parseInt(lastConv);
+							} catch (NumberFormatException e) { convInt = 0;}
+							s = legacyStringConversion(convInt, dvalue, fox);
+
+						} else {
+							s = conversion.calculateString(dvalue);
+						}
+
 					}
 				}
 			}

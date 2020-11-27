@@ -10,5 +10,6 @@ public abstract class Conversion {
 	
 	public String getName() { return name; }
 	abstract public double calculate(double x);
+	abstract public String calculateString(double x);
 
 }

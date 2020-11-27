@@ -28,6 +28,7 @@ import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.ConversionLookUpTable;
+import telemetry.ConversionStringLookUpTable;
 import telemetry.TelemFormat;
 import telemetry.uw.CanFrames;
 import uk.me.g4dpz.satellite.SatPos;
@@ -128,6 +129,10 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public int numberOfLookupTables = 3;
 	public String[] lookupTableFilename;
 	public ConversionLookUpTable[] lookupTable;
+	
+	public int numberOfStringLookupTables = 0;
+	public String[] stringLookupTableFilename;
+	public ConversionStringLookUpTable[] stringLookupTable;
 	
 	public int numberOfSources = 2;
 	public String[] sourceName;
@@ -467,6 +472,29 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				String conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
 				if (conversionCurvesFileName != null) {
 					loadConversionCurves(FoxSpacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
+				}
+			}
+			
+			if (useConversionCoeffs) {
+				// String Lookup Tables
+				String sNumberOfStringLookupTables = getOptionalProperty("numberOfStringLookupTables");
+				if (sNumberOfStringLookupTables != null) {
+				numberOfStringLookupTables = Integer.parseInt(sNumberOfStringLookupTables);
+				stringLookupTableFilename = new String[numberOfStringLookupTables];
+				stringLookupTable = new ConversionStringLookUpTable[numberOfStringLookupTables];
+				for (int i=0; i < numberOfStringLookupTables; i++) {
+					stringLookupTableFilename[i] = getProperty("stringLookupTable"+i+".filename");
+					String tableName = getProperty("stringLookupTable"+i);
+					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i]);
+
+					if (conversions.containsKey(stringLookupTable[i].getName())) {
+						// we have a namespace clash, warn the user
+						Log.errorDialog("DUPLICATE STRING TABLE NAME", this.user_keps_name + ": Lookup table or Curve already defined and will not be stored: " + tableName);
+					} else {
+						conversions.put(tableName, stringLookupTable[i]);
+						Log.println("Stored: " + stringLookupTable[i]);
+					}
+				}
 				}
 			}
 
