@@ -133,7 +133,7 @@ public class SpacecraftTab extends JPanel {
 		}
 
 		for (int exp : ((FoxSpacecraft)sat).experiments) {
-			if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP)
+			if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP) {
 				try {
 					addExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
@@ -141,8 +141,19 @@ public class SpacecraftTab extends JPanel {
 					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
 				}
+				if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
+					try {
+					addWodExpTab((FoxSpacecraft)sat);
+					} catch (Exception e) {
+						e.printStackTrace(Log.getWriter());
+						Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
+								+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
+					}
+
+				}
+			}
 			
-			if (exp == FoxSpacecraft.RAG_ADAC)
+			if (exp == FoxSpacecraft.RAG_ADAC) {
 				try {
 					addRagExperimentTab((FoxSpacecraft)sat);
 				} catch (Exception e) {
@@ -150,6 +161,17 @@ public class SpacecraftTab extends JPanel {
 					Log.errorDialog("Layout Failure", "Failed to setup Ragnaroc Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
 				}
+				if (sat.getLayoutIdxByName(Spacecraft.WOD_RAG_LAYOUT) != Spacecraft.ERROR_IDX) {
+					try {
+					addWodRagExpTab((FoxSpacecraft)sat);
+					} catch (Exception e) {
+						e.printStackTrace(Log.getWriter());
+						Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
+								+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
+						
+					}
+				}
+			}
 
 			if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
 				try {
@@ -180,16 +202,7 @@ public class SpacecraftTab extends JPanel {
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
 		}
-		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
-			try {
-			addWodExpTab((FoxSpacecraft)sat);
-			} catch (Exception e) {
-				e.printStackTrace(Log.getWriter());
-				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
-						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
-			}
-
-		}
+		
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
 			try {
 			addUwWodExperimentTab((FoxSpacecraft)sat);
@@ -200,17 +213,7 @@ public class SpacecraftTab extends JPanel {
 			}
 
 		}
-		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAG_LAYOUT) != Spacecraft.ERROR_IDX) {
-			try {
-			addWodRagExpTab((FoxSpacecraft)sat);
-			} catch (Exception e) {
-				e.printStackTrace(Log.getWriter());
-				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
-						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
-				
-			}
-
-		}
+		
 	}
 
 	private void addWodTab(FoxSpacecraft fox) {
