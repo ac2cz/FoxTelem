@@ -256,7 +256,8 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	public DateTime getUtcDateTimeForReset(int reset, long uptime) {
 		if (timeZero == null) return null;
-		if (reset >= timeZero.size()) return null;
+		if (reset < 0 || reset >= timeZero.size()) return null;
+		if (uptime < 0) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime*1000);
 		DateTime dateTime = new DateTime(dt); // FIXME - this date conversion is not working.  Need to understand how it works.
 		return dateTime;
