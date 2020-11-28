@@ -136,11 +136,11 @@ import telemetry.TelemFormat;
 //					initPayloads(header.id, header.getType());
 					if (payload[0] == null) {
 						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. "
+									+ "Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file.\nDecode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.");
-
+							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file. Decode not possible.");
 						corrupt = true;
 						return;
 					}
