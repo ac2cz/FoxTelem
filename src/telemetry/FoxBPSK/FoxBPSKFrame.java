@@ -170,8 +170,17 @@ import telemetry.TelemFormat;
 						try {
 							payload[p].addNext8Bits(b);
 						} catch (Exception e) {
-							Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
-									+ " for payload " + payload[p].getLayout().name + " at payload byte" + payload[p].numberBytesAdded);
+							if (payload[p] != null && payload[p].getLayout() != null)
+								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+									+ " for payload number " + p + " : " + payload[p].getLayout().name + " at payload byte " + payload[p].numberBytesAdded);
+							else if (payload[p] != null && payload[p].getLayout() == null)
+								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+										+ " for payload number "+ p + " of type " + payload[p].getType() + " at payload byte " + payload[p].numberBytesAdded
+										+"\nThis payload's Layout is null and not defined or loaded correctly.");
+							else if (payload[p] == null)
+								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+										+ " for payload number " + p + " because the payload is null." 
+										+"\nThe payload Layout is probablly also not defined or loaded correctly.");
 							corrupt = true;
 							return;
 						}
