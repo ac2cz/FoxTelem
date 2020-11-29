@@ -142,7 +142,6 @@ public class SpacecraftTab extends JPanel {
 						Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
 								+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 					}
-
 				}
 			}
 			
@@ -156,7 +155,7 @@ public class SpacecraftTab extends JPanel {
 				}
 				if (sat.getLayoutIdxByName(Spacecraft.WOD_RAG_LAYOUT) != Spacecraft.ERROR_IDX) {
 					try {
-					addWodRagExpTab((FoxSpacecraft)sat);
+					addWodNamedExpTab((FoxSpacecraft)sat, Spacecraft.WOD_RAG_LAYOUT);
 					} catch (Exception e) {
 						e.printStackTrace(Log.getWriter());
 						Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
@@ -194,15 +193,7 @@ public class SpacecraftTab extends JPanel {
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
 		}
-		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
-			try {
-			addWodExpTab((FoxSpacecraft)sat);
-			} catch (Exception e) {
-				e.printStackTrace(Log.getWriter());
-				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
-						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
-			}
-		}
+		
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
 			try {
 			addUwWodExperimentTab((FoxSpacecraft)sat);
@@ -212,16 +203,7 @@ public class SpacecraftTab extends JPanel {
 						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 			}
 		}
-		if (sat.getLayoutIdxByName(Spacecraft.WOD_RAG_LAYOUT) != Spacecraft.ERROR_IDX) {
-			try {
-			addWodNamedExpTab((FoxSpacecraft)sat, Spacecraft.WOD_RAG_LAYOUT);
-			} catch (Exception e) {
-				e.printStackTrace(Log.getWriter());
-				Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
-						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
-				
-			}
-		}
+		
 	}
 
 	private void addWodTab(FoxSpacecraft fox) {
