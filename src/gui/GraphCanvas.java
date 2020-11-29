@@ -13,6 +13,8 @@ import measure.SatMeasurementStore;
 import predict.PositionCalcException;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
+import telemetry.ConversionStringLookUpTable;
 import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.PayloadStore;
@@ -26,7 +28,7 @@ public abstract class GraphCanvas extends MapPanel {
 	double[][][] graphData2 = null;
 	String title = "Test Graph";
 	GraphFrame graphFrame;
-	protected int conversionType;  
+	protected String conversion;  
 	protected int payloadType; // This is RT, MAX, MIN, RAD, Measurement etc
 	boolean drawGraph2 = false;
 	Color graphAxisColor = Color.BLACK;
@@ -47,10 +49,9 @@ public abstract class GraphCanvas extends MapPanel {
 	Graphics2D g2;
 	Graphics g;
 
-	GraphCanvas(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft fox2) {
+	GraphCanvas(String t, int plType, GraphFrame gf, FoxSpacecraft fox2) {
 		title = t;
 		payloadType = plType;
-		this.conversionType = conversionType;
 		//this.fieldName = fieldName;
 		graphFrame = gf;
 		
@@ -230,7 +231,11 @@ public abstract class GraphCanvas extends MapPanel {
 		g2.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_GASP);	
 	}
 	
-	protected double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines, String units, int graphType) {
+	protected double[] plotVerticalAxis(int axisPosition, int graphHeight, int graphWidth, double[][][] graphData, boolean showHorizontalLines, String units, int conversionType, Conversion conversion) {
+		int graphType = conversionType;
+		String lastConv = "";
+		if (conversion != null)
+			lastConv = Conversion.getLastConversionInPipeline(conversion.getName());
 		
 		// Draw vertical axis - always in the same place
 		g2.drawLine(sideBorder + axisPosition, getHeight()-bottomBorder, sideBorder+axisPosition, topBorder);
@@ -240,10 +245,11 @@ public abstract class GraphCanvas extends MapPanel {
 				double minValue = 99E99;
 			//	double maxValueAxisTwo = 0;
 			//	double minValueAxisTwo = 99E99;
-
+				boolean intStep = false;
+				
 				for (int j=0; j < graphData.length; j++)
 					for (int i=0; i < graphData[j][0].length; i++) {
-						if (graphFrame.conversionType == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP && graphData[j][PayloadStore.DATA_COL][i] == BitArray.ERROR_VALUE) {
+						if (conversionType == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP && graphData[j][PayloadStore.DATA_COL][i] == BitArray.ERROR_VALUE) {
 							// do not treat as the maximum.  Set to a default value
 							graphData[j][PayloadStore.DATA_COL][i] = FoxFramePart.MPPT_DEFAULT_TEMP;
 						}
@@ -252,10 +258,17 @@ public abstract class GraphCanvas extends MapPanel {
 					}
 
 				if (maxValue == minValue) {
-					if (graphType == BitArrayLayout.CONVERT_INTEGER) 
+					if (graphType == BitArrayLayout.CONVERT_INTEGER || lastConv.equalsIgnoreCase(Conversion.FMT_INT)) 
 						maxValue = maxValue + 10;
 					else
 						maxValue = maxValue + 1;
+				}
+				
+				if (conversion != null && conversion instanceof ConversionStringLookUpTable) {
+					intStep = true;
+					ConversionStringLookUpTable cslt = (ConversionStringLookUpTable)conversion;
+					maxValue = cslt.getMaxKey()+1;
+					minValue = cslt.getMinKey();
 				}
 				
 				if (graphType == BitArrayLayout.CONVERT_SPIN) {
@@ -305,7 +318,6 @@ public abstract class GraphCanvas extends MapPanel {
 				// calculate number of labels we need on vertical axis
 				int numberOfLabels = (graphHeight)/labelHeight;
 				
-				boolean intStep = false;
 				if (graphType == BitArrayLayout.CONVERT_INTEGER || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS 
 						|| graphType == BitArrayLayout.CONVERT_ANTENNA || graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
 						|| graphType == BitArrayLayout.CONVERT_BOOLEAN
@@ -351,6 +363,16 @@ public abstract class GraphCanvas extends MapPanel {
 							&& !((axisPosition == 0) && (labels[v] == 0.0 || ( v < numberOfLabels-1 && labels[v+1] == 0.0)))
 							&& !(v == 0 && pos > graphHeight)
 							) {
+						
+						if (conversion != null && conversion instanceof ConversionStringLookUpTable) {
+							ConversionStringLookUpTable cslt = (ConversionStringLookUpTable)conversion;
+							s = cslt.calculateString(labels[v]-1); // we offset by 1 so the last label is not on the axis
+							if (s.equalsIgnoreCase(ConversionStringLookUpTable.ERROR))
+								drawLabel = false;
+							else
+								drawLabel = true;
+						}
+						
 						if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
 							drawLabel = false;
 							if (labels[v] == 1) {

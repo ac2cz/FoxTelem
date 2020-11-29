@@ -20,8 +20,8 @@ import telemetry.PayloadStore;
 public class DensityPlotPanel extends GraphCanvas {
 	int[][] timePeriod = null; // The time period for the graph reset count and uptime
 
-	DensityPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
-		super(t, conversionType, plType, gf, sat);
+	DensityPlotPanel(String t, int plType, GraphFrame gf, FoxSpacecraft sat) {
+		super(t, plType, gf, sat);
 		updateGraphData("DensityPlotPanel.new");
 	}
 	private void drawLegend(int graphHeight, int graphWidth, double minValue, double maxValue, String units) {

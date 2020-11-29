@@ -68,9 +68,13 @@ public abstract class BitArray {
 		return layout.hasFieldName(name);
 	}
 	
-	public int getConversionByName(String name) {
+	public int getIntConversionByName(String name) {
 		return layout.getIntConversionByName(name);
 		
+	}
+	
+	public String getConversionNameByName(String name) {
+		return layout.getConversionNameByName(name);	
 	}
 	
 	public String getUnitsByName(String name) {
@@ -176,10 +180,10 @@ public abstract class BitArray {
 				for (String singleConv : conversions) {
 					singleConv = singleConv.trim();
 					// First check the reserved words for formatting
-					if (singleConv.equalsIgnoreCase(BitArrayLayout.FMT_INT) 
-							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_F)
-							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_1F)
-							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_2F)) {
+					if (singleConv.equalsIgnoreCase(Conversion.FMT_INT) 
+							|| singleConv.equalsIgnoreCase(Conversion.FMT_F)
+							|| singleConv.equalsIgnoreCase(Conversion.FMT_1F)
+							|| singleConv.equalsIgnoreCase(Conversion.FMT_2F)) {
 						// we skip, this is applied in string formatting later
 					} else {
 						// Need to know if this is a static, curve or table conversion

@@ -924,6 +924,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @return
 	 */
 	public byte[] getServerBytes() {
+		if (bytes == null) return null; // nothing to send
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();
 		header = header + "\r\n";

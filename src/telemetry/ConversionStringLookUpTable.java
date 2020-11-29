@@ -5,10 +5,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
+import java.util.Map.Entry;
+
 import common.Log;
 
 /**
@@ -84,6 +87,35 @@ public class ConversionStringLookUpTable extends Conversion{
 		return x;
 	}
 	
+	/**
+	 * The table should be in order, but in case it is not, and given it is short, we iterate over it and get the max key value
+	 * @return
+	 */
+	public int getMaxKey() {
+		int max = -9999;
+		Entry<Integer, String> pairs = null;
+		Iterator<Entry<Integer, String>> it = table.entrySet().iterator();
+		while (it.hasNext()) {
+			pairs = it.next();
+			int key = (Integer)pairs.getKey();
+			if (key > max)
+				max = key;
+		}
+		return max;
+	}
+
+	public int getMinKey() {
+		int min = 9999;
+		Entry<Integer, String> pairs = null;
+		Iterator<Entry<Integer, String>> it = table.entrySet().iterator();
+		while (it.hasNext()) {
+			pairs = it.next();
+			int key = (Integer)pairs.getKey();
+			if (key < min)
+				min = key;
+		}
+		return min;
+	}
 	
 	protected void load(String fileName) throws FileNotFoundException, LayoutLoadException {
 

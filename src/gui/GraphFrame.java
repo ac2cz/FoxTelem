@@ -53,6 +53,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
 import telemetry.FoxFramePart;
 import telemetry.PayloadStore;
 import common.Config;
@@ -96,6 +97,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private int payloadType;
 	int conversionType;
 	int conversionType2;
+	Conversion conversion;
+	Conversion conversion2;
 	private JPanel contentPane;
 	private GraphCanvas panel;
 	private JPanel titlePanel;
@@ -227,13 +230,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, String conversionName, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
 		this.fieldUnits = fieldUnits;
 		this.title = title;
-		this.conversionType = conversionType;
+		this.conversion = fox.getConversionByName(conversionName);
+		this.conversionType = Conversion.getLegacyConversionFromString(conversionName);
 		
 		if (lay == null)
 			this.layout = getLayout(plType);
@@ -277,13 +281,13 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			textDisplay = true;
 		} else if (plotType == SKY_PLOT){
 			initSkyPlotFields();
-			panel = new DensityPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
+			panel = new DensityPlotPanel(title, payloadType, this, (FoxSpacecraft)fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else if (plotType == EARTH_PLOT){
-			panel = new EarthPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
+			panel = new EarthPlotPanel(title, payloadType, this, (FoxSpacecraft)fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
-			panel = new GraphPanel(title, conversionType, payloadType, this, fox2);
+			panel = new GraphPanel(title, payloadType, this, fox2);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
@@ -1220,6 +1224,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
 					conversionType2 = layout.getIntConversionByName(variables.get(position));
+					conversion2 = fox.getConversionByName(variables.get(position));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
 					i=0;

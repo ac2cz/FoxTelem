@@ -253,9 +253,7 @@ longer send telemetry.
 		String reportDate = reportDateFormat.format(today);
 		return reportDate;
 	}
-
-
-
+	
 	/**
 	 * Get the string representation of a field in this framePart.  Run any conversion
 	 * routine assigned to this field
@@ -288,27 +286,21 @@ longer send telemetry.
 				if (dvalue == ERROR_VALUE) {
 					s = "-----";
 				} else {
-					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
-					// If this is a pipeline then all of the conversions have been run to calculate the dvalue.  
-					// We only care about the final conversion to get a string value
-					String lastConv = conversions[conversions.length-1].trim();
+					String lastConv = Conversion.getLastConversionInPipeline(convName);
 					
 					// First check the reserved words for formatting in final field
-					if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_INT)) {
+					if (lastConv.equalsIgnoreCase(Conversion.FMT_INT)) {
 						s = Long.toString((long) dvalue);
-					} else if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_F) 
-							|| lastConv.equalsIgnoreCase(BitArrayLayout.FMT_1F)) {
+					} else if (lastConv.equalsIgnoreCase(Conversion.FMT_F) 
+							|| lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
 						s = String.format("%2.1f", dvalue);
-					} else if (lastConv.equalsIgnoreCase(BitArrayLayout.FMT_2F)) {
+					} else if (lastConv.equalsIgnoreCase(Conversion.FMT_2F)) {
 						s = String.format("%1.2f", dvalue);
 					} else {
 						// Get the conversion for the last conversion in the pipeline
 						Conversion conversion = fox.getConversionByName(lastConv);
 						if (conversion == null) { // use legacy conversion, remain backwards compatible if name is numeric. 
-							int convInt = 0;
-							try {
-								convInt = Integer.parseInt(lastConv);
-							} catch (NumberFormatException e) { convInt = 0;}
+							int convInt = Conversion.getLegacyConversionFromString(lastConv);
 							s = legacyStringConversion(convInt, dvalue, fox);
 
 						} else {

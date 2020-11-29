@@ -63,11 +63,6 @@ public class BitArrayLayout {
 	private int numberOfBits = 0;
 	private int numberOfBytes = 0;
 	
-	public static final String FMT_INT = "INT";
-	public static final String FMT_F = "FLOAT";
-	public static final String FMT_1F = "FLOAT1";
-	public static final String FMT_2F = "FLOAT2";
-
 	public static final int CONVERT_NONE = 0;
 	public static final int CONVERT_INTEGER = 1;
 	public static final int CONVERT_V25_SENSOR = 2;
