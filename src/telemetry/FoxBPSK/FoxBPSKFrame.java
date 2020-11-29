@@ -170,7 +170,8 @@ import telemetry.TelemFormat;
 						try {
 							payload[p].addNext8Bits(b);
 						} catch (Exception e) {
-							Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout);
+							Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+									+ " for payload " + payload[p].getLayout().name + " at payload byte" + payload[p].numberBytesAdded);
 							corrupt = true;
 							return;
 						}
