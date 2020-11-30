@@ -120,18 +120,19 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 
 		BitArrayLayout none = null;
 		if (layout2 == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ NAME + "\n  Remove this satellite or fix the layout file");
+			layout2 = layout;
+//			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
+//					+ NAME + "\n  Remove this satellite or fix the layout file");
+//			System.exit(1);
+		}  
+		try {
+			analyzeModules(layout2, none, none, displayType);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			e.printStackTrace(Log.getWriter());
 			System.exit(1);
-		} else 
-			try {
-				analyzeModules(layout2, none, none, displayType);
-			} catch (LayoutLoadException e) {
-				Log.errorDialog("FATAL - Load Aborted", e.getMessage());
-				e.printStackTrace(Log.getWriter());
-				System.exit(1);
-			}
-		
+		}
+
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
 		splitPane.setOneTouchExpandable(true);

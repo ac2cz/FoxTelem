@@ -29,14 +29,14 @@ import java.util.StringTokenizer;
  * 
  *
  */
-public class PayloadRagAdac extends FoxFramePart {	
+public class PayloadExperiment extends FoxFramePart {	
 	
-	public PayloadRagAdac(BitArrayLayout lay, int id, long uptime, int resets) {
+	public PayloadExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_RAG_TELEM,lay);
 		captureHeaderInfo(id, uptime, resets);
 	}
 	
-	public PayloadRagAdac(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+	public PayloadExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, TYPE_RAG_TELEM, date, st, lay);
 	}
 	
