@@ -417,8 +417,9 @@ public class Config {
 	}
 
 	public static int parseVersionMinor(String ver) {
-		String version[] = ver.split("\\.");
-		String min = version[1].replaceAll("\\D", "");
+		String version[] = ver.split("\\."); // split on period and take the second part
+		String min_version[] = version[1].split("[a-z]"); // split on character and take the first part
+		String min = min_version[0].replaceAll("\\D", "");
 		return Integer.parseInt(min);
 	}
 
