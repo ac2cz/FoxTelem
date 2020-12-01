@@ -39,12 +39,23 @@ import common.Log;
  *
  */
 public class BitArrayLayout {
+	public static final String RT = "RT";
+	public static final String MAX = "MAX";
+	public static final String MIN = "MIN";
+	public static final String EXP = "EXP";
+	public static final String WOD = "WOD";
+	public static final String WOD_EXP = "WOD_EXP";
+
 	public int NUMBER_OF_FIELDS = 0;
 	public static int ERROR_POSITION = -1;
 	
 	public String fileName;
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
 	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
+	public int number; // this replaces what used to be the payload type and now matches the number on the MASTER file
+	public String type = ""; // set when this is loaded by the spacecraft.
+	public String title; // the title to put on the tab
+	public String shortTitle; // the title to name the tab
 	
 	public static final String NONE = "NONE";
 	
@@ -153,6 +164,37 @@ public class BitArrayLayout {
 	public int getMaxNumberOfBytes() {
 		return numberOfBytes;
 	}
+	
+	public boolean isRealTime() {
+		if (type.equalsIgnoreCase(BitArrayLayout.RT)) return true;
+		return false;
+	}
+
+	public boolean isWOD() {
+		if (type.equalsIgnoreCase(BitArrayLayout.WOD)) return true;
+		return false;
+	}
+
+	public boolean isMAX() {
+		if (type.equalsIgnoreCase(BitArrayLayout.MAX)) return true;
+		return false;
+	}
+
+	public boolean isMIN() {
+		if (type.equalsIgnoreCase(BitArrayLayout.MIN)) return true;
+		return false;
+	}
+	
+	public boolean isExperiment() {
+		if (type.equalsIgnoreCase(BitArrayLayout.EXP)) return true;
+		return false;
+	}
+
+	public boolean isWODExperiment() {
+		if (type.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
+		return false;
+	}
+
 	
 	public boolean isSecondaryPayload() {
 		if (parentLayout != null) return true;

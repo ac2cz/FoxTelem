@@ -81,8 +81,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public static final String CAN_PKT_LAYOUT = "canpacket";
 	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 
-	public static final String WOD_RAG_LAYOUT = "wodragtelemetry";
-	public static final String RAG_LAYOUT = "ragtelemetry";
+//	public static final String WOD_RAG_LAYOUT = "wodragtelemetry";
+//	public static final String RAG_LAYOUT = "ragtelemetry";
 
 	
 	public static final String RSSI_LOOKUP = "RSSI";
@@ -175,6 +175,8 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	public boolean useConversionCoeffs = false;
 	private HashMap<String, Conversion> conversions;
 	
+	public boolean hasFOXDB_V3 = false;
+	
 	/*
 	final String[] testTLE = {
             "AO-85",
@@ -230,6 +232,20 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		int i = getLayoutIdxByName(name);
 		if (i != ERROR_IDX)
 				return layout[i];
+		return null;
+	}
+	
+	/**
+	 * Find the secondary layout for this layout
+	 * The secondary layout points to its parent
+	 * @param name
+	 * @return
+	 */
+	public BitArrayLayout getSecondaryLayoutFromPrimaryName(String name) {
+		for (int i=0; i<numberOfLayouts; i++)
+			if (layout[i].parentLayout != null)
+				if (layout[i].parentLayout.equalsIgnoreCase(name))
+					return layout[i];
 		return null;
 	}
 	
@@ -498,6 +514,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				}
 			}
 
+			String V3DB = getOptionalProperty("hasFOXDB_V3");
+			if (V3DB == null) 
+				hasFOXDB_V3 = false;
+			else 
+				hasFOXDB_V3 = Boolean.parseBoolean(V3DB);
+			
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			numberOfDbLayouts = numberOfLayouts;
@@ -509,6 +531,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
 				layout[i].name = getProperty("layout"+i+".name");
 				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
+				if (hasFOXDB_V3) {
+					layout[i].number = i;
+					layout[i].type = getProperty("layout"+i+".type");
+					layout[i].title = getOptionalProperty("layout"+i+".title");
+					layout[i].shortTitle = getOptionalProperty("layout"+i+".shortTitle");
+				}
 			}
 			
 			// sources

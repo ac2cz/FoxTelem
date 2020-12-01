@@ -90,7 +90,7 @@ public class SatPayloadStore {
 	private void initPayloadFiles() throws IOException {
 		records = new SatPayloadTable[fox.numberOfLayouts];
 		for (int i=0; i<fox.numberOfLayouts; i++)
-			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name, fox.hasModeInHeader);
+			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name, fox.layout[i], fox.hasModeInHeader, fox.hasFOXDB_V3);
 	}
 	
 	public void setUpdatedAll() {

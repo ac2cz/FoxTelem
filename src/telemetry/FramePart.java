@@ -276,33 +276,58 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	}
 	
 	public static FramePart makePayload(Header header, String layoutName) {
+		BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, layoutName);
 		switch (layoutName) {
 			case Spacecraft.REAL_TIME_LAYOUT:
-				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+				return new PayloadRtValues(layout);
 			case Spacecraft.MAX_LAYOUT:
-				return new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+				return new PayloadMaxValues(layout);
 			case Spacecraft.MIN_LAYOUT:
-				return new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+				return new PayloadMinValues(layout);
 			case Spacecraft.RAD_LAYOUT:
-				return new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				return new PayloadRadExpData(layout);
 			case Spacecraft.WOD_LAYOUT:
-				return new PayloadWOD(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_LAYOUT));
+				return new PayloadWOD(layout);
 			case Spacecraft.WOD_RAD_LAYOUT:
-				return new PayloadWODRad(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAD_LAYOUT));
+				return new PayloadWODRad(layout);
 			case Spacecraft.WOD_CAN_LAYOUT:
-				return new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_CAN_LAYOUT), header.id, header.uptime, header.resets);
+				return new PayloadWODUwExperiment(layout, header.id, header.uptime, header.resets);
 			case Spacecraft.CAN_LAYOUT:
-				return new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.CAN_LAYOUT), header.id, header.uptime, header.resets);
-			case Spacecraft.RAG_LAYOUT:
-				return new PayloadRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
-			case Spacecraft.WOD_RAG_LAYOUT:
-				return new PayloadWODRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAG_LAYOUT), header.id, header.uptime, header.resets);
+				return new PayloadUwExperiment(layout, header.id, header.uptime, header.resets);
+//			case Spacecraft.RAG_LAYOUT:
+//				return new PayloadExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
+//			case Spacecraft.WOD_RAG_LAYOUT:
 			default:
-				return null;	
+				// Other experiment data
+				if (layout.isExperiment())
+					return new PayloadExperiment(layout, header.id, header.uptime, header.resets);
+				if (layout.isWODExperiment())
+					return new PayloadWODExperiment(layout, header.id, header.uptime, header.resets);
+				
+	
+				return null;
 		}
 	}
+	public static FramePart makePayload(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+//		DO NOY RELY ON TYPE!!!!
+//		DONT NEED ALL THE CORNER CASES e.g. DONT NEED RAD IF WE WILL STORE IN PayloadExperiement this time!!
+		FoxFramePart rt = null;
+		if (lay.isRealTime())
+			rt = new PayloadRtValues(id, resets, uptime, date, st, lay);
+		else if (lay.isMAX())
+			rt = new PayloadMaxValues(id, resets, uptime, date, st, lay);
+		else if (lay.isMIN())
+			rt = new PayloadMinValues(id, resets, uptime, date, st, lay);
+		else if (lay.isWOD())
+			rt = new PayloadWOD(id, resets, uptime, date, st, lay);
+		else if (lay.isWODExperiment())
+			rt = new PayloadWODExperiment(id, resets, uptime, date, st, lay);
+		else
+			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);		
+		return rt;
+	}
 	
-	public static FramePart makePayload(int id, int resets, long uptime, String date, StringTokenizer st, int type) {
+	public static FramePart makeLegacyPayload(int id, int resets, long uptime, String date, StringTokenizer st, int type) {
 		FoxFramePart rt = null;
 		
 		if (type == FoxFramePart.TYPE_REAL_TIME) {
@@ -389,13 +414,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		} else if (type == FoxFramePart.TYPE_UW_WOD_EXPERIMENT || type >= 1500 && type < 1600 ) {
 			rt = new PayloadWODUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_LAYOUT));
 			rt.type = type; // make sure we get the right type
-		} else if (type == FoxFramePart.TYPE_RAG_TELEM ) {
-				rt = new PayloadRagAdac(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAG_LAYOUT));
-				rt.type = type; // make sure we get the right type
-		} else if (type == FoxFramePart.TYPE_WOD_RAG ) {
-			rt = new PayloadWODRagAdac(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAG_LAYOUT));
-			rt.type = type; // make sure we get the right type
-	}
+		} 
+//		else if (type == FoxFramePart.TYPE_RAG_TELEM ) {
+//				rt = new PayloadRagAdac(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAG_LAYOUT));
+//				rt.type = type; // make sure we get the right type
+//		} else if (type == FoxFramePart.TYPE_WOD_RAG ) {
+//			rt = new PayloadWODRagAdac(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAG_LAYOUT));
+//			rt.type = type; // make sure we get the right type
+//		}
 		return rt;
 	}
 }
