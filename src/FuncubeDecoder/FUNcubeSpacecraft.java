@@ -3,6 +3,7 @@ package FuncubeDecoder;
 import java.io.File;
 import java.io.IOException;
 
+import common.SatelliteManager;
 import common.Spacecraft;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
@@ -30,8 +31,8 @@ public class FUNcubeSpacecraft extends Spacecraft {
 	//public BitArrayLayout highResLayout;
 	//public BitArrayLayout fitterLayout;
 		
-	public FUNcubeSpacecraft(File masterfileName, File fileName) throws LayoutLoadException, IOException {
-		super(masterfileName, fileName);
+	public FUNcubeSpacecraft(SatelliteManager satManager, File masterfileName, File fileName) throws LayoutLoadException, IOException {
+		super(satManager, masterfileName, fileName);
 		load();
 		
 		

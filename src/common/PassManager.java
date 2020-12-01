@@ -646,13 +646,13 @@ public class PassManager implements Runnable {
 	
 	@Override
 	public void run() {
-		
+
 		running = true;
 		done = false;
 		newPass = false;
 		int currentSatId = 0;
-		
-		
+
+
 		/**
 		 * We run in a loop checking each spacecraft that the user has configured for tracking. 
 		 * This is configured by the following:
@@ -671,7 +671,7 @@ public class PassManager implements Runnable {
 		 *  
 		 */
 		while (running) {
-		//	System.err.println("PASS MGR RUNNING");
+			//	System.err.println("PASS MGR RUNNING");
 			try {
 				if (Config.foxTelemCalcsDoppler)
 					Thread.sleep(1000);
@@ -687,100 +687,112 @@ public class PassManager implements Runnable {
 				if (Config.satPC == null) {
 					Config.satPC = new SatPc32DDE();
 				}
-				if (Config.satPC != null )
+				if (Config.satPC != null ) {
 					satPC32Connected = Config.satPC.request();
-			}
-			//if (Config.findSignal) {
-				boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
-				boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
-				
-				for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
-					Spacecraft sat = Config.satManager.spacecraftList.get(s);
-					if (sat.user_track) atLeastOneTracked = true;
-					if (MainWindow.inputTab != null) {
-						
-						if (trackSpacecraft(sat)) {
-							oneSatUp = true;
-							MainWindow.inputTab.startDecoding();
-							if (Config.iq) {
-								if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
-									// We try to retune if FoxTelem Calc is on and FindSignal is not.
-									if (Config.retuneCenterFrequency) {
-										if (Config.foxTelemCalcsDoppler)
-											retunedCenterFreqIfNeeded(sat);
-										switchedModeIfNeeded(sat);
-									}
-								}
-								if (Config.findSignal) {
-									stateMachine(sat);
-									if (Config.whenAboveHorizon)
-										break; // only find the signal for the highest priority sat if in autoStart mode
-								} else if (Config.foxTelemCalcsPosition && Config.foxTelemCalcsDoppler) {
-									if (sat.foxId != currentSatId) { // we have a new pass for a new sat
-										lockSignal(sat, pp1);   
-									}
-									// we set the spacecraft ranges but no find signal panel
-									// Doppler is displayed and we tune the signal for the active spacecraft only if up
-									// We have to pass a delta from the center frequency to the nco
-									double dopplerShiftedFreq = 0;
-									if (sat != null && sat.satPos != null)
-										dopplerShiftedFreq = sat.user_telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz*1000);
-									//DecimalFormat d3 = new DecimalFormat("0.000");
-									//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
-									if (dopplerShiftedFreq != 0) {
-										setFreqRangeBins(sat, pp1);
-										if (pp1 != null && pp1.iqSource != null)
-											pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
-										if (pp2 != null && pp2.iqSource != null)
-											pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
-									}
-									
-									break; // we only tune Doppler for the first spacecraft in the priority ordered list that passes trackSpacecraft(sat)
-								} else {
-									// we don't have find signal on. set full range or signals calculated incorrectly
-									Config.fromBin = 0; 
-									Config.toBin = SourceIQ.FFT_SAMPLES;
-									break; // this is a mode for the lab, we don't cycle through the spacecraft
-								}
-							} else { // not in IQ mode, but still may want to switch modes
-								if (satIsUp(sat)) {
-									if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
-										if (Config.retuneCenterFrequency) {
-											switchedModeIfNeeded(sat);
-										}
-										
-									}
-									break; // only for the highest priority sat that is up
-								}
-								
-							}
-						} else {
-							if (currentSatId == sat.foxId) { // close out the pass for a previous sat
-								logEndOfPass(sat);
-								currentSatId = 0;
-							}
+					if (MainWindow.inputTab == null || !MainWindow.inputTab.isStarted()) {
+						// No input tab or the decoder is not started.  Throttle the requests to SatPC32
+						try {
+							Thread.sleep(1000);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
 						}
 					}
 				}
-				if (MainWindow.inputTab != null && !oneSatUp) {
-					MainWindow.inputTab.stopDecoding();
-				}
-				if (Config.whenAboveHorizon && !atLeastOneTracked) {
-					if (MainWindow.inputTab != null) {
-						MainWindow.inputTab.rdbtnFindSignal.setSelected(false);
-						Config.whenAboveHorizon = false;
-						Log.errorDialog("NO SPACECRAFT TRACKED", "You have paused the decoder waiting for a spacecraft above the horizon,\n"
-								+ "but no spacecraft are being tracked.  Toggle 'Not Tracked' to 'Tracked'\n"
-								+ "by clicking on it, top right of the input tab.\n"
-								+ "'Auto Start Decoder when Above Horizon' will be disabled.");
+			}
+			//if (Config.findSignal) {
+			boolean atLeastOneTracked = false; // false if nothing tracked, might be a user error
+			boolean oneSatUp = false; // true if we have a sat above the horizon, so we don't toggle the decoder off
+
+			for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
+				Spacecraft sat = Config.satManager.spacecraftList.get(s);
+				if (sat.user_track) atLeastOneTracked = true;
+				if (MainWindow.inputTab != null) {
+
+					if (trackSpacecraft(sat)) {
+						oneSatUp = true;
+						MainWindow.inputTab.startDecoding();
+						if (Config.iq) {
+							if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
+								// We try to retune if FoxTelem Calc is on and FindSignal is not.
+								if (Config.retuneCenterFrequency) {
+									if (Config.foxTelemCalcsDoppler)
+										retunedCenterFreqIfNeeded(sat);
+									switchedFormatIfNeeded(sat);
+								}
+							}
+							if (Config.findSignal) {
+								stateMachine(sat);
+								if (Config.whenAboveHorizon)
+									break; // only find the signal for the highest priority sat if in autoStart mode
+							} else if (Config.foxTelemCalcsPosition && Config.foxTelemCalcsDoppler) {
+								if (sat.foxId != currentSatId) { // we have a new pass for a new sat
+									lockSignal(sat, pp1);   
+								}
+								// we set the spacecraft ranges but no find signal panel
+								// Doppler is displayed and we tune the signal for the active spacecraft only if up
+								// We have to pass a delta from the center frequency to the nco
+								double dopplerShiftedFreq = 0;
+								if (sat != null && sat.satPos != null)
+									dopplerShiftedFreq = sat.user_telemetryDownlinkFreqkHz*1000 + sat.satPos.getDopplerFrequency(sat.user_telemetryDownlinkFreqkHz*1000);
+								//DecimalFormat d3 = new DecimalFormat("0.000");
+								//System.err.println("Sat: " + sat + d3.format(dopplerShiftedFreq/1000));
+								if (dopplerShiftedFreq != 0) {
+									setFreqRangeBins(sat, pp1);
+									if (pp1 != null && pp1.iqSource != null)
+										pp1.iqSource.setTunedFrequency(dopplerShiftedFreq);
+									if (pp2 != null && pp2.iqSource != null)
+										pp2.iqSource.setTunedFrequency(dopplerShiftedFreq);
+								}
+
+								break; // we only tune Doppler for the first spacecraft in the priority ordered list that passes trackSpacecraft(sat)
+							} else {
+								// we don't have find signal on. set full range or signals calculated incorrectly
+								Config.fromBin = 0; 
+								Config.toBin = SourceIQ.FFT_SAMPLES;
+								break; // this is a mode for the lab, we don't cycle through the spacecraft
+							}
+						} else { // not in IQ mode, but still may want to switch modes
+							if (satIsUp(sat)) {
+								if (((Config.foxTelemCalcsPosition || Config.useDDEforAzEl) && !Config.findSignal) || Config.whenAboveHorizon) {
+									if (Config.retuneCenterFrequency) {
+										switchedFormatIfNeeded(sat);
+									}
+
+								}
+								break; // only for the highest priority sat that is up
+							}
+
+						}
+
+					} else {
+						if (currentSatId == sat.foxId) { // close out the pass for a previous sat
+							logEndOfPass(sat);
+							currentSatId = 0;
+						} 
 					}
 				}
+			}
+			if (MainWindow.inputTab != null && !oneSatUp) {
+				MainWindow.inputTab.stopDecoding();
+
+			}
+			if (Config.whenAboveHorizon && !atLeastOneTracked) {
+				if (MainWindow.inputTab != null) {
+					MainWindow.inputTab.rdbtnFindSignal.setSelected(false);
+					Config.whenAboveHorizon = false;
+					Log.errorDialog("NO SPACECRAFT TRACKED", "You have paused the decoder waiting for a spacecraft above the horizon,\n"
+							+ "but no spacecraft are being tracked.  Toggle 'Not Tracked' to 'Tracked'\n"
+							+ "by clicking on it, top right of the input tab.\n"
+							+ "'Auto Start Decoder when Above Horizon' will be disabled.");
+				}
+			}
 			//}
 		}
 		Log.println("Pass Manager DONE");
 		done = true;
 	}
-	
+
 	private boolean retunedCenterFreqIfNeeded(Spacecraft sat) {
 		if (pp1 != null && pp1.iqSource != null) {
 			int range = pp1.iqSource.IQ_SAMPLE_RATE/2;
@@ -794,35 +806,39 @@ public class PassManager implements Runnable {
 					(sat.user_telemetryDownlinkFreqkHz > belowCenter && sat.user_telemetryDownlinkFreqkHz < aboveCenter)) {
 				// we need to retune as the sat is outside the current band or too near center spike
 				double newCenterFreq = sat.user_telemetryDownlinkFreqkHz - 0.25 * range / 1000;
-				//if (Config.debugSignalFinder)
-				Log.println("Retuning for "+ sat.user_display_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
+				if (Config.debugSignalFinder)
+					Log.println("Retuning for "+ sat.user_display_name + " downlink: " + sat.user_telemetryDownlinkFreqkHz + " center: " + newCenterFreq);
 				MainWindow.inputTab.setCenterFreqKhz(newCenterFreq); // this retunes pp1 and pp2.
 				return true;
 			}
 		}
 		return false;
 	}
-	
-	private boolean switchedModeIfNeeded(Spacecraft sat) {
+
+	private boolean switchedFormatIfNeeded(Spacecraft sat) {
 		// If the mode is wrong we should switch modes
-		if (Config.mode != sat.user_mode) {
+		if (Config.format != sat.user_format) {
 			// Except if in Auto and Sat mode is DUV or HS
-			//if (!(Config.autoDecodeSpeed == true && (sat.mode == SourceIQ.MODE_FSK_DUV || sat.mode == SourceIQ.MODE_FSK_HS))) {
-				//if (Config.autoDecodeSpeed == true) // otherwise reset Auto we are about to change modes
-				//	Config.autoDecodeSpeed = false;
-				if (SourceTab.STARTED)
-					MainWindow.inputTab.processStartButtonClick();
-				Config.mode = sat.user_mode;
-				MainWindow.inputTab.setupMode();
-				if (Config.mode != sat.user_mode) // then user has an override, such as Use Costas, so remember that for this sat
-					sat.user_mode = Config.mode;
-				MainWindow.inputTab.processStartButtonClick();
+			if (MainWindow.inputTab.sdrSelected() && sat.user_format == SourceTab.FORMAT_FSK_AUTO) {
+				sat.user_format = SourceTab.FORMAT_FSK_DUV; // we can't switch to auto mode for SDR, pick DUV
+				if (Config.format == sat.user_format)
+					return false; // we are already in DUV
+				// otherwise process change as through the user requested DUV
+			}
+			
+			if (SourceTab.STARTED)
+				MainWindow.inputTab.processStartButtonClick(); // stop the decoder
+			Config.format = sat.user_format;
+			MainWindow.inputTab.setupFormat();
+			if (Config.format != sat.user_format) // then user has an override, such as Use Costas, so remember that for this sat
+				sat.user_format = Config.format;
+			MainWindow.inputTab.processStartButtonClick();
 			//}
 			return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Returns true if aboveHorizon is not set or if the sat is actually above the horizon with our chosen method
 	 * Return false if we are not tracking this sat
@@ -835,13 +851,13 @@ public class PassManager implements Runnable {
 			return satIsUp(sat);
 		return true;
 	}
-	
+
 	private boolean satIsUp(Spacecraft sat) {
 		if (Config.useDDEforAzEl) {
 			String satString = null;
 			if (satPC32Connected && Config.satPC != null) {
 				satString = Config.satPC.getSatellite();
-				//Log.println("SATPC32: " + satString);
+				//Log.println("SATISUP: " + satString);
 			}
 			if (satString != null && satString.equalsIgnoreCase(sat.user_keps_name)) {
 				if (Config.satPC.getElevation() > 0)

@@ -43,7 +43,7 @@ import telemetry.HighSpeedFrame;
  */
 @SuppressWarnings("serial")
 public class HighSpeedBitStream extends FoxBitStream {
-	public static int HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
+	public static int FOX_HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;
 	protected int numberOfRsCodeWords = NUMBER_OF_RS_CODEWORDS;
 	public static final int[] RS_PADDING = {3,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4,4,4,4,4, 4};
@@ -53,9 +53,9 @@ public class HighSpeedBitStream extends FoxBitStream {
 	protected int totalRsErrors = 0;
 	protected int totalRsErasures = 0;
 	
-	public HighSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
-		super(HIGH_SPEED_SYNC_WORD_DISTANCE*5, wordLength,syncWordLength, HIGH_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);
-		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;	
+	public HighSpeedBitStream(Decoder dec, int syncWordDistance, int wordLength, int syncWordLength, int bitRate) {
+		super(syncWordDistance*5, dec, syncWordDistance, wordLength,syncWordLength,   1000 / (double)bitRate);
+		PURGE_THRESHOLD = syncWordDistance * 3;	
 		SYNC_WORD_BIT_TOLERANCE = 0; // this is too CPU intensive for large frames
 	}
 
@@ -118,6 +118,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		int f=0; // position in the Rs code words as we allocate bits to them
 		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
 		
+		//int debugCount = 0;
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
 		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
 			if (Config.insertMissingBits && !insertedMissedBits && missedBits > 0 && j >= repairPosition) {
@@ -156,14 +157,20 @@ public class HighSpeedBitStream extends FoxBitStream {
 			if (bytesInFrame == frameSize+1) {  
 				// first parity byte
 				//Log.println("parity");
-				// Reset to the first code word
+				// Reset to the first code word, this takes care of the different offsets
 				rsNum = 0;
 				//Next byte position in the codewords
 				f++;
 			}
 		
 			try {
-			codeWords[rsNum++].addByte(b8);
+//				if (Config.debugBytes) {
+//					String debug = (Decoder.plainhex(b8));
+//					debugCount++;
+//					Log.print((bytesInFrame-1)+":"+rsNum+":"+debug+" ");
+//					if (debugCount % 40 == 0) Log.println("");
+//				}
+				codeWords[rsNum++].addByte(b8);
 			} catch (ArrayIndexOutOfBoundsException e) {
 				e.printStackTrace(Log.getWriter());
 			}
@@ -208,57 +215,51 @@ public class HighSpeedBitStream extends FoxBitStream {
 				return null;
 			}
 		}
-		// Consume all of the bits up to this point, but not the end SYNC word
-//		removeBits(0, end-SYNC_WORD_LENGTH);  // this is now done in the calling routine
 
 		//// DEBUG ///
 //		System.out.println(codeWords[0]);
 //		System.out.println("Bytes in Frame: " + bytesInFrame);
 		f=0;
 		rsNum=0;
-
+		boolean needsPaddingOffset = false;
 		boolean readingParity = false;
 		// We have corrected the bytes, now allocate back to the rawFrame and add to the frame
-		for (int i=0; i < bytesInFrame; i++) {
-			try {
-				if (i == frameSize) {
-				//	Log.println("PARITY");
-					readingParity=true;
-					rsNum=0;
-					f++;
-				}
-				
-				if (readingParity) {
-					// Need to offset the parity bytes according to the padding.
-					// This is different for Fox-1E vs others with HS
-					// The first pad is the standard.  Any with larger pad need offset
-					if (rsPadding[0] == rsPadding[rsNum] ) { // we have the same padding
-						rawFrame[i] = codeWords[rsNum++].getByte(f);
-					} else { // we have 1 bit of extra pad
-						rawFrame[i] = codeWords[rsNum++].getByte(f-1);
-					}
-				} else {
-				//	Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
-				//	Log.println(""+codeWords[rsNum].getByte(f));
-					rawFrame[i] = codeWords[rsNum++].getByte(f);
-				}
-				
-			} catch (IndexOutOfBoundsException e) {
-				Log.println(e.getMessage());
-				//if (Config.useRSfec)
-					return null;
-				//else {
-					// return what we have, this is a run to grab raw data for debugging
-				//	HighSpeedFrame highSpeedFrame = new HighSpeedFrame();
-				//	highSpeedFrame.addRawFrame(rawFrame);
-				//	return highSpeedFrame;					
-				//}
+
+		// NEW ALGORITHM, TRUST THE CODE WORDS!
+		int i = 0; // position in frame
+		rsNum = 0;
+		while (i < bytesInFrame) {
+
+			if (readingParity && needsPaddingOffset && rsPadding[0] != rsPadding[rsNum] ) { // we have diff padding to the first, undo offset
+				rawFrame[i] = codeWords[rsNum].getByte(f-1);
+				//Log.print(i+ " RS OFF: "+rsNum+ " - " + (f-1) + " :"); 
+				//Log.println(Decoder.plainhex(codeWords[rsNum].getByte(f-1)));
+			} else {
+				rawFrame[i] = codeWords[rsNum].getByte(f);
+				//Log.print(i+ " RS: "+rsNum+ " - " + f + " :"); 
+				//Log.println(Decoder.plainhex(codeWords[rsNum].getByte(f)));
 			}
+			
+			rsNum++;
+			i++;
 			if (rsNum == numberOfRsCodeWords) {
-				rsNum=0;
+				rsNum = 0;
 				f++;
-				if (f > RsCodeWord.NN)
-					Log.println("ERROR: Allocated more high speed data than fits in an RSCodeWord");
+			}
+			if (i == frameSize) {
+				rsNum = 0;
+				//Log.println("PARITY: at " + frameSize);
+				readingParity=true;
+
+				int firstPad = rsPadding[0];
+				for (int p=0; p< rsPadding.length; p++) {
+					if (rsPadding[p] != firstPad)
+						needsPaddingOffset=true;
+				}
+				if (needsPaddingOffset) {
+					//Log.println("WE NEED OFFSET to padding");
+					f++; // put in an initial offset
+				}
 			}
 		}
 		

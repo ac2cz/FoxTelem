@@ -30,6 +30,7 @@ import telemetry.BitArrayLayout;
 import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
+import telemetry.TelemFormat;
 
 /**
  * 
@@ -63,6 +64,7 @@ public class SatelliteManager implements Runnable {
 	public boolean updated = true; // true when we have first been created or the sats have been updated and layout needs to change
 	
 	public ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
+	public ArrayList<TelemFormat> telemFormats = new ArrayList<TelemFormat>();
 	
 	public SatelliteManager()  {
 		init();
@@ -72,6 +74,7 @@ public class SatelliteManager implements Runnable {
 	
 	public void init() {
 		File masterFolder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
+		loadFormats(masterFolder);
 		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
 		loadSats(masterFolder, folder);
@@ -121,10 +124,10 @@ public class SatelliteManager implements Runnable {
 									//SatPayloadStore.copyFile(listOfFiles[i], targetFile);
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										FoxSpacecraft satellite = new FoxSpacecraft(this, listOfFiles[i], targetFile);
 										satellite.save();
 									} catch (LayoutLoadException e) {
-										// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+										Log.errorDialog("ERROR Loading Spacecraft File", "Could not load spacecraft file "+ targetFile + "\n" + e);
 										e.printStackTrace(Log.getWriter()); // but log if user has that enabled
 									}
 								} catch (IOException e) {
@@ -151,7 +154,7 @@ public class SatelliteManager implements Runnable {
 								try {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										FoxSpacecraft satellite = new FoxSpacecraft(listOfFiles[i], targetFile);
+										FoxSpacecraft satellite = new FoxSpacecraft(this, listOfFiles[i], targetFile);
 										// Then remove the existing .dat fi;e
 										try {
 											SatPayloadStore.remove(targetFile.getAbsolutePath());
@@ -204,6 +207,25 @@ public class SatelliteManager implements Runnable {
 				
 		return folder;
 	}
+
+	private void loadFormats(File masterFolder) {
+		File[] listOfFiles = masterFolder.listFiles();
+		if (listOfFiles != null) {
+			for (int i = 0; i < listOfFiles.length; i++) {
+				if (listOfFiles[i].isFile() && listOfFiles[i].getName().endsWith(".format")) {
+					Log.println("Loading format from: " + listOfFiles[i].getName());
+					TelemFormat format;
+					try {
+						format = new TelemFormat(listOfFiles[i].getAbsolutePath());
+						telemFormats.add(format);
+					} catch (LayoutLoadException e) {
+						Log.errorDialog("ERROR loading telem format " + listOfFiles[i].getAbsolutePath(), e.getMessage() + "\nThis format will not be loaded");
+						e.printStackTrace(Log.getWriter());
+					}
+				}
+			}
+		}
+	}
 	
 	private void loadSats(File masterFolder, File folder) {
 		File[] listOfFiles = folder.listFiles();
@@ -219,19 +241,41 @@ public class SatelliteManager implements Runnable {
 						//FIXME - HACK FOR FCUBE
 						Matcher matcher = pattern.matcher(listOfFiles[i].getName());
 						if (matcher.find())
-							satellite = new FUNcubeSpacecraft(masterFileName, listOfFiles[i]);
+							satellite = new FUNcubeSpacecraft(this, masterFileName, listOfFiles[i]);
 						else
-							satellite = new FoxSpacecraft(masterFileName, listOfFiles[i]);
+							satellite = new FoxSpacecraft(this, masterFileName, listOfFiles[i]);
 						// Debug print for frame layouts
-//						int frameLayouts = satellite.numberOfFrameLayouts;
-//						if (frameLayouts > 0) {
-//							Log.println("Frame Layouts: " + frameLayouts);
-//							for (int k=0; k < frameLayouts; k++) {
-//								Log.print(" : " + satellite.frameLayout[k].name);
-//								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
-//								Log.println("");
-//							}
-//						}
+						int frameLayouts = satellite.numberOfFrameLayouts;
+						if (frameLayouts > 0) {
+							Log.println("Frame Layouts: " + frameLayouts);
+							for (int k=0; k < frameLayouts; k++) {
+								Log.print(" : " + satellite.frameLayout[k].name);
+								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
+								Log.println("");
+							}
+						}
+						// Debug print for sources for this sat
+						int sources = satellite.numberOfSources;
+						if (sources > 0) {
+							Log.println("Sources: " + sources);
+							for (int k=0; k < sources; k++) {
+								Log.println("" + satellite.sourceName[k]);
+								
+								if (satellite.sourceFormat != null && satellite.sourceFormat[k] != null) {
+									Log.print(" : " + satellite.sourceFormat[k].name);									
+									Log.println(" - frame length: " + satellite.sourceFormat[k].getInt(TelemFormat.FRAME_LENGTH));
+									Log.println(" - data length: " + satellite.sourceFormat[k].getInt(TelemFormat.DATA_LENGTH));
+									Log.println(" - header length: " + satellite.sourceFormat[k].getInt(TelemFormat.HEADER_LENGTH));
+									Log.println(" - trailer length: " + satellite.sourceFormat[k].getInt(TelemFormat.TRAILER_LENGTH));
+									Log.println(" - rs words: " + satellite.sourceFormat[k].getInt(TelemFormat.RS_WORDS));
+									Log.print(" - padding: ");
+									int[] padding = satellite.sourceFormat[k].getPaddingArray();
+									for (int p=0; p<padding.length; p++)
+										Log.print(" " + padding[p]);
+									Log.println("");
+								}
+							}
+						}
 						
 					} catch (FileNotFoundException e) {
 						Log.errorDialog("ERROR processing " + listOfFiles[i].getName(), e.getMessage() 
@@ -294,7 +338,7 @@ public class SatelliteManager implements Runnable {
 	public FrameLayout getFrameLayout(int sat, int type) {
 		if (!validFoxId(sat)) return null;
 		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
-		if (sc != null) return sc.frameLayout[type];
+		if (sc != null && sc.frameLayout != null) return sc.frameLayout[type];
 		return null;
 	}
 
@@ -337,6 +381,30 @@ public class SatelliteManager implements Runnable {
 				return true;
 		}
 		return false;
+	}
+
+	public TelemFormat getFormatByName(String name) {
+		for (int i=0; i < telemFormats.size(); i++) {
+			if (telemFormats.get(i).name.equalsIgnoreCase(name))
+				return telemFormats.get(i);
+		}
+		return null;
+	}
+
+	public TelemFormat getFormatByFrameLength(int len) {
+		for (int i=0; i < telemFormats.size(); i++) {
+			if (telemFormats.get(i).getInt(TelemFormat.FRAME_LENGTH) == len)
+				return telemFormats.get(i);
+		}
+		return null;
+	}
+
+	public Spacecraft getSpacecraftByDisplayName(String name) {
+		for (int i=0; i < spacecraftList.size(); i++) {
+			if (spacecraftList.get(i).user_display_name.equalsIgnoreCase(name))
+				return spacecraftList.get(i);
+		}
+		return null;
 	}
 	
 	public Spacecraft getSpacecraftByKepsName(String name) {
@@ -399,6 +467,7 @@ public class SatelliteManager implements Runnable {
 		try {
 			website = new URL(urlString);
 			HttpURLConnection httpCon = (HttpURLConnection) website.openConnection();
+			httpCon.setReadTimeout(1000);
 			long date = httpCon.getLastModified();
 			httpCon.disconnect();
 			Date kepsDate = new Date(date);

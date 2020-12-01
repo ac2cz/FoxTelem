@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
+<<<<<<< HEAD
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
 		<attributes>
 			<attribute name="module" value="true"/>
@@ -7,11 +8,14 @@
 	</classpathentry>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="lib" path="lib/predict4java.jar"/>
+=======
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="src" path="/predict4java"/>
+>>>>>>> 1.09
 	<classpathentry kind="lib" path="lib/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-net-3.3/commons-net-3.3.jar"/>
 	<classpathentry kind="lib" path="lib/jarchivelib/jarchivelib-0.7.0-jar-with-dependencies.jar"/>
-	<classpathentry kind="lib" path="lib/javamail/javax.mail.jar"/>
 	<classpathentry kind="lib" path="lib/jdde/pretty-tools-JDDE-2.0.3.jar"/>
 	<classpathentry kind="lib" path="lib/jna/jna-4.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jna/jna-platform-4.1.0.jar"/>
@@ -32,5 +36,7 @@
 	<classpathentry kind="lib" path="lib/libusb/usb-api-1.0.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="lib" path="lib/mysql-connector-java-8.0.13/mysql-connector-java-8.0.13.jar"/>
+	<classpathentry kind="lib" path="lib/predict4java.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

@@ -248,8 +248,8 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		TitledBorder heading2 = title("Frequency and Tracking");
 		rightPanel1.setBorder(heading2);
 
-		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, Spacecraft.modes);
-		setSelection(cbMode, Spacecraft.modes, Spacecraft.modes[sat.user_mode]);
+		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, SourceTab.formats);
+		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
 				
 		telemetryDownlinkFreqkHz = addSettingsRow(rightPanel1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
@@ -257,7 +257,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 				"The lower frequency boundry when we are searching for the spacecraft signal", ""+sat.user_minFreqBoundkHz);
 		maxFreqBoundkHz = addSettingsRow(rightPanel1, 15, "Upper Freq Bound (kHz)", 
 				"The upper frequency boundry when we are searching for the spacecraft signal", ""+sat.user_maxFreqBoundkHz);
-		track = addCheckBoxRow("Track when Find Signal Enabled", "When Find Signal is enabled include this satellite in the search", sat.user_track, rightPanel1 );
+		track = addCheckBoxRow("Track this spacecraft", "When Doppler tracking or Find Signal is enabled include this satellite", sat.user_track, rightPanel1 );
 		rightPanel1.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		JPanel rightPanel2 = new JPanel();
@@ -427,6 +427,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 		if (e.getSource() == btnGetT0) {
 			MainWindow.updateManager.updateT0(sat);
 			updateTimeSeries();
+			if (sat.hasTimeZero()) 
+				Log.infoDialog("Time Zero Downloaded", "Time Zero (T0) was downloaded from the server for each reset.  This will not automatically\n"
+						+ "update any open graphs.  You can toggle UTC on/off to refresh the time base on a graph.");
+			else
+				Log.infoDialog("Time Zero Downloaded Failed", "Time Zero (T0) could not be downloaded from the server.");
+				
 		}
 		if (e.getSource() == btnCancel) {
 			this.dispose();
@@ -453,7 +459,7 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 					dispose = false;
 				}
 				int m = cbMode.getSelectedIndex();
-				sat.user_mode = m;
+				sat.user_format = m;
 				//String md = (String) cbMode.getSelectedItem();
 				
 	//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {

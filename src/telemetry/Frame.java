@@ -25,10 +25,8 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
-import common.Spacecraft;
 import common.FoxSpacecraft;
 import decoder.HighSpeedBitStream;
-import decoder.FoxBPSK.FoxBPSKBitStream;
 import fec.RsCodeWord;
 
 /**
@@ -78,10 +76,13 @@ public abstract class Frame implements Comparable<Frame> {
 	protected FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
+	// TODO - These should really be looked up from the formats loaded in Config.satManager
 	public static final int DUV_FRAME = 0; 
 	public static final int HIGH_SPEED_FRAME = 1;
 	public static final int PSK_FRAME = 2;
+	public static final int GOLF_BPSK_FRAME = 3;
 	
+	// TODO - These should be looked up from the formats loaded in Config.satManager.  They are frame_length * 8
 	public static final int DUV_FRAME_LEN = 768; 
 	public static final int HIGH_SPEED_FRAME_LEN = 42176;
 	public static final int PSK_FRAME_LEN = 4576;
@@ -280,25 +281,27 @@ public abstract class Frame implements Comparable<Frame> {
 		// which in turn allocate the bits to the correct fields.
 		for (int i = 0; i < byteLen; i++)
 			addNext8Bits(b[i]);
-
 		// At this point we grab the decoded foxId and length in bits, ready for
 		// transmission to the server
 		foxId = header.getFoxId();
+		if (fox == null) throw new FrameProcessException("Invalid Fox Id: " + foxId + ", can not process frame");
 		length = Integer.toString(byteLen * 8);
 
+		// TODO - this should be set by the DECODER which knows what type of format it is decoding
+		source = "";
 		try {
 			if (this instanceof SlowSpeedFrame) {
-				source = Spacecraft.SOURCES[foxId][DUV_FRAME];
+				source = source + fox.sourceName[DUV_FRAME];
 			} else if (this instanceof HighSpeedFrame){
-				source = Spacecraft.SOURCES[foxId][HIGH_SPEED_FRAME];
+				source = source + fox.sourceName[HIGH_SPEED_FRAME];
 			} else {
-				source = Spacecraft.SOURCES[foxId][0]; // first value
+				source = source + fox.sourceName[0]; // first value
 			}
 		} catch (IndexOutOfBoundsException e) {
 			// We have a corrupt FoxId
-			throw new FrameProcessException("Corrupt FoxId, frame could not be processed.  ID: " + foxId);
+			throw new FrameProcessException("Source missing in Spacecraft File, frame could not be processed.  ID: " + foxId + "\n" +e);
 		}
-
+		source = source.toLowerCase();
 	}
 
 	/**
@@ -549,7 +552,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (length == DUV_FRAME_LEN) {
 			frm = new SlowSpeedFrame();
 		} else if (length == PSK_FRAME_LEN){
-			frm = new FoxBPSKFrame();
+			frm = new FoxBPSKFrame(Config.satManager.getFormatByName("FOX_BPSK")); // TO DO - hard coded the format. We should lookup from the length
 		} else {
 			frm = new HighSpeedFrame();
 		}
@@ -567,13 +570,14 @@ public abstract class Frame implements Comparable<Frame> {
 			} else if(length == PSK_FRAME_LEN) {
 				// High Speed Frame
 				// Log.println("RS Decode for: " + length/8 + " byte frame..");
-				int[] rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
-				rsPadding[0] = 64;
-				rsPadding[1] = 64;
-				rsPadding[2] = 65;
+				TelemFormat format = Config.satManager.getFormatByName("FOX_BPSK");
+				int[] rsPadding = format.getPaddingArray();
+//				rsPadding[0] = 64;
+//				rsPadding[1] = 64;
+//				rsPadding[2] = 65;
 				if (ServerConfig.highSpeedRsDecode)
 					// TODO - This should be looked up from the FoxId and the frameLayout for the sat
-					if (!highSpeedRsDecode(476, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, demodulator)) {
+					if (!highSpeedRsDecode(476, rsPadding.length, rsPadding, rawFrame, demodulator)) {
 						Log.println("BPSK RS Decode Failed");
 						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
 					}

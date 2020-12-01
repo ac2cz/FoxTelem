@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
-import java.sql.Timestamp;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -20,7 +19,6 @@ import java.util.TimeZone;
 import org.joda.time.DateTime;
 
 import predict.PositionCalcException;
-import telemServer.ServerConfig;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
@@ -70,7 +68,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public static final int EXP_VANDERBILT_REM = 7; // This is the controller and does not have its own telem file
 	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
 	public static final int EXP_UW = 9; // University of Washington
-	public static final int ADAC = 10; // Ragnaroc
+	public static final int RAG_ADAC = 10; // Ragnaroc
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
@@ -104,11 +102,11 @@ public class FoxSpacecraft extends Spacecraft{
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
 		"Vanderbilt VUC",
-		"Vanderbilt LEP",
 		"Vanderbilt REM",
 		"Vanderbilt LEPF",
-		"University of Washington Experiment",
-		"ADAC"
+		"CAN Packet Interface",
+		"Ragnaroc ADAC",
+		"L-Band Downshifter"
 	};
 	
 	
@@ -116,6 +114,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public int[] experiments = {EXP_EMPTY, EXP_EMPTY, EXP_EMPTY, EXP_EMPTY};
 	
 	public boolean hasImprovedCommandReceiver = false;
+	public boolean hasImprovedCommandReceiverII = false;
 	public boolean hasModeInHeader = false;
 	public boolean hasMpptSettings = false;
 	public boolean hasMemsRestValues = false;
@@ -135,8 +134,8 @@ public class FoxSpacecraft extends Spacecraft{
 	ArrayList<Long> timeZero = null;
 	SpacecraftPositionCache positionCache;
 	
-	public FoxSpacecraft(File masterFileName, File userFileName) throws LayoutLoadException, IOException {
-		super(masterFileName, userFileName);
+	public FoxSpacecraft(SatelliteManager satManager, File masterFileName, File userFileName) throws LayoutLoadException, IOException {
+		super(satManager, masterFileName, userFileName);
 		load(); // don't call load until this constructor has started and the variables have been initialized
 		try {
 			loadTimeZeroSeries(null);
@@ -257,7 +256,8 @@ public class FoxSpacecraft extends Spacecraft{
 	
 	public DateTime getUtcDateTimeForReset(int reset, long uptime) {
 		if (timeZero == null) return null;
-		if (reset >= timeZero.size()) return null;
+		if (reset < 0 || reset >= timeZero.size()) return null;
+		if (uptime < 0) return null;
 		Date dt = new Date(timeZero.get(reset) + uptime*1000);
 		DateTime dateTime = new DateTime(dt); // FIXME - this date conversion is not working.  Need to understand how it works.
 		return dateTime;
@@ -462,6 +462,10 @@ public class FoxSpacecraft extends Spacecraft{
 			if (icr != null) {
 				hasImprovedCommandReceiver = Boolean.parseBoolean(icr);
 			}
+			String icr2 = getOptionalProperty("hasImprovedCommandReceiverII");
+			if (icr2 != null) {
+				hasImprovedCommandReceiverII = Boolean.parseBoolean(icr2);
+			}
 			String mode = getOptionalProperty("hasModeInHeader");
 			if (mode != null) {
 				hasModeInHeader = Boolean.parseBoolean(getProperty("hasModeInHeader"));
@@ -563,6 +567,16 @@ public class FoxSpacecraft extends Spacecraft{
 		return false;
 	}
 	
+	/**
+	 * Return true if one of the experiment slots contains the HERCI experiment
+	 * @return
+	 */
+	public boolean hasExperiment(int e) {
+		for (int i=0; i< experiments.length; i++)
+			if (experiments[i] == e) return true;
+		return false;
+	}
+	
 	public String getIdString() {
 		String id = "??";
 		if (foxId == 1) id = "1A";
@@ -570,9 +584,7 @@ public class FoxSpacecraft extends Spacecraft{
 		else if (foxId == 3) id = "1Cliff";
 		else if (foxId == 4) id = "1D";
 		else if (foxId == 5) id = "1E";
-		else if (foxId == 6) id = "1F";
-		else if (foxId == 7) id = "1G";
-		else id = Integer.toString(foxId);
+		else id = Integer.toString(foxId); // after the "fox-1" spacecraft just use the fox id
 
 		return id;
 	}

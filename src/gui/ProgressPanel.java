@@ -18,6 +18,7 @@ public class ProgressPanel extends JDialog implements ActionListener {
 		title = message;
 		setTitle(message);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+//		setAlwaysOnTop(true);
 //		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		int x = 100;
 		int y = 100;
@@ -42,7 +43,7 @@ public class ProgressPanel extends JDialog implements ActionListener {
 	
 	public void updateProgress(int p) {
 		if (p == 100) this.dispose();
-		setTitle(title + " (" + p + "%)");
+		setTitle(title + " (" + p + ")");
 	}
 
 }

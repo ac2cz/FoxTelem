@@ -29,7 +29,7 @@ import common.Log;
  * may need porting in the future.
  * 
  * We use two pointers to remember where we are in the array.
- * At any point in time there is a virtual array that starts from the readPointer and ends at the writePointer.
+ * At any point in time there is a virtual array that starts from the start/readPointer and ends at the end/writePointer.
  * The endPointer is the position of the last entry.  It is incremented when a new value is added.  This purges the last entry in the array
  * The startPointer is the beginning of the virtual array.  It is always "behind" the writePointer.  This is the position
  * that we read from if we read element [0].  We purge data from the array by increasing the startPointer.

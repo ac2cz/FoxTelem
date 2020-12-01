@@ -315,10 +315,10 @@ public abstract class FoxDecoder extends Decoder {
 
 	protected void processBitsWindow() {
 		for (int i=0; i < SAMPLE_WINDOW_LENGTH; i++) {
-			foxBitStream.addBit(middleSample[i]);
+			bitStream.addBit(middleSample[i]);
 		}
 		
-    	ArrayList<Frame> frames = foxBitStream.findFrames(SAMPLE_WINDOW_LENGTH);
+    	ArrayList<Frame> frames = bitStream.findFrames(SAMPLE_WINDOW_LENGTH);
     	if (frames != null) {
 			processPossibleFrame(frames);
 		}

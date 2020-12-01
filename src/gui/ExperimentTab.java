@@ -97,7 +97,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		actMap.put(PREV, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				 System.out.println("PREV");
+				// System.out.println("PREV");
 				int row = table.getSelectedRow();
 				if (row > 0)
 					displayRow(table,NO_ROW_SELECTED, row-1);
@@ -106,7 +106,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		actMap.put(NEXT, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				    System.out.println("NEXT");
+				  //  System.out.println("NEXT");
 				int row = table.getSelectedRow();
 				if (row < table.getRowCount()-1)
 					displayRow(table,NO_ROW_SELECTED, row+1);        
@@ -153,7 +153,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 	protected abstract void displayRow(JTable packetTable, int fromRow, int row); // When we click on a row in the table we call this function to update the top part of the display
 	protected abstract void parseRadiationFrames(); // When we get new data we call this function to display it
 	
-	protected void parseRawBytes(String data[][], RadiationTableModel radTableModel) {
+	protected void parseRawBytes(String data[][], ExperimentLayoutTableModel radTableModel) {
 		long[][] keyRawData = new long[data.length][2];
 		String[][] rawData = new String[data.length][data[0].length-2];
 		for (int i=0; i<data.length; i++)

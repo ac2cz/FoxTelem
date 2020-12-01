@@ -237,7 +237,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		try {
 			init();
 		} catch (LineUnavailableException e1) {
-			Log.errorDialog("ERROR", "Can't start the decoder" + e1.getMessage());
+			Log.errorDialog("ERROR", "Can't start the decoder.  Your Operating System says the device or soundcard is not available.  Error message:\n" + e1.getMessage());
 			e1.printStackTrace(Log.getWriter());
 			running = false;
 		}

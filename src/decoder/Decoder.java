@@ -9,7 +9,6 @@ import javax.swing.JOptionPane;
 
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
-import measure.SatPc32DDE;
 import predict.PositionCalcException;
 import common.Config;
 import common.Log;
@@ -22,7 +21,6 @@ import filter.Filter;
 import gui.MainWindow;
 import telemetry.Frame;
 import telemetry.FramePart;
-import telemetry.Header;
 import uk.me.g4dpz.satellite.SatPos;
 
 /**
@@ -119,7 +117,7 @@ public abstract class Decoder implements Runnable {
      * SYNC words, this is flushed of processed bits.
      */
   //  protected BitStream bitStream = null;  // Hold bits until we turn them into decoded frames
-    protected FoxBitStream foxBitStream = null;
+    protected FoxBitStream bitStream = null;
     
     protected int averageMax;
     protected int averageMin;
@@ -475,6 +473,8 @@ public abstract class Decoder implements Runnable {
                 bucketData(abBufferDoubleFiltered);
                 Performance.endTimer("Bucket");
         	}
+
+    		Config.windowStartBit = (int) (bitStream.getStartOfWindowBit()+1); // Get the number of the next bit to be stored for display in AudioPanel
 
         	Performance.startTimer("Sample");
         	sampleBuckets();

@@ -3,6 +3,7 @@ package gui;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -90,7 +91,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	
 	boolean displayTelem = true;
 	
-	RadiationTableModel radTableModel;
+	ExperimentLayoutTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 	
 	public VulcanTab(FoxSpacecraft sat, int displayType)  {
@@ -133,25 +134,31 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.X_AXIS));
 
 		BitArrayLayout rad = null;
-
+		String layoutName = Spacecraft.RAD2_LAYOUT;
 		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
-			rad = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
-		else
-			rad = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
+			layoutName = Spacecraft.WOD_RAD2_LAYOUT;
+		rad = fox.getLayoutByName(layoutName);
+		
+		BitArrayLayout rawLayout = null;
+		String rawlayoutName = Spacecraft.RAD_LAYOUT;
+		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+			rawlayoutName = Spacecraft.WOD_RAD2_LAYOUT;
+		rawLayout = fox.getLayoutByName(rawlayoutName);
+		
 		BitArrayLayout none = null;
 		if (rad == null ) {
 			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ "" + Spacecraft.RAD2_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+					+ "" + layoutName+ "\n  Remove this satellite or fix the layout file");
 			System.exit(1);
 		} else 
-		try {
-			analyzeModules(rad, none, none, displayType);
-		} catch (LayoutLoadException e) {
-			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			System.exit(1);
-		}
-		
+			try {
+				analyzeModules(rad, none, none, displayType);
+			} catch (LayoutLoadException e) {
+				Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+				e.printStackTrace(Log.getWriter());
+				System.exit(1);
+			}
+
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
 		splitPane.setOneTouchExpandable(true);
@@ -202,7 +209,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		decodePacket.setVisible(false);
 
 		addBottomFilter();
-		radTableModel = new RadiationTableModel();
+		radTableModel = new ExperimentLayoutTableModel(rawLayout);
 		radPacketTableModel = new RadiationPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
@@ -231,7 +238,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		
-		for (int i=0; i<58; i++) {
+		for (int i=0; i<table.getColumnCount()-2; i++) {
 			column = table.getColumnModel().getColumn(i+2);
 			column.setPreferredWidth(25);
 		}
@@ -253,8 +260,16 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 				
 	}
 
+	int total;
 	protected void displayFramesDecoded(int u) {
-		lblFramesDecoded.setText(DECODED + u);
+		total = u;
+		EventQueue.invokeLater(new Runnable() {
+			public void run() {
+				lblFramesDecoded.setText(DECODED + total);
+				lblFramesDecoded.invalidate();
+				topPanel.getParent().validate();
+			}
+		});
 	}
 	
 	private void addPacketModules() {
@@ -580,6 +595,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		Thread.currentThread().setName("VulcanTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -599,18 +615,22 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 					updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 				}
 
-				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
-						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
+				if (foxId != 0) {
+					int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT);
+					if (frames != currentFrames) {
+						currentFrames = frames;
 						updateTab(Config.payloadStore.getLatestRadTelem(foxId), true);
 						parseFrames();
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						displayFramesDecoded(frames);
+						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_RAD_TELEM_DATA);
+							openGraphs();
 							justStarted = false;
 						}
+						MainWindow.frame.repaint();
 					}
+				}
 			}
 		}
 		done = true;

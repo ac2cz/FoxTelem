@@ -62,12 +62,14 @@ public abstract class BitArray {
 		}
 	}
 	
+	public BitArrayLayout getLayout() { return layout; }
+	
 	public boolean hasFieldName(String name) {
 		return layout.hasFieldName(name);
 	}
 	
 	public int getConversionByName(String name) {
-		return layout.getConversionByName(name);
+		return layout.getIntConversionByName(name);
 		
 	}
 	
@@ -132,7 +134,7 @@ public abstract class BitArray {
 
 	/**
 	 * Return the raw integer value of this field, specified by its name.  Used to store in the
-	 * file and to display to the user when "raw" values are chosen.  This would be the actual DAC
+	 * file and to display to the user when "raw" values are chosen.  This would be the actual ADC
 	 * value sent down from the spacecraft, for example.
 	 * @param name
 	 * @return
@@ -156,19 +158,52 @@ public abstract class BitArray {
 		
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
-			if (name.equalsIgnoreCase(layout.fieldName[i]))
+			if (name.equalsIgnoreCase(layout.fieldName[i])) {
 				pos = i;
+				break;
+			}
 		}
 
 		if (pos != -1) {
 			int value = fieldValue[pos];
-			double result = convertRawValue(name, value, layout.conversion[pos], fox);
+			double result = value; // initialize the result to the value we start with, in case its a pipeline
+			if (fox.useConversionCoeffs) { // use a modern conversion soft coded
+				
+				String convName = layout.getConversionNameByPos(pos);
+				if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
+					System.out.println("STOP");
+				String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
+				for (String singleConv : conversions) {
+					singleConv = singleConv.trim();
+					// First check the reserved words for formatting
+					if (singleConv.equalsIgnoreCase(BitArrayLayout.FMT_INT) 
+							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_F)
+							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_1F)
+							|| singleConv.equalsIgnoreCase(BitArrayLayout.FMT_2F)) {
+						// we skip, this is applied in string formatting later
+					} else {
+						// Need to know if this is a static, curve or table conversion
+						Conversion conv = fox.getConversionByName(singleConv);
+						if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric. String conversions ignored here
+							int convInt = 0;
+							try {
+								convInt = Integer.parseInt(singleConv);
+							} catch (NumberFormatException e) { convInt = 0;}
+							result = convertRawValue(name, result, convInt, fox);
+						} else
+							result = convertCoeffRawValue(name, result, conv, fox);	
+					}
+				}
+			} else {
+				result = convertRawValue(name, value, layout.getIntConversionByPos(pos), fox);
+			}
 			return result;
 		}
 		return ERROR_VALUE;
 	}
-
-	public abstract double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox );	
 	
+	protected abstract double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox );	
+	
+	protected abstract double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox );	
 	
 }

@@ -8,11 +8,11 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import telemetry.LookUpTable;
+import telemetry.ConversionLookUpTable;
 
 public class RSSILookUpTableTest {
 
-	LookUpTable table;
+	ConversionLookUpTable table;
 	
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -24,7 +24,7 @@ public class RSSILookUpTableTest {
 
 	@Before
 	public void setUp() throws Exception {
-		table = new LookUpTable();
+		table = new ConversionLookUpTable("test");
 	}
 
 	@After
@@ -35,7 +35,7 @@ public class RSSILookUpTableTest {
 	public void testLookupValue() {
 		double val = 0.0;
 		
-		val = table.lookupValue(1900);
+		val = table.calculate(1900);
 		assertEquals(-100.0d, val, 0.0d);
 	}
 	
@@ -44,7 +44,7 @@ public class RSSILookUpTableTest {
 		double val = 0.0;
 		
 		// Interpolation
-		val = table.lookupValue(1600);
+		val = table.calculate(1600);
 		assertEquals(-112.3d, val, 0.1d);
 	}
 
@@ -53,10 +53,10 @@ public class RSSILookUpTableTest {
 		double val = 0.0;
 		
 		// Extrapolation
-		val = table.lookupValue(1300);
+		val = table.calculate(1300);
 		assertEquals(-145.7d, val, 0.1d);
 
-		val = table.lookupValue(1000);
+		val = table.calculate(1000);
 		assertEquals(-186.7d, val, 0.1d);
 
 	}
@@ -66,10 +66,10 @@ public class RSSILookUpTableTest {
 		double val = 0.0;
 		
 		// Extrapolation
-		val = table.lookupValue(2420);
+		val = table.calculate(2420);
 		assertEquals(-73.3d, val, 0.1d);
 
-		val = table.lookupValue(2600);
+		val = table.calculate(2600);
 		assertEquals(-13.3d, val, 0.1d);
 
 		

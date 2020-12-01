@@ -72,7 +72,7 @@ public class ServerProcess implements Runnable {
 		String year = datePartName(today, yearDirName);
 		String month = datePartName(today, monthDirName);
 		String day = datePartName(today, dayDirName);
-		String fileName = datePartName(today, fileDateName);
+		//String fileName = datePartName(today, fileDateName);
 		
 		makeDir(year);
 		makeDir(year + File.separator + month);

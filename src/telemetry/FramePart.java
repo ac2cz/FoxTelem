@@ -3,6 +3,7 @@ package telemetry;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.NoSuchElementException;
@@ -13,10 +14,50 @@ import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import telemetry.FoxBPSK.FoxBPSKHeader;
+import telemetry.uw.CanPacket;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
+	public static final int TYPE_DEBUG = 0;
+	public static final int TYPE_REAL_TIME = 1;
+	public static final int TYPE_MAX_VALUES = 2;
+	public static final int TYPE_MIN_VALUES = 3;
+	public static final int TYPE_CAMERA_DATA = 5;
+	public static final int TYPE_RAD_EXP_DATA = 4; // This is both Vulcan and HERCI
+	public static final int TYPE_HERCI_HIGH_SPEED_DATA = 6;
+	public static final int TYPE_RAD_TELEM_DATA = 7;  // Translated both Vulcan and HERCI HK
+	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
+	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
+	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
+	
+	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
+	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
+	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
+	public static final int TYPE_UW_WOD_CAN_PACKET = 16; // UW Can packets from WOD for HuskySat
+	public static final int TYPE_UW_CAN_PACKET_TELEM = 17; // UW Can packets split into their ids
+	
+	// Golf
+	public static final int TYPE_RAG_TELEM = 18; // UW Can packets from WOD for HuskySat
+	public static final int TYPE_WOD_RAG = 19; // UW Can packets split into their ids
+
+	// These are infrastructure and not saved to Disk
+	public static final int TYPE_SLOW_SPEED_HEADER = 98;
+	public static final int TYPE_SLOW_SPEED_TRAILER = 99;
+	public static final int TYPE_HIGH_SPEED_HEADER = 100;
+	public static final int TYPE_HIGH_SPEED_TRAILER = 101;
+	public static final int TYPE_CAMERA_SCAN_LINE_COUNT = 102;
+	public static final int TYPE_HERCI_LINE_COUNT = 103;
+	public static final int TYPE_EXTENDED_HEADER = 104;
+	public static final int TYPE_GOLF_HEADER = 105;
+	
+	// NOTE THAT TYPE 400+ are reserverd for the High Speed Radiation Payloads, where type is part of the uniqueness check
+	// Correspondingly TYPE 600+ are reserved for Herci HS payloads
+	// Correspondingly TYPE 800+ are reserved for Herci Telemetry payloads
+	// Correspondingly TYPE 900+ are reserved for Herci Packets payloads
+	// Correspondingly TYPE 700+ are reserved for Rad Telemetry payloads
+	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
 	
@@ -153,11 +194,6 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		return ""+getDoubleValue(name, fox);
 	}
 
-	@Override
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
 	/**
 	 * Output the set of fields in this framePart as a set of comma separated values in a string.  This 
 	 * can then be written to a file
@@ -235,8 +271,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * Factory Method to make a new Frame Part from a layout
 	 * @return
 	 */
-	public static FramePart makePayload(FoxBPSKHeader header, BitArrayLayout layout) {
-		switch (layout.name) {
+	public static FramePart makePayload(Header header, BitArrayLayout layout) {
+		return makePayload(header, layout.name);
+	}
+	
+	public static FramePart makePayload(Header header, String layoutName) {
+		switch (layoutName) {
 			case Spacecraft.REAL_TIME_LAYOUT:
 				return new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
 			case Spacecraft.MAX_LAYOUT:
@@ -253,8 +293,109 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				return new PayloadWODUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_CAN_LAYOUT), header.id, header.uptime, header.resets);
 			case Spacecraft.CAN_LAYOUT:
 				return new PayloadUwExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.CAN_LAYOUT), header.id, header.uptime, header.resets);
+			case Spacecraft.RAG_LAYOUT:
+				return new PayloadRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
+			case Spacecraft.WOD_RAG_LAYOUT:
+				return new PayloadWODRagAdac(Config.satManager.getLayoutByName(header.id, Spacecraft.WOD_RAG_LAYOUT), header.id, header.uptime, header.resets);
 			default:
 				return null;	
 		}
+	}
+	
+	public static FramePart makePayload(int id, int resets, long uptime, String date, StringTokenizer st, int type) {
+		FoxFramePart rt = null;
+		
+		if (type == FoxFramePart.TYPE_REAL_TIME) {
+			rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.REAL_TIME_LAYOUT));
+		} else if (type == FoxFramePart.TYPE_WOD) {
+			rt = new PayloadWOD(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_LAYOUT));
+		} else if (type == FoxFramePart.TYPE_MAX_VALUES) {
+			rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
+
+		} else if (type == FoxFramePart.TYPE_MIN_VALUES) {
+			rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
+
+		} else if (type == FoxFramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
+			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA ) {
+			rt = new WodRadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
+			rt.type = type; // make sure we get the right type
+
+		} else if (type == FoxFramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
+			rt = new PayloadRadExpData(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
+			rt.type = type; // make sure we get the right type
+
+			// hack to convert data - only used in testing
+			if (Config.generateSecondaryPayloads) {
+				PayloadRadExpData f = (PayloadRadExpData)rt; 
+				RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 400) // this is a high speed record
+					radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+				Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
+			}
+		} else if (type == FoxFramePart.TYPE_WOD_RAD) {
+			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
+			rt.type = type;
+
+			// hack to convert data - only used in testing
+			if (Config.generateSecondaryPayloads) {
+				PayloadWODRad f = (PayloadWODRad)rt; 
+				WodRadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+				Config.payloadStore.setUpdated(id, Spacecraft.WOD_RAD_LAYOUT, true);			
+			}
+		} else if (type == FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
+			rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
+			rt.type = type; // make sure we get the right type
+			if (Config.generateSecondaryPayloads) {
+				// Test routine that generates the secondary payloads
+				PayloadHERCIhighSpeed f = (PayloadHERCIhighSpeed)rt;
+				HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
+				radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
+				if (f.type >= 600) // this is a high speed record
+					radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
+				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
+
+				//updatedHerciHeader = true;
+
+				ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
+				for(int i=0; i< pkts.size(); i++) {
+					HerciHighSpeedPacket pk = pkts.get(i);
+					pk.captureHeaderInfo(f.id, f.uptime, f.resets);
+					if (f.type >= 600) // this is a high speed record
+						pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
+						Config.payloadStore.add(f.id, f.uptime, f.resets,pk);
+				}
+			}
+		} else if (type == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
+			rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_HEADER_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
+			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
+			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_UW_EXPERIMENT || type >= 1300 && type < 1400 ) {
+			rt = new PayloadUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_UW_WOD_EXPERIMENT || type >= 1500 && type < 1600 ) {
+			rt = new PayloadWODUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_LAYOUT));
+			rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_RAG_TELEM ) {
+				rt = new PayloadRagAdac(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAG_LAYOUT));
+				rt.type = type; // make sure we get the right type
+		} else if (type == FoxFramePart.TYPE_WOD_RAG ) {
+			rt = new PayloadWODRagAdac(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAG_LAYOUT));
+			rt.type = type; // make sure we get the right type
+	}
+		return rt;
 	}
 }

@@ -335,6 +335,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 		Thread.currentThread().setName("HerciHSTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 
@@ -356,7 +357,9 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 					showRawValues.setSelected(Config.displayRawValues);
 					updateTab(Config.payloadStore.getLatestHerciHeader(foxId), true);
 				}
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.HERCI_HS_LAYOUT);
+				if (frames != currentFrames) {
+					currentFrames = frames;
 					hsPayload = Config.payloadStore.getLatestHerci(foxId);
 					Config.payloadStore.setUpdated(foxId, Spacecraft.HERCI_HS_LAYOUT, false);
 
@@ -365,10 +368,10 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 						updateTab(Config.payloadStore.getLatestHerciHeader(foxId), true);
 					}
 					
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.HERCI_HS_LAYOUT));
+					displayFramesDecoded(frames);
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_REAL_TIME);
+						openGraphs();
 						justStarted = false;
 					}
 				}

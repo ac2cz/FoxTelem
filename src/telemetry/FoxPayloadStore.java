@@ -16,6 +16,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public boolean initialized() { return loaded; }
 	public abstract boolean hasQueuedFrames();
+	public abstract int getQueuedFramesSize();
 
 	public abstract boolean hasQueuedMeasurements();
 
@@ -31,6 +32,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract void setUpdatedMeasurement(int id, boolean u);
 	public abstract boolean getUpdatedPassMeasurement(int id);
 	public abstract void setUpdatedPassMeasurement(int id, boolean u);
+	public abstract int getNumberOfMeasurements(int id);
+	public abstract int getNumberOfPassMeasurements(int id);
 	
 	public abstract int getTotalNumberOfFrames();
 	public abstract int getTotalNumberOfFrames(String lay);
@@ -78,6 +81,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	
 	public abstract PassMeasurement getLatestPassMeasurement(int id);
 
+	public abstract SortedFramePartArrayList getFrameParts(int id, int fromReset, long fromUptime, int period, boolean reverse, String layout) throws IOException;
 	public abstract FramePart getLatest(int id, String layout);
 	public abstract FramePart getLatestRt(int id);
 	public abstract FramePart getLatestMax(int id);
@@ -137,6 +141,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	/**
 	 * Delete all of the log files.  This is called from the main window by the user
 	 */
+	public abstract void delete(Spacecraft sat);
 	public abstract void deleteAll();	
 	
 	public abstract void initRad2();

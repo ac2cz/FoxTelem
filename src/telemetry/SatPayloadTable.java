@@ -8,7 +8,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -65,6 +64,13 @@ public class SatPayloadTable {
 		rtRecords = new SortedFramePartArrayList(size);
 		loadIdx();
 		updated = true;
+	}
+	
+	public SortedFramePartArrayList getFrameParts(int fromReset, long fromUptime, int period, boolean reverse) throws IOException {
+		if (rtRecords == null) return null;
+		loadSegments(fromReset, fromUptime, period, reverse);
+		//if (rtRecords == null) return null;
+		return rtRecords;
 	}
 	
 	public void setUpdated(boolean t) { updated = t; }
@@ -153,6 +159,7 @@ public class SatPayloadTable {
 	public String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean reverse) throws IOException {
 		return getPayloadData(period, id, fromReset, fromUptime, length, false, reverse);
 	}
+	
 	
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
@@ -439,7 +446,7 @@ public class SatPayloadTable {
 				} 
 				// case 2:
 				if (i == 0) 
-					if (tableIdx.get(i).fromReset == reset) { // load this.  It might have the data we need and its the last segment
+					if (tableIdx.get(i).fromReset == reset && tableIdx.get(i).fromUptime > uptime) { // load this.  It might have the data we need and its the earliest segment
 						loadnow = true;
 					}
 				//case 4:
@@ -485,8 +492,8 @@ public class SatPayloadTable {
 	private synchronized void loadSegments(int reset, long uptime, int number, boolean reverse) throws IOException {
 		boolean existingLock = deleteLock;
 		deleteLock = true;
+		int total = 0;
 		try {
-			int total = 0;
 			if (reverse) {
 				// load backwards, but load in the right order so that the inserts into the records list are fast (append at end)
 				// So we first calculate where to start
@@ -509,7 +516,7 @@ public class SatPayloadTable {
 					total += tableIdx.get(i).records;
 
 				}
-				//if (total >= number) System.err.println("Success we got: "+total+" records and needed "+number);
+//				System.err.println("Success we got: "+total+" records and needed "+number);
 			} else {
 				int i = findFirstSeg(reset, uptime);
 				// Then we need to load segment at i and start counting from here
@@ -594,6 +601,7 @@ public class SatPayloadTable {
 		if (rtRecords.add(f)) {
 		//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
 			updated = true;
+			//System.out.println(this.fileName + " TABLE UPDATED");
 			if (seg.records == MAX_SEGMENT_SIZE) {
 				// We need to add a new segment with this as the first record
 				TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);
@@ -678,100 +686,10 @@ public class SatPayloadTable {
 						+ "\nProgram will now exit");
 				System.exit(1);
 			}
+			
 			FoxFramePart rt = null;
-			if (type == FoxFramePart.TYPE_REAL_TIME) {
-				rt = new PayloadRtValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.REAL_TIME_LAYOUT));
-			}
-			if (type == FoxFramePart.TYPE_WOD) {
-				rt = new PayloadWOD(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_LAYOUT));
-			}
-			if (type == FoxFramePart.TYPE_MAX_VALUES) {
-				rt = new PayloadMaxValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MAX_LAYOUT));
-
-			}
-			if (type == FoxFramePart.TYPE_MIN_VALUES) {
-				rt = new PayloadMinValues(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.MIN_LAYOUT));
-
-			}
-			if (type == FoxFramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
-				rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}
-			if (type == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA ) {
-				rt = new WodRadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
-				rt.type = type; // make sure we get the right type
-
-			}
-			if (type == FoxFramePart.TYPE_RAD_EXP_DATA || type >= 400 && type < 500) {
-				rt = new PayloadRadExpData(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD_LAYOUT));
-				rt.type = type; // make sure we get the right type
-
-				// hack to convert data - only used in testing
-				if (Config.generateSecondaryPayloads) {
-					PayloadRadExpData f = (PayloadRadExpData)rt; 
-					RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
-					radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-					if (f.type >= 400) // this is a high speed record
-						radiationTelemetry.type = f.type + 300; // we give the telem record 700+ type
-					Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
-					Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
-				}
-			}
-			if (type == FoxFramePart.TYPE_WOD_RAD) {
-				rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
-				rt.type = type;
-
-				// hack to convert data - only used in testing
-				if (Config.generateSecondaryPayloads) {
-					PayloadWODRad f = (PayloadWODRad)rt; 
-					WodRadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
-					radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-					Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
-					Config.payloadStore.setUpdated(id, Spacecraft.WOD_RAD_LAYOUT, true);			
-				}
-			}
-			if (type == FoxFramePart.TYPE_HERCI_HIGH_SPEED_DATA || type >= 600 && type < 700) {
-				rt = new PayloadHERCIhighSpeed(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_LAYOUT));
-				rt.type = type; // make sure we get the right type
-				if (Config.generateSecondaryPayloads) {
-					// Test routine that generates the secondary payloads
-					PayloadHERCIhighSpeed f = (PayloadHERCIhighSpeed)rt;
-					HerciHighspeedHeader radiationTelemetry = f.calculateTelemetryPalyoad();
-					radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
-					if (f.type >= 600) // this is a high speed record
-						radiationTelemetry.type = f.type + 200; // we give the telem record 800+ type
-					Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
-
-					//updatedHerciHeader = true;
-
-					ArrayList<HerciHighSpeedPacket> pkts = f.calculateTelemetryPackets();
-					for(int i=0; i< pkts.size(); i++) {
-						HerciHighSpeedPacket pk = pkts.get(i);
-						pk.captureHeaderInfo(f.id, f.uptime, f.resets);
-						if (f.type >= 600) // this is a high speed record
-							pk.type = f.type*1000 + 900 + i;; // we give the telem record 900+ type.  Assumes 10 minipackets or less
-							Config.payloadStore.add(f.id, f.uptime, f.resets,pk);
-					}
-				}
-			}
-			if (type == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER || type >= 800 && type < 900) {
-				rt = new HerciHighspeedHeader(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_HEADER_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}
-			if (type == FoxFramePart.TYPE_HERCI_HS_PACKET || type >= 600900 && type < 700000) {
-				rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}
-			if (type == FoxFramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
-				rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}	
-			if (type == FoxFramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
-				rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}
+			
 			if (type == FoxFramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
-
 				String[] st2 = line.split(",");
 				int canIdField = 5;
 				if (storeMode)
@@ -786,15 +704,9 @@ public class SatPayloadTable {
 
 				if (rt != null)
 					rt.type = type; // make sure we get the right type
-			}
-			if (type == FoxFramePart.TYPE_UW_EXPERIMENT || type >= 1300 && type < 1400 ) {
-				rt = new PayloadUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}
-			if (type == FoxFramePart.TYPE_UW_WOD_EXPERIMENT || type >= 1500 && type < 1600 ) {
-				rt = new PayloadWODUwExperiment(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_LAYOUT));
-				rt.type = type; // make sure we get the right type
-			}
+			} else
+				rt = (FoxFramePart) FramePart.makePayload(id, resets, uptime, date, st, type);
+			
 
 			// Check the the record set is actually loaded.  Sometimes at start up the GUI is querying for records before they are loaded
 			if (rtRecords != null && rt != null) {

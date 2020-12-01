@@ -2,6 +2,7 @@ package common;
 
 import gui.MainWindow;
 import gui.ProgressPanel;
+import gui.SourceTab;
 import measure.SatPc32DDE;
 
 import java.awt.Color;
@@ -65,8 +66,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.08z5";
-	public static String VERSION = VERSION_NUM + " - 3 Mar 2020";
+	public static String VERSION_NUM = "1.09n3";
+	public static String VERSION = VERSION_NUM + " - 28 Nov 2020";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -138,6 +139,7 @@ public class Config {
 	static public boolean decoderPaused = false;
 	static public boolean decoderPlay = false;
 	static public int windowsProcessed = 0;
+	static public int windowStartBit = 0;
 	static public boolean debugPerformance = false;
 	static public boolean debugClock = false;
 	static public boolean debugBits = false;
@@ -159,6 +161,7 @@ public class Config {
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
     public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
+    public static int format = SourceTab.FORMAT_FSK_DUV; 
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -230,7 +233,7 @@ public class Config {
 	
 	static public int displayModuleFontSize = 12;
 	static public int graphAxisFontSize = 12;
-	static public boolean useNativeFileChooser = true; // true for windows/mac, false for Linux
+	static public boolean useNativeFileChooser = false; // false for windows/mac, false for Linux. 
 	
 	static public boolean showSNR = true; // toggles if we are looking at SNR of strongest signal or Avg
 	static public double SCAN_SIGNAL_THRESHOLD = 12d; // This is strongest signal in sat band to average noise.  Strongest signal needs to be above this
@@ -274,7 +277,7 @@ public class Config {
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
-//	static public boolean useCostas = false;
+	static public boolean useCostas = false;
 	public static boolean showEye = true; 
 	public static boolean showPhasor = true; 
 	public static double selectedFrequency; // replacement for selectedBin.  The offset from center frequency we are tuned to
@@ -729,7 +732,6 @@ public class Config {
 		properties.setProperty("showAudioOptions", Boolean.toString(showAudioOptions));
 		properties.setProperty("showSourceOptions", Boolean.toString(showSourceOptions));
 		properties.setProperty("showSatOptions", Boolean.toString(showSatOptions));
-//		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("showEye", Boolean.toString(showEye));
 		properties.setProperty("showPhasor", Boolean.toString(showPhasor));
 		properties.setProperty("selectedFrequency", Double.toString(selectedFrequency));
@@ -745,6 +747,10 @@ public class Config {
 		properties.setProperty("newResetCheckThreshold", Integer.toString(newResetCheckThreshold));
 		properties.setProperty("newResetCheckUptimeMax", Integer.toString(newResetCheckUptimeMax));
 		
+		// V1.09
+		properties.setProperty("useCostas", Boolean.toString(useCostas));
+		properties.setProperty("format", Integer.toString(format));
+
 		store();
 	}
 	
@@ -922,7 +928,6 @@ public class Config {
 		showAudioOptions = Boolean.parseBoolean(getProperty("showAudioOptions"));
 		showSatOptions = Boolean.parseBoolean(getProperty("showSatOptions"));
 		showSourceOptions = Boolean.parseBoolean(getProperty("showSourceOptions"));
-//		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		showEye = Boolean.parseBoolean(getProperty("showEye"));
 		showPhasor = Boolean.parseBoolean(getProperty("showPhasor"));
 		selectedFrequency = Double.parseDouble(getProperty("selectedFrequency"));
@@ -938,6 +943,10 @@ public class Config {
 		newResetCheckThreshold = Integer.parseInt(getProperty("newResetCheckThreshold"));
 		newResetCheckUptimeMax = Integer.parseInt(getProperty("newResetCheckUptimeMax"));
 		
+		// V1.09
+		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
+		format = Integer.parseInt(getProperty("format"));
+
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {

@@ -1,5 +1,7 @@
 package gui;
 
+import java.awt.event.ItemEvent;
+
 import javax.swing.JTable;
 
 import common.Config;
@@ -7,9 +9,7 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadWODUwExperiment;
 
 @SuppressWarnings("serial")
 public class WodUwExperimentTab extends UwExperimentTab {
@@ -81,6 +81,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 			int number = 0;
 			for (int id : wod_ids) {
 				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+				if (lay == null) return; // something went wrong.  Maybe we are removing the tab
 				int total = Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
 				if (total > 0) {
 					String[] row = new String[5];
@@ -125,8 +126,8 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		if (Config.displayRawRadData) {
 				long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
 		    	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-		    	Log.println("RESET: " + reset_l);
-		    	Log.println("UPTIME: " + uptime);
+		    	//Log.println("RESET: " + reset_l);
+		    	//Log.println("UPTIME: " + uptime);
 		    	int reset = (int)reset_l;
 		    	updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_CAN_LAYOUT, false), false);
 		} else {
@@ -147,6 +148,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		else
 		for (int id : wod_ids) {
 			BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+			if (lay == null) return 0; // something went wrong, maybe we are removing the tab
 			total += Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
 		}
 		return total;
@@ -157,6 +159,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 		Thread.currentThread().setName("UwWODTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -172,21 +175,38 @@ public class WodUwExperimentTab extends UwExperimentTab {
 				updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_CAN_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT);
+				if (frames != currentFrames) {
+					currentFrames = frames;
 					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_CAN_LAYOUT, false);
 
 					parseRadiationFrames();
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT),
+					displayFramesDecoded(frames,
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_WOD_RAD);
+						openGraphs();
 						justStarted = false;
 					}
 				}
 			}
 		}
 		done = true;
+	}
+	
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
+		Object source = e.getItemSelectable();
+		if (source == showRawValues) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+			Config.save();
+			updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_CAN_LAYOUT), true);
+		}
 	}
 }

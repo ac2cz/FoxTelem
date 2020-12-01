@@ -142,13 +142,13 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public void initHerciPackets() {
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		for (int s=0; s<sats.size(); s++) {
-			if (sats.get(s).isFox1()) {
+			//if (sats.get(s).isFox1()) {
 				FoxSpacecraft fox = (FoxSpacecraft)sats.get(s);
 				if (fox.hasHerci()) {
 					payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
 					payloadStore[s].initHerciPackets();
 				}
-			}
+			//}
 		}
 	}
 	public Connection getConnection() throws SQLException {
@@ -793,7 +793,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 				store.deleteAll();
 		
 	}
-	
+
+	/**
+	 * Delete all of the log files.  This is called from the main window by the user
+	 */
+	public void delete(Spacecraft sat ) {
+		for (SatPayloadDbStore store : payloadStore) {
+			if(store != null && sat.foxId == store.foxId) {
+				if (store != null)
+					store.deleteAll();
+			}
+		}
+	}
+
 	public static void errorPrint(String cause, Throwable e) {
 		if (e instanceof SQLException)
 			SQLExceptionPrint(cause, (SQLException)e);
@@ -1122,6 +1134,31 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		if (store != null)
 			return store.checkForNewReset(id, uptime, stpDate, resetOnFrame, groundStation);
 		return -1;
+	}
+
+	@Override
+	public int getQueuedFramesSize() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public SortedFramePartArrayList getFrameParts(int id, int fromReset, long fromUptime, int period, boolean reverse,
+			String layout) throws IOException {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public int getNumberOfMeasurements(int id) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public int getNumberOfPassMeasurements(int id) {
+		// TODO Auto-generated method stub
+		return 0;
 	}
 
 	

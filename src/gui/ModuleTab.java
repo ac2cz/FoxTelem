@@ -63,7 +63,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	public static final int SHOW_RANGE = 2;
 	public static final int SHOW_NEXT = 1;
 	public int showLatest = GraphFrame.SHOW_LIVE;
-	public static final String LIVE_TEXT = "Live";
+	public static final String LIVE_TEXT = "Last";
 	public static final String RANGE_TEXT = "Range";
 	public static final String NEXT_TEXT = "Next";
 	public static String NOW = "now";
@@ -244,7 +244,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		textToUtc.addFocusListener(this);
 				
 		btnLatest = new JButton(LIVE_TEXT);
-		btnLatest.setForeground(Config.AMSAT_RED);
+//		btnLatest.setForeground(Config.AMSAT_RED);
 		btnLatest.setMargin(new Insets(0,0,0,0));
 		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
 		btnLatest.addActionListener(this);		
@@ -287,8 +287,8 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	
 	protected void makeDisplayModules(BitArrayLayout[] layouts,int moduleType) throws LayoutLoadException {
 		// TODO - for this to work it needs to add them to the top but leave room for what is there already.  Bottom does not work
-		int topLength = 0;//   /2;
-		int bottomLength = layouts.length; //layouts.length - topLength;
+		int topLength = layouts.length;//   /2;
+		int bottomLength = 0; //layouts.length; //layouts.length - topLength;
 		String[] topModuleNames = new String[topLength];
 		int[] topModuleLines = new int[topLength];
 		String[] bottomModuleNames = new String[bottomLength];
@@ -301,7 +301,9 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		for (BitArrayLayout rt : layouts) {
 			if (moduleNum < topLength) {
 				topModuleNames[moduleNum] = rt.module[4]; // ignore the ID fields
-				topModuleLines[moduleNum] = rt.NUMBER_OF_FIELDS-5; // we display them all except 4 id and junk
+				topModuleLines[moduleNum] = rt.NUMBER_OF_FIELDS-4; // we display them all except 4 id
+				if (rt.fieldName[rt.NUMBER_OF_FIELDS-1].equalsIgnoreCase("JUNK"))
+					topModuleLines[moduleNum] = topModuleLines[moduleNum]-1; // take off one if the final field is junk.  We don't display it.
 				numOfTopModules++;
 			} else {
 				bottomModuleNames[moduleNum-topLength] = rt.module[4];
@@ -321,6 +323,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		for (int i=0; i < numOfTopModules; i++) {
 			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], layouts[i]);
+			topModules[i].setLayout(layouts[i]);
 			topHalf.add(topModules[i]);
 		}
 
@@ -485,16 +488,16 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	
 	}
 	
-	public void openGraphs(int payloadType) {
+	public void openGraphs() {
 		if (topModules != null)
 		for (DisplayModule mod : topModules) {
-			if (mod != null)
-			mod.openGraphs(payloadType);
+			if (mod != null && mod.rtPayload != null)
+			mod.openGraphs(mod.rtPayload.getType());
 		}
 		if (bottomModules != null)
 		for (DisplayModule mod : bottomModules) {
-			if (mod != null)
-			mod.openGraphs(payloadType);
+			if (mod != null && mod.rtPayload != null)
+			mod.openGraphs(mod.rtPayload.getType());
 		}
 	
 	}
@@ -521,7 +524,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			lblFromUTC.setText(BEFORE_UTC);
 			lblFromReset.setText(BEFORE_RESET);
 			btnLatest.setText(LIVE_TEXT);
-			btnLatest.setForeground(Config.AMSAT_RED);
+			//btnLatest.setForeground(Config.AMSAT_RED);
 			lblFromReset.setVisible(show);
 			textFromReset.setVisible(show);
 			lblFromUptime.setVisible(show);

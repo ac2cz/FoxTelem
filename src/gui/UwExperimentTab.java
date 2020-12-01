@@ -78,7 +78,15 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	boolean displayTelem = true;
 	
 	BitArrayLayout[] layout;
-	int[] ids = {309920562, 309920256, 309330499};
+	public static int[] ids = {308871750, // RC_EPS_DIST_4 
+				 308871681, // RC_EPS_BATT_2
+				 0x12690204, // RC_EPS_BATT_5
+				 307823128,  // RC_EPS_GEN_9
+				 0x12590215,  // RC_EPS_GEN_6
+				 0x12590216, // RC_EPS_GEN_7
+				 0x12590217, // RC_EPS_GEN_8
+				 0x12590250 // RX_EPS_DIST_14
+				 };
 	 
 	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
 		super();
@@ -88,7 +96,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		
 		int j = 0;
 		layout = new BitArrayLayout[ids.length];
-		 for (int canid : ids)
+		for (int canid : ids)
 			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
 
 		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
@@ -139,7 +147,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	      ((BasicSplitPaneUI) spui).getDivider().addMouseListener(new MouseAdapter() {
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
-	        	  Log.println("SplitPane: " + splitPaneHeight);
+	        	  //Log.println("SplitPane: " + splitPaneHeight);
 	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
@@ -169,15 +177,20 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		parseRadiationFrames();
 	}
 	
+	public static boolean inCanIds(int id) {
+		for (int canid : ids)
+			if (id == canid) return true;
+		return false;
+	}
+	
 	void addModules() {
-		BitArrayLayout rad = null;
+		//BitArrayLayout rad = null;
 
-		rad = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
-		BitArrayLayout none = null;
+		//rad = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
+		//BitArrayLayout none = null;
 		try {
-//			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);
-
-			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW);
+//			analyzeModules(rad, none, none, DisplayModule.DISPLAY_UW); // add the experiment header to the top
+			makeDisplayModules(layout, DisplayModule.DISPLAY_UW);	// add the CAN to the bottom
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
 			e.printStackTrace(Log.getWriter());
@@ -330,6 +343,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				for (int id : fox.canFrames.canId) {
 					if (!in(WodUwExperimentTab.wod_ids, id) ) {
 						BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+						if (lay == null) return; // something went wrong.  Maybe we are removing the tab
 						int total = Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
 						if (total > 0) {
 							String[] row = new String[5];
@@ -425,18 +439,15 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
-				if (mod != null)
-					mod.updateRtValues(rad);
-			}
-			if (bottomModules != null)
-				for (BitArrayLayout lay : layout) {
-					// TODO - this is very inefficient.  The module should take the layout as a param and it should just update itself
-					FramePart can = Config.payloadStore.getLatest(fox.foxId, lay.name);
-					for (DisplayModule mod : bottomModules) {
-						if (mod != null)
-							mod.updateRtValues(can);
+				if (mod != null) {
+					if (mod.getTelemLayout() != null) {
+						FramePart data = Config.payloadStore.getLatest(foxId, mod.getTelemLayout().name);
+						if (data != null)
+							mod.updateRtValues(data);
 					}
 				}
+			}
+			
 		}
 	}
 	
@@ -448,6 +459,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		for (int id : fox.canFrames.canId) {
 			if (!in(WodUwExperimentTab.wod_ids, id) ) {
 				BitArrayLayout lay = Config.satManager.getLayoutByCanId(fox.foxId, id);
+				if (lay == null) return 0; // something went wrong, maybe we are removing the tab
 				total += Config.payloadStore.getNumberOfFrames(fox.foxId, lay.name);
 			}
 		}
@@ -460,6 +472,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		Thread.currentThread().setName("UwTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -487,7 +500,9 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 
 				boolean refresh = false;
 
-				if (Config.payloadStore.getUpdated(foxId, Spacecraft.CAN_LAYOUT)) {
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT);
+				if (frames != currentFrames) {
+					currentFrames = frames;
 					//radPayload = Config.payloadStore.getLatestRad(foxId);
 					Config.payloadStore.setUpdated(foxId, Spacecraft.CAN_LAYOUT, false);
 					refresh = true;
@@ -497,11 +512,11 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 					//						for (BitArrayLayout lay : layout)
 					//							updateTab(Config.payloadStore.getLatest(foxId, lay.name), true);
 					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.CAN_LAYOUT), true);
-					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.CAN_LAYOUT),
+					displayFramesDecoded(frames,
 							getTotalPackets());
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
-						openGraphs(FoxFramePart.TYPE_RAD_EXP_DATA);
+						openGraphs();
 						justStarted = false;
 					}
 				}

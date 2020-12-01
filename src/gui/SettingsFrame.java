@@ -96,7 +96,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private JCheckBox cbFoxTelemCalcsDoppler;
 	private JCheckBox cbWhenAboveHorizon;
 //	private JCheckBox useNCO;
-//	private JCheckBox useCostas;
+	private JCheckBox useCostas;
 
 	
 	boolean useUDP;
@@ -333,8 +333,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 //				Config.insertMissingBits, rightcolumnpanel0 );
 //		useNCO = addCheckBoxRow("FSK: Use NCO", "Use Experimental Polyphase filters and numerically controlled oscillator for SDR vs FFT Filter",
 //				Config.useNCO, rightcolumnpanel0 );
-//		useCostas = addCheckBoxRow("PSK: Use Costas", "Use a coherent Costas Loop Decoder for PSK (better decoder but worse with fading)",
-//				Config.useCostas, rightcolumnpanel0 );
+		useCostas = addCheckBoxRow("PSK: Use Costas", "Use a coherent Costas Loop Decoder for PSK (better decoder but worse with fading)",
+				Config.useCostas, rightcolumnpanel0 );
 //		rightcolumnpanel0.add(new Box.Filler(new Dimension(10,10), new Dimension(150,400), new Dimension(500,500)));
 		// min, pref, max - each is Hor, Vert
 		rightcolumnpanel0.add(new Box.Filler(new Dimension(0,0), new Dimension(100,0), new Dimension(1000,0)));
@@ -612,10 +612,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 //							+ "You do not need to exit FoxTelem.");
 //				Config.useNCO = useNCO.isSelected();
 
-//				if (Config.useCostas != useCostas.isSelected())
-//					Log.errorDialog("CHANGED Decoder", "The decoder needs to be stopped and restarted.\n"
-//							+ "You do not need to exit FoxTelem.");
-//				Config.useCostas = useCostas.isSelected();
+				if (Config.useCostas != useCostas.isSelected())
+					Log.errorDialog("CHANGED Decoder", "The decoder needs to be stopped and restarted.\n"
+							+ "You do not need to exit FoxTelem.");
+				Config.useCostas = useCostas.isSelected();
 
 				if (Config.isWindowsOs()) {
 					Config.useDDEforFreq = cbUseDDEFreq.isSelected();

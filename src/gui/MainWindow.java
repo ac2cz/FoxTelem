@@ -58,8 +58,13 @@ import org.rauschig.jarchivelib.ArchiverFactory;
 import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
+import telemetry.BitArrayLayout;
+import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
+import telemetry.SortedFramePartArrayList;
+import telemetry.uw.CanPacket;
 
 import com.apple.eawt.Application;
 
@@ -200,7 +205,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		rightBottom.setLayout(new BoxLayout(rightBottom, BoxLayout.X_AXIS));
 		
 		lblVersion = new JLabel("Version " + Config.VERSION);
-		lblVersion.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblVersion.setFont(new Font("SansSerif", Font.BOLD, (int)(0.9f * lblVersion.getFont().getSize2D())));
+		Font footerFont = lblVersion.getFont();
+	//	lblVersion.setFont(footerFont);
 	//	lblVersion.setMinimumSize(new Dimension(1600, 14)); // forces the next label to the right side of the screen
 	//	lblVersion.setMaximumSize(new Dimension(1600, 14));
 		lblVersion.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
@@ -211,39 +218,45 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			lblLogFileDir = new JLabel("Logs: Current Directory");
 		else
 			lblLogFileDir = new JLabel("Logs: " + Config.logFileDirectory);
-		lblLogFileDir.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblLogFileDir.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblLogFileDir.setFont(footerFont);
 		//lblLogFileDir.setMinimumSize(new Dimension(1600, 14)); // forces the next label to the right side of the screen
 		//lblLogFileDir.setMaximumSize(new Dimension(1600, 14));
 		lblLogFileDir.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		bottomPanel.add(lblLogFileDir, BorderLayout.CENTER );
 
 		lblAudioMissed = new JLabel(AUDIO_MISSED);
-		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblAudioMissed.setFont(footerFont);
 		lblAudioMissed.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblAudioMissed.setToolTipText("The number of audio buffers missed");
 		rightBottom.add(lblAudioMissed );
 
 		lblTotalFrames = new JLabel(TOTAL_RECEIVED_FRAMES);
-		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblTotalFrames.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalFrames.setFont(footerFont);
 		lblTotalFrames.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblTotalFrames.setToolTipText("Total number of frames received since FoxTelem restart (including duplicates)");
 		rightBottom.add(lblTotalFrames );
 		
 		lblTotalDecodes = new JLabel(TOTAL_DECODES);
-		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblTotalDecodes.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalDecodes.setFont(footerFont);
 		lblTotalDecodes.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblTotalDecodes.setToolTipText("Total number of unique payloads decoded from all satellites");
 		rightBottom.add(lblTotalDecodes );
 		
 		lblTotalQueued = new JLabel(TOTAL_QUEUED);
-		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblTotalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblTotalQueued.setFont(footerFont);
 		lblTotalQueued.setBorder(new EmptyBorder(2, 2, 2, 2) ); // top left bottom right
 		lblTotalQueued.setToolTipText("The number of frames that need to be sent to the Amsat / Local telemetry servers");
 		rightBottom.add(lblTotalQueued );
 		bottomPanel.add(rightBottom, BorderLayout.EAST);
 
 		lblLocalQueued = new JLabel("");  // This starts blank and then appears if there are actual frames
-		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+//		lblLocalQueued.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblLocalQueued.setFont(footerFont);
 		lblLocalQueued.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
 		lblLocalQueued.setToolTipText("The number of payloads that need to be sent to the Local telemetry server");
 		rightBottom.add(lblLocalQueued );
@@ -384,10 +397,38 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
+		// This is simple but does not work on multiple displays.  It gets from the detault
+//		Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+//		Dimension screenSize = device..getScreenSize();
+//		int screenHeight = screenSize.height;
+//		int screenWidth = screenSize.width;
+		
+		// This is more complex and gets the raw screen size, so does not cope with scaling
+//		GraphicsDevice device = this.getGraphicsConfiguration().getDevice();
+//		DisplayMode display = device.getDisplayMode();
+//		int screenHeight = display.getHeight();
+//		int screenWidth = display.getWidth();
+		
+//		Log.println("Display is: " + screenWidth + " x " + screenHeight);
+		
+//		int windowFarRight = Config.windowX + Config.windowWidth;
+		
+//		if (windowFarRight > screenWidth) {
+//			Config.windowWidth = screenWidth - Config.windowX;
+			
+//		}
+//		int windowBottom = Config.windowY + Config.windowHeight;
+//		Log.println("Window is : " + screenHeight + " vs " + windowBottom);
+		
+//		if (windowBottom > screenHeight) {
+//			Log.println("Window is too tall: " + screenHeight + " vs " + windowBottom);
+//			Config.windowHeight = screenHeight - Config.windowY;
+//			Log.println("Set windowY: " + Config.windowY + " height " + Config.windowHeight);
+//		}
 		setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		this.setTitle("Fox 1 Telemetry Analysis Tool ");
+		this.setTitle("AMSAT Telemetry Analysis Tool ");
 		addWindowListener(this);
 		addWindowStateListener(this);
 
@@ -710,10 +751,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
-				if (sats.get(i).isFox1()) {
+				//if (sats.get(i).isFox1()) {
 					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
 					f.setVisible(true);
-				}
+				//}
 			}
 		}
 		
@@ -816,26 +857,26 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			fos.close();
 		} catch (FileNotFoundException e) {
 			// The file was not found on the server.  This is probably because there was no data for this spacecraft or we have the URL wrong.
+			fileProgress.updateProgress(100);
 			Log.errorDialog("ERROR", "File not downloaded successfully from: " + urlString 
 					+ "\nCheck that the internet connection is working to the site.  Check the download destination is valid\n\n" +
 					e);
 			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
 			return;
 		} catch (MalformedURLException e) {
+			fileProgress.updateProgress(100);
 			Log.errorDialog("ERROR", "ERROR can't access the server data.  Is the URL correct?  Tried downloading from: " 
 					+ urlString
 					+ "\n\n" + e);
 			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
 			return;
 		} catch (IOException e) {
+			fileProgress.updateProgress(100);
 			Log.errorDialog("ERROR", "ERROR reading from the server or writing to the file on disk.\n"
 					+ "Check the local disk is writable for:\n" + file  + "\n"
 					+ "and this server URL is correct:\n" + urlString + "\n\n"
 					+ e );
 			e.printStackTrace(Log.getWriter());
-			fileProgress.updateProgress(100);
 			return;
 		}
 
@@ -855,17 +896,18 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			try {
 				archiver.extract(archive, destination);
 			} catch (IOException e) {
-				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\nCheck if the download URL is correct.\n\n"
+				decompressProgress.updateProgress(100);
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data for "+dir +"\n"
+						+ "Check if the download URL is correct.\n\n"
 						+ e );
 				e.printStackTrace(Log.getWriter());
-				decompressProgress.updateProgress(100);
 				return;
 			} catch (IllegalArgumentException e) {
-				Log.errorDialog("ERROR", "ERROR could not uncompress the server data\nThe compression program could not "
-						+ "process the file.  Perhaps the filename is invalid?\n\n"
+				decompressProgress.updateProgress(100);
+				Log.errorDialog("ERROR", "ERROR could not uncompress the server data for "+dir +"\n"
+						+ "The compression program could not process the file.  Perhaps the filename is invalid?\n\n"
 						+ e );
 				e.printStackTrace(Log.getWriter());
-				decompressProgress.updateProgress(100);
 				return;
 			}
 
@@ -892,6 +934,15 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			return;
 					
 		}
+		if (Config.satManager.spacecraftList.size() > 1) {
+			ServerDownloadDialog downloadDialog = new ServerDownloadDialog(this, false);
+			downloadDialog.setVisible(true);
+		} else {
+			downloadServerData(Config.satManager.spacecraftList);
+		}
+	}
+	
+	public void downloadServerData(ArrayList<Spacecraft> sats) {
 		String message = "Do you want to download server data to REPLACE your existing data?\n"
 				+ "THIS WILL OVERWRITE YOUR EXISTING LOG FILES. Switch to a new directory if you have live data received from FOX\n"
 				+ "To import into into a different set of log files select NO, then choose a new log file directory from the settings menu";
@@ -914,12 +965,14 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		ProgressPanel fileProgress = new ProgressPanel(this, "Deleting existing data, please wait ...", false);
 		fileProgress.setVisible(true);
 
-		Config.payloadStore.deleteAll();
 		fileProgress.updateProgress(100);
 
 		// Get the server data for each spacecraft we have
-		sats = Config.satManager.getSpacecraftList();
+//		sats = Config.satManager.getSpacecraftList();
 		for (Spacecraft sat : sats) {
+			
+			Config.payloadStore.delete(sat);
+
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up
 			String dir = getFoxServerDir(sat.foxId);
@@ -929,12 +982,74 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				downloadServerData(dir);
 			}
 		}
+		
+		Config.save(); // make sure any changed settings saved
+		Config.initPayloadStore();
+		
+		//int pkts = 0;
+		
+		for (Spacecraft sat : sats) {
+			// We can not rely on the name of the spacecraft being the same as the directory name on the server
+			// because the user can change it.  So we have a hard coded routine to look it up
+			if (sat.hasCanBus) {
+				ProgressPanel splitProgress = new ProgressPanel(this, "Splitting can packets, please wait ...", false);
+				splitProgress.setVisible(true);
+				// generate the local can packets as they are not stored on the server
+				SortedFramePartArrayList canPackets;
+				//int total = 0;
+				
+				try {
+					// search forward (not in reverse) and grab all the records.
+					canPackets = Config.payloadStore.getFrameParts(sat.foxId, 0, 0, 99999999, true, Spacecraft.CAN_PKT_LAYOUT);
+
+					for (FramePart p : canPackets) {
+						//total++;
+						if (p.getType() == FoxFramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
+							//pkts++;
+							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
+							int length = CanPacket.getLengthfromRawID(ihuPacketId);
+							int canId = CanPacket.getIdfromRawID(ihuPacketId);
+							if (UwExperimentTab.inCanIds(canId)) {
+								byte[] data = new byte[CanPacket.ID_BYTES+length];
+								for (int i=0;i<data.length; i++)
+									data[i] = (byte) p.fieldValue[i];
+								BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(sat.foxId, canId);
+								if (canLayout != null) { 
+									CanPacket newPacket = new CanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
+									if (p.getType() > 1400)
+										newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
+									//									if (newPacket.getType() > 1700)
+									//										System.err.println("Won't store: " + canLayout.name + " type: " + newPacket.getType() + " p type: " + p.getType());
+									//									else
+									Config.payloadStore.add(sat.foxId, p.uptime, p.resets, newPacket);
+								}
+							}
+						}
+					}
+				} catch (IOException e) {
+					Log.errorDialog("ERROR", "Could not split the can packets\n" + e);
+				}
+				//System.err.println("Split: " + total + " pkts:" + pkts);
+				splitProgress.updateProgress(100);
+			}
+		}
+		
+		ProgressPanel queueStatus = new ProgressPanel(this, "Post processing can packets. Remaining:", false);
+		queueStatus.setVisible(true);
+		while (Config.payloadStore.hasQueuedFrames()) {
+			queueStatus.updateProgress(Config.payloadStore.getQueuedFramesSize());
+			try {
+				Thread.sleep(100);
+			} catch (InterruptedException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		queueStatus.updateProgress(100);
 
 		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
 		refreshProgress.setVisible(true);
 		
-		Config.save(); // make sure any changed settings saved
-		Config.initPayloadStore();
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
@@ -943,7 +1058,6 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);
-		
 	}
 	
 	/**
@@ -1072,10 +1186,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					try {
 						//SatPayloadStore.copyFile(file, targetFile);
 						try {
-							FoxSpacecraft satellite = new FoxSpacecraft(file, targetFile);
+							FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
 							satellite.save();
 						} catch (LayoutLoadException e) {
-							// But ingnore any errors.  Hopefully the new MASTER file will fix it!
+							Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
+							// But carry on.  Hopefully the new MASTER file will fix it!
 							e.printStackTrace(Log.getWriter()); // but log if user has that enabled
 						}
 						refresh = true;

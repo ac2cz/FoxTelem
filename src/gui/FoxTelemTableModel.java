@@ -28,7 +28,8 @@ abstract class FoxTelemTableModel extends AbstractTableModel {
 	private long[][] keyData = null;
     private String[][] data = null;
     int keys = 2;
-
+    public static final int RESET_COL = 0;
+	public static final int UPTIME_COL = 1;
 	
     public void setData(long[][] kd, String[][] d) { 
     	keyData = kd;

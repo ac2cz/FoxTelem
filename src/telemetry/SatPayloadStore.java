@@ -128,15 +128,22 @@ public class SatPayloadStore {
 	public int getNumberOfFrames(String layout) { 
 		int i = fox.getLayoutIdxByName(layout);
 		if (i != Spacecraft.ERROR_IDX) {
-			//if (!fox.layout[i].isSecondaryPayload())
-				return records[i].getSize();
-			//return 0;
+			if (records[i] == null) return 0;
+			return records[i].getSize();
 		}
 		return 0;
 	}
 	
 	public int getNumberOfTelemFrames() { return getNumberOfFrames(Spacecraft.REAL_TIME_LAYOUT) 
 			+ getNumberOfFrames(Spacecraft.MAX_LAYOUT) +getNumberOfFrames(Spacecraft.MIN_LAYOUT); }
+	
+	public SortedFramePartArrayList getFrameParts(int fromReset, long fromUptime, int period, boolean reverse, String layout) throws IOException {
+		int i = fox.getLayoutIdxByName(layout);
+		//BitArrayLayout l = fox.getLayoutByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return records[i].getFrameParts(fromReset, fromUptime, period, reverse);
+		return null;
+	}
 	
 	public boolean add(int id, long uptime, int resets, FramePart f) throws ArrayIndexOutOfBoundsException, IOException {
 		f.captureHeaderInfo(id, uptime, resets);
@@ -475,6 +482,8 @@ public class SatPayloadStore {
 			return records[i].getPayloadData(period, id, fromReset, fromUptime, PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE, true, reverse); 
 		return null;
 	}
+	
+	
 
 	
 /*

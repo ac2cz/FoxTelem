@@ -60,7 +60,7 @@ public abstract class RawQueue implements Runnable {
 			updatedSlowQueue = true;
 		} else if (type == Frame.PSK_FRAME) {
 			while (reader.ready()) {
-				frame = new FoxBPSKFrame(reader);
+				frame = new FoxBPSKFrame(Config.satManager.getFormatByName("FOX_BPSK"), reader); // TO DO format should come from satManager
 				rawPSKFrames.add(frame);
 			}
 			updatedPSKQueue = true;

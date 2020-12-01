@@ -2,10 +2,13 @@ package decoder.FoxBPSK;
 
 import java.util.Date;
 
+import common.Config;
+import common.Log;
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
 import telemetry.Frame;
 import telemetry.FrameProcessException;
+import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 
 /**
@@ -32,24 +35,20 @@ import telemetry.FoxBPSK.FoxBPSKFrame;
  */
 @SuppressWarnings("serial")
 public class FoxBPSKBitStream extends HighSpeedBitStream {
-	public static final int SLOW_SPEED_SYNC_WORD_DISTANCE = 5720; 
-	public static final int FRAME_LENGTH = 572; 
-	public static final int DATA_LENGTH = 476; 
-	public static final int NUMBER_OF_RS_CODEWORDS = 3;
+	public static final int FOX_BPSK_SPEED_SYNC_WORD_DISTANCE = 5720 + 31; 
+	TelemFormat telemFormat;
+	public static final boolean GOLF_FORMAT = true;
+	public static final boolean FOX_FORMAT = false;
 	
-	public FoxBPSKBitStream(Decoder dec, int wordLength, int syncWordLength, int bitsPerSecond) {
-		super(dec, wordLength, syncWordLength, bitsPerSecond);
-		SYNC_WORD_LENGTH = syncWordLength;
-		SYNC_WORD_DISTANCE = SLOW_SPEED_SYNC_WORD_DISTANCE + syncWordLength;
+	public FoxBPSKBitStream(Decoder dec, TelemFormat telemFormat) {
+		super(dec, telemFormat.getSyncWordDistance(), telemFormat.getInt(TelemFormat.WORD_LENGTH), 
+				telemFormat.getInt(TelemFormat.SYNC_WORD_LENGTH), telemFormat.getInt(TelemFormat.BPS));
+		this.telemFormat = telemFormat;
 		SYNC_WORD_BIT_TOLERANCE = 10;
-		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 5;
-		maxBytes = FRAME_LENGTH; //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
-		frameSize = DATA_LENGTH; // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
-		numberOfRsCodeWords = FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS;
-		rsPadding = new int[FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS];
-		rsPadding[0] = 64;
-		rsPadding[1] = 64;
-		rsPadding[2] = 65;
+		maxBytes = telemFormat.getInt(TelemFormat.FRAME_LENGTH); //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
+		frameSize = telemFormat.getInt(TelemFormat.DATA_LENGTH); // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
+		numberOfRsCodeWords = telemFormat.getInt(TelemFormat.RS_WORDS);
+		this.rsPadding = telemFormat.getPaddingArray();
 		findFramesWithPRN = true;
 	}
 	
@@ -66,7 +65,14 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		// This is a nice idea and even works sometimes, but we need to make sure it does not cause a crash if it is off the end of the data.
 		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
-		FoxBPSKFrame bpskFrame = new FoxBPSKFrame();
+		Frame bpskFrame;
+//		if (telemFormat.name.equalsIgnoreCase("GOLF_BPSK"))  // TODO - dont hard code here.  Factory method in satManager??  Or do we now have enough in Telem format for one frame class
+//			bpskFrame = new GolfBPSKFrame(telemFormat);
+//		else
+		if (Config.debugFrames)
+			Log.println("Decoding frame with Format: " + telemFormat);
+		bpskFrame = new FoxBPSKFrame(telemFormat);
+		
 		try {
 			bpskFrame.addRawFrame(rawFrame);
 			bpskFrame.rsErrors = totalRsErrors;
@@ -81,4 +87,5 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 //		Log.println("SELF RS CHECK:" + b);
 		return bpskFrame;
 	}
+		
 }

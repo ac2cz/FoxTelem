@@ -68,7 +68,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 	JLabel lblFramesDecoded;
 		
 	//JCheckBox showRawBytes;
-	RadiationTableModel radTableModel;
+	ExperimentLayoutTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 
 	JPanel healthPanel;
@@ -173,7 +173,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 
 		addBottomFilter();
 		
-		radTableModel = new RadiationTableModel();
+		radTableModel = new ExperimentLayoutTableModel(rad);
 		radPacketTableModel = new RadiationPacketTableModel();
 		addTables(radTableModel,radPacketTableModel);
 
@@ -204,7 +204,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 		column = table.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 		
-		for (int i=0; i<58; i++) {
+		for (int i=0; i<table.getColumnCount()-2; i++) {
 			column = table.getColumnModel().getColumn(i+2);
 			column.setPreferredWidth(25);
 		}
@@ -309,6 +309,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 		Thread.currentThread().setName("HerciLSTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
 			
@@ -330,21 +331,23 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 					
 				}
 
-				if (foxId != 0)
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.RAD_LAYOUT)) {
+				if ((foxId != 0) && Config.payloadStore.initialized()) {
+					int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT);
+					if (frames != currentFrames) {
+						currentFrames = frames;
 						//radPayload = Config.payloadStore.getLatestRad(foxId);
 						Config.payloadStore.setUpdated(foxId, Spacecraft.RAD_LAYOUT, false);
 
 						parseRadiationFrames();
 						updateTab(Config.payloadStore.getRadTelem(foxId, START_RESET, START_UPTIME), true);
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.RAD_LAYOUT));
+						displayFramesDecoded(frames);
 						MainWindow.setTotalDecodes();
 						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_REAL_TIME);
+							openGraphs();
 							justStarted = false;
 						}
 					}
-				
+				}
 			}
 		}
 		done = true;

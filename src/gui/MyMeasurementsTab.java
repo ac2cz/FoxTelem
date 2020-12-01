@@ -69,7 +69,7 @@ ItemListener {
 				JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		add(scrollPane, BorderLayout.CENTER);
 
-		if (sat.isFox1()) {
+		//if (sat.isFox1()) {
 			FoxSpacecraft fox = (FoxSpacecraft) sat;
 			satellite = new DisplayModule(fox, fox.user_display_name, 9,
 					DisplayModule.DISPLAY_MEASURES);
@@ -90,10 +90,10 @@ ItemListener {
 					DisplayModule.DISPLAY_MEASURES);
 			satellite.addName(8, "RS Erasures", RtMeasurement.ERASURES,
 					DisplayModule.DISPLAY_MEASURES);
-		}
+		//}
 
-		if (sat.isFox1()) {
-			FoxSpacecraft fox = (FoxSpacecraft) sat;
+		//if (sat.isFox1()) {
+		//	FoxSpacecraft fox = (FoxSpacecraft) sat;
 			passes = new DisplayModule(fox, fox.user_display_name + " passes", 9,
 					DisplayModule.DISPLAY_PASS_MEASURES);
 			centerPanel.add(passes);
@@ -105,7 +105,7 @@ ItemListener {
 			passes.addName(6, "End Azimuth", PassMeasurement.END_AZIMUTH, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(7, "Max Elevation", PassMeasurement.MAX_ELEVATION, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(8, "Payloads Decoded", PassMeasurement.TOTAL_PAYLOADS, DisplayModule.DISPLAY_RT_ONLY);
-		}
+		//}
 		JPanel bottomPanel = new JPanel();
 		add(bottomPanel, BorderLayout.SOUTH);
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
@@ -148,6 +148,9 @@ ItemListener {
 		running = true;
 		done = false;
 		boolean justStarted = true;
+		int currentRtFrames = 0;
+		int currentPassFrames = 0;
+		int frames = 0;
 
 		while (running) {
 			try {
@@ -156,61 +159,66 @@ ItemListener {
 				Log.println("ERROR: Measurement thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
-			if (satellite != null) // make sure we are initialized, avoid race condition
-			if (Config.payloadStore.getUpdatedMeasurement(sat.foxId)) {
+			if (satellite != null) { // make sure we are initialized, avoid race condition
+				frames = Config.payloadStore.getNumberOfMeasurements(sat.foxId);
+				if (frames != currentRtFrames) {
+					currentRtFrames = frames;
 
-				rtMeasurement = Config.payloadStore
-						.getLatestMeasurement(sat.foxId);
-				if (rtMeasurement != null) {
+					rtMeasurement = Config.payloadStore
+							.getLatestMeasurement(sat.foxId);
+					if (rtMeasurement != null) {
+						double snr = GraphPanel.roundToSignificantFigures(
+								rtMeasurement
+								.getRawValue(RtMeasurement.BIT_SNR), 3);
+						satellite.updateSingleValue(1, Double.toString(snr));
+						double rfsnr = GraphPanel
+								.roundToSignificantFigures(rtMeasurement
+										.getRawValue(RtMeasurement.RF_SNR), 3);
+						satellite.updateSingleValue(2,
+								Double.toString(rfsnr));
+						double power = GraphPanel
+								.roundToSignificantFigures(rtMeasurement
+										.getRawValue(RtMeasurement.RF_POWER), 3);
+						satellite.updateSingleValue(3,
+								Double.toString(power));
+						long freq = (long) rtMeasurement
+								.getRawValue(RtMeasurement.CARRIER_FREQ);
+						satellite.updateSingleValue(4, Long.toString(freq));
+						int az = (int) rtMeasurement
+								.getRawValue(RtMeasurement.AZ);
+						satellite.updateSingleValue(5, Integer.toString(az));
+						int el = (int) rtMeasurement
+								.getRawValue(RtMeasurement.EL);
+						satellite.updateSingleValue(6, Integer.toString(el));
+						int err = (int) rtMeasurement
+								.getRawValue(RtMeasurement.ERRORS);
+						satellite
+						.updateSingleValue(7, Integer.toString(err));
+						int erase = (int) rtMeasurement
+								.getRawValue(RtMeasurement.ERASURES);
+						satellite.updateSingleValue(8,
+								Integer.toString(erase));
+					}
 					Config.payloadStore.setUpdatedMeasurement(sat.foxId, false);
-
-					double snr = GraphPanel.roundToSignificantFigures(
-							rtMeasurement
-							.getRawValue(RtMeasurement.BIT_SNR), 3);
-					satellite.updateSingleValue(1, Double.toString(snr));
-					double rfsnr = GraphPanel
-							.roundToSignificantFigures(rtMeasurement
-									.getRawValue(RtMeasurement.RF_SNR), 3);
-					satellite.updateSingleValue(2,
-							Double.toString(rfsnr));
-					double power = GraphPanel
-							.roundToSignificantFigures(rtMeasurement
-									.getRawValue(RtMeasurement.RF_POWER), 3);
-					satellite.updateSingleValue(3,
-							Double.toString(power));
-					long freq = (long) rtMeasurement
-							.getRawValue(RtMeasurement.CARRIER_FREQ);
-					satellite.updateSingleValue(4, Long.toString(freq));
-					int az = (int) rtMeasurement
-							.getRawValue(RtMeasurement.AZ);
-					satellite.updateSingleValue(5, Integer.toString(az));
-					int el = (int) rtMeasurement
-							.getRawValue(RtMeasurement.EL);
-					satellite.updateSingleValue(6, Integer.toString(el));
-					int err = (int) rtMeasurement
-							.getRawValue(RtMeasurement.ERRORS);
-					satellite
-					.updateSingleValue(7, Integer.toString(err));
-					int erase = (int) rtMeasurement
-							.getRawValue(RtMeasurement.ERASURES);
-					satellite.updateSingleValue(8,
-							Integer.toString(erase));
 				}
 			}
-			if (passes != null) // make sure we have initialized, avoid race condition
-			if (Config.payloadStore.getUpdatedPassMeasurement(sat.foxId)) {
-				passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
-				if (passMeasurement != null) {
+			if (passes != null) {// make sure we have initialized, avoid race condition
+				frames = Config.payloadStore.getNumberOfPassMeasurements(sat.foxId);
+				if (frames != currentPassFrames) {
+					currentPassFrames = frames;
+					passMeasurement = Config.payloadStore.getLatestPassMeasurement(sat.foxId);
+					if (passMeasurement != null) {
+						//Log.println("Updated Pass Params Table");
+						passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
+						passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
+						passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
+						passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
+						passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
+						passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
+						passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
+						passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
+					}
 					Config.payloadStore.setUpdatedPassMeasurement(sat.foxId, false);
-					//Log.println("Updated Pass Params Table");
-					passes.updateSingleValue(1, passMeasurement.getStringValue(PassMeasurement.AOS));
-					passes.updateSingleValue(2, passMeasurement.getStringValue(PassMeasurement.TCA));
-					passes.updateSingleValue(3, passMeasurement.getStringValue(PassMeasurement.TCA_FREQ));
-					passes.updateSingleValue(4, passMeasurement.getStringValue(PassMeasurement.LOS));
-					passes.updateSingleValue(5, passMeasurement.getStringValue(PassMeasurement.START_AZIMUTH));
-					passes.updateSingleValue(6, passMeasurement.getStringValue(PassMeasurement.END_AZIMUTH));
-					passes.updateSingleValue(7, passMeasurement.getStringValue(PassMeasurement.MAX_ELEVATION));
-					passes.updateSingleValue(8, passMeasurement.getStringValue(PassMeasurement.TOTAL_PAYLOADS));
 				}
 			}
 

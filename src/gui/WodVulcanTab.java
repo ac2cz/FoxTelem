@@ -1,12 +1,13 @@
 package gui;
 
+import java.awt.event.ItemEvent;
+
 import javax.swing.JTable;
 
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
-import telemetry.FoxFramePart;
 import telemetry.RadiationTelemetry;
 
 @SuppressWarnings("serial")
@@ -57,7 +58,27 @@ public class WodVulcanTab extends VulcanTab {
 		MainWindow.frame.repaint();
 	}
 	
-	protected void displayRow(JTable table, int row) {
+	@Override
+	public void itemStateChanged(ItemEvent e) {
+		super.itemStateChanged(e);
+		Object source = e.getItemSelectable();
+		
+		if (source == showRawValues) { //updateProperty(e, decoder.flipReceivedBits); }
+
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.displayRawValues = false;
+			} else {
+				Config.displayRawValues = true;
+			}
+			Config.save();
+			updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
+			
+		}
+		
+	}
+	
+	@Override
+	protected void displayRow(JTable table, int fromRow, int row) {
 		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
     	long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
     	//Log.println("RESET: " + reset);
@@ -65,7 +86,12 @@ public class WodVulcanTab extends VulcanTab {
     	int reset = (int)reset_l;
     	updateTab((RadiationTelemetry) Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_RAD2_LAYOUT, false), false);
     	
-    	table.setRowSelectionInterval(row, row);
+    	if (fromRow == NO_ROW_SELECTED)
+    		fromRow = row;
+    	if (fromRow <= row)
+    		table.setRowSelectionInterval(fromRow, row);
+    	else
+    		table.setRowSelectionInterval(row, fromRow);
 	}
 	
 	@Override
@@ -73,30 +99,36 @@ public class WodVulcanTab extends VulcanTab {
 		Thread.currentThread().setName("WodVulcanTab");
 		running = true;
 		done = false;
+		int currentFrames = 0;
 		boolean justStarted = true;
 		while(running) {
-			
+
 			try {
 				Thread.sleep(500); // refresh data once a second
 			} catch (InterruptedException e) {
-				Log.println("ERROR: HealthTab thread interrupted");
+				Log.println("ERROR: WOD Vulcan Tab thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			}
 			if (Config.displayRawValues != showRawValues.isSelected()) {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-					if (Config.payloadStore.getUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT)) {
-						Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
-						updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
-						parseRadiationFrames();
-						displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT));
-						MainWindow.setTotalDecodes();
-						if (justStarted) {
-							openGraphs(FoxFramePart.TYPE_WOD_RAD);
-							justStarted = false;
-						}
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_RAD_LAYOUT);
+				if (frames != currentFrames) {
+					currentFrames = frames;
+					//System.out.println("WOD RAD TAB UPDATED, has " + x);
+					
+					updateTab(Config.payloadStore.getLatest(foxId, Spacecraft.WOD_RAD2_LAYOUT), true);
+					displayFramesDecoded(frames);
+					MainWindow.setTotalDecodes();
+					parseRadiationFrames(); // this also repaints the window to show all changes
+					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_RAD_LAYOUT, false);
+					if (justStarted) {
+						openGraphs();
+						justStarted = false;
 					}
+					MainWindow.frame.repaint();
+				}
 			}
 		}
 		done = true;

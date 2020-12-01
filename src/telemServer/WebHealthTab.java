@@ -6,7 +6,6 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import common.Config;
 import common.FoxSpacecraft;
 import gui.DisplayModule;
 import telemetry.BitArrayLayout;
@@ -191,17 +190,17 @@ public class WebHealthTab {
 		// Mode is stored in the header
 		// Find the most recent frame and return the mode that it has
 		SortedFramePartArrayList payloads = new SortedFramePartArrayList(fox.numberOfLayouts);
-		int maxLayouts = 4; // First four layouts are rt, max, min, exp
+		//int maxLayouts = 4; // First four layouts are rt, max, min, exp
 		
 		payloads.add(payloadRt);
 		payloads.add(payloadMax);
 		payloads.add(payloadMin);
 		payloads.add(expPayload);
 		
-		int mode = fox.NO_MODE;
+		int mode = FoxSpacecraft.NO_MODE;
 		if (payloads.size() > 0)
 			mode = payloads.get(payloads.size()-1).newMode;
-		return fox.getModeString(mode);
+		return FoxSpacecraft.getModeString(mode);
 	}
 	
 	private String buildModule(int i) {

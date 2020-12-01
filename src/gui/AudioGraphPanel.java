@@ -12,7 +12,6 @@ import common.Log;
 import decoder.Decoder;
 import decoder.SourceIQ;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
-import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 
 /**
@@ -56,6 +55,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	JLabel sample;
 	int s = 0;
 	JLabel title;
+	int bitValue = 10;
 	
 	boolean showFilteredAudio = false;
 	
@@ -142,7 +142,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		while(running) {
 			
 			try {
-				Thread.sleep(1000/60); // approx 1/60 sec refresh
+				Thread.sleep(1000/10); // approx 1/60 sec refresh
 			} catch (InterruptedException e) {
 				Log.println("ERROR: Audiograph thread interrupted");
 				//e.printStackTrace();
@@ -157,8 +157,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			
 				if (buffer != null) {
 					audioData = buffer;		
-					if (foxDecoder instanceof FoxBPSKDecoder) 
-						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();	
+//					if (foxDecoder instanceof FoxBPSKDecoder) {
+//						pskAudioData = ((FoxBPSKDecoder)foxDecoder).getBasebandData();	
+//						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
+//					}
 					if (foxDecoder instanceof FoxBPSKCostasDecoder ) {
 						pskAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandData();
 						pskQAudioData = ((FoxBPSKCostasDecoder)foxDecoder).getBasebandQData();	
@@ -186,6 +188,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		running = false;
 		//source.drain();
 	}
+	boolean firstRun = true;
 	
 	/*
 	 * Draw on a panel, where x is horizontal from left to right and y is vertical from top to bottom
@@ -195,7 +198,10 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 	public void paintComponent(Graphics g) {
 		super.paintComponent( g ); // call superclass's paintComponent  
 		Graphics2D g2 = ( Graphics2D ) g; // cast g to Graphics2D  
-		g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+		if (firstRun) {
+			g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
+			firstRun = false;
+		}
 		// Have 5 pix border
 		int border = 5;
 		int graphHeight = getHeight() - border;
@@ -239,7 +245,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 
 				//int value = SourceAudio.getIntFromDouble(audioData[i]);
 				if ( pskAudioData != null && i < pskAudioData.length && 
-						(foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder ||
+						(foxDecoder instanceof FoxBPSKDotProdDecoder ||
 						    (foxDecoder instanceof FoxBPSKCostasDecoder && 
 								 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE
 							) 
@@ -251,7 +257,16 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				//x = (i*j/(Decoder.SAMPLE_WINDOW_LENGTH*Decoder.BUCKET_SIZE))*graphWidth;
 				x = border*2 + i*(graphWidth-border*2)/audioData.length;
 
+				
 				if (Config.debugValues && foxDecoder != null) {
+					if (pskAudioData[i] > 1000) {
+					//	pskAudioData[i] = pskAudioData[i] - 10000; // rescale
+						bitValue = 1;
+					}
+					if (pskAudioData[i] < -1000) {
+					//	pskAudioData[i] = pskAudioData[i] + 10000;			
+						bitValue = 0;
+					}
 					// If we are on a bucket boundry, draw a line and label the bit
 					// We have foxDecoder.SAMPLE_WINDOW_LENGTH buckets
 					// The audio data has decoder.bucketSize samples per bucket
@@ -260,16 +275,26 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 						g2.setColor(Color.BLACK);
 						g2.drawLine(x, 0, x, graphHeight);
 						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize-2));
-						g.drawString(""+((Config.windowsProcessed-1)*foxDecoder.getSampleWindowLength()+bitCount), x-25, graphHeight-20 );
+						g.drawString(""+(Config.windowStartBit+bitCount), x-25, graphHeight-20 );
+						if (foxDecoder.middleSample[bitCount])
+							bitValue = 1;
+						else
+							bitValue = 0;
+						g2.setColor(Color.RED);
+						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize*2));
+						g.drawString(""+bitValue,x-25, graphHeight-100);
+							
+						g2.setColor(Color.BLACK);
 						g.setFont(new Font("SansSerif", Font.PLAIN, Config.graphAxisFontSize));
 						bucketPositionCount = 0;
 						bitCount++;
 					}
 				}
+				// ***** PLOT the AUDIO DATA ****** //
 				// Calculate a value between -1 and + 1 and scale it to the graph height.  Center in middle of graph
 				double y = 0.0d;
 				
-				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
+				if ((foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
 						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues)
 					y = graphHeight/4+graphHeight/2.5*audioData[i] + border;
 				else
@@ -279,25 +304,26 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				lastx = x;
 				lasty = (int)y;
 
-				if ((foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
+				// ***** PLOT THE PSK AUDIO DATA ***** //
+				if ((foxDecoder instanceof FoxBPSKDotProdDecoder || foxDecoder instanceof FoxBPSKCostasDecoder && 
 						 ((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) ) {
 					if (foxDecoder instanceof FoxBPSKCostasDecoder && (((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE ) && pskAudioData != null && i < pskAudioData.length) {
 						int lock = (int)Math.round(((FoxBPSKCostasDecoder)foxDecoder).getLockLevel());
 						if (lock > SourceIQ.LOCK_LEVEL_THRESHOLD) {
 							g2.setColor(Color.BLUE);
-							g.drawString("Locked " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+			//				g.drawString("Locked " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						} else {
 							g2.setColor(Color.gray);
-							g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 3*Config.graphAxisFontSize)  );
+			//				g.drawString("Lock: " + lock, graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						}
-						g2.setColor(Color.gray);
-						g.drawString("Costas Error: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+			//			g2.setColor(Color.gray);
+						//g.drawString("Costas Error: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getError()*100), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						g.drawString("Carrier: " + Math.round(((FoxBPSKCostasDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
 					}
 					if (foxDecoder instanceof FoxBPSKDotProdDecoder) {
 						g2.setColor(Color.gray);
 						g.drawString("Carrier: " + Math.round(((FoxBPSKDotProdDecoder)foxDecoder).getFrequency()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2 + Config.graphAxisFontSize)  );
-						g.drawString("Offset: " + (((FoxBPSKDotProdDecoder)foxDecoder).getOffset()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
+						//g.drawString("Offset: " + (((FoxBPSKDotProdDecoder)foxDecoder).getOffset()), graphWidth-7*Config.graphAxisFontSize, (int) ( graphHeight/2+ 2*Config.graphAxisFontSize)  );
 						
 					}
 					if (pskAudioData != null && pskAudioData.length > 0) {
@@ -336,7 +362,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		}
 		g2.setColor(Color.GRAY);
 		// Center (decode) line
-		if (foxDecoder instanceof FoxBPSKDecoder || foxDecoder instanceof FoxBPSKDotProdDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder  &&
+		if (foxDecoder instanceof FoxBPSKDotProdDecoder || (foxDecoder instanceof FoxBPSKCostasDecoder  &&
 				((FoxBPSKCostasDecoder) foxDecoder).mode == FoxBPSKCostasDecoder.PSK_MODE) || Config.debugValues) {
 			g2.drawLine(0, graphHeight/4+border, graphWidth, graphHeight/4+border);
 			g2.drawLine(0, 3*graphHeight/4+border, graphWidth, 3*graphHeight/4+border);

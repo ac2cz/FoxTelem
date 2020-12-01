@@ -175,7 +175,8 @@ public class DiagnosticTable extends JPanel {
 		boolean reverse = false;
 		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 			reverse=true;
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		graphData = Config.payloadStore.getGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, graphFrame.layout.name, false, reverse);
+//		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][7];
 		
 		if (graphData[0].length > 0) {
@@ -185,25 +186,7 @@ public class DiagnosticTable extends JPanel {
 				
 				display = FoxFramePart.ihuDiagnosticString(value, false, fox);
 				if (display != null) { 	
-					if (graphFrame.showUTCtime) {
-						setColumnName(0, "Date");
-						setColumnName(1, "Time (UTC)");
-						
-						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
-						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
-						if (fox.hasTimeZero(resets)) {
-							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
-							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
-						} else {
-							tableData[i][1] = "";
-							tableData[i][0] = "";
-						}
-					} else {
-						setColumnName(0, "Reset");
-						setColumnName(1, "Uptime");
-						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-						tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);
-					}
+					initTableColumns(tableData, i);
 					tableData[i][2] = display;
 				}
 			}
@@ -218,7 +201,8 @@ public class DiagnosticTable extends JPanel {
 		boolean reverse = false;
 		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 			reverse=true;
-		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		graphData = Config.payloadStore.getGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, graphFrame.layout.name, false, reverse);
+//		graphData = Config.payloadStore.getMaxGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][8];
 		
 		if (graphData[0].length > 0) {
@@ -228,24 +212,7 @@ public class DiagnosticTable extends JPanel {
 				display = FoxFramePart.hardErrorStringArray(value, false);
 				
 				if (display != null) { 	
-					if (graphFrame.showUTCtime) {
-						setColumnName(0, "Date");
-						setColumnName(1, "Time (UTC)");
-						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
-						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
-						if (fox.hasTimeZero(resets)) {
-							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
-							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
-						} else {
-							tableData[i][1] = "";
-							tableData[i][0] = "";
-						}
-					} else {
-						setColumnName(0, "Reset");
-						setColumnName(1, "Uptime");
-						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-						tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
-					}
+					initTableColumns(tableData, i);
 					for (int j=2; j<8; j++)
 						tableData[i][j] = display[j-2];
 				}
@@ -260,7 +227,8 @@ public class DiagnosticTable extends JPanel {
 		boolean reverse = false;
 		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 			reverse=true;
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		graphData = Config.payloadStore.getGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, graphFrame.layout.name, false, reverse);
+		//graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][6];
 		
 		if (graphData[0].length > 0) {
@@ -270,24 +238,7 @@ public class DiagnosticTable extends JPanel {
 				display = FoxFramePart.softErrorStringArrayFox1A(value, false);
 				
 				if (display != null) { 	
-					if (graphFrame.showUTCtime) {
-						setColumnName(0, "Date");
-						setColumnName(1, "Time (UTC)");
-						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
-						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
-						if (fox.hasTimeZero(resets)) {
-							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
-							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
-						} else {
-							tableData[i][1] = "";
-							tableData[i][0] = "";
-						}
-					} else {
-						setColumnName(0, "Reset");
-						setColumnName(1, "Uptime");
-						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-						tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
-					}
+					initTableColumns(tableData, i);
 					for (int j=2; j<6; j++)
 						tableData[i][j] = display[j-2];
 				}
@@ -303,7 +254,8 @@ public class DiagnosticTable extends JPanel {
 		boolean reverse = false;
 		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 			reverse=true;
-		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		graphData = Config.payloadStore.getGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, graphFrame.layout.name, false, reverse);
+//		graphData = Config.payloadStore.getMinGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][7];
 		
 		if (graphData[0].length > 0) {
@@ -313,24 +265,7 @@ public class DiagnosticTable extends JPanel {
 				display = FoxFramePart.softErrorStringArray84488(value, false);
 				
 				if (display != null) { 	
-					if (graphFrame.showUTCtime) {
-						setColumnName(0, "Date");
-						setColumnName(1, "Time (UTC)");
-						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
-						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
-						if (fox.hasTimeZero(resets)) {
-							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
-							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
-						} else {
-							tableData[i][1] = "";
-							tableData[i][0] = "";
-						}
-					} else {
-						setColumnName(0, "Reset");
-						setColumnName(1, "Uptime");
-						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-						tableData[i][1] = Integer.toString((int)graphData[PayloadStore.UPTIME_COL][i]);
-					}
+					initTableColumns(tableData, i);
 					for (int j=2; j<7; j++)
 						tableData[i][j] = display[j-2];
 				}
@@ -346,7 +281,8 @@ public class DiagnosticTable extends JPanel {
 		boolean reverse = false;
 		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 			reverse=true;
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		graphData = Config.payloadStore.getGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, graphFrame.layout.name, false, reverse);
+//		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][7];
 
 		if (graphData[0].length > 0) {
@@ -356,25 +292,7 @@ public class DiagnosticTable extends JPanel {
 
 				display = FoxFramePart.icrDiagnosticStringArray(value, false);
 				if (display != null) { 	
-					if (graphFrame.showUTCtime) {
-						setColumnName(0, "Date");
-						setColumnName(1, "Time (UTC)");
-
-						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
-						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
-						if (fox.hasTimeZero(resets)) {
-							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
-							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
-						} else {
-							tableData[i][1] = "";
-							tableData[i][0] = "";
-						}
-					} else {
-						setColumnName(0, "Reset");
-						setColumnName(1, "Uptime");
-						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-						tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);
-					}
+					initTableColumns(tableData, i);
 					for (int j=2; j<6; j++)
 						tableData[i][j] = display[j-2];
 				}
@@ -390,7 +308,8 @@ public class DiagnosticTable extends JPanel {
 		boolean reverse = false;
 		if (graphFrame.showLatest == GraphFrame.SHOW_LIVE)
 			reverse=true;
-		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
+		graphData = Config.payloadStore.getGraphData(fieldName, graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, graphFrame.layout.name, false, reverse);
+		//		graphData = Config.payloadStore.getRtGraphData(fieldName, graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, false, reverse);
 		String[][] tableData = new String[graphData[0].length][17];
 
 		if (graphData[0].length > 0) {
@@ -400,25 +319,7 @@ public class DiagnosticTable extends JPanel {
 
 				display = FoxFramePart.isisAntennaStatusArray(value, false);
 				if (display != null) { 	
-					if (graphFrame.showUTCtime) {
-						setColumnName(0, "Date");
-						setColumnName(1, "Time (UTC)");
-
-						int resets = (int)graphData[PayloadStore.RESETS_COL][i];
-						long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
-						if (fox.hasTimeZero(resets)) {
-							tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
-							tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
-						} else {
-							tableData[i][1] = "";
-							tableData[i][0] = "";
-						}
-					} else {
-						setColumnName(0, "Reset");
-						setColumnName(1, "Uptime");
-						tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
-						tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);
-					}
+					initTableColumns(tableData, i);
 					for (int j=2; j<17; j++)
 						tableData[i][j] = display[j-2];
 				}
@@ -428,6 +329,28 @@ public class DiagnosticTable extends JPanel {
 		}
 		MainWindow.frame.repaint();	
 
+	}
+	
+	private void initTableColumns(String[][] tableData, int i) {
+		if (graphFrame.showUTCtime) {
+			setColumnName(0, "Date");
+			setColumnName(1, "Time (UTC)");
+
+			int resets = (int)graphData[PayloadStore.RESETS_COL][i];
+			long uptime = (int)graphData[PayloadStore.UPTIME_COL][i];
+			if (fox.hasTimeZero(resets)) {
+				tableData[i][1] = fox.getUtcTimeForReset(resets, uptime);
+				tableData[i][0] = fox.getUtcDateForReset(resets, uptime);
+			} else {
+				tableData[i][1] = "";
+				tableData[i][0] = "";
+			}
+		} else {
+			setColumnName(0, "Reset");
+			setColumnName(1, "Uptime");
+			tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
+			tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);
+		}
 	}
 
 }

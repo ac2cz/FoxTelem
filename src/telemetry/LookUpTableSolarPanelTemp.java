@@ -24,10 +24,10 @@ package telemetry;
  * Look up table for the temperature sensors on the solar panels
  *
  */
-public class LookUpTableSolarPanelTemp extends LookUpTable {
+public class LookUpTableSolarPanelTemp extends ConversionLookUpTable {
 
 	LookUpTableSolarPanelTemp() {
-
+		super("LookUpTableSolarPanelTemp");
 		table.put(2998,95.0);
 		table.put(3002,90.0);
 		table.put(3006,85.0);

@@ -122,7 +122,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private ArrayList<String> variables;
 	
 	public FoxSpacecraft fox;
-	public static final String LIVE_TEXT = "Live";
+	public static final String LIVE_TEXT = "Last";
 	public static final String RANGE_TEXT = "Range";
 	public static final String NEXT_TEXT = "Next";
 	public static String NOW = "now";
@@ -227,7 +227,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, FoxSpacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -235,7 +235,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.title = title;
 		this.conversionType = conversionType;
 		
-		layout = getLayout(plType);
+		if (lay == null)
+			this.layout = getLayout(plType);
+		else
+			this.layout = lay;
 		
 		payloadType = plType;
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -525,7 +528,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textToUtc.addFocusListener(this);
 				
 		btnLatest = new JButton(LIVE_TEXT);
-		btnLatest.setForeground(Config.AMSAT_RED);
+//		btnLatest.setForeground(Config.AMSAT_RED);
 		btnLatest.setMargin(new Insets(0,0,0,0));
 		btnLatest.setToolTipText("Toggle between showing the live samples, the next samples from a date/uptime or a range of samples");
 		btnLatest.addActionListener(this);		
@@ -569,7 +572,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			lblFromUTC.setText(BEFORE_UTC);
 			lblFromReset.setText(BEFORE_RESET);
 			btnLatest.setText(LIVE_TEXT);
-			btnLatest.setForeground(Config.AMSAT_RED);
+//			btnLatest.setForeground(Config.AMSAT_RED);
 			lblFromReset.setVisible(show);
 			textFromReset.setVisible(show);
 			lblFromUptime.setVisible(show);
@@ -1216,7 +1219,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				String unit = layout.getUnitsByName(variables.get(position));
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
-					conversionType2 = layout.getConversionByName(variables.get(position));
+					conversionType2 = layout.getIntConversionByName(variables.get(position));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
 					i=0;
@@ -1558,7 +1561,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 			for (int i=0; i< graphData[0][0].length; i++) {
 				String s;
-				if (this.showUTCtime && fox.isFox1()) {
+				if (this.showUTCtime /* && fox.isFox1() */) {
 					FoxSpacecraft fox2 = (FoxSpacecraft)fox;
 					if (fox2.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
 						s = fox2.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 

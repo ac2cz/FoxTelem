@@ -281,7 +281,7 @@ public class UpdateManager implements Runnable {
 		if (Config.downloadT0FromServer) {
 			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 			for (int i=0; i<sats.size(); i++) {
-				if (sats.get(i).isFox1())
+				//if (sats.get(i).isFox1())
 					updateT0((FoxSpacecraft)sats.get(i));
 			}
 		}
@@ -319,12 +319,12 @@ public class UpdateManager implements Runnable {
 					if (Config.downloadT0FromServer) {
 						ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 						for (int i=0; i<sats.size(); i++) {
-							if (sats.get(i).isFox1()) {
+							//if (sats.get(i).isFox1()) {
 								FoxSpacecraft fox = (FoxSpacecraft) sats.get(i);
 								if (fox.hasFixedReset) {
 									updateT0((FoxSpacecraft)sats.get(i));
 								}
-							}
+							//}
 						}
 					}	
 				}
@@ -339,7 +339,7 @@ public class UpdateManager implements Runnable {
 				if (Config.downloadT0FromServer) {
 					ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 					for (int i=0; i<sats.size(); i++) {
-						if (sats.get(i).isFox1())
+						//if (sats.get(i).isFox1())
 							updateT0((FoxSpacecraft)sats.get(i));
 					}
 				}		

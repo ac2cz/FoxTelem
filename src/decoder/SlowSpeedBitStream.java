@@ -35,7 +35,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	
 	public SlowSpeedBitStream(Decoder dec, int wordLength, int syncWordLength, int bitRate) {
-		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, wordLength, syncWordLength, SLOW_SPEED_SYNC_WORD_DISTANCE, dec, 1000 / (double)bitRate);
+		super(SLOW_SPEED_SYNC_WORD_DISTANCE*5, dec, SLOW_SPEED_SYNC_WORD_DISTANCE, wordLength, syncWordLength, 1000 / (double)bitRate);
 		PURGE_THRESHOLD = SYNC_WORD_DISTANCE * 3;
 		SYNC_WORD_BIT_TOLERANCE = 10;
 	}

@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.util.Properties;
 
 public class FrameLayout {
-	public static final String NUMBER_OF_PAYLOADS="number_of_payloads";
+	public static final String NUMBER_OF_PAYLOADS = "number_of_payloads";
+	public static final String PAYLOAD = "payload";
+	public static final String DOT_LENGTH = ".length";
 	
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;
@@ -44,41 +46,17 @@ public class FrameLayout {
 		return properties.getProperty(key);
 	}
 	
-	public void set(String sat, String fieldName, String key, String value) {
-		properties.setProperty(sat + fieldName + key, value);
-		//store();
-	}
-	
-	public String get(String sat, String fieldName, String key) {
-		return properties.getProperty(sat + fieldName + key);
-	}
-	
-	public void set(String key, int value) {
-		properties.setProperty(key, Integer.toString(value));
-		//store();
-	}
-
-	public void set(String sat, String fieldName, String key, int value) {
-		properties.setProperty(sat +  fieldName + key, Integer.toString(value));
-		//store();
-	}
-
-	public void set(String sat, String fieldName, String key, long value) {
-		properties.setProperty(sat +  fieldName + key, Long.toString(value));
-		//store();
-	}
 	public int getInt(String key) {
 		return Integer.parseInt(properties.getProperty(key)); 
-	}
-	public int getInt(String sat, String fieldName, String key) {
-		return Integer.parseInt(properties.getProperty(sat +  fieldName + key));
-
 	}
 
 	public boolean getBoolean(String key) {
 		return Boolean.parseBoolean(properties.getProperty(key));
 	}
-	public boolean getBoolean(String sat, String fieldName, String key) {
-		return Boolean.parseBoolean(properties.getProperty(sat +  fieldName + key));
+
+	public String toString() {
+		String s = name;
+		return s;
 	}
+	
 }

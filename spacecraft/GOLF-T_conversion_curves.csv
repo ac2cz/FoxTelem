@@ -1,0 +1,10 @@
+CurveName,a,bx,cx^2,dx^3,ex^4,fx^5,Description
+com1_tx_fwd_pwr,-13.019,36.436,-13.107,1.7685,0,0,Forward power. Apply to the voltage value from the IHU lookup table
+com1_tx_ref_pwr,-34.583,0.1727,0,0,0,0,Reflected power. Apply to the voltage value from the IHU lookup table
+8_bit_temp,-20,0.5,0,0,0,0,gtemp RT1Temp and RT2Temp IHU supplies as 7.1 fixed point with offset of 20
+golf-t_bus_voltage,0,0.0399,0,0,0,0,0-255 means 0-13.61V
+8_bit_voltage,0,0.03026,0,0,0,0,3V Prot 2.5V prot VGA Control and others
+golf-t_tx_current,0,7.557,0,0,0,0,Milliamps of Power Amp Current
+8_bit_accel,-2,0.015625,0,0,0,0,Gs (range=+/- 2)
+8_bit_mag,-76.8,0.6,0,0,0,0,Microteslas (range = ~ +/- 76.8)
+8_bit_spin,-3.9,0.0305,0,0,0,0,Degrees per second (range=about +/- 46  a should be 3.9)

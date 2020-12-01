@@ -116,7 +116,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 						e.printStackTrace(Log.getWriter());
 					}
 				}
-				if (sats.get(s).isFox1())
+				//if (sats.get(s).isFox1())
 					if (((FoxSpacecraft)sats.get(s)).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 				measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
 				Config.fileProgress.updateProgress(100 * s / sats.size());
@@ -154,6 +154,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 
+	public int getQueuedFramesSize() {
+		return payloadQueue.size();
+	}
+	
 	public boolean hasQueuedMeasurements() {
 		if (measurementQueue.size() > 0) return true;
 		return false;
@@ -362,6 +366,13 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 	*/
 	
+	public SortedFramePartArrayList getFrameParts(int id, int fromReset, long fromUptime, int period, boolean reverse, String layout) throws IOException {
+		SatPayloadStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getFrameParts(fromReset, fromUptime, period, reverse, layout);
+		return null;
+	}
+	
 	public int getNumberOfPictureCounters(int id) { 
 		SatPictureStore store = getPictureStoreById(id);
 		if (store != null)
@@ -487,6 +498,20 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 				e.printStackTrace(Log.getWriter());
 			}
 		return false;
+	}
+	
+	public int getNumberOfMeasurements(int id) {
+		SatMeasurementStore store = getMeasurementStoreById(id);
+		if (store != null)
+			return store.getNumberOfMeasurements();
+		return 0;
+	}
+	
+	public int getNumberOfPassMeasurements(int id) {
+		SatMeasurementStore store = getMeasurementStoreById(id);
+		if (store != null)
+			return store.getNumberOfPassMeasurements();
+		return 0;
 	}
 	
 	public RtMeasurement getLatestMeasurement(int id) {
@@ -932,7 +957,30 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 				store.deleteAll();
 		loaded=true;
 	}
-	
+
+	/**
+	 * Delete all of the log files for a single satellite selection.  This is called from the main window by the user
+	 */
+	public void delete(Spacecraft sat) {
+		loaded=false;
+		for (SatPayloadStore store : payloadStore) {
+			if(store != null && store.foxId == sat.foxId) {
+				store.deleteAll();
+			}
+		}
+		for (SatPictureStore store : pictureStore) {
+			if(store != null && store.foxId == sat.foxId) {
+				store.deleteAll();
+			}
+		}
+		for (SatMeasurementStore store : measurementStore) {
+			if(store != null && store.foxId == sat.foxId) {
+				store.deleteAll();
+			}
+		}
+		loaded=true;
+	}
+
 	public void offloadSegments() {
 		for (SatPayloadStore store : payloadStore)
 			if (store != null)
