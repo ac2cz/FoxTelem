@@ -66,11 +66,9 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 
 	//JCheckBox showRawBytes;
 	ExperimentLayoutTableModel expTableModel;
-	RagPacketTableModel expPacketTableModel; // translated values put in layout2
+	ExperimentLayoutTableModel expTableModel2; // translated values put in layout2
 
 	JPanel healthPanel;
-	JPanel topHalfPackets;
-	JPanel bottomHalfPackets;
 
 	boolean displayTelem = true;
 
@@ -105,13 +103,6 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.Y_AXIS));
 		healthPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		healthPanel.setBackground(Color.DARK_GRAY);
-
-		topHalfPackets = new JPanel(); 
-		topHalfPackets.setBackground(Color.DARK_GRAY);
-		bottomHalfPackets = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars5.png");
-		bottomHalfPackets.setBackground(Color.DARK_GRAY);
-		healthPanel.add(topHalfPackets);
-		healthPanel.add(bottomHalfPackets);
 
 		initDisplayHalves(healthPanel);
 
@@ -167,12 +158,8 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		addBottomFilter();
 
 		expTableModel = new ExperimentLayoutTableModel(layout);
-		expPacketTableModel = new RagPacketTableModel();
-		addTables(expTableModel,expPacketTableModel);
-
-		addPacketModules();
-		topHalfPackets.setVisible(false);
-		bottomHalfPackets.setVisible(false);
+		expTableModel2 = new ExperimentLayoutTableModel(layout2);
+		addTables(expTableModel,expTableModel2);
 
 		// initial populate
 		parseRadiationFrames();
@@ -191,13 +178,9 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	
 	}
 
-	private void addPacketModules() {
 
-	}
-
-
-	protected void addTables(AbstractTableModel expTableModel, AbstractTableModel ragPacketTableModel) {
-		super.addTables(expTableModel, ragPacketTableModel);
+	protected void addTables(AbstractTableModel expTableModel, AbstractTableModel expTableModel2) {
+		super.addTables(expTableModel, expTableModel2);
 
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment( JLabel.CENTER );
@@ -211,23 +194,21 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		
 		for (int i=0; i<table.getColumnCount()-2; i++) {
 			column = table.getColumnModel().getColumn(i+2);
-			column.setPreferredWidth(25);
+			int w = layout.fieldName[i].length();
+			column.setPreferredWidth(10+7*w);
 		}
-
-		column = packetTable.getColumnModel().getColumn(0);
+		
+		column = table2.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);
 		
-		column = packetTable.getColumnModel().getColumn(1);
+		column = table2.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-
-		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(80);
-
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
-
-		column = packetTable.getColumnModel().getColumn(4);
-		column.setPreferredWidth(600);
+		
+		for (int i=0; i<table2.getColumnCount()-2; i++) {
+			column = table2.getColumnModel().getColumn(i+2);
+			int w = layout2.fieldName[i].length();
+			column.setPreferredWidth(10+7*w);
+		}
 	}
 
 	protected void parseRadiationFrames() {
@@ -241,43 +222,21 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		} else {
 			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout2.name);	
 			if (data != null && data.length > 0) {
-				parseTelemetry(data);
+				//parseTelemetry(data);
+				parseRawBytes(data,expTableModel2);
 			}
 		}
 
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 
 		displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 		MainWindow.frame.repaint();
-	}
-
-
-	protected void parseTelemetry(String data[][]) {
-		int len = data.length;
-		long[][] keyPacketData = null;
-		String[][] packetData = null;
-		keyPacketData = new long[len][1];
-		packetData = new String[len][5];
-		for (int i=0; i < len; i++) { 
-			keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
-			packetData[len-i-1][0] = String.format("%08x", Long.parseLong(data[i][0]));
-			packetData[len-i-1][1] = data[i][1];
-			packetData[len-i-1][2] = data[i][2];
-			packetData[len-i-1][3] = data[i][3];
-			packetData[len-i-1][4] = data[i][4];
-		}
-
-		if (packetData.length > 0) {
-
-			expPacketTableModel.setData(keyPacketData, packetData);
-		}
-
 	}
 
 	public void updateTab(FramePart rad, boolean refreshTable) {

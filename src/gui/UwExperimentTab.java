@@ -244,23 +244,23 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		}
 
 		// This is the table that shows CAN Packets and counts
-		column = packetTable.getColumnModel().getColumn(0);
+		column = table2.getColumnModel().getColumn(0);
 		column.setPreferredWidth(100);
 		column.setCellRenderer( centerRenderer );
 
-		column = packetTable.getColumnModel().getColumn(1);
+		column = table2.getColumnModel().getColumn(1);
 		column.setPreferredWidth(150);
 		column.setCellRenderer( centerRenderer );
 
-		column = packetTable.getColumnModel().getColumn(2);
+		column = table2.getColumnModel().getColumn(2);
 		column.setPreferredWidth(150);
 
-		column = packetTable.getColumnModel().getColumn(3);
+		column = table2.getColumnModel().getColumn(3);
 		column.setPreferredWidth(150);
 
-		column = packetTable.getColumnModel().getColumn(4);
+		column = table2.getColumnModel().getColumn(4);
 		column.setPreferredWidth(155);
-		column = packetTable.getColumnModel().getColumn(5);
+		column = table2.getColumnModel().getColumn(5);
 		column.setPreferredWidth(55);
 		column.setCellRenderer( centerRenderer );
 	}
@@ -374,10 +374,10 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		}
 
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 

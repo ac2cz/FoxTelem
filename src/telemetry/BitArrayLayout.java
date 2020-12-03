@@ -1,5 +1,6 @@
 package telemetry;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -56,6 +57,7 @@ public class BitArrayLayout {
 	public String type = ""; // set when this is loaded by the spacecraft.
 	public String title; // the title to put on the tab
 	public String shortTitle; // the title to name the tab
+	public Color color = Color.BLUE;
 	
 	public static final String NONE = "NONE";
 	
@@ -216,8 +218,10 @@ public class BitArrayLayout {
 	public String getConversionNameByName(String name) {
 		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
-			if (name.equalsIgnoreCase(fieldName[i]))
+			if (name.equalsIgnoreCase(fieldName[i])) {
 				pos = i;
+				break;
+			}
 		}
 		if (pos == ERROR_POSITION) {
 			return NONE;

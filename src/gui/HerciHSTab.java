@@ -186,42 +186,42 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 				column.setPreferredWidth(30);
 		}
 
-		column = packetTable.getColumnModel().getColumn(0);
+		column = table2.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);
 		
-		column = packetTable.getColumnModel().getColumn(1);
+		column = table2.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-		column = packetTable.getColumnModel().getColumn(2);
+		column = table2.getColumnModel().getColumn(2);
 		column.setPreferredWidth(55);
-		column = packetTable.getColumnModel().getColumn(3);
+		column = table2.getColumnModel().getColumn(3);
 		column.setPreferredWidth(90);
 
-		column = packetTable.getColumnModel().getColumn(4);
+		column = table2.getColumnModel().getColumn(4);
 		column.setPreferredWidth(35);
-		column = packetTable.getColumnModel().getColumn(5);
+		column = table2.getColumnModel().getColumn(5);
 		column.setPreferredWidth(35);
 
-		column = packetTable.getColumnModel().getColumn(6);
+		column = table2.getColumnModel().getColumn(6);
 		column.setPreferredWidth(55);
 
-		column = packetTable.getColumnModel().getColumn(7);
+		column = table2.getColumnModel().getColumn(7);
 		column.setPreferredWidth(35);
 		
-		column = packetTable.getColumnModel().getColumn(8);
+		column = table2.getColumnModel().getColumn(8);
 		column.setPreferredWidth(45);
-		column = packetTable.getColumnModel().getColumn(9);
+		column = table2.getColumnModel().getColumn(9);
 		column.setPreferredWidth(45);
-		column = packetTable.getColumnModel().getColumn(10);
+		column = table2.getColumnModel().getColumn(10);
 		column.setPreferredWidth(45);
 
-		column = packetTable.getColumnModel().getColumn(11);
+		column = table2.getColumnModel().getColumn(11);
 		column.setPreferredWidth(600);
 
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 				
@@ -293,12 +293,12 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 		if (Config.displayRawRadData) {
 			parseRawBytes();
 			
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else {
 			parseMiniPackets();
 			
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 		

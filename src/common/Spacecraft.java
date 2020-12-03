@@ -262,6 +262,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 
 	public Conversion getConversionByName(String name) {
+		if (conversions == null) return null;
 		Conversion conv = conversions.get(name);
 		return conv;
 	}

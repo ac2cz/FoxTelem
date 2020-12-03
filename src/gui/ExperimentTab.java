@@ -50,8 +50,8 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 	JPanel centerPanel;
 	PayloadRadExpData radPayload;
 	JTable table;
-	JTable packetTable;
-	JScrollPane packetScrollPane;
+	JTable table2;
+	JScrollPane scrollPane2;
 	JScrollPane scrollPane;
 	JCheckBox showRawBytes;
 	
@@ -71,16 +71,15 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		bottomPanel.setLayout(new BoxLayout(bottomPanel, BoxLayout.X_AXIS));
 	}
 	
-	protected void addTables(AbstractTableModel radTableModel, AbstractTableModel radPacketTableModel ) {
-		
-		
-		table = new JTable(radTableModel);
+	protected void addTables(AbstractTableModel tableModel, AbstractTableModel tableModel2 ) {
+			
+		table = new JTable(tableModel);
 		table.setAutoCreateRowSorter(true);
 		table.addMouseListener(this);
 		
 		
-		packetTable = new JTable(radPacketTableModel);
-		packetTable.setAutoCreateRowSorter(true);
+		table2 = new JTable(tableModel2);
+		table2.setAutoCreateRowSorter(true);
 		
 		//JScrollPane scrollPane = new JScrollPane(table);
 		scrollPane = new JScrollPane (table, 
@@ -115,42 +114,42 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		//table.setMinimumSize(new Dimension(6200, 6000));
 		centerPanel.add(scrollPane);
 
-		packetScrollPane = new JScrollPane (packetTable, 
+		scrollPane2 = new JScrollPane (table2, 
 				   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-		packetTable.setFillsViewportHeight(true);
-		packetTable.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		table2.setFillsViewportHeight(true);
+		table2.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 		//table.setMinimumSize(new Dimension(6200, 6000));
-		centerPanel.add(packetScrollPane);
+		centerPanel.add(scrollPane2);
 
-		packetTable.addMouseListener(this);
+		table2.addMouseListener(this);
 		
-		InputMap packetinMap = packetTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		InputMap packetinMap = table2.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		packetinMap.put(KeyStroke.getKeyStroke("UP"), PREV);
 		packetinMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
-		ActionMap packetactMap = packetTable.getActionMap();
+		ActionMap packetactMap = table2.getActionMap();
 
 		packetactMap.put(PREV, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
-				int row = packetTable.getSelectedRow();
+				int row = table2.getSelectedRow();
 				if (row > 0)
-					displayRow(packetTable, NO_ROW_SELECTED, row-1);
+					displayRow(table2, NO_ROW_SELECTED, row-1);
 			}
 		});
 		packetactMap.put(NEXT, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
-				int row = packetTable.getSelectedRow();
-				if (row < packetTable.getRowCount()-1)
-					displayRow(packetTable, NO_ROW_SELECTED, row+1);        
+				int row = table2.getSelectedRow();
+				if (row < table2.getRowCount()-1)
+					displayRow(table2, NO_ROW_SELECTED, row+1);        
 			}
 		});
 		
 	}
 	
-	protected abstract void displayRow(JTable packetTable, int fromRow, int row); // When we click on a row in the table we call this function to update the top part of the display
+	protected abstract void displayRow(JTable table, int fromRow, int row); // When we click on a row in the table we call this function to update the top part of the display
 	protected abstract void parseRadiationFrames(); // When we get new data we call this function to display it
 	
 	protected void parseRawBytes(String data[][], ExperimentLayoutTableModel radTableModel) {
@@ -168,7 +167,6 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 				}
 		radTableModel.setData(keyRawData, rawData);
 		
-
 	}
 	
 	@Override
@@ -184,10 +182,10 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 				Config.displayRawRadData = true;
 			}
 			if (showRawBytes.isSelected()) {
-				packetScrollPane.setVisible(false); 
+				scrollPane2.setVisible(false); 
 				scrollPane.setVisible(true);
 			} else { 
-				packetScrollPane.setVisible(true);
+				scrollPane2.setVisible(true);
 				scrollPane.setVisible(false);
 			}
 
@@ -205,7 +203,7 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 		if (showRawBytes.isSelected()) {
 			table = this.table;
 		} else {
-			table = packetTable;
+			table = table2;
 		}
 		
 		int row = table.rowAtPoint(e.getPoint());

@@ -71,8 +71,8 @@ ItemListener {
 
 		//if (sat.isFox1()) {
 			FoxSpacecraft fox = (FoxSpacecraft) sat;
-			satellite = new DisplayModule(fox, fox.user_display_name, 9,
-					DisplayModule.DISPLAY_MEASURES);
+			satellite = new DisplayModule(fox, fox.user_display_name, 9, null, 
+					DisplayModule.DISPLAY_MEASURES, DisplayModule.vulcanFontColor);
 			centerPanel.add(satellite);
 			satellite.addName(1, "Bit Sig to Noise (-)",
 					RtMeasurement.BIT_SNR, DisplayModule.DISPLAY_MEASURES);
@@ -95,11 +95,11 @@ ItemListener {
 		//if (sat.isFox1()) {
 		//	FoxSpacecraft fox = (FoxSpacecraft) sat;
 			if (sat.hasFrameCrc)
-			passes = new DisplayModule(fox, fox.user_display_name + " passes", 10,
-					DisplayModule.DISPLAY_PASS_MEASURES);
+			passes = new DisplayModule(fox, fox.user_display_name + " passes", 10, null,
+					DisplayModule.DISPLAY_PASS_MEASURES, DisplayModule.vulcanFontColor);
 			else
-				passes = new DisplayModule(fox, fox.user_display_name + " passes", 9,
-						DisplayModule.DISPLAY_PASS_MEASURES);
+				passes = new DisplayModule(fox, fox.user_display_name + " passes", 9, null,
+						DisplayModule.DISPLAY_PASS_MEASURES, DisplayModule.vulcanFontColor);
 			centerPanel.add(passes);
 			passes.addName(1, "AOS",	PassMeasurement.AOS, DisplayModule.DISPLAY_RT_ONLY);
 			passes.addName(2, "TCA",	PassMeasurement.TCA, DisplayModule.DISPLAY_RT_ONLY);

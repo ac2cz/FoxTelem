@@ -64,14 +64,10 @@ public class GraphPanel extends GraphCanvas {
 	int sideLabel = 0;
 	int bottomLabelOffset = 5;
 	
-
-	
-	
-	
-	GraphPanel(String t, int plType, GraphFrame gf, FoxSpacecraft fox2) {
-		super(t, plType, gf, fox2);
+	GraphPanel(String t, GraphFrame gf, FoxSpacecraft fox2) {
+		super(t, gf, fox2);
 		freqOffset = (int) (fox2.user_telemetryDownlinkFreqkHz * 1000);
-		updateGraphData("GrapPanel.new");
+		updateGraphData(gf.layout, "GrapPanel.new");
 	}
 
 	

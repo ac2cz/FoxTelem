@@ -262,7 +262,7 @@ public class SpacecraftTab extends JPanel {
 
 	private void addExperimentTab(FoxSpacecraft fox) {
 		
-		VulcanTab experimentTab = new VulcanTab(fox, DisplayModule.DISPLAY_VULCAN);
+		VulcanTab experimentTab = new VulcanTab(fox, DisplayModule.DISPLAY_EXPERIMENT);
 		experimentThread = new Thread((VulcanTab)experimentTab);
 		experimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		experimentThread.start();
@@ -280,7 +280,7 @@ public class SpacecraftTab extends JPanel {
 			title = layout.title;
 		NamedExperimentTab ragExperimentTab = new NamedExperimentTab(fox, title, 
 				layout,
-				secondaryLayout, DisplayModule.DISPLAY_VULCAN);
+				secondaryLayout, DisplayModule.DISPLAY_EXPERIMENT);
 		Thread ragExperimentThread = new Thread(ragExperimentTab);
 		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		ragExperimentThread.start();
@@ -301,7 +301,7 @@ public class SpacecraftTab extends JPanel {
 			title = layout.title;
 		WodNamedExperimentTab wodExperimentTab = new WodNamedExperimentTab(fox, title, 
 				layout,
-				secondaryLayout, DisplayModule.DISPLAY_VULCAN);
+				secondaryLayout, DisplayModule.DISPLAY_WOD_EXPERIMENT);
 		Thread wodExperimentThread = new Thread(wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodExperimentThread.start();

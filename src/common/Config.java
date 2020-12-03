@@ -67,7 +67,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.10b";
-	public static String VERSION = VERSION_NUM + " - 29 Nov 2020";
+	public static String VERSION = VERSION_NUM + " - 2 Dec 2020";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -363,20 +363,23 @@ public class Config {
 			GROUND_STATION = new GroundStationPosition(0, 0, 0); // Dummy ground station.  This works for position calculations but not for Az/El
 		}
 	}
-
-	public static void init(String setLogFileDir) {
+	
+	public static void minInit(String setLogFileDir) {
 		properties = new Properties();
 		load();
 		if (setLogFileDir != null ) {
 			Config.logFileDirectory = setLogFileDir;
 			logDirFromPassedParam = true;
 		}
-		initSequence();
-		
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
+	}
 
+	public static void init(String setLogFileDir) {
+		minInit(setLogFileDir);
+		initSequence();
+		
 		storeGroundStation();
 		
 		initSatelliteManager();
