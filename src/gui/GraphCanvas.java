@@ -384,6 +384,9 @@ public abstract class GraphCanvas extends MapPanel {
 						|| graphType == BitArrayLayout.CONVERT_BOOLEAN
 						|| graphType == BitArrayLayout.CONVERT_STATUS_BIT)
 					intStep = true;
+				
+				if (Config.displayRawValues)
+					intStep = true;
 				// calculate the label step size
 				double[] labels = calcAxisInterval(minValue, maxValue, numberOfLabels, intStep);
 				// check the actual number
@@ -400,9 +403,9 @@ public abstract class GraphCanvas extends MapPanel {
 				if (axisPosition > 0) fudge = sideBorder + (int)(Config.graphAxisFontSize);
 				
 				g2.setColor(graphTextColor);
-				if (Config.displayRawValues)
+				if (Config.displayRawValues) {
 					g2.drawString("(RAW)", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
-				else
+				} else
 					g2.drawString("("+units+")", fudge+axisPosition+sideLabelOffset, topBorder -(int)(Config.graphAxisFontSize/2)); 
 			
 				for (int v=0; v < numberOfLabels; v++) {
@@ -416,7 +419,7 @@ public abstract class GraphCanvas extends MapPanel {
 						s = f1.format(labels[v]);
 					else
 						s = f3.format(labels[v]);
-					
+
 					boolean drawLabel = true;
 					// dont draw a label at the zero point or just below it because we have axis labels there, unless
 					// this is the second axis
@@ -424,90 +427,92 @@ public abstract class GraphCanvas extends MapPanel {
 							&& !((axisPosition == 0) && (labels[v] == 0.0 || ( v < numberOfLabels-1 && labels[v+1] == 0.0)))
 							&& !(v == 0 && pos > graphHeight)
 							) {
-						
-						if (conversion != null && conversion instanceof ConversionStringLookUpTable) {
-							ConversionStringLookUpTable cslt = (ConversionStringLookUpTable)conversion;
-							s = cslt.calculateString(labels[v]-1); // we offset by 1 so the last label is not on the axis
-							if (s.equalsIgnoreCase(ConversionStringLookUpTable.ERROR))
+
+						if (!Config.displayRawValues) {
+							if (conversion != null && conversion instanceof ConversionStringLookUpTable) {
+								ConversionStringLookUpTable cslt = (ConversionStringLookUpTable)conversion;
+								s = cslt.calculateString(labels[v]-1); // we offset by 1 so the last label is not on the axis
+								if (s.equalsIgnoreCase(ConversionStringLookUpTable.ERROR))
+									drawLabel = false;
+								else
+									drawLabel = true;
+							}
+
+							if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
 								drawLabel = false;
-							else
-								drawLabel = true;
+								if (labels[v] == 1) {
+									s = "STWD";
+									drawLabel = true;
+								}
+								if (labels[v] == 2) {
+									s = "DEP";
+									drawLabel = true;
+								}
+
+							} 
+							if (graphType == BitArrayLayout.CONVERT_STATUS_BIT) {
+								drawLabel = false;
+								if (labels[v] == 1) {
+									s = "OK";
+									drawLabel = true;
+								}
+								if (labels[v] == 2) {
+									s = "FAIL";
+									drawLabel = true;
+								}
+
+							} 
+
+							if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
+								drawLabel = false;
+								if (labels[v] == 1) {
+									s = RadiationPacket.radPacketStateShort[0];
+									drawLabel = true;
+								}
+								if (labels[v] == 2) {
+									s = RadiationPacket.radPacketStateShort[1];
+									drawLabel = true;
+								}
+								if (labels[v] == 3) {
+									s = RadiationPacket.radPacketStateShort[2];
+									drawLabel = true;
+								}
+								if (labels[v] == 4) {
+									s = RadiationPacket.radPacketStateShort[3];
+									drawLabel = true;
+								}
+								if (labels[v] == 5) {
+									s = RadiationPacket.radPacketStateShort[4];
+									drawLabel = true;
+								}
+
+							} 
+
+							if (graphType == BitArrayLayout.CONVERT_STATUS_ENABLED) {
+								drawLabel = false;
+								if (labels[v] == 2) {
+									s = "Enabled";
+									drawLabel = true;
+								}
+								if (labels[v] == 1) {
+									s = "Disabled";
+									drawLabel = true;
+								}	
+							} 
+
+							if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
+								drawLabel = false;
+								if (labels[v] == 2) {
+									s = "TRUE";
+									drawLabel = true;
+								}
+								if (labels[v] == 1) {
+									s = "FALSE";
+									drawLabel = true;
+								}
+
+							} 
 						}
-						
-						if (graphType == BitArrayLayout.CONVERT_ANTENNA) {
-							drawLabel = false;
-							if (labels[v] == 1) {
-								s = "STWD";
-								drawLabel = true;
-							}
-							if (labels[v] == 2) {
-								s = "DEP";
-								drawLabel = true;
-							}
-							
-						} 
-						if (graphType == BitArrayLayout.CONVERT_STATUS_BIT) {
-							drawLabel = false;
-							if (labels[v] == 1) {
-								s = "OK";
-								drawLabel = true;
-							}
-							if (labels[v] == 2) {
-								s = "FAIL";
-								drawLabel = true;
-							}
-							
-						} 
-
-						if (graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) {
-							drawLabel = false;
-							if (labels[v] == 1) {
-								s = RadiationPacket.radPacketStateShort[0];
-								drawLabel = true;
-							}
-							if (labels[v] == 2) {
-								s = RadiationPacket.radPacketStateShort[1];
-								drawLabel = true;
-							}
-							if (labels[v] == 3) {
-								s = RadiationPacket.radPacketStateShort[2];
-								drawLabel = true;
-							}
-							if (labels[v] == 4) {
-								s = RadiationPacket.radPacketStateShort[3];
-								drawLabel = true;
-							}
-							if (labels[v] == 5) {
-								s = RadiationPacket.radPacketStateShort[4];
-								drawLabel = true;
-							}
-							
-						} 
-
-						if (graphType == BitArrayLayout.CONVERT_STATUS_ENABLED) {
-							drawLabel = false;
-							if (labels[v] == 2) {
-								s = "Enabled";
-								drawLabel = true;
-							}
-							if (labels[v] == 1) {
-								s = "Disabled";
-								drawLabel = true;
-							}	
-						} 
-						
-						if (graphType == BitArrayLayout.CONVERT_BOOLEAN) {
-							drawLabel = false;
-							if (labels[v] == 2) {
-								s = "TRUE";
-								drawLabel = true;
-							}
-							if (labels[v] == 1) {
-								s = "FALSE";
-								drawLabel = true;
-							}
-							
-						} 
 						
 						if (drawLabel && pos > 0 && (pos < graphHeight-Config.graphAxisFontSize/2))	{ 
 							g2.setColor(graphTextColor);

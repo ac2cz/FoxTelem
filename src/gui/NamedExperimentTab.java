@@ -52,6 +52,9 @@ import common.FoxSpacecraft;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * This is a tab that displays experiement data.  This has two layouts.  Layout1 is the raw experiment data,
+ * often just raw bytes.  Layout2 is the data parsed into fields and is shown at the top of the tab.
  *
  */
 @SuppressWarnings("serial")
@@ -273,7 +276,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, layout.name);
 				if (frames != currentFrames) {
 					currentFrames = frames;
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 					Config.payloadStore.setUpdated(foxId, layout.name, false);
 					MainWindow.setTotalDecodes();
@@ -285,14 +288,15 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 					MainWindow.frame.repaint();
 				}
 				// If either of these are toggled then redisplay the results
+				// But this fails if we have a row selected!!
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 				}
 			}
 		}
@@ -312,8 +316,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				Config.displayRawValues = true;
 			}
 			Config.save();
-			updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
-
+			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 		}
 	}
 
@@ -324,16 +327,17 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	}
 
 	protected void displayRow(JTable table, int fromRow, int row) {
-		//if (Config.displayRawRadData) {
-			long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
-			long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-			//Log.println("RESET: " + reset_l);
-			//Log.println("UPTIME: " + uptime);
-			int reset = (int)reset_l;
-			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
-		//} else {
-		//	updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
-		//}
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+		long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+		//Log.println("RESET: " + reset_l);
+		//Log.println("UPTIME: " + uptime);
+		int reset = (int)reset_l;
+//		if (Config.displayRawRadData) {
+//			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
+//		} else {
+			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout2.name, false), false);
+			//			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
+//		}
 		if (fromRow == NO_ROW_SELECTED)
 			fromRow = row;
 		if (fromRow <= row)

@@ -585,11 +585,11 @@ public class GraphPanel extends GraphCanvas {
 					//				System.out.println(x + " graphData " + graphData[i]);
 
 					// Calculate the ratio from min to max
-					if (conversion != null && conversion instanceof ConversionStringLookUpTable) 
+					if (!Config.displayRawValues && conversion != null && conversion instanceof ConversionStringLookUpTable) 
 						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]+1, graphHeight);
-					else if (graphType == BitArrayLayout.CONVERT_ANTENNA|| graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
+					else if (!Config.displayRawValues && (graphType == BitArrayLayout.CONVERT_ANTENNA|| graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
 							|| graphType == BitArrayLayout.CONVERT_STATUS_BIT 
-							|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS ) 
+							|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) ) 
 						//if (graphFrame.displayMain)
 						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]+1, graphHeight);
 					else if (graphType == BitArrayLayout.CONVERT_FREQ) {

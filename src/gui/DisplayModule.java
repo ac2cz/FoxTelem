@@ -292,6 +292,8 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		rtPayload = rt;
 		for (int i=0; i < size; i++) {
 			if(fieldName[i] != null) {
+//				if (fieldName[i].equalsIgnoreCase("VUC_STATE"))
+//					Log.println("BREAK POINT");
 				rtValue[i].setFont(new Font("SansSerif", Font.PLAIN, Config.displayModuleFontSize));
 				if (rt.hasFieldName(fieldName[i])) { 
 					if (Config.displayRawValues)
@@ -630,17 +632,21 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
+				System.out.println("DisplayModule: " + i);
 				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
-				} else
+					System.out.println("But no value for: " + rtValue[i].getName() +" : "+ rtValue[i].getText());
+				} else {
+					System.out.println("Graph for: " + rtValue[i].getName() +" : "+ rtValue[i].getText());
 					if (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)
 						displayGraph(i, GraphFrame.EARTH_PLOT);
 					else
 						displayGraph(i, GraphFrame.GRAPH_PLOT);
-
+				}
+				break;
+				
 			}
 		}
 	}

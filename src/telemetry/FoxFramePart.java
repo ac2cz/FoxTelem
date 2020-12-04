@@ -263,8 +263,10 @@ longer send telemetry.
 	public String getStringValue(String name, Spacecraft fox) {
 		int pos = -1;
 		for (int i=0; i < layout.fieldName.length; i++) {
-			if (name.equalsIgnoreCase(layout.fieldName[i]))
+			if (name.equalsIgnoreCase(layout.fieldName[i])) {
 				pos = i;
+				break;
+			}
 		}
 		// First calculate the value as normal, converting the raw value
 		double dvalue = getDoubleValue(name, fox);
