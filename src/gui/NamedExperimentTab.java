@@ -216,11 +216,11 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		String[][] data = null;
 					
 		if (Config.displayRawRadData) {
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);	
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, false, reverse, layout.name);	
 			if (data != null && data.length > 0)
 				parseRawBytes(data,expTableModel);
 		} else {
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout2.name);	
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, false, reverse, layout2.name);	
 			if (data != null && data.length > 0) {
 				//parseTelemetry(data);
 				parseRawBytes(data,expTableModel2);
@@ -324,16 +324,16 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	}
 
 	protected void displayRow(JTable table, int fromRow, int row) {
-		if (Config.displayRawRadData) {
+		//if (Config.displayRawRadData) {
 			long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
 			long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
 			//Log.println("RESET: " + reset_l);
 			//Log.println("UPTIME: " + uptime);
 			int reset = (int)reset_l;
 			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
-		} else {
-			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
-		}
+		//} else {
+		//	updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
+		//}
 		if (fromRow == NO_ROW_SELECTED)
 			fromRow = row;
 		if (fromRow <= row)
