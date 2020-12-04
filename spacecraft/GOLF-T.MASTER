@@ -18,7 +18,7 @@ hasFOXDB_V3=true
 hasModeInHeader=true
 useConversionCoeffs=true
 conversionCurvesFileName=GOLF-T_conversion_curves.csv
-numberOfFrameLayouts=8
+numberOfFrameLayouts=9
 frameLayout0.filename=GOLF-T_Type0_RT1.frame
 frameLayout0.name=Realtime 1
 frameLayout1.filename=GOLF-T_Type1_RT2.frame
@@ -35,8 +35,10 @@ frameLayout6.filename=GOLF-T_Type6_SafeData2.frame
 frameLayout6.name=Safe Data 2
 frameLayout7.filename=GOLF-T_Type7_SafeWOD.frame
 frameLayout7.name=Safe WOD
+frameLayout8.filename=GOLF-T_Type8_Diagnostic.frame
+frameLayout8.name=Diagnostic
 
-numberOfLayouts=11
+numberOfLayouts=12
 layout0.filename=FOX1A_debug.csv
 layout0.name=DEBUG
 layout0.type=DGB
@@ -90,6 +92,10 @@ layout10.name=wodragtelemetry
 layout10.type=WOD_EXP
 layout10.shortTitle=WOD ADAC
 layout10.title=Ragnaroc Attitude Determination and Control Experiment
+
+layout11.filename=GOLF-T_diagnostictelemetry.csv
+layout11.name=Diagnostics
+layout11.type=EXP
 
 numberOfLookupTables=4
 lookupTable0.filename=FOX1A_rssiFM.tab

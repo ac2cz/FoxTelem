@@ -49,18 +49,18 @@
 47,wod,Power10GHz,8,mW,0,SDR Radio,11,1,3,SSPA Power,Power output of the 10GHz SSPA
 48,wod,ZynqTemp,8,c,8_bit_temp,SDR Radio,11,2,4,SDR Zynq Temp,SDR Zynq temp
 49,wod,SDRTcvrTemp,8,-,8_bit_temp,SDR Radio,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
-50,wod,DeploySenseCan,8,-,16,Spacecraft Status,3,6,0,Deploy Sense via CAN,TBD
-51,wod,DeploySenseI2c,8,-,16,Spacecraft Status,3,7,0,Deploy Sense via I2c,TBD
+50,wod,DeploySenseCan,8,-,16,Spacecraft Status,3,4,0,Deploy Sense via CAN,TBD
+51,wod,DeploySenseI2c,8,-,16,Spacecraft Status,3,5,0,Deploy Sense via I2c,TBD
 52,wod,PrimaryRTActive,1,-,21,RT-IHU,7,5,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
 53,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
 54,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
 55,wod,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
 56,wod,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
-57,wod,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder,-
+57,wod,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder Enabled,-
 58,wod,I2CfailureICR,1,-,17,Command Receivers,4,4,0,I2cICR,Antenna is not communicating over bus 2
-59,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,3,8,0,I2c Deploy,Antenna is not communicating over bus 1
+59,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,3,6,0,I2c Deploy,Antenna is not communicating over bus 1
 60,wod,TLMresets,8,-,1,Min Max,10,7,0,Ground Resets,Number of times command stations reset stored telemetry
-61,wod,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+61,wod,wodSize,8,-,36,Spacecraft Status,3,2,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
 62,wod,swCmds,32,-,35,Command Receivers,4,5,0,Diagnostic,ICR Diagnostic information
 63,wod,hwCmdCnt,8,-,1,Command Receivers,4,6,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
 64,wod,swCmdCntICR,8,-,34,Command Receivers,4,7,0,SW Cmd Cnt ICR,Number of software commands since last reset
@@ -92,5 +92,5 @@
 90,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
 91,wod,inSafeMode,1,21,0,Spacecraft Status,3,4,0,Safe Mode,Are we in safe mode?
 92,wod,inHealthMode,1,21,0,Spacecraft Status,3,5,0,Health Mode,Are we in health mode?
-93,wod,inScienceMode,1,21,0,Spacecraft Status,3,6,0,Science Mode,Are we in science mode?
+93,wod,inScienceMode,1,21,0,Spacecraft Status,3,9,0,Science Mode,Are we in science mode?
 94,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
