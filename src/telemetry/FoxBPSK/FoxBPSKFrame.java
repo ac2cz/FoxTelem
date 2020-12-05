@@ -85,7 +85,8 @@ import telemetry.TelemFormat;
 			if (Config.debugBytes) {
 				String debug = (Decoder.plainhex(b));
 				debugCount++;
-				Log.print("0x" + debug + ",");
+				Log.print(numberBytesAdded + ":" + debug + ",");
+//				Log.print("0x" + debug + ",");
 				if (debugCount % 20 == 0) Log.println("");
 			}
 

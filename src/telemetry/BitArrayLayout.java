@@ -54,7 +54,7 @@ public class BitArrayLayout {
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
 	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
 	public int number; // this replaces what used to be the payload type and now matches the number on the MASTER file
-	public String type = ""; // set when this is loaded by the spacecraft.
+	public String typeStr = ""; // set when this is loaded by the spacecraft.
 	public String title; // the title to put on the tab
 	public String shortTitle; // the title to name the tab
 	public Color color = Color.BLUE;
@@ -168,32 +168,32 @@ public class BitArrayLayout {
 	}
 	
 	public boolean isRealTime() {
-		if (type.equalsIgnoreCase(BitArrayLayout.RT)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.RT)) return true;
 		return false;
 	}
 
 	public boolean isWOD() {
-		if (type.equalsIgnoreCase(BitArrayLayout.WOD)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD)) return true;
 		return false;
 	}
 
 	public boolean isMAX() {
-		if (type.equalsIgnoreCase(BitArrayLayout.MAX)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.MAX)) return true;
 		return false;
 	}
 
 	public boolean isMIN() {
-		if (type.equalsIgnoreCase(BitArrayLayout.MIN)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.MIN)) return true;
 		return false;
 	}
 	
 	public boolean isExperiment() {
-		if (type.equalsIgnoreCase(BitArrayLayout.EXP)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.EXP)) return true;
 		return false;
 	}
 
 	public boolean isWODExperiment() {
-		if (type.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
 		return false;
 	}
 

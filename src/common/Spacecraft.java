@@ -534,7 +534,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
 				if (hasFOXDB_V3) {
 					layout[i].number = i;
-					layout[i].type = getProperty("layout"+i+".type");
+					layout[i].typeStr = getProperty("layout"+i+".type");
 					layout[i].title = getOptionalProperty("layout"+i+".title");
 					layout[i].shortTitle = getOptionalProperty("layout"+i+".shortTitle");
 				}

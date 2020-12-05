@@ -32,12 +32,12 @@ import java.util.StringTokenizer;
 public class PayloadExperiment extends FoxFramePart {	
 	
 	public PayloadExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
-		super(TYPE_RAG_TELEM,lay);
+		super(lay.number,lay);
 		captureHeaderInfo(id, uptime, resets);
 	}
 	
 	public PayloadExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-		super(id, resets, uptime, TYPE_RAG_TELEM, date, st, lay);
+		super(id, resets, uptime, lay.number, date, st, lay);
 	}
 	
 	protected void init() { 
@@ -48,11 +48,16 @@ public class PayloadExperiment extends FoxFramePart {
 	@Override
 	public String toString() {
 		copyBitsToFields();
-		String s = "RAG TELEM PAYLOAD\n";
+		String s = "EXP TELEM PAYLOAD\n";
+		if (this.layout != null && this.layout.title != null)
+			s = layout.title + " PAYLOAD\n";
 		s = s + "RESET: " + resets;
 		s = s + "  UPTIME: " + uptime;
-		s = s + "  TYPE: " + type + "\n";
-
+		s = s + "  LAYOUT NUM: " + type + "\n";
+		for (int i=0; i < layout.fieldName.length; i++) {
+			s = s + layout.fieldName[i] + ": " + fieldValue[i] + ",   ";
+			if ((i+1)%6 == 0) s = s + "\n";
+		}
 		return s;
 	}
 
