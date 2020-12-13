@@ -536,7 +536,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 									
 				graph[plotType][i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 			}
-			Log.println("DISPLAY GRAPH "+fieldName[i]);
+			//Log.println("DISPLAY GRAPH "+fieldName[i]);
 			graph[plotType][i].setVisible(true);
 		} catch (Exception ex) {
 			Log.println("MOUSE CLICKED EXCEPTION");
@@ -634,12 +634,12 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	public void mouseClicked(MouseEvent e) {
 		for (int i=1; i< size; i++) {
 			if (e.getSource() == row[i]) {
-				System.out.println("DisplayModule: " + i);
+				//System.out.println("DisplayModule: " + i);
 				if (rtValue[i].getText().equalsIgnoreCase(noValue)) {
 					// dont open graph
-					System.out.println("But no value for: " + rtValue[i].getName() +" : "+ rtValue[i].getText());
+					//System.out.println("But no value for: " + rtValue[i].getName() +" : "+ rtValue[i].getText());
 				} else {
-					System.out.println("Graph for: " + rtValue[i].getName() +" : "+ rtValue[i].getText());
+					//System.out.println("Graph for: " + rtValue[i].getName() +" : "+ rtValue[i].getText());
 					if (e.isControlDown() || e.getButton() == MouseEvent.BUTTON3)
 						displayGraph(i, GraphFrame.EARTH_PLOT);
 					else
