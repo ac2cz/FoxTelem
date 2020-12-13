@@ -295,6 +295,9 @@ public class Config {
 	static public int newResetCheckThreshold = 60; // seconds tolerance to match the spacecrafts clock for reset check
 	static public int newResetCheckUptimeMax = 15000;
 	
+	// V1.09
+	static public boolean use12kHzIfForBPSK = false;
+	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
@@ -750,7 +753,9 @@ public class Config {
 		// V1.09
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
 		properties.setProperty("format", Integer.toString(format));
-
+		properties.setProperty("use12kHzIfForBPSK", Boolean.toString(use12kHzIfForBPSK));
+		
+		
 		store();
 	}
 	
@@ -946,7 +951,8 @@ public class Config {
 		// V1.09
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		format = Integer.parseInt(getProperty("format"));
-
+		use12kHzIfForBPSK = Boolean.parseBoolean(getProperty("use12kHzIfForBPSK"));
+		
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {

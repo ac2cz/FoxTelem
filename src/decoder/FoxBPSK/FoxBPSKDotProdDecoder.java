@@ -53,7 +53,9 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 	int chunk = 0;
 	public int SEARCH_INTERVAL = 0; //set by window length. 16;  // 512 symbols gives 16, 128 gives 64, 40 gives 204, ie 256
 	public static final int NSEARCHERS = 4;
-	public static final double CENTER_CARRIER = 1500;         // Center of carrier frequency search range
+	public static final double DEFAULT_CENTER_CARRIER = 1500;         
+	public static final double HIGH_CENTER_CARRIER = 12000;  
+	double CENTER_CARRIER = 0;     // Center of carrier frequency search range
 	static final double CARRIER_SEARCH_RANGE = 800;    // Limits of search range above and below Carrier frequency, stay below 2400 which is twice the carrier to avoid false lock
 	int Ftotal = (int) (2 * CARRIER_SEARCH_RANGE/100.0d + 1);
 	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
@@ -65,15 +67,15 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 	
 	//CosOscillator cos = new CosOscillator(currentSampleRate, (int)Carrier);
 	//SinOscillator sin = new SinOscillator(currentSampleRate, (int)Carrier);
-	ComplexOscillator nco = new ComplexOscillator(currentSampleRate, (int)CENTER_CARRIER);
+	ComplexOscillator nco;
 
 
-	CosOscillator ftcos = new CosOscillator(currentSampleRate, (int)CENTER_CARRIER);
-	SinOscillator ftsin = new SinOscillator(currentSampleRate, (int)CENTER_CARRIER);
+	CosOscillator ftcos;
+	SinOscillator ftsin;
 	
 //	double freq = 100.0;  //////////////// legacy value, REMOVE
 	
-	double carrier = CENTER_CARRIER;
+	double carrier = 0;
     double cphase_inc;
     double cphase = 0; // phase that we start the window when we downconvert with best carrier
     int symphase = 0;
@@ -97,7 +99,16 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 
 	@Override
 	protected void init() {
-		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder: ");
+		if (Config.use12kHzIfForBPSK)
+			CENTER_CARRIER = HIGH_CENTER_CARRIER;
+		else
+			CENTER_CARRIER = DEFAULT_CENTER_CARRIER;
+		Log.println("Initializing 1200bps BPSK Non Coherent Dot Product decoder centered on: " + carrier);
+		nco = new ComplexOscillator(currentSampleRate, (int)CENTER_CARRIER);
+
+		ftcos = new CosOscillator(currentSampleRate, (int)CENTER_CARRIER);
+		ftsin = new SinOscillator(currentSampleRate, (int)CENTER_CARRIER);
+		
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 100; // 512 for KA9Q decoder on 2m, but we have 3-4x Doppler on 70cm  
 		SEARCH_INTERVAL = (int) 1*8192/SAMPLE_WINDOW_LENGTH;
