@@ -18,6 +18,10 @@ import telemetry.uw.CanPacket;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
+	/**
+	 * These are legacy types and should not be used for processing in the future.  All processing should be based on
+	 * the layout and attributes of the layout that are set in the MASTER file.
+	 */
 	public static final int TYPE_DEBUG = 0;
 	public static final int TYPE_REAL_TIME = 1;
 	public static final int TYPE_MAX_VALUES = 2;
@@ -268,7 +272,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	
 	/**
 	 * 
-	 * Factory Method to make a new Frame Part from a layout
+	 * Factory Method to make a V3 SEG DB Frame Part from a layout
 	 * @return
 	 */
 	public static FramePart makePayload(Header header, BitArrayLayout layout) {
@@ -276,7 +280,58 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	}
 	
 	public static FramePart makePayload(Header header, String layoutName) {
-		BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, layoutName);
+		return makeLegacyPayload(header.id, header.resets, header.uptime, layoutName);
+	}
+	
+	/**
+	 * Make a V3 SEG DB payload from its layout
+	 * @param header
+	 * @param layoutName
+	 * @return
+	 */
+	public static FramePart makePayload(int id, int resets, long uptime, String layoutName) {
+		BitArrayLayout layout = Config.satManager.getLayoutByName(id, layoutName);
+		// TODO - setting the reset/uptime should be forced in the constructor for FramePart
+		switch (layout.typeStr) {
+			case BitArrayLayout.RT:
+				return new PayloadRtValues(layout);
+			case BitArrayLayout.MAX:
+				return new PayloadMaxValues(layout);
+			case BitArrayLayout.MIN:
+				return new PayloadMinValues(layout);
+			case BitArrayLayout.WOD:
+				return new PayloadWOD(layout);
+			case BitArrayLayout.EXP:
+				return new PayloadExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.WOD_EXP:
+				return new PayloadWODExperiment(layout, id, uptime, resets);
+			default:
+				return null;
+		}
+	}
+	
+	/**
+	 * 
+	 * Factory Method to make a pre V3 SEGDB Frame Part from a layout
+	 * @return
+	 */
+	public static FramePart makeLegacyPayload(Header header, BitArrayLayout layout) {
+		return makeLegacyPayload(header, layout.name);
+	}
+	
+	public static FramePart makeLegacyPayload(Header header, String layoutName) {
+		return makeLegacyPayload(header.id, header.resets, header.uptime, layoutName);
+	}
+	
+	/**
+	 * Make a pre V3 SEG DB payload from its layout
+	 * @param header
+	 * @param layoutName
+	 * @return
+	 */
+	public static FramePart makeLegacyPayload(int id, int resets, long uptime, String layoutName) {
+		BitArrayLayout layout = Config.satManager.getLayoutByName(id, layoutName);
+		// TODO - setting the reset/uptime should be forced in the constructor for FramePart
 		switch (layoutName) {
 			case Spacecraft.REAL_TIME_LAYOUT:
 				return new PayloadRtValues(layout);
@@ -291,26 +346,33 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			case Spacecraft.WOD_RAD_LAYOUT:
 				return new PayloadWODRad(layout);
 			case Spacecraft.WOD_CAN_LAYOUT:
-				return new PayloadWODUwExperiment(layout, header.id, header.uptime, header.resets);
+				return new PayloadWODUwExperiment(layout, id, uptime, resets);
 			case Spacecraft.CAN_LAYOUT:
-				return new PayloadUwExperiment(layout, header.id, header.uptime, header.resets);
-//			case Spacecraft.RAG_LAYOUT:
-//				return new PayloadExperiment(Config.satManager.getLayoutByName(header.id, Spacecraft.RAG_LAYOUT), header.id, header.uptime, header.resets);
-//			case Spacecraft.WOD_RAG_LAYOUT:
+				return new PayloadUwExperiment(layout, id, uptime, resets);
 			default:
-				// Other experiment data
+				// Other experiment data, though this should use the V3 method
 				if (layout.isExperiment())
-					return new PayloadExperiment(layout, header.id, header.uptime, header.resets);
+					return new PayloadExperiment(layout, id, uptime, resets);
 				if (layout.isWODExperiment())
-					return new PayloadWODExperiment(layout, header.id, header.uptime, header.resets);
+					return new PayloadWODExperiment(layout, id, uptime, resets);
 				
-	
 				return null;
 		}
 	}
+	
+	/**
+	 * Make a payload from the V3 SegDB using its Layout
+	 * Before V3 SegDB there is no guarantee that the layout type is set correctly for this to work
+	 * 
+	 * @param id
+	 * @param resets
+	 * @param uptime
+	 * @param date
+	 * @param st
+	 * @param lay
+	 * @return
+	 */
 	public static FramePart makePayload(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
-//		DO NOY RELY ON TYPE!!!!
-//		DONT NEED ALL THE CORNER CASES e.g. DONT NEED RAD IF WE WILL STORE IN PayloadExperiement this time!!
 		FoxFramePart rt = null;
 		if (lay.isRealTime())
 			rt = new PayloadRtValues(id, resets, uptime, date, st, lay);
@@ -327,6 +389,19 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		return rt;
 	}
 	
+	/**
+	 * Make a payload from the LEGACY V3 DB based on the type that was stored in the DB flat file.  
+	 * Avoid following this process in the future
+	 * 
+	 * @param id
+	 * @param resets
+	 * @param uptime
+	 * @param date
+	 * @param st
+	 * @param type
+	 * @return
+	 */
+	@Deprecated
 	public static FramePart makeLegacyPayload(int id, int resets, long uptime, String date, StringTokenizer st, int type) {
 		FoxFramePart rt = null;
 		

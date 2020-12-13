@@ -238,7 +238,10 @@ import telemetry.TelemFormat;
 					payload[0] = null; // cause us to drop out
 					return;
 				}
-				payload[i] = (FoxFramePart) FramePart.makePayload(header, layout);
+				if (fox.hasFOXDB_V3)
+					payload[i] = (FoxFramePart) FramePart.makePayload(header, layout);
+				else
+					payload[i] = (FoxFramePart) FramePart.makeLegacyPayload(header, layout);
 			}
 		}
 		

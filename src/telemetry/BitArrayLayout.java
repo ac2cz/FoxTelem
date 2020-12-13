@@ -53,6 +53,7 @@ public class BitArrayLayout {
 	public String fileName;
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
 	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
+	public String secondaryLayout = null; // this is set to the value of the secondary payload we generate when this is stored
 	public int number; // this replaces what used to be the payload type and now matches the number on the MASTER file
 	public String typeStr = ""; // set when this is loaded by the spacecraft.
 	public String title; // the title to put on the tab
@@ -197,6 +198,9 @@ public class BitArrayLayout {
 		return false;
 	}
 
+	public String getSecondaryPayloadName() {
+		return secondaryLayout;
+	}
 	
 	public boolean isSecondaryPayload() {
 		if (parentLayout != null) return true;

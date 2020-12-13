@@ -183,6 +183,13 @@ public class SatPayloadStore {
 	private boolean addRadSecondaryRecord(PayloadRadExpData f) throws IOException {
 		
 		// Capture and store any secondary payloads
+		// First check the V3 SEG DB method
+		if (f.layout.getSecondaryPayloadName() != null) {
+			BitArrayLayout secondaryLayout = Config.satManager.getLayoutByName(fox.foxId, f.layout.getSecondaryPayloadName());
+			
+			FramePart radiationTelemetry = FramePart.makePayload(f.id, f.resets, f.uptime, secondaryLayout.name);
+			add(radiationTelemetry);
+		} else
 		if (f.layout.name.equalsIgnoreCase(Spacecraft.HERCI_HS_LAYOUT) || f.isTelemetry()) {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
