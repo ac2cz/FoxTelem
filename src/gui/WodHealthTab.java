@@ -91,11 +91,23 @@ public class WodHealthTab extends HealthTab {
 		super.addBottomFilter();
 	}
 	
+	/**
+	 * Display the LAT LON of the selected record at the top of the WOD tab.
+	 * The position calculation returns an error value if the LAT LON can not be calculated.
+	 */
 	private void displayLatLong() {
 		PayloadWOD wod = (PayloadWOD)realTime;
 		SatPos pos = null;
 		try {
 			pos = fox.getSatellitePosition(wod.getResets(), wod.getUptime());
+			if (pos != null) {
+				wod.setSatPosition(pos);
+				lblSatLatitudeValue.setText(" " + wod.getSatLatitudeStr());
+				lblSatLongitudeValue.setText(" " + wod.getSatLongitudeStr());
+			} else {
+				lblSatLatitudeValue.setText(" ERR");
+				lblSatLongitudeValue.setText(" ERR");
+			}
 		} catch (PositionCalcException e) {
 			if (e.errorCode == FramePart.NO_TLE) {
 				lblSatLatitudeValue.setText(" NO TLE");
@@ -105,14 +117,8 @@ public class WodHealthTab extends HealthTab {
 				lblSatLongitudeValue.setText(" T0 NOT SET");
 			}
 		}
-		if (pos != null) {
-			wod.setSatPosition(pos);
-			lblSatLatitudeValue.setText(" " + wod.getSatLatitudeStr());
-			lblSatLongitudeValue.setText(" " + wod.getSatLongitudeStr());
-		} else {
-			lblSatLatitudeValue.setText(" T0 NOT SET");
-			lblSatLongitudeValue.setText(" T0 NOT SET");
-		}
+		
+		
 	}
 
 	protected void displayRow(JTable rtTable, int fromRow, int row) {
