@@ -99,7 +99,7 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 
 	@Override
 	protected void init() {
-		if (Config.use12kHzIfForBPSK)
+		if (!Config.iq && Config.use12kHzIfForBPSK)
 			CENTER_CARRIER = HIGH_CENTER_CARRIER;
 		else
 			CENTER_CARRIER = DEFAULT_CENTER_CARRIER;

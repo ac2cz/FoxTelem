@@ -76,7 +76,7 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 
 	@Override
 	protected void init() {
-		if (Config.use12kHzIfForBPSK) {
+		if (!Config.iq && Config.use12kHzIfForBPSK) {
 			LOW_SWEEP_LIMIT = 10000;
 			HIGH_SWEEP_LIMIT = 14000;
 		} else {
