@@ -305,7 +305,7 @@ public class FoxSpacecraft extends Spacecraft{
 	public SatPos getSatellitePosition(int reset, long uptime) throws PositionCalcException {
 		// We need to construct a date for the historical time of this WOD record
 		DateTime timeNow = getUtcDateTimeForReset(reset, uptime);
-		if (timeNow == null) return null;
+		if (timeNow == null) throw new PositionCalcException(FramePart.NO_T0);
 		SatPos satellitePosition = positionCache.getPosition(timeNow.getMillis());
 		if (satellitePosition != null) {
 			return satellitePosition;

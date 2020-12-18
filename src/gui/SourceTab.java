@@ -2620,7 +2620,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Config.satManager.updated = false;
 						}
 
-
+						/**
+						 * Scroll through the list of available sats and update the details in the top right of the tab
+						 * Note if we have at least one of them tracked
+						 * 
+						 */
 						for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 							Spacecraft sat = Config.satManager.spacecraftList.get(s);
 							if (sat.user_track)
@@ -2697,13 +2701,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					
 					// This logic sets the widgets on/off depending on what is selected in the settings
-					if (Config.iq && Config.foxTelemCalcsDoppler) {
-						cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
-						cbRetuneCenterFrequency.setToolTipText(RETUNE_AND_SWITCH_MODE_TIP);
-					} else {
-						cbRetuneCenterFrequency.setText(SWITCH_MODE);
-						cbRetuneCenterFrequency.setToolTipText(SWITCH_MODE_TIP);
-					}
+					
+					if (Config.foxTelemCalcsPosition)
+						if (Config.iq) {
+							cbRetuneCenterFrequency.setText(RETUNE_AND_SWITCH_MODE);
+							cbRetuneCenterFrequency.setToolTipText(RETUNE_AND_SWITCH_MODE_TIP);
+						} else {
+							cbRetuneCenterFrequency.setText(SWITCH_MODE);
+							cbRetuneCenterFrequency.setToolTipText(SWITCH_MODE_TIP);
+						}
 					if (atLeastOneTracked && (Config.foxTelemCalcsPosition || Config.useDDEforAzEl)) {
 						// This means we can enable auto start
 						autoStart.setEnabled(true);

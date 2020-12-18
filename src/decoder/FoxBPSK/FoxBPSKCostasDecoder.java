@@ -38,7 +38,34 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	double[] pskQAudioData;
 	double[] phasorData;
 
+	double gain = 1.0;
 
+	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
+	double beta = 64*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
+	double error;  // accumulation of the error over a buffer
+	//double loopError;
+	boolean lastPhase = false;
+	double freq = 700.0d;
+	public double LOW_SWEEP_LIMIT = 700.0;
+	public double HIGH_SWEEP_LIMIT = 5000.0;
+	
+	double iMix, qMix;
+	double fi = 0.0, fq = 0.0;
+	double ri, rq;
+	double lockLevel, avgLockLevel;
+	public static final double LOCK_LEVEL_THRESHOLD = 3000;
+	public static final double FREQ_SWEEP_INCREMENT = 0.04;
+
+
+	// Kep track of where we are in the bit for sampling
+//	int bitNumber = 0; // for eye diagram only
+	int bitPosition = 0;
+	int offset = 0;
+	double YnMinus2Sample = 0;
+	double YnSample = 0;
+	double YnMinus1Sample;
+	boolean delayClock = false;
+	double psk;
 	//CosOscillator testOscillator = new CosOscillator(48000,1200);
 
 	public FoxBPSKCostasDecoder(SourceAudio as, int chan, int mode, TelemFormat telemFormat) {
@@ -49,6 +76,14 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 
 	@Override
 	protected void init() {
+		if (!Config.iq && Config.use12kHzIfForBPSK) {
+			LOW_SWEEP_LIMIT = 10000;
+			HIGH_SWEEP_LIMIT = 14000;
+		} else {
+			LOW_SWEEP_LIMIT = 700;
+			HIGH_SWEEP_LIMIT = 5000;
+		}
+			
 		Log.println("Initializing 1200bps Costas Loop BPSK decoder: ");
 		BITS_PER_SECOND = BITS_PER_SECOND_1200;
 		SAMPLE_WINDOW_LENGTH = 40; //40;  
@@ -71,7 +106,7 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 		}
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, 6000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, HIGH_SWEEP_LIMIT+1000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);
@@ -123,39 +158,6 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 			return ((SourceIQ)audioSource).getPhasorData();
 	}
 
-	/**
-	 * 
-	 * 
-	 */
-	double gain = 1.0;
-
-	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
-	double beta = 64*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. 
-	double error;  // accumulation of the error over a buffer
-	//double loopError;
-	boolean lastPhase = false;
-	double freq = 700.0d;
-	public static final double LOW_SWEEP_LIMIT = 700.0;
-	public static final double HIGH_SWEEP_LIMIT = 5000.0;
-	
-	double iMix, qMix;
-	double fi = 0.0, fq = 0.0;
-	double ri, rq;
-	double lockLevel, avgLockLevel;
-	public static final double LOCK_LEVEL_THRESHOLD = 3000;
-	public static final double FREQ_SWEEP_INCREMENT = 0.04;
-
-
-	// Kep track of where we are in the bit for sampling
-//	int bitNumber = 0; // for eye diagram only
-	int bitPosition = 0;
-	int offset = 0;
-	double YnMinus2Sample = 0;
-	double YnSample = 0;
-	double YnMinus1Sample;
-	boolean delayClock = false;
-	double psk;
-	
 	protected void sampleBuckets() {
 		double maxValue = 0;
 		double minValue = 0;
