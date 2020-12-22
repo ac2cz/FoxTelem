@@ -1,0 +1,32 @@
+0,Watchdog
+1,PowerCycle
+2,SoftwareReset
+3,StackOverflow
+4,MCUFault
+5,USBHighPrio
+6,SPIInUse
+7,SPIOperationTimeout
+8,SPIMramTimeout
+9,UnexpectedBehavior
+10,SemaphoreFail
+11,USARTError
+12,DMAInUseTimeout
+13,IllegalGPIOOutput
+14,IllegalGPIOInput
+15,IllegalGPIOWait
+16,MRAMcrc
+17,MRAMread
+18,MRAMwrite
+19,RTOSfailure
+20,ADCTimeout
+21,ADCDACSync
+22,I2C1failure
+23,I2C2failure
+24,ControlQueueOverflow
+25,ControlTimerNotStarted
+26,FlashCRCfaulty
+27,I2C1 In Use
+28,I2C2 In Use
+29,ExperimentFailure
+30,IHUStateChange
+31,Status Timer Fail
