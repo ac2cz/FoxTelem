@@ -10,28 +10,28 @@
 8,diagnostic,EnterAutosafe,8,-,0,General Info,1,12,0,EnterAutosafe,x
 9,diagnostic,ExitAutosafe,8,-,0,General Info,1,13,0,ExitAutosafe,x
 10,diagnostic,pad1,16,-,0,NONE,0,14,0,Fill to 32-bits,x
-11,diagnostic,legFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
-12,diagnostic,legValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
-13,diagnostic,legWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
-14,diagnostic,legEarlyResetCount,3,-,INT,IHU Reset Info,2,6,0,Resets in a row that have been too soon,x
-15,diagnostic,legPreviousTask,4,-,GOLF_TASK_NAME,IHU Reset Info,2,5,0,Previous task before reset,x
-16,diagnostic,legTaskNumber,4,-,GOLF_TASK_NAME,IHU Reset Info,2,4,0,Task executing at reset,x
-17,diagnostic,legErrorCode,5,-,GOLF_LIHU_ERR,IHU Reset Info,2,2,0,Cause of Reset,x
-18,diagnostic,legWdReports,9,-,INT,IHU Reset Info,2,1,0,LIHU: WD Tasks Ok,x
+11,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
+12,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
+13,diagnostic,LegWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
+14,diagnostic,LegEarlyResetCount,3,-,INT,IHU Reset Info,2,6,0,Resets in a row that have been too soon,x
+15,diagnostic,LegPreviousTask,4,-,GOLF_TASK_NAME,IHU Reset Info,2,5,0,Previous task before reset,x
+16,diagnostic,LegTaskNumber,4,-,GOLF_TASK_NAME,IHU Reset Info,2,4,0,Task executing at reset,x
+17,diagnostic,LegErrorCode,5,-,GOLF_LIHU_ERR,IHU Reset Info,2,2,0,Cause of Reset,x
+18,diagnostic,LegWdReports,9,-,INT,IHU Reset Info,2,1,0,LIHU: WD Tasks Ok,x
 19,diagnostic,LegI2C1Error,8,-,INT,Legacy  Errors,3,1,0,I2C1 Errors,x
 20,diagnostic,LegI2C2Error,8,-,INT,Legacy  Errors,3,2,0,I2C2 Errors,x
 21,diagnostic,LegI2C1Reset,8,-,INT,Legacy  Errors,3,3,0,I2C1 Resets,x
 22,diagnostic,LegI2C2Reset,8,-,INT,Legacy  Errors,3,4,0,I2C2 Resets,x
 23,diagnostic,LegSPIRetries,8,-,INT,Legacy  Errors,3,5,0,SPI Retries,x
 24,diagnostic,LegMramCRC,8,-,INT,Legacy  Errors,3,6,0,MRAM CRC Errors,x
-25,diagnostic,LegMramRead,8,-,INT,Legacy  Errors,3,7,0,MRAM Read Error,x
+25,diagnostic,LegMramRead,8,-,INT,legacy  Errors,3,7,0,MRAM Read Error,x
 26,diagnostic,LegMramWrite,8,-,INT,Legacy  Errors,3,8,0,MRAM Write Error,x
 27,diagnostic,ICRCmdFailCRC,8,-,INT,Legacy  Errors,3,9,0,ICRCmdFailCRC,x
 28,diagnostic,ICRCmdFailTime,8,-,INT,Legacy  Errors,3,10,0,ICRCmdFailTime,x
 29,diagnostic,ICRCmdFailAuthenticate,8,-,INT,Legacy  Errors,3,11,0,ICRCmdFailAuthenticate,x
 30,diagnostic,ICRCmdFailCommand,8,-,INT,Legacy  Errors,3,12,0,ICRCmdFailCommand,x
 31,diagnostic,ICRCmdFailNamespace,8,-,INT,Legacy  Errors,3,13,0,ICRCmdFailNamespace,x
-32,diagnostic,SWVersion,16,-,INT,General Info,1,14,0,LIHU Version Number,x
+32,diagnostic,LegSWVersion,16,-,INT,General Info,1,14,0,LIHU Version Number,x
 33,diagnostic,LegErrorData,8,-,INT,IHU Reset Info,2,3,0,Error Data,x
 34,diagnostic,filler1,5,-,0,NONE,0,0,0,pad to 32 bits,x
 35,diagnostic,valid,1,-,STATUS_BOOLEAN,General Info,1,2,0,RTIHU1 Data Valid,x
@@ -117,5 +117,5 @@
 115,diagnostic,RT2N2HET2RamParityCnt,8,-,INT,Secndry RT Errors,5,30,0,RT2N2HET2RamParity,x
 116,diagnostic,RT2IOMMAccvioCnt,8,-,INT,Secndry RT Errors,5,31,0,RT2IOMMAccvio,x
 117,diagnostic,RT2NonFatalCnt,8,-,INT,Secndry RT Errors,5,32,0,Non-fatal error count,x
-118,diagnostic,SWVersion,16,-,INT,General Info,1,16,0,RTIHU2 Version Number,x
+118,diagnostic,RT2SWVersion,16,-,INT,General Info,1,16,0,RTIHU2 Version Number,x
 119,diagnostic,pad0,16,-,0,NONE,0,0,0,Fill to 32-bits,x
