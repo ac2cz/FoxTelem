@@ -1,4 +1,4 @@
-95,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+97,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,wod,ReflectedPwr,8,mW,41,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,wod,ICR3VProt,8,V,8_bit_voltage,Command Receivers,4,2,3,3V Prot,ICR 3V Proteted
 2,wod,ICR2dot5V,8,V,8_bit_voltage,Command Receivers,4,3,3,2.5V,ICR 2.5V
@@ -82,15 +82,17 @@
 80,wod,PA2PwrCnt,8,-,1,RT-IHU,7,11,0,PA2  Reset Cnt,Power Reset Count for PA2
 81,wod,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
 82,wod,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-83,wod,Pad3,6,-,0,NONE,0,0,0,Pad,-
-84,wod,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
-85,wod,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
-86,wod,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
-87,wod,Pad5,8,-,0,NONE,0,0,0,Pad,-
-88,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
-89,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
-90,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
-91,wod,inSafeMode,1,21,0,Spacecraft Status,3,4,0,Safe Mode,Are we in safe mode?
-92,wod,inHealthMode,1,21,0,Spacecraft Status,3,5,0,Health Mode,Are we in health mode?
-93,wod,inScienceMode,1,21,0,Spacecraft Status,3,9,0,Science Mode,Are we in science mode?
-94,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+83,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,3,7,0,Eclipse Action,-
+84,wod,inEclipse,1,-,21,Spacecraft Status,3,8,0,In Eclipse,-
+85,wod,Pad3,2,-,0,NONE,0,0,0,Pad,-
+86,wod,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
+87,wod,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
+88,wod,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
+89,wod,Pad5,8,-,0,NONE,0,0,0,Pad,-
+90,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
+91,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
+92,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
+93,wod,inSafeMode,1,21,0,Spacecraft Status,3,4,0,Safe Mode,Are we in safe mode?
+94,wod,inHealthMode,1,21,0,Spacecraft Status,3,5,0,Health Mode,Are we in health mode?
+95,wod,inScienceMode,1,21,0,Spacecraft Status,3,9,0,Science Mode,Are we in science mode?
+96,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad

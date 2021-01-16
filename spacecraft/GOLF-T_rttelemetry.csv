@@ -1,4 +1,4 @@
-89,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+91,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,realtimeDownlink,ReflectedPwr,8,mW,41,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,realtimeDownlink,ICR3VProt,8,V,8_bit_voltage,Command Receivers,4,2,3,3V Prot,ICR 3V Proteted
 2,realtimeDownlink,ICR2dot5V,8,V,8_bit_voltage,Command Receivers,4,3,3,2.5V,ICR 2.5V
@@ -82,9 +82,11 @@
 80,realtimeDownlink,PA2PwrCnt,8,-,1,RT-IHU,7,11,0,PA2  Reset Cnt,Power Reset Count for PA2
 81,realtimeDownlink,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
 82,realtimeDownlink,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-83,realtimeDownlink,Pad3,6,-,0,NONE,0,0,0,Pad,-
-84,realtimeDownlink,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
-85,realtimeDownlink,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
-86,realtimeDownlink,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
-87,realtimeDownlink,Pad5,8,-,0,NONE,0,0,0,Pad,-
-88,realtimeDownlink,Pad5,32,-,0,NONE,0,0,0,Pad,Pad
+83,realtimeDownlink,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,3,7,0,Eclipse Action,-
+84,realtimeDownlink,inEclipse,1,-,21,Spacecraft Status,3,8,0,In Eclipse,-
+85,realtimeDownlink,Pad3,2,-,0,NONE,0,0,0,Pad,-
+86,realtimeDownlink,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
+87,realtimeDownlink,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
+88,realtimeDownlink,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
+89,realtimeDownlink,Pad5,8,-,0,NONE,0,0,0,Pad,-
+90,realtimeDownlink,Pad5,32,-,0,NONE,0,0,0,Pad,Pad
