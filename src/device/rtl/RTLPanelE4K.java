@@ -22,6 +22,9 @@ import common.Log;
 import device.TunerController;
 import device.DeviceException;
 import device.DevicePanel;
+import device.rtl.E4KTunerController.E4KGain;
+import device.rtl.E4KTunerController.E4KLNAGain;
+import device.rtl.E4KTunerController.E4KMixerGain;
 import device.rtl.R820TTunerController.R820TGain;
 import device.rtl.R820TTunerController.R820TLNAGain;
 import device.rtl.R820TTunerController.R820TMixerGain;
@@ -29,8 +32,8 @@ import device.rtl.R820TTunerController.R820TVGAGain;
 import device.rtl.RTL2832TunerController.SampleRate;
 
 @SuppressWarnings("serial")
-public class RTLPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
-	private static final R820TGain DEFAULT_GAIN = R820TGain.GAIN_279;
+public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
+	private static final E4KGain DEFAULT_GAIN = E4KGain.PLUS_290;
 	
 	int NUM_OF_PARAMS = 15;
 
@@ -38,17 +41,17 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
     //private JButton mTunerInfo;
     private JComboBox<SampleRate> mComboSampleRate;
     private JSpinner mFrequencyCorrection;
-    private JComboBox<R820TGain> mComboMasterGain;
-    private JComboBox<R820TMixerGain> mComboMixerGain;
-    private JComboBox<R820TLNAGain> mComboLNAGain;
-    private JComboBox<R820TVGAGain> mComboVGAGain;	
+    private JComboBox<E4KGain> mComboMasterGain;
+    private JComboBox<E4KMixerGain> mComboMixerGain;
+    private JComboBox<E4KLNAGain> mComboLNAGain;
+//    private JComboBox<E4KVGAGain> mComboVGAGain;	
 	boolean loading = true;;
 	
 	// Saved Values
  //   R820TGain gain;
     
-	public RTLPanel() throws IOException, DeviceException {
-		TitledBorder title = new TitledBorder(null, "R820T USB SDR", TitledBorder.LEADING, TitledBorder.TOP, null, null);
+	public RTLPanelE4K() throws IOException, DeviceException {
+		TitledBorder title = new TitledBorder(null, "E4000 USB SDR", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
 	}
@@ -111,7 +114,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         center.add( new JLabel( "Gain" ));
         
         /* Master Gain Control */
-        mComboMasterGain = new JComboBox<R820TGain>( R820TGain.values() );
+        mComboMasterGain = new JComboBox<E4KGain>( E4KGain.values() );
  //       mComboMasterGain.setEnabled( false );
         mComboMasterGain.addActionListener(this);
         mComboMasterGain.setToolTipText( "<html>Select <b>AUTOMATIC</b> for auto "
@@ -125,7 +128,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         R820TGain gain = (R820TGain)mComboMasterGain.getSelectedItem();
 
         /* Mixer Gain Control */
-        mComboMixerGain = new JComboBox<R820TMixerGain>( R820TMixerGain.values() );
+        mComboMixerGain = new JComboBox<E4KMixerGain>( E4KMixerGain.values() );
 		if( gain != R820TGain.MANUAL ) 
 			mComboMixerGain.setEnabled( false );
         mComboMixerGain.addActionListener(this);
@@ -136,7 +139,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         center.add( mComboMixerGain );
 
         /* LNA Gain Control */
-        mComboLNAGain = new JComboBox<R820TLNAGain>( R820TLNAGain.values() );
+        mComboLNAGain = new JComboBox<E4KLNAGain>( E4KLNAGain.values() );
 		if( gain != R820TGain.MANUAL ) 
 			mComboLNAGain.setEnabled( false );
         mComboLNAGain.addActionListener(this);
@@ -147,18 +150,18 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         center.add( mComboLNAGain );
 
         /* VGA Gain Control */
-        mComboVGAGain = new JComboBox<R820TVGAGain>( R820TVGAGain.values() );
-		if( gain != R820TGain.MANUAL ) 
-			mComboVGAGain.setEnabled( false );
-        mComboVGAGain.addActionListener(this);
-        mComboVGAGain.setToolTipText( "<html>VGA Gain.  Set master gain "
-        		+ "to <b>MANUAL</b> to enable adjustment</html>" );
-        center.add( new JLabel( "VGA:" ) );
-        center.add( mComboVGAGain );
+//        mComboVGAGain = new JComboBox<R820TVGAGain>( R820TVGAGain.values() );
+//		if( gain != R820TGain.MANUAL ) 
+//			mComboVGAGain.setEnabled( false );
+//        mComboVGAGain.addActionListener(this);
+//        mComboVGAGain.setToolTipText( "<html>VGA Gain.  Set master gain "
+//        		+ "to <b>MANUAL</b> to enable adjustment</html>" );
+//        center.add( new JLabel( "VGA:" ) );
+//        center.add( mComboVGAGain );
         loadParam(mComboMasterGain, "mComboMasterGain");
         loadParam(mComboMixerGain, "mComboMixerGain");
         loadParam(mComboLNAGain, "mComboLNAGain");
-        loadParam(mComboVGAGain, "mComboVGAGain");
+//        loadParam(mComboVGAGain, "mComboVGAGain");
         loading = false;
 	}
 	
@@ -176,7 +179,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 			saveParam(mComboMasterGain, "mComboMasterGain");
 			saveParam(mComboMixerGain, "mComboMixerGain");
 			saveParam(mComboLNAGain, "mComboLNAGain");
-			saveParam(mComboVGAGain, "mComboVGAGain");
+//			saveParam(mComboVGAGain, "mComboVGAGain");
 		}
 
 	}
@@ -220,8 +223,8 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 				mComboLNAGain.setSelectedItem( gain.getLNAGain() );
 				mComboLNAGain.setEnabled( true );
 
-				mComboVGAGain.setSelectedItem( gain.getVGAGain() );
-				mComboVGAGain.setEnabled( true );
+//				mComboVGAGain.setSelectedItem( gain.getVGAGain() );
+//				mComboVGAGain.setEnabled( true );
 			}
 			else  {
 				mComboMixerGain.setEnabled( false );
@@ -230,8 +233,8 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 				mComboLNAGain.setEnabled( false );
 				mComboLNAGain.setSelectedItem( gain.getLNAGain() );
 
-				mComboVGAGain.setEnabled( false );
-				mComboVGAGain.setSelectedItem( gain.getVGAGain() );
+//				mComboVGAGain.setEnabled( false );
+//				mComboVGAGain.setSelectedItem( gain.getVGAGain() );
 			}
 			save();
 		}
@@ -247,15 +250,15 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 
 	private void setMixerGain() {
 		try {
-			R820TMixerGain mixerGain = 
-					(R820TMixerGain)mComboMixerGain.getSelectedItem();
+			E4KMixerGain mixerGain = 
+					(E4KMixerGain)mComboMixerGain.getSelectedItem();
 
 			if( mixerGain == null ){
 				mixerGain = DEFAULT_GAIN.getMixerGain();
 			}
 
 			if( mComboMixerGain.isEnabled() ){
-				((R820TTunerController) device).setMixerGain( mixerGain, true );
+				((E4KTunerController) device).setMixerGain( mixerGain, true );
 			}
 			save();
 		}
@@ -271,8 +274,8 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 
 	private void setLnaGain() {
 		try {
-			R820TLNAGain lnaGain = 
-					(R820TLNAGain)mComboLNAGain.getSelectedItem();
+			E4KLNAGain lnaGain = 
+					(E4KLNAGain)mComboLNAGain.getSelectedItem();
 
 			if ( lnaGain == null )
 			{
@@ -281,7 +284,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 
 			if( mComboLNAGain.isEnabled() )
 			{
-				((R820TTunerController) device).setLNAGain( lnaGain, true );
+				((E4KTunerController) device).setLNAGain( lnaGain, true );
 			}
 
 			save();
@@ -296,31 +299,31 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		}
 	}
 
-	private void setVgaGain() {
-		try {
-			R820TVGAGain vgaGain = 
-					(R820TVGAGain)mComboVGAGain.getSelectedItem();
-
-			if( vgaGain == null )
-			{
-				vgaGain = DEFAULT_GAIN.getVGAGain();
-			}
-
-			if( mComboVGAGain.isEnabled() )
-			{
-				((R820TTunerController) device).setVGAGain( vgaGain, true );
-			}
-			save();
-		}
-		catch ( UsbException e ) {
-			Log.errorDialog(
-					"R820T Tuner Controller - couldn't apply the VGA ",
-					"gain setting - " + e.getLocalizedMessage() );  
-
-			Log.println( "R820T Tuner Controller - couldn't apply VGA "
-					+ "gain setting" + e );
-		}
-	}
+//	private void setVgaGain() {
+//		try {
+//			R820TVGAGain vgaGain = 
+//					(R820TVGAGain)mComboVGAGain.getSelectedItem();
+//
+//			if( vgaGain == null )
+//			{
+//				vgaGain = DEFAULT_GAIN.getVGAGain();
+//			}
+//
+//			if( mComboVGAGain.isEnabled() )
+//			{
+//				((R820TTunerController) device).setVGAGain( vgaGain, true );
+//			}
+//			save();
+//		}
+//		catch ( UsbException e ) {
+//			Log.errorDialog(
+//					"R820T Tuner Controller - couldn't apply the VGA ",
+//					"gain setting - " + e.getLocalizedMessage() );  
+//
+//			Log.println( "R820T Tuner Controller - couldn't apply VGA "
+//					+ "gain setting" + e );
+//		}
+//	}
 
 
 private void setSampleRate() {
@@ -355,9 +358,9 @@ public void actionPerformed(ActionEvent e) {
 	if (e.getSource() == mComboLNAGain) {
 		setLnaGain();
 	}
-	if (e.getSource() == mComboVGAGain) {
-		setVgaGain();
-	}
+//	if (e.getSource() == mComboVGAGain) {
+//		setVgaGain();
+//	}
 
 }
 
