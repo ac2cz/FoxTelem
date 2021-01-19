@@ -7,10 +7,16 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.io.IOException;
+import java.text.DecimalFormat;
+
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerModel;
+import javax.swing.SpinnerNumberModel;
+import javax.swing.SwingConstants;
 import javax.swing.border.TitledBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
@@ -64,6 +70,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		JPanel bottom = new JPanel();
 		add(top, BorderLayout.NORTH);
 		top.setLayout(new FlowLayout());
+		bottom.setLayout(new FlowLayout());
 		add(center, BorderLayout.CENTER);
 		add(bottom, BorderLayout.SOUTH);
 		
@@ -81,28 +88,29 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		// We are fixed at the sample rate that was used to start the decoder.  No way to dynamically change
 		mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
 
-        /*Frequency Correction 
+        //Frequency Correction 
         SpinnerModel model =
-                new SpinnerNumberModel(     0.0,   //initial value
-                                        -1000.0,   //min
-                                         1000.0,   //max
-                                            0.1 ); //step
+                new SpinnerNumberModel(     0,   //initial value
+                                        -1000,   //min
+                                         1000,   //max
+                                            1 ); //step
 
         mFrequencyCorrection = new JSpinner( model );
-        mFrequencyCorrection.setEnabled( false );
+        mFrequencyCorrection.setEnabled( true );
 
         JSpinner.NumberEditor editor = 
         		(JSpinner.NumberEditor)mFrequencyCorrection.getEditor();  
         
         DecimalFormat format = editor.getFormat();  
-        format.setMinimumFractionDigits( 1 );  
+        format.setMinimumFractionDigits( 0 );  
         editor.getTextField().setHorizontalAlignment( SwingConstants.CENTER );          
 
         mFrequencyCorrection.addChangeListener(this);
         
-        add( new JLabel( "PPM:" ) );
-        add( mFrequencyCorrection );
-        */
+        bottom.add( new JLabel( "Freq Correction (ppm):" ) );
+        bottom.add( mFrequencyCorrection );
+        loadParam(mFrequencyCorrection, "mFrequencyCorrection");
+        
         //add( new JSeparator( JSeparator.HORIZONTAL ) );
         
         /**
@@ -159,6 +167,14 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         loadParam(mComboMixerGain, "mComboMixerGain");
         loadParam(mComboLNAGain, "mComboLNAGain");
         loadParam(mComboVGAGain, "mComboVGAGain");
+        
+//        JLabel lblPpmCorrection = new JLabel("Freq Correction (ppm)");
+//        ppmCorrection = new JTextField(0);
+//        ppmCorrection.setColumns(4);
+//        bottom.add(lblPpmCorrection);
+//        bottom.add(ppmCorrection);
+      
+        
         loading = false;
 	}
 	
@@ -177,15 +193,14 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 			saveParam(mComboMixerGain, "mComboMixerGain");
 			saveParam(mComboLNAGain, "mComboLNAGain");
 			saveParam(mComboVGAGain, "mComboVGAGain");
+			saveParam(mFrequencyCorrection, "mFrequencyCorrection");
 		}
-
 	}
 	
 	
 	public void updateFilter() throws IOException, DeviceException {
 		//rfFilterValue.setText(fcd.getRfFilter());
 	}
-	
 	
 	@Override
 	public void run() {
@@ -341,6 +356,25 @@ private void setSampleRate() {
 	} 
 }
 
+private void setFrequencyCorrection() {
+	
+	try {
+		int rate = (int) mFrequencyCorrection.getValue();
+		((RTL2832TunerController) device).setSampleRateFrequencyCorrection( rate );
+		save();
+	}
+	catch ( DeviceException | LibUsbException eSampleRate ) {
+		Log.errorDialog(  
+				"R820T Tuner Controller - couldn't set the frequency correction ",
+				"rate [" +  mFrequencyCorrection.getValue() + "] " + 
+						eSampleRate.getLocalizedMessage() );  
+
+		Log.println( "R820T Tuner Controller - couldn't set the frequency correction "
+				+ "rate setting [" +   mFrequencyCorrection.getValue() + "] " + 
+				eSampleRate );
+	} 
+}
+
 @Override
 public void actionPerformed(ActionEvent e) {
 	if (e.getSource() == mComboSampleRate) {
@@ -363,9 +397,7 @@ public void actionPerformed(ActionEvent e) {
 
 @Override
 public void itemStateChanged(ItemEvent e) {
-
-
-
+	
 }
 
 	
@@ -383,21 +415,22 @@ public void itemStateChanged(ItemEvent e) {
 	@Override
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource() == this.mFrequencyCorrection) {
-/*
-			final double value = ((SpinnerNumberModel)mFrequencyCorrection
-					.getModel()).getNumber().doubleValue();
-
-			try
-			{
-				device.setFrequencyCorrection( value );
-			} 
-			catch ( SourceException e1 )
-			{
-				Log.println( "Error setting frequency correction value: " + e1 );
-			}
-
-			save();
-		*/
+			Log.println("Set PPM to:" + (int) mFrequencyCorrection.getValue());
+			setFrequencyCorrection();
+//			final double value = ((SpinnerNumberModel)mFrequencyCorrection
+//					.getModel()).getNumber().doubleValue();
+//
+//			try
+//			{
+//				device.setFrequencyCorrection( value );
+//			} 
+//			catch ( SourceException e1 )
+//			{
+//				Log.println( "Error setting frequency correction value: " + e1 );
+//			}
+//
+//			save();
+//		
 		}
 	} 
 

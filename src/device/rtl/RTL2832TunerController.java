@@ -46,6 +46,7 @@ import org.usb4java.LibUsbException;
 import org.usb4java.Transfer;
 import org.usb4java.TransferCallback;
 
+import common.Config;
 import common.Log;
 import decoder.Broadcaster;
 import decoder.ComplexBuffer;
@@ -1034,6 +1035,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 	
 	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException
 	{
+		Log.println("Setting ppm to: " +ppm);
 		int offset = -ppm * TWO_TO_22_POWER / 1000000;
 		
 		writeDemodRegister( mDeviceHandle, 
@@ -1049,6 +1051,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 		/* Test to retune controller to apply frequency correction */
 		try
 		{
+			double freq = Config.fcdFrequency;
+			setFrequency((long) (freq*1000));
 			//////////////////mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
 		}
 		catch( Exception e )
