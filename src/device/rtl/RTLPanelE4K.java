@@ -25,10 +25,6 @@ import device.DevicePanel;
 import device.rtl.E4KTunerController.E4KGain;
 import device.rtl.E4KTunerController.E4KLNAGain;
 import device.rtl.E4KTunerController.E4KMixerGain;
-import device.rtl.R820TTunerController.R820TGain;
-import device.rtl.R820TTunerController.R820TLNAGain;
-import device.rtl.R820TTunerController.R820TMixerGain;
-import device.rtl.R820TTunerController.R820TVGAGain;
 import device.rtl.RTL2832TunerController.SampleRate;
 
 @SuppressWarnings("serial")
@@ -125,11 +121,11 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
         center.add( new JLabel( "Master:" ) );
         center.add( mComboMasterGain );
 
-        R820TGain gain = (R820TGain)mComboMasterGain.getSelectedItem();
+        E4KGain gain = (E4KGain)mComboMasterGain.getSelectedItem();
 
         /* Mixer Gain Control */
         mComboMixerGain = new JComboBox<E4KMixerGain>( E4KMixerGain.values() );
-		if( gain != R820TGain.MANUAL ) 
+		if( gain != E4KGain.MANUAL ) 
 			mComboMixerGain.setEnabled( false );
         mComboMixerGain.addActionListener(this);
         mComboMixerGain.setToolTipText( "<html>Mixer Gain.  Set master gain "
@@ -140,7 +136,7 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 
         /* LNA Gain Control */
         mComboLNAGain = new JComboBox<E4KLNAGain>( E4KLNAGain.values() );
-		if( gain != R820TGain.MANUAL ) 
+		if( gain != E4KGain.MANUAL ) 
 			mComboLNAGain.setEnabled( false );
         mComboLNAGain.addActionListener(this);
         mComboLNAGain.setToolTipText( "<html>LNA Gain.  Set master gain "
@@ -212,11 +208,11 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 
 	private void setGain() {
 		try  {
-			R820TGain gain = (R820TGain)mComboMasterGain.getSelectedItem();
+			E4KGain gain = (E4KGain)mComboMasterGain.getSelectedItem();
 
-			((R820TTunerController) device).setGain( (R820TGain)mComboMasterGain.getSelectedItem(), true );
+			((E4KTunerController) device).setGain( (E4KGain)mComboMasterGain.getSelectedItem(), true );
 
-			if( gain == R820TGain.MANUAL )  {
+			if( gain == E4KGain.MANUAL )  {
 				mComboMixerGain.setSelectedItem( gain.getMixerGain() ); 
 				mComboMixerGain.setEnabled( true );
 
@@ -240,10 +236,10 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 		}
 		catch ( UsbException e ){
 			Log.errorDialog( 
-					"R820T Tuner Controller - couldn't apply the gain ",
+					"E4K Tuner Controller - couldn't apply the gain ",
 					"setting - " + e.getLocalizedMessage() );  
 
-			Log.println( "R820T Tuner Controller - couldn't apply "
+			Log.println( "E4K Tuner Controller - couldn't apply "
 					+ "gain setting - " + e );
 		}
 	}
@@ -264,10 +260,10 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 		}
 		catch ( UsbException e ) {
 			Log.errorDialog( 
-					"R820T Tuner Controller - couldn't apply the mixer ",
+					"E4K Tuner Controller - couldn't apply the mixer ",
 					"gain setting - " + e.getLocalizedMessage() );  
 
-			Log.println( "R820T Tuner Controller - couldn't apply mixer "
+			Log.println( "E4K Tuner Controller - couldn't apply mixer "
 					+ "gain setting - " + e );
 		}
 	}
@@ -291,10 +287,10 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 		}
 		catch ( UsbException e ) {
 			Log.errorDialog( 
-					"R820T Tuner Controller - couldn't apply the LNA ",
+					"E4K Tuner Controller - couldn't apply the LNA ",
 					"gain setting - " + e.getLocalizedMessage() );  
 
-			Log.println( "R820T Tuner Controller - couldn't apply LNA "
+			Log.println( "E4K Tuner Controller - couldn't apply LNA "
 					+ "gain setting - " + e );
 		}
 	}
@@ -334,11 +330,11 @@ private void setSampleRate() {
 	}
 	catch ( DeviceException | LibUsbException eSampleRate ) {
 		Log.errorDialog(  
-				"R820T Tuner Controller - couldn't apply the sample ",
+				"E4K Tuner Controller - couldn't apply the sample ",
 				"rate setting [" + sampleRate.getLabel() + "] " + 
 						eSampleRate.getLocalizedMessage() );  
 
-		Log.println( "R820T Tuner Controller - couldn't apply sample "
+		Log.println( "E4K Tuner Controller - couldn't apply sample "
 				+ "rate setting [" + sampleRate.getLabel() + "] " + 
 				eSampleRate );
 	} 
