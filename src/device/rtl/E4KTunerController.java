@@ -36,8 +36,8 @@ import device.TunerType;
 
 public class E4KTunerController extends RTL2832TunerController
 {
-	public static final long MIN_FREQUENCY = 52000000;
-	public static final long MAX_FREQUENCY = 2200000000l;
+	public static final long MIN_FREQUENCY = 52000;
+	public static final long MAX_FREQUENCY = 2200000l;
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.95;
 	public static final int DC_SPIKE_AVOID_BUFFER = 15000;
 
