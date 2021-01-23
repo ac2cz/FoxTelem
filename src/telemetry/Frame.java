@@ -610,10 +610,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260)
 				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 263)
 				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 390)
-				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 393)
-				||
-
-				(frm != null && frm.getHeader().resets > 10000))
+				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 393))
 			return null;
 
 		// if (frm != null) Log.println(frm.getHeader().toString());
