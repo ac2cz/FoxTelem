@@ -22,3 +22,9 @@ You can download the latest version of the program from:
 * http://amsat.us/FoxTelem/windows
 * http://amsat.us/FoxTelem/mac
 * http://amsat.us/FoxTelem/linux
+
+Instructions on how to build are here: https://www.g0kla.com/foxtelem/build_foxtelem.php
+
+I did them a while ago. Let me know if anything does not work and needs to be updated.
+
+Feel free to ask questions if you need help. My main motivation is to help people learn about satellites, amateur radio, DSP and coding. So always happy to answer questions.
