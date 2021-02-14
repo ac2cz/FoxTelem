@@ -1845,18 +1845,45 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							e.printStackTrace(Log.getWriter());
 							stopButton();
 						}
-
-						try {
-							panelFcd.setDevice(rfDevice);
-						} catch (IOException e) {
-							Log.errorDialog("USB Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("USB Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
+						
+						// Setting the device causes its paramaters to be set, e.g. gain
+						// retry 5 times with some delay in case a temporary hardware issue
+						int retried = 0;
+						while (retried < 5) {
+							try {
+								panelFcd.setDevice(rfDevice);
+								break; // no need to retry
+							} catch (LibUsbException e) {
+								if (e.getErrorCode() == LibUsb.ERROR_PIPE
+										|| e.getErrorCode() == LibUsb.ERROR_BUSY
+										|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+										|| e.getErrorCode() == LibUsb.ERROR_BUSY
+										|| e.getErrorCode() == LibUsb.ERROR_IO) {
+									// this is a temporary error
+									usbErrorCount++;
+									retried++;
+									try { Thread.sleep(200); } catch (InterruptedException e1) { }
+								} else {
+									// user intervention is required
+									Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+									stopButton();
+									break;
+								}
+							} catch (IOException e) {
+								Log.errorDialog("USB Panel Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+								break;
+							} catch (DeviceException e) {
+								Log.errorDialog("USB Device Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+								break;
+							}
 						}
+						if (retried > 0) 
+							MainWindow.setUsbErrors(usbErrorCount);
+							
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
 						panelFcd.setEnabled(false); // this is just the rate change params for the Airspy panel

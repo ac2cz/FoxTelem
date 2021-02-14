@@ -28,7 +28,7 @@ import device.rtl.E4KTunerController.E4KMixerGain;
 import device.rtl.RTL2832TunerController.SampleRate;
 
 @SuppressWarnings("serial")
-public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
+public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionListener, ChangeListener {
 	private static final E4KGain DEFAULT_GAIN = E4KGain.PLUS_290;
 	
 	int NUM_OF_PARAMS = 15;
@@ -192,17 +192,17 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 		running = true;
 		Thread.currentThread().setName("RTLPanel");
 
-		while(running) {
-
-			try {
-				Thread.sleep(1000); // approx 1 sec refresh
-			} catch (InterruptedException e) {
-				Log.println("ERROR: FCD thread interrupted");
-				//e.printStackTrace();
-			} 
-
-			this.repaint();
-		}
+//		while(running) {
+//
+//			try {
+//				Thread.sleep(1000); // approx 1 sec refresh
+//			} catch (InterruptedException e) {
+//				Log.println("ERROR: FCD thread interrupted");
+//				//e.printStackTrace();
+//			} 
+//
+//			this.repaint();
+//		}
 	}			
 
 
