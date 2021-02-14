@@ -52,6 +52,7 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.usb.UsbException;
 
+import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
 import common.Config;
@@ -251,6 +252,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	ArrayList<String> usbSources;
 	String[] soundcardSources;
 	String[] allSources;
+	
+	// Keep track of errors writing to the USB
+	int usbErrorCount = 0;
 	
 	public SourceTab(MainWindow mw) {
 		mainWindow = mw;
@@ -2071,8 +2075,33 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
-					rfDevice.setFrequency((long) (freq*1000));
-					panelFcd.updateFilter();
+					// retry 5 times with some delay
+					int retried = 0;
+
+					while (retried < 5) {
+						try {
+							rfDevice.setFrequency((long) (freq*1000));
+							panelFcd.updateFilter();
+							break; // no need to retry
+						} catch (LibUsbException e) {
+							if (e.getErrorCode() == LibUsb.ERROR_PIPE
+									|| e.getErrorCode() == LibUsb.ERROR_BUSY
+									|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+									|| e.getErrorCode() == LibUsb.ERROR_BUSY
+									|| e.getErrorCode() == LibUsb.ERROR_IO) {
+								// this is a temporary error
+								usbErrorCount++;
+								retried++;
+								try { Thread.sleep(200); } catch (InterruptedException e1) { }
+							} else {
+								// user intervention is required
+								Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+								break;
+							}
+						}
+					}
+					if (retried > 0) 
+						MainWindow.setUsbErrors(usbErrorCount);
 				}
 			} else {
 
