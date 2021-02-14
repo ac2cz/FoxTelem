@@ -386,8 +386,8 @@ public class PassManager implements Runnable {
 			}			
 		}
 
-		if (passMeasurement != null)
-		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
+		if (passMeasurement != null && pp != null && pp.foxDecoder != null)
+			if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
 				+ " with " + pp.foxDecoder.name + " decoder freq:" + Config.selectedFrequency); //// pp1.iqSource.getSelectedBin());
 		newPass = true;
 	}

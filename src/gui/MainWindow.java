@@ -151,7 +151,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
-	static JLabel lblAudioMissed;
+	static JLabel lblAudioMissed, lblUsbErrors;
 	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
@@ -161,6 +161,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	private static String TOTAL_QUEUED = "Queue: ";
 	private static String LOCAL_QUEUED = "/ ";
 	private static String AUDIO_MISSED = "Audio missed: ";
+	private static String USB_ERRORS = "USB Errors: ";
 		
 	private static int totalMissed;
 	ProgressPanel importProgress;
@@ -225,6 +226,13 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblLogFileDir.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		bottomPanel.add(lblLogFileDir, BorderLayout.CENTER );
 
+		lblUsbErrors = new JLabel(USB_ERRORS);
+//		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblUsbErrors.setFont(footerFont);
+		lblUsbErrors.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblUsbErrors.setToolTipText("The number of USB errors reading or writing to the SDR Control Interface");
+		rightBottom.add(lblUsbErrors );
+		
 		lblAudioMissed = new JLabel(AUDIO_MISSED);
 //		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblAudioMissed.setFont(footerFont);
@@ -345,6 +353,19 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 						+ sats.get(s).toString() + "</b></body></html>", spacecraftTab[s] );
 				//			+" Health", healthTab );
 		}
+	}
+	
+	public static void setUsbErrors(int errors) {
+		if (lblUsbErrors != null) { // just in case we are delayed starting up
+			lblUsbErrors.setText(USB_ERRORS + errors);
+			if (errors > 0)
+				lblUsbErrors.setForeground(Color.RED);
+			else
+				lblUsbErrors.setForeground(Color.BLACK);
+			lblUsbErrors.invalidate();
+			bottomPanel.validate();
+		}
+		
 	}
 
 	public static void setAudioMissed(int missed) {

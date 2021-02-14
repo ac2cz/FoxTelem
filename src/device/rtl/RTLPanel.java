@@ -35,7 +35,7 @@ import device.rtl.R820TTunerController.R820TVGAGain;
 import device.rtl.RTL2832TunerController.SampleRate;
 
 @SuppressWarnings("serial")
-public class RTLPanel extends DevicePanel implements ItemListener, ActionListener, Runnable, ChangeListener {
+public class RTLPanel extends DevicePanel implements ItemListener, ActionListener, ChangeListener {
 	private static final R820TGain DEFAULT_GAIN = R820TGain.GAIN_279;
 	
 	int NUM_OF_PARAMS = 15;
@@ -208,17 +208,17 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		running = true;
 		Thread.currentThread().setName("RTLPanel");
 
-		while(running) {
-
-			try {
-				Thread.sleep(1000); // approx 1 sec refresh
-			} catch (InterruptedException e) {
-				Log.println("ERROR: FCD thread interrupted");
-				//e.printStackTrace();
-			} 
-
-			this.repaint();
-		}
+//		while(running) {
+//
+//			try {
+//				Thread.sleep(1000); // approx 1 sec refresh
+//			} catch (InterruptedException e) {
+//				Log.println("ERROR: FCD thread interrupted");
+//				//e.printStackTrace();
+//			} 
+//
+//			this.repaint();
+//		}
 	}			
 
 
