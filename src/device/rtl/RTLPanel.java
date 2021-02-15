@@ -112,7 +112,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		cbBiasTee = new JCheckBox("Bias T");
 		top.add(cbBiasTee);
 		cbBiasTee.addItemListener(this);
-		cbBiasTee.setToolTipText("Toggle the sdr-rtl V3 Bias Tee.  Don't toggle to a short circuit antenna without a preamp!");
+		cbBiasTee.setToolTipText("Toggle the rtl-sdr.com V3 Bias Tee.  Don't toggle to a short circuit antenna without a preamp!");
         
         /**
          * Gain Controls 
