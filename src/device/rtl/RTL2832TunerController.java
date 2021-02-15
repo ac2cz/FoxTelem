@@ -938,7 +938,6 @@ public abstract class RTL2832TunerController extends device.TunerController
 			if( type == TunerTypeCheck.FC0012 ||
 				type == TunerTypeCheck.FC2580 )
 			{
-				/* Initialize the GPIOs */
 				setGPIOOutput( handle, (byte)0x20 );
 
 				/* Reset tuner before probing */
@@ -1068,6 +1067,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 		
 		return ( Integer.rotateLeft( high, 8 ) | low );
 	}
+
+	
 
 	/**
 	 * Returns contents of the 256-byte EEPROM.  The contents are as follows:

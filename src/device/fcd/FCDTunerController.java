@@ -267,6 +267,7 @@ public abstract class FCDTunerController extends device.TunerController
 			throw new DeviceException( "Couldn't set FCD Local " +
 					"Oscillator Frequency [" + frequency + "]" +e.getMessage() );
 		}
+	//	throw new LibUsbException(LibUsb.ERROR_BUSY);
 		return 0;
 	}
 

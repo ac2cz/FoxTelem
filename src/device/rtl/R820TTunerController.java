@@ -633,6 +633,17 @@ public class R820TTunerController extends RTL2832TunerController
 	}
 	
 	/**
+	 * Sets the bias tee if it is attached to GPIO 0 which is the case for the RTL-SDR V3 dongles
+	 * @param on
+	 * @return
+	 */
+	public int setBiasTee(boolean on) {
+		setGPIOOutput(mDeviceHandle, (byte) 0x00);
+		setGPIOBit(mDeviceHandle, (byte) 0x00, on);
+		return 0;
+	}
+	
+	/**
 	 * Sets master gain by applying gain component values to LNA, Mixer and
 	 * VGA gain registers.
 	 */

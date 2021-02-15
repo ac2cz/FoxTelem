@@ -1,6 +1,7 @@
 package device.rtl;
 
 import java.awt.BorderLayout;
+import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -9,6 +10,8 @@ import java.awt.event.ItemListener;
 import java.io.IOException;
 import java.text.DecimalFormat;
 
+import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -24,8 +27,11 @@ import javax.usb.UsbException;
 
 import org.usb4java.LibUsbException;
 
+import common.Config;
 import common.Log;
 import device.TunerController;
+import device.fcd.FCD1TunerController;
+import device.fcd.FCD2TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 import device.rtl.R820TTunerController.R820TGain;
@@ -48,7 +54,10 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
     private JComboBox<R820TMixerGain> mComboMixerGain;
     private JComboBox<R820TLNAGain> mComboLNAGain;
     private JComboBox<R820TVGAGain> mComboVGAGain;	
+    private JCheckBox cbBiasTee;
 	boolean loading = true;;
+	private JLabel lblSampleRate;
+	public static final String SAMPLE_RATE = "Sample Rate: ";
 	
 	// Saved Values
  //   R820TGain gain;
@@ -57,6 +66,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		TitledBorder title = new TitledBorder(null, "R820T USB SDR", TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		//title.setTitleFont(new Font("SansSerif", Font.PLAIN, 12));
 		this.setBorder(title);
+		initializeGui();
 	}
 	
 	public void setEnabled(boolean b) {
@@ -74,19 +84,9 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		add(center, BorderLayout.CENTER);
 		add(bottom, BorderLayout.SOUTH);
 		
-		int sampleRate = device.getCurrentSampleRate();
-//		mComboSampleRate = new JComboBox<>( SampleRate.values() );
-//		mComboSampleRate.addActionListener(this);	
-//		loadParam(mComboSampleRate, "mComboSampleRate");
-		SampleRate s = SampleRate.getClosest(sampleRate);
-//		if (s != null)
-//			mComboSampleRate.setSelectedItem(s);
-		
-		//top.add(mComboSampleRate);
-		top.add( new JLabel( "Sample Rate: " + s) );
-//		top.add( mComboSampleRate );
-//		// We are fixed at the sample rate that was used to start the decoder.  No way to dynamically change
-//		mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
+		lblSampleRate = new JLabel( SAMPLE_RATE);
+		top.add( lblSampleRate );
+
 
         //Frequency Correction 
         SpinnerModel model = new SpinnerNumberModel(     0,   //initial value
@@ -107,9 +107,11 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         
         top.add( new JLabel( " |  Freq Correction (ppm):" ) );
         top.add( mFrequencyCorrection );
-        loadParam(mFrequencyCorrection, "mFrequencyCorrection");
-        
-        //add( new JSeparator( JSeparator.HORIZONTAL ) );
+
+        top.add(new Box.Filler(new Dimension(10,10), new Dimension(10,10), new Dimension(10,10)));
+		cbBiasTee = new JCheckBox("Bias T");
+		top.add(cbBiasTee);
+		cbBiasTee.addItemListener(this);
         
         /**
          * Gain Controls 
@@ -161,10 +163,10 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         		+ "to <b>MANUAL</b> to enable adjustment</html>" );
         center.add( new JLabel( "VGA:" ) );
         center.add( mComboVGAGain );
-        loadParam(mComboMasterGain, "mComboMasterGain");
-        loadParam(mComboMixerGain, "mComboMixerGain");
-        loadParam(mComboLNAGain, "mComboLNAGain");
-        loadParam(mComboVGAGain, "mComboVGAGain");
+//        loadParam(mComboMasterGain, "mComboMasterGain");
+//        loadParam(mComboMixerGain, "mComboMixerGain");
+//        loadParam(mComboLNAGain, "mComboLNAGain");
+//        loadParam(mComboVGAGain, "mComboVGAGain");
         
 //        JLabel lblPpmCorrection = new JLabel("Freq Correction (ppm)");
 //        ppmCorrection = new JTextField(0);
@@ -179,7 +181,36 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	@Override
 	public void setDevice(TunerController d) throws IOException, DeviceException {
 		device = (RTL2832TunerController) d; 
-		initializeGui();
+		loading = true;
+		getSettings();
+		loading = false;
+	}
+	
+	public void getSettings()  throws IOException, DeviceException {
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}  // Allow startup to settle down first
+		
+		loadParam(mComboMasterGain, "mComboMasterGain");
+		loadParam(mComboMixerGain, "mComboMixerGain");
+		loadParam(mComboLNAGain, "mComboLNAGain");
+		loadParam(mComboVGAGain, "mComboVGAGain");
+		loadParam(mFrequencyCorrection, "mFrequencyCorrection");
+		loadParam(cbBiasTee, "cbBiasTee");
+		
+		setGain();
+		setMixerGain();
+		setLnaGain();
+		setVgaGain();
+		setFrequencyCorrection();
+		setBiasTee(cbBiasTee.isSelected());
+		
+		int sampleRate = device.getCurrentSampleRate();
+		SampleRate s = SampleRate.getClosest(sampleRate);
+		lblSampleRate.setText(SAMPLE_RATE + s);
 	}
 	
 	/**
@@ -192,10 +223,11 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 			saveParam(mComboLNAGain, "mComboLNAGain");
 			saveParam(mComboVGAGain, "mComboVGAGain");
 			saveParam(mFrequencyCorrection, "mFrequencyCorrection");
+			saveParam(cbBiasTee.isSelected(), "cbBiasTee");
 		}
 	}
 	
-	
+
 	public void updateFilter() throws IOException, DeviceException {
 		//rfFilterValue.setText(fcd.getRfFilter());
 	}
@@ -334,6 +366,16 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 					+ "gain setting" + e );
 		}
 	}
+	
+	private void setBiasTee(boolean b) {
+		Log.println("RTL Bias Tee: " + b);
+		if (b == false) {
+			((R820TTunerController) device).setBiasTee(false);
+		} else {
+			((R820TTunerController) device).setBiasTee(true);
+		}
+		save();
+	}
 
 
 private void setSampleRate() {
@@ -375,9 +417,7 @@ private void setFrequencyCorrection() {
 
 @Override
 public void actionPerformed(ActionEvent e) {
-//	if (e.getSource() == mComboSampleRate) {
-//		setSampleRate();
-//	}
+
 	if (e.getSource() == mComboMasterGain) {
 		setGain();
 	}
@@ -395,7 +435,14 @@ public void actionPerformed(ActionEvent e) {
 
 @Override
 public void itemStateChanged(ItemEvent e) {
-	
+	if (e.getSource() == cbBiasTee ) {
+
+		if (e.getStateChange() == ItemEvent.DESELECTED) {
+			setBiasTee(false);
+		} else {
+			setBiasTee(true);
+		}
+	}
 }
 
 	
@@ -415,20 +462,6 @@ public void itemStateChanged(ItemEvent e) {
 		if (e.getSource() == this.mFrequencyCorrection) {
 			Log.println("Set PPM to:" + (int) mFrequencyCorrection.getValue());
 			setFrequencyCorrection();
-//			final double value = ((SpinnerNumberModel)mFrequencyCorrection
-//					.getModel()).getNumber().doubleValue();
-//
-//			try
-//			{
-//				device.setFrequencyCorrection( value );
-//			} 
-//			catch ( SourceException e1 )
-//			{
-//				Log.println( "Error setting frequency correction value: " + e1 );
-//			}
-//
-//			save();
-//		
 		}
 	} 
 

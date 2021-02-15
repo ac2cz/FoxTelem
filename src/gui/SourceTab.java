@@ -192,7 +192,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	TunerController rfDevice;
 	TunerManager tunerManager;
-	SampleRate rtlSampleRate = SampleRate.RATE_0_240MHZ; // default Sample rate
+//	SampleRate rtlSampleRate = SampleRate.RATE_0_240MHZ; // default Sample rate
 	
 	static final int RATE_96000_IDX = 2;
 	static final int RATE_192000_IDX = 3;
@@ -765,10 +765,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//int sampleRate = device.getCurrentSampleRate();
 		cbRtlSampleRate = new JComboBox<>( SampleRate.values() );
 		cbRtlSampleRate.addActionListener(this);	
-//		loadParam(cbRtlSampleRate, "mComboSampleRate");
-//		SampleRate s = SampleRate.getClosest(sampleRate);
-//		if (s != null)
-//			cbRtlSampleRate.setSelectedItem(s);	
+		int rate = Config.loadGraphIntValue("SDR", 0, 0, "RTL", "RtlSampleRate");
+		SampleRate s = SampleRate.getClosest(rate);
+		if (s != null)
+			cbRtlSampleRate.setSelectedItem(s);	
 		panel_1.add(cbRtlSampleRate);
 		cbRtlSampleRate.setVisible(false);
 		
@@ -1609,26 +1609,52 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (panelFcd == null)
 				try {
 					panelFcd = rfDevice.getDevicePanel();
-					} catch (IOException e) {
-						e.printStackTrace(Log.getWriter());
-					} catch (DeviceException e) {
-						e.printStackTrace(Log.getWriter());
-					}
+				} catch (IOException e) {
+					e.printStackTrace(Log.getWriter());
+				} catch (DeviceException e) {
+					e.printStackTrace(Log.getWriter());
+				}
+
+			int retried = 0;
+			while (retried < 5) {
 				try {
 					panelFcd.setDevice(rfDevice);
+					break; // no need to retry
+				} catch (LibUsbException e) {
+					if (e.getErrorCode() == LibUsb.ERROR_PIPE
+							|| e.getErrorCode() == LibUsb.ERROR_BUSY
+							|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+							|| e.getErrorCode() == LibUsb.ERROR_BUSY
+							|| e.getErrorCode() == LibUsb.ERROR_OVERFLOW
+							|| e.getErrorCode() == LibUsb.ERROR_IO) {
+						// this is a temporary error
+						usbErrorCount++;
+						retried++;
+						try { Thread.sleep(200); } catch (InterruptedException e1) { }
+					} else {
+						// user intervention is required
+						Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+						stopButton();
+						break;
+					}		
 				} catch (DeviceException e) {
 					this.lblkHz.setText(" kHz   " + " |   FCD DEVICE NOT CONNECTED");
 					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
+					break;
 				}
-				SDRpanel.add(panelFcd, BorderLayout.CENTER);
+			}
+			if (retried > 0) 
+				MainWindow.setUsbErrors(usbErrorCount);
+				
+			SDRpanel.add(panelFcd, BorderLayout.CENTER);
 
-				SDRpanel.setVisible(true);
-				if (rfDevice.isConnected()) {
-					panelFcd.setEnabled(true);
-				} else {
-					panelFcd.setEnabled(false);
-				}
-		
+			SDRpanel.setVisible(true);
+			if (rfDevice.isConnected()) {
+				panelFcd.setEnabled(true);
+			} else {
+				panelFcd.setEnabled(false);
+			}
+
 			Config.iq = true;
 			iqAudio.setSelected(true);
 			setIQVisible(true);
@@ -1829,7 +1855,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //						vendorId = (short)0x1D50;
 //						deviceId = (short)0x60A1;
 //					} else 
-					if (position-soundcardSources.length == 0) { // rtlsdr // this is probablly not all the devices!
+					if (position-soundcardSources.length == 0) { // rtlsdr // this is probably not all the devices!
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 
@@ -1854,7 +1880,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						Log.println("USB Source Selected: " + rfDevice.name);
 						if (panelFcd == null) {
 							try {
-								
 								panelFcd = rfDevice.getDevicePanel();
 							} catch (IOException e) {
 								Log.errorDialog("USB Panel Error", e.getMessage());
@@ -1867,10 +1892,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							}
 						}
 						
-						
-						// TODO - this resets the PPM adjustment that was setup when panel created.
+						// TODO - this would have reset the PPM adjustment that was setup when panel created.
+						// so the reset was removed from the setSampleRate function.  May be dangerous
 						try { 
 							rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
+							Config.saveGraphIntParam("SDR", 0, 0, "RTL", "RtlSampleRate", sampleRate.getRate());		
 						} catch (DeviceException e2) {
 							Log.errorDialog("USB Error Setting sample rate", e2.getMessage());
 							e2.printStackTrace(Log.getWriter());
