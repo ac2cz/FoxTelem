@@ -398,6 +398,7 @@ public class PassManager implements Runnable {
 	 */
 	private int decode(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
+		if (!trackSpacecraft(spacecraft)) return EXIT; // sat is no longer up
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering DECODE state");
 		try {
 			Thread.sleep(DECODE_PERIOD);
