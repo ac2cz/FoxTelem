@@ -3,6 +3,7 @@ package device;
 import java.io.IOException;
 
 import decoder.SourceUSB;
+import device.rtl.RTL2832TunerController.SampleRate;
 
 /**
  * 
@@ -51,6 +52,8 @@ public abstract class TunerController {
 		// TODO Auto-generated method stub
 		return SAMPLE_RATE;
 	}
+	
+	public abstract void setSampleRate(SampleRate sampleRate) throws DeviceException; // only for RTL
 
 	public long getMinFreq() { return MIN_FREQ; }
 	public long getMaxFreq() { return MAX_FREQ; }

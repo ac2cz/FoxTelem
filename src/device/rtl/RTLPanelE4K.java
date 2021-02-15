@@ -35,7 +35,7 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 
    // private JTextField mConfigurationName;
     //private JButton mTunerInfo;
-    private JComboBox<SampleRate> mComboSampleRate;
+   // private JComboBox<SampleRate> mComboSampleRate;
     private JSpinner mFrequencyCorrection;
     private JComboBox<E4KGain> mComboMasterGain;
     private JComboBox<E4KMixerGain> mComboMixerGain;
@@ -67,18 +67,18 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 		add(bottom, BorderLayout.SOUTH);
 		
 		int sampleRate = device.getCurrentSampleRate();
-		mComboSampleRate = new JComboBox<>( SampleRate.values() );
-		mComboSampleRate.addActionListener(this);	
-		loadParam(mComboSampleRate, "mComboSampleRate");
+//		mComboSampleRate = new JComboBox<>( SampleRate.values() );
+//		mComboSampleRate.addActionListener(this);	
+//		loadParam(mComboSampleRate, "mComboSampleRate");
 		SampleRate s = SampleRate.getClosest(sampleRate);
-		if (s != null)
-			mComboSampleRate.setSelectedItem(s);
-		
-		//top.add(mComboSampleRate);
-		top.add( new JLabel( "Sample Rate:" ) );
-		top.add( mComboSampleRate );
-		// We are fixed at the sample rate that was used to start the decoder.  No way to dynamically change
-		mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
+//		if (s != null)
+//			mComboSampleRate.setSelectedItem(s);
+//		
+//		//top.add(mComboSampleRate);
+		top.add( new JLabel( "Sample Rate: " + s) );
+//		top.add( mComboSampleRate );
+//		// We are fixed at the sample rate that was used to start the decoder.  No way to dynamically change
+//		mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
 
         /*Frequency Correction 
         SpinnerModel model =
@@ -322,29 +322,29 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 //	}
 
 
-private void setSampleRate() {
-	SampleRate sampleRate = (SampleRate)mComboSampleRate.getSelectedItem();
-	try {
-		((RTL2832TunerController) device).setSampleRate( sampleRate );
-		save();
-	}
-	catch ( DeviceException | LibUsbException eSampleRate ) {
-		Log.errorDialog(  
-				"E4K Tuner Controller - couldn't apply the sample ",
-				"rate setting [" + sampleRate.getLabel() + "] " + 
-						eSampleRate.getLocalizedMessage() );  
-
-		Log.println( "E4K Tuner Controller - couldn't apply sample "
-				+ "rate setting [" + sampleRate.getLabel() + "] " + 
-				eSampleRate );
-	} 
-}
+//private void setSampleRate() {
+//	SampleRate sampleRate = (SampleRate)mComboSampleRate.getSelectedItem();
+//	try {
+//		((RTL2832TunerController) device).setSampleRate( sampleRate );
+//		save();
+//	}
+//	catch ( DeviceException | LibUsbException eSampleRate ) {
+//		Log.errorDialog(  
+//				"E4K Tuner Controller - couldn't apply the sample ",
+//				"rate setting [" + sampleRate.getLabel() + "] " + 
+//						eSampleRate.getLocalizedMessage() );  
+//
+//		Log.println( "E4K Tuner Controller - couldn't apply sample "
+//				+ "rate setting [" + sampleRate.getLabel() + "] " + 
+//				eSampleRate );
+//	} 
+//}
 
 @Override
 public void actionPerformed(ActionEvent e) {
-	if (e.getSource() == mComboSampleRate) {
-		setSampleRate();
-	}
+//	if (e.getSource() == mComboSampleRate) {
+//		setSampleRate();
+//	}
 	if (e.getSource() == mComboMasterGain) {
 		setGain();
 	}

@@ -32,6 +32,7 @@ import device.fcd.FCD2TunerController;
 import device.rtl.E4KTunerController;
 import device.rtl.R820TTunerController;
 import device.rtl.RTL2832TunerController;
+import device.rtl.RTL2832TunerController.SampleRate;
 
 public class TunerManager {
 
@@ -117,7 +118,7 @@ public class TunerManager {
     }
 	*/
     
-    public TunerController findDevice(short vendor, short product) throws UsbException, DeviceException	{
+    public TunerController findDevice(short vendor, short product, SampleRate sampleRate) throws UsbException, DeviceException	{
     	DeviceList deviceList = new DeviceList();
     	int result = LibUsb.init( null );
     	if( result != LibUsb.SUCCESS ){
@@ -152,7 +153,7 @@ public class TunerManager {
     			Log.println(device.toString());
     			if (descriptor.idVendor() == vendor && descriptor.idProduct() == product) {
     				Log.println("FOUND DEVICE!");
-    				TunerController dev = initTuner( device, descriptor );
+    				TunerController dev = initTuner( device, descriptor, sampleRate );
     				if (dev !=null) {
     	    			LibUsb.freeDeviceList( deviceList, true );
     					return dev;
@@ -170,7 +171,7 @@ public class TunerManager {
     }
     
     private device.TunerController initTuner( Device device, 
-    		DeviceDescriptor descriptor ) throws UsbException, DeviceException
+    		DeviceDescriptor descriptor, SampleRate sampleRate ) throws UsbException, DeviceException
     {
     	if( device != null && descriptor != null )
     	{
@@ -215,7 +216,7 @@ public class TunerManager {
 				case TERRATEC_T_STICK_PLUS:
 				case TWINTECH_UT40:
 				case ZAAPA_ZTMINDVBZP:
-					return initRTL2832Tuner( tunerClass, device, descriptor );
+					return initRTL2832Tuner( tunerClass, device, descriptor, sampleRate );
 				case UNKNOWN:
 				default:
 					break;
@@ -304,7 +305,7 @@ public class TunerManager {
 	
 	private device.TunerController initRTL2832Tuner( TunerClass tunerClass,
 											  Device device, 
-											  DeviceDescriptor deviceDescriptor )
+											  DeviceDescriptor deviceDescriptor, SampleRate sampleRate )
 	{
 		String reason = "NOT LOADED";
 
@@ -332,7 +333,7 @@ public class TunerManager {
 						new E4KTunerController( device, deviceDescriptor, 
 								mThreadPoolManager );
 					
-					controller.init();
+					controller.init(sampleRate);
 					
 	//				RTL2832Tuner rtlTuner = 
 	//					new RTL2832Tuner( tunerClass, controller );
@@ -354,7 +355,7 @@ public class TunerManager {
 						new R820TTunerController( device, deviceDescriptor, 
 								mThreadPoolManager );
 					
-					controller.init();
+					controller.init(sampleRate);
 					
 	//				RTL2832Tuner rtlTuner = 
 	//					new RTL2832Tuner( tunerClass, controller );

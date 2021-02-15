@@ -145,7 +145,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 	}
 
 	
-	public void init() throws DeviceException
+	public void init(SampleRate sampleRate) throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 		
@@ -163,7 +163,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 
 		try
 		{
-			setSampleRate( DEFAULT_SAMPLE_RATE );
+			setSampleRate( sampleRate );
 		}
 		catch( Exception e )
 		{
@@ -1014,7 +1014,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 		writeDemodRegister( mDeviceHandle, Page.ONE, (short)0xA1, 0, 2 );
 		
 		/* Set sample rate correction to 0 */
-		setSampleRateFrequencyCorrection( 0 );
+//		setSampleRateFrequencyCorrection( 0 ); // TODO - check if this is important. Have to apply it after?
 
 		/* Reset the demod for the changes to take effect */
 		writeDemodRegister( mDeviceHandle, Page.ONE, (short)0x01, 0x14, 1 );
@@ -1036,7 +1036,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException
 	{
 		Log.println("Setting ppm to: " +ppm);
-		int offset = -ppm * TWO_TO_22_POWER / 1000000;
+		int offset = -ppm * 4* TWO_TO_22_POWER / 1000000;
 		
 		writeDemodRegister( mDeviceHandle, 
 							Page.ONE, 
@@ -1272,11 +1272,12 @@ public abstract class RTL2832TunerController extends device.TunerController
 		RATE_0_240MHZ( 0x1E00,  240000, "0.240 MHz" ),
 		RATE_0_288MHZ( 0x1900,  288000, "0.288 MHz" ),
 		RATE_0_960MHZ( 0x0780,  960000, "0.960 MHz" ),
-		RATE_1_200MHZ( 0x0600, 1200000, "1.200 MHz" ),
+//		RATE_1_200MHZ( 0x0600, 1200000, "1.200 MHz" ),
 		RATE_1_440MHZ( 0x0500, 1440000, "1.440 MHz" ),
-		RATE_1_920MHZ( 0x03C0, 2016000, "2.016 MHz" ),
-		RATE_2_304MHZ( 0x0320, 2208000, "2.208 MHz" ),
-		RATE_2_400MHZ( 0x0300, 2400000, "2.400 MHz" ),
+//		RATE_1_920MHZ( 0x03C0, 2016000, "2.016 MHz" ),
+		RATE_1_920MHZ( 0x03C0, 1920000, "1.920 MHz" ),
+		RATE_2_304MHZ( 0x0320, 2304000, "2.304 MHz" ),
+//		RATE_2_400MHZ( 0x0300, 2400000, "2.400 MHz" ),
 		RATE_2_880MHZ( 0x0280, 2880000, "2.880 MHz" );
 		
 		private int mRatioHigh;

@@ -53,6 +53,14 @@ public class SourceIQ extends SourceAudio {
 	public static int samplesToRead = 3840;
 		
 	int decimationFactor = 4; // This is the IQ SAMPLE_RATE / decoder SAMPLE_RATE.  e.g. 192/48
+	int decimationFactor2 = 1; // for 2 stage decimation if decimationFactor > 10.  Default is 1 == no second decimation
+	int decimateCount = 0;
+	int decimateCount2 = 0;
+	// storage for the polyphase filters
+	double[] inI ;
+	double[] inQ ;
+	double[] in2I ;
+	double[] in2Q ;
 	
 	double[] fftData = null; //new double[FFT_SAMPLES*2];
 	double[] newData = null; //new double[fftData.length]; // make a new array to copy so we can store the section we want
@@ -95,8 +103,10 @@ public class SourceIQ extends SourceAudio {
 	DcRemoval iDcFilter;
 	DcRemoval qDcFilter;
 	
-	PolyPhaseFilter polyFilter;
-	PolyPhaseFilter polyFilter2;
+	PolyPhaseFilter polyFilterI;
+	PolyPhaseFilter polyFilterQ;
+	PolyPhaseFilter polyFilter2I;
+	PolyPhaseFilter polyFilter2Q;
 	
 	HilbertTransform ht;
 	Delay delay;
@@ -348,8 +358,54 @@ public class SourceIQ extends SourceAudio {
 		psdAvg = new double[FFT_SAMPLES*2+1];;
 		newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
 
-		decimationFactor = IQ_SAMPLE_RATE / AF_SAMPLE_RATE;
-		if (decimationFactor == 0) decimationFactor = 1;  // User has chosen the wrong rate most likely
+		
+		
+		switch (IQ_SAMPLE_RATE) {
+		
+		case 960000:
+			decimationFactor = 4;
+			decimationFactor2 = 5;
+			break;
+			
+		case 2304000:
+			decimationFactor = 8;
+			decimationFactor2 = 6;
+			break;
+
+		case 1440000:
+			decimationFactor = 6;
+			decimationFactor2 = 5;
+			break;
+
+		case 1920000:
+			decimationFactor = 8;
+			decimationFactor2 = 5;
+			break;
+
+		case 2208000:
+			decimationFactor = 23;
+			decimationFactor2 = 2;
+			break;
+
+		case 2400000:
+			decimationFactor = 10;
+			decimationFactor2 = 5;
+			break;
+
+		case 2880000:
+			decimationFactor = 10;
+			decimationFactor2 = 6;
+			break;
+
+		default:
+			decimationFactor = IQ_SAMPLE_RATE / AF_SAMPLE_RATE;
+			break;
+		}
+				
+		if (decimationFactor == 0)  { // safety check
+			decimationFactor = 1;  // User has chosen the wrong rate most likely
+			decimationFactor2 = 1; // no second decimation
+		}
 		binBandwidth = IQ_SAMPLE_RATE/(double)FFT_SAMPLES;
 		
 			
@@ -377,19 +433,28 @@ public class SourceIQ extends SourceAudio {
 		
 		fcdData = new double[samplesToRead]; // this is the data block we read from the IQ source and pass to the FFT
 		demodAudio = new double[samplesToRead/2];
-		audioData = new double[samplesToRead/2/decimationFactor];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
+		audioData = new double[samplesToRead/2/(decimationFactor*decimationFactor2)];  // we need the 2 because there are 4 bytes for each double and demod audio is samplesToRead/2
 		phasorData = new double[samplesToRead]; // same length as the IQ data
 
 		Log.println("IQDecoder Samples to read: " + samplesToRead);
 		Log.println("IQDecoder using FFT sized to: " + FFT_SAMPLES);
+		Log.println("Decimation: " + decimationFactor * decimationFactor2);
 		Log.println("Decimation Factor: " + decimationFactor);
+		Log.println("Decimation Factor2: " + decimationFactor2);
 		Log.println("IQ Sample Rate: " + IQ_SAMPLE_RATE);
 		
 		
-		polyFilter = new PolyPhaseFilter(IQ_SAMPLE_RATE, filterWidthHz, decimationFactor, 13*decimationFactor);
-		polyFilter2 = new PolyPhaseFilter(IQ_SAMPLE_RATE, filterWidthHz, decimationFactor, 13*decimationFactor);
-		in = new double[decimationFactor];
-		in2 = new double[decimationFactor];
+		polyFilterI = new PolyPhaseFilter(IQ_SAMPLE_RATE, IQ_SAMPLE_RATE/decimationFactor/2, decimationFactor, 13*decimationFactor);
+		polyFilterQ = new PolyPhaseFilter(IQ_SAMPLE_RATE, IQ_SAMPLE_RATE/decimationFactor/2, decimationFactor, 13*decimationFactor);
+
+		polyFilter2I = new PolyPhaseFilter(IQ_SAMPLE_RATE/decimationFactor, filterWidthHz, decimationFactor2, 13*decimationFactor2);
+		polyFilter2Q = new PolyPhaseFilter(IQ_SAMPLE_RATE/decimationFactor, filterWidthHz, decimationFactor2, 13*decimationFactor2);
+
+		
+		inI = new double[decimationFactor];
+		inQ = new double[decimationFactor];
+		in2I = new double[decimationFactor2];
+		in2Q = new double[decimationFactor2];
 
 		audioDcFilter = new DcRemoval(0.9999d);
 
@@ -511,9 +576,6 @@ public class SourceIQ extends SourceAudio {
 	double gain = 1;
 	static final double DESIRED_RANGE = 0.7; // from -0.5 to +0.5
 	
-	int decimateCount = 0;
-	double[] in ;
-	double[] in2 ;
 	double pfValue, pfValue2, audioI, audioQ;
 
 	double iMixNco, qMixNco;
@@ -546,25 +608,35 @@ public class SourceIQ extends SourceAudio {
 			qMixNco = gain*qd * c.geti() - gain*id*c.getq();
 
 			try {
-			in[decimateCount] = iMixNco;
-			in2[decimateCount] = qMixNco;
-			} catch (ArrayIndexOutOfBoundsException e) {
-				// we likely changed the rate, but usually we can recover from this. Try to ignore
-				Log.println("ERROR WITH DECIMATION RATE. count:" + decimateCount + " rate:" + decimationFactor);
-			}
+			inI[decimateCount] = iMixNco;
+			inQ[decimateCount] = qMixNco;
+			
 			decimateCount++;
 			if (decimateCount >= decimationFactor) {
 				decimateCount = 0;
-				pfValue = polyFilter.filterDouble(in);
-				pfValue2 = polyFilter2.filterDouble(in2);
-				if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {
-					//Demodulate ssb
-					audioQ = ht.filter(pfValue);
-					audioI = delay.filter(pfValue2);
-					//double audio = audioI - audioQ; // LSB
-					audioData[j/(2*decimationFactor)] = audioI + audioQ; // USB
+				pfValue = polyFilterI.filterDouble(inI);
+				pfValue2 = polyFilterQ.filterDouble(inQ);
+				
+				if (decimationFactor2 > 0) {
+				
+					in2I[decimateCount2] = pfValue;
+					in2Q[decimateCount2] = pfValue2;
+					decimateCount2++;
+					if (decimateCount2 >= decimationFactor2) {
+						decimateCount2 = 0;
+						pfValue = polyFilter2I.filterDouble(in2I);
+						pfValue2 = polyFilter2Q.filterDouble(in2Q);
+						demodulate(j);
+					}
 				} else
-					audioData[j/(2*decimationFactor)] = fm.demodulate(pfValue, pfValue2);
+					demodulate(j);
+				
+				
+			}
+			} catch (ArrayIndexOutOfBoundsException e) {
+				// we likely changed the rate, but usually we can recover from this. Try to ignore
+				Log.println("ERROR WITH DECIMATION RATE. count:" + decimateCount + " rate:" + decimationFactor);
+				decimateCount = 0;
 			}
 			
 			// i and q go into consecutive spaces in the complex FFT data input
@@ -585,6 +657,18 @@ public class SourceIQ extends SourceAudio {
 		if (Config.showIF) calcPsd();
 
 		return audioData; 
+	}
+	
+	private void demodulate(int j) {
+		// Demodulation
+		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {
+			//Demodulate ssb
+			audioQ = ht.filter(pfValue);
+			audioI = delay.filter(pfValue2);
+			//double audio = audioI - audioQ; // LSB
+			audioData[j/(2*decimationFactor*decimationFactor2)] = audioI + audioQ; // USB
+		} else
+			audioData[j/(2*decimationFactor*decimationFactor2)] = fm.demodulate(pfValue, pfValue2);
 	}
 	
 protected double[] processPSKBytes(double[] fcdData) {

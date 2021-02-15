@@ -42,7 +42,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 
    // private JTextField mConfigurationName;
     //private JButton mTunerInfo;
-    private JComboBox<SampleRate> mComboSampleRate;
+//    private JComboBox<SampleRate> mComboSampleRate;
     private JSpinner mFrequencyCorrection;
     private JComboBox<R820TGain> mComboMasterGain;
     private JComboBox<R820TMixerGain> mComboMixerGain;
@@ -75,22 +75,21 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 		add(bottom, BorderLayout.SOUTH);
 		
 		int sampleRate = device.getCurrentSampleRate();
-		mComboSampleRate = new JComboBox<>( SampleRate.values() );
-		mComboSampleRate.addActionListener(this);	
-		loadParam(mComboSampleRate, "mComboSampleRate");
+//		mComboSampleRate = new JComboBox<>( SampleRate.values() );
+//		mComboSampleRate.addActionListener(this);	
+//		loadParam(mComboSampleRate, "mComboSampleRate");
 		SampleRate s = SampleRate.getClosest(sampleRate);
-		if (s != null)
-			mComboSampleRate.setSelectedItem(s);
+//		if (s != null)
+//			mComboSampleRate.setSelectedItem(s);
 		
 		//top.add(mComboSampleRate);
-		top.add( new JLabel( "Sample Rate:" ) );
-		top.add( mComboSampleRate );
-		// We are fixed at the sample rate that was used to start the decoder.  No way to dynamically change
-		mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
+		top.add( new JLabel( "Sample Rate: " + s) );
+//		top.add( mComboSampleRate );
+//		// We are fixed at the sample rate that was used to start the decoder.  No way to dynamically change
+//		mComboSampleRate.setEnabled(false); // fixed at 240k for now.  Other rates do not work
 
         //Frequency Correction 
-        SpinnerModel model =
-                new SpinnerNumberModel(     0,   //initial value
+        SpinnerModel model = new SpinnerNumberModel(     0,   //initial value
                                         -1000,   //min
                                          1000,   //max
                                             1 ); //step
@@ -98,8 +97,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
         mFrequencyCorrection = new JSpinner( model );
         mFrequencyCorrection.setEnabled( true );
 
-        JSpinner.NumberEditor editor = 
-        		(JSpinner.NumberEditor)mFrequencyCorrection.getEditor();  
+        JSpinner.NumberEditor editor = (JSpinner.NumberEditor)mFrequencyCorrection.getEditor();  
         
         DecimalFormat format = editor.getFormat();  
         format.setMinimumFractionDigits( 0 );  
@@ -107,8 +105,8 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 
         mFrequencyCorrection.addChangeListener(this);
         
-        bottom.add( new JLabel( "Freq Correction (ppm):" ) );
-        bottom.add( mFrequencyCorrection );
+        top.add( new JLabel( " |  Freq Correction (ppm):" ) );
+        top.add( mFrequencyCorrection );
         loadParam(mFrequencyCorrection, "mFrequencyCorrection");
         
         //add( new JSeparator( JSeparator.HORIZONTAL ) );
@@ -339,21 +337,21 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 
 
 private void setSampleRate() {
-	SampleRate sampleRate = (SampleRate)mComboSampleRate.getSelectedItem();
-	try {
-		((RTL2832TunerController) device).setSampleRate( sampleRate );
-		save();
-	}
-	catch ( DeviceException | LibUsbException eSampleRate ) {
-		Log.errorDialog(  
-				"R820T Tuner Controller - couldn't apply the sample ",
-				"rate setting [" + sampleRate.getLabel() + "] " + 
-						eSampleRate.getLocalizedMessage() );  
-
-		Log.println( "R820T Tuner Controller - couldn't apply sample "
-				+ "rate setting [" + sampleRate.getLabel() + "] " + 
-				eSampleRate );
-	} 
+//	SampleRate sampleRate = (SampleRate)mComboSampleRate.getSelectedItem();
+//	try {
+//		((RTL2832TunerController) device).setSampleRate( sampleRate );
+//		save();
+//	}
+//	catch ( DeviceException | LibUsbException eSampleRate ) {
+//		Log.errorDialog(  
+//				"R820T Tuner Controller - couldn't apply the sample ",
+//				"rate setting [" + sampleRate.getLabel() + "] " + 
+//						eSampleRate.getLocalizedMessage() );  
+//
+//		Log.println( "R820T Tuner Controller - couldn't apply sample "
+//				+ "rate setting [" + sampleRate.getLabel() + "] " + 
+//				eSampleRate );
+//	} 
 }
 
 private void setFrequencyCorrection() {
@@ -377,9 +375,9 @@ private void setFrequencyCorrection() {
 
 @Override
 public void actionPerformed(ActionEvent e) {
-	if (e.getSource() == mComboSampleRate) {
-		setSampleRate();
-	}
+//	if (e.getSource() == mComboSampleRate) {
+//		setSampleRate();
+//	}
 	if (e.getSource() == mComboMasterGain) {
 		setGain();
 	}

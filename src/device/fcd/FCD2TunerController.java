@@ -26,6 +26,7 @@ import org.usb4java.DeviceDescriptor;
 import common.Log;
 import device.DeviceException;
 import device.DevicePanel;
+import device.rtl.RTL2832TunerController.SampleRate;
 
 public class FCD2TunerController extends FCDTunerController
 {
@@ -264,5 +265,11 @@ public class FCD2TunerController extends FCDTunerController
 	@Override
 	public DevicePanel getDevicePanel() throws IOException, DeviceException {
 		return new FcdProPlusPanel();
+	}
+
+	@Override
+	public void setSampleRate(SampleRate sampleRate) {
+		// TODO Auto-generated method stub
+		
 	}
 }

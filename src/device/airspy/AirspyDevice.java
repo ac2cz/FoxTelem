@@ -33,6 +33,7 @@ import device.HilbertTransform;
 import device.ThreadPoolManager;
 import device.TunerClass;
 import device.TunerConfiguration;
+import device.rtl.RTL2832TunerController.SampleRate;
 import device.ThreadPoolManager.ThreadType;
 
 /**
@@ -1605,5 +1606,11 @@ public class AirspyDevice extends device.TunerController
 	@Override
 	public DevicePanel getDevicePanel() throws IOException, DeviceException {
 		return new AirspyPanel();
+	}
+
+	@Override
+	public void setSampleRate(SampleRate sampleRate) throws DeviceException {
+		// TODO Auto-generated method stub
+		
 	}
 }

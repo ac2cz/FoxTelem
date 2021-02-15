@@ -240,10 +240,10 @@ public class R820TTunerController extends RTL2832TunerController
 	/**
 	 * Initializes the tuner for use.
 	 */
-	public void init() throws DeviceException
+	public void init(SampleRate sampleRate) throws DeviceException
 	{
 		/* Initialize the super class to open and claim the usb interface*/
-		super.init();
+		super.init(sampleRate);
 		
 		try
 		{

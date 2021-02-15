@@ -76,6 +76,7 @@ import device.DeviceException;
 import device.DevicePanel;
 import device.TunerManager;
 import device.fcd.FCDTunerController;
+import device.rtl.RTL2832TunerController.SampleRate;
 import telemetry.FramePart;
 import telemetry.TelemFormat;
 
@@ -150,6 +151,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblFileName;
 	JLabel lblFile;
 	JComboBox<String> cbSoundCardRate;
+	JComboBox<SampleRate> cbRtlSampleRate;
 	JPanel panelFile;
 	DevicePanel panelFcd;
 	JPanel SDRpanel;
@@ -190,6 +192,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	TunerController rfDevice;
 	TunerManager tunerManager;
+	SampleRate rtlSampleRate = SampleRate.RATE_0_240MHZ; // default Sample rate
 	
 	static final int RATE_96000_IDX = 2;
 	static final int RATE_192000_IDX = 3;
@@ -759,6 +762,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panel_1.add(cbSoundCardRate);
 		cbSoundCardRate.setSelectedItem(Integer.toString(Config.scSampleRate));
 		
+		//int sampleRate = device.getCurrentSampleRate();
+		cbRtlSampleRate = new JComboBox<>( SampleRate.values() );
+		cbRtlSampleRate.addActionListener(this);	
+//		loadParam(cbRtlSampleRate, "mComboSampleRate");
+//		SampleRate s = SampleRate.getClosest(sampleRate);
+//		if (s != null)
+//			cbRtlSampleRate.setSelectedItem(s);	
+		panel_1.add(cbRtlSampleRate);
+		cbRtlSampleRate.setVisible(false);
+		
 		afAudio = addRadioButton("AF", panel_1 );
 		iqAudio = addRadioButton("IQ", panel_1 );
 		ButtonGroup group2 = new ButtonGroup();
@@ -1071,6 +1084,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			panelFile.setVisible(true);
 			btnStartButton.setEnabled(true);
 			cbSoundCardRate.setVisible(false);
+			cbRtlSampleRate.setVisible(false);
 			return true;
 		}
 		Config.save();
@@ -1110,8 +1124,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
 		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
-			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
-		} 
+			cbSoundCardRate.setVisible(!b); 
+			cbRtlSampleRate.setVisible(b);
+		} else {
+			cbSoundCardRate.setVisible(b); 
+			cbRtlSampleRate.setVisible(!b);
+		}
 	}
 	
 	private void setFreqVisible(boolean b) {
@@ -1553,11 +1571,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void connectFCD(short vendorId, short deviceId) throws UsbException, DeviceException {
 		if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 			try {
-				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+				rfDevice = tunerManager.findDevice(vendorId, deviceId, SampleRate.RATE_0_240MHZ);
 			} catch (Exception e1) {
 				// FIXME - This can not be right..
 				// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
-				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+				rfDevice = tunerManager.findDevice(vendorId, deviceId, SampleRate.RATE_0_240MHZ);
 			}
 		} 
 	}
@@ -1815,9 +1833,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 
+					SampleRate sampleRate = (SampleRate)cbRtlSampleRate.getSelectedItem();
 					if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 						try {
-							rfDevice = tunerManager.findDevice(vendorId, deviceId);
+							rfDevice = tunerManager.findDevice(vendorId, deviceId, sampleRate);
 						} catch (UsbException e1) {
 							Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
 							e1.printStackTrace();
@@ -1833,18 +1852,30 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						stopButton();
 					} else {
 						Log.println("USB Source Selected: " + rfDevice.name);
-						panelFcd = null; // get rid of any existing panel
-						try {
-							panelFcd = rfDevice.getDevicePanel();
-						} catch (IOException e) {
-							Log.errorDialog("USB Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("USB Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
+						if (panelFcd == null) {
+							try {
+								
+								panelFcd = rfDevice.getDevicePanel();
+							} catch (IOException e) {
+								Log.errorDialog("USB Panel Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+							} catch (DeviceException e) {
+								Log.errorDialog("USB Device Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+							}
 						}
+						
+						
+						// TODO - this resets the PPM adjustment that was setup when panel created.
+						try { 
+							rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
+						} catch (DeviceException e2) {
+							Log.errorDialog("USB Error Setting sample rate", e2.getMessage());
+							e2.printStackTrace(Log.getWriter());
+							stopButton();
+						} 
 						
 						// Setting the device causes its paramaters to be set, e.g. gain
 						// retry 5 times with some delay in case a temporary hardware issue
@@ -1858,6 +1889,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 										|| e.getErrorCode() == LibUsb.ERROR_BUSY
 										|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
 										|| e.getErrorCode() == LibUsb.ERROR_BUSY
+										|| e.getErrorCode() == LibUsb.ERROR_OVERFLOW
 										|| e.getErrorCode() == LibUsb.ERROR_IO) {
 									// this is a temporary error
 									usbErrorCount++;
@@ -2270,6 +2302,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
+		cbRtlSampleRate.setEnabled(t);
 		enableSourceModeSelectionComponents(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
 		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)

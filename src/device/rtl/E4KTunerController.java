@@ -33,6 +33,7 @@ import device.DeviceException;
 import device.DevicePanel;
 import device.ThreadPoolManager;
 import device.TunerType;
+import device.rtl.RTL2832TunerController.SampleRate;
 
 public class E4KTunerController extends RTL2832TunerController
 {
@@ -175,7 +176,7 @@ public class E4KTunerController extends RTL2832TunerController
 	    
     }
 */
-	public void init() throws DeviceException
+	public void init(SampleRate sampleRate) throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 		
@@ -238,7 +239,7 @@ public class E4KTunerController extends RTL2832TunerController
 			
 			try
 			{
-				setSampleRate( DEFAULT_SAMPLE_RATE );
+				setSampleRate( sampleRate );
 			}
 			catch( Exception e )
 			{
