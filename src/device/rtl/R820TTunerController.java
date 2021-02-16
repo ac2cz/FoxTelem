@@ -639,7 +639,7 @@ public class R820TTunerController extends RTL2832TunerController
 	 */
 	public int setBiasTee(boolean on) {
 		setGPIOOutput(mDeviceHandle, (byte) 0x00);
-		setGPIOBit(mDeviceHandle, (byte) 0x00, on);
+		setGPIOBit(mDeviceHandle, (byte) 0x01, on); // set the bit shown by the bit mask, not the pin to set as implemented in rtl-sdr.c
 		return 0;
 	}
 	
