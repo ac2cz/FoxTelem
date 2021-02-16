@@ -583,7 +583,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 	 * 
 	 * @param handle - USB tuner device
 	 * @param bitMask - bit mask with one for targeted register bits and zero 
-	 *		for the non-targeted register bits
+	 *		for the non-targeted register bits.  Note this i different to the
+	 * 		rtlsdr.c implementation which passes the pin number
 	 * @param enabled - true to set the bit and false to clear the bit
 	 * @throws UsbDisconnectedException - if the tuner device is disconnected
 	 * @throws UsbException - if there is a USB error while communicating with 
