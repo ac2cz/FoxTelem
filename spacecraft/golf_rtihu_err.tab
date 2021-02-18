@@ -1,0 +1,31 @@
+0, Unspecified
+1, PowerCycle
+2, Internal Watchdog
+3, Software Reset
+4, External Reset
+5, Oscillator Failure
+6, StackOverflow
+7, NMI Exception
+8, SPIInUse
+9, SPIOperationTimeout
+10, SPIMramTimeout
+11, UnexpectedBehavior
+12, SemaphoreFail
+13, USARTError
+14, DMAInUseTimeout
+15, Illegal GPIO Output
+16, Illegal GPIO Input
+17, Illegal GPIO Wait
+18, MRAMcrc
+19, MRAMread
+20, MRAMwrite
+21, RTOS failure
+22, I2C In Use
+23, I2C1 failure
+24, I2C2 failure
+25, ControlQueueOverflow
+26, ControlTimerNotStarted
+27, Coordination Timer Not Started
+28, CAN write timeout
+29, Experiment Failure
+30, Debug Startup

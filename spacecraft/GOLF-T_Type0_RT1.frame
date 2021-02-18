@@ -1,6 +1,6 @@
 number_of_payloads=7
 payload0.name=rttelemetry
-payload0.length=96
+payload0.length=88
 payload1.name=radtelemetry
 payload1.length=60
 payload2.name=ragtelemetry
