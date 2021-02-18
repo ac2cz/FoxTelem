@@ -228,7 +228,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblLogFileDir.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		bottomPanel.add(lblLogFileDir, BorderLayout.CENTER );
 
-		lblUsbErrors = new JLabel(USB_ERRORS);
+		lblUsbErrors = new JLabel(USB_ERRORS + "0 / 0");
 //		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblUsbErrors.setFont(footerFont);
 		lblUsbErrors.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
@@ -236,7 +236,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		rightBottom.add(lblUsbErrors );
 		usbFatalErrorCount = 0; // this has reset this variable on the display, so remember that
 		
-		lblAudioMissed = new JLabel(AUDIO_MISSED);
+		lblAudioMissed = new JLabel(AUDIO_MISSED + "0.0% / 0");
 //		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblAudioMissed.setFont(footerFont);
 		lblAudioMissed.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
@@ -361,7 +361,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	public static void setUsbErrors(int fatalErrors, int errors) {
 		usbFatalErrorCount = fatalErrors;
 		if (lblUsbErrors != null) { // just in case we are delayed starting up
-			lblUsbErrors.setText(USB_ERRORS + fatalErrors + "/" + errors);
+			lblUsbErrors.setText(USB_ERRORS + fatalErrors + " / " + errors);
 			if (fatalErrors > 0)
 				lblUsbErrors.setForeground(Color.RED);
 			else
