@@ -64,8 +64,7 @@ public abstract class FCDTunerController extends device.TunerController
 							   DeviceDescriptor descriptor,
 							   int sampleRate,
 							   long minTunableFrequency,
-							   long maxTunableFrequency ) throws DeviceException
-	{
+							   long maxTunableFrequency ) throws DeviceException {
 		super(name, minTunableFrequency, maxTunableFrequency);
 		
 		SAMPLE_RATE = sampleRate;
@@ -75,13 +74,12 @@ public abstract class FCDTunerController extends device.TunerController
 
 	
 	public void setMixerGain( boolean enabled ) throws DeviceException {
-		try
-        {
+		try {
         	send( FCDCommand.APP_SET_MIXER_GAIN, enabled ? 1 : 0 );
-        }
-        catch ( Exception e )
-        {
-        	throw new DeviceException( "error while setting Mixer Gain: " + e.getMessage() );
+		}
+        catch ( Exception e ) {
+        	Log.println( "error while setting Mixer Gain: " + e.getMessage() );
+        	throw e;
         }
 	}
 	public boolean getMixerGain() throws DeviceException {
@@ -93,7 +91,8 @@ public abstract class FCDTunerController extends device.TunerController
 				return true;
         }
         catch ( Exception e ) {
-        	throw new DeviceException( "error while getting Mixer Gain: " + e.getMessage() );
+        	Log.println( "error while getting Mixer Gain: " + e.getMessage() );
+        	throw e;
         }
 		return false;
 	}
@@ -258,16 +257,14 @@ public abstract class FCDTunerController extends device.TunerController
 	 */
 	public int setFrequency( long frequency ) throws DeviceException
 	{
-		try
-		{
+		try {
 			send( FCDCommand.APP_SET_FREQUENCY_HZ, frequency );
 		}
-		catch( Exception e )
-		{
-			throw new DeviceException( "Couldn't set FCD Local " +
+		catch( Exception e ) {
+			Log.println( "Couldn't set FCD Local " +
 					"Oscillator Frequency [" + frequency + "]" +e.getMessage() );
+			throw e;
 		}
-	//	throw new LibUsbException(LibUsb.ERROR_BUSY);
 		return 0;
 	}
 
@@ -276,18 +273,17 @@ public abstract class FCDTunerController extends device.TunerController
 	 */
 	public long getTunedFrequency() throws DeviceException
 	{
-		try
-		{
+		try {
 			ByteBuffer buffer = send( FCDCommand.APP_GET_FREQUENCY_HZ );
 			
 			buffer.order( ByteOrder.LITTLE_ENDIAN );
 			
 			return (int)( buffer.getInt( 2 ) & 0xFFFFFFFF );
 		}
-		catch( Exception e )
-		{
-			throw new DeviceException( "FCDTunerController - "
+		catch( Exception e ) {
+			Log.println( "FCDTunerController - "
 					+ "couldn't get LO frequency" + e.getMessage() );
+			throw e;
 		}
 	}
 	

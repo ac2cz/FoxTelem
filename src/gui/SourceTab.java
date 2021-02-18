@@ -1623,7 +1623,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					break; // no need to retry
 				} catch (LibUsbException e) {
 					if (e.getErrorCode() == LibUsb.ERROR_PIPE
-							|| e.getErrorCode() == LibUsb.ERROR_BUSY
+							|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
 							|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
 							|| e.getErrorCode() == LibUsb.ERROR_BUSY
 							|| e.getErrorCode() == LibUsb.ERROR_OVERFLOW
@@ -1915,7 +1915,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								break; // no need to retry
 							} catch (LibUsbException e) {
 								if (e.getErrorCode() == LibUsb.ERROR_PIPE
-										|| e.getErrorCode() == LibUsb.ERROR_BUSY
+										|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
 										|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
 										|| e.getErrorCode() == LibUsb.ERROR_BUSY
 										|| e.getErrorCode() == LibUsb.ERROR_OVERFLOW
@@ -1937,6 +1937,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								break;
 							} catch (DeviceException e) {
 								Log.errorDialog("USB Device Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+								break;
+							} catch (UsbException e) {
+								Log.errorDialog("USB Hardware Error", e.getMessage());
 								e.printStackTrace(Log.getWriter());
 								stopButton();
 								break;
@@ -2175,7 +2180,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							break; // no need to retry
 						} catch (LibUsbException e) {
 							if (e.getErrorCode() == LibUsb.ERROR_PIPE
-									|| e.getErrorCode() == LibUsb.ERROR_BUSY
+									|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
 									|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
 									|| e.getErrorCode() == LibUsb.ERROR_BUSY
 									|| e.getErrorCode() == LibUsb.ERROR_IO) {
@@ -2185,9 +2190,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								try { Thread.sleep(200); } catch (InterruptedException e1) { }
 							} else {
 								// user intervention is required
-								Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+								Log.errorDialog("LibUSB error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
 								break;
 							}
+						} catch (UsbException e) {
+							Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+							break;
 						}
 					}
 					if (retried >= 5)

@@ -7,6 +7,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
 import javax.swing.JTextField;
+import javax.usb.UsbException;
 
 import common.Config;
 import common.Log;
@@ -18,7 +19,7 @@ public abstract class DevicePanel extends JPanel implements Runnable {
 	protected boolean running = true;
 	protected boolean done = false;
 	
-	public abstract void setDevice(TunerController fcd) throws IOException, DeviceException;
+	public abstract void setDevice(TunerController fcd) throws IOException, DeviceException, UsbException;
 	
 	public abstract void updateFilter() throws IOException, DeviceException;
 	

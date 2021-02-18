@@ -105,13 +105,12 @@ public class FCD2TunerController extends FCDTunerController
     }
 	*/
 	public void setLnaGain( boolean enabled ) throws DeviceException {
-		try
-        {
+		try {
         	send( FCDCommand.APP_SET_LNA_GAIN, enabled ? 1 : 0 );
         }
-        catch ( Exception e )
-        {
-        	throw new DeviceException( "error while setting LNA Gain: " + e.getMessage() );
+        catch ( Exception e ) {
+        	Log.println( "error while setting LNA Gain: " + e.getMessage() );
+        	throw e;
         }
 	}
 	
@@ -124,20 +123,20 @@ public class FCD2TunerController extends FCDTunerController
 				return true;
         }
         catch ( Exception e ) {
-        	throw new DeviceException( "error while getting LNA Gain: " + e.getMessage() );
+        	Log.println( "error while getting LNA Gain: " + e.getMessage() );
+        	throw e;
         }
 		return false;
 	}
 
 
 	public void setBiasTee( boolean enabled ) throws DeviceException {
-		try
-        {
+		try  {
         	send( FCDCommand.APP_SET_BIAS_TEE, enabled ? 1 : 0 );
         }
-        catch ( Exception e )
-        {
-        	throw new DeviceException( "error while setting Bias Tee: " + e.getMessage() );
+        catch ( Exception e ) {
+        	Log.println( "error while setting Bias Tee: " + e.getMessage() );
+        	throw e;
         }
 	}
 	
@@ -150,7 +149,8 @@ public class FCD2TunerController extends FCDTunerController
 				return true;
         }
         catch ( Exception e ) {
-        	throw new DeviceException( "error while getting Bias Tee: " + e.getMessage() );
+        	Log.println( "error while getting Bias Tee: " + e.getMessage() );
+        	throw e;
         }
 		return false;
 	}
@@ -164,7 +164,8 @@ public class FCD2TunerController extends FCDTunerController
 				return rfFilterName[ret];
         }
         catch ( Exception e ) {
-        	throw new DeviceException( "error while getting RF Filter: " + e.getMessage() );
+        	Log.println( "error while getting RF Filter: " + e.getMessage() );
+        	throw e;
         }
 		return "";
 	}
@@ -178,7 +179,8 @@ public class FCD2TunerController extends FCDTunerController
 				return ifFilterName[ret];
         }
         catch ( Exception e ) {
-        	throw new DeviceException( "error while getting IF Filter: " + e.getMessage() );
+        	Log.println( "error while getting IF Filter: " + e.getMessage() );
+        	throw e;
         }
 		return "";
 	}
@@ -194,10 +196,9 @@ public class FCD2TunerController extends FCDTunerController
 			return buffer.getInt( 2 );
         }
         catch ( Exception e ) {
-        	Log.errorDialog( "error getting dc correction value", e.getMessage() );
+        	Log.println( "error getting dc correction value "+ e.getMessage() );
+        	throw e;
         }
-		
-		return dcCorrection;
 	}
 	
 	public void setDCCorrection( int value ) {
@@ -205,7 +206,8 @@ public class FCD2TunerController extends FCDTunerController
 			send( FCDCommand.APP_SET_DC_CORRECTION, value );
         }
         catch ( Exception e ) {
-        	Log.errorDialog( "error setting dc correction to [" + value + "]", e.getMessage() );
+        	Log.println( "error setting dc correction to [" + value + "] "+ e.getMessage() );
+        	throw e;
         }
 	}
 	
@@ -220,10 +222,9 @@ public class FCD2TunerController extends FCDTunerController
 			return buffer.getInt( 2 );
         }
         catch ( Exception e )  {
-        	Log.errorDialog( "error reading IQ correction value", e.getMessage() );
+        	Log.println( "error reading IQ correction value " + e.getMessage() );
+        	throw e;
         }
-	        
-		return iqCorrection;
 	}
 	
 	public void setIQCorrection( int value ) {
@@ -231,7 +232,8 @@ public class FCD2TunerController extends FCDTunerController
 	        send( FCDCommand.APP_SET_IQ_CORRECTION, value );
         }
         catch ( Exception e ) {
-        	Log.errorDialog( "error setting IQ correction to [" + value + "]", e.getMessage() );
+        	Log.println( "error setting IQ correction to [" + value + "] " + e.getMessage() );
+        	throw e;
         }
 	}
 	
