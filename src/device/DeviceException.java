@@ -19,6 +19,9 @@ package device;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * This is an exception thrown outside the LibUSB library by the FoxTelem code.  It is considered
+ * fatal and requires user intervention.
  *
  *
  */

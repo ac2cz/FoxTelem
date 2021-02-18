@@ -250,7 +250,7 @@ public class FCD1TunerController extends FCDTunerController
 		}
 		catch( Exception e )
 		{
-			e.printStackTrace();
+			e.printStackTrace(Log.getWriter());
 			
 			throw new DeviceException( "FCDTunerController error " +
 					"during construction: " + e.getMessage() );
@@ -267,7 +267,8 @@ public class FCD1TunerController extends FCDTunerController
         	send( FCDCommand.APP_SET_LNA_GAIN, val );
         }
         catch ( Exception e ) {
-        	throw new DeviceException( "error while setting LNA Gain: " + e.getMessage() );
+        	Log.println( "error while setting LNA Gain: " + e.getMessage() );
+        	throw e;
         }
 	}
 	
@@ -283,7 +284,9 @@ public class FCD1TunerController extends FCDTunerController
 			send( FCDCommand.APP_SET_RF_FILTER, filter );
 		}
 		catch ( Exception e ) {
-			throw new DeviceException( "error while setting RF Filter: " + e.getMessage() );
+			Log.println("error while setting RF Filter: " + e.getMessage());
+			throw e;
+			//throw new DeviceException( "error while setting RF Filter: " + e.getMessage() );
 		}	
 	}
 

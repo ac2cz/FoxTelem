@@ -180,14 +180,14 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	}
 	
 	@Override
-	public void setDevice(TunerController d) throws IOException, DeviceException {
+	public void setDevice(TunerController d) throws IOException, DeviceException, UsbException {
 		device = (RTL2832TunerController) d; 
 		loading = true;
 		getSettings();
 		loading = false;
 	}
 	
-	public void getSettings()  throws IOException, DeviceException {
+	public void getSettings()  throws IOException, DeviceException, UsbException {
 		try {
 			Thread.sleep(100);
 		} catch (InterruptedException e) {
@@ -397,7 +397,7 @@ private void setSampleRate() {
 //	} 
 }
 
-private void setFrequencyCorrection() {
+private void setFrequencyCorrection() throws UsbException {
 	
 	try {
 		int rate = (int) mFrequencyCorrection.getValue();
@@ -462,7 +462,12 @@ public void itemStateChanged(ItemEvent e) {
 	public void stateChanged(ChangeEvent e) {
 		if (e.getSource() == this.mFrequencyCorrection) {
 			Log.println("Set PPM to:" + (int) mFrequencyCorrection.getValue());
-			setFrequencyCorrection();
+			try {
+				setFrequencyCorrection();
+			} catch (UsbException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace(Log.getWriter());
+			}
 		}
 	} 
 
@@ -472,7 +477,7 @@ public void itemStateChanged(ItemEvent e) {
 			return device.getCurrentSampleRate();
 		} catch (DeviceException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			e.printStackTrace(Log.getWriter());
 			return 192000;
 		}
 	}

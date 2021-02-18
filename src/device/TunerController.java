@@ -2,6 +2,8 @@ package device;
 
 import java.io.IOException;
 
+import javax.usb.UsbException;
+
 import decoder.SourceUSB;
 import device.rtl.RTL2832TunerController.SampleRate;
 
@@ -42,7 +44,7 @@ public abstract class TunerController {
 		MAX_FREQ = max;
 	}
 
-	public abstract int setFrequency(long freq) throws DeviceException;
+	public abstract int setFrequency(long freq) throws DeviceException, UsbException;
 	
     public abstract void cleanup() throws IOException, DeviceException;
     

@@ -322,8 +322,9 @@ public class E4KTunerController extends RTL2832TunerController
 		}
 		catch( LibUsbException e )
 		{
-			throw new DeviceException( "E4K tuner controller - couldn't get "
+			Log.println( "E4K tuner controller - couldn't get "
 					+ "tuned frequency:" + e );
+			throw e;
 		}
     }
 

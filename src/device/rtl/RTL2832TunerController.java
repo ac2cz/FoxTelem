@@ -995,8 +995,9 @@ public abstract class RTL2832TunerController extends device.TunerController
         }
         catch ( Exception e )
         {
-        	throw new DeviceException( "RTL2832 Tuner Controller - cannot get "
+        	Log.println( "RTL2832 Tuner Controller - cannot get "
         			+ "current sample rate " + e.getMessage() );
+        	throw e;
         }
 
         return DEFAULT_SAMPLE_RATE.getRate();
@@ -1033,7 +1034,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 		}
 	}
 	
-	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException
+	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException, UsbException
 	{
 		Log.println("Setting ppm to: " +ppm);
 		int offset = -ppm * 4* TWO_TO_22_POWER / 1000000;
@@ -1049,16 +1050,11 @@ public abstract class RTL2832TunerController extends device.TunerController
 							( Integer.rotateRight( offset, 8 ) & 0xFF ), 
 							1 );
 		/* Test to retune controller to apply frequency correction */
-		try
-		{
-			double freq = Config.fcdFrequency;
-			setFrequency((long) (freq*1000));
-			//////////////////mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
-		}
-		catch( Exception e )
-		{
-			throw new DeviceException( "couldn't set sample rate frequency correction " + e.getMessage() );
-		}
+		
+		double freq = Config.fcdFrequency;
+		setFrequency((long) (freq*1000));
+		//////////////////mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
+		
 	}
 	
 	public int getSampleRateFrequencyCorrection() throws UsbException
