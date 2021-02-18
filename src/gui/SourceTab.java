@@ -258,6 +258,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	
 	// Keep track of errors writing to the USB
 	int usbErrorCount = 0;
+	int usbFatalErrorCount = 0;
 	
 	public SourceTab(MainWindow mw) {
 		mainWindow = mw;
@@ -309,7 +310,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 		showSourceOptions(Config.showSourceOptions);
-		showAudioOptions(Config.showAudioOptions);
+		showAudioOptions(Config.showAudioOptions);		
 	}
 	
 	public void showFilters(boolean b) { 
@@ -1643,8 +1644,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					break;
 				}
 			}
-			if (retried > 0) 
-				MainWindow.setUsbErrors(usbErrorCount);
+			if (retried >= 5)
+				usbFatalErrorCount++;
+			if (retried > 0)
+				MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 				
 			SDRpanel.add(panelFcd, BorderLayout.CENTER);
 
@@ -1939,8 +1942,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								break;
 							}
 						}
-						if (retried > 0) 
-							MainWindow.setUsbErrors(usbErrorCount);
+						if (retried >= 5)
+							usbFatalErrorCount++;
+						if (retried > 0)
+							MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 							
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
@@ -2185,8 +2190,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							}
 						}
 					}
-					if (retried > 0) 
-						MainWindow.setUsbErrors(usbErrorCount);
+					if (retried >= 5)
+						usbFatalErrorCount++;
+					if (retried > 0)
+						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 				}
 			} else {
 
@@ -2715,7 +2722,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	@Override
 	public void run() {
 		Thread.currentThread().setName("SourceTab:Tracking");
-
 		// Runs until we exit
 		while(true) {
 
@@ -2728,6 +2734,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			EventQueue.invokeLater(new Runnable() {
 				public void run() {
+					// make sure fatal error is visible at start up, even if main window not quite ready
+					if (usbFatalErrorCount > MainWindow.usbFatalErrorCount)
+						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+
 					boolean atLeastOneTracked = false;
 					try {
 						if (Config.satManager.updated) {
