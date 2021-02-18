@@ -404,7 +404,7 @@ private void setFrequencyCorrection() {
 		((RTL2832TunerController) device).setSampleRateFrequencyCorrection( rate );
 		save();
 	}
-	catch ( DeviceException | LibUsbException eSampleRate ) {
+	catch ( DeviceException eSampleRate ) {
 		Log.errorDialog(  
 				"R820T Tuner Controller - couldn't set the frequency correction ",
 				"rate [" +  mFrequencyCorrection.getValue() + "] " + 

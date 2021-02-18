@@ -301,7 +301,7 @@ public class RTLPanelE4K extends DevicePanel implements ItemListener, ActionList
 			((E4KTunerController) device).setSampleRateFrequencyCorrection( rate );
 			save();
 		}
-		catch ( DeviceException | LibUsbException eSampleRate ) {
+		catch ( DeviceException eSampleRate ) {
 			Log.errorDialog(  
 					"E4K Tuner Controller - couldn't set the frequency correction ",
 					"rate [" +  mFrequencyCorrection.getValue() + "] " + 
