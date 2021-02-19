@@ -1,4 +1,4 @@
-97,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+101,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,wod,ReflectedPwr,8,mW,41,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,wod,ICR3VProt,8,V,8_bit_voltage,Command Receivers,4,2,3,3V Prot,ICR 3V Proteted
 2,wod,ICR2dot5V,8,V,8_bit_voltage,Command Receivers,4,3,3,2.5V,ICR 2.5V
@@ -14,85 +14,89 @@
 12,wod,Zmag,8,uT,8_bit_mag,Experiments,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
 13,wod,DCT1Power,8,mW,1,RT-IHU,7,3,3,Primary RF Power,Primary DCT RF Power
 14,wod,DCT2Power,8,mW,1,RT-IHU,7,4,3,Secndry RF Power,Secondary DCT RF Power
-15,wod,pad12,24,-,0,NONE,0,0,3,Filler,Pad
-16,wod,deorbitTemp,8,-,8_bit_temp,Experiments,5,11,3,Deorbit temp,Deorbit Device Temp
-17,wod,busV,8,V,golf-t_bus_voltage,Solar Panels,6,1,3,Bus Voltage,Vbatt Bus voltage
-18,wod,TxPAi,8,mA,golf-t_tx_current,Legacy Radio,1,1,3,PA Current,Transmit power amplifier current
-19,wod,TxTemp,8,C,8_bit_temp,Legacy Radio,1,2,3,TX Temperature,Transmitter card temperature
-20,wod,FwdPower,8,mW,40,Legacy Radio,1,3,3,Fwd Power,Receiver card temperature
-21,wod,rssi,8,dBm,RSSI,Command Receivers,4,1,3,RSSI,Received Signal Strength Indication
-22,wod,MinusYVolts,8,V,52,Solar Panels,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-23,wod,MinusXVolts,8,V,52,Solar Panels,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-24,wod,XVolts,8,V,52,Solar Panels,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-25,wod,YVolts,8,V,52,Solar Panels,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-26,wod,MinusYTemp,8,C,52,Solar Panels,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-27,wod,MinusXTemp,8,C,52,Solar Panels,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-28,wod,XTemp,8,C,52,Solar Panels,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-29,wod,YTemp,8,C,52,Solar Panels,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
-30,wod,LtVGACtl,8,V,8_bit_voltage,Legacy Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-31,wod,RT1Temp,8,C,8_bit_temp,RT-IHU,7,1,3,Primary Temp,Primary RT-IHU Board Temp
-32,wod,RT2Temp,8,C,8_bit_temp,RT-IHU,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
-33,wod,IHUcpuTemp,8,C,8_bit_temp,Legacy IHU,2,1,3,Temperature,Internal Temperature of IHU
-34,wod,moduTemp,8,C,8_bit_temp,Legacy Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-35,wod,CSS1,8,-,0,Sun Sensors,8,1,3,CSS #1,Coarse Sun Sensor Values
-36,wod,CSS2,8,-,0,Sun Sensors,8,2,3,CSS #2,Coarse Sun Sensor Values
-37,wod,CSS3,8,-,0,Sun Sensors,8,3,3,CSS #3,Coarse Sun Sensor Values
-38,wod,CSS4,8,-,0,Sun Sensors,8,4,3,CSS #4,Coarse Sun Sensor Values
-39,wod,CSS5,8,-,0,Sun Sensors,8,5,3,CSS #5,Coarse Sun Sensor Values
-40,wod,CSS6,8,-,0,Sun Sensors,8,6,3,CSS #6,Coarse Sun Sensor Values
-41,wod,CSS7,8,-,0,Sun Sensors,8,7,3,CSS #7,Coarse Sun Sensor Values
-42,wod,CSS8,8,-,0,Sun Sensors,8,8,3,CSS #8,Coarse Sun Sensor Values
-43,wod,CIU3V3_1,8,V,8_bit_voltage,CIU,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
-44,wod,CIU3V3_2,8,V,8_bit_voltage,CIU,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
-45,wod,CIUVsys,8,V,8_bit_voltage,CIU,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
-46,wod,CIU12v,8,V,0,CIU,9,4,3,CIU 12V Supply,12V Power From EPS
-47,wod,Power10GHz,8,mW,0,SDR Radio,11,1,3,SSPA Power,Power output of the 10GHz SSPA
-48,wod,ZynqTemp,8,c,8_bit_temp,SDR Radio,11,2,4,SDR Zynq Temp,SDR Zynq temp
-49,wod,SDRTcvrTemp,8,-,8_bit_temp,SDR Radio,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
-50,wod,DeploySenseCan,8,-,16,Spacecraft Status,3,4,0,Deploy Sense via CAN,TBD
-51,wod,DeploySenseI2c,8,-,16,Spacecraft Status,3,5,0,Deploy Sense via I2c,TBD
-52,wod,PrimaryRTActive,1,-,21,RT-IHU,7,5,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
-53,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
-54,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
-55,wod,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
-56,wod,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
-57,wod,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder Enabled,-
-58,wod,I2CfailureICR,1,-,17,Command Receivers,4,4,0,I2cICR,Antenna is not communicating over bus 2
-59,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,3,6,0,I2c Deploy,Antenna is not communicating over bus 1
-60,wod,TLMresets,8,-,1,Min Max,10,7,0,Ground Resets,Number of times command stations reset stored telemetry
-61,wod,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
-62,wod,swCmds,32,-,35,Command Receivers,4,5,0,Diagnostic,ICR Diagnostic information
-63,wod,hwCmdCnt,8,-,1,Command Receivers,4,6,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
-64,wod,swCmdCntICR,8,-,34,Command Receivers,4,7,0,SW Cmd Cnt ICR,Number of software commands since last reset
-65,wod,swCmdCntDCT,8,-,34,Command Receivers,4,8,0,SW Cmd Cnt DCT,Number of software commands since last reset
-66,wod,DCT1Status,8,-,1,RT-IHU,7,12,0,Primary DCT Status,TBD
-67,wod,DCT2Status,8,-,1,RT-IHU,7,13,0,Secndry DCT Status,TBD
-68,wod,LMRAMstatus,8,-,1,Legacy IHU,2,4,0,LIHU MRAM Status,TBD
-69,wod,PrimMRAMstatus,8,-,1,RT-IHU,7,6,0,Primary MRAM Status,Status of the primary MRAM
-70,wod,SecndMRAMstatus,8,-,1,RT-IHU,7,7,0,Secndry MRAM Status,Status of the secondary MRAM
-71,wod,ModuLO,8,-,1,Legacy Radio,1,6,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-72,wod,ModuGain,8,-,1,Legacy Radio,1,8,0,Modulator Reg 1,Modulator Register 1 - Gain
-73,wod,ModuPhaseOff,8,-,1,Legacy Radio,1,9,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
-74,wod,ModuMode,8,-,1,Legacy Radio,1,10,0,Modulator Reg 8,Modulator Register 8 - Mode
-75,wod,CIUResetCnt1,8,-,1,CIU,9,5,0,CIU 1 Reset Cnt,Power Reset Count for CIU Bus 1
-76,wod,CIUResetCnt2,8,-,1,CIU,9,6,0,CIU 2 Reset Cnt,Power Reset Count for CIU Bus 2
-77,wod,DCT1PwrCnt,8,-,1,RT-IHU,7,8,0,DCT1  Reset Cnt,Power Reset Count for DCT1
-78,wod,DCT2PwrCnt,8,-,1,RT-IHU,7,9,0,DCT2  Reset Cnt,Power Reset Count for DCT2
-79,wod,PA1PwrCnt,8,-,1,RT-IHU,7,10,0,PA1  Reset Cnt,Power Reset Count for PA1
-80,wod,PA2PwrCnt,8,-,1,RT-IHU,7,11,0,PA2  Reset Cnt,Power Reset Count for PA2
-81,wod,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
-82,wod,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-83,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,3,7,0,Eclipse Action,-
-84,wod,inEclipse,1,-,21,Spacecraft Status,3,8,0,In Eclipse,-
-85,wod,Pad3,2,-,0,NONE,0,0,0,Pad,-
-86,wod,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
-87,wod,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
-88,wod,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
-89,wod,Pad5,8,-,0,NONE,0,0,0,Pad,-
-90,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
-91,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
-92,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
-93,wod,inSafeMode,1,21,0,Spacecraft Status,3,4,0,Safe Mode,Are we in safe mode?
-94,wod,inHealthMode,1,21,0,Spacecraft Status,3,5,0,Health Mode,Are we in health mode?
-95,wod,inScienceMode,1,21,0,Spacecraft Status,3,9,0,Science Mode,Are we in science mode?
-96,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+15,wod,DCT1RSSI,8,-dBm,1,RT-IHU,7,16,3,Primary RSSI,DCT1 RSSI
+16,wod,DCT2RSSO,8,-dBm,1,RT-IHU,7,17,3,Secndry RSSI,DCT2 RSSI
+17,wod,pad12,8,-,0,NONE,0,0,3,Filler,Pad
+18,wod,deorbitTemp,8,-,8_bit_temp,Experiments,5,11,3,Deorbit temp,Deorbit Device Temp
+19,wod,busV,8,V,golf-t_bus_voltage,Solar Panels,6,1,3,Bus Voltage,Vbatt Bus voltage
+20,wod,TxPAi,8,mA,golf-t_tx_current,Legacy Radio,1,1,3,PA Current,Transmit power amplifier current
+21,wod,TxTemp,8,C,8_bit_temp,Legacy Radio,1,2,3,TX Temperature,Transmitter card temperature
+22,wod,FwdPower,8,mW,40,Legacy Radio,1,3,3,Fwd Power,Receiver card temperature
+23,wod,rssi,8,dBm,RSSI,Command Receivers,4,1,3,ICR RSSI,Received Signal Strength Indication
+24,wod,MinusYVolts,8,V,52,Solar Panels,6,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,wod,MinusXVolts,8,V,52,Solar Panels,6,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,wod,XVolts,8,V,52,Solar Panels,6,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
+27,wod,YVolts,8,V,52,Solar Panels,6,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,wod,MinusYTemp,8,C,52,Solar Panels,6,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,wod,MinusXTemp,8,C,52,Solar Panels,6,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,wod,XTemp,8,C,52,Solar Panels,6,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,wod,YTemp,8,C,52,Solar Panels,6,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+32,wod,LtVGACtl,8,V,8_bit_voltage,Legacy Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+33,wod,RT1Temp,8,C,8_bit_temp,RT-IHU,7,1,3,Primary Temp,Primary RT-IHU Board Temp
+34,wod,RT2Temp,8,C,8_bit_temp,RT-IHU,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
+35,wod,IHUcpuTemp,8,C,8_bit_temp,Legacy IHU,2,1,3,Temperature,Internal Temperature of IHU
+36,wod,moduTemp,8,C,8_bit_temp,Legacy Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+37,wod,CSS1,8,-,0,Sun Sensors,8,1,3,CSS #1,Coarse Sun Sensor Values
+38,wod,CSS2,8,-,0,Sun Sensors,8,2,3,CSS #2,Coarse Sun Sensor Values
+39,wod,CSS3,8,-,0,Sun Sensors,8,3,3,CSS #3,Coarse Sun Sensor Values
+40,wod,CSS4,8,-,0,Sun Sensors,8,4,3,CSS #4,Coarse Sun Sensor Values
+41,wod,CSS5,8,-,0,Sun Sensors,8,5,3,CSS #5,Coarse Sun Sensor Values
+42,wod,CSS6,8,-,0,Sun Sensors,8,6,3,CSS #6,Coarse Sun Sensor Values
+43,wod,CSS7,8,-,0,Sun Sensors,8,7,3,CSS #7,Coarse Sun Sensor Values
+44,wod,CSS8,8,-,0,Sun Sensors,8,8,3,CSS #8,Coarse Sun Sensor Values
+45,wod,CIU3V3_1,8,V,8_bit_voltage,CIU,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+46,wod,CIU3V3_2,8,V,8_bit_voltage,CIU,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+47,wod,CIUVsys,8,V,8_bit_voltage,CIU,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
+48,wod,CIU12v,8,V,0,CIU,9,4,3,CIU 12V Supply,12V Power From EPS
+49,wod,Power10GHz,8,mW,0,SDR Radio,11,1,3,SSPA Power,Power output of the 10GHz SSPA
+50,wod,ZynqTemp,8,c,8_bit_temp,SDR Radio,11,2,3,SDR Zynq Temp,SDR Zynq temp
+51,wod,SDRTcvrTemp,8,c,8_bit_temp,SDR Radio,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
+52,wod,Current10GHz,8,mA,golf-t_tx_current,SDR Radio,11,4,3,10GHz PA Current,Transmit power amplifier current
+53,wod,spare1,24,-,0,NONE,0,0,0,spare1,spare
+54,wod,DeploySenseCan,8,-,16,Spacecraft Status,3,4,0,Deploy Sense via CAN,TBD
+55,wod,DeploySenseI2c,8,-,16,Spacecraft Status,3,5,0,Deploy Sense via I2c,TBD
+56,wod,PrimaryRTActive,1,-,21,RT-IHU,7,5,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
+57,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
+58,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
+59,wod,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
+60,wod,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
+61,wod,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder Enabled,-
+62,wod,I2CfailureICR,1,-,17,Command Receivers,4,4,0,I2cICR,Antenna is not communicating over bus 2
+63,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,3,6,0,I2c Deploy,Antenna is not communicating over bus 1
+64,wod,TLMresets,8,-,1,Min Max,10,7,0,Min/Max Resets,Number of times command stations reset stored telemetry
+65,wod,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+66,wod,swCmds,32,-,35,Command Receivers,4,5,0,Diagnostic,ICR Diagnostic information
+67,wod,hwCmdCnt,8,-,1,Command Receivers,4,6,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
+68,wod,swCmdCntICR,8,-,34,Command Receivers,4,7,0,SW Cmd Cnt ICR,Number of software commands since last reset
+69,wod,swCmdCntDCT,8,-,34,Command Receivers,4,8,0,SW Cmd Cnt DCT,Number of software commands since last reset
+70,wod,DCT1Status,8,-,1,RT-IHU,7,12,0,Primary DCT Status,TBD
+71,wod,DCT2Status,8,-,1,RT-IHU,7,13,0,Secndry DCT Status,TBD
+72,wod,LMRAMstatus,8,-,1,Legacy IHU,2,4,0,LIHU MRAM Status,TBD
+73,wod,PrimMRAMstatus,8,-,1,RT-IHU,7,6,0,Primary MRAM Status,Status of the primary MRAM
+74,wod,SecndMRAMstatus,8,-,1,RT-IHU,7,7,0,Secndry MRAM Status,Status of the secondary MRAM
+75,wod,ModuLO,8,-,1,Legacy Radio,1,6,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+76,wod,ModuGain,8,-,1,Legacy Radio,1,8,0,Modulator Reg 1,Modulator Register 1 - Gain
+77,wod,ModuPhaseOff,8,-,1,Legacy Radio,1,9,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+78,wod,ModuMode,8,-,1,Legacy Radio,1,10,0,Modulator Reg 8,Modulator Register 8 - Mode
+79,wod,CIUResetCnt1,8,-,1,CIU,9,5,0,CIU 1 Reset Cnt,Power Reset Count for CIU Bus 1
+80,wod,CIUResetCnt2,8,-,1,CIU,9,6,0,CIU 2 Reset Cnt,Power Reset Count for CIU Bus 2
+81,wod,DCT1PwrCnt,8,-,1,RT-IHU,7,8,0,DCT1  Reset Cnt,Power Reset Count for DCT1
+82,wod,DCT2PwrCnt,8,-,1,RT-IHU,7,9,0,DCT2  Reset Cnt,Power Reset Count for DCT2
+83,wod,PA1PwrCnt,8,-,1,RT-IHU,7,10,0,PA1  Reset Cnt,Power Reset Count for PA1
+84,wod,PA2PwrCnt,8,-,1,RT-IHU,7,11,0,PA2  Reset Cnt,Power Reset Count for PA2
+85,wod,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
+86,wod,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+87,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,3,7,0,Eclipse Action,-
+88,wod,inEclipse,1,-,21,Spacecraft Status,3,8,0,In Eclipse,-
+89,wod,Pad3,2,-,0,NONE,0,0,0,Pad,-
+90,wod,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
+91,wod,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
+92,wod,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
+93,wod,Pad5,8,-,0,NONE,0,0,0,Pad,-
+94,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
+95,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
+96,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
+97,wod,inSafeMode,1,21,0,Spacecraft Status,3,4,0,Safe Mode,Are we in safe mode?
+98,wod,inHealthMode,1,21,0,Spacecraft Status,3,5,0,Health Mode,Are we in health mode?
+99,wod,inScienceMode,1,21,0,Spacecraft Status,3,9,0,Science Mode,Are we in science mode?
+100,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
