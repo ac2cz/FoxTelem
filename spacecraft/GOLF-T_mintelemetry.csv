@@ -14,8 +14,8 @@
 12,minDownlink,Zmag,8,uT,8_bit_mag,NONE,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
 13,minDownlink,DCT1Power,8,mW,1,NONE,7,3,3,Primary RF Power,Primary DCT RF Power
 14,minDownlink,DCT2Power,8,mW,1,NONE,7,4,3,Secndry RF Power,Secondary DCT RF Power
-15,minDownlink,DCT1RSSI,8,-dBm,1,NONE,7,16,3,Primary RSSI,DCT1 RSSI
-16,minDownlink,DCT2RSSO,8,-dBm,1,NONE,7,17,3,Secndry RSSI,DCT2 RSSI
+15,minDownlink,DCT1RSSI,8,dBm,dct_rssi,NONE,7,16,3,Primary RSSI,DCT1 RSSI
+16,minDownlink,DCT2RSSI,8,dBm,dct_rssi,NONE,7,17,3,Secndry RSSI,DCT2 RSSI
 17,minDownlink,pad12,8,-,0,NONE,0,0,3,Filler,Pad
 18,minDownlink,deorbitTemp,8,-,8_bit_temp,NONE,5,11,3,Deorbit temp,Deorbit Device Temp
 19,minDownlink,busV,8,V,golf-t_bus_voltage,NONE,6,1,3,Bus Voltage,Vbatt Bus voltage

@@ -14,8 +14,8 @@
 12,wod,Zmag,8,uT,8_bit_mag,Experiments,5,9,3,Z Magnetometer,Angular Veolcity around Z Axis
 13,wod,DCT1Power,8,mW,1,RT-IHU,7,3,3,Primary RF Power,Primary DCT RF Power
 14,wod,DCT2Power,8,mW,1,RT-IHU,7,4,3,Secndry RF Power,Secondary DCT RF Power
-15,wod,DCT1RSSI,8,-dBm,1,RT-IHU,7,16,3,Primary RSSI,DCT1 RSSI
-16,wod,DCT2RSSO,8,-dBm,1,RT-IHU,7,17,3,Secndry RSSI,DCT2 RSSI
+15,wod,DCT1RSSI,8,dBm,dct_rssi,RT-IHU,7,16,3,Primary RSSI,DCT1 RSSI
+16,wod,DCT2RSSI,8,dBm,dct_rssi,RT-IHU,7,17,3,Secndry RSSI,DCT2 RSSI
 17,wod,pad12,8,-,0,NONE,0,0,3,Filler,Pad
 18,wod,deorbitTemp,8,-,8_bit_temp,Experiments,5,11,3,Deorbit temp,Deorbit Device Temp
 19,wod,busV,8,V,golf-t_bus_voltage,Solar Panels,6,1,3,Bus Voltage,Vbatt Bus voltage

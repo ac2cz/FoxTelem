@@ -8,3 +8,4 @@ golf-t_tx_current,0,7.557,0,0,0,0,Milliamps of Power Amp Current
 8_bit_accel,-2,0.015625,0,0,0,0,Gs (range=+/- 2)
 8_bit_mag,-76.8,0.6,0,0,0,0,Microteslas (range = ~ +/- 76.8)
 8_bit_spin,-3.9,0.0305,0,0,0,0,Degrees per second (range=about +/- 46  a should be 3.9)
+dct_rssi,-255,1,0,0,0,0,Convert 0 to 255 into -256 to 0 for 8 bit unsigned DCT RSSI downlink
