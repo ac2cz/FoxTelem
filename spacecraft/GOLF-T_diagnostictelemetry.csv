@@ -9,7 +9,7 @@
 7,diagnostic,UTCHours,5,-,0,General Info,1,5,0,UTCHours,x
 8,diagnostic,EnterAutosafe,8,-,0,General Info,1,12,0,EnterAutosafe,x
 9,diagnostic,ExitAutosafe,8,-,0,General Info,1,13,0,ExitAutosafe,x
-10,diagnostic,pad1,16,-,0,NONE,0,14,0,Fill to 32-bits,x
+10,diagnostic,pad1,16,-,0,NONE,0,0,0,Fill to 32-bits,x
 11,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
 12,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
 13,diagnostic,LegWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
