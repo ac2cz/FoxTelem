@@ -24,7 +24,7 @@
 22,diagnostic,LegI2C2Reset,8,-,INT,Legacy  Errors,3,4,0,I2C2 Resets,x
 23,diagnostic,LegSPIRetries,8,-,INT,Legacy  Errors,3,5,0,SPI Retries,x
 24,diagnostic,LegMramCRC,8,-,INT,Legacy  Errors,3,6,0,MRAM CRC Errors,x
-25,diagnostic,LegMramRead,8,-,INT,legacy  Errors,3,7,0,MRAM Read Error,x
+25,diagnostic,LegMramRead,8,-,INT,Legacy  Errors,3,7,0,MRAM Read Error,x
 26,diagnostic,LegMramWrite,8,-,INT,Legacy  Errors,3,8,0,MRAM Write Error,x
 27,diagnostic,ICRCmdFailCRC,8,-,INT,Legacy  Errors,3,9,0,ICRCmdFailCRC,x
 28,diagnostic,ICRCmdFailTime,8,-,INT,Legacy  Errors,3,10,0,ICRCmdFailTime,x
