@@ -21,7 +21,7 @@ package telemetry;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class HighSpeedTrailer extends FoxFramePart	 {
+public class HighSpeedTrailer extends FramePart	 {
 	public static final int MAX_BYTES = 672;
 
 	int[] fecBytes = new int[MAX_BYTES];

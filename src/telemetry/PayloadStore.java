@@ -633,7 +633,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 
-	public FoxFramePart getLatestRad(int id) {
+	public FramePart getLatestRad(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {

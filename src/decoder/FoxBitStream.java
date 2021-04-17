@@ -7,7 +7,7 @@ import java.util.Date;
 import common.Config;
 import common.Log;
 import telemetry.Frame;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.SlowSpeedHeader;
 
 /**
@@ -266,7 +266,7 @@ public abstract class FoxBitStream extends BitStream {
 	 * Otherwise we throw this data away
 	 */
 	@Deprecated
-	protected void checkMissingStartSYNC(int n, FoxFramePart header) {
+	protected void checkMissingStartSYNC(int n, FramePart header) {
 		int start = syncWords.get(n);
 		
 		if (start > SYNC_WORD_DISTANCE) {

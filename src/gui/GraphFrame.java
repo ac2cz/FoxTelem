@@ -54,7 +54,7 @@ import javax.swing.JComboBox;
 
 import telemetry.BitArrayLayout;
 import telemetry.Conversion;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
@@ -687,34 +687,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 	
 	// FIXME - if we pass in the layout, then we would not need this lookup.  This logic SHOULD NOT BE HERE!
-	// Need to pass layout into DisplayModule and then to here
+	// We now pass layout into DisplayModule. This is only called in legacy situations
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
-		if (plType == FoxFramePart.TYPE_REAL_TIME)
+		if (plType == FramePart.TYPE_REAL_TIME)
 			layout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_MAX_VALUES)
+		else if (plType == FramePart.TYPE_MAX_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_MIN_VALUES)
+		else if (plType == FramePart.TYPE_MIN_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_RAD_EXP_DATA)
+		else if (plType == FramePart.TYPE_RAD_EXP_DATA)
 			layout = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+		else if (plType == FramePart.TYPE_RAD_TELEM_DATA)
 			layout = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+		else if (plType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
 			layout = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
 			layout = fox.measurementLayout;
 		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
 			layout = fox.passMeasurementLayout;
-		else if (plType == FoxFramePart.TYPE_WOD)
+		else if (plType == FramePart.TYPE_WOD)
 			layout = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_WOD_RAD)
+		else if (plType == FramePart.TYPE_WOD_RAD)
 			layout = fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA)
+		else if (plType == FramePart.TYPE_WOD_RAD_TELEM_DATA)
 			layout = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_UW_EXPERIMENT)
+		else if (plType == FramePart.TYPE_UW_EXPERIMENT)
 			layout = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_UW_WOD_EXPERIMENT)
+		else if (plType == FramePart.TYPE_UW_WOD_EXPERIMENT)
 			layout = fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT);
 		return layout;
 	}

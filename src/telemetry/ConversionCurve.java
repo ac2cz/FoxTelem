@@ -62,7 +62,9 @@ public class ConversionCurve extends Conversion {
 	}
 	
 	/**
-	 * Return the passed value as a String, apply any formatting
+	 * Return the passed value as a String, apply default formatting if this is the only conversion or if it is the 
+	 * last in a pipeline
+	 * 
 	 * @param lookUpkKey
 	 * @return
 	 */

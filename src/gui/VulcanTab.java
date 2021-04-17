@@ -31,7 +31,7 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.RadiationPacket;
@@ -101,7 +101,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		foxId = fox.foxId;
 		NAME = fox.toString() + " Vanderbilt University Radiation Experiments";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight");
 		
 		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
@@ -175,7 +175,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }

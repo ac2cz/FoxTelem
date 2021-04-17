@@ -10,7 +10,6 @@ import common.Spacecraft;
 import decoder.Crc32;
 import decoder.Decoder;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
 import telemetry.Frame;
 import telemetry.FrameLayout;
@@ -231,7 +230,7 @@ import telemetry.TelemFormat;
 		}
 		
 		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
-			payload = new FoxFramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
+			payload = new FramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
 			for (int i=0; i<frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); i+=1 ) {
 				BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, frameLayout.getPayloadName(i));
 				if (layout == null) {
@@ -239,9 +238,9 @@ import telemetry.TelemFormat;
 					return;
 				}
 				if (fox.hasFOXDB_V3)
-					payload[i] = (FoxFramePart) FramePart.makePayload(header, layout);
+					payload[i] = (FramePart) FramePart.makePayload(header, layout);
 				else
-					payload[i] = (FoxFramePart) FramePart.makeLegacyPayload(header, layout);
+					payload[i] = (FramePart) FramePart.makeLegacyPayload(header, layout);
 			}
 		}
 		

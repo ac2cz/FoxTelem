@@ -11,7 +11,6 @@ import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.FramePart;
 
 /**
@@ -42,7 +41,7 @@ import telemetry.FramePart;
  * canId and the length in length
  * 
  */
-public class CanPacket extends FoxFramePart implements Comparable<FramePart> {
+public class CanPacket extends FramePart implements Comparable<FramePart> {
 	public static final int MAX_PACKET_BYTES = 12;
 	
 	public static final int ID_FIELD0 = 0; 

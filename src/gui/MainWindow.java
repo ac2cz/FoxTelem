@@ -59,7 +59,7 @@ import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
@@ -1029,7 +1029,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 					for (FramePart p : canPackets) {
 						//total++;
-						if (p.getType() == FoxFramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
+						if (p.getType() == FramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
 							//pkts++;
 							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
 							int length = CanPacket.getLengthfromRawID(ihuPacketId);
@@ -1042,7 +1042,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 								if (canLayout != null) { 
 									CanPacket newPacket = new CanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
 									if (p.getType() > 1400)
-										newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
+										newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
 									//									if (newPacket.getType() > 1700)
 									//										System.err.println("Won't store: " + canLayout.name + " type: " + newPacket.getType() + " p type: " + p.getType());
 									//									else

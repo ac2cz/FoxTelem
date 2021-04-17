@@ -29,7 +29,7 @@ import java.util.StringTokenizer;
  * 
  *
  */
-public class PayloadExperiment extends FoxFramePart {	
+public class PayloadExperiment extends FramePart {	
 	
 	public PayloadExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(lay.number,lay);

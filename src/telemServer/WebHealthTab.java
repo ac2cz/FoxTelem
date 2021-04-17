@@ -9,7 +9,6 @@ import common.Spacecraft;
 import common.FoxSpacecraft;
 import gui.DisplayModule;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
@@ -293,10 +292,10 @@ public class WebHealthTab {
 		Date result = null;
 		String reportDate = null;
 		try {
-			FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			result = FoxFramePart.fileDateFormat.parse(u);	
-			FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-			reportDate = FoxFramePart.reportDateFormat.format(result);
+			FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			result = FramePart.fileDateFormat.parse(u);	
+			FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+			reportDate = FramePart.reportDateFormat.format(result);
 
 		} catch (ParseException e) {
 			reportDate = "unknown";				

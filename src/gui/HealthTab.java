@@ -26,7 +26,7 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadMaxValues;
@@ -368,7 +368,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		} 
 		showLiveOrHistorical();  
 		splitPaneHeight = splitPane.getDividerLocation();
-		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight", splitPaneHeight);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight", splitPaneHeight);
 		//System.err.println(TAB_TYPE + " set to split:" + splitPaneHeight);
 		//Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay", healthTableToDisplay);
 	}
@@ -378,7 +378,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		if (hide) {
 			splitPane.setDividerLocation(5000);
 		} else {
-			splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
+			splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
 			if (splitPaneHeight == 0)
 				splitPaneHeight = splitPane.getMaximumDividerLocation()/2;
 			if (splitPaneHeight >= splitPane.getMaximumDividerLocation())
@@ -535,13 +535,13 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		    Date result = null;
 		    String reportDate = null;
 			try {
-				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				result = FoxFramePart.fileDateFormat.parse(u);
+				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				result = FramePart.fileDateFormat.parse(u);
 				if (this.showUTCtime)
-					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+					FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 				else 
-					FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
-				reportDate = FoxFramePart.reportDateFormat.format(result);
+					FramePart.reportDateFormat.setTimeZone(TimeZone.getDefault());
+				reportDate = FramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
 				reportDate = "unknown";				

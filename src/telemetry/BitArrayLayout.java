@@ -137,6 +137,10 @@ public class BitArrayLayout {
 	public static final int CONVERT_COM1_ICR_2V5_SENSOR = 57; // COM1
 	public static final int CONVERT_COM1_BUS_VOLTAGE = 58; // COM1
 	public static final int CONVERT_ROOT_10 = 59; // COM1 PWR calc component
+	public static final int CONVERT_MEMS_SCALAR_ROTATION = 60; // FOX-1A Scalar Rotation Calculation
+	public static final int CONVERT_MEMS_X_ROTATION = 61; // FOX-1A Scalar Rotation Calculation
+	public static final int CONVERT_MEMS_Y_ROTATION = 62; // FOX-1A Scalar Rotation Calculation
+	public static final int CONVERT_MEMS_Z_ROTATION = 63; // FOX-1A Scalar Rotation Calculation
 	
 	/**
 	 * Create an empty layout for manual init

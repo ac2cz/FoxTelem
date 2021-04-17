@@ -25,7 +25,7 @@ import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.RadiationTelemetry;
@@ -83,7 +83,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 		foxId = fox.foxId;
 		NAME = fox.toString() + " IOWA HERCI Housekeeping";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -140,7 +140,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HERCITAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }

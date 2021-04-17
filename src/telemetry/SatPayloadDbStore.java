@@ -865,7 +865,7 @@ public class SatPayloadDbStore {
 		return null;
 	}
 	
-	private void selectLatest(String table, FoxFramePart payload) {
+	private void selectLatest(String table, FramePart payload) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
 		if (payload instanceof CanPacket)

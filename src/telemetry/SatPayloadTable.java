@@ -664,7 +664,7 @@ public class SatPayloadTable {
 
 	}
 
-	private FoxFramePart addLine(String line) {
+	private FramePart addLine(String line) {
 		if (line.length() == 0) return null;
 		String date = null;
 		int id = 0;
@@ -691,9 +691,9 @@ public class SatPayloadTable {
 				System.exit(1);
 			}
 			
-			FoxFramePart rt = null;
+			FramePart rt = null;
 			
-			if (type == FoxFramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
+			if (type == FramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
 				String[] st2 = line.split(",");
 				int canIdField = 5;
 				if (storeMode)
@@ -710,9 +710,9 @@ public class SatPayloadTable {
 					rt.type = type; // make sure we get the right type
 			} else {
 				if (isFOXDB_V3)
-					rt = (FoxFramePart) FramePart.makePayload(id, resets, uptime, date, st, layout);
+					rt = FramePart.makePayload(id, resets, uptime, date, st, layout);
 				else
-					rt = (FoxFramePart) FramePart.makeLegacyPayload(id, resets, uptime, date, st, type);
+					rt = FramePart.makeLegacyPayload(id, resets, uptime, date, st, type);
 			}
 			
 
@@ -763,7 +763,7 @@ public class SatPayloadTable {
 			try {
 				while ((line = dis.readLine()) != null) {
 					if (line != null) {
-						FoxFramePart rt = addLine(line);
+						FramePart rt = addLine(line);
 						if (rt != null) {
 							if (linesAdded == SatPayloadTable.MAX_SEGMENT_SIZE) {
 								linesAdded = 0;

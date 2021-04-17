@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.uw.CanPacket;
@@ -99,7 +99,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		for (int canid : ids)
 			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
 
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -148,7 +148,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  //Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }

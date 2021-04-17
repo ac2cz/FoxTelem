@@ -16,7 +16,7 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import predict.PositionCalcException;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.PayloadWOD;
 import uk.me.g4dpz.satellite.SatPos;
@@ -33,8 +33,8 @@ public class WodHealthTab extends HealthTab {
 	public WodHealthTab(FoxSpacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_WOD);
 		TAB_TYPE = "wod";
-		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
+		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"splitPaneHeight");
 		if (healthTableToDisplay == DISPLAY_CURRENT) {
 			hideTables(true);
 		} else {
@@ -82,7 +82,7 @@ public class WodHealthTab extends HealthTab {
 		ButtonGroup group = new ButtonGroup();
 		group.add(currentBut);
 		group.add(rtBut);
-		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay");
+		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay");
 		if (healthTableToDisplay == DISPLAY_CURRENT) {
 			currentBut.setSelected(true);
 		} else if (healthTableToDisplay == DISPLAY_RT) {
@@ -208,7 +208,7 @@ public class WodHealthTab extends HealthTab {
 		if (e.getSource() == rtBut) {
 			healthTableToDisplay = DISPLAY_RT;
 			hideTables(false);
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
       		//Log.println("RT Picked");
       		parseFrames();
 		}
@@ -216,7 +216,7 @@ public class WodHealthTab extends HealthTab {
 		if (e.getSource() == currentBut) {
 			healthTableToDisplay = DISPLAY_CURRENT;
 			hideTables(true);
-      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
+      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
      		//Log.println("MIN Picked");
       		
       		realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);

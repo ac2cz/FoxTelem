@@ -28,7 +28,6 @@ import common.Log;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.PayloadWOD;
 import telemetry.RadiationPacket;
@@ -556,9 +555,9 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					conversion = rtPayload.getConversionNameByName(fieldName[i]);
 					units = rtPayload.getUnitsByName(fieldName[i]);
 					if (rtPayload instanceof PayloadWOD)
-						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_WOD, rtPayload.getLayout(), fox, plotType);
+						graph[plotType][i] = new GraphFrame("WOD: " + title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_WOD, rtPayload.getLayout(), fox, plotType);
 					else
-						graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_REAL_TIME, rtPayload.getLayout(), fox, plotType);
+						graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_REAL_TIME, rtPayload.getLayout(), fox, plotType);
 				}
 				else if (moduleType == DISPLAY_PASS_MEASURES) {
 					conversion = fox.passMeasurementLayout.getConversionNameByName(fieldName[i]);
@@ -585,37 +584,37 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 					//BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
 					conversion = telemLayout.getConversionNameByName(fieldName[i]);
 					units = telemLayout.getUnitsByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_UW_EXPERIMENT, telemLayout, fox, plotType);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_UW_EXPERIMENT, telemLayout, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_WOD_UW) {
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT);
 					conversion = lay.getConversionNameByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_UW_WOD_EXPERIMENT, telemLayout, fox, plotType);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_UW_WOD_EXPERIMENT, telemLayout, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 					conversion = lay.getConversionNameByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_HERCI_SCIENCE_HEADER, null, fox, plotType);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_HERCI_SCIENCE_HEADER, null, fox, plotType);
 				}
 				else if (moduleType == DISPLAY_HERCI_HK) {
 					//  && Double.parseDouble(rtValue[i].getText()) != 0.0
 					BitArrayLayout lay = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
 					conversion = lay.getConversionNameByName(fieldName[i]);
 					units = lay.getUnitsByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_RAD_TELEM_DATA, null, fox, plotType);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_RAD_TELEM_DATA, null, fox, plotType);
 				}
 				else if (minPayload!=null && minPayload.hasFieldName(fieldName[i])) {
 					conversion = minPayload.getConversionNameByName(fieldName[i]);
 					units = minPayload.getUnitsByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MIN_VALUES, null, fox, plotType);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MIN_VALUES, null, fox, plotType);
 				}
 				else if (maxPayload!=null && maxPayload.hasFieldName(fieldName[i])) {
 					conversion = maxPayload.getConversionNameByName(fieldName[i]);
 					conversion = maxPayload.getConversionNameByName(fieldName[i]);
-					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FoxFramePart.TYPE_MAX_VALUES, null, fox, plotType);
+					graph[plotType][i] = new GraphFrame(title + " - " + label[i].getText(), fieldName[i], units, conversion,  FramePart.TYPE_MAX_VALUES, null, fox, plotType);
 				} else return;
 				
 				graph[plotType][i].setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));

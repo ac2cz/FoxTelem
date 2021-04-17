@@ -28,7 +28,7 @@ import common.FoxSpacecraft;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-public class PayloadRtValues extends FoxFramePart {
+public class PayloadRtValues extends FramePart {
 
 	//public static final int NUMBER_OF_FIELDS = 43;
 	

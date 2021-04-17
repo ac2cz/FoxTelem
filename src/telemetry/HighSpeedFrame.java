@@ -45,9 +45,9 @@ public class HighSpeedFrame extends Frame {
 	public static final int MAX_HERCI_PAYLOADS = 5;
 	
 	//HighSpeedHeader header = null;
-	FoxFramePart rtPayload = null;
-	FoxFramePart maxPayload = null;
-	FoxFramePart minPayload = null;
+	FramePart rtPayload = null;
+	FramePart maxPayload = null;
+	FramePart minPayload = null;
 	PayloadRadExpData[] radExpPayload = new PayloadRadExpData[DEFAULT_RAD_EXP_PAYLOADS];
 	PayloadCameraScanLineCount cameraScanLineCount = null;
 	PayloadCameraData cameraPayload = null;

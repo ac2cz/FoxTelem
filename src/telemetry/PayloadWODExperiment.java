@@ -2,7 +2,7 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
-public class PayloadWODExperiment extends FoxFramePart {
+public class PayloadWODExperiment extends FramePart {
 	public static final String WOD_RESETS = "WODTimestampReset";
 	public static final String WOD_UPTIME = "WODTimestampUptime";
 	public static final String CRC_ERROR = "crcError";

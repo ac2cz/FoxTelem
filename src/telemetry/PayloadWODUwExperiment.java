@@ -9,7 +9,7 @@ import common.Log;
 import common.Spacecraft;
 import telemetry.uw.CanPacket;
 
-public class PayloadWODUwExperiment extends FoxFramePart {
+public class PayloadWODUwExperiment extends FramePart {
 	public ArrayList<CanPacket> canPackets; 
 	protected CanPacket canPacket; // the current CAN Packet we are adding bytes to
 	public ArrayList<CanPacket> splitPackets; 
@@ -58,7 +58,7 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 	protected void addToCanPackets(byte b) {
 			if (rawCanPacket == null) {
 				rawCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT)); 
-				rawCanPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+				rawCanPacket.setType(FramePart.TYPE_UW_WOD_CAN_PACKET);
 				rawCanPacket.captureHeaderInfo(id, uptime, resets);
 			}
 			if (rawCanPacket.hasEndOfCanPacketsId()) return;
@@ -73,11 +73,11 @@ public class PayloadWODUwExperiment extends FoxFramePart {
 					if (canLayout == null) Log.errorDialog("ERROR", "Missing CAN WOD Layout for CAN ID: "+rawCanPacket.getID());
 
 					CanPacket newPacket = new CanPacket(id, resets, uptime, reportDate, data, canLayout);
-					newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM);
+					newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM);
 					splitPackets.add(newPacket);
 				}
 				rawCanPacket = new CanPacket(Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT)); 
-				rawCanPacket.setType(FoxFramePart.TYPE_UW_WOD_CAN_PACKET);
+				rawCanPacket.setType(FramePart.TYPE_UW_WOD_CAN_PACKET);
 				rawCanPacket.captureHeaderInfo(id, uptime, resets);
 				
 			}

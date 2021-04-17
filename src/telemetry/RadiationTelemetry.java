@@ -319,7 +319,7 @@ Field
         housekeeping channel to the ground.
 
  */
-public class RadiationTelemetry extends FoxFramePart {
+public class RadiationTelemetry extends FramePart {
 
 	public static final int TELEM_BYTES = 20;
 	public static final int MAX_HERCI_HK_DATA_LENGTH = 46;
