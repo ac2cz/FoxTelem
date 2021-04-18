@@ -71,7 +71,8 @@ public class MathExpression {
             while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
             x = Double.parseDouble(str.substring(startPos, this.pos));
         } else if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z') { // functions
-            while (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z') nextChar();
+            while (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9') 
+            	nextChar();
             String func = str.substring(startPos, this.pos);
             // First check if this is a field name and use that value if it is
             if (framePart.hasFieldName(func)) {
