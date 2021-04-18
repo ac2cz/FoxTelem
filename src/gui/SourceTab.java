@@ -1124,12 +1124,12 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		showLabel.setVisible(b);
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
-		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
-			cbSoundCardRate.setVisible(!b); 
-			cbRtlSampleRate.setVisible(b);
+		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB Sounds card
+			cbSoundCardRate.setVisible(false); 
+			cbRtlSampleRate.setVisible(true);
 		} else {
-			cbSoundCardRate.setVisible(b); 
-			cbRtlSampleRate.setVisible(!b);
+			cbSoundCardRate.setVisible(true); 
+			cbRtlSampleRate.setVisible(false);
 		}
 	}
 	

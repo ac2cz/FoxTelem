@@ -50,16 +50,4 @@ public class FUNcubeHeader extends BitArray {
 		return s;
 	}
 
-	@Override
-	protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
-	@Override
-	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
-		// TODO Auto-generated method stub
-		return 0;
-	}
-
 }

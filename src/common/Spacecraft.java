@@ -28,6 +28,7 @@ import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.ConversionLookUpTable;
+import telemetry.ConversionMathExpression;
 import telemetry.ConversionStringLookUpTable;
 import telemetry.TelemFormat;
 import telemetry.uw.CanFrames;
@@ -490,9 +491,12 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				if (conversionCurvesFileName != null) {
 					loadConversionCurves(FoxSpacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
 				}
-			}
 			
-			if (useConversionCoeffs) {
+				String conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
+				if (conversionCurvesFileName != null) {
+					loadConversionExpresions(FoxSpacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
+				}
+				
 				// String Lookup Tables
 				String sNumberOfStringLookupTables = getOptionalProperty("numberOfStringLookupTables");
 				if (sNumberOfStringLookupTables != null) {
@@ -816,7 +820,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	private void loadConversionCurves(String conversionCurvesFileName) throws FileNotFoundException, IOException {
-		try (BufferedReader br = new BufferedReader(new FileReader(conversionCurvesFileName))) {
+		try (BufferedReader br = new BufferedReader(new FileReader(conversionCurvesFileName))) { // try with resource closes it
 		    String line = br.readLine(); // read the header, which we ignore
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
@@ -829,6 +833,31 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 		        	} else {
 		        		conversions.put(conversion.getName(), conversion);
 		        		Log.println("Stored: " + conversion);
+		        	}
+		        } catch (IllegalArgumentException e) {
+		        	Log.println("Could not load conversion: " + e);
+		        	Log.errorDialog("CORRUPT CONVERSION: ", e.toString());
+		        	// ignore this corrupt row
+		        }
+		    }
+		}
+	}
+	
+	private void loadConversionExpresions(String conversionExpressionsFileName) throws FileNotFoundException, IOException {
+		try (BufferedReader br = new BufferedReader(new FileReader(conversionExpressionsFileName))) { // try with resource closes it
+		    String line = br.readLine(); // read the header, which we ignore
+		    while ((line = br.readLine()) != null) {
+		        String[] values = line.split(",");
+		       // Don't check the length because we are allowed to have commas in the description
+		        try {
+		        	ConversionMathExpression conversion = new ConversionMathExpression(values[0], values[1]); // name, equation
+		        	if (conversions.containsKey(conversion.getName())) {
+		        		// we have a namespace clash, warn the user
+		        		Log.errorDialog("DUPLICATE CONVERSION EXPRESSION NAME", this.user_keps_name + "- A Curve, expression or table is already defined called " + conversion.getName()
+		        		+ "\nThis duplicate name will not be stored.");
+		        	} else {
+		        		conversions.put(conversion.getName(), conversion);
+		        		Log.println("Expression loaded: " + conversion);
 		        	}
 		        } catch (IllegalArgumentException e) {
 		        	Log.println("Could not load conversion: " + e);

@@ -1,0 +1,6 @@
+ExpressionName,Expression,Description
+expression75," ((4  	- 2^3+1) * -sqrt(3*3+4*4)) / 2", Test expression that evaluates to 7.5
+ExpScalarRotation, sqrt(SatelliteXAxisAngularVelocity*SatelliteXAxisAngularVelocity + SatelliteYAxisAngularVelocity*SatelliteYAxisAngularVelocity + SatelliteZAxisAngularVelocity*SatelliteZAxisAngularVelocity), Test 2
+ExpMemsXRotationAngle, 360 * acos(abs(SatelliteXAxisAngularVelocity / MemsScalarRotation)) / (2 * 3.14159)
+ExpMemsYRotationAngle, 360 * acos(abs(SatelliteYAxisAngularVelocity / MemsScalarRotation)) / (2 * 3.14159)
+ExpMemsZRotationAngle, 360 * acos(abs(SatelliteZAxisAngularVelocity / MemsScalarRotation)) / (2 * 3.14159)
