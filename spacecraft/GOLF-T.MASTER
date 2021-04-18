@@ -18,6 +18,7 @@ hasFOXDB_V3=true
 hasModeInHeader=true
 useConversionCoeffs=true
 conversionCurvesFileName=GOLF-T_conversion_curves.csv
+conversionExpressionsFileName=GOLF-T_conversion_expressions.csv
 numberOfFrameLayouts=9
 frameLayout0.filename=GOLF-T_Type0_RT1.frame
 frameLayout0.name=Realtime 1
