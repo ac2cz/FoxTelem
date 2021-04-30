@@ -2,6 +2,7 @@ import java.io.File;
 
 import common.Config;
 import common.Log;
+import spacecraftEditor.SpacecraftEditorWindow;
 
 public class AmsatSpacecraftEditor {
 
@@ -25,6 +26,7 @@ public class AmsatSpacecraftEditor {
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
 		Config.minInit(logFileDir);
+		Config.initSatelliteManager();
 		
 		SpacecraftEditorWindow editor = new SpacecraftEditorWindow();
 		editor.setVisible(true);

@@ -1,3 +1,4 @@
+package spacecraftEditor;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FileDialog;
@@ -7,6 +8,7 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
@@ -15,12 +17,16 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import common.Config;
 import common.FoxSpacecraft;
 import common.Log;
+import common.Spacecraft;
 import gui.MainWindow;
+import gui.SpacecraftPanel;
+import gui.SpacecraftTab;
 import telemetry.LayoutLoadException;
 
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
@@ -31,9 +37,11 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	JMenuBar menuBar;
 	//Menu Buttons
 	JMenuItem mntmExit;
-	static JMenuItem mntmLoadSpacecraftFile;
+	JMenuItem mntmLoadSpacecraftFile;
 	
-	JPanel spacecraftPanel;
+	JTabbedPane tabbedPane;
+	ArrayList<Spacecraft> sats;
+	SpacecraftPanel[] spacecraftTab;
 
 	private static final long serialVersionUID = 1L;
 	public SpacecraftEditorWindow() {
@@ -50,10 +58,11 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	private void initialize() {
 		setBounds(100, 100, 1000, 600);
 		//setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
-
-		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		this.setTitle("AMSAT Spacecraft Config Editor");
 		addWindowListener(this);
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		
+		this.setTitle("AMSAT Spacecraft Config Editor");
+		
 		//addWindowStateListener(this);
 
 		fd = new FileDialog(MainWindow.frame, "Select Spacecraft file",FileDialog.LOAD);
@@ -81,8 +90,27 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 
 	private void layoutMainPanel(JPanel panel) {
 		panel.setLayout(new BorderLayout());
-		spacecraftPanel = new JPanel();
-		panel.add(spacecraftPanel, BorderLayout.WEST);
+		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
+		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
+		panel.add(tabbedPane, BorderLayout.CENTER);
+		addSpacecraftTabs(tabbedPane);
+		JPanel footer = new JPanel();
+		JLabel lblHomeDir = new JLabel("Home: " + Config.homeDirectory + "    Log files: " + Config.logFileDirectory);
+		footer.add(lblHomeDir);
+		panel.add(footer, BorderLayout.SOUTH);
+	}
+	
+	public void addSpacecraftTabs(JTabbedPane tabbedPane) {
+		sats = Config.satManager.getSpacecraftList();
+		spacecraftTab = new SpacecraftPanel[sats.size()];
+		for (int s=0; s<sats.size(); s++) {
+			spacecraftTab[s] = new SpacecraftPanel((FoxSpacecraft)sats.get(s));
+
+				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+						//			tabbedPane.addTab( ""  
+						+ sats.get(s).toString() + "</b></body></html>", spacecraftTab[s] );
+				//			+" Health", healthTab );
+		}
 	}
 
 	/**
@@ -162,7 +190,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 					try {
 						FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
 						JLabel title = new JLabel(satellite.getIdString());
-						spacecraftPanel.add(title);
+						
 						//satellite.save();
 					} catch (LayoutLoadException e) {
 						Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
@@ -202,12 +230,15 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	@Override
 	public void windowClosed(WindowEvent arg0) {
 		// This is once dispose has run
+		Log.close();
+		System.exit(0);
+		Log.println("Window Closed");
 	}
 	@Override
 	public void windowClosing(WindowEvent arg0) {
 		// close has been requested from the X or otherwise
+		Log.println("Closing Window");
 		this.dispose();
-
 	}
 	@Override
 	public void windowDeactivated(WindowEvent arg0) {
