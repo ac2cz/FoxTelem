@@ -493,7 +493,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				}
 			
 				String conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
-				if (conversionCurvesFileName != null) {
+				if (conversionExpressionsFileName != null) {
 					loadConversionExpresions(FoxSpacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
 				}
 				
