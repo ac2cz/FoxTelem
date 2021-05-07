@@ -92,8 +92,8 @@ public class RfData extends DataMeasure {
 			if (getAvg(AVGSIG_IN_FILTER_WIDTH) != 0 && getAvg(NOISE_OUTSIDE_FILTER_WIDTH) != 0) {
 				double p = getAvg(AVGSIG_IN_FILTER_WIDTH);
 				double n = getAvg(NOISE_OUTSIDE_FILTER_WIDTH);
-				if (p < -10 && p > -150)
-					if (n < -10 && n > -150)
+				if (p < 10 && p > -150)
+					if (n < 10 && n > -150)
 						if (p > n) // we don't store negative values as the signal we are after has to be above the noise
 							rfSNRInFilterWidth = (p - n);  // these are in dB so subtract rather than divide
 			}
@@ -101,8 +101,8 @@ public class RfData extends DataMeasure {
 				double p = getAvg(STRONGEST_SIGNAL_IN_SAT_BAND); 
 				double n = getAvg(NOISE_OUTSIDE_FILTER_WIDTH);
 				
-				if (p < -10 && p > -150)
-					if (n < -10 && n > -150)
+				if (p < 10 && p > -150)
+					if (n < 10 && n > -150)
 						if (p > n)
 							rfStrongestSigSNRInSatBand = (p - n);  // these are in dB so subtract rather than divide
 			}
