@@ -1,4 +1,4 @@
-59,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+67,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,maxDownlink,ReflectedPwr,8,mW,41,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,maxDownlink,ICR3VProt,8,V,8_bit_voltage,NONE,4,3,3,3V Prot,ICR 3V Protected
 2,maxDownlink,ICRTemp,8,C,8_bit_temp,NONE,4,4,3,ICR Temp,ICR Temperature
@@ -53,8 +53,16 @@
 51,maxDownlink,SDRTcvrTemp,8,c,8_bit_temp,NONE,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
 52,maxDownlink,Current10GHz,8,mA,golf-t_tx_current,NONE,11,4,3,10GHz PA Current,Transmit power amplifier current
 53,maxDownlink,DCT2RlftdPower,8,mW,1,NONE,7,19,3,Secondry Reflected Power,Primary DCT Reflected Power
-54,maxDownlink,spare1,16,-,0,NONE,0,0,0,spare1,spare
-55,maxDownlink,maxTimestampUptime,32,s,1,Min Max,10,2,0,Max Uptime,Timestamp Resets
-56,maxDownlink,maxTimestampReset,16,s,1,Min Max,10,1,0,Max Reset,Timestamp uptime
-57,maxDownlink,maxCRCerror,8,-,1,Min Max,10,3,0,Max CRC Error,CRC Error for the Max Payload
-58,maxDownlink,pad0,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
+54,maxDownlink,SDRXspin,8,dps,8_bit_spin,NONE,11,5,3,SDR X Rotation,Angular Velocity around X Axis
+55,maxDownlink,SDRYspin,8,dps,8_bit_spin,NONE,11,6,3,SDR Y Rotation,Angular Veolcity around Y Axis
+56,maxDownlink,SDRZspin,8,dps,8_bit_spin,NONE,11,7,3,SDR Z Rotation,Angular Veolcity around Z Axis
+57,maxDownlink,SDRXaccel,8,g,8_bit_accel,NONE,11,8,3,SDR X Acceleration,Acceleration along X axis
+58,maxDownlink,SDRZaccel,8,g,8_bit_accel,NONE,11,9,3,SDR Z Acceleration,Acceleration along Y  axis
+59,maxDownlink,SDRXmag,8,uT,8_bit_mag,NONE,11,10,3,SDR X Magnetometer,Angular Veolcity around X Axis
+60,maxDownlink,SDRYmag,8,uT,8_bit_mag,NONE,11,11,3,SDR Y Magnetometer,Angular Veolcity around Y Axis
+61,maxDownlink,SDRZmag,8,uT,8_bit_mag,NONE,11,12,3,SDR Z Magnetometer,Angular Veolcity around Y Axis
+62,maxDownlink,pad30,16,-,0,-,0,0,0,pad,Pad
+63,maxDownlink,maxTimestampUptime,32,s,1,Min Max,10,2,0,Max Uptime,Timestamp Resets
+64,maxDownlink,maxTimestampReset,16,s,1,Min Max,10,1,0,Max Reset,Timestamp uptime
+65,maxDownlink,maxCRCerror,8,-,1,Min Max,10,3,0,Max CRC Error,CRC Error for the Max Payload
+66,maxDownlink,pad0,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
