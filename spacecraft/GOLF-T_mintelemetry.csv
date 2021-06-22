@@ -1,4 +1,4 @@
-62,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+70,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,minDownlink,ReflectedPwr,8,mW,41,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,minDownlink,ICR3VProt,8,V,8_bit_voltage,NONE,4,3,3,3V Prot,ICR 3V Protected
 2,minDownlink,ICRTemp,8,C,8_bit_temp,NONE,4,4,3,ICR Temp,ICR Temperature
@@ -53,11 +53,19 @@
 51,minDownlink,SDRTcvrTemp,8,c,8_bit_temp,NONE,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
 52,minDownlink,Current10GHz,8,mA,golf-t_tx_current,NONE,11,4,3,10GHz PA Current,Transmit power amplifier current
 53,minDownlink,DCT2RlftdPower,8,mW,1,NONE,7,19,3,Secondry Reflected Power,Primary DCT Reflected Power
-54,minDownlink,spare1,16,-,0,NONE,0,0,0,spare1,spare
-55,minDownlink,minTimestampUptime,32,s,1,Min Max,10,5,0,Min Uptime,Timestamp Resets
-56,minDownlink,minTimestampReset,16,s,1,Min Max,10,4,0,Min Reset,Timestamp uptime
-57,minDownlink,minCRCerror,8,-,1,Min Max,10,6,0,Min CRC Error,CRC Error for the min payload
-58,minDownlink,GPSWeekNum,10,-,0,NONE,0,0,0,GPS Week Number,Make same length as WOD
-59,minDownlink,GPSSecNum,19,-,0,NONE,0,0,0,GPS Second num,-
-60,minDownlink,pad14,3,-,0,NONE,0,0,0,Filler,-
-61,minDownlink,Pad14_1,8,-,0,NONE,0,0,0,Filler,-
+54,minDownlink,SDRXspin,8,dps,8_bit_spin,NONE,11,5,3,SDR X Rotation,Angular Velocity around X Axis
+55,minDownlink,SDRYspin,8,dps,8_bit_spin,NONE,11,6,3,SDR Y Rotation,Angular Veolcity around Y Axis
+56,minDownlink,SDRZspin,8,dps,8_bit_spin,NONE,11,7,3,SDR Z Rotation,Angular Veolcity around Z Axis
+57,minDownlink,SDRXaccel,8,g,8_bit_accel,NONE,11,8,3,SDR X Acceleration,Acceleration along X axis
+58,minDownlink,SDRZaccel,8,g,8_bit_accel,NONE,11,9,3,SDR Z Acceleration,Acceleration along Y  axis
+59,minDownlink,SDRXmag,8,uT,8_bit_mag,NONE,11,10,3,SDR X Magnetometer,Angular Veolcity around X Axis
+60,minDownlink,SDRYmag,8,uT,8_bit_mag,NONE,11,11,3,SDR Y Magnetometer,Angular Veolcity around Y Axis
+61,minDownlink,SDRZmag,8,uT,8_bit_mag,NONE,11,12,3,SDR Z Magnetometer,Angular Veolcity around Y Axis
+62,minDownlink,pad30,16,-,0,-,0,0,0,pad,Pad
+63,minDownlink,minTimestampUptime,32,s,1,Min Max,10,5,0,Min Uptime,Timestamp Resets
+64,minDownlink,minTimestampReset,16,s,1,Min Max,10,4,0,Min Reset,Timestamp uptime
+65,minDownlink,minCRCerror,8,-,1,Min Max,10,6,0,Min CRC Error,CRC Error for the min payload
+66,minDownlink,GPSWeekNum,10,-,0,NONE,0,0,0,GPS Week Number,Make same length as WOD
+67,minDownlink,GPSSecNum,19,-,0,NONE,0,0,0,GPS Second num,-
+68,minDownlink,pad14,3,-,0,NONE,0,0,0,Filler,-
+69,minDownlink,Pad14_1,8,-,0,NONE,0,0,0,Filler,-

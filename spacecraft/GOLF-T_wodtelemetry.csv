@@ -1,4 +1,4 @@
-104,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+112,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,wod,ReflectedPwr,8,mW,41,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,wod,ICR3VProt,8,V,8_bit_voltage,Command Receivers,4,3,3,3V Prot,ICR 3V Protected
 2,wod,ICRTemp,8,C,8_bit_temp,Command Receivers,4,4,3,ICR Temp,ICR Temperature
@@ -53,53 +53,61 @@
 51,wod,SDRTcvrTemp,8,c,8_bit_temp,SDR Radio,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
 52,wod,Current10GHz,8,mA,golf-t_tx_current,SDR Radio,11,4,3,10GHz PA Current,Transmit power amplifier current
 53,wod,DCT2RlftdPower,8,mW,1,RT-IHU,7,19,3,Secondry Reflected Power,Primary DCT Reflected Power
-54,wod,spare1,16,-,0,NONE,0,0,0,spare1,spare
-55,wod,DeploySenseCan,8,-,16,Spacecraft Status,3,4,0,Deploy Sense via CAN,TBD
-56,wod,DeploySenseI2c,8,-,16,Spacecraft Status,3,5,0,Deploy Sense via I2c,TBD
-57,wod,PrimaryRTActive,1,-,21,RT-IHU,7,5,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
-58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
-59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
-60,wod,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
-61,wod,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
-62,wod,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder Enabled,-
-63,wod,I2CfailureICR,1,-,17,Command Receivers,4,5,0,I2cICR,Antenna is not communicating over bus 2
-64,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,3,6,0,I2c Deploy,Antenna is not communicating over bus 1
-65,wod,TLMresets,8,-,1,Spacecraft Status,3,10,0,Min/Max Resets,Number of times command stations reset stored telemetry
-66,wod,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
-67,wod,swCmds,32,-,35,Command Receivers,4,6,0,Diagnostic,ICR Diagnostic information
-68,wod,hwCmdCnt,8,-,1,Command Receivers,4,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
-69,wod,swCmdCntICR,8,-,34,Command Receivers,4,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
-70,wod,swCmdCntDCT,8,-,34,Command Receivers,4,9,0,SW Cmd Cnt DCT,Number of software commands since last reset
-71,wod,DCT1Status,8,-,1,RT-IHU,7,12,0,Primary DCT Status,TBD
-72,wod,DCT2Status,8,-,1,RT-IHU,7,13,0,Secndry DCT Status,TBD
-73,wod,LMRAMstatus,8,-,1,Legacy IHU,2,4,0,LIHU MRAM Status,TBD
-74,wod,PrimMRAMstatus,8,-,1,RT-IHU,7,6,0,Primary MRAM Status,Status of the primary MRAM
-75,wod,SecndMRAMstatus,8,-,1,RT-IHU,7,7,0,Secndry MRAM Status,Status of the secondary MRAM
-76,wod,ModuLO,8,-,1,Legacy Radio,1,6,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-77,wod,ModuGain,8,-,1,Legacy Radio,1,8,0,Modulator Reg 1,Modulator Register 1 - Gain
-78,wod,ModuPhaseOff,8,-,1,Legacy Radio,1,9,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
-79,wod,ModuMode,8,-,1,Legacy Radio,1,10,0,Modulator Reg 8,Modulator Register 8 - Mode
-80,wod,CIUResetCnt1,8,-,1,CIU,9,5,0,CIU 1 Reset Cnt,Power Reset Count for CIU Bus 1
-81,wod,CIUResetCnt2,8,-,1,CIU,9,6,0,CIU 2 Reset Cnt,Power Reset Count for CIU Bus 2
-82,wod,DCT1PwrCnt,8,-,1,RT-IHU,7,8,0,DCT1  Reset Cnt,Power Reset Count for DCT1
-83,wod,DCT2PwrCnt,8,-,1,RT-IHU,7,9,0,DCT2  Reset Cnt,Power Reset Count for DCT2
-84,wod,PA1PwrCnt,8,-,1,RT-IHU,7,10,0,PA1  Reset Cnt,Power Reset Count for PA1
-85,wod,PA2PwrCnt,8,-,1,RT-IHU,7,11,0,PA2  Reset Cnt,Power Reset Count for PA2
-86,wod,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
-87,wod,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-88,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,3,7,0,Eclipse Action,-
-89,wod,inEclipse,1,-,21,Spacecraft Status,3,8,0,In Eclipse,-
-90,wod,ICRRxOn,1,-,1,Command Receivers,4,2,0,ICR Receiver On,ICR RSSI Valid
-91,wod,ICRCarrierValid,1,-,1,Command Receivers,4,10,0,ICR Carrier Valid,ICR Receiving Carrier
-92,wod,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
-93,wod,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
-94,wod,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
-95,wod,vucDisabled,1,-,21,Spacecraft Status,3,9,0,VUC Disabled,VUC Disabled
-96,wod,Pad5,7,-,0,NONE,0,0,0,Pad,-
-97,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
-98,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
-99,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
-100,wod,inSafeMode,1,-,21,Spacecraft Status,3,11,0,Safe Mode,Are we in safe mode?
-101,wod,inHealthMode,1,-,21,Spacecraft Status,3,12,0,Health Mode,Are we in health mode?
-102,wod,inScienceMode,1,-,21,Spacecraft Status,3,13,0,Science Mode,Are we in science mode?
-103,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+54,wod,SDRXspin,8,dps,8_bit_spin,SDR Radio,11,5,3,SDR X Rotation,Angular Velocity around X Axis
+55,wod,SDRYspin,8,dps,8_bit_spin,SDR Radio,11,6,3,SDR Y Rotation,Angular Veolcity around Y Axis
+56,wod,SDRZspin,8,dps,8_bit_spin,SDR Radio,11,7,3,SDR Z Rotation,Angular Veolcity around Z Axis
+57,wod,SDRXaccel,8,g,8_bit_accel,SDR Radio,11,8,3,SDR X Acceleration,Acceleration along X axis
+58,wod,SDRZaccel,8,g,8_bit_accel,SDR Radio,11,9,3,SDR Z Acceleration,Acceleration along Y  axis
+59,wod,SDRXmag,8,uT,8_bit_mag,SDR Radio,11,10,3,SDR X Magnetometer,Angular Veolcity around X Axis
+60,wod,SDRYmag,8,uT,8_bit_mag,SDR Radio,11,11,3,SDR Y Magnetometer,Angular Veolcity around Y Axis
+61,wod,SDRZmag,8,uT,8_bit_mag,SDR Radio,11,12,3,SDR Z Magnetometer,Angular Veolcity around Y Axis
+62,wod,pad30,16,-,0,-,0,0,0,pad,Pad
+63,wod,DeploySenseCan,8,-,16,Spacecraft Status,3,4,0,Deploy Sense via CAN,TBD
+64,wod,DeploySenseI2c,8,-,16,Spacecraft Status,3,5,0,Deploy Sense via I2c,TBD
+65,wod,PrimaryRTActive,1,-,21,RT-IHU,7,5,0,Primary RTIHU,The Primary MCU on the RTIHU is in control of the RTIHU
+66,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,3,1,0,Auto Safe Allowed,Autosafe Allowed
+67,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,3,2,0,Auto Safe,Autosafe Mode Active
+68,wod,I2CfailureSunSense,1,-,17,Sun Sensors,8,9,0,I2c CSS,Coarse Sun Sensor I2c failure
+69,wod,I2CfailureSolarV,1,-,17,Solar Panels,6,10,0,I2c Solar,Solar Voltage I2c failure
+70,wod,transponderEnabled,1,-,44,Legacy IHU,2,2,0,Transponder Enabled,-
+71,wod,I2CfailureICR,1,-,17,Command Receivers,4,5,0,I2cICR,Antenna is not communicating over bus 2
+72,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,3,6,0,I2c Deploy,Antenna is not communicating over bus 1
+73,wod,TLMresets,8,-,1,Spacecraft Status,3,10,0,Min/Max Resets,Number of times command stations reset stored telemetry
+74,wod,wodSize,8,-,36,Spacecraft Status,3,3,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+75,wod,swCmds,32,-,35,Command Receivers,4,6,0,Diagnostic,ICR Diagnostic information
+76,wod,hwCmdCnt,8,-,1,Command Receivers,4,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
+77,wod,swCmdCntICR,8,-,34,Command Receivers,4,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
+78,wod,swCmdCntDCT,8,-,34,Command Receivers,4,9,0,SW Cmd Cnt DCT,Number of software commands since last reset
+79,wod,DCT1Status,8,-,1,RT-IHU,7,12,0,Primary DCT Status,TBD
+80,wod,DCT2Status,8,-,1,RT-IHU,7,13,0,Secndry DCT Status,TBD
+81,wod,LMRAMstatus,8,-,1,Legacy IHU,2,4,0,LIHU MRAM Status,TBD
+82,wod,PrimMRAMstatus,8,-,1,RT-IHU,7,6,0,Primary MRAM Status,Status of the primary MRAM
+83,wod,SecndMRAMstatus,8,-,1,RT-IHU,7,7,0,Secndry MRAM Status,Status of the secondary MRAM
+84,wod,ModuLO,8,-,1,Legacy Radio,1,6,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+85,wod,ModuGain,8,-,1,Legacy Radio,1,8,0,Modulator Reg 1,Modulator Register 1 - Gain
+86,wod,ModuPhaseOff,8,-,1,Legacy Radio,1,9,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+87,wod,ModuMode,8,-,1,Legacy Radio,1,10,0,Modulator Reg 8,Modulator Register 8 - Mode
+88,wod,CIUResetCnt1,8,-,1,CIU,9,5,0,CIU 1 Reset Cnt,Power Reset Count for CIU Bus 1
+89,wod,CIUResetCnt2,8,-,1,CIU,9,6,0,CIU 2 Reset Cnt,Power Reset Count for CIU Bus 2
+90,wod,DCT1PwrCnt,8,-,1,RT-IHU,7,8,0,DCT1  Reset Cnt,Power Reset Count for DCT1
+91,wod,DCT2PwrCnt,8,-,1,RT-IHU,7,9,0,DCT2  Reset Cnt,Power Reset Count for DCT2
+92,wod,PA1PwrCnt,8,-,1,RT-IHU,7,10,0,PA1  Reset Cnt,Power Reset Count for PA1
+93,wod,PA2PwrCnt,8,-,1,RT-IHU,7,11,0,PA2  Reset Cnt,Power Reset Count for PA2
+94,wod,LIHUControl,1,-,21,Legacy IHU,2,3,0,LIHU In Control,The LIUH is in control of the spacecraft
+95,wod,moduValid,1,-,21,Legacy Radio,1,11,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+96,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,3,7,0,Eclipse Action,-
+97,wod,inEclipse,1,-,21,Spacecraft Status,3,8,0,In Eclipse,-
+98,wod,ICRRxOn,1,-,1,Command Receivers,4,2,0,ICR Receiver On,ICR RSSI Valid
+99,wod,ICRCarrierValid,1,-,1,Command Receivers,4,10,0,ICR Carrier Valid,ICR Receiving Carrier
+100,wod,LIHUResets,8,-,1,Legacy IHU,2,5,0,LIHU Reset Cnt,LIHU Rest Count
+101,wod,RTIHU1Resets,8,-,1,RT-IHU,7,14,0,Primary Reset Cnt,Primary RT-IHU Reset Count
+102,wod,RTIHU2Resets,8,-,1,RT-IHU,7,15,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
+103,wod,vucDisabled,1,-,21,Spacecraft Status,3,9,0,VUC Disabled,VUC Disabled
+104,wod,Pad5,7,-,0,NONE,0,0,0,Pad,-
+105,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
+106,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
+107,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
+108,wod,inSafeMode,1,-,21,Spacecraft Status,3,11,0,Safe Mode,Are we in safe mode?
+109,wod,inHealthMode,1,-,21,Spacecraft Status,3,12,0,Health Mode,Are we in health mode?
+110,wod,inScienceMode,1,-,21,Spacecraft Status,3,13,0,Science Mode,Are we in science mode?
+111,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
