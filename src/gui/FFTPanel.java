@@ -713,7 +713,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			selectedBin = selection - fftSamples/2;
 		else
 			selectedBin = selection + fftSamples/2;
-		System.out.println(x+" is fft bin "+selectedBin);//these co-ords are relative to the component
+//		System.out.println(x+" is fft freq bin "+selectedBin);//these co-ords are relative to the component
 	
 		//double cyc = getCycles();
 //		System.out.println("Trying bin: " + selectedBin);
@@ -724,6 +724,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 //		Config.selectedBin = selectedBin;
 		if (rfData != null)
 			rfData.reset(); // reset the average calcs so the UI is more responsive
+		Config.passManager.setState(PassManager.ANALYZE);
 //		printBin();
 	}
 
