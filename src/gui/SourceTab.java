@@ -378,7 +378,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		warnNoTrackingPanel = new JPanel();
 		warnNoTrackingPanel.setLayout(new BorderLayout());
 		//warnNoTrackingPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(400,1), new Dimension(1500,1)), BorderLayout.CENTER);
-		lblWarnNoFindSignal = new JLabel("WARNING: Find Signal and Doppler Tracking are both disabled"); 
+		lblWarnNoFindSignal = new JLabel(); 
 		lblWarnNoFindSignal.setForeground(Config.AMSAT_RED);
 		lblWarnNoFindSignal.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		warnNoTrackingPanel.add(lblWarnNoFindSignal, BorderLayout.EAST);
@@ -2886,11 +2886,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						if (!Config.findSignal) {
 							// Warn the user that NO TRACKING IS ON
 							warnNoTrackingPanel.setVisible(true);
+							lblWarnNoFindSignal.setText("WARNING: Find Signal and Doppler Tracking are both disabled");
 						} else {
 							warnNoTrackingPanel.setVisible(false);
 						}
 					} else {
 						warnNoTrackingPanel.setVisible(false);
+					}
+					if (Config.foxTelemCalcsDoppler) {
+						if (!atLeastOneTracked) {
+							warnNoTrackingPanel.setVisible(true);
+							lblWarnNoFindSignal.setText("WARNING: Doppler tracking is on but no spacecraft are tracked");
+						}
 					}
 					if (Config.findSignal) {
 						// This means we are in FIND SIGNAL mode
@@ -2899,6 +2906,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						//Config.findSignal = true;
 						if (Config.iq) {
 							findSignalPanel.setVisible(true);
+						}
+						if (!atLeastOneTracked) {
+							warnNoTrackingPanel.setVisible(true);
+							lblWarnNoFindSignal.setText("WARNING: Find Signal is on but no spacecraft are tracked");
 						}
 					} else {
 						// Otherwise FIND SIGNAL is not allowed
