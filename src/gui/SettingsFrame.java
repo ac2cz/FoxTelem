@@ -245,6 +245,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		serverPanel.add(locatorPanel);
 		locatorPanel.add(lblLoc);
 		locatorPanel.add(txtMaidenhead);
+		
+		// If we already have a valid lat lon then set the locator. 
+		updateLocator();
 
 		txtAltitude = addSettingsRow(serverPanel, 5, "Altitude (m)", "Altitude will be supplied to AMSAT along with your data if you specify it", Config.altitude);
 		txtStation = addSettingsRow(serverPanel, 5, "RF-Receiver Description", "RF-Receiver can be specified to give us an idea of the types of stations that are in operation", Config.stationDetails);
