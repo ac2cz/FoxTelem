@@ -233,21 +233,31 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				+ "Should not need to be changed", Config.primaryServer);
 		txtSecondaryServer = addSettingsRow(serverPanel, 5, "Secondary Server", "The backup address of the Amsat Telemetry server. "
 				+ "Should not need to be changed",Config.secondaryServer);
-		txtLatitude = addSettingsRow(serverPanel, 4, "Lat (S is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.latitude); // South is negative
-		txtLongitude = addSettingsRow(serverPanel, 4, "Long (W is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.longitude); // West is negative
+		
 		JPanel locatorPanel = new JPanel();
-		JLabel lblLoc = new JLabel("Lat Long gives Locator: ");
+		JLabel lblLoc = new JLabel("Locator from Lat Long: ");
 		txtMaidenhead = new JTextField(Config.maidenhead);
 		txtMaidenhead.addActionListener(this);
 		txtMaidenhead.addFocusListener(this);
 
 		txtMaidenhead.setColumns(7);
+		String tip = "Only enter the grid square if you do not have the exact latitude and longitude";
+		txtMaidenhead.setToolTipText(tip);
+		lblLoc.setToolTipText(tip);
+				
 		serverPanel.add(locatorPanel);
 		locatorPanel.add(lblLoc);
 		locatorPanel.add(txtMaidenhead);
+		txtLatitude = addSettingsRow(serverPanel, 4, "Lat (S is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.latitude); // South is negative
+		txtLongitude = addSettingsRow(serverPanel, 4, "Long (W is -ve)", "Latitude / Longitude or Locator need to be specified if you supply decoded data to AMSAT", Config.longitude); // West is negative
 		
-		// If we already have a valid lat lon then set the locator. 
-		updateLocator();
+		
+		// If the locator is not set, try to update from lat long
+		if (txtMaidenhead.getText().equalsIgnoreCase(Config.DEFAULT_LOCATOR) || 
+				txtMaidenhead.getText().equals(""))
+			updateLocator();
+		else if (!validLatLong()) // otherwise, if we have a locator but lat long is not valid, update the lat long
+			updateLatLong();
 
 		txtAltitude = addSettingsRow(serverPanel, 5, "Altitude (m)", "Altitude will be supplied to AMSAT along with your data if you specify it", Config.altitude);
 		txtStation = addSettingsRow(serverPanel, 5, "RF-Receiver Description", "RF-Receiver can be specified to give us an idea of the types of stations that are in operation", Config.stationDetails);
@@ -401,10 +411,10 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		try {
 			lat = Float.parseFloat(txtLatitude.getText());
 			lon = Float.parseFloat(txtLongitude.getText());
-			if (lat == Float.parseFloat(Config.DEFAULT_LATITUDE) || 
-					txtLatitude.getText().equals("")) return false;
-			if (lon == Float.parseFloat(Config.DEFAULT_LONGITUDE) || 
-					txtLongitude.getText().equals("")) return false;
+			if (lat == Float.parseFloat(Config.DEFAULT_LATITUDE) && lon == Float.parseFloat(Config.DEFAULT_LONGITUDE))
+					return false;
+			if (txtLatitude.getText().equals("")) return false;
+			if (txtLongitude.getText().equals("")) return false;
 		} catch (NumberFormatException n) {
 			JOptionPane.showMessageDialog(this,
 					"Only numerical values are valid for the latitude and longitude.",
