@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Font;
@@ -256,7 +257,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		if (txtMaidenhead.getText().equalsIgnoreCase(Config.DEFAULT_LOCATOR) || 
 				txtMaidenhead.getText().equals(""))
 			updateLocator();
-		else if (!validLatLong()) // otherwise, if we have a locator but lat long is not valid, update the lat long
+		else if (!validLatLong(this, txtLatitude.getText(),txtLongitude.getText())) // otherwise, if we have a locator but lat long is not valid, update the lat long
 			updateLatLong();
 
 		txtAltitude = addSettingsRow(serverPanel, 5, "Altitude (m)", "Altitude will be supplied to AMSAT along with your data if you specify it", Config.altitude);
@@ -406,18 +407,19 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		//txtLongitude.setEnabled(en);
 	}
 	
-	private boolean validLatLong() {
+	public static boolean validLatLong(Component component, String txtLatitude, String txtLongitude) {
 		float lat = 0, lon = 0;
 		try {
-			lat = Float.parseFloat(txtLatitude.getText());
-			lon = Float.parseFloat(txtLongitude.getText());
+			lat = Float.parseFloat(txtLatitude);
+			lon = Float.parseFloat(txtLongitude);
 			if (lat == Float.parseFloat(Config.DEFAULT_LATITUDE) && lon == Float.parseFloat(Config.DEFAULT_LONGITUDE))
 					return false;
-			if (txtLatitude.getText().equals("")) return false;
-			if (txtLongitude.getText().equals("")) return false;
+			if (txtLatitude.equals("")) return false;
+			if (txtLongitude.equals("")) return false;
 		} catch (NumberFormatException n) {
-			JOptionPane.showMessageDialog(this,
-					"Only numerical values are valid for the latitude and longitude.",
+			JOptionPane.showMessageDialog(component,
+					"Only numerical values are valid for the latitude and longitude. Can't use Lat: " + txtLatitude + " Long: "
+						 + txtLongitude,
 					"Format Error\n",
 					JOptionPane.ERROR_MESSAGE);
 			return false;
@@ -427,8 +429,9 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 		(Float.isNaN(lat)) ||
 		(Math.abs(lat) == 90.0) ||
 		(Math.abs(lat) > 90)) {
-			JOptionPane.showMessageDialog(this,
-					"Invalid latitude or longitude.",
+			JOptionPane.showMessageDialog(component,
+					"Invalid latitude or longitude. Can't use Lat: " + txtLatitude + " Long: \n"
+					+ txtLongitude,
 					"Error\n",
 					JOptionPane.ERROR_MESSAGE);
 			return false;
@@ -458,7 +461,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	private boolean validServerParams() {
 		if (!validCallsign()) return false;
 		if (!validLocator()) return false;
-		if (!validLatLong()) return false;
+		if (!validLatLong(this, txtLatitude.getText(),txtLongitude.getText())) return false;
 		if (!validAltitude()) return false;
 		return true;
 	}
@@ -525,7 +528,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	}
 		
 	private void updateLocator() {
-		if (validLatLong()) {
+		if (validLatLong(this, txtLatitude.getText(),txtLongitude.getText())) {
 			Location l = new Location(txtLatitude.getText(), txtLongitude.getText());
 			txtMaidenhead.setText(l.maidenhead);
 		}
@@ -539,7 +542,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 	}
 
 	private void enableDependentParams() {
-		if (validLatLong() && validAltitude()) {
+		if (validLatLong(this, txtLatitude.getText(),txtLongitude.getText()) && validAltitude()) {
 			if (validCallsign())
 				cbUploadToServer.setEnabled(true);
 			else
@@ -596,7 +599,7 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 				// grab all the latest settings
 				Config.callsign = txtCallsign.getText();
 				Log.println("Setting callsign: " + Config.callsign);
-				if (validLatLong()) {
+				if (validLatLong(this, txtLatitude.getText(),txtLongitude.getText())) {
 					Config.latitude = txtLatitude.getText();
 					Config.longitude = txtLongitude.getText();
 				} else {

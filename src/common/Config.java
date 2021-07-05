@@ -2,6 +2,7 @@ package common;
 
 import gui.MainWindow;
 import gui.ProgressPanel;
+import gui.SettingsFrame;
 import gui.SourceTab;
 import measure.SatPc32DDE;
 
@@ -66,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.11d";
-	public static String VERSION = VERSION_NUM + " - 4 Jul 2021";
+	public static String VERSION_NUM = "1.11e";
+	public static String VERSION = VERSION_NUM + " - 5 Jul 2021";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -359,6 +360,17 @@ public class Config {
 			// not much to do.  Just leave h as 0;
 		}
 		try {
+			
+			// Default to the grid if that is all that we have
+			if (!SettingsFrame.validLatLong(MainWindow.frame, Config.latitude, Config.longitude)) {
+				if (!(Config.maidenhead.equalsIgnoreCase(Config.DEFAULT_LOCATOR) || 
+						Config.maidenhead.equals(""))) {
+					Location l = new Location(Config.maidenhead);
+					Config.latitude = Float.toString(l.latitude); 
+					Config.longitude = Float.toString(l.longitude);
+				}
+			}
+			
 			float lat = Float.parseFloat(Config.latitude);
 			float lon = Float.parseFloat(Config.longitude);
 			GROUND_STATION = new GroundStationPosition(lat, lon, h);
