@@ -172,35 +172,7 @@ public abstract class Decoder implements Runnable {
 	public Filter getFilter() { return filter; }
 	public boolean getBigEndian() { return bigEndian; }
 	public int getBucketSize() { return bucketSize; }
-	/**
-	 * This is called each time the decoder is started from the GUI
-	 */
 	
-	/* now in FoxDecoder
-	public void init() {
-		Performance.setEnabled(Config.debugPerformance);  // enable performance logging (or not)
-		
-		processing = true;
-		done = false;
-		
-		BUFFER_SIZE = SAMPLE_WINDOW_LENGTH * bucketSize;
-
-		// Timing for each loop in milli seconds
-		OPTIMAL_TIME = 500*SAMPLE_WINDOW_LENGTH/BITS_PER_SECOND;
-		
-		Log.println("Decoder using sample rate: " + currentSampleRate);
-		Log.println("Decoder using bucketSize: " + bucketSize);
-		Log.println("Decoder using SAMPLE_WIDTH: " + SAMPLE_WIDTH);
-		Log.println("Decoder using BUFFER_SIZE: " + BUFFER_SIZE);
-		Log.println("Decoder using BITS_PER_SECOND: " + BITS_PER_SECOND);
-		Log.println("Decoder CHANNELS: " + channels);
-		
-		initWindowData();
-//		agcFilter = new AGCFilter();
-		monitorFilter = new RaisedCosineFilter(audioSource.audioFormat, BUFFER_SIZE);
-		monitorFilter.init(currentSampleRate, 3000, 256);
-	}
-    */
 	/**
 	 * This is once when the decoder is started
 	 */
@@ -293,6 +265,7 @@ public abstract class Decoder implements Runnable {
 				monitorAudio = false;
 
 			}
+			sink.flush();
 			sink.closeOutput();
 		}
 		sink = null;
@@ -310,6 +283,7 @@ public abstract class Decoder implements Runnable {
 			sink = s;
 			monitorAudio = m; 
 			if (!monitorAudio) {
+				sink.flush();
 				sink.closeOutput();
 				sink = null;
 			}
@@ -435,7 +409,10 @@ public abstract class Decoder implements Runnable {
                 if (monitorAudio && !squelch && !(this instanceof FoxBPSKDotProdDecoder) && !Config.monitorFilteredAudio) {
                 	if (sink != null)
                 		try {
-                			sink.write(abBufferDouble);
+                			double[] buffer = abBufferDouble;
+                    		if (this instanceof FoxBPSKCostasDecoder)
+                    			buffer = Arrays.copyOfRange(abBufferDouble, 0, abBufferDouble.length);
+                			sink.write(buffer);
                 		} catch (Exception se ) {
                 			// Failure to write the audio should not be fatal
                 			// If we print an error here the log will fill

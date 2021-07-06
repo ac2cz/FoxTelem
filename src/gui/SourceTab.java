@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +19,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -25,11 +28,13 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -187,6 +192,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblWarnNoFindSignal;
 	JPanel warnNoTrackingPanel;
 	JCheckBox cbTurboWavFilePlayback;
+	Image img_audio;
+	Image img_mute;
 	
 	FilterPanel filterPanel;
 	
@@ -949,10 +956,31 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		});
 		speakerComboBox.addActionListener(this);
 		
-		btnMonitorAudio = new JButton("Monitor Audio");
+		btnMonitorAudio = new JButton();
+		btnMonitorAudio.setMargin(new Insets(0, 20, 0, 20));
+		try {
+			img_mute = ImageIO.read(getClass().getResource("/images/icons8-mute-26.png"));
+			img_audio = ImageIO.read(getClass().getResource("/images/icons8-audio-26.png"));
+		} catch (IOException e) {
+			// No images available
+		}
+	
+		
 		if (Config.monitorAudio) {
-			btnMonitorAudio.setText("Silence Speaker");
+			try {
+			    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
+			  } catch (Exception ex) {
+				  System.err.println("Audio Image not found");
+				  btnMonitorAudio.setText("Silence Speaker");
+			  }
 			speakerComboBox.setEnabled(false);
+		} else {
+			try {
+			    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
+			  } catch (Exception ex) {
+				  btnMonitorAudio.setText("Monitor Audio");
+				  System.err.println("Mute Image not found");
+			  }
 		}
 		panelCombo.add(btnMonitorAudio);
 		btnMonitorAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -984,6 +1012,26 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
 		}
 		
+	}
+	
+	public JButton createIconButton(String icon, String name, String toolTip) {
+		JButton btn;
+		BufferedImage wPic = null;
+		try {
+			wPic = ImageIO.read(this.getClass().getResource(icon));
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+		}
+		if (wPic != null) {
+			btn = new JButton(new ImageIcon(wPic));
+			btn.setMargin(new Insets(0,0,0,0));
+		} else {
+			btn = new JButton(name);	
+		}
+		btn.setToolTipText(toolTip);
+		
+		btn.addActionListener(this);
+		return btn;
 	}
 
 	public void setupFormat() {
@@ -1392,14 +1440,32 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 			}
-
-			if (Config.monitorAudio) { 
-				btnMonitorAudio.setText("Silence Speaker");
+			if (Config.monitorAudio) {
+				try {
+				    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
+				  } catch (Exception ex) {
+					  System.err.println("Audio Image not found");
+					  btnMonitorAudio.setText("Silence Speaker");
+				  }
+				
 				speakerComboBox.setEnabled(false);
 			} else {
-				btnMonitorAudio.setText("Monitor Audio");
+				try {
+				    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
+				  } catch (Exception ex) {
+					  btnMonitorAudio.setText("Monitor Audio");
+					  System.err.println("Mute Image not found");
+				  }
 				speakerComboBox.setEnabled(true);
 			}
+
+//			if (Config.monitorAudio) { 
+//				btnMonitorAudio.setText("Silence Speaker");
+//				speakerComboBox.setEnabled(false);
+//			} else {
+//				btnMonitorAudio.setText("Monitor Audio");
+//				speakerComboBox.setEnabled(true);
+//			}
 			Config.save();
 		}
 
