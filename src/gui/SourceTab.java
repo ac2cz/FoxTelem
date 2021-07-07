@@ -957,30 +957,30 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		speakerComboBox.addActionListener(this);
 		
 		btnMonitorAudio = new JButton();
-		btnMonitorAudio.setMargin(new Insets(0, 20, 0, 20));
-		try {
-			img_mute = ImageIO.read(getClass().getResource("/images/icons8-mute-26.png"));
-			img_audio = ImageIO.read(getClass().getResource("/images/icons8-audio-26.png"));
-		} catch (Exception e) {
-			// No images available
-		}
+//		btnMonitorAudio.setMargin(new Insets(0, 20, 0, 20));
+//		try {
+//			img_mute = ImageIO.read(getClass().getResource("/images/icons8-mute-26.png"));
+//			img_audio = ImageIO.read(getClass().getResource("/images/icons8-audio-26.png"));
+//		} catch (IOException e) {
+//			// No images available
+//		}
 	
 		
 		if (Config.monitorAudio) {
-			try {
-			    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
-			  } catch (Exception ex) {
-				  System.err.println("Audio Image not found");
+//			try {
+//			    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
+//			  } catch (Exception ex) {
+//				  System.err.println("Audio Image not found");
 				  btnMonitorAudio.setText("Silence Speaker");
-			  }
+//			  }
 			speakerComboBox.setEnabled(false);
 		} else {
-			try {
-			    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
-			  } catch (Exception ex) {
+//			try {
+//			    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
+//			  } catch (Exception ex) {
 				  btnMonitorAudio.setText("Monitor Audio");
-				  System.err.println("Mute Image not found");
-			  }
+//				  System.err.println("Mute Image not found");
+//			  }
 		}
 		panelCombo.add(btnMonitorAudio);
 		btnMonitorAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -1441,21 +1441,21 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						JOptionPane.ERROR_MESSAGE) ;
 			}
 			if (Config.monitorAudio) {
-				try {
-				    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
-				  } catch (Exception ex) {
-					  System.err.println("Audio Image not found");
+//				try {
+//				    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
+//				  } catch (Exception ex) {
+//					  System.err.println("Audio Image not found");
 					  btnMonitorAudio.setText("Silence Speaker");
-				  }
+//				  }
 				
 				speakerComboBox.setEnabled(false);
 			} else {
-				try {
-				    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
-				  } catch (Exception ex) {
+//				try {
+//				    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
+//				  } catch (Exception ex) {
 					  btnMonitorAudio.setText("Monitor Audio");
-					  System.err.println("Mute Image not found");
-				  }
+//					  System.err.println("Mute Image not found");
+//				  }
 				speakerComboBox.setEnabled(true);
 			}
 
