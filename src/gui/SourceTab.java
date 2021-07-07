@@ -961,7 +961,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		try {
 //			img_mute = ImageIO.read(getClass().getResource("/images/icons8-mute-26.png"));
 //			img_audio = ImageIO.read(getClass().getResource("/images/icons8-audio-26.png"));
-//		} catch (IOException e) {
+//		} catch (Exception e) {
 //			// No images available
 //		}
 	
