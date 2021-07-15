@@ -99,7 +99,7 @@ public class ConversionLookUpTable extends Conversion{
 		Entry<Integer, Double> pairs = null;
 		int key;
 		boolean firstKey = true;
-		double value = FoxFramePart.ERROR_VALUE;
+		double value = FramePart.ERROR_VALUE;
 	    while (it.hasNext()) {
 	        pairs = it.next();
 	        key = (Integer)pairs.getKey();
@@ -148,7 +148,7 @@ public class ConversionLookUpTable extends Conversion{
 		Entry<Integer, Double> pairs = null;
 		double key;
 		boolean firstKey = true;
-		int value = (int)FoxFramePart.ERROR_VALUE;
+		int value = (int)FramePart.ERROR_VALUE;
 	    while (it.hasNext()) {
 	        pairs = it.next();
 	        value = (Integer)pairs.getKey();
@@ -186,6 +186,18 @@ public class ConversionLookUpTable extends Conversion{
 	    if (pairs != null)
 	    	value = (int) linearInterpolation((double)lookUpKey, prevKey, lastKey, prevValue, lastValue);
 	    return value;
+	}
+	
+	/**
+	 * Return the passed value as a String, apply default formatting if this is the only conversion or if it is the 
+	 * last in a pipeline
+	 * 
+	 * @param lookUpkKey
+	 * @return
+	 */
+	public String calculateString(double x) {
+		String s = String.format("%2.1f", x);
+		return s;
 	}
 	
 	protected void load(String fileName) throws FileNotFoundException, LayoutLoadException {

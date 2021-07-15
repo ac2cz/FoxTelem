@@ -28,6 +28,7 @@ import javax.usb.UsbException;
 
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
+import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
 import common.Log;
@@ -153,9 +154,9 @@ public class R820TTunerController extends RTL2832TunerController
 	/**
 	 * Sets the center frequency.  Setting the frequency is a two-part process
 	 * of setting the multiplexer and then setting the Oscillator (PLL).
+	 * @throws Exception 
 	 */
-    public void setTunedFrequency( long frequency ) throws DeviceException
-    {
+    public void setTunedFrequency( long frequency ) throws UsbException {
 		try
 		{
 			enableI2CRepeater( mDeviceHandle, true );
@@ -169,12 +170,14 @@ public class R820TTunerController extends RTL2832TunerController
 			setPLL( offsetFrequency, controlI2C );
 
 			enableI2CRepeater( mDeviceHandle, false );
+			
 		}
-		catch( UsbException e )
+		catch( Exception e )
 		{
-			throw new DeviceException( "R820TTunerController - exception "
+			Log.println( "R820TTunerController - exception "
 					+ "while setting frequency [" + frequency + "] - " + 
 					e.getLocalizedMessage() );
+			throw e;
 		}
     }
 
@@ -240,10 +243,10 @@ public class R820TTunerController extends RTL2832TunerController
 	/**
 	 * Initializes the tuner for use.
 	 */
-	public void init() throws DeviceException
+	public void init(SampleRate sampleRate) throws DeviceException
 	{
 		/* Initialize the super class to open and claim the usb interface*/
-		super.init();
+		super.init(sampleRate);
 		
 		try
 		{
@@ -630,6 +633,17 @@ public class R820TTunerController extends RTL2832TunerController
 	                            controlI2C );
 		
 		return value;
+	}
+	
+	/**
+	 * Sets the bias tee if it is attached to GPIO 0 which is the case for the RTL-SDR V3 dongles
+	 * @param on
+	 * @return
+	 */
+	public int setBiasTee(boolean on) {
+		setGPIOOutput(mDeviceHandle, (byte) 0x00);
+		setGPIOBit(mDeviceHandle, (byte) 0x01, on); // set the bit shown by the bit mask, not the pin to set as implemented in rtl-sdr.c
+		return 0;
 	}
 	
 	/**
@@ -1295,8 +1309,9 @@ public class R820TTunerController extends RTL2832TunerController
 		}
 	}
 
+	int err = 0;
 	@Override
-	public int setFrequency(long freq) throws DeviceException {
+	public int setFrequency(long freq) throws DeviceException, UsbException {
 		setTunedFrequency(freq);
 		return 0;
 	}

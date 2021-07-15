@@ -17,6 +17,7 @@
  ******************************************************************************/
 package device.rtl;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 import javax.usb.UsbException;
@@ -29,13 +30,15 @@ import org.usb4java.LibUsbException;
 
 import common.Log;
 import device.DeviceException;
+import device.DevicePanel;
 import device.ThreadPoolManager;
 import device.TunerType;
+import device.rtl.RTL2832TunerController.SampleRate;
 
 public class E4KTunerController extends RTL2832TunerController
 {
-	public static final long MIN_FREQUENCY = 52000000;
-	public static final long MAX_FREQUENCY = 2200000000l;
+	public static final long MIN_FREQUENCY = 52000;
+	public static final long MAX_FREQUENCY = 2200000l;
 	public static final double USABLE_BANDWIDTH_PERCENT = 0.95;
 	public static final int DC_SPIKE_AVOID_BUFFER = 15000;
 
@@ -173,7 +176,7 @@ public class E4KTunerController extends RTL2832TunerController
 	    
     }
 */
-	public void init() throws DeviceException
+	public void init(SampleRate sampleRate) throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 		
@@ -236,7 +239,7 @@ public class E4KTunerController extends RTL2832TunerController
 			
 			try
 			{
-				setSampleRate( DEFAULT_SAMPLE_RATE );
+				setSampleRate( sampleRate );
 			}
 			catch( Exception e )
 			{
@@ -319,8 +322,9 @@ public class E4KTunerController extends RTL2832TunerController
 		}
 		catch( LibUsbException e )
 		{
-			throw new DeviceException( "E4K tuner controller - couldn't get "
+			Log.println( "E4K tuner controller - couldn't get "
 					+ "tuned frequency:" + e );
+			throw e;
 		}
     }
 
@@ -2513,5 +2517,10 @@ public class E4KTunerController extends RTL2832TunerController
 		return false;
 	}
 
+	@Override
+	public DevicePanel getDevicePanel() throws IOException, DeviceException {
+		// TODO Auto-generated method stub
+		return new RTLPanelE4K();
+	}
 	
 }

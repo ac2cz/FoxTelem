@@ -321,16 +321,15 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		// Process the top Modules
 		if (topLength > 0)		
 		for (int i=0; i < numOfTopModules; i++) {
-			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
+			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, layouts[i], moduleType, Color.BLUE);
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], layouts[i]);
-			topModules[i].setLayout(layouts[i]);
 			topHalf.add(topModules[i]);
 		}
 
 		// then bottom
 		if (bottomLength > 0)
 		for (int i=0; i < numOfBottomModules; i++) {
-			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, moduleType);
+			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, null, moduleType, Color.BLUE);
 			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], layouts[i]);
 			bottomHalf.add(bottomModules[i]);
 		}
@@ -364,31 +363,31 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		if (moduleType == DisplayModule.DISPLAY_WOD) {
 			; //System.out.println("STOP");
 		} else {
-		if (max != null)
-		for (int i=0; i<max.NUMBER_OF_FIELDS; i++) {
-			if (!max.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				
-					if (!containedIn(topModuleNames, max.module[i])) {
-						topModuleNames[max.moduleNum[i]] = max.module[i];
-						numOfTopModules++;
-					}
-					topModuleLines[max.moduleNum[i]]++;
-				
-			}
-		}
-		if (min != null)
-		for (int i=0; i<min.NUMBER_OF_FIELDS; i++) {
-			if (!min.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				
-					if (!containedIn(topModuleNames, min.module[i])) {
-						topModuleNames[min.moduleNum[i]] = min.module[i];
-						numOfTopModules++;
-					}
-					topModuleLines[min.moduleNum[i]]++;
-				
-			}
+			if (max != null)
+				for (int i=0; i<max.NUMBER_OF_FIELDS; i++) {
+					if (!max.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
 
-		}
+						if (!containedIn(topModuleNames, max.module[i])) {
+							topModuleNames[max.moduleNum[i]] = max.module[i];
+							numOfTopModules++;
+						}
+						topModuleLines[max.moduleNum[i]]++;
+
+					}
+				}
+			if (min != null)
+				for (int i=0; i<min.NUMBER_OF_FIELDS; i++) {
+					if (!min.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
+
+						if (!containedIn(topModuleNames, min.module[i])) {
+							topModuleNames[min.moduleNum[i]] = min.module[i];
+							numOfTopModules++;
+						}
+						topModuleLines[min.moduleNum[i]]++;
+
+					}
+
+				}
 		}
 		topModules = new DisplayModule[numOfTopModules];
 		if (numOfBottomModules > 0)
@@ -396,7 +395,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		
 		// Process the top Modules - which run from 1 to 9
 		for (int i=1; i < numOfTopModules; i++) {
-			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, moduleType);
+			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, rt, moduleType, rt.color);
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], rt);
 			if (moduleType != DisplayModule.DISPLAY_WOD) {
 				if (max != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], max);
@@ -407,7 +406,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 
 		// Process the bottom Modules - which run from 10 to 19
 		for (int i=1; i < numOfBottomModules; i++) {
-			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, moduleType);
+			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, rt, moduleType, rt.color);
 			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], rt);
 			if (moduleType != DisplayModule.DISPLAY_WOD) {
 				if (max != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], max);

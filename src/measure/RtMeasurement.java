@@ -6,10 +6,9 @@ import java.util.Date;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
-
-import telemetry.FoxFramePart;
 import common.Config;
 import common.Log;
+import telemetry.FramePart;
 
 /**
  * 
@@ -52,10 +51,10 @@ public class RtMeasurement extends Measurement {
 	 */
 	public RtMeasurement(int foxid, String date, int reset, long uptime, int type, StringTokenizer st) {
 		id = foxid;
-		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		this.date = new Date();
 		try {
-			this.date = FoxFramePart.fileDateFormat.parse(date);
+			this.date = FramePart.fileDateFormat.parse(date);
 		} catch (ParseException e) {
 			e.printStackTrace(Log.getWriter());
 		}
@@ -75,7 +74,7 @@ public class RtMeasurement extends Measurement {
 	public RtMeasurement(int foxid, int reset, long uptime, int type) {
 		id = foxid;
 		date = Calendar.getInstance().getTime();  
-		FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+		FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
 		
 		this.reset = reset;
 		this.uptime = uptime;
@@ -157,11 +156,11 @@ public class RtMeasurement extends Measurement {
 		} catch (NoSuchElementException e) {
 			// we are done and can finish
 		} catch (ArrayIndexOutOfBoundsException e) {
-			String captureDate = FoxFramePart.fileDateFormat.format(date);
+			String captureDate = FramePart.fileDateFormat.format(date);
 			// Something nasty happened when we were loading, so skip this record and log an error
 			Log.println("ERROR: Too many fields:  Could not load measurement " + this.id + " " + captureDate + this.type);
 		} catch (NumberFormatException n) {
-			String captureDate = FoxFramePart.fileDateFormat.format(date);
+			String captureDate = FramePart.fileDateFormat.format(date);
 			Log.println("ERROR: Invalid number:  Could not load measurement " + this.id + " " + captureDate+ this.type);
 		}
 	}

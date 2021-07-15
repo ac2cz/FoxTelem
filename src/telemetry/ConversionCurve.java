@@ -61,6 +61,18 @@ public class ConversionCurve extends Conversion {
 		return y;
 	}
 	
+	/**
+	 * Return the passed value as a String, apply default formatting if this is the only conversion or if it is the 
+	 * last in a pipeline
+	 * 
+	 * @param lookUpkKey
+	 * @return
+	 */
+	public String calculateString(double x) {
+		String s = String.format("%2.1f", x);
+		return s;
+	}
+	
 	public String toString() {
 		String s = "";
 		s = s + name + ": " + a + " + " + b + "x + " + c + "x^2 + " + d + "x^3 + " + e + "x^4 + " + f + "x^5 " + description;

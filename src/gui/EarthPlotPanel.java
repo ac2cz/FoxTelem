@@ -24,11 +24,11 @@ public class EarthPlotPanel extends GraphCanvas {
 	public static final int MERCATOR_PROJECTION = 1;
 	public int mapProjection = RECTANGULAR_PROJECTION;
 	
-	EarthPlotPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft sat) {
-		super(t, conversionType, plType, gf, sat);
+	EarthPlotPanel(String t, GraphFrame gf, FoxSpacecraft sat) {
+		super(t, gf, sat);
 		sideBorder = sideBorder + 20;
 		sideLabelOffset = sideLabelOffset + 30;
-		updateGraphData("EarthPlotPanel.new");
+		updateGraphData(gf.layout, "EarthPlotPanel.new");
 	}
 	
 	private void setImage() {

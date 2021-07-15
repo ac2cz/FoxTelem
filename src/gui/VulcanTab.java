@@ -31,7 +31,7 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.RadiationPacket;
@@ -101,7 +101,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		foxId = fox.foxId;
 		NAME = fox.toString() + " Vanderbilt University Radiation Experiments";
 		
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight");
 		
 		int fonth = (int)(Config.displayModuleFontSize * 14/11);
 		lblName = new JLabel(NAME);
@@ -135,13 +135,13 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 
 		BitArrayLayout rad = null;
 		String layoutName = Spacecraft.RAD2_LAYOUT;
-		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+		if (displayType == DisplayModule.DISPLAY_WOD_EXPERIMENT)
 			layoutName = Spacecraft.WOD_RAD2_LAYOUT;
 		rad = fox.getLayoutByName(layoutName);
 		
 		BitArrayLayout rawLayout = null;
 		String rawlayoutName = Spacecraft.RAD_LAYOUT;
-		if (displayType == DisplayModule.DISPLAY_WOD_VULCAN)
+		if (displayType == DisplayModule.DISPLAY_WOD_EXPERIMENT)
 			rawlayoutName = Spacecraft.WOD_RAD2_LAYOUT;
 		rawLayout = fox.getLayoutByName(rawlayoutName);
 		
@@ -175,7 +175,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_RAD_TELEM_DATA, VULCANTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -243,19 +243,19 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 			column.setPreferredWidth(25);
 		}
 
-		column = packetTable.getColumnModel().getColumn(0);
+		column = table2.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);
 		
-		column = packetTable.getColumnModel().getColumn(1);
+		column = table2.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
 
-		column = packetTable.getColumnModel().getColumn(2);
+		column = table2.getColumnModel().getColumn(2);
 		column.setPreferredWidth(80);
 
-		column = packetTable.getColumnModel().getColumn(3);
+		column = table2.getColumnModel().getColumn(3);
 		column.setPreferredWidth(70);
 
-		column = packetTable.getColumnModel().getColumn(4);
+		column = table2.getColumnModel().getColumn(4);
 		column.setPreferredWidth(600);
 				
 	}
@@ -274,22 +274,22 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	
 	private void addPacketModules() {
 		
-		vucModule = new DisplayModule(fox, "Vanderbilt University Controller (VUC)", 6, DisplayModule.DISPLAY_VULCAN);
+		vucModule = new DisplayModule(fox, "Vanderbilt University Controller (VUC)", 6, null, DisplayModule.DISPLAY_EXPERIMENT, DisplayModule.vulcanFontColor);
 		topHalfPackets.add(vucModule);
-		vucModule.addName(1, "Uptime (s)", "VUC UPTIME", DisplayModule.DISPLAY_VULCAN);
-		vucModule.addName(2, "Livetime (s)", "VUC LIVETIME", DisplayModule.DISPLAY_VULCAN);
-		vucModule.addName(3, "Hard Resets", "HARD RESETS", DisplayModule.DISPLAY_VULCAN);
-		vucModule.addName(4, "Soft Resets", "SOFT RESETS", DisplayModule.DISPLAY_VULCAN);
-		vucModule.addName(5, "Run State", "VUC RUN STATE", DisplayModule.DISPLAY_VULCAN);
+		vucModule.addName(1, "Uptime (s)", "VUC UPTIME", DisplayModule.DISPLAY_EXPERIMENT);
+		vucModule.addName(2, "Livetime (s)", "VUC LIVETIME", DisplayModule.DISPLAY_EXPERIMENT);
+		vucModule.addName(3, "Hard Resets", "HARD RESETS", DisplayModule.DISPLAY_EXPERIMENT);
+		vucModule.addName(4, "Soft Resets", "SOFT RESETS", DisplayModule.DISPLAY_EXPERIMENT);
+		vucModule.addName(5, "Run State", "VUC RUN STATE", DisplayModule.DISPLAY_EXPERIMENT);
 
-		lepModule = new DisplayModule(fox, "Low Energy Proton (LEP) Experiment", 5, DisplayModule.DISPLAY_LEP);
+		lepModule = new DisplayModule(fox, "Low Energy Proton (LEP) Experiment", 5, null, DisplayModule.DISPLAY_LEP, DisplayModule.vulcanFontColor);
 		topHalfPackets.add(lepModule);
 		lepModule.addName(1, "Restarts", "LEP RESTARTS", DisplayModule.DISPLAY_LEP);
 		lepModule.addName(2, "Uptime (s)", "LEP UPTIME", DisplayModule.DISPLAY_LEP);
 		lepModule.addName(3, "Livetime (s)", "LEP LIVETIME", DisplayModule.DISPLAY_LEP);
 		lepModule.addName(4, "Total Memory Upsets", "LEP TOTAL MEMORY UPSETS", DisplayModule.DISPLAY_LEP);
 
-		lastExposure = new DisplayModule(fox, "Last LEP Exposure", 6, DisplayModule.DISPLAY_LEP_EXPOSURE);
+		lastExposure = new DisplayModule(fox, "Last LEP Exposure", 6, null, DisplayModule.DISPLAY_LEP_EXPOSURE, DisplayModule.vulcanFontColor);
 		topHalfPackets.add(lastExposure);
 		lastExposure.addName(1, "Start (s)", "LOCAL CLOCK START", DisplayModule.DISPLAY_LEP_EXPOSURE);
 		lastExposure.addName(2, "End (s)", "LOCAL CLOCK END", DisplayModule.DISPLAY_LEP_EXPOSURE);
@@ -297,7 +297,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		lastExposure.addName(4, "Current (mA)", "CURRENT", DisplayModule.DISPLAY_LEP_EXPOSURE);
 		lastExposure.addName(5, "Upsets", "UPSETS", DisplayModule.DISPLAY_LEP_EXPOSURE);
 
-		lastState = new DisplayModule(fox, "Last State", 4, DisplayModule.DISPLAY_LEP_EXPOSURE);
+		lastState = new DisplayModule(fox, "Last State", 4, null, DisplayModule.DISPLAY_LEP_EXPOSURE, DisplayModule.vulcanFontColor);
 		topHalfPackets.add(lastState);
 		lastState.addName(1, "Clock (s)", "LOCAL CLOCK", DisplayModule.DISPLAY_LEP_EXPOSURE);
 		lastState.addName(2, "Experiment", "EXPERIMENT", DisplayModule.DISPLAY_LEP_EXPOSURE);
@@ -311,12 +311,12 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	
 	private DisplayModule addVulcanExpModule(String title, String number) {
 		DisplayModule mod;
-		mod = new DisplayModule(fox, title, 4, DisplayModule.DISPLAY_VULCAN);
+		mod = new DisplayModule(fox, title, 4, null, DisplayModule.DISPLAY_EXPERIMENT, DisplayModule.vulcanFontColor);
 		
 		bottomHalfPackets.add(mod);
-		mod.addName(1, "Drift", "EXP" + number + " DRIFT" , DisplayModule.DISPLAY_VULCAN);
-		mod.addName(2, "Power (mW) ", "EXP" + number + " POWER", DisplayModule.DISPLAY_VULCAN);
-		mod.addName(3, "State", "EXP" + number + " STATE", DisplayModule.DISPLAY_VULCAN);
+		mod.addName(1, "Drift", "EXP" + number + " DRIFT" , DisplayModule.DISPLAY_EXPERIMENT);
+		mod.addName(2, "Power (mW) ", "EXP" + number + " POWER", DisplayModule.DISPLAY_EXPERIMENT);
+		mod.addName(3, "State", "EXP" + number + " STATE", DisplayModule.DISPLAY_EXPERIMENT);
 		return mod;
 	}
 	
@@ -353,10 +353,10 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 		}
 
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 		

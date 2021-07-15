@@ -46,6 +46,7 @@ import org.usb4java.LibUsbException;
 import org.usb4java.Transfer;
 import org.usb4java.TransferCallback;
 
+import common.Config;
 import common.Log;
 import decoder.Broadcaster;
 import decoder.ComplexBuffer;
@@ -144,7 +145,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 	}
 
 	
-	public void init() throws DeviceException
+	public void init(SampleRate sampleRate) throws DeviceException
 	{
 		mDeviceHandle = new DeviceHandle();
 		
@@ -162,7 +163,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 
 		try
 		{
-			setSampleRate( DEFAULT_SAMPLE_RATE );
+			setSampleRate( sampleRate );
 		}
 		catch( Exception e )
 		{
@@ -582,7 +583,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 	 * 
 	 * @param handle - USB tuner device
 	 * @param bitMask - bit mask with one for targeted register bits and zero 
-	 *		for the non-targeted register bits
+	 *		for the non-targeted register bits.  Note this i different to the
+	 * 		rtlsdr.c implementation which passes the pin number
 	 * @param enabled - true to set the bit and false to clear the bit
 	 * @throws UsbDisconnectedException - if the tuner device is disconnected
 	 * @throws UsbException - if there is a USB error while communicating with 
@@ -937,7 +939,6 @@ public abstract class RTL2832TunerController extends device.TunerController
 			if( type == TunerTypeCheck.FC0012 ||
 				type == TunerTypeCheck.FC2580 )
 			{
-				/* Initialize the GPIOs */
 				setGPIOOutput( handle, (byte)0x20 );
 
 				/* Reset tuner before probing */
@@ -994,8 +995,9 @@ public abstract class RTL2832TunerController extends device.TunerController
         }
         catch ( Exception e )
         {
-        	throw new DeviceException( "RTL2832 Tuner Controller - cannot get "
+        	Log.println( "RTL2832 Tuner Controller - cannot get "
         			+ "current sample rate " + e.getMessage() );
+        	throw e;
         }
 
         return DEFAULT_SAMPLE_RATE.getRate();
@@ -1013,7 +1015,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 		writeDemodRegister( mDeviceHandle, Page.ONE, (short)0xA1, 0, 2 );
 		
 		/* Set sample rate correction to 0 */
-		setSampleRateFrequencyCorrection( 0 );
+//		setSampleRateFrequencyCorrection( 0 ); // TODO - check if this is important. Have to apply it after?
 
 		/* Reset the demod for the changes to take effect */
 		writeDemodRegister( mDeviceHandle, Page.ONE, (short)0x01, 0x14, 1 );
@@ -1032,9 +1034,10 @@ public abstract class RTL2832TunerController extends device.TunerController
 		}
 	}
 	
-	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException
+	public void setSampleRateFrequencyCorrection( int ppm ) throws DeviceException, UsbException
 	{
-		int offset = -ppm * TWO_TO_22_POWER / 1000000;
+		Log.println("Setting ppm to: " +ppm);
+		int offset = -ppm * 4* TWO_TO_22_POWER / 1000000;
 		
 		writeDemodRegister( mDeviceHandle, 
 							Page.ONE, 
@@ -1047,14 +1050,11 @@ public abstract class RTL2832TunerController extends device.TunerController
 							( Integer.rotateRight( offset, 8 ) & 0xFF ), 
 							1 );
 		/* Test to retune controller to apply frequency correction */
-		try
-		{
-			//////////////////mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
-		}
-		catch( Exception e )
-		{
-			throw new DeviceException( "couldn't set sample rate frequency correction " + e.getMessage() );
-		}
+		
+		double freq = Config.fcdFrequency;
+		setFrequency((long) (freq*1000));
+		//////////////////mFrequencyController.setFrequency( mFrequencyController.getFrequency() );
+		
 	}
 	
 	public int getSampleRateFrequencyCorrection() throws UsbException
@@ -1064,6 +1064,8 @@ public abstract class RTL2832TunerController extends device.TunerController
 		
 		return ( Integer.rotateLeft( high, 8 ) | low );
 	}
+
+	
 
 	/**
 	 * Returns contents of the 256-byte EEPROM.  The contents are as follows:
@@ -1268,11 +1270,12 @@ public abstract class RTL2832TunerController extends device.TunerController
 		RATE_0_240MHZ( 0x1E00,  240000, "0.240 MHz" ),
 		RATE_0_288MHZ( 0x1900,  288000, "0.288 MHz" ),
 		RATE_0_960MHZ( 0x0780,  960000, "0.960 MHz" ),
-		RATE_1_200MHZ( 0x0600, 1200000, "1.200 MHz" ),
+//		RATE_1_200MHZ( 0x0600, 1200000, "1.200 MHz" ),
 		RATE_1_440MHZ( 0x0500, 1440000, "1.440 MHz" ),
-		RATE_1_920MHZ( 0x03C0, 2016000, "2.016 MHz" ),
-		RATE_2_304MHZ( 0x0320, 2208000, "2.208 MHz" ),
-		RATE_2_400MHZ( 0x0300, 2400000, "2.400 MHz" ),
+//		RATE_1_920MHZ( 0x03C0, 2016000, "2.016 MHz" ),
+		RATE_1_920MHZ( 0x03C0, 1920000, "1.920 MHz" ),
+		RATE_2_304MHZ( 0x0320, 2304000, "2.304 MHz" ),
+//		RATE_2_400MHZ( 0x0300, 2400000, "2.400 MHz" ),
 		RATE_2_880MHZ( 0x0280, 2880000, "2.880 MHz" );
 		
 		private int mRatioHigh;

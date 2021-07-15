@@ -37,7 +37,7 @@ import telemetry.uw.PcanPacket;
  * 
  *
  */
-public class PayloadUwExperiment extends FoxFramePart {	
+public class PayloadUwExperiment extends FramePart {	
 	public ArrayList<CanPacket> canPackets; 
 	public ArrayList<CanPacket> splitPackets; 
 	protected CanPacket canPacket; // a temporary packet to hold the bytes and calculate the ID 
@@ -96,7 +96,7 @@ public class PayloadUwExperiment extends FoxFramePart {
 						//newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET); -- not really this type.  That is what goes in canpacket layout and that is already written
 						// nowhere to add this, so we do nothing.  Might in future write in an error log, but the bytes will be identical to the raw layout
 					} else {
-						newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM);
+						newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM);
 						splitPackets.add(newPacket);
 					}
 				}

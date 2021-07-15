@@ -59,7 +59,7 @@ import macos.MacAboutHandler;
 import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
@@ -151,7 +151,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	
 	JLabel lblVersion;
 	static JLabel lblLogFileDir;
-	static JLabel lblAudioMissed;
+	static JLabel lblAudioMissed, lblUsbErrors;
 	static JLabel lblTotalFrames;
 	static JLabel lblTotalDecodes;
 	static JLabel lblTotalQueued;
@@ -161,9 +161,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	private static String TOTAL_QUEUED = "Queue: ";
 	private static String LOCAL_QUEUED = "/ ";
 	private static String AUDIO_MISSED = "Audio missed: ";
+	private static String USB_ERRORS = "USB Errors: ";
 		
 	private static int totalMissed;
 	ProgressPanel importProgress;
+	
+	public static int usbFatalErrorCount;
 	
 	/**
 	 * Create the application.
@@ -225,7 +228,15 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		lblLogFileDir.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		bottomPanel.add(lblLogFileDir, BorderLayout.CENTER );
 
-		lblAudioMissed = new JLabel(AUDIO_MISSED);
+		lblUsbErrors = new JLabel(USB_ERRORS + "0 / 0");
+//		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
+		lblUsbErrors.setFont(footerFont);
+		lblUsbErrors.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
+		lblUsbErrors.setToolTipText("The number of USB fatal errors/errors reading or writing to the SDR Control Interface");
+		rightBottom.add(lblUsbErrors );
+		usbFatalErrorCount = 0; // this has reset this variable on the display, so remember that
+		
+		lblAudioMissed = new JLabel(AUDIO_MISSED + "0.0% / 0");
 //		lblAudioMissed.setFont(new Font("SansSerif", Font.BOLD, 10));
 		lblAudioMissed.setFont(footerFont);
 		lblAudioMissed.setBorder(new EmptyBorder(2, 2, 2, 10) ); // top left bottom right
@@ -345,6 +356,20 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 						+ sats.get(s).toString() + "</b></body></html>", spacecraftTab[s] );
 				//			+" Health", healthTab );
 		}
+	}
+	
+	public static void setUsbErrors(int fatalErrors, int errors) {
+		usbFatalErrorCount = fatalErrors;
+		if (lblUsbErrors != null) { // just in case we are delayed starting up
+			lblUsbErrors.setText(USB_ERRORS + fatalErrors + " / " + errors);
+			if (fatalErrors > 0)
+				lblUsbErrors.setForeground(Color.RED);
+			else
+				lblUsbErrors.setForeground(Color.BLACK);
+			lblUsbErrors.invalidate();
+			bottomPanel.validate();
+		}
+		
 	}
 
 	public static void setAudioMissed(int missed) {
@@ -1004,7 +1029,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 
 					for (FramePart p : canPackets) {
 						//total++;
-						if (p.getType() == FoxFramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
+						if (p.getType() == FramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
 							//pkts++;
 							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
 							int length = CanPacket.getLengthfromRawID(ihuPacketId);
@@ -1017,7 +1042,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 								if (canLayout != null) { 
 									CanPacket newPacket = new CanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
 									if (p.getType() > 1400)
-										newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
+										newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
 									//									if (newPacket.getType() > 1700)
 									//										System.err.println("Won't store: " + canLayout.name + " type: " + newPacket.getType() + " p type: " + p.getType());
 									//									else

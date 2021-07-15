@@ -10,7 +10,7 @@ public class PayloadFitterMessages extends FramePart {
 	public static final int FITTER_TYPE = 0;
 	
 	protected PayloadFitterMessages(BitArrayLayout l) {
-		super(l, FITTER_TYPE);
+		super(FITTER_TYPE, l);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -36,6 +36,18 @@ public class PayloadFitterMessages extends FramePart {
 	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	protected void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

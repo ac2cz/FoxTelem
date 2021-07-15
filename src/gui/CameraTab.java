@@ -39,7 +39,7 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 
 import telemetry.CameraJpeg;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.SortedJpegList;
 import common.Config;
 import common.Log;
@@ -137,7 +137,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		foxId = fox.foxId;
 		loadProperties();
 		NAME = fox.toString() + " Virginia Tech Camera";
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "splitPaneHeight");
 		
 		setLayout(new BorderLayout(0, 0));
 	
@@ -209,7 +209,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -403,10 +403,10 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		Date result = null;
 		String reportDate = null;
 			try {
-				FoxFramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				result = FoxFramePart.fileDateFormat.parse(u);
-				FoxFramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
-				reportDate = FoxFramePart.reportDateFormat.format(result);
+				FramePart.fileDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				result = FramePart.fileDateFormat.parse(u);
+				FramePart.reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+				reportDate = FramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
 				reportDate = "unknown";				
@@ -459,23 +459,23 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 
 	public void saveProperties() {
 
-		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "maxThumbnails", maxThumbnails);
-		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromReset", this.START_RESET);
-		Config.saveGraphLongParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromUptime", this.START_UPTIME);
-		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "selectedThumb", this.selectedThumb);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "maxThumbnails", maxThumbnails);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromReset", this.START_RESET);
+		Config.saveGraphLongParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromUptime", this.START_UPTIME);
+		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "selectedThumb", this.selectedThumb);
 	}
 	
 	public void loadProperties() {
 
-		maxThumbnails = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "maxThumbnails");
+		maxThumbnails = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "maxThumbnails");
 		if (maxThumbnails == 0) maxThumbnails = DEFAULT_THUMBNAILS;
 		if (maxThumbnails > MAX_THUMBNAILS_LIMIT) {
 			maxThumbnails = MAX_THUMBNAILS_LIMIT;
 		}
 			
-		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromReset");
-		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromUptime");
-		this.selectedThumb = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_CAMERA_DATA, CAMERATAB, "selectedThumb");
+		this.START_RESET = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromReset");
+		this.START_UPTIME = Config.loadGraphLongValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "fromUptime");
+		this.selectedThumb = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_CAMERA_DATA, CAMERATAB, "selectedThumb");
 
 	}
 	

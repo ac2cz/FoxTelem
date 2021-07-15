@@ -3,7 +3,7 @@ package telemetry;
 import common.Config;
 import common.Log;
 
-public class PayloadCameraScanLineCount extends FoxFramePart {
+public class PayloadCameraScanLineCount extends FramePart {
 
 	int scanLineCount = 0;
 	private boolean foundEndOfJpegData = false;

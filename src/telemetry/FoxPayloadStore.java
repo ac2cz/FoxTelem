@@ -90,7 +90,7 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract FramePart getFramePart(int id, int reset, long uptime, String layout, boolean prev);
 	public abstract FramePart getFramePart(int id, int reset, long uptime, int type, String layout, boolean prev);
 
-	public abstract FoxFramePart getLatestRad(int id);
+	public abstract FramePart getLatestRad(int id);
 	public abstract RadiationTelemetry getLatestRadTelem(int id);
 	public abstract RadiationTelemetry getRadTelem(int id, int resets, long uptime);
 	public abstract PayloadHERCIhighSpeed getLatestHerci(int id);

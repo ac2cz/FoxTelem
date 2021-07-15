@@ -122,6 +122,7 @@ public class PassManager implements Runnable {
 	public void sentTCA() { pendingTCA = false; }
 	public PassMeasurement getPassMeasurement() { return passMeasurement; }
 	public String getStateName() { return stateName[state];}
+	public void setState(int state) { this.state = state; }
 	public int getState() { return state; }
 	public boolean inPass() {
 		if (state == DECODE) return true;
@@ -138,6 +139,13 @@ public class PassManager implements Runnable {
 		passMeasurement.setStartResetUptime(reset, uptime);
 		newPass = false;
 	}
+	
+	public void incCrcFailure() {
+		if (passMeasurement != null) {
+			long crc = passMeasurement.getRawValue(PassMeasurement.CRC_FAILURES);
+			passMeasurement.setRawValue(PassMeasurement.CRC_FAILURES, crc+1);
+		}
+	}
 
 	public void setLastResetUptime(int id, int reset, long uptime) {
 		lastReset = reset;
@@ -151,36 +159,41 @@ public class PassManager implements Runnable {
 	}
 	
 	private void nextState(Spacecraft spacecraft) {
-
+		int nextState = state;
+		int currentState = state;
 		switch (state) {
 		case INIT:
-			state = init(spacecraft);
+			nextState = init(spacecraft);
 			break;
 		case SCAN:
-			state = scan(spacecraft);
+			nextState = scan(spacecraft);
 			break;
 		case ANALYZE:
-			state = analyzeSNR(spacecraft);
+			nextState = analyzeSNR(spacecraft);
 			break;
 		case START_PASS:
-			state = startPass(spacecraft);
+			nextState = startPass(spacecraft);
 			break;
 		case DECODE:
-			state = decode(spacecraft);
+			nextState = decode(spacecraft);
 			break;
 		case FADED:
-			state = faded(spacecraft);
+			nextState = faded(spacecraft);
 			break;
 		case END_PASS:
-			state = endPass(spacecraft);
+			nextState = endPass(spacecraft);
 			break;
 		case EXIT:
-			state = exit(spacecraft);
+			nextState = exit(spacecraft);
 			break;
 		default:
 			break;
 		}
-
+		
+		// Update the state if it was not changed by an override such as the user clicking on the FFT display
+		if (state == currentState) {
+			state = nextState;
+		} 
 	}
 
 	private void setFreqRangeBins(Spacecraft spacecraft, PassParams pp) {
@@ -379,8 +392,8 @@ public class PassManager implements Runnable {
 			}			
 		}
 
-		if (passMeasurement != null)
-		if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
+		if (passMeasurement != null && pp != null && pp.foxDecoder != null)
+			if (Config.debugSignalFinder) Log.println("AOS for Fox-" + spacecraft.foxId + " at " + passMeasurement.getRawValue(PassMeasurement.AOS) 
 				+ " with " + pp.foxDecoder.name + " decoder freq:" + Config.selectedFrequency); //// pp1.iqSource.getSelectedBin());
 		newPass = true;
 	}
@@ -391,6 +404,7 @@ public class PassManager implements Runnable {
 	 */
 	private int decode(Spacecraft spacecraft) {
 		if (!Config.findSignal) return EXIT;
+		if (!trackSpacecraft(spacecraft)) return EXIT; // sat is no longer up
 		if (Config.debugSignalFinder) Log.println(spacecraft.foxId + " Entering DECODE state");
 		try {
 			Thread.sleep(DECODE_PERIOD);
@@ -482,7 +496,7 @@ public class PassManager implements Runnable {
 			if (pp1.iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS || pp1.iqSource.getMode() == SourceIQ.MODE_FSK_HS)
 				fade_period = PSK_FADE_PERIOD;
 
-		while (fadeTime < fade_period) {
+		while (fadeTime < fade_period && state == FADED) {
 			
 			try {
 				Thread.sleep(SNR_PERIOD);

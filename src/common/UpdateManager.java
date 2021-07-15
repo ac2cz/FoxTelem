@@ -188,9 +188,11 @@ public class UpdateManager implements Runnable {
         		int min = Config.parseVersionMinor(availableVersion);
         		//String point = Config.parseVersionPoint(availableVersion);
         		//System.out.println("MAJ: "+maj);
-        		//System.out.println("MIN: "+min);
+        		System.out.println("AVAIL MIN: "+min);
         		//System.out.println("POINT: "+point);
 
+        		System.out.println("CURRENT MIN: "+Config.getVersionMinor() );
+        		
         		if (Config.getVersionMajor() < maj) requireUpgrade(availableVersion, notes);
         		if (Config.getVersionMajor() == maj && Config.getVersionMinor() < min) recommendUpgrade(availableVersion, notes);
         	} catch (NumberFormatException e) {

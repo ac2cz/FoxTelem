@@ -10,7 +10,6 @@ import common.Spacecraft;
 import decoder.Crc32;
 import decoder.Decoder;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.FoxPayloadStore;
 import telemetry.Frame;
 import telemetry.FrameLayout;
@@ -85,7 +84,8 @@ import telemetry.TelemFormat;
 			if (Config.debugBytes) {
 				String debug = (Decoder.plainhex(b));
 				debugCount++;
-				Log.print("0x" + debug + ",");
+				Log.print(numberBytesAdded + ":" + debug + ",");
+//				Log.print("0x" + debug + ",");
 				if (debugCount % 20 == 0) Log.println("");
 			}
 
@@ -123,24 +123,24 @@ import telemetry.TelemFormat;
 						return;
 					}
 					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
-					if (fox.hasFrameCrc)
+					if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
 					else
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)];
 					for (int k=0; k < telemFormat.getInt(TelemFormat.HEADER_LENGTH); k++) {
 						bytes[k] = headerBytes[k];
-						if (fox.hasFrameCrc)
+						if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 							dataBytes[k] = headerBytes[k];
 					}
 					initPayloads((FoxBPSKHeader)header, frameLayout);
 //					initPayloads(header.id, header.getType());
 					if (payload[0] == null) {
 						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.\n"
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. "
+									+ "Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file.\nDecode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Decode not possible.");
-
+							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file. Decode not possible.");
 						corrupt = true;
 						return;
 					}
@@ -170,7 +170,17 @@ import telemetry.TelemFormat;
 						try {
 							payload[p].addNext8Bits(b);
 						} catch (Exception e) {
-							Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout);
+							if (payload[p] != null && payload[p].getLayout() != null)
+								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+									+ " for payload number " + p + " : " + payload[p].getLayout().name + " at payload byte " + payload[p].numberBytesAdded);
+							else if (payload[p] != null && payload[p].getLayout() == null)
+								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+										+ " for payload number "+ p + " of type " + payload[p].getType() + " at payload byte " + payload[p].numberBytesAdded
+										+"\nThis payload's Layout is null and not defined or loaded correctly.");
+							else if (payload[p] == null)
+								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
+										+ " for payload number " + p + " because the payload is null." 
+										+"\nThe payload Layout is probablly also not defined or loaded correctly.");
 							corrupt = true;
 							return;
 						}
@@ -178,8 +188,9 @@ import telemetry.TelemFormat;
 					minByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
 				}
 			}
-			if (fox != null && fox.hasFrameCrc) {
-				// TODO - probablly not the right place to do this.  Should be in BitStream then we can avoid processing the frame at all if it fails.  But then we need to know the foxid before decoding the frame..
+			if (fox != null && fox.hasFrameCrc && Config.calculateBPSKCrc) {
+				// Check the CRC on the frame.  This frame has already been error corrected and passed RS Decode
+				// This is an extra check to reject frames that erroniously pass the RS Decode.
 				if (numberBytesAdded > telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength-1  
 						&& numberBytesAdded <= telemFormat.getInt(TelemFormat.DATA_LENGTH)-1)
 					crcBytes[c++] = b;
@@ -197,15 +208,19 @@ import telemetry.TelemFormat;
 						Log.print(" => Calculated CRC: " + Decoder.plainhex(myCalculatedCrc));
 						if (crc == myCalculatedCrc) 
 							Log.println(" .. pass");
-						else
-							Log.println("***** FAIL *****");
+						else {
+							Log.println(" ***** FAIL ***** Frame Rejected");
+							Config.passManager.incCrcFailure();
+							corrupt = true;
+							return;
+						}
 					}
 				}
 			}
 				
 			if (numberBytesAdded >= telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				bytes[numberBytesAdded] = b;
-				if (fox != null && fox.hasFrameCrc && numberBytesAdded < telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength)
+				if (fox != null && fox.hasFrameCrc && Config.calculateBPSKCrc && numberBytesAdded < telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength)
 					dataBytes[numberBytesAdded] = b; 
 			} else {
 				headerBytes[numberBytesAdded] = b;
@@ -215,14 +230,17 @@ import telemetry.TelemFormat;
 		}
 		
 		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
-			payload = new FoxFramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
+			payload = new FramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
 			for (int i=0; i<frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); i+=1 ) {
 				BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, frameLayout.getPayloadName(i));
 				if (layout == null) {
 					payload[0] = null; // cause us to drop out
 					return;
 				}
-				payload[i] = (FoxFramePart) FramePart.makePayload(header, layout);
+				if (fox.hasFOXDB_V3)
+					payload[i] = (FramePart) FramePart.makePayload(header, layout);
+				else
+					payload[i] = (FramePart) FramePart.makeLegacyPayload(header, layout);
 			}
 		}
 		

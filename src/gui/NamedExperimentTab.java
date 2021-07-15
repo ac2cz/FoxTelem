@@ -26,7 +26,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import common.Config;
@@ -52,6 +51,9 @@ import common.FoxSpacecraft;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * This is a tab that displays experiement data.  This has two layouts.  Layout1 is the raw experiment data,
+ * often just raw bytes.  Layout2 is the data parsed into fields and is shown at the top of the tab.
  *
  */
 @SuppressWarnings("serial")
@@ -66,11 +68,9 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 
 	//JCheckBox showRawBytes;
 	ExperimentLayoutTableModel expTableModel;
-	RagPacketTableModel expPacketTableModel; // translated values put in layout2
+	ExperimentLayoutTableModel expTableModel2; // translated values put in layout2
 
 	JPanel healthPanel;
-	JPanel topHalfPackets;
-	JPanel bottomHalfPackets;
 
 	boolean displayTelem = true;
 
@@ -87,7 +87,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		this.layout = displayLayout;
 		this.layout2 = displayLayout2;
 
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, layout.name, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, layout.name, "splitPaneHeight");
 
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -106,13 +106,6 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		healthPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		healthPanel.setBackground(Color.DARK_GRAY);
 
-		topHalfPackets = new JPanel(); 
-		topHalfPackets.setBackground(Color.DARK_GRAY);
-		bottomHalfPackets = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars5.png");
-		bottomHalfPackets.setBackground(Color.DARK_GRAY);
-		healthPanel.add(topHalfPackets);
-		healthPanel.add(bottomHalfPackets);
-
 		initDisplayHalves(healthPanel);
 
 		centerPanel = new JPanel();
@@ -120,18 +113,19 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 
 		BitArrayLayout none = null;
 		if (layout2 == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ NAME + "\n  Remove this satellite or fix the layout file");
+			layout2 = layout;
+//			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
+//					+ NAME + "\n  Remove this satellite or fix the layout file");
+//			System.exit(1);
+		}  
+		try {
+			analyzeModules(layout2, none, none, displayType);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("FATAL - Load Aborted", e.getMessage());
+			e.printStackTrace(Log.getWriter());
 			System.exit(1);
-		} else 
-			try {
-				analyzeModules(layout2, none, none, displayType);
-			} catch (LayoutLoadException e) {
-				Log.errorDialog("FATAL - Load Aborted", e.getMessage());
-				e.printStackTrace(Log.getWriter());
-				System.exit(1);
-			}
-		
+		}
+
 		splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT,
 				healthPanel, centerPanel);
 		splitPane.setOneTouchExpandable(true);
@@ -148,7 +142,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				public void mouseReleased(MouseEvent e) {
 					splitPaneHeight = splitPane.getDividerLocation();
 					//Log.println("SplitPane: " + splitPaneHeight);
-					Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, layout.name, "splitPaneHeight", splitPaneHeight);
+					Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, layout.name, "splitPaneHeight", splitPaneHeight);
 				}
 			});
 		}
@@ -166,12 +160,8 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		addBottomFilter();
 
 		expTableModel = new ExperimentLayoutTableModel(layout);
-		expPacketTableModel = new RagPacketTableModel();
-		addTables(expTableModel,expPacketTableModel);
-
-		addPacketModules();
-		topHalfPackets.setVisible(false);
-		bottomHalfPackets.setVisible(false);
+		expTableModel2 = new ExperimentLayoutTableModel(layout2);
+		addTables(expTableModel,expTableModel2);
 
 		// initial populate
 		parseRadiationFrames();
@@ -190,13 +180,9 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	
 	}
 
-	private void addPacketModules() {
 
-	}
-
-
-	protected void addTables(AbstractTableModel expTableModel, AbstractTableModel ragPacketTableModel) {
-		super.addTables(expTableModel, ragPacketTableModel);
+	protected void addTables(AbstractTableModel expTableModel, AbstractTableModel expTableModel2) {
+		super.addTables(expTableModel, expTableModel2);
 
 		DefaultTableCellRenderer centerRenderer = new DefaultTableCellRenderer();
 		centerRenderer.setHorizontalAlignment( JLabel.CENTER );
@@ -210,23 +196,21 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		
 		for (int i=0; i<table.getColumnCount()-2; i++) {
 			column = table.getColumnModel().getColumn(i+2);
-			column.setPreferredWidth(25);
+			int w = layout.fieldName[i].length();
+			column.setPreferredWidth(10+7*w);
 		}
-
-		column = packetTable.getColumnModel().getColumn(0);
+		
+		column = table2.getColumnModel().getColumn(0);
 		column.setPreferredWidth(45);
 		
-		column = packetTable.getColumnModel().getColumn(1);
+		column = table2.getColumnModel().getColumn(1);
 		column.setPreferredWidth(55);
-
-		column = packetTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(80);
-
-		column = packetTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(70);
-
-		column = packetTable.getColumnModel().getColumn(4);
-		column.setPreferredWidth(600);
+		
+		for (int i=0; i<table2.getColumnCount()-2; i++) {
+			column = table2.getColumnModel().getColumn(i+2);
+			int w = layout2.fieldName[i].length();
+			column.setPreferredWidth(10+7*w);
+		}
 	}
 
 	protected void parseRadiationFrames() {
@@ -234,49 +218,27 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 		String[][] data = null;
 					
 		if (Config.displayRawRadData) {
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout.name);	
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, false, reverse, layout.name);	
 			if (data != null && data.length > 0)
 				parseRawBytes(data,expTableModel);
 		} else {
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, layout2.name);	
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, false, reverse, layout2.name);	
 			if (data != null && data.length > 0) {
-				parseTelemetry(data);
+				//parseTelemetry(data);
+				parseRawBytes(data,expTableModel2);
 			}
 		}
 
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 
 		displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 		MainWindow.frame.repaint();
-	}
-
-
-	protected void parseTelemetry(String data[][]) {
-		int len = data.length;
-		long[][] keyPacketData = null;
-		String[][] packetData = null;
-		keyPacketData = new long[len][1];
-		packetData = new String[len][5];
-		for (int i=0; i < len; i++) { 
-			keyPacketData[len-i-1][0] = Long.parseLong(data[i][0]);
-			packetData[len-i-1][0] = String.format("%08x", Long.parseLong(data[i][0]));
-			packetData[len-i-1][1] = data[i][1];
-			packetData[len-i-1][2] = data[i][2];
-			packetData[len-i-1][3] = data[i][3];
-			packetData[len-i-1][4] = data[i][4];
-		}
-
-		if (packetData.length > 0) {
-
-			expPacketTableModel.setData(keyPacketData, packetData);
-		}
-
 	}
 
 	public void updateTab(FramePart rad, boolean refreshTable) {
@@ -313,7 +275,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				int frames = Config.payloadStore.getNumberOfFrames(foxId, layout.name);
 				if (frames != currentFrames) {
 					currentFrames = frames;
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 					displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, layout.name));
 					Config.payloadStore.setUpdated(foxId, layout.name, false);
 					MainWindow.setTotalDecodes();
@@ -325,14 +287,15 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 					MainWindow.frame.repaint();
 				}
 				// If either of these are toggled then redisplay the results
+				// But this fails if we have a row selected!!
 				if (Config.displayRawRadData != showRawBytes.isSelected()) {
 					showRawBytes.setSelected(Config.displayRawRadData);
 					parseRadiationFrames();
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 				}
 				if (Config.displayRawValues != showRawValues.isSelected()) {
 					showRawValues.setSelected(Config.displayRawValues);
-					updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
+					updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 				}
 			}
 		}
@@ -352,8 +315,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 				Config.displayRawValues = true;
 			}
 			Config.save();
-			updateTab(Config.payloadStore.getLatest(foxId, layout.name), true);
-
+			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 		}
 	}
 
@@ -364,16 +326,17 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	}
 
 	protected void displayRow(JTable table, int fromRow, int row) {
-		if (Config.displayRawRadData) {
-			long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
-			long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
-			//Log.println("RESET: " + reset_l);
-			//Log.println("UPTIME: " + uptime);
-			int reset = (int)reset_l;
-			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
-		} else {
-			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
-		}
+		long reset_l = (long) table.getValueAt(row, HealthTableModel.RESET_COL);
+		long uptime = (long)table.getValueAt(row, HealthTableModel.UPTIME_COL);
+		//Log.println("RESET: " + reset_l);
+		//Log.println("UPTIME: " + uptime);
+		int reset = (int)reset_l;
+//		if (Config.displayRawRadData) {
+//			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
+//		} else {
+			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout2.name, false), false);
+			//			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
+//		}
 		if (fromRow == NO_ROW_SELECTED)
 			fromRow = row;
 		if (fromRow <= row)

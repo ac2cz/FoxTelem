@@ -10,7 +10,7 @@ public class PayloadHighRes extends FramePart {
 	public static final int HIGH_RES_TYPE = 0;
 
 	protected PayloadHighRes(BitArrayLayout l) {
-		super(l, HIGH_RES_TYPE);
+		super(HIGH_RES_TYPE, l);
 		// TODO Auto-generated constructor stub
 	}
 
@@ -36,6 +36,18 @@ public class PayloadHighRes extends FramePart {
 	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+	@Override
+	protected void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

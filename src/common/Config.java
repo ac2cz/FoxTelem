@@ -2,6 +2,7 @@ package common;
 
 import gui.MainWindow;
 import gui.ProgressPanel;
+import gui.SettingsFrame;
 import gui.SourceTab;
 import measure.SatPc32DDE;
 
@@ -66,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.09n5";
-	public static String VERSION = VERSION_NUM + " - 14 Dec 2020";
+	public static String VERSION_NUM = "1.11g";
+	public static String VERSION = VERSION_NUM + " - 6 Jul 2021";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -298,6 +299,10 @@ public class Config {
 	// V1.09
 	static public boolean use12kHzIfForBPSK = false;
 	
+	//V1.10
+	static public boolean calculateBPSKCrc = true;
+	
+	
 	public static boolean missing() { 
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
@@ -355,6 +360,17 @@ public class Config {
 			// not much to do.  Just leave h as 0;
 		}
 		try {
+			
+			// Default to the grid if that is all that we have
+			if (!SettingsFrame.validLatLong(MainWindow.frame, Config.latitude, Config.longitude)) {
+				if (!(Config.maidenhead.equalsIgnoreCase(Config.DEFAULT_LOCATOR) || 
+						Config.maidenhead.equals(""))) {
+					Location l = new Location(Config.maidenhead);
+					Config.latitude = Float.toString(l.latitude); 
+					Config.longitude = Float.toString(l.longitude);
+				}
+			}
+			
 			float lat = Float.parseFloat(Config.latitude);
 			float lon = Float.parseFloat(Config.longitude);
 			GROUND_STATION = new GroundStationPosition(lat, lon, h);
@@ -362,20 +378,23 @@ public class Config {
 			GROUND_STATION = new GroundStationPosition(0, 0, 0); // Dummy ground station.  This works for position calculations but not for Az/El
 		}
 	}
-
-	public static void init(String setLogFileDir) {
+	
+	public static void minInit(String setLogFileDir) {
 		properties = new Properties();
 		load();
 		if (setLogFileDir != null ) {
 			Config.logFileDirectory = setLogFileDir;
 			logDirFromPassedParam = true;
 		}
-		initSequence();
-		
 		// Work out the OS but dont save in the properties.  It miight be a different OS next time!
 		osName = System.getProperty("os.name").toLowerCase();
 		setOs();
+	}
 
+	public static void init(String setLogFileDir) {
+		minInit(setLogFileDir);
+		initSequence();
+		
 		storeGroundStation();
 		
 		initSatelliteManager();
@@ -416,8 +435,9 @@ public class Config {
 	}
 
 	public static int parseVersionMinor(String ver) {
-		String version[] = ver.split("\\.");
-		String min = version[1].replaceAll("\\D", "");
+		String version[] = ver.split("\\."); // split on period and take the second part
+		String min_version[] = version[1].split("[a-z]"); // split on character and take the first part
+		String min = min_version[0].replaceAll("\\D", "");
 		return Integer.parseInt(min);
 	}
 
@@ -756,6 +776,10 @@ public class Config {
 		properties.setProperty("use12kHzIfForBPSK", Boolean.toString(use12kHzIfForBPSK));
 		
 		
+		
+		// V1.10
+		properties.setProperty("calculateBPSKCrc", Boolean.toString(calculateBPSKCrc));
+
 		store();
 	}
 	
@@ -952,6 +976,9 @@ public class Config {
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
 		format = Integer.parseInt(getProperty("format"));
 		use12kHzIfForBPSK = Boolean.parseBoolean(getProperty("use12kHzIfForBPSK"));
+		
+		// V1.10
+		calculateBPSKCrc = Boolean.parseBoolean(getProperty("calculateBPSKCrc"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

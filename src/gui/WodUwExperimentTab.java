@@ -17,7 +17,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	public static int[] wod_ids = {309920562, 309920256, 309330499};
 
 	public WodUwExperimentTab(FoxSpacecraft sat) {
-		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
+		super(sat, DisplayModule.DISPLAY_WOD_EXPERIMENT);
 	}
 
 	protected void addModules() {
@@ -111,10 +111,10 @@ public class WodUwExperimentTab extends UwExperimentTab {
 	}
 
 	if (showRawBytes.isSelected()) {
-		packetScrollPane.setVisible(false); 
+		scrollPane2.setVisible(false); 
 		scrollPane.setVisible(true);
 	} else { 
-		packetScrollPane.setVisible(true);
+		scrollPane2.setVisible(true);
 		scrollPane.setVisible(false);
 	}
 	displayFramesDecoded(Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_CAN_LAYOUT),

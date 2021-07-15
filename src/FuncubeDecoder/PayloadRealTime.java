@@ -16,7 +16,7 @@ public class PayloadRealTime extends FramePart {
 
 	
 	protected PayloadRealTime(BitArrayLayout l) {
-		super(l, REAL_TIME_TYPE);
+		super(REAL_TIME_TYPE,l);
 		MAX_BYTES = MAX_RT_PAYLOAD_SIZE;
 		fieldValue = new int[layout.fieldName.length];
 		rawBits = new boolean[MAX_BYTES*8];
@@ -42,6 +42,22 @@ public class PayloadRealTime extends FramePart {
 	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 		// TODO Auto-generated method stub
 		return 0;
+	}
+
+
+
+	@Override
+	protected void init() {
+		// TODO Auto-generated method stub
+		
+	}
+
+
+
+	@Override
+	public boolean isValid() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 }

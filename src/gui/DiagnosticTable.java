@@ -15,7 +15,7 @@ import javax.swing.table.TableColumn;
 import common.Config;
 import common.FoxSpacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.PayloadStore;
 
 /**
@@ -184,7 +184,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
 				
-				display = FoxFramePart.ihuDiagnosticString(value, false, fox);
+				display = FramePart.ihuDiagnosticString(value, false, fox);
 				if (display != null) { 	
 					initTableColumns(tableData, i);
 					tableData[i][2] = display;
@@ -209,7 +209,7 @@ public class DiagnosticTable extends JPanel {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FoxFramePart.hardErrorStringArray(value, false);
+				display = FramePart.hardErrorStringArray(value, false);
 				
 				if (display != null) { 	
 					initTableColumns(tableData, i);
@@ -235,7 +235,7 @@ public class DiagnosticTable extends JPanel {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FoxFramePart.softErrorStringArrayFox1A(value, false);
+				display = FramePart.softErrorStringArrayFox1A(value, false);
 				
 				if (display != null) { 	
 					initTableColumns(tableData, i);
@@ -262,7 +262,7 @@ public class DiagnosticTable extends JPanel {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FoxFramePart.softErrorStringArray84488(value, false);
+				display = FramePart.softErrorStringArray84488(value, false);
 				
 				if (display != null) { 	
 					initTableColumns(tableData, i);
@@ -290,7 +290,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
 
-				display = FoxFramePart.icrDiagnosticStringArray(value, false);
+				display = FramePart.icrDiagnosticStringArray(value, false);
 				if (display != null) { 	
 					initTableColumns(tableData, i);
 					for (int j=2; j<6; j++)
@@ -317,7 +317,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
 
-				display = FoxFramePart.isisAntennaStatusArray(value, false);
+				display = FramePart.isisAntennaStatusArray(value, false);
 				if (display != null) { 	
 					initTableColumns(tableData, i);
 					for (int j=2; j<17; j++)

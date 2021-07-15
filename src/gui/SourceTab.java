@@ -7,6 +7,8 @@ import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FileDialog;
 import java.awt.FlowLayout;
+import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -17,6 +19,7 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.image.BufferedImage;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
@@ -25,11 +28,13 @@ import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.imageio.ImageIO;
 import javax.sound.sampled.LineUnavailableException;
 import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.ButtonGroup;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -52,6 +57,7 @@ import javax.swing.plaf.SplitPaneUI;
 import javax.swing.plaf.basic.BasicSplitPaneUI;
 import javax.usb.UsbException;
 
+import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
 import common.Config;
@@ -75,6 +81,7 @@ import device.DeviceException;
 import device.DevicePanel;
 import device.TunerManager;
 import device.fcd.FCDTunerController;
+import device.rtl.RTL2832TunerController.SampleRate;
 import telemetry.FramePart;
 import telemetry.TelemFormat;
 
@@ -149,6 +156,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblFileName;
 	JLabel lblFile;
 	JComboBox<String> cbSoundCardRate;
+	JComboBox<SampleRate> cbRtlSampleRate;
 	JPanel panelFile;
 	DevicePanel panelFcd;
 	JPanel SDRpanel;
@@ -184,11 +192,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JLabel lblWarnNoFindSignal;
 	JPanel warnNoTrackingPanel;
 	JCheckBox cbTurboWavFilePlayback;
+	Image img_audio;
+	Image img_mute;
 	
 	FilterPanel filterPanel;
 	
 	TunerController rfDevice;
 	TunerManager tunerManager;
+//	SampleRate rtlSampleRate = SampleRate.RATE_0_240MHZ; // default Sample rate
 	
 	static final int RATE_96000_IDX = 2;
 	static final int RATE_192000_IDX = 3;
@@ -252,6 +263,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	String[] soundcardSources;
 	String[] allSources;
 	
+	// Keep track of errors writing to the USB
+	int usbErrorCount = 0;
+	int usbFatalErrorCount = 0;
+	
 	public SourceTab(MainWindow mw) {
 		mainWindow = mw;
 		setLayout(new BorderLayout(3, 3));
@@ -302,7 +317,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 
 		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 		showSourceOptions(Config.showSourceOptions);
-		showAudioOptions(Config.showAudioOptions);
+		showAudioOptions(Config.showAudioOptions);		
 	}
 	
 	public void showFilters(boolean b) { 
@@ -370,7 +385,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		warnNoTrackingPanel = new JPanel();
 		warnNoTrackingPanel.setLayout(new BorderLayout());
 		//warnNoTrackingPanel.add(new Box.Filler(new Dimension(10,1), new Dimension(400,1), new Dimension(1500,1)), BorderLayout.CENTER);
-		lblWarnNoFindSignal = new JLabel("WARNING: Find Signal and Doppler Tracking are both disabled"); 
+		lblWarnNoFindSignal = new JLabel(); 
 		lblWarnNoFindSignal.setForeground(Config.AMSAT_RED);
 		lblWarnNoFindSignal.setBorder(new EmptyBorder(2, 10, 2, 10) ); // top left bottom right
 		warnNoTrackingPanel.add(lblWarnNoFindSignal, BorderLayout.EAST);
@@ -755,6 +770,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panel_1.add(cbSoundCardRate);
 		cbSoundCardRate.setSelectedItem(Integer.toString(Config.scSampleRate));
 		
+		//int sampleRate = device.getCurrentSampleRate();
+		cbRtlSampleRate = new JComboBox<>( SampleRate.values() );
+		cbRtlSampleRate.addActionListener(this);	
+		int rate = Config.loadGraphIntValue("SDR", 0, 0, "RTL", "RtlSampleRate");
+		SampleRate s = SampleRate.getClosest(rate);
+		if (s != null)
+			cbRtlSampleRate.setSelectedItem(s);	
+		panel_1.add(cbRtlSampleRate);
+		cbRtlSampleRate.setVisible(false);
+		
 		afAudio = addRadioButton("AF", panel_1 );
 		iqAudio = addRadioButton("IQ", panel_1 );
 		ButtonGroup group2 = new ButtonGroup();
@@ -931,10 +956,31 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		});
 		speakerComboBox.addActionListener(this);
 		
-		btnMonitorAudio = new JButton("Monitor Audio");
+		btnMonitorAudio = new JButton();
+//		btnMonitorAudio.setMargin(new Insets(0, 20, 0, 20));
+//		try {
+//			img_mute = ImageIO.read(getClass().getResource("/images/icons8-mute-26.png"));
+//			img_audio = ImageIO.read(getClass().getResource("/images/icons8-audio-26.png"));
+//		} catch (IOException e) {
+//			// No images available
+//		}
+	
+		
 		if (Config.monitorAudio) {
-			btnMonitorAudio.setText("Silence Speaker");
+//			try {
+//			    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
+//			  } catch (Exception ex) {
+//				  System.err.println("Audio Image not found");
+				  btnMonitorAudio.setText("Silence Speaker");
+//			  }
 			speakerComboBox.setEnabled(false);
+		} else {
+//			try {
+//			    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
+//			  } catch (Exception ex) {
+				  btnMonitorAudio.setText("Monitor Audio");
+//				  System.err.println("Mute Image not found");
+//			  }
 		}
 		panelCombo.add(btnMonitorAudio);
 		btnMonitorAudio.setAlignmentX(Component.CENTER_ALIGNMENT);
@@ -966,6 +1012,26 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			speakerComboBox.setSelectedIndex(SinkAudio.getDeviceIdByName(Config.audioSink));
 		}
 		
+	}
+	
+	public JButton createIconButton(String icon, String name, String toolTip) {
+		JButton btn;
+		BufferedImage wPic = null;
+		try {
+			wPic = ImageIO.read(this.getClass().getResource(icon));
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+		}
+		if (wPic != null) {
+			btn = new JButton(new ImageIcon(wPic));
+			btn.setMargin(new Insets(0,0,0,0));
+		} else {
+			btn = new JButton(name);	
+		}
+		btn.setToolTipText(toolTip);
+		
+		btn.addActionListener(this);
+		return btn;
 	}
 
 	public void setupFormat() {
@@ -1067,6 +1133,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			panelFile.setVisible(true);
 			btnStartButton.setEnabled(true);
 			cbSoundCardRate.setVisible(false);
+			cbRtlSampleRate.setVisible(false);
 			return true;
 		}
 		Config.save();
@@ -1105,9 +1172,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		showLabel.setVisible(b);
 		//		rdbtnApplyBlackmanWindow.setVisible(b);
 		setFreqVisible(b);
-		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB SOunds card
-			cbSoundCardRate.setVisible(!b); //// TODO - This is where we should be setting up the right RATE selection pulldown for use while USB Device stopped
-		} 
+		if (this.soundCardComboBox.getSelectedIndex() >= soundcardSources.length) { // USB Sounds card
+			cbSoundCardRate.setVisible(false); 
+			cbRtlSampleRate.setVisible(true);
+		} else {
+			cbSoundCardRate.setVisible(true); 
+			cbRtlSampleRate.setVisible(false);
+		}
 	}
 	
 	private void setFreqVisible(boolean b) {
@@ -1369,14 +1440,32 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						"CAN'T MONITOR THE AUDIO",
 						JOptionPane.ERROR_MESSAGE) ;
 			}
-
-			if (Config.monitorAudio) { 
-				btnMonitorAudio.setText("Silence Speaker");
+			if (Config.monitorAudio) {
+//				try {
+//				    btnMonitorAudio.setIcon(new ImageIcon(img_mute));
+//				  } catch (Exception ex) {
+//					  System.err.println("Audio Image not found");
+					  btnMonitorAudio.setText("Silence Speaker");
+//				  }
+				
 				speakerComboBox.setEnabled(false);
 			} else {
-				btnMonitorAudio.setText("Monitor Audio");
+//				try {
+//				    btnMonitorAudio.setIcon(new ImageIcon(img_audio));
+//				  } catch (Exception ex) {
+					  btnMonitorAudio.setText("Monitor Audio");
+//					  System.err.println("Mute Image not found");
+//				  }
 				speakerComboBox.setEnabled(true);
 			}
+
+//			if (Config.monitorAudio) { 
+//				btnMonitorAudio.setText("Silence Speaker");
+//				speakerComboBox.setEnabled(false);
+//			} else {
+//				btnMonitorAudio.setText("Monitor Audio");
+//				speakerComboBox.setEnabled(true);
+//			}
 			Config.save();
 		}
 
@@ -1549,11 +1638,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void connectFCD(short vendorId, short deviceId) throws UsbException, DeviceException {
 		if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 			try {
-				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+				rfDevice = tunerManager.findDevice(vendorId, deviceId, SampleRate.RATE_0_240MHZ);
 			} catch (Exception e1) {
 				// FIXME - This can not be right..
 				// Sometimes we fail the first time but a retry succeeds.  If this fails we throw the exception
-				rfDevice = tunerManager.findDevice(vendorId, deviceId);
+				rfDevice = tunerManager.findDevice(vendorId, deviceId, SampleRate.RATE_0_240MHZ);
 			}
 		} 
 	}
@@ -1587,26 +1676,54 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			if (panelFcd == null)
 				try {
 					panelFcd = rfDevice.getDevicePanel();
-					} catch (IOException e) {
-						e.printStackTrace(Log.getWriter());
-					} catch (DeviceException e) {
-						e.printStackTrace(Log.getWriter());
-					}
+				} catch (IOException e) {
+					e.printStackTrace(Log.getWriter());
+				} catch (DeviceException e) {
+					e.printStackTrace(Log.getWriter());
+				}
+
+			int retried = 0;
+			while (retried < 5) {
 				try {
 					panelFcd.setDevice(rfDevice);
+					break; // no need to retry
+				} catch (LibUsbException e) {
+					if (e.getErrorCode() == LibUsb.ERROR_PIPE
+							|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
+							|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+							|| e.getErrorCode() == LibUsb.ERROR_BUSY
+							|| e.getErrorCode() == LibUsb.ERROR_OVERFLOW
+							|| e.getErrorCode() == LibUsb.ERROR_IO) {
+						// this is a temporary error
+						usbErrorCount++;
+						retried++;
+						try { Thread.sleep(200); } catch (InterruptedException e1) { }
+					} else {
+						// user intervention is required
+						Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+						stopButton();
+						break;
+					}		
 				} catch (DeviceException e) {
 					this.lblkHz.setText(" kHz   " + " |   FCD DEVICE NOT CONNECTED");
 					Log.println("ERROR setting FCD device on panel and reading its settings, but carrying on...");
+					break;
 				}
-				SDRpanel.add(panelFcd, BorderLayout.CENTER);
+			}
+			if (retried >= 5)
+				usbFatalErrorCount++;
+			if (retried > 0)
+				MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+				
+			SDRpanel.add(panelFcd, BorderLayout.CENTER);
 
-				SDRpanel.setVisible(true);
-				if (rfDevice.isConnected()) {
-					panelFcd.setEnabled(true);
-				} else {
-					panelFcd.setEnabled(false);
-				}
-		
+			SDRpanel.setVisible(true);
+			if (rfDevice.isConnected()) {
+				panelFcd.setEnabled(true);
+			} else {
+				panelFcd.setEnabled(false);
+			}
+
 			Config.iq = true;
 			iqAudio.setSelected(true);
 			setIQVisible(true);
@@ -1807,13 +1924,14 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //						vendorId = (short)0x1D50;
 //						deviceId = (short)0x60A1;
 //					} else 
-					if (position-soundcardSources.length == 0) { // rtlsdr // this is probablly not all the devices!
+					if (position-soundcardSources.length == 0) { // rtlsdr // this is probably not all the devices!
 						vendorId = (short)0x0BDA;
 						deviceId = (short)0x2838;
 					} 
+					SampleRate sampleRate = (SampleRate)cbRtlSampleRate.getSelectedItem();
 					if (rfDevice == null) { // this is a hack, you need to exit FoxTelem to switch devices if you have two plugged in.  Otherwise it just opens the previous one. FIXME
 						try {
-							rfDevice = tunerManager.findDevice(vendorId, deviceId);
+							rfDevice = tunerManager.findDevice(vendorId, deviceId, sampleRate);
 						} catch (UsbException e1) {
 							Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
 							e1.printStackTrace();
@@ -1829,30 +1947,77 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						stopButton();
 					} else {
 						Log.println("USB Source Selected: " + rfDevice.name);
-						panelFcd = null; // get rid of any existing panel
-						try {
-							panelFcd = rfDevice.getDevicePanel();
-						} catch (IOException e) {
-							Log.errorDialog("USB Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("USB Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
+						if (panelFcd == null) {
+							try {
+								panelFcd = rfDevice.getDevicePanel();
+							} catch (IOException e) {
+								Log.errorDialog("USB Panel Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+							} catch (DeviceException e) {
+								Log.errorDialog("USB Device Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+							}
 						}
-
-						try {
-							panelFcd.setDevice(rfDevice);
-						} catch (IOException e) {
-							Log.errorDialog("USB Panel Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
+						
+						// TODO - this would have reset the PPM adjustment that was setup when panel created.
+						// so the reset was removed from the setSampleRate function.  May be dangerous
+						try { 
+							rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
+							Config.saveGraphIntParam("SDR", 0, 0, "RTL", "RtlSampleRate", sampleRate.getRate());		
+						} catch (DeviceException e2) {
+							Log.errorDialog("USB Error Setting sample rate", e2.getMessage());
+							e2.printStackTrace(Log.getWriter());
 							stopButton();
-						} catch (DeviceException e) {
-							Log.errorDialog("USB Device Error", e.getMessage());
-							e.printStackTrace(Log.getWriter());
-							stopButton();
+						} 
+						
+						// Setting the device causes its paramaters to be set, e.g. gain
+						// retry 5 times with some delay in case a temporary hardware issue
+						int retried = 0;
+						while (retried < 5) {
+							try {
+								panelFcd.setDevice(rfDevice);
+								break; // no need to retry
+							} catch (LibUsbException e) {
+								if (e.getErrorCode() == LibUsb.ERROR_PIPE
+										|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
+										|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+										|| e.getErrorCode() == LibUsb.ERROR_BUSY
+										|| e.getErrorCode() == LibUsb.ERROR_OVERFLOW
+										|| e.getErrorCode() == LibUsb.ERROR_IO) {
+									// this is a temporary error
+									usbErrorCount++;
+									retried++;
+									try { Thread.sleep(200); } catch (InterruptedException e1) { }
+								} else {
+									// user intervention is required
+									Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+									stopButton();
+									break;
+								}
+							} catch (IOException e) {
+								Log.errorDialog("USB Panel Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+								break;
+							} catch (DeviceException e) {
+								Log.errorDialog("USB Device Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+								break;
+							} catch (UsbException e) {
+								Log.errorDialog("USB Hardware Error", e.getMessage());
+								e.printStackTrace(Log.getWriter());
+								stopButton();
+								break;
+							}
 						}
+						if (retried >= 5)
+							usbFatalErrorCount++;
+						if (retried > 0)
+							MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+							
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
 						panelFcd.setEnabled(false); // this is just the rate change params for the Airspy panel
@@ -2071,8 +2236,38 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				if (freq < rfDevice.getMinFreq() || freq > rfDevice.getMaxFreq()) {
 					Log.errorDialog("DEVICE ERROR", "Frequency must be between " + rfDevice.getMinFreq() + " and " + rfDevice.getMaxFreq());
 				} else {
-					rfDevice.setFrequency((long) (freq*1000));
-					panelFcd.updateFilter();
+					// retry 5 times with some delay
+					int retried = 0;
+
+					while (retried < 5) {
+						try {
+							rfDevice.setFrequency((long) (freq*1000));
+							panelFcd.updateFilter();
+							break; // no need to retry
+						} catch (LibUsbException e) {
+							if (e.getErrorCode() == LibUsb.ERROR_PIPE
+									|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
+									|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+									|| e.getErrorCode() == LibUsb.ERROR_BUSY
+									|| e.getErrorCode() == LibUsb.ERROR_IO) {
+								// this is a temporary error
+								usbErrorCount++;
+								retried++;
+								try { Thread.sleep(200); } catch (InterruptedException e1) { }
+							} else {
+								// user intervention is required
+								Log.errorDialog("LibUSB error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+								break;
+							}
+						} catch (UsbException e) {
+							Log.errorDialog("USB Hardware error setting frequency", "Check the device is connected correctly and working.  Error:\n" + e.getMessage());
+							break;
+						}
+					}
+					if (retried >= 5)
+						usbFatalErrorCount++;
+					if (retried > 0)
+						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 				}
 			} else {
 
@@ -2214,6 +2409,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void enableSourceSelectionComponents(boolean t) {
 		soundCardComboBox.setEnabled(t);
 		cbSoundCardRate.setEnabled(t);
+		cbRtlSampleRate.setEnabled(t);
 		enableSourceModeSelectionComponents(t);
 		int position = soundCardComboBox.getSelectedIndex(); 
 		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)
@@ -2600,7 +2796,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	@Override
 	public void run() {
 		Thread.currentThread().setName("SourceTab:Tracking");
-
 		// Runs until we exit
 		while(true) {
 
@@ -2613,6 +2808,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 			EventQueue.invokeLater(new Runnable() {
 				public void run() {
+					// make sure fatal error is visible at start up, even if main window not quite ready
+					if (usbFatalErrorCount > MainWindow.usbFatalErrorCount)
+						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+
 					boolean atLeastOneTracked = false;
 					try {
 						if (Config.satManager.updated) {
@@ -2753,11 +2952,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						if (!Config.findSignal) {
 							// Warn the user that NO TRACKING IS ON
 							warnNoTrackingPanel.setVisible(true);
+							lblWarnNoFindSignal.setText("WARNING: Find Signal and Doppler Tracking are both disabled");
 						} else {
 							warnNoTrackingPanel.setVisible(false);
 						}
 					} else {
 						warnNoTrackingPanel.setVisible(false);
+					}
+					if (Config.foxTelemCalcsDoppler) {
+						if (!atLeastOneTracked) {
+							warnNoTrackingPanel.setVisible(true);
+							lblWarnNoFindSignal.setText("WARNING: Doppler tracking is on but no spacecraft are tracked");
+						}
 					}
 					if (Config.findSignal) {
 						// This means we are in FIND SIGNAL mode
@@ -2766,6 +2972,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						//Config.findSignal = true;
 						if (Config.iq) {
 							findSignalPanel.setVisible(true);
+						}
+						if (!atLeastOneTracked) {
+							warnNoTrackingPanel.setVisible(true);
+							lblWarnNoFindSignal.setText("WARNING: Find Signal is on but no spacecraft are tracked");
 						}
 					} else {
 						// Otherwise FIND SIGNAL is not allowed

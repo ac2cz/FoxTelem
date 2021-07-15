@@ -53,11 +53,15 @@ public class SatPayloadTable {
 	private SortedFramePartArrayList rtRecords; // this is the rtRecords that are loaded into memory
 	private boolean updated = false;
 	private boolean storeMode = false;
+	private BitArrayLayout layout;
+	private boolean isFOXDB_V3;
 
-	public SatPayloadTable(int size, String name, boolean storeMode) throws IOException {
+	public SatPayloadTable(int size, String name, BitArrayLayout layout, boolean storeMode, boolean isFOXDB_V3) throws IOException {
 		tableIdx = new SortedArrayList<TableSeg>(INITIAL_SIZE);
 		baseFileName = name;
+		this.layout = layout;
 		this.storeMode = storeMode;
+		this.isFOXDB_V3 = isFOXDB_V3;
 		String dir = getDir();
         fileName = dir + PayloadStore.DB_NAME+File.separator + name;
       
@@ -660,7 +664,7 @@ public class SatPayloadTable {
 
 	}
 
-	private FoxFramePart addLine(String line) {
+	private FramePart addLine(String line) {
 		if (line.length() == 0) return null;
 		String date = null;
 		int id = 0;
@@ -687,9 +691,9 @@ public class SatPayloadTable {
 				System.exit(1);
 			}
 			
-			FoxFramePart rt = null;
+			FramePart rt = null;
 			
-			if (type == FoxFramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
+			if (type == FramePart.TYPE_UW_CAN_PACKET_TELEM || type >= 1700 && type < 1800) {
 				String[] st2 = line.split(",");
 				int canIdField = 5;
 				if (storeMode)
@@ -704,8 +708,12 @@ public class SatPayloadTable {
 
 				if (rt != null)
 					rt.type = type; // make sure we get the right type
-			} else
-				rt = (FoxFramePart) FramePart.makePayload(id, resets, uptime, date, st, type);
+			} else {
+				if (isFOXDB_V3)
+					rt = FramePart.makePayload(id, resets, uptime, date, st, layout);
+				else
+					rt = FramePart.makeLegacyPayload(id, resets, uptime, date, st, type);
+			}
 			
 
 			// Check the the record set is actually loaded.  Sometimes at start up the GUI is querying for records before they are loaded
@@ -755,7 +763,7 @@ public class SatPayloadTable {
 			try {
 				while ((line = dis.readLine()) != null) {
 					if (line != null) {
-						FoxFramePart rt = addLine(line);
+						FramePart rt = addLine(line);
 						if (rt != null) {
 							if (linesAdded == SatPayloadTable.MAX_SEGMENT_SIZE) {
 								linesAdded = 0;

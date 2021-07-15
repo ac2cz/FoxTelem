@@ -12,6 +12,8 @@ import common.Config;
 import common.FoxSpacecraft;
 import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
+import telemetry.Conversion;
+import telemetry.ConversionStringLookUpTable;
 import telemetry.PayloadStore;
 import uk.me.g4dpz.satellite.SatPos;
 
@@ -62,14 +64,10 @@ public class GraphPanel extends GraphCanvas {
 	int sideLabel = 0;
 	int bottomLabelOffset = 5;
 	
-
-	
-	
-	
-	GraphPanel(String t, int conversionType, int plType, GraphFrame gf, FoxSpacecraft fox2) {
-		super(t, conversionType, plType, gf, fox2);
+	GraphPanel(String t, GraphFrame gf, FoxSpacecraft fox2) {
+		super(t, gf, fox2);
 		freqOffset = (int) (fox2.user_telemetryDownlinkFreqkHz * 1000);
-		updateGraphData("GrapPanel.new");
+		updateGraphData(gf.layout, "GrapPanel.new");
 	}
 
 	
@@ -193,10 +191,10 @@ public class GraphPanel extends GraphCanvas {
 		// Calculate the axis points and the labels, but dont draw the lines yet, even if user requested
 		double[] axisPoints2 = {0d, 0d, 0d};
 		if (drawGraph2) {
-			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2); // default graph type to 0 for now
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2, graphFrame.conversion2); // default graph type to 0 for now
 		}
 		
-		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines, graphFrame.fieldUnits, conversionType);
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines, graphFrame.fieldUnits, graphFrame.conversionType, graphFrame.conversion);
 		
 		
 		zeroPoint = (int) axisPoints[0];
@@ -441,7 +439,7 @@ public class GraphPanel extends GraphCanvas {
 			if (graphFrame.plotDerivative && i > 0) {
 				double value = graphData[0][PayloadStore.DATA_COL][i];
 				double value2 = graphData[0][PayloadStore.DATA_COL][i-1];
-				if (conversionType == BitArrayLayout.CONVERT_FREQ) {
+				if (graphFrame.conversionType == BitArrayLayout.CONVERT_FREQ) {
 					value = value - freqOffset;
 					value2 = value2 - freqOffset;
 				}
@@ -540,17 +538,17 @@ public class GraphPanel extends GraphCanvas {
 
 	//	int skip = 0;
 		plotSun(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-				maxTimeValue, minValue, maxValue, 0, conversionType, true);
+				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, true);
 		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-				maxTimeValue, minValue, maxValue, 0, conversionType, true);
+				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, graphFrame.conversion, true);
 		if (drawGraph2)
 			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, false);
+					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, graphFrame.conversion2, false);
 		
 	}
 
 	private void plotGraph(double[][][] graphData, int graphHeight, int graphWidth, int start, int end, int stepSize, int sideBorder, double minTimeValue, 
-			double maxTimeValue, double minValue, double maxValue, int colorIdx, int graphType, boolean plotDsp) {
+			double maxTimeValue, double minValue, double maxValue, int colorIdx, int graphType, Conversion conversion, boolean plotDsp) {
 		if (graphData != null)
 			for (int j=0; j<graphData.length; j++) {
 				int lastx = sideBorder+1; 
@@ -587,9 +585,11 @@ public class GraphPanel extends GraphCanvas {
 					//				System.out.println(x + " graphData " + graphData[i]);
 
 					// Calculate the ratio from min to max
-					if (graphType == BitArrayLayout.CONVERT_ANTENNA|| graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
+					if (!Config.displayRawValues && conversion != null && conversion instanceof ConversionStringLookUpTable) 
+						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]+1, graphHeight);
+					else if (!Config.displayRawValues && (graphType == BitArrayLayout.CONVERT_ANTENNA|| graphType == BitArrayLayout.CONVERT_STATUS_ENABLED
 							|| graphType == BitArrayLayout.CONVERT_STATUS_BIT 
-							|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS ) 
+							|| graphType == BitArrayLayout.CONVERT_BOOLEAN  || graphType == BitArrayLayout.CONVERT_VULCAN_STATUS) ) 
 						//if (graphFrame.displayMain)
 						y = getRatioPosition(minValue, maxValue, graphData[j][PayloadStore.DATA_COL][i]+1, graphHeight);
 					else if (graphType == BitArrayLayout.CONVERT_FREQ) {

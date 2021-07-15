@@ -33,5 +33,4 @@ class ExperimentLayoutTableModel extends FoxTelemTableModel {
 		for (int k=0; k<columnNames.length-2; k++) 
 			columnNames[k+2] = lay.fieldName[k];
 	}
-	
 }

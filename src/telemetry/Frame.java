@@ -226,7 +226,7 @@ public abstract class Frame implements Comparable<Frame> {
 			Log.println("Got TCA: " + strDate);
 			Date date = null;
 			try {
-				date = FoxFramePart.fileDateFormat.parse(strDate);
+				date = FramePart.fileDateFormat.parse(strDate);
 			} catch (ParseException e) {
 				// We don't do anything in this case, the date will be null
 				Log.println("Error parsing TCA date:");
@@ -614,10 +614,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if ((frm.getHeader().resets == 44 && frm.getHeader().uptime == 260)
 				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 263)
 				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 390)
-				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 393)
-				||
-
-				(frm != null && frm.getHeader().resets > 10000))
+				|| (frm.getHeader().resets == 44 && frm.getHeader().uptime == 393))
 			return null;
 
 		// if (frm != null) Log.println(frm.getHeader().toString());
@@ -717,7 +714,7 @@ public abstract class Frame implements Comparable<Frame> {
 					if (!payloadStore.addStpHeader(decodedFrame))
 						throw new StpFileProcessException(f.getName(), "Could not add the STP HEADER to the database ");
 					SlowSpeedFrame ssf = (SlowSpeedFrame)decodedFrame;
-					FoxFramePart payload = ssf.getPayload();
+					FramePart payload = ssf.getPayload();
 					SlowSpeedHeader header = ssf.getHeader();
 					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
@@ -924,6 +921,7 @@ public abstract class Frame implements Comparable<Frame> {
 	 * @return
 	 */
 	public byte[] getServerBytes() {
+		if (bytes == null) return null; // nothing to send
 		String header = getSTPCoreHeader();
 		header = header + getSTPExtendedHeader();
 		header = header + "\r\n";

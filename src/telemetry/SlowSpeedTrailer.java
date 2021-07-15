@@ -23,7 +23,7 @@ import decoder.FoxDecoder;
  *
  *
  */
-public class SlowSpeedTrailer extends FoxFramePart {
+public class SlowSpeedTrailer extends FramePart {
 	public static final int MAX_BYTES = 32;
 
 	int[] fecBytes = new int[MAX_BYTES];

@@ -74,6 +74,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JLabel ssFrameLength;
 	JLabel debugWavFile;
 	JLabel debugCount;
+	JCheckBox calculateBPSKCrc;
 	
 	//Decoder decoder;
 	
@@ -105,6 +106,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		debugValues = addCheckBox("Debug Values", "Display Debug information for bit values on the audio screen", Config.debugValues );
 		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
 		useRSfec.setEnabled(false);
+		calculateBPSKCrc = addCheckBox("Calculate BPSK Crc", "Calculate a CRC Checksum on BPSK GOLF frames and reject if they fail", Config.calculateBPSKCrc );
 	//	useRSerasures = addCheckBox("Use RS Erasures", Config.useRSerasures );
 		//useRSerasures.setEnabled(false);
 		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
@@ -373,6 +375,14 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				Config.realTimePlaybackOfFile = false;
 			} else {
 				Config.realTimePlaybackOfFile = true;
+			}
+			Config.save();
+		}
+		if (source == calculateBPSKCrc) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.calculateBPSKCrc = false;
+			} else {
+				Config.calculateBPSKCrc = true;
 			}
 			Config.save();
 		}

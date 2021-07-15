@@ -29,7 +29,7 @@ import decoder.FoxDecoder;
  * The satellite sends the data most significant bit first, but it is a little endian system
  * So we get the least significant byte first, but with its most significant bit received first.
  * 
- * To compensate we reverse the order of the received bytes when we store them in the bit array.
+ * To compensate we reverse the order of the received bits when we store them in the bit array.
  * That means that the least significant bit of the least significant byte is stored first and 
  * the msb of the whole number is stored last.
  * When we read the value out of the array, we again read it backwards, starting with the highest

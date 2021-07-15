@@ -14,7 +14,7 @@ import telemetry.RadiationTelemetry;
 public class WodVulcanTab extends VulcanTab {
 
 	public WodVulcanTab(FoxSpacecraft sat) {
-		super(sat, DisplayModule.DISPLAY_WOD_VULCAN);
+		super(sat, DisplayModule.DISPLAY_WOD_EXPERIMENT);
 	}
 
 	
@@ -48,10 +48,10 @@ public class WodVulcanTab extends VulcanTab {
 			}
 		}
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 		

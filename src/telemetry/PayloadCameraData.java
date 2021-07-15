@@ -40,7 +40,7 @@ import decoder.FoxDecoder;
  * 
  *
  */
-public class PayloadCameraData extends FoxFramePart {
+public class PayloadCameraData extends FramePart {
 	//public static final int TYPE = TYPE_CAMERA_DATA;
 	public static final byte END_OF_JPEG_DATA = -86; //0xaa;
 	public static final int LINE_HEADER_BYTES = 9; // include pre-amble 3; // bytes 0, 1, 2
@@ -118,7 +118,7 @@ public class PayloadCameraData extends FoxFramePart {
 				int scanLineNumber = descriptor >> 2; // we want the 6 msbs
 				
 				int[] scanLineData = new int[scanLineLength];				
-				currentScanLine = new PictureScanLine(FoxFramePart.fileDateStamp(), pictureCounter, scanLineNumber, scanLineLength, scanLineData);
+				currentScanLine = new PictureScanLine(FramePart.fileDateStamp(), pictureCounter, scanLineNumber, scanLineLength, scanLineData);
 				pictureLines.add(currentScanLine);
 				lineByte = 0;
 

@@ -53,7 +53,8 @@ import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.Conversion;
+import telemetry.FramePart;
 import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
@@ -93,9 +94,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	String displayTitle; // the actual title of the graph - calculated
 	String title; // the title of the module, e.g. Computer - passed in
 	BitArrayLayout layout;
-	private int payloadType;
+	int payloadType;  // This should now be the payload number and is used to uniquely save the graph config.  Except for Measurements, where it is still used to identify them
 	int conversionType;
 	int conversionType2;
+	Conversion conversion;
+	Conversion conversion2;
 	private JPanel contentPane;
 	private GraphCanvas panel;
 	private JPanel titlePanel;
@@ -223,17 +226,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	boolean textDisplay = false;
 	
+	public GraphFrame(String title, String fieldName, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
+		this.title = title;
+		fox = fox2;
+		this.fieldName = new String[1];
+		this.fieldName[0] = fieldName;
+		this.layout = lay;
+		String conversionName = lay.getConversionNameByName(fieldName);
+		this.conversion = fox.getConversionByName(conversionName);
+		this.conversionType = Conversion.getLegacyConversionFromString(conversionName);
+		this.fieldUnits = lay.getUnitsByName(fieldName);
+		payloadType = lay.number; // set this just so that things get saved correctly
+		if (plot != SAVED_PLOT) // take the value, otherwise we use what was loaded from the save
+			plotType = plot;
+		init();
+		
+	}	
 	/**
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, int conversionType, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, String conversionName, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
 		this.fieldUnits = fieldUnits;
 		this.title = title;
-		this.conversionType = conversionType;
+		this.conversion = fox.getConversionByName(conversionName); ///////////////// Need to make sure we get the legacy conversion if needed. Set up BOTH
+		this.conversionType = Conversion.getLegacyConversionFromString(conversionName);
 		
 		if (lay == null)
 			this.layout = getLayout(plType);
@@ -241,13 +261,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			this.layout = lay;
 		
 		payloadType = plType;
+		if (plot != SAVED_PLOT) // take the value, otherwise we use what was loaded from the save
+			plotType = plot;
+		init();
+	}
+	
+	private void init() {
 		setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 		
 		addWindowListener(this);
 		addComponentListener(this);
 		
-		if (plot != SAVED_PLOT) // take the value, otherwise we use what was loaded from the save
-			plotType = plot;
+		
 		loadProperties();
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
 //		setIconImage(img);	
@@ -272,18 +297,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 //		titlePanelcenter.add(lblTitle);
 
 		if (textDisplay(conversionType) ) {   
-			diagnosticTable = new DiagnosticTable(title, fieldName, conversionType, this, fox);
+			diagnosticTable = new DiagnosticTable(title, fieldName[0], conversionType, this, fox);
 			contentPane.add(diagnosticTable, BorderLayout.CENTER);
 			textDisplay = true;
 		} else if (plotType == SKY_PLOT){
 			initSkyPlotFields();
-			panel = new DensityPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
+			panel = new DensityPlotPanel(title, this, (FoxSpacecraft)fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else if (plotType == EARTH_PLOT){
-			panel = new EarthPlotPanel(title, conversionType, payloadType, this, (FoxSpacecraft)fox2);
+			panel = new EarthPlotPanel(title, this, (FoxSpacecraft)fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
-			panel = new GraphPanel(title, conversionType, payloadType, this, fox2);
+			panel = new GraphPanel(title, this, fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
@@ -662,34 +687,34 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}
 	
 	// FIXME - if we pass in the layout, then we would not need this lookup.  This logic SHOULD NOT BE HERE!
-	// Need to pass layout into DisplayModule and then to here
+	// We now pass layout into DisplayModule. This is only called in legacy situations
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
-		if (plType == FoxFramePart.TYPE_REAL_TIME)
+		if (plType == FramePart.TYPE_REAL_TIME)
 			layout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_MAX_VALUES)
+		else if (plType == FramePart.TYPE_MAX_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_MIN_VALUES)
+		else if (plType == FramePart.TYPE_MIN_VALUES)
 			layout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_RAD_EXP_DATA)
+		else if (plType == FramePart.TYPE_RAD_EXP_DATA)
 			layout = fox.getLayoutByName(Spacecraft.RAD_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_RAD_TELEM_DATA)
+		else if (plType == FramePart.TYPE_RAD_TELEM_DATA)
 			layout = fox.getLayoutByName(Spacecraft.RAD2_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_HERCI_SCIENCE_HEADER)
+		else if (plType == FramePart.TYPE_HERCI_SCIENCE_HEADER)
 			layout = fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 		else if (plType == SatMeasurementStore.RT_MEASUREMENT_TYPE)
 			layout = fox.measurementLayout;
 		else if (plType == SatMeasurementStore.PASS_MEASUREMENT_TYPE)
 			layout = fox.passMeasurementLayout;
-		else if (plType == FoxFramePart.TYPE_WOD)
+		else if (plType == FramePart.TYPE_WOD)
 			layout = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_WOD_RAD)
+		else if (plType == FramePart.TYPE_WOD_RAD)
 			layout = fox.getLayoutByName(Spacecraft.WOD_RAD_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_WOD_RAD_TELEM_DATA)
+		else if (plType == FramePart.TYPE_WOD_RAD_TELEM_DATA)
 			layout = fox.getLayoutByName(Spacecraft.WOD_RAD2_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_UW_EXPERIMENT)
+		else if (plType == FramePart.TYPE_UW_EXPERIMENT)
 			layout = fox.getLayoutByName(Spacecraft.CAN_LAYOUT);
-		else if (plType == FoxFramePart.TYPE_UW_WOD_EXPERIMENT)
+		else if (plType == FramePart.TYPE_UW_WOD_EXPERIMENT)
 			layout = fox.getLayoutByName(Spacecraft.WOD_CAN_LAYOUT);
 		return layout;
 	}
@@ -700,8 +725,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			displayTitle = fox.user_display_name;
 		else {
 			displayTitle = title; // + " - " + layout.getShortNameByName(fieldName[0]) + "(" + layout.getUnitsByName(fieldName[0])+ ")";
-			if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
-					payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
+		//	if (payloadType != SatMeasurementStore.RT_MEASUREMENT_TYPE &&
+		//			payloadType !=SatMeasurementStore.PASS_MEASUREMENT_TYPE) // measurement
 				displayTitle = fox.user_display_name + " " + displayTitle;
 			if (conversionType == BitArrayLayout.CONVERT_FREQ) {
 				int freqOffset = (int) fox.user_telemetryDownlinkFreqkHz;
@@ -742,7 +767,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			diagnosticTable.updateData();
 			//textArea.updateData();			
 		} else
-			panel.updateGraphData("GraphFrame.updateGraphData");
+			panel.updateGraphData(layout, "GraphFrame.updateGraphData");
 	}
 
 	/**
@@ -929,7 +954,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (textDisplay)
 			diagnosticTable.updateData();
 		else
-			panel.updateGraphData("GraphFrame.parseAvgPeriod");
+			panel.updateGraphData(layout, "GraphFrame.parseAvgPeriod");
 	}
 	
 	public static final DateFormat dateFormat = new SimpleDateFormat(
@@ -1091,7 +1116,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (textDisplay)
 			diagnosticTable.updateData();
 		else
-			panel.updateGraphData("GraphFrame:parseTextFields");
+			panel.updateGraphData(layout, "GraphFrame:parseTextFields");
 
 	}
 	
@@ -1175,7 +1200,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			int i = 0;
 			boolean toggle = false;
 			boolean toggle2 = false;
-			BitArrayLayout layout = getLayout(payloadType);
+//			BitArrayLayout layout = getLayout(payloadType);
 			int totalVariables = fieldName.length;
 			
 			for (String s: fieldName) {
@@ -1220,6 +1245,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
 					conversionType2 = layout.getIntConversionByName(variables.get(position));
+					conversion2 = fox.getConversionByName(variables.get(position));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
 					i=0;
@@ -1264,7 +1290,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				cbAddVariable.setVisible(add);
 			}
 			calcTitle();
-			panel.updateGraphData("GraphFrame:stateChange:addVariable");
+			panel.updateGraphData(layout, "GraphFrame:stateChange:addVariable");
 		}
 		else if (e.getSource() == this.txtSamplePeriod) {
 			parseFields();
@@ -1404,7 +1430,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			showHorizontalLines = !showHorizontalLines;
 			//Log.println("Plot Derivative " + plotDerivative);
 			setRedOutline(btnHorizontalLines,showHorizontalLines);
-			panel.updateGraphData("GraphFrame.actionPerformed:horizontal");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:horizontal");
 		} else if (e.getSource() == btnVerticalLines) {
 			showVerticalLines = !showVerticalLines;
 			//Log.println("Plot Derivative " + plotDerivative);
@@ -1414,44 +1440,44 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			} else
 				btnVerticalLines.setBackground(Color.GRAY);
 				*/
-			panel.updateGraphData("GraphFrame.actionPerformed:vertical");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:vertical");
 		} else if (e.getSource() == btnDerivative) {
 			plotDerivative = !plotDerivative;
 			//Log.println("Plot Derivative " + plotDerivative);
 			setRedOutline(btnDerivative,plotDerivative);
 			
-			panel.updateGraphData("GraphFrame.actionPerformed:derivative");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:derivative");
 		}  else if (e.getSource() == btnAvg) {
 			dspAvg = !dspAvg;
 			setRedOutline(btnAvg,dspAvg);
 			setAvgVisible(dspAvg);
 			//Log.println("Calc Average " + dspAvg);
-			panel.updateGraphData("GraphFrame.actionPerformed:avg");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:avg");
 		} else if (e.getSource() == btnMain) {
 			hideMain = !hideMain;
 			setRedOutline(btnMain,hideMain);
 
-			panel.updateGraphData("GraphFrame.actionPerformed:main");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:main");
 		}  else if (e.getSource() == btnLines) {
 			hideLines = !hideLines;
 			setRedOutline(btnLines,!hideLines);
-			panel.updateGraphData("GraphFrame.actionPerformed:hideLines");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:hideLines");
 		} else if (e.getSource() == btnPoints) {
 			hidePoints = !hidePoints;
 			setRedOutline(btnPoints,!hidePoints);
-			panel.updateGraphData("GraphFrame.actionPerformed:points");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:points");
 		}  else if (e.getSource() == btnMapType) {
 			mapType = mapType + 1;
 			if (mapType > COLOR_MAP_EQUIRECTANGULAR)
 				mapType = NO_MAP_EQUIRECTANGULAR;
-			panel.updateGraphData("GraphFrame.actionPerformed:points");
+			panel.updateGraphData(layout, "GraphFrame.actionPerformed:points");
 		} 
 		if (e.getSource() == cbUptime) {
 				hideUptime = !hideUptime;
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData("GraphFrame:stateChange:Uptime");
+				panel.updateGraphData(layout, "GraphFrame:stateChange:Uptime");
 			setRedOutline(cbUptime, !hideUptime);
 		}
 		if (e.getSource() == chckbxPlotAllUptime) {
@@ -1465,7 +1491,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData("GraphFrame:stateChange:plotAllUptime");
+				panel.updateGraphData(layout, "GraphFrame:stateChange:plotAllUptime");
 		}
 		
 		if (e.getSource() == cbUTC) {
@@ -1485,7 +1511,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData("GraphFrame:stateChange:UTC");
+				panel.updateGraphData(layout, "GraphFrame:stateChange:UTC");
 		}
 		
 		toggleSunCheckBox();
@@ -1502,7 +1528,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData("GraphFrame:stateChange:altLabels");
+				panel.updateGraphData(layout, "GraphFrame:stateChange:altLabels");
 		}
 		if (e.getSource() == cbShowSun) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -1513,7 +1539,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData("GraphFrame:stateChange:altLabels");
+				panel.updateGraphData(layout, "GraphFrame:stateChange:altLabels");
 		}
 		if (e.getSource() == cbUptime) {
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
@@ -1524,7 +1550,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (textDisplay)
 				diagnosticTable.updateData();
 			else
-				panel.updateGraphData("GraphFrame:stateChange:Uptime");
+				panel.updateGraphData(layout, "GraphFrame:stateChange:Uptime");
 		}		
 		toggleSunCheckBox();
 	}

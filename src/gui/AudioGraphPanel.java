@@ -259,14 +259,17 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 
 				
 				if (Config.debugValues && foxDecoder != null) {
-					if (pskAudioData[i] > 1000) {
-					//	pskAudioData[i] = pskAudioData[i] - 10000; // rescale
-						bitValue = 1;
+					if (pskAudioData != null) {
+						if (pskAudioData[i] > 1000) {
+							//	pskAudioData[i] = pskAudioData[i] - 10000; // rescale
+							bitValue = 1;
+						}
+						if (pskAudioData[i] < -1000) {
+							//	pskAudioData[i] = pskAudioData[i] + 10000;			
+							bitValue = 0;
+						}
 					}
-					if (pskAudioData[i] < -1000) {
-					//	pskAudioData[i] = pskAudioData[i] + 10000;			
-						bitValue = 0;
-					}
+					
 					// If we are on a bucket boundry, draw a line and label the bit
 					// We have foxDecoder.SAMPLE_WINDOW_LENGTH buckets
 					// The audio data has decoder.bucketSize samples per bucket

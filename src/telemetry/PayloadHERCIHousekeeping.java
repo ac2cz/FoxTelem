@@ -317,7 +317,7 @@ Field
         housekeeping channel to the ground.
 
  */
-public class PayloadHERCIHousekeeping extends FoxFramePart {
+public class PayloadHERCIHousekeeping extends FramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 58;
 	public int NUMBER_OF_FIELDS = MAX_RAD_TELEM_BYTES;

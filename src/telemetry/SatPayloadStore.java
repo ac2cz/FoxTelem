@@ -90,7 +90,7 @@ public class SatPayloadStore {
 	private void initPayloadFiles() throws IOException {
 		records = new SatPayloadTable[fox.numberOfLayouts];
 		for (int i=0; i<fox.numberOfLayouts; i++)
-			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name, fox.hasModeInHeader);
+			records[i] = new SatPayloadTable(INIT_SIZE, fox.series+foxId+fox.layout[i].name, fox.layout[i], fox.hasModeInHeader, fox.hasFOXDB_V3);
 	}
 	
 	public void setUpdatedAll() {
@@ -183,6 +183,13 @@ public class SatPayloadStore {
 	private boolean addRadSecondaryRecord(PayloadRadExpData f) throws IOException {
 		
 		// Capture and store any secondary payloads
+		// First check the V3 SEG DB method
+		if (f.layout.getSecondaryPayloadName() != null) {
+			BitArrayLayout secondaryLayout = Config.satManager.getLayoutByName(fox.foxId, f.layout.getSecondaryPayloadName());
+			
+			FramePart radiationTelemetry = FramePart.makePayload(f.id, f.resets, f.uptime, secondaryLayout.name);
+			add(radiationTelemetry);
+		} else
 		if (f.layout.name.equalsIgnoreCase(Spacecraft.HERCI_HS_LAYOUT) || f.isTelemetry()) {
 			RadiationTelemetry radiationTelemetry = f.calculateTelemetryPalyoad();
 			radiationTelemetry.captureHeaderInfo(f.id, f.uptime, f.resets);
@@ -296,8 +303,8 @@ public class SatPayloadStore {
 		return getLatest(Spacecraft.MIN_LAYOUT);
 	}
 
-	public FoxFramePart getLatestRad() throws IOException {
-		return (FoxFramePart) getLatest(Spacecraft.RAD_LAYOUT);
+	public FramePart getLatestRad() throws IOException {
+		return getLatest(Spacecraft.RAD_LAYOUT);
 	}
 
 	public RadiationTelemetry getLatestRadTelem() throws IOException {

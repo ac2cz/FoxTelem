@@ -135,7 +135,7 @@ Transfer Frame:
 
 
  */
-public class PayloadHERCIhighSpeed extends FoxFramePart {
+public class PayloadHERCIhighSpeed extends FramePart {
 
 	public static final int MAX_PAYLOAD_SIZE = 868;
 	public static final int MAX_HEADER_SIZE = 16; // 16 bytes in the header

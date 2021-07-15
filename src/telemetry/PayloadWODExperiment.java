@@ -2,17 +2,17 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
-public class PayloadWODRagAdac extends FoxFramePart {
+public class PayloadWODExperiment extends FramePart {
 	public static final String WOD_RESETS = "WODTimestampReset";
 	public static final String WOD_UPTIME = "WODTimestampUptime";
 	public static final String CRC_ERROR = "crcError";
 		
-	public PayloadWODRagAdac(BitArrayLayout lay, int id, long uptime, int resets) {
+	public PayloadWODExperiment(BitArrayLayout lay, int id, long uptime, int resets) {
 		super(TYPE_WOD_RAG,lay);
 		captureHeaderInfo(id, uptime, resets);
 	}
 
-	public PayloadWODRagAdac(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
+	public PayloadWODExperiment(int id, int resets, long uptime, String date, StringTokenizer st, BitArrayLayout lay) {
 		super(id, resets, uptime, TYPE_WOD_RAG, date, st, lay);
 	}
 	

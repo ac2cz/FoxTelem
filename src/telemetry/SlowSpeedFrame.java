@@ -36,8 +36,8 @@ public class SlowSpeedFrame extends Frame {
 	public static final int MAX_TRAILER_SIZE = 32;
 	
 	//SlowSpeedHeader header = null;
-	FoxFramePart payload = null;
-	FoxFramePart fecTrailer = null;
+	FramePart payload = null;
+	FramePart fecTrailer = null;
 	
 	
 	public SlowSpeedFrame() {
@@ -64,7 +64,7 @@ public class SlowSpeedFrame extends Frame {
 		return (SlowSpeedHeader)header;
 	}
 
-	public FoxFramePart getPayload() {
+	public FramePart getPayload() {
 		return payload;
 	}
 
@@ -90,11 +90,11 @@ public class SlowSpeedFrame extends Frame {
 			int type = header.type;
 			fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
 			if (fox != null) {
-				if (type == FoxFramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-				if (type == FoxFramePart.TYPE_MAX_VALUES) payload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
-				if (type == FoxFramePart.TYPE_MIN_VALUES) payload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
-				if (type == FoxFramePart.TYPE_RAD_EXP_DATA) payload = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-				if (type == FoxFramePart.TYPE_DEBUG || type > FoxFramePart.TYPE_RAD_EXP_DATA) {
+				if (type == FramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+				if (type == FramePart.TYPE_MAX_VALUES) payload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+				if (type == FramePart.TYPE_MIN_VALUES) payload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+				if (type == FramePart.TYPE_RAD_EXP_DATA) payload = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+				if (type == FramePart.TYPE_DEBUG || type > FramePart.TYPE_RAD_EXP_DATA) {
 					Log.println("INVALID payload type:"+type+", rejecting as corrupt");
 					corrupt = true;
 				}

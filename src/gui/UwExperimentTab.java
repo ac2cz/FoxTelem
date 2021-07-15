@@ -25,7 +25,7 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
-import telemetry.FoxFramePart;
+import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.uw.CanPacket;
@@ -99,7 +99,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		for (int canid : ids)
 			 layout[j++] = Config.satManager.getLayoutByCanId(6, canid);
 
-		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
+		splitPaneHeight = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight");
 		
 		lblName = new JLabel(NAME);
 		lblName.setMaximumSize(new Dimension(1600, 20));
@@ -148,7 +148,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 	          public void mouseReleased(MouseEvent e) {
 	        	  splitPaneHeight = splitPane.getDividerLocation();
 	        	  //Log.println("SplitPane: " + splitPaneHeight);
-	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FoxFramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
+	      		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, UWTAB, "splitPaneHeight", splitPaneHeight);
 	          }
 	      });
 	    }
@@ -244,23 +244,23 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		}
 
 		// This is the table that shows CAN Packets and counts
-		column = packetTable.getColumnModel().getColumn(0);
+		column = table2.getColumnModel().getColumn(0);
 		column.setPreferredWidth(100);
 		column.setCellRenderer( centerRenderer );
 
-		column = packetTable.getColumnModel().getColumn(1);
+		column = table2.getColumnModel().getColumn(1);
 		column.setPreferredWidth(150);
 		column.setCellRenderer( centerRenderer );
 
-		column = packetTable.getColumnModel().getColumn(2);
+		column = table2.getColumnModel().getColumn(2);
 		column.setPreferredWidth(150);
 
-		column = packetTable.getColumnModel().getColumn(3);
+		column = table2.getColumnModel().getColumn(3);
 		column.setPreferredWidth(150);
 
-		column = packetTable.getColumnModel().getColumn(4);
+		column = table2.getColumnModel().getColumn(4);
 		column.setPreferredWidth(155);
-		column = packetTable.getColumnModel().getColumn(5);
+		column = table2.getColumnModel().getColumn(5);
 		column.setPreferredWidth(55);
 		column.setCellRenderer( centerRenderer );
 	}
@@ -374,10 +374,10 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 		}
 
 		if (showRawBytes.isSelected()) {
-			packetScrollPane.setVisible(false); 
+			scrollPane2.setVisible(false); 
 			scrollPane.setVisible(true);
 		} else { 
-			packetScrollPane.setVisible(true);
+			scrollPane2.setVisible(true);
 			scrollPane.setVisible(false);
 		}
 

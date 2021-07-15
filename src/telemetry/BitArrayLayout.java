@@ -1,5 +1,6 @@
 package telemetry;
 
+import java.awt.Color;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -39,12 +40,25 @@ import common.Log;
  *
  */
 public class BitArrayLayout {
+	public static final String RT = "RT";
+	public static final String MAX = "MAX";
+	public static final String MIN = "MIN";
+	public static final String EXP = "EXP";
+	public static final String WOD = "WOD";
+	public static final String WOD_EXP = "WOD_EXP";
+
 	public int NUMBER_OF_FIELDS = 0;
 	public static int ERROR_POSITION = -1;
 	
 	public String fileName;
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
 	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
+	public String secondaryLayout = null; // this is set to the value of the secondary payload we generate when this is stored
+	public int number; // this replaces what used to be the payload type and now matches the number on the MASTER file
+	public String typeStr = ""; // set when this is loaded by the spacecraft.
+	public String title; // the title to put on the tab
+	public String shortTitle; // the title to name the tab
+	public Color color = Color.BLUE;
 	
 	public static final String NONE = "NONE";
 	
@@ -63,11 +77,6 @@ public class BitArrayLayout {
 	private int numberOfBits = 0;
 	private int numberOfBytes = 0;
 	
-	public static final String FMT_INT = "INT";
-	public static final String FMT_F = "FLOAT";
-	public static final String FMT_1F = "FLOAT1";
-	public static final String FMT_2F = "FLOAT2";
-
 	public static final int CONVERT_NONE = 0;
 	public static final int CONVERT_INTEGER = 1;
 	public static final int CONVERT_V25_SENSOR = 2;
@@ -128,6 +137,10 @@ public class BitArrayLayout {
 	public static final int CONVERT_COM1_ICR_2V5_SENSOR = 57; // COM1
 	public static final int CONVERT_COM1_BUS_VOLTAGE = 58; // COM1
 	public static final int CONVERT_ROOT_10 = 59; // COM1 PWR calc component
+	public static final int CONVERT_MEMS_SCALAR_ROTATION = 60; // FOX-1A Scalar Rotation Calculation
+	public static final int CONVERT_MEMS_X_ROTATION = 61; // FOX-1A Scalar Rotation Calculation
+	public static final int CONVERT_MEMS_Y_ROTATION = 62; // FOX-1A Scalar Rotation Calculation
+	public static final int CONVERT_MEMS_Z_ROTATION = 63; // FOX-1A Scalar Rotation Calculation
 	
 	/**
 	 * Create an empty layout for manual init
@@ -159,6 +172,40 @@ public class BitArrayLayout {
 		return numberOfBytes;
 	}
 	
+	public boolean isRealTime() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.RT)) return true;
+		return false;
+	}
+
+	public boolean isWOD() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD)) return true;
+		return false;
+	}
+
+	public boolean isMAX() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.MAX)) return true;
+		return false;
+	}
+
+	public boolean isMIN() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.MIN)) return true;
+		return false;
+	}
+	
+	public boolean isExperiment() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.EXP)) return true;
+		return false;
+	}
+
+	public boolean isWODExperiment() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
+		return false;
+	}
+
+	public String getSecondaryPayloadName() {
+		return secondaryLayout;
+	}
+	
 	public boolean isSecondaryPayload() {
 		if (parentLayout != null) return true;
 		return false;
@@ -179,8 +226,10 @@ public class BitArrayLayout {
 	public String getConversionNameByName(String name) {
 		int pos = ERROR_POSITION;
 		for (int i=0; i < fieldName.length; i++) {
-			if (name.equalsIgnoreCase(fieldName[i]))
+			if (name.equalsIgnoreCase(fieldName[i])) {
 				pos = i;
+				break;
+			}
 		}
 		if (pos == ERROR_POSITION) {
 			return NONE;

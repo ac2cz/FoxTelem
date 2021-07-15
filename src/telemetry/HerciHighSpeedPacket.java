@@ -101,7 +101,7 @@ about Big-Endian above all applies here as well.
               a unique 'Type' and status bit assignment.
 
  */
-public class HerciHighSpeedPacket extends FoxFramePart {
+public class HerciHighSpeedPacket extends FramePart {
 	public static final int MAX_PACKET_BYTES = 128; // Since the maximum packet size is 8+30*4, segmentation is never
 													// required to ship down a complete minipacket, i.e. the minipackets
 													// are always single segments.

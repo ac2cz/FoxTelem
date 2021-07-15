@@ -99,7 +99,7 @@ import decoder.FoxDecoder;
       type is unique.  Lengths also vary with each type
       of data.
  */
-public class HerciHighspeedHeader extends FoxFramePart {
+public class HerciHighspeedHeader extends FramePart {
 
 	public static final int MAX_RAD_TELEM_BYTES = 16;
 	public static final int HERCI_EPOCH_FIELD = 5;
