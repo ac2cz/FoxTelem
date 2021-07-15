@@ -114,10 +114,10 @@ import telemetry.TelemFormat;
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
 					if (frameLayout == null) {
 						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " has no frame layout. Decode not possible.\n"
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Frame Type: " + header.getType() + " has no frame layout defined. Decode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " has no frame layout. Decode not possible.");
+							Log.println("FOX ID: " + header.id + " Frame Type: " + header.getType() + " has no frame layout defined. Decode not possible.");
 						
 						corrupt = true;
 						return;
@@ -136,11 +136,11 @@ import telemetry.TelemFormat;
 //					initPayloads(header.id, header.getType());
 					if (payload[0] == null) {
 						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. "
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Frame Type: " + header.getType() + " not valid. "
 									+ "Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file.\nDecode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file. Decode not possible.");
+							Log.println("FOX ID: " + header.id + " Frame Type: " + header.getType() + " not valid. Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file. Decode not possible.");
 						corrupt = true;
 						return;
 					}
