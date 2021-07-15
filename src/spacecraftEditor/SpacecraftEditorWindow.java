@@ -2,6 +2,7 @@ package spacecraftEditor;
 import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.FileDialog;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowEvent;
@@ -25,8 +26,6 @@ import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
-import gui.SpacecraftPanel;
-import gui.SpacecraftTab;
 import telemetry.LayoutLoadException;
 
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
@@ -37,11 +36,11 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	JMenuBar menuBar;
 	//Menu Buttons
 	JMenuItem mntmExit;
-	JMenuItem mntmLoadSpacecraftFile;
+	JMenuItem mntmAddSpacecraftFile;
 	
 	JTabbedPane tabbedPane;
 	ArrayList<Spacecraft> sats;
-	SpacecraftPanel[] spacecraftTab;
+	SpacecraftEditPanel[] spacecraftTab;
 
 	private static final long serialVersionUID = 1L;
 	public SpacecraftEditorWindow() {
@@ -56,11 +55,11 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	 * Initialize the contents of the frame.
 	 */
 	private void initialize() {
-		setBounds(100, 100, 1000, 600);
+		loadProperties();
 		//setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		addWindowListener(this);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		
+		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/pacsat.jpg")));
 		this.setTitle("AMSAT Spacecraft Config Editor");
 		
 		//addWindowStateListener(this);
@@ -78,9 +77,9 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		JMenu mnFile = new JMenu("File");
 		menuBar.add(mnFile);
 
-		mntmLoadSpacecraftFile = new JMenuItem("Load Spacecraft");
-		mnFile.add(mntmLoadSpacecraftFile);
-		mntmLoadSpacecraftFile.addActionListener(this);
+		mntmAddSpacecraftFile = new JMenuItem("Add Spacecraft");
+		mnFile.add(mntmAddSpacecraftFile);
+		mntmAddSpacecraftFile.addActionListener(this);
 
 		mntmExit = new JMenuItem("Exit");
 		mnFile.add(mntmExit);
@@ -102,13 +101,13 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	
 	public void addSpacecraftTabs(JTabbedPane tabbedPane) {
 		sats = Config.satManager.getSpacecraftList();
-		spacecraftTab = new SpacecraftPanel[sats.size()];
+		spacecraftTab = new SpacecraftEditPanel[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
-			spacecraftTab[s] = new SpacecraftPanel((FoxSpacecraft)sats.get(s));
+			spacecraftTab[s] = new SpacecraftEditPanel((FoxSpacecraft)sats.get(s));
 
 				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 						//			tabbedPane.addTab( ""  
-						+ sats.get(s).toString() + "</b></body></html>", spacecraftTab[s] );
+						+ sats.get(s).propertiesFile.getName() + "</b></body></html>", spacecraftTab[s] );
 				//			+" Health", healthTab );
 		}
 	}
@@ -116,7 +115,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	/**
 	 * Allow the user to choose a new spacecraft file to load
 	 */
-	private void openSpacecraft() {
+	private void addSpacecraft() {
 		File file = null;
 		File destinationDir = null;
 		File dir = null;
@@ -191,7 +190,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 						FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
 						JLabel title = new JLabel(satellite.getIdString());
 						
-						//satellite.save();
+						satellite.save();
 					} catch (LayoutLoadException e) {
 						Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
 						// But carry on.  Hopefully the new MASTER file will fix it!
@@ -216,10 +215,30 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		if (e.getSource() == mntmExit) {
 			this.windowClosing(null);
 		}
-		if (e.getSource() == mntmLoadSpacecraftFile) {
-			openSpacecraft();
+		if (e.getSource() == mntmAddSpacecraftFile) {
+			addSpacecraft();
 		}
 
+	}
+	
+	public void saveProperties() {
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftEditorWindow", "windowHeight", this.getHeight());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftEditorWindow", "windowWidth", this.getWidth());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftEditorWindow", "windowX", this.getX());
+		Config.saveGraphIntParam("Global", 0, 0, "spacecraftEditorWindow",  "windowY", this.getY());
+		Config.save();
+	}
+	
+	public void loadProperties() {
+		int windowX = Config.loadGraphIntValue("Global", 0, 0, "spacecraftEditorWindow", "windowX");
+		int windowY = Config.loadGraphIntValue("Global", 0, 0, "spacecraftEditorWindow", "windowY");
+		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "spacecraftEditorWindow", "windowWidth");
+		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "spacecraftEditorWindow", "windowHeight");
+		if (windowX == 0 || windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
+			setBounds(100, 100, 1000, 600);
+		} else {
+			setBounds(windowX, windowY, windowWidth, windowHeight);
+		}
 	}
 
 	@Override
@@ -231,6 +250,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	public void windowClosed(WindowEvent arg0) {
 		// This is once dispose has run
 		Log.close();
+		
 		System.exit(0);
 		Log.println("Window Closed");
 	}
@@ -238,6 +258,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	public void windowClosing(WindowEvent arg0) {
 		// close has been requested from the X or otherwise
 		Log.println("Closing Window");
+		saveProperties();
 		this.dispose();
 	}
 	@Override

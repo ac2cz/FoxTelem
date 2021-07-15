@@ -8,6 +8,7 @@ import javax.swing.JTabbedPane;
 import common.Spacecraft;
 
 public class SpacecraftEditTab extends JPanel {
+	private static final long serialVersionUID = 1L;
 
 	Spacecraft sat;
 	JTabbedPane tabbedPane;

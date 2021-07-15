@@ -42,6 +42,10 @@ public class FrameLayout {
 		return get("payload"+i+".name");
 	}
 	
+	public int getPayloadLength(int i) {
+		return getInt("payload"+i+".length");
+	}
+	
 	public String get(String key) {
 		return properties.getProperty(key);
 	}
