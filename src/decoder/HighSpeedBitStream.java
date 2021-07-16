@@ -172,9 +172,10 @@ public class HighSpeedBitStream extends FoxBitStream {
 //					Log.print((bytesInFrame-1)+":"+rsNum+":"+debug+" ");
 //					if (debugCount % 40 == 0) Log.println("");
 //				}
-				codeWords[rsNum++].addByte(b8);
 				if (Config.debugRS)
-					Log.print(bytesInFrame+ ": RS["+rsNum+ "," + f + "]=" + Decoder.plainhex(b8)+" | "); 
+					Log.print((bytesInFrame-1) + ": RS["+rsNum+ "," + f + "]=" + Decoder.plainhex(b8)+" | "); 
+				codeWords[rsNum++].addByte(b8);
+				
 			} catch (ArrayIndexOutOfBoundsException e) {
 				e.printStackTrace(Log.getWriter());
 			}
