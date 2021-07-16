@@ -58,8 +58,9 @@ public class TelemFormat {
 		
 		// calculated fields
 		trailerLength = getInt(RS_WORDS) * RsCodeWord.NROOTS;
-//		frameLength = getInt(HEADER_LENGTH) + getInt(DATA_LENGTH) + trailerLength;
 		frameLength = getInt(DATA_LENGTH) + trailerLength;
+		
+		
 	}
 	
 	protected void load() throws LayoutLoadException {

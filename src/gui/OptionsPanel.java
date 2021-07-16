@@ -55,7 +55,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JCheckBox debugCameraFrames;
 	JCheckBox debugBits, debugBytes;
 	JCheckBox debugValues;
-	JCheckBox debugClock;
+	JCheckBox debugClock, debugRS;
 	JCheckBox debugGlitches;
 	JCheckBox debugSignalFinder;
 	JCheckBox debugCalcDopplerContinually;
@@ -109,7 +109,8 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		calculateBPSKCrc = addCheckBox("Calculate BPSK Crc", "Calculate a CRC Checksum on BPSK GOLF frames and reject if they fail", Config.calculateBPSKCrc );
 	//	useRSerasures = addCheckBox("Use RS Erasures", Config.useRSerasures );
 		//useRSerasures.setEnabled(false);
-		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
+//		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
+		debugRS = addCheckBox("Debug RS", "Print verbose debugging info for the RS Decoder", Config.debugRS );
 //		storePayloads = addCheckBox("Store Payloads", Config.storePayloads );
 //		highSpeed = addCheckBox("Decode 9k6", Config.highSpeed );
 	//	useAGC = addCheckBox("Use AGC", Config.useAGC );
@@ -263,6 +264,14 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				Config.debugCalcDopplerContinually = false;
 			} else {
 				Config.debugCalcDopplerContinually = true;
+			}
+			Config.save();
+		}
+		if (source == debugRS) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugRS = false;
+			} else {
+				Config.debugRS = true;
 			}
 			Config.save();
 		}

@@ -64,7 +64,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		addWindowListener(this);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/pacsat.jpg")));
-		this.setTitle("AMSAT Spacecraft Config Editor");
+		this.setTitle("AMSAT Spacecraft Editor");
 		
 		//addWindowStateListener(this);
 
