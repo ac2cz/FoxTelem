@@ -6,15 +6,14 @@ import spacecraftEditor.SpacecraftEditorWindow;
 
 public class AmsatSpacecraftEditor {
 
-	static String logFileDir = null;
-	public static final String VERSION = "0.1";
+	static String logFileDir = null;	
 	
 	public static void main(String[] args) {
 		int arg = 0;
 		while (arg < args.length) {
 			if (args[arg].startsWith("-")) { // this is a switch			
 				if ((args[arg].equalsIgnoreCase("-v")) || (args[arg].equalsIgnoreCase("-version"))) {
-					System.out.println("AMSAT Spacecraft Editor. Version " + VERSION);
+					System.out.println("AMSAT Spacecraft Editor. Version " + SpacecraftEditorWindow.VERSION);
 					System.exit(0);
 				}
 			} else {

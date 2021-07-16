@@ -29,6 +29,10 @@ import gui.MainWindow;
 import telemetry.LayoutLoadException;
 
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
+	
+	public static final String VERSION_NUM = "0.2";
+	public static final String VERSION = VERSION_NUM + " - 16 Jul 2021";
+	
 	// Swing File Chooser
 	JFileChooser fc = null;
 	//AWT file chooser for the Mac
@@ -94,7 +98,9 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		panel.add(tabbedPane, BorderLayout.CENTER);
 		addSpacecraftTabs(tabbedPane);
 		JPanel footer = new JPanel();
-		JLabel lblHomeDir = new JLabel("Home: " + Config.homeDirectory + "    Log files: " + Config.logFileDirectory);
+		JLabel lblVersion = new JLabel("Version: " + VERSION );
+		footer.add(lblVersion);
+		JLabel lblHomeDir = new JLabel( "  |  Current: " + Config.currentDir +"  |  Home: " + Config.homeDirectory + "  |  Log files: " + Config.logFileDirectory);
 		footer.add(lblHomeDir);
 		panel.add(footer, BorderLayout.SOUTH);
 	}

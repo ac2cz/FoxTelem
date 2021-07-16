@@ -1,4 +1,4 @@
-package test;
+package telemetry.test;
 
 import static org.junit.Assert.*;
 

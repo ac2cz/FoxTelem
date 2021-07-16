@@ -250,7 +250,7 @@ public class SatelliteManager implements Runnable {
 							Log.println("Frame Layouts: " + frameLayouts);
 							for (int k=0; k < frameLayouts; k++) {
 								Log.print(" : " + satellite.frameLayout[k].name);
-								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
+								Log.print(" : " + satellite.frameLayout[k].getNumberOfPayloads() + " payloads");
 								Log.println("");
 							}
 						}
@@ -263,10 +263,10 @@ public class SatelliteManager implements Runnable {
 								
 								if (satellite.sourceFormat != null && satellite.sourceFormat[k] != null) {
 									Log.print(" : " + satellite.sourceFormat[k].name);									
-									Log.println(" - frame length: " + satellite.sourceFormat[k].getInt(TelemFormat.FRAME_LENGTH));
+									Log.println(" - frame length: " + satellite.sourceFormat[k].getFrameLength());
 									Log.println(" - data length: " + satellite.sourceFormat[k].getInt(TelemFormat.DATA_LENGTH));
 									Log.println(" - header length: " + satellite.sourceFormat[k].getInt(TelemFormat.HEADER_LENGTH));
-									Log.println(" - trailer length: " + satellite.sourceFormat[k].getInt(TelemFormat.TRAILER_LENGTH));
+									Log.println(" - trailer length: " + satellite.sourceFormat[k].getTrailerLength());
 									Log.println(" - rs words: " + satellite.sourceFormat[k].getInt(TelemFormat.RS_WORDS));
 									Log.print(" - padding: ");
 									int[] padding = satellite.sourceFormat[k].getPaddingArray();
@@ -393,7 +393,7 @@ public class SatelliteManager implements Runnable {
 
 	public TelemFormat getFormatByFrameLength(int len) {
 		for (int i=0; i < telemFormats.size(); i++) {
-			if (telemFormats.get(i).getInt(TelemFormat.FRAME_LENGTH) == len)
+			if (telemFormats.get(i).getFrameLength() == len)
 				return telemFormats.get(i);
 		}
 		return null;

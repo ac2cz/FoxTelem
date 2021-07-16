@@ -480,7 +480,7 @@ public abstract class Spacecraft implements Comparable<Spacecraft> {
 				frameLayout = new FrameLayout[numberOfFrameLayouts];
 				for (int i=0; i < numberOfFrameLayouts; i++) {
 					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
-					frameLayout[i] = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
+					frameLayout[i] = new FrameLayout(foxId, FoxSpacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
 					frameLayout[i].name = getProperty("frameLayout"+i+".name");
 				}
 			}

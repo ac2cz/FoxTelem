@@ -360,7 +360,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			String[][] data = new String[sat.numberOfFrameLayouts][2];
 			for (int i=0; i< sat.numberOfFrameLayouts; i++) {
 				data[i][0] =""+i;
-				if (sat.layoutFilename[i] != null) 
+				if (sat.frameLayoutFilename[i] != null) 
 					data[i][1] = sat.frameLayoutFilename[i];
 				else
 					data[i][1] ="NONE";
@@ -414,10 +414,10 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				else
 					data[i][1] ="NONE";
 	
-				if (sat.layoutFilename[i] != null) 
+				if (i < sat.layoutFilename.length && sat.layoutFilename[i] != null) // we don't store filenames for can layouts, so skip those
 					data[i][2] = sat.layoutFilename[i];
 				else
-					data[i][2] ="NONE";
+					data[i][2] ="-";
 				data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
 
 			}
@@ -701,6 +701,8 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
+		// Display text for source when it is clicked
 		if (e.getSource() == sourcesTable) {
 			int row = sourcesTable.rowAtPoint(e.getPoint());
 			int col = sourcesTable.columnAtPoint(e.getPoint());
@@ -726,7 +728,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 					
 					int numRsWords = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.RS_WORDS);
 					int headerLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
-					int frameLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.FRAME_LENGTH);
+					int frameLength = sat.sourceFormat[sourceFormatSelected].getFrameLength();
 					int dataLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
 					int trailerLength = 32 * numRsWords;
 					
@@ -748,6 +750,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			}
 		}
 		
+		// Display the payloads in a frame when the frame definition is clicked
 		if (e.getSource() == framesTable) {
 			int row = framesTable.rowAtPoint(e.getPoint());
 			int col = framesTable.columnAtPoint(e.getPoint());
@@ -787,7 +790,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				// read it from disk, just in case..
 				FrameLayout frameLayout;
 				try {
-					frameLayout = new FrameLayout(FoxSpacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
+					frameLayout = new FrameLayout(sat.foxId, FoxSpacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
 					if (frameLayout != null) {
 						FrameTableModel frameTableModel = new FrameTableModel();
 
@@ -805,7 +808,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 						column.setPreferredWidth(160);
 
 						frameTable.addMouseListener(this);
-						int numOfPayloads = frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS);
+						int numOfPayloads = frameLayout.getNumberOfPayloads();
 						String[][] data = new String[numOfPayloads][3];
 						for (int i=0; i< numOfPayloads; i++) {
 							data[i][0] =""+i;
@@ -813,12 +816,12 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 							int len = frameLayout.getPayloadLength(i);
 							calculatedDataLength += len;
 
-							BitArrayLayout layout = sat.getLayoutByName(frameLayout.getPayloadName(i));
-							int realLen = layout.getMaxNumberOfBytes();
-							data[i][2] = ""+len + " (" + realLen + ")";
-							if (realLen != len) {
-								data[i][2] = data[i][2]  + " ERROR";
-							}
+//							BitArrayLayout layout = sat.getLayoutByName(frameLayout.getPayloadName(i));
+//							int realLen = layout.getMaxNumberOfBytes();
+							data[i][2] = ""+len ;
+//							if (realLen != len) {
+//								data[i][2] = data[i][2]  + " ERROR";
+//							}
 
 						}
 						
@@ -829,19 +832,19 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 						if (sat.sourceFormat == null || sat.sourceFormat[sourceFormatSelected] == null) {
 							Log.errorDialog("MISSING", "No Source Format defined.  Can't calculate lengths\n");
 						} else {
-							int numRsWords = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.RS_WORDS);
 							int headerLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
-							int frameLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.FRAME_LENGTH);
+							calculatedDataLength += headerLength;
+							int frameLength = sat.sourceFormat[sourceFormatSelected].getFrameLength();
 							int dataLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
-							int trailerLength = 32 * numRsWords;
-							int calculatedFrameLength = headerLength + calculatedDataLength + trailerLength;
-							JLabel labFrameLen = new JLabel("Frame Length: " + calculatedFrameLength + " (" + frameLength + ")");
-							if (frameLength != calculatedFrameLength) {
+							int trailerLength = sat.sourceFormat[sourceFormatSelected].getTrailerLength();
+							int calculatedFrameLength = calculatedDataLength + trailerLength;
+							JLabel labFrameLen = new JLabel("Length of this frame: " + calculatedFrameLength + "   ( Format: " + frameLength + " )");
+							if (frameLength < calculatedFrameLength) {
 								labFrameLen.setForeground(Config.AMSAT_RED);
 							}
 							JLabel labHeaderLen = new JLabel("Header Length: " + headerLength);
-							JLabel labDataLen = new JLabel("Data Length: " + calculatedDataLength + " (" + dataLength + ")");
-							if (dataLength != calculatedDataLength) {
+							JLabel labDataLen = new JLabel("Data Length: " + calculatedDataLength + "   ( Format: " + dataLength + " )");
+							if (dataLength < calculatedDataLength) {
 								labDataLen.setForeground(Config.AMSAT_RED);
 							}
 							JLabel labTrailerLen = new JLabel("Trailer Length: " + trailerLength);
