@@ -119,7 +119,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		int rsNum = 0; // counter that remembers the RS Word we are adding bytes to
 		
 		if (Config.debugRS)
-			System.out.println("RS BYTES IN UNCORRECTED FRAME: ");
+			Log.println("RS BYTES IN UNCORRECTED FRAME: ");
 		//int debugCount = 0;
 		// Traverse the bits between the frame markers and allocate the decoded bytes round robin back to the RS Code words
 		for (int j=start; j< end-SYNC_WORD_LENGTH; j+=10) {
@@ -159,10 +159,12 @@ public class HighSpeedBitStream extends FoxBitStream {
 			if (bytesInFrame == dataLength+1) {  
 				// first parity byte
 				//Log.println("parity");
-				// Reset to the first code word, this takes care of the different offsets
-				rsNum = 0;
-				//Next byte position in the codewords
-				f++;
+				// If we are not on the first code word then reset, this takes care of the different offsets
+				if (rsNum != 0) {
+					rsNum = 0;
+					//Next byte position in the codewords
+					f++;
+				}
 			}
 		
 			try {
@@ -223,7 +225,7 @@ public class HighSpeedBitStream extends FoxBitStream {
 		//// DEBUG ///
 //		System.out.println(codeWords[0]);
 		if (Config.debugRS)
-			System.out.println("RS CORRECTED BYTES IN FRAME: " + bytesInFrame);
+			Log.println("RS CORRECTED BYTES IN FRAME: " + bytesInFrame);
 		f=0;
 		rsNum=0;
 		boolean needsPaddingOffset = false;
