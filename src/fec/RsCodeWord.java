@@ -209,7 +209,7 @@ public class RsCodeWord  {
 		try {
 			/* form the syndromes; i.e., evaluate data(x) at roots of g(x) */
 			for(i=0;i<NROOTS;i++)
-				s[i] = data[0];
+				s[i] = data[0] & 0xff;
 
 			for(j=1;j<NN;j++){
 				for(i=0;i<NROOTS;i++){
