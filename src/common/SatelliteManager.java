@@ -62,6 +62,7 @@ public class SatelliteManager implements Runnable {
 	
 	public static final String AMSAT_NASA_ALL = "http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt";
 	public boolean updated = true; // true when we have first been created or the sats have been updated and layout needs to change
+	public static final long RECENT_TIME = 60 * 60 * 1000; // 60 min recent time threshold to ignore request to download keps
 	
 	public ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	public ArrayList<TelemFormat> telemFormats = new ArrayList<TelemFormat>();
@@ -452,8 +453,13 @@ public class SatelliteManager implements Runnable {
 		File f1 = new File(filetmp);
 		File f2 = new File(file);
 		Date lm = new Date(f2.lastModified());
-		//Date now = new Date();
+		Date now = new Date();
 
+		if ((now.getTime() - lm.getTime() < RECENT_TIME)) { // then dont try to update it.  Date 0 means we could not get a date, so this will likely fail to process anyway
+			Log.println(".. keps were just downloaded, skipping check");
+			return;
+		}
+		
 		String msg = "Downloading new keps ...                 ";
 		ProgressPanel initProgress = null;
 		if (Log.showGuiDialogs) {

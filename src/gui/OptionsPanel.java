@@ -106,9 +106,9 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		debugValues = addCheckBox("Debug Values", "Display Debug information for bit values on the audio screen", Config.debugValues );
 		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
 		useRSfec.setEnabled(false);
+		useRSerasures = addCheckBox("Use RS Erasures", "Use erasurs in the calculation of the RS decode", Config.useRSerasures );
+		useRSerasures.setEnabled(false);
 		calculateBPSKCrc = addCheckBox("Calculate BPSK Crc", "Calculate a CRC Checksum on BPSK GOLF frames and reject if they fail", Config.calculateBPSKCrc );
-	//	useRSerasures = addCheckBox("Use RS Erasures", Config.useRSerasures );
-		//useRSerasures.setEnabled(false);
 //		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
 		debugRS = addCheckBox("Debug RS", "Print verbose debugging info for the RS Decoder", Config.debugRS );
 //		storePayloads = addCheckBox("Store Payloads", Config.storePayloads );
@@ -190,14 +190,14 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			}
 			Config.save();
 		}
-//		if (source == useRSfec) { 
-//			if (e.getStateChange() == ItemEvent.DESELECTED) {
-//				Config.useRSfec = false;
-//			} else {
-//				Config.useRSfec = true;
-//			}
-//			Config.save();
-//		}
+		if (source == useRSfec) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.useRSfec = false;
+			} else {
+				Config.useRSfec = true;
+			}
+			Config.save();
+		}
 		if (source == useRSerasures) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.useRSerasures = false;
