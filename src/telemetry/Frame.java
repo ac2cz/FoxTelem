@@ -708,7 +708,7 @@ public abstract class Frame implements Comparable<Frame> {
 				}
 				*/
 				payloadStore = new PayloadDbStore(u,p,db);
-				int newReset = 0; // this will store the reset for HuskySat if the MRAM is broken
+				
 				
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					if (!payloadStore.addStpHeader(decodedFrame))
@@ -722,6 +722,7 @@ public abstract class Frame implements Comparable<Frame> {
 				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 					FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(hsf.header.id);
+					int newReset = hsf.header.resets; // this will be updated with the reset for HuskySat as the MRAM is broken
 					if (hsf.header.id == 6) { // better if this was not hardcoded and was in the spacecraft file
 						// We are husky sat and the MRAM is broken.  Need to see if this was a reset
 						newReset = payloadStore.checkForNewReset(hsf.header.id, hsf.header.uptime, decodedFrame.stpDate, hsf.header.resets, decodedFrame.receiver);
