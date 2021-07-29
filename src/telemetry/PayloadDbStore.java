@@ -607,14 +607,14 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	@Override
 	public FramePart getLatest(int id, String layout) {
-//		SatPayloadDbStore store = getPayloadStoreById(id);
-//		if (store != null)
-//			try {
-//				return store.getLatest(layout);
-//			} catch (SQLException e) {
-//				e.printStackTrace(Log.getWriter());
-//				return null;
-//			}
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(layout);
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
 		return null;
 	}
 
@@ -715,6 +715,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 
 	}
+	
+	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse, String layout ) {
+		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
+		if (store != null)
+			try {
+				return store.getGraphData(name, period, fox, fromReset, fromUptime, layout);
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
+		return null;
+	}
+	
 
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 

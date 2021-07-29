@@ -51,6 +51,7 @@ public class BitArrayLayout {
 	public static int ERROR_POSITION = -1;
 	
 	public String fileName;
+	public String tableName; // the name of the database table this is stored in if SQL backend
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
 	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
 	public String secondaryLayout = null; // this is set to the value of the secondary payload we generate when this is stored
@@ -170,6 +171,10 @@ public class BitArrayLayout {
 	
 	public int getMaxNumberOfBytes() {
 		return numberOfBytes;
+	}
+	
+	public String getTableName() {
+		return tableName;
 	}
 	
 	public boolean isRealTime() {
