@@ -7,9 +7,9 @@ import java.util.ArrayList;
 import javax.swing.SwingUtilities;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import decoder.Decoder;
 import decoder.SourceAudio;
 import gui.MainWindow;
@@ -68,7 +68,7 @@ public abstract class FoxBPSKDecoder extends Decoder {
 	 */
 	protected void processPossibleFrame(ArrayList<Frame> frames) {
 
-		FoxSpacecraft sat = null;
+		Spacecraft sat = null;
 		for (Frame decodedFrame : frames) {
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 				Performance.startTimer("Store");
@@ -80,7 +80,7 @@ public abstract class FoxBPSKDecoder extends Decoder {
 
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 					FoxBPSKHeader header = hsf.getHeader();
-					sat = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+					sat = Config.satManager.getSpacecraft(header.id);
 					int newReset = sat.getCurrentReset(header.resets, header.uptime);
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
 

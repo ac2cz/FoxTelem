@@ -6,7 +6,6 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import gui.DisplayModule;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -21,7 +20,7 @@ import telemetry.PayloadUwExperiment;
 import telemetry.SortedFramePartArrayList;
 
 public class WebHealthTab {
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	PayloadDbStore payloadDbStore;
 	PayloadRtValues payloadRt;
 	PayloadMaxValues payloadMax;
@@ -39,7 +38,7 @@ public class WebHealthTab {
 	int numOfBottomModules = 1;
 	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(PayloadDbStore pdb, FoxSpacecraft f, int p) throws LayoutLoadException {
+	public WebHealthTab(PayloadDbStore pdb, Spacecraft f, int p) throws LayoutLoadException {
 		fox = f;
 		if (fox == null) throw new LayoutLoadException("Spacecraft is not valid");
 		port = p;
@@ -131,7 +130,7 @@ public class WebHealthTab {
 			mode = determineModeFromHeader(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, expPayload);
 		} else {
 		PayloadRadExpData radPayload = payloadDbStore.getLatestRad(fox.foxId);
-			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
+			mode = Spacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
 		}
 		if (payloadRt != null) {
 			
@@ -214,7 +213,7 @@ public class WebHealthTab {
 	 * Local copy of this routine that does not use Config.payloadstore
 	 * @return
 	 */
-	public String determineModeFromHeader(FoxSpacecraft fox, PayloadRtValues payloadRt, PayloadMaxValues payloadMax, 
+	public String determineModeFromHeader(Spacecraft fox, PayloadRtValues payloadRt, PayloadMaxValues payloadMax, 
 			PayloadMinValues payloadMin, PayloadUwExperiment expPayload) {
 		// Mode is stored in the header
 		// Find the most recent frame and return the mode that it has
@@ -226,10 +225,10 @@ public class WebHealthTab {
 		payloads.add(payloadMin);
 		payloads.add(expPayload);
 		
-		int mode = FoxSpacecraft.NO_MODE;
+		int mode = Spacecraft.NO_MODE;
 		if (payloads.size() > 0)
 			mode = payloads.get(payloads.size()-1).newMode;
-		return FoxSpacecraft.getModeString(mode);
+		return Spacecraft.getModeString(mode);
 	}
 	
 	private String buildModule(int i) {

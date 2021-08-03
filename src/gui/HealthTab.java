@@ -41,7 +41,6 @@ import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import java.awt.Color;
@@ -144,7 +143,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	JRadioButton minBut;
 	protected int healthTableToDisplay;
 	
-	public HealthTab(FoxSpacecraft spacecraft, int displayType) {
+	public HealthTab(Spacecraft spacecraft, int displayType) {
 		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
@@ -490,12 +489,12 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	}
 		
 	protected void displayMode(int newMode) {
-		String mode = FoxSpacecraft.modeNames[FoxSpacecraft.SAFE_MODE];
+		String mode = Spacecraft.modeNames[Spacecraft.SAFE_MODE];
 		if (fox.hasModeInHeader) {
-			mode = FoxSpacecraft.getModeString(newMode);
+			mode = Spacecraft.getModeString(newMode);
 		} else {
 			FramePart radPayload = Config.payloadStore.getLatestRad(foxId);
-			mode = FoxSpacecraft.determineModeString(fox, (PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
+			mode = Spacecraft.determineModeString(fox, (PayloadRtValues)realTime, (PayloadMaxValues)maxPayload, (PayloadMinValues)minPayload, radPayload);
 		}
 		displayMode(mode);
 	}

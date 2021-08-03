@@ -25,7 +25,6 @@ import telemetry.PayloadRtValues;
 import telemetry.PayloadWOD;
 import uk.me.g4dpz.satellite.SatPos;
 import common.Config;
-import common.FoxSpacecraft;
 import common.FoxTime;
 import common.Log;
 import common.Spacecraft;
@@ -162,7 +161,7 @@ public class WebServiceProcess implements Runnable {
 							PayloadMinValues min = (PayloadMinValues) payloadDbStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore, (FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -197,7 +196,7 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -233,7 +232,7 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -294,7 +293,7 @@ public class WebServiceProcess implements Runnable {
 		PayloadWOD wod = null;
 		WebHealthTab telemTab = null;
 		try {
-			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
 			if (fox != null) {
 				
 				wod = (PayloadWOD) payloadDbStore.getLatest(fox.foxId, Spacecraft.WOD_LAYOUT);
@@ -332,7 +331,7 @@ public class WebServiceProcess implements Runnable {
 		if (satUptime == null) return;
 
 		try {
-			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
 			int reset = Integer.parseInt(satReset);
 			long uptime = Long.parseLong(satUptime);
 			if (fox != null) {
@@ -359,7 +358,7 @@ public class WebServiceProcess implements Runnable {
 		if (satUptime == null) return;
 		
 		try {
-			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
 			int reset = Integer.parseInt(satReset);
 			long uptime = Long.parseLong(satUptime);
 			if (fox != null) {
@@ -372,7 +371,7 @@ public class WebServiceProcess implements Runnable {
 
 	}
 	
-	String calculateSpacecraftTime(FoxSpacecraft fox) {
+	String calculateSpacecraftTime(Spacecraft fox) {
 		Date currentDate = new Date();
 		FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
 		

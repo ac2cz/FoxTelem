@@ -5,7 +5,6 @@ import java.awt.event.ItemEvent;
 import javax.swing.JTable;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.RadiationTelemetry;
@@ -13,7 +12,7 @@ import telemetry.RadiationTelemetry;
 @SuppressWarnings("serial")
 public class WodVulcanTab extends VulcanTab {
 
-	public WodVulcanTab(FoxSpacecraft sat) {
+	public WodVulcanTab(Spacecraft sat) {
 		super(sat, DisplayModule.DISPLAY_WOD_EXPERIMENT);
 	}
 

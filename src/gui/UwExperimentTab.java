@@ -26,13 +26,11 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.uw.CanPacket;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -88,7 +86,7 @@ public class UwExperimentTab extends ExperimentTab implements ItemListener, Runn
 				 0x12590250 // RX_EPS_DIST_14
 				 };
 	 
-	public UwExperimentTab(FoxSpacecraft sat, int displayType)  {
+	public UwExperimentTab(Spacecraft sat, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;

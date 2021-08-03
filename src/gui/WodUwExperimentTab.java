@@ -5,7 +5,6 @@ import java.awt.event.ItemEvent;
 import javax.swing.JTable;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
@@ -16,7 +15,7 @@ public class WodUwExperimentTab extends UwExperimentTab {
 
 	public static int[] wod_ids = {309920562, 309920256, 309330499};
 
-	public WodUwExperimentTab(FoxSpacecraft sat) {
+	public WodUwExperimentTab(Spacecraft sat) {
 		super(sat, DisplayModule.DISPLAY_WOD_EXPERIMENT);
 	}
 

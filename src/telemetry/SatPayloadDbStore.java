@@ -21,7 +21,6 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -58,7 +57,7 @@ public class SatPayloadDbStore {
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
 	
 	public int foxId;
-	public FoxSpacecraft fox;
+	public Spacecraft fox;
 	
 	public static String RT_LOG = "RTTELEMETRY";
 	public static String MAX_LOG = "MAXTELEMETRY";
@@ -114,7 +113,7 @@ public class SatPayloadDbStore {
 	 * Create the payload store this this fox id
 	 * @param id
 	 */
-	public SatPayloadDbStore(PayloadDbStore store, FoxSpacecraft fox) {
+	public SatPayloadDbStore(PayloadDbStore store, Spacecraft fox) {
 		this.fox = fox;
 		payloadDbStore = store;
 		foxId = fox.foxId;

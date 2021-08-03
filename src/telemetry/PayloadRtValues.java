@@ -5,7 +5,7 @@ import java.sql.SQLException;
 import java.util.StringTokenizer;
 
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 /**
  * 
@@ -54,7 +54,7 @@ public class PayloadRtValues extends FramePart {
 		
 		//copyBitsToFields(); // dont need this as we loaded from the DB for the Web service
 		
-		FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
+		Spacecraft fox = Config.satManager.getSpacecraft(id);
 		String s = new String();
 		s = s + "<h3>Fox "+ fox.getIdString()+"  REAL TIME Telemetry   Reset: " + resets + " Uptime: " + uptime + "</h3>"
 				+ "<table>"

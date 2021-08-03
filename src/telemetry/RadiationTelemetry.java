@@ -1,8 +1,6 @@
 package telemetry;
 
 import java.util.StringTokenizer;
-
-import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
@@ -504,7 +502,7 @@ public class RadiationTelemetry extends FramePart {
 		
 	}
 
-	public String toDataString(FoxSpacecraft fox) {
+	public String toDataString(Spacecraft fox) {
 		copyBitsToFields();
 		String s = new String();
 		for (int i=0; i < layout.fieldName.length; i++) {

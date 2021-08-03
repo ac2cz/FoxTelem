@@ -291,7 +291,7 @@ public class EditorFrame extends JFrame implements ActionListener, WindowListene
 	
 	private void saveFile(String filename) throws FileNotFoundException {
 		try (PrintWriter out = new PrintWriter(filename)) {
-		    out.println(ta.getText());
+		    out.print(ta.getText());
 		}
 	}
 

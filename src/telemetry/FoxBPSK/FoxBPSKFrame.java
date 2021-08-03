@@ -1,7 +1,7 @@
 package telemetry.FoxBPSK;
 
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -98,7 +98,7 @@ import telemetry.TelemFormat;
 				// first non header byte
 				try {
 					header.copyBitsToFields(); // make sure the id is populated
-					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+					fox = Config.satManager.getSpacecraft(header.id);
 				} catch (ArrayIndexOutOfBoundsException e) {
 					if (Config.debugFrames)
 						Log.errorDialog("ERROR","The header length in the format file may not agree with the header layout.  Decode not possible.\n"

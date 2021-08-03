@@ -1,11 +1,8 @@
 package telemetry;
 
 import common.Config;
-import common.FoxSpacecraft;
-
 import java.io.BufferedReader;
 import java.io.IOException;
-
 import common.Log;
 import common.Spacecraft;
 
@@ -105,7 +102,7 @@ public class HighSpeedFrame extends Frame {
 		else if (numberBytesAdded < MAX_HEADER_SIZE + PAYLOAD_SIZE) {
 			if (firstNonHeaderByte) {
 				header.copyBitsToFields(); // make sure the id is populated
-				fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+				fox = Config.satManager.getSpacecraft(header.id);
 				if (fox != null) {
 					rtPayload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
 					maxPayload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));

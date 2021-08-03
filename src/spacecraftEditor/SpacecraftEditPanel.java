@@ -39,7 +39,7 @@ import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.TelemFormat;
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 /**
 * 
@@ -93,7 +93,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	JButton btnCancel;
 	JButton btnSave, btnFrameAdd, btnFrameRemove;
 	
-	FoxSpacecraft sat;
+	Spacecraft sat;
 	
 	JTable sourcesTable,framesTable,payloadsTable;
 	JPanel leftSourcesPanel, sourceStats, leftPanel, rightPanel, rightPanel1;
@@ -105,7 +105,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	/**
 	 * Create the dialog.
 	 */
-	public SpacecraftEditPanel(FoxSpacecraft sat) {
+	public SpacecraftEditPanel(Spacecraft sat) {
 		
 		this.sat = sat;
 		
@@ -257,7 +257,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
-			lExp[i] = new JLabel("Experiment "+(i+1)+": " + FoxSpacecraft.expNames[sat.experiments[i]]);
+			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			leftFixedPanel.add(lExp[i]);
 		}
 
@@ -714,7 +714,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 					System.out.println("Edit:" + sat.sourceFormat[row]);
 					sourceFormatSelected = row;
 					if (e.getClickCount() == 2) {
-						String masterFolder = Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR;
+						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 						EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row] + ".format");
 						editor.setVisible(true);
 					}
@@ -758,7 +758,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 
 				if (e.getClickCount() == 2) {
-					String masterFolder = Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR;
+					String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.frameLayoutFilename[row]);
 					editor.setVisible(true);
 				}
@@ -790,7 +790,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				// read it from disk, just in case..
 				FrameLayout frameLayout;
 				try {
-					frameLayout = new FrameLayout(sat.foxId, FoxSpacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
+					frameLayout = new FrameLayout(sat.foxId, Spacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
 					if (frameLayout != null) {
 						FrameTableModel frameTableModel = new FrameTableModel();
 
@@ -873,7 +873,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 
 				if (e.getClickCount() == 2) {
-					String masterFolder = Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR;
+					String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.layoutFilename[row]);
 					editor.setVisible(true);
 				}

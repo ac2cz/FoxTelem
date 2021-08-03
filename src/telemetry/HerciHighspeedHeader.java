@@ -2,7 +2,6 @@ package telemetry;
 
 import java.util.StringTokenizer;
 
-import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
@@ -201,7 +200,7 @@ public class HerciHighspeedHeader extends FramePart {
 		return s;
 	}
 
-	public double convertRawValue(String name, int rawValue, int conversion, FoxSpacecraft fox ) {
+	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
 		
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 			switch (conversion) {
@@ -213,7 +212,7 @@ public class HerciHighspeedHeader extends FramePart {
 	}
 
 
-	public String toDataString(FoxSpacecraft fox) {
+	public String toDataString(Spacecraft fox) {
 		copyBitsToFields();
 		String s = new String();
 		for (int i=0; i < layout.fieldName.length; i++) {

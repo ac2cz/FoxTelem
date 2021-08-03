@@ -34,7 +34,6 @@ import javax.swing.JLabel;
 import common.Log;
 import common.Spacecraft;
 import common.Config;
-import common.FoxSpacecraft;
 
 /**
 * 
@@ -68,12 +67,12 @@ public class SpacecraftFrame extends JDialog implements ItemListener, ActionList
 	JButton btnCancel;
 	JButton btnSave;
 	
-	FoxSpacecraft sat;
+	Spacecraft sat;
 	
 	/**
 	 * Create the dialog.
 	 */
-	public SpacecraftFrame(FoxSpacecraft sat, JFrame owner, boolean modal) {
+	public SpacecraftFrame(Spacecraft sat, JFrame owner, boolean modal) {
 		super(owner, modal);
 		setTitle("Spacecraft paramaters");
 		this.sat = sat;

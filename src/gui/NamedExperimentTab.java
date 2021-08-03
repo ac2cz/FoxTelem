@@ -30,7 +30,7 @@ import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import common.Config;
 import common.Log;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 /**
  * 
@@ -77,7 +77,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	BitArrayLayout layout; // raw values
 	BitArrayLayout layout2; // translated format
 
-	public NamedExperimentTab(FoxSpacecraft sat, String displayName, BitArrayLayout displayLayout, BitArrayLayout displayLayout2, int displayType)  {
+	public NamedExperimentTab(Spacecraft sat, String displayName, BitArrayLayout displayLayout, BitArrayLayout displayLayout2, int displayType)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;

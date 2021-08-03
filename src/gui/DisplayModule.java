@@ -23,9 +23,8 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import common.Config;
-import common.FoxSpacecraft;
-import common.Log;
 import common.Spacecraft;
+import common.Log;
 import measure.SatMeasurementStore;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -71,7 +70,7 @@ import telemetry.RadiationPacket;
 public class DisplayModule extends JPanel implements ActionListener, MouseListener {
 
 	int size = 0;
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	int foxId;
 	double scale; // amount to scale the modules by given the Font size
 	String[] fieldName = null;  // string used to lookup new values
@@ -167,7 +166,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 	 * @param title
 	 * @param size
 	 */
-	public DisplayModule(FoxSpacecraft fox2, String title, int size, BitArrayLayout lay, int modType, Color color) {
+	public DisplayModule(Spacecraft fox2, String title, int size, BitArrayLayout lay, int modType, Color color) {
 		fox = fox2;
 		foxId = fox.foxId; 
 		this.size = size;

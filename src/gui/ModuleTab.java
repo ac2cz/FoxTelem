@@ -27,7 +27,6 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import common.Config;
-import common.FoxSpacecraft;
 import common.FoxTime;
 import common.Log;
 import common.Spacecraft;
@@ -124,7 +123,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	
 //	JTextField displayNumber2;
 	
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	int foxId = 0;
 
 	DisplayModule[] topModules;
@@ -721,7 +720,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			textToUtc.setText(time2);
 		}
 		if (showLatest == SHOW_RANGE) {
-			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, FoxSpacecraft.REAL_TIME_LAYOUT);
+			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, Spacecraft.REAL_TIME_LAYOUT);
 			txtSamplePeriod.setText(Integer.toString(SAMPLES));
 		}
 	}
@@ -733,7 +732,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		textToReset.setText(Integer.toString(END_RESET));
 		textToUptime.setText(Long.toString(END_UPTIME));
 		if (showLatest == SHOW_RANGE) {
-			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, FoxSpacecraft.REAL_TIME_LAYOUT);
+			SAMPLES = Config.payloadStore.getNumberOfPayloadsBetweenTimestamps(fox.foxId, START_RESET, START_UPTIME, END_RESET, END_UPTIME, Spacecraft.REAL_TIME_LAYOUT);
 			txtSamplePeriod.setText(Integer.toString(SAMPLES));
 		}
 	}

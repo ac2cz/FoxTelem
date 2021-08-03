@@ -7,7 +7,6 @@ import java.awt.RenderingHints;
 import java.text.DecimalFormat;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Spacecraft;
 import measure.SatMeasurementStore;
 import predict.PositionCalcException;
@@ -23,7 +22,7 @@ import uk.me.g4dpz.satellite.SatPos;
 
 @SuppressWarnings("serial")
 public abstract class GraphCanvas extends MapPanel {
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	double[][][] graphData = null;
 	double[][][] graphData2 = null;
 	String title = "Test Graph";
@@ -49,7 +48,7 @@ public abstract class GraphCanvas extends MapPanel {
 	Graphics2D g2;
 	Graphics g;
 
-	GraphCanvas(String t, GraphFrame gf, FoxSpacecraft fox2) {
+	GraphCanvas(String t, GraphFrame gf, Spacecraft fox2) {
 		title = t;
 		//this.fieldName = fieldName;
 		graphFrame = gf;
@@ -82,9 +81,9 @@ public abstract class GraphCanvas extends MapPanel {
 				includePositionData = true;
 			
 			if  (graphFrame.payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
-				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
+				graphData[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
 			else if  (graphFrame.payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
-				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
+				graphData[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
 			else
 				graphData[i] = Config.payloadStore.getGraphData(graphFrame.fieldName[i], graphFrame.SAMPLES, 
 					graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, lay.name, includePositionData, reverse);
@@ -102,9 +101,9 @@ public abstract class GraphCanvas extends MapPanel {
 					fileProgress.updateProgress((int)(100*i+graphFrame.fieldName.length/totalFields));
 				
 				if  (graphFrame.payloadType == SatMeasurementStore.RT_MEASUREMENT_TYPE) 
-					graphData2[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
+					graphData2[i] = Config.payloadStore.getMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
 				else if  (graphFrame.payloadType == SatMeasurementStore.PASS_MEASUREMENT_TYPE) 
-					graphData2[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, (FoxSpacecraft)graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
+					graphData2[i] = Config.payloadStore.getPassMeasurementGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, reverse);
 				else
 					graphData2[i] = Config.payloadStore.getGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, 
 						graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, lay.name, false, reverse);
