@@ -12,11 +12,9 @@ import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import predict.PositionCalcException;
-import telemetry.FramePart;
 import telemetry.FramePart;
 import telemetry.PayloadWOD;
 import uk.me.g4dpz.satellite.SatPos;
@@ -30,7 +28,7 @@ public class WodHealthTab extends HealthTab {
 	JLabel lblSatLatitudeValue;
 	JLabel lblSatLongitudeValue;
 	
-	public WodHealthTab(FoxSpacecraft spacecraft) {
+	public WodHealthTab(Spacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_WOD);
 		TAB_TYPE = "wod";
 		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");

@@ -116,7 +116,7 @@ public class UpdateManager implements Runnable {
 		}
 	}
 		
-	public void updateT0(FoxSpacecraft sat) {
+	public void updateT0(Spacecraft sat) {
 		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
 		String file = "FOX" + sat.foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
@@ -284,7 +284,7 @@ public class UpdateManager implements Runnable {
 			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 			for (int i=0; i<sats.size(); i++) {
 				//if (sats.get(i).isFox1())
-					updateT0((FoxSpacecraft)sats.get(i));
+					updateT0(sats.get(i));
 			}
 		}
 
@@ -322,9 +322,9 @@ public class UpdateManager implements Runnable {
 						ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 						for (int i=0; i<sats.size(); i++) {
 							//if (sats.get(i).isFox1()) {
-								FoxSpacecraft fox = (FoxSpacecraft) sats.get(i);
+							Spacecraft fox = sats.get(i);
 								if (fox.hasFixedReset) {
-									updateT0((FoxSpacecraft)sats.get(i));
+									updateT0(sats.get(i));
 								}
 							//}
 						}
@@ -342,7 +342,7 @@ public class UpdateManager implements Runnable {
 					ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 					for (int i=0; i<sats.size(); i++) {
 						//if (sats.get(i).isFox1())
-							updateT0((FoxSpacecraft)sats.get(i));
+							updateT0(sats.get(i));
 					}
 				}		
 		}

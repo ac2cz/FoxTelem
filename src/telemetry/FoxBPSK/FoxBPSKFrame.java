@@ -1,7 +1,7 @@
 package telemetry.FoxBPSK;
 
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -98,7 +98,7 @@ import telemetry.TelemFormat;
 				// first non header byte
 				try {
 					header.copyBitsToFields(); // make sure the id is populated
-					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+					fox = Config.satManager.getSpacecraft(header.id);
 				} catch (ArrayIndexOutOfBoundsException e) {
 					if (Config.debugFrames)
 						Log.errorDialog("ERROR","The header length in the format file may not agree with the header layout.  Decode not possible.\n"
@@ -122,7 +122,7 @@ import telemetry.TelemFormat;
 						corrupt = true;
 						return;
 					}
-					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
+					bytes = new byte[telemFormat.getFrameLength()]; 
 					if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
 					else
@@ -164,8 +164,8 @@ import telemetry.TelemFormat;
 				// try to add the byte to a payload, step through each of them
 				int maxByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 				int minByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
-				for (int p=0; p < frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); p++) {
-					maxByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
+				for (int p=0; p < frameLayout.getNumberOfPayloads(); p++) {
+					maxByte += frameLayout.getPayloadLength(p);
 					if (numberBytesAdded >= minByte && numberBytesAdded < maxByte) {
 						try {
 							payload[p].addNext8Bits(b);
@@ -185,7 +185,7 @@ import telemetry.TelemFormat;
 							return;
 						}
 					} 
-					minByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
+					minByte += frameLayout.getPayloadLength(p);
 				}
 			}
 			if (fox != null && fox.hasFrameCrc && Config.calculateBPSKCrc) {
@@ -230,8 +230,8 @@ import telemetry.TelemFormat;
 		}
 		
 		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
-			payload = new FramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
-			for (int i=0; i<frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); i+=1 ) {
+			payload = new FramePart[frameLayout.getNumberOfPayloads()];
+			for (int i=0; i<frameLayout.getNumberOfPayloads(); i+=1 ) {
 				BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, frameLayout.getPayloadName(i));
 				if (layout == null) {
 					payload[0] = null; // cause us to drop out

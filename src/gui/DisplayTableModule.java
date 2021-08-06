@@ -14,7 +14,7 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 import telemetry.PayloadMaxValues;
 import telemetry.PayloadMinValues;
 import telemetry.PayloadRtValues;
@@ -58,7 +58,7 @@ import telemetry.RadiationPacket;
 @SuppressWarnings("serial")
 public class DisplayTableModule extends JPanel implements ActionListener, MouseListener {
 	
-	FoxSpacecraft fox;
+	Spacecraft fox;
 	int size = 0;
 	String[] fieldName = null;  // string used to lookup new values
 //	JLabel[] rtValue = null;   // the RT value displated
@@ -98,7 +98,7 @@ public class DisplayTableModule extends JPanel implements ActionListener, MouseL
 	 * @param title
 	 * @param size
 	 */
-	public DisplayTableModule(FoxSpacecraft sat, String title, int size, int modType) {
+	public DisplayTableModule(Spacecraft sat, String title, int size, int modType) {
 		fox = sat;
 		this.size = size;
 		this.title = title;

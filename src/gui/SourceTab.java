@@ -61,7 +61,6 @@ import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
@@ -3006,7 +3005,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 			if (e.getSource() == satPosition[s]) {
 				Config.satManager.spacecraftList.get(s).user_track = !Config.satManager.spacecraftList.get(s).user_track;
-				((FoxSpacecraft)Config.satManager.spacecraftList.get(s)).save();
+				Config.satManager.spacecraftList.get(s).save();
 			}
 		}
 

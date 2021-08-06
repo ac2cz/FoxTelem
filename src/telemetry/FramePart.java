@@ -13,7 +13,6 @@ import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxBitStream;
@@ -77,7 +76,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
 	protected String reportDate; // the date/time that this was written to the file.  NOT the same as the STP date, which is just on the frame.
 	protected int type; // the type of this payload. Zero if the spacecraft does not use types
-	public int newMode = FoxSpacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
+	public int newMode = Spacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
 	public static final double NO_POSITION_DATA = -999.0;
 	public static final double NO_T0 = -998.0;
 	public static final double NO_TLE = -997.0;
@@ -278,14 +277,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		copyBitsToFields();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, \n";
-		if (newMode != FoxSpacecraft.NO_MODE)
+		if (newMode != Spacecraft.NO_MODE)
 			s = s + "newMode,";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
 		s = s + "values ('" + this.reportDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
-		if (newMode != FoxSpacecraft.NO_MODE)
+		if (newMode != Spacecraft.NO_MODE)
 			s = s + newMode+",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + fieldValue[i] + ",\n";
@@ -810,7 +809,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			} else if ((conv == BitArrayLayout.CONVERT_INTEGER) || (conv == BitArrayLayout.CONVERT_WOD_STORED)) {
 				s = Long.toString((long) value);
 			} else if (conv == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
-				s = ihuDiagnosticString((int) value, true, (FoxSpacecraft)fox);
+				s = ihuDiagnosticString((int) value, true, fox);
 			} else if (conv == BitArrayLayout.CONVERT_HARD_ERROR) {
 				s = hardErrorString((int) value, true);
 			} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR) {
@@ -897,11 +896,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			}
 			return ERROR_VALUE;
 		}
-		
-		protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
-			return convertCoeffRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
-		}
-
+	
 		/**
 		 * Given a raw value, convert it with a curve, lookup table it into the actual value that we can display based on the
 		 * conversion type passed.  
@@ -911,7 +906,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param fox
 		 * @return
 		 */
-		protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, FoxSpacecraft fox) {
+		protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 			double x = 0;
 			try {
 				if (conversion instanceof ConversionMathExpression)
@@ -925,10 +920,6 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return x; 
 		}
 
-		protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox) {
-			return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
-		}
-		
 		/**
 		 * LEGACY CONVERSIONS for backwards compatibility
 		 * Given a raw value, BitArrayLayout.CONVERT it into the actual value that we can display based on the
@@ -938,7 +929,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param conversion
 		 * @return
 		 */
-		protected double convertRawValue(String name, double rawValue, int conversion, FoxSpacecraft fox ) {
+		protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox ) {
 			
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 			switch (conversion) {
@@ -962,7 +953,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				if (name.equalsIgnoreCase("BATT_B_V"))
 					return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_B_SCALING_FACTOR;
 				if (name.equalsIgnoreCase("BATT_C_V"))  // then this is fox
-					if (((FoxSpacecraft)fox).useIHUVBatt)
+					if (fox.useIHUVBatt)
 						return fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 					else
 						return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_C_SCALING_FACTOR;
@@ -973,7 +964,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				
 			case BitArrayLayout.CONVERT_BATTERY_CURRENT:
 				double d = (double)rawValue;
-				d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * ((FoxSpacecraft)fox).user_BATTERY_CURRENT_ZERO + 2)*1000;
+				d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * fox.user_BATTERY_CURRENT_ZERO + 2)*1000;
 				return d;
 			case BitArrayLayout.CONVERT_SOLAR_PANEL:
 				return rawValue * VOLTAGE_STEP_FOR_3V_SENSORS/SOLAR_PANEL_SCALING_FACTOR;
@@ -1159,7 +1150,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param fox
 		 * @return
 		 */
-		private static double calcMemsValue(int value, String name, FoxSpacecraft fox) {
+		private static double calcMemsValue(int value, String name, Spacecraft fox) {
 			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value);
 			volts = volts / 2;
 			double memsZeroValue = MEMS_ZERO_VALUE_VOLTS;
@@ -1167,9 +1158,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			
 			if (fox.hasMemsRestValues) {
 				int restValue = 0;
-				if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
-				if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
-				if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
+				if (name.equalsIgnoreCase(Spacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
+				if (name.equalsIgnoreCase(Spacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
+				if (name.equalsIgnoreCase(Spacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
 				memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(restValue);
 				memsZeroValue = memsZeroValue/2;
 			}
@@ -1186,7 +1177,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param shortString
 		 * @return
 		 */
-		public static String ihuDiagnosticString(int rawValue, boolean shortString, FoxSpacecraft fox) {
+		public static String ihuDiagnosticString(int rawValue, boolean shortString, Spacecraft fox) {
 			// First 8 bits hold the type
 			int type = rawValue & 0xff ;
 			int value = 0;
@@ -1267,9 +1258,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 				if (shortString)
 					//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
-					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
+					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
 				else
-					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
+					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
 				//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			case GYRO1V: // Gyro1V
 				value = (rawValue >> 8) & 0xfff; // 12 bit value after the type

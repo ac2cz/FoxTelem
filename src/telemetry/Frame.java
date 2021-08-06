@@ -25,7 +25,7 @@ import measure.RtMeasurement;
 import common.Config;
 import common.Log;
 import common.Sequence;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 import decoder.HighSpeedBitStream;
 import fec.RsCodeWord;
 
@@ -73,7 +73,7 @@ public abstract class Frame implements Comparable<Frame> {
 			"E, dd MMM yyyy HH:mm:ss", Locale.ENGLISH);
 
 	protected Header header = null;
-	protected FoxSpacecraft fox; // the satellite that we are decoding a frame for, populated
+	protected Spacecraft fox; // the satellite that we are decoding a frame for, populated
 					// once the header is filled
 
 	// TODO - These should really be looked up from the formats loaded in Config.satManager
@@ -708,7 +708,7 @@ public abstract class Frame implements Comparable<Frame> {
 				}
 				*/
 				payloadStore = new PayloadDbStore(u,p,db);
-				int newReset = 0; // this will store the reset for HuskySat if the MRAM is broken
+				
 				
 				if (decodedFrame instanceof SlowSpeedFrame) {
 					if (!payloadStore.addStpHeader(decodedFrame))
@@ -721,7 +721,8 @@ public abstract class Frame implements Comparable<Frame> {
 					//duvFrames++;
 				} else if (decodedFrame instanceof FoxBPSKFrame) {
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-					FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(hsf.header.id);
+					Spacecraft fox =  Config.satManager.getSpacecraft(hsf.header.id);
+					int newReset = hsf.header.resets; // this will be updated with the reset for HuskySat as the MRAM is broken
 					if (hsf.header.id == 6) { // better if this was not hardcoded and was in the spacecraft file
 						// We are husky sat and the MRAM is broken.  Need to see if this was a reset
 						newReset = payloadStore.checkForNewReset(hsf.header.id, hsf.header.uptime, decodedFrame.stpDate, hsf.header.resets, decodedFrame.receiver);

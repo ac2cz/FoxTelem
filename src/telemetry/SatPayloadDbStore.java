@@ -21,7 +21,6 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -58,7 +57,7 @@ public class SatPayloadDbStore {
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
 	
 	public int foxId;
-	public FoxSpacecraft fox;
+	public Spacecraft fox;
 	
 	public static String RT_LOG = "RTTELEMETRY";
 	public static String MAX_LOG = "MAXTELEMETRY";
@@ -114,7 +113,7 @@ public class SatPayloadDbStore {
 	 * Create the payload store this this fox id
 	 * @param id
 	 */
-	public SatPayloadDbStore(PayloadDbStore store, FoxSpacecraft fox) {
+	public SatPayloadDbStore(PayloadDbStore store, Spacecraft fox) {
 		this.fox = fox;
 		payloadDbStore = store;
 		foxId = fox.foxId;
@@ -192,6 +191,7 @@ public class SatPayloadDbStore {
 	private void initPayloadTable(String table, BitArrayLayout layout, boolean storeMode) {
 		if (layout == null) return; // we don't need this table if there is no layout
 		String createStmt = layout.getTableCreateStmt(storeMode);
+		layout.tableName = table;
 		createTable(table, createStmt);
 	}
 
@@ -908,17 +908,27 @@ public class SatPayloadDbStore {
 		payload = null;
 	}
 	
-//	public FramePart getLatest(String layout) throws SQLException {
-//		BitArrayLayout lay = fox.getLayoutByName(layout);
-//		String tableName = lay.getTableName();
-//		FoxFramePart payload = FramePart.makePayload(lay);
-//		selectLatest(tableName, payload);
-//		return payload;
-//	}
+	public FramePart getLatest(String layout) throws SQLException {
+		BitArrayLayout lay = fox.getLayoutByName(layout);
+		String tableName = lay.getTableName();
+		FramePart payload = null;
+		if (fox.hasFOXDB_V3)
+			payload = (FramePart) FramePart.makePayload(fox.foxId,0,0l, layout);
+		else
+			payload = (FramePart) FramePart.makeLegacyPayload(fox.foxId,0,0l, layout);
+		selectLatest(tableName, payload);
+		return payload;
+	}
 	
 	public CanPacket getLatestUwCanPacket() throws SQLException {
 		CanPacket payload = new CanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
 		selectLatest(uwCanPacketTableName, payload);
+		return payload;
+	}
+	
+	public PayloadWOD getLatestWod() throws SQLException {
+		PayloadWOD payload = new PayloadWOD(fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
+		selectLatest(wodTableName, payload);
 		return payload;
 	}
 	
@@ -1354,7 +1364,13 @@ public class SatPayloadDbStore {
 		
 	}
 */
-    
+  
+	public double[][] getGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, String layout) throws SQLException {
+		BitArrayLayout lay = fox.getLayoutByName(layout);
+		String tableName = lay.getTableName();
+		return getGraphData(tableName, name, period, fox2, fromReset, fromUptime);
+	}
+	
 	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs = null;
 		String where = "";

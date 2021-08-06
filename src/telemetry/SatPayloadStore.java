@@ -15,7 +15,7 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 /**
  * 
@@ -47,7 +47,7 @@ import common.FoxSpacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
-	private FoxSpacecraft fox;
+	private Spacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
 	//private boolean initRad2 = false;
@@ -64,7 +64,7 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
-		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(foxId);
+		fox = Config.satManager.getSpacecraft(foxId);
 		
 		try {
 			initPayloadFiles();
@@ -371,7 +371,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData, reverse);
 		
 	}
@@ -462,7 +462,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData, reverse);
 		
 	}

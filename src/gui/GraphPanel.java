@@ -9,7 +9,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 import predict.PositionCalcException;
 import telemetry.BitArrayLayout;
 import telemetry.Conversion;
@@ -64,7 +64,7 @@ public class GraphPanel extends GraphCanvas {
 	int sideLabel = 0;
 	int bottomLabelOffset = 5;
 	
-	GraphPanel(String t, GraphFrame gf, FoxSpacecraft fox2) {
+	GraphPanel(String t, GraphFrame gf, Spacecraft fox2) {
 		super(t, gf, fox2);
 		freqOffset = (int) (fox2.user_telemetryDownlinkFreqkHz * 1000);
 		updateGraphData(gf.layout, "GrapPanel.new");
@@ -363,7 +363,7 @@ public class GraphPanel extends GraphCanvas {
 				}
 				if (graphFrame.showUTCtime) {
 					//if (fox.isFox1()) {
-						FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+					Spacecraft fox2 = fox;
 						if (fox2.hasTimeZero(resets) && resets != NO_TIME_VALUE) {
 							g2.drawString(fox2.getUtcTimeForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+1*Config.graphAxisFontSize + offset);
 							g2.drawString(""+fox2.getUtcDateForReset(resets, uptime), timepos+sideBorder+2, zeroPoint+2 * Config.graphAxisFontSize +offset);

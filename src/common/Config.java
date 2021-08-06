@@ -67,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.11g";
-	public static String VERSION = VERSION_NUM + " - 6 Jul 2021";
+	public static String VERSION_NUM = "1.12c";
+	public static String VERSION = VERSION_NUM + " - 18 Jul 2021";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -780,6 +780,9 @@ public class Config {
 		// V1.10
 		properties.setProperty("calculateBPSKCrc", Boolean.toString(calculateBPSKCrc));
 
+		// V1.12
+		properties.setProperty("debugRS", Boolean.toString(debugRS));
+		
 		store();
 	}
 	
@@ -979,6 +982,9 @@ public class Config {
 		
 		// V1.10
 		calculateBPSKCrc = Boolean.parseBoolean(getProperty("calculateBPSKCrc"));
+		
+		// V1.12
+		debugRS = Boolean.parseBoolean(getProperty("debugRS"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

@@ -4,8 +4,6 @@ import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
-
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
@@ -71,12 +69,12 @@ public class SpacecraftTab extends JPanel {
 		}
 	}
 
-	public void refreshXTabs(FoxSpacecraft fox, boolean closeGraphs) {
+	public void refreshXTabs(Spacecraft fox, boolean closeGraphs) {
 		closeTabs(fox, closeGraphs);
 		createTabs(fox);
 	}
 	
-	public void closeTabs(FoxSpacecraft fox, boolean closeGraphs) {
+	public void closeTabs(Spacecraft fox, boolean closeGraphs) {
 		sat = fox;
 		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
 			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
@@ -109,7 +107,7 @@ public class SpacecraftTab extends JPanel {
 		for (BitArrayLayout lay : sat.layout) {
 			if (lay.isRealTime()) {
 				// Add health tab
-				HealthTabRt healthTab = new HealthTabRt((FoxSpacecraft)sat);
+				HealthTabRt healthTab = new HealthTabRt(sat);
 				Thread healthThread = new Thread(healthTab);
 				healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 				healthThread.start();
@@ -118,7 +116,7 @@ public class SpacecraftTab extends JPanel {
 						+ HEALTH + "</b></body></html>", healthTab );
 			}
 			if (lay.isWOD()) {
-				WodHealthTab wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
+				WodHealthTab wodHealthTab = new WodHealthTab(sat);
 				Thread wodHealthThread = new Thread(wodHealthTab);
 				wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 				wodHealthThread.start();
@@ -130,7 +128,7 @@ public class SpacecraftTab extends JPanel {
 			}
 			if (lay.isExperiment()) {
 				try {
-					addNamedExperimentTab((FoxSpacecraft)sat, lay);
+					addNamedExperimentTab(sat, lay);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup Ragnaroc Experiment tab for sat: " + sat.user_display_name 
@@ -139,7 +137,7 @@ public class SpacecraftTab extends JPanel {
 			}
 			if (lay.isWODExperiment()) {
 				try {
-					addWodNamedExpTab((FoxSpacecraft)sat, lay);
+					addWodNamedExpTab(sat, lay);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
@@ -153,7 +151,7 @@ public class SpacecraftTab extends JPanel {
 	private void addLegacyTabs() {
 		stop();
 		
-		HealthTabRt healthTab = new HealthTabRt((FoxSpacecraft)sat);
+		HealthTabRt healthTab = new HealthTabRt(sat);
 		healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
@@ -165,7 +163,7 @@ public class SpacecraftTab extends JPanel {
 
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_LAYOUT) != Spacecraft.ERROR_IDX) {
 			try {
-				addWodTab((FoxSpacecraft)sat);
+				addWodTab(sat);
 			} catch (Exception e) {
 				e.printStackTrace(Log.getWriter());
 				Log.errorDialog("Layout Failure", "Failed to setup Whole Orbit Data tab for sat: " + sat.user_display_name 
@@ -174,10 +172,10 @@ public class SpacecraftTab extends JPanel {
 
 		}
 
-		for (int exp : ((FoxSpacecraft)sat).experiments) {
-			if (exp == FoxSpacecraft.EXP_VANDERBILT_LEP) {
+		for (int exp : (sat).experiments) {
+			if (exp == Spacecraft.EXP_VANDERBILT_LEP) {
 				try {
-					addExperimentTab((FoxSpacecraft)sat);
+					addExperimentTab(sat);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_display_name 
@@ -185,7 +183,7 @@ public class SpacecraftTab extends JPanel {
 				}
 				if (sat.getLayoutIdxByName(Spacecraft.WOD_RAD_LAYOUT) != Spacecraft.ERROR_IDX) {
 					try {
-					addWodExpTab((FoxSpacecraft)sat);
+					addWodExpTab(sat);
 					} catch (Exception e) {
 						e.printStackTrace(Log.getWriter());
 						Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
@@ -194,28 +192,28 @@ public class SpacecraftTab extends JPanel {
 				}
 			}
 
-			if (exp == FoxSpacecraft.EXP_VT_CAMERA || exp == FoxSpacecraft.EXP_VT_CAMERA_LOW_RES)
+			if (exp == Spacecraft.EXP_VT_CAMERA || exp == Spacecraft.EXP_VT_CAMERA_LOW_RES)
 				try {
-					addCameraTab((FoxSpacecraft)sat);
+					addCameraTab(sat);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup VT Camera tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
 
-			if (exp == FoxSpacecraft.EXP_IOWA_HERCI) {
+			if (exp == Spacecraft.EXP_IOWA_HERCI) {
 				try {
-					addHerciHSTab((FoxSpacecraft)sat);
-					addHerciLSTab((FoxSpacecraft)sat);
+					addHerciHSTab(sat);
+					addHerciLSTab(sat);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup IOWA HERCI tabs for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
 				}
 			}
-			if (exp == FoxSpacecraft.EXP_UW)
+			if (exp == Spacecraft.EXP_UW)
 				try {
-					addUwExperimentTab((FoxSpacecraft)sat);
+					addUwExperimentTab(sat);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup UW Experiement tab for sat: " + sat.user_display_name 
@@ -225,7 +223,7 @@ public class SpacecraftTab extends JPanel {
 		
 		if (sat.getLayoutIdxByName(Spacecraft.WOD_CAN_LAYOUT) != Spacecraft.ERROR_IDX) {
 			try {
-			addUwWodExperimentTab((FoxSpacecraft)sat);
+			addUwWodExperimentTab(sat);
 			} catch (Exception e) {
 				e.printStackTrace(Log.getWriter());
 				Log.errorDialog("Layout Failure", "Failed to setup UW WOD tab for sat: " + sat.user_display_name 
@@ -235,9 +233,9 @@ public class SpacecraftTab extends JPanel {
 		
 	}
 
-	private void addWodTab(FoxSpacecraft fox) {
+	private void addWodTab(Spacecraft fox) {
 		
-		WodHealthTab wodHealthTab = new WodHealthTab((FoxSpacecraft)sat);
+		WodHealthTab wodHealthTab = new WodHealthTab(sat);
 		wodHealthThread = new Thread(wodHealthTab);
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();
@@ -248,7 +246,7 @@ public class SpacecraftTab extends JPanel {
 				+ WOD + "</b></body></html>", wodHealthTab );
 	}
 	
-	private void addWodExpTab(FoxSpacecraft fox) {
+	private void addWodExpTab(Spacecraft fox) {
 		WodVulcanTab wodExperimentTab = new WodVulcanTab(fox);
 		Thread wodExperimentThread = new Thread((VulcanTab)wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -260,7 +258,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 
-	private void addExperimentTab(FoxSpacecraft fox) {
+	private void addExperimentTab(Spacecraft fox) {
 		
 		VulcanTab experimentTab = new VulcanTab(fox, DisplayModule.DISPLAY_EXPERIMENT);
 		experimentThread = new Thread((VulcanTab)experimentTab);
@@ -273,7 +271,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 	
-	private void addNamedExperimentTab(FoxSpacecraft fox, BitArrayLayout layout) {
+	private void addNamedExperimentTab(Spacecraft fox, BitArrayLayout layout) {
 		BitArrayLayout secondaryLayout = fox.getSecondaryLayoutFromPrimaryName(layout.name);
 		String title = "Experiment: " + layout.name;
 		if (layout.title != null)
@@ -294,7 +292,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 	
-	private void addWodNamedExpTab(FoxSpacecraft fox, BitArrayLayout layout) {
+	private void addWodNamedExpTab(Spacecraft fox, BitArrayLayout layout) {
 		BitArrayLayout secondaryLayout = fox.getSecondaryLayoutFromPrimaryName(layout.name);
 		String title = "Experiment: " + layout.name;
 		if (layout.title != null)
@@ -315,7 +313,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 	
-	private void addUwExperimentTab(FoxSpacecraft fox) {
+	private void addUwExperimentTab(Spacecraft fox) {
 
 		UwExperimentTab experimentTab = new UwExperimentTab(fox, DisplayModule.DISPLAY_UW);
 		experimentThread = new Thread((UwExperimentTab)experimentTab);
@@ -328,7 +326,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 
-	private void addUwWodExperimentTab(FoxSpacecraft fox) {
+	private void addUwWodExperimentTab(Spacecraft fox) {
 		WodUwExperimentTab wodExperimentTab = new WodUwExperimentTab(fox);
 		Thread wodExperimentThread = new Thread((WodUwExperimentTab)wodExperimentTab);
 		wodExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
@@ -340,7 +338,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 
-	private void addHerciLSTab(FoxSpacecraft fox) {
+	private void addHerciLSTab(Spacecraft fox) {
 
 		HerciLSTab experimentTab = new HerciLSTab(fox);
 		experimentThread = new Thread((HerciLSTab)experimentTab);
@@ -353,7 +351,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 	
-	private void addHerciHSTab(FoxSpacecraft fox) {
+	private void addHerciHSTab(Spacecraft fox) {
 		HerciHSTab herciTab = new HerciHSTab(fox);
 		herciThread = new Thread(herciTab);
 			
@@ -365,7 +363,7 @@ public class SpacecraftTab extends JPanel {
 		" HERCI ("+ fox.getIdString() + ")</body></html>", herciTab);
 	}
 	
-	private void addCameraTab(FoxSpacecraft fox) {
+	private void addCameraTab(Spacecraft fox) {
 
 		CameraTab cameraTab = new CameraTab(fox);
 		cameraThread = new Thread(cameraTab);

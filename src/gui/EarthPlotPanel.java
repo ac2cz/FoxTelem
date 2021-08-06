@@ -5,11 +5,9 @@ import java.awt.Font;
 import java.awt.Graphics;
 import java.io.IOException;
 import java.text.DecimalFormat;
-
 import javax.imageio.ImageIO;
-
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 import common.Log;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
@@ -24,7 +22,7 @@ public class EarthPlotPanel extends GraphCanvas {
 	public static final int MERCATOR_PROJECTION = 1;
 	public int mapProjection = RECTANGULAR_PROJECTION;
 	
-	EarthPlotPanel(String t, GraphFrame gf, FoxSpacecraft sat) {
+	EarthPlotPanel(String t, GraphFrame gf, Spacecraft sat) {
 		super(t, gf, sat);
 		sideBorder = sideBorder + 20;
 		sideLabelOffset = sideLabelOffset + 30;

@@ -31,7 +31,6 @@ import telemetry.PayloadHERCIhighSpeed;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import decoder.FoxDecoder;
 
 /**
@@ -75,7 +74,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 	private static final String DECODED = "HS Payloads Decoded: ";
 
 	
-	public HerciHSTab(FoxSpacecraft sat) {
+	public HerciHSTab(Spacecraft sat) {
 		super();
 		fox = sat;
 		foxId = fox.foxId;

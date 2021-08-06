@@ -59,7 +59,6 @@ import telemetry.PayloadStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import common.FoxTime;
 import measure.SatMeasurementStore;
 
@@ -124,7 +123,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JComboBox cbAddVariable;
 	private ArrayList<String> variables;
 	
-	public FoxSpacecraft fox;
+	public Spacecraft fox;
 	public static final String LIVE_TEXT = "Last";
 	public static final String RANGE_TEXT = "Range";
 	public static final String NEXT_TEXT = "Next";
@@ -226,7 +225,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	boolean textDisplay = false;
 	
-	public GraphFrame(String title, String fieldName, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, BitArrayLayout lay, Spacecraft fox2, int plot) {
 		this.title = title;
 		fox = fox2;
 		this.fieldName = new String[1];
@@ -246,7 +245,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 * Create the frame.
 	 */
 	@SuppressWarnings("rawtypes")
-	public GraphFrame(String title, String fieldName, String fieldUnits, String conversionName, int plType, BitArrayLayout lay, FoxSpacecraft fox2, int plot) {
+	public GraphFrame(String title, String fieldName, String fieldUnits, String conversionName, int plType, BitArrayLayout lay, Spacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
 		this.fieldName[0] = fieldName;
@@ -302,10 +301,10 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			textDisplay = true;
 		} else if (plotType == SKY_PLOT){
 			initSkyPlotFields();
-			panel = new DensityPlotPanel(title, this, (FoxSpacecraft)fox);
+			panel = new DensityPlotPanel(title, this, fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else if (plotType == EARTH_PLOT){
-			panel = new EarthPlotPanel(title, this, (FoxSpacecraft)fox);
+			panel = new EarthPlotPanel(title, this, fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
 			panel = new GraphPanel(title, this, fox);
@@ -1588,7 +1587,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			for (int i=0; i< graphData[0][0].length; i++) {
 				String s;
 				if (this.showUTCtime /* && fox.isFox1() */) {
-					FoxSpacecraft fox2 = (FoxSpacecraft)fox;
+					Spacecraft fox2 = fox;
 					if (fox2.hasTimeZero((int)graphData[0][PayloadStore.RESETS_COL][i]))
 						s = fox2.getUtcDateForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]) 
 						+ " " + fox2.getUtcTimeForReset((int)graphData[0][PayloadStore.RESETS_COL][i], (long)graphData[0][PayloadStore.UPTIME_COL][i]);

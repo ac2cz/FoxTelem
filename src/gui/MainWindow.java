@@ -44,7 +44,6 @@ import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
@@ -777,7 +776,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
 				//if (sats.get(i).isFox1()) {
-					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
+					SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
 					f.setVisible(true);
 				//}
 			}
@@ -1211,7 +1210,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					try {
 						//SatPayloadStore.copyFile(file, targetFile);
 						try {
-							FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
+							Spacecraft satellite = new Spacecraft(Config.satManager, file, targetFile);
 							satellite.save();
 						} catch (LayoutLoadException e) {
 							Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());

@@ -32,7 +32,6 @@ import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import decoder.FoxDecoder;
 
 /**
@@ -77,7 +76,7 @@ public class HerciLSTab extends ExperimentTab implements ItemListener, Runnable,
 
 	boolean displayTelem = true;
 	
-	public HerciLSTab(FoxSpacecraft sat)  {
+	public HerciLSTab(Spacecraft sat)  {
 		super();
 		fox = sat;
 		foxId = fox.foxId;

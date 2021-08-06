@@ -5,15 +5,15 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import fec.RsCodeWord;
+
 public class TelemFormat {
 	public static final String NAME="name";
 	public static final String MODE="mode";
 	public static final String BPS="bps";
-	public static final String FRAME_LENGTH="frame_length";
 	public static final String DATA_LENGTH="data_length";
 	public static final String HEADER_LENGTH="header_length";
 	public static final String HEADER_LAYOUT_FILE="header_layout_file";
-	public static final String TRAILER_LENGTH="trailer_length";
 	public static final String RS_WORDS="rs_words";
 	public static final String RS_PADDING="rs_padding";
 	public static final String SYNC_WORD_LENGTH="sync_word_length";
@@ -24,6 +24,11 @@ public class TelemFormat {
 	String fileName;
 	public String name;
 	BitArrayLayout headerLayout;
+	
+	// calculated fields
+	int frameLength;
+	int trailerLength;
+	int[] rsPaddingArray;
 	
 	public TelemFormat(String fileName) throws LayoutLoadException {
 		properties = new Properties();
@@ -50,6 +55,12 @@ public class TelemFormat {
 		try { getInt(RS_WORDS); } catch (Exception e) {
 			throw new LayoutLoadException("Invalid or missing "+RS_WORDS+" in Telem Format file: " + propertiesFile.getAbsolutePath());
 		}
+		
+		// calculated fields
+		trailerLength = getInt(RS_WORDS) * RsCodeWord.NROOTS;
+		frameLength = getInt(DATA_LENGTH) + trailerLength;
+		
+		
 	}
 	
 	protected void load() throws LayoutLoadException {
@@ -72,9 +83,11 @@ public class TelemFormat {
 	public int getSyncWordDistance() {
 		int syncWordLength = getInt(SYNC_WORD_LENGTH);
 		int wordLength = getInt(WORD_LENGTH);
-		int frameLength = getInt(FRAME_LENGTH);
 		return frameLength * wordLength + syncWordLength;
 	}
+	
+	public int getFrameLength() { return frameLength; }
+	public int getTrailerLength() { return trailerLength; }
 	
 	public BitArrayLayout getHeaderLayout() { 
 		return headerLayout; }

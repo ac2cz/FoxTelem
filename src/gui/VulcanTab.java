@@ -32,14 +32,12 @@ import javax.swing.table.TableColumn;
 import telemetry.BitArrayLayout;
 import telemetry.CobsDecodeException;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.RadiationPacket;
 import telemetry.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 	`
@@ -94,10 +92,10 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 	ExperimentLayoutTableModel radTableModel;
 	RadiationPacketTableModel radPacketTableModel;
 	
-	public VulcanTab(FoxSpacecraft sat, int displayType)  {
+	public VulcanTab(Spacecraft sat, int displayType)  {
 		
 		super();
-		fox = (FoxSpacecraft)sat;
+		fox = sat;
 		foxId = fox.foxId;
 		NAME = fox.toString() + " Vanderbilt University Radiation Experiments";
 		
@@ -395,7 +393,7 @@ public class VulcanTab extends ExperimentTab implements ItemListener, Runnable, 
 			keyPacketData[packets.size()-i-1][1] = packets.get(i).uptime;
 			packetData[packets.size()-i-1][0] = "TELEMETRY";
 			packetData[packets.size()-i-1][1] = ""+packets.get(i).fieldValue[3]; // UPTIME
-			String telem = packets.get(i).toDataString((FoxSpacecraft)fox);
+			String telem = packets.get(i).toDataString(fox);
 			packetData[packets.size()-i-1][2] = telem; 
 		}
 

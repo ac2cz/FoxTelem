@@ -10,7 +10,6 @@ import javax.swing.JRadioButton;
 import javax.swing.JTable;
 import javax.swing.border.EmptyBorder;
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import telemetry.FramePart;
@@ -19,7 +18,7 @@ public class HealthTabRt extends HealthTab {
 
 	private static final long serialVersionUID = 1L;
 
-	public HealthTabRt(FoxSpacecraft spacecraft) {
+	public HealthTabRt(Spacecraft spacecraft) {
 		super(spacecraft, DisplayModule.DISPLAY_ALL);
 		TAB_TYPE = "health";
 		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");

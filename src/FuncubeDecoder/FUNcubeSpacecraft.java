@@ -59,7 +59,7 @@ public class FUNcubeSpacecraft extends Spacecraft {
 	}
 
 	@Override
-	protected void save() {
+	public void save() {
 		//super.save();
 	}
 

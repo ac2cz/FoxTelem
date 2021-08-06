@@ -62,6 +62,7 @@ public class SatelliteManager implements Runnable {
 	
 	public static final String AMSAT_NASA_ALL = "http://www.amsat.org/amsat/ftp/keps/current/nasabare.txt";
 	public boolean updated = true; // true when we have first been created or the sats have been updated and layout needs to change
+	public static final long RECENT_TIME = 60 * 60 * 1000; // 60 min recent time threshold to ignore request to download keps
 	
 	public ArrayList<Spacecraft> spacecraftList = new ArrayList<Spacecraft>();
 	public ArrayList<TelemFormat> telemFormats = new ArrayList<TelemFormat>();
@@ -73,7 +74,7 @@ public class SatelliteManager implements Runnable {
 	}
 	
 	public void init() {
-		File masterFolder = new File(Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR);
+		File masterFolder = new File(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR);
 		loadFormats(masterFolder);
 		File folder = getFolder(masterFolder);
 		//File folder = new File("spacecraft");
@@ -124,7 +125,7 @@ public class SatelliteManager implements Runnable {
 									//SatPayloadStore.copyFile(listOfFiles[i], targetFile);
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										FoxSpacecraft satellite = new FoxSpacecraft(this, listOfFiles[i], targetFile);
+										Spacecraft satellite = new Spacecraft(this, listOfFiles[i], targetFile);
 										satellite.save();
 									} catch (LayoutLoadException e) {
 										Log.errorDialog("ERROR Loading Spacecraft File", "Could not load spacecraft file "+ targetFile + "\n" + e);
@@ -154,7 +155,7 @@ public class SatelliteManager implements Runnable {
 								try {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
 									try {
-										FoxSpacecraft satellite = new FoxSpacecraft(this, listOfFiles[i], targetFile);
+										Spacecraft satellite = new Spacecraft(this, listOfFiles[i], targetFile);
 										// Then remove the existing .dat fi;e
 										try {
 											SatPayloadStore.remove(targetFile.getAbsolutePath());
@@ -185,7 +186,7 @@ public class SatelliteManager implements Runnable {
 	}
 	
 	private File getFolder(File masterFolder) {
-		File folder = new File(Config.getLogFileDirectory() + FoxSpacecraft.SPACECRAFT_DIR);
+		File folder = new File(Config.getLogFileDirectory() + Spacecraft.SPACECRAFT_DIR);
 		
 		if(!folder.isDirectory()){
 			folder.mkdir();
@@ -243,14 +244,14 @@ public class SatelliteManager implements Runnable {
 						if (matcher.find())
 							satellite = new FUNcubeSpacecraft(this, masterFileName, listOfFiles[i]);
 						else
-							satellite = new FoxSpacecraft(this, masterFileName, listOfFiles[i]);
+							satellite = new Spacecraft(this, masterFileName, listOfFiles[i]);
 						// Debug print for frame layouts
 						int frameLayouts = satellite.numberOfFrameLayouts;
 						if (frameLayouts > 0) {
 							Log.println("Frame Layouts: " + frameLayouts);
 							for (int k=0; k < frameLayouts; k++) {
-								Log.print(" : " + satellite.frameLayout[k].name);
-								Log.print(" : " + satellite.frameLayout[k].getInt(FrameLayout.NUMBER_OF_PAYLOADS) + " payloads");
+								Log.println(" : " + satellite.frameLayout[k].name);
+								Log.println(" : " + satellite.frameLayout[k].getNumberOfPayloads() + " payloads");
 								Log.println("");
 							}
 						}
@@ -262,13 +263,13 @@ public class SatelliteManager implements Runnable {
 								Log.println("" + satellite.sourceName[k]);
 								
 								if (satellite.sourceFormat != null && satellite.sourceFormat[k] != null) {
-									Log.print(" : " + satellite.sourceFormat[k].name);									
-									Log.println(" - frame length: " + satellite.sourceFormat[k].getInt(TelemFormat.FRAME_LENGTH));
+									Log.println(" : " + satellite.sourceFormat[k].name);									
+									Log.println(" - frame length: " + satellite.sourceFormat[k].getFrameLength());
 									Log.println(" - data length: " + satellite.sourceFormat[k].getInt(TelemFormat.DATA_LENGTH));
 									Log.println(" - header length: " + satellite.sourceFormat[k].getInt(TelemFormat.HEADER_LENGTH));
-									Log.println(" - trailer length: " + satellite.sourceFormat[k].getInt(TelemFormat.TRAILER_LENGTH));
+									Log.println(" - trailer length: " + satellite.sourceFormat[k].getTrailerLength());
 									Log.println(" - rs words: " + satellite.sourceFormat[k].getInt(TelemFormat.RS_WORDS));
-									Log.print(" - padding: ");
+									Log.println(" - padding: ");
 									int[] padding = satellite.sourceFormat[k].getPaddingArray();
 									for (int p=0; p<padding.length; p++)
 										Log.print(" " + padding[p]);
@@ -308,7 +309,7 @@ public class SatelliteManager implements Runnable {
 		}
 		if (spacecraftList.size() == 0) {
 			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 
-					Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR +
+					Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +
 					"\n and confirm it contains the "
 					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
 			System.exit(1);
@@ -323,21 +324,21 @@ public class SatelliteManager implements Runnable {
 	 */
 	public BitArrayLayout getLayoutByName(int sat, String name) {
 		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.getLayoutByName(name);
 		return null;
 	}
 	
 	public BitArrayLayout getLayoutByCanId(int sat, int id) {
 		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.getLayoutByCanId(id);
 		return null;
 	}
 
 	public FrameLayout getFrameLayout(int sat, int type) {
 		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null && sc.frameLayout != null) return sc.frameLayout[type];
 		return null;
 	}
@@ -345,14 +346,14 @@ public class SatelliteManager implements Runnable {
 	
 	public BitArrayLayout getMeasurementLayout(int sat) {
 		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.measurementLayout;
 		return null;
 	}
 
 	public BitArrayLayout getPassMeasurementLayout(int sat) {
 		if (!validFoxId(sat)) return null;
-		FoxSpacecraft sc = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft sc = getSpacecraft(sat);
 		if (sc != null) return sc.passMeasurementLayout;
 		return null;
 	}
@@ -365,13 +366,13 @@ public class SatelliteManager implements Runnable {
 
 	public boolean hasCamera(int sat) {
 		if (!validFoxId(sat)) return false;
-		FoxSpacecraft s = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft s = getSpacecraft(sat);
 		return s.hasCamera();
 	}
 
 	public boolean hasHerci(int sat) {
 		if (!validFoxId(sat)) return false;
-		FoxSpacecraft s = (FoxSpacecraft)getSpacecraft(sat);
+		Spacecraft s = getSpacecraft(sat);
 		return s.hasHerci();
 	}
 
@@ -393,7 +394,7 @@ public class SatelliteManager implements Runnable {
 
 	public TelemFormat getFormatByFrameLength(int len) {
 		for (int i=0; i < telemFormats.size(); i++) {
-			if (telemFormats.get(i).getInt(TelemFormat.FRAME_LENGTH) == len)
+			if (telemFormats.get(i).getFrameLength() == len)
 				return telemFormats.get(i);
 		}
 		return null;
@@ -443,17 +444,22 @@ public class SatelliteManager implements Runnable {
 	public void fetchTLEFile() {
 		Log.println("Checking for new Keps");
 		String urlString = AMSAT_NASA_ALL;
-		String file = FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
+		String file = Spacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
 		String filetmp = file + ".tmp";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + FoxSpacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
+			file = Config.logFileDirectory + File.separator + Spacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
 			filetmp = file + ".tmp";
 		}
 		File f1 = new File(filetmp);
 		File f2 = new File(file);
 		Date lm = new Date(f2.lastModified());
-		//Date now = new Date();
+		Date now = new Date();
 
+		if ((now.getTime() - lm.getTime() < RECENT_TIME)) { // then dont try to update it.  Date 0 means we could not get a date, so this will likely fail to process anyway
+			Log.println(".. keps were just downloaded, skipping check");
+			return;
+		}
+		
 		String msg = "Downloading new keps ...                 ";
 		ProgressPanel initProgress = null;
 		if (Log.showGuiDialogs) {

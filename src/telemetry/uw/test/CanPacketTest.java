@@ -1,4 +1,4 @@
-package test;
+package telemetry.uw.test;
 
 import org.junit.After;
 import org.junit.AfterClass;

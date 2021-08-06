@@ -17,7 +17,6 @@ import measure.SatMeasurementStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -70,7 +69,7 @@ ItemListener {
 		add(scrollPane, BorderLayout.CENTER);
 
 		//if (sat.isFox1()) {
-			FoxSpacecraft fox = (FoxSpacecraft) sat;
+		Spacecraft fox = sat;
 			satellite = new DisplayModule(fox, fox.user_display_name, 9, null, 
 					DisplayModule.DISPLAY_MEASURES, DisplayModule.vulcanFontColor);
 			centerPanel.add(satellite);
