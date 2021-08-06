@@ -22,7 +22,7 @@ import telemetry.SortedFramePartArrayList;
 public class WebHealthTab {
 	Spacecraft fox;
 	PayloadDbStore payloadDbStore;
-	PayloadRtValues payloadRt;
+	FramePart payloadRt;
 	PayloadMaxValues payloadMax;
 	PayloadMinValues payloadMin;
 
@@ -38,18 +38,18 @@ public class WebHealthTab {
 	int numOfBottomModules = 1;
 	int port = 8080; // port to pass onto further calls
 
-	public WebHealthTab(PayloadDbStore pdb, Spacecraft f, int p) throws LayoutLoadException {
+	public WebHealthTab(PayloadDbStore pdb, Spacecraft f, int p, String layout) throws LayoutLoadException {
 		fox = f;
 		if (fox == null) throw new LayoutLoadException("Spacecraft is not valid");
 		port = p;
 		payloadDbStore = pdb;
-		rtlayout = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+		rtlayout = fox.getLayoutByName(layout);
 		maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
 		minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 		analyzeModules(rtlayout, maxlayout,minlayout, 0);
 	}
 	
-	public void setRtPayload(PayloadRtValues rt) {payloadRt = rt;}
+	public void setRtPayload(FramePart rt) {payloadRt = rt;}
 	public void setMaxPayload(PayloadMaxValues max) {payloadMax = max;}
 	public void setMinPayload(PayloadMinValues min) {payloadMin = min;}
 	

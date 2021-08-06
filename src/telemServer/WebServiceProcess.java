@@ -31,7 +31,7 @@ import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.07 - 28 July 2021";
+	public static String version = "Version 1.08 - 5 Aug 2021";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -161,7 +161,7 @@ public class WebServiceProcess implements Runnable {
 							PayloadMinValues min = (PayloadMinValues) payloadDbStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -196,7 +196,7 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -232,7 +232,7 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.WOD_LAYOUT);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -299,7 +299,7 @@ public class WebServiceProcess implements Runnable {
 				wod = (PayloadWOD) payloadDbStore.getLatest(fox.foxId, Spacecraft.WOD_LAYOUT);
 				if (wod != null) {
 					try {
-						telemTab = new WebHealthTab(payloadDbStore, fox, port);
+						telemTab = new WebHealthTab(payloadDbStore, fox, port, Spacecraft.WOD_LAYOUT);
 					} catch (LayoutLoadException e1) {
 						e1.printStackTrace(Log.getWriter());
 					}
