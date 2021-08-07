@@ -1,4 +1,4 @@
-70,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+69,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,minDownlink,ReflectedPwr,8,mW,41,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,minDownlink,ICR3VProt,8,V,8_bit_voltage,NONE,4,3,3,3V Prot,ICR 3V Protected
 2,minDownlink,ICRTemp,8,C,8_bit_temp,NONE,4,4,3,ICR Temp,ICR Temperature
@@ -62,10 +62,9 @@
 60,minDownlink,SDRYmag,8,uT,8_bit_mag,NONE,11,11,3,SDR Y Magnetometer,Angular Veolcity around Y Axis
 61,minDownlink,SDRZmag,8,uT,8_bit_mag,NONE,11,12,3,SDR Z Magnetometer,Angular Veolcity around Y Axis
 62,minDownlink,pad30,16,-,0,-,0,0,0,pad,Pad
-63,minDownlink,minTimestampUptime,32,s,1,Min Max,10,5,0,Min Uptime,Timestamp Resets
-64,minDownlink,minTimestampReset,16,s,1,Min Max,10,4,0,Min Reset,Timestamp uptime
-65,minDownlink,minCRCerror,8,-,1,Min Max,10,6,0,Min CRC Error,CRC Error for the min payload
-66,minDownlink,GPSWeekNum,10,-,0,NONE,0,0,0,GPS Week Number,Make same length as WOD
-67,minDownlink,GPSSecNum,19,-,0,NONE,0,0,0,GPS Second num,-
-68,minDownlink,pad14,3,-,0,NONE,0,0,0,Filler,-
-69,minDownlink,Pad14_1,8,-,0,NONE,0,0,0,Filler,-
+63,minDownlink,minTimestampUptime,32,s,1,Min Max,10,5,0,Min Last Chg Secs,Timestamp Resets
+64,minDownlink,minTimestampEpoch,16,s,1,Min Max,10,4,0,Min Last Chg Epoch,Timestamp uptime
+65,minDownlink,minmaxResetEpoch,16,-,1,Min Max,10,7,0,Min Max Reset Epoch,MinMax Reset Epoch
+66,minDownlink,minmaxResetSecs,32,-,1,Min Max,10,8,0,Min Max Reset Seconds,MinMax Reset Secs
+67,minDownlink,minCRCerror,8,-,1,Min Max,10,6,0,Min CRC Error,CRC Error for the min payload
+68,minDownlink,Pad14_1,24,-,0,NONE,0,0,0,Filler,-
