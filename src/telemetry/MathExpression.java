@@ -7,9 +7,11 @@ public class MathExpression {
 	String str;
 	FramePart framePart;
 	Spacecraft spacecraft;
+	double rawValue = 0;
 	
-	public MathExpression(String str) {
+	public MathExpression(String str, double rawValue) {
 		this.str = str;
+		this.rawValue = rawValue;
 	}
 	
 	 void nextChar() {
@@ -25,7 +27,7 @@ public class MathExpression {
         return false;
     }
 
-    double parse(FramePart framePart, Spacecraft spacecraft) {
+    public double parse(FramePart framePart, Spacecraft spacecraft) {
     	this.framePart = framePart;
     	this.spacecraft = spacecraft;
         nextChar();
@@ -52,10 +54,17 @@ public class MathExpression {
     double parseTerm() {
         double x = parseFactor();
         for (;;) {
+        	if      (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
             if      (eat('*')) x *= parseFactor(); // multiplication
             else if (eat('/')) x /= parseFactor(); // division
             else return x;
         }
+    }
+    
+    boolean validChar(int ch) {
+    	if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z') return true;
+    	if (ch == '_') return true;
+    	return false;
     }
 
     double parseFactor() {
@@ -70,31 +79,41 @@ public class MathExpression {
         } else if ((ch >= '0' && ch <= '9') || ch == '.') { // numbers
             while ((ch >= '0' && ch <= '9') || ch == '.') nextChar();
             x = Double.parseDouble(str.substring(startPos, this.pos));
-        } else if (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z') { // functions
-            while (ch >= 'a' && ch <= 'z' || ch >= 'A' && ch <= 'Z' || ch >= '0' && ch <= '9') 
+        } else if (validChar(ch)) { // functions
+            while (validChar(ch) || ch >= '0' && ch <= '9') 
             	nextChar();
             String func = str.substring(startPos, this.pos);
-            // First check if this is a field name and use that value if it is
+            
+            // First check if this is the reserved term x or X.  If so use the raw value
+            if (func.equalsIgnoreCase("x")) {
+            	x = rawValue;
+            	return x;
+            }
+            
+            // Next check if this is a field name and use that value if it is
             if (framePart.hasFieldName(func)) {
             	x = framePart.getDoubleValue(func, spacecraft);
             	return x;
             }
-            
+                        
             // Otherwise it needs to be the form functionName factor
             x = parseFactor();
-            if (func.equals("sqrt")) x = Math.sqrt(x);
-            else if (func.equals("sin")) x = Math.sin(x);
-            else if (func.equals("cos")) x = Math.cos(x);
-            else if (func.equals("tan")) x = Math.tan(x);
-            else if (func.equals("acos")) x = Math.acos(x);
-            else if (func.equals("abs")) x = Math.abs(x);
+            
+            if (func.equalsIgnoreCase("sqrt")) x = Math.sqrt(x);
+            else if (func.equalsIgnoreCase("sin")) x = Math.sin(x);
+            else if (func.equalsIgnoreCase("cos")) x = Math.cos(x);
+            else if (func.equalsIgnoreCase("tan")) x = Math.tan(x);
+            else if (func.equalsIgnoreCase("acos")) x = Math.acos(x);
+            else if (func.equalsIgnoreCase("asin")) x = Math.asin(x);
+            else if (func.equalsIgnoreCase("atan")) x = Math.atan(x);
+            else if (func.equalsIgnoreCase("abs")) x = Math.abs(x);
             
             else throw new RuntimeException("Unknown function or variable: " + func);
         } else {
             throw new RuntimeException("Unexpected term ending: " + (char)ch + " at position " + pos);
         }
 
-        if (eat('^')) x = Math.pow(x, parseFactor()); // exponentiation
+        
 
         return x;
     }

@@ -17,7 +17,11 @@ public class ConversionMathExpression extends Conversion {
 	}
 	
 	public double calculateExpression(double x, FramePart framePart, Spacecraft spacecraft) {
-		MathExpression exp = new MathExpression(str);
+		
+		
+		/// DUH, use x here to support pipelines!!
+		
+		MathExpression exp = new MathExpression(str, x);
 		double y = exp.parse(framePart, spacecraft);
 		return y;
 	}
