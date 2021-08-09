@@ -37,7 +37,7 @@ frameLayout6.name=Safe Data 2
 frameLayout7.filename=GOLF-T_Type7_SafeWOD.frame
 frameLayout7.name=Safe WOD
 frameLayout8.filename=GOLF-T_Type8_Diagnostic.frame
-frameLayout8.name=Diagnostic
+frameLayout8.name=Diagnostics
 
 numberOfLayouts=12
 layout0.filename=FOX1A_debug.csv
