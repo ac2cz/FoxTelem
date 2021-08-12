@@ -1,4 +1,4 @@
-number_of_payloads=7
+number_of_payloads=8
 payload0.name=rttelemetry
 payload0.length=92
 payload1.name=mintelemetry
