@@ -58,6 +58,14 @@ public class MathExpressionTest {
 		MathExpression math = new MathExpression("1 + x", 5);
 		double y = math.parse(rt, fox1);
 		assertEquals(6.0d, y, 0.0d);
+		
+		math = new MathExpression("10^(10/x)", 5);
+		y = math.parse(rt, fox1);
+		assertEquals(100.0d, y, 0.0d);
+		
+		math = new MathExpression("10^x", 2);
+		y = math.parse(rt, fox1);
+		assertEquals(100.0d, y, 0.0d);
 	}
 	
 	@Test
@@ -66,7 +74,7 @@ public class MathExpressionTest {
 		double y = math.parse(rt, fox1);
 		assertEquals(7.5d, y, 0.0d);
 		
-		math = new MathExpression("((x  	- 2^3+1) * -sqrt (3*3+x *x)) / 2", 4);
+		math = new MathExpression("((X  	- 2^3+1) * -sqrt (3*3+x *x)) / 2", 4);
 		y = math.parse(rt, fox1);
 		assertEquals(7.5d, y, 0.0d);
 		
@@ -74,7 +82,7 @@ public class MathExpressionTest {
 		y = math.parse(rt, fox1);
 		assertEquals(4d, y, 0.0d);
 		
-		math = new MathExpression("2^x", 2);
+		math = new MathExpression("2^X", 2);
 		y = math.parse(rt, fox1);
 		assertEquals(4d, y, 0.0d);
 		
