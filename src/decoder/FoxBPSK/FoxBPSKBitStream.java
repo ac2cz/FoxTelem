@@ -6,10 +6,10 @@ import common.Config;
 import common.Log;
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
-import telemetry.Frame;
-import telemetry.FrameProcessException;
 import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.FrameProcessException;
 
 /**
  * 

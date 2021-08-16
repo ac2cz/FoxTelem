@@ -10,10 +10,10 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.ConversionLookUpTable;
 import telemetry.FramePart;
-import telemetry.MathExpression;
-import telemetry.PayloadRtValues;
+import telemetry.conversion.ConversionLookUpTable;
+import telemetry.conversion.MathExpression;
+import telemetry.payloads.PayloadRtValues;
 
 public class MathExpressionTest {
 	BitArrayLayout lay;

@@ -4,7 +4,7 @@ import decoder.Decoder;
 import decoder.EyeData;
 import decoder.RfData;
 import decoder.SourceIQ;
-import telemetry.Frame;
+import telemetry.frames.Frame;
 
 /**
  * 

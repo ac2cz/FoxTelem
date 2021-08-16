@@ -4,8 +4,8 @@ import common.Config;
 import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
-import telemetry.Header;
 import telemetry.TelemFormat;
+import telemetry.frames.Header;
 
 public class FoxBPSKHeader extends Header {
 	// Extended Mode Bits that are only in FoxId 6 and later

@@ -4,8 +4,26 @@ import java.awt.BorderLayout;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
+
+import common.Config;
 import common.Log;
 import common.Spacecraft;
+import gui.herci.HerciHSTab;
+import gui.herci.HerciLSTab;
+import gui.legacyTabs.CameraTab;
+import gui.legacyTabs.VulcanTab;
+import gui.legacyTabs.WodVulcanTab;
+import gui.tabs.CanExperimentTab;
+import gui.tabs.DisplayModule;
+import gui.tabs.FoxTelemTab;
+import gui.tabs.HealthTabRt;
+import gui.tabs.ModuleTab;
+import gui.tabs.MyMeasurementsTab;
+import gui.tabs.NamedExperimentTab;
+import gui.tabs.WodHealthTab;
+import gui.tabs.WodNamedExperimentTab;
+import gui.uw.UwExperimentTab;
+import gui.uw.WodUwExperimentTab;
 import telemetry.BitArrayLayout;
 
 /**
@@ -69,7 +87,7 @@ public class SpacecraftTab extends JPanel {
 		}
 	}
 
-	public void refreshXTabs(Spacecraft fox, boolean closeGraphs) {
+	public void refreshTabs(Spacecraft fox, boolean closeGraphs) {
 		closeTabs(fox, closeGraphs);
 		createTabs(fox);
 	}
@@ -105,6 +123,7 @@ public class SpacecraftTab extends JPanel {
 		stop();
 
 		for (BitArrayLayout lay : sat.layout) {
+			if (lay.isSecondaryPayload()) continue; // not the secondary format that is displayed at the top of the tab and in the table when we uncheck "Show Raw Bytes"
 			if (lay.isRealTime()) {
 				// Add health tab
 				HealthTabRt healthTab = new HealthTabRt(sat);
@@ -126,7 +145,7 @@ public class SpacecraftTab extends JPanel {
 				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 						+ WOD + "</b></body></html>", wodHealthTab );
 			}
-			if (lay.isExperiment()) {
+			if (lay.isExperiment()) { 
 				try {
 					addNamedExperimentTab(sat, lay);
 				} catch (Exception e) {
@@ -141,6 +160,24 @@ public class SpacecraftTab extends JPanel {
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
 					Log.errorDialog("Layout Failure", "Failed to setup WOD Experiment tab for sat: " + sat.user_display_name 
+							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
+				}
+			}
+			if (lay.isCanExperiment()) { 
+				try {
+					addCanExperimentTab(sat, lay);
+				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
+					Log.errorDialog("Layout Failure", "Failed to setup CAN Experiment tab for sat: " + sat.user_display_name 
+							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
+				}
+			}
+			if (lay.isCanWodExperiment()) { 
+				try {
+					addCanWodExperimentTab(sat, lay);
+				} catch (Exception e) {
+					e.printStackTrace(Log.getWriter());
+					Log.errorDialog("Layout Failure", "Failed to setup CAN WOD Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
 				}
 			}
@@ -310,6 +347,44 @@ public class SpacecraftTab extends JPanel {
 			shortTitle = layout.shortTitle;
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ shortTitle + "</b></body></html>", wodExperimentTab );
+
+	}
+	
+	private void addCanExperimentTab(Spacecraft fox, BitArrayLayout layout) {
+		String title = "Experiment: " + layout.name;
+		if (layout.title != null)
+			title = layout.title;
+		BitArrayLayout canPktLayout =  Config.satManager.getLayoutByName(fox.foxId, Spacecraft.CAN_PKT_LAYOUT);
+		CanExperimentTab canExperimentTab = new CanExperimentTab(fox, title, 
+				layout, canPktLayout, DisplayModule.DISPLAY_EXPERIMENT);
+		Thread ragExperimentThread = new Thread(canExperimentTab);
+		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		ragExperimentThread.start();
+
+		String shortTitle = layout.name;
+		if (layout.shortTitle != null)
+			shortTitle = layout.shortTitle;
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+				shortTitle + "</body></html>", canExperimentTab);
+
+	}
+	
+	private void addCanWodExperimentTab(Spacecraft fox, BitArrayLayout layout) {
+		String title = "WOD Experiment: " + layout.name;
+		if (layout.title != null)
+			title = layout.title;
+		BitArrayLayout canPktLayout =  Config.satManager.getLayoutByName(fox.foxId, Spacecraft.WOD_CAN_PKT_LAYOUT);
+		CanExperimentTab canExperimentTab = new CanExperimentTab(fox, title, 
+				layout, canPktLayout, DisplayModule.DISPLAY_EXPERIMENT);
+		Thread ragExperimentThread = new Thread(canExperimentTab);
+		ragExperimentThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		ragExperimentThread.start();
+
+		String shortTitle = layout.name;
+		if (layout.shortTitle != null)
+			shortTitle = layout.shortTitle;
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+				shortTitle + "</body></html>", canExperimentTab);
 
 	}
 	

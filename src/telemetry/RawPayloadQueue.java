@@ -13,6 +13,8 @@ import common.Spacecraft;
 import common.TlmServer;
 import gui.MainWindow;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.SlowSpeedFrame;
 
 /**
  * 

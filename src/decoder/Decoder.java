@@ -19,8 +19,8 @@ import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Filter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FramePart;
+import telemetry.frames.Frame;
 import uk.me.g4dpz.satellite.SatPos;
 
 /**

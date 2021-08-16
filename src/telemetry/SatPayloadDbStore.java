@@ -3,7 +3,22 @@ package telemetry;
 
 import gui.MainWindow;
 import telemServer.ServerConfig;
-import telemetry.uw.CanPacket;
+import telemetry.herci.HerciHighSpeedPacket;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.CameraJpeg;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PayloadWODRad;
+import telemetry.legacyPayloads.PictureScanLine;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.legacyPayloads.WodRadiationTelemetry;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.payloads.PayloadWOD;
+import telemetry.uw.UwCanPacket;
+import telemetry.uw.PayloadUwExperiment;
+import telemetry.uw.PayloadWODUwExperiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -582,8 +597,8 @@ public class SatPayloadDbStore {
 		} else if (f instanceof PayloadUwExperiment ) {
 			updatedRad=true;
 			return insert(radTableName, (PayloadUwExperiment)f);
-		} else if (f instanceof CanPacket ) {
-			return insert(uwCanPacketTableName, (CanPacket)f);
+		} else if (f instanceof UwCanPacket ) {
+			return insert(uwCanPacketTableName, (UwCanPacket)f);
 		}
 		return false;
 	}
@@ -789,7 +804,7 @@ public class SatPayloadDbStore {
 			r = stmt.executeQuery(update);
 			if (r != null) {
 				while (r.next()) {
-					CanPacket payload = new CanPacket(Config.satManager.getLayoutByName(foxId, Spacecraft.CAN_PKT_LAYOUT));
+					UwCanPacket payload = new UwCanPacket(Config.satManager.getLayoutByName(foxId, Spacecraft.CAN_PKT_LAYOUT));
 					payload.id = r.getInt("id");
 					payload.resets = r.getInt("resets");
 					payload.uptime = r.getLong("uptime");
@@ -868,7 +883,7 @@ public class SatPayloadDbStore {
 	private void selectLatest(String table, FramePart payload) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
-		if (payload instanceof CanPacket)
+		if (payload instanceof UwCanPacket)
 			update = update + " pkt_id DESC LIMIT 1"; 
 		else
 			update = update + " resets DESC, uptime DESC, type DESC LIMIT 1"; 
@@ -887,8 +902,8 @@ public class SatPayloadDbStore {
 				if (fox.hasModeInHeader)
 					payload.newMode = r.getInt("newMode");
 				payload.reportDate = r.getString("captureDate");
-				if (payload instanceof CanPacket)
-					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
+				if (payload instanceof UwCanPacket)
+					((UwCanPacket)payload).pkt_id = r.getInt("pkt_id");
 				payload.init();
 				payload.rawBits = null; // no binary array when loaded from database
 				for (int i=0; i < payload.fieldValue.length; i++) {
@@ -920,8 +935,8 @@ public class SatPayloadDbStore {
 		return payload;
 	}
 	
-	public CanPacket getLatestUwCanPacket() throws SQLException {
-		CanPacket payload = new CanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
+	public UwCanPacket getLatestUwCanPacket() throws SQLException {
+		UwCanPacket payload = new UwCanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
 		selectLatest(uwCanPacketTableName, payload);
 		return payload;
 	}

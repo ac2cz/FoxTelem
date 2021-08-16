@@ -5,9 +5,9 @@ import java.util.Date;
 import common.Config;
 import common.Log;
 import fec.RsCodeWord;
-import telemetry.Frame;
-import telemetry.FrameProcessException;
-import telemetry.HighSpeedFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.FrameProcessException;
+import telemetry.frames.HighSpeedFrame;
 
 /**
  * 

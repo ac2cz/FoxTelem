@@ -3,6 +3,8 @@ package gui;
 import javax.swing.JFrame;
 
 import decoder.SourceSoundCardAudio;
+import gui.graph.GraphPanel;
+import gui.uw.UwExperimentTab;
 
 import javax.swing.JPanel;
 
@@ -63,7 +65,7 @@ import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 import telemetry.SortedFramePartArrayList;
-import telemetry.uw.CanPacket;
+import telemetry.uw.UwCanPacket;
 
 import com.apple.eawt.Application;
 
@@ -1030,16 +1032,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 						//total++;
 						if (p.getType() == FramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
 							//pkts++;
-							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
-							int length = CanPacket.getLengthfromRawID(ihuPacketId);
-							int canId = CanPacket.getIdfromRawID(ihuPacketId);
+							int ihuPacketId = p.fieldValue[UwCanPacket.ID_FIELD0] + 256*p.fieldValue[UwCanPacket.ID_FIELD1] + 65536*p.fieldValue[UwCanPacket.ID_FIELD2] + 16777216*p.fieldValue[UwCanPacket.ID_FIELD3];  // little endian
+							int length = UwCanPacket.getLengthfromRawID(ihuPacketId);
+							int canId = UwCanPacket.getIdfromRawID(ihuPacketId);
 							if (UwExperimentTab.inCanIds(canId)) {
-								byte[] data = new byte[CanPacket.ID_BYTES+length];
+								byte[] data = new byte[UwCanPacket.ID_BYTES+length];
 								for (int i=0;i<data.length; i++)
 									data[i] = (byte) p.fieldValue[i];
 								BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(sat.foxId, canId);
 								if (canLayout != null) { 
-									CanPacket newPacket = new CanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
+									UwCanPacket newPacket = new UwCanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
 									if (p.getType() > 1400)
 										newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
 									//									if (newPacket.getType() > 1700)

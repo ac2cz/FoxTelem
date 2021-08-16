@@ -11,18 +11,18 @@ import common.Performance;
 import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FramePart;
-import telemetry.HighSpeedHeader;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.HighSpeedFrame;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
+import telemetry.frames.Frame;
+import telemetry.frames.HighSpeedFrame;
+import telemetry.frames.HighSpeedHeader;
+import telemetry.frames.SlowSpeedFrame;
+import telemetry.frames.SlowSpeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
 
 /**
  * 

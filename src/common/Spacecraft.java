@@ -29,19 +29,19 @@ import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
-import telemetry.Conversion;
-import telemetry.ConversionCurve;
-import telemetry.FrameLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRtValues;
 import telemetry.SortedFramePartArrayList;
-import telemetry.ConversionLookUpTable;
-import telemetry.ConversionMathExpression;
-import telemetry.ConversionStringLookUpTable;
 import telemetry.TelemFormat;
+import telemetry.conversion.Conversion;
+import telemetry.conversion.ConversionCurve;
+import telemetry.conversion.ConversionLookUpTable;
+import telemetry.conversion.ConversionMathExpression;
+import telemetry.conversion.ConversionStringLookUpTable;
+import telemetry.frames.FrameLayout;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
 import telemetry.uw.CanFrames;
 import uk.me.g4dpz.satellite.SatPos;
 import uk.me.g4dpz.satellite.Satellite;
@@ -820,6 +820,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				if (hasFOXDB_V3) {
 					layout[i].number = i;
 					layout[i].typeStr = getProperty("layout"+i+".type");
+					if (!BitArrayLayout.isValidType(layout[i].typeStr)) {
+						throw new LayoutLoadException("Invalid payload type found: "+ layout[i].typeStr 
+								+ "\nfor payload: " + layout[i].name 
+								+ "\nwhen processing Spacecraft file: " + propertiesFile.getAbsolutePath() );
+					}
 					layout[i].title = getOptionalProperty("layout"+i+".title");
 					layout[i].shortTitle = getOptionalProperty("layout"+i+".shortTitle");
 				}

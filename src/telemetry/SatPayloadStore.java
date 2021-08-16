@@ -2,6 +2,13 @@ package telemetry;
 
 
 import gui.MainWindow;
+import telemetry.herci.HerciHighSpeedPacket;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PayloadWODRad;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.legacyPayloads.WodRadiationTelemetry;
 
 import java.io.File;
 import java.io.FileInputStream;

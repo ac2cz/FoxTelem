@@ -15,7 +15,19 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
-import telemetry.uw.CanPacket;
+import telemetry.frames.Frame;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.CameraJpeg;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PictureScanLine;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.uw.UwCanPacket;
+import telemetry.uw.PayloadUwExperiment;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -631,7 +643,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return 0;
 	}
 	
-	public CanPacket getLatestUwCanPacket(int id) {
+	public UwCanPacket getLatestUwCanPacket(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {

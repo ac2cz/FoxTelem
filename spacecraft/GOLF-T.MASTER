@@ -42,7 +42,7 @@ frameLayout8.name=Diagnostics
 numberOfLayouts=12
 layout0.filename=FOX1A_debug.csv
 layout0.name=DEBUG
-layout0.type=DGB
+layout0.type=DBG
 
 layout1.filename=GOLF-T_maxtelemetry.csv
 layout1.name=maxtelemetry
@@ -64,7 +64,7 @@ layout4.title=Vanderbilt University Experiment
 
 layout5.filename=GOLF-T_radtelemetry2.csv
 layout5.name=radtelemetry2
-layout5.type=EXP2
+layout5.type=EXP
 layout5.parentLayout=radtelemetry
 
 layout6.filename=GOLF-T_wodradtelemetry.csv
@@ -76,7 +76,7 @@ layout6.title=Vanderbilt University Experiment
 layout7.filename=GOLF-T_wodradtelemetry2.csv
 layout7.name=wodradtelemetry2
 layout7.parentLayout=wodradtelemetry
-layout7.type=WOD_EXP2
+layout7.type=WOD_EXP
 
 layout8.filename=GOLF-T_wodtelemetry.csv
 layout8.name=wodtelemetry

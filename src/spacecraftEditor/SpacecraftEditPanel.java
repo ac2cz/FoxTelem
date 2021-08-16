@@ -35,9 +35,9 @@ import common.Log;
 import common.Spacecraft;
 import gui.SourceTab;
 import telemetry.BitArrayLayout;
-import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.TelemFormat;
+import telemetry.frames.FrameLayout;
 import common.Config;
 import common.Spacecraft;
 

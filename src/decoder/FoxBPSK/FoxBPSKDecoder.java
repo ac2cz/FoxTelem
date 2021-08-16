@@ -13,10 +13,10 @@ import common.Spacecraft;
 import decoder.Decoder;
 import decoder.SourceAudio;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
+import telemetry.frames.Frame;
 
 public abstract class FoxBPSKDecoder extends Decoder {
 

@@ -17,8 +17,8 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Sequence;
-import telemetry.Frame;
-import telemetry.HighSpeedFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.HighSpeedFrame;
 
 public class ServerProcess implements Runnable {
 	public static final String NONE = "NONE";

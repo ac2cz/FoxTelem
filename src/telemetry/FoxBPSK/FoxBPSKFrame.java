@@ -11,14 +11,15 @@ import decoder.Crc32;
 import decoder.Decoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxPayloadStore;
-import telemetry.Frame;
-import telemetry.FrameLayout;
 import telemetry.FramePart;
-import telemetry.HighSpeedTrailer;
-import telemetry.PayloadUwExperiment;
-import telemetry.PayloadWOD;
-import telemetry.PayloadWODUwExperiment;
 import telemetry.TelemFormat;
+import telemetry.frames.Frame;
+import telemetry.frames.FrameLayout;
+import telemetry.frames.HighSpeedTrailer;
+import telemetry.payloads.PayloadCanExperiment;
+import telemetry.payloads.PayloadWOD;
+import telemetry.uw.PayloadUwExperiment;
+import telemetry.uw.PayloadWODUwExperiment;
 
 /**
 	 * 
@@ -170,17 +171,19 @@ import telemetry.TelemFormat;
 						try {
 							payload[p].addNext8Bits(b);
 						} catch (Exception e) {
+							String stacktrace = Log.makeShortTrace(e.getStackTrace());  
 							if (payload[p] != null && payload[p].getLayout() != null)
 								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
-									+ " for payload number " + p + " : " + payload[p].getLayout().name + " at payload byte " + payload[p].numberBytesAdded);
+									+ " for payload number " + p + " : " + payload[p].getLayout().name + " at payload byte " + payload[p].numberBytesAdded 
+									+ "\nError is: " + e + "\n" + stacktrace);
 							else if (payload[p] != null && payload[p].getLayout() == null)
 								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
 										+ " for payload number "+ p + " of type " + payload[p].getType() + " at payload byte " + payload[p].numberBytesAdded
-										+"\nThis payload's Layout is null and not defined or loaded correctly.");
+										+"\nThis payload's Layout is null and not defined or loaded correctly." + "\nError is: " + e + "\n" + stacktrace);
 							else if (payload[p] == null)
 								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
 										+ " for payload number " + p + " because the payload is null." 
-										+"\nThe payload Layout is probablly also not defined or loaded correctly.");
+										+"\nThe payload Layout is probablly not defined or loaded correctly." + "\nError is: " + e + "\n" + stacktrace);
 							corrupt = true;
 							return;
 						}
@@ -254,6 +257,13 @@ import telemetry.TelemFormat;
 					payload[i].resets = newReset;
 					if (storeMode)
 						payload[i].newMode = header.newMode;
+					if (payload[i].layout.isCanExperiment() || payload[i].layout.isCanWodExperiment()) {
+						// Then we also need to save the individual can packets
+						((PayloadCanExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
+						serial = serial + ((PayloadCanExperiment)payload[i]).canPackets.size();
+					} else
+					
+					// Legacy UW format
 					if (payload[i] instanceof PayloadUwExperiment) { 
 						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
 						serial = serial + ((PayloadUwExperiment)payload[i]).canPackets.size();

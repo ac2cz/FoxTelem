@@ -32,7 +32,7 @@ import common.Log;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * This class holds the layout for the telemetry for a given satelite.  It is loaded from a CSV file at program start
+ * This class holds the layout for the telemetry for a given satellite.  It is loaded from a CSV file at program start
  * 
  * The layout will not change during the life of the program for a given satellite, so no provision is added for version control
  * or loading old formats.
@@ -43,9 +43,14 @@ public class BitArrayLayout {
 	public static final String RT = "RT";
 	public static final String MAX = "MAX";
 	public static final String MIN = "MIN";
-	public static final String EXP = "EXP";
 	public static final String WOD = "WOD";
+	public static final String EXP = "EXP";
 	public static final String WOD_EXP = "WOD_EXP";
+	public static final String CAN_EXP = "CAN_EXP"; // a Payload filled with CAN packets
+	public static final String CAN_WOD_EXP = "CAN_WOD_EXP"; // a WOD payload filled with CAN packets
+	public static final String CAN_PKT = "CAN_PKT"; // individual can packet
+	public static final String WOD_CAN_PKT = "WOD_CAN_PKT"; // individual can packet from WOD
+	public static final String DBG = "DBG";
 
 	public int NUMBER_OF_FIELDS = 0;
 	public static int ERROR_POSITION = -1;
@@ -206,7 +211,43 @@ public class BitArrayLayout {
 		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
 		return false;
 	}
+	
+	public boolean isCanExperiment() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_EXP)) return true;
+		return false;
+	}
+	
+	public boolean isCanWodExperiment() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_WOD_EXP)) return true;
+		return false;
+	}
+	
+	public boolean isCanPkt() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_PKT)) return true;
+		return false;
+	}
+	
+	public boolean isCanWodPkt() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_CAN_PKT)) return true;
+		return false;
+	}
 
+	public static boolean isValidType(String typeStr) {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.RT)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.MAX)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.MIN)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.EXP)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_EXP)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_WOD_EXP)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_PKT)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_CAN_PKT)) return true;
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.DBG)) return true;
+		return false;
+	}
+	
+	
 	public String getSecondaryPayloadName() {
 		return secondaryLayout;
 	}

@@ -8,6 +8,12 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
+import telemetry.frames.Frame;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.RadiationTelemetry;
 import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {

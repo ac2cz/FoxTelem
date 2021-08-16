@@ -16,8 +16,32 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxBitStream;
-import gui.GraphPanel;
-import telemetry.uw.CanPacket;
+import gui.graph.GraphPanel;
+import telemetry.conversion.Conversion;
+import telemetry.conversion.ConversionMathExpression;
+import telemetry.conversion.LookUpTableBatteryTemp;
+import telemetry.conversion.LookUpTableSolarPanelTemp;
+import telemetry.conversion.LookUpTableTemperature;
+import telemetry.frames.Header;
+import telemetry.herci.HerciHighSpeedPacket;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PayloadWODRad;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.legacyPayloads.WodRadiationTelemetry;
+import telemetry.payloads.PayloadCanExperiment;
+import telemetry.payloads.PayloadCanWODExperiment;
+import telemetry.payloads.PayloadExperiment;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.payloads.PayloadWOD;
+import telemetry.payloads.PayloadWODExperiment;
+import telemetry.payloads.CanPacket;
+import telemetry.uw.PayloadUwExperiment;
+import telemetry.uw.PayloadWODUwExperiment;
+import telemetry.uw.UwCanPacket;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
@@ -38,9 +62,15 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
 	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
 	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
-	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
-	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
+	public static final int TYPE_WOD_EXP = 11; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_EXP_TELEM_DATA = 12; // Translated Vulcan WOD
 	
+	public static final int TYPE_CAN_EXP = 13; // Whole orbit data ib Fox-1E
+	public static final int TYPE_CAN_WOD_EXP = 14; // Translated Vulcan WOD
+	public static final int TYPE_CAN_PACKET = 15;
+	public static final int TYPE_CAN_WOD_PACKET = 16;
+	
+	// UW 
 	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
 	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
 	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
@@ -75,7 +105,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public long uptime;  // The Uptime captured from the header.  Time in seconds from Reset.  For non Fox Spacecraft this is the UTC milliseconds since the date epoch
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
 	protected String reportDate; // the date/time that this was written to the file.  NOT the same as the STP date, which is just on the frame.
-	protected int type; // the type of this payload. Zero if the spacecraft does not use types
+	public int type; // the type of this payload. Zero if the spacecraft does not use types
 	public int newMode = Spacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
 	public static final double NO_POSITION_DATA = -999.0;
 	public static final double NO_T0 = -998.0;
@@ -334,11 +364,11 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	}
 	
 	public static FramePart makePayload(Header header, String layoutName) {
-		return makeLegacyPayload(header.id, header.resets, header.uptime, layoutName);
+		return makePayload(header.id, header.resets, header.uptime, layoutName);
 	}
 	
 	/**
-	 * Make a V3 SEG DB payload from its layout
+	 * Make a V3 SEG DB payload from its layout type name
 	 * @param header
 	 * @param layoutName
 	 * @return
@@ -359,6 +389,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				return new PayloadExperiment(layout, id, uptime, resets);
 			case BitArrayLayout.WOD_EXP:
 				return new PayloadWODExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.CAN_EXP:
+				return new PayloadCanExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.CAN_WOD_EXP:
+				return new PayloadCanWODExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.CAN_PKT:
+				return new CanPacket(layout, id, uptime, resets);
 			default:
 				return null;
 		}
@@ -369,10 +405,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * Factory Method to make a pre V3 SEGDB Frame Part from a layout
 	 * @return
 	 */
+	@Deprecated
 	public static FramePart makeLegacyPayload(Header header, BitArrayLayout layout) {
 		return makeLegacyPayload(header, layout.name);
 	}
 	
+	@Deprecated
 	public static FramePart makeLegacyPayload(Header header, String layoutName) {
 		return makeLegacyPayload(header.id, header.resets, header.uptime, layoutName);
 	}
@@ -383,6 +421,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * @param layoutName
 	 * @return
 	 */
+	@Deprecated
 	public static FramePart makeLegacyPayload(int id, int resets, long uptime, String layoutName) {
 		BitArrayLayout layout = Config.satManager.getLayoutByName(id, layoutName);
 		// TODO - setting the reset/uptime should be forced in the constructor for FramePart
@@ -438,8 +477,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			rt = new PayloadWOD(id, resets, uptime, date, st, lay);
 		else if (lay.isWODExperiment())
 			rt = new PayloadWODExperiment(id, resets, uptime, date, st, lay);
-		else
+		else if (lay.isExperiment())
+			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);
+		else if (lay.isCanExperiment())
 			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);		
+		else if (lay.isCanWodExperiment())
+			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);	
+		else if (lay.isCanPkt())
+			rt = new CanPacket(id, resets, uptime, date, st, lay);		
 		return rt;
 	}
 	
@@ -472,7 +517,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		} else if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
 			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
-		} else if (type == FramePart.TYPE_WOD_RAD_TELEM_DATA ) {
+		} else if (type == FramePart.TYPE_WOD_EXP_TELEM_DATA ) {
 			rt = new WodRadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
 
@@ -490,7 +535,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
 				Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
 			}
-		} else if (type == FramePart.TYPE_WOD_RAD) {
+		} else if (type == FramePart.TYPE_WOD_EXP) {
 			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
 			rt.type = type;
 
@@ -532,7 +577,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		} else if (type == FramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
-			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+			rt = new UwCanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		} else if (type == FramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
 			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));

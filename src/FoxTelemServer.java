@@ -11,8 +11,8 @@ import telemServer.ImageProcess;
 import telemServer.ServerConfig;
 import telemServer.ServerProcess;
 import telemServer.StpFileProcessException;
-import telemetry.Frame;
 import telemetry.PayloadDbStore;
+import telemetry.frames.Frame;
 import common.Config;
 import common.Log;
 

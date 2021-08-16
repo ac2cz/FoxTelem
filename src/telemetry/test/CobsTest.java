@@ -8,7 +8,7 @@ import org.junit.Test;
 
 import telemetry.Cobs;
 import telemetry.CobsDecodeException;
-import telemetry.RadiationPacket;
+import telemetry.legacyPayloads.RadiationPacket;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 

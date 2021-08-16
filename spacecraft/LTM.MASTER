@@ -36,10 +36,10 @@ frameLayout6.name=Safe WOD
 frameLayout7.filename=LTM_Type7_Diagnostic.frame
 frameLayout7.name=Diagnostic
 
-numberOfLayouts=8
+numberOfLayouts=10
 layout0.filename=FOX1A_debug.csv
 layout0.name=DEBUG
-layout0.type=DGB
+layout0.type=DBG
 
 layout1.filename=LTM_maxtelemetry.csv
 layout1.name=maxtelemetry
@@ -55,13 +55,13 @@ layout3.type=MIN
 
 layout4.filename=LTM_scitelemetry.csv
 layout4.name=scitelemetry
-layout4.type=EXP
+layout4.type=CAN_EXP
 layout4.shortTitle=Partner
 layout4.title=Partner Data
 
 layout5.filename=LTM_wodscitelemetry.csv
 layout5.name=wodscitelemetry
-layout5.type=WOD_EXP
+layout5.type=CAN_WOD_EXP
 layout5.shortTitle=Partner WOD
 layout5.title=Partner Whole Orbit Data
 
@@ -74,6 +74,14 @@ layout7.name=diagnostictelemetry
 layout7.shortTitle=Diagnostics
 layout7.title=AMSAT Diagnostics
 layout7.type=EXP
+
+layout8.filename=LTM_canpacket.csv
+layout8.name=canpacket
+layout8.type=CAN_PKT
+
+layout9.filename=LTM_canpacket.csv
+layout9.name=wodcanpacket
+layout9.type=WOD_CAN_PKT
 
 numberOfLookupTables=4
 lookupTable0.filename=FOX1A_rssiFM.tab

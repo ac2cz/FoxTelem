@@ -4,8 +4,8 @@ import java.util.Date;
 
 import common.Config;
 import common.Log;
-import telemetry.FrameProcessException;
-import telemetry.SlowSpeedFrame;
+import telemetry.frames.FrameProcessException;
+import telemetry.frames.SlowSpeedFrame;
 import fec.RsCodeWord;
 
 /**

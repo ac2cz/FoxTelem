@@ -6,18 +6,18 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Spacecraft;
-import gui.DisplayModule;
+import gui.tabs.DisplayModule;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
 import telemetry.PayloadStore;
-import telemetry.PayloadUwExperiment;
 import telemetry.SortedFramePartArrayList;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.uw.PayloadUwExperiment;
 
 public class WebHealthTab {
 	Spacecraft fox;

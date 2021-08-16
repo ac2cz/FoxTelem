@@ -14,6 +14,8 @@ import decoder.FoxDecoder;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
+import gui.graph.GraphCanvas;
+import gui.graph.GraphPanel;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;

@@ -27,10 +27,10 @@ import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
 import telemetry.BitArrayLayout;
-import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 import telemetry.TelemFormat;
+import telemetry.frames.FrameLayout;
 
 /**
  * 

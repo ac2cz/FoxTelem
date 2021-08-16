@@ -8,8 +8,8 @@ import org.junit.Test;
 
 import common.Config;
 import common.Log;
-import telemetry.FrameLayout;
 import telemetry.LayoutLoadException;
+import telemetry.frames.FrameLayout;
 
 public class FrameLayoutTest {
 
