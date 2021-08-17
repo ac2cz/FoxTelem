@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import common.Config;
+import common.Log;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -56,14 +57,21 @@ public class FrameLayout {
 					if (part.equalsIgnoreCase("payload")) {
 						if (keyparts[1].equalsIgnoreCase("name")) {
 							String value = properties.getProperty(key);
-							System.out.println(key + " : " + value);
-							
+							//System.out.println(key + " : " + value);
 							payloadNames.put(idx, value);
 						}
 					}
 				} catch (NumberFormatException e) {
 					// skip this one as we could not parse the index
 				}
+			}
+			// Some integrity checks
+			if (payloadNames.size() == 0)
+				throw new LayoutLoadException("Empty Frame Definition File.  No Payloads were defined in the Frame definition file.  It will not be loaded.");
+			for (int i=0; i < payloadNames.size(); i++) {
+				String payloadName = payloadNames.get(i);
+				if (payloadName == null)
+					throw new LayoutLoadException("Frame Definition File: "+ propertiesFile.getAbsolutePath()+"\n missing payload number "+ i +".  Was that defined in the file? It will not be loaded.");
 			}
 		} catch (IOException e) {
 			if (f!=null) try { f.close(); } catch (Exception e1) {};

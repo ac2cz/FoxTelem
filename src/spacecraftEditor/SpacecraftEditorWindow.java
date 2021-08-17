@@ -30,8 +30,8 @@ import telemetry.LayoutLoadException;
 
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
-	public static final String VERSION_NUM = "0.3";
-	public static final String VERSION = VERSION_NUM + " - 30 Jul 2021";
+	public static final String VERSION_NUM = "0.4";
+	public static final String VERSION = VERSION_NUM + " - 17 Aug 2021";
 	
 	// Swing File Chooser
 	JFileChooser fc = null;

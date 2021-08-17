@@ -195,16 +195,39 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
 	}
 	public static final int NO_ROW_SELECTED = -1;
 	
+	@Override
 	public void mouseClicked(MouseEvent e) {
+			
+	}
 
-		int fromRow = NO_ROW_SELECTED;
-		JTable table = null;
+	@Override
+	public void mouseEntered(MouseEvent e) {
+		// TODO Auto-generated method stub
 		
-		if (showRawBytes.isSelected()) {
-			table = this.table;
-		} else {
-			table = table2;
-		}
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
+		
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
+		int fromRow = NO_ROW_SELECTED;
+		JTable table = (JTable) e.getSource();
+		
+//		if (showRawBytes.isSelected()) {
+//			table = this.table;
+//		} else {
+//			table = table2;
+//		}
 		
 		int row = table.rowAtPoint(e.getPoint());
 		int col = table.columnAtPoint(e.getPoint());
@@ -220,31 +243,6 @@ public abstract class ExperimentTab extends ModuleTab implements MouseListener {
         	//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
         	displayRow(table, fromRow, row);
         }
-		
-	}
-
-		@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 }

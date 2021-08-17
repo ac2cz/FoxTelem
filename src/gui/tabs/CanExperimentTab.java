@@ -475,6 +475,8 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 		//Log.println("RESET: " + reset_l);
 		//Log.println("UPTIME: " + uptime);
 		int reset = (int)reset_l;
+		if (table.getModel() instanceof CanPacketRawTableModel)
+			return; // need to decide what to do if we click the actual packet.  For now do nothing
 //		if (Config.displayRawRadData) {
 //			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
 //		} else {
@@ -487,30 +489,6 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 			table.setRowSelectionInterval(fromRow, row);
 		else
 			table.setRowSelectionInterval(row, fromRow);
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 }

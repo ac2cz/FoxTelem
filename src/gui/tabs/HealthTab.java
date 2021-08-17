@@ -711,6 +711,26 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
+	}
+	@Override
+	public void mouseEntered(MouseEvent e) {
+
+	}
+
+	@Override
+	public void mouseExited(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void mouseReleased(MouseEvent e) {
 		int fromRow = NO_ROW_SELECTED;
 		
 		JTable table;
@@ -739,26 +759,6 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
         	//Log.println("CLICKED ROW: "+row+ " and COL: " + col);
         	displayRow(table, fromRow, row);
         }
-	}
-	@Override
-	public void mouseEntered(MouseEvent e) {
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		
-	}
-
-	@Override
-	public void mousePressed(MouseEvent arg0) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent arg0) {
-		// TODO Auto-generated method stub
 		
 	}
 }

@@ -122,9 +122,8 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 		if (numberBytesAdded < ID_BYTES) return false;  // If rawBits not null this is being created, otherwise we are loading from file or DB.
 		copyBitsToFields();
 		if (canId != 0)
-			if (getLength() > 0 && getLength() < 9)
-				if (numberBytesAdded == getLength() + ID_BYTES + 1)
-					return true;
+			if (numberBytesAdded == getLength() + ID_BYTES + 1)
+				return true;
 		return false;
 	}
 
