@@ -1,15 +1,8 @@
 package telemetry.payloads;
 
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.StringTokenizer;
 
-import common.Config;
-import common.Log;
-import common.Spacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.FoxPayloadStore;
-import telemetry.FramePart;
 
 public class PayloadCanWODExperiment extends PayloadCanExperiment {
 	

@@ -395,6 +395,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				return new PayloadCanWODExperiment(layout, id, uptime, resets);
 			case BitArrayLayout.CAN_PKT:
 				return new CanPacket(layout, id, uptime, resets);
+			case BitArrayLayout.WOD_CAN_PKT:
+				return new CanPacket(layout, id, uptime, resets);
 			default:
 				return null;
 		}
@@ -484,7 +486,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		else if (lay.isCanWodExperiment())
 			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);	
 		else if (lay.isCanPkt())
-			rt = new CanPacket(id, resets, uptime, date, st, lay);		
+			rt = new CanPacket(id, resets, uptime, date, st, lay);
+		else if (lay.isCanWodPkt())
+			rt = new CanPacket(id, resets, uptime, date, st, lay);	
 		return rt;
 	}
 	

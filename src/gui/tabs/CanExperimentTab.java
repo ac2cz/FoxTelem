@@ -298,7 +298,7 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 	 * @param uptime
 	 */
 	protected void parseCanPackets(String data[][], CanPacketRawTableModel tableModel, int resets, long uptime) {
-		// Purge rows withthe wrong reset uptime
+		// Purge rows with the wrong reset uptime
 		ArrayList<String[]> rows = new ArrayList<String[]>();
 		for (int i=0; i<data.length; i++) {
 			int r = Integer.parseInt(data[i][0]); // reset
@@ -313,24 +313,23 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 		}
 		
 		long[][] keyRawData = new long[rows.size()][2];
-		String[][] rawData = new String[rows.size()][data[0].length-2];
+		String[][] rawData = new String[rows.size()][data[0].length-1];  // returned data length is 3 + length of data record
 		
 		for (int i=0; i<rows.size(); i++) {
 			try {
-			long id = CanPacket.getIdFromRawBytes(
-					Integer.valueOf(rows.get(i)[3]),
-					Integer.valueOf(rows.get(i)[4]),
-					Integer.valueOf(rows.get(i)[5]),
-					Integer.valueOf(rows.get(i)[6]));
-			keyRawData[i][0] = Long.parseLong(rows.get(i)[0]); // reset
-			keyRawData[i][1] = Long.parseLong(rows.get(i)[1]); // uptime
-			rawData[i][0] = rows.get(i)[2]; // seq
-			rawData[i][1] = ""+id;
-			rawData[i][2] = Long.toHexString(id);
-			
-			for (int k=7; k<rows.get(i).length; k++)
-				rawData[i][k-4] = Integer.toHexString(Integer.valueOf(rows.get(i)[k]));
-				
+				keyRawData[i][0] = Long.parseLong(rows.get(i)[0]); // reset
+				keyRawData[i][1] = Long.parseLong(rows.get(i)[1]); // uptime
+				rawData[i][0] = rows.get(i)[2]; // seq
+				int rawid = CanPacket.getRawIdFromRawBytes(Integer.valueOf(rows.get(i)[3]), Integer.valueOf(rows.get(i)[4]));
+				int id = CanPacket.getIdfromRawID(rawid);
+				rawData[i][1] = ""+id;
+				rawData[i][2] = Long.toHexString(id);
+				int len = CanPacket.getLengthfromRawID(rawid);
+				rawData[i][3] = ""+len;
+
+				for (int k=5; k<rows.get(i).length; k++)
+					rawData[i][k-1] = Integer.toHexString(Integer.valueOf(rows.get(i)[k]));
+
 			} catch (NumberFormatException e) {
 
 			}
@@ -368,15 +367,20 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 
 	public void updateTab(FramePart rad, boolean refreshTable) {
 		if (!Config.payloadStore.initialized()) return;
+		if (rad == null) return;
 		String[][] data = null;
 		boolean RETURN_TYPE = true;
 		boolean REVERSE = false;
-		int SAMPLES = 4; // this returns all rows that match the reset/uptime
 //		if (Config.displayRawValues) {
+		if (Config.payloadStore != null && canPktLayout != null) {
+			// This returns SAMPLES packets and then we filter out the ones with the correct reset/uptime
+			// This is a bit of a hack.  We should likely have a seperate number to return.  This is arbitrarily the same as the number of
+			// payloads to display.
 			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, rad.resets, rad.uptime, RETURN_TYPE, REVERSE, canPktLayout.name);	
 			if (data != null && data.length > 0) {
 				parseCanPackets(data,canPacketRawTableModel, rad.resets, rad.uptime);
 			}
+		}
 //		} else {
 //			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, false, reverse, layout2.name);	
 //			if (data != null && data.length > 0) {
@@ -385,19 +389,17 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 //			}
 //		}
 
-		
-		
-//		if (rad != null) {
-//			for (DisplayModule mod : topModules) {
-//				if (mod != null)
-//					mod.updateRtValues(rad);
-//			}
-//			if (bottomModules != null)
-//			for (DisplayModule mod : bottomModules) {
-//				if (mod != null)
-//					mod.updateRtValues(rad);
-//			}
-//		}
+		if (rad != null) {
+			for (DisplayModule mod : topModules) {
+				if (mod != null)
+					mod.updateRtValues(rad);
+			}
+			if (bottomModules != null)
+			for (DisplayModule mod : bottomModules) {
+				if (mod != null)
+					mod.updateRtValues(rad);
+			}
+		}
 	}
 
 	@Override

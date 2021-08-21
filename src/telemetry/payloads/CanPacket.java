@@ -47,10 +47,7 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 	
 	public static final int ID_FIELD0 = 0; 
 	public static final int ID_FIELD1 = 1; 
-	public static final int ID_FIELD2 = 2; 
-	public static final int ID_FIELD3 = 3;
-	public static final int LENGTH_FIELD = 4; 
-	public static final int ID_BYTES = 4;
+	public static final int HEADER_ID_BYTES = 2; // Length and Id
 	public int pkt_id = 0; // this is a unique id we use for streaming.  This is not the canId
 	
 	public int canId;
@@ -105,9 +102,9 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 	
 	public byte[] getBytes() {
 		if (isValid()) {
-			byte[] data = new byte[getLength() + ID_BYTES];
-			if (bytes.length < getLength() + ID_BYTES) return null;
-			for (int i=0; i < getLength() + ID_BYTES; i++)
+			byte[] data = new byte[getLength() + HEADER_ID_BYTES];
+			if (bytes.length < getLength() + HEADER_ID_BYTES) return null;
+			for (int i=0; i < getLength() + HEADER_ID_BYTES; i++)
 				data[i] = bytes[i];
 			return data;
 		}
@@ -119,10 +116,10 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 	/** True if we have a valid length, id and have received all the bytes */
 	public boolean isValid() {
 		if (rawBits == null) return true;
-		if (numberBytesAdded < ID_BYTES) return false;  // If rawBits not null this is being created, otherwise we are loading from file or DB.
+		if (numberBytesAdded < HEADER_ID_BYTES) return false;  // If rawBits not null this is being created, otherwise we are loading from file or DB.
 		copyBitsToFields();
 		if (canId != 0)
-			if (numberBytesAdded == getLength() + ID_BYTES + 1)
+			if (numberBytesAdded == getLength() + HEADER_ID_BYTES)
 				return true;
 		return false;
 	}
@@ -136,7 +133,7 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 		if (numberBytesAdded >= getMaxBytes())
 			if (!isValid())
 				return true; // this is corrupt, trigger end of can packets
-		if (numberBytesAdded >= ID_BYTES)
+		if (numberBytesAdded >= HEADER_ID_BYTES)
 			if (canId == 0)
 				return true;
 		return false;
@@ -153,7 +150,7 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 			}
 			bytes[numberBytesAdded] = b;
 			numberBytesAdded++;	
-			if (numberBytesAdded == ID_BYTES+1) { // id and length added
+			if (numberBytesAdded == HEADER_ID_BYTES) { // id and length added
 				copyBitsToFields();
 			}
 			
@@ -166,10 +163,9 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 					+ " data len from packet is: " + getLength() + "\n Error at byte: "+numberBytesAdded);
 			// This packet is corrupt and perhaps the rest of the payload
 			// trigger end of can packets
+			length = 0;
 			fieldValue[ID_FIELD0] = 0;
 			fieldValue[ID_FIELD1] = 0;
-			fieldValue[ID_FIELD2] = 0;
-			fieldValue[ID_FIELD3] = 0;
 			canId = 0; 
 			return;
 		}
@@ -196,39 +192,33 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 		
 	}
 	
-	
-	public static long getIdFromRawBytes(int a, int b, int c, int d) {
-		long id = a + 256*b + 65536*c + 16777216*d;  // little endian
+	public static int getRawIdFromRawBytes(int a, int b) {
+		int id = a + 256*b;  // little endian
 		return id;
 	}
 
-//	public static int getLengthFromRawBytes(int a, int b, int c, int d) {
-//		int id = a + 256*b + 65536*c + 16777216*d;  // little endian
-//		return getLengthfromRawID(id);
-//	}
-
+	public static int getIdfromRawID(int canPacketId) {
+		int id = (canPacketId >> 4 )& 0x0FFF; // 4 LSB are the Length, we want the 12 MSBs
+		return id;
+	}
 	
-//	public static int getIdfromRawID(int canPacketId) {
-//		int id = canPacketId & 0x1FFFFFFF; // 3 MSB are the Length, so ignore that and take the rest as the id
-//		return id;
-//	}
-//	
-//	public static int getLengthfromRawID(int canPacketId) {
-//		int length = (canPacketId >> 29) & 0x7; // We want just the 3 MSB as the length
-//		return length + 1;
-//	}
+	public static int getLengthfromRawID(int canPacketId) {
+		int length = (canPacketId& 0xF); // We want just the 4 LSB as the length
+		return length;
+	}
 	
 	/**
 	 * The first 4 bytes are from FOX and are little endian with MSB first.
-	 * The rest of the bytes are from the experiment and are network byte order ie Big endian.  Yes really...
+	 * The rest of the bytes are from the experiment and may be in network byte order ie Big endian.  Yes really...
 	 * This suggest these should be in different classes, one wrapping the other.  Perhaps with the experiment data as a secondary payload
 	 * with the ID, Length and data in big endian.
 	 */
 	public void copyBitsToFields() {
 		resetBitPosition();
 		super.copyBitsToFields();
-		canId = fieldValue[ID_FIELD0] + 256*fieldValue[ID_FIELD1] + 65536*fieldValue[ID_FIELD2] + 16777216*fieldValue[ID_FIELD3];  // little endian
-		length = fieldValue[LENGTH_FIELD];
+		int rawId = getRawIdFromRawBytes(fieldValue[ID_FIELD0], fieldValue[ID_FIELD1]);
+		canId = getIdfromRawID(rawId); // 12 bit  little endian field
+		length = getLengthfromRawID(rawId);
 	}
 	
 		@Override
@@ -262,5 +252,16 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 		s = s + "PRIMARY KEY (id, resets, uptime, type))";
 		return s;
 	}
+	
+//	public static void main(String args[]) {
+//		System.out.println("Can Id test");
+//		int[] bytes = {0x12,0x80};
+//		
+//		int len = getLengthfromRawID(rawid);
+//		int id = getIdfromRawID(rawid);
+//		
+//		System.out.println(Integer.toHexString(id) + " " + Integer.toHexString(len));
+//		
+//	}
 	
 }
