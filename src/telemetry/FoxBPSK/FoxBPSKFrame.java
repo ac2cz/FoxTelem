@@ -17,6 +17,7 @@ import telemetry.frames.Frame;
 import telemetry.frames.FrameLayout;
 import telemetry.frames.HighSpeedTrailer;
 import telemetry.payloads.PayloadCanExperiment;
+import telemetry.payloads.PayloadCanWODExperiment;
 import telemetry.payloads.PayloadWOD;
 import telemetry.uw.PayloadUwExperiment;
 import telemetry.uw.PayloadWODUwExperiment;
@@ -260,7 +261,8 @@ import telemetry.uw.PayloadWODUwExperiment;
 					if (payload[i].layout.isCanExperiment() || payload[i].layout.isCanWodExperiment()) {
 						// Then we also need to save the individual can packets
 						((PayloadCanExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
-						serial = serial + ((PayloadCanExperiment)payload[i]).canPackets.size();
+						if (!(payload[i] instanceof PayloadCanWODExperiment)) // increase the serial across payloads for non WOD payloads
+							serial = serial + ((PayloadCanExperiment)payload[i]).canPackets.size();
 					} else
 					
 					// Legacy UW format

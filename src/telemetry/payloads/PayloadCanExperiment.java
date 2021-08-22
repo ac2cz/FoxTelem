@@ -150,7 +150,9 @@ public class PayloadCanExperiment extends FramePart {
 	}
 
 	public boolean savePayloads(FoxPayloadStore payloadStore, int serial, boolean storeMode) {
-		type = type * 100 + serial;
+		// Don't update the type with a serial number if this is WOD, as WOD records are unique based on the reset/uptime
+		if (!(this instanceof PayloadCanWODExperiment))
+			type = type * 100 + serial;
 		copyBitsToFields(); // make sure timestamps correct if this is WOD
 		if (!payloadStore.add(getFoxId(), getUptime(), getResets(), this))
 			return false;
@@ -158,7 +160,11 @@ public class PayloadCanExperiment extends FramePart {
 		for (CanPacket p : canPackets) {
 			// Set the type here as it needs to span across payloads.  The uptime is NOT unique for multiple payloads in same Frame.
 			int p_type = p.getType();
-			p_type = p_type * 100 + serial + j++;
+			if (this instanceof PayloadCanWODExperiment)
+				p_type = p_type * 100 + j++;
+			else
+				p_type = p_type * 100 + serial + j++;
+
 			p.setType(p_type);
 			if (storeMode)
 				p.newMode = newMode;
