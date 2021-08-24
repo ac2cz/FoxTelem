@@ -150,7 +150,8 @@ public class PayloadCanExperiment extends FramePart {
 	}
 
 	public boolean savePayloads(FoxPayloadStore payloadStore, int serial, boolean storeMode) {
-		// Don't update the type with a serial number if this is WOD, as WOD records are unique based on the reset/uptime
+		// Don't update the type with a serial number if this is WOD, as WOD records are unique based on the reset/uptime only
+		// But Experiment payloads may be packed into a frame and each has their own timestamp
 		if (!(this instanceof PayloadCanWODExperiment))
 			type = type * 100 + serial;
 		copyBitsToFields(); // make sure timestamps correct if this is WOD
@@ -158,7 +159,9 @@ public class PayloadCanExperiment extends FramePart {
 			return false;
 		int j = 0;
 		for (CanPacket p : canPackets) {
-			// Set the type here as it needs to span across payloads.  The uptime is NOT unique for multiple payloads in same Frame.
+			// Set the type here as it may need to span across payloads
+			// If this is a WOD record then the packets are sequential within this payload
+			// For non WOD the packet serial number increases across payloads
 			int p_type = p.getType();
 			if (this instanceof PayloadCanWODExperiment)
 				p_type = p_type * 100 + j++;
