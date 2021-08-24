@@ -1,14 +1,14 @@
 34,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,diagnostic,Uptime,32,-,1,General Info,1,2,0,Uptime,Continuous seconds countup from start
-1,diagnostic,UTCValid,1,-,0,General Info,1,9,0,UTCValid,x
-2,diagnostic,UTCYear,5,-,0,General Info,1,8,0,UTCYear,Based on 2020–5 bits=32 years
-3,diagnostic,UTCMonth,4,-,0,General Info,1,7,0,UTCMonth,x
-4,diagnostic,UTCDay,5,-,0,General Info,1,7,0,UTCDay,x
-5,diagnostic,UTCSeconds,6,-,0,General Info,1,5,0,UTCSeconds,x
-6,diagnostic,UTCMinutes,6,-,0,General Info,1,4,0,UTCMinutes,x
-7,diagnostic,UTCHours,5,-,0,General Info,1,3,0,UTCHours,x
-8,diagnostic,EnterAutosafe,8,-,0,General Info,1,10,0,EnterAutosafe,x
-9,diagnostic,ExitAutosafe,8,-,0,General Info,1,11,0,ExitAutosafe,x
+0,diagnostic,Uptime,32,secs,INT,General Info,1,2,0,Uptime,Continuous seconds countup from start
+1,diagnostic,UTCValid,1,-,STATUS_BOOLEAN,General Info,1,9,0,UTCValid,x
+2,diagnostic,UTCYear,5,-,INT,General Info,1,8,0,UTCYear,Based on 2020–5 bits=32 years
+3,diagnostic,UTCMonth,4,-,INT,General Info,1,7,0,UTCMonth,x
+4,diagnostic,UTCDay,5,-,INT,General Info,1,6,0,UTCDay,x
+5,diagnostic,UTCSeconds,6,-,INT,General Info,1,5,0,UTCSeconds,x
+6,diagnostic,UTCMinutes,6,-,INT,General Info,1,4,0,UTCMinutes,x
+7,diagnostic,UTCHours,5,-,INT,General Info,1,3,0,UTCHours,x
+8,diagnostic,EnterAutosafe,8,V,golf-t_bus_voltage,General Info,1,10,0,EnterAutosafe,x
+9,diagnostic,ExitAutosafe,8,V,golf-t_bus_voltage,General Info,1,11,0,ExitAutosafe,x
 10,diagnostic,pad1,16,-,0,NONE,0,0,0,Fill to 32-bits,x
 11,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
 12,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
