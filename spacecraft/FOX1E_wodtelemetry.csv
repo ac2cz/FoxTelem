@@ -26,9 +26,9 @@
 24,WOD,FwdPower,12,mW,40,Radio,1,4,3,Fwd Power,Receiver card temperature
 25,WOD,rssi,12,dBm,14,Radio,1,3,3,RSSI,Received Signal Strength Indication
 26,WOD,IHUcpuTemp,12,C,15,Computer Hardware,2,1,3,Temperature,Internal Temperature of IHU
-27,WOD,Xvelocity,12,dps,13,+X Panel,8,3,3,Rotation,Angular Veolcity around X Axis
-28,WOD,Yvelocity,12,dps,13,+Y Panel,9,3,3,Rotation,Angular Veolcity around Y Axis
-29,WOD,Zvelocity,12,dps,13,+Z Panel,10,3,3,Rotation,Angular Veolcity around Z Axis
+27,WOD,SatelliteXAxisAngularVelocity,12,dps,13,+X Panel,8,3,3,Rotation,Angular Veolcity around X Axis
+28,WOD,SatelliteYAxisAngularVelocity,12,dps,13,+Y Panel,9,3,3,Rotation,Angular Veolcity around Y Axis
+29,WOD,SatelliteZAxisAngularVelocity,12,dps,13,+Z Panel,10,3,3,Rotation,Angular Veolcity around Z Axis
 30,WOD,Exp4Temp,12,C,7,Experiments,6,1,3,EXP4 Temp,Experiment 4 card temperature
 31,WOD,PSUCurrent,12,mA,22,MPPT,5,1,3,Current,Power Supply DC Current
 32,WOD,ReflectedPwr,12,mW,41,Radio,1,5,3,Ref Power,Reflected Power from the Transmit Antenna
