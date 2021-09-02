@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="src" path="/predict4java"/>
 	<classpathentry kind="lib" path="lib/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-net-3.3/commons-net-3.3.jar"/>
