@@ -368,6 +368,7 @@ public class BitArrayLayout {
 		Log.println("Loading layout: "+ fileName);
 		BufferedReader dis = new BufferedReader(new FileReader(fileName));
 		int field=0;
+		int column=0; // this is just for debugging error messages
 		try {
 			line = dis.readLine(); // read the header, and only look at first item, the number of fields.
 			StringTokenizer header = new StringTokenizer(line, ",");
@@ -388,20 +389,21 @@ public class BitArrayLayout {
 					StringTokenizer st = new StringTokenizer(line, ",");
 
 					@SuppressWarnings("unused")
-					int fieldId = Integer.valueOf(st.nextToken()).intValue();
+					int fieldId = Integer.valueOf(st.nextToken()).intValue(); column++;
 					@SuppressWarnings("unused")
-					String type = st.nextToken();
-					fieldName[field] = st.nextToken();
-					fieldBitLength[field] = Integer.valueOf(st.nextToken()).intValue();
-					fieldUnits[field] = st.nextToken();
-					conversion[field] = st.nextToken(); //Integer.valueOf(st.nextToken()).intValue();
-					module[field] = st.nextToken();					
-					moduleNum[field] = Integer.valueOf(st.nextToken()).intValue();
-					moduleLinePosition[field] = Integer.valueOf(st.nextToken()).intValue();
-					moduleDisplayType[field] = Integer.valueOf(st.nextToken()).intValue();
-					shortName[field] = st.nextToken();
-					description[field] = st.nextToken();
+					String type = st.nextToken(); column++;
+					fieldName[field] = st.nextToken(); column++;
+					fieldBitLength[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					fieldUnits[field] = st.nextToken(); column++;
+					conversion[field] = st.nextToken(); column++; //Integer.valueOf(st.nextToken()).intValue();
+					module[field] = st.nextToken(); column++;					
+					moduleNum[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					moduleLinePosition[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					moduleDisplayType[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					shortName[field] = st.nextToken(); column++;
+					description[field] = st.nextToken(); column++;
 					field++;
+					column = 0;
 				}
 			}
 			dis.close();
@@ -409,13 +411,13 @@ public class BitArrayLayout {
 			e.printStackTrace(Log.getWriter());
 
 		} catch (NumberFormatException n) {
-			Log.errorDialog("NUMBER FORMAT EXCEPTION", "In layout: " + fileName+"\n" + n.getMessage());
+			Log.errorDialog("NUMBER FORMAT EXCEPTION", "In layout: " + fileName+"\n" + " in row for field: " + fieldName[field] + " on row: " + field +" at col: " + column +"\n" + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (IndexOutOfBoundsException n) {
-			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout "+fileName+"\n at Index: " + n.getMessage());
+			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout "+fileName+"\n" + " on row: " + field +" at col: " + column +"\n" + " Index is out of bounds: " + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (NoSuchElementException n) {
-			Log.errorDialog("Missing Field in Layout File", "Halted loading " + fileName);
+			Log.errorDialog("Missing Field in Layout File", "Halted loading of: " + fileName + "\n on row: " + field +" at col: " + column +"\n");
 			n.printStackTrace(Log.getWriter());
 		}
 		if (NUMBER_OF_FIELDS != field) throw new LayoutLoadException("Error loading fields from " + fileName +

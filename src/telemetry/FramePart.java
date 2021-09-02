@@ -800,6 +800,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 						// First check the reserved words for formatting in final field
 						if (lastConv.equalsIgnoreCase(Conversion.FMT_INT)) {
 							s = Long.toString((long) dvalue);
+						} if (lastConv.equalsIgnoreCase(Conversion.FMT_INT)) {
+							s = Long.toString((long) dvalue);
 						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_F) 
 								|| lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
 							s = String.format("%2.1f", dvalue);
@@ -807,6 +809,29 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 							s = String.format("%1.2f", dvalue);
 						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_3F)) {
 							s = String.format("%1.3f", dvalue);
+						} else if (lastConv.equalsIgnoreCase("HEX2")) {
+							s = toByteString((long)dvalue,2);
+						} else if (lastConv.equalsIgnoreCase("HEX4")) {
+							s = toByteString((long)dvalue,4);
+						} else if (lastConv.equalsIgnoreCase("Bit1")) {
+							s = intToBin((int)dvalue,1);
+						} else if (lastConv.equalsIgnoreCase("Bit2")) {
+							s = intToBin((int)dvalue,2);
+						} else if (lastConv.equalsIgnoreCase("Bit3")) {
+							s = intToBin((int)dvalue,3);
+						} else if (lastConv.equalsIgnoreCase("Bit4")) {
+							s = intToBin((int)dvalue,4);
+						} else if (lastConv.equalsIgnoreCase("Bit8")) {
+							s = intToBin((int)dvalue,8);
+						} else if (lastConv.equalsIgnoreCase("Bit16")) {
+							s = intToBin((int)dvalue,16);
+						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_F) 
+								|| lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
+							s = String.format("%2.1f", dvalue);
+						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_2F)) {
+							s = String.format("%1.2f", dvalue);
+						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_3F)) {
+							s = String.format("%1.3f", dvalue);	
 						} else {
 							// Get the conversion for the last conversion in the pipeline
 							Conversion conversion = fox.getConversionByName(lastConv);
@@ -826,6 +851,30 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				for (int k=0; k < (5 - s.length()); k++)
 					s = " " + s;
 			return s;
+		}
+		
+		public String intToBin(int word, int len) {
+			boolean b[] = new boolean[len];
+			for (int i=0; i<len; i++) {
+				if (((word >>i) & 0x01) == 1) b[len-1-i] = true; else b[len-1-i] = false; 
+			}
+			String s = "";
+			for (boolean bit : b)
+				if (bit) s=s+"1"; else s=s+"0";
+			return s;
+		}
+		
+		public static String toByteString(long value, int len) {
+			String s = "";
+			for (int i=0; i<len; i++) {
+				s = plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 8 ;
+			}
+			return s;
+		}
+		
+		public static String plainhex(long l) {
+			return String.format("%2s", Long.toHexString(l)).replace(' ', '0');
 		}
 		
 		private String legacyStringConversion(int conv, double value, Spacecraft fox) {
