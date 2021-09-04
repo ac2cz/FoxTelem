@@ -12,51 +12,51 @@
 10,minDownlink,Xmag,8,uT,8_bit_mag,NONE,4,7,3,X Magnetometer,Angular Veolcity around X Axis
 11,minDownlink,Ymag,8,uT,8_bit_mag,NONE,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
 12,minDownlink,Zmag,8,uT,8_bit_mag,NONE,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-13,minDownlink,hostTemp1,8,-,8_bit_temp,NONE,7,1,3,Host Temperature 1,Host Temp 1
-14,minDownlink,hostTemp2,8,-,8_bit_temp,NONE,7,2,3,Host Temperature 2,Host Temp 2
-15,minDownlink,hostTemp3,8,-,8_bit_temp,NONE,7,3,3,Host Temperature 3,Host Temp 3
-16,minDownlink,hostTemp4,8,-,8_bit_temp,NONE,7,4,3,Host Temperature 4,Host Temp 4
-17,minDownlink,hostTemp5,8,-,8_bit_temp,NONE,7,5,3,Host Temperature 5,Host Temp 5
-18,minDownlink,spare1,8,-,0,NONE,0,0,0,spare1,spare
-19,minDownlink,busV,8,V,golf-t_bus_voltage,NONE,5,1,3,Bus Voltage,Vbatt Bus voltage
+13,minDownlink,hostTemp1,8,-,8_bit_temp,NONE,6,1,3,Battery Temp 1,Host Temp 1
+14,minDownlink,hostTemp2,8,-,8_bit_temp,NONE,6,2,3,Battery Temp 2,Host Temp 2
+15,minDownlink,hostTemp3,8,-,8_bit_temp,NONE,6,3,3,Battery Temp 3,Host Temp 3
+16,minDownlink,hostTemp4,8,-,8_bit_temp,NONE,6,4,3,Battery Temp 4,Host Temp 4
+17,minDownlink,hostTemp5,8,-,8_bit_temp,NONE,6,5,3,Battery Temp 5,Host Temp 5
+18,minDownlink,hostTlm1,8,-,INT,NONE,7,6,3,Plus X Volts,Host Analog 1
+19,minDownlink,busV,8,V,golf-t_bus_voltage,NONE,7,1,3,Bus Voltage,Vbatt Bus voltage
 20,minDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,1,1,3,PA Current,Transmit power amplifier current
 21,minDownlink,TxTemp,8,C,8_bit_temp,NONE,1,2,3,TX Temperature,Transmitter card temperature
 22,minDownlink,FwdPower,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,NONE,1,3,3,Fwd Power,Receiver card temperature
 23,minDownlink,rssi,8,dBm,icr_8bit_volts|icr_rssi ,NONE,3,1,3,ICR RSSI,Received Signal Strength Indication
-24,minDownlink,MinusYVolts,8,V,52,NONE,5,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-25,minDownlink,MinusXVolts,8,V,52,NONE,5,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-26,minDownlink,XVolts,8,V,52,NONE,5,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-27,minDownlink,YVolts,8,V,52,NONE,5,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-28,minDownlink,MinusYTemp,8,C,52,NONE,5,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-29,minDownlink,MinusXTemp,8,C,52,NONE,5,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-30,minDownlink,XTemp,8,C,52,NONE,5,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-31,minDownlink,YTemp,8,C,52,NONE,5,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+24,minDownlink,MinusYVolts,8,V,52,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,minDownlink,MinusXVolts,8,V,52,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,minDownlink,XVolts,8,V,52,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
+27,minDownlink,YVolts,8,V,52,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,minDownlink,MinusYTemp,8,C,52,NONE,7,2,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,minDownlink,MinusXTemp,8,C,52,NONE,7,3,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,minDownlink,XTemp,8,C,52,NONE,7,4,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,minDownlink,YTemp,8,C,52,NONE,7,5,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
 32,minDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-33,minDownlink,spare2,8,-,0,NONE,0,0,0,spare2,spare
-34,minDownlink,spare3,8,-,0,NONE,0,0,0,spare3,spare
+33,minDownlink,hostTlm2,8,-,INT,NONE,7,7,3,Minus X Volts,Host Analog 2
+34,minDownlink,hostTlm3,8,-,INT,NONE,7,8,4,Plus Y Volts,Host Analog 3
 35,minDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,2,1,3,IHU Temp,Internal Temperature of IHU
 36,minDownlink,moduTemp,8,C,8_bit_temp,NONE,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-37,minDownlink,spare4,8,-,0,NONE,0,0,0,spare4,spare
-38,minDownlink,spare5,8,-,0,NONE,0,0,0,spare5,spare
-39,minDownlink,spare6,8,-,0,NONE,0,0,0,spare6,spare
-40,minDownlink,spare7,8,-,0,NONE,0,0,0,spare7,spare
-41,minDownlink,spare8,8,-,0,NONE,0,0,0,spare8,spare
-42,minDownlink,spare9,8,-,0,NONE,0,0,0,spare9,spare
-43,minDownlink,spare10,8,-,0,NONE,0,0,0,spare10,spare
-44,minDownlink,spare11,8,-,0,NONE,0,0,0,spare11,spare
-45,minDownlink,spare12,8,-,0,NONE,0,0,0,spare12,spare
-46,minDownlink,spare13,8,-,0,NONE,0,0,0,spare13,spare
-47,minDownlink,spare14,8,-,0,NONE,0,0,0,spare14,spare
-48,minDownlink,spare15,8,-,0,NONE,0,0,0,spare15,spare
-49,minDownlink,spare16,8,-,0,NONE,0,0,0,spare16,spare
-50,minDownlink,spare17,8,-,0,NONE,0,0,0,spare17,spare
-51,minDownlink,spare18,8,-,0,NONE,0,0,0,spare18,spare
+37,minDownlink,hostTlm4,8,-,INT,NONE,7,9,3,Minus Y Volts,Host Analog 4
+38,minDownlink,hostVolts1,8,-,INT,NONE,6,7,3,Battery Voltage 1,Host Bat Volts 1
+39,minDownlink,hostVolts2,8,-,INT,NONE,6,8,3,Battery Voltage 2,Host Bat Volts 2
+40,minDownlink,hostVolts3,8,-,INT,NONE,6,9,3,Battery Voltage 3,Host Bat Volts 3
+41,minDownlink,hostVolts4,8,-,INT,NONE,6,10,3,Battery Voltage 4,Host Bat Volts 4
+42,minDownlink,hostVolts5,8,-,INT,NONE,6,11,3,Battery Voltage 5,Host Bat Volts 5
+43,minDownlink,hostVolts6,8,-,INT,NONE,6,12,3,Battery Voltage 6,Host Bat Volts 6
+44,minDownlink,hostVolts7,8,-,INT,NONE,6,13,3,Battery Capacity,Host Voltage 7
+45,minDownlink,hostTemp6,8,-,0,NONE,6,6,3,Battery Temp 6,Host Bat Temp 1
+46,minDownlink,hostTemp7,8,-,1,NONE,8,1,3,Host Temp 1,Host Bat Temp 2
+47,minDownlink,hostTemp8,8,-,2,NONE,8,2,3,Host Temp 2,Host Bat Temp 3
+48,minDownlink,hostTemp9,8,-,3,NONE,8,3,3,Host Temp 3,Host Bat Temp 4
+49,minDownlink,hostTemp10,8,-,4,NONE,8,4,3,Host Temp 4,Host Bat Temp 5
+50,minDownlink,hostTemp11,8,-,5,NONE,8,5,3,Host Temp 5,Host Bat Temp 6
+51,minDownlink,hostTemp12,8,-,6,NONE,8,6,3,Pi Temp,Host OBC Temp
 52,minDownlink,spare19,8,-,0,NONE,0,0,0,spare19,spare
 53,minDownlink,spare20,8,-,0,NONE,0,0,0,spare20,spare
 54,minDownlink,spare21,16,-,0,NONE,0,0,0,spare21,spare
-55,minDownlink,minTimestampUptime,32,s,1,Min Max,6,5,0,Min Last Chg Secs,Min Last Change Secs
-56,minDownlink,minTimestampEpoch,16,s,1,Min Max,6,4,0,Max Last Chg Epoch,Min Last Change Epoch
-57,minDownlink,minmaxResetEpoch,16,-,1,Min Max,6,7,0,Min Max Reset Epoch,MinMax Reset Epoch
-58,minDownlink,minmaxResetSecs,32,-,1,Min Max,6,8,0,Min Max Reset Seconds,MinMax Reset Secs
-59,minDownlink,minCRCerror,8,-,1,Min Max,6,6,0,Min CRC Error Count,CRC Error for the min payload
+55,minDownlink,minTimestampUptime,32,s,1,Min Max,5,5,0,Min Last Chg Secs,Min Last Change Secs
+56,minDownlink,minTimestampEpoch,16,s,1,Min Max,5,4,0,Max Last Chg Epoch,Min Last Change Epoch
+57,minDownlink,minmaxResetEpoch,16,-,1,Min Max,5,7,0,Min Max Reset Epoch,MinMax Reset Epoch
+58,minDownlink,minmaxResetSecs,32,-,1,Min Max,5,8,0,Min Max Reset Seconds,MinMax Reset Secs
+59,minDownlink,minCRCerror,8,-,1,Min Max,5,6,0,Min CRC Error Count,CRC Error for the min payload
 60,minDownlink,Pad4,24,-,0,NONE,0,0,0,Filler,-

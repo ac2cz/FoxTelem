@@ -1,4 +1,4 @@
-97,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+122,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,realtimeDownlink,ReflectedPwr,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,AMSAT Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,realtimeDownlink,ICR3VProt,8,V,icr_8bit_volts,Command Receiver,3,3,3,3V Prot,ICR 3V Protected
 2,realtimeDownlink,ICRTemp,8,C,8_bit_temp,Command Receiver,3,4,3,ICR Temp,ICR Temperature
@@ -12,45 +12,45 @@
 10,realtimeDownlink,Xmag,8,uT,8_bit_mag,AMSAT Gyro,4,7,3,X Magnetometer,Angular Veolcity around X Axis
 11,realtimeDownlink,Ymag,8,uT,8_bit_mag,AMSAT Gyro,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
 12,realtimeDownlink,Zmag,8,uT,8_bit_mag,AMSAT Gyro,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-13,realtimeDownlink,hostTemp1,8,-,8_bit_temp,Host Telemetry,7,1,3,Host Temperature 1,Host Temp 1
-14,realtimeDownlink,hostTemp2,8,-,8_bit_temp,Host Telemetry,7,2,3,Host Temperature 2,Host Temp 2
-15,realtimeDownlink,hostTemp3,8,-,8_bit_temp,Host Telemetry,7,3,3,Host Temperature 3,Host Temp 3
-16,realtimeDownlink,hostTemp4,8,-,8_bit_temp,Host Telemetry,7,4,3,Host Temperature 4,Host Temp 4
-17,realtimeDownlink,hostTemp5,8,-,8_bit_temp,Host Telemetry,7,5,3,Host Temperature 5,Host Temp 5
-18,realtimeDownlink,spare1,8,-,0,NONE,0,0,0,spare1,spare
-19,realtimeDownlink,busV,8,V,golf-t_bus_voltage,Host Solar Panels,5,1,3,Bus Voltage,Vbatt Bus voltage
+13,realtimeDownlink,hostTemp1,8,-,8_bit_temp,Host Batteries,6,1,3,Battery Temp 1,Host Temp 1
+14,realtimeDownlink,hostTemp2,8,-,8_bit_temp,Host Batteries,6,2,3,Battery Temp 2,Host Temp 2
+15,realtimeDownlink,hostTemp3,8,-,8_bit_temp,Host Batteries,6,3,3,Battery Temp 3,Host Temp 3
+16,realtimeDownlink,hostTemp4,8,-,8_bit_temp,Host Batteries,6,4,3,Battery Temp 4,Host Temp 4
+17,realtimeDownlink,hostTemp5,8,-,8_bit_temp,Host Batteries,6,5,3,Battery Temp 5,Host Temp 5
+18,realtimeDownlink,hostTlm1,8,-,INT,Host Solar Panels,7,6,3,Plus X Volts,Host Analog 1
+19,realtimeDownlink,busV,8,V,golf-t_bus_voltage,Host Solar Panels,7,1,3,Bus Voltage,Vbatt Bus voltage
 20,realtimeDownlink,TxPAi,8,mA,golf-t_tx_current,AMSAT Radio,1,1,3,PA Current,Transmit power amplifier current
 21,realtimeDownlink,TxTemp,8,C,8_bit_temp,AMSAT Radio,1,2,3,TX Temperature,Transmitter card temperature
 22,realtimeDownlink,FwdPower,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,AMSAT Radio,1,3,3,Fwd Power,Receiver card temperature
 23,realtimeDownlink,rssi,8,dBm,icr_8bit_volts|icr_rssi ,Command Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
-24,realtimeDownlink,MinusYVolts,8,V,52,Host Solar Panels,5,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-25,realtimeDownlink,MinusXVolts,8,V,52,Host Solar Panels,5,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-26,realtimeDownlink,XVolts,8,V,52,Host Solar Panels,5,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-27,realtimeDownlink,YVolts,8,V,52,Host Solar Panels,5,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-28,realtimeDownlink,MinusYTemp,8,C,52,Host Solar Panels,5,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-29,realtimeDownlink,MinusXTemp,8,C,52,Host Solar Panels,5,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-30,realtimeDownlink,XTemp,8,C,52,Host Solar Panels,5,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-31,realtimeDownlink,YTemp,8,C,52,Host Solar Panels,5,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+24,realtimeDownlink,MinusYVolts,8,V,52,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,realtimeDownlink,MinusXVolts,8,V,52,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,realtimeDownlink,XVolts,8,V,52,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
+27,realtimeDownlink,YVolts,8,V,52,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,realtimeDownlink,MinusYTemp,8,C,52,Host Solar Panels,7,2,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,realtimeDownlink,MinusXTemp,8,C,52,Host Solar Panels,7,3,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,realtimeDownlink,XTemp,8,C,52,Host Solar Panels,7,4,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,realtimeDownlink,YTemp,8,C,52,Host Solar Panels,7,5,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
 32,realtimeDownlink,LtVGACtl,8,V,icr_8bit_volts,AMSAT Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-33,realtimeDownlink,spare2,8,-,0,NONE,0,0,0,spare2,spare
-34,realtimeDownlink,spare3,8,-,0,NONE,0,0,0,spare3,spare
+33,realtimeDownlink,hostTlm2,8,-,INT,Host Solar Panels,7,7,3,Minus X Volts,Host Analog 2
+34,realtimeDownlink,hostTlm3,8,-,INT,Host Solar Panels,7,8,4,Plus Y Volts,Host Analog 3
 35,realtimeDownlink,IHUcpuTemp,8,C,8_bit_temp,Spacecraft Status,2,1,3,IHU Temp,Internal Temperature of IHU
 36,realtimeDownlink,moduTemp,8,C,8_bit_temp,AMSAT Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-37,realtimeDownlink,spare4,8,-,0,NONE,0,0,0,spare4,spare
-38,realtimeDownlink,spare5,8,-,0,NONE,0,0,0,spare5,spare
-39,realtimeDownlink,spare6,8,-,0,NONE,0,0,0,spare6,spare
-40,realtimeDownlink,spare7,8,-,0,NONE,0,0,0,spare7,spare
-41,realtimeDownlink,spare8,8,-,0,NONE,0,0,0,spare8,spare
-42,realtimeDownlink,spare9,8,-,0,NONE,0,0,0,spare9,spare
-43,realtimeDownlink,spare10,8,-,0,NONE,0,0,0,spare10,spare
-44,realtimeDownlink,spare11,8,-,0,NONE,0,0,0,spare11,spare
-45,realtimeDownlink,spare12,8,-,0,NONE,0,0,0,spare12,spare
-46,realtimeDownlink,spare13,8,-,0,NONE,0,0,0,spare13,spare
-47,realtimeDownlink,spare14,8,-,0,NONE,0,0,0,spare14,spare
-48,realtimeDownlink,spare15,8,-,0,NONE,0,0,0,spare15,spare
-49,realtimeDownlink,spare16,8,-,0,NONE,0,0,0,spare16,spare
-50,realtimeDownlink,spare17,8,-,0,NONE,0,0,0,spare17,spare
-51,realtimeDownlink,spare18,8,-,0,NONE,0,0,0,spare18,spare
+37,realtimeDownlink,hostTlm4,8,-,INT,Host Solar Panels,7,9,3,Minus Y Volts,Host Analog 4
+38,realtimeDownlink,hostVolts1,8,-,INT,Host Batteries,6,7,3,Battery Voltage 1,Host Bat Volts 1
+39,realtimeDownlink,hostVolts2,8,-,INT,Host Batteries,6,8,3,Battery Voltage 2,Host Bat Volts 2
+40,realtimeDownlink,hostVolts3,8,-,INT,Host Batteries,6,9,3,Battery Voltage 3,Host Bat Volts 3
+41,realtimeDownlink,hostVolts4,8,-,INT,Host Batteries,6,10,3,Battery Voltage 4,Host Bat Volts 4
+42,realtimeDownlink,hostVolts5,8,-,INT,Host Batteries,6,11,3,Battery Voltage 5,Host Bat Volts 5
+43,realtimeDownlink,hostVolts6,8,-,INT,Host Batteries,6,12,3,Battery Voltage 6,Host Bat Volts 6
+44,realtimeDownlink,hostVolts7,8,-,INT,Host Batteries,6,13,3,Battery Capacity,Host Voltage 7
+45,realtimeDownlink,hostTemp6,8,-,0,Host Batteries,6,6,3,Battery Temp 6,Host Bat Temp 1
+46,realtimeDownlink,hostTemp7,8,-,1,Other Host Telemetry,8,1,3,Host Temp 1,Host Bat Temp 2
+47,realtimeDownlink,hostTemp8,8,-,2,Other Host Telemetry,8,2,3,Host Temp 2,Host Bat Temp 3
+48,realtimeDownlink,hostTemp9,8,-,3,Other Host Telemetry,8,3,3,Host Temp 3,Host Bat Temp 4
+49,realtimeDownlink,hostTemp10,8,-,4,Other Host Telemetry,8,4,3,Host Temp 4,Host Bat Temp 5
+50,realtimeDownlink,hostTemp11,8,-,5,Other Host Telemetry,8,5,3,Host Temp 5,Host Bat Temp 6
+51,realtimeDownlink,hostTemp12,8,-,6,Other Host Telemetry,8,6,3,Pi Temp,Host OBC Temp
 52,realtimeDownlink,spare19,8,-,0,NONE,0,0,0,spare19,spare
 53,realtimeDownlink,spare20,8,-,0,NONE,0,0,0,spare20,spare
 54,realtimeDownlink,spare21,16,-,0,NONE,0,0,0,spare21,spare
@@ -59,7 +59,7 @@
 57,realtimeDownlink,SpareBit1,1,-,0,NONE,0,0,0,SpareBit1,spare
 58,realtimeDownlink,AutoSafeAllowed,1,-,21,Spacecraft Status,2,4,0,Auto Safe Allowed,Autosafe Allowed
 59,realtimeDownlink,AutoSafeModeActive,1,-,21,Spacecraft Status,2,5,0,Auto Safe,Autosafe Mode Active
-60,realtimeDownlink,SpareBit2,1,-,17,NONE,0,0,0,SpareBit2,spare
+60,realtimeDownlink,spareBit1,1,-,17,NONE,0,0,0,Spare Bit 2,spare
 61,realtimeDownlink,SpareBit3,1,-,17,NONE,0,0,0,SpareBit3,spare
 62,realtimeDownlink,transponderEnabled,1,-,44,AMSAT Radio,1,6,0,Transponder Enabled,-
 63,realtimeDownlink,I2CfailureICR,1,-,17,Command Receiver,3,5,0,I2cICR,Antenna is not communicating over bus 2
@@ -69,30 +69,55 @@
 67,realtimeDownlink,swCmds,32,-,35,Command Receiver,3,6,0,Diagnostic,ICR Diagnostic information
 68,realtimeDownlink,hwCmdCnt,8,-,1,Command Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
 69,realtimeDownlink,swCmdCntICR,8,-,34,Command Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
-70,realtimeDownlink,I2CfailureHostTemp,8,-,1,Host Telemetry,7,6,0,I2c Fail Host Temp,Bits Indicate Host Temp Sensor Failure
-71,realtimeDownlink,spare261,8,-,0,NONE,0,0,0,spare261,spare
-72,realtimeDownlink,spare262,8,-,0,NONE,0,0,0,spare262,spare
-73,realtimeDownlink,LMRAMstatus,8,-,1,Spacecraft Status,2,9,0,MRAM Status,TBD
-74,realtimeDownlink,spare27,8,-,0,NONE,0,0,0,spare27,spare
-75,realtimeDownlink,spare28,8,-,0,NONE,0,0,0,spare28,spare
-76,realtimeDownlink,ModuLO,8,-,1,AMSAT Radio,1,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-77,realtimeDownlink,ModuGain,8,-,1,AMSAT Radio,1,10,0,Modulator Reg 1,Modulator Register 1 - Gain
-78,realtimeDownlink,ModuPhaseOff,8,-,1,AMSAT Radio,1,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
-79,realtimeDownlink,ModuMode,8,-,1,AMSAT Radio,1,12,0,Modulator Reg 8,Modulator Register 8 - Mode
-80,realtimeDownlink,spare29,8,-,0,NONE,0,0,0,spare29,spare
-81,realtimeDownlink,spare30,8,-,0,NONE,0,0,0,spare30,spare
-82,realtimeDownlink,spare31,8,-,0,NONE,0,0,0,spare31,spare
-83,realtimeDownlink,spare32,8,-,0,NONE,0,0,0,spare32,spare
-84,realtimeDownlink,spare33,8,-,0,NONE,0,0,0,spare33,spare
-85,realtimeDownlink,spare34,8,-,0,NONE,0,0,0,spare34,spare
-86,realtimeDownlink,SpareBit1a,1,-,0,NONE,0,0,0,SpareBit1,spare
-87,realtimeDownlink,moduValid,1,-,21,AMSAT Radio,1,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-88,realtimeDownlink,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,10,0,Eclipse Action,-
-89,realtimeDownlink,inEclipse,1,-,21,Spacecraft Status,2,11,0,In Eclipse,-
-90,realtimeDownlink,ICRRxOn,1,-,1,Command Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
-91,realtimeDownlink,ICRCarrierValid,1,-,1,Command Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
-92,realtimeDownlink,spare341,8,-,0,NONE,0,0,0,spare341,spare
-93,realtimeDownlink,spare35,8,-,0,NONE,0,0,0,spare35,spare
-94,realtimeDownlink,spare36,8,-,0,NONE,0,0,0,spare36,spare
-95,realtimeDownlink,spare37,8,-,0,NONE,0,0,0,spare37,spare
-96,realtimeDownlink,Pad5,32,-,0,NONE,0,0,0,Pad,Pad
+70,realtimeDownlink,I2CfailureHostTemp,8,-,INT,Other Host Telemetry,8,7,0,I2c Fail Host Temp,Bits Indicate Host Temp Sensor Failure
+71,realtimeDownlink,hostBits1,1,-,STATUS_ENABLED,Other Host Telemetry,8,8,0,8V4 to 5V DC/DC,Host States Distro
+72,realtimeDownlink,hostBits2,1,-,STATUS_ENABLED,Other Host Telemetry,8,9,0,8V4 to 5V Linear Reg,-
+73,realtimeDownlink,hostBits3,1,-,STATUS_ENABLED,Other Host Telemetry,8,10,0,8V4 to 3V3 DC/DC,-
+74,realtimeDownlink,hostBits4,1,-,STATUS_ENABLED,Other Host Telemetry,8,11,0,Dual 8V4 to 5V2 DC/DC,-
+75,realtimeDownlink,hostBits5,1,-,STATUS_ENABLED,MESat Distro States,9,1,0,On Board Computer,-
+76,realtimeDownlink,hostBits6,1,-,STATUS_BIT,MESat Distro States,9,2,0,        Over Current,-
+77,realtimeDownlink,hostBits7,1,-,STATUS_ENABLED,MESat Distro States,9,3,0,CAN Controllers,-
+78,realtimeDownlink,hostBits8,1,-,STATUS_BIT,MESat Distro States,9,4,0,        Over Current,-
+79,realtimeDownlink,hostBits9,1,-,STATUS_ENABLED,MESat Distro States,9,5,0,Op Amps,Host States Distro
+80,realtimeDownlink,hostBits10,1,-,STATUS_BIT,MESat Distro States,9,6,0,        Over Current,-
+81,realtimeDownlink,hostBits11,1,-,STATUS_ENABLED,MESat Distro States,9,7,0,Temperature Sense,-
+82,realtimeDownlink,hostBits12,1,-,STATUS_BIT,MESat Distro States,9,8,0,        Over Current,-
+83,realtimeDownlink,hostBits13,1,-,STATUS_ENABLED,MESat Distro States,9,9,0,CPLD,-
+84,realtimeDownlink,hostBits14,1,-,STATUS_BIT,MESat Distro States,9,10,0,        Over Current,-
+85,realtimeDownlink,hostBits15,1,-,STATUS_ENABLED,MESat Distro States,9,11,0,CAN Tranceiver,-
+86,realtimeDownlink,hostBits16,1,-,STATUS_BIT,MESat Distro States,9,12,0,        Over Current,-
+87,realtimeDownlink,hostBits17,1,-,STATUS_ENABLED,MESat Distro States,9,13,0,EyeStar STX3,Host States Distro
+88,realtimeDownlink,hostBits18,1,-,STATUS_BIT,MESat Distro States,9,14,0,        I V or T Bad,-
+89,realtimeDownlink,hostBits19,1,-,STATUS_1_EQ_OK,MESat Distro States,9,15,0,        Vout Ok,-
+90,realtimeDownlink,hostBits20,1,-,STATUS_ENABLED,MESat Distro States,9,16,0,Detumble,-
+91,realtimeDownlink,hostBits21,1,-,STATUS_BIT,MESat Distro States,9,17,0,        I V or T Bad,-
+92,realtimeDownlink,hostBits22,1,-,STATUS_BIT,MESat Distro States,9,18,0,        Vout Ok,-
+93,realtimeDownlink,spareField1,2,-,0,NONE,0,0,0,spareField1,spare
+94,realtimeDownlink,hostBits23,1,-,PRIM_SECOND_ACTIVE,Other Host Telemetry,8,12,0,Which OBC Active,-
+95,realtimeDownlink,hostBits24,1,-,STATUS_1_EQ_OK,Other Host Telemetry,8,13,0,OBC Heartbeat,-
+96,realtimeDownlink,hostBits25,1,-,STATUS_1_EQ_OK,Host Solar Panels,7,10,0,MPPT Heartbeat,-
+97,realtimeDownlink,hostBits26,1,-,STATUS_1_EQ_OK,Host Batteries,6,14,0,Battery Heartbeat,-
+98,realtimeDownlink,hostBits27,1,-,STATUS_1_EQ_OK,MESat Distro States,9,19,0,Distro Heartbeat,-
+99,realtimeDownlink,spareField2,3,-,0,NONE,0,0,0,spareField2,spare
+100,realtimeDownlink,LMRAMstatus,8,-,1,Spacecraft Status,2,9,0,MRAM Status,TBD
+101,realtimeDownlink,ModuLO,8,-,1,AMSAT Radio,1,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+102,realtimeDownlink,ModuGain,8,-,1,AMSAT Radio,1,10,0,Modulator Reg 1,Modulator Register 1 - Gain
+103,realtimeDownlink,ModuPhaseOff,8,-,1,AMSAT Radio,1,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+104,realtimeDownlink,ModuMode,8,-,1,AMSAT Radio,1,12,0,Modulator Reg 8,Modulator Register 8 - Mode
+105,realtimeDownlink,spare29,8,-,0,NONE,0,0,0,spare29,spare
+106,realtimeDownlink,spare30,8,-,0,NONE,0,0,0,spare30,spare
+107,realtimeDownlink,spare31,8,-,0,NONE,0,0,0,spare31,spare
+108,realtimeDownlink,spare32,8,-,0,NONE,0,0,0,spare32,spare
+109,realtimeDownlink,spare33,8,-,0,NONE,0,0,0,spare33,spare
+110,realtimeDownlink,spare34,8,-,0,NONE,0,0,0,spare34,spare
+111,realtimeDownlink,SpareBit1a,1,-,0,NONE,0,0,0,SpareBit4,spare
+112,realtimeDownlink,moduValid,1,-,21,AMSAT Radio,1,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+113,realtimeDownlink,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,10,0,Eclipse Action,-
+114,realtimeDownlink,inEclipse,1,-,21,Spacecraft Status,2,11,0,In Eclipse,-
+115,realtimeDownlink,ICRRxOn,1,-,1,Command Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
+116,realtimeDownlink,ICRCarrierValid,1,-,1,Command Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
+117,realtimeDownlink,spare341,8,-,0,NONE,0,0,0,spare341,spare
+118,realtimeDownlink,spare35,8,-,0,NONE,0,0,0,spare35,spare
+119,realtimeDownlink,spare36,8,-,0,NONE,0,0,0,spare36,spare
+120,realtimeDownlink,spare37,8,-,0,NONE,0,0,0,spare37,spare
+121,realtimeDownlink,Pad5,32,-,0,NONE,0,0,0,Pad,Pad

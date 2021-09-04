@@ -1,4 +1,4 @@
-103,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+128,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,wod,ReflectedPwr,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,AMSAT Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,wod,ICR3VProt,8,V,icr_8bit_volts,Command Receiver,3,3,3,3V Prot,ICR 3V Protected
 2,wod,ICRTemp,8,C,8_bit_temp,Command Receiver,3,4,3,ICR Temp,ICR Temperature
@@ -12,45 +12,45 @@
 10,wod,Xmag,8,uT,8_bit_mag,AMSAT Gyro,4,7,3,X Magnetometer,Angular Veolcity around X Axis
 11,wod,Ymag,8,uT,8_bit_mag,AMSAT Gyro,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
 12,wod,Zmag,8,uT,8_bit_mag,AMSAT Gyro,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-13,wod,hostTemp1,8,-,8_bit_temp,Host Telemetry,7,1,3,Host Temperature 1,Host Temp 1
-14,wod,hostTemp2,8,-,8_bit_temp,Host Telemetry,7,2,3,Host Temperature 2,Host Temp 2
-15,wod,hostTemp3,8,-,8_bit_temp,Host Telemetry,7,3,3,Host Temperature 3,Host Temp 3
-16,wod,hostTemp4,8,-,8_bit_temp,Host Telemetry,7,4,3,Host Temperature 4,Host Temp 4
-17,wod,hostTemp5,8,-,8_bit_temp,Host Telemetry,7,5,3,Host Temperature 5,Host Temp 5
-18,wod,spare1,8,-,0,NONE,0,0,0,spare1,spare
-19,wod,busV,8,V,golf-t_bus_voltage,Host Solar Panels,5,1,3,Bus Voltage,Vbatt Bus voltage
+13,wod,hostTemp1,8,-,8_bit_temp,Host Batteries,6,1,3,Battery Temp 1,Host Temp 1
+14,wod,hostTemp2,8,-,8_bit_temp,Host Batteries,6,2,3,Battery Temp 2,Host Temp 2
+15,wod,hostTemp3,8,-,8_bit_temp,Host Batteries,6,3,3,Battery Temp 3,Host Temp 3
+16,wod,hostTemp4,8,-,8_bit_temp,Host Batteries,6,4,3,Battery Temp 4,Host Temp 4
+17,wod,hostTemp5,8,-,8_bit_temp,Host Batteries,6,5,3,Battery Temp 5,Host Temp 5
+18,wod,hostTlm1,8,-,INT,Host Solar Panels,7,6,3,Plus X Volts,Host Analog 1
+19,wod,busV,8,V,golf-t_bus_voltage,Host Solar Panels,7,1,3,Bus Voltage,Vbatt Bus voltage
 20,wod,TxPAi,8,mA,golf-t_tx_current,AMSAT Radio,1,1,3,PA Current,Transmit power amplifier current
 21,wod,TxTemp,8,C,8_bit_temp,AMSAT Radio,1,2,3,TX Temperature,Transmitter card temperature
 22,wod,FwdPower,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,AMSAT Radio,1,3,3,Fwd Power,Receiver card temperature
 23,wod,rssi,8,dBm,icr_8bit_volts|icr_rssi ,Command Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
-24,wod,MinusYVolts,8,V,52,Host Solar Panels,5,2,3,Minus Y Volts,Left (-Y) deployable panel Voltage
-25,wod,MinusXVolts,8,V,52,Host Solar Panels,5,3,3,Minus X Volts,Anti-sun Fixed Panel Voltage
-26,wod,XVolts,8,V,52,Host Solar Panels,5,4,3,Plus X Volts,Sun-side Fixed Panel Voltage
-27,wod,YVolts,8,V,52,Host Solar Panels,5,5,3,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-28,wod,MinusYTemp,8,C,52,Host Solar Panels,5,6,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-29,wod,MinusXTemp,8,C,52,Host Solar Panels,5,7,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-30,wod,XTemp,8,C,52,Host Solar Panels,5,8,3,Plus X Temp,Sun-side Fixed Panel Voltage
-31,wod,YTemp,8,C,52,Host Solar Panels,5,9,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+24,wod,MinusYVolts,8,V,52,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,wod,MinusXVolts,8,V,52,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,wod,XVolts,8,V,52,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
+27,wod,YVolts,8,V,52,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,wod,MinusYTemp,8,C,52,Host Solar Panels,7,2,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,wod,MinusXTemp,8,C,52,Host Solar Panels,7,3,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,wod,XTemp,8,C,52,Host Solar Panels,7,4,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,wod,YTemp,8,C,52,Host Solar Panels,7,5,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
 32,wod,LtVGACtl,8,V,icr_8bit_volts,AMSAT Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-33,wod,spare2,8,-,0,NONE,0,0,0,spare2,spare
-34,wod,spare3,8,-,0,NONE,0,0,0,spare3,spare
+33,wod,hostTlm2,8,-,INT,Host Solar Panels,7,7,3,Minus X Volts,Host Analog 2
+34,wod,hostTlm3,8,-,INT,Host Solar Panels,7,8,4,Plus Y Volts,Host Analog 3
 35,wod,IHUcpuTemp,8,C,8_bit_temp,Spacecraft Status,2,1,3,IHU Temp,Internal Temperature of IHU
 36,wod,moduTemp,8,C,8_bit_temp,AMSAT Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-37,wod,spare4,8,-,0,NONE,0,0,0,spare4,spare
-38,wod,spare5,8,-,0,NONE,0,0,0,spare5,spare
-39,wod,spare6,8,-,0,NONE,0,0,0,spare6,spare
-40,wod,spare7,8,-,0,NONE,0,0,0,spare7,spare
-41,wod,spare8,8,-,0,NONE,0,0,0,spare8,spare
-42,wod,spare9,8,-,0,NONE,0,0,0,spare9,spare
-43,wod,spare10,8,-,0,NONE,0,0,0,spare10,spare
-44,wod,spare11,8,-,0,NONE,0,0,0,spare11,spare
-45,wod,spare12,8,-,0,NONE,0,0,0,spare12,spare
-46,wod,spare13,8,-,0,NONE,0,0,0,spare13,spare
-47,wod,spare14,8,-,0,NONE,0,0,0,spare14,spare
-48,wod,spare15,8,-,0,NONE,0,0,0,spare15,spare
-49,wod,spare16,8,-,0,NONE,0,0,0,spare16,spare
-50,wod,spare17,8,-,0,NONE,0,0,0,spare17,spare
-51,wod,spare18,8,-,0,NONE,0,0,0,spare18,spare
+37,wod,hostTlm4,8,-,INT,Host Solar Panels,7,9,3,Minus Y Volts,Host Analog 4
+38,wod,hostVolts1,8,-,INT,Host Batteries,6,7,3,Battery Voltage 1,Host Bat Volts 1
+39,wod,hostVolts2,8,-,INT,Host Batteries,6,8,3,Battery Voltage 2,Host Bat Volts 2
+40,wod,hostVolts3,8,-,INT,Host Batteries,6,9,3,Battery Voltage 3,Host Bat Volts 3
+41,wod,hostVolts4,8,-,INT,Host Batteries,6,10,3,Battery Voltage 4,Host Bat Volts 4
+42,wod,hostVolts5,8,-,INT,Host Batteries,6,11,3,Battery Voltage 5,Host Bat Volts 5
+43,wod,hostVolts6,8,-,INT,Host Batteries,6,12,3,Battery Voltage 6,Host Bat Volts 6
+44,wod,hostVolts7,8,-,INT,Host Batteries,6,13,3,Battery Capacity,Host Voltage 7
+45,wod,hostTemp6,8,-,0,Host Batteries,6,6,3,Battery Temp 6,Host Bat Temp 1
+46,wod,hostTemp7,8,-,1,Other Host Telemetry,8,1,3,Host Temp 1,Host Bat Temp 2
+47,wod,hostTemp8,8,-,2,Other Host Telemetry,8,2,3,Host Temp 2,Host Bat Temp 3
+48,wod,hostTemp9,8,-,3,Other Host Telemetry,8,3,3,Host Temp 3,Host Bat Temp 4
+49,wod,hostTemp10,8,-,4,Other Host Telemetry,8,4,3,Host Temp 4,Host Bat Temp 5
+50,wod,hostTemp11,8,-,5,Other Host Telemetry,8,5,3,Host Temp 5,Host Bat Temp 6
+51,wod,hostTemp12,8,-,6,Other Host Telemetry,8,6,3,Pi Temp,Host OBC Temp
 52,wod,spare19,8,-,0,NONE,0,0,0,spare19,spare
 53,wod,spare20,8,-,0,NONE,0,0,0,spare20,spare
 54,wod,spare21,16,-,0,NONE,0,0,0,spare21,spare
@@ -59,7 +59,7 @@
 57,wod,SpareBit1,1,-,0,NONE,0,0,0,SpareBit1,spare
 58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,2,4,0,Auto Safe Allowed,Autosafe Allowed
 59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,2,5,0,Auto Safe,Autosafe Mode Active
-60,wod,SpareBit2,1,-,17,NONE,0,0,0,SpareBit2,spare
+60,wod,spareBit1,1,-,17,NONE,0,0,0,Spare Bit 2,spare
 61,wod,SpareBit3,1,-,17,NONE,0,0,0,SpareBit3,spare
 62,wod,transponderEnabled,1,-,44,AMSAT Radio,1,6,0,Transponder Enabled,-
 63,wod,I2CfailureICR,1,-,17,Command Receiver,3,5,0,I2cICR,Antenna is not communicating over bus 2
@@ -69,36 +69,61 @@
 67,wod,swCmds,32,-,35,Command Receiver,3,6,0,Diagnostic,ICR Diagnostic information
 68,wod,hwCmdCnt,8,-,1,Command Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
 69,wod,swCmdCntICR,8,-,34,Command Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
-70,wod,I2CfailureHostTemp,8,-,1,Host Telemetry,7,6,0,I2c Fail Host Temp,Bits Indicate Host Temp Sensor Failure
-71,wod,spare261,8,-,0,NONE,0,0,0,spare261,spare
-72,wod,spare262,8,-,0,NONE,0,0,0,spare262,spare
-73,wod,LMRAMstatus,8,-,1,Spacecraft Status,2,9,0,MRAM Status,TBD
-74,wod,spare27,8,-,0,NONE,0,0,0,spare27,spare
-75,wod,spare28,8,-,0,NONE,0,0,0,spare28,spare
-76,wod,ModuLO,8,-,1,AMSAT Radio,1,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-77,wod,ModuGain,8,-,1,AMSAT Radio,1,10,0,Modulator Reg 1,Modulator Register 1 - Gain
-78,wod,ModuPhaseOff,8,-,1,AMSAT Radio,1,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
-79,wod,ModuMode,8,-,1,AMSAT Radio,1,12,0,Modulator Reg 8,Modulator Register 8 - Mode
-80,wod,spare29,8,-,0,NONE,0,0,0,spare29,spare
-81,wod,spare30,8,-,0,NONE,0,0,0,spare30,spare
-82,wod,spare31,8,-,0,NONE,0,0,0,spare31,spare
-83,wod,spare32,8,-,0,NONE,0,0,0,spare32,spare
-84,wod,spare33,8,-,0,NONE,0,0,0,spare33,spare
-85,wod,spare34,8,-,0,NONE,0,0,0,spare34,spare
-86,wod,SpareBit1a,1,-,0,NONE,0,0,0,SpareBit1,spare
-87,wod,moduValid,1,-,21,AMSAT Radio,1,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-88,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,10,0,Eclipse Action,-
-89,wod,inEclipse,1,-,21,Spacecraft Status,2,11,0,In Eclipse,-
-90,wod,ICRRxOn,1,-,1,Command Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
-91,wod,ICRCarrierValid,1,-,1,Command Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
-92,wod,spare341,8,-,0,NONE,0,0,0,spare341,spare
-93,wod,spare35,8,-,0,NONE,0,0,0,spare35,spare
-94,wod,spare36,8,-,0,NONE,0,0,0,spare36,spare
-95,wod,spare37,8,-,0,NONE,0,0,0,spare37,spare
-96,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
-97,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
-98,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
-99,wod,inSafeMode,1,-,21,Spacecraft Status,2,12,0,Safe Mode,Are we in safe mode?
-100,wod,inHealthMode,1,-,21,Spacecraft Status,2,13,0,Health Mode,Are we in health mode?
-101,wod,inScienceMode,1,-,21,Spacecraft Status,2,14,0,Science Mode,Are we in science mode?
-102,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+70,wod,I2CfailureHostTemp,8,-,INT,Other Host Telemetry,8,7,0,I2c Fail Host Temp,Bits Indicate Host Temp Sensor Failure
+71,wod,hostBits1,1,-,STATUS_ENABLED,Other Host Telemetry,8,8,0,8V4 to 5V DC/DC,Host States Distro
+72,wod,hostBits2,1,-,STATUS_ENABLED,Other Host Telemetry,8,9,0,8V4 to 5V Linear Reg,-
+73,wod,hostBits3,1,-,STATUS_ENABLED,Other Host Telemetry,8,10,0,8V4 to 3V3 DC/DC,-
+74,wod,hostBits4,1,-,STATUS_ENABLED,Other Host Telemetry,8,11,0,Dual 8V4 to 5V2 DC/DC,-
+75,wod,hostBits5,1,-,STATUS_ENABLED,MESat Distro States,9,1,0,On Board Computer,-
+76,wod,hostBits6,1,-,STATUS_BIT,MESat Distro States,9,2,0,        Over Current,-
+77,wod,hostBits7,1,-,STATUS_ENABLED,MESat Distro States,9,3,0,CAN Controllers,-
+78,wod,hostBits8,1,-,STATUS_BIT,MESat Distro States,9,4,0,        Over Current,-
+79,wod,hostBits9,1,-,STATUS_ENABLED,MESat Distro States,9,5,0,Op Amps,Host States Distro
+80,wod,hostBits10,1,-,STATUS_BIT,MESat Distro States,9,6,0,        Over Current,-
+81,wod,hostBits11,1,-,STATUS_ENABLED,MESat Distro States,9,7,0,Temperature Sense,-
+82,wod,hostBits12,1,-,STATUS_BIT,MESat Distro States,9,8,0,        Over Current,-
+83,wod,hostBits13,1,-,STATUS_ENABLED,MESat Distro States,9,9,0,CPLD,-
+84,wod,hostBits14,1,-,STATUS_BIT,MESat Distro States,9,10,0,        Over Current,-
+85,wod,hostBits15,1,-,STATUS_ENABLED,MESat Distro States,9,11,0,CAN Tranceiver,-
+86,wod,hostBits16,1,-,STATUS_BIT,MESat Distro States,9,12,0,        Over Current,-
+87,wod,hostBits17,1,-,STATUS_ENABLED,MESat Distro States,9,13,0,EyeStar STX3,Host States Distro
+88,wod,hostBits18,1,-,STATUS_BIT,MESat Distro States,9,14,0,        I V or T Bad,-
+89,wod,hostBits19,1,-,STATUS_1_EQ_OK,MESat Distro States,9,15,0,        Vout Ok,-
+90,wod,hostBits20,1,-,STATUS_ENABLED,MESat Distro States,9,16,0,Detumble,-
+91,wod,hostBits21,1,-,STATUS_BIT,MESat Distro States,9,17,0,        I V or T Bad,-
+92,wod,hostBits22,1,-,STATUS_BIT,MESat Distro States,9,18,0,        Vout Ok,-
+93,wod,spareField1,2,-,0,NONE,0,0,0,spareField1,spare
+94,wod,hostBits23,1,-,PRIM_SECOND_ACTIVE,Other Host Telemetry,8,12,0,Which OBC Active,-
+95,wod,hostBits24,1,-,STATUS_1_EQ_OK,Other Host Telemetry,8,13,0,OBC Heartbeat,-
+96,wod,hostBits25,1,-,STATUS_1_EQ_OK,Host Solar Panels,7,10,0,MPPT Heartbeat,-
+97,wod,hostBits26,1,-,STATUS_1_EQ_OK,Host Batteries,6,14,0,Battery Heartbeat,-
+98,wod,hostBits27,1,-,STATUS_1_EQ_OK,MESat Distro States,9,19,0,Distro Heartbeat,-
+99,wod,spareField2,3,-,0,NONE,0,0,0,spareField2,spare
+100,wod,LMRAMstatus,8,-,1,Spacecraft Status,2,9,0,MRAM Status,TBD
+101,wod,ModuLO,8,-,1,AMSAT Radio,1,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+102,wod,ModuGain,8,-,1,AMSAT Radio,1,10,0,Modulator Reg 1,Modulator Register 1 - Gain
+103,wod,ModuPhaseOff,8,-,1,AMSAT Radio,1,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+104,wod,ModuMode,8,-,1,AMSAT Radio,1,12,0,Modulator Reg 8,Modulator Register 8 - Mode
+105,wod,spare29,8,-,0,NONE,0,0,0,spare29,spare
+106,wod,spare30,8,-,0,NONE,0,0,0,spare30,spare
+107,wod,spare31,8,-,0,NONE,0,0,0,spare31,spare
+108,wod,spare32,8,-,0,NONE,0,0,0,spare32,spare
+109,wod,spare33,8,-,0,NONE,0,0,0,spare33,spare
+110,wod,spare34,8,-,0,NONE,0,0,0,spare34,spare
+111,wod,SpareBit1a,1,-,0,NONE,0,0,0,SpareBit4,spare
+112,wod,moduValid,1,-,21,AMSAT Radio,1,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+113,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,10,0,Eclipse Action,-
+114,wod,inEclipse,1,-,21,Spacecraft Status,2,11,0,In Eclipse,-
+115,wod,ICRRxOn,1,-,1,Command Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
+116,wod,ICRCarrierValid,1,-,1,Command Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
+117,wod,spare341,8,-,0,NONE,0,0,0,spare341,spare
+118,wod,spare35,8,-,0,NONE,0,0,0,spare35,spare
+119,wod,spare36,8,-,0,NONE,0,0,0,spare36,spare
+120,wod,spare37,8,-,0,NONE,0,0,0,spare37,spare
+121,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
+122,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
+123,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
+124,wod,inSafeMode,1,-,21,Spacecraft Status,2,12,0,Safe Mode,Are we in safe mode?
+125,wod,inHealthMode,1,-,21,Spacecraft Status,2,13,0,Health Mode,Are we in health mode?
+126,wod,inScienceMode,1,-,21,Spacecraft Status,2,14,0,Science Mode,Are we in science mode?
+127,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
