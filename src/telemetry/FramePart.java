@@ -775,14 +775,22 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					break;
 				}
 			}
+			
+			//// TESTING ONLY  
+			String convName = layout.getConversionNameByPos(pos);
+			if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+				System.out.println("STOP");
+			
+			
+			
 			// First calculate the value as normal, converting the raw value
 			double dvalue = getDoubleValue(name, fox);
 			String s = "-----";
 			if (pos != -1) {
 				// Check if this is a simple numeric legacy conversion
-				String convName = layout.getConversionNameByPos(pos);
-				//if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
-				//	System.out.println("STOP");
+/////				String convName = layout.getConversionNameByPos(pos);
+				if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+					System.out.println("STOP");
 				int conv = -1;
 				try {
 					conv = Integer.parseInt(convName);
@@ -797,11 +805,16 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					} else {
 						String lastConv = Conversion.getLastConversionInPipeline(convName);
 						
+						String stem3 = "";
+						if (lastConv.length() >=3)
+							stem3 = lastConv.substring(0, 3); // first 3 characters to check for BIN, HEX
+						String stem5 = "";
+						if (lastConv.length() >=5)
+							stem5 = lastConv.substring(0, 5); // first 5 characters to check for FLOAT
 						// First check the reserved words for formatting in final field
 						if (lastConv.equalsIgnoreCase(Conversion.FMT_INT)) {
 							s = Long.toString((long) dvalue);
-						} if (lastConv.equalsIgnoreCase(Conversion.FMT_INT)) {
-							s = Long.toString((long) dvalue);
+			
 						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_F) 
 								|| lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
 							s = String.format("%2.1f", dvalue);
@@ -809,29 +822,25 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 							s = String.format("%1.2f", dvalue);
 						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_3F)) {
 							s = String.format("%1.3f", dvalue);
-						} else if (lastConv.equalsIgnoreCase("HEX2")) {
-							s = toByteString((long)dvalue,2);
-						} else if (lastConv.equalsIgnoreCase("HEX4")) {
-							s = toByteString((long)dvalue,4);
-						} else if (lastConv.equalsIgnoreCase("Bit1")) {
-							s = intToBin((int)dvalue,1);
-						} else if (lastConv.equalsIgnoreCase("Bit2")) {
-							s = intToBin((int)dvalue,2);
-						} else if (lastConv.equalsIgnoreCase("Bit3")) {
-							s = intToBin((int)dvalue,3);
-						} else if (lastConv.equalsIgnoreCase("Bit4")) {
-							s = intToBin((int)dvalue,4);
-						} else if (lastConv.equalsIgnoreCase("Bit8")) {
-							s = intToBin((int)dvalue,8);
-						} else if (lastConv.equalsIgnoreCase("Bit16")) {
-							s = intToBin((int)dvalue,16);
-						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_F) 
-								|| lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
-							s = String.format("%2.1f", dvalue);
-						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_2F)) {
-							s = String.format("%1.2f", dvalue);
-						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_3F)) {
-							s = String.format("%1.3f", dvalue);	
+						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_4F)) {
+							s = String.format("%1.4f", dvalue);
+						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_5F)) {
+							s = String.format("%1.5f", dvalue);
+						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_6F)) {
+							s = String.format("%1.6f", dvalue);
+						} else if (stem3.equalsIgnoreCase(Conversion.FMT_HEX)) {
+							String index = lastConv.substring(3); // all characters after the stem
+							try {
+								int idx = Integer.parseInt(index);
+								s = toByteString((long)dvalue,idx);
+							} catch (NumberFormatException e) { };
+						} else if (stem3.equalsIgnoreCase(Conversion.FMT_BIN)) {
+							String index = lastConv.substring(3); // all characters after the stem
+							try {
+								int idx = Integer.parseInt(index);
+								s = intToBin((int)dvalue,idx);
+							} catch (NumberFormatException e) { };
+						
 						} else {
 							// Get the conversion for the last conversion in the pipeline
 							Conversion conversion = fox.getConversionByName(lastConv);
@@ -963,16 +972,22 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				if (fox.useConversionCoeffs) { // use a modern conversion soft coded
 					
 					String convName = layout.getConversionNameByPos(pos);
-					if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
+					if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
 						System.out.println("STOP");
 					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
 					for (String singleConv : conversions) {
 						singleConv = singleConv.trim();
 						// First check the reserved words for formatting
-						if (singleConv.equalsIgnoreCase(Conversion.FMT_INT) 
-								|| singleConv.equalsIgnoreCase(Conversion.FMT_F)
-								|| singleConv.equalsIgnoreCase(Conversion.FMT_1F)
-								|| singleConv.equalsIgnoreCase(Conversion.FMT_2F)) {
+						String stem3 = "";
+						if (singleConv.length() >=3)
+							stem3 = singleConv.substring(0, 3); // first 3 characters to check for BIN, HEX
+						String stem5 = "";
+						if (singleConv.length() >=5)
+							stem5 = singleConv.substring(0, 5); // first 5 characters to check for FLOAT
+						if (stem3.equalsIgnoreCase(Conversion.FMT_INT) 
+								|| stem3.equalsIgnoreCase(Conversion.FMT_BIN)
+								|| stem3.equalsIgnoreCase(Conversion.FMT_HEX)
+								|| stem5.equalsIgnoreCase(Conversion.FMT_F)) {
 							// we skip, this is applied in string formatting later
 						} else {
 							// Need to know if this is a static, curve or table conversion

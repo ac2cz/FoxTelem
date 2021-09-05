@@ -2,10 +2,15 @@ package telemetry.conversion;
 
 public abstract class Conversion {
 	public static final String FMT_INT = "INT";
+	public static final String FMT_BIN = "BIN";
+	public static final String FMT_HEX = "HEX";
 	public static final String FMT_F = "FLOAT";
 	public static final String FMT_1F = "FLOAT1";
 	public static final String FMT_2F = "FLOAT2";
 	public static final String FMT_3F = "FLOAT3";
+	public static final String FMT_4F = "FLOAT4";
+	public static final String FMT_5F = "FLOAT5";
+	public static final String FMT_6F = "FLOAT6";
 
 	protected String name; // must be unique in the namespace of the spacecraft
 	
