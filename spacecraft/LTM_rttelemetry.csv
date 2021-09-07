@@ -69,7 +69,7 @@
 67,realtimeDownlink,swCmds,32,-,35,Command Receiver,3,6,0,Diagnostic,ICR Diagnostic information
 68,realtimeDownlink,hwCmdCnt,8,-,1,Command Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
 69,realtimeDownlink,swCmdCntICR,8,-,34,Command Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
-70,realtimeDownlink,I2CfailureHostTemp,8,-,INT,Other Host Telemetry,8,7,0,I2c Fail Host Temp,Bits Indicate Host Temp Sensor Failure
+70,realtimeDownlink,I2CfailureHostTemp,8,Bits,BIN5,Other Host Telemetry,8,7,0,Host Tmp Fail,Bits Indicate Host Temp Sensor Failure
 71,realtimeDownlink,hostBits1,1,-,STATUS_ENABLED,Other Host Telemetry,8,8,0,8V4 to 5V DC/DC,Host States Distro
 72,realtimeDownlink,hostBits2,1,-,STATUS_ENABLED,Other Host Telemetry,8,9,0,8V4 to 5V Linear Reg,-
 73,realtimeDownlink,hostBits3,1,-,STATUS_ENABLED,Other Host Telemetry,8,10,0,8V4 to 3V3 DC/DC,-
