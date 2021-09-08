@@ -177,6 +177,7 @@ public abstract class FoxDecoder extends Decoder {
 						e.printStackTrace(Log.getWriter());
 					}
 				framesDecoded++;
+				if (MainWindow.frame != null) // then we are in GUI mode
 				try {
 					SwingUtilities.invokeAndWait(new Runnable() {
 						public void run() { MainWindow.setTotalDecodes();}

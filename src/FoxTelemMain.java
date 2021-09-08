@@ -2,21 +2,33 @@
 import gui.InitalSettings;
 import gui.MainWindow;
 import gui.ProgressPanel;
+import telemetry.TelemFormat;
 
 import java.awt.EventQueue;
 import java.awt.Frame;
 import java.awt.Toolkit;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+
+import javax.sound.sampled.UnsupportedAudioFileException;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
 import common.Config;
 import common.Log;
+import decoder.Decoder;
+import decoder.Fox200bpsDecoder;
+import decoder.Fox9600bpsDecoder;
+import decoder.FoxDecoder;
+import decoder.SourceIQ;
 //import decoder.FoxDecoder;
+import decoder.SourceWav;
+import decoder.FoxBPSK.FoxBPSKCostasDecoder;
+import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -503,11 +515,14 @@ import common.Log;
 public class FoxTelemMain {
 
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
-			+ "Usage: FoxTelem [-h][-v][-s] [logFileDir]\n"
-			+ "-h show this help\n"
-			+ "-v display version information\n"
-			+ "-s automatically start the decoder\n"
-			+ "logFileDir - Start the decoder in this directory and use the settings stored there\n\n";
+			+ "Usage: FoxTelem [-h][-v][-s][--process-audio filename --telem-format format] [--12khz-if] [logFileDir]\n"
+			+ "-h Show this help.\n"
+			+ "-v Display version information.\n"
+			+ "-s Automatically start the decoder if in gui mode.\n"
+			+ "--process-audio <fileName> - Decode a wav file with no gui.  Must also supply a telem-format.\n"
+			+ "--telem-format <duv|high-speed|FOX_BPSK|GOLF_BPSK> - telemetry decoder to use.\n"
+			+ "--12khz-if - Use a 12kHz IF for audio file decoding.\n"
+			+ "logFileDir - Start the decoder in this directory and use the settings stored there.\n\n";
 	static String seriousErrorMsg;
 	static String logFileDir = null;
 	
@@ -526,22 +541,55 @@ public class FoxTelemMain {
 			; // Failure to check the version is not fatal.  Ignore and hope the user got it right
 		}
 		
-		ProgressPanel initProgress = new ProgressPanel(MainWindow.frame, "Initializing AMSAT FoxTelem, please wait ...", false);
-		initProgress.setVisible(true);
+		File audioFile = null;
+		String telemFormatName = null;
+		boolean use12khzIfSwitch = false;
+		
 		int arg = 0;
 		while (arg < args.length) {
 			if (args[arg].startsWith("-")) { // this is a switch
-			if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("-help")) || (args[arg].equalsIgnoreCase("--help"))) {
+			if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("--help"))) {
 				System.out.println(HELP);
 				System.exit(0);
 			}
-			if ((args[arg].equalsIgnoreCase("-v")) || (args[arg].equalsIgnoreCase("-version"))) {
+			if ((args[arg].equalsIgnoreCase("-v")) || (args[arg].equalsIgnoreCase("--version"))) {
 				System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
 				System.exit(0);
 			}
 			if (args[arg].equalsIgnoreCase("-s")) {
 				Log.println("Command Line Switch: STARTED");
 				Config.startButtonPressed = true;
+			}
+			
+			if (args[arg].equalsIgnoreCase("--12khz-if")) {
+				Log.println("Command Line Switch: 12kHz IF");
+				use12khzIfSwitch = true;
+			}
+			
+			if (args[arg].equalsIgnoreCase("--telem-format")) {
+				arg++;
+				if (args.length == arg) {
+					System.out.println("Missing filename for --telem-format command line switch.");
+					System.exit(0);
+				}
+				telemFormatName = args[arg];
+				Log.println("Command Line Switch: Telem Format File: " + telemFormatName);
+				
+			}
+			
+			if (args[arg].equalsIgnoreCase("--process-audio")) {
+				arg++;
+				if (args.length == arg) {
+					System.out.println("Missing filename for --process-audio command line switch.");
+					System.exit(0);
+				}
+				String audioFileName = args[arg];
+				audioFile = new File(audioFileName);
+				if (!audioFile.isFile()) {
+					System.out.println("Can't read file for --process-audio command line switch: " + audioFileName);
+					System.exit(0);
+				}
+				Log.println("Command Line Switch: Process Audio File: " + audioFileName);
 			}
 			
 			} else {
@@ -552,6 +600,16 @@ public class FoxTelemMain {
 			arg++;
 		}
 		
+		if (audioFile != null) 
+			Log.showGuiDialogs = false;
+		
+		ProgressPanel initProgress = null;
+		
+		if (audioFile == null) { // we are showing the GUI
+			initProgress = new ProgressPanel(MainWindow.frame, "Initializing AMSAT FoxTelem, please wait ...", false);
+			initProgress.setVisible(true);
+		}
+		
 		if (logFileDir == null)
 			Config.homeDirectory = System.getProperty("user.home") + File.separator + ".FoxTelem";
 		else
@@ -559,6 +617,10 @@ public class FoxTelemMain {
 
 		FoxTelemMain m = new FoxTelemMain();
 		if (Config.missing()) {
+			if (audioFile != null) {
+				Log.println("Cant process command Line Switch 'Process Audio File' until FoxTelem is setup\nRun the GUI once to pick installed satellites and initialize the settings for processing\n");
+				System.exit(1);
+			}
 			// Then this is the first time we have run FoxTelem on this computer
 			Config.setHome();
 			if (logFileDir == null)
@@ -566,7 +628,7 @@ public class FoxTelemMain {
 		}
 		
 		Log.init("FoxTelemDecoder");
-	
+		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
 		
 		Config.init(logFileDir); // initialize, create properties if needed, load properties and create the payload store.  This runs in a seperate thread to the GUI and the decoder
@@ -576,9 +638,13 @@ public class FoxTelemMain {
 		
 		Log.println("LogFileDir is:" + Config.logFileDirectory);
 
-		
-		invokeGUI();
-		initProgress.updateProgress(100);
+		if (audioFile != null) {
+			
+			m.processAudioFile(audioFile, telemFormatName, use12khzIfSwitch);
+		} else {
+			invokeGUI();
+			initProgress.updateProgress(100);
+		}
 	}
 
 	public void initialRun() {
@@ -673,6 +739,91 @@ public class FoxTelemMain {
 			}
 		});		
 	}
+	
+	void processAudioFile(File wavFile, String telemFormatName, boolean use12khzIfSwitch) {
+		if (telemFormatName == null) {
+			Log.println("Missing telem format.  Include command line switch --telem-format with a valid format from this list: duv high-speed FOX_BPSK GOLF_BPSK");
+			System.exit(1);
+		}
+		
+		if (use12khzIfSwitch)
+			Config.use12kHzIfForBPSK = true;
+		
+		SourceWav audioSource = null;
+		try {
+			audioSource = new SourceWav(wavFile.getPath(), false);
+		} catch (UnsupportedAudioFileException e) {
+			Log.errorDialog("ERROR With Audio File", e.toString());
+			e.printStackTrace(Log.getWriter());
+		} catch (IOException e) {
+			Log.errorDialog("ERROR With File", e.toString());
+			e.printStackTrace(Log.getWriter());
+		}
+		
+		Decoder decoder1 = null;
+		
+		if (telemFormatName.equalsIgnoreCase("duv")) {
+			decoder1 = new Fox200bpsDecoder(audioSource, 0);
+		} else if (telemFormatName.equalsIgnoreCase("high-speed")) {
+			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+		} else if (telemFormatName.equalsIgnoreCase("FOX_BPSK")) {
+			TelemFormat telemFormat = null;
+			if (telemFormatName != null ) {
+				telemFormat = Config.satManager.getFormatByName(telemFormatName);
+				if (telemFormat == null) {
+					System.out.println("Can't read file for --telem-fomat command line switch: " + telemFormatName);
+					System.exit(0);
+				}
+			}
+			if (Config.useCostas) {
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+			} else {
+				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+			}
+		} else if (telemFormatName.equalsIgnoreCase("GOLF_BPSK")) {
+			TelemFormat telemFormat = null;
+			if (telemFormatName != null ) {
+				telemFormat = Config.satManager.getFormatByName(telemFormatName);
+				if (telemFormat == null) {
+					System.out.println("Can't read file for --telem-fomat command line switch: " + telemFormatName);
+					System.exit(0);
+				}
+			}
+			if (Config.useCostas) {
+				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+			} else {
+				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+			}
+		} else {
+			Log.println("Unknown format: " + telemFormatName);
+			System.exit(1);
+		}
+		
+		if (decoder1 == null) {
+			Log.println("Could not initialize decoder.  Try using --telem-format for BPSK modes ... exiting");
+			System.exit(1);
+		}
+		try {
+			decoder1.process();
+		} catch (UnsupportedAudioFileException e) {
+			Log.println("ERROR: " + e);
+		} catch (IOException e) {
+			Log.println("ERROR: " + e);
+		} catch (NullPointerException e) {
+			Log.println("ERROR: " + e);
+			// CATCH THIS IN PRODUCTION VERSION	
+	        Log.println("FATAL ERROR IN DECODER: Uncaught null exception." +e +"\n" + e.getStackTrace());
+		} catch (Exception e) {
+			// CATCH THIS IN PRODUCTION VERSION	
+			Log.println("FATAL: Uncaught exception." +e +"\n" + e.getStackTrace());
+			
+		}
+		Log.println("DECODER Exit");
+		
+		Log.println("Finished processing audio file.");
+		System.exit(0);
+	}
+	
 
 	/**
 	 * Not pretty, but this works out what directory the jar file is in and returns it

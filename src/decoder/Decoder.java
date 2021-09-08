@@ -399,7 +399,7 @@ public abstract class Decoder implements Runnable {
         
 		startAudioThread();
 
-        while (nBytesRead != -1 && processing) {
+        while (nBytesRead != -1 && processing && !audioSource.isDone()) {
         	Performance.startTimer("Setup");
     		resetWindowData();
     		Performance.endTimer("Setup");
