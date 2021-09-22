@@ -106,6 +106,9 @@ public class DesktopApi {
             Desktop.getDesktop().browse(uri);
 
             return true;
+        } catch (IOException e) {
+        	// not an error, could not find program to execute
+        	return false;
         } catch (Throwable t) {
             Log.errorDialog("Error using desktop browse.", t.getMessage() + "\nTrying: " + uri.toString());
             return false;
@@ -185,7 +188,8 @@ public class DesktopApi {
                 return true;
             }
         } catch (IOException e) {
-            logErr("Error running command.", e);
+        	// This is not really an error.  We could not find the file and this was not a valid method to try
+            //logErr("Error running command.", e);
             return false;
         }
     }
