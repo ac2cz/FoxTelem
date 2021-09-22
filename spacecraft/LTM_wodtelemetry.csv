@@ -54,18 +54,18 @@
 52,wod,spare19,8,-,0,NONE,0,0,0,spare19,spare
 53,wod,spare20,8,-,0,NONE,0,0,0,spare20,spare
 54,wod,spare21,16,-,0,NONE,0,0,0,spare21,spare
-55,wod,DeploySenseCan,8,-,16,Spacecraft Status,2,2,0,Deploy Sense via CAN,TBD
-56,wod,DeploySenseI2c,8,-,16,Spacecraft Status,2,3,0,Deploy Sense via I2c,TBD
+55,wod,DeploySense,8,-,BIN8,Spacecraft Status,2,2,0,Deployable Sense,TBD
+56,wod,spare28,8,-,0,NONE,0,0,0,spare28,spare
 57,wod,SpareBit1,1,-,0,NONE,0,0,0,SpareBit1,spare
-58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,2,4,0,Auto Safe Allowed,Autosafe Allowed
-59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,2,5,0,Auto Safe,Autosafe Mode Active
+58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,2,3,0,Auto Safe Allowed,Autosafe Allowed
+59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,2,4,0,Auto Safe,Autosafe Mode Active
 60,wod,spareBit1,1,-,17,NONE,0,0,0,Spare Bit 2,spare
 61,wod,SpareBit3,1,-,17,NONE,0,0,0,SpareBit3,spare
 62,wod,transponderEnabled,1,-,44,AMSAT Radio,1,6,0,Transponder Enabled,-
-63,wod,I2CfailureICR,1,-,17,Command Receiver,3,5,0,I2cICR,Antenna is not communicating over bus 2
-64,wod,I2CFailureDeploy,1,-,17,Spacecraft Status,2,6,0,I2c Deploy,Antenna is not communicating over bus 1
-65,wod,TLMresets,8,-,1,Spacecraft Status,2,7,0,Min/Max Resets,Number of times command stations reset stored telemetry
-66,wod,wodSize,8,-,36,Spacecraft Status,2,8,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+63,wod,I2CfailureICR,1,-,17,Command Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
+64,wod,DeploySenseOK,1,-,STATUS_1_EQ_OK,Spacecraft Status,2,5,0,Deploy Sense Ok,Antenna sensor is ok
+65,wod,TLMresets,8,-,1,Spacecraft Status,2,6,0,Min/Max Resets,Number of times command stations reset stored telemetry
+66,wod,wodSize,8,-,36,Spacecraft Status,2,7,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
 67,wod,swCmds,32,-,35,Command Receiver,3,6,0,Diagnostic,ICR Diagnostic information
 68,wod,hwCmdCnt,8,-,1,Command Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
 69,wod,swCmdCntICR,8,-,34,Command Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
@@ -99,7 +99,7 @@
 97,wod,hostBits26,1,-,STATUS_1_EQ_OK,Host Batteries,6,14,0,Battery Heartbeat,-
 98,wod,hostBits27,1,-,STATUS_1_EQ_OK,MESat Distro States,9,19,0,Distro Heartbeat,-
 99,wod,spareField2,3,-,0,NONE,0,0,0,spareField2,spare
-100,wod,LMRAMstatus,8,-,1,Spacecraft Status,2,9,0,MRAM Status,TBD
+100,wod,LMRAMstatus,8,-,1,Spacecraft Status,2,8,0,MRAM Status,TBD
 101,wod,ModuLO,8,-,1,AMSAT Radio,1,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
 102,wod,ModuGain,8,-,1,AMSAT Radio,1,10,0,Modulator Reg 1,Modulator Register 1 - Gain
 103,wod,ModuPhaseOff,8,-,1,AMSAT Radio,1,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
@@ -112,8 +112,8 @@
 110,wod,spare34,8,-,0,NONE,0,0,0,spare34,spare
 111,wod,SpareBit1a,1,-,0,NONE,0,0,0,SpareBit4,spare
 112,wod,moduValid,1,-,21,AMSAT Radio,1,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
-113,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,10,0,Eclipse Action,-
-114,wod,inEclipse,1,-,21,Spacecraft Status,2,11,0,In Eclipse,-
+113,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,9,0,Eclipse Action,-
+114,wod,inEclipse,1,-,21,Spacecraft Status,2,10,0,In Eclipse,-
 115,wod,ICRRxOn,1,-,1,Command Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
 116,wod,ICRCarrierValid,1,-,1,Command Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
 117,wod,spare341,8,-,0,NONE,0,0,0,spare341,spare
@@ -123,7 +123,7 @@
 121,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
 122,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
 123,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
-124,wod,inSafeMode,1,-,21,Spacecraft Status,2,12,0,Safe Mode,Are we in safe mode?
-125,wod,inHealthMode,1,-,21,Spacecraft Status,2,13,0,Health Mode,Are we in health mode?
-126,wod,inScienceMode,1,-,21,Spacecraft Status,2,14,0,Science Mode,Are we in science mode?
+124,wod,inSafeMode,1,-,21,Spacecraft Status,2,11,0,Safe Mode,Are we in safe mode?
+125,wod,inHealthMode,1,-,21,Spacecraft Status,2,12,0,Health Mode,Are we in health mode?
+126,wod,inScienceMode,1,-,21,Spacecraft Status,2,13,0,Science Mode,Are we in science mode?
 127,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
