@@ -113,7 +113,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	protected static final String ID = "Satellite ";
 	protected static final String MODE = "  Mode: ";
 	private static final String UPTIME = "  Uptime: ";
-	private static final String RESETS = "  Resets: ";
+	private static final String RESETS = "  Epoch: ";
 	protected static final String DECODED = "Telemetry Payloads Decoded: ";
 	protected static final String CAPTURE_DATE = "Captured: ";
 	public static final int DISPLAY_CURRENT = 0;

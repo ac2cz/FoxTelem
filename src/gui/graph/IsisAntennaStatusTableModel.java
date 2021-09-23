@@ -29,7 +29,7 @@ class IsisAntennaStatusTableModel extends AbstractTableModel {
 
     IsisAntennaStatusTableModel() {
 		columnNames = new String[17];
-		columnNames[0] = "Resets";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "Armed";
 		columnNames[3] = "Burn";

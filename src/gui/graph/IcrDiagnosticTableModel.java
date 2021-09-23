@@ -29,7 +29,7 @@ class IcrDiagnosticTableModel extends AbstractTableModel {
 
     IcrDiagnosticTableModel() {
 		columnNames = new String[6];
-		columnNames[0] = "Resets";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "";
 		columnNames[3] = "";

@@ -28,7 +28,7 @@ class RadiationTableModel extends FoxTelemTableModel {
 
 	RadiationTableModel() {
 		columnNames = new String[60];
-		columnNames[0] = "RESET";
+		columnNames[0] = "EPOCH";
 		columnNames[1] = "UPTIME";
 		for (int k=0; k<58; k++) 
 			columnNames[k+2] = ""+k;

@@ -29,7 +29,7 @@ class DiagnosticTableModel extends AbstractTableModel {
 
     DiagnosticTableModel() {
 		columnNames = new String[3];
-		columnNames[0] = "Resets";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "Diagnostic";
 	}

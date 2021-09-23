@@ -28,7 +28,7 @@ class HerciHsPacketTableModel extends FoxTelemTableModel {
 	
 	HerciHsPacketTableModel() {
 		columnNames = new String[12];
-		columnNames[0] = "RESET";
+		columnNames[0] = "EPOCH";
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "FOX SEQ";
 		

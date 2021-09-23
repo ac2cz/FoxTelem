@@ -28,7 +28,7 @@ public class RadiationPacketTableModel extends FoxTelemTableModel {
  
 	public RadiationPacketTableModel() {
 		columnNames = new String[5];
-		columnNames[0] = "RESET";
+		columnNames[0] = "EPOCH";
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "TYPE";
 		columnNames[3] = "SEQUENCE";

@@ -9,7 +9,7 @@ public class SoftError84488TableModel extends AbstractTableModel {
 
 	SoftError84488TableModel() {
 		columnNames = new String[7];
-		columnNames[0] = "Resets";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "DAC Overflows";
 		columnNames[3] = "I2C1 Retries";	

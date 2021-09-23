@@ -28,7 +28,7 @@ class CanPacketRawTableModel extends FoxTelemTableModel {
 
 	CanPacketRawTableModel() {
 		columnNames = new String[14];
-		columnNames[0] = "RESET";
+		columnNames[0] = "EPOCH";
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "FOX SEQ";
 		columnNames[3] = "ID";

@@ -175,8 +175,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	JLabel lblFromUTC;
 	JLabel lblToUTC;
 	
-	public static final String FROM_RESET = "From Reset";
-	public static final String BEFORE_RESET = " before Reset";
+	public static final String FROM_RESET = "From Epoch";
+	public static final String BEFORE_RESET = " before Epoch";
 	public static final String FROM_UTC = "From UTC";
 	public static final String BEFORE_UTC = " before UTC";
 	
@@ -332,7 +332,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		cbUTC = new JButton("UTC");
 		cbUTC.setMargin(new Insets(0,0,0,0));
 		cbUTC.addActionListener(this);
-		cbUTC.setToolTipText("Toggle between UTC time and spacecraft reset/uptime");
+		cbUTC.setToolTipText("Toggle between UTC time and spacecraft epoch/uptime");
 		titlePanelRight.add(cbUTC);
 		
 		if (!(plotType == SKY_PLOT || plotType == EARTH_PLOT)) {
@@ -502,7 +502,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 
-		lblToReset = new JLabel("  to Reset");
+		lblToReset = new JLabel("  to Epoch");
 		footerPanel2uptime.add(lblToReset);
 		
 		textToReset = new JTextField();
@@ -1575,7 +1575,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (this.showUTCtime)
 				h="UTC";
 			else
-				h= "resets, uptime";
+				h= "epoch, uptime";
 			if (plotType == EARTH_PLOT)
 				h= h+",lat, lon";
 			for (int j=0; j < fieldName.length; j++)				

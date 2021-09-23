@@ -29,7 +29,7 @@ class SoftErrorTableModel extends AbstractTableModel {
 
     SoftErrorTableModel() {
 		columnNames = new String[6];
-		columnNames[0] = "Resets";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "DAC Overflows";
 		columnNames[3] = "I2C Retries";	

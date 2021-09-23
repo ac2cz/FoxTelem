@@ -28,7 +28,7 @@ public class ExperimentLayoutTableModel extends FoxTelemTableModel {
 
 	public ExperimentLayoutTableModel(BitArrayLayout lay) {
 		columnNames = new String[lay.fieldName.length+2];
-		columnNames[0] = "RESET";
+		columnNames[0] = "EPOCH";
 		columnNames[1] = "UPTIME";
 		for (int k=0; k<columnNames.length-2; k++) 
 			columnNames[k+2] = lay.fieldName[k];

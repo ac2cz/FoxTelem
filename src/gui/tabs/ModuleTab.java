@@ -108,8 +108,8 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	JLabel lblFromUTC;
 	JLabel lblToUTC;
 	
-	public static final String FROM_RESET = "From Reset";
-	public static final String BEFORE_RESET = " before Reset";
+	public static final String FROM_RESET = "From Epoch";
+	public static final String BEFORE_RESET = " before Epoch";
 	public static final String FROM_UTC = "From UTC";
 	public static final String BEFORE_UTC = " before UTC";
 	
@@ -193,7 +193,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		textFromUptime.addActionListener(this);
 		textFromUptime.addFocusListener(this);
 
-		lblToReset = new JLabel("  to Reset");
+		lblToReset = new JLabel("  to Epoch");
 		footerPanel2uptime.add(lblToReset);
 		
 		textToReset = new JTextField();

@@ -29,7 +29,7 @@ class HardErrorTableModel extends AbstractTableModel {
 
     HardErrorTableModel() {
 		columnNames = new String[8];
-		columnNames[0] = "Resets";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Uptime";
 		columnNames[2] = "Error Type";
 		columnNames[3] = "Error Data";

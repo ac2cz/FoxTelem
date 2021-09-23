@@ -125,7 +125,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 
 	int splitPaneHeight = 0;
 	
-	private static final String PIC_RESET = "Reset: ";
+	private static final String PIC_RESET = "Epoch: ";
 	private static final String PIC_UPTIME = "Uptime: ";
 	private static final String PIC_PC = "Pic Number: ";
 	private static final String PIC_DATE = "Captured: ";
@@ -269,7 +269,7 @@ public class CameraTab extends FoxTelemTab implements Runnable, MouseListener, I
 		bottomPanel.add(displayNumber2);
 		bottomPanel.add(displayNumber3);
 		
-		lblFromReset = new JLabel("   from Reset  ");
+		lblFromReset = new JLabel("   from Epoch  ");
 		lblFromReset.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		bottomPanel.add(lblFromReset);
 		

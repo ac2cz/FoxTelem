@@ -347,7 +347,7 @@ public class DiagnosticTable extends JPanel {
 				tableData[i][0] = "";
 			}
 		} else {
-			setColumnName(0, "Reset");
+			setColumnName(0, "Epoch");
 			setColumnName(1, "Uptime");
 			tableData[i][0] = Integer.toString((int)graphData[PayloadStore.RESETS_COL][i]);
 			tableData[i][1] = Long.toString((long)graphData[PayloadStore.UPTIME_COL][i]);

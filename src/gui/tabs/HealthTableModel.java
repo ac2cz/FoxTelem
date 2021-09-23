@@ -14,7 +14,7 @@ public class HealthTableModel  extends AbstractTableModel {
 
     HealthTableModel(BitArrayLayout lay) {
 		columnNames = new String[lay.fieldName.length+3];
-		columnNames[RESET_COL] = "RESET";
+		columnNames[RESET_COL] = "EPOCH";
 		columnNames[UPTIME_COL] = "UPTIME";
 		columnNames[TYPE_COL] = "TYPE";
 		for (int k=0; k<columnNames.length-3; k++) 

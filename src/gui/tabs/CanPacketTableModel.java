@@ -37,7 +37,7 @@ class CanPacketTableModel extends FoxTelemTableModel {
 			columnNames[5] = "TOTAL";
 //		} else {
 //			columnNames = new String[6];
-//			columnNames[0] = "RESET";
+//			columnNames[0] = "EPOCH";
 //			columnNames[1] = "UPTIME";
 //			columnNames[2] = "FOX SEQ";
 //			columnNames[3] = "ID";

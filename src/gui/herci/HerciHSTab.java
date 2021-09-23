@@ -316,7 +316,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
 		if (!Config.payloadStore.initialized()) return;
 		if (rad == null) return;
 		hsHeader = (HerciHighspeedHeader) rad; // Cache this in case show raw is toggled
-		lblHSpayload.setText("HERCI EXPERIMENT PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Reset:" + rad.getResets() + " Uptime:" + rad.getUptime() );
+		lblHSpayload.setText("HERCI EXPERIMENT PAYLOAD: " + PayloadHERCIhighSpeed.MAX_PAYLOAD_SIZE + " bytes. Epoch:" + rad.getResets() + " Uptime:" + rad.getUptime() );
 	//	System.out.println("GOT PAYLOAD FROM payloadStore: Resets " + rt.getResets() + " Uptime: " + rt.getUptime() + "\n" + rt + "\n");
 		if (rad != null) {
 			for (DisplayModule mod : topModules) {
@@ -422,7 +422,7 @@ public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener,
     	
     	type_l = (long)table.getValueAt(row, HerciHSTableModel.TYPE_COL);
     	
-    	Log.println("RESET: " + reset_l);
+    	Log.println("EPOCH: " + reset_l);
     	Log.println("UPTIME: " + uptime);
     	Log.println("TYPE: " + type_l);
     	int reset = (int)reset_l;
