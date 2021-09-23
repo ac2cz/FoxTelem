@@ -1404,6 +1404,14 @@ protected double[] processBytes(double[] fcdData) {
 	}
 	
 	double psk = 0.0;
+	/**
+	 * This is a legacy routine and is no longer used
+	 * @param i
+	 * @param q
+	 * @param sample
+	 * @return
+	 */
+	@Deprecated
 	private double pskDemod(double i, double q, int sample) {
 		ssbOffset = 0;
 		psk = costasLoop(i, q, sample);
