@@ -392,7 +392,13 @@ public class BitArrayLayout {
 					int fieldId = Integer.valueOf(st.nextToken()).intValue(); column++;
 					@SuppressWarnings("unused")
 					String type = st.nextToken(); column++;
-					fieldName[field] = st.nextToken(); column++;
+					String tmpName = st.nextToken(); column++;
+					if (hasFieldName(tmpName)) {
+						throw new LayoutLoadException("Error loading layout " + fileName +
+								"\n Duplicate field: " + tmpName);
+					} else {
+						fieldName[field] = tmpName;
+					}
 					fieldBitLength[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
 					fieldUnits[field] = st.nextToken(); column++;
 					conversion[field] = st.nextToken(); column++; //Integer.valueOf(st.nextToken()).intValue();
