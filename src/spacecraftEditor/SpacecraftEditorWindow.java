@@ -224,9 +224,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			destinationDir = new File(Config.logFileDirectory+"/spacecraft");
 		} else {
-			destinationDir = dir;
-			Spacecraft satellite = new Spacecraft(Config.satManager, file, userFile);
-			satellite.save();
+			destinationDir = dir;	
 		}
 
 		if(Config.useNativeFileChooser && !Config.isLinuxOs()) { // not on Linux because the Native File Chooser does not filter files 
