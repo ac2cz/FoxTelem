@@ -1939,6 +1939,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
 							e.printStackTrace();
 							rfDevice = null;
+						} catch (LibUsbException e2) {
+							Log.errorDialog("ERROR", "USB Issue trying to communicate with device:\n" + e2.getMessage());
+							e2.printStackTrace();
+							rfDevice = null;
 						}
 					} 
 					if (rfDevice == null) {
@@ -1957,25 +1961,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								Log.errorDialog("USB Device Error", e.getMessage());
 								e.printStackTrace(Log.getWriter());
 								stopButton();
+							} catch (LibUsbException e2) {
+								Log.errorDialog("ERROR", "USB Issue trying to communicate with device:\n" + e2.getMessage());
+								e2.printStackTrace();
+								rfDevice = null;
 							}
 						}
-						
-						// TODO - this would have reset the PPM adjustment that was setup when panel created.
-						// so the reset was removed from the setSampleRate function.  May be dangerous
-						try { 
-							rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
-							Config.saveGraphIntParam("SDR", 0, 0, "RTL", "RtlSampleRate", sampleRate.getRate());		
-						} catch (DeviceException e2) {
-							Log.errorDialog("USB Error Setting sample rate", e2.getMessage());
-							e2.printStackTrace(Log.getWriter());
-							stopButton();
-						} 
 						
 						// Setting the device causes its paramaters to be set, e.g. gain
 						// retry 5 times with some delay in case a temporary hardware issue
 						int retried = 0;
 						while (retried < 5) {
 							try {
+								// TODO - this would have reset the PPM adjustment that was setup when panel created.
+								// so the reset was removed from the setSampleRate function.  May be dangerous
+								rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
+								Config.saveGraphIntParam("SDR", 0, 0, "RTL", "RtlSampleRate", sampleRate.getRate());
 								panelFcd.setDevice(rfDevice);
 								break; // no need to retry
 							} catch (LibUsbException e) {
