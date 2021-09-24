@@ -22,6 +22,8 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
+import org.usb4java.LibUsb;
+import org.usb4java.LibUsbException;
 
 import common.Log;
 import device.DeviceException;
@@ -72,17 +74,32 @@ public class FCD2TunerController extends FCDTunerController
 			   MINIMUM_TUNABLE_FREQUENCY, MAXIMUM_TUNABLE_FREQUENCY );
 	}
 
-	public void init() throws DeviceException
-	{
+	public void init() throws DeviceException {
 		super.init();
 
-		try
-		{
-			setFCDMode( Mode.APPLICATION );
-		}
-		catch( Exception e )
-		{
-			throw new DeviceException( "error setting Mode to APPLICATION: " + e.getMessage() );
+		int retried = 0;
+
+		while (retried < 5) {
+			try {
+				setFCDMode( Mode.APPLICATION );
+				return;
+			} catch (LibUsbException e) {
+				if (e.getErrorCode() == LibUsb.ERROR_PIPE
+						|| e.getErrorCode() == LibUsb.ERROR_TIMEOUT
+						|| e.getErrorCode() == LibUsb.ERROR_INTERRUPTED
+						|| e.getErrorCode() == LibUsb.ERROR_BUSY
+						|| e.getErrorCode() == LibUsb.ERROR_IO) {
+					// this is a temporary error
+					retried++;
+					Log.println("FCD Error setting mode to APPLICATION, retrying...");
+					try { Thread.sleep(200); } catch (InterruptedException e1) { }
+				} else {
+					// user intervention is required
+					throw new DeviceException( "Error setting Mode to APPLICATION: " + e.getMessage() );
+				}
+			} catch( Exception e ) {
+				throw new DeviceException( "Error setting Mode to APPLICATION: " + e.getMessage() );
+			}
 		}
 	}
 	

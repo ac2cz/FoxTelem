@@ -367,6 +367,9 @@ public abstract class FCDTunerController extends device.TunerController
 			throw new LibUsbException( "device handle is null", 
 							LibUsb.ERROR_NO_DEVICE );
 		}
+		// Test the exception handling and retry
+//		throw new LibUsbException( "TEST error writing byte buffer", 
+//				-7 );
 	}
 	
 	/**
@@ -458,7 +461,8 @@ public abstract class FCDTunerController extends device.TunerController
 						transferred.get( 0 ) + "] didn't match expected "
 						+ "length [" + buffer.capacity() + "]", result );
 			}
-
+//			throw new LibUsbException( "TEST error reading byte buffer", 
+//					-7 );
 			return buffer;
 		}
 		
