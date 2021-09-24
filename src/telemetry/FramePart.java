@@ -845,7 +845,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 							
 						} else if (stem3.equalsIgnoreCase(Conversion.FMT_HEX) && idx3 != null) {
 							String index = lastConv.substring(3); // all characters after the stem
-							s = toByteString((long)dvalue,idx3);
+							s = toHexString((long)dvalue,idx3);
 							
 						} else if (stem3.equalsIgnoreCase(Conversion.FMT_BIN) && idx3 != null) {
 							String index = lastConv.substring(3); // all characters after the stem
@@ -883,7 +883,17 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return s;
 		}
 		
-		public static String toByteString(long value, int len) {
+		public static String toHexString(long value, int len) {
+			String s = "";
+			for (int i=0; i<len; i++) {
+				String digit = String.format("%1s", Long.toHexString(value & 0xf)).replace(' ', '0');
+				s = digit + s; // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 4 ;
+			}
+			return s;
+		}
+		
+		public static String txByteString(long value, int len) {
 			String s = "";
 			for (int i=0; i<len; i++) {
 				s = plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
