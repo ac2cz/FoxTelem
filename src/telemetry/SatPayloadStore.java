@@ -600,10 +600,7 @@ public class SatPayloadStore {
 	        		throw new IOException("Could not delete file " + file.getName() + " Check the file system and remove it manually.");
 	        	}
 		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(MainWindow.frame,
-					ex.toString(),
-					"Error Deleting File",
-					JOptionPane.ERROR_MESSAGE) ;
+			Log.errorDialog("Error Deleting File", ex.toString());
 		}
 	}
 
