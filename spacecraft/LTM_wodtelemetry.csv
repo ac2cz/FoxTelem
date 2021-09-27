@@ -18,7 +18,7 @@
 16,wod,hostTemp4,8,-,8_bit_temp,Host Batteries,6,4,3,Battery Temp 4,Host Temp 4
 17,wod,hostTemp5,8,-,8_bit_temp,Host Batteries,6,5,3,Battery Temp 5,Host Temp 5
 18,wod,hostTlm1,8,-,INT,Host Solar Panels,7,6,3,Plus X Volts,Host Analog 1
-19,wod,busV,8,V,golf-t_bus_voltage,Host Solar Panels,7,1,3,Bus Voltage,Vbatt Bus voltage
+19,wod,busV,8,V,golf-t_bus_voltage,Spacecraft Status,2,2,3,Bus Voltage,Vbatt Bus voltage
 20,wod,TxPAi,8,mA,golf-t_tx_current,AMSAT Radio,1,1,3,PA Current,Transmit power amplifier current
 21,wod,TxTemp,8,C,8_bit_temp,AMSAT Radio,1,2,3,TX Temperature,Transmitter card temperature
 22,wod,FwdPower,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,AMSAT Radio,1,3,3,Fwd Power,Receiver card temperature
@@ -27,16 +27,16 @@
 25,wod,MinusXVolts,8,V,52,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
 26,wod,XVolts,8,V,52,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
 27,wod,YVolts,8,V,52,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-28,wod,MinusYTemp,8,C,52,Host Solar Panels,7,2,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-29,wod,MinusXTemp,8,C,52,Host Solar Panels,7,3,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-30,wod,XTemp,8,C,52,Host Solar Panels,7,4,3,Plus X Temp,Sun-side Fixed Panel Voltage
-31,wod,YTemp,8,C,52,Host Solar Panels,7,5,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+28,wod,MinusYTemp,8,C,52,Host Solar Panels,7,1,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,wod,MinusXTemp,8,C,52,Host Solar Panels,7,2,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,wod,XTemp,8,C,52,Host Solar Panels,7,3,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,wod,YTemp,8,C,52,Host Solar Panels,7,4,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
 32,wod,LtVGACtl,8,V,icr_8bit_volts,AMSAT Radio,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-33,wod,hostTlm2,8,-,INT,Host Solar Panels,7,7,3,Minus X Volts,Host Analog 2
-34,wod,hostTlm3,8,-,INT,Host Solar Panels,7,8,4,Plus Y Volts,Host Analog 3
+33,wod,hostTlm2,8,-,INT,Host Solar Panels,7,5,3,Minus X Volts,Host Analog 2
+34,wod,hostTlm3,8,-,INT,Host Solar Panels,7,7,4,Plus Y Volts,Host Analog 3
 35,wod,IHUcpuTemp,8,C,8_bit_temp,Spacecraft Status,2,1,3,IHU Temp,Internal Temperature of IHU
 36,wod,moduTemp,8,C,8_bit_temp,AMSAT Radio,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
-37,wod,hostTlm4,8,-,INT,Host Solar Panels,7,9,3,Minus Y Volts,Host Analog 4
+37,wod,hostTlm4,8,-,INT,Host Solar Panels,7,8,3,Minus Y Volts,Host Analog 4
 38,wod,hostVolts1,8,-,INT,Host Batteries,6,7,3,Battery Voltage 1,Host Bat Volts 1
 39,wod,hostVolts2,8,-,INT,Host Batteries,6,8,3,Battery Voltage 2,Host Bat Volts 2
 40,wod,hostVolts3,8,-,INT,Host Batteries,6,9,3,Battery Voltage 3,Host Bat Volts 3
@@ -54,17 +54,17 @@
 52,wod,spare19,8,-,0,NONE,0,0,0,spare19,spare
 53,wod,spare20,8,-,0,NONE,0,0,0,spare20,spare
 54,wod,spare21,16,-,0,NONE,0,0,0,spare21,spare
-55,wod,DeploySense,8,-,BIN8,Spacecraft Status,2,2,0,Deployable Sense,TBD
+55,wod,DeploySense,8,-,BIN8,Spacecraft Status,2,3,0,Deployable Sense,TBD
 56,wod,spare28,8,-,0,NONE,0,0,0,spare28,spare
 57,wod,SpareBit1,1,-,0,NONE,0,0,0,SpareBit1,spare
-58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,2,3,0,Auto Safe Allowed,Autosafe Allowed
-59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,2,4,0,Auto Safe,Autosafe Mode Active
+58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,2,4,0,Auto Safe Allowed,Autosafe Allowed
+59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,2,5,0,Auto Safe,Autosafe Mode Active
 60,wod,spareBit1,1,-,17,NONE,0,0,0,Spare Bit 2,spare
 61,wod,SpareBit3,1,-,17,NONE,0,0,0,SpareBit3,spare
 62,wod,transponderEnabled,1,-,44,AMSAT Radio,1,6,0,Transponder Enabled,-
 63,wod,I2CfailureICR,1,-,17,Command Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
-64,wod,DeploySenseOK,1,-,STATUS_1_EQ_OK,Spacecraft Status,2,5,0,Deploy Sense Ok,Antenna sensor is ok
-65,wod,TLMresets,8,-,1,Spacecraft Status,2,6,0,Min/Max Resets,Number of times command stations reset stored telemetry
+64,wod,DeploySenseOK,1,-,STATUS_1_EQ_OK,Spacecraft Status,2,6,0,Deploy Sense Ok,Antenna sensor is ok
+65,wod,TLMresets,8,-,1,Spacecraft Status,2,11,0,Min/Max Reset Count,Number of times command stations reset stored telemetry
 66,wod,wodSize,8,-,36,Spacecraft Status,2,7,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
 67,wod,swCmds,32,-,35,Command Receiver,3,6,0,Diagnostic,ICR Diagnostic information
 68,wod,hwCmdCnt,8,-,1,Command Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
@@ -95,7 +95,7 @@
 93,wod,spareField1,2,-,0,NONE,0,0,0,spareField1,spare
 94,wod,hostBits23,1,-,PRIM_SECOND_ACTIVE,Other Host Telemetry,8,12,0,Which OBC Active,-
 95,wod,hostBits24,1,-,STATUS_1_EQ_OK,Other Host Telemetry,8,13,0,OBC Heartbeat,-
-96,wod,hostBits25,1,-,STATUS_1_EQ_OK,Host Solar Panels,7,10,0,MPPT Heartbeat,-
+96,wod,hostBits25,1,-,STATUS_1_EQ_OK,Host Solar Panels,7,9,0,MPPT Heartbeat,-
 97,wod,hostBits26,1,-,STATUS_1_EQ_OK,Host Batteries,6,14,0,Battery Heartbeat,-
 98,wod,hostBits27,1,-,STATUS_1_EQ_OK,MESat Distro States,9,19,0,Distro Heartbeat,-
 99,wod,spareField2,3,-,0,NONE,0,0,0,spareField2,spare
@@ -123,7 +123,7 @@
 121,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
 122,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
 123,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
-124,wod,inSafeMode,1,-,21,Spacecraft Status,2,11,0,Safe Mode,Are we in safe mode?
-125,wod,inHealthMode,1,-,21,Spacecraft Status,2,12,0,Health Mode,Are we in health mode?
-126,wod,inScienceMode,1,-,21,Spacecraft Status,2,13,0,Science Mode,Are we in science mode?
+124,wod,inSafeMode,1,-,21,Spacecraft Status,2,12,0,Safe Mode,Are we in safe mode?
+125,wod,inHealthMode,1,-,21,Spacecraft Status,2,13,0,Health Mode,Are we in health mode?
+126,wod,inScienceMode,1,-,21,Spacecraft Status,2,14,0,Science Mode,Are we in science mode?
 127,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
