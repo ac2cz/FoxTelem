@@ -1621,7 +1621,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	 */
 	public void copyToClipboard() {
 		
-		BufferedImage img = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_ARGB);
+		BufferedImage img = new BufferedImage(panel.getWidth(), panel.getHeight(), BufferedImage.TYPE_INT_RGB); // Omit transparency as clipboard copy does not support it
 		Graphics imgGraphics = img.getGraphics(); // grab the graphics "pen" for the image
 		panel.printAll(imgGraphics); // write the data to the image
 		
