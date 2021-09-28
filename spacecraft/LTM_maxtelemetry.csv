@@ -51,9 +51,9 @@
 49,maxDownlink,hostTemp10,8,-,4,NONE,8,4,3,Host Temp 4,Host Bat Temp 5
 50,maxDownlink,hostTemp11,8,-,5,NONE,8,5,3,Host Temp 5,Host Bat Temp 6
 51,maxDownlink,hostTemp12,8,-,6,NONE,8,6,3,Pi Temp,Host OBC Temp
-52,maxDownlink,spare19,8,-,0,NONE,0,0,0,spare19,spare
-53,maxDownlink,spare20,8,-,0,NONE,0,0,0,spare20,spare
-54,maxDownlink,spare21,16,-,0,NONE,0,0,0,spare21,spare
+52,maxDownlink,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
+53,maxDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
+54,maxDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
 55,maxDownlink,maxTimestampUptime,32,s,36,Min Max,5,2,0,Max Last Chg Secs,Timestamp Resets
 56,maxDownlink,maxTimestampEpoch,16,s,36,Min Max,5,1,0,Max Last Chg Epoch,Timestamp uptime
 57,maxDownlink,maxCRCerror,8,-,36,Min Max,5,3,0,Max CRC Error Count,CRC Error for the Max Payload

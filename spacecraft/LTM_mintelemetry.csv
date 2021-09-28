@@ -51,9 +51,9 @@
 49,minDownlink,hostTemp10,8,-,4,NONE,8,4,3,Host Temp 4,Host Bat Temp 5
 50,minDownlink,hostTemp11,8,-,5,NONE,8,5,3,Host Temp 5,Host Bat Temp 6
 51,minDownlink,hostTemp12,8,-,6,NONE,8,6,3,Pi Temp,Host OBC Temp
-52,minDownlink,spare19,8,-,0,NONE,0,0,0,spare19,spare
-53,minDownlink,spare20,8,-,0,NONE,0,0,0,spare20,spare
-54,minDownlink,spare21,16,-,0,NONE,0,0,0,spare21,spare
+52,minDownlink,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
+53,minDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
+54,minDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
 55,minDownlink,minTimestampUptime,32,s,36,Min Max,5,5,0,Min Last Chg Secs,Min Last Change Secs
 56,minDownlink,minTimestampEpoch,16,s,36,Min Max,5,4,0,Max Last Chg Epoch,Min Last Change Epoch
 57,minDownlink,minmaxResetEpoch,16,-,36,Min Max,5,7,0,Min Max Reset Epoch,MinMax Reset Epoch

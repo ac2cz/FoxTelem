@@ -51,16 +51,16 @@
 49,wod,hostTemp10,8,-,4,Other Host Telemetry,8,4,3,Host Temp 4,Host Bat Temp 5
 50,wod,hostTemp11,8,-,5,Other Host Telemetry,8,5,3,Host Temp 5,Host Bat Temp 6
 51,wod,hostTemp12,8,-,6,Other Host Telemetry,8,6,3,Pi Temp,Host OBC Temp
-52,wod,spare19,8,-,0,NONE,0,0,0,spare19,spare
-53,wod,spare20,8,-,0,NONE,0,0,0,spare20,spare
-54,wod,spare21,16,-,0,NONE,0,0,0,spare21,spare
+52,wod,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
+53,wod,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
+54,wod,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
 55,wod,DeploySense,8,-,BIN8,Spacecraft Status,2,3,0,Deployable Sense,TBD
-56,wod,spare28,8,-,0,NONE,0,0,0,spare28,spare
-57,wod,SpareBit1,1,-,0,NONE,0,0,0,SpareBit1,spare
+56,wod,wodSpare1,8,-,0,NONE,0,0,0,wodSpare1,spare
+57,wod,wodSpare2,1,-,0,NONE,0,0,0,wodSpare2,spare
 58,wod,AutoSafeAllowed,1,-,21,Spacecraft Status,2,4,0,Auto Safe Allowed,Autosafe Allowed
 59,wod,AutoSafeModeActive,1,-,21,Spacecraft Status,2,5,0,Auto Safe,Autosafe Mode Active
-60,wod,spareBit1,1,-,17,NONE,0,0,0,Spare Bit 2,spare
-61,wod,SpareBit3,1,-,17,NONE,0,0,0,SpareBit3,spare
+60,wod,com2spareBit2,1,-,17,NONE,0,0,0,com2 Spare Bit 2,spare
+61,wod,com2spareBit3,1,-,17,NONE,0,0,0,com2 Spare Bit 3,spare
 62,wod,transponderEnabled,1,-,44,AMSAT Radio,1,6,0,Transponder Enabled,-
 63,wod,I2CfailureICR,1,-,17,Command Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
 64,wod,DeploySenseOK,1,-,STATUS_1_EQ_OK,Spacecraft Status,2,6,0,Deploy Sense Ok,Antenna sensor is ok
@@ -104,22 +104,22 @@
 102,wod,ModuGain,8,-,1,AMSAT Radio,1,10,0,Modulator Reg 1,Modulator Register 1 - Gain
 103,wod,ModuPhaseOff,8,-,1,AMSAT Radio,1,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
 104,wod,ModuMode,8,-,1,AMSAT Radio,1,12,0,Modulator Reg 8,Modulator Register 8 - Mode
-105,wod,spare29,8,-,0,NONE,0,0,0,spare29,spare
-106,wod,spare30,8,-,0,NONE,0,0,0,spare30,spare
-107,wod,spare31,8,-,0,NONE,0,0,0,spare31,spare
-108,wod,spare32,8,-,0,NONE,0,0,0,spare32,spare
-109,wod,spare33,8,-,0,NONE,0,0,0,spare33,spare
-110,wod,spare34,8,-,0,NONE,0,0,0,spare34,spare
-111,wod,SpareBit1a,1,-,0,NONE,0,0,0,SpareBit4,spare
+105,wod,com2spare4,8,-,0,NONE,0,0,0,com2spare4,spare
+106,wod,com2spare5,8,-,0,NONE,0,0,0,com2spare5,spare
+107,wod,com2spare6,8,-,0,NONE,0,0,0,com2spare6,spare
+108,wod,com2spare7,8,-,0,NONE,0,0,0,com2spare7,spare
+109,wod,com2spare8,8,-,0,NONE,0,0,0,com2spare8,spare
+110,wod,com2spare9,8,-,0,NONE,0,0,0,com2spare9,spare
+111,wod,com2Spare10,1,-,0,NONE,0,0,0,com2Spare10,spare
 112,wod,moduValid,1,-,21,AMSAT Radio,1,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
 113,wod,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,Spacecraft Status,2,9,0,Eclipse Action,-
 114,wod,inEclipse,1,-,21,Spacecraft Status,2,10,0,In Eclipse,-
 115,wod,ICRRxOn,1,-,1,Command Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
 116,wod,ICRCarrierValid,1,-,1,Command Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
-117,wod,spare341,8,-,0,NONE,0,0,0,spare341,spare
-118,wod,spare35,8,-,0,NONE,0,0,0,spare35,spare
-119,wod,spare36,8,-,0,NONE,0,0,0,spare36,spare
-120,wod,spare37,8,-,0,NONE,0,0,0,spare37,spare
+117,wod,com2spare11,8,-,0,NONE,0,0,0,com2spare11,spare
+118,wod,com2spare12,8,-,0,NONE,0,0,0,com2spare12,spare
+119,wod,com2spare13,8,-,0,NONE,0,0,0,com2spare13,spare
+120,wod,com2spare14,8,-,0,NONE,0,0,0,com2spare14,spare
 121,wod,WODTimestampUptime,32,s,1,WOD,10,1,0,Uptime,Time Whole Orbit Data was collected
 122,wod,WODTimestampReset,16,-,1,WOD,10,2,0,Reset,Time Whole Orbit Data was collected
 123,wod,WodCRCError,8,-,1,WOD,10,3,0,CRC Error,CRC Error for the WOD Payload
