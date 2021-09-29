@@ -103,5 +103,5 @@
 101,realtimeDownlink,RTIHU1Resets,8,-,1,RT-IHU,7,6,0,Primary Reset Cnt,Primary RT-IHU Reset Count
 102,realtimeDownlink,RTIHU2Resets,8,-,1,RT-IHU,7,7,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
 103,realtimeDownlink,vucDisabled,1,-,21,Spacecraft Status,3,9,0,VUC Disabled,VUC Disabled
-104,realtimeDownlink,Pad5,7,-,0,NONE,0,0,0,Pad,-
+104,realtimeDownlink,Pad6,7,-,0,NONE,0,0,0,Pad,-
 105,realtimeDownlink,Pad5,32,-,0,NONE,0,0,0,Pad,Pad
