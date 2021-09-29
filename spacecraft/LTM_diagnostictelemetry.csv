@@ -10,7 +10,7 @@
 8,diagnostic,UTCHours,5,-,INT,General Info,1,4,0,UTCHours,x
 9,diagnostic,EnterAutosafe,8,V,golf-t_bus_voltage,General Info,1,11,0,EnterAutosafe,x
 10,diagnostic,ExitAutosafe,8,V,golf-t_bus_voltage,General Info,1,12,0,ExitAutosafe,x
-11,diagnostic,pad1,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+11,diagnostic,infreqSpare1,16,-,0,NONE,0,0,0,Fill to 32-bits,x
 12,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
 13,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
 14,diagnostic,LegWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
