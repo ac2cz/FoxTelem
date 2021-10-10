@@ -126,4 +126,4 @@
 124,wod,inSafeMode,1,-,21,Spacecraft Status,2,12,0,Safe Mode,Are we in safe mode?
 125,wod,inHealthMode,1,-,21,Spacecraft Status,2,13,0,Health Mode,Are we in health mode?
 126,wod,inScienceMode,1,-,21,Spacecraft Status,2,14,0,Science Mode,Are we in science mode?
-127,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+127,wod,pad191,5,-,0,NONE,0,0,0,Pad10,Pad

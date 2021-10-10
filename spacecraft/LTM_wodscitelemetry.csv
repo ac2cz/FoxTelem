@@ -87,4 +87,4 @@
 85,wodsci,WODTimestampUptime,32,sec,1,WOD,8,2,0,Uptime,Time Whole Orbit Data was collected
 86,wodsci,WODTimestampReset,16,-,1,WOD,8,1,0,Reset Count,Time Whole Orbit Data was collected
 87,wodsci,WodCRCError,8,-,1,WOD,8,3,0,NONE,CRC Error for VU Radiataion Payload
-88,wodsci,pad0,8,-,0,NONE,0,0,0,NONE,TBD
+88,wodsci,pad215,8,-,0,NONE,0,0,0,NONE,TBD

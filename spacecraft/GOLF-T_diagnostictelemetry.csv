@@ -9,7 +9,7 @@
 7,diagnostic,UTCHours,5,-,0,General Info,1,5,0,UTCHours,x
 8,diagnostic,EnterAutosafe,8,-,0,General Info,1,12,0,EnterAutosafe,x
 9,diagnostic,ExitAutosafe,8,-,0,General Info,1,13,0,ExitAutosafe,x
-10,diagnostic,pad1,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+10,diagnostic,pad266,16,-,0,NONE,0,0,0,Fill to 32-bits,x
 11,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
 12,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
 13,diagnostic,LegWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
@@ -33,7 +33,7 @@
 31,diagnostic,ICRCmdFailNamespace,8,-,INT,Legacy  Errors,3,13,0,ICRCmdFailNamespace,x
 32,diagnostic,LegSWVersion,16,-,INT,General Info,1,14,0,LIHU Version Number,x
 33,diagnostic,LegErrorData,8,-,INT,IHU Reset Info,2,3,0,Error Data,x
-34,diagnostic,filler1,5,-,0,NONE,0,0,0,pad to 32 bits,x
+34,diagnostic,pad319,5,-,0,NONE,0,0,0,pad to 32 bits,x
 35,diagnostic,valid,1,-,STATUS_BOOLEAN,General Info,1,2,0,RTIHU1 Data Valid,x
 36,diagnostic,wasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,14,0,Was this reset still early in boot,x
 37,diagnostic,earlyResetCount,3,-,INT,IHU Reset Info,2,13,0,Resets in a row that have been too soon,x
@@ -75,8 +75,8 @@
 73,diagnostic,IOMMAccvioCnt,8,-,INT,Primary RT Errors,4,31,0,RT1IOMMAccvio,x
 74,diagnostic,nonFatalCnt,8,-,INT,Primary RT Errors,4,32,0,Non-fatal error count,x
 75,diagnostic,SWVersion,16,-,INT,General Info,1,15,0,RTIHU1 Version Number,x
-76,diagnostic,pad0,16,-,0,NONE,0,0,0,Fill to 32-bits,x
-77,diagnostic,filler2,5,-,0,NONE,0,0,0,pad to 32 bits,x
+76,diagnostic,pad362,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+77,diagnostic,pad377,5,-,0,NONE,0,0,0,pad to 32 bits,x
 78,diagnostic,RT2Valid,1,-,STATUS_BOOLEAN,General Info,1,3,0,RTIHU2 Data Valid,x
 79,diagnostic,RT2wasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,21,0,Was this reset still early in boot,x
 80,diagnostic,RT2earlyResetCount,3,-,INT,IHU Reset Info,2,20,0,Resets in a row that have been too soon,x
@@ -118,4 +118,4 @@
 116,diagnostic,RT2IOMMAccvioCnt,8,-,INT,Secndry RT Errors,5,31,0,RT2IOMMAccvio,x
 117,diagnostic,RT2NonFatalCnt,8,-,INT,Secndry RT Errors,5,32,0,Non-fatal error count,x
 118,diagnostic,RT2SWVersion,16,-,INT,General Info,1,16,0,RTIHU2 Version Number,x
-119,diagnostic,pad0,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+119,diagnostic,pad420,16,-,0,NONE,0,0,0,Fill to 32-bits,x
