@@ -673,7 +673,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 
 		ByteBuffer buffer = ByteBuffer.allocateDirect( 1 );
 		buffer.put( i2CRegister );
-		buffer.rewind();
+		((java.nio.Buffer)buffer).rewind();  // cast this to buffer as the method has moved from Java 8 to Java 9 and beyond
 		
 		ByteBuffer data = ByteBuffer.allocateDirect( 1 );
 
@@ -708,7 +708,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 		buffer.put( i2CRegister );
 		buffer.put( value );
 
-		buffer.rewind();
+		((java.nio.Buffer)buffer).rewind();  // cast this to buffer as the method has moved from Java 8 to Java 9 and beyond
 
 		if( controlI2CRepeater )
 		{
@@ -800,7 +800,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 				+ "than 16 bits to the register - length [" + length + "]" );
 		}
 		
-		buffer.rewind();
+		((java.nio.Buffer)buffer).rewind();  // cast this to buffer as the method has moved from Java 8 to Java 9 and beyond
 
 		write( handle, address, block, buffer );
 	}
@@ -1117,7 +1117,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 			{
 				read( handle, EEPROM_ADDRESS, Block.I2C, buffer );
 				data[ x ] = buffer.get();
-				buffer.rewind();
+				((java.nio.Buffer)buffer).rewind();  // cast this to buffer as the method has moved from Java 8 to Java 9 and beyond
 			}
 			catch( Exception e )
 			{
@@ -1486,7 +1486,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 					
 					transfers.clear();
 					
-					mLibUsbHandlerStatus.rewind();
+					((java.nio.Buffer)mLibUsbHandlerStatus).rewind();
 				}
             	
             	if( mCancel )
@@ -1504,7 +1504,7 @@ public abstract class RTL2832TunerController extends device.TunerController
             			Log.errorDialog( "ERROR", "error handling events for libusb during cancel" );
             		}
             		
-            		mLibUsbHandlerStatus.rewind();
+            		((java.nio.Buffer)mLibUsbHandlerStatus).rewind();
             	}
 			}
         }
@@ -1553,7 +1553,7 @@ public abstract class RTL2832TunerController extends device.TunerController
 						
 						buffer.get( data );
 
-						buffer.rewind();
+						((java.nio.Buffer)buffer).rewind();  // cast this to buffer as the method has moved from Java 8 to Java 9 and beyond
 
 						if( isRunning() )
 						{
