@@ -110,4 +110,4 @@
 108,wod,inSafeMode,1,-,21,Spacecraft Status,3,10,0,Safe Mode,Are we in safe mode?
 109,wod,inHealthMode,1,-,21,Spacecraft Status,3,11,0,Health Mode,Are we in health mode?
 110,wod,inScienceMode,1,-,21,Spacecraft Status,3,12,0,Science Mode,Are we in science mode?
-111,wod,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+111,wod,pad211,5,-,0,NONE,0,0,0,Pad10,Pad

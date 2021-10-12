@@ -59,4 +59,4 @@
 57,minDownlink,minmaxResetEpoch,16,-,36,Min Max,5,7,0,Min Max Reset Epoch,MinMax Reset Epoch
 58,minDownlink,minmaxResetSecs,32,-,36,Min Max,5,8,0,Min Max Reset Seconds,MinMax Reset Secs
 59,minDownlink,minCRCerror,8,-,36,Min Max,5,6,0,Min CRC Error Count,CRC Error for the min payload
-60,minDownlink,Pad4,24,-,0,NONE,0,0,0,Filler,-
+60,minDownlink,Pad178,24,-,0,NONE,0,0,0,Filler,-
