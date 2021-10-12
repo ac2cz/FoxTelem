@@ -193,7 +193,7 @@ public class Config {
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
-    public static String webSiteUrl = "http://www.amsat.org/tlm";
+    public static String webSiteUrl = "https://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
     // These are not saved to the file
@@ -243,7 +243,7 @@ public class Config {
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
-	static public String t0UrlPath = "http://amsat.org/tlm/ops/";
+	static public String t0UrlPath = "https://amsat.org/tlm/ops/";
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
 	
