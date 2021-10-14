@@ -59,7 +59,7 @@ import gui.graph.GraphFrame;
  *
  */
 @SuppressWarnings("serial")
-public class NamedExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
+public class NamedExperimentTab extends ExperimentTab implements ItemListener, Runnable {
 
 	private static final String DECODED = "Payloads Decoded: ";
 	public final int DEFAULT_DIVIDER_LOCATION = 350;
@@ -345,30 +345,6 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 			table.setRowSelectionInterval(fromRow, row);
 		else
 			table.setRowSelectionInterval(row, fromRow);
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-
 	}
 
 }
