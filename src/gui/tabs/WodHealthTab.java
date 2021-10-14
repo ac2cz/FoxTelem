@@ -144,7 +144,7 @@ public class WodHealthTab extends HealthTab {
 		//String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
 		String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.WOD_LAYOUT);
 
-		if (data.length > 0) {
+		if (data != null && data.length > 0) {
 			parseTelemetry(data);
 			displayTable();
 			MainWindow.frame.repaint();
