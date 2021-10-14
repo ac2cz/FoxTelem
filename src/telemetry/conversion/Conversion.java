@@ -11,7 +11,8 @@ public abstract class Conversion {
 	public static final String FMT_4F = "FLOAT4";
 	public static final String FMT_5F = "FLOAT5";
 	public static final String FMT_6F = "FLOAT6";
-
+	public static final String TIMESTAMP = "TIMESTAMP";
+	
 	protected String name; // must be unique in the namespace of the spacecraft
 	
 	Conversion(String name) {

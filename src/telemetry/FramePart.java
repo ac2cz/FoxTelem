@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -99,6 +100,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+	public static final DateFormat dateFormat2 = new SimpleDateFormat(
+			"yyyyMMdd HHmmss", Locale.ENGLISH);
 	
 	// These fields are updated when the Frame Part is stored in the PayloadStore
 	public int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
@@ -789,7 +792,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			if (pos != -1) {
 				// Check if this is a simple numeric legacy conversion
 /////				String convName = layout.getConversionNameByPos(pos);
-				if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+				if (convName.equalsIgnoreCase("TIMESTAMP minTimestampEpoch minTimestampUptime"))  // trap for testing
 					System.out.println("STOP");
 				int conv = -1;
 				try {
@@ -805,6 +808,27 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					} else {
 						String lastConv = Conversion.getLastConversionInPipeline(convName);
 						
+						
+						/*
+						 * Check if this is the TIMESTAMP formatting keyword.  If so, we expect two fields names after it
+						 * Those are used to form a reset / uptime pair which is displayed as is or converted to UTC
+						 * 
+						 */
+						String stem9 = "";
+						Integer reset = null;
+						Long uptime = null;
+						if (lastConv.length() >=9) {
+							stem9 = lastConv.substring(0, 9); // first 9 characters to check for TIMESTAMP
+							String index1 = lastConv.substring(9); // all characters after the stem
+							String[] values = index1.split("\\s+"); // split on whitespace
+							if (values.length == 3) { // space after the TIMESTAMP in position 0 then the two values
+								 if (hasFieldName(values[1]))
+									 reset = (int) getDoubleValue(values[1], fox);
+						         if (hasFieldName(values[2]))
+						        	 uptime = (long) getDoubleValue(values[2], fox);
+							}
+						}
+					    
 						String stem3 = "";
 						Integer idx3 = null;
 						if (lastConv.length() >=3) {
@@ -814,11 +838,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 							idx3 = Integer.parseInt(index3);
 							} catch (NumberFormatException e) { };
 						}
+						
 						String stem5 = "";
 						Integer idx5 = null;
 						if (lastConv.length() >=5) {
 							stem5 = lastConv.substring(0, 5); // first 5 characters to check for FLOAT
-							String index5 = lastConv.substring(3); // all characters after the stem
+							String index5 = lastConv.substring(5); // all characters after the stem
 							try {
 								idx5 = Integer.parseInt(index5);
 							} catch (NumberFormatException e) { };
@@ -850,7 +875,19 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 						} else if (stem3.equalsIgnoreCase(Conversion.FMT_BIN) && idx3 != null) {
 							String index = lastConv.substring(3); // all characters after the stem
 							s = intToBin((int)dvalue,idx3);
-	
+						
+						} else if (stem9.equalsIgnoreCase(Conversion.TIMESTAMP) && reset != null && uptime != null) {
+							if (Config.displayUTCtime) {
+								Date date = fox.getUtcForReset(reset, uptime);
+								if (date == null) {
+									s = "T0 not set";
+								} else {
+									reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+									s = reportDateFormat.format(date);
+								}
+							} else
+						    	s = "" + reset + " / " + uptime;
+						    
 						} else {
 							// Get the conversion for the last conversion in the pipeline
 							Conversion conversion = fox.getConversionByName(lastConv);
