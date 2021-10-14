@@ -54,9 +54,9 @@
 52,minDownlink,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
 53,minDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
 54,minDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
-55,minDownlink,minTimestampUptime,32,s,36,Min Max,5,5,0,Min Last Chg Secs,Min Last Change Secs
-56,minDownlink,minTimestampEpoch,16,s,36,Min Max,5,4,0,Max Last Chg Epoch,Min Last Change Epoch
-57,minDownlink,minmaxResetEpoch,16,-,36,Min Max,5,7,0,Min Max Reset Epoch,MinMax Reset Epoch
-58,minDownlink,minmaxResetSecs,32,-,36,Min Max,5,8,0,Min Max Reset Seconds,MinMax Reset Secs
-59,minDownlink,minCRCerror,8,-,36,Min Max,5,6,0,Min CRC Error Count,CRC Error for the min payload
+55,minDownlink,minTimestampUptime,32,-,TIMESTAMP minTimestampEpoch minTimestampUptime,Min Max,5,2,0,Min Last Change,Min Last Change Secs
+56,minDownlink,minTimestampEpoch,16,s,36,NONE,0,0,0,Max Last Chg Epoch,Min Last Change Epoch
+57,minDownlink,minmaxResetEpoch,16,-,36,NONE,0,0,0,Min Max Reset Epoch,MinMax Reset Epoch
+58,minDownlink,minmaxResetSecs,32,-,TIMESTAMP minmaxResetEpoch minmaxResetSecs,Min Max,5,3,0,Last Reset Time,MinMax Reset Secs
+59,minDownlink,minCRCerror,8,-,36,Min Max,5,5,0,Min CRC Error Count,CRC Error for the min payload
 60,minDownlink,Pad178,24,-,0,NONE,0,0,0,Filler,-
