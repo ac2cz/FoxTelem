@@ -266,25 +266,20 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		showUptimeQuery(!showUTCtime);
 		
 	}
+	
 	protected void initDisplayHalves(JPanel centerPanel) {
 		topHalf = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars1.png");
 		topHalf.setBackground(Color.DARK_GRAY);
-		//topHalf.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
-		centerPanel.add(topHalf);
-		//JScrollPane scrollPane = new JScrollPane(table);
-		//scrollPane = new JScrollPane (topHalf, 
-		//		   JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-
-		//centerPanel.add(scrollPane);
-		
-//		if (bottomModules != null) {
-//			bottomHalf = new JPanel(); //new ImagePanel("C:/Users/chris.e.thompson/Desktop/workspace/SALVAGE/data/stars5.png");
-//			//bottomHalf.setBorder(new BevelBorder(BevelBorder.LOWERED, null, null, null, null));
-//			bottomHalf.setBackground(Color.DARK_GRAY);
-//			centerPanel.add(bottomHalf);
-//		}
+		centerPanel.add(topHalf);	
 	}
 	
+	/**
+	 * Make modules based on an array of payload layouts.  This is useful to display CAN packets
+	 * 
+	 * @param layouts
+	 * @param moduleType
+	 * @throws LayoutLoadException
+	 */
 	protected void makeDisplayModules(BitArrayLayout[] layouts,int moduleType) throws LayoutLoadException {
 		// TODO - for this to work it needs to add them to the top but leave room for what is there already.  Bottom does not work
 		int topLength = layouts.length;//   /2;
@@ -344,10 +339,11 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 	protected void analyzeModules(BitArrayLayout rt, BitArrayLayout max, BitArrayLayout min, int moduleType) throws LayoutLoadException {
 		String[] topModuleNames = new String[20];
 		int[] topModuleLines = new int[20];
-		String[] bottomModuleNames = new String[10];
-		int[] bottomModuleLines = new int[10];
+//		String[] bottomModuleNames = new String[10];
+//		int[] bottomModuleLines = new int[10];
 		int numOfTopModules = 1;
-		int numOfBottomModules = 0;
+//		int numOfBottomModules = 0;
+		
 		// First get a quick list of all the modules names and sort them into top/bottom
 		for (int i=0; i<rt.NUMBER_OF_FIELDS; i++) {
 			if (!rt.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
@@ -390,11 +386,23 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 				}
 		}
 		topModules = new DisplayModule[numOfTopModules];
-		if (numOfBottomModules > 0)
-		bottomModules = new DisplayModule[numOfBottomModules];
+//		if (numOfBottomModules > 0)
+//		bottomModules = new DisplayModule[numOfBottomModules];
 		
 		// Process the top Modules - which run from 1 to 9
 		for (int i=1; i < numOfTopModules; i++) {
+			if (topModuleNames[i] == null && topModuleLines[i] == 0) {
+				Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has no name defined or zero lines");
+				return;
+			}
+			if (topModuleNames[i] == null) {
+				Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has no name defined");
+				return;
+			}
+			if (topModuleLines[i] == 0) {
+				Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has zero lines defined");
+				return;
+			}
 			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, rt, moduleType, rt.color);
 			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], rt);
 			if (moduleType != DisplayModule.DISPLAY_WOD) {
@@ -405,15 +413,15 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		}
 
 		// Process the bottom Modules - which run from 10 to 19
-		for (int i=1; i < numOfBottomModules; i++) {
-			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, rt, moduleType, rt.color);
-			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], rt);
-			if (moduleType != DisplayModule.DISPLAY_WOD) {
-				if (max != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], max);
-				if (min != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], min);
-			}
-			bottomHalf.add(bottomModules[i]);
-		}
+//		for (int i=1; i < numOfBottomModules; i++) {
+//			bottomModules[i] = new DisplayModule(fox, bottomModuleNames[i], bottomModuleLines[i]+1, rt, moduleType, rt.color);
+//			addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], rt);
+//			if (moduleType != DisplayModule.DISPLAY_WOD) {
+//				if (max != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], max);
+//				if (min != null) addModuleLines(bottomModules[i], bottomModuleNames[i], bottomModuleLines[i], min);
+//			}
+//			bottomHalf.add(bottomModules[i]);
+//		}
 
 	}
 

@@ -810,7 +810,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 						
 						
 						/*
-						 * Check if this is the TIMESTAMP formatting keyword.  If so, we expect two fields names after it
+						 * Try to parse the TIMESTAMP formatting keyword.  If so, we expect two fields names after it
 						 * Those are used to form a reset / uptime pair which is displayed as is or converted to UTC
 						 * 
 						 */
