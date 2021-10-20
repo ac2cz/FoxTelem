@@ -83,7 +83,7 @@
 81,wodrag,81,8,-,0,NONE,0,0,0,Ragnarok Data,Opaque data from radiation experiment
 82,wodrag,82,8,-,0,NONE,0,0,0,Ragnarok Data,Opaque data from radiation experiment
 83,wodrag,83,8,-,0,NONE,0,0,0,Ragnarok Data,Opaque data from radiation experiment
-84,wodrag,WODTimestampUptime,32,s,1,WOD,8,2,0,Rag WOD Uptime,Time Whole Orbit Data was collected
-85,wodrag,WODTimestampReset,16,-,1,WOD,8,1,0,Rag WOD Reset Count,Time Whole Orbit Data was collected
-86,wodrag,WodCRCError,8,-,0,WOD,8,3,0,NONE,CRC Error for ADAC WOD
+84,wodrag,WODTimestampUptime,32,s,1,WOD,13,2,0,Rag WOD Uptime,Time Whole Orbit Data was collected
+85,wodrag,WODTimestampReset,16,-,1,WOD,13,1,0,Rag WOD Reset Count,Time Whole Orbit Data was collected
+86,wodrag,WodCRCError,8,-,0,WOD,13,3,0,NONE,CRC Error for ADAC WOD
 87,wodrag,pad241,8,-,0,NONE,0,0,0,NONE,TBD
