@@ -62,7 +62,7 @@
 60,maxDownlink,SDRYmag,8,uT,8_bit_mag,NONE,11,11,3,SDR Y Magnetometer,Angular Veolcity around Y Axis
 61,maxDownlink,SDRZmag,8,uT,8_bit_mag,NONE,11,12,3,SDR Z Magnetometer,Angular Veolcity around Y Axis
 62,maxDownlink,pad30,16,-,0,-,0,0,0,pad,Pad
-63,maxDownlink,maxTimestampUptime,32,s,1,Min Max,10,5,0,Max Last Chg Secs,Timestamp Resets
-64,maxDownlink,maxTimestampEpoch,16,s,1,Min Max,10,4,0,Max Last Chg Epoch,Timestamp uptime
-65,maxDownlink,maxCRCerror,8,-,1,Min Max,10,6,0,Max CRC Error,CRC Error for the Max Payload
+63,maxDownlink,maxTimestampUptime,32,s,1,NONE,0,0,0,Max Last Chg Secs,Timestamp Resets
+64,maxDownlink,maxTimestampEpoch,16,-,TIMESTAMP maxTimestampEpoch maxTimestampUptime,Min Max,10,3,0,Max Last Change,Timestamp uptime
+65,maxDownlink,maxCRCerror,8,-,1,Min Max,10,5,0,Max CRC Errors,CRC Error for the Max Payload
 66,maxDownlink,pad0,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
