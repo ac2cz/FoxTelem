@@ -331,59 +331,30 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		
 	}
 	
+	String[] topModuleNames = new String[20];
+	int[] topModuleLines = new int[20];
+	int numOfTopModules = 1;
+	
 	/**
 	 * Analyze the layouts that have been loaded and determine the list of modules and lines that should be used in 
 	 * the display
 	 * @throws LayoutLoadException 
 	 */
 	protected void analyzeModules(BitArrayLayout rt, BitArrayLayout max, BitArrayLayout min, int moduleType) throws LayoutLoadException {
-		String[] topModuleNames = new String[20];
-		int[] topModuleLines = new int[20];
+
 //		String[] bottomModuleNames = new String[10];
 //		int[] bottomModuleLines = new int[10];
-		int numOfTopModules = 1;
+		
 //		int numOfBottomModules = 0;
 		
-		// First get a quick list of all the modules names and sort them into top/bottom
-		for (int i=0; i<rt.NUMBER_OF_FIELDS; i++) {
-			if (!rt.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				
-					if (!containedIn(topModuleNames, rt.module[i])) {
-						topModuleNames[rt.moduleNum[i]] = rt.module[i];
-						numOfTopModules++;
-					}
-					topModuleLines[rt.moduleNum[i]]++;
-				
-			}
-		}
+		processLayout(rt);
 		if (moduleType == DisplayModule.DISPLAY_WOD) {
 			; //System.out.println("STOP");
 		} else {
 			if (max != null)
-				for (int i=0; i<max.NUMBER_OF_FIELDS; i++) {
-					if (!max.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-
-						if (!containedIn(topModuleNames, max.module[i])) {
-							topModuleNames[max.moduleNum[i]] = max.module[i];
-							numOfTopModules++;
-						}
-						topModuleLines[max.moduleNum[i]]++;
-
-					}
-				}
+				processLayout(max);
 			if (min != null)
-				for (int i=0; i<min.NUMBER_OF_FIELDS; i++) {
-					if (!min.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {
-
-						if (!containedIn(topModuleNames, min.module[i])) {
-							topModuleNames[min.moduleNum[i]] = min.module[i];
-							numOfTopModules++;
-						}
-						topModuleLines[min.moduleNum[i]]++;
-
-					}
-
-				}
+				processLayout(min);
 		}
 		topModules = new DisplayModule[numOfTopModules];
 //		if (numOfBottomModules > 0)
@@ -392,7 +363,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		// Process the top Modules - which run from 1 to 9
 		for (int i=1; i < numOfTopModules; i++) {
 			if (topModuleNames[i] == null && topModuleLines[i] == 0) {
-				Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has no name defined or zero lines");
+				// We can skip this panel as it has not been defined
 				return;
 			}
 			if (topModuleNames[i] == null) {
@@ -423,6 +394,28 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 //			bottomHalf.add(bottomModules[i]);
 //		}
 
+	}
+	
+	private void processLayout(BitArrayLayout rt) {
+		// First get a quick list of all the modules names and sort them into top/bottom
+		for (int i=0; i<rt.NUMBER_OF_FIELDS; i++) {
+			if (!rt.module[i].equalsIgnoreCase(BitArrayLayout.NONE)) {  // ignore lines where panel called NONE
+				if (rt.moduleNum[i] != 0) { // ignore panel 0
+					if (!containedIn(topModuleNames, rt.module[i])) {
+						// First check if this module number already has a different module name, as that is an error
+						if (topModuleNames[rt.moduleNum[i]] != null)
+							if (!topModuleNames[rt.moduleNum[i]].equalsIgnoreCase(rt.module[i])) {
+								Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + numOfTopModules 
+										+ " has the name " + topModuleNames[rt.moduleNum[i]] + " and the name " + rt.module[i] + ".  It can not have two different names.");
+								return;
+							}
+						topModuleNames[rt.moduleNum[i]] = rt.module[i];
+						numOfTopModules++;
+					}
+					topModuleLines[rt.moduleNum[i]]++;
+				}
+			}
+		}
 	}
 
 	private void addModuleLines(DisplayModule displayModule, String topModuleName, int topModuleLine, BitArrayLayout rt) throws LayoutLoadException {
