@@ -405,7 +405,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 						// First check if this module number already has a different module name, as that is an error
 						if (topModuleNames[rt.moduleNum[i]] != null)
 							if (!topModuleNames[rt.moduleNum[i]].equalsIgnoreCase(rt.module[i])) {
-								Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + numOfTopModules 
+								Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + rt.moduleNum[i] 
 										+ " has the name " + topModuleNames[rt.moduleNum[i]] + " and the name " + rt.module[i] + ".  It can not have two different names.");
 								return;
 							}
