@@ -18,7 +18,7 @@ hasModeInHeader=true
 useConversionCoeffs=true
 conversionCurvesFileName=GOLF-T_conversion_curves.csv
 conversionExpressionsFileName=GOLF-T_conversion_expressions.csv
-numberOfFrameLayouts=8
+numberOfFrameLayouts=9
 frameLayout0.filename=LTM_Type0_RTMIN.frame
 frameLayout0.name=Realtime 1
 frameLayout1.filename=LTM_Type1_RTMAX.frame
@@ -35,8 +35,10 @@ frameLayout6.filename=LTM_Type6_SafeWOD.frame
 frameLayout6.name=Safe WOD
 frameLayout7.filename=LTM_Type7_Diagnostic.frame
 frameLayout7.name=Diagnostic
+frameLayout8.filename=LTM_Type8_Science.frame
+frameLayout8.name=Science
 
-numberOfLayouts=10
+numberOfLayouts=11
 layout0.filename=FOX1A_debug.csv
 layout0.name=DEBUG
 layout0.type=DBG
@@ -82,6 +84,12 @@ layout8.type=CAN_PKT
 layout9.filename=LTM_canpacket.csv
 layout9.name=wodcanpacket
 layout9.type=WOD_CAN_PKT
+
+layout10.filename=LTM_scilongtelemetry.csv
+layout10.name=scilongtelemetry
+layout10.type=CAN_EXP
+layout10.shortTitle=Partner Science
+layout10.title=Partner Science Data
 
 numberOfLookupTables=4
 lookupTable0.filename=FOX1A_rssiFM.tab
