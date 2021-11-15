@@ -4,6 +4,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
+import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -121,7 +122,7 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 
 		healthPanel = new JPanel();
 
-		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.Y_AXIS));
+		healthPanel.setLayout(new BoxLayout(healthPanel, BoxLayout.X_AXIS));
 		healthPanel.setBorder(new SoftBevelBorder(BevelBorder.LOWERED, null, null, null, null));
 		healthPanel.setBackground(Color.DARK_GRAY);
 
