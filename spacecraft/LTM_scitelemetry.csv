@@ -83,4 +83,4 @@
 81,sci,81,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 82,sci,82,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 83,sci,sparebits,7,-,0,NONE,0,0,0,Sparebits,Pad
-84,sci,overflow,1,-,21,NONE,0,0,0,Overflow,One or more CAN messages lost
+84,sci,overflow,1,-,21,CAN Queue,1,1,0,Overflow,One or more CAN messages lost

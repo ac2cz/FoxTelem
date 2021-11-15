@@ -1,5 +1,5 @@
 112,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,wod,ReflectedPwr,8,mW,41,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
+0,wod,ReflectedPwr,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,Legacy Radio,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,wod,ICR3VProt,8,V,8_bit_voltage,Command Receivers,4,3,3,3V Prot,ICR 3V Protected
 2,wod,ICRTemp,8,C,8_bit_temp,Command Receivers,4,4,3,ICR Temp,ICR Temperature
 3,wod,gTemp,8,C,8_bit_temp,Experiments,5,10,3,Gyro Temp,Gyro temperature
@@ -21,7 +21,7 @@
 19,wod,busV,8,V,golf-t_bus_voltage,Legacy IHU,2,6,3,Bus Voltage,Vbatt Bus voltage
 20,wod,TxPAi,8,mA,golf-t_tx_current,Legacy Radio,1,1,3,PA Current,Transmit power amplifier current
 21,wod,TxTemp,8,C,8_bit_temp,Legacy Radio,1,2,3,TX Temperature,Transmitter card temperature
-22,wod,FwdPower,8,mW,40,Legacy Radio,1,3,3,Fwd Power,Receiver card temperature
+22,wod,FwdPower,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,Legacy Radio,1,3,3,Fwd Power,Receiver card temperature
 23,wod,rssi,8,dBm,RSSI,Command Receivers,4,1,3,ICR RSSI,Received Signal Strength Indication
 24,wod,MinusYVolts,8,V,52,Solar Panels,6,1,3,Minus Y Volts,Left (-Y) deployable panel Voltage
 25,wod,MinusXVolts,8,V,52,Solar Panels,6,2,3,Minus X Volts,Anti-sun Fixed Panel Voltage
