@@ -819,13 +819,30 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 						Long uptime = null;
 						if (lastConv.length() >=9) {
 							stem9 = lastConv.substring(0, 9); // first 9 characters to check for TIMESTAMP
-							String index1 = lastConv.substring(9); // all characters after the stem
-							String[] values = index1.split("\\s+"); // split on whitespace
-							if (values.length == 3) { // space after the TIMESTAMP in position 0 then the two values
-								 if (hasFieldName(values[1]))
-									 reset = (int) getDoubleValue(values[1], fox);
-						         if (hasFieldName(values[2]))
-						        	 uptime = (long) getDoubleValue(values[2], fox);
+							if (stem9.equalsIgnoreCase(Conversion.TIMESTAMP)) {
+								String index1 = lastConv.substring(9); // all characters after the stem
+								String[] values = index1.split("\\s+"); // split on whitespace
+								if (values.length < 3 || values[1] == null  || values[2] == null) {
+									s = "!Missing timestamp arg";
+									return s;
+								}
+								if (values.length == 3) { // space after the TIMESTAMP in position 0 then the two values
+									if (hasFieldName(values[1]))
+										reset = (int) getDoubleValue(values[1], fox);
+									else {
+										s = "!Invalid Reset Field";
+										return s;
+									}
+									if (hasFieldName(values[2]))
+										uptime = (long) getDoubleValue(values[2], fox);
+									else {
+										s = "!Invalid Uptime Field";
+										return s;
+									}
+								} else {
+									s = "!Invalid timestamp";
+									return s;
+								}
 							}
 						}
 					    
