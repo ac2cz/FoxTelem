@@ -216,19 +216,19 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 		actMap.put(PREV, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				// System.out.println("PREV");
+				//System.out.println("PREV CAN MSG");
 				int row = canPacketRawTable.getSelectedRow();
 				if (row > 0)
-					displayRow(table,NO_ROW_SELECTED, row-1);
+					displayRow(canPacketRawTable,NO_ROW_SELECTED, row-1);
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				  //  System.out.println("NEXT");
+				//System.out.println("NEXT CAN MSG");
 				int row = canPacketRawTable.getSelectedRow();
 				if (row < canPacketRawTable.getRowCount()-1)
-					displayRow(table,NO_ROW_SELECTED, row+1);        
+					displayRow(canPacketRawTable,NO_ROW_SELECTED, row+1);        
 			}
 		});
 		//table.setMinimumSize(new Dimension(6200, 6000));
@@ -478,14 +478,16 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 		//Log.println("RESET: " + reset_l);
 		//Log.println("UPTIME: " + uptime);
 		int reset = (int)reset_l;
-		if (table.getModel() instanceof CanPacketRawTableModel)
-			return; // need to decide what to do if we click the actual packet.  For now do nothing
+		if (table.getModel() instanceof CanPacketRawTableModel) {
+			; // need to decide what to do if we click the actual packet.  For now do nothing
+		} else {
 //		if (Config.displayRawRadData) {
 //			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout.name, false), false);
 //		} else {
 			updateTab(Config.payloadStore.getFramePart(foxId, reset, uptime, layout2.name, false), false);
 			//			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 //		}
+		}
 		if (fromRow == NO_ROW_SELECTED)
 			fromRow = row;
 		if (fromRow <= row)
