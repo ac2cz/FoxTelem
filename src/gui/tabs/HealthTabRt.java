@@ -174,7 +174,7 @@ public class HealthTabRt extends HealthTab {
 					currentMaxFrames = frames;
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
 					if (maxPayload != null) {
-						if (healthTableToDisplay == DISPLAY_CURRENT) 
+						if (healthTableToDisplay == DISPLAY_CURRENT || justStarted) 
 							updateTabMax(maxPayload);
 					}
 					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
@@ -186,7 +186,7 @@ public class HealthTabRt extends HealthTab {
 					currentMinFrames = frames;
 					minPayload = Config.payloadStore.getLatestMin(foxId);
 					if (minPayload != null) {
-						if (healthTableToDisplay == DISPLAY_CURRENT) 
+						if (healthTableToDisplay == DISPLAY_CURRENT || justStarted) 
 							updateTabMin(minPayload);
 						
 					}
@@ -203,8 +203,11 @@ public class HealthTabRt extends HealthTab {
 					if (realTime != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT)
 							updateTabRT(realTime, true);
-						else
+						else {
 							parseFrames();
+							if (justStarted)
+								updateTabRT(realTime, true);
+						}
 						//displayMode(0);
 						displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 						//System.out.println("UPDATED RT Data: ");
