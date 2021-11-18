@@ -319,6 +319,9 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 			Config.save();
 			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 		}
+		if (source == cbUTC) {
+			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
+		}
 	}
 
 	@Override

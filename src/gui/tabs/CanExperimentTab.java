@@ -464,6 +464,9 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 			Config.save();
 			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
 		}
+		if (source == cbUTC) {
+			updateTab(Config.payloadStore.getLatest(foxId, layout2.name), true);
+		}
 	}
 
 	@Override
