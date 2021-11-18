@@ -781,19 +781,17 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			
 			//// TESTING ONLY  
 			String convName = layout.getConversionNameByPos(pos);
-			if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
-				System.out.println("STOP");
-			
-			
-			
+//			if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+//				System.out.println("STOP");
+					
 			// First calculate the value as normal, converting the raw value
 			double dvalue = getDoubleValue(name, fox);
 			String s = "-----";
 			if (pos != -1) {
 				// Check if this is a simple numeric legacy conversion
 /////				String convName = layout.getConversionNameByPos(pos);
-				if (convName.equalsIgnoreCase("TIMESTAMP minTimestampEpoch minTimestampUptime"))  // trap for testing
-					System.out.println("STOP");
+//				if (convName.equalsIgnoreCase("TIMESTAMP minTimestampEpoch minTimestampUptime"))  // trap for testing
+//					System.out.println("STOP");
 				int conv = -1;
 				try {
 					conv = Integer.parseInt(convName);
@@ -1046,8 +1044,8 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				if (fox.useConversionCoeffs) { // use a modern conversion soft coded
 					
 					String convName = layout.getConversionNameByPos(pos);
-					if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
-						System.out.println("STOP");
+//					if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+//						System.out.println("STOP");
 					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
 					for (String singleConv : conversions) {
 						singleConv = singleConv.trim();
