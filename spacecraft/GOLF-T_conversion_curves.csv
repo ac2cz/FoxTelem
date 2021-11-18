@@ -1,5 +1,5 @@
 CurveName,a,bx,cx^2,dx^3,ex^4,fx^5,Description
-tx_pwr1,-3.94223589,37.170557666,-17.2534908,3.09605343,0,0,Forward power. Apply to the voltage value from the IHU lookup table
+tx_pwr1,-17.459892,56.86223982,-27.92877569,5.0786845,0,0,Forward power. Apply to the voltage value from the IHU lookup table
 com1_tx_ref_pwr,-34.583,0.1727,0,0,0,0,Reflected power. Apply to the voltage value from the IHU lookup table
 8_bit_temp,-20,0.5,0,0,0,0,gtemp RT1Temp and RT2Temp IHU supplies as 7.1 fixed point with offset of 20
 golf-t_bus_voltage,0,0.0399,0,0,0,0,0-255 means 0-13.61V
@@ -10,3 +10,4 @@ golf-t_tx_current,0,5.725,0,0,0,0,Milliamps of Power Amp Current
 dct_rssi,-255,1,0,0,0,0,Convert 0 to 255 into -256 to 0 for 8 bit unsigned DCT RSSI downlink
 icr_rssi,-135.54,46.566,0,0,0,0,This wants volts in
 icr_8bit_volts,0,0.01419,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
+tx_ref_pwr,-1.8544,11.56,14.663,0.1921,0,0,Reflected power. Apply to the voltage value from the IHU lookup table.  Convert to mW?
