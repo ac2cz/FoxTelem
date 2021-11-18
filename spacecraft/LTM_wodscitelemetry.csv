@@ -84,7 +84,7 @@
 82,wodsci,82,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 83,wodsci,sparebits,7,-,0,NONE,0,0,0,Sparebits,Pad
 84,wodsci,overflow,1,-,21,CAN Queue,1,1,0,Overflow,One or more CAN messages lost
-85,wodsci,WODTimestampUptime,32,sec,1,WOD,2,2,0,Uptime,Time Whole Orbit Data was collected
-86,wodsci,WODTimestampReset,16,-,1,WOD,2,1,0,Reset Count,Time Whole Orbit Data was collected
-87,wodsci,WodCRCError,8,-,1,WOD,2,3,0,NONE,CRC Error for VU Radiataion Payload
+85,wodsci,WODTimestampUptime,32,sec,1,NONE,0,0,0,Uptime,Time Whole Orbit Data was collected
+86,wodsci,WODTimestampReset,16,-,TIMESTAMP WODTimestampReset WODTimestampUptime,WOD,2,1,0,Reset Count,Time Whole Orbit Data was collected
+87,wodsci,WodCRCError,8,-,STATUS_BIT,WOD,2,2,0,Memory CRC Error,CRC Error for VU Radiataion Payload
 88,wodsci,pad215,8,-,0,NONE,0,0,0,NONE,TBD
