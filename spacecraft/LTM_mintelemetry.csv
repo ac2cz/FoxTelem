@@ -56,7 +56,7 @@
 54,minDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
 55,minDownlink,minTimestampUptime,32,-,36,NONE,0,0,0,Min Last Chg Secs,Min Last Change Secs
 56,minDownlink,minTimestampEpoch,16,-,TIMESTAMP minTimestampEpoch minTimestampUptime,Min Max,9,2,0,Min Last Change,Min Last Change Epoch
-57,minDownlink,minmaxResetEpoch,16,-,TIMESTAMP minmaxResetEpoch minmaxResetSecs,Min Max,9,3,0,Last Reset Time,MinMax Reset Epoch
+57,minDownlink,minmaxResetEpoch,16,-,TIMESTAMP minmaxResetEpoch minmaxResetSecs,Min Max,9,3,0,MinMax Reset Time,MinMax Reset Epoch
 58,minDownlink,minmaxResetSecs,32,-,36,NONE,0,0,0,Reset Secs,MinMax Reset Secs
 59,minDownlink,minCRCerror,8,-,36,Min Max,9,5,0,Min CRC Error Count,CRC Error for the min payload
 60,minDownlink,Pad178,24,-,0,NONE,0,0,0,Filler,-

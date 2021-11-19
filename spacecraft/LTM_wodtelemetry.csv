@@ -121,7 +121,7 @@
 119,wod,com2spare13,8,-,0,NONE,0,0,0,com2spare13,spare
 120,wod,com2spare14,8,-,0,NONE,0,0,0,com2spare14,spare
 121,wod,WODTimestampUptime,32,s,1,NONE,0,0,0,Uptime,Time Whole Orbit Data was collected
-122,wod,WODTimestampReset,16,-,TIMESTAMP WODTimestampReset WODTimestampUptime,WOD,9,1,0,Reset,Time Whole Orbit Data was collected
+122,wod,WODTimestampReset,16,-,TIMESTAMP WODTimestampReset WODTimestampUptime,WOD,9,1,0,Data Capture Time,Time Whole Orbit Data was collected
 123,wod,WodCRCError,8,-,STATUS_BIT,WOD,9,2,0,CRC Error,CRC Error for the WOD Payload
 124,wod,inSafeMode,1,-,21,Spacecraft Status,2,12,0,Safe Mode,Are we in safe mode?
 125,wod,inHealthMode,1,-,21,Spacecraft Status,2,13,0,Health Mode,Are we in health mode?
