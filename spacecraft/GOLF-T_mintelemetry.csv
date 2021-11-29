@@ -1,5 +1,5 @@
 69,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,minDownlink,ReflectedPwr,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
+0,minDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
 1,minDownlink,ICR3VProt,8,V,8_bit_voltage,NONE,4,3,3,3V Prot,ICR 3V Protected
 2,minDownlink,ICRTemp,8,C,8_bit_temp,NONE,4,4,3,ICR Temp,ICR Temperature
 3,minDownlink,gTemp,8,C,8_bit_temp,NONE,5,10,3,Gyro Temp,Gyro temperature
@@ -21,8 +21,8 @@
 19,minDownlink,busV,8,V,golf-t_bus_voltage,NONE,2,6,3,Bus Voltage,Vbatt Bus voltage
 20,minDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,1,1,3,PA Current,Transmit power amplifier current
 21,minDownlink,TxTemp,8,C,8_bit_temp,NONE,1,2,3,TX Temperature,Transmitter card temperature
-22,minDownlink,FwdPower,8,mW,icr_8bit_volts|tx_pwr1|tx_pwr2,NONE,1,3,3,Fwd Power,Receiver card temperature
-23,minDownlink,rssi,8,dBm,RSSI,NONE,4,1,3,ICR RSSI,Received Signal Strength Indication
+22,minDownlink,FwdPower,8,mW,icr_8bit_volts|txv2_fwd_pwr|dBm_to_mW,NONE,1,3,3,Fwd Power,Receiver card temperature
+23,minDownlink,rssi,8,dBm,icr_8bit_volts|icrv2_rssi,NONE,4,1,3,ICR RSSI,Received Signal Strength Indication
 24,minDownlink,MinusYVolts,8,V,52,NONE,6,1,3,Minus Y Volts,Left (-Y) deployable panel Voltage
 25,minDownlink,MinusXVolts,8,V,52,NONE,6,2,3,Minus X Volts,Anti-sun Fixed Panel Voltage
 26,minDownlink,XVolts,8,V,52,NONE,6,3,3,Plus X Volts,Sun-side Fixed Panel Voltage
@@ -31,7 +31,7 @@
 29,minDownlink,MinusXTemp,8,C,52,NONE,6,6,3,Minus X Temp,Anti-sun Fixed Panel Voltage
 30,minDownlink,XTemp,8,C,52,NONE,6,7,3,Plus X Temp,Sun-side Fixed Panel Voltage
 31,minDownlink,YTemp,8,C,52,NONE,6,8,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
-32,minDownlink,LtVGACtl,8,V,8_bit_voltage,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+32,minDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 33,minDownlink,RT1Temp,8,C,8_bit_temp,NONE,7,1,3,Primary Temp,Primary RT-IHU Board Temp
 34,minDownlink,RT2Temp,8,C,8_bit_temp,NONE,7,2,3,Secndry Temp,Secondary RT-IHU Board Temp
 35,minDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,2,1,3,Temperature,Internal Temperature of IHU
