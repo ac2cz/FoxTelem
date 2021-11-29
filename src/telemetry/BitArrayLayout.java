@@ -148,6 +148,8 @@ public class BitArrayLayout {
 	public static final int CONVERT_MEMS_Y_ROTATION = 62; // FOX-1A Scalar Rotation Calculation
 	public static final int CONVERT_MEMS_Z_ROTATION = 63; // FOX-1A Scalar Rotation Calculation
 	
+	public static final int MAX_CONVERSION_NUMBER = 63; // For integrity check
+	
 	/**
 	 * Create an empty layout for manual init
 	 * Note that if this is called, the BitArray is not initialized.  So it must also be setup manually

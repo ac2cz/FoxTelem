@@ -806,6 +806,25 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			else 
 				hasFOXDB_V3 = Boolean.parseBoolean(V3DB);
 			
+			// Lookup Tables
+			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
+			lookupTableFilename = new String[numberOfLookupTables];
+			lookupTable = new ConversionLookUpTable[numberOfLookupTables];
+			for (int i=0; i < numberOfLookupTables; i++) {
+				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
+				String tableName = getProperty("lookupTable"+i);
+				lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
+				if (useConversionCoeffs) {
+					if (conversions.containsKey(lookupTable[i].getName())) {
+						// we have a namespace clash, warn the user
+						Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
+					} else {
+						conversions.put(tableName, lookupTable[i]);
+						Log.println("Stored: " + lookupTable[i]);
+					}
+				}
+			}
+
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			numberOfDbLayouts = numberOfLayouts;
@@ -815,6 +834,50 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
 				layout[i] = new BitArrayLayout(layoutFilename[i]);
+				
+				// Check that the conversions look valid -- any this should be re-factored into the Conversion class when I have time //TODO
+				if (useConversionCoeffs)
+				for (int c=0; c<layout[i].NUMBER_OF_FIELDS; c++) {
+					
+					String convName = layout[i].getConversionNameByPos(c);
+					try {
+						int convInt = Integer.parseInt(convName);
+						if (convInt > BitArrayLayout.MAX_CONVERSION_NUMBER) {
+							throw new LayoutLoadException("Conversion not defined: "+ convInt + "\nwhen processing layout: " + layoutFilename[i] );
+						}
+					} catch (NumberFormatException e) {
+						// Not a legacy int conversion
+						
+						String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
+						for (String singleConv : conversions) {
+							singleConv = singleConv.trim();
+							Conversion conv = this.getConversionByName(singleConv);
+							if (conv == null) {
+								String stem3 = "";
+								if (singleConv.length() >=3)
+									stem3 = singleConv.substring(0, 3); // first 3 characters to check for BIN, HEX
+								String stem5 = "";
+								if (singleConv.length() >=5)
+									stem5 = singleConv.substring(0, 5); // first 5 characters to check for FLOAT
+								String stem9 = "";
+								if (singleConv.length() >=9)
+									stem9 = singleConv.substring(0, 9); // first 9 characters to check for TIMESTAMP
+
+								if (stem3.equalsIgnoreCase(Conversion.FMT_INT) 
+										|| stem3.equalsIgnoreCase(Conversion.FMT_BIN)
+										|| stem3.equalsIgnoreCase(Conversion.FMT_HEX)
+										|| stem5.equalsIgnoreCase(Conversion.FMT_F)
+										|| stem9.equalsIgnoreCase(Conversion.TIMESTAMP)) {
+									// we skip, this is applied in string formatting later
+								} else
+									throw new LayoutLoadException("Conversion not defined: "+ convName + "\nwhen processing layout: " + layoutFilename[i] );
+							}
+						}
+					}
+					
+				}
+					
+				
 				layout[i].name = getProperty("layout"+i+".name");
 				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
 				if (hasFOXDB_V3) {
@@ -849,24 +912,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				}				
 
 			}
-			// Lookup Tables
-			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
-			lookupTableFilename = new String[numberOfLookupTables];
-			lookupTable = new ConversionLookUpTable[numberOfLookupTables];
-			for (int i=0; i < numberOfLookupTables; i++) {
-				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
-				String tableName = getProperty("lookupTable"+i);
-				lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
-				if (useConversionCoeffs) {
-		        	if (conversions.containsKey(lookupTable[i].getName())) {
-		        		// we have a namespace clash, warn the user
-		        		Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
-		        	} else {
-		        		conversions.put(tableName, lookupTable[i]);
-		        		Log.println("Stored: " + lookupTable[i]);
-		        	}
-				}
-			}
+			
 
 			String t = getOptionalProperty("track");
 			if (t == null) 
