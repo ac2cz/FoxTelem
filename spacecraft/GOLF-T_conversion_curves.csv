@@ -11,3 +11,4 @@ dct_rssi,-255,1,0,0,0,0,Convert 0 to 255 into -256 to 0 for 8 bit unsigned DCT R
 icrv2_rssi,-336.52444603906,495.2580641155,-354.14480865579,91.786916380662,0,0,RSSI dBm. Apply to the voltage value from the icr_8bit_volts output
 icr_8bit_volts,0,0.01419,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
 icr_8bit_millivolts,0,14.19,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
+ciu_8bit_volts,0,0.063671622,0,0,0,0,"CIU Voltage Divider, ADC 2.5V Reference, 8-bit output"
