@@ -849,7 +849,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 							try {
 								int convInt = Integer.parseInt(singleConv);
 								if (convInt > BitArrayLayout.MAX_CONVERSION_NUMBER) {
-									throw new LayoutLoadException("Conversion not defined: "+ convInt + "\nwhen processing layout: " + layoutFilename[i] );
+									throw new LayoutLoadException("Conversion number "+ convInt +" is not defined. "+ "Error in row for field: " + layout[i].fieldName[c] + " on row: " + c + "\nwhen processing layout: " + layoutFilename[i] );
 								}
 							} catch (NumberFormatException e) {
 								Conversion conv = this.getConversionByName(singleConv);
@@ -872,7 +872,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 											|| stem9.equalsIgnoreCase(Conversion.TIMESTAMP)) {
 										// we skip, this is applied in string formatting later
 									} else
-										throw new LayoutLoadException("Conversion not defined: "+ convName + "\nwhen processing layout: " + layoutFilename[i] );
+										throw new LayoutLoadException("Conversion '"+ convName +"' is not defined. "+ "Error in row for field: " + layout[i].fieldName[c] + " on row: " + c + "\nwhen processing layout: " + layoutFilename[i] );
 								}
 							}
 						
