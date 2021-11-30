@@ -356,31 +356,32 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 			if (min != null)
 				processLayout(min);
 		}
-		topModules = new DisplayModule[numOfTopModules];
+		topModules = new DisplayModule[numOfTopModules+1];
 //		if (numOfBottomModules > 0)
 //		bottomModules = new DisplayModule[numOfBottomModules];
 		
-		// Process the top Modules - which run from 1 to 9
-		for (int i=1; i < numOfTopModules; i++) {
+		// Process the top Modules - which run from 1 to 20
+		for (int i=1; i <= numOfTopModules; i++) {
 			if (topModuleNames[i] == null && topModuleLines[i] == 0) {
 				// We can skip this panel as it has not been defined
-				return;
+				;
+			} else {
+				if (topModuleNames[i] == null) {
+					Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has no name defined");
+					return;
+				} 
+				if (topModuleLines[i] == 0) {
+					Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has zero lines defined");
+					return;
+				}
+				topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, rt, moduleType, rt.color);
+				addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], rt);
+				if (moduleType != DisplayModule.DISPLAY_WOD) {
+					if (max != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], max);
+					if (min != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], min);
+				}
+				topHalf.add(topModules[i]);
 			}
-			if (topModuleNames[i] == null) {
-				Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has no name defined");
-				return;
-			}
-			if (topModuleLines[i] == 0) {
-				Log.errorDialog("ERROR", "For spacecraft: "+ fox.user_display_name + "  layout: " + rt.name + "  panel number: " + i + " has zero lines defined");
-				return;
-			}
-			topModules[i] = new DisplayModule(fox, topModuleNames[i], topModuleLines[i]+1, rt, moduleType, rt.color);
-			addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], rt);
-			if (moduleType != DisplayModule.DISPLAY_WOD) {
-				if (max != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], max);
-				if (min != null) addModuleLines(topModules[i], topModuleNames[i], topModuleLines[i], min);
-			}
-			topHalf.add(topModules[i]);
 		}
 
 		// Process the bottom Modules - which run from 10 to 19
@@ -410,7 +411,8 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 								return;
 							}
 						topModuleNames[rt.moduleNum[i]] = rt.module[i];
-						numOfTopModules++;
+						if (numOfTopModules < rt.moduleNum[i])
+							numOfTopModules = rt.moduleNum[i];  // this has to equal the highest module number because we skip spaces / blanks
 					}
 					topModuleLines[rt.moduleNum[i]]++;
 				}
