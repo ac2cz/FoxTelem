@@ -840,39 +840,42 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				for (int c=0; c<layout[i].NUMBER_OF_FIELDS; c++) {
 					
 					String convName = layout[i].getConversionNameByPos(c);
-					try {
-						int convInt = Integer.parseInt(convName);
-						if (convInt > BitArrayLayout.MAX_CONVERSION_NUMBER) {
-							throw new LayoutLoadException("Conversion not defined: "+ convInt + "\nwhen processing layout: " + layoutFilename[i] );
-						}
-					} catch (NumberFormatException e) {
+					
 						// Not a legacy int conversion
 						
 						String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
 						for (String singleConv : conversions) {
 							singleConv = singleConv.trim();
-							Conversion conv = this.getConversionByName(singleConv);
-							if (conv == null) {
-								String stem3 = "";
-								if (singleConv.length() >=3)
-									stem3 = singleConv.substring(0, 3); // first 3 characters to check for BIN, HEX
-								String stem5 = "";
-								if (singleConv.length() >=5)
-									stem5 = singleConv.substring(0, 5); // first 5 characters to check for FLOAT
-								String stem9 = "";
-								if (singleConv.length() >=9)
-									stem9 = singleConv.substring(0, 9); // first 9 characters to check for TIMESTAMP
+							try {
+								int convInt = Integer.parseInt(singleConv);
+								if (convInt > BitArrayLayout.MAX_CONVERSION_NUMBER) {
+									throw new LayoutLoadException("Conversion not defined: "+ convInt + "\nwhen processing layout: " + layoutFilename[i] );
+								}
+							} catch (NumberFormatException e) {
+								Conversion conv = this.getConversionByName(singleConv);
+								if (conv == null) {
 
-								if (stem3.equalsIgnoreCase(Conversion.FMT_INT) 
-										|| stem3.equalsIgnoreCase(Conversion.FMT_BIN)
-										|| stem3.equalsIgnoreCase(Conversion.FMT_HEX)
-										|| stem5.equalsIgnoreCase(Conversion.FMT_F)
-										|| stem9.equalsIgnoreCase(Conversion.TIMESTAMP)) {
-									// we skip, this is applied in string formatting later
-								} else
-									throw new LayoutLoadException("Conversion not defined: "+ convName + "\nwhen processing layout: " + layoutFilename[i] );
+									String stem3 = "";
+									if (singleConv.length() >=3)
+										stem3 = singleConv.substring(0, 3); // first 3 characters to check for BIN, HEX
+									String stem5 = "";
+									if (singleConv.length() >=5)
+										stem5 = singleConv.substring(0, 5); // first 5 characters to check for FLOAT
+									String stem9 = "";
+									if (singleConv.length() >=9)
+										stem9 = singleConv.substring(0, 9); // first 9 characters to check for TIMESTAMP
+
+									if (stem3.equalsIgnoreCase(Conversion.FMT_INT) 
+											|| stem3.equalsIgnoreCase(Conversion.FMT_BIN)
+											|| stem3.equalsIgnoreCase(Conversion.FMT_HEX)
+											|| stem5.equalsIgnoreCase(Conversion.FMT_F)
+											|| stem9.equalsIgnoreCase(Conversion.TIMESTAMP)) {
+										// we skip, this is applied in string formatting later
+									} else
+										throw new LayoutLoadException("Conversion not defined: "+ convName + "\nwhen processing layout: " + layoutFilename[i] );
+								}
 							}
-						}
+						
 					}
 					
 				}
