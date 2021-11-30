@@ -44,13 +44,13 @@
 42,minDownlink,hostVolts5,8,-,INT,NONE,5,11,3,Battery Voltage 5,Host Bat Volts 5
 43,minDownlink,hostVolts6,8,-,INT,NONE,5,12,3,Battery Voltage 6,Host Bat Volts 6
 44,minDownlink,hostVolts7,8,-,INT,NONE,5,13,3,Battery Capacity,Host Voltage 7
-45,minDownlink,hostTemp6,8,-,0,NONE,5,6,3,Battery Temp 6,Host Bat Temp 1
-46,minDownlink,hostTemp7,8,-,1,NONE,7,1,3,Host Temp 1,Host Bat Temp 2
-47,minDownlink,hostTemp8,8,-,2,NONE,7,2,3,Host Temp 2,Host Bat Temp 3
-48,minDownlink,hostTemp9,8,-,3,NONE,7,3,3,Host Temp 3,Host Bat Temp 4
-49,minDownlink,hostTemp10,8,-,4,NONE,7,4,3,Host Temp 4,Host Bat Temp 5
-50,minDownlink,hostTemp11,8,-,5,NONE,7,5,3,Host Temp 5,Host Bat Temp 6
-51,minDownlink,hostTemp12,8,-,6,NONE,7,6,3,Pi Temp,Host OBC Temp
+45,minDownlink,hostTemp6,8,-,8_bit_temp,NONE,5,6,3,Battery Temp 6,Host Bat Temp 1
+46,minDownlink,hostTemp7,8,-,8_bit_temp,NONE,7,1,3,Host Temp 1,Host Bat Temp 2
+47,minDownlink,hostTemp8,8,-,8_bit_temp,NONE,7,2,3,Host Temp 2,Host Bat Temp 3
+48,minDownlink,hostTemp9,8,-,8_bit_temp,NONE,7,3,3,Host Temp 3,Host Bat Temp 4
+49,minDownlink,hostTemp10,8,-,8_bit_temp,NONE,7,4,3,Host Temp 4,Host Bat Temp 5
+50,minDownlink,hostTemp11,8,-,8_bit_temp,NONE,7,5,3,Host Temp 5,Host Bat Temp 6
+51,minDownlink,hostTemp12,8,-,8_bit_temp,NONE,7,6,3,Pi Temp,Host OBC Temp
 52,minDownlink,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
 53,minDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
 54,minDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare

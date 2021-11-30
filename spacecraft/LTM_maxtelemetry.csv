@@ -44,17 +44,17 @@
 42,maxDownlink,hostVolts5,8,-,INT,NONE,5,11,3,Battery Voltage 5,Host Bat Volts 5
 43,maxDownlink,hostVolts6,8,-,INT,NONE,5,12,3,Battery Voltage 6,Host Bat Volts 6
 44,maxDownlink,hostVolts7,8,-,INT,NONE,5,13,3,Battery Capacity,Host Voltage 7
-45,maxDownlink,hostTemp6,8,-,0,NONE,5,6,3,Battery Temp 6,Host Bat Temp 1
-46,maxDownlink,hostTemp7,8,-,1,NONE,7,1,3,Host Temp 1,Host Bat Temp 2
-47,maxDownlink,hostTemp8,8,-,2,NONE,7,2,3,Host Temp 2,Host Bat Temp 3
-48,maxDownlink,hostTemp9,8,-,3,NONE,7,3,3,Host Temp 3,Host Bat Temp 4
-49,maxDownlink,hostTemp10,8,-,4,NONE,7,4,3,Host Temp 4,Host Bat Temp 5
-50,maxDownlink,hostTemp11,8,-,5,NONE,7,5,3,Host Temp 5,Host Bat Temp 6
-51,maxDownlink,hostTemp12,8,-,6,NONE,7,6,3,Pi Temp,Host OBC Temp
+45,maxDownlink,hostTemp6,8,-,8_bit_temp,NONE,5,6,3,Battery Temp 6,Host Bat Temp 1
+46,maxDownlink,hostTemp7,8,-,8_bit_temp,NONE,7,1,3,Host Temp 1,Host Bat Temp 2
+47,maxDownlink,hostTemp8,8,-,8_bit_temp,NONE,7,2,3,Host Temp 2,Host Bat Temp 3
+48,maxDownlink,hostTemp9,8,-,8_bit_temp,NONE,7,3,3,Host Temp 3,Host Bat Temp 4
+49,maxDownlink,hostTemp10,8,-,8_bit_temp,NONE,7,4,3,Host Temp 4,Host Bat Temp 5
+50,maxDownlink,hostTemp11,8,-,8_bit_temp,NONE,7,5,3,Host Temp 5,Host Bat Temp 6
+51,maxDownlink,hostTemp12,8,-,8_bit_temp,NONE,7,6,3,Pi Temp,Host OBC Temp
 52,maxDownlink,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
 53,maxDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
 54,maxDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
-55,maxDownlink,maxTimestampUptime,32,s,-,NONE,0,0,0,Max Last Change Sec,Timestamp Resets
+55,maxDownlink,maxTimestampUptime,32,s,0,NONE,0,0,0,Max Last Change Sec,Timestamp Resets
 56,maxDownlink,maxTimestampEpoch,16,-,TIMESTAMP maxTimestampEpoch maxTimestampUptime,Min Max,9,1,0,Max Last Change,Timestamp uptime
 57,maxDownlink,maxCRCerror,8,-,36,Min Max,9,4,0,Max CRC Error Count,CRC Error for the Max Payload
 58,maxDownlink,pad168,8,-,0,NONE,0,0,0,Filler,Make same length as WOD

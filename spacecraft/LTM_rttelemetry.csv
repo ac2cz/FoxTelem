@@ -44,13 +44,13 @@
 42,realtimeDownlink,hostVolts5,8,-,INT,Host Batteries,5,11,3,Battery Voltage 5,Host Bat Volts 5
 43,realtimeDownlink,hostVolts6,8,-,INT,Host Batteries,5,12,3,Battery Voltage 6,Host Bat Volts 6
 44,realtimeDownlink,hostVolts7,8,-,INT,Host Batteries,5,13,3,Battery Capacity,Host Voltage 7
-45,realtimeDownlink,hostTemp6,8,-,0,Host Batteries,5,6,3,Battery Temp 6,Host Bat Temp 1
-46,realtimeDownlink,hostTemp7,8,-,1,Other Host Telemetry,7,1,3,Host Temp 1,Host Bat Temp 2
-47,realtimeDownlink,hostTemp8,8,-,2,Other Host Telemetry,7,2,3,Host Temp 2,Host Bat Temp 3
-48,realtimeDownlink,hostTemp9,8,-,3,Other Host Telemetry,7,3,3,Host Temp 3,Host Bat Temp 4
-49,realtimeDownlink,hostTemp10,8,-,4,Other Host Telemetry,7,4,3,Host Temp 4,Host Bat Temp 5
-50,realtimeDownlink,hostTemp11,8,-,5,Other Host Telemetry,7,5,3,Host Temp 5,Host Bat Temp 6
-51,realtimeDownlink,hostTemp12,8,-,6,Other Host Telemetry,7,6,3,Pi Temp,Host OBC Temp
+45,realtimeDownlink,hostTemp6,8,-,8_bit_temp,Host Batteries,5,6,3,Battery Temp 6,Host Bat Temp 1
+46,realtimeDownlink,hostTemp7,8,-,8_bit_temp,Other Host Telemetry,7,1,3,Host Temp 1,Host Bat Temp 2
+47,realtimeDownlink,hostTemp8,8,-,8_bit_temp,Other Host Telemetry,7,2,3,Host Temp 2,Host Bat Temp 3
+48,realtimeDownlink,hostTemp9,8,-,8_bit_temp,Other Host Telemetry,7,3,3,Host Temp 3,Host Bat Temp 4
+49,realtimeDownlink,hostTemp10,8,-,8_bit_temp,Other Host Telemetry,7,4,3,Host Temp 4,Host Bat Temp 5
+50,realtimeDownlink,hostTemp11,8,-,8_bit_temp,Other Host Telemetry,7,5,3,Host Temp 5,Host Bat Temp 6
+51,realtimeDownlink,hostTemp12,8,-,8_bit_temp,Other Host Telemetry,7,6,3,Pi Temp,Host OBC Temp
 52,realtimeDownlink,commonSpare1,8,-,0,NONE,0,0,0,commonSpare1,spare
 53,realtimeDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
 54,realtimeDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
