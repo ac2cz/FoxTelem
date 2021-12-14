@@ -1749,27 +1749,47 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (highSpeed || Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			circularBufferSize = sampleRate * 4;
 		} else {
-		}		SourceSoundCardAudio audioSource = null;
+		}		
+		
+		SourceSoundCardAudio audioSource = null;
 		boolean storeStereo = false;
 		if (Config.iq) storeStereo = true;
-		try {
-			if (Config.mode == SourceIQ.MODE_FSK_AUTO)
-				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2, storeStereo); // split the audio source
-			else
-				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
-		} catch (LineUnavailableException e1) {
+		boolean connected = false;
+		int retries = 0;
+		int MAX_RETRIES = 5;
+		LineUnavailableException err = null;
+		
+		while (!connected && retries < MAX_RETRIES) {
+			try {
+				if (Config.mode == SourceIQ.MODE_FSK_AUTO)
+					audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2, storeStereo); // split the audio source
+				else
+					audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
+				connected = true;
+			} catch (LineUnavailableException e1) {
+				e1.printStackTrace(Log.getWriter());
+				err = e1;
+				retries++;
+				usbErrorCount++;
+				try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(Log.getWriter()); }
+			} catch (IllegalArgumentException e1) {
+				JOptionPane.showMessageDialog(this,
+						e1.toString(),
+						"ARGUMENT ERROR",
+						JOptionPane.ERROR_MESSAGE) ;
+				e1.printStackTrace(Log.getWriter());
+				stopButton();
+			}
+		}
+		if (!connected) {
+			if (retries > 0)
+				usbFatalErrorCount++;
+			MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 			JOptionPane.showMessageDialog(this,
-					"Your operating system says the device or soundcard is not available.  Error is:\n"+e1.toString(),
+					"Your operating system says the device or soundcard is not available.  Error is:\n"+err.toString(),
 					"ERROR",
-				    JOptionPane.ERROR_MESSAGE) ;
-			e1.printStackTrace(Log.getWriter());
-			stopButton();
-		} catch (IllegalArgumentException e1) {
-			JOptionPane.showMessageDialog(this,
-					e1.toString(),
-					"ARGUMENT ERROR",
 					JOptionPane.ERROR_MESSAGE) ;
-			e1.printStackTrace(Log.getWriter());
+			
 			stopButton();
 		}
 		return audioSource;
@@ -2015,8 +2035,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						}
 						if (retried >= 5)
 							usbFatalErrorCount++;
-						if (retried > 0)
-							MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+						
+						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 							
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
@@ -2266,8 +2286,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					if (retried >= 5)
 						usbFatalErrorCount++;
-					if (retried > 0)
-						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+					MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 				}
 			} else {
 
