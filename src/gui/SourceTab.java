@@ -1489,29 +1489,48 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			sink.closeOutput();
 			sink = null;
 		}
-		
-		try {
-			sink = new SinkAudio(decoder12.getAudioFormat());
-			if (sink != null)
-				sink.setDevice(position);
-		if (position != -1) {
-			Config.audioSink = SinkAudio.getDeviceName(position);
-			Config.save();
-		}
 
-		} catch (LineUnavailableException e1) {
+		
+		boolean connected = false;
+		int retries = 0;
+		int MAX_RETRIES = 5;
+		LineUnavailableException err = null;
+		
+		while (!connected && retries < MAX_RETRIES) {
+			try {
+				sink = new SinkAudio(decoder12.getAudioFormat());
+				if (sink != null)
+					sink.setDevice(position);
+				if (position != -1) {
+					Config.audioSink = SinkAudio.getDeviceName(position);
+					Config.save();
+				}
+				connected = true;
+			} catch (LineUnavailableException e1) {
+				e1.printStackTrace(Log.getWriter());
+				err = e1;
+				retries++;
+				usbErrorCount++;
+				try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(Log.getWriter()); }
+			} catch (IllegalArgumentException e1) {
+				JOptionPane.showMessageDialog(this,
+						e1.toString(),
+						"ARGUMENT ERROR",
+						JOptionPane.ERROR_MESSAGE) ;
+				e1.printStackTrace(Log.getWriter());
+				stopButton();
+			}
+		}
+		if (!connected) {
+			if (retries > 0)
+				usbFatalErrorCount++;
+			MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 			JOptionPane.showMessageDialog(this,
-					"Your Operating System says the soundcard is not available to monitor the audio.  Error is:\n" + e1.toString(),
+					"Your Operating System says the soundcard is not available to monitor the audio.  Error is:\n" + err.toString(),
 					"ERROR",
 				    JOptionPane.ERROR_MESSAGE) ;
-			//e1.printStackTrace();
 			
-		} catch (IllegalArgumentException e1) {
-			JOptionPane.showMessageDialog(this,
-					e1.toString(),
-					"ARGUMENT ERROR",
-				    JOptionPane.ERROR_MESSAGE) ;
-			//e1.printStackTrace();	
+			stopButton();
 		}
 
 	}
