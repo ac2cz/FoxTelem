@@ -162,7 +162,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	private static String TOTAL_QUEUED = "Queue: ";
 	private static String LOCAL_QUEUED = "/ ";
 	private static String AUDIO_MISSED = "Audio missed: ";
-	private static String USB_ERRORS = "USB Errors: ";
+	private static String USB_ERRORS = "SDR Errors: ";
 		
 	private static int totalMissed;
 	ProgressPanel importProgress;
