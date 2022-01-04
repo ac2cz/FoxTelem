@@ -228,7 +228,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public static final String[] expNames = {
 		"Empty",
 		"Vanderbilt LEP",
-		"Virgina Tech Camera",
+		"Virginia Tech Camera",
 		"University of Iowa HERCI",
 		"Rad FX Sat",
 		"Virginia Tech Low-res Camera",
