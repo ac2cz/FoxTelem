@@ -1,6 +1,6 @@
 61,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,minDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,NONE,1,4,3,Ref Power,Reflected Power from the Transmit Antenna
-1,minDownlink,ICR3VProt,8,V,icr_8bit_volts,NONE,3,3,3,3V Prot,ICR 3V Protected
+1,minDownlink,ICR3VProt,8,V,icr_8bit_volts,NONE,3,3,3,3.3V Prot,ICR 3V Protected
 2,minDownlink,ICRTemp,8,C,8_bit_temp,NONE,3,4,3,ICR Temp,ICR Temperature
 3,minDownlink,gTemp,8,C,8_bit_temp,NONE,4,10,3,Gyro Temp,Gyro temperature
 4,minDownlink,Xspin,8,dps,8_bit_spin,NONE,4,1,3,X Rotation,Angular Velocity around X Axis
@@ -32,8 +32,8 @@
 30,minDownlink,XTemp,8,C,52,NONE,6,3,3,Plus X Temp,Sun-side Fixed Panel Voltage
 31,minDownlink,YTemp,8,C,52,NONE,6,4,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
 32,minDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,1,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
-33,minDownlink,hostTlm2,8,-,INT,NONE,6,5,3,Minus X Volts,Host Analog 2
-34,minDownlink,hostTlm3,8,-,INT,NONE,6,7,4,Plus Y Volts,Host Analog 3
+33,minDownlink,hostTlm2,8,V,INT,NONE,6,5,3,Minus X Volts,Host Analog 2
+34,minDownlink,hostTlm3,8,V,INT,NONE,6,7,4,Plus Y Volts,Host Analog 3
 35,minDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,2,1,3,IHU Temp,Internal Temperature of IHU
 36,minDownlink,moduTemp,8,C,8_bit_temp,NONE,1,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
 37,minDownlink,hostTlm4,8,V,52,NONE,6,8,3,Minus Y Volts,Host Analog 4
@@ -45,11 +45,11 @@
 43,minDownlink,hostCANVolts5,8,-,INT,NONE,0,0,0,Unused 5,Host Bat Volts 6
 44,minDownlink,hostCANVolts6,8,-,INT,NONE,0,0,0,UnusedV6,Host Voltage 7
 45,minDownlink,hostI2cTemp0,8,C,8_bit_temp,NONE,0,0,0,Unused  6,Interior Temp
-46,minDownlink,hostI2cTemp1,8,C,8_bit_temp,NONE,7,1,3,Bck Btm Left Temp,Interior Temp
-47,minDownlink,hostI2cTemp2,8,C,8_bit_temp,NONE,7,2,3,Front Center Temp,Interior Temp
-48,minDownlink,hostI2cTemp3,8,C,8_bit_temp,NONE,7,3,3,Bck Top Left Temp,Interior Temp
-49,minDownlink,hostI2cTemp4,8,C,8_bit_temp,NONE,7,4,3,Frnt Btm Left Temp,Interior Temp
-50,minDownlink,hostI2cTemp5,8,C,8_bit_temp,NONE,7,5,3,Bck Top Right Temp,Interior Temp
+46,minDownlink,hostI2cTemp1,8,C,8_bit_temp,NONE,7,1,3,BckBtmLft Temp,Interior Temp
+47,minDownlink,hostI2cTemp2,8,C,8_bit_temp,NONE,7,2,3,Front Ctr Temp,Interior Temp
+48,minDownlink,hostI2cTemp3,8,C,8_bit_temp,NONE,7,3,3,BckTopLft Temp,Interior Temp
+49,minDownlink,hostI2cTemp4,8,C,8_bit_temp,NONE,7,4,3,FrontBtmLft Temp,Interior Temp
+50,minDownlink,hostI2cTemp5,8,C,8_bit_temp,NONE,7,5,3,BckTopRgt Temp,Interior Temp
 51,minDownlink,hostCANTemp5,8,C,8_bit_temp,NONE,5,8,3,Battery 6 Temp,Host Bat Temp 6
 52,minDownlink,hostCANTemp11,8,C,8_bit_temp,NONE,7,6,3,Pi Temp,Host OBC Temp
 53,minDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
