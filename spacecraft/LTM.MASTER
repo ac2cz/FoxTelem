@@ -1,8 +1,8 @@
 #Telemetry Decoder Properties
 foxId=9
-name=LTM
-displayName=LTM
-description=LTM (Linear Transponder Module) is a set of boards that will be made available to university and other AMSAT partners to provide telemetry and commanding capability while providing the amateur radio community with another linear transponder
+name=MESAT1
+displayName=MESAT1
+description=MESAT1 is a University of Maine satellite containing an AMSAT LTM (Linear Transponder Module) -- a set of boards that will be made available to university and other AMSAT partners to provide telemetry and commanding capability while providing the amateur radio community with another linear transponder
 BATTERY_CURRENT_ZERO=-1.834
 EXP1=1
 EXP2=10
@@ -16,7 +16,7 @@ hasImprovedCommandReceiverII=true
 hasFOXDB_V3=true
 hasModeInHeader=true
 useConversionCoeffs=true
-conversionCurvesFileName=GOLF-T_conversion_curves.csv
+conversionCurvesFileName=MESAT1_conversion_curves.csv
 conversionExpressionsFileName=GOLF-T_conversion_expressions.csv
 numberOfFrameLayouts=9
 frameLayout0.filename=LTM_Type0_RTMIN.frame
@@ -91,7 +91,7 @@ layout10.type=CAN_EXP
 layout10.shortTitle=Partner Science
 layout10.title=Partner Science Data
 
-numberOfLookupTables=4
+numberOfLookupTables=5
 lookupTable0.filename=FOX1A_rssiFM.tab
 lookupTable0=RSSI
 lookupTable1.filename=HUSKY_SAT_ihuVBattSN31.tab
