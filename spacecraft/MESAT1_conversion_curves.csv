@@ -10,6 +10,7 @@ golf-t_tx_current,0,5.725,0,0,0,0,Milliamps of Power Amp Current
 icrv2_rssi,-336.52444603906,495.2580641155,-354.14480865579,91.786916380662,0,0,RSSI dBm. Apply to the voltage value from the icr_8bit_volts output
 icr_8bit_volts,0,0.01419,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
 icr_8bit_millivolts,0,14.19,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
-ten_volt_8_bit,0,0.039215686,0,0,0,0,Volts via CAN (0-255 = 0-10V)
+ten_volt_8_bit,0.001,0.039215686,0,0,0,0,Volts via CAN (0-255 = 0-10V)
 twenty-six_volt_8_bit,0,0.101960784,0,0,0,0,Special volts for MESAT1 solar panels (0-255 = 0-26V)
 mesat_batt_capacity,0,41.8627451,0,0,0,0,MESAT1 Battery Capacity 0-255 =  0 – 10675mAh
+mesat_batt_current,-2000,15.68627451,0,0,0,0,MESAT1 Battery Current 0-255 = -2000 to +2000mA
