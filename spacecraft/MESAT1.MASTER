@@ -1,5 +1,5 @@
 #Telemetry Decoder Properties
-foxId=9
+foxId=10
 name=MESAT1
 displayName=MESAT1
 description=MESAT1 is a University of Maine satellite containing an AMSAT LTM (Linear Transponder Module) -- a set of boards that will be made available to university and other AMSAT partners to provide telemetry and commanding capability while providing the amateur radio community with another linear transponder
@@ -8,7 +8,7 @@ EXP1=1
 EXP2=10
 EXP3=0
 EXP4=0
-IHU_SN=31
+IHU_SN=35
 catalogNumber=0
 hasCanBus=false
 hasImprovedCommandReceiverII=true
@@ -19,23 +19,23 @@ useConversionCoeffs=true
 conversionCurvesFileName=MESAT1_conversion_curves.csv
 conversionExpressionsFileName=GOLF-T_conversion_expressions.csv
 numberOfFrameLayouts=9
-frameLayout0.filename=LTM_Type0_RTMIN.frame
+frameLayout0.filename=MESAT1_Type0_RTMIN.frame
 frameLayout0.name=Realtime 1
-frameLayout1.filename=LTM_Type1_RTMAX.frame
+frameLayout1.filename=MESAT1_Type1_RTMAX.frame
 frameLayout1.name=Realtime 2
-frameLayout2.filename=LTM_Type2_ALLWOD1.frame
+frameLayout2.filename=MESAT1_Type2_ALLWOD1.frame
 frameLayout2.name=All WOD 1
-frameLayout3.filename=LTM_Type3_ALLWOD2.frame
+frameLayout3.filename=MESAT1_Type3_ALLWOD2.frame
 frameLayout3.name=All WOD 2
-frameLayout4.filename=LTM_Type4_SafeData1.frame
+frameLayout4.filename=MESAT1_Type4_SafeData1.frame
 frameLayout4.name=Safe Data 1
-frameLayout5.filename=LTM_Type5_SafeData2.frame
+frameLayout5.filename=MESAT1_Type5_SafeData2.frame
 frameLayout5.name=Safe Data 2
-frameLayout6.filename=LTM_Type6_SafeWOD.frame
+frameLayout6.filename=MESAT1_Type6_SafeWOD.frame
 frameLayout6.name=Safe WOD
-frameLayout7.filename=LTM_Type7_Diagnostic.frame
+frameLayout7.filename=MESAT1_Type7_Diagnostic.frame
 frameLayout7.name=Diagnostic
-frameLayout8.filename=LTM_Type8_Science.frame
+frameLayout8.filename=MESAT1_Type8_Science.frame
 frameLayout8.name=Science
 
 numberOfLayouts=11
@@ -43,49 +43,49 @@ layout0.filename=FOX1A_debug.csv
 layout0.name=DEBUG
 layout0.type=DBG
 
-layout1.filename=LTM_maxtelemetry.csv
+layout1.filename=MESAT1_maxtelemetry.csv
 layout1.name=maxtelemetry
 layout1.type=MAX
 
-layout2.filename=LTM_rttelemetry.csv
+layout2.filename=MESAT1_rttelemetry.csv
 layout2.name=rttelemetry
 layout2.type=RT
 
-layout3.filename=LTM_mintelemetry.csv
+layout3.filename=MESAT1_mintelemetry.csv
 layout3.name=mintelemetry
 layout3.type=MIN
 
-layout4.filename=LTM_scitelemetry.csv
+layout4.filename=MESAT1_scitelemetry.csv
 layout4.name=scitelemetry
 layout4.type=CAN_EXP
 layout4.shortTitle=Partner
 layout4.title=Partner Data
 
-layout5.filename=LTM_wodscitelemetry.csv
+layout5.filename=MESAT1_wodscitelemetry.csv
 layout5.name=wodscitelemetry
 layout5.type=CAN_WOD_EXP
 layout5.shortTitle=Partner WOD
 layout5.title=Partner Whole Orbit Data
 
-layout6.filename=LTM_wodtelemetry.csv
+layout6.filename=MESAT1_wodtelemetry.csv
 layout6.name=wodtelemetry
 layout6.type=WOD
 
-layout7.filename=LTM_diagnostictelemetry.csv
+layout7.filename=MESAT1_diagnostictelemetry.csv
 layout7.name=diagnostictelemetry
 layout7.shortTitle=Diagnostics
 layout7.title=AMSAT Diagnostics
 layout7.type=EXP
 
-layout8.filename=LTM_canpacket.csv
+layout8.filename=MESAT1_canpacket.csv
 layout8.name=canpacket
 layout8.type=CAN_PKT
 
-layout9.filename=LTM_canpacket.csv
+layout9.filename=MESAT1_canpacket.csv
 layout9.name=wodcanpacket
 layout9.type=WOD_CAN_PKT
 
-layout10.filename=LTM_scilongtelemetry.csv
+layout10.filename=MESAT1_scilongtelemetry.csv
 layout10.name=scilongtelemetry
 layout10.type=CAN_EXP
 layout10.shortTitle=Partner Science

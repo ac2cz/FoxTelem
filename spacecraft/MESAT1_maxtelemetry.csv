@@ -27,10 +27,10 @@
 25,maxDownlink,MinusXVolts,8,V,INT,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
 26,maxDownlink,XVolts,8,V,INT,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
 27,maxDownlink,YVolts,8,V,INT,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
-28,maxDownlink,MinusYTemp,8,C,8_bit_temp,NONE,7,4,3,Minus Y Temp,Left (-Y) deployable panel Voltage
-29,maxDownlink,MinusXTemp,8,C,8_bit_temp,NONE,7,2,3,Minus X Temp,Anti-sun Fixed Panel Voltage
-30,maxDownlink,XTemp,8,C,8_bit_temp,NONE,7,1,3,Plus X Temp,Sun-side Fixed Panel Voltage
-31,maxDownlink,YTemp,8,C,8_bit_temp,NONE,7,3,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+28,maxDownlink,MinusYTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,4,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,maxDownlink,MinusXTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,2,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,maxDownlink,XTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,1,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,maxDownlink,YTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,3,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
 32,maxDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
 33,maxDownlink,hostTlm2,8,V,twenty-six_volt_8_bit,NONE,7,8,3,Minus Y Volts,Host Analog 2
 34,maxDownlink,hostTlm3,8,V,twenty-six_volt_8_bit,NONE,7,5,4,Plus X Volts,Host Analog 3

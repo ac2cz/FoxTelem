@@ -1,0 +1,12 @@
+11,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,header,satelliteID,8,-,0,NONE,0,0,0,FoxID,LS3Bits = 6 for this format.  
+1,header,type,8,-,0,NONE,0,0,0,type,This identifies the payload type
+2,header,resetCnt,16,Resets,1,NONE,0,0,0,resetCnt,Total number of times IHU has reset since initial on-orbit startup
+3,header,uptime,32,Sec,1,NONE,0,0,0,uptime,This is the IHU uptime in seconds since the last reset
+4,header,protocolVersion,8,-,0,NONE,0,0,0,Downlink Spec Version,LS4Bits = minor & MS3bits=major
+5,header,versionMajor,8,-,0,NONE,0,0,0,Software Major Version,None
+6,header,versionMinor,8,-,0,NONE,0,0,0,Sofwtare Minor Version,None
+7,header,inSafeMode,1,-,0,NONE,0,0,0,Safe Mode,Are we in safe mode?
+8,header,inHealthMode,1,-,0,NONE,0,0,0,Health Mode,Are we in health mode?
+9,header,inScienceMode,1,-,0,NONE,0,0,0,Science Mode,Are we in science mode?
+10,header,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
