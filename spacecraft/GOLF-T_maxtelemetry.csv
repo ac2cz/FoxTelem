@@ -44,10 +44,10 @@
 42,maxDownlink,CSS6,8,-,ciu_8bit_volts,NONE,8,6,3,CSS #6,Coarse Sun Sensor Values
 43,maxDownlink,CSS7,8,-,ciu_8bit_volts,NONE,8,7,3,CSS #7,Coarse Sun Sensor Values
 44,maxDownlink,CSS8,8,-,ciu_8bit_volts,NONE,8,8,3,CSS #8,Coarse Sun Sensor Values
-45,maxDownlink,CIU3V3_1,8,V,ciu_8bit_volts,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
-46,maxDownlink,CIU3V3_2,8,V,ciu_8bit_volts,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
-47,maxDownlink,CIUVsys,8,V,ciu_8bit_volts,NONE,9,3,3,CIU 6V Vsys,6V power on CIU aka Vsys
-48,maxDownlink,CIU12v,8,V,ciu_8bit_volts,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
+45,maxDownlink,CIU3V3_1,8,V,psoc_8bit_volts,NONE,9,1,3,CIU 3.3V #1,3.3V Power for part 1 of CIU
+46,maxDownlink,CIU3V3_2,8,V,psoc_8bit_volts,NONE,9,2,3,CIU 3.3V #2,3.3V power for part 2 of CIU
+47,maxDownlink,CIUVsys,8,V,psoc_8bit_volts,NONE,9,3,3,CIU 5.2V Vsys,6V power on CIU aka Vsys
+48,maxDownlink,CIU12v,8,V,psoc_8bit_volts,NONE,9,4,3,CIU 12V Supply,12V Power From EPS
 49,maxDownlink,Power10GHz,8,mW,0,NONE,11,1,3,SSPA Power,Power output of the 10GHz SSPA
 50,maxDownlink,ZynqTemp,8,c,8_bit_temp,NONE,11,2,3,SDR Zynq Temp,SDR Zynq temp
 51,maxDownlink,SDRTcvrTemp,8,c,8_bit_temp,NONE,11,3,3,SDR Tranceiver Temp,SDR Tranceiver Temp
