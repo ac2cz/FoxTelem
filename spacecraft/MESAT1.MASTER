@@ -38,7 +38,7 @@ frameLayout7.name=Diagnostic
 frameLayout8.filename=MESAT1_Type8_Science.frame
 frameLayout8.name=Science
 
-numberOfLayouts=11
+numberOfLayouts=9
 layout0.filename=FOX1A_debug.csv
 layout0.name=DEBUG
 layout0.type=DBG
@@ -55,41 +55,29 @@ layout3.filename=MESAT1_mintelemetry.csv
 layout3.name=mintelemetry
 layout3.type=MIN
 
-layout4.filename=MESAT1_scitelemetry.csv
-layout4.name=scitelemetry
-layout4.type=CAN_EXP
-layout4.shortTitle=Partner
-layout4.title=Partner Data
+layout4.filename=MESAT1_wodtelemetry.csv
+layout4.name=wodtelemetry
+layout4.type=WOD
 
-layout5.filename=MESAT1_wodscitelemetry.csv
-layout5.name=wodscitelemetry
-layout5.type=CAN_WOD_EXP
-layout5.shortTitle=Partner WOD
-layout5.title=Partner Whole Orbit Data
+layout5.filename=MESAT1_diagnostictelemetry.csv
+layout5.name=diagnostictelemetry
+layout5.shortTitle=Diagnostics
+layout5.title=AMSAT Diagnostics
+layout5.type=EXP
 
-layout6.filename=MESAT1_wodtelemetry.csv
-layout6.name=wodtelemetry
-layout6.type=WOD
+layout6.filename=MESAT1_canpacket.csv
+layout6.name=canpacket
+layout6.type=CAN_PKT
 
-layout7.filename=MESAT1_diagnostictelemetry.csv
-layout7.name=diagnostictelemetry
-layout7.shortTitle=Diagnostics
-layout7.title=AMSAT Diagnostics
-layout7.type=EXP
+layout7.filename=MESAT1_canpacket.csv
+layout7.name=wodcanpacket
+layout7.type=WOD_CAN_PKT
 
-layout8.filename=MESAT1_canpacket.csv
-layout8.name=canpacket
-layout8.type=CAN_PKT
-
-layout9.filename=MESAT1_canpacket.csv
-layout9.name=wodcanpacket
-layout9.type=WOD_CAN_PKT
-
-layout10.filename=MESAT1_scilongtelemetry.csv
-layout10.name=scilongtelemetry
-layout10.type=CAN_EXP
-layout10.shortTitle=Partner Science
-layout10.title=Partner Science Data
+layout8.filename=MESAT1_scilongtelemetry.csv
+layout8.name=scilongtelemetry
+layout8.type=CAN_EXP
+layout8.shortTitle=MESAT Science
+layout8.title=Partner Science Data
 
 numberOfLookupTables=5
 lookupTable0.filename=FOX1A_rssiFM.tab
