@@ -75,7 +75,7 @@ public class ConversionStringLookUpTable extends Conversion{
 		int key = (int)x;
 		String value = table.get(key);
 		if (value == null)
-			return ERROR;
+			return ""+x;
 		else
 			return value;
 		
