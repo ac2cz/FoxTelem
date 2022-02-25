@@ -104,5 +104,5 @@
 102,realtimeDownlink,RTIHU2Resets,8,-,1,RT-IHU,7,7,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
 103,realtimeDownlink,vucDisabled,1,-,21,Spacecraft Status,3,9,0,VUC Disabled,VUC Disabled
 104,realtimeDownlink,halfDupMode,1,-,status_on_off,DCT,12,7,0,Half Duplex Mode,Rx and Tx On Same DCT
-105,realtimeDownlink,Pad6,6,-,0,NONE,0,0,0,Pad,-
+105,realtimeDownlink,CIUResetCnt3,6,-,1,CIU,9,7,0,RF Matrix Reset Cnt,RF Matrix Power Cycle Cnt
 106,realtimeDownlink,Pad5,32,-,0,NONE,0,0,0,Pad,Pad

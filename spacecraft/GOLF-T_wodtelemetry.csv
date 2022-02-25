@@ -104,7 +104,7 @@
 102,wod,RTIHU2Resets,8,-,1,RT-IHU,7,7,0,Secndry Reset Cnt,Secondary RT-IHU Reset Count
 103,wod,vucDisabled,1,-,21,Spacecraft Status,3,9,0,VUC Disabled,VUC Disabled
 104,wod,halfDupMode,1,-,status_on_off,DCT,12,7,0,Half Duplex Mode,Rx and Tx On Same DCT
-105,wod,Pad6,6,-,0,NONE,0,0,0,Pad,-
+105,wod,CIUResetCnt3,6,-,1,CIU,9,7,0,RF Matrix Reset Cnt,RF Matrix Power Cycle Cnt
 106,wod,WODTimestampUptime,32,s,1,WOD,13,1,0,Uptime,Time Whole Orbit Data was collected
 107,wod,WODTimestampReset,16,-,TIMESTAMP WODTimestampReset WODTimestampUptime,WOD,13,2,0,Data Capture Time,Time Whole Orbit Data was collected
 108,wod,WodCRCError,8,-,STATUS_BIT,WOD,13,3,0,CRC Error,CRC Error for the WOD Payload

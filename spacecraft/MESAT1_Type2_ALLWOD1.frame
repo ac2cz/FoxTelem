@@ -5,10 +5,10 @@ payload1.name=wodtelemetry
 payload1.length=96
 payload2.name=wodtelemetry
 payload2.length=96
-payload3.name=wodscitelemetry
-payload3.length=88
-payload4.name=wodscitelemetry
-payload4.length=88
-payload5.name=wodscitelemetry
-payload5.length=88
+payload3.name=wodtelemetry
+payload3.length=96
+payload4.name=wodtelemetry
+payload4.length=96
+payload5.name=wodtelemetry
+payload5.length=96
 
