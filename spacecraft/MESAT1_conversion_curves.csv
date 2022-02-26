@@ -14,3 +14,5 @@ ten_volt_8_bit,0.001,0.039215686,0,0,0,0,Volts via CAN (0-255 = 0-10V)
 twenty-six_volt_8_bit,0,0.101960784,0,0,0,0,Special volts for MESAT1 solar panels (0-255 = 0-26V)
 mesat_batt_capacity,0,41.8627451,0,0,0,0,MESAT1 Battery Capacity 0-255 =  0 – 10675mAh
 mesat_batt_current,-2000,15.68627451,0,0,0,0,MESAT1 Battery Current 0-255 = -2000 to +2000mA
+mesat_rssi,-148.09545328,2.123904012,-0.0246929688,0.0001256652,0,0,MESAT1 SN37 RSSI vs IHU ADC raw output
+mesat_power_out,94.205789268,-5.9941501322,0.07160461657,0.0001968708,0,0,MESAT1 SN37 Power out mW vs ADC raw output
