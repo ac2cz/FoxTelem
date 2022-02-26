@@ -21,8 +21,8 @@
 19,realtimeDownlink,busV,8,V,golf-t_bus_voltage,AMSAT LTM Status,1,2,3,Bus Voltage,Vbatt Bus voltage
 20,realtimeDownlink,TxPAi,8,mA,golf-t_tx_current,AMSAT Transmitter,2,1,3,PA Current,Transmit power amplifier current
 21,realtimeDownlink,TxTemp,8,C,8_bit_temp,AMSAT Transmitter,2,2,3,TX Temperature,Transmitter card temperature
-22,realtimeDownlink,FwdPower,8,mW,icr_8bit_volts|txv2_fwd_pwr|dBm_to_mW,AMSAT Transmitter,2,3,3,Fwd Power,Receiver card temperature
-23,realtimeDownlink,rssi,8,dBm,icr_8bit_volts|icrv2_rssi ,AMSAT Cmd Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
+22,realtimeDownlink,FwdPower,8,mW,mesat_power_out,AMSAT Transmitter,2,3,3,Fwd Power,Receiver card temperature
+23,realtimeDownlink,rssi,8,dBm,mesat_rssi,AMSAT Cmd Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
 24,realtimeDownlink,MinusYVolts,8,V,INT,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
 25,realtimeDownlink,MinusXVolts,8,V,INT,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
 26,realtimeDownlink,XVolts,8,V,INT,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
