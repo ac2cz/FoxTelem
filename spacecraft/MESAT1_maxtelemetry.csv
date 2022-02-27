@@ -56,5 +56,5 @@
 54,maxDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
 55,maxDownlink,maxTimestampUptime,32,s,0,NONE,0,0,0,Max Last Change Sec,Timestamp Resets
 56,maxDownlink,maxTimestampEpoch,16,-,TIMESTAMP maxTimestampEpoch maxTimestampUptime,Min Max Info,5,1,0,Max Last Change,Timestamp uptime
-57,maxDownlink,maxCRCerror,8,-,36,Min Max Info,5,4,0,Max CRC Error Count,CRC Error for the Max Payload
+57,maxDownlink,maxCRCerror,8,-,INT,Min Max Info,5,4,0,Max CRC Error Count,CRC Error for the Max Payload
 58,maxDownlink,pad168,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
