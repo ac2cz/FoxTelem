@@ -1,5 +1,7 @@
 package telemetry;
 
+import telemetry.frames.Frame;
+
 /**
  * 
  * FOX 1 Telemetry Decoder

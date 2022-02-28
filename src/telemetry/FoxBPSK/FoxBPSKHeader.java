@@ -1,12 +1,11 @@
 package telemetry.FoxBPSK;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
-import telemetry.Header;
 import telemetry.TelemFormat;
+import telemetry.frames.Header;
 
 public class FoxBPSKHeader extends Header {
 	// Extended Mode Bits that are only in FoxId 6 and later
@@ -69,12 +68,12 @@ public class FoxBPSKHeader extends Header {
 	}
 
 	public void setMode() {
-		newMode = FoxSpacecraft.NO_MODE;
+		newMode = Spacecraft.NO_MODE;
 		if (id >= Spacecraft.FIRST_FOXID_WITH_MODE_IN_HEADER) {
-			if (safeMode != 0 ) newMode = FoxSpacecraft.SAFE_MODE;
-			if (healthMode != 0 ) newMode = FoxSpacecraft.HEALTH_MODE;
-			if (scienceMode != 0 ) newMode = FoxSpacecraft.SCIENCE_MODE;
-			if (cameraMode != 0 ) newMode = FoxSpacecraft.CAMERA_MODE;
+			if (safeMode != 0 ) newMode = Spacecraft.SAFE_MODE;
+			if (healthMode != 0 ) newMode = Spacecraft.HEALTH_MODE;
+			if (scienceMode != 0 ) newMode = Spacecraft.SCIENCE_MODE;
+			if (cameraMode != 0 ) newMode = Spacecraft.CAMERA_MODE;
 		}
 	
 	}

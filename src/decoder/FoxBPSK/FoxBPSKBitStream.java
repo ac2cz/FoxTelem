@@ -6,10 +6,10 @@ import common.Config;
 import common.Log;
 import decoder.Decoder;
 import decoder.HighSpeedBitStream;
-import telemetry.Frame;
-import telemetry.FrameProcessException;
 import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.FrameProcessException;
 
 /**
  * 
@@ -45,8 +45,8 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 				telemFormat.getInt(TelemFormat.SYNC_WORD_LENGTH), telemFormat.getInt(TelemFormat.BPS));
 		this.telemFormat = telemFormat;
 		SYNC_WORD_BIT_TOLERANCE = 10;
-		maxBytes = telemFormat.getInt(TelemFormat.FRAME_LENGTH); //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
-		frameSize = telemFormat.getInt(TelemFormat.DATA_LENGTH); // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
+		maxBytes = telemFormat.getFrameLength(); //FoxBPSKFrame.getMaxBytes(); // 572 = 476 + 96
+		dataLength = telemFormat.getInt(TelemFormat.DATA_LENGTH); // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
 		numberOfRsCodeWords = telemFormat.getInt(TelemFormat.RS_WORDS);
 		this.rsPadding = telemFormat.getPaddingArray();
 		findFramesWithPRN = true;

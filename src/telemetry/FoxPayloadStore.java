@@ -8,7 +8,12 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
-import common.FoxSpacecraft;
+import telemetry.frames.Frame;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.RadiationTelemetry;
 import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {
@@ -123,12 +128,12 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse);
 
 	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse);
-	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
-	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse);
 	public abstract String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse);
-	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
-	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean reverse);
 	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	public abstract String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	public abstract String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);

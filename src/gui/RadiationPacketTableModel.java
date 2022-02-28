@@ -1,5 +1,7 @@
 package gui;
 
+import gui.tabs.FoxTelemTableModel;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -24,9 +26,9 @@ package gui;
 @SuppressWarnings("serial")
 public class RadiationPacketTableModel extends FoxTelemTableModel {
  
-	RadiationPacketTableModel() {
+	public RadiationPacketTableModel() {
 		columnNames = new String[5];
-		columnNames[0] = "RESET";
+		columnNames[0] = "EPOCH";
 		columnNames[1] = "UPTIME";
 		columnNames[2] = "TYPE";
 		columnNames[3] = "SEQUENCE";

@@ -14,6 +14,9 @@ import common.Config;
 import common.Log;
 import gui.MainWindow;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.HighSpeedFrame;
+import telemetry.frames.SlowSpeedFrame;
 
 public abstract class RawQueue implements Runnable {
 	ConcurrentLinkedQueue<Frame> rawSlowSpeedFrames;

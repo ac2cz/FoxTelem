@@ -61,7 +61,6 @@ import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
@@ -1490,29 +1489,48 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			sink.closeOutput();
 			sink = null;
 		}
-		
-		try {
-			sink = new SinkAudio(decoder12.getAudioFormat());
-			if (sink != null)
-				sink.setDevice(position);
-		if (position != -1) {
-			Config.audioSink = SinkAudio.getDeviceName(position);
-			Config.save();
-		}
 
-		} catch (LineUnavailableException e1) {
+		
+		boolean connected = false;
+		int retries = 0;
+		int MAX_RETRIES = 5;
+		LineUnavailableException err = null;
+		
+		while (!connected && retries < MAX_RETRIES) {
+			try {
+				sink = new SinkAudio(decoder12.getAudioFormat());
+				if (sink != null)
+					sink.setDevice(position);
+				if (position != -1) {
+					Config.audioSink = SinkAudio.getDeviceName(position);
+					Config.save();
+				}
+				connected = true;
+			} catch (LineUnavailableException e1) {
+				e1.printStackTrace(Log.getWriter());
+				err = e1;
+				retries++;
+				usbErrorCount++;
+				try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(Log.getWriter()); }
+			} catch (IllegalArgumentException e1) {
+				JOptionPane.showMessageDialog(this,
+						e1.toString(),
+						"ARGUMENT ERROR",
+						JOptionPane.ERROR_MESSAGE) ;
+				e1.printStackTrace(Log.getWriter());
+				stopButton();
+			}
+		}
+		if (!connected) {
+			if (retries > 0)
+				usbFatalErrorCount++;
+			MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 			JOptionPane.showMessageDialog(this,
-					"Your Operating System says the soundcard is not available to monitor the audio.  Error is:\n" + e1.toString(),
+					"Your Operating System says the soundcard is not available to monitor the audio.  Error is:\n" + err.toString(),
 					"ERROR",
 				    JOptionPane.ERROR_MESSAGE) ;
-			//e1.printStackTrace();
 			
-		} catch (IllegalArgumentException e1) {
-			JOptionPane.showMessageDialog(this,
-					e1.toString(),
-					"ARGUMENT ERROR",
-				    JOptionPane.ERROR_MESSAGE) ;
-			//e1.printStackTrace();	
+			stopButton();
 		}
 
 	}
@@ -1750,27 +1768,47 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (highSpeed || Config.mode == SourceIQ.MODE_FSK_AUTO) {
 			circularBufferSize = sampleRate * 4;
 		} else {
-		}		SourceSoundCardAudio audioSource = null;
+		}		
+		
+		SourceSoundCardAudio audioSource = null;
 		boolean storeStereo = false;
 		if (Config.iq) storeStereo = true;
-		try {
-			if (Config.mode == SourceIQ.MODE_FSK_AUTO)
-				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2, storeStereo); // split the audio source
-			else
-				audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
-		} catch (LineUnavailableException e1) {
+		boolean connected = false;
+		int retries = 0;
+		int MAX_RETRIES = 5;
+		LineUnavailableException err = null;
+		
+		while (!connected && retries < MAX_RETRIES) {
+			try {
+				if (Config.mode == SourceIQ.MODE_FSK_AUTO)
+					audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 2, storeStereo); // split the audio source
+				else
+					audioSource = new SourceSoundCardAudio(circularBufferSize, sampleRate, position, 0, storeStereo);
+				connected = true;
+			} catch (LineUnavailableException e1) {
+				e1.printStackTrace(Log.getWriter());
+				err = e1;
+				retries++;
+				usbErrorCount++;
+				try { Thread.sleep(200); } catch (InterruptedException e) { e.printStackTrace(Log.getWriter()); }
+			} catch (IllegalArgumentException e1) {
+				JOptionPane.showMessageDialog(this,
+						e1.toString(),
+						"ARGUMENT ERROR",
+						JOptionPane.ERROR_MESSAGE) ;
+				e1.printStackTrace(Log.getWriter());
+				stopButton();
+			}
+		}
+		if (!connected) {
+			if (retries > 0)
+				usbFatalErrorCount++;
+			MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 			JOptionPane.showMessageDialog(this,
-					"Your operating system says the device or soundcard is not available.  Error is:\n"+e1.toString(),
+					"Your operating system says the device or soundcard is not available.  Error is:\n"+err.toString(),
 					"ERROR",
-				    JOptionPane.ERROR_MESSAGE) ;
-			e1.printStackTrace(Log.getWriter());
-			stopButton();
-		} catch (IllegalArgumentException e1) {
-			JOptionPane.showMessageDialog(this,
-					e1.toString(),
-					"ARGUMENT ERROR",
 					JOptionPane.ERROR_MESSAGE) ;
-			e1.printStackTrace(Log.getWriter());
+			
 			stopButton();
 		}
 		return audioSource;
@@ -1886,7 +1924,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						progressThread = new Thread(task);
 						progressThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 						if (Config.iq) { //position == SourceAudio.IQ_FILE_SOURCE) {
-							if (iqSource1 != null) iqSource1.stop();
+							if (iqSource1 != null) iqSource1.stop("SourceTab:startClick-File");
 							iqSource1 = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4,0,highSpeed.isSelected());
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
@@ -1940,6 +1978,10 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
 							e.printStackTrace();
 							rfDevice = null;
+						} catch (LibUsbException e2) {
+							Log.errorDialog("ERROR", "USB Issue trying to communicate with device:\n" + e2.getMessage());
+							e2.printStackTrace();
+							rfDevice = null;
 						}
 					} 
 					if (rfDevice == null) {
@@ -1958,25 +2000,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 								Log.errorDialog("USB Device Error", e.getMessage());
 								e.printStackTrace(Log.getWriter());
 								stopButton();
+							} catch (LibUsbException e2) {
+								Log.errorDialog("ERROR", "USB Issue trying to communicate with device:\n" + e2.getMessage());
+								e2.printStackTrace();
+								rfDevice = null;
 							}
 						}
-						
-						// TODO - this would have reset the PPM adjustment that was setup when panel created.
-						// so the reset was removed from the setSampleRate function.  May be dangerous
-						try { 
-							rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
-							Config.saveGraphIntParam("SDR", 0, 0, "RTL", "RtlSampleRate", sampleRate.getRate());		
-						} catch (DeviceException e2) {
-							Log.errorDialog("USB Error Setting sample rate", e2.getMessage());
-							e2.printStackTrace(Log.getWriter());
-							stopButton();
-						} 
 						
 						// Setting the device causes its paramaters to be set, e.g. gain
 						// retry 5 times with some delay in case a temporary hardware issue
 						int retried = 0;
 						while (retried < 5) {
 							try {
+								// TODO - this would have reset the PPM adjustment that was setup when panel created.
+								// so the reset was removed from the setSampleRate function.  May be dangerous
+								rfDevice.setSampleRate(sampleRate); // make sure the sample rate is set
+								Config.saveGraphIntParam("SDR", 0, 0, "RTL", "RtlSampleRate", sampleRate.getRate());
 								panelFcd.setDevice(rfDevice);
 								break; // no need to retry
 							} catch (LibUsbException e) {
@@ -2015,8 +2054,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						}
 						if (retried >= 5)
 							usbFatalErrorCount++;
-						if (retried > 0)
-							MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+						
+						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 							
 						SDRpanel.add(panelFcd, BorderLayout.CENTER);
 						SDRpanel.setVisible(true);
@@ -2266,8 +2305,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					}
 					if (retried >= 5)
 						usbFatalErrorCount++;
-					if (retried > 0)
-						MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
+					MainWindow.setUsbErrors(usbFatalErrorCount, usbErrorCount);
 				}
 			} else {
 
@@ -2286,7 +2324,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			decoder1.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder1 = null;
 			if (iqSource1 != null)
-				iqSource1.stop();
+				iqSource1.stop("SourceTab:stopDecoder1");
 			iqSource1 = null;
 			decoder1Thread = null;
 			Config.passManager.setDecoder1(decoder1, iqSource1, this);			
@@ -2295,7 +2333,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			decoder2.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder2 = null;
 			if (iqSource2 != null)
-				iqSource2.stop();
+				iqSource2.stop("SourceTab:stopDecoder2");
 			iqSource2 = null;
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
@@ -3006,7 +3044,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 			if (e.getSource() == satPosition[s]) {
 				Config.satManager.spacecraftList.get(s).user_track = !Config.satManager.spacecraftList.get(s).user_track;
-				((FoxSpacecraft)Config.satManager.spacecraftList.get(s)).save();
+				Config.satManager.spacecraftList.get(s).save();
 			}
 		}
 

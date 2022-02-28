@@ -6,9 +6,9 @@ import java.util.Date;
 
 import common.Config;
 import common.Log;
-import telemetry.Frame;
 import telemetry.FramePart;
-import telemetry.SlowSpeedHeader;
+import telemetry.frames.Frame;
+import telemetry.frames.SlowSpeedHeader;
 
 /**
  * 

@@ -3,8 +3,8 @@ import java.io.IOException;
 import common.Config;
 import common.Log;
 import telemServer.StpFileProcessException;
-import telemetry.Frame;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.frames.Frame;
 
 public class FoxStp {
 

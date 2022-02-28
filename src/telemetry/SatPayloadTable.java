@@ -17,7 +17,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
-import telemetry.uw.CanPacket;
+import telemetry.uw.UwCanPacket;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -168,6 +168,10 @@ public class SatPayloadTable {
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
 	 * uptime.
+	 * 
+	 * If period is 0 then we want records that exactly match the reset and uptime, up to a maximum of 100.  As payloads must belong to the same
+	 * frame, this is just a practical limit and should not be exceeded
+	 * 
 	 * @param period
 	 * @param id
 	 * @param fromReset
@@ -176,27 +180,44 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	public synchronized String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
+		boolean exactMatch = false;
+		if (period == 0) {
+			exactMatch = true;
+			period = 100;
+		}
 		if (rtRecords == null) return null;
 		deleteLock = true;
 		try {
 			loadSegments(fromReset, fromUptime, period, reverse);
-
+			if (rtRecords.size() == 0) {
+				// nothing to query
+				return null;
+			}
 			int start = 0;
 			int end = 0;
 
 			if (reverse) { // then we take records nearest the end
-				start = rtRecords.size()-period;
-				end = rtRecords.size();
+				if (exactMatch) {
+					end = rtRecords.getNearestFrameIndex(id, fromUptime, fromReset);
+					start = rtRecords.getNearestPrevFrameIndex(id, fromUptime, fromReset);
+				} else {
+					start = rtRecords.size()-period;
+					end = rtRecords.size();
+				}
 			} else {
 				// we need to find the start point
 				start = rtRecords.getNearestFrameIndex(id, fromUptime, fromReset);
 				if (start == -1 ) start = rtRecords.size()-period;
-				end = start + period;
+				if (exactMatch) {
+					end = rtRecords.getNearestPrevFrameIndex(id, fromUptime, fromReset);
+				} else
+					end = start + period;
 			}
 			if (end > rtRecords.size()) end = rtRecords.size();
 			if (end < start) end = start;
 			if (start < 0) start = 0;
 			if (start > rtRecords.size()) start = rtRecords.size();
+			if (start == end) end = start +1;
 
 			int[][] results = new int[end-start][];
 			String[] upTime = new String[end-start];
@@ -664,6 +685,7 @@ public class SatPayloadTable {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	private FramePart addLine(String line) {
 		if (line.length() == 0) return null;
 		String date = null;
@@ -702,16 +724,17 @@ public class SatPayloadTable {
 				int pktid1 = Integer.valueOf(st2[canIdField+1]).intValue();
 				int pktid2 = Integer.valueOf(st2[canIdField+2]).intValue();
 				int pktid3 = Integer.valueOf(st2[canIdField+3]).intValue();
-				int canId = CanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
+				int canId = UwCanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
 				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
-				rt = new CanPacket(id, resets, uptime, date, st, canLayout);
+				rt = new UwCanPacket(id, resets, uptime, date, st, canLayout);
 
 				if (rt != null)
 					rt.type = type; // make sure we get the right type
 			} else {
-				if (isFOXDB_V3)
+				if (isFOXDB_V3) {
 					rt = FramePart.makePayload(id, resets, uptime, date, st, layout);
-				else
+					rt.type = type; // this is used as a sequence number in V3
+				} else
 					rt = FramePart.makeLegacyPayload(id, resets, uptime, date, st, type);
 			}
 			

@@ -298,7 +298,7 @@ public class SourceIQ extends SourceAudio {
 	protected void startAudioThread() {
 		if (upstreamChannel == 0) {
 			if (upstreamAudioReadThread != null) { 
-				upstreamAudioSource.stop(); 
+				upstreamAudioSource.stop("SourceIQ:startAudioThread"); 
 			}	
 			
 			if (!(upstreamAudioSource instanceof SourceUSB)) {
@@ -410,7 +410,7 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {		
-			setFilterWidth(5000); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
+			setFilterWidth(800); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
 			ht = new HilbertTransform(AF_SAMPLE_RATE, 255); // audio bandwidth and length
 			delay = new Delay((255-1)/2);
 		} else if (mode == MODE_FSK_HS) {
@@ -557,9 +557,9 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(String caller) {
 		running = false;
-		upstreamAudioSource.stop();
+		upstreamAudioSource.stop("SourceIQ:stop");
 		while (!upstreamAudioSource.isDone())
 			try {
 				Thread.sleep(1);
@@ -1404,6 +1404,14 @@ protected double[] processBytes(double[] fcdData) {
 	}
 	
 	double psk = 0.0;
+	/**
+	 * This is a legacy routine and is no longer used
+	 * @param i
+	 * @param q
+	 * @param sample
+	 * @return
+	 */
+	@Deprecated
 	private double pskDemod(double i, double q, int sample) {
 		ssbOffset = 0;
 		psk = costasLoop(i, q, sample);

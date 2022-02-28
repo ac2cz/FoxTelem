@@ -75,7 +75,7 @@ public class SourceWav extends SourceAudio implements Runnable {
         framesProcessed = 0;
 	}
 	
-	public void stop() {
+	public void stop(String caller) {
 		running = false;
 		cleanup();
 	}

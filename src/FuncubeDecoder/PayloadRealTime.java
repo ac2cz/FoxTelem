@@ -2,8 +2,8 @@ package FuncubeDecoder;
 
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
-import telemetry.Conversion;
 import telemetry.FramePart;
+import telemetry.conversion.Conversion;
 
 public class PayloadRealTime extends FramePart {
 	int MAX_BYTES;

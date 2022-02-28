@@ -1,24 +1,25 @@
 package telemetry.FoxBPSK;
 
 import common.Config;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import common.Log;
-import common.Spacecraft;
 import decoder.Crc32;
 import decoder.Decoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxPayloadStore;
-import telemetry.Frame;
-import telemetry.FrameLayout;
 import telemetry.FramePart;
-import telemetry.HighSpeedTrailer;
-import telemetry.PayloadUwExperiment;
-import telemetry.PayloadWOD;
-import telemetry.PayloadWODUwExperiment;
 import telemetry.TelemFormat;
+import telemetry.frames.Frame;
+import telemetry.frames.FrameLayout;
+import telemetry.frames.HighSpeedTrailer;
+import telemetry.payloads.PayloadCanExperiment;
+import telemetry.payloads.PayloadCanWODExperiment;
+import telemetry.payloads.PayloadWOD;
+import telemetry.uw.PayloadUwExperiment;
+import telemetry.uw.PayloadWODUwExperiment;
 
 /**
 	 * 
@@ -98,7 +99,7 @@ import telemetry.TelemFormat;
 				// first non header byte
 				try {
 					header.copyBitsToFields(); // make sure the id is populated
-					fox = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+					fox = Config.satManager.getSpacecraft(header.id);
 				} catch (ArrayIndexOutOfBoundsException e) {
 					if (Config.debugFrames)
 						Log.errorDialog("ERROR","The header length in the format file may not agree with the header layout.  Decode not possible.\n"
@@ -114,15 +115,15 @@ import telemetry.TelemFormat;
 					frameLayout = Config.satManager.getFrameLayout(header.id, header.getType());
 					if (frameLayout == null) {
 						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " has no frame layout. Decode not possible.\n"
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Frame Type: " + header.getType() + " has no frame layout defined. Decode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " has no frame layout. Decode not possible.");
+							Log.println("FOX ID: " + header.id + " Frame Type: " + header.getType() + " has no frame layout defined. Decode not possible.");
 						
 						corrupt = true;
 						return;
 					}
-					bytes = new byte[telemFormat.getInt(TelemFormat.FRAME_LENGTH)]; 
+					bytes = new byte[telemFormat.getFrameLength()]; 
 					if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 						dataBytes = new byte[telemFormat.getInt(TelemFormat.DATA_LENGTH)-crcLength];
 					else
@@ -136,11 +137,11 @@ import telemetry.TelemFormat;
 //					initPayloads(header.id, header.getType());
 					if (payload[0] == null) {
 						if (Config.debugFrames)
-							Log.errorDialog("ERROR","FOX ID: " + header.id + " Type: " + header.getType() + " not valid. "
+							Log.errorDialog("ERROR","FOX ID: " + header.id + " Frame Type: " + header.getType() + " not valid. "
 									+ "Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file.\nDecode not possible.\n"
 									+ "Turn off Debug Frames to prevent this message in future.");
 						else
-							Log.println("FOX ID: " + header.id + " Type: " + header.getType() + " not valid. Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file. Decode not possible.");
+							Log.println("FOX ID: " + header.id + " Frame Type: " + header.getType() + " not valid. Check that the Payloads defined in the MASTER file correctly match the payload names in the .frame definition file. Decode not possible.");
 						corrupt = true;
 						return;
 					}
@@ -164,28 +165,30 @@ import telemetry.TelemFormat;
 				// try to add the byte to a payload, step through each of them
 				int maxByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
 				int minByte = telemFormat.getInt(TelemFormat.HEADER_LENGTH);
-				for (int p=0; p < frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); p++) {
-					maxByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
+				for (int p=0; p < frameLayout.getNumberOfPayloads(); p++) {
+					maxByte += frameLayout.getPayloadLength(p);
 					if (numberBytesAdded >= minByte && numberBytesAdded < maxByte) {
 						try {
 							payload[p].addNext8Bits(b);
 						} catch (Exception e) {
+							String stacktrace = Log.makeShortTrace(e.getStackTrace());  
 							if (payload[p] != null && payload[p].getLayout() != null)
 								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
-									+ " for payload number " + p + " : " + payload[p].getLayout().name + " at payload byte " + payload[p].numberBytesAdded);
+									+ " for payload number " + p + " : " + payload[p].getLayout().name + " at payload byte " + payload[p].numberBytesAdded 
+									+ "\nError is: " + e + "\n" + stacktrace);
 							else if (payload[p] != null && payload[p].getLayout() == null)
 								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
 										+ " for payload number "+ p + " of type " + payload[p].getType() + " at payload byte " + payload[p].numberBytesAdded
-										+"\nThis payload's Layout is null and not defined or loaded correctly.");
+										+"\nThis payload's Layout is null and not defined or loaded correctly." + "\nError is: " + e + "\n" + stacktrace);
 							else if (payload[p] == null)
 								Log.errorDialog("ERROR", "Could not add byte number " + numberBytesAdded + " to frame: " + frameLayout
 										+ " for payload number " + p + " because the payload is null." 
-										+"\nThe payload Layout is probablly also not defined or loaded correctly.");
+										+"\nThe payload Layout is probablly not defined or loaded correctly." + "\nError is: " + e + "\n" + stacktrace);
 							corrupt = true;
 							return;
 						}
 					} 
-					minByte += frameLayout.getInt(FrameLayout.PAYLOAD+p+FrameLayout.DOT_LENGTH);
+					minByte += frameLayout.getPayloadLength(p);
 				}
 			}
 			if (fox != null && fox.hasFrameCrc && Config.calculateBPSKCrc) {
@@ -229,9 +232,10 @@ import telemetry.TelemFormat;
 			numberBytesAdded++;
 		}
 		
+		@SuppressWarnings("deprecation")
 		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
-			payload = new FramePart[frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS)];
-			for (int i=0; i<frameLayout.getInt(FrameLayout.NUMBER_OF_PAYLOADS); i+=1 ) {
+			payload = new FramePart[frameLayout.getNumberOfPayloads()];
+			for (int i=0; i<frameLayout.getNumberOfPayloads(); i+=1 ) {
 				BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, frameLayout.getPayloadName(i));
 				if (layout == null) {
 					payload[0] = null; // cause us to drop out
@@ -254,6 +258,14 @@ import telemetry.TelemFormat;
 					payload[i].resets = newReset;
 					if (storeMode)
 						payload[i].newMode = header.newMode;
+					if (payload[i].layout.isCanExperiment() || payload[i].layout.isCanWodExperiment()) {
+						// Then we also need to save the individual can packets
+						((PayloadCanExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
+						if (!(payload[i] instanceof PayloadCanWODExperiment)) // increase the serial across payloads for non WOD payloads
+							serial = serial + ((PayloadCanExperiment)payload[i]).canPackets.size();
+					} else
+					
+					// Legacy UW format
 					if (payload[i] instanceof PayloadUwExperiment) { 
 						((PayloadUwExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
 						serial = serial + ((PayloadUwExperiment)payload[i]).canPackets.size();

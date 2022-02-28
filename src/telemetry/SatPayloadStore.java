@@ -2,6 +2,13 @@ package telemetry;
 
 
 import gui.MainWindow;
+import telemetry.herci.HerciHighSpeedPacket;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PayloadWODRad;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.legacyPayloads.WodRadiationTelemetry;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,7 +22,6 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -47,7 +53,7 @@ import common.FoxSpacecraft;
 public class SatPayloadStore {
 
 	public int foxId;
-	private FoxSpacecraft fox;
+	private Spacecraft fox;
 	
 	private static final int INIT_SIZE = 1000;
 	//private boolean initRad2 = false;
@@ -64,7 +70,7 @@ public class SatPayloadStore {
 	 */
 	public SatPayloadStore(int id) {
 		foxId = id;
-		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(foxId);
+		fox = Config.satManager.getSpacecraft(foxId);
 		
 		try {
 			initPayloadFiles();
@@ -371,7 +377,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.RAD2_LAYOUT, positionData, reverse);
 		
 	}
@@ -462,7 +468,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		return getGraphData(name, period, id, fromReset, fromUptime, Spacecraft.HERCI_HS_HEADER_LAYOUT, positionData, reverse);
 		
 	}
@@ -593,10 +599,7 @@ public class SatPayloadStore {
 	        		throw new IOException("Could not delete file " + file.getName() + " Check the file system and remove it manually.");
 	        	}
 		} catch (Exception ex) {
-			JOptionPane.showMessageDialog(MainWindow.frame,
-					ex.toString(),
-					"Error Deleting File",
-					JOptionPane.ERROR_MESSAGE) ;
+			Log.errorDialog("Error Deleting File", ex.toString());
 		}
 	}
 

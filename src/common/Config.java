@@ -67,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.11g";
-	public static String VERSION = VERSION_NUM + " - 6 Jul 2021";
+	public static String VERSION_NUM = "1.12t";
+	public static String VERSION = VERSION_NUM + " - 28 Feb 2022";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -193,7 +193,7 @@ public class Config {
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
-    public static String webSiteUrl = "http://www.amsat.org/tlm";
+    public static String webSiteUrl = "https://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
     // These are not saved to the file
@@ -243,7 +243,7 @@ public class Config {
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
-	static public String t0UrlPath = "http://amsat.org/tlm/ops/";
+	static public String t0UrlPath = "https://amsat.org/tlm/ops/";
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
 	
@@ -780,6 +780,9 @@ public class Config {
 		// V1.10
 		properties.setProperty("calculateBPSKCrc", Boolean.toString(calculateBPSKCrc));
 
+		// V1.12
+		properties.setProperty("debugRS", Boolean.toString(debugRS));
+		
 		store();
 	}
 	
@@ -980,6 +983,9 @@ public class Config {
 		// V1.10
 		calculateBPSKCrc = Boolean.parseBoolean(getProperty("calculateBPSKCrc"));
 		
+		// V1.12
+		debugRS = Boolean.parseBoolean(getProperty("debugRS"));
+		
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {
@@ -994,6 +1000,11 @@ public class Config {
 	}
 	
 	private static void catchException() {
+		if (!Log.showGuiDialogs) {
+			Log.println("Could not read properties file. If this is a new release then the format has probablly been extended.\n"
+				+ "Run the GUI to create a new properties file.  Error Loading " + Config.homeDirectory + File.separator + propertiesFileName);
+			System.exit(1);
+		}
 		// Cant write to the log here as it is not initilized
 		//Log.println("Could not read properties file. Likely Corrupt.");
 		Object[] options = {"Yes",

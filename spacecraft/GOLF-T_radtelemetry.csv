@@ -58,4 +58,4 @@
 56,rad,56,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
 57,rad,57,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
 58,rad,exp1BoardNum,8,-,1,VUC,1,1,0,Exp1 Board Number,Experiment Board Active
-59,rad,pad20,8,-,0,NONE,0,0,0,NONE,TBD
+59,rad,pad219,8,-,0,NONE,0,0,0,NONE,TBD

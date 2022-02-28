@@ -15,28 +15,30 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 
-import telemetry.Frame;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRtValues;
+import telemetry.frames.Frame;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.payloads.PayloadWOD;
 import uk.me.g4dpz.satellite.SatPos;
 import common.Config;
-import common.FoxSpacecraft;
 import common.FoxTime;
 import common.Log;
+import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.06 - 29 Nov 2019";
+	public static String version = "Version 1.08 - 5 Aug 2021";
 	private Socket socket = null;
 	int port = 8080;
 	
 	public static final String VERSION = "version";
 	public static final String TIME = "getSatUtcAtResetUptime";
 	public static final String POSITION = "getSatLatLonAtResetUptime";
+	public static final String WOD = "getWod";
 	public static final int TIMEOUT_CONNECTION = 1000; // 1s timeout while connected
 	
 	public WebServiceProcess(PayloadDbStore db, Socket socket, int p) {
@@ -82,7 +84,6 @@ public class WebServiceProcess implements Runnable {
 
 				WebHealthTab fox1Atab = null;
 
-
 				/*
 				 * The FoxService Command API is in the format:
 				 * COMMAND/SAT/OPTIONS
@@ -117,6 +118,11 @@ public class WebServiceProcess implements Runnable {
 					case TIME:
 						if (params.length == 2) {
 							getSatUtcForResetUptime(params[1], out);
+							return;	
+						}
+					case WOD:
+						if (params.length == 2) {
+							getWod(params[1], out);
 							return;	
 						}
 					default:
@@ -155,7 +161,7 @@ public class WebServiceProcess implements Runnable {
 							PayloadMinValues min = (PayloadMinValues) payloadDbStore.getLatestMin(sat);
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore, (FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -190,7 +196,7 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore,(FoxSpacecraft) Config.satManager.getSpacecraft(sat),port);
+									fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -199,6 +205,42 @@ public class WebServiceProcess implements Runnable {
 
 								if (fox1Atab != null)
 									out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime));
+
+							} else {
+								out.println("FOX SAT Requested invalid\n");
+							}
+						} else {
+							out.println("FOX FIELD Request invalid\n");
+						}
+					} else if (path[1].equalsIgnoreCase("WOD-FIELD")) { // Field Command
+						// /WOD-FIELD/SAT/NAME/R|C/N/RESET/UPTME - Return N R-RAW or C-CONVERTED values for WOD field NAME from sat SAT
+						if (path.length == 8) {
+							String name = path[3];
+							String raw = path[4];
+							boolean convert = true;
+							int sat = 0;
+							int num = 0;
+							int fromReset = 0;
+							int fromUptime = 0;
+							try {
+								sat = Integer.parseInt(path[2]);
+								num = Integer.parseInt(path[5]);
+								fromReset = Integer.parseInt(path[6]);
+								fromUptime = Integer.parseInt(path[7]);
+							} catch (NumberFormatException e) {
+								out.println("Invalid sat or type");
+							}
+							if (sat > 0) {
+								try {
+									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.WOD_LAYOUT);
+								} catch (LayoutLoadException e1) {
+									e1.printStackTrace(Log.getWriter());
+								}
+								if (raw.startsWith("C"))
+									convert = false;
+
+								if (fox1Atab != null)
+									out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime, Spacecraft.WOD_LAYOUT));
 
 							} else {
 								out.println("FOX SAT Requested invalid\n");
@@ -241,6 +283,38 @@ public class WebServiceProcess implements Runnable {
 		return args;
 	}
 	
+	private void getWod(String args, PrintWriter out) {
+		HashMap<String, String> params = consumeArgs(args);
+		String satId = params.get(SAT);
+		String satReset = params.get(RESET);
+		String satUptime = params.get(UPTIME);
+		if (satId == null) return;
+		
+		PayloadWOD wod = null;
+		WebHealthTab telemTab = null;
+		try {
+			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			if (fox != null) {
+				
+				wod = (PayloadWOD) payloadDbStore.getLatest(fox.foxId, Spacecraft.WOD_LAYOUT);
+				if (wod != null) {
+					try {
+						telemTab = new WebHealthTab(payloadDbStore, fox, port, Spacecraft.WOD_LAYOUT);
+					} catch (LayoutLoadException e1) {
+						e1.printStackTrace(Log.getWriter());
+					}
+					//out.println("<H2>Fox-1 Telemetry</H2>");
+					telemTab.setRtPayload(wod);
+
+					out.println(telemTab.toString());
+				}
+				out.println("WOD record for: " + wod);
+			} else out.println("Invalid Sat Id");
+		} catch (Exception e) {
+			out.println("AMSAT API Request is invalid id + " + satId + " reset " + satReset + " uptime " +satUptime+"\n"+e+" " + e.getMessage());								
+		}
+	}
+	
 	/**
 	 * Calculate and return the position
 	 * amsat.org/getPositionAtResetUptime&sat&reset&uptime
@@ -257,7 +331,7 @@ public class WebServiceProcess implements Runnable {
 		if (satUptime == null) return;
 
 		try {
-			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
 			int reset = Integer.parseInt(satReset);
 			long uptime = Long.parseLong(satUptime);
 			if (fox != null) {
@@ -284,7 +358,7 @@ public class WebServiceProcess implements Runnable {
 		if (satUptime == null) return;
 		
 		try {
-			FoxSpacecraft fox = (FoxSpacecraft) Config.satManager.getSpacecraft(Integer.parseInt(satId));
+			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
 			int reset = Integer.parseInt(satReset);
 			long uptime = Long.parseLong(satUptime);
 			if (fox != null) {
@@ -297,7 +371,7 @@ public class WebServiceProcess implements Runnable {
 
 	}
 	
-	String calculateSpacecraftTime(FoxSpacecraft fox) {
+	String calculateSpacecraftTime(Spacecraft fox) {
 		Date currentDate = new Date();
 		FoxTime foxTime = fox.getUptimeForUtcDate(currentDate);
 		

@@ -11,6 +11,8 @@ import javax.swing.JOptionPane;
 
 import measure.PassMeasurement;
 import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.SlowSpeedFrame;
 import common.Config;
 import common.Log;
 import common.TlmServer;

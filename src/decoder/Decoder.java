@@ -19,8 +19,8 @@ import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Filter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FramePart;
+import telemetry.frames.Frame;
 import uk.me.g4dpz.satellite.SatPos;
 
 /**
@@ -229,7 +229,7 @@ public abstract class Decoder implements Runnable {
 	protected void startAudioThread() {
 		if (audioChannel == 0 || audioSource instanceof SourceIQ) {
 			if (audioReadThread != null) { 
-				audioSource.stop(); 
+				audioSource.stop("Decoder:startAudioThread"); 
 			}	
 
 			audioReadThread = new Thread(audioSource);
@@ -398,8 +398,16 @@ public abstract class Decoder implements Runnable {
         //Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
         
 		startAudioThread();
-
-        while (nBytesRead != -1 && processing) {
+		
+		// Give the audio thread time to be up and running.  Otherwise we sometimes exit the
+		// decoder immediately because it thinks the audio thread is done
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        while (nBytesRead != -1 && processing && !audioSource.isDone()) {
         	Performance.startTimer("Setup");
     		resetWindowData();
     		Performance.endTimer("Setup");
@@ -591,7 +599,7 @@ public abstract class Decoder implements Runnable {
 	
 	public void cleanup() { // release any system assets we have held
 		if (audioSource != null) { 
-			audioSource.stop();
+			audioSource.stop("Decoder:cleanup");
 
 			while (!audioSource.isDone()) {
 				try {

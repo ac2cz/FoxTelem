@@ -23,7 +23,7 @@ package telemetry;
  */
 @SuppressWarnings("serial")
 public class CobsDecodeException extends Exception {
-	CobsDecodeException(String error) {
+	public CobsDecodeException(String error) {
 		super(error);
 	}
 }

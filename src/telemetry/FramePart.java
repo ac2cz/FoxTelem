@@ -8,17 +8,41 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Spacecraft;
 import decoder.FoxBitStream;
-import gui.GraphPanel;
-import telemetry.uw.CanPacket;
+import gui.graph.GraphPanel;
+import telemetry.conversion.Conversion;
+import telemetry.conversion.ConversionMathExpression;
+import telemetry.conversion.LookUpTableBatteryTemp;
+import telemetry.conversion.LookUpTableSolarPanelTemp;
+import telemetry.conversion.LookUpTableTemperature;
+import telemetry.frames.Header;
+import telemetry.herci.HerciHighSpeedPacket;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PayloadWODRad;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.legacyPayloads.WodRadiationTelemetry;
+import telemetry.payloads.PayloadCanExperiment;
+import telemetry.payloads.PayloadCanWODExperiment;
+import telemetry.payloads.PayloadExperiment;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.payloads.PayloadWOD;
+import telemetry.payloads.PayloadWODExperiment;
+import telemetry.payloads.CanPacket;
+import telemetry.uw.PayloadUwExperiment;
+import telemetry.uw.PayloadWODUwExperiment;
+import telemetry.uw.UwCanPacket;
 import uk.me.g4dpz.satellite.SatPos;
 
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
@@ -39,9 +63,15 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final int TYPE_HERCI_SCIENCE_HEADER = 8; // This is the header from the high speed data once decoded
 	public static final int TYPE_HERCI_HS_PACKET = 9; // This is the header from the high speed data once decoded
 	public static final int TYPE_WOD = 10; // Whole orbit data ib Fox-1E
-	public static final int TYPE_WOD_RAD = 11; // Whole orbit data ib Fox-1E
-	public static final int TYPE_WOD_RAD_TELEM_DATA = 12; // Translated Vulcan WOD
+	public static final int TYPE_WOD_EXP = 11; // Whole orbit data ib Fox-1E
+	public static final int TYPE_WOD_EXP_TELEM_DATA = 12; // Translated Vulcan WOD
 	
+	public static final int TYPE_CAN_EXP = 13; // Whole orbit data ib Fox-1E
+	public static final int TYPE_CAN_WOD_EXP = 14; // Translated Vulcan WOD
+	public static final int TYPE_CAN_PACKET = 15;
+	public static final int TYPE_CAN_WOD_PACKET = 16;
+	
+	// UW 
 	public static final int TYPE_UW_EXPERIMENT = 13; // UW Experiment Payload
 	public static final int TYPE_UW_CAN_PACKET = 14; // UW Can packets for HuskySat
 	public static final int TYPE_UW_WOD_EXPERIMENT = 15; // WOD for UW Experiment Payload
@@ -70,14 +100,16 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	
 	public static final DateFormat reportDateFormat = new SimpleDateFormat("yyyy/MM/dd HH:mm:ss");
 	public static final DateFormat fileDateFormat = new SimpleDateFormat("yyyyMMddHHmmss");
+	public static final DateFormat dateFormat2 = new SimpleDateFormat(
+			"yyyyMMdd HHmmss", Locale.ENGLISH);
 	
 	// These fields are updated when the Frame Part is stored in the PayloadStore
 	public int id; // The id copied from the header of the highspeed or slow speed frame that this was captured in
 	public long uptime;  // The Uptime captured from the header.  Time in seconds from Reset.  For non Fox Spacecraft this is the UTC milliseconds since the date epoch
 	public int resets;  // The resets captured from the header.  Zero for Non FOX Spacecraft
 	protected String reportDate; // the date/time that this was written to the file.  NOT the same as the STP date, which is just on the frame.
-	protected int type; // the type of this payload. Zero if the spacecraft does not use types
-	public int newMode = FoxSpacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
+	public int type; // the type of this payload. Zero if the spacecraft does not use types
+	public int newMode = Spacecraft.NO_MODE; // this is only valid for HuskySat and later.  Otherwise set to NO_MODE
 	public static final double NO_POSITION_DATA = -999.0;
 	public static final double NO_T0 = -998.0;
 	public static final double NO_TLE = -997.0;
@@ -278,14 +310,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		copyBitsToFields();
 		String s = new String();
 		s = s + " (captureDate,  id, resets, uptime, type, \n";
-		if (newMode != FoxSpacecraft.NO_MODE)
+		if (newMode != Spacecraft.NO_MODE)
 			s = s + "newMode,";
 		for (int i=0; i < layout.fieldName.length-1; i++) {
 			s = s + layout.fieldName[i] + ",\n";
 		}
 		s = s + layout.fieldName[layout.fieldName.length-1] + ")\n";
 		s = s + "values ('" + this.reportDate + "', " + this.id + ", " + this.resets + ", " + this.uptime + ", " + this.type + ",\n";
-		if (newMode != FoxSpacecraft.NO_MODE)
+		if (newMode != Spacecraft.NO_MODE)
 			s = s + newMode+",\n";
 		for (int i=0; i < fieldValue.length-1; i++) {
 			s = s + fieldValue[i] + ",\n";
@@ -335,11 +367,11 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	}
 	
 	public static FramePart makePayload(Header header, String layoutName) {
-		return makeLegacyPayload(header.id, header.resets, header.uptime, layoutName);
+		return makePayload(header.id, header.resets, header.uptime, layoutName);
 	}
 	
 	/**
-	 * Make a V3 SEG DB payload from its layout
+	 * Make a V3 SEG DB payload from its layout type name
 	 * @param header
 	 * @param layoutName
 	 * @return
@@ -360,6 +392,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				return new PayloadExperiment(layout, id, uptime, resets);
 			case BitArrayLayout.WOD_EXP:
 				return new PayloadWODExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.CAN_EXP:
+				return new PayloadCanExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.CAN_WOD_EXP:
+				return new PayloadCanWODExperiment(layout, id, uptime, resets);
+			case BitArrayLayout.CAN_PKT:
+				return new CanPacket(layout, id, uptime, resets);
+			case BitArrayLayout.WOD_CAN_PKT:
+				return new CanPacket(layout, id, uptime, resets);
 			default:
 				return null;
 		}
@@ -370,10 +410,12 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * Factory Method to make a pre V3 SEGDB Frame Part from a layout
 	 * @return
 	 */
+	@Deprecated
 	public static FramePart makeLegacyPayload(Header header, BitArrayLayout layout) {
 		return makeLegacyPayload(header, layout.name);
 	}
 	
+	@Deprecated
 	public static FramePart makeLegacyPayload(Header header, String layoutName) {
 		return makeLegacyPayload(header.id, header.resets, header.uptime, layoutName);
 	}
@@ -384,6 +426,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * @param layoutName
 	 * @return
 	 */
+	@Deprecated
 	public static FramePart makeLegacyPayload(int id, int resets, long uptime, String layoutName) {
 		BitArrayLayout layout = Config.satManager.getLayoutByName(id, layoutName);
 		// TODO - setting the reset/uptime should be forced in the constructor for FramePart
@@ -439,8 +482,16 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			rt = new PayloadWOD(id, resets, uptime, date, st, lay);
 		else if (lay.isWODExperiment())
 			rt = new PayloadWODExperiment(id, resets, uptime, date, st, lay);
-		else
+		else if (lay.isExperiment())
+			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);
+		else if (lay.isCanExperiment())
 			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);		
+		else if (lay.isCanWodExperiment())
+			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);	
+		else if (lay.isCanPkt())
+			rt = new CanPacket(id, resets, uptime, date, st, lay);
+		else if (lay.isCanWodPkt())
+			rt = new CanPacket(id, resets, uptime, date, st, lay);	
 		return rt;
 	}
 	
@@ -473,7 +524,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		} else if (type == FramePart.TYPE_RAD_TELEM_DATA || type >= 700 && type < 800) {
 			rt = new RadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
-		} else if (type == FramePart.TYPE_WOD_RAD_TELEM_DATA ) {
+		} else if (type == FramePart.TYPE_WOD_EXP_TELEM_DATA ) {
 			rt = new WodRadiationTelemetry(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD2_LAYOUT));
 			rt.type = type; // make sure we get the right type
 
@@ -491,7 +542,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				Config.payloadStore.add(f.id, f.uptime, f.resets, radiationTelemetry);
 				Config.payloadStore.setUpdated(id, Spacecraft.RAD_LAYOUT, true);			
 			}
-		} else if (type == FramePart.TYPE_WOD_RAD) {
+		} else if (type == FramePart.TYPE_WOD_EXP) {
 			rt = new PayloadWODRad(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_RAD_LAYOUT));
 			rt.type = type;
 
@@ -533,7 +584,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			rt = new HerciHighSpeedPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		} else if (type == FramePart.TYPE_UW_CAN_PACKET || type >= 1400 && type < 1500) {
-			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
+			rt = new UwCanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.CAN_PKT_LAYOUT));
 			rt.type = type; // make sure we get the right type
 		} else if (type == FramePart.TYPE_UW_WOD_CAN_PACKET || type >= 1600 && type < 1700) {
 			rt = new CanPacket(id, resets, uptime, date, st, Config.satManager.getLayoutByName(id, Spacecraft.WOD_CAN_PKT_LAYOUT));
@@ -727,14 +778,20 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					break;
 				}
 			}
+			
+			//// TESTING ONLY  
+			String convName = layout.getConversionNameByPos(pos);
+//			if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+//				System.out.println("STOP");
+					
 			// First calculate the value as normal, converting the raw value
 			double dvalue = getDoubleValue(name, fox);
 			String s = "-----";
 			if (pos != -1) {
 				// Check if this is a simple numeric legacy conversion
-				String convName = layout.getConversionNameByPos(pos);
-				//if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
-				//	System.out.println("STOP");
+/////				String convName = layout.getConversionNameByPos(pos);
+//				if (convName.equalsIgnoreCase("TIMESTAMP minTimestampEpoch minTimestampUptime"))  // trap for testing
+//					System.out.println("STOP");
 				int conv = -1;
 				try {
 					conv = Integer.parseInt(convName);
@@ -749,16 +806,103 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 					} else {
 						String lastConv = Conversion.getLastConversionInPipeline(convName);
 						
+						
+						/*
+						 * Try to parse the TIMESTAMP formatting keyword.  If so, we expect two fields names after it
+						 * Those are used to form a reset / uptime pair which is displayed as is or converted to UTC
+						 * 
+						 */
+						String stem9 = "";
+						Integer reset = null;
+						Long uptime = null;
+						if (lastConv.length() >=9) {
+							stem9 = lastConv.substring(0, 9); // first 9 characters to check for TIMESTAMP
+							if (stem9.equalsIgnoreCase(Conversion.TIMESTAMP)) {
+								String index1 = lastConv.substring(9); // all characters after the stem
+								String[] values = index1.split("\\s+"); // split on whitespace
+								if (values.length < 3 || values[1] == null  || values[2] == null) {
+									s = "!Missing timestamp arg";
+									return s;
+								}
+								if (values.length == 3) { // space after the TIMESTAMP in position 0 then the two values
+									if (hasFieldName(values[1]))
+										reset = (int) getDoubleValue(values[1], fox);
+									else {
+										s = "!Invalid Reset Field";
+										return s;
+									}
+									if (hasFieldName(values[2]))
+										uptime = (long) getDoubleValue(values[2], fox);
+									else {
+										s = "!Invalid Uptime Field";
+										return s;
+									}
+								} else {
+									s = "!Invalid timestamp";
+									return s;
+								}
+							}
+						}
+					    
+						String stem3 = "";
+						Integer idx3 = null;
+						if (lastConv.length() >=3) {
+							stem3 = lastConv.substring(0, 3); // first 3 characters to check for BIN, HEX
+						String index3 = lastConv.substring(3); // all characters after the stem
+						try {
+							idx3 = Integer.parseInt(index3);
+							} catch (NumberFormatException e) { };
+						}
+						
+						String stem5 = "";
+						Integer idx5 = null;
+						if (lastConv.length() >=5) {
+							stem5 = lastConv.substring(0, 5); // first 5 characters to check for FLOAT
+							String index5 = lastConv.substring(5); // all characters after the stem
+							try {
+								idx5 = Integer.parseInt(index5);
+							} catch (NumberFormatException e) { };
+						}
+						
 						// First check the reserved words for formatting in final field
 						if (lastConv.equalsIgnoreCase(Conversion.FMT_INT)) {
 							s = Long.toString((long) dvalue);
-						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_F) 
-								|| lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
-							s = String.format("%2.1f", dvalue);
-						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_2F)) {
-							s = String.format("%1.2f", dvalue);
-						} else if (lastConv.equalsIgnoreCase(Conversion.FMT_3F)) {
-							s = String.format("%1.3f", dvalue);
+
+						} else if (stem5.equalsIgnoreCase(Conversion.FMT_F) && idx5 != null) {
+							if (lastConv.equalsIgnoreCase(Conversion.FMT_1F)) {
+								s = String.format("%2.1f", dvalue);
+							} else if (lastConv.equalsIgnoreCase(Conversion.FMT_2F)) {
+								s = String.format("%1.2f", dvalue);
+							} else if (lastConv.equalsIgnoreCase(Conversion.FMT_3F)) {
+								s = String.format("%1.3f", dvalue);
+							} else if (lastConv.equalsIgnoreCase(Conversion.FMT_4F)) {
+								s = String.format("%1.4f", dvalue);
+							} else if (lastConv.equalsIgnoreCase(Conversion.FMT_5F)) {
+								s = String.format("%1.5f", dvalue);
+							} else if (lastConv.equalsIgnoreCase(Conversion.FMT_6F)) {
+								s = String.format("%1.6f", dvalue);
+							}
+							
+						} else if (stem3.equalsIgnoreCase(Conversion.FMT_HEX) && idx3 != null) {
+							//String index = lastConv.substring(3); // all characters after the stem
+							s = toHexString((long)dvalue,idx3);
+							
+						} else if (stem3.equalsIgnoreCase(Conversion.FMT_BIN) && idx3 != null) {
+							//String index = lastConv.substring(3); // all characters after the stem
+							s = intToBin((int)dvalue,idx3);
+						
+						} else if (stem9.equalsIgnoreCase(Conversion.TIMESTAMP) && reset != null && uptime != null) {
+							if (Config.displayUTCtime) {
+								Date date = fox.getUtcForReset(reset, uptime);
+								if (date == null) {
+									s = "T0 not set";
+								} else {
+									reportDateFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
+									s = reportDateFormat.format(date);
+								}
+							} else
+						    	s = "" + reset + " / " + uptime;
+						    
 						} else {
 							// Get the conversion for the last conversion in the pipeline
 							Conversion conversion = fox.getConversionByName(lastConv);
@@ -778,6 +922,40 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				for (int k=0; k < (5 - s.length()); k++)
 					s = " " + s;
 			return s;
+		}
+		
+		public String intToBin(int word, int len) {
+			boolean b[] = new boolean[len];
+			for (int i=0; i<len; i++) {
+				if (((word >>i) & 0x01) == 1) b[len-1-i] = true; else b[len-1-i] = false; 
+			}
+			String s = "";
+			for (boolean bit : b)
+				if (bit) s=s+"1"; else s=s+"0";
+			return s;
+		}
+		
+		public static String toHexString(long value, int len) {
+			String s = "";
+			for (int i=0; i<len; i++) {
+				String digit = String.format("%1s", Long.toHexString(value & 0xf)).replace(' ', '0');
+				s = digit + s; // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 4 ;
+			}
+			return s;
+		}
+		
+		public static String txByteString(long value, int len) {
+			String s = "";
+			for (int i=0; i<len; i++) {
+				s = plainhex(value & 0xff) + s; // we get the least sig byte each time, so new bytes go on the front
+				value = value >> 8 ;
+			}
+			return s;
+		}
+		
+		public static String plainhex(long l) {
+			return String.format("%2s", Long.toHexString(l)).replace(' ', '0');
 		}
 		
 		private String legacyStringConversion(int conv, double value, Spacecraft fox) {
@@ -810,7 +988,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			} else if ((conv == BitArrayLayout.CONVERT_INTEGER) || (conv == BitArrayLayout.CONVERT_WOD_STORED)) {
 				s = Long.toString((long) value);
 			} else if (conv == BitArrayLayout.CONVERT_IHU_DIAGNOSTIC) {
-				s = ihuDiagnosticString((int) value, true, (FoxSpacecraft)fox);
+				s = ihuDiagnosticString((int) value, true, fox);
 			} else if (conv == BitArrayLayout.CONVERT_HARD_ERROR) {
 				s = hardErrorString((int) value, true);
 			} else if (conv == BitArrayLayout.CONVERT_SOFT_ERROR) {
@@ -866,16 +1044,22 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				if (fox.useConversionCoeffs) { // use a modern conversion soft coded
 					
 					String convName = layout.getConversionNameByPos(pos);
-					if (convName.equalsIgnoreCase("57|INT"))  // trap for testing
-						System.out.println("STOP");
+//					if (convName.equalsIgnoreCase("36|HEX2"))  // trap for testing
+//						System.out.println("STOP");
 					String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
 					for (String singleConv : conversions) {
 						singleConv = singleConv.trim();
 						// First check the reserved words for formatting
-						if (singleConv.equalsIgnoreCase(Conversion.FMT_INT) 
-								|| singleConv.equalsIgnoreCase(Conversion.FMT_F)
-								|| singleConv.equalsIgnoreCase(Conversion.FMT_1F)
-								|| singleConv.equalsIgnoreCase(Conversion.FMT_2F)) {
+						String stem3 = "";
+						if (singleConv.length() >=3)
+							stem3 = singleConv.substring(0, 3); // first 3 characters to check for BIN, HEX
+						String stem5 = "";
+						if (singleConv.length() >=5)
+							stem5 = singleConv.substring(0, 5); // first 5 characters to check for FLOAT
+						if (stem3.equalsIgnoreCase(Conversion.FMT_INT) 
+								|| stem3.equalsIgnoreCase(Conversion.FMT_BIN)
+								|| stem3.equalsIgnoreCase(Conversion.FMT_HEX)
+								|| stem5.equalsIgnoreCase(Conversion.FMT_F)) {
 							// we skip, this is applied in string formatting later
 						} else {
 							// Need to know if this is a static, curve or table conversion
@@ -897,11 +1081,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			}
 			return ERROR_VALUE;
 		}
-		
-		protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
-			return convertCoeffRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
-		}
-
+	
 		/**
 		 * Given a raw value, convert it with a curve, lookup table it into the actual value that we can display based on the
 		 * conversion type passed.  
@@ -911,7 +1091,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param fox
 		 * @return
 		 */
-		protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, FoxSpacecraft fox) {
+		protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 			double x = 0;
 			try {
 				if (conversion instanceof ConversionMathExpression)
@@ -925,10 +1105,6 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return x; 
 		}
 
-		protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox) {
-			return convertRawValue(name, rawValue, conversion, (FoxSpacecraft)fox);
-		}
-		
 		/**
 		 * LEGACY CONVERSIONS for backwards compatibility
 		 * Given a raw value, BitArrayLayout.CONVERT it into the actual value that we can display based on the
@@ -938,7 +1114,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param conversion
 		 * @return
 		 */
-		protected double convertRawValue(String name, double rawValue, int conversion, FoxSpacecraft fox ) {
+		protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox ) {
 			
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
 			switch (conversion) {
@@ -962,7 +1138,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				if (name.equalsIgnoreCase("BATT_B_V"))
 					return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_B_SCALING_FACTOR;
 				if (name.equalsIgnoreCase("BATT_C_V"))  // then this is fox
-					if (((FoxSpacecraft)fox).useIHUVBatt)
+					if (fox.useIHUVBatt)
 						return fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(rawValue);
 					else
 						return rawValue * VOLTAGE_STEP_FOR_2V5_SENSORS/BATTERY_C_SCALING_FACTOR;
@@ -973,7 +1149,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				
 			case BitArrayLayout.CONVERT_BATTERY_CURRENT:
 				double d = (double)rawValue;
-				d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * ((FoxSpacecraft)fox).user_BATTERY_CURRENT_ZERO + 2)*1000;
+				d = (( d * VOLTAGE_STEP_FOR_2V5_SENSORS - BATTERY_CURRENT_MIN) * fox.user_BATTERY_CURRENT_ZERO + 2)*1000;
 				return d;
 			case BitArrayLayout.CONVERT_SOLAR_PANEL:
 				return rawValue * VOLTAGE_STEP_FOR_3V_SENSORS/SOLAR_PANEL_SCALING_FACTOR;
@@ -1159,7 +1335,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param fox
 		 * @return
 		 */
-		private static double calcMemsValue(int value, String name, FoxSpacecraft fox) {
+		private static double calcMemsValue(int value, String name, Spacecraft fox) {
 			double volts = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value);
 			volts = volts / 2;
 			double memsZeroValue = MEMS_ZERO_VALUE_VOLTS;
@@ -1167,9 +1343,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			
 			if (fox.hasMemsRestValues) {
 				int restValue = 0;
-				if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
-				if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
-				if (name.equalsIgnoreCase(FoxSpacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
+				if (name.equalsIgnoreCase(Spacecraft.MEMS_REST_VALUE_X)) restValue = fox.user_memsRestValueX;	
+				if (name.equalsIgnoreCase(Spacecraft.MEMS_REST_VALUE_Y)) restValue = fox.user_memsRestValueY;
+				if (name.equalsIgnoreCase(Spacecraft.MEMS_REST_VALUE_Z)) restValue = fox.user_memsRestValueZ;
 				memsZeroValue = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(restValue);
 				memsZeroValue = memsZeroValue/2;
 			}
@@ -1186,7 +1362,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param shortString
 		 * @return
 		 */
-		public static String ihuDiagnosticString(int rawValue, boolean shortString, FoxSpacecraft fox) {
+		public static String ihuDiagnosticString(int rawValue, boolean shortString, Spacecraft fox) {
 			// First 8 bits hold the type
 			int type = rawValue & 0xff ;
 			int value = 0;
@@ -1267,9 +1443,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 				value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 				if (shortString)
 					//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
-					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
+					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
 				else
-					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, FoxSpacecraft.MEMS_REST_VALUE_Z, fox),3);
+					return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
 				//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			case GYRO1V: // Gyro1V
 				value = (rawValue >> 8) & 0xfff; // 12 bit value after the type

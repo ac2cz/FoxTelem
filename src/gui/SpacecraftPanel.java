@@ -11,16 +11,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -34,7 +30,6 @@ import javax.swing.JLabel;
 import common.Log;
 import common.Spacecraft;
 import common.Config;
-import common.FoxSpacecraft;
 
 /**
 * 
@@ -90,14 +85,14 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 	JButton btnGetT0;
 	T0SeriesTableModel t0TableModel;
 	
-	FoxSpacecraft sat;
+	Spacecraft sat;
 
 	int headerSize = 12;
 	
 	/**
 	 * Create the dialog.
 	 */
-	public SpacecraftPanel(FoxSpacecraft sat) {
+	public SpacecraftPanel(Spacecraft sat) {
 		
 		this.sat = sat;
 		
@@ -169,7 +164,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
-			lExp[i] = new JLabel("Experiment "+(i+1)+": " + FoxSpacecraft.expNames[sat.experiments[i]]);
+			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			leftFixedPanel.add(lExp[i]);
 		}
 

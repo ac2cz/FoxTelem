@@ -7,16 +7,16 @@ import java.util.ArrayList;
 import javax.swing.SwingUtilities;
 
 import common.Config;
-import common.FoxSpacecraft;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import decoder.Decoder;
 import decoder.SourceAudio;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.TelemFormat;
 import telemetry.FoxBPSK.FoxBPSKFrame;
 import telemetry.FoxBPSK.FoxBPSKHeader;
+import telemetry.frames.Frame;
 
 public abstract class FoxBPSKDecoder extends Decoder {
 
@@ -68,7 +68,7 @@ public abstract class FoxBPSKDecoder extends Decoder {
 	 */
 	protected void processPossibleFrame(ArrayList<Frame> frames) {
 
-		FoxSpacecraft sat = null;
+		Spacecraft sat = null;
 		for (Frame decodedFrame : frames) {
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 				Performance.startTimer("Store");
@@ -80,7 +80,7 @@ public abstract class FoxBPSKDecoder extends Decoder {
 
 					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
 					FoxBPSKHeader header = hsf.getHeader();
-					sat = (FoxSpacecraft) Config.satManager.getSpacecraft(header.id);
+					sat = Config.satManager.getSpacecraft(header.id);
 					int newReset = sat.getCurrentReset(header.resets, header.uptime);
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
 
@@ -105,6 +105,7 @@ public abstract class FoxBPSKDecoder extends Decoder {
 						e.printStackTrace(Log.getWriter());
 					}
 				framesDecoded++;
+				if (MainWindow.frame != null) // then we are in GUI mode
 				try {
 					SwingUtilities.invokeAndWait(new Runnable() {
 						public void run() { MainWindow.setTotalDecodes();}

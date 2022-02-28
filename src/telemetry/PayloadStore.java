@@ -14,10 +14,16 @@ import measure.PassMeasurement;
 import measure.RtMeasurement;
 import measure.SatMeasurementStore;
 import measure.SortedMeasurementArrayList;
+import telemetry.frames.Frame;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PictureScanLine;
+import telemetry.legacyPayloads.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -100,8 +106,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 			
 		}
-		Config.fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
-		Config.fileProgress.setVisible(true);
+		if (Log.showGuiDialogs) {
+			Config.fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
+			Config.fileProgress.setVisible(true);
+		}
 		
 		for (int s=0; s<sats.size(); s++) {
 			
@@ -117,9 +125,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 					}
 				}
 				//if (sats.get(s).isFox1())
-					if (((FoxSpacecraft)sats.get(s)).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
+					if ((sats.get(s)).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 				measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
-				Config.fileProgress.updateProgress(100 * s / sats.size());
+				if (Log.showGuiDialogs)
+					Config.fileProgress.updateProgress(100 * s / sats.size());
 			
 		}
 		loaded = true;
@@ -911,7 +920,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
+	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -922,7 +931,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
 			try {
@@ -933,7 +942,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
-	public double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
+	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)
 			return store.getMeasurementGraphData(name, period, fox, fromReset, fromUptime, reverse);
@@ -1080,7 +1089,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
+	public double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset,
 			long fromUptime, boolean reverse) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)

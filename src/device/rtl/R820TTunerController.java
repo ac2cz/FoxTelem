@@ -28,7 +28,6 @@ import javax.usb.UsbException;
 
 import org.usb4java.Device;
 import org.usb4java.DeviceDescriptor;
-import org.usb4java.LibUsb;
 import org.usb4java.LibUsbException;
 
 import common.Log;

@@ -58,8 +58,8 @@
 56,wodrad,56,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
 57,wodrad,57,8,-,0,NONE,0,0,0,Data,Opaque data from radiation experiment
 58,wodrad,exp1BoardNum,8,-,1,VUC,1,1,0,Exp1 Board Number,Experiment Board Active
-59,wodrad,pad20,8,-,0,NONE,0,0,0,NONE,TBD
-60,wodrad,WODTimestampUptime,32,sec,1,WOD,8,2,0,Uptime,Time Whole Orbit Data was collected
-61,wodrad,WODTimestampReset,16,-,1,WOD,8,1,0,Reset Count,Time Whole Orbit Data was collected
-62,wodrad,WodCRCError,8,-,1,WOD,8,3,0,NONE,CRC Error for VU Radiataion Payload
-63,wodrad,pad0,8,-,0,NONE,0,0,0,NONE,TBD
+59,wodrad,pad219,8,-,0,NONE,0,0,0,NONE,TBD
+60,wodrad,WODTimestampUptime,32,sec,1,WOD,13,2,0,Uptime,Time Whole Orbit Data was collected
+61,wodrad,WODTimestampReset,16,-,TIMESTAMP WODTimestampReset WODTimestampUptime,WOD,13,1,0,Data Capture Time,Time Whole Orbit Data was collected
+62,wodrad,WodCRCError,8,-,STATUS_BIT,WOD,13,3,0,Memory CRC Error,CRC Error for VU Radiataion Payload
+63,wodrad,pad233,8,-,0,NONE,0,0,0,NONE,TBD

@@ -21,8 +21,6 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.usb.UsbException;
 
-import org.usb4java.LibUsbException;
-
 import common.Log;
 import device.TunerController;
 import device.DeviceException;

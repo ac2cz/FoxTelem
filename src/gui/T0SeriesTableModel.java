@@ -29,7 +29,7 @@ public class T0SeriesTableModel extends AbstractTableModel {
 
 	T0SeriesTableModel() {
 		columnNames = new String[2];
-		columnNames[0] = "Reset";
+		columnNames[0] = "Epoch";
 		columnNames[1] = "Date";
 
 	}

@@ -46,8 +46,8 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	//double loopError;
 	boolean lastPhase = false;
 	double freq = 700.0d;
-	public double LOW_SWEEP_LIMIT = 700.0;
-	public double HIGH_SWEEP_LIMIT = 5000.0;
+	public double LOW_SWEEP_LIMIT = 1000.0;
+	public double HIGH_SWEEP_LIMIT = 2000.0;
 	
 	double iMix, qMix;
 	double fi = 0.0, fq = 0.0;
@@ -77,11 +77,11 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	@Override
 	protected void init() {
 		if (!Config.iq && Config.use12kHzIfForBPSK) {
-			LOW_SWEEP_LIMIT = 10000;
-			HIGH_SWEEP_LIMIT = 14000;
+			LOW_SWEEP_LIMIT = 11000;
+			HIGH_SWEEP_LIMIT = 13000;
 		} else {
-			LOW_SWEEP_LIMIT = 700;
-			HIGH_SWEEP_LIMIT = 5000;
+			LOW_SWEEP_LIMIT = 1000;
+			HIGH_SWEEP_LIMIT = 1700;
 		}
 			
 		Log.println("Initializing 1200bps Costas Loop BPSK decoder: ");
@@ -106,7 +106,7 @@ public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 		}
 
 		dataFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
-		dataFilter.init(currentSampleRate, HIGH_SWEEP_LIMIT+1000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
+		dataFilter.init(currentSampleRate, 6000, 256); // just remove noise, perhaps at quarter sample rate? Better wider and steeper to give selectivity
 
 		//		iFilter = new RaisedCosineFilter(audioSource.audioFormat, 1); // filter a single double
 		//		iFilter.init(48000, 1200, 128);

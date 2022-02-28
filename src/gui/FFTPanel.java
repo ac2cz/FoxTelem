@@ -19,6 +19,7 @@ import common.PassManager;
 import common.Spacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
+import gui.graph.GraphPanel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
