@@ -298,7 +298,7 @@ public class SourceIQ extends SourceAudio {
 	protected void startAudioThread() {
 		if (upstreamChannel == 0) {
 			if (upstreamAudioReadThread != null) { 
-				upstreamAudioSource.stop(); 
+				upstreamAudioSource.stop("SourceIQ:startAudioThread"); 
 			}	
 			
 			if (!(upstreamAudioSource instanceof SourceUSB)) {
@@ -557,9 +557,9 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(String caller) {
 		running = false;
-		upstreamAudioSource.stop();
+		upstreamAudioSource.stop("SourceIQ:stop");
 		while (!upstreamAudioSource.isDone())
 			try {
 				Thread.sleep(1);

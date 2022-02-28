@@ -125,7 +125,7 @@ public abstract class SourceAudio implements Runnable {
 	
 	public boolean isDone() { return done; }
 	public abstract void run();
-	public abstract void stop();
+	public abstract void stop(String caller);
 	
 	/**
 	 * Convert audio bytes from a soundcard into an array of doubles.  Create the doubles array

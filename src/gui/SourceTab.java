@@ -1924,7 +1924,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						progressThread = new Thread(task);
 						progressThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 						if (Config.iq) { //position == SourceAudio.IQ_FILE_SOURCE) {
-							if (iqSource1 != null) iqSource1.stop();
+							if (iqSource1 != null) iqSource1.stop("SourceTab:startClick-File");
 							iqSource1 = new SourceIQ((int)wav.getAudioFormat().getSampleRate()*4,0,highSpeed.isSelected());
 							iqSource1.setAudioSource(wav,0); // wave file does not work with auto speed
 							setupDecoder(highSpeed.isSelected(), iqSource1, iqSource1);
@@ -2324,7 +2324,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			decoder1.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder1 = null;
 			if (iqSource1 != null)
-				iqSource1.stop();
+				iqSource1.stop("SourceTab:stopDecoder1");
 			iqSource1 = null;
 			decoder1Thread = null;
 			Config.passManager.setDecoder1(decoder1, iqSource1, this);			
@@ -2333,7 +2333,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			decoder2.stopProcessing(); // This blocks and waits for the audiosource to be done
 			decoder2 = null;
 			if (iqSource2 != null)
-				iqSource2.stop();
+				iqSource2.stop("SourceTab:stopDecoder2");
 			iqSource2 = null;
 			decoder2Thread = null;
 			Config.passManager.setDecoder2(decoder2, iqSource2, this);			
