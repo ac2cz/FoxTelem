@@ -65,7 +65,7 @@
 63,wod,I2CfailureICR,1,-,17,AMSAT Cmd Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
 64,wod,DeploySenseOK,1,-,STATUS_1_EQ_OK,AMSAT LTM Status,1,6,0,Deploy Sense Ok,Antenna sensor is ok
 65,wod,TLMresets,8,-,1,AMSAT LTM Status,1,11,0,Min/Max Reset Count,Number of times command stations reset stored telemetry
-66,wod,wodSize,8,-,36,AMSAT LTM Status,1,7,0,WOD Stored,Number of WOD data payloads kept for each of Science and Housekeeping.  In hundreds
+66,wod,wodSize,8,-,36,AMSAT LTM Status,1,7,0,WOD Stored,Number of WOD data payloads kept for each type (Housekeeping in MESat1)
 67,wod,swCmds,32,-,35,AMSAT Cmd Receiver,3,6,0,Diagnostic,ICR Diagnostic information
 68,wod,hwCmdCnt,8,-,1,AMSAT Cmd Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
 69,wod,swCmdCntICR,8,-,34,AMSAT Cmd Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset

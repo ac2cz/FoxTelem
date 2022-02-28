@@ -65,11 +65,11 @@ layout5.shortTitle=Diagnostics
 layout5.title=AMSAT Diagnostics
 layout5.type=EXP
 
-layout6.filename=MESAT1_canpacket.csv
+layout6.filename=MESAT1_CanPacket.csv
 layout6.name=canpacket
 layout6.type=CAN_PKT
 
-layout7.filename=MESAT1_canpacket.csv
+layout7.filename=MESAT1_CanPacket.csv
 layout7.name=wodcanpacket
 layout7.type=WOD_CAN_PKT
 

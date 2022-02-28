@@ -54,9 +54,9 @@
 52,minDownlink,hostCANTemp11,8,C,8_bit_temp|INVALID_TEMP,NONE,9,6,3,Pi Temp,Host OBC Temp
 53,minDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
 54,minDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
-55,minDownlink,minTimestampUptime,32,-,36,NONE,0,0,0,Min Last Chg Secs,Min Last Change Secs
+55,minDownlink,minTimestampUptime,32,-,0,NONE,0,0,0,Min Last Chg Secs,Min Last Change Secs
 56,minDownlink,minTimestampEpoch,16,-,TIMESTAMP minTimestampEpoch minTimestampUptime,Min Max Info,5,2,0,Min Last Change,Min Last Change Epoch
 57,minDownlink,minmaxResetEpoch,16,-,TIMESTAMP minmaxResetEpoch minmaxResetSecs,Min Max Info,5,3,0,MinMax Reset Time,MinMax Reset Epoch
-58,minDownlink,minmaxResetSecs,32,-,36,NONE,0,0,0,Reset Secs,MinMax Reset Secs
-59,minDownlink,minCRCerror,8,-,36,Min Max Info,5,5,0,Min CRC Error Count,CRC Error for the min payload
+58,minDownlink,minmaxResetSecs,32,-,0,NONE,0,0,0,Reset Secs,MinMax Reset Secs
+59,minDownlink,minCRCerror,8,-,INT,Min Max Info,5,5,0,Min CRC Error Count,CRC Error for the min payload
 60,minDownlink,Pad178,24,-,0,NONE,0,0,0,Filler,-
