@@ -33,7 +33,6 @@ import device.DeviceException;
 import device.DevicePanel;
 import device.ThreadPoolManager;
 import device.TunerType;
-import device.rtl.RTL2832TunerController.SampleRate;
 
 public class E4KTunerController extends RTL2832TunerController
 {

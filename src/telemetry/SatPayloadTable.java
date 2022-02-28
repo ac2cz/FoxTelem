@@ -685,6 +685,7 @@ public class SatPayloadTable {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	private FramePart addLine(String line) {
 		if (line.length() == 0) return null;
 		String date = null;

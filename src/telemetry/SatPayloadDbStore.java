@@ -923,6 +923,7 @@ public class SatPayloadDbStore {
 		payload = null;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public FramePart getLatest(String layout) throws SQLException {
 		BitArrayLayout lay = fox.getLayoutByName(layout);
 		String tableName = lay.getTableName();

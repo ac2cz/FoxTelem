@@ -24,7 +24,6 @@ import telemetry.legacyPayloads.RadiationTelemetry;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.Spacecraft;
 
 /**
  * 

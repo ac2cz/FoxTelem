@@ -24,7 +24,6 @@ import javax.swing.table.TableColumn;
 
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.herci.HerciHighspeedHeader;
 import telemetry.herci.PayloadHERCIhighSpeed;

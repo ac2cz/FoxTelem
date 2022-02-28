@@ -11,7 +11,6 @@ import common.Log;
 import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.conversion.ConversionLookUpTable;
 import telemetry.conversion.MathExpression;
 import telemetry.payloads.PayloadRtValues;
 

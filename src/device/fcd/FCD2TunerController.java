@@ -203,7 +203,7 @@ public class FCD2TunerController extends FCDTunerController
 	}
 	
 	public int getDCCorrection() {
-		int dcCorrection = -999;
+		//int dcCorrection = -999;
 		
 		try {
 			ByteBuffer buffer = send( FCDCommand.APP_GET_DC_CORRECTION );
@@ -229,7 +229,7 @@ public class FCD2TunerController extends FCDTunerController
 	}
 	
 	public int getIQCorrection() {
-		int iqCorrection = -999;
+		//int iqCorrection = -999;
 		
 		try {
 			ByteBuffer buffer = send( FCDCommand.APP_GET_IQ_CORRECTION );

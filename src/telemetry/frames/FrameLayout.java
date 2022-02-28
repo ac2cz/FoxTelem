@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import common.Config;
-import common.Log;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 

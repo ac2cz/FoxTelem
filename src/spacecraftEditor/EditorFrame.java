@@ -42,11 +42,11 @@ public class EditorFrame extends JFrame implements ActionListener, WindowListene
 	private JMenuBar menuBar;
 	private JMenu fileM,editM;
 	private JScrollPane scpane;
-	private JMenuItem cancelI,cutI,copyI,pasteI,selectI,saveI, loadI,statusI;
+	private JMenuItem cancelI,cutI,copyI,pasteI,selectI,saveI,statusI;
 	private String pad;
 	private JToolBar toolBar;
 	private String filename;
-	private boolean buildingGui = true;
+//	private boolean buildingGui = true;
 	
 	JPanel textPane;
 	JPanel centerpane;
@@ -149,6 +149,8 @@ public class EditorFrame extends JFrame implements ActionListener, WindowListene
 		getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
 				KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "Cancel"); //$NON-NLS-1$
 		getRootPane().getActionMap().put("Cancel", new AbstractAction(){ //$NON-NLS-1$
+			private static final long serialVersionUID = 1L;
+
 			public void actionPerformed(ActionEvent e)
 			{
 				dispose();

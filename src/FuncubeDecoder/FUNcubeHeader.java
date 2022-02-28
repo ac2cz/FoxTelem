@@ -5,7 +5,6 @@ import decoder.FoxDecoder;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.conversion.Conversion;
 
 public class FUNcubeHeader extends BitArray {
 

@@ -884,11 +884,11 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 							}
 							
 						} else if (stem3.equalsIgnoreCase(Conversion.FMT_HEX) && idx3 != null) {
-							String index = lastConv.substring(3); // all characters after the stem
+							//String index = lastConv.substring(3); // all characters after the stem
 							s = toHexString((long)dvalue,idx3);
 							
 						} else if (stem3.equalsIgnoreCase(Conversion.FMT_BIN) && idx3 != null) {
-							String index = lastConv.substring(3); // all characters after the stem
+							//String index = lastConv.substring(3); // all characters after the stem
 							s = intToBin((int)dvalue,idx3);
 						
 						} else if (stem9.equalsIgnoreCase(Conversion.TIMESTAMP) && reset != null && uptime != null) {

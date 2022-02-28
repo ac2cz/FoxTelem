@@ -14,7 +14,6 @@ import predict.PositionCalcException;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.PayloadStore;
 import telemetry.conversion.Conversion;
 import telemetry.conversion.ConversionStringLookUpTable;

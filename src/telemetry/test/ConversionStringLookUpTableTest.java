@@ -8,7 +8,6 @@ import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import telemetry.conversion.ConversionLookUpTable;
 import telemetry.conversion.ConversionStringLookUpTable;
 
 public class ConversionStringLookUpTableTest {

@@ -2,13 +2,10 @@ package telemetry.payloads;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Date;
 import java.util.StringTokenizer;
 
 import common.Config;
 import common.Log;
-import common.Spacecraft;
 import decoder.FoxBitStream;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;

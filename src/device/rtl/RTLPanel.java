@@ -16,7 +16,6 @@ import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JSpinner;
-import javax.swing.JTextField;
 import javax.swing.SpinnerModel;
 import javax.swing.SpinnerNumberModel;
 import javax.swing.SwingConstants;
@@ -25,13 +24,8 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.usb.UsbException;
 
-import org.usb4java.LibUsbException;
-
-import common.Config;
 import common.Log;
 import device.TunerController;
-import device.fcd.FCD1TunerController;
-import device.fcd.FCD2TunerController;
 import device.DeviceException;
 import device.DevicePanel;
 import device.rtl.R820TTunerController.R820TGain;
@@ -379,6 +373,7 @@ public class RTLPanel extends DevicePanel implements ItemListener, ActionListene
 	}
 
 
+@SuppressWarnings("unused")
 private void setSampleRate() {
 //	SampleRate sampleRate = (SampleRate)mComboSampleRate.getSelectedItem();
 //	try {

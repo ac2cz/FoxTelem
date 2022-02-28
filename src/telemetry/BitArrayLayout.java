@@ -368,6 +368,7 @@ public class BitArrayLayout {
 	//	File aFile = new File(fileName);
 		
 		Log.println("Loading layout: "+ fileName);
+		@SuppressWarnings("resource")
 		BufferedReader dis = new BufferedReader(new FileReader(fileName));
 		int field=0;
 		int column=0; // this is just for debugging error messages

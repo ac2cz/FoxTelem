@@ -1,7 +1,5 @@
 package gui.tabs;
 
-import gui.tabs.FoxTelemTableModel;
-
 /**
  * 
  * FOX 1 Telemetry Decoder

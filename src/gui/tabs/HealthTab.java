@@ -27,7 +27,6 @@ import javax.swing.JLabel;
 
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.payloads.PayloadMaxValues;
 import telemetry.payloads.PayloadMinValues;

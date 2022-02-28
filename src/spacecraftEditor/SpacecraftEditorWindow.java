@@ -138,6 +138,8 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		} else {
 			destinationDir = dir;
 		}
+		
+		//// NEED TO ACTUALLY USE DESTINATION DIR????????
 
 		if(Config.useNativeFileChooser && !Config.isLinuxOs()) { // not on Linux because the Native File Chooser does not filter files 
 			// use the native file dialog on the mac

@@ -61,7 +61,6 @@ import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 import telemetry.SortedFramePartArrayList;

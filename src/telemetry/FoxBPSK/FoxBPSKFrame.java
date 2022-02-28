@@ -6,7 +6,6 @@ import common.Spacecraft;
 import java.io.BufferedReader;
 import java.io.IOException;
 import common.Log;
-import common.Spacecraft;
 import decoder.Crc32;
 import decoder.Decoder;
 import telemetry.BitArrayLayout;
@@ -233,6 +232,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 			numberBytesAdded++;
 		}
 		
+		@SuppressWarnings("deprecation")
 		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
 			payload = new FramePart[frameLayout.getNumberOfPayloads()];
 			for (int i=0; i<frameLayout.getNumberOfPayloads(); i+=1 ) {

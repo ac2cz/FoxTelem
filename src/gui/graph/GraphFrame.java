@@ -245,7 +245,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	/**
 	 * Create the frame.
 	 */
-	@SuppressWarnings("rawtypes")
 	public GraphFrame(String title, String fieldName, String fieldUnits, String conversionName, int plType, BitArrayLayout lay, Spacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
@@ -317,7 +316,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			titlePanelLeft.add(btnAdd);
 			btnAdd.addActionListener(this);
 			btnAdd.setToolTipText("Add another trace to this graph");
-			cbAddVariable = new JComboBox();
+			cbAddVariable = new JComboBox<String>();
 
 			// make a list of the variables that we could plot
 			// this is every variable in the Layout that is shown in a module. Only broken telem channels are not shown
