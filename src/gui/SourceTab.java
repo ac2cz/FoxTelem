@@ -1984,6 +1984,23 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							rfDevice = null;
 						}
 					} 
+					if (rfDevice == null) { // this is a hack to try connecting to different versions (RTL2832) of the RTL-SDR that have a different product id FIXME
+						if (position-soundcardSources.length == 0) {
+							vendorId = (short)0x0BDA;
+							deviceId = (short)0x2832;
+						} 
+						try {
+							rfDevice = tunerManager.findDevice(vendorId, deviceId, sampleRate);
+						} catch (UsbException e1) {
+							Log.errorDialog("ERROR", "USB Issue trying to open device:\n" + e1.getMessage());
+							e1.printStackTrace();
+							rfDevice = null;
+						} catch (DeviceException e) {
+							Log.errorDialog("ERROR", "Device could not be opened:\n" + e.getMessage());
+							e.printStackTrace();
+							rfDevice = null;
+						}
+					} 
 					if (rfDevice == null) {
 						Log.errorDialog("Missing USB device", "Insert the device or choose anther source");
 						stopButton();

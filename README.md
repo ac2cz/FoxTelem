@@ -17,8 +17,19 @@ AMSAT Fox-1 Telemetry Decoder
  
  You should have received a copy of the GNU General Public License
  along with this program.  If not, see <http://www.gnu.org/licenses/>.
- 
+
+# Download binaries
 You can download the latest version of the program from: 
 * http://amsat.us/FoxTelem/windows
 * http://amsat.us/FoxTelem/mac
 * http://amsat.us/FoxTelem/linux
+
+# Build Instructions
+Instructions on how to build are here: https://www.g0kla.com/foxtelem/build_foxtelem.php
+
+I did them a while ago. Let me know if anything does not work and needs to be updated.
+
+Feel free to ask questions if you need help. My main motivation is to help people learn about satellites, amateur radio, DSP and coding. So always happy to answer questions.
+
+# More information
+There is much more information about FoxTelem on my website here https://www.g0kla.com/foxtelem/
