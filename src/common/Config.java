@@ -149,6 +149,7 @@ public class Config {
 	static public boolean debugCameraFrames = false;
 	static public boolean debugBytes = false; // This prints the RAW bytes
 	static public boolean debugAudioGlitches = false; 
+	static public boolean debugAudioLevels = true; 
 	static public boolean debugSignalFinder = false;
 	static public int DEBUG_COUNT = -1;
 	static public boolean filterData = true; // Low Pass filter the data
@@ -782,6 +783,7 @@ public class Config {
 
 		// V1.12
 		properties.setProperty("debugRS", Boolean.toString(debugRS));
+		properties.setProperty("debugAudioLevels", Boolean.toString(debugAudioLevels));
 		
 		store();
 	}
@@ -985,6 +987,7 @@ public class Config {
 		
 		// V1.12
 		debugRS = Boolean.parseBoolean(getProperty("debugRS"));
+		debugAudioLevels = Boolean.parseBoolean(getProperty("debugAudioLevels"));
 		
 		} catch (NumberFormatException nf) {
 			catchException();

@@ -6,6 +6,7 @@ import java.io.IOException;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import decoder.Decoder;
 import telemetry.FramePart;
 import telemetry.legacyPayloads.PayloadRadExpData;
 import telemetry.payloads.PayloadMaxValues;
@@ -42,6 +43,7 @@ public class SlowSpeedFrame extends Frame {
 	//SlowSpeedHeader header = null;
 	FramePart payload = null;
 	FramePart fecTrailer = null;
+	int debugCount = 0;
 	
 	
 	public SlowSpeedFrame() {
@@ -107,6 +109,14 @@ public class SlowSpeedFrame extends Frame {
 				Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
 				corrupt = true;
 			}
+		}
+		
+		if (Config.debugBytes) {
+			String debug = (Decoder.plainhex(b));
+			debugCount++;
+//			Log.print(numberBytesAdded + ":" + debug + ",");
+			Log.print("0x" + debug + ",");
+			if (debugCount % 20 == 0) Log.println("");
 		}
 		
 		if (numberBytesAdded == MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE) {
