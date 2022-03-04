@@ -57,6 +57,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	JCheckBox debugValues;
 	JCheckBox debugClock, debugRS;
 	JCheckBox debugGlitches;
+	JCheckBox debugAudioLevels;
 	JCheckBox debugSignalFinder;
 	JCheckBox debugCalcDopplerContinually;
 	JCheckBox filterData;
@@ -115,6 +116,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 //		highSpeed = addCheckBox("Decode 9k6", Config.highSpeed );
 	//	useAGC = addCheckBox("Use AGC", Config.useAGC );
 		debugGlitches = addCheckBox("Debug missed audio", "Write to debug log when significant audio is being missed from the soundcard", Config.debugAudioGlitches );
+		debugAudioLevels = addCheckBox("Debug audio levels", "Allow more accurate measurement of the received audio levels", Config.debugAudioLevels );
 		debugSignalFinder = addCheckBox("Debug Find Signal", "Write debug to show the workings of the signal finder and the pass measurements", Config.debugSignalFinder );
 		debugCalcDopplerContinually = addCheckBox("Debug (Calc) Doppler Continually", "Calculate doppler continually for debugging.  Calculates first sat in the priority order.", Config.debugCalcDopplerContinually );
 		useNativeFileChooser = addCheckBox("Use Native File Chooser", "Use the OS native file chooser", Config.useNativeFileChooser );
@@ -248,6 +250,14 @@ public class OptionsPanel extends JPanel implements ItemListener {
 				Config.debugAudioGlitches = false;
 			} else {
 				Config.debugAudioGlitches = true;
+			}
+			Config.save();
+		}
+		if (source == debugAudioLevels) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.debugAudioLevels = false;
+			} else {
+				Config.debugAudioLevels = true;
 			}
 			Config.save();
 		}
