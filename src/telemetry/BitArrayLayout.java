@@ -51,6 +51,10 @@ public class BitArrayLayout {
 	public static final String CAN_PKT = "CAN_PKT"; // individual can packet
 	public static final String WOD_CAN_PKT = "WOD_CAN_PKT"; // individual can packet from WOD
 	public static final String DBG = "DBG";
+	
+	public static final String[] types = {
+			"RT","MAX","MIN","WOD","EXP","WOD_EXP","CAN_EXP", "CAN_WOD_EXP", "CAN_PKT","WOD_CAN_PKT","DGB"
+	};
 
 	public int NUMBER_OF_FIELDS = 0;
 	public static int ERROR_POSITION = -1;

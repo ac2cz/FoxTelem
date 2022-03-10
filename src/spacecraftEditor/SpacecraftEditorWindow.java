@@ -1,5 +1,6 @@
 package spacecraftEditor;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Toolkit;
@@ -27,21 +28,23 @@ import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
 import telemetry.LayoutLoadException;
+import telemetry.SatPayloadStore;
 
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
-	public static final String VERSION_NUM = "0.4";
-	public static final String VERSION = VERSION_NUM + " - 17 Aug 2021";
+	public static final String VERSION_NUM = "0.5";
+	public static final String VERSION = VERSION_NUM + " - 9 Mar 2022";
 	
 	// Swing File Chooser
-	JFileChooser fc = null;
-	//AWT file chooser for the Mac
+	static JFileChooser fc = null;
+	static //AWT file chooser for the Mac
 	FileDialog fd = null;
 	JMenuBar menuBar;
 	//Menu Buttons
 	JMenuItem mntmExit;
 	JMenuItem mntmNewSpacecraftFile;
 	JMenuItem mntmAddSpacecraftFile;
+	JMenuItem mntmRemoveSpacecraftFile;
 	
 	JTabbedPane tabbedPane;
 	ArrayList<Spacecraft> sats;
@@ -61,10 +64,9 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	 */
 	private void initialize() {
 		loadProperties();
-		//setBounds(Config.windowX, Config.windowY, Config.windowWidth, Config.windowHeight);
 		addWindowListener(this);
 		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/pacsat.jpg")));
+		setIconImage(Toolkit.getDefaultToolkit().getImage(getClass().getResource("/images/fox.jpg")));
 		this.setTitle("AMSAT Spacecraft Editor");
 		
 		//addWindowStateListener(this);
@@ -86,9 +88,13 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		mnFile.add(mntmNewSpacecraftFile);
 		mntmNewSpacecraftFile.addActionListener(this);
 
-		mntmAddSpacecraftFile = new JMenuItem("Add Spacecraft");
+		mntmAddSpacecraftFile = new JMenuItem("Load Spacecraft");
 		mnFile.add(mntmAddSpacecraftFile);
 		mntmAddSpacecraftFile.addActionListener(this);
+		
+		mntmRemoveSpacecraftFile = new JMenuItem("Remove Spacecraft");
+		mnFile.add(mntmRemoveSpacecraftFile);
+		mntmRemoveSpacecraftFile.addActionListener(this);
 
 		mntmExit = new JMenuItem("Exit");
 		mnFile.add(mntmExit);
@@ -101,7 +107,9 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		panel.add(tabbedPane, BorderLayout.CENTER);
-		addSpacecraftTabs(tabbedPane);
+		
+		addSpacecraftTabs();
+		
 		JPanel footer = new JPanel();
 		JLabel lblVersion = new JLabel("Version: " + VERSION );
 		footer.add(lblVersion);
@@ -110,7 +118,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		panel.add(footer, BorderLayout.SOUTH);
 	}
 	
-	public void addSpacecraftTabs(JTabbedPane tabbedPane) {
+	public void addSpacecraftTabs() {
 		sats = Config.satManager.getSpacecraftList();
 		spacecraftTab = new SpacecraftEditPanel[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
@@ -123,29 +131,33 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		}
 	}
 	
-	/**
-	 * Create a new MASTER file and generate the defaults.  Load into the workspace.
-	 * 
-	 */
-	private void newSpacecraft() {
-		File file = null;
-		File destinationDir = null;
-		File dir = null;
-
-		dir = new File(Config.currentDir+"/spacecraft");
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			destinationDir = new File(Config.logFileDirectory+"/spacecraft");
-		} else {
-			destinationDir = dir;
+	public void removeSpacecraftTabs() {
+		if (spacecraftTab != null) {
+			for (int s=0; s<spacecraftTab.length; s++) {
+				//spacecraftTab[s].stop(); // stop any running threads
+				tabbedPane.remove(spacecraftTab[s]);
+				spacecraftTab[s] = null;
+			}
 		}
-		
-		//// NEED TO ACTUALLY USE DESTINATION DIR????????
-
+		spacecraftTab = null;
+	}
+	
+	/**
+	 * 
+	 * @param dir
+	 * @param parent
+	 * @param title
+	 * @param buttonText
+	 * @param filterString
+	 * @return
+	 */
+	public static File pickFile(File dir, Component parent, String title, String buttonText, String filterString) {
+		File file;
 		if(Config.useNativeFileChooser && !Config.isLinuxOs()) { // not on Linux because the Native File Chooser does not filter files 
 			// use the native file dialog on the mac
 
-			fd.setFile("*.MASTER");
-			fd.setTitle("Specify new MASTER spacecraft file to create");
+			fd.setFile("*."+filterString);
+			fd.setTitle(title);
 
 			if (dir != null) {
 				fd.setDirectory(dir.getAbsolutePath());
@@ -166,9 +178,9 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 
 			fc.setDialogTitle("Specify new MASTER spacecraft file to create");
 			FileNameExtensionFilter filter = new FileNameExtensionFilter(
-					"Spacecraft files", "MASTER");
+					"Spacecraft files", filterString);
 			fc.setFileFilter(filter);
-			fc.setApproveButtonText("Create");
+			fc.setApproveButtonText(buttonText);
 
 			if (dir != null)
 				fc.setCurrentDirectory(dir);
@@ -176,7 +188,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			//		Action details = fc.getActionMap().get("viewTypeDetails");
 			//		details.actionPerformed(null);
 
-			int returnVal = fc.showOpenDialog(this);
+			int returnVal = fc.showOpenDialog(parent);
 			Config.windowFcHeight = fc.getHeight();
 			Config.windowFcWidth = fc.getWidth();		
 
@@ -188,6 +200,27 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			} else
 				file = null;
 		}
+		return file;
+	}
+	
+	/**
+	 * Create a new MASTER file and generate the defaults.  Load into the workspace.
+	 * 
+	 */
+	private void newSpacecraft() {
+		File file = null;
+		File destinationDir = null; // this is the log files spacecraft dir where the user settings go
+		File dir = null;
+
+		dir = new File(Config.currentDir+"/spacecraft");
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			destinationDir = new File(Config.logFileDirectory+"/spacecraft");
+		} else {
+			destinationDir = dir;
+		}
+
+		file = pickFile(dir, this, "Specify new MASTER spacecraft file to create", "Create", "MASTER");
+		
 		Config.save();
 		if (file !=null) {
 			if (file.exists()) {
@@ -209,107 +242,113 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 					return;
 				}
 			}
-			Log.println("Creating MASTER File: " + file.getAbsolutePath() );
 			
+			// Now create the new file
+			Log.println("Creating MASTER File: " + file.getAbsolutePath() );
+			String targetName = file.getName().replace(".MASTER", ".dat");
+			File userFile = new File(destinationDir.getPath()+ File.separator + targetName);
+			
+			Spacecraft satellite = new Spacecraft(Config.satManager, file, userFile, 0);
+			//JLabel title = new JLabel(satellite.getIdString());
+			
+			satellite.save_master_params();
+			//Copy to the installed dir
+			installSpacecraft(file, destinationDir);
+			
+			
+			Config.initSatelliteManager();
+			removeSpacecraftTabs();
+			addSpacecraftTabs();
+		
+		}
+	}
+	
+	private void installSpacecraft(File file, File destinationDir) {
+		String targetName = file.getName().replace(".MASTER", ".dat");
+		File targetFile = new File(destinationDir.getPath()+ File.separator + targetName);
+
+		Log.println("Opening " + file.getAbsolutePath() );
+
+		if (file.exists()) {
+			try {
+				//SatPayloadStore.copyFile(file, targetFile);
+				try {
+					Spacecraft satellite = new Spacecraft(Config.satManager, file, targetFile);
+					//JLabel title = new JLabel(satellite.getIdString());
+
+					satellite.save();
+				} catch (LayoutLoadException e) {
+					Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
+					// But carry on.  Hopefully the new MASTER file will fix it!
+					e.printStackTrace(Log.getWriter()); // but log if user has that enabled
+				}
+				
+			} catch (IOException e) {
+				Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());
+				e.printStackTrace(Log.getWriter());
+			}
+		} else {
+
 		}
 	}
 
 	/**
 	 * Allow the user to choose a new spacecraft file to load
 	 */
-	private void addSpacecraft() {
+	private void addSpacecraft(boolean remove) {
 		File file = null;
 		File destinationDir = null;
 		File dir = null;
 
-		dir = new File(Config.currentDir+"/spacecraft");
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			destinationDir = new File(Config.logFileDirectory+"/spacecraft");
+		if (remove) {
+			dir = new File(Config.currentDir+"/spacecraft");
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				dir = new File(Config.logFileDirectory+"/spacecraft");
+			} 		
 		} else {
-			destinationDir = dir;	
-		}
-
-		if(Config.useNativeFileChooser && !Config.isLinuxOs()) { // not on Linux because the Native File Chooser does not filter files 
-			// use the native file dialog on the mac
-
-			fd.setFile("*.MASTER");
-			fd.setTitle("Select spacecraft MASTER file to open");
-
-			if (dir != null) {
-				fd.setDirectory(dir.getAbsolutePath());
-			}
-			fd.setVisible(true);
-			String filename = fd.getFile();
-			String dirname = fd.getDirectory();
-			if (filename == null) {
-				Log.println("You cancelled the choice");
-				file = null;
+			dir = new File(Config.currentDir+"/spacecraft");
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				destinationDir = new File(Config.logFileDirectory+"/spacecraft");
 			} else {
-				Log.println("File: " + filename);
-				Log.println("DIR: " + dirname);
-				file = new File(dirname + filename);
-			}	
-		} else {
-			fc.setPreferredSize(new Dimension(Config.windowFcWidth, Config.windowFcHeight));
-
-			fc.setDialogTitle("Select spacecraft MASTER file to open");
-			FileNameExtensionFilter filter = new FileNameExtensionFilter(
-					"Spacecraft files", "MASTER");
-			fc.setFileFilter(filter);
-			fc.setApproveButtonText("Add");
-
-			if (dir != null)
-				fc.setCurrentDirectory(dir);
-			// This toggles the details view on
-			//		Action details = fc.getActionMap().get("viewTypeDetails");
-			//		details.actionPerformed(null);
-
-			int returnVal = fc.showOpenDialog(this);
-			Config.windowFcHeight = fc.getHeight();
-			Config.windowFcWidth = fc.getWidth();		
-
-			//Config.save();
-			if (returnVal == JFileChooser.APPROVE_OPTION) {
-				file = fc.getSelectedFile();
-				Log.println("File: " + file.getName());
-				Log.println("DIR: " + file.getPath());
-			} else
-				file = null;
+				destinationDir = dir;
+			}
 		}
+		if (remove)
+			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Remove", "dat");
+		else
+			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Load", "MASTER");
+
 		Config.save();
 		if (file !=null) {
 			boolean refresh = false;
+			if (remove) {
+				int n = Log.optionYNdialog("Remove the loaded spacecraft file?",
+						file.getName() + "\n\nYou will be able to load the spacecraft again if you want. The MASTER file\n"
+								+ "will not be removed on disk.  Remove for now?\n\n");
+				if (n == JOptionPane.NO_OPTION) {
+					refresh = false;
+				} else {
 
-			String targetName = file.getName().replace(".MASTER", ".dat");
-			File targetFile = new File(destinationDir.getPath()+ File.separator + targetName);
-
-			Log.println("Opening " + file.getAbsolutePath() );
-
-			if (file.exists()) {
-				try {
-					//SatPayloadStore.copyFile(file, targetFile);
 					try {
-						Spacecraft satellite = new Spacecraft(Config.satManager, file, targetFile);
-						//JLabel title = new JLabel(satellite.getIdString());
-						
-						satellite.save();
-					} catch (LayoutLoadException e) {
-						Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
-						// But carry on.  Hopefully the new MASTER file will fix it!
-						e.printStackTrace(Log.getWriter()); // but log if user has that enabled
+						SatPayloadStore.remove(file.getAbsolutePath());
+						refresh = true;
+					} catch (IOException e) {
+						Log.errorDialog("ERROR removing File", "\nCould not remove the spacecraft file\n"+e.getMessage());
+						e.printStackTrace(Log.getWriter());
 					}
-					refresh = true;
-				} catch (IOException e) {
-					Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());
-					e.printStackTrace(Log.getWriter());
 				}
-			} else {
-
+			}else {
+				installSpacecraft(file, destinationDir);
+				refresh = true;
+			}
+			if (refresh) {
+				Config.initSatelliteManager();
+				removeSpacecraftTabs();
+				addSpacecraftTabs();
 			}
 
 		}
 	}
-
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -321,7 +360,10 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			newSpacecraft();
 		}
 		if (e.getSource() == mntmAddSpacecraftFile) {
-			addSpacecraft();
+			addSpacecraft(false);
+		}
+		if (e.getSource() == mntmRemoveSpacecraftFile) {
+			addSpacecraft(true);
 		}
 
 	}

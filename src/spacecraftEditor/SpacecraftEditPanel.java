@@ -1,6 +1,7 @@
 package spacecraftEditor;
 
 import java.awt.BorderLayout;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -14,6 +15,10 @@ import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
@@ -30,12 +35,14 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import common.Log;
 import common.Spacecraft;
 import gui.SourceTab;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
+import telemetry.SatPayloadStore;
 import telemetry.TelemFormat;
 import telemetry.frames.FrameLayout;
 import common.Config;
@@ -68,9 +75,11 @@ import common.Spacecraft;
 @SuppressWarnings("serial")
 public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemListener, FocusListener, MouseListener {
 
-	JTextField displayName;
+	public static final String PAYLOAD_TEMPLATE_FILENAME = "PAYLOAD_template.csv";
+	
+	JTextField id, displayName;
 	JTextField name;
-	JComboBox<String> priority;
+	JComboBox<String> priority, layoutType;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
 	JTextField maxFreqBoundkHz;
@@ -84,14 +93,19 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	JTextField[] T0;
 	JTextField localServer;
 	JTextField localServerPort;
+	JTextField payloadFilename,payloadName;
+	
 	JCheckBox[] sendLayoutToServer;
+	JTextArea taDesc;
 	
 	JCheckBox useIHUVBatt;
-	JCheckBox track;
+	JCheckBox track,hasFOXDB_V3;
 	JComboBox<String> cbMode;
-	
+	JComboBox<String> payloadType;
 	JButton btnCancel;
-	JButton btnSave, btnFrameAdd, btnFrameRemove;
+	JButton btnSave, btnFrameAdd, btnFrameRemove, btnAddPayload, btnRemovePayload,btnBrowsePayload,btnUpdatePayload, btnGeneratePayload;
+	
+	PayloadsTableModel layoutsTableModel;
 	
 	Spacecraft sat;
 	
@@ -142,9 +156,13 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		
 		titlePanel.setLayout(new BoxLayout(titlePanel, BoxLayout.Y_AXIS));
 		
+		JPanel titlePanel0 = new JPanel();
+		titlePanel.add(titlePanel0, BorderLayout.NORTH);
+		titlePanel0.setLayout(new FlowLayout(FlowLayout.LEFT));
+		
 		JPanel titlePanel1 = new JPanel();
 		titlePanel.add(titlePanel1, BorderLayout.NORTH);
-		titlePanel1.setLayout(new FlowLayout(FlowLayout.LEFT));
+		titlePanel1.setLayout(new BoxLayout(titlePanel1, BoxLayout.Y_AXIS));
 
 		JPanel titlePanel2 = new JPanel();
 		titlePanel.add(titlePanel2, BorderLayout.NORTH);
@@ -153,18 +171,11 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading0 = title("Identification");
 		titlePanel.setBorder(heading0);
 
-		//JLabel lName = new JLabel("Name: " + sat.name);
-		name = addSettingsRow(titlePanel1, 8, "Name (for Keps)", 
-				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.user_keps_name);
-		titlePanel1.add(name);
-		displayName = addSettingsRow(titlePanel2, 15, "Display Name", 
-				"This name is use used as a label on Graphs and Tabs", ""+sat.user_display_name);
-		titlePanel2.add(displayName);
-		JLabel lId = new JLabel("     ID: " + sat.foxId);
-		titlePanel1.add(lId);
-
+		id = addSettingsRow(titlePanel0, 6, "Sat ID", 
+				"This number is sent in the header of all telemetry frames", ""+sat.foxId);
+		titlePanel0.add(id);
 		JLabel lblPriority = new JLabel("    Priority");
-		titlePanel1.add(lblPriority);
+		titlePanel0.add(lblPriority);
 		String tip = "The highest priority spacecraft is tracked if more than one is above the horizon";
 		lblPriority.setToolTipText(tip);
 		String[] nums = new String[20];
@@ -172,18 +183,25 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			nums[i] = ""+i;
 		priority = new JComboBox<String>(nums); 
 		priority.setSelectedIndex(sat.user_priority);
-		titlePanel1.add(priority);
+		titlePanel0.add(priority);
+		
+		name = addSettingsRow(titlePanel1, 8, "Name (for Keps)", 
+				"The name must be the same as the name in your TLE/Keps file if you want to calculate positions or sync with SatPC32", ""+sat.user_keps_name);
+		displayName = addSettingsRow(titlePanel1, 15, "Display Name", 
+				"This name is use used as a label on Graphs and Tabs", ""+sat.user_display_name);
+		
+		hasFOXDB_V3 = addCheckBoxRow("Use V3 Telem Database (recommended)", "This is true for all new spacecraft", sat.hasFOXDB_V3, titlePanel1 );
 		
 		JPanel descPanel = new JPanel();
 		descPanel.setLayout(new BorderLayout());
 		TitledBorder heading9 = title("Description");
 		descPanel.setBorder(heading9);
 
-		JTextArea taDesc = new JTextArea(2, 45);
+		taDesc = new JTextArea(2, 45);
 		taDesc.setText(sat.description);
 		taDesc.setLineWrap(true);
 		taDesc.setWrapStyleWord(true);
-		taDesc.setEditable(false);
+		taDesc.setEditable(true);
 		taDesc.setFont(new Font("SansSerif", Font.PLAIN, 12));
 		descPanel.add(taDesc, BorderLayout.CENTER);
 		mainTitlePanel.add(descPanel, BorderLayout.CENTER);
@@ -286,44 +304,70 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		leftPanel.add(leftPane2);
 		leftPane2.setLayout(new BoxLayout(leftPane2, BoxLayout.Y_AXIS));
 		
-		TitledBorder heading5 = title("Calibration");
-		leftPane2.setBorder(heading5);
+		if (!sat.hasFOXDB_V3) {
+			TitledBorder heading5 = title("Calibration");
+			leftPane2.setBorder(heading5);
 
-		BATTERY_CURRENT_ZERO = addSettingsRow(leftPane2, 25, "Battery Current Zero", 
-				"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
+			BATTERY_CURRENT_ZERO = addSettingsRow(leftPane2, 25, "Battery Current Zero", 
+					"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
 
-		rssiLookUpTableFileName = addSettingsRow(leftPane2, 25, "RSSI Lookup Table", 
-				"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
-		ihuTempLookUpTableFileName = addSettingsRow(leftPane2, 25, "IHU Temp Lookup Table", 
-				"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
-		ihuVBattLookUpTableFileName = addSettingsRow(leftPane2, 25, "VBatt Lookup Table", 
-				"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
-	
-		rssiLookUpTableFileName.setEnabled(false);
-		ihuTempLookUpTableFileName.setEnabled(false);
-		ihuVBattLookUpTableFileName .setEnabled(false);
-		
-		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
-				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, leftPane2 );
-		if (sat.hasMpptSettings) {
-			mpptResistanceError = addSettingsRow(leftPane2, 25, "MPPT Resistance Error", 
-					"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
-			mpptSensorOffThreshold = addSettingsRow(leftPane2, 25, "MPPT Sensor Off Threshold", 
-					"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
-		}
-		if (sat.hasMemsRestValues) {
-			memsRestValueX = addSettingsRow(leftPane2, 25, "MEMS Rest Value X", 
-					"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
-			memsRestValueY = addSettingsRow(leftPane2, 25, "MEMS Rest Value Y", 
-					"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
-			memsRestValueZ = addSettingsRow(leftPane2, 25, "MEMS Rest Value Z", 
-					"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
+			rssiLookUpTableFileName = addSettingsRow(leftPane2, 25, "RSSI Lookup Table", 
+					"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
+			ihuTempLookUpTableFileName = addSettingsRow(leftPane2, 25, "IHU Temp Lookup Table", 
+					"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
+			ihuVBattLookUpTableFileName = addSettingsRow(leftPane2, 25, "VBatt Lookup Table", 
+					"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
+
+			rssiLookUpTableFileName.setEnabled(false);
+			ihuTempLookUpTableFileName.setEnabled(false);
+			ihuVBattLookUpTableFileName .setEnabled(false);
+
+			useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
+					+ "Voltage from the battery card using I2C", sat.useIHUVBatt, leftPane2 );
+			if (sat.hasMpptSettings) {
+				mpptResistanceError = addSettingsRow(leftPane2, 25, "MPPT Resistance Error", 
+						"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
+				mpptSensorOffThreshold = addSettingsRow(leftPane2, 25, "MPPT Sensor Off Threshold", 
+						"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
+			}
+			if (sat.hasMemsRestValues) {
+				memsRestValueX = addSettingsRow(leftPane2, 25, "MEMS Rest Value X", 
+						"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
+				memsRestValueY = addSettingsRow(leftPane2, 25, "MEMS Rest Value Y", 
+						"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
+				memsRestValueZ = addSettingsRow(leftPane2, 25, "MEMS Rest Value Z", 
+						"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
+			}
 		}
 //	leftPane2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		
 		return leftPanel;
 		
+	}
+	
+	private void loadPayloadTable() {
+		String[][] data = new String[sat.numberOfLayouts][4];
+		for (int i=0; i< sat.numberOfLayouts; i++) {
+			data[i][0] =""+i;
+			if (sat.layout[i].name != null) 
+				data[i][1] = sat.layout[i].name;
+			else
+				data[i][1] ="NONE";
+
+			if (i < sat.layoutFilename.length && sat.layoutFilename[i] != null) // we don't store filenames for can layouts, so skip those
+				data[i][2] = sat.layoutFilename[i];
+			else
+				data[i][2] ="-";
+			data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
+
+		}
+		if (sat.numberOfLayouts > 0) 
+			layoutsTableModel.setData(data);
+		else {
+			String[][] fakeRow = {{"","","",""}};
+			layoutsTableModel.setData(fakeRow);
+		}
 	}
 	
 	private JPanel addCenterPanel() {
@@ -367,14 +411,16 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			}
 			frameTableModel.setData(data);
 			
-			JPanel frameButtons = new JPanel();
-			centerPanel1.add(frameButtons, BorderLayout.SOUTH);
-			btnFrameAdd = new JButton("Add");
-			frameButtons.add(btnFrameAdd);
-			btnFrameRemove = new JButton("Remove");
-			frameButtons.add(btnFrameRemove);
+			
 			
 		}
+		JPanel frameButtons = new JPanel();
+		centerPanel1.add(frameButtons, BorderLayout.SOUTH);
+		btnFrameAdd = new JButton("Add");
+		frameButtons.add(btnFrameAdd);
+		btnFrameRemove = new JButton("Remove");
+		frameButtons.add(btnFrameRemove);
+
 		//centerPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 		
 		JPanel centerPanel2 = new JPanel();
@@ -384,47 +430,89 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder headingLayout = title("Payloads");
 		centerPanel2.setBorder(headingLayout);
 
-		if (sat.numberOfLayouts > 0) {
-			PayloadsTableModel layoutsTableModel = new PayloadsTableModel();
+		
+		layoutsTableModel = new PayloadsTableModel();
 
-			payloadsTable = new JTable(layoutsTableModel);
-			payloadsTable.setAutoCreateRowSorter(true);
-			JScrollPane scrollPane = new JScrollPane (payloadsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-			scrollPane.setPreferredSize(new Dimension(100,400));
-			payloadsTable.setFillsViewportHeight(true);
-			//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+		payloadsTable = new JTable(layoutsTableModel);
+		payloadsTable.setAutoCreateRowSorter(true);
+		JScrollPane scrollPane = new JScrollPane (payloadsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		scrollPane.setPreferredSize(new Dimension(100,400));
+		payloadsTable.setFillsViewportHeight(true);
+		//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
-			centerPanel2.add(scrollPane, BorderLayout.CENTER);//, BorderLayout.WEST);
-			TableColumn column = payloadsTable.getColumnModel().getColumn(0);
-			column.setPreferredWidth(20);
-			column = payloadsTable.getColumnModel().getColumn(1);
-			column.setPreferredWidth(100);
-			column = payloadsTable.getColumnModel().getColumn(2);
-			column.setPreferredWidth(200);
-			column = payloadsTable.getColumnModel().getColumn(3);
-			column.setPreferredWidth(40);
+		centerPanel2.add(scrollPane, BorderLayout.CENTER);//, BorderLayout.WEST);
+		TableColumn column = payloadsTable.getColumnModel().getColumn(0);
+		column.setPreferredWidth(20);
+		column = payloadsTable.getColumnModel().getColumn(1);
+		column.setPreferredWidth(100);
+		column = payloadsTable.getColumnModel().getColumn(2);
+		column.setPreferredWidth(200);
+		column = payloadsTable.getColumnModel().getColumn(3);
+		column.setPreferredWidth(40);
 
-			payloadsTable.addMouseListener(this);
+		payloadsTable.addMouseListener(this);
 
-			String[][] data = new String[sat.numberOfLayouts][4];
-			for (int i=0; i< sat.numberOfLayouts; i++) {
-				data[i][0] =""+i;
-				if (sat.layout[i].name != null) 
-					data[i][1] = sat.layout[i].name;
-				else
-					data[i][1] ="NONE";
-	
-				if (i < sat.layoutFilename.length && sat.layoutFilename[i] != null) // we don't store filenames for can layouts, so skip those
-					data[i][2] = sat.layoutFilename[i];
-				else
-					data[i][2] ="-";
-				data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
+		loadPayloadTable();
 
-			}
-			layoutsTableModel.setData(data);
-
-		}
-
+		JPanel footerPanel = new JPanel();
+		centerPanel2.add(footerPanel, BorderLayout.SOUTH);
+		footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS) );
+		
+		// Row 1
+		JPanel footerPanelRow1 = new JPanel();
+		footerPanelRow1.setLayout(new BoxLayout(footerPanelRow1, BoxLayout.X_AXIS) );
+		footerPanel.add(footerPanelRow1);
+		
+		JPanel f1 = new JPanel();
+		f1.setLayout(new BoxLayout(f1, BoxLayout.Y_AXIS) );
+		JLabel lf1 = new JLabel("Name");
+		payloadName = new JTextField();
+		f1.add(lf1);
+		f1.add(payloadName);
+		footerPanelRow1.add(f1);
+		
+		JPanel f2 = new JPanel();
+		f2.setLayout(new BoxLayout(f2, BoxLayout.Y_AXIS) );
+		JLabel lf2 = new JLabel("Type");
+		payloadType = new JComboBox<String>(BitArrayLayout.types); 
+		f2.add(lf2);
+		f2.add(payloadType);
+		footerPanelRow1.add(f2);
+		
+		JPanel f3 = new JPanel();
+		f3.setLayout(new BoxLayout(f3, BoxLayout.Y_AXIS) );
+		JLabel lf3 = new JLabel("Filename");
+		payloadFilename = new JTextField();
+		f3.add(lf3);
+		f3.add(payloadFilename);
+		payloadFilename.setEditable(false);
+		payloadFilename.addMouseListener(this);
+		footerPanelRow1.add(f3);
+		
+		// Row 2
+		JPanel footerPanelRow2 = new JPanel();
+		footerPanel.add(footerPanelRow2);
+		
+		btnAddPayload = new JButton("Add");
+		btnAddPayload.addActionListener(this);
+		btnBrowsePayload = new JButton("Browse");
+		btnBrowsePayload.addActionListener(this);
+		btnRemovePayload = new JButton("Remove");
+		btnRemovePayload.addActionListener(this);
+		btnUpdatePayload = new JButton("Update");
+		btnUpdatePayload.addActionListener(this);
+		
+		btnGeneratePayload = new JButton("Generate C");
+		btnGeneratePayload.addActionListener(this);
+		
+		footerPanelRow2.add(btnAddPayload);
+		footerPanelRow2.add(btnUpdatePayload);
+		footerPanelRow2.add(btnRemovePayload);
+		footerPanelRow2.add(btnBrowsePayload);
+		footerPanelRow2.add(btnGeneratePayload);
+		btnAddPayload.setEnabled(true);
+		if (sat.numberOfLayouts == 0)
+			btnRemovePayload.setEnabled(false);
 		//centerPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 		return centerPanel;
 	}
@@ -468,13 +556,13 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		
 		btnSave = new JButton("Save");
 		btnSave.addActionListener(this);
-		btnCancel = new JButton("Reload");
-		btnCancel.addActionListener(this);
+		//btnCancel = new JButton("Reload");
+		//btnCancel.addActionListener(this);
 		
 		footerPanel.add(btnSave);
-		footerPanel.add(btnCancel);
-		btnSave.setEnabled(false);
-		btnCancel.setEnabled(false);
+		//footerPanel.add(btnCancel);
+		btnSave.setEnabled(true);
+		//btnCancel.setEnabled(true);
 		
 		return footerPanel;
 	}
@@ -564,6 +652,16 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		double minFreq = 0;
 		double maxFreq = 0;
 		try {
+			// MASTER File params
+			sat.foxId = Integer.parseInt(id.getText());
+			sat.hasFOXDB_V3 = hasFOXDB_V3.isSelected();
+			sat.description = taDesc.getText();
+			
+			
+			
+			
+			
+			// USER File params
 			try {
 				downlinkFreq = (double)(Math.round(Double.parseDouble(telemetryDownlinkFreqkHz.getText())*1000)/1000.0);
 				minFreq = (double)(Math.round(Double.parseDouble(minFreqBoundkHz.getText())*1000)/1000.0);
@@ -582,53 +680,55 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			int m = cbMode.getSelectedIndex();
 			sat.user_format = m;
 			//String md = (String) cbMode.getSelectedItem();
-			
-//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
-//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
-//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
-//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-			
-			if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
-				sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
-				refreshTabs=true;
-			}
 
-			if (sat.hasMpptSettings) {
-				if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
-					sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+			//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
+			//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+			//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
+			//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+			//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
+			//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+
+			if (!sat.hasFOXDB_V3) {
+				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
+					sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
 					refreshTabs=true;
 				}
 
-				if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
-					sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
-					refreshTabs=true;
+				if (sat.hasMpptSettings) {
+					if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+						sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+						refreshTabs=true;
+					}
+
+					if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+						sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+						refreshTabs=true;
+					}
 				}
-			}
-			if (sat.hasMemsRestValues) {
-				if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
-					sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
-					refreshTabs=true;
+				if (sat.hasMemsRestValues) {
+					if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+						refreshTabs=true;
+					}
+					if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+						refreshTabs=true;
+					}
+					if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
+						refreshTabs=true;
+					}
 				}
-				if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
-					sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
-					refreshTabs=true;
+				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
+					sat.useIHUVBatt = useIHUVBatt.isSelected();
+					refreshTabs = true;
 				}
-				if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
-					sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
-					refreshTabs=true;
-				}
-			}
-			if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
-				sat.useIHUVBatt = useIHUVBatt.isSelected();
-				refreshTabs = true;
 			}
 			if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
 				sat.user_keps_name = name.getText();
@@ -657,24 +757,151 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 					sat.user_localServerPort = Integer.parseInt(localServerPort.getText());
 			}
 			sat.user_track = track.isSelected();
-
-			sat.save();
+			
+			
+			sat.save_master_params();
+			sat.save(); // store the user params with these default values
 		} catch (NumberFormatException Ex) {
 			Log.errorDialog("Invalid Paramaters", Ex.getMessage());
 		}
 		return dispose;
 	}
+	
+	private void addPayload() {
+		String[] newLayoutFilenames = new String[sat.numberOfLayouts+1];
+		newLayoutFilenames[sat.numberOfLayouts] = payloadFilename.getText();
+		
+		for (int i=0; i < sat.numberOfLayouts; i++) {
+			newLayoutFilenames[i] = sat.layoutFilename[i];
+		}
+		sat.layoutFilename = newLayoutFilenames;
+		
+		File source = new File(Config.currentDir+"/spacecraft"+ File.separator + PAYLOAD_TEMPLATE_FILENAME);
+		File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
+		try {
+			SatPayloadStore.copyFile(source, dest);
+			
+			BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts+1];
+			newLayouts[sat.numberOfLayouts] = new BitArrayLayout(payloadFilename.getText());
+			newLayouts[sat.numberOfLayouts].name = payloadName.getText();
+			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
+			for (int i=0; i < sat.numberOfLayouts; i++) {
+				newLayouts[i] = sat.layout[i];
+			}
+			sat.layout = newLayouts;
+			
+			sat.numberOfLayouts++;
+			save();
+			loadPayloadTable();
+			payloadName.setText("");
+			payloadFilename.setText("");
+			payloadType.setSelectedIndex(0);
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "You need to specify a valid payload file\n"+e1);
+		} catch (LayoutLoadException e1) {
+			Log.errorDialog("ERROR", "Could not parse the payload template\n"+e1);
+		}
+	}
+	
+	private void browsePayload() {
+		System.out.println("Browse for Payload ...");
+		File dir = null;
+
+		dir = new File(Config.currentDir+"/spacecraft");
+		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify payload file", "Select", "csv");
+		if (file == null) return;
+		payloadFilename.setText(file.getName());
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		
 		
 		if (e.getSource() == btnSave) {
 			System.out.println("Saving ...");
 			save();
 			
 		}
-//		btnFrameAdd
+		if (e.getSource() == btnAddPayload) {
+			System.out.println("Adding Payload ...");
+			addPayload();
+			
+		}
+		if (e.getSource() == btnBrowsePayload) {
+			browsePayload();
+		}
+		
+		if (e.getSource() == btnUpdatePayload) {
+			int row = payloadsTable.getSelectedRow();
+			System.out.println("Updating row " + row);
+			if (sat.numberOfLayouts == 0) return;
+			
+			try {
+				sat.layout[row] = new BitArrayLayout(payloadFilename.getText());
+				sat.layoutFilename[row] = payloadFilename.getText();
+				sat.layout[row].name = payloadName.getText();
+				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
+				save();
+				loadPayloadTable();
+				payloadName.setText("");
+				payloadFilename.setText("");
+				payloadType.setSelectedIndex(0);
+			} catch (FileNotFoundException e1) {
+				Log.errorDialog("ERROR", "Could not initilize the payload file\n"+e1);
+			} catch (LayoutLoadException e1) {
+				Log.errorDialog("ERROR", "Could not load the payload file\n"+e1);
+			}
+
+		}
+
+		if (e.getSource() == btnRemovePayload) {
+			int row = payloadsTable.getSelectedRow();
+			System.out.println("Removing row " + row);
+			if (sat.numberOfLayouts == 0) return;
+			
+			int n = Log.optionYNdialog("Remove payload file too?",
+					"Remove this payload file as well as the payload table row?\n"+payloadFilename.getText() + "\n\nThis will be gone forever\n");
+			if (n == JOptionPane.NO_OPTION) {
+				
+			} else {
+				File file = new File(Config.currentDir+"/spacecraft" +File.separator + payloadFilename.getText());
+				try {
+					SatPayloadStore.remove(file.getAbsolutePath());
+				} catch (IOException ef) {
+					Log.errorDialog("ERROR removing File", "\nCould not remove the payload file\n"+ef.getMessage());
+				}
+			}
+			
+			if (sat.numberOfLayouts == 1) {
+				sat.numberOfLayouts = 0;
+				sat.layout = null;
+				sat.layoutFilename = null;
+
+			} else {
+				int j = 0;
+				BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts-1];
+				for (int i=0; i < sat.numberOfLayouts; i++) {
+					if (i != row)
+						newLayouts[j++] = sat.layout[i];
+				}
+				sat.layout = newLayouts;
+
+				j = 0;
+				String[] newLayoutFilenames = new String[sat.numberOfLayouts-1];
+				for (int i=0; i < sat.numberOfLayouts; i++) {
+					if (i != row)
+						newLayoutFilenames[j++] = sat.layoutFilename[i];
+				}
+				sat.layoutFilename = newLayoutFilenames;
+				sat.numberOfLayouts--;
+			}
+			save();
+			loadPayloadTable();
+			payloadName.setText("");
+			payloadFilename.setText("");
+			payloadType.setSelectedIndex(0);
+
+			
+		}
 
 	}
 	
@@ -701,6 +928,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		if (e.getSource() == payloadFilename) {
+			browsePayload();
+		}
 		
 		// Display text for source when it is clicked
 		if (e.getSource() == sourcesTable) {
@@ -867,15 +1097,27 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			}
 		}
 		if (e.getSource() == payloadsTable) {
+			if (sat.numberOfLayouts == 0) return;
 			int row = payloadsTable.rowAtPoint(e.getPoint());
 			int col = payloadsTable.columnAtPoint(e.getPoint());
 			if (row >= 0 && col >= 0) {
 				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 
+				payloadName.setText(sat.layout[row].name);
+				payloadFilename.setText(sat.layoutFilename[row]);
+				payloadType.setSelectedItem((String)sat.layout[row].typeStr);
+				
 				if (e.getClickCount() == 2) {
 					String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.layoutFilename[row]);
-					editor.setVisible(true);
+					//EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.layoutFilename[row]);
+					File file = new File(masterFolder + File.separator + sat.layoutFilename[row]);
+					try {
+						Desktop.getDesktop().open(file);
+					} catch (IOException e1) {
+						Log.errorDialog("ERROR", "Could not open payload file\n"+e1);
+					}
+					
+					//editor.setVisible(true);
 				}
 			}
 		}
