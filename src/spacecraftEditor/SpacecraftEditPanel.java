@@ -14,9 +14,11 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 
@@ -508,7 +510,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		footerPanelRow2.add(btnAddPayload);
 		footerPanelRow2.add(btnUpdatePayload);
 		footerPanelRow2.add(btnRemovePayload);
-		footerPanelRow2.add(btnBrowsePayload);
+		//footerPanelRow2.add(btnBrowsePayload);
 		footerPanelRow2.add(btnGeneratePayload);
 		btnAddPayload.setEnabled(true);
 		if (sat.numberOfLayouts == 0)
@@ -805,17 +807,53 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	
 	private void browsePayload() {
 		System.out.println("Browse for Payload ...");
-		File dir = null;
-
-		dir = new File(Config.currentDir+"/spacecraft");
+		File dir = new File(Config.currentDir+"/spacecraft");
 		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify payload file", "Select", "csv");
 		if (file == null) return;
 		payloadFilename.setText(file.getName());
 	}
+	
+	private void generatePayload() {
+		System.out.println("Generate Payload ...");
+		File layout = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
+		
+		if (!layout.isFile()) {
+			Log.errorDialog("ERROR", "Select a row with a valid payload file\n");
+			return;
+		}
+		
+		String PYTHON = "C:\\bin\\Python\\Python36-32\\python.exe";
+		String SCRIPT = Config.currentDir + File.separator + "gen_header.py";
+		String COMMAND = PYTHON + " " + SCRIPT + " " + layout;
+		System.out.println(" running: " + COMMAND);
+		String s = null;
+		try {
+			Process p = Runtime.getRuntime().exec(COMMAND);
+			BufferedReader stdInput = new BufferedReader(new 
+					InputStreamReader(p.getInputStream()));
+
+			BufferedReader stdError = new BufferedReader(new 
+					InputStreamReader(p.getErrorStream()));
+
+			// read the output from the command
+			System.out.println("Here is the standard output of the command:\n");
+			while ((s = stdInput.readLine()) != null) {
+				System.out.println(s);
+			}
+
+			// read any errors from the attempted command
+			System.out.println("Here is the standard error of the command (if any):\n");
+			while ((s = stdError.readLine()) != null) {
+				System.out.println(s);
+			}
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "Error running python generate script\n");
+		}
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-		
+
 		if (e.getSource() == btnSave) {
 			System.out.println("Saving ...");
 			save();
@@ -901,6 +939,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			payloadType.setSelectedIndex(0);
 
 			
+		}
+		if (e.getSource() == btnGeneratePayload) {
+			generatePayload();
 		}
 
 	}
