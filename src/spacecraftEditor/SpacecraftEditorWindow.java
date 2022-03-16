@@ -30,10 +30,23 @@ import gui.MainWindow;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 
+/**
+ * 
+ * This holds a set of spacecraft that are being edited.
+ * It also holds static file dialogs that this and other frames can use
+ * All of the menus are created and managed here
+ * The main panel is structured as follows:
+ * 
+ * CENTER: A tabbed pane that holds the spacecraft
+ * SOUTH: A footer with status information
+ * 
+ * @author chris
+ *
+ */
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
 	public static final String VERSION_NUM = "0.5";
-	public static final String VERSION = VERSION_NUM + " - 9 Mar 2022";
+	public static final String VERSION = VERSION_NUM + " - 15 Mar 2022";
 	
 	// Swing File Chooser
 	static JFileChooser fc = null;
@@ -48,7 +61,8 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	
 	JTabbedPane tabbedPane;
 	ArrayList<Spacecraft> sats;
-	SpacecraftEditPanel[] spacecraftTab;
+//	SpacecraftEditPanel[] spacecraftTab;
+	SpacecraftEditTab[] spacecraftTab;
 
 	private static final long serialVersionUID = 1L;
 	public SpacecraftEditorWindow() {
@@ -120,9 +134,9 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	
 	public void addSpacecraftTabs() {
 		sats = Config.satManager.getSpacecraftList();
-		spacecraftTab = new SpacecraftEditPanel[sats.size()];
+		spacecraftTab = new SpacecraftEditTab[sats.size()];
 		for (int s=0; s<sats.size(); s++) {
-			spacecraftTab[s] = new SpacecraftEditPanel(sats.get(s));
+			spacecraftTab[s] = new SpacecraftEditTab(sats.get(s));
 
 				tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 						//			tabbedPane.addTab( ""  
@@ -324,7 +338,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			if (remove) {
 				int n = Log.optionYNdialog("Remove the loaded spacecraft file?",
 						file.getName() + "\n\nYou will be able to load the spacecraft again if you want. The MASTER file\n"
-								+ "will not be removed on disk.  Remove for now?\n\n");
+								+ "will not be deleted from the disk.  Remove for now?\n\n");
 				if (n == JOptionPane.NO_OPTION) {
 					refresh = false;
 				} else {

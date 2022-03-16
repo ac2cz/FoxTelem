@@ -1,5 +1,5 @@
 19,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,RT,pi_temperature,16,C,0,Computer,1,1,0,Temperature,Temperature of the CPU
+0,RT,pi_temperature,16,C,cpu_temperature | FLOAT2,Computer,1,1,0,Temperature,Temperature of the CPU
 1,RT,xruns,16,-,0,Computer,1,2,0,Xruns,Number of times the audio underran or overran this period
 2,RT,data0,8,-,0,Data,2,1,0,Data 0,None
 3,RT,data1,8,-,0,Data,2,2,0,Data 1,None
