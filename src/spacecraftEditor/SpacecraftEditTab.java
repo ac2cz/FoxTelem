@@ -1,6 +1,7 @@
 package spacecraftEditor;
 
 import java.awt.BorderLayout;
+import java.io.File;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
@@ -26,8 +27,8 @@ import spacecraftEditor.listEditors.payload.PayloadListEditPanel;
  */
 public class SpacecraftEditTab extends JPanel {
 	private static final long serialVersionUID = 1L;
-	public static final String CURVES_TEMPLATE_FILENAME = "CURVES_template.csv";
-	public static final String MATH_EXPRESSIONS_TEMPLATE_FILENAME = "MATH_EXPRESSIONS_template.csv";
+	public static final String CURVES_TEMPLATE_FILENAME = "templates"+File.separator+"CURVES_template.csv";
+	public static final String MATH_EXPRESSIONS_TEMPLATE_FILENAME = "templates"+File.separator+"MATH_EXPRESSIONS_template.csv";
 
 	Spacecraft sat;
 	JTabbedPane tabbedPane;

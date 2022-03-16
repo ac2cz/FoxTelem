@@ -1371,6 +1371,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		// Store the MASTER params
 		// Store the values
 		properties.setProperty("foxId", String.valueOf(foxId));
+		properties.setProperty("series", String.valueOf(series));
 		properties.setProperty("IHU_SN", String.valueOf(IHU_SN));
 		properties.setProperty("catalogNumber", String.valueOf(catalogNumber));
 		properties.setProperty("name", user_keps_name);
@@ -1408,7 +1409,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			if (sourceName[i] != null)
 				properties.setProperty("source"+i+".name",sourceName[i]);
 			if (sourceFormatName != null && sourceFormatName[i] != null)
-				properties.setProperty("sourceFormat"+i+".name",sourceFormatName[i]);
+				properties.setProperty("source"+i+".formatName",sourceFormatName[i]);
 		}
 		
 		properties.setProperty("measurementsFileName", measurementsFileName);
@@ -1428,7 +1429,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		for (int i=0; i < numberOfStringLookupTables; i++) {
 			if (this.stringLookupTable[i] != null) {
 				properties.setProperty("stringLookupTable"+i,stringLookupTable[i].getName());
-				properties.setProperty("stringLookupTable"+i+".name",stringLookupTableFilename[i]);
+				properties.setProperty("stringLookupTable"+i+".filename",stringLookupTableFilename[i]);
 			}
 		}
 		
@@ -1439,7 +1440,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("minFreqBoundkHz", String.valueOf(user_minFreqBoundkHz));
 		properties.setProperty("maxFreqBoundkHz", String.valueOf(user_maxFreqBoundkHz));
 		properties.setProperty("track", String.valueOf(user_track));
-		properties.setProperty("series", String.valueOf(series));
 		properties.setProperty("priority", String.valueOf(user_priority));
 		properties.setProperty("user_format", String.valueOf(user_format));
 		properties.setProperty("displayName", String.valueOf(user_display_name));
@@ -1448,8 +1448,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("numberOfFrameLayouts", String.valueOf(numberOfFrameLayouts));				
 		for (int i=0; i < numberOfFrameLayouts; i++) {
 			if (this.frameLayout[i] != null) {
-				properties.setProperty("frameLayout"+i+".name",frameLayout[0].name);
-				properties.setProperty("frameLayout"+i+".filename",this.frameLayoutFilename[0]);
+				properties.setProperty("frameLayout"+i+".name",frameLayout[i].name);
+				properties.setProperty("frameLayout"+i+".filename",this.frameLayoutFilename[i]);
 			}
 		}
 

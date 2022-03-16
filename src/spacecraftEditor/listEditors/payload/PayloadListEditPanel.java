@@ -51,7 +51,7 @@ import telemetry.SatPayloadStore;
 public class PayloadListEditPanel extends JPanel implements MouseListener, ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	public static final String PAYLOAD_TEMPLATE_FILENAME = "PAYLOAD_template.csv";
+	public static final String PAYLOAD_TEMPLATE_FILENAME = "templates"+File.separator+"PAYLOAD_template.csv";
 
 	SpacecraftEditPanel parent;
 	Spacecraft sat;

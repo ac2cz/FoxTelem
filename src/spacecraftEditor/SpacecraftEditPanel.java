@@ -522,17 +522,13 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				rebuildMenu = true;
 				refreshTabs = true;
 			}
-			int pri = 99;
+			int pri = 9;
 			try {
 				pri = priority.getSelectedIndex();
 			} catch (NumberFormatException e2) {
 				
 			}
-			if (sat.user_priority != pri) {
-				rebuildMenu = true;
-				sat.user_priority = pri;
-				//refreshTabs = true; // refresh the menu list and sat list but not the tabs
-			}
+			sat.user_priority = pri;
 			if (localServer != null) {
 				sat.user_localServer = localServer.getText();
 				if (localServerPort.getText().equalsIgnoreCase(""))
