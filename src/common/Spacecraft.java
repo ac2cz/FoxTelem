@@ -182,6 +182,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	public boolean useConversionCoeffs = false;
 	private HashMap<String, Conversion> conversions;
+	public String conversionCurvesFileName;
+	public String conversionExpressionsFileName;
 	
 	public boolean hasFOXDB_V3 = false;
 	
@@ -386,6 +388,18 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				return layout[i];
 		}
 		return getLayoutByName(Spacecraft.CAN_PKT_LAYOUT); // try to return the default instead. We dont have this CAN ID
+	}
+	
+	public String[] getConversionsArray() {
+		if (conversions == null) {
+			return new String[0];
+		}
+		String[] conv = new String[conversions.size()];
+		int i = 0;
+		for (String key : conversions.keySet()) {
+			conv[i++] = key;
+		}
+		return conv;
 	}
 
 	public Conversion getConversionByName(String name) {
@@ -727,6 +741,88 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		return false;
 	}
 	
+	public boolean isValidConversion(String conv) {
+		conv = conv.trim();
+		try {
+		if (conv.equalsIgnoreCase(Conversion.FMT_INT)) return true;
+		if (conv.equalsIgnoreCase(Conversion.FMT_1F)) return true;
+		if (conv.equalsIgnoreCase(Conversion.FMT_2F)) return true;
+		if (conv.equalsIgnoreCase(Conversion.FMT_3F)) return true;	
+		if (conv.equalsIgnoreCase(Conversion.FMT_4F)) return true;
+		if (conv.equalsIgnoreCase(Conversion.FMT_5F)) return true;		
+		if (conv.equalsIgnoreCase(Conversion.FMT_6F)) return true;
+		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_HEX)) return true;
+		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_BIN)) return true;
+		if (conv.substring(0, 5).equalsIgnoreCase(Conversion.FMT_F) ) return true;
+		if (conv.substring(0, 9).equalsIgnoreCase(Conversion.TIMESTAMP)) return true;
+		} catch (StringIndexOutOfBoundsException e) {}		
+		try {
+			int convInt = Integer.parseInt(conv);
+			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
+				return true;
+		} catch (NumberFormatException e) { ; } //ignore
+
+		if (conversions.containsKey(conv))
+			return true;
+		
+		return false;
+	}
+
+	public void loadConversions() throws LayoutLoadException, FileNotFoundException, IOException {
+		// Conversions
+		if (useConversionCoeffs) {
+			conversions = new HashMap<String, Conversion>();
+
+			if (conversionCurvesFileName != null) {
+				loadConversionCurves(Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
+			}
+
+			
+			if (conversionExpressionsFileName != null) {
+				loadConversionExpresions(Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
+			}
+
+			// String Lookup Tables
+			String sNumberOfStringLookupTables = getOptionalProperty("numberOfStringLookupTables");
+			if (sNumberOfStringLookupTables != null) {
+				numberOfStringLookupTables = Integer.parseInt(sNumberOfStringLookupTables);
+				stringLookupTableFilename = new String[numberOfStringLookupTables];
+				stringLookupTable = new ConversionStringLookUpTable[numberOfStringLookupTables];
+				for (int i=0; i < numberOfStringLookupTables; i++) {
+					stringLookupTableFilename[i] = getProperty("stringLookupTable"+i+".filename");
+					String tableName = getProperty("stringLookupTable"+i);
+					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i]);
+
+					if (conversions.containsKey(stringLookupTable[i].getName())) {
+						// we have a namespace clash, warn the user
+						Log.errorDialog("DUPLICATE STRING TABLE NAME", this.user_keps_name + ": Lookup table or Curve already defined and will not be stored: " + tableName);
+					} else {
+						conversions.put(tableName, stringLookupTable[i]);
+						Log.println("Stored: " + stringLookupTable[i]);
+					}
+				}
+			}
+		}
+		// Lookup Tables
+		numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
+		lookupTableFilename = new String[numberOfLookupTables];
+		lookupTable = new ConversionLookUpTable[numberOfLookupTables];
+		for (int i=0; i < numberOfLookupTables; i++) {
+			lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
+			String tableName = getProperty("lookupTable"+i);
+			lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
+			if (useConversionCoeffs) {
+				if (conversions.containsKey(lookupTable[i].getName())) {
+					// we have a namespace clash, warn the user
+					Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
+				} else {
+					conversions.put(tableName, lookupTable[i]);
+					Log.println("Stored: " + lookupTable[i]);
+				}
+			}
+		}
+	}
+
 	/**
 	 * This loads all of the settings including those that are overridden by the user_ settings.  It they do not
 	 * exist yet then they are initialized here
@@ -755,8 +851,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			useConversionCoeffs = getOptionalBooleanProperty("useConversionCoeffs");
-			if (useConversionCoeffs)
-				conversions = new HashMap<String, Conversion>();
+			
 
 			
 			// Frame Layouts
@@ -774,38 +869,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				}
 			}
 			
-			// Conversions
 			if (useConversionCoeffs) {
-				String conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
-				if (conversionCurvesFileName != null) {
-					loadConversionCurves(Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
-				}
-			
-				String conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
-				if (conversionExpressionsFileName != null) {
-					loadConversionExpresions(Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
-				}
-				
-				// String Lookup Tables
-				String sNumberOfStringLookupTables = getOptionalProperty("numberOfStringLookupTables");
-				if (sNumberOfStringLookupTables != null) {
-				numberOfStringLookupTables = Integer.parseInt(sNumberOfStringLookupTables);
-				stringLookupTableFilename = new String[numberOfStringLookupTables];
-				stringLookupTable = new ConversionStringLookUpTable[numberOfStringLookupTables];
-				for (int i=0; i < numberOfStringLookupTables; i++) {
-					stringLookupTableFilename[i] = getProperty("stringLookupTable"+i+".filename");
-					String tableName = getProperty("stringLookupTable"+i);
-					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i]);
-
-					if (conversions.containsKey(stringLookupTable[i].getName())) {
-						// we have a namespace clash, warn the user
-						Log.errorDialog("DUPLICATE STRING TABLE NAME", this.user_keps_name + ": Lookup table or Curve already defined and will not be stored: " + tableName);
-					} else {
-						conversions.put(tableName, stringLookupTable[i]);
-						Log.println("Stored: " + stringLookupTable[i]);
-					}
-				}
-				}
+				conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
+				conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
+				loadConversions();
 			}
 
 			String V3DB = getOptionalProperty("hasFOXDB_V3");
@@ -814,24 +881,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			else 
 				hasFOXDB_V3 = Boolean.parseBoolean(V3DB);
 			
-			// Lookup Tables
-			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
-			lookupTableFilename = new String[numberOfLookupTables];
-			lookupTable = new ConversionLookUpTable[numberOfLookupTables];
-			for (int i=0; i < numberOfLookupTables; i++) {
-				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
-				String tableName = getProperty("lookupTable"+i);
-				lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
-				if (useConversionCoeffs) {
-					if (conversions.containsKey(lookupTable[i].getName())) {
-						// we have a namespace clash, warn the user
-						Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
-					} else {
-						conversions.put(tableName, lookupTable[i]);
-						Log.println("Stored: " + lookupTable[i]);
-					}
-				}
-			}
+			
 
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
@@ -1367,7 +1417,12 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		// optional properties
 		properties.setProperty("useConversionCoeffs", String.valueOf(useConversionCoeffs));
 		/////// IF TRUE SAVE THE FILE NAMES HERE
-		
+		if (useConversionCoeffs) {
+			if (conversionCurvesFileName != null)
+				properties.setProperty("conversionCurvesFileName", String.valueOf(conversionCurvesFileName));
+			if (conversionExpressionsFileName != null)
+				properties.setProperty("conversionExpressionsFileName", String.valueOf(conversionExpressionsFileName));
+		}
 		
 		properties.setProperty("numberOfStringLookupTables", String.valueOf(numberOfStringLookupTables));
 		for (int i=0; i < numberOfStringLookupTables; i++) {
@@ -1422,7 +1477,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	private void loadConversionCurves(String conversionCurvesFileName) throws FileNotFoundException, IOException {
 		try (BufferedReader br = new BufferedReader(new FileReader(conversionCurvesFileName))) { // try with resource closes it
-		    String line = br.readLine(); // read the header, which we ignore
+		    String line = null; //line = br.readLine(); // read the header, which we ignore
+		    int linenum = 0;
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
 		       // if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
@@ -1435,10 +1491,15 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        		conversions.put(conversion.getName(), conversion);
 		        		Log.println("Stored: " + conversion);
 		        	}
+		        	linenum++;
 		        } catch (IllegalArgumentException e) {
+		        	if (linenum == 0) {
+		        		// ignore the header
+		        	}else {
 		        	Log.println("Could not load conversion: " + e);
 		        	Log.errorDialog("CORRUPT CONVERSION: ", e.toString());
 		        	// ignore this corrupt row
+		        	}
 		        }
 		    }
 		}

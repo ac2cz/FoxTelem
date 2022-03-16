@@ -1,0 +1,2 @@
+ExpressionName,Expression,Description
+expression75, ((4  	- 2^3+1) * -sqrt(3*3+4*4)) / 2, Test expression that evaluates to 7.5

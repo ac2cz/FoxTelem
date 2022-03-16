@@ -1,4 +1,4 @@
-package spacecraftEditor;
+package spacecraftEditor.listEditors.frames;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -24,16 +24,15 @@ import javax.swing.table.AbstractTableModel;
  *
  */
 @SuppressWarnings("serial")
-public class PayloadsTableModel extends AbstractTableModel {
+public class FramesTableModel extends AbstractTableModel {
 	String[] columnNames = null;
 	private String[][] data = null;
 
-	PayloadsTableModel() {
-		columnNames = new String[4];
+	FramesTableModel() {
+		columnNames = new String[3];
 		columnNames[0] = "Num";
-		columnNames[1] = "Payload Name";
-		columnNames[2] = "File Name";
-		columnNames[3] = "Length";
+		columnNames[1] = "Name";
+		columnNames[2] = "Filename";
 
 	}
 

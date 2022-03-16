@@ -85,7 +85,7 @@ public class EditorFrame extends JFrame implements ActionListener, WindowListene
 		}
 		
 	}
-
+	
 	private void makeFrame(boolean edit) {
 
 		addWindowListener(this);

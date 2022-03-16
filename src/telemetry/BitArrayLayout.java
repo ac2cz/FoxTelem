@@ -2,9 +2,11 @@ package telemetry;
 
 import java.awt.Color;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
@@ -364,6 +366,45 @@ public class BitArrayLayout {
 			return (module[pos]);
 		}
 	}
+	
+	public String[][] getJTableData() {
+		
+		String[][] data = new String[fieldName.length][12];
+		for (int i=0; i < fieldName.length; i++) {
+			data[i][0] = "" + i;
+			data[i][1] =  typeStr;
+			data[i][2] = fieldName[i];
+			data[i][3] = ""+fieldBitLength[i];
+			data[i][4] = fieldUnits[i];
+			data[i][5] = conversion[i];
+			data[i][6] = module[i];
+			data[i][7] = ""+moduleNum[i];
+			data[i][8] = ""+moduleLinePosition[i];
+			data[i][9] = ""+moduleDisplayType[i];
+			data[i][10] = shortName[i];
+			data[i][11] = description[i];
+			
+		}
+		return data;
+	}
+	
+//	/**
+//	 * This should never be called by the decoder. The files are read only.  This 
+//	 * is available for the spacecraft editor
+//	 * 
+//	 * @param f
+//	 * @throws IOException 
+//	 */
+//	public void save(String f) throws IOException {
+//		String line;
+//		fileName = "spacecraft" +File.separator + f;
+//		BufferedWriter dis = new BufferedWriter(new FileWriter(fileName));
+//		line = fieldName.length + ",TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION";
+//		
+//		dis.write(line);
+//		
+//		dis.close();
+//	}
 
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 

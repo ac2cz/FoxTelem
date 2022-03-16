@@ -1,7 +1,6 @@
 package spacecraftEditor;
 
 import java.awt.BorderLayout;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
@@ -14,14 +13,7 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.file.Files;
-import java.nio.file.StandardCopyOption;
-
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
@@ -37,18 +29,11 @@ import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
-
 import common.Log;
 import common.Spacecraft;
 import gui.SourceTab;
-import telemetry.BitArrayLayout;
-import telemetry.LayoutLoadException;
-import telemetry.SatPayloadStore;
 import telemetry.TelemFormat;
-import telemetry.frames.FrameLayout;
 import common.Config;
-import common.Spacecraft;
 
 /**
 * 
@@ -70,14 +55,20 @@ import common.Spacecraft;
 * You should have received a copy of the GNU General Public License
 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 * 
-* The SpacecraftFrame is a seperate window that opens and allows the spacecraft paramaters to
+* The SpacecraftFrame is a tab that allows the spacecraft paramaters to
 * be viewed and edited.
+* 
+* The tab is structure as follows:
+* 
+* NORTH: Reserved
+* WEST: The spacecraft paramaters are shown and edited here
+* CENTER: A tabbed pane to edit the spacecraft lists e.g. frames, payloads, lookup tables
+* EAST: Reserved
+* SOUTH: Buttons Row
 *
 */
 @SuppressWarnings("serial")
 public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemListener, FocusListener, MouseListener {
-
-	public static final String PAYLOAD_TEMPLATE_FILENAME = "PAYLOAD_template.csv";
 	
 	JTextField id, displayName;
 	JTextField name;
@@ -95,26 +86,23 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	JTextField[] T0;
 	JTextField localServer;
 	JTextField localServerPort;
-	JTextField payloadFilename,payloadName;
 	
 	JCheckBox[] sendLayoutToServer;
 	JTextArea taDesc;
 	
 	JCheckBox useIHUVBatt;
-	JCheckBox track,hasFOXDB_V3;
+	JCheckBox track,hasFOXDB_V3,useConversionCoeffs;
 	JComboBox<String> cbMode;
-	JComboBox<String> payloadType;
+
 	JButton btnCancel;
-	JButton btnSave, btnFrameAdd, btnFrameRemove, btnAddPayload, btnRemovePayload,btnBrowsePayload,btnUpdatePayload, btnGeneratePayload;
-	
-	PayloadsTableModel layoutsTableModel;
+	JButton btnSave;
 	
 	Spacecraft sat;
 	
-	JTable sourcesTable,framesTable,payloadsTable;
+	JTable sourcesTable;
 	JPanel leftSourcesPanel, sourceStats, leftPanel, rightPanel, rightPanel1;
 	
-	int sourceFormatSelected = 0; // the source format that the user has clicked
+	public int sourceFormatSelected = 0; // the source format that the user has clicked
 	
 	int headerSize = 12;
 	
@@ -131,16 +119,12 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		JPanel titlePanel = addTitlePanel();
 		add(titlePanel, BorderLayout.NORTH);
 		
-		JPanel mainPanel = new JPanel();
-		mainPanel.setLayout(new GridLayout(0,3));
+		JPanel mainPanel = addCenterPanel();
 		add(mainPanel, BorderLayout.CENTER);
 		
-		JPanel leftPanel = addLeftPanel();
-		mainPanel.add(leftPanel);
-		JPanel centerPanel = addCenterPanel();
-		mainPanel.add(centerPanel);
-		JPanel rightPanel = addRightPanel();
-		mainPanel.add(rightPanel);
+//		JPanel leftPanel = addLeftPanel();
+//		mainPanel.add(leftPanel);
+
 		
 		JPanel footer = bottomPanel();
 		add(footer, BorderLayout.SOUTH);
@@ -193,7 +177,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				"This name is use used as a label on Graphs and Tabs", ""+sat.user_display_name);
 		
 		hasFOXDB_V3 = addCheckBoxRow("Use V3 Telem Database (recommended)", "This is true for all new spacecraft", sat.hasFOXDB_V3, titlePanel1 );
-		
+		hasFOXDB_V3.setEnabled(false);
+		useConversionCoeffs = addCheckBoxRow("Use conversion coefficients (recommended)", "This is true for all new spacecraft", sat.useConversionCoeffs, titlePanel1 );
+		useConversionCoeffs.setEnabled(false);
 		JPanel descPanel = new JPanel();
 		descPanel.setLayout(new BorderLayout());
 		TitledBorder heading9 = title("Description");
@@ -206,12 +192,12 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		taDesc.setEditable(true);
 		taDesc.setFont(new Font("SansSerif", Font.PLAIN, 12));
 		descPanel.add(taDesc, BorderLayout.CENTER);
-		mainTitlePanel.add(descPanel, BorderLayout.CENTER);
+		titlePanel1.add(descPanel);
 		
 		return mainTitlePanel;
 	}
 	
-	private JPanel addLeftPanel() {
+	private JPanel addCenterPanel() {
 
 		// LEFT Column - Fixed Params that can not be changed
 		
@@ -348,208 +334,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		
 	}
 	
-	private void loadPayloadTable() {
-		String[][] data = new String[sat.numberOfLayouts][4];
-		for (int i=0; i< sat.numberOfLayouts; i++) {
-			data[i][0] =""+i;
-			if (sat.layout[i].name != null) 
-				data[i][1] = sat.layout[i].name;
-			else
-				data[i][1] ="NONE";
 
-			if (i < sat.layoutFilename.length && sat.layoutFilename[i] != null) // we don't store filenames for can layouts, so skip those
-				data[i][2] = sat.layoutFilename[i];
-			else
-				data[i][2] ="-";
-			data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
-
-		}
-		if (sat.numberOfLayouts > 0) 
-			layoutsTableModel.setData(data);
-		else {
-			String[][] fakeRow = {{"","","",""}};
-			layoutsTableModel.setData(fakeRow);
-		}
-	}
-	
-	private JPanel addCenterPanel() {
-		// CENTER Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
-		
-		JPanel centerPanel = new JPanel();
-		centerPanel.setLayout(new BoxLayout(centerPanel, BoxLayout.Y_AXIS));
-
-		JPanel centerPanel1 = new JPanel();
-		centerPanel.add(centerPanel1);
-		centerPanel1.setLayout(new BorderLayout());
-		
-		TitledBorder headingFrames = title("Frames");
-		centerPanel1.setBorder(headingFrames);
-
-		if (sat.numberOfFrameLayouts > 0) {
-			FramesTableModel frameTableModel = new FramesTableModel();
-
-			framesTable = new JTable(frameTableModel);
-			framesTable.setAutoCreateRowSorter(true);
-			JScrollPane scrollPane = new JScrollPane (framesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-			scrollPane.setPreferredSize(new Dimension(100,400));
-			framesTable.setFillsViewportHeight(true);
-			//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-			centerPanel1.add(scrollPane, BorderLayout.CENTER);//, BorderLayout.WEST);
-			TableColumn column = framesTable.getColumnModel().getColumn(0);
-			column.setPreferredWidth(20);
-			column = framesTable.getColumnModel().getColumn(1);
-			column.setPreferredWidth(200);
-
-			framesTable.addMouseListener(this);
-
-			String[][] data = new String[sat.numberOfFrameLayouts][2];
-			for (int i=0; i< sat.numberOfFrameLayouts; i++) {
-				data[i][0] =""+i;
-				if (sat.frameLayoutFilename[i] != null) 
-					data[i][1] = sat.frameLayoutFilename[i];
-				else
-					data[i][1] ="NONE";
-			}
-			frameTableModel.setData(data);
-			
-			
-			
-		}
-		JPanel frameButtons = new JPanel();
-		centerPanel1.add(frameButtons, BorderLayout.SOUTH);
-		btnFrameAdd = new JButton("Add");
-		frameButtons.add(btnFrameAdd);
-		btnFrameRemove = new JButton("Remove");
-		frameButtons.add(btnFrameRemove);
-
-		//centerPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
-		
-		JPanel centerPanel2 = new JPanel();
-		centerPanel.add(centerPanel2);
-		centerPanel2.setLayout(new BorderLayout());
-
-		TitledBorder headingLayout = title("Payloads");
-		centerPanel2.setBorder(headingLayout);
-
-		
-		layoutsTableModel = new PayloadsTableModel();
-
-		payloadsTable = new JTable(layoutsTableModel);
-		payloadsTable.setAutoCreateRowSorter(true);
-		JScrollPane scrollPane = new JScrollPane (payloadsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		scrollPane.setPreferredSize(new Dimension(100,400));
-		payloadsTable.setFillsViewportHeight(true);
-		//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-		centerPanel2.add(scrollPane, BorderLayout.CENTER);//, BorderLayout.WEST);
-		TableColumn column = payloadsTable.getColumnModel().getColumn(0);
-		column.setPreferredWidth(20);
-		column = payloadsTable.getColumnModel().getColumn(1);
-		column.setPreferredWidth(100);
-		column = payloadsTable.getColumnModel().getColumn(2);
-		column.setPreferredWidth(200);
-		column = payloadsTable.getColumnModel().getColumn(3);
-		column.setPreferredWidth(40);
-
-		payloadsTable.addMouseListener(this);
-
-		loadPayloadTable();
-
-		JPanel footerPanel = new JPanel();
-		centerPanel2.add(footerPanel, BorderLayout.SOUTH);
-		footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS) );
-		
-		// Row 1
-		JPanel footerPanelRow1 = new JPanel();
-		footerPanelRow1.setLayout(new BoxLayout(footerPanelRow1, BoxLayout.X_AXIS) );
-		footerPanel.add(footerPanelRow1);
-		
-		JPanel f1 = new JPanel();
-		f1.setLayout(new BoxLayout(f1, BoxLayout.Y_AXIS) );
-		JLabel lf1 = new JLabel("Name");
-		payloadName = new JTextField();
-		f1.add(lf1);
-		f1.add(payloadName);
-		footerPanelRow1.add(f1);
-		
-		JPanel f2 = new JPanel();
-		f2.setLayout(new BoxLayout(f2, BoxLayout.Y_AXIS) );
-		JLabel lf2 = new JLabel("Type");
-		payloadType = new JComboBox<String>(BitArrayLayout.types); 
-		f2.add(lf2);
-		f2.add(payloadType);
-		footerPanelRow1.add(f2);
-		
-		JPanel f3 = new JPanel();
-		f3.setLayout(new BoxLayout(f3, BoxLayout.Y_AXIS) );
-		JLabel lf3 = new JLabel("Filename");
-		payloadFilename = new JTextField();
-		f3.add(lf3);
-		f3.add(payloadFilename);
-		payloadFilename.setEditable(false);
-		payloadFilename.addMouseListener(this);
-		footerPanelRow1.add(f3);
-		
-		// Row 2
-		JPanel footerPanelRow2 = new JPanel();
-		footerPanel.add(footerPanelRow2);
-		
-		btnAddPayload = new JButton("Add");
-		btnAddPayload.addActionListener(this);
-		btnBrowsePayload = new JButton("Browse");
-		btnBrowsePayload.addActionListener(this);
-		btnRemovePayload = new JButton("Remove");
-		btnRemovePayload.addActionListener(this);
-		btnUpdatePayload = new JButton("Update");
-		btnUpdatePayload.addActionListener(this);
-		
-		btnGeneratePayload = new JButton("Generate C");
-		btnGeneratePayload.addActionListener(this);
-		
-		footerPanelRow2.add(btnAddPayload);
-		footerPanelRow2.add(btnUpdatePayload);
-		footerPanelRow2.add(btnRemovePayload);
-		//footerPanelRow2.add(btnBrowsePayload);
-		footerPanelRow2.add(btnGeneratePayload);
-		btnAddPayload.setEnabled(true);
-		if (sat.numberOfLayouts == 0)
-			btnRemovePayload.setEnabled(false);
-		//centerPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
-		return centerPanel;
-	}
-	
-	
-	private JPanel addRightPanel() {
-		// RIGHT Column
-		rightPanel = new JPanel();
-		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-
-//		JPanel rightPanel1 = new JPanel();
-//		rightPanel.add(rightPanel1);
-//		rightPanel1.setLayout(new BoxLayout(rightPanel1, BoxLayout.Y_AXIS));
-//
-//		TitledBorder heading2 = title("Frame");
-//		rightPanel1.setBorder(heading2);
-//
-//
-//
-//
-//
-//		
-//
-//		JPanel rightPanel2 = new JPanel();
-//		rightPanel.add(rightPanel2);
-//		rightPanel2.setLayout(new BoxLayout(rightPanel2, BoxLayout.Y_AXIS));
-//
-//		TitledBorder heading3 = title("Layout");
-//		rightPanel2.setBorder(heading3);
-//
-//
-//
-//		rightPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
-		return rightPanel;
-	}
 	
 	private JPanel bottomPanel() {
 
@@ -601,7 +386,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	}
 	
 	
-	private TitledBorder title(String s) {
+	public static TitledBorder title(String s) {
 		TitledBorder title = new TitledBorder(null, s, TitledBorder.LEADING, TitledBorder.TOP, null, null);
 		title.setTitleFont(new Font("SansSerif", Font.BOLD, 14));
 		return title;
@@ -657,11 +442,8 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			// MASTER File params
 			sat.foxId = Integer.parseInt(id.getText());
 			sat.hasFOXDB_V3 = hasFOXDB_V3.isSelected();
+			sat.useConversionCoeffs = useConversionCoeffs.isSelected();
 			sat.description = taDesc.getText();
-			
-			
-			
-			
 			
 			// USER File params
 			try {
@@ -769,87 +551,6 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		return dispose;
 	}
 	
-	private void addPayload() {
-		String[] newLayoutFilenames = new String[sat.numberOfLayouts+1];
-		newLayoutFilenames[sat.numberOfLayouts] = payloadFilename.getText();
-		
-		for (int i=0; i < sat.numberOfLayouts; i++) {
-			newLayoutFilenames[i] = sat.layoutFilename[i];
-		}
-		sat.layoutFilename = newLayoutFilenames;
-		
-		File source = new File(Config.currentDir+"/spacecraft"+ File.separator + PAYLOAD_TEMPLATE_FILENAME);
-		File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
-		try {
-			SatPayloadStore.copyFile(source, dest);
-			
-			BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts+1];
-			newLayouts[sat.numberOfLayouts] = new BitArrayLayout(payloadFilename.getText());
-			newLayouts[sat.numberOfLayouts].name = payloadName.getText();
-			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
-			for (int i=0; i < sat.numberOfLayouts; i++) {
-				newLayouts[i] = sat.layout[i];
-			}
-			sat.layout = newLayouts;
-			
-			sat.numberOfLayouts++;
-			save();
-			loadPayloadTable();
-			payloadName.setText("");
-			payloadFilename.setText("");
-			payloadType.setSelectedIndex(0);
-		} catch (IOException e1) {
-			Log.errorDialog("ERROR", "You need to specify a valid payload file\n"+e1);
-		} catch (LayoutLoadException e1) {
-			Log.errorDialog("ERROR", "Could not parse the payload template\n"+e1);
-		}
-	}
-	
-	private void browsePayload() {
-		System.out.println("Browse for Payload ...");
-		File dir = new File(Config.currentDir+"/spacecraft");
-		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify payload file", "Select", "csv");
-		if (file == null) return;
-		payloadFilename.setText(file.getName());
-	}
-	
-	private void generatePayload() {
-		System.out.println("Generate Payload ...");
-		File layout = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
-		
-		if (!layout.isFile()) {
-			Log.errorDialog("ERROR", "Select a row with a valid payload file\n");
-			return;
-		}
-		
-		String PYTHON = "C:\\bin\\Python\\Python36-32\\python.exe";
-		String SCRIPT = Config.currentDir + File.separator + "gen_header.py";
-		String COMMAND = PYTHON + " " + SCRIPT + " " + layout;
-		System.out.println(" running: " + COMMAND);
-		String s = null;
-		try {
-			Process p = Runtime.getRuntime().exec(COMMAND);
-			BufferedReader stdInput = new BufferedReader(new 
-					InputStreamReader(p.getInputStream()));
-
-			BufferedReader stdError = new BufferedReader(new 
-					InputStreamReader(p.getErrorStream()));
-
-			// read the output from the command
-			System.out.println("Here is the standard output of the command:\n");
-			while ((s = stdInput.readLine()) != null) {
-				System.out.println(s);
-			}
-
-			// read any errors from the attempted command
-			System.out.println("Here is the standard error of the command (if any):\n");
-			while ((s = stdError.readLine()) != null) {
-				System.out.println(s);
-			}
-		} catch (IOException e1) {
-			Log.errorDialog("ERROR", "Error running python generate script\n");
-		}
-	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -858,90 +559,6 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			System.out.println("Saving ...");
 			save();
 			
-		}
-		if (e.getSource() == btnAddPayload) {
-			System.out.println("Adding Payload ...");
-			addPayload();
-			
-		}
-		if (e.getSource() == btnBrowsePayload) {
-			browsePayload();
-		}
-		
-		if (e.getSource() == btnUpdatePayload) {
-			int row = payloadsTable.getSelectedRow();
-			System.out.println("Updating row " + row);
-			if (sat.numberOfLayouts == 0) return;
-			
-			try {
-				sat.layout[row] = new BitArrayLayout(payloadFilename.getText());
-				sat.layoutFilename[row] = payloadFilename.getText();
-				sat.layout[row].name = payloadName.getText();
-				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
-				save();
-				loadPayloadTable();
-				payloadName.setText("");
-				payloadFilename.setText("");
-				payloadType.setSelectedIndex(0);
-			} catch (FileNotFoundException e1) {
-				Log.errorDialog("ERROR", "Could not initilize the payload file\n"+e1);
-			} catch (LayoutLoadException e1) {
-				Log.errorDialog("ERROR", "Could not load the payload file\n"+e1);
-			}
-
-		}
-
-		if (e.getSource() == btnRemovePayload) {
-			int row = payloadsTable.getSelectedRow();
-			System.out.println("Removing row " + row);
-			if (sat.numberOfLayouts == 0) return;
-			
-			int n = Log.optionYNdialog("Remove payload file too?",
-					"Remove this payload file as well as the payload table row?\n"+payloadFilename.getText() + "\n\nThis will be gone forever\n");
-			if (n == JOptionPane.NO_OPTION) {
-				
-			} else {
-				File file = new File(Config.currentDir+"/spacecraft" +File.separator + payloadFilename.getText());
-				try {
-					SatPayloadStore.remove(file.getAbsolutePath());
-				} catch (IOException ef) {
-					Log.errorDialog("ERROR removing File", "\nCould not remove the payload file\n"+ef.getMessage());
-				}
-			}
-			
-			if (sat.numberOfLayouts == 1) {
-				sat.numberOfLayouts = 0;
-				sat.layout = null;
-				sat.layoutFilename = null;
-
-			} else {
-				int j = 0;
-				BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts-1];
-				for (int i=0; i < sat.numberOfLayouts; i++) {
-					if (i != row)
-						newLayouts[j++] = sat.layout[i];
-				}
-				sat.layout = newLayouts;
-
-				j = 0;
-				String[] newLayoutFilenames = new String[sat.numberOfLayouts-1];
-				for (int i=0; i < sat.numberOfLayouts; i++) {
-					if (i != row)
-						newLayoutFilenames[j++] = sat.layoutFilename[i];
-				}
-				sat.layoutFilename = newLayoutFilenames;
-				sat.numberOfLayouts--;
-			}
-			save();
-			loadPayloadTable();
-			payloadName.setText("");
-			payloadFilename.setText("");
-			payloadType.setSelectedIndex(0);
-
-			
-		}
-		if (e.getSource() == btnGeneratePayload) {
-			generatePayload();
 		}
 
 	}
@@ -969,200 +586,53 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 	@Override
 	public void mouseClicked(MouseEvent e) {
-		if (e.getSource() == payloadFilename) {
-			browsePayload();
-		}
-		
 		// Display text for source when it is clicked
-		if (e.getSource() == sourcesTable) {
-			int row = sourcesTable.rowAtPoint(e.getPoint());
-			int col = sourcesTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
+				if (e.getSource() == sourcesTable) {
+					int row = sourcesTable.rowAtPoint(e.getPoint());
+					int col = sourcesTable.columnAtPoint(e.getPoint());
+					if (row >= 0 && col >= 0) {
+						//Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 
-				String name = (String) sourcesTable.getValueAt(row, 1);
-				if (name != null && ! name.equalsIgnoreCase("NONE")) {
-					System.out.println("Edit:" + sat.sourceFormat[row]);
-					sourceFormatSelected = row;
-					if (e.getClickCount() == 2) {
-						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-						EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row] + ".format");
-						editor.setVisible(true);
-					}
-					
-					if (sourceStats != null)
-						leftSourcesPanel.remove(sourceStats);
-					
-					sourceStats = new JPanel();
-					sourceStats.setLayout(new BoxLayout(sourceStats, BoxLayout.Y_AXIS));
-					leftSourcesPanel.add(sourceStats, BorderLayout.SOUTH);
-					
-					int numRsWords = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.RS_WORDS);
-					int headerLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
-					int frameLength = sat.sourceFormat[sourceFormatSelected].getFrameLength();
-					int dataLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
-					int trailerLength = 32 * numRsWords;
-					
-					JLabel labFrameLen = new JLabel("Frame Length: "+ frameLength );
-					
-					JLabel labHeaderLen = new JLabel("Header Length: " + headerLength);
-					JLabel labDataLen = new JLabel("Data Length: " + dataLength );
-					JLabel labRSWords = new JLabel("RS Words: " + numRsWords);
-					JLabel labTrailerLen = new JLabel("Trailer Length: " + trailerLength);
-					sourceStats.add(labFrameLen);
-					sourceStats.add(labHeaderLen);
-					sourceStats.add(labDataLen);
-					sourceStats.add(labRSWords);
-					sourceStats.add(labTrailerLen);
-				
-				}
-				leftSourcesPanel.revalidate();
-				leftSourcesPanel.repaint();
-			}
-		}
-		
-		// Display the payloads in a frame when the frame definition is clicked
-		if (e.getSource() == framesTable) {
-			int row = framesTable.rowAtPoint(e.getPoint());
-			int col = framesTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
-
-				if (e.getClickCount() == 2) {
-					String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.frameLayoutFilename[row]);
-					editor.setVisible(true);
-				}
-//				String name = (String) framesTable.getValueAt(row, 1);
-//				if (name != null && ! name.equalsIgnoreCase("NONE")) {
-//					System.out.println("Edit:" + sat.frameLayoutFilename[row]);
-//					String masterFolder = Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR;
-//					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.frameLayoutFilename[row]);
-//					editor.setVisible(true);
-//				}
-				
-				if (rightPanel1 != null)
-					rightPanel.remove(rightPanel1);
-				
-				rightPanel1 = new JPanel();
-				rightPanel.add(rightPanel1);
-				rightPanel1.setLayout(new BorderLayout());
-
-				TitledBorder heading2 = title("Frame: " + sat.frameLayout[row].name);
-				rightPanel1.setBorder(heading2);
-				
-				JPanel stats = new JPanel();
-				stats.setLayout(new BoxLayout(stats,BoxLayout.Y_AXIS));
-				rightPanel1.add(stats, BorderLayout.NORTH);
-				
-				int calculatedDataLength = 0;
-				
-				// Populate table rightPanel1
-				// read it from disk, just in case..
-				FrameLayout frameLayout;
-				try {
-					frameLayout = new FrameLayout(sat.foxId, Spacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
-					if (frameLayout != null) {
-						FrameTableModel frameTableModel = new FrameTableModel();
-
-						JTable frameTable = new JTable(frameTableModel);
-						frameTable.setAutoCreateRowSorter(true);
-						JScrollPane scrollPane = new JScrollPane (frameTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-						scrollPane.setPreferredSize(new Dimension(100,400));
-						frameTable.setFillsViewportHeight(true);
-						//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-						rightPanel1.add(scrollPane, BorderLayout.CENTER);
-						TableColumn column = frameTable.getColumnModel().getColumn(0);
-						column.setPreferredWidth(20);
-						column = frameTable.getColumnModel().getColumn(1);
-						column.setPreferredWidth(160);
-
-						frameTable.addMouseListener(this);
-						int numOfPayloads = frameLayout.getNumberOfPayloads();
-						String[][] data = new String[numOfPayloads][3];
-						for (int i=0; i< numOfPayloads; i++) {
-							data[i][0] =""+i;
-							data[i][1] = frameLayout.getPayloadName(i);
-							int len = frameLayout.getPayloadLength(i);
-							calculatedDataLength += len;
-
-//							BitArrayLayout layout = sat.getLayoutByName(frameLayout.getPayloadName(i));
-//							int realLen = layout.getMaxNumberOfBytes();
-							data[i][2] = ""+len ;
-//							if (realLen != len) {
-//								data[i][2] = data[i][2]  + " ERROR";
-//							}
-
-						}
-						
-						frameTableModel.setData(data);
-						
-						//rightPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
-						
-						if (sat.sourceFormat == null || sat.sourceFormat[sourceFormatSelected] == null) {
-							Log.errorDialog("MISSING", "No Source Format defined.  Can't calculate lengths\n");
-						} else {
+						String name = (String) sourcesTable.getValueAt(row, 1);
+						if (name != null && ! name.equalsIgnoreCase("NONE")) {
+							System.out.println("Edit:" + sat.sourceFormat[row]);
+							sourceFormatSelected = row;
+							if (e.getClickCount() == 2) {
+								String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
+								EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row] + ".format");
+								editor.setVisible(true);
+							}
+							
+							if (sourceStats != null)
+								leftSourcesPanel.remove(sourceStats);
+							
+							sourceStats = new JPanel();
+							sourceStats.setLayout(new BoxLayout(sourceStats, BoxLayout.Y_AXIS));
+							leftSourcesPanel.add(sourceStats, BorderLayout.SOUTH);
+							
+							int numRsWords = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.RS_WORDS);
 							int headerLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
-							calculatedDataLength += headerLength;
 							int frameLength = sat.sourceFormat[sourceFormatSelected].getFrameLength();
 							int dataLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
-							int trailerLength = sat.sourceFormat[sourceFormatSelected].getTrailerLength();
-							int calculatedFrameLength = calculatedDataLength + trailerLength;
-							JLabel labFrameLen = new JLabel("Length of this frame: " + calculatedFrameLength + "   ( Format: " + frameLength + " )");
-							if (frameLength < calculatedFrameLength) {
-								labFrameLen.setForeground(Config.AMSAT_RED);
-							}
+							int trailerLength = 32 * numRsWords;
+							
+							JLabel labFrameLen = new JLabel("Frame Length: "+ frameLength );
+							
 							JLabel labHeaderLen = new JLabel("Header Length: " + headerLength);
-							JLabel labDataLen = new JLabel("Data Length: " + calculatedDataLength + "   ( Format: " + dataLength + " )");
-							if (dataLength < calculatedDataLength) {
-								labDataLen.setForeground(Config.AMSAT_RED);
-							}
+							JLabel labDataLen = new JLabel("Data Length: " + dataLength );
+							JLabel labRSWords = new JLabel("RS Words: " + numRsWords);
 							JLabel labTrailerLen = new JLabel("Trailer Length: " + trailerLength);
-							stats.add(labFrameLen);
-							stats.add(labHeaderLen);
-							stats.add(labDataLen);
-							stats.add(labTrailerLen);
-						}
+							sourceStats.add(labFrameLen);
+							sourceStats.add(labHeaderLen);
+							sourceStats.add(labDataLen);
+							sourceStats.add(labRSWords);
+							sourceStats.add(labTrailerLen);
 						
+						}
+						leftSourcesPanel.revalidate();
+						leftSourcesPanel.repaint();
 					}
-					rightPanel.revalidate();
-					rightPanel.repaint();
-				} catch (LayoutLoadException e1) {
-					Log.errorDialog("ERROR", "Error in the frame layout\n" + e1);
-//				}  catch (Exception e1) {
-//					Log.errorDialog("ERROR", "Can't display the frame layout\n" + e1);
 				}
-				
-				
-			}
-		}
-		if (e.getSource() == payloadsTable) {
-			if (sat.numberOfLayouts == 0) return;
-			int row = payloadsTable.rowAtPoint(e.getPoint());
-			int col = payloadsTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
-
-				payloadName.setText(sat.layout[row].name);
-				payloadFilename.setText(sat.layoutFilename[row]);
-				payloadType.setSelectedItem((String)sat.layout[row].typeStr);
-				
-				if (e.getClickCount() == 2) {
-					String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-					//EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.layoutFilename[row]);
-					File file = new File(masterFolder + File.separator + sat.layoutFilename[row]);
-					try {
-						Desktop.getDesktop().open(file);
-					} catch (IOException e1) {
-						Log.errorDialog("ERROR", "Could not open payload file\n"+e1);
-					}
-					
-					//editor.setVisible(true);
-				}
-			}
-		}
-
 	}
 
 	@Override

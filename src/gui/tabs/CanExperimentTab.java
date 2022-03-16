@@ -338,6 +338,7 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 	}
 
 	protected void parseExperimentFrames() {
+		if (Config.payloadStore == null) return;
 		if (!Config.payloadStore.initialized()) return;
 		String[][] data = null;
 					
