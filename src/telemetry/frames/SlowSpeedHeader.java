@@ -84,10 +84,15 @@ Array index   Value
  * 
  */
 public class SlowSpeedHeader extends Header {
+	// Bits for the extended header
+	int extFoxId;
+	int safeMode;
+	int healthMode;
+	int scienceMode;
 	
 	public SlowSpeedHeader() {
 		super(TYPE_SLOW_SPEED_HEADER, new BitArrayLayout());
-		MAX_BYTES = SlowSpeedFrame.MAX_HEADER_SIZE;
+		MAX_BYTES = SlowSpeedFrame.MAX_HEADER_SIZE+1;  // allocate an extra byte in case we have the extended header
 		rawBits = new boolean[MAX_BYTES*8];
 	}
 	
@@ -99,7 +104,13 @@ public class SlowSpeedHeader extends Header {
 	public void copyBitsToFields() {
 		super.copyBitsToFields();
 		type = nextbits(4);
-
+		if (id == 0) {
+			extFoxId  = nextbits(5);
+			id = 8 + extFoxId;
+			safeMode = nextbits(1);
+			healthMode = nextbits(1);
+			scienceMode = nextbits(1);
+		}
 	}
 	
 	public boolean isValid() {

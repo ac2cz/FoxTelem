@@ -545,50 +545,50 @@ public class FoxTelemMain {
 		int arg = 0;
 		while (arg < args.length) {
 			if (args[arg].startsWith("-")) { // this is a switch
-			if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("--help"))) {
-				System.out.println(HELP);
-				System.exit(0);
-			}
-			if ((args[arg].equalsIgnoreCase("-v")) || (args[arg].equalsIgnoreCase("--version"))) {
-				System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
-				System.exit(0);
-			}
-			if (args[arg].equalsIgnoreCase("-s")) {
-				Log.println("Command Line Switch: STARTED");
-				Config.startButtonPressed = true;
-			}
-			
-			if (args[arg].equalsIgnoreCase("--12khz-if")) {
-				Log.println("Command Line Switch: 12kHz IF");
-				use12khzIfSwitch = true;
-			}
-			
-			if (args[arg].equalsIgnoreCase("--telem-format")) {
-				arg++;
-				if (args.length == arg) {
-					System.out.println("Missing filename for --telem-format command line switch.");
+				if ((args[arg].equalsIgnoreCase("-h")) || (args[arg].equalsIgnoreCase("--help"))) {
+					System.out.println(HELP);
 					System.exit(0);
 				}
-				telemFormatName = args[arg];
-				Log.println("Command Line Switch: Telem Format File: " + telemFormatName);
-				
-			}
-			
-			if (args[arg].equalsIgnoreCase("--process-audio")) {
-				arg++;
-				if (args.length == arg) {
-					System.out.println("Missing filename for --process-audio command line switch.");
+				if ((args[arg].equalsIgnoreCase("-v")) || (args[arg].equalsIgnoreCase("--version"))) {
+					System.out.println("AMSAT Fox Telemetry Decoder. Version " + Config.VERSION);
 					System.exit(0);
 				}
-				String audioFileName = args[arg];
-				audioFile = new File(audioFileName);
-				if (!audioFile.isFile()) {
-					System.out.println("Can't read file for --process-audio command line switch: " + audioFileName);
-					System.exit(0);
+				if (args[arg].equalsIgnoreCase("-s")) {
+					Log.println("Command Line Switch: STARTED");
+					Config.startButtonPressed = true;
 				}
-				Log.println("Command Line Switch: Process Audio File: " + audioFileName);
-			}
-			
+
+				if (args[arg].equalsIgnoreCase("--12khz-if")) {
+					Log.println("Command Line Switch: 12kHz IF");
+					use12khzIfSwitch = true;
+				}
+
+				if (args[arg].equalsIgnoreCase("--telem-format")) {
+					arg++;
+					if (args.length == arg) {
+						System.out.println("Missing filename for --telem-format command line switch.");
+						System.exit(0);
+					}
+					telemFormatName = args[arg];
+					Log.println("Command Line Switch: Telem Format File: " + telemFormatName);
+
+				}
+
+				if (args[arg].equalsIgnoreCase("--process-audio")) {
+					arg++;
+					if (args.length == arg) {
+						System.out.println("Missing filename for --process-audio command line switch.");
+						System.exit(0);
+					}
+					String audioFileName = args[arg];
+					audioFile = new File(audioFileName);
+					if (!audioFile.isFile()) {
+						System.out.println("Can't read file for --process-audio command line switch: " + audioFileName);
+						System.exit(0);
+					}
+					Log.println("Command Line Switch: Process Audio File: " + audioFileName);
+				}
+
 			} else {
 				// we have no more switches, so start reading command line paramaters
 				Log.println("Command Line Param LogFileDir: " + args[arg]);
@@ -596,12 +596,12 @@ public class FoxTelemMain {
 			}
 			arg++;
 		}
-		
+
 		if (audioFile != null) 
 			Log.showGuiDialogs = false;
-		
+
 		ProgressPanel initProgress = null;
-		
+
 		if (audioFile == null) { // we are showing the GUI
 			initProgress = new ProgressPanel(MainWindow.frame, "Initializing AMSAT FoxTelem, please wait ...", false);
 			initProgress.setVisible(true);

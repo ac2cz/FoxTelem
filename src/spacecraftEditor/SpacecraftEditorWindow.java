@@ -106,7 +106,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		mnFile.add(mntmAddSpacecraftFile);
 		mntmAddSpacecraftFile.addActionListener(this);
 		
-		mntmRemoveSpacecraftFile = new JMenuItem("Remove Spacecraft");
+		mntmRemoveSpacecraftFile = new JMenuItem("Close Spacecraft");
 		mnFile.add(mntmRemoveSpacecraftFile);
 		mntmRemoveSpacecraftFile.addActionListener(this);
 

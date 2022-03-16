@@ -37,6 +37,7 @@ import telemetry.payloads.PayloadRtValues;
 public class SlowSpeedFrame extends Frame {
 	
 	public static final int MAX_HEADER_SIZE = 6;
+	public int EXTENDED_HEADER_BYTES = 0; // this is updated to 1 if we have an extended header
 	public static final int MAX_PAYLOAD_SIZE = 58;
 	public static final int MAX_TRAILER_SIZE = 32;
 	
@@ -77,7 +78,7 @@ public class SlowSpeedFrame extends Frame {
 	
 	public void addNext8Bits(byte b) {
 		if (corrupt) return;
-		if (numberBytesAdded < MAX_HEADER_SIZE)
+		if (numberBytesAdded < MAX_HEADER_SIZE+EXTENDED_HEADER_BYTES)
 			header.addNext8Bits(b);
 		else if (numberBytesAdded < MAX_HEADER_SIZE + MAX_PAYLOAD_SIZE)
 			payload.addNext8Bits(b);
@@ -89,25 +90,30 @@ public class SlowSpeedFrame extends Frame {
 		bytes[numberBytesAdded] = b;
 		numberBytesAdded++;
 
-		if (numberBytesAdded == MAX_HEADER_SIZE) {
+		if (numberBytesAdded == MAX_HEADER_SIZE+EXTENDED_HEADER_BYTES) {
 			// Then we 
 			header.copyBitsToFields();
 			if (Config.debugFrames) Log.println(header.toString());
 			int type = header.type;
-			fox = Config.satManager.getSpacecraft(header.id);
-			if (fox != null) {
-				if (type == FramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
-				if (type == FramePart.TYPE_MAX_VALUES) payload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
-				if (type == FramePart.TYPE_MIN_VALUES) payload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
-				if (type == FramePart.TYPE_RAD_EXP_DATA) payload = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
-				if (type == FramePart.TYPE_DEBUG || type > FramePart.TYPE_RAD_EXP_DATA) {
-					Log.println("INVALID payload type:"+type+", rejecting as corrupt");
+			if (header.id == 8 && EXTENDED_HEADER_BYTES == 0) {
+				// We have an extended header, so allocate another byte and let the loop run again
+				EXTENDED_HEADER_BYTES=1;
+			} else {
+				fox = Config.satManager.getSpacecraft(header.id);
+				if (fox != null) {
+					if (type == FramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
+					if (type == FramePart.TYPE_MAX_VALUES) payload = new PayloadMaxValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MAX_LAYOUT));
+					if (type == FramePart.TYPE_MIN_VALUES) payload = new PayloadMinValues(Config.satManager.getLayoutByName(header.id, Spacecraft.MIN_LAYOUT));
+					if (type == FramePart.TYPE_RAD_EXP_DATA) payload = new PayloadRadExpData(Config.satManager.getLayoutByName(header.id, Spacecraft.RAD_LAYOUT));
+					if (type == FramePart.TYPE_DEBUG || type > FramePart.TYPE_RAD_EXP_DATA) {
+						Log.println("INVALID payload type:"+type+", rejecting as corrupt");
+						corrupt = true;
+					}
+				} else {
+					//Log.errorDialog("Missing or Invalid Fox Id", 
+					Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
 					corrupt = true;
 				}
-			} else {
-				//Log.errorDialog("Missing or Invalid Fox Id", 
-				Log.println("FOX ID: " + header.id + " is not configured in the spacecraft directory.  Decode not possible.");
-				corrupt = true;
 			}
 		}
 		
