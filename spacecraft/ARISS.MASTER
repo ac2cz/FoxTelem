@@ -1,5 +1,5 @@
 #AMSAT Spacecraft Properties
-#Tue Mar 15 19:22:33 EDT 2022
+#Wed Mar 16 12:11:20 EDT 2022
 layout3.type=EXP
 hasModeInHeader=false
 localServerPort=8587
@@ -10,7 +10,7 @@ layout0.filename=ARISS_rttelemetry.csv
 layout3.filename=ARISS_experiment.csv
 description=Student experiments in space
 frameLayout0.name=Realtime
-conversionExpressionsFileName=MATH_EXPRESSIONS_template.csv
+conversionExpressionsFileName=ARISS_math_expressions.csv
 catalogNumber=0
 numberOfLookupTables=0
 conversionCurvesFileName=ARISS_conversion_curves.csv
