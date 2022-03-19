@@ -72,11 +72,12 @@ public class ConversionStringLookUpTable extends Conversion{
 	 * @return
 	 */
 	public String calculateString(double x) {
-		int key = (int)x;
+		int key = (int) Math.round(x);
 		String value = table.get(key);
-		if (value == null)
-			return ""+x;
-		else
+		if (value == null) {
+			String s = String.format("%2.1f", x);
+			return s;
+		} else
 			return value;
 		
 	}
