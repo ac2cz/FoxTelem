@@ -51,7 +51,6 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 	JPanel rightPanel;
 	
 	FramesTableModel frameTableModel;
-//	PayloadLayoutEditorPanel layoutEditorPanel;
 	
 	JButton btnAddFrame, btnRemoveFrame,btnBrowseFrame,btnUpdateFrame;
 	JTextField frameFilename,frameName;
@@ -188,7 +187,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 //		if (sat.numberOfFrameLayouts == 0)
 		btnRemoveFrame.setEnabled(true);
 		//centerPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
-		leftPanel.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
+		leftPanel.add(new Box.Filler(new Dimension(500,10), new Dimension(500,400), new Dimension(500,500)));
 		return leftPanel;
 	}
 	
@@ -359,6 +358,12 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
+
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
 		if (e.getSource() == frameFilename) {
 			browseFrame();
 		}
@@ -484,13 +489,6 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 				
 			}
 		}
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override

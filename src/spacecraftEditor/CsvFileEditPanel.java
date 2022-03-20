@@ -14,6 +14,8 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+
+import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -52,12 +54,17 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		add(csvFileEditorPanel);
 		
 		footerPanel = new JPanel();
+		footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS));
 		add(footerPanel, BorderLayout.SOUTH);
+		JPanel footerPanel1 = new JPanel();
+		JPanel footerPanel2 = new JPanel();
+		footerPanel.add(footerPanel1);
+		footerPanel.add(footerPanel2);
 		
 		JLabel lf3 = new JLabel("Filename");
 		csvFilename = new JTextField(filename);
-		footerPanel.add(lf3);
-		footerPanel.add(csvFilename);
+		footerPanel1.add(lf3);
+		footerPanel1.add(csvFilename);
 		csvFilename.setEditable(false);
 		csvFilename.setColumns(20);
 		csvFilename.addMouseListener(this);
@@ -69,13 +76,13 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		btnAddBelow = new JButton("Add Below");
 		btnRemove = new JButton("Remove");
 		btnSave = new JButton("Save");
-		footerPanel.add(btnLoad);
-		footerPanel.add(btnUp);
-		footerPanel.add(btnDown);
-		footerPanel.add(btnAddAbove);
-		footerPanel.add(btnAddBelow);
-		footerPanel.add(btnRemove);
-		footerPanel.add(btnSave);
+		footerPanel2.add(btnLoad);
+		footerPanel2.add(btnUp);
+		footerPanel2.add(btnDown);
+		footerPanel2.add(btnAddAbove);
+		footerPanel2.add(btnAddBelow);
+		footerPanel2.add(btnRemove);
+		footerPanel2.add(btnSave);
 		btnLoad.addActionListener(this);
 		btnUp.addActionListener(this);
 		btnDown.addActionListener(this);
@@ -99,7 +106,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		if (file !=null) {
 			this.filename = file;
 			this.csvFilename.setText(file);
-			setTitle("Payload : " + file);
+			setTitle(" : " + file);
 			try {
 				load();
 			} catch (FileNotFoundException e) {
@@ -151,26 +158,37 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		} catch (IOException e) {
 			Log.errorDialog("ERROR", "Can not load the CSV file\n" + e);
 		}
+		finally {
+			try {
+				dis.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	public void save() throws IOException {
 		String fileName = "spacecraft" +File.separator + filename;
 		BufferedWriter dis = new BufferedWriter(new FileWriter(fileName,false)); // overwrite the existing file
-		for (int j = 0; j < dataLines.size(); j++) {
-			String line = "";
-			for (int i=0; i < dataLines.get(j).length-1; i++) {
-				if (dataLines.get(j)[i] == null)
-					line = line + "0,";
+		try {
+			for (int j = 0; j < dataLines.size(); j++) {
+				String line = "";
+				for (int i=0; i < dataLines.get(j).length-1; i++) {
+					if (dataLines.get(j)[i] == null)
+						line = line + "0,";
+					else
+						line = line + dataLines.get(j)[i] + ",";
+				}
+				if (dataLines.get(j)[dataLines.get(j).length-1] == null)
+					line = line + " \n";
 				else
-					line = line + dataLines.get(j)[i] + ",";
-			}
-			if (dataLines.get(j)[dataLines.get(j).length-1] == null)
-				line = line + " \n";
-			else
-				line = line + dataLines.get(j)[dataLines.get(j).length-1] + "\n";
-			dis.write(line);
+					line = line + dataLines.get(j)[dataLines.get(j).length-1] + "\n";
+				dis.write(line);
+			} 
+		} finally {
+			dis.close();
 		}
-		dis.close();
 		updateSpacecraft();
 	}
 	

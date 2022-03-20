@@ -9,12 +9,14 @@ import javax.swing.JTabbedPane;
 import common.Spacecraft;
 import spacecraftEditor.listEditors.curves.CurvesTableModel;
 import spacecraftEditor.listEditors.expressions.ExpressionsCsvFileEditPanel;
-import spacecraftEditor.listEditors.expressions.ExpressionsCsvFileEditorGrid;
 import spacecraftEditor.listEditors.expressions.ExpressionsTableModel;
 import spacecraftEditor.listEditors.curves.CurveCsvFileEditPanel;
-import spacecraftEditor.listEditors.curves.CurveCsvFileEditorGrid;
 import spacecraftEditor.listEditors.frames.FrameListEditPanel;
+import spacecraftEditor.listEditors.lookupTables.LookupListTableModel;
+import spacecraftEditor.listEditors.lookupTables.LookupTableListEditPanel;
+import spacecraftEditor.listEditors.lookupTables.LookupTableModel;
 import spacecraftEditor.listEditors.payload.PayloadListEditPanel;
+import spacecraftEditor.listEditors.stringLookupTables.StringLookupTableListEditPanel;
 
 /**
  * This holds an entire spacecraft that is being edited.  It is organized as follows:
@@ -39,12 +41,17 @@ public class SpacecraftEditTab extends JPanel {
 	public SpacecraftEditTab(Spacecraft s) {
 		sat = s;
 		setLayout(new BorderLayout(0, 0));
-		spacecraftEditPanel = new SpacecraftEditPanel(sat);
-		add(spacecraftEditPanel, BorderLayout.WEST);
+//		spacecraftEditPanel = new SpacecraftEditPanel(sat);
+//		add(spacecraftEditPanel, BorderLayout.WEST);
 		
 		tabbedPane = new JTabbedPane(JTabbedPane.TOP);
 		tabbedPane.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
 		add(tabbedPane, BorderLayout.CENTER);
+	
+		// Params
+		spacecraftEditPanel = new SpacecraftEditPanel(sat);
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "Paramaters" + "</b></body></html>", spacecraftEditPanel );
 		
 		// PAYLOADS 
 		PayloadListEditPanel payloadListEditPanel = new PayloadListEditPanel(sat,spacecraftEditPanel);
@@ -60,7 +67,7 @@ public class SpacecraftEditTab extends JPanel {
 		CurvesTableModel model = new CurvesTableModel();
 		String f = sat.conversionCurvesFileName;
 		if (f == null) f = CURVES_TEMPLATE_FILENAME;
-		CurveCsvFileEditorGrid curveCsvFileEditorPanel = new CurveCsvFileEditorGrid(model);
+		CsvFileEditorGrid curveCsvFileEditorPanel = new CsvFileEditorGrid(model);
 		CsvFileEditPanel csvFileEdit = new CurveCsvFileEditPanel(sat, model,curveCsvFileEditorPanel, "Curves",f);
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 			+ "Conversion Curves" + "</b></body></html>", csvFileEdit );
@@ -69,10 +76,24 @@ public class SpacecraftEditTab extends JPanel {
 		ExpressionsTableModel expressionsModel = new ExpressionsTableModel();
 		String expFile = sat.conversionExpressionsFileName;
 		if (expFile == null) expFile = MATH_EXPRESSIONS_TEMPLATE_FILENAME;
-		ExpressionsCsvFileEditorGrid expressionsCsvFileEditorPanel = new ExpressionsCsvFileEditorGrid(expressionsModel);
+		CsvFileEditorGrid expressionsCsvFileEditorPanel = new CsvFileEditorGrid(expressionsModel);
 		ExpressionsCsvFileEditPanel expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel,expressionsCsvFileEditorPanel, "Expressions",expFile);
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "Math Expressions" + "</b></body></html>", expressionsCsvFileEdit );
+		
+		// LOOKUP TABLES 
+		LookupListTableModel lookupListTableModel = new LookupListTableModel();
+		LookupTableModel lookupTableModel = new LookupTableModel();
+		LookupTableListEditPanel lookupTableListEditPanel = new LookupTableListEditPanel(sat,"Lookup Tables", lookupListTableModel, lookupTableModel, spacecraftEditPanel);
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "Lookup Tables" + "</b></body></html>", lookupTableListEditPanel );
+		
+		// STRING LOOKUP TABLES 
+		LookupListTableModel stringLookupListTableModel = new LookupListTableModel();
+		LookupTableModel stringLookupTableModel = new LookupTableModel();
+		StringLookupTableListEditPanel stringLookupTableListEditPanel = new StringLookupTableListEditPanel(sat,"String Lookup Tables", stringLookupListTableModel, stringLookupTableModel, spacecraftEditPanel);
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
+				+ "String Lookup Tables" + "</b></body></html>", stringLookupTableListEditPanel );
 
 	}
 }

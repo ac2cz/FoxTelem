@@ -14,9 +14,7 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
-import spacecraftEditor.listEditors.curves.CurvesTableModel;
-
-public abstract class CsvFileEditorGrid extends JPanel implements MouseListener, TableModelListener  {
+public class CsvFileEditorGrid extends JPanel implements MouseListener, TableModelListener  {
 
 	private static final long serialVersionUID = 1L;
 	CsvTableModel tableModel;

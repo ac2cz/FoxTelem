@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 import javax.swing.BorderFactory;
+import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -108,7 +109,6 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	}
 	
 	private JPanel addLeftPanel() {
-		// CENTER Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
 		
 		JPanel centerPanel = new JPanel();
 
@@ -203,6 +203,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		btnAddPayload.setEnabled(true);
 		if (sat.numberOfLayouts == 0)
 			btnRemovePayload.setEnabled(false);
+		footerPanel.add(new Box.Filler(new Dimension(400,10), new Dimension(400,400), new Dimension(400,500)));
+
 		//centerPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 		return centerPanel;
 	}
@@ -299,7 +301,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		try {
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
 			if (!dest.isFile()) {
-				File source = new File(Config.currentDir+"/spacecraft"+ File.separator + PAYLOAD_TEMPLATE_FILENAME);
+				File source = new File(Config.currentDir+ File.separator +"spacecraft"+File.separator+"templates"+ File.separator + PAYLOAD_TEMPLATE_FILENAME);
 				SatPayloadStore.copyFile(source, dest);
 			}
 			
@@ -464,16 +466,20 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	
 	@Override
 	public void mouseClicked(MouseEvent e) {
+		
+	}
+
+	@Override
+	public void mousePressed(MouseEvent e) {
 		if (e.getSource() == payloadFilename) {
 			browsePayload();
 		}
-		
 		if (e.getSource() == payloadsTable) {
 			if (sat.numberOfLayouts == 0) return;
 			int row = payloadsTable.rowAtPoint(e.getPoint());
 			int col = payloadsTable.columnAtPoint(e.getPoint());
 			if (row >= 0 && col >= 0) {
-				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
+				Log.println("PRESSED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 				String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 				
 				payloadName.setText(sat.layout[row].name);
@@ -507,13 +513,6 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				}
 			}
 		}
-
-	}
-
-	@Override
-	public void mousePressed(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
 	}
 
 	@Override
