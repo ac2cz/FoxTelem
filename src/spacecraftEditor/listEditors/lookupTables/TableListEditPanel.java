@@ -2,6 +2,7 @@ package spacecraftEditor.listEditors.lookupTables;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -10,15 +11,20 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
@@ -107,6 +113,13 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		saveTable();
 		parent.save();
 	}
+	
+	private void scrollToRow(JTable table, int row) {
+		Rectangle cellRect = table.getCellRect(row, 0, false);
+		if (cellRect != null) {
+			table.scrollRectToVisible(cellRect);
+		}
+	}
 
 	private JPanel addLeftPanel() {
 		// CENTER Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
@@ -136,6 +149,39 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 			column.setPreferredWidth(listTableModel.columnWidths[i]);
 		}
 
+		String PREV = "prev";
+		String NEXT = "next";
+		
+		InputMap inMap = table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = table.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = table.getSelectedRow();
+				if (row > 0) {
+					updateRow(row-1);
+					table.setRowSelectionInterval(row-1, row-1);
+					scrollToRow(table, row-1);
+				}
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = table.getSelectedRow();
+				if (row < table.getRowCount()-1) {
+					updateRow(row+1);
+					table.setRowSelectionInterval(row+1, row+1);
+					scrollToRow(table, row+1);
+				}
+			}
+		});
+		
 		table.addMouseListener(this);
 
 	//	leftPanel.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
@@ -205,8 +251,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	private JPanel addCenterPanel() {
 		// RIGHT Column
 
-		CsvFileEditorGrid csvFileEditorGrid = new CsvFileEditorGrid(csvTableModel);
-		lookupCsvFileEditPanel = new LookupCsvFileEditPanel(sat, csvTableModel, csvFileEditorGrid, "Lookup Tables",null);
+		lookupCsvFileEditPanel = new LookupCsvFileEditPanel(sat, csvTableModel, "Lookup Tables",null);
 
 		return lookupCsvFileEditPanel;
 	}
@@ -327,6 +372,13 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		if (file == null) return;
 		txtFilename.setText(file.getName());
 	}
+	
+	private void updateRow(int row) {
+		txtName.setText(dataLines.get(row)[1]);
+		txtFilename.setText(dataLines.get(row)[2]);
+		
+		lookupCsvFileEditPanel.setFile(dataLines.get(row)[2]);
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -366,10 +418,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 				Log.println("PRESSED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 				//String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 				
-				txtName.setText(dataLines.get(row)[1]);
-				txtFilename.setText(dataLines.get(row)[2]);
-				
-				lookupCsvFileEditPanel.setFile(dataLines.get(row)[2]);
+				updateRow(row);
 			}
 		}
 		

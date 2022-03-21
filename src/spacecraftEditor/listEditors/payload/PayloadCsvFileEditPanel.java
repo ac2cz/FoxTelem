@@ -16,13 +16,14 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 
 	private static final long serialVersionUID = 1L;
 	public static final int CONVERSION_COL = 5;
+	public static final int LINE_TYPE_COL = 9;
+	public static final int MODULE_LINE_COL = 8;
 	
-	CsvFileEditorGrid payloadFileEditorGrid;
 	PayloadLayoutTableModel model;
 
-	public PayloadCsvFileEditPanel(Spacecraft sat, PayloadLayoutTableModel model, CsvFileEditorGrid payloadFileEditorGrid,
+	public PayloadCsvFileEditPanel(Spacecraft sat, PayloadLayoutTableModel model,
 			String titleString, String file) {
-		super(sat, model, payloadFileEditorGrid, titleString, file);
+		super(sat, model, titleString, file);
 		this.model = model;
 		
 		for (int i=0; i< csvFileEditorGrid.table.getColumnModel().getColumnCount(); i++) {
@@ -31,13 +32,7 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 		}
 		
 		//setConversionComboBox();
-		checkValues();
-	}
-	
-	public void checkValues() {
-		// Check the conversions
-
-
+		//setLineTypeComboBox();
 	}
 
 	public void setConversionComboBox() {
@@ -47,9 +42,15 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 		moduleColumn.setCellEditor(new DefaultCellEditor(comboBoxConversion));
 	}
 	
+//	public void setLineTypeComboBox() {
+//		String[] lineTypes = sat.dd();
+//		JComboBox<String> comboBoxLineTypes = new JComboBox<String>(lineTypes);
+//		TableColumn moduleColumn = csvFileEditorGrid.table.getColumnModel().getColumn(LINE_TYPE_COL);
+//		moduleColumn.setCellEditor(new DefaultCellEditor(comboBoxLineTypes));
+//	}
+	
 	@Override
 	protected void updateSpacecraft() {
-		checkValues();
 		
 		//setConversionComboBox();
 		// We don't need to save the spacecraft as data is only changed in the layout file
@@ -80,6 +81,12 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 					}
 				}
 				cell.setForeground(Color.black);	
+			}
+			
+			if (row >0 && column == MODULE_LINE_COL) {
+				// It is an error if this line number is a duplicate or if there is a gap between this and the previous
+				
+				
 			}
 			return cell;
 		}

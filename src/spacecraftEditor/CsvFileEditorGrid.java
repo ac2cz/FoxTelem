@@ -5,6 +5,7 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.io.IOException;
 
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -14,15 +15,19 @@ import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
 
+import common.Log;
+
 public class CsvFileEditorGrid extends JPanel implements MouseListener, TableModelListener  {
 
 	private static final long serialVersionUID = 1L;
 	CsvTableModel tableModel;
 	public JTable table;
+	CsvFileEditPanel parent;
 	
-	public CsvFileEditorGrid(CsvTableModel model) {
+	public CsvFileEditorGrid(CsvTableModel model, CsvFileEditPanel parent) {
 		setLayout(new BorderLayout());
 		tableModel = model;
+		this.parent = parent;
 		
 		table = new JTable(model);
 		table.setAutoCreateRowSorter(false);  // sorting does not help here because it does not change the save order
@@ -39,6 +44,14 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 		
 		table.addMouseListener(this);
 		table.getModel().addTableModelListener(this);
+		
+//		table.getModel().addTableModelListener(new TableModelListener() {
+//
+//		      public void tableChanged(TableModelEvent e) {
+//		         System.out.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+//		         updated = true;
+//		      }
+//		    });
 	}
 	
 	public void setData(String titleString, String[][] d) {
@@ -80,16 +93,12 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
-		// If we need to do something when a cell is edited, then it happens here
-		// e.g. validate that the lines of a module are correct
-		
-//		int row = e.getFirstRow();
-//		int column = e.getColumn();
-//		if (column == -1) return;
-//		TableModel model = (TableModel)e.getSource();
-//		String columnName = model.getColumnName(column);
-//		Object data = model.getValueAt(row, column);
-//		model.setValueAt(e, row, column);
+		 //System.out.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+		 try {
+			parent.save();
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
+		}
 
 	}
 }

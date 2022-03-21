@@ -13,9 +13,9 @@ import telemetry.LayoutLoadException;
 public class ExpressionsCsvFileEditPanel extends CsvFileEditPanel {
 	private static final long serialVersionUID = 1L;
 
-	public ExpressionsCsvFileEditPanel(Spacecraft sat, CsvTableModel model, CsvFileEditorGrid csvFileEditorPanel,
+	public ExpressionsCsvFileEditPanel(Spacecraft sat, CsvTableModel model,
 			String titleString, String file) {
-		super(sat, model, csvFileEditorPanel, titleString, file);
+		super(sat, model, titleString, file);
 		// TODO Auto-generated constructor stub
 	}
 

@@ -12,8 +12,8 @@ import telemetry.LayoutLoadException;
 public class CurveCsvFileEditPanel extends CsvFileEditPanel {
 	private static final long serialVersionUID = 1L;
 
-	public CurveCsvFileEditPanel(Spacecraft sat, CurvesTableModel model, CsvFileEditorGrid csvFileEditorPanel, String titleString, String file) {
-		super(sat, model, csvFileEditorPanel, titleString, file);
+	public CurveCsvFileEditPanel(Spacecraft sat, CurvesTableModel model, String titleString, String file) {
+		super(sat, model, titleString, file);
 		// TODO Auto-generated constructor stub
 	}
 	

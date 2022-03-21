@@ -185,7 +185,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading9 = title("Description");
 		descPanel.setBorder(heading9);
 
-		taDesc = new JTextArea(4, 45);
+		taDesc = new JTextArea(6, 45);
 		taDesc.setText(sat.description);
 		taDesc.setLineWrap(true);
 		taDesc.setWrapStyleWord(true);

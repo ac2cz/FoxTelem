@@ -67,8 +67,7 @@ public class SpacecraftEditTab extends JPanel {
 		CurvesTableModel model = new CurvesTableModel();
 		String f = sat.conversionCurvesFileName;
 		if (f == null) f = CURVES_TEMPLATE_FILENAME;
-		CsvFileEditorGrid curveCsvFileEditorPanel = new CsvFileEditorGrid(model);
-		CsvFileEditPanel csvFileEdit = new CurveCsvFileEditPanel(sat, model,curveCsvFileEditorPanel, "Curves",f);
+		CsvFileEditPanel csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",f);
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 			+ "Conversion Curves" + "</b></body></html>", csvFileEdit );
 		
@@ -76,8 +75,7 @@ public class SpacecraftEditTab extends JPanel {
 		ExpressionsTableModel expressionsModel = new ExpressionsTableModel();
 		String expFile = sat.conversionExpressionsFileName;
 		if (expFile == null) expFile = MATH_EXPRESSIONS_TEMPLATE_FILENAME;
-		CsvFileEditorGrid expressionsCsvFileEditorPanel = new CsvFileEditorGrid(expressionsModel);
-		ExpressionsCsvFileEditPanel expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel,expressionsCsvFileEditorPanel, "Expressions",expFile);
+		ExpressionsCsvFileEditPanel expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",expFile);
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "Math Expressions" + "</b></body></html>", expressionsCsvFileEdit );
 		

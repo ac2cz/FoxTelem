@@ -3,6 +3,7 @@ package spacecraftEditor.listEditors.payload;
 import java.awt.BorderLayout;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -13,11 +14,15 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
@@ -26,6 +31,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
@@ -107,6 +113,13 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		}
 	}
 	
+	private void scrollToRow(JTable table, int row) {
+		Rectangle cellRect = table.getCellRect(row, 0, false);
+		if (cellRect != null) {
+			table.scrollRectToVisible(cellRect);
+		}
+	}
+	
 	private JPanel addLeftPanel() {
 		
 		JPanel centerPanel = new JPanel();
@@ -140,6 +153,39 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		column.setPreferredWidth(40);
 
 		payloadsTable.addMouseListener(this);
+		
+		String PREV = "prev";
+		String NEXT = "next";
+		
+		InputMap inMap = payloadsTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = payloadsTable.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = payloadsTable.getSelectedRow();
+				if (row > 0) {
+					updateTabs(row-1);
+					payloadsTable.setRowSelectionInterval(row-1, row-1);
+					scrollToRow(payloadsTable, row-1);
+				}
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = payloadsTable.getSelectedRow();
+				if (row < payloadsTable.getRowCount()-1) {
+					updateTabs(row+1);     
+					payloadsTable.setRowSelectionInterval(row+1, row+1);
+					scrollToRow(payloadsTable, row+1);
+				}
+			}
+		});
 
 		loadPayloadsListTable();
 
@@ -215,11 +261,9 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		add(tabbedPane, BorderLayout.CENTER);
 		
 		PayloadLayoutTableModel payloadTableModel = new PayloadLayoutTableModel();
-		CsvFileEditorGrid payloadCsvFileEditorGrid = new CsvFileEditorGrid(payloadTableModel);
-		payloadCsvFileEditPanel = new PayloadCsvFileEditPanel(sat, payloadTableModel,payloadCsvFileEditorGrid, "Payload",null);
-			
-	
 		
+		payloadCsvFileEditPanel = new PayloadCsvFileEditPanel(sat, payloadTableModel, "Payload",null);
+			
 		codeTextArea = new JTextArea();
 		JScrollPane scpane = new JScrollPane(codeTextArea); //scrollpane  and add textarea to scrollpane
 		codeTextArea.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
@@ -245,6 +289,20 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	JPanel tab = new JPanel();
 	private void updateTabs(int row) {
 		if (sat.layoutFilename.length == 0) return;
+		
+//		if (payloadCsvFileEditPanel.csvFileEditorGrid != null) {
+//			int n = Log.optionYNdialog("Unsaved file",
+//					"Do you want to save this payload file before switching to another?\n"+payloadFilename.getText() + "\nOtherwise your changes will be lost\n");
+//			if (n == JOptionPane.NO_OPTION) {
+//				
+//			} else {
+//				return;
+//			}	
+//		}
+		
+		payloadName.setText(sat.layout[row].name);
+		payloadFilename.setText(sat.layoutFilename[row]);
+		payloadType.setSelectedItem((String)sat.layout[row].typeStr);
 		
 		if (modulesTab != null)
 			tab.remove(modulesTab);
@@ -489,9 +547,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				Log.println("PRESSED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 				String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 				
-				payloadName.setText(sat.layout[row].name);
-				payloadFilename.setText(sat.layoutFilename[row]);
-				payloadType.setSelectedItem((String)sat.layout[row].typeStr);
+				
 				
 //				try {
 //					Log.println("Loading: " + masterFolder + File.separator + sat.layoutFilename[row]);

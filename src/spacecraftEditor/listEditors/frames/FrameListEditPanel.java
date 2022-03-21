@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
+import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
@@ -15,17 +16,22 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 
+import javax.swing.AbstractAction;
+import javax.swing.ActionMap;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
+import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -100,6 +106,13 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		}
 	}
 	
+	private void scrollToRow(JTable table, int row) {
+		Rectangle cellRect = table.getCellRect(row, 0, false);
+		if (cellRect != null) {
+			table.scrollRectToVisible(cellRect);
+		}
+	}
+	
 	private JPanel addLeftPanel() {
 		// CENTER Column - Things the user can change - e.g. Layout Files, Freq, Tracking etc
 		
@@ -133,6 +146,39 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		column = framesTable.getColumnModel().getColumn(2);
 		column.setPreferredWidth(200);
 
+		String PREV = "prev";
+		String NEXT = "next";
+		
+		InputMap inMap = framesTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
+		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
+		ActionMap actMap = framesTable.getActionMap();
+
+		actMap.put(PREV, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				// System.out.println("PREV");
+				int row = framesTable.getSelectedRow();
+				if (row > 0) {
+					updateRow(row-1);
+					framesTable.setRowSelectionInterval(row-1, row-1);
+					scrollToRow(framesTable, row-1);
+				}
+			}
+		});
+		actMap.put(NEXT, new AbstractAction() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				//    System.out.println("NEXT");
+				int row = framesTable.getSelectedRow();
+				if (row < framesTable.getRowCount()-1) {
+					updateRow(row+1);     
+					framesTable.setRowSelectionInterval(row+1, row+1);
+					scrollToRow(framesTable, row+1);
+				}
+			}
+		});
+		
 		framesTable.addMouseListener(this);
 
 	//	leftPanel.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
@@ -258,7 +304,110 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		frameFilename.setText(file.getName());
 	}
 	
+	private void updateRow(int row) {
+		frameName.setText(sat.frameLayout[row].name);
+		frameFilename.setText(sat.frameLayoutFilename[row]);
+		
+		if (rightPanel != null)
+			remove(rightPanel);
+		
+		rightPanel = new JPanel();
+		add(rightPanel);
+		rightPanel.setLayout(new BorderLayout());
 
+		TitledBorder heading2 = SpacecraftEditPanel.title("Frame: " + sat.frameLayout[row].name);
+		rightPanel.setBorder(heading2);
+		
+		JPanel stats = new JPanel();
+		stats.setLayout(new BoxLayout(stats,BoxLayout.Y_AXIS));
+		rightPanel.add(stats, BorderLayout.NORTH);
+		
+		int calculatedDataLength = 0;
+		
+		// Populate table rightPanel1
+		// read it from disk, just in case..
+		FrameLayout frameLayout;
+		try {
+			frameLayout = new FrameLayout(sat.foxId, Spacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
+			if (frameLayout != null) {
+				frameTableModel = new FrameTableModel();
+
+				frameTable = new JTable(frameTableModel);
+				frameTable.setAutoCreateRowSorter(true);
+				JScrollPane scrollPane = new JScrollPane (frameTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+				scrollPane.setPreferredSize(new Dimension(100,400));
+				frameTable.setFillsViewportHeight(true);
+				//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+
+				rightPanel.add(scrollPane, BorderLayout.CENTER);
+				TableColumn column = frameTable.getColumnModel().getColumn(0);
+				column.setPreferredWidth(20);
+				column = frameTable.getColumnModel().getColumn(1);
+				column.setPreferredWidth(160);
+
+				
+				for (int i=0; i< frameTable.getColumnModel().getColumnCount(); i++) {
+					TableColumn column2 = frameTable.getColumnModel().getColumn(i);
+					column2.setCellRenderer(new FrameTableCellRenderer());
+				}
+				setPayloadComboBox();
+				
+				frameTable.addMouseListener(this);
+				int numOfPayloads = frameLayout.getNumberOfPayloads();
+				String[][] data = new String[numOfPayloads][3];
+				for (int i=0; i< numOfPayloads; i++) {
+					data[i][0] =""+i;
+					data[i][1] = frameLayout.getPayloadName(i);
+					int len = frameLayout.getPayloadLength(i);
+					calculatedDataLength += len;
+
+//					BitArrayLayout layout = sat.getLayoutByName(frameLayout.getPayloadName(i));
+//					int realLen = layout.getMaxNumberOfBytes();
+					data[i][2] = ""+len ;
+//					if (realLen != len) {
+//						data[i][2] = data[i][2]  + " ERROR";
+//					}
+
+				}
+				
+				frameTableModel.setData(data);
+				
+				//rightPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
+				
+				if (sat.sourceFormat == null || sat.sourceFormat[parent.sourceFormatSelected] == null) {
+					Log.errorDialog("MISSING", "No Source Format defined.  Can't calculate lengths\n");
+				} else {
+					int headerLength = sat.sourceFormat[parent.sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
+					calculatedDataLength += headerLength;
+					int frameLength = sat.sourceFormat[parent.sourceFormatSelected].getFrameLength();
+					int dataLength = sat.sourceFormat[parent.sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
+					int trailerLength = sat.sourceFormat[parent.sourceFormatSelected].getTrailerLength();
+					int calculatedFrameLength = calculatedDataLength + trailerLength;
+					JLabel labFrameLen = new JLabel("Length of this frame: " + calculatedFrameLength + "   ( Format: " + frameLength + " )");
+					if (frameLength < calculatedFrameLength) {
+						labFrameLen.setForeground(Config.AMSAT_RED);
+					}
+					JLabel labHeaderLen = new JLabel("Header Length: " + headerLength);
+					JLabel labDataLen = new JLabel("Data Length: " + calculatedDataLength + "   ( Format: " + dataLength + " )");
+					if (dataLength < calculatedDataLength) {
+						labDataLen.setForeground(Config.AMSAT_RED);
+					}
+					JLabel labTrailerLen = new JLabel("Trailer Length: " + trailerLength);
+					stats.add(labFrameLen);
+					stats.add(labHeaderLen);
+					stats.add(labDataLen);
+					stats.add(labTrailerLen);
+				}
+				
+			}
+			rightPanel.revalidate();
+			rightPanel.repaint();
+		} catch (LayoutLoadException e1) {
+			Log.errorDialog("ERROR", "Error in the frame layout\n" + e1);
+//		}  catch (Exception e1) {
+//			Log.errorDialog("ERROR", "Can't display the frame layout\n" + e1);
+		}
+	}
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
@@ -370,8 +519,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 
 				String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 				
-				frameName.setText(sat.frameLayout[row].name);
-				frameFilename.setText(sat.frameLayoutFilename[row]);
+				
 				
 				if (e.getClickCount() == 2) {
 
@@ -386,105 +534,9 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 //					editor.setVisible(true);
 //				}
 				
-				if (rightPanel != null)
-					remove(rightPanel);
+				updateRow(row);
 				
-				rightPanel = new JPanel();
-				add(rightPanel);
-				rightPanel.setLayout(new BorderLayout());
-
-				TitledBorder heading2 = SpacecraftEditPanel.title("Frame: " + sat.frameLayout[row].name);
-				rightPanel.setBorder(heading2);
 				
-				JPanel stats = new JPanel();
-				stats.setLayout(new BoxLayout(stats,BoxLayout.Y_AXIS));
-				rightPanel.add(stats, BorderLayout.NORTH);
-				
-				int calculatedDataLength = 0;
-				
-				// Populate table rightPanel1
-				// read it from disk, just in case..
-				FrameLayout frameLayout;
-				try {
-					frameLayout = new FrameLayout(sat.foxId, Spacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
-					if (frameLayout != null) {
-						frameTableModel = new FrameTableModel();
-
-						frameTable = new JTable(frameTableModel);
-						frameTable.setAutoCreateRowSorter(true);
-						JScrollPane scrollPane = new JScrollPane (frameTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-						scrollPane.setPreferredSize(new Dimension(100,400));
-						frameTable.setFillsViewportHeight(true);
-						//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-						rightPanel.add(scrollPane, BorderLayout.CENTER);
-						TableColumn column = frameTable.getColumnModel().getColumn(0);
-						column.setPreferredWidth(20);
-						column = frameTable.getColumnModel().getColumn(1);
-						column.setPreferredWidth(160);
-
-						
-						for (int i=0; i< frameTable.getColumnModel().getColumnCount(); i++) {
-							TableColumn column2 = frameTable.getColumnModel().getColumn(i);
-							column2.setCellRenderer(new FrameTableCellRenderer());
-						}
-						setPayloadComboBox();
-						
-						frameTable.addMouseListener(this);
-						int numOfPayloads = frameLayout.getNumberOfPayloads();
-						String[][] data = new String[numOfPayloads][3];
-						for (int i=0; i< numOfPayloads; i++) {
-							data[i][0] =""+i;
-							data[i][1] = frameLayout.getPayloadName(i);
-							int len = frameLayout.getPayloadLength(i);
-							calculatedDataLength += len;
-
-//							BitArrayLayout layout = sat.getLayoutByName(frameLayout.getPayloadName(i));
-//							int realLen = layout.getMaxNumberOfBytes();
-							data[i][2] = ""+len ;
-//							if (realLen != len) {
-//								data[i][2] = data[i][2]  + " ERROR";
-//							}
-
-						}
-						
-						frameTableModel.setData(data);
-						
-						//rightPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
-						
-						if (sat.sourceFormat == null || sat.sourceFormat[parent.sourceFormatSelected] == null) {
-							Log.errorDialog("MISSING", "No Source Format defined.  Can't calculate lengths\n");
-						} else {
-							int headerLength = sat.sourceFormat[parent.sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
-							calculatedDataLength += headerLength;
-							int frameLength = sat.sourceFormat[parent.sourceFormatSelected].getFrameLength();
-							int dataLength = sat.sourceFormat[parent.sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
-							int trailerLength = sat.sourceFormat[parent.sourceFormatSelected].getTrailerLength();
-							int calculatedFrameLength = calculatedDataLength + trailerLength;
-							JLabel labFrameLen = new JLabel("Length of this frame: " + calculatedFrameLength + "   ( Format: " + frameLength + " )");
-							if (frameLength < calculatedFrameLength) {
-								labFrameLen.setForeground(Config.AMSAT_RED);
-							}
-							JLabel labHeaderLen = new JLabel("Header Length: " + headerLength);
-							JLabel labDataLen = new JLabel("Data Length: " + calculatedDataLength + "   ( Format: " + dataLength + " )");
-							if (dataLength < calculatedDataLength) {
-								labDataLen.setForeground(Config.AMSAT_RED);
-							}
-							JLabel labTrailerLen = new JLabel("Trailer Length: " + trailerLength);
-							stats.add(labFrameLen);
-							stats.add(labHeaderLen);
-							stats.add(labDataLen);
-							stats.add(labTrailerLen);
-						}
-						
-					}
-					rightPanel.revalidate();
-					rightPanel.repaint();
-				} catch (LayoutLoadException e1) {
-					Log.errorDialog("ERROR", "Error in the frame layout\n" + e1);
-//				}  catch (Exception e1) {
-//					Log.errorDialog("ERROR", "Can't display the frame layout\n" + e1);
-				}
 				
 				
 			}

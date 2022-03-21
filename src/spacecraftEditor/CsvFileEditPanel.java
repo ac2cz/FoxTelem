@@ -32,7 +32,7 @@ import telemetry.LayoutLoadException;
 public abstract class CsvFileEditPanel extends JPanel implements ActionListener, MouseListener {
 
 	private static final long serialVersionUID = 1L;
-	protected CsvFileEditorGrid csvFileEditorGrid;
+	public CsvFileEditorGrid csvFileEditorGrid;
 	protected CsvTableModel tableModel;
 	JPanel centerPanel;
 	JPanel footerPanel;
@@ -43,7 +43,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	JButton btnLoad,btnAddAbove, btnAddBelow, btnRemove, btnSave, btnUp, btnDown;
 	JTextField csvFilename;
 	
-	public CsvFileEditPanel(Spacecraft sat, CsvTableModel model, CsvFileEditorGrid csvFileEditorGrid, String titleString, String file) {
+	public CsvFileEditPanel(Spacecraft sat, CsvTableModel model, String titleString, String file) {
 		this.sat = sat;
 		tableModel = model;
 		filename = file;
@@ -51,8 +51,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		setLayout(new BorderLayout());
 		
 		setTitle(titleString);
-		
-		this.csvFileEditorGrid = csvFileEditorGrid;
+		csvFileEditorGrid = new CsvFileEditorGrid(model, this);
 		add(csvFileEditorGrid);
 		
 		footerPanel = new JPanel();
@@ -96,7 +95,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		setFile(file);
 	}
 	
-	protected abstract void updateSpacecraft();
+	protected abstract void updateSpacecraft(); // call back that allows the implementor to save settings back to the spacecraft file
 	
 	private void setTitle(String titleString) {
 		TitledBorder title = new TitledBorder(null, titleString, TitledBorder.LEADING, TitledBorder.TOP, null, null);
