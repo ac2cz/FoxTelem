@@ -37,11 +37,10 @@ import gui.tabs.CanExperimentTab;
 import gui.tabs.DisplayModule;
 import gui.tabs.FoxTelemTab;
 import gui.tabs.HealthTabRt;
-import gui.tabs.ModuleTab;
 import gui.tabs.NamedExperimentTab;
 import gui.tabs.WodHealthTab;
 import gui.tabs.WodNamedExperimentTab;
-import spacecraftEditor.EditorFrame;
+import spacecraftEditor.CsvFileEditorGrid;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
 
@@ -216,7 +215,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		add(tabbedPane, BorderLayout.CENTER);
 		
 		PayloadLayoutTableModel payloadTableModel = new PayloadLayoutTableModel();
-		PayloadCsvFileEditorGrid payloadCsvFileEditorGrid = new PayloadCsvFileEditorGrid(payloadTableModel);
+		CsvFileEditorGrid payloadCsvFileEditorGrid = new CsvFileEditorGrid(payloadTableModel);
 		payloadCsvFileEditPanel = new PayloadCsvFileEditPanel(sat, payloadTableModel,payloadCsvFileEditorGrid, "Payload",null);
 			
 	
@@ -257,9 +256,17 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		if (lay.title != null)
 			title = lay.title;
 		if (lay.isRealTime() || lay.isMAX() || lay.isMIN())
-			modulesTab = new HealthTabRt(sat);
+			try {
+				modulesTab = new HealthTabRt(sat);
+			} catch (LayoutLoadException e) {
+				Log.errorDialog("ERROR loading health tab", ""+e);
+			}
 		if (lay.isWOD())
-			modulesTab = new WodHealthTab(sat);
+			try {
+				modulesTab = new WodHealthTab(sat);
+			} catch (LayoutLoadException e) {
+				Log.errorDialog("ERROR loading WOD tab", ""+e);
+			}
 		if (lay.isExperiment()) {
 			
 			modulesTab = new NamedExperimentTab(sat, title, 

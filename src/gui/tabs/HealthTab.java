@@ -144,7 +144,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	JRadioButton minBut;
 	protected int healthTableToDisplay;
 	
-	public HealthTab(Spacecraft spacecraft, int displayType) {
+	public HealthTab(Spacecraft spacecraft, int displayType) throws LayoutLoadException {
 		fox = spacecraft;
 		foxId = fox.foxId;
 		setLayout(new BorderLayout(0, 0));
@@ -238,25 +238,22 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
 		if (rt == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
+			throw new LayoutLoadException("MISSING LAYOUT: The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
-			System.exit(1);
+			//System.exit(1);
 		} else 	if (max == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
+			throw new LayoutLoadException("MISSING LAYOUTS: The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
-			System.exit(1);
+			
 		} else if (min == null ) {
-			Log.errorDialog("MISSING LAYOUTS", "The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
+			throw new LayoutLoadException("MISSING LAYOUTS: The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
 					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
-			System.exit(1);
+			
 		} else
-		try {
-			analyzeModules(rt, max, min, displayType);
-		} catch (LayoutLoadException e) {
-			Log.errorDialog("FATAL - Health Tab Load Aborted", e.getMessage());
-			e.printStackTrace(Log.getWriter());
-			System.exit(1);
-		}
+		
+		analyzeModules(rt, max, min, displayType);
+	
+			
 		
 		rtTableModel = new HealthTableModel(rt);
 		rtTable = new JTable(rtTableModel);

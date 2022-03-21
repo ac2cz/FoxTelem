@@ -25,6 +25,7 @@ import gui.tabs.WodNamedExperimentTab;
 import gui.uw.UwExperimentTab;
 import gui.uw.WodUwExperimentTab;
 import telemetry.BitArrayLayout;
+import telemetry.LayoutLoadException;
 
 /**
 * 
@@ -126,7 +127,14 @@ public class SpacecraftTab extends JPanel {
 			if (lay.isSecondaryPayload()) continue; // not the secondary format that is displayed at the top of the tab and in the table when we uncheck "Show Raw Bytes"
 			if (lay.isRealTime()) {
 				// Add health tab
-				HealthTabRt healthTab = new HealthTabRt(sat);
+				HealthTabRt healthTab = null;
+				try {
+					healthTab = new HealthTabRt(sat);
+				} catch (LayoutLoadException e) {
+					Log.errorDialog("ERROR loading health tab", ""+e);
+					e.printStackTrace(Log.getWriter());
+					System.exit(1);;
+				}
 				Thread healthThread = new Thread(healthTab);
 				healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 				healthThread.start();
@@ -135,7 +143,14 @@ public class SpacecraftTab extends JPanel {
 						+ HEALTH + "</b></body></html>", healthTab );
 			}
 			if (lay.isWOD()) {
-				WodHealthTab wodHealthTab = new WodHealthTab(sat);
+				WodHealthTab wodHealthTab = null;
+				try {
+					wodHealthTab = new WodHealthTab(sat);
+				} catch (LayoutLoadException e) {
+					Log.errorDialog("ERROR loading WOD tab", ""+e);
+					e.printStackTrace(Log.getWriter());
+					System.exit(1);;
+				}
 				Thread wodHealthThread = new Thread(wodHealthTab);
 				wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 				wodHealthThread.start();
@@ -188,7 +203,14 @@ public class SpacecraftTab extends JPanel {
 	private void addLegacyTabs() {
 		stop();
 		
-		HealthTabRt healthTab = new HealthTabRt(sat);
+		HealthTabRt healthTab = null;
+		try {
+			healthTab = new HealthTabRt(sat);
+		} catch (LayoutLoadException e1) {
+			Log.errorDialog("ERROR loading health tab", ""+e1);
+			e1.printStackTrace(Log.getWriter());
+			System.exit(1);;
+		}
 		healthThread = new Thread(healthTab);
 		healthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		healthThread.start();
@@ -272,7 +294,14 @@ public class SpacecraftTab extends JPanel {
 
 	private void addWodTab(Spacecraft fox) {
 		
-		WodHealthTab wodHealthTab = new WodHealthTab(sat);
+		WodHealthTab wodHealthTab = null;
+		try {
+			wodHealthTab = new WodHealthTab(sat);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("ERROR loading WOD tab", ""+e);
+			e.printStackTrace(Log.getWriter());
+			System.exit(1);;
+		}
 		wodHealthThread = new Thread(wodHealthTab);
 		wodHealthThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
 		wodHealthThread.start();

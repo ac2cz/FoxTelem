@@ -45,8 +45,8 @@ import telemetry.SatPayloadStore;
  */
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
-	public static final String VERSION_NUM = "0.5";
-	public static final String VERSION = VERSION_NUM + " - 15 Mar 2022";
+	public static final String VERSION_NUM = "1.0";
+	public static final String VERSION = VERSION_NUM + " - 20 Mar 2022";
 	
 	// Swing File Chooser
 	static JFileChooser fc = null;

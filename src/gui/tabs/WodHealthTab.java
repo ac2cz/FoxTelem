@@ -18,6 +18,7 @@ import gui.MainWindow;
 import gui.graph.GraphFrame;
 import predict.PositionCalcException;
 import telemetry.FramePart;
+import telemetry.LayoutLoadException;
 import telemetry.payloads.PayloadWOD;
 import uk.me.g4dpz.satellite.SatPos;
 
@@ -30,7 +31,7 @@ public class WodHealthTab extends HealthTab {
 	JLabel lblSatLatitudeValue;
 	JLabel lblSatLongitudeValue;
 	
-	public WodHealthTab(Spacecraft spacecraft) {
+	public WodHealthTab(Spacecraft spacecraft) throws LayoutLoadException {
 		super(spacecraft, DisplayModule.DISPLAY_WOD);
 		TAB_TYPE = "wod";
 		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");

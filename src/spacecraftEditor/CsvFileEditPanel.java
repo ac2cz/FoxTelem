@@ -25,6 +25,8 @@ import javax.swing.border.TitledBorder;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
+import gui.MainWindow;
+import gui.ProgressPanel;
 import telemetry.LayoutLoadException;
 
 public abstract class CsvFileEditPanel extends JPanel implements ActionListener, MouseListener {
@@ -41,7 +43,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	JButton btnLoad,btnAddAbove, btnAddBelow, btnRemove, btnSave, btnUp, btnDown;
 	JTextField csvFilename;
 	
-	public CsvFileEditPanel(Spacecraft sat, CsvTableModel model, CsvFileEditorGrid csvFileEditorPanel, String titleString, String file) {
+	public CsvFileEditPanel(Spacecraft sat, CsvTableModel model, CsvFileEditorGrid csvFileEditorGrid, String titleString, String file) {
 		this.sat = sat;
 		tableModel = model;
 		filename = file;
@@ -50,8 +52,8 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		
 		setTitle(titleString);
 		
-		this.csvFileEditorGrid = csvFileEditorPanel;
-		add(csvFileEditorPanel);
+		this.csvFileEditorGrid = csvFileEditorGrid;
+		add(csvFileEditorGrid);
 		
 		footerPanel = new JPanel();
 		footerPanel.setLayout(new BoxLayout(footerPanel, BoxLayout.Y_AXIS));
@@ -104,6 +106,9 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	
 	public void setFile(String file) {
 		if (file !=null) {
+			ProgressPanel initProgress = null;
+			initProgress = new ProgressPanel(MainWindow.frame, "Loading file " +filename+", please wait ...", false);
+			initProgress.setVisible(true);
 			this.filename = file;
 			this.csvFilename.setText(file);
 			setTitle(" : " + file);
@@ -114,6 +119,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 			} catch (LayoutLoadException e) {
 				Log.errorDialog("ERROR", "Could not parse CSV file\n" + file + "\n" + e);
 			}
+			initProgress.updateProgress(100);
 		}
 	}
 

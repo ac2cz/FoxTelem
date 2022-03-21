@@ -132,6 +132,8 @@ public class EditorFrame extends JFrame implements ActionListener, WindowListene
 
 		fileM.add(saveI);
 		fileM.add(cancelI);
+		saveI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		cancelI.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, ActionEvent.CTRL_MASK));
 
 		editM.add(cutI);
 		editM.add(copyI);

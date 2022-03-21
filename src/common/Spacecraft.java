@@ -18,8 +18,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.Comparator;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -388,6 +395,14 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				return layout[i];
 		}
 		return getLayoutByName(Spacecraft.CAN_PKT_LAYOUT); // try to return the default instead. We dont have this CAN ID
+	}
+	
+	public String[] getPayloadList() {
+		String[] payloadList = new String[this.numberOfLayouts];
+		for (int i=0; i<numberOfLayouts; i++) {
+			payloadList[i] = this.layout[i].name;
+		}
+		return payloadList;
 	}
 	
 	public String[] getConversionsArray() {
@@ -1348,10 +1363,22 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	protected void store_master_params() {
+		Properties tmp = new Properties() {
+			@Override public synchronized Set<Map.Entry<Object, Object>> entrySet() {
+	            return Collections.synchronizedSet(
+	                    super.entrySet()
+	                    .stream()
+	                    .sorted(Comparator.comparing(e -> e.getKey().toString()))
+	                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+	        }
+		};
+
+		tmp.putAll(properties);
+
 		FileOutputStream f = null;
 		try {
 			f=new FileOutputStream(propertiesFile);
-			properties.store(f, "AMSAT Spacecraft Properties");
+			tmp.store(f, "AMSAT Spacecraft Properties");
 			f.close();
 		} catch (FileNotFoundException e1) {
 			if (f!=null) try { f.close(); } catch (Exception e2) {};
@@ -1362,6 +1389,21 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
 			e1.printStackTrace(Log.getWriter());
 		}
+			
+//		FileOutputStream f = null;
+//		try {
+//			f=new FileOutputStream(propertiesFile);
+//			properties.store(f, "AMSAT Spacecraft Properties");
+//			f.close();
+//		} catch (FileNotFoundException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e2) {};
+//			Log.errorDialog("ERROR", "Could not write spacecraft MASTER file. Check permissions on run directory or on the file");
+//			e1.printStackTrace(Log.getWriter());
+//		} catch (IOException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e3) {};
+//			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
+//			e1.printStackTrace(Log.getWriter());
+//		}
 	}
 	
 	/**
@@ -1469,8 +1511,19 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			properties.setProperty("memsRestValueY", Integer.toString(user_memsRestValueY));
 			properties.setProperty("memsRestValueZ", Integer.toString(user_memsRestValueZ));			
 		}
+		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
 		
 		properties.setProperty("hasModeInHeader", Boolean.toString(hasModeInHeader));
+		properties.setProperty("hasImprovedCommandReceiver", Boolean.toString(hasImprovedCommandReceiver));
+		properties.setProperty("hasImprovedCommandReceiverII", Boolean.toString(hasImprovedCommandReceiverII));
+		properties.setProperty("hasCanBus", Boolean.toString(hasCanBus));
+		properties.setProperty("hasFrameCrc", Boolean.toString(this.hasFrameCrc));
+		
+		for (int i=0; i<4; i++) {
+			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
+		}
+		
+		// things you can't edit don't need to be passed through because they will have the same value in the properties file still
 		
 		store_master_params();
 	}

@@ -1,6 +1,8 @@
 package spacecraftEditor.listEditors.frames;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Component;
 import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -15,6 +17,7 @@ import java.io.InputStreamReader;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
@@ -25,6 +28,7 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import common.Config;
@@ -33,6 +37,7 @@ import common.Spacecraft;
 import spacecraftEditor.EditorFrame;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
+import spacecraftEditor.listEditors.payload.PayloadCsvFileEditPanel.PayloadTableCellRenderer;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
@@ -50,7 +55,10 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 	JTable framesTable;
 	JPanel rightPanel;
 	
-	FramesTableModel frameTableModel;
+	FramesTableModel framesListTableModel;
+	FrameTableModel frameTableModel;  // right hand frame panel
+	
+	JTable frameTable;
 	
 	JButton btnAddFrame, btnRemoveFrame,btnBrowseFrame,btnUpdateFrame;
 	JTextField frameFilename,frameName;
@@ -85,10 +93,10 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		}
 		
 		if (sat.numberOfFrameLayouts > 0) 
-			frameTableModel.setData(data);
+			framesListTableModel.setData(data);
 		else {
 			String[][] fakeRow = {{"","","",""}};
-			frameTableModel.setData(fakeRow);
+			framesListTableModel.setData(fakeRow);
 		}
 	}
 	
@@ -106,11 +114,11 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		TitledBorder headingFrames = SpacecraftEditPanel.title("Frames");
 		leftPanel1.setBorder(headingFrames);
 
-		frameTableModel = new FramesTableModel();
+		framesListTableModel = new FramesTableModel();
 		
 		//if (sat.numberOfFrameLayouts > 0) {
 
-		framesTable = new JTable(frameTableModel);
+		framesTable = new JTable(framesListTableModel);
 		framesTable.setAutoCreateRowSorter(true);
 		JScrollPane scrollPane = new JScrollPane (framesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setPreferredSize(new Dimension(100,400));
@@ -196,23 +204,10 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		// RIGHT Column
 		rightPanel = new JPanel();
 		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
-
-//		LayoutTableModel layoutTableModel = new LayoutTableModel();
-//		layoutEditorPanel = new PayloadLayoutEditorPanel(layoutTableModel, "Layouts");
-//		rightPanel.add(layoutEditorPanel);
 		
 		TitledBorder heading2 = SpacecraftEditPanel.title("Frame");
 		rightPanel.setBorder(heading2);
 
-
-//		JPanel rightPanel2 = new JPanel();
-//		rightPanel.add(rightPanel2);
-//		rightPanel2.setLayout(new BoxLayout(rightPanel2, BoxLayout.Y_AXIS));
-//
-//		TitledBorder heading3 = SpacecraftEditPanel.title("Layout");
-//		rightPanel2.setBorder(heading3);
-//
-//		rightPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 		return rightPanel;
 	}
 	
@@ -224,8 +219,6 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			newFrameLayoutFilenames[i] = sat.frameLayoutFilename[i];
 		}
 		sat.frameLayoutFilename = newFrameLayoutFilenames;
-		
-		
 		
 		try {
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + frameFilename.getText());
@@ -415,9 +408,9 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 				try {
 					frameLayout = new FrameLayout(sat.foxId, Spacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
 					if (frameLayout != null) {
-						FrameTableModel frameTableModel = new FrameTableModel();
+						frameTableModel = new FrameTableModel();
 
-						JTable frameTable = new JTable(frameTableModel);
+						frameTable = new JTable(frameTableModel);
 						frameTable.setAutoCreateRowSorter(true);
 						JScrollPane scrollPane = new JScrollPane (frameTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 						scrollPane.setPreferredSize(new Dimension(100,400));
@@ -430,6 +423,13 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 						column = frameTable.getColumnModel().getColumn(1);
 						column.setPreferredWidth(160);
 
+						
+						for (int i=0; i< frameTable.getColumnModel().getColumnCount(); i++) {
+							TableColumn column2 = frameTable.getColumnModel().getColumn(i);
+							column2.setCellRenderer(new FrameTableCellRenderer());
+						}
+						setPayloadComboBox();
+						
 						frameTable.addMouseListener(this);
 						int numOfPayloads = frameLayout.getNumberOfPayloads();
 						String[][] data = new String[numOfPayloads][3];
@@ -490,6 +490,41 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			}
 		}
 	}
+	
+	public void setPayloadComboBox() {
+		String[] payloads = sat.getPayloadList();
+		JComboBox<String> payloadBox = new JComboBox<String>(payloads);
+		TableColumn moduleColumn = frameTable.getColumnModel().getColumn(1); // payload column
+		moduleColumn.setCellEditor(new DefaultCellEditor(payloadBox));
+	}
+	
+	/**
+	 * Color the rows in the directory so that we know when we have data
+	 * @author chris.e.thompson g0kla
+	 *
+	 */
+	public class FrameTableCellRenderer extends DefaultTableCellRenderer {
+		private static final long serialVersionUID = 1L;
+
+		// This is a overridden function which gets executed for each action to the dir table
+		public Component getTableCellRendererComponent (JTable table, 
+				Object obj, boolean isSelected, boolean hasFocus, int row, int column) {
+
+			Component cell = super.getTableCellRendererComponent(
+					table, obj, isSelected, hasFocus, row, column);
+			
+			if (row >0 && column == 1) {
+				String value = (String) frameTableModel.getValueAt(row, column);
+				BitArrayLayout lay = sat.getLayoutByName(value);
+				if (lay == null) {
+					cell.setForeground(Color.red);
+					return cell;
+				}
+				cell.setForeground(Color.black);	
+			}
+			return cell;
+		}
+	} 
 
 	@Override
 	public void mouseReleased(MouseEvent e) {

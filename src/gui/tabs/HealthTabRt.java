@@ -15,12 +15,13 @@ import common.Spacecraft;
 import gui.MainWindow;
 import gui.graph.GraphFrame;
 import telemetry.FramePart;
+import telemetry.LayoutLoadException;
 
 public class HealthTabRt extends HealthTab {
 
 	private static final long serialVersionUID = 1L;
 
-	public HealthTabRt(Spacecraft spacecraft) {
+	public HealthTabRt(Spacecraft spacecraft) throws LayoutLoadException {
 		super(spacecraft, DisplayModule.DISPLAY_ALL);
 		TAB_TYPE = "health";
 		healthTableToDisplay = Config.loadGraphIntValue(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, TAB_TYPE+"healthTableToDisplay");

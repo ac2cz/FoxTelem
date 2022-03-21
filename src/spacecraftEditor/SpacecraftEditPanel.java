@@ -85,14 +85,16 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	JTextField memsRestValueX, memsRestValueY, memsRestValueZ;
 	JTextField[] T0;
 	JTextField localServer;
-	JTextField localServerPort;
+	JTextField localServerPort, IHU_SN, model;
 
 	JCheckBox[] sendLayoutToServer;
+	JCheckBox hasImprovedCommandReceiver, hasImprovedCommandReceiverII, hasModeInHeader, hasFrameCrc;
 	JTextArea taDesc;
 
 	JCheckBox useIHUVBatt;
 	JCheckBox track,hasFOXDB_V3,useConversionCoeffs;
-	JComboBox<String> cbMode;
+	JComboBox<String> cbMode, cbModel;
+	JComboBox<String>[] cbExperiments;
 
 	JButton btnCancel;
 	JButton btnSave;
@@ -116,7 +118,6 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		setBorder(new EmptyBorder(5, 5, 5, 5));
 
 		setLayout(new BorderLayout(0, 0));
-
 
 		leftPanel = addLeftPanel();
 		add(leftPanel, BorderLayout.WEST);
@@ -244,13 +245,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 		//leftSourcesPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
-
-
-
-
-
 		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,100), new Dimension(100,500)));
-
 
 		return leftPanel;
 
@@ -270,17 +265,30 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading = title("Fixed Paramaters");
 		leftFixedPanel.setBorder(heading);
 
-		JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
-		leftFixedPanel.add(lModel);
-		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
-		leftFixedPanel.add(lIhusn);
-		JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
-		leftFixedPanel.add(icr);
+		//JLabel lModel = new JLabel("Model: " + Spacecraft.modelNames[sat.model]);
+		//leftFixedPanel.add(lModel);
+		cbModel = this.addComboBoxRow(leftFixedPanel, "Model", "", Spacecraft.modelNames);
+		setSelection(cbModel, Spacecraft.modelNames, Spacecraft.modelNames[sat.model]);
+		IHU_SN = addSettingsRow(leftFixedPanel, 15, "Computer (IHU) S/N)", 
+				"The serial number of the onboard computer", ""+sat.IHU_SN);
+		//JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
+		//leftFixedPanel.add(lIhusn);
+		hasModeInHeader = addCheckBoxRow("Mode in header", "Every recevied frame will include the mode in the header", sat.hasModeInHeader, leftFixedPanel );
+		hasFrameCrc = addCheckBoxRow("Frame CRC", "The last two bytes of the (BPSK) frame contain a CRC checksum", sat.hasFrameCrc, leftFixedPanel );
+		hasImprovedCommandReceiver = addCheckBoxRow("Improved Command Receiver", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiver, leftFixedPanel );
+		hasImprovedCommandReceiverII = addCheckBoxRow("Improved Command Receiver II", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiverII, leftFixedPanel );
+
+		//JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
+		//leftFixedPanel.add(icr);
 
 		JLabel lExp[] = new JLabel[4];
+		cbExperiments = new JComboBox[4];
 		for (int i=0; i<4; i++) {
-			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
-			leftFixedPanel.add(lExp[i]);
+			//lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
+			//leftFixedPanel.add(lExp[i]);
+			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "", Spacecraft.expNames);
+			setSelection(cbExperiments[i], Spacecraft.expNames, Spacecraft.expNames[sat.experiments[i]]);
+			
 		}
 
 		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
@@ -322,9 +330,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			ihuVBattLookUpTableFileName = addSettingsRow(leftPane2, 25, "VBatt Lookup Table", 
 					"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
 
-			rssiLookUpTableFileName.setEnabled(false);
-			ihuTempLookUpTableFileName.setEnabled(false);
-			ihuVBattLookUpTableFileName .setEnabled(false);
+			//rssiLookUpTableFileName.setEnabled(false);
+			//ihuTempLookUpTableFileName.setEnabled(false);
+			//ihuVBattLookUpTableFileName .setEnabled(false);
 
 			useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
 					+ "Voltage from the battery card using I2C", sat.useIHUVBatt, leftPane2 );
@@ -457,6 +465,25 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			sat.useConversionCoeffs = useConversionCoeffs.isSelected();
 			sat.description = taDesc.getText();
 
+			sat.model = cbModel.getSelectedIndex();
+			try {
+				sat.IHU_SN = Integer.parseInt(IHU_SN.getText());
+			} catch (NumberFormatException ex) {
+				throw new NumberFormatException("The Serial number must be an integer value");
+			}
+			
+			sat.hasModeInHeader = hasModeInHeader.isSelected();
+			if (hasImprovedCommandReceiver.isSelected() && hasImprovedCommandReceiverII.isSelected()) {
+				throw new NumberFormatException("Can not select ICR II if ICR is already selected");
+			}
+			sat.hasImprovedCommandReceiver = hasImprovedCommandReceiver.isSelected();
+			sat.hasImprovedCommandReceiverII = hasImprovedCommandReceiverII.isSelected();
+			sat.hasFrameCrc = hasFrameCrc.isSelected();
+			
+			for (int i=0; i<4; i++) {
+				sat.experiments[i] = cbExperiments[i].getSelectedIndex();
+			}
+			
 			// USER File params
 			try {
 				downlinkFreq = (double)(Math.round(Double.parseDouble(telemetryDownlinkFreqkHz.getText())*1000)/1000.0);
@@ -475,20 +502,6 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			}
 			int m = cbMode.getSelectedIndex();
 			sat.user_format = m;
-			//String md = (String) cbMode.getSelectedItem();
-
-			//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
-			//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
-			//				refreshTabs = true;
-			//			}
-			//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
-			//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
-			//				refreshTabs = true;
-			//			}
-			//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
-			//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
-			//				refreshTabs = true;
-			//			}
 
 			if (!sat.hasFOXDB_V3) {
 				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {

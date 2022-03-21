@@ -10,16 +10,17 @@ import javax.swing.table.TableColumn;
 
 import common.Spacecraft;
 import spacecraftEditor.CsvFileEditPanel;
+import spacecraftEditor.CsvFileEditorGrid;
 
 public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 
 	private static final long serialVersionUID = 1L;
 	public static final int CONVERSION_COL = 5;
 	
-	PayloadCsvFileEditorGrid payloadFileEditorGrid;
+	CsvFileEditorGrid payloadFileEditorGrid;
 	PayloadLayoutTableModel model;
 
-	public PayloadCsvFileEditPanel(Spacecraft sat, PayloadLayoutTableModel model, PayloadCsvFileEditorGrid payloadFileEditorGrid,
+	public PayloadCsvFileEditPanel(Spacecraft sat, PayloadLayoutTableModel model, CsvFileEditorGrid payloadFileEditorGrid,
 			String titleString, String file) {
 		super(sat, model, payloadFileEditorGrid, titleString, file);
 		this.model = model;
