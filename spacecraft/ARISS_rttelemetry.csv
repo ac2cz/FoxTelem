@@ -17,4 +17,4 @@
 15,RT,pad10,32,-,0,NONE,0,0,0,None,None
 16,RT,pad11,32,-,0,NONE,0,0,0,None,None
 17,RT,pad12,32,-,0,NONE,0,0,0,None,None
-18,RT,pad13,16,-,0,NONE,0,0,0,None,None
+18,RT,pad13,16,-,INT,NONE,0,0,0,None,None
