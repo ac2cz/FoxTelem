@@ -25,13 +25,14 @@ package telemetry.conversion;
  * 
  *
  */
+@Deprecated
 public class LookUpTableTemperature extends ConversionLookUpTable {
 	
 	//public static void main(String[] args) {
 	//	TempLookUpTable tab = new TempLookUpTable();
 	//	System.out.println(tab.lookupValue(2123));
 	//}
-	
+	@Deprecated
 	public LookUpTableTemperature() {
 		super("LookUpTableTemperature");
 		table.put(507,-55.0);

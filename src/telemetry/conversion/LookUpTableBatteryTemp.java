@@ -24,8 +24,9 @@ package telemetry.conversion;
  * Look up table for the temperature sensors on the battery board
  *
  */
+@Deprecated
 public class LookUpTableBatteryTemp extends ConversionLookUpTable {
-
+	@Deprecated
 public LookUpTableBatteryTemp() {
 	super("LookUpTableBatteryTemp");
 	table.put(608,-55.0);
