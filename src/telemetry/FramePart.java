@@ -958,6 +958,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			return String.format("%2s", Long.toHexString(l)).replace(' ', '0');
 		}
 		
+		@Deprecated
 		private String legacyStringConversion(int conv, double value, Spacecraft fox) {
 			String s = "-----";
 			if (value == ERROR_VALUE) {
@@ -1114,6 +1115,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		 * @param conversion
 		 * @return
 		 */
+		@Deprecated
 		protected double convertRawValue(String name, double rawValue, int conversion, Spacecraft fox ) {
 			
 		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
