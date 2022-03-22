@@ -1,4 +1,4 @@
-package spacecraftEditor;
+package spacecraftEditor.listEditors;
 
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -27,6 +27,7 @@ import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
 import gui.ProgressPanel;
+import spacecraftEditor.SpacecraftEditorWindow;
 import telemetry.LayoutLoadException;
 
 public abstract class CsvFileEditPanel extends JPanel implements ActionListener, MouseListener {

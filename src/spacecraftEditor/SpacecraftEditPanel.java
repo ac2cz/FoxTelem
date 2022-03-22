@@ -32,6 +32,7 @@ import javax.swing.JLabel;
 import common.Log;
 import common.Spacecraft;
 import gui.SourceTab;
+import spacecraftEditor.listEditors.CsvTableModel;
 import telemetry.TelemFormat;
 import common.Config;
 
@@ -96,13 +97,11 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	JComboBox<String> cbMode, cbModel;
 	JComboBox<String>[] cbExperiments;
 
-	JButton btnCancel;
-	JButton btnSave;
-
+	JButton btnCancel,btnSave;
+	
 	Spacecraft sat;
 
-	JTable sourcesTable;
-	JPanel leftSourcesPanel, sourceStats, leftPanel, rightPanel;
+	JPanel leftSourcesPanel,leftPanel, rightPanel;
 
 	public int sourceFormatSelected = 0; // the source format that the user has clicked
 
@@ -213,35 +212,35 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		leftSourcesPanel.setBorder(headingSources);
 		leftSourcesPanel.setLayout(new BorderLayout());
 
-		sourceStats = new JPanel();
-		leftSourcesPanel.add(sourceStats, BorderLayout.SOUTH);
+		SourcesTableModel sourcesListTableModel = new SourcesTableModel();
+		CsvTableModel sourceTableModel = new SourcesTableModel();
+		SourceTableListEditPanel sourceTableListEditPanel = new SourceTableListEditPanel(sat, "Sources", sourcesListTableModel, sourceTableModel, this);
+		leftSourcesPanel.add(sourceTableListEditPanel, BorderLayout.CENTER);
+		
+//		sourcesTable = new JTable(sourcesTableModel);
+//		sourcesTable.setAutoCreateRowSorter(true);
+//		JScrollPane sourcesScrollPane = new JScrollPane (sourcesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+//		sourcesScrollPane.setPreferredSize(new Dimension(100,400));
+//		sourcesTable.setFillsViewportHeight(true);
+//		//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+//
+//		leftSourcesPanel.add(sourcesScrollPane, BorderLayout.CENTER);
+//		TableColumn column = null;
+//		column = sourcesTable.getColumnModel().getColumn(0);
+//		column.setPreferredWidth(100);
+//		column = sourcesTable.getColumnModel().getColumn(1);
+//		column.setPreferredWidth(100);
+//		sourcesTable.addMouseListener(this);
 
-		SourcesTableModel sourcesTableModel = new SourcesTableModel();
-
-		sourcesTable = new JTable(sourcesTableModel);
-		sourcesTable.setAutoCreateRowSorter(true);
-		JScrollPane sourcesScrollPane = new JScrollPane (sourcesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-		sourcesScrollPane.setPreferredSize(new Dimension(100,400));
-		sourcesTable.setFillsViewportHeight(true);
-		//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-
-		leftSourcesPanel.add(sourcesScrollPane, BorderLayout.CENTER);
-		TableColumn column = null;
-		column = sourcesTable.getColumnModel().getColumn(0);
-		column.setPreferredWidth(100);
-		column = sourcesTable.getColumnModel().getColumn(1);
-		column.setPreferredWidth(100);
-		sourcesTable.addMouseListener(this);
-
-		String[][] data = new String[sat.numberOfSources][2];
-		for (int i=0; i< sat.numberOfSources; i++) {
-			data[i][0] =sat.sourceName[i];
-			if (sat.sourceFormatName != null) 
-				data[i][1] = sat.sourceFormatName[i];
-			else
-				data[i][1] ="NONE";
-		}
-		sourcesTableModel.setData(data);
+//		String[][] data = new String[sat.numberOfSources][2];
+//		for (int i=0; i< sat.numberOfSources; i++) {
+//			data[i][0] =sat.sourceName[i];
+//			if (sat.sourceFormatName != null) 
+//				data[i][1] = sat.sourceFormatName[i];
+//			else
+//				data[i][1] ="NONE";
+//		}
+//		sourcesTableModel.setData(data);
 
 		//leftSourcesPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
@@ -624,54 +623,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 	@Override
 	public void mousePressed(MouseEvent e) {
-		// Display text for source when it is clicked
-		if (e.getSource() == sourcesTable) {
-			int row = sourcesTable.rowAtPoint(e.getPoint());
-			int col = sourcesTable.columnAtPoint(e.getPoint());
-			if (row >= 0 && col >= 0) {
-				//Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
-
-				String name = (String) sourcesTable.getValueAt(row, 1);
-				if (name != null && ! name.equalsIgnoreCase("NONE")) {
-					System.out.println("Edit:" + sat.sourceFormat[row]);
-					sourceFormatSelected = row;
-					if (e.getClickCount() == 2) {
-						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-						EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row] + ".format");
-						editor.setVisible(true);
-					}
-
-					if (sourceStats != null)
-						leftSourcesPanel.remove(sourceStats);
-
-					sourceStats = new JPanel();
-					sourceStats.setLayout(new BoxLayout(sourceStats, BoxLayout.Y_AXIS));
-					leftSourcesPanel.add(sourceStats, BorderLayout.SOUTH);
-
-					int numRsWords = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.RS_WORDS);
-					int headerLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
-					int frameLength = sat.sourceFormat[sourceFormatSelected].getFrameLength();
-					int dataLength = sat.sourceFormat[sourceFormatSelected].getInt(TelemFormat.DATA_LENGTH);
-					int trailerLength = 32 * numRsWords;
-
-					JLabel labFrameLen = new JLabel("Frame Length: "+ frameLength );
-
-					JLabel labHeaderLen = new JLabel("Header Length: " + headerLength);
-					JLabel labDataLen = new JLabel("Data Length: " + dataLength );
-					JLabel labRSWords = new JLabel("RS Words: " + numRsWords);
-					JLabel labTrailerLen = new JLabel("Trailer Length: " + trailerLength);
-					sourceStats.add(labFrameLen);
-					sourceStats.add(labHeaderLen);
-					sourceStats.add(labDataLen);
-					sourceStats.add(labRSWords);
-					sourceStats.add(labTrailerLen);
-
-				}
-				leftSourcesPanel.revalidate();
-				leftSourcesPanel.repaint();
-			}
-		}
-
+		
 	}
 
 	@Override

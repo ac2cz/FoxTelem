@@ -1,6 +1,6 @@
 package spacecraftEditor.listEditors.expressions;
 
-import spacecraftEditor.CsvTableModel;
+import spacecraftEditor.listEditors.CsvTableModel;
 
 /**
  * 

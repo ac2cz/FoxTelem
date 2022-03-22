@@ -1,4 +1,4 @@
-package spacecraftEditor.listEditors.lookupTables;
+package spacecraftEditor.listEditors;
 
 import java.awt.BorderLayout;
 import java.awt.Dimension;
@@ -32,10 +32,9 @@ import javax.swing.table.TableColumn;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import spacecraftEditor.CsvFileEditorGrid;
-import spacecraftEditor.CsvTableModel;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
+import spacecraftEditor.listEditors.lookupTables.LookupCsvFileEditPanel;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 import telemetry.conversion.ConversionLookUpTable;
@@ -49,8 +48,9 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	protected Spacecraft sat;
 	String title;
 	
-	JTable table;
-	JPanel rightPanel;
+	protected JTable table;
+	protected JPanel leftPanel;
+	protected JLabel lFilename;
 	
 	protected CsvTableModel listTableModel;
 	CsvTableModel csvTableModel;
@@ -60,7 +60,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	protected ArrayList<String[]> dataLines;
 	
 	JButton btnAdd, btnRemove,btnBrowse,btnUpdate;
-	JTextField txtFilename,txtName;
+	protected JTextField txtFilename;
+	protected JTextField txtName;
 	
 	
 	public TableListEditPanel(Spacecraft sat, String title, CsvTableModel listTableModel, CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
@@ -75,8 +76,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		
 		setLayout(new BorderLayout(0, 0));
 		
-		JPanel rightPanel = addLeftPanel();
-		add(rightPanel, BorderLayout.WEST);
+		leftPanel = addLeftPanel();
+		add(leftPanel, BorderLayout.WEST);
 		
 		JPanel centerPanel = addCenterPanel();
 		add(centerPanel, BorderLayout.CENTER);
@@ -215,9 +216,9 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		
 		JPanel f3 = new JPanel();
 		f3.setLayout(new BoxLayout(f3, BoxLayout.Y_AXIS) );
-		JLabel lf3 = new JLabel("Filename");
+		lFilename = new JLabel("Filename");
 		txtFilename = new JTextField();
-		f3.add(lf3);
+		f3.add(lFilename);
 		f3.add(txtFilename);
 		txtFilename.setEditable(false);
 		txtFilename.addMouseListener(this);
@@ -248,7 +249,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		return leftPanel;
 	}
 	
-	private JPanel addCenterPanel() {
+	protected JPanel addCenterPanel() {
 		// RIGHT Column
 
 		lookupCsvFileEditPanel = new LookupCsvFileEditPanel(sat, csvTableModel, "Lookup Tables",null);
@@ -365,7 +366,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		}
 	}
 
-	private void browseListItem() {
+	protected void browseListItem() {
 		Log.println("Browse for list item filename ...");
 		File dir = new File(Config.currentDir+"/spacecraft");
 		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", "csv");
@@ -373,7 +374,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		txtFilename.setText(file.getName());
 	}
 	
-	private void updateRow(int row) {
+	protected void updateRow(int row) {
 		txtName.setText(dataLines.get(row)[1]);
 		txtFilename.setText(dataLines.get(row)[2]);
 		

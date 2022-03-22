@@ -1,9 +1,9 @@
 package spacecraftEditor.listEditors.lookupTables;
 
 import common.Spacecraft;
-import spacecraftEditor.CsvFileEditPanel;
-import spacecraftEditor.CsvFileEditorGrid;
-import spacecraftEditor.CsvTableModel;
+import spacecraftEditor.listEditors.CsvFileEditPanel;
+import spacecraftEditor.listEditors.CsvFileEditorGrid;
+import spacecraftEditor.listEditors.CsvTableModel;
 
 public class LookupCsvFileEditPanel extends CsvFileEditPanel {
 	public LookupCsvFileEditPanel(Spacecraft sat, CsvTableModel model,

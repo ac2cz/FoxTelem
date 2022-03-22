@@ -10,6 +10,7 @@ import common.Spacecraft;
 import spacecraftEditor.listEditors.curves.CurvesTableModel;
 import spacecraftEditor.listEditors.expressions.ExpressionsCsvFileEditPanel;
 import spacecraftEditor.listEditors.expressions.ExpressionsTableModel;
+import spacecraftEditor.listEditors.CsvFileEditPanel;
 import spacecraftEditor.listEditors.curves.CurveCsvFileEditPanel;
 import spacecraftEditor.listEditors.frames.FrameListEditPanel;
 import spacecraftEditor.listEditors.lookupTables.LookupListTableModel;

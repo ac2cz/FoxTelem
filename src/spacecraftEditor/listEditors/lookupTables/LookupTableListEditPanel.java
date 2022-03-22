@@ -4,8 +4,9 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 import common.Spacecraft;
-import spacecraftEditor.CsvTableModel;
 import spacecraftEditor.SpacecraftEditPanel;
+import spacecraftEditor.listEditors.CsvTableModel;
+import spacecraftEditor.listEditors.TableListEditPanel;
 import telemetry.LayoutLoadException;
 import telemetry.conversion.ConversionLookUpTable;
 

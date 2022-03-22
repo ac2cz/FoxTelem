@@ -1,4 +1,4 @@
-package spacecraftEditor;
+package spacecraftEditor.listEditors;
 
 import javax.swing.table.AbstractTableModel;
 

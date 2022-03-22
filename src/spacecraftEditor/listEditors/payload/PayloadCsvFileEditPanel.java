@@ -9,8 +9,8 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import common.Spacecraft;
-import spacecraftEditor.CsvFileEditPanel;
-import spacecraftEditor.CsvFileEditorGrid;
+import spacecraftEditor.listEditors.CsvFileEditPanel;
+import spacecraftEditor.listEditors.CsvFileEditorGrid;
 
 public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 

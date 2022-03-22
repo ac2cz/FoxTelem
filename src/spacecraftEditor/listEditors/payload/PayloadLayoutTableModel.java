@@ -1,6 +1,6 @@
 package spacecraftEditor.listEditors.payload;
 
-import spacecraftEditor.CsvTableModel;
+import spacecraftEditor.listEditors.CsvTableModel;
 
 public class PayloadLayoutTableModel extends CsvTableModel {
 

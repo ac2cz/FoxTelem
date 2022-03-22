@@ -2,6 +2,8 @@ package spacecraftEditor;
 
 import javax.swing.table.AbstractTableModel;
 
+import spacecraftEditor.listEditors.CsvTableModel;
+
 /**
  * 
  * FOX 1 Telemetry Decoder
@@ -24,65 +26,30 @@ import javax.swing.table.AbstractTableModel;
  *
  */
 @SuppressWarnings("serial")
-public class SourcesTableModel extends AbstractTableModel {
-	String[] columnNames = null;
-	private String[][] data = null;
+public class SourcesTableModel extends CsvTableModel {
 
 	SourcesTableModel() {
-		columnNames = new String[2];
-		columnNames[0] = "Name";
-		columnNames[1] = "Format";
-
+		super();
 	}
+	
+	@Override
+	protected void initColumns() {
+		columnNames = new String[3];
+		columnNames[0] = "Num";
+		columnNames[1] = "Name";
+		columnNames[2] = "Format";
 
-	public void setData(String[][] d) { 
-		data = d;
-		fireTableDataChanged();
-	}
+		columnClass = new Class[] {
+				Integer.class,
+				String.class, //Name
+				String.class
+		};
 
-	public int getColumnCount() {
-		return columnNames.length;
-	}
-
-	public int getRowCount() {
-		if (data != null)
-			return data.length;
-		else 
-			return 0;
-	}
-
-	public String getColumnName(int col) {
-		return columnNames[col];
-	}
-
-	public Object getValueAt(int row, int col) {
-		return data[row][col];
-	}
-
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public Class getColumnClass(int c) {
-		return getValueAt(0, c).getClass();
-	}
-
-	/*
-	 * Don't need to implement this method unless your table's
-	 * editable.
-	 */
-	public boolean isCellEditable(int row, int col) {
-		//Note that the data/cell address is constant,
-		//no matter where the cell appears onscreen.
-
-		return false;
-
-	}
-
-	/*
-	 * Don't need to implement this method unless your table's
-	 * data can change.
-	 */
-	public void setValueAt(String value, int row, int col) {
-		data[row][col] = value;
-		fireTableCellUpdated(row, col);
+		columnWidths = new int[columnNames.length];
+		columnWidths[0] = 20;
+		columnWidths[1] = 50;
+		columnWidths[2] = 50;
+		
 	}
 
 }

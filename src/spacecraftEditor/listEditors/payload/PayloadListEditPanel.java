@@ -46,10 +46,9 @@ import gui.tabs.HealthTabRt;
 import gui.tabs.NamedExperimentTab;
 import gui.tabs.WodHealthTab;
 import gui.tabs.WodNamedExperimentTab;
-import spacecraftEditor.CsvFileEditorGrid;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
-
+import spacecraftEditor.listEditors.CsvFileEditorGrid;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
