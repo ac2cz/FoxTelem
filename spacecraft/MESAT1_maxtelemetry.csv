@@ -12,11 +12,11 @@
 10,maxDownlink,Xmag,8,uT,8_bit_mag,NONE,4,7,3,X Magnetometer,Angular Veolcity around X Axis
 11,maxDownlink,Ymag,8,uT,8_bit_mag,NONE,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
 12,maxDownlink,Zmag,8,uT,8_bit_mag,NONE,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
-13,maxDownlink,hostCANTemp0,8,C,8_bit_temp|INVALID_TEMP,NONE,6,4,3,Battery 1 Temp,Host Temp 1
-14,maxDownlink,hostCANTemp1,8,C,8_bit_temp|INVALID_TEMP,NONE,6,5,3,Battery 2 Temp,Host Temp 2
-15,maxDownlink,hostCANTemp2,8,C,8_bit_temp|INVALID_TEMP,NONE,6,6,3,Battery 3 Temp,Host Temp 3
-16,maxDownlink,hostCANTemp3,8,C,8_bit_temp|INVALID_TEMP,NONE,6,7,3,Battery 4 Temp,Host Temp 4
-17,maxDownlink,hostCANTemp4,8,C,8_bit_temp|INVALID_TEMP,NONE,6,8,3,Battery 5 Temp,Host Temp 5
+13,maxDownlink,hostCANTemp0,8,C,MESAT1_BATT_TEMP_TABLE|INVALID_10K,NONE,6,4,3,Battery 1 Temp,Host Temp 1
+14,maxDownlink,hostCANTemp1,8,C,MESAT1_BATT_TEMP_TABLE|INVALID_10K,NONE,6,5,3,Battery 2 Temp,Host Temp 2
+15,maxDownlink,hostCANTemp2,8,C,MESAT1_BATT_TEMP_TABLE|INVALID_10K,NONE,6,6,3,Battery 3 Temp,Host Temp 3
+16,maxDownlink,hostCANTemp3,8,C,MESAT1_BATT_TEMP_TABLE|INVALID_10K,NONE,6,7,3,Battery 4 Temp,Host Temp 4
+17,maxDownlink,hostCANTemp4,8,C,MESAT1_BATT_TEMP_TABLE|INVALID_10K,NONE,6,8,3,Battery 5 Temp,Host Temp 5
 18,maxDownlink,hostTlm1,8,V,twenty-six_volt_8_bit,NONE,7,7,3,Plus Y Volts,Host Analog 1
 19,maxDownlink,busV,8,V,golf-t_bus_voltage,NONE,1,2,3,Bus Voltage,Vbatt Bus voltage
 20,maxDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,2,1,3,PA Current,Transmit power amplifier current
@@ -37,10 +37,10 @@
 35,maxDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,1,1,3,IHU Temp,Internal Temperature of IHU
 36,maxDownlink,moduTemp,8,C,8_bit_temp,NONE,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
 37,maxDownlink,hostTlm4,8,V,twenty-six_volt_8_bit,NONE,7,6,3,Minus X Volts,Host Analog 4
-38,maxDownlink,hostCANVolts0,8,V,ten_volt_8_bit|INVALID_10_VOLTS,NONE,6,1,3,Battery Voltage,Host Bat Volts 1
+38,maxDownlink,hostCANVolts0,8,V,TEN_VOLT_8_BIT|INVALID_10K,NONE,6,1,3,Battery Voltage,Host Bat Volts 1
 39,maxDownlink,hostCANVolts1,8,-,mesat_batt_capacity,NONE,6,2,3,Battery Capacity,Host Bat Volts 2
 40,maxDownlink,hostCANVolts2,8,-,INT,NONE,0,0,0,Unused 2,Host Bat Volts 3
-41,maxDownlink,hostCANVolts3,8,mA,mesat_batt_current,NONE,6,3,3,Battery Current,Host Bat Volts 4
+41,maxDownlink,hostCANVolts3,8,mA,BATT_CURRENT|INVALID_10K,NONE,6,3,3,Battery Current,Host Bat Volts 4
 42,maxDownlink,hostCANVolts4,8,-,INT,NONE,0,0,0,Unused 4,Host Bat Volts 5
 43,maxDownlink,hostCANVolts5,8,-,INT,NONE,0,0,0,Unused 5,Host Bat Volts 6
 44,maxDownlink,hostCANVolts6,8,-,INT,NONE,0,0,0,UnusedV6,Host Voltage 7
@@ -50,7 +50,7 @@
 48,maxDownlink,hostI2cTemp3,8,C,8_bit_temp|INVALID_TEMP,NONE,9,3,3,BckTopLft Temp,Interior Temp
 49,maxDownlink,hostI2cTemp4,8,C,8_bit_temp|INVALID_TEMP,NONE,9,4,3,FrontBtmLft Temp,Interior Temp
 50,maxDownlink,hostI2cTemp5,8,C,8_bit_temp|INVALID_TEMP,NONE,9,5,3,BckTopRgt Temp,Interior Temp
-51,maxDownlink,hostCANTemp5,8,C,8_bit_temp|INVALID_TEMP,NONE,6,9,3,Battery 6 Temp,Host Bat Temp 6
+51,maxDownlink,hostCANTemp5,8,C,MESAT1_BATT_TEMP_TABLE|INVALID_10K,NONE,6,9,3,Battery 6 Temp,Host Bat Temp 6
 52,maxDownlink,hostCANTemp11,8,C,8_bit_temp|INVALID_TEMP,NONE,9,6,3,Pi Temp,Host OBC Temp
 53,maxDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
 54,maxDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
