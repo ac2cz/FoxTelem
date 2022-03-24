@@ -42,9 +42,13 @@ import telemetry.SortedFramePartArrayList;
 import telemetry.TelemFormat;
 import telemetry.conversion.Conversion;
 import telemetry.conversion.ConversionCurve;
+import telemetry.conversion.ConversionFormat;
+import telemetry.conversion.ConversionInvalidCheck;
+import telemetry.conversion.ConversionLegacy;
 import telemetry.conversion.ConversionLookUpTable;
 import telemetry.conversion.ConversionMathExpression;
 import telemetry.conversion.ConversionStringLookUpTable;
+import telemetry.conversion.ConversionTimestamp;
 import telemetry.frames.FrameLayout;
 import telemetry.payloads.PayloadMaxValues;
 import telemetry.payloads.PayloadMinValues;
@@ -417,10 +421,56 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		return conv;
 	}
 
+	/**
+	 * Return the conversion for this spacecraft based on its name.  Tables, Curves and Math expressions were stored in
+	 * conversions when the MASTER file was loaded.
+	 * 
+	 * We also need to cope with the keywords for formatting and the functions.
+	 * 
+	 * @param name
+	 * @return
+	 */
 	public Conversion getConversionByName(String name) {
-		if (conversions == null) return null;
-		Conversion conv = conversions.get(name);
-		return conv;
+		
+		name = name.trim();
+		
+		// The first and fastest check is if this is a curve, table or math expression in the conversions list
+		if (this.useConversionCoeffs) {
+			if (conversions == null) return null;
+			Conversion conv = conversions.get(name);
+			if (conv != null) return conv;
+		}
+		// Next check for legacy conversion. This is a single integer in the right range
+		try {
+			int convInt = Integer.parseInt(name);
+			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
+				return new ConversionLegacy(name, this);
+		} catch (NumberFormatException e) { ; } //ignore
+		
+		// Otherwise check formatting keywords
+		try {
+			if (name.equalsIgnoreCase(Conversion.FMT_INT)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_1F)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_2F)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_3F)) return new ConversionFormat(name, this);	
+			if (name.equalsIgnoreCase(Conversion.FMT_4F)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_5F)) return new ConversionFormat(name, this);		
+			if (name.equalsIgnoreCase(Conversion.FMT_6F)) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.FMT_HEX.length()).equalsIgnoreCase(Conversion.FMT_HEX)) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.FMT_BIN.length()).equalsIgnoreCase(Conversion.FMT_BIN)) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.FMT_F.length()).equalsIgnoreCase(Conversion.FMT_F) ) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.TIMESTAMP.length()).equalsIgnoreCase(Conversion.TIMESTAMP)) return new ConversionTimestamp(name, this);
+		} catch (StringIndexOutOfBoundsException e) {
+			return null;
+		}
+		
+		try {
+		if (name.substring(0, ConversionInvalidCheck.KEYWORD.length()).equalsIgnoreCase(ConversionInvalidCheck.KEYWORD)) return new ConversionInvalidCheck(name, this);
+		} catch (RuntimeException e) {
+			return null;
+		}
+		
+		return null;
 	}
 
 	public ConversionLookUpTable getLookupTableByName(String name) {
@@ -757,30 +807,33 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public boolean isValidConversion(String conv) {
-		conv = conv.trim();
-		try {
-		if (conv.equalsIgnoreCase(Conversion.FMT_INT)) return true;
-		if (conv.equalsIgnoreCase(Conversion.FMT_1F)) return true;
-		if (conv.equalsIgnoreCase(Conversion.FMT_2F)) return true;
-		if (conv.equalsIgnoreCase(Conversion.FMT_3F)) return true;	
-		if (conv.equalsIgnoreCase(Conversion.FMT_4F)) return true;
-		if (conv.equalsIgnoreCase(Conversion.FMT_5F)) return true;		
-		if (conv.equalsIgnoreCase(Conversion.FMT_6F)) return true;
-		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_HEX)) return true;
-		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_BIN)) return true;
-		if (conv.substring(0, 5).equalsIgnoreCase(Conversion.FMT_F) ) return true;
-		if (conv.substring(0, 9).equalsIgnoreCase(Conversion.TIMESTAMP)) return true;
-		} catch (StringIndexOutOfBoundsException e) {}		
-		try {
-			int convInt = Integer.parseInt(conv);
-			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
-				return true;
-		} catch (NumberFormatException e) { ; } //ignore
-
-		if (conversions.containsKey(conv))
-			return true;
-		
-		return false;
+		Conversion c = getConversionByName(conv);
+		if (c == null) return false;
+		return true;
+//		conv = conv.trim();
+//		try {
+//		if (conv.equalsIgnoreCase(Conversion.FMT_INT)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_1F)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_2F)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_3F)) return true;	
+//		if (conv.equalsIgnoreCase(Conversion.FMT_4F)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_5F)) return true;		
+//		if (conv.equalsIgnoreCase(Conversion.FMT_6F)) return true;
+//		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_HEX)) return true;
+//		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_BIN)) return true;
+//		if (conv.substring(0, 5).equalsIgnoreCase(Conversion.FMT_F) ) return true;
+//		if (conv.substring(0, 9).equalsIgnoreCase(Conversion.TIMESTAMP)) return true;
+//		} catch (StringIndexOutOfBoundsException e) {}		
+//		try {
+//			int convInt = Integer.parseInt(conv);
+//			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
+//				return true;
+//		} catch (NumberFormatException e) { ; } //ignore
+//
+//		if (conversions.containsKey(conv))
+//			return true;
+//		
+//		return false;
 	}
 
 	public void loadConversions() throws LayoutLoadException, FileNotFoundException, IOException {
@@ -806,7 +859,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				for (int i=0; i < numberOfStringLookupTables; i++) {
 					stringLookupTableFilename[i] = getProperty("stringLookupTable"+i+".filename");
 					String tableName = getProperty("stringLookupTable"+i);
-					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i]);
+					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i], this);
 
 					if (conversions.containsKey(stringLookupTable[i].getName())) {
 						// we have a namespace clash, warn the user
@@ -825,7 +878,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		for (int i=0; i < numberOfLookupTables; i++) {
 			lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
 			String tableName = getProperty("lookupTable"+i);
-			lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
+			lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i], this);
 			if (useConversionCoeffs) {
 				if (conversions.containsKey(lookupTable[i].getName())) {
 					// we have a namespace clash, warn the user
@@ -887,9 +940,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			if (useConversionCoeffs) {
 				conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
 				conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
-				loadConversions();
 			}
-
+			
+			loadConversions();
+			
 			String V3DB = getOptionalProperty("hasFOXDB_V3");
 			if (V3DB == null) 
 				hasFOXDB_V3 = false;
@@ -1536,7 +1590,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        String[] values = line.split(",");
 		       // if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
 		        try {
-		        	ConversionCurve conversion = new ConversionCurve(values);
+		        	ConversionCurve conversion = new ConversionCurve(values, this);
 		        	if (conversions.containsKey(conversion.getName())) {
 		        		// we have a namespace clash, warn the user
 		        		Log.errorDialog("DUPLICATE CURVE NAME", this.user_keps_name + "- Conversion Curve already defined. This duplicate name will not be stored: " + conversion.getName());
@@ -1567,7 +1621,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        String[] values = line.split(",");
 		       // Don't check the length because we are allowed to have commas in the description
 		        try {
-		        	ConversionMathExpression conversion = new ConversionMathExpression(values[0], values[1]); // name, equation
+		        	ConversionMathExpression conversion = new ConversionMathExpression(values[0], values[1], this); // name, equation
 		        	if (conversions.containsKey(conversion.getName())) {
 		        		// we have a namespace clash, warn the user
 		        		Log.errorDialog("DUPLICATE CONVERSION EXPRESSION NAME", this.user_keps_name + "- A Curve, expression or table is already defined called " + conversion.getName()

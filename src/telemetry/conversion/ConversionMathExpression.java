@@ -8,8 +8,8 @@ public class ConversionMathExpression extends Conversion {
 	int pos = -1, ch;
 	String str;
 	
-	public ConversionMathExpression(String name, String str) {
-		super(name);
+	public ConversionMathExpression(String name, String str, Spacecraft fox) {
+		super(name, fox);
 		this.str = str;
 	}
 	
@@ -17,13 +17,13 @@ public class ConversionMathExpression extends Conversion {
 		throw new RuntimeException("Call conversion "+name+" with calculateExpression method only!");
 	}
 	
-	public double calculateExpression(double x, FramePart framePart, Spacecraft spacecraft) {
+	public double calculateExpression(double x, FramePart framePart) {
 		
 		
 		/// DUH, use x here to support pipelines!!
 		
 		MathExpression exp = new MathExpression(str, x);
-		double y = exp.parse(framePart, spacecraft);
+		double y = exp.parse(framePart, fox);
 		return y;
 	}
 	

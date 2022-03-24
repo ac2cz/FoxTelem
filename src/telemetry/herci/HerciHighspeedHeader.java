@@ -202,16 +202,16 @@ public class HerciHighspeedHeader extends FramePart {
 		return s;
 	}
 
-	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
-		
-		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
-			switch (conversion) {
-			case BitArrayLayout.CONVERT_HERCI_HEX:
-				return rawValue;
-			}
-			return super.convertRawValue(name, rawValue, conversion, fox);
-
-	}
+//	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+//		
+//		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
+//			switch (conversion) {
+//			case BitArrayLayout.CONVERT_HERCI_HEX:
+//				return rawValue;
+//			}
+//			return super.convertRawValue(name, rawValue, conversion, fox);
+//
+//	}
 
 
 	public String toDataString(Spacecraft fox) {

@@ -13,6 +13,7 @@ import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
 import common.Log;
+import common.Spacecraft;
 import telemetry.LayoutLoadException;
 
 /**
@@ -51,8 +52,8 @@ public class ConversionStringLookUpTable extends Conversion{
 	/**
 	 * Called for a static table where the values are not loaded from a file
 	 */
-	public ConversionStringLookUpTable(String name) {
-		super(name);
+	public ConversionStringLookUpTable(String name, Spacecraft fox) {
+		super(name, fox);
 	}
 	
 	/**
@@ -61,8 +62,8 @@ public class ConversionStringLookUpTable extends Conversion{
 	 * @throws LayoutLoadException 
 	 * @throws FileNotFoundException 
 	 */
-	public ConversionStringLookUpTable(String name, String fileName) throws FileNotFoundException, LayoutLoadException {
-		super(name);
+	public ConversionStringLookUpTable(String name, String fileName, Spacecraft fox) throws FileNotFoundException, LayoutLoadException {
+		super(name, fox);
 		load(fileName);
 	}
 		

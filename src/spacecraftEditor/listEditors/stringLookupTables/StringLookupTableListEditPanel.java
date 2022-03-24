@@ -51,7 +51,7 @@ public class StringLookupTableListEditPanel extends TableListEditPanel {
 				sat.stringLookupTable[j] = null;
 			} else {
 				sat.stringLookupTableFilename[j] = dataLines.get(j)[2];
-				sat.stringLookupTable[j] = new ConversionStringLookUpTable(dataLines.get(j)[1],sat.stringLookupTableFilename[j]);
+				sat.stringLookupTable[j] = new ConversionStringLookUpTable(dataLines.get(j)[1],sat.stringLookupTableFilename[j], sat);
 			}
 			
 		}

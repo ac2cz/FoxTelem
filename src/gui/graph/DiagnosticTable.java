@@ -16,7 +16,7 @@ import common.Config;
 import common.Spacecraft;
 import gui.MainWindow;
 import telemetry.BitArrayLayout;
-import telemetry.FramePart;
+import telemetry.conversion.ConversionLegacy;
 import telemetry.PayloadStore;
 
 /**
@@ -185,7 +185,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String display = null;
 				
-				display = FramePart.ihuDiagnosticString(value, false, fox);
+				display = ConversionLegacy.ihuDiagnosticString(value, false, fox);
 				if (display != null) { 	
 					initTableColumns(tableData, i);
 					tableData[i][2] = display;
@@ -210,7 +210,7 @@ public class DiagnosticTable extends JPanel {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FramePart.hardErrorStringArray(value, false);
+				display = ConversionLegacy.hardErrorStringArray(value, false);
 				
 				if (display != null) { 	
 					initTableColumns(tableData, i);
@@ -236,7 +236,7 @@ public class DiagnosticTable extends JPanel {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FramePart.softErrorStringArrayFox1A(value, false);
+				display = ConversionLegacy.softErrorStringArrayFox1A(value, false);
 				
 				if (display != null) { 	
 					initTableColumns(tableData, i);
@@ -263,7 +263,7 @@ public class DiagnosticTable extends JPanel {
 			for (int i=graphData[0].length-1; i >=0 ; i--) {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
-				display = FramePart.softErrorStringArray84488(value, false);
+				display = ConversionLegacy.softErrorStringArray84488(value, false);
 				
 				if (display != null) { 	
 					initTableColumns(tableData, i);
@@ -291,7 +291,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
 
-				display = FramePart.icrDiagnosticStringArray(value, false);
+				display = ConversionLegacy.icrDiagnosticStringArray(value, false);
 				if (display != null) { 	
 					initTableColumns(tableData, i);
 					for (int j=2; j<6; j++)
@@ -318,7 +318,7 @@ public class DiagnosticTable extends JPanel {
 				int value = (int) graphData[PayloadStore.DATA_COL][i];
 				String[] display = null;
 
-				display = FramePart.isisAntennaStatusArray(value, false);
+				display = ConversionLegacy.isisAntennaStatusArray(value, false);
 				if (display != null) { 	
 					initTableColumns(tableData, i);
 					for (int j=2; j<17; j++)

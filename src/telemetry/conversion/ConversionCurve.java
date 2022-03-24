@@ -25,6 +25,8 @@
  */
 package telemetry.conversion;
 
+import common.Spacecraft;
+
 public class ConversionCurve extends Conversion {
 
 	public static final int CSF_FILE_ROW_LENGTH = 8;
@@ -32,8 +34,8 @@ public class ConversionCurve extends Conversion {
 	public double a, b, c, d, e, f; // if this is a curve we store the coefficients
 	private String description;
 	
-	public ConversionCurve(String[] values) {
-		super(values[0]);
+	public ConversionCurve(String[] values, Spacecraft fox) {
+		super(values[0], fox);
 		//if (values == null) throw new IllegalArgumentException("Conversion File row null");
 		if (values.length < CSF_FILE_ROW_LENGTH) throw new IllegalArgumentException("Conversion File row has wrong number of values: " + values.length);
 		name = values[0];

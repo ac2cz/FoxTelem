@@ -14,6 +14,7 @@ import predict.PositionCalcException;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
+import telemetry.conversion.ConversionLegacy;
 import telemetry.PayloadStore;
 import telemetry.conversion.Conversion;
 import telemetry.conversion.ConversionStringLookUpTable;
@@ -311,7 +312,7 @@ public abstract class GraphCanvas extends MapPanel {
 					for (int i=0; i < graphData[j][0].length; i++) {
 						if (conversionType == BitArrayLayout.CONVERT_MPPT_SOLAR_PANEL_TEMP && graphData[j][PayloadStore.DATA_COL][i] == BitArray.ERROR_VALUE) {
 							// do not treat as the maximum.  Set to a default value
-							graphData[j][PayloadStore.DATA_COL][i] = FramePart.MPPT_DEFAULT_TEMP;
+							graphData[j][PayloadStore.DATA_COL][i] = ConversionLegacy.MPPT_DEFAULT_TEMP;
 						}
 						if (graphData[j][PayloadStore.DATA_COL][i] >= maxValue) maxValue = graphData[j][PayloadStore.DATA_COL][i];
 						if (graphData[j][PayloadStore.DATA_COL][i] <= minValue) minValue = graphData[j][PayloadStore.DATA_COL][i];

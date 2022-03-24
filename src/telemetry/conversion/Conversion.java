@@ -1,5 +1,8 @@
 package telemetry.conversion;
 
+import common.Spacecraft;
+import telemetry.FramePart;
+
 public abstract class Conversion {
 	public static final String FMT_INT = "INT";
 	public static final String FMT_BIN = "BIN";
@@ -14,10 +17,12 @@ public abstract class Conversion {
 	public static final String TIMESTAMP = "TIMESTAMP";
 	
 	protected String name; // must be unique in the namespace of the spacecraft
+	protected Spacecraft fox;
 	
-	Conversion(String name) {
+	Conversion(String name, Spacecraft sat) {
 		if (name == null) throw new IllegalArgumentException("Conversion name null");
 		this.name = name;
+		this.fox = sat;
 	}
 	
 	public String getName() { return name; }

@@ -34,7 +34,7 @@ public class LookUpTableTemperature extends ConversionLookUpTable {
 	//}
 	@Deprecated
 	public LookUpTableTemperature() {
-		super("LookUpTableTemperature");
+		super("LookUpTableTemperature", null);
 		table.put(507,-55.0);
 		table.put(510,-54.0);
 		table.put(513,-53.0);

@@ -94,11 +94,11 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 	@Override
 	public void tableChanged(TableModelEvent e) {
 		 //System.out.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
-		 try {
-			parent.save();
-		} catch (IOException e1) {
-			Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
-		}
+//		 try {
+//			parent.save();
+//		} catch (IOException e1) {
+//			Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
+//		}
 
 	}
 }

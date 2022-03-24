@@ -55,7 +55,7 @@ public class LookupTableListEditPanel extends TableListEditPanel{
 				sat.lookupTable[j] = null;
 			} else {
 				sat.lookupTableFilename[j] = dataLines.get(j)[2];
-				sat.lookupTable[j] = new ConversionLookUpTable(dataLines.get(j)[1],sat.lookupTableFilename[j]);
+				sat.lookupTable[j] = new ConversionLookUpTable(dataLines.get(j)[1],sat.lookupTableFilename[j], sat);
 			}
 			
 		}
