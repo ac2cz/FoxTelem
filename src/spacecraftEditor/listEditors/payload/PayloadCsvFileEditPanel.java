@@ -1,26 +1,38 @@
 package spacecraftEditor.listEditors.payload;
 
+import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
+import java.io.FileNotFoundException;
+import java.text.DecimalFormat;
+
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComboBox;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 import javax.swing.JTable;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableColumn;
 
 import common.Spacecraft;
 import spacecraftEditor.listEditors.CsvFileEditPanel;
 import spacecraftEditor.listEditors.CsvFileEditorGrid;
+import telemetry.LayoutLoadException;
 
 public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 
 	private static final long serialVersionUID = 1L;
+	public static final int FIELD_COL = 2;
+	public static final int BITS_COL = 3;
 	public static final int CONVERSION_COL = 5;
 	public static final int LINE_TYPE_COL = 9;
 	public static final int MODULE_LINE_COL = 8;
 	
 	PayloadLayoutTableModel model;
-
+	JLabel lblNumberOfBits;
+	
 	public PayloadCsvFileEditPanel(Spacecraft sat, PayloadLayoutTableModel model,
 			String titleString, String file) {
 		super(sat, model, titleString, file);
@@ -31,8 +43,27 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 			column.setCellRenderer(new PayloadTableCellRenderer());
 		}
 		
+		model.addTableModelListener(new TableModelListener() {
+
+		      public void tableChanged(TableModelEvent e) {
+		         System.out.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+		         int rows = model.getRowCount();
+		         model.setValueAt(rows-1, 0, 0);
+		      }
+		    });
 		//setConversionComboBox();
 		//setLineTypeComboBox();
+		JPanel bitsPanel = new JPanel();
+		footerFilePanel.add(bitsPanel, BorderLayout.WEST);
+		bitsPanel.add(new JLabel("Total Bits:"));
+		lblNumberOfBits = new JLabel("0");
+		bitsPanel.add(lblNumberOfBits);
+		
+	}
+	
+	protected void load() throws FileNotFoundException, LayoutLoadException {
+		super.load();
+		updateNumberOfBits();
 	}
 
 	public void setConversionComboBox() {
@@ -49,9 +80,25 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 //		moduleColumn.setCellEditor(new DefaultCellEditor(comboBoxLineTypes));
 //	}
 	
+	private void updateNumberOfBits() {
+		int num=0;
+		for (int i=0; i < this.model.getRowCount(); i++) {
+			String value = (String) model.getValueAt(i, BITS_COL);
+			try {
+				int b = Integer.parseInt(value);
+				num += b;
+			} catch (NumberFormatException e) { ;}
+			
+		}
+		double n = num/8.0;
+		DecimalFormat fmt = new DecimalFormat ("0.##");
+		lblNumberOfBits.setText(""+num + "   Bytes: " + fmt.format(n));
+
+	}
+	
 	@Override
 	protected void updateSpacecraft() {
-		
+		updateNumberOfBits();
 		//setConversionComboBox();
 		// We don't need to save the spacecraft as data is only changed in the layout file
 	}
@@ -73,16 +120,31 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 			
 			if (row >0 && column == CONVERSION_COL) {
 				String value = (String) model.getValueAt(row, column);
-				String[] conversions = value.split("\\|");
-				for (String conv : conversions) {
-					if (!sat.isValidConversion(conv)) {
-						cell.setForeground(Color.red);
-						return cell;
+				if (value != null) {
+					String[] conversions = value.split("\\|");
+					for (String conv : conversions) {
+						if (!sat.isValidConversion(conv)) {
+							cell.setForeground(Color.red);
+							return cell;
+						}
 					}
 				}
 				cell.setForeground(Color.black);	
 			}
 			
+			if (row >0 && column == FIELD_COL) {
+				// It is an error if there is a duplicate 
+				boolean noDupes = true;
+				String value = (String) model.getValueAt(row, column);
+				if (value != null)
+					for(int i=0; i < model.getRowCount(); i++) {
+						if (i != row && value.equalsIgnoreCase((String) model.getValueAt(i, column))) {
+							cell.setForeground(Color.red);
+							return cell;
+						}
+					}
+				cell.setForeground(Color.black);	
+			}
 			if (row >0 && column == MODULE_LINE_COL) {
 				// It is an error if this line number is a duplicate or if there is a gap between this and the previous
 				

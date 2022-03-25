@@ -45,8 +45,8 @@ import telemetry.SatPayloadStore;
  */
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
-	public static final String VERSION_NUM = "1.0";
-	public static final String VERSION = VERSION_NUM + " - 24 Mar 2022";
+	public static final String VERSION_NUM = "1.00a";
+	public static final String VERSION = VERSION_NUM + " - 25 Mar 2022";
 	
 	// Swing File Chooser
 	static JFileChooser fc = null;
@@ -328,7 +328,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			}
 		}
 		if (remove)
-			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Remove", "dat");
+			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Close Spacecraft", "dat");
 		else
 			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Load", "MASTER");
 

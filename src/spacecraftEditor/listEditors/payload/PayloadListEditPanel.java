@@ -261,7 +261,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		
 		PayloadLayoutTableModel payloadTableModel = new PayloadLayoutTableModel();
 		
-		payloadCsvFileEditPanel = new PayloadCsvFileEditPanel(sat, payloadTableModel, "Payload",null);
+		payloadCsvFileEditPanel = new PayloadCsvFileEditPanel(sat, payloadTableModel, "Payload", null);
 			
 		codeTextArea = new JTextArea();
 		JScrollPane scpane = new JScrollPane(codeTextArea); //scrollpane  and add textarea to scrollpane

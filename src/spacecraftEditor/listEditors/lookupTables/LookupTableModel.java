@@ -24,6 +24,7 @@ public class LookupTableModel extends CsvTableModel{
 		columnWidths[0] = 50;
 		columnWidths[1] = 50;
 		
+		filterColumns = new int[] {0,1};
 	}
 
 }

@@ -1616,7 +1616,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	private void loadConversionExpresions(String conversionExpressionsFileName) throws FileNotFoundException, IOException, LayoutLoadException {
 		try (BufferedReader br = new BufferedReader(new FileReader(conversionExpressionsFileName))) { // try with resource closes it
-		    String line = br.readLine(); // read the header, which we ignore
+		    String line = null; //br.readLine(); // read the header, which we ignore
+		    int linenum = 0;
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
 		       // Don't check the length because we are allowed to have commas in the description
@@ -1630,10 +1631,15 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        		conversions.put(conversion.getName(), conversion);
 		        		Log.println("Expression loaded: " + conversion);
 		        	}
+		        	linenum++;
 		        } catch (IllegalArgumentException e) {
+		        	if (linenum == 0) {
+		        		// ignore the header
+		        	}else {
 		        	Log.println("Could not load conversion: " + e);
 		        	Log.errorDialog("CORRUPT CONVERSION: ", e.toString());
 		        	// ignore this corrupt row
+		        	}
 		        }
 		    }
 		}

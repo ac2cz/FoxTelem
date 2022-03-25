@@ -51,14 +51,17 @@ public class PayloadLayoutTableModel extends CsvTableModel {
 		columnWidths[9] = 30;
 		columnWidths[10] = 50;
 		columnWidths[11] = 100;
+		
+		filterColumns = new int[] {2,3,4,5,6,7,10};	
+		//filterColumns = new int[] {2};	
 	}
 	
 	public boolean isCellEditable(int row, int col) {
 		//Note that the data/cell address is constant,
 		//no matter where the cell appears onscreen.
 
-		//if (row > 0)
+		if (row > 0)
 			return true;
-		//return false;
+		return false;
 	}
 }

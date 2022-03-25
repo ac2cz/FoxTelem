@@ -61,6 +61,8 @@ public class CurvesTableModel extends CsvTableModel {
 		columnWidths[5] = 50;
 		columnWidths[6] = 50;
 		columnWidths[7] = 200;
+		
+		filterColumns = new int[] {0,7};	
 	}
 
 }

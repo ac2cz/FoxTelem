@@ -47,6 +47,8 @@ public class ExpressionsTableModel extends CsvTableModel{
 		columnWidths[0] = 50;
 		columnWidths[1] = 300;
 		columnWidths[2] = 200;
+		
+		filterColumns = new int[] {0,1,2};
 	}
 
 }

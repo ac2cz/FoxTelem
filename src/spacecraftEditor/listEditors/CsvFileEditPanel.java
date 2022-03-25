@@ -22,6 +22,8 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
+import com.sun.media.sound.ModelAbstractChannelMixer;
+
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -36,7 +38,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	public CsvFileEditorGrid csvFileEditorGrid;
 	protected CsvTableModel tableModel;
 	JPanel centerPanel;
-	JPanel footerPanel;
+	protected JPanel footerPanel, footerFilePanel;
 	ArrayList<String[]> dataLines; // An array list for each line. A line is an array of strings
 	protected String filename;
 	protected Spacecraft sat;
@@ -60,7 +62,10 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		add(footerPanel, BorderLayout.SOUTH);
 		JPanel footerPanel1 = new JPanel();
 		JPanel footerPanel2 = new JPanel();
-		footerPanel.add(footerPanel1);
+		footerFilePanel = new JPanel();
+		footerFilePanel.setLayout(new BorderLayout());
+		footerPanel.add(footerFilePanel);
+		footerFilePanel.add(footerPanel1, BorderLayout.CENTER);
 		footerPanel.add(footerPanel2);
 		
 		JLabel lf3 = new JLabel("Filename");
@@ -132,7 +137,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		tableModel.setData(data);
 	}
 	
-	private void load() throws FileNotFoundException, LayoutLoadException {
+	protected void load() throws FileNotFoundException, LayoutLoadException {
 		String line;
 		String fileName = "spacecraft" +File.separator + filename;
 	//	File aFile = new File(fileName);
@@ -228,6 +233,11 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	
 	private void removeRow(int row) {
 		Log.println("Removing row " + row);
+		// First confirm this row is editable
+		if (!tableModel.isCellEditable(row, 0)) {
+			Log.errorDialog("ERROR", "This row is read only and cannot be removed!");
+			return;
+		}
 		if (dataLines.size() == 0) return;
 		dataLines.remove(row);
 		setData();
@@ -236,6 +246,11 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 			csvFileEditorGrid.table.setRowSelectionInterval(row-1, row-1);
 		else
 			csvFileEditorGrid.table.setRowSelectionInterval(row, row);
+		try {
+			save();
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
+		}
 	}
 	
 	@Override
