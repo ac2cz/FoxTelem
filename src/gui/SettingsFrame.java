@@ -615,6 +615,8 @@ public class SettingsFrame extends JDialog implements ActionListener, ItemListen
 					Config.altitude = txtAltitude.getText();
 				} else dispose = false;
 				Config.stationDetails = txtStation.getText();
+				if (Config.stationDetails.equalsIgnoreCase(""))
+					Config.stationDetails = Config.DEFAULT_CALLSIGN; // NONE
 				Config.primaryServer = txtPrimaryServer.getText();
 				Config.secondaryServer = txtSecondaryServer.getText();
 				
