@@ -67,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.12t";
-	public static String VERSION = VERSION_NUM + " - 28 Feb 2022";
+	public static String VERSION_NUM = "1.12w";
+	public static String VERSION = VERSION_NUM + " - 25 Mar 2022";
 	public static final String propertiesFileName = "FoxTelem.properties";
 	
 	public static final String WINDOWS = "win";
@@ -149,7 +149,7 @@ public class Config {
 	static public boolean debugCameraFrames = false;
 	static public boolean debugBytes = false; // This prints the RAW bytes
 	static public boolean debugAudioGlitches = false; 
-	static public boolean debugAudioLevels = true; 
+	static public boolean debugAudioLevels = false; 
 	static public boolean debugSignalFinder = false;
 	static public int DEBUG_COUNT = -1;
 	static public boolean filterData = true; // Low Pass filter the data

@@ -91,6 +91,7 @@ public class FrameLayout {
 	public int getPayloadLength(int i) {
 		String name = payloadNames.get(i);
 		BitArrayLayout lay = Config.satManager.getLayoutByName(foxId, name);
+		if (lay == null) return 0;
 		return lay.getMaxNumberOfBytes();
 	}
 	

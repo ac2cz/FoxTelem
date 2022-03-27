@@ -215,6 +215,7 @@ public class NamedExperimentTab extends ExperimentTab implements ItemListener, R
 	}
 
 	protected void parseExperimentFrames() {
+		if (Config.payloadStore == null) return; // running in the editor
 		if (!Config.payloadStore.initialized()) return;
 		String[][] data = null;
 					

@@ -1,4 +1,4 @@
-package spacecraftEditor;
+package spacecraftEditor.listEditors;
 
 import javax.swing.table.AbstractTableModel;
 
@@ -24,16 +24,19 @@ import javax.swing.table.AbstractTableModel;
  *
  */
 @SuppressWarnings("serial")
-public class FrameTableModel extends AbstractTableModel {
-	String[] columnNames = null;
+public abstract class CsvTableModel extends AbstractTableModel {
+	protected String[] columnNames = null;
+	@SuppressWarnings("rawtypes")
+	protected Class[] columnClass = null;
+	public int[] columnWidths;
 	private String[][] data = null;
+	public int[] filterColumns;
 
-	FrameTableModel() {
-		columnNames = new String[3];
-		columnNames[0] = "Num";
-		columnNames[1] = "Payload Name";
-		columnNames[2] = "Length";
+	public CsvTableModel() {
+		initColumns();
 	}
+	
+	protected abstract void initColumns();
 
 	public void setData(String[][] d) { 
 		data = d;
@@ -61,7 +64,7 @@ public class FrameTableModel extends AbstractTableModel {
 
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public Class getColumnClass(int c) {
-		return getValueAt(0, c).getClass();
+		return columnClass[c];
 	}
 
 	/*
@@ -72,16 +75,22 @@ public class FrameTableModel extends AbstractTableModel {
 		//Note that the data/cell address is constant,
 		//no matter where the cell appears onscreen.
 
-		return false;
-
+		return true;
 	}
 
 	/*
 	 * Don't need to implement this method unless your table's
 	 * data can change.
 	 */
-	public void setValueAt(String value, int row, int col) {
-		data[row][col] = value;
+	public void setValueAt(Object value, int row, int col) {
+		if (columnClass[col] == Double.class)
+			data[row][col] = "0";
+		else
+			data[row][col] = String.valueOf(value);
+		//data[row][col] = (String)value;
+		if (row == 0 && col ==0) {
+			// we don't fire the update as this is automatically maintained
+		} else
 		fireTableCellUpdated(row, col);
 	}
 

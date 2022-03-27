@@ -24,10 +24,11 @@ package telemetry.conversion;
  * Look up table for the temperature sensors on the solar panels
  *
  */
+@Deprecated
 public class LookUpTableSolarPanelTemp extends ConversionLookUpTable {
-
+	@Deprecated
 	public LookUpTableSolarPanelTemp() {
-		super("LookUpTableSolarPanelTemp");
+		super("LookUpTableSolarPanelTemp", null);
 		table.put(2998,95.0);
 		table.put(3002,90.0);
 		table.put(3006,85.0);

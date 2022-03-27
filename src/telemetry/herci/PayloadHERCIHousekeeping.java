@@ -382,16 +382,16 @@ public class PayloadHERCIHousekeeping extends FramePart {
 	}
 
 
-public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
-		
-		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
-			switch (conversion) {
-			case BitArrayLayout.CONVERT_HERCI_SOURCE:
-				return rawValue;
-			}
-			return super.convertRawValue(name, rawValue, conversion, fox);
-
-	}
+//	public double convertRawValue(String name, int rawValue, int conversion, Spacecraft fox ) {
+//		
+//		//	System.out.println("BitArrayLayout.CONVERT_ng: " + name + " raw: " + rawValue + " CONV: " + conversion);
+//			switch (conversion) {
+//			case BitArrayLayout.CONVERT_HERCI_SOURCE:
+//				return rawValue;
+//			}
+//			return super.convertRawValue(name, rawValue, conversion, fox);
+//
+//	}
 	/**
 	 * We have bytes in big endian order, so we need to add the bits in a way
 	 * that makes sense when we retrieve them sequentially

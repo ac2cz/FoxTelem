@@ -1432,7 +1432,7 @@ public class SatPayloadDbStore {
 				upTime[i] = rs.getLong("uptime");
 				//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
 				PayloadRtValues rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getIntConversionByName(name), id);
+				results[i++] = rt.getDoubleValue(name, id);
 				while (rs.previous()) {
 					resets[i] = rs.getInt("resets");
 					upTime[i] = rs.getLong("uptime");
@@ -1441,7 +1441,7 @@ public class SatPayloadDbStore {
 					//results[i++] = rs.getDouble(name);
 					// converted
 
-					results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getIntConversionByName(name), id);
+					results[i++] = rt.getDoubleValue(name, id);
 				}
 			} else {
 				results = new double[1];

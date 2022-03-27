@@ -18,8 +18,15 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Properties;
+import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.TreeSet;
+import java.util.Collections;
+import java.util.LinkedHashSet;
+import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.Comparator;
 
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
@@ -35,9 +42,13 @@ import telemetry.SortedFramePartArrayList;
 import telemetry.TelemFormat;
 import telemetry.conversion.Conversion;
 import telemetry.conversion.ConversionCurve;
+import telemetry.conversion.ConversionFormat;
+import telemetry.conversion.ConversionInvalidCheck;
+import telemetry.conversion.ConversionLegacy;
 import telemetry.conversion.ConversionLookUpTable;
 import telemetry.conversion.ConversionMathExpression;
 import telemetry.conversion.ConversionStringLookUpTable;
+import telemetry.conversion.ConversionTimestamp;
 import telemetry.frames.FrameLayout;
 import telemetry.payloads.PayloadMaxValues;
 import telemetry.payloads.PayloadMinValues;
@@ -57,7 +68,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public static final int ERROR_IDX = -1;
 	
 	// THESE HARD CODED LOOKUPS SHOULD NOT BE USED FOR NEW SPACECRAFT
-	// Code a paramater into the spacecraft file that might work with future hardware, e.g. hsaCanBus
+	// Code a paramater into the spacecraft file that might work with future hardware, e.g. hasCanBus
 	// Or switch logic based on standard layouts defined below, or custom layouts if required e.g. camera formats
 	public static final int FOX1A = 1;
 	public static final int FOX1B = 2;
@@ -93,10 +104,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public static final String CAN_PKT_LAYOUT = "canpacket";
 	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 
-//	public static final String WOD_RAG_LAYOUT = "wodragtelemetry";
-//	public static final String RAG_LAYOUT = "ragtelemetry";
-
-	
 	public static final String RSSI_LOOKUP = "RSSI";
 	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
 	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
@@ -120,7 +127,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			"FS"
 	};
 	
-	public int foxId = 1;
+	public int foxId = 0;
 	public int catalogNumber = 0;
 	public String series = "FOX";
 	public String description = "";
@@ -131,14 +138,14 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
 		
-	public int numberOfLayouts = 4;
-	public int numberOfDbLayouts = 4; // if we load additional layouts for CAN BUS then this stores the core layouts
+	public int numberOfLayouts = 0;
+	public int numberOfDbLayouts = 0; // if we load additional layouts for CAN BUS then this stores the core layouts
 	public String[] layoutFilename;
 	public BitArrayLayout[] layout;
 	private boolean[] sendLayoutLocally;  // CURRENTLY UNUSED SO MADE PRIVATE
 	public CanFrames canFrames;
 	
-	public int numberOfLookupTables = 3;
+	public int numberOfLookupTables = 0;
 	public String[] lookupTableFilename;
 	public ConversionLookUpTable[] lookupTable;
 	
@@ -146,20 +153,20 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public String[] stringLookupTableFilename;
 	public ConversionStringLookUpTable[] stringLookupTable;
 	
-	public int numberOfSources = 2;
-	public String[] sourceName;
+	public int numberOfSources = 1;
+	public String[] sourceName = {"amsat.fox-1a.ihu.duv"}; // default to 1 source DUV;
 	public String[] sourceFormatName;
 	public TelemFormat[] sourceFormat;
 	
-	public String measurementsFileName;
-	public String passMeasurementsFileName;
+	public String measurementsFileName = "measurements.csv"; // theoretically it is possible to change this in the MASTER file, but it is the same for all spacecraft
+	public String passMeasurementsFileName = "passmeasurements.csv";
 	public BitArrayLayout measurementLayout;
 	public BitArrayLayout passMeasurementLayout;
 	
 	public static final String MEASUREMENTS = "measurements";
 	public static final String PASS_MEASUREMENTS = "passmeasurements";
 	
-	public int numberOfFrameLayouts = 1;
+	public int numberOfFrameLayouts = 0;
 	public String[] frameLayoutFilename;
 	public FrameLayout[] frameLayout;
 	
@@ -167,8 +174,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public static final String USER_ = "user_";
 	public Properties user_properties; // Java properties file for user defined values
 	public File userPropertiesFile;
-	public String user_display_name = "Fox-1A";
-	public String user_keps_name = "Fox-1A";
+	public String user_display_name = "Amsat-1";
+	public String user_keps_name = "Amsat-1";
 	public int user_priority = 9; // set to low priority so new spacecraft are not suddenly ahead of old ones
 	public boolean user_track = true; // default is we track a satellite
 	public double user_telemetryDownlinkFreqkHz = 145980;
@@ -186,6 +193,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	public boolean useConversionCoeffs = false;
 	private HashMap<String, Conversion> conversions;
+	public String conversionCurvesFileName;
+	public String conversionExpressionsFileName;
 	
 	public boolean hasFOXDB_V3 = false;
 	
@@ -316,8 +325,20 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	 * @param masterFileName
 	 */
 	public Spacecraft(SatelliteManager satManager, File masterFileName, File userFileName, int foxId) {
-		this.foxId = foxId;
+
+		this.satManager = satManager;
+		properties = new Properties();
 		
+		propertiesFile = masterFileName;	
+		userPropertiesFile = userFileName;	
+		
+		tleList = new SortedTleList(10);
+		
+		this.foxId = foxId;
+
+		hasFOXDB_V3 = true; // should be true for all new spacecraft
+		
+		store_master_params();
 	}
 	
 	/**
@@ -379,11 +400,77 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		}
 		return getLayoutByName(Spacecraft.CAN_PKT_LAYOUT); // try to return the default instead. We dont have this CAN ID
 	}
-
-	public Conversion getConversionByName(String name) {
-		if (conversions == null) return null;
-		Conversion conv = conversions.get(name);
+	
+	public String[] getPayloadList() {
+		String[] payloadList = new String[this.numberOfLayouts];
+		for (int i=0; i<numberOfLayouts; i++) {
+			payloadList[i] = this.layout[i].name;
+		}
+		return payloadList;
+	}
+	
+	public String[] getConversionsArray() {
+		if (conversions == null) {
+			return new String[0];
+		}
+		String[] conv = new String[conversions.size()];
+		int i = 0;
+		for (String key : conversions.keySet()) {
+			conv[i++] = key;
+		}
 		return conv;
+	}
+
+	/**
+	 * Return the conversion for this spacecraft based on its name.  Tables, Curves and Math expressions were stored in
+	 * conversions when the MASTER file was loaded.
+	 * 
+	 * We also need to cope with the keywords for formatting and the functions.
+	 * 
+	 * @param name
+	 * @return
+	 */
+	public Conversion getConversionByName(String name) {
+		
+		name = name.trim();
+		
+		// The first and fastest check is if this is a curve, table or math expression in the conversions list
+		if (this.useConversionCoeffs) {
+			if (conversions == null) return null;
+			Conversion conv = conversions.get(name);
+			if (conv != null) return conv;
+		}
+		// Next check for legacy conversion. This is a single integer in the right range
+		try {
+			int convInt = Integer.parseInt(name);
+			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
+				return new ConversionLegacy(name, this);
+		} catch (NumberFormatException e) { ; } //ignore
+		
+		// Otherwise check formatting keywords
+		try {
+			if (name.equalsIgnoreCase(Conversion.FMT_INT)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_1F)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_2F)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_3F)) return new ConversionFormat(name, this);	
+			if (name.equalsIgnoreCase(Conversion.FMT_4F)) return new ConversionFormat(name, this);
+			if (name.equalsIgnoreCase(Conversion.FMT_5F)) return new ConversionFormat(name, this);		
+			if (name.equalsIgnoreCase(Conversion.FMT_6F)) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.FMT_HEX.length()).equalsIgnoreCase(Conversion.FMT_HEX)) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.FMT_BIN.length()).equalsIgnoreCase(Conversion.FMT_BIN)) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.FMT_F.length()).equalsIgnoreCase(Conversion.FMT_F) ) return new ConversionFormat(name, this);
+			if (name.substring(0, Conversion.TIMESTAMP.length()).equalsIgnoreCase(Conversion.TIMESTAMP)) return new ConversionTimestamp(name, this);
+		} catch (StringIndexOutOfBoundsException e) {
+			return null;
+		}
+		
+		try {
+		if (name.substring(0, ConversionInvalidCheck.KEYWORD.length()).equalsIgnoreCase(ConversionInvalidCheck.KEYWORD)) return new ConversionInvalidCheck(name, this);
+		} catch (RuntimeException e) {
+			return null;
+		}
+		
+		return null;
 	}
 
 	public ConversionLookUpTable getLookupTableByName(String name) {
@@ -719,6 +806,91 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		return false;
 	}
 	
+	public boolean isValidConversion(String conv) {
+		Conversion c = getConversionByName(conv);
+		if (c == null) return false;
+		return true;
+//		conv = conv.trim();
+//		try {
+//		if (conv.equalsIgnoreCase(Conversion.FMT_INT)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_1F)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_2F)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_3F)) return true;	
+//		if (conv.equalsIgnoreCase(Conversion.FMT_4F)) return true;
+//		if (conv.equalsIgnoreCase(Conversion.FMT_5F)) return true;		
+//		if (conv.equalsIgnoreCase(Conversion.FMT_6F)) return true;
+//		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_HEX)) return true;
+//		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_BIN)) return true;
+//		if (conv.substring(0, 5).equalsIgnoreCase(Conversion.FMT_F) ) return true;
+//		if (conv.substring(0, 9).equalsIgnoreCase(Conversion.TIMESTAMP)) return true;
+//		} catch (StringIndexOutOfBoundsException e) {}		
+//		try {
+//			int convInt = Integer.parseInt(conv);
+//			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
+//				return true;
+//		} catch (NumberFormatException e) { ; } //ignore
+//
+//		if (conversions.containsKey(conv))
+//			return true;
+//		
+//		return false;
+	}
+
+	public void loadConversions() throws LayoutLoadException, FileNotFoundException, IOException {
+		// Conversions
+		if (useConversionCoeffs) {
+			conversions = new HashMap<String, Conversion>();
+
+			if (conversionCurvesFileName != null) {
+				loadConversionCurves(Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
+			}
+
+			
+			if (conversionExpressionsFileName != null) {
+				loadConversionExpresions(Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
+			}
+
+			// String Lookup Tables
+			String sNumberOfStringLookupTables = getOptionalProperty("numberOfStringLookupTables");
+			if (sNumberOfStringLookupTables != null) {
+				numberOfStringLookupTables = Integer.parseInt(sNumberOfStringLookupTables);
+				stringLookupTableFilename = new String[numberOfStringLookupTables];
+				stringLookupTable = new ConversionStringLookUpTable[numberOfStringLookupTables];
+				for (int i=0; i < numberOfStringLookupTables; i++) {
+					stringLookupTableFilename[i] = getProperty("stringLookupTable"+i+".filename");
+					String tableName = getProperty("stringLookupTable"+i);
+					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i], this);
+
+					if (conversions.containsKey(stringLookupTable[i].getName())) {
+						// we have a namespace clash, warn the user
+						Log.errorDialog("DUPLICATE STRING TABLE NAME", this.user_keps_name + ": Lookup table or Curve already defined and will not be stored: " + tableName);
+					} else {
+						conversions.put(tableName, stringLookupTable[i]);
+						Log.println("Stored: " + stringLookupTable[i]);
+					}
+				}
+			}
+		}
+		// Lookup Tables
+		numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
+		lookupTableFilename = new String[numberOfLookupTables];
+		lookupTable = new ConversionLookUpTable[numberOfLookupTables];
+		for (int i=0; i < numberOfLookupTables; i++) {
+			lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
+			String tableName = getProperty("lookupTable"+i);
+			lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i], this);
+			if (useConversionCoeffs) {
+				if (conversions.containsKey(lookupTable[i].getName())) {
+					// we have a namespace clash, warn the user
+					Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
+				} else {
+					conversions.put(tableName, lookupTable[i]);
+					Log.println("Stored: " + lookupTable[i]);
+				}
+			}
+		}
+	}
+
 	/**
 	 * This loads all of the settings including those that are overridden by the user_ settings.  It they do not
 	 * exist yet then they are initialized here
@@ -747,8 +919,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			useConversionCoeffs = getOptionalBooleanProperty("useConversionCoeffs");
-			if (useConversionCoeffs)
-				conversions = new HashMap<String, Conversion>();
+			
 
 			
 			// Frame Layouts
@@ -766,64 +937,20 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				}
 			}
 			
-			// Conversions
 			if (useConversionCoeffs) {
-				String conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
-				if (conversionCurvesFileName != null) {
-					loadConversionCurves(Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
-				}
-			
-				String conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
-				if (conversionExpressionsFileName != null) {
-					loadConversionExpresions(Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
-				}
-				
-				// String Lookup Tables
-				String sNumberOfStringLookupTables = getOptionalProperty("numberOfStringLookupTables");
-				if (sNumberOfStringLookupTables != null) {
-				numberOfStringLookupTables = Integer.parseInt(sNumberOfStringLookupTables);
-				stringLookupTableFilename = new String[numberOfStringLookupTables];
-				stringLookupTable = new ConversionStringLookUpTable[numberOfStringLookupTables];
-				for (int i=0; i < numberOfStringLookupTables; i++) {
-					stringLookupTableFilename[i] = getProperty("stringLookupTable"+i+".filename");
-					String tableName = getProperty("stringLookupTable"+i);
-					stringLookupTable[i] = new ConversionStringLookUpTable(tableName, stringLookupTableFilename[i]);
-
-					if (conversions.containsKey(stringLookupTable[i].getName())) {
-						// we have a namespace clash, warn the user
-						Log.errorDialog("DUPLICATE STRING TABLE NAME", this.user_keps_name + ": Lookup table or Curve already defined and will not be stored: " + tableName);
-					} else {
-						conversions.put(tableName, stringLookupTable[i]);
-						Log.println("Stored: " + stringLookupTable[i]);
-					}
-				}
-				}
+				conversionCurvesFileName = getOptionalProperty("conversionCurvesFileName");
+				conversionExpressionsFileName = getOptionalProperty("conversionExpressionsFileName");
 			}
-
+			
+			loadConversions();
+			
 			String V3DB = getOptionalProperty("hasFOXDB_V3");
 			if (V3DB == null) 
 				hasFOXDB_V3 = false;
 			else 
 				hasFOXDB_V3 = Boolean.parseBoolean(V3DB);
 			
-			// Lookup Tables
-			numberOfLookupTables = Integer.parseInt(getProperty("numberOfLookupTables"));
-			lookupTableFilename = new String[numberOfLookupTables];
-			lookupTable = new ConversionLookUpTable[numberOfLookupTables];
-			for (int i=0; i < numberOfLookupTables; i++) {
-				lookupTableFilename[i] = getProperty("lookupTable"+i+".filename");
-				String tableName = getProperty("lookupTable"+i);
-				lookupTable[i] = new ConversionLookUpTable(tableName, lookupTableFilename[i]);
-				if (useConversionCoeffs) {
-					if (conversions.containsKey(lookupTable[i].getName())) {
-						// we have a namespace clash, warn the user
-						Log.errorDialog("DUPLICATE TABLE NAME", this.user_keps_name + ": Lookup table already defined and will not be stored: " + tableName);
-					} else {
-						conversions.put(tableName, lookupTable[i]);
-						Log.println("Stored: " + lookupTable[i]);
-					}
-				}
-			}
+			
 
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
@@ -916,7 +1043,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 
 			}
 			
-
 			String t = getOptionalProperty("track");
 			if (t == null) 
 				user_track = true;
@@ -983,13 +1109,31 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		
 		try {
 			IHU_SN = Integer.parseInt(getProperty("IHU_SN"));
-			for (int i=0; i< experiments.length; i++)
-				experiments[i] = Integer.parseInt(getProperty("EXP"+(i+1)));
 			
-			user_BATTERY_CURRENT_ZERO = Double.parseDouble(getProperty("BATTERY_CURRENT_ZERO"));
-		
-			useIHUVBatt = Boolean.parseBoolean(getProperty("useIHUVBatt"));
+			
+			// If fox hasFOXDB_V3 then the experiments are optional because all informtion for
+			// tab layout is stored in the layouts and the rest of the master file
+			for (int i=0; i< experiments.length; i++) {
+				try {
+					int num = Integer.parseInt(getProperty("EXP"+(i+1)));
+					experiments[i] = num;
+				} catch (LayoutLoadException nf) {
+					if (!hasFOXDB_V3) throw nf;
+				}
 
+			}
+			
+			try {
+				user_BATTERY_CURRENT_ZERO = Double.parseDouble(getProperty("BATTERY_CURRENT_ZERO"));
+			} catch (LayoutLoadException nf) {
+				if (!hasFOXDB_V3) throw nf;
+			}
+			try {
+				useIHUVBatt = Boolean.parseBoolean(getProperty("useIHUVBatt"));
+			} catch (LayoutLoadException nf) {
+				if (!hasFOXDB_V3) throw nf;
+			}
+			
 			measurementsFileName = getProperty("measurementsFileName");
 			passMeasurementsFileName = getProperty("passMeasurementsFileName");
 			String error = getOptionalProperty("mpptResistanceError");
@@ -1103,7 +1247,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		} 
 		
 		try {
-			user_BATTERY_CURRENT_ZERO = Double.parseDouble(getUserProperty("BATTERY_CURRENT_ZERO"));
+			if (!hasFOXDB_V3)
+				user_BATTERY_CURRENT_ZERO = Double.parseDouble(getUserProperty("BATTERY_CURRENT_ZERO"));
 		
 			String error = getOptionalUserProperty("mpptResistanceError");
 			if (error != null) {
@@ -1213,20 +1358,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	
+	/**
+	 * The default save just saves the user editable params.  FoxTelem will never edit the master file
+	 */
 	public void save() {
-//		super.save();
-//		properties.setProperty("IHU_SN", Integer.toString(IHU_SN));
-//		for (int i=0; i< experiments.length; i++)
-//			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
-//		
-//		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
-//		properties.setProperty("measurementsFileName", measurementsFileName);
-//		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
-//				
-//		properties.setProperty("hasModeInHeader", Boolean.toString(hasModeInHeader));
-//		store();
-		
-		// Only the user params can be changed and saved
+
 		save_user_params();
 	}
 
@@ -1264,7 +1400,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		}
 		user_properties.setProperty("priority", Integer.toString(user_priority));
 		
-		user_properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(user_BATTERY_CURRENT_ZERO));
+		if (!this.hasFOXDB_V3)
+			user_properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(user_BATTERY_CURRENT_ZERO));
 		if (this.hasMpptSettings) {
 			user_properties.setProperty("mpptResistanceError", Double.toString(user_mpptResistanceError));
 			user_properties.setProperty("mpptSensorOffThreshold", Integer.toString(user_mpptSensorOffThreshold));
@@ -1279,14 +1416,181 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		store_user_params();
 	}
 	
+	protected void store_master_params() {
+		Properties tmp = new Properties() {
+			@Override public synchronized Set<Map.Entry<Object, Object>> entrySet() {
+	            return Collections.synchronizedSet(
+	                    super.entrySet()
+	                    .stream()
+	                    .sorted(Comparator.comparing(e -> e.getKey().toString()))
+	                    .collect(Collectors.toCollection(LinkedHashSet::new)));
+	        }
+		};
+
+		tmp.putAll(properties);
+
+		FileOutputStream f = null;
+		try {
+			f=new FileOutputStream(propertiesFile);
+			tmp.store(f, "AMSAT Spacecraft Properties");
+			f.close();
+		} catch (FileNotFoundException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e2) {};
+			Log.errorDialog("ERROR", "Could not write spacecraft MASTER file. Check permissions on run directory or on the file");
+			e1.printStackTrace(Log.getWriter());
+		} catch (IOException e1) {
+			if (f!=null) try { f.close(); } catch (Exception e3) {};
+			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
+			e1.printStackTrace(Log.getWriter());
+		}
+			
+//		FileOutputStream f = null;
+//		try {
+//			f=new FileOutputStream(propertiesFile);
+//			properties.store(f, "AMSAT Spacecraft Properties");
+//			f.close();
+//		} catch (FileNotFoundException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e2) {};
+//			Log.errorDialog("ERROR", "Could not write spacecraft MASTER file. Check permissions on run directory or on the file");
+//			e1.printStackTrace(Log.getWriter());
+//		} catch (IOException e1) {
+//			if (f!=null) try { f.close(); } catch (Exception e3) {};
+//			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
+//			e1.printStackTrace(Log.getWriter());
+//		}
+	}
+	
+	/**
+	 * This should never be called by the decoder.  This is only called by the spacecraft editor
+	 */
+	public void save_master_params() {
+		// Store the MASTER params
+		// Store the values
+		properties.setProperty("foxId", String.valueOf(foxId));
+		properties.setProperty("series", String.valueOf(series));
+		properties.setProperty("IHU_SN", String.valueOf(IHU_SN));
+		properties.setProperty("catalogNumber", String.valueOf(catalogNumber));
+		properties.setProperty("name", user_keps_name);
+		properties.setProperty("description", description);
+		properties.setProperty("model", String.valueOf(model));
+		properties.setProperty("numberOfLookupTables", String.valueOf(numberOfLookupTables));
+		for (int i=0; i < numberOfLookupTables; i++) {
+			if (lookupTable[i] != null) 
+				properties.setProperty("lookupTable"+i,lookupTable[i].getName());
+			if (this.lookupTableFilename[i] != null)
+				properties.setProperty("lookupTable"+i+".filename",lookupTableFilename[i]);
+		}
+		
+		properties.setProperty("numberOfLayouts", String.valueOf(numberOfLayouts));
+		for (int i=0; i < numberOfLayouts; i++) {
+			if (this.layoutFilename[i] != null)
+				properties.setProperty("layout"+i+".filename",layoutFilename[i]);
+			if (this.layout[i] != null) {
+				properties.setProperty("layout"+i+".name",layout[i].name);
+				if (!layout[i].typeStr.equalsIgnoreCase(""))
+					properties.setProperty("layout"+i+".type",layout[i].typeStr);
+				if (layout[i].title != null)
+					properties.setProperty("layout"+i+".title",layout[i].title);
+				if (layout[i].shortTitle != null)
+					properties.setProperty("layout"+i+".shortTitle",layout[i].shortTitle);
+				if (layout[i].parentLayout != null)
+					properties.setProperty("layout"+i+".parentLayout",layout[i].parentLayout);
+				
+			}
+		}
+
+		properties.setProperty("numberOfSources", String.valueOf(numberOfSources));
+		
+		for (int i=0; i < numberOfSources; i++) {
+			if (sourceName[i] != null)
+				properties.setProperty("source"+i+".name",sourceName[i]);
+			if (sourceFormatName != null && sourceFormatName[i] != null)
+				properties.setProperty("source"+i+".formatName",sourceFormatName[i]);
+		}
+		
+		properties.setProperty("measurementsFileName", measurementsFileName);
+		properties.setProperty("passMeasurementsFileName", passMeasurementsFileName);
+		
+		// optional properties
+		properties.setProperty("useConversionCoeffs", String.valueOf(useConversionCoeffs));
+		/////// IF TRUE SAVE THE FILE NAMES HERE
+		if (useConversionCoeffs) {
+			if (conversionCurvesFileName != null)
+				properties.setProperty("conversionCurvesFileName", String.valueOf(conversionCurvesFileName));
+			if (conversionExpressionsFileName != null)
+				properties.setProperty("conversionExpressionsFileName", String.valueOf(conversionExpressionsFileName));
+		}
+		
+		properties.setProperty("numberOfStringLookupTables", String.valueOf(numberOfStringLookupTables));
+		for (int i=0; i < numberOfStringLookupTables; i++) {
+			if (this.stringLookupTable[i] != null) {
+				properties.setProperty("stringLookupTable"+i,stringLookupTable[i].getName());
+				properties.setProperty("stringLookupTable"+i+".filename",stringLookupTableFilename[i]);
+			}
+		}
+		
+		properties.setProperty("hasFOXDB_V3", String.valueOf(hasFOXDB_V3));
+		
+		// user params that need default value in master file
+		properties.setProperty("telemetryDownlinkFreqkHz", String.valueOf(user_telemetryDownlinkFreqkHz));
+		properties.setProperty("minFreqBoundkHz", String.valueOf(user_minFreqBoundkHz));
+		properties.setProperty("maxFreqBoundkHz", String.valueOf(user_maxFreqBoundkHz));
+		properties.setProperty("track", String.valueOf(user_track));
+		properties.setProperty("priority", String.valueOf(user_priority));
+		properties.setProperty("user_format", String.valueOf(user_format));
+		properties.setProperty("displayName", String.valueOf(user_display_name));
+
+		// Frame Layouts
+		properties.setProperty("numberOfFrameLayouts", String.valueOf(numberOfFrameLayouts));				
+		for (int i=0; i < numberOfFrameLayouts; i++) {
+			if (this.frameLayout[i] != null) {
+				properties.setProperty("frameLayout"+i+".name",frameLayout[i].name);
+				properties.setProperty("frameLayout"+i+".filename",this.frameLayoutFilename[i]);
+			}
+		}
+
+		if (user_localServer != null) {
+			properties.setProperty("localServer",user_localServer);
+			properties.setProperty("localServerPort", Integer.toString(user_localServerPort));
+		}
+		
+		if (!this.hasFOXDB_V3)
+			properties.setProperty("BATTERY_CURRENT_ZERO", Double.toString(user_BATTERY_CURRENT_ZERO));
+		if (this.hasMpptSettings) {
+			properties.setProperty("mpptResistanceError", Double.toString(user_mpptResistanceError));
+			properties.setProperty("mpptSensorOffThreshold", Integer.toString(user_mpptSensorOffThreshold));
+		}
+		if (hasMemsRestValues) {
+			properties.setProperty("memsRestValueX", Integer.toString(user_memsRestValueX));
+			properties.setProperty("memsRestValueY", Integer.toString(user_memsRestValueY));
+			properties.setProperty("memsRestValueZ", Integer.toString(user_memsRestValueZ));			
+		}
+		properties.setProperty("useIHUVBatt", Boolean.toString(useIHUVBatt));
+		
+		properties.setProperty("hasModeInHeader", Boolean.toString(hasModeInHeader));
+		properties.setProperty("hasImprovedCommandReceiver", Boolean.toString(hasImprovedCommandReceiver));
+		properties.setProperty("hasImprovedCommandReceiverII", Boolean.toString(hasImprovedCommandReceiverII));
+		properties.setProperty("hasCanBus", Boolean.toString(hasCanBus));
+		properties.setProperty("hasFrameCrc", Boolean.toString(this.hasFrameCrc));
+		
+		for (int i=0; i<4; i++) {
+			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
+		}
+		
+		// things you can't edit don't need to be passed through because they will have the same value in the properties file still
+		
+		store_master_params();
+	}
+	
 	private void loadConversionCurves(String conversionCurvesFileName) throws FileNotFoundException, IOException {
 		try (BufferedReader br = new BufferedReader(new FileReader(conversionCurvesFileName))) { // try with resource closes it
-		    String line = br.readLine(); // read the header, which we ignore
+		    String line = null; //line = br.readLine(); // read the header, which we ignore
+		    int linenum = 0;
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
 		       // if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
 		        try {
-		        	ConversionCurve conversion = new ConversionCurve(values);
+		        	ConversionCurve conversion = new ConversionCurve(values, this);
 		        	if (conversions.containsKey(conversion.getName())) {
 		        		// we have a namespace clash, warn the user
 		        		Log.errorDialog("DUPLICATE CURVE NAME", this.user_keps_name + "- Conversion Curve already defined. This duplicate name will not be stored: " + conversion.getName());
@@ -1294,10 +1598,15 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        		conversions.put(conversion.getName(), conversion);
 		        		Log.println("Stored: " + conversion);
 		        	}
+		        	linenum++;
 		        } catch (IllegalArgumentException e) {
+		        	if (linenum == 0) {
+		        		// ignore the header
+		        	}else {
 		        	Log.println("Could not load conversion: " + e);
 		        	Log.errorDialog("CORRUPT CONVERSION: ", e.toString());
 		        	// ignore this corrupt row
+		        	}
 		        }
 		    }
 		}
@@ -1307,12 +1616,13 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	private void loadConversionExpresions(String conversionExpressionsFileName) throws FileNotFoundException, IOException, LayoutLoadException {
 		try (BufferedReader br = new BufferedReader(new FileReader(conversionExpressionsFileName))) { // try with resource closes it
-		    String line = br.readLine(); // read the header, which we ignore
+		    String line = null; //br.readLine(); // read the header, which we ignore
+		    int linenum = 0;
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
 		       // Don't check the length because we are allowed to have commas in the description
 		        try {
-		        	ConversionMathExpression conversion = new ConversionMathExpression(values[0], values[1]); // name, equation
+		        	ConversionMathExpression conversion = new ConversionMathExpression(values[0], values[1], this); // name, equation
 		        	if (conversions.containsKey(conversion.getName())) {
 		        		// we have a namespace clash, warn the user
 		        		Log.errorDialog("DUPLICATE CONVERSION EXPRESSION NAME", this.user_keps_name + "- A Curve, expression or table is already defined called " + conversion.getName()
@@ -1321,10 +1631,15 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        		conversions.put(conversion.getName(), conversion);
 		        		Log.println("Expression loaded: " + conversion);
 		        	}
+		        	linenum++;
 		        } catch (IllegalArgumentException e) {
+		        	if (linenum == 0) {
+		        		// ignore the header
+		        	}else {
 		        	Log.println("Could not load conversion: " + e);
 		        	Log.errorDialog("CORRUPT CONVERSION: ", e.toString());
 		        	// ignore this corrupt row
+		        	}
 		        }
 		    }
 		}
