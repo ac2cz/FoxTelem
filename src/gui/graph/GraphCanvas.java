@@ -432,6 +432,11 @@ public abstract class GraphCanvas extends MapPanel {
 							if (conversion != null && conversion instanceof ConversionStringLookUpTable) {
 								ConversionStringLookUpTable cslt = (ConversionStringLookUpTable)conversion;
 								s = cslt.calculateString(labels[v]-1); // we offset by 1 so the last label is not on the axis
+								if (s.length() > 9) {
+									// the label will not fit, truncate it
+									s = s.substring(0,9);
+								}
+									
 								if (s.equalsIgnoreCase(ConversionStringLookUpTable.ERROR))
 									drawLabel = false;
 								else
