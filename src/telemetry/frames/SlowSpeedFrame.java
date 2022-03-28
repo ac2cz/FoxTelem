@@ -93,12 +93,13 @@ public class SlowSpeedFrame extends Frame {
 		if (numberBytesAdded == MAX_HEADER_SIZE+EXTENDED_HEADER_BYTES) {
 			// Then we 
 			header.copyBitsToFields();
-			if (Config.debugFrames) Log.println(header.toString());
+			
 			int type = header.type;
 			if (header.id == 8 && EXTENDED_HEADER_BYTES == 0) {
 				// We have an extended header, so allocate another byte and let the loop run again
 				EXTENDED_HEADER_BYTES=1;
 			} else {
+				if (Config.debugFrames) Log.println(header.toString());
 				fox = Config.satManager.getSpacecraft(header.id);
 				if (fox != null) {
 					if (type == FramePart.TYPE_REAL_TIME) payload = new PayloadRtValues(Config.satManager.getLayoutByName(header.id, Spacecraft.REAL_TIME_LAYOUT));
