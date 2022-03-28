@@ -683,10 +683,10 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 			}
 		}
 
-		//// TESTING ONLY  
 		String convName = layout.getConversionNameByPos(pos);
-						//	if (convName.equalsIgnoreCase("8_bit_temp|FLOAT2"))  // trap for testing
-						//		System.out.println("STOP");
+		//// TESTING ONLY  
+		//	if (convName.equalsIgnoreCase("8_bit_temp|FLOAT2"))  // trap for testing
+		//		System.out.println("STOP");
 
 		// First calculate the value as normal, converting the raw value
 		double dvalue = getDoubleValue(name, fox);
