@@ -306,8 +306,12 @@ public class SatPayloadTable {
 			//System.out.println(rtRecords.size());
 			if (Config.displayRawValues)
 				results[j] = rtRecords.get(i).getRawValue(name);
-			else
+			else {
+//				if (rtRecords.get(i).getStringValue(name, id).equalsIgnoreCase("invalid")) {
+//					;
+//				} else
 				results[j] = rtRecords.get(i).getDoubleValue(name, id);
+			}
 			if (positionData) {
 				lat[j] = rtRecords.get(i).satLatitude;
 				lon[j] = rtRecords.get(i).satLongitude;
