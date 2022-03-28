@@ -105,6 +105,7 @@ public class SatelliteManager implements Runnable {
 			}
 		}
 		
+		haveDatFiles = true; ///////////////////// for testing
 		
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
@@ -307,13 +308,15 @@ public class SatelliteManager implements Runnable {
 				} 
 			}
 		}
-		if (spacecraftList.size() == 0) {
-			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 
-					Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +
-					"\n and confirm it contains the "
-					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
-			System.exit(1);
-		}
+		
+		////////////// REMOVE FOR TESTING
+//		if (spacecraftList.size() == 0) {
+//			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 
+//					Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +
+//					"\n and confirm it contains the "
+//					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
+//			System.exit(1);
+//		}
 		Collections.sort((List<Spacecraft>)spacecraftList);
 	}
 	
