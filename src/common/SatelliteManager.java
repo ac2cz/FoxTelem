@@ -105,6 +105,7 @@ public class SatelliteManager implements Runnable {
 			}
 		}
 		
+		haveDatFiles = true; ///////////////////// for testing
 		
 		if (listOfFiles != null) {
 			for (int i = 0; i < listOfFiles.length; i++) {
@@ -190,12 +191,11 @@ public class SatelliteManager implements Runnable {
 		
 		if(!folder.isDirectory()){
 			folder.mkdir();
-			Log.infoDialog("SPACECRAFT FILES INSTALLATION", "The configuration files for the spacecraft will be copied to: \n" 
-					+ folder.getAbsolutePath() + "\n\n"
-					+ "You will be prompted to install each file.  If you are running multiple copies of FoxTelem, \n"
-					+ "then only install the file(s) you need.\n\n "
-					+ "You can also delete or add spacecraft later from the spacecraft menu\n\n"
-					+ "A master copy of the spacecraft configuration files are still stored in: \n" + masterFolder.getAbsolutePath() + "\n");
+//			Log.infoDialog("SPACECRAFT FILES INSTALLATION", "The configuration files for the spacecraft will be copied to: \n" 
+//					+ folder.getAbsolutePath() + "\n\n"
+//					+ "You can install them using the spacecraft menu.  If you are running multiple copies of FoxTelem, \n"
+//					+ "then only install the file(s) you need.\n\n "
+//					+ "A master copy of the spacecraft configuration files are stored in: \n" + masterFolder.getAbsolutePath() + "\n");
 		}
 		if(!folder.isDirectory()){
 			Log.errorDialog("ERROR", "ERROR can't create the directory: " + folder.getAbsolutePath() +  
@@ -307,13 +307,15 @@ public class SatelliteManager implements Runnable {
 				} 
 			}
 		}
-		if (spacecraftList.size() == 0) {
-			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 
-					Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +
-					"\n and confirm it contains the "
-					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
-			System.exit(1);
-		}
+		
+		////////////// REMOVE FOR TESTING
+//		if (spacecraftList.size() == 0) {
+//			Log.errorDialog("FATAL!", "No satellites could be loaded.  Check the spacecraft directory:\n " + 
+//					Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +
+//					"\n and confirm it contains the "
+//					+ "satellite data files, their telemetry layouts and lookup tables. Program will exit");
+//			System.exit(1);
+//		}
 		Collections.sort((List<Spacecraft>)spacecraftList);
 	}
 	

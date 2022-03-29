@@ -613,7 +613,7 @@ public class FoxTelemMain {
 			Config.homeDirectory = logFileDir;
 
 		FoxTelemMain m = new FoxTelemMain();
-		if (Config.missing()) {
+		if (Config.setup("FoxTelem.properties")) {
 			if (audioFile != null) {
 				Log.println("Cant process command Line Switch 'Process Audio File' until FoxTelem is setup\nRun the GUI once to pick installed satellites and initialize the settings for processing\n");
 				System.exit(1);

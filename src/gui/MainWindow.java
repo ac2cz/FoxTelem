@@ -1164,6 +1164,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 		Config.save();
 		if (file !=null) {
+			int satsLoaded = Config.satManager.getSpacecraftList().size();
 			boolean refresh = false;
 			if (remove) {
 				int n = Log.optionYNdialog("Delete the spacecraft config file?",
@@ -1231,8 +1232,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				Config.initPassManager();
 				Config.initSequence();
 				Config.initServerQueue();
-				Config.mainWindow.initSatMenu();
-				MainWindow.refreshTabs(false);
+				if (satsLoaded != Config.satManager.getSpacecraftList().size()) {
+					Config.mainWindow.initSatMenu();
+					MainWindow.refreshTabs(false);
+				}
 				Config.fileProgress.updateProgress(100);
 			}
 		}

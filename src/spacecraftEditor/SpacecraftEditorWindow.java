@@ -10,6 +10,8 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 
 import javax.swing.JFileChooser;
@@ -24,6 +26,7 @@ import javax.swing.JTabbedPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import common.Config;
+import common.DesktopApi;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
@@ -45,8 +48,11 @@ import telemetry.SatPayloadStore;
  */
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
-	public static final String VERSION_NUM = "1.00a";
-	public static final String VERSION = VERSION_NUM + " - 25 Mar 2022";
+	public static final String VERSION_NUM = "1.00b";
+	public static final String VERSION = VERSION_NUM + " - 28 Mar 2022";
+	public static final String MANUAL = "amsat_telemetry_designers_handbook.pdf";
+	public static final String HANDBOOK = "amsat_telemetry_designers_handbook.pdf";
+
 	
 	// Swing File Chooser
 	static JFileChooser fc = null;
@@ -57,7 +63,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 	JMenuItem mntmExit;
 	JMenuItem mntmNewSpacecraftFile;
 	JMenuItem mntmAddSpacecraftFile;
-	JMenuItem mntmRemoveSpacecraftFile;
+	JMenuItem mntmRemoveSpacecraftFile, mntmSettings, mntmHelpAbout, mntmHelpManual, mntmHelpHandbook;
 	
 	JTabbedPane tabbedPane;
 	ArrayList<Spacecraft> sats;
@@ -110,10 +116,31 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		mnFile.add(mntmRemoveSpacecraftFile);
 		mntmRemoveSpacecraftFile.addActionListener(this);
 
+		mnFile.addSeparator();
+
+		mntmSettings = new JMenuItem("Settings");
+		mnFile.add(mntmSettings);
+		mntmSettings.addActionListener(this);
+
+		mnFile.addSeparator();
+		
 		mntmExit = new JMenuItem("Exit");
 		mnFile.add(mntmExit);
 		mntmExit.addActionListener(this);
+		
+		JMenu mnHelp = new JMenu("Help");
+		menuBar.add(mnHelp);
 
+		mntmHelpAbout = new JMenuItem("About the Spacecraft Editor");
+		mnHelp.add(mntmHelpAbout);
+		mntmHelpAbout.addActionListener(this);
+		mntmHelpManual = new JMenuItem("Open Manual");
+		mnHelp.add(mntmHelpManual);
+		mntmHelpManual.addActionListener(this);
+		mntmHelpHandbook = new JMenuItem("Open Telemetry Designers Handbook");
+		mnHelp.add(mntmHelpHandbook);
+		mntmHelpHandbook.addActionListener(this);
+		
 	}
 
 	private void layoutMainPanel(JPanel panel) {
@@ -379,6 +406,26 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		if (e.getSource() == mntmRemoveSpacecraftFile) {
 			addSpacecraft(true);
 		}
+		if (e.getSource() == mntmSettings) {
+			EditorSettingsFrame f = new EditorSettingsFrame(this, true);
+			f.setVisible(true);
+		}
+		if (e.getSource() == mntmHelpManual) {
+			try {
+				DesktopApi.browse(new URI(SpacecraftEditorWindow.MANUAL));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			};
+		}
+		if (e.getSource() == mntmHelpHandbook) {
+			try {
+				DesktopApi.browse(new URI(SpacecraftEditorWindow.HANDBOOK));
+			} catch (URISyntaxException ex) {
+				//It looks like there's a problem
+				ex.printStackTrace();
+			};
+		}
 
 	}
 	
@@ -396,7 +443,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "spacecraftEditorWindow", "windowWidth");
 		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "spacecraftEditorWindow", "windowHeight");
 		if (windowX == 0 || windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
-			setBounds(100, 100, 1000, 600);
+			setBounds(100, 100, 1000, 800);
 		} else {
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 		}

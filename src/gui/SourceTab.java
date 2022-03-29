@@ -561,6 +561,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		satPanel.setLayout(new BoxLayout(satPanel, BoxLayout.Y_AXIS));
 		JPanel satRows[] = new JPanel[Config.satManager.spacecraftList.size()];
 		JLabel satName[] = new JLabel[Config.satManager.spacecraftList.size()];
+		if (Config.satManager.spacecraftList.size() == 0) {
+			JLabel lbl = new JLabel("  No spacecraft loaded.");
+			lbl.setForeground(Color.RED);
+			JLabel lbl1 = new JLabel("  Use the spacecraft menu");
+			lbl1.setForeground(Color.RED);
+			JLabel lbl2 = new JLabel("  to add a satellite.");
+			lbl2.setForeground(Color.RED);
+			satPanel.add(lbl);
+			satPanel.add(lbl1);
+			satPanel.add(lbl2);
+		} else {
 		satPosition = new JLabel[Config.satManager.spacecraftList.size()];
 		for (int s=0; s < Config.satManager.spacecraftList.size(); s++) {
 			Spacecraft sat = Config.satManager.spacecraftList.get(s);
@@ -577,6 +588,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			satPosition[s].addMouseListener(this);
 			satRows[s].add(satName[s]);
 			satRows[s].add(satPosition[s]);
+		}
 		}
 		autoStart = new JCheckBox("Auto Start");
 		autoStart.setSelected(Config.whenAboveHorizon);
@@ -2985,23 +2997,27 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 					autoStart.setSelected(Config.whenAboveHorizon);
 					if (soundCardComboBox.getSelectedIndex() == 0) {
 						btnStartButton.setEnabled(false);
-					} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
-						// This means we can actually AUTO START or STOP
-						rdbtnFindSignal.setEnabled(false);
+					} else if (Config.satManager.spacecraftList.size() == 0) {
 						btnStartButton.setEnabled(false);
-						lblWhenAboveHorizon.setVisible(true);
-//						enableSourceModeSelectionComponents(false);
-						if (aboveHorizon && !STARTED) {
-							processStartButtonClick();
+					} else if (Config.whenAboveHorizon && soundCardComboBox.getSelectedIndex() != 0) {
+
+							// This means we can actually AUTO START or STOP
+							rdbtnFindSignal.setEnabled(false);
+							btnStartButton.setEnabled(false);
+							lblWhenAboveHorizon.setVisible(true);
+							//						enableSourceModeSelectionComponents(false);
+							if (aboveHorizon && !STARTED) {
+								processStartButtonClick();
+							}
+							if (!aboveHorizon && STARTED) {
+								processStartButtonClick();
+							}
+						} else {
+							btnStartButton.setEnabled(true);
+							lblWhenAboveHorizon.setVisible(false);
 						}
-						if (!aboveHorizon && STARTED) {
-							processStartButtonClick();
-						}
-					} else {
-						btnStartButton.setEnabled(true);
-						lblWhenAboveHorizon.setVisible(false);
-					}
-					
+
+
 					// This is the logic that determines if we are in FindSignal mode and what should be displayed
 					if (Config.iq && (atLeastOneTracked && !Config.foxTelemCalcsDoppler)) {
 						if (!Config.findSignal) {
