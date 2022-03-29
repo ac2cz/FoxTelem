@@ -57,6 +57,7 @@ import uk.me.g4dpz.satellite.GroundStationPosition;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
+	public static String editorCurrentDir = "";  // This is where the editor edits the spacecraft files
 	public static MainWindow mainWindow;
 	static UpdateManager updateManager; // for server only
 	static Thread updateManagerThread; // for server only
@@ -69,7 +70,7 @@ public class Config {
 	
 	public static String VERSION_NUM = "1.12w";
 	public static String VERSION = VERSION_NUM + " - 28 Mar 2022";
-	public static final String propertiesFileName = "FoxTelem.properties";
+	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
 	public static final String MACOS = "mac";
@@ -304,7 +305,8 @@ public class Config {
 	static public boolean calculateBPSKCrc = true;
 	
 	
-	public static boolean missing() { 
+	public static boolean setup(String propertiesFileName) { 
+		Config.propertiesFileName = propertiesFileName;
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
 			return true;
@@ -784,6 +786,7 @@ public class Config {
 		// V1.12
 		properties.setProperty("debugRS", Boolean.toString(debugRS));
 		properties.setProperty("debugAudioLevels", Boolean.toString(debugAudioLevels));
+		properties.setProperty("editorCurrentDir", editorCurrentDir);
 		
 		store();
 	}
@@ -988,6 +991,7 @@ public class Config {
 		// V1.12
 		debugRS = Boolean.parseBoolean(getProperty("debugRS"));
 		debugAudioLevels = Boolean.parseBoolean(getProperty("debugAudioLevels"));
+		editorCurrentDir = getProperty("editorCurrentDir");
 		
 		} catch (NumberFormatException nf) {
 			catchException();
