@@ -22,8 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-import com.sun.media.sound.ModelAbstractChannelMixer;
-
 import common.Config;
 import common.Log;
 import common.Spacecraft;

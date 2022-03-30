@@ -96,19 +96,26 @@ public class GraphPanel extends GraphCanvas {
 		if (graphFrame.plotDerivative) rows +=1;
 		if (graphFrame.dspAvg) rows +=1;
 		
-		
-		int longestWord = 20;
-		for (int i=0; i < graphFrame.fieldName.length; i++)
-			if (graphFrame.fieldName[i].length() > longestWord)
-				longestWord = graphFrame.fieldName[i].length();
-		
+		g2.setFont(new Font("SansSerif", Font.PLAIN, font));
+		int longestWord = 0;
+//		String longestWord = "";
+		for (int i=0; i < graphFrame.fieldName.length; i++) {
+			String w = graphFrame.layout.getModuleByName(graphFrame.fieldName[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName[i])+" ("+graphFrame.fieldUnits+")";
+			int l = g2.getFontMetrics().stringWidth(w);
+			if (l > longestWord)
+				longestWord = l;
+//				longestWord = graphFrame.fieldName[i].length();
+		}
 		if (graphFrame.fieldName2 != null)
-		for (int i=0; i < graphFrame.fieldName2.length; i++)
-			if (graphFrame.fieldName2[i].length() > longestWord)
-				longestWord = graphFrame.fieldName2[i].length();
-		int leftOffset = (int) (longestWord * 1.25* fontw + 20); // the point where we start drawing the box from the right edge of the graph
+		for (int i=0; i < graphFrame.fieldName2.length; i++) {
+			String w = graphFrame.layout.getModuleByName(graphFrame.fieldName2[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName2[i])+" ("+graphFrame.fieldUnits2+")";
+			int l = g2.getFontMetrics().stringWidth(w);
+			if (l > longestWord)
+				longestWord = l;
+		}
+		int leftOffset = longestWord + sideBorder;
+		//int leftOffset = (int) (longestWord * 1.25* fontw + 20); // the point where we start drawing the box from the right edge of the graph
 		
-		g.setFont(new Font("SansSerif", Font.PLAIN, font));
 		g2.setColor(Color.BLACK);
 		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,leftOffset-10 , 9 + fonth * rows +1  );
 		g2.setColor(Color.WHITE);

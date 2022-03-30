@@ -32,6 +32,7 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -681,6 +682,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 		}
 		Object[] fields = labels.toArray();
+		//Arrays.sort(fields);  Can't sort this without sorting variables into the same order!
 		cbAddVariable.removeAllItems();
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
@@ -1732,4 +1734,18 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 	}
 
+//	public static void main(String[] args) {
+//		System.out.println("Test");
+//		String items[] = {"apple", "zoo", "berry","apple2", "zoo2", "berry2","apple4", "zoo4", "berry4" };
+//		
+//		ArrayList<String> labels = new ArrayList<String>();
+//		for (int v=0; v<items.length; v++) {
+//				labels.add(items[v]);
+//		}
+//		Object[] fields = labels.toArray();
+//		for (int v=0; v<fields.length; v++) {
+//			System.out.println(fields[v]);
+//	}
+//		
+//	}
 }
