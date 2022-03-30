@@ -198,10 +198,10 @@ public class GraphPanel extends GraphCanvas {
 		// Calculate the axis points and the labels, but dont draw the lines yet, even if user requested
 		double[] axisPoints2 = {0d, 0d, 0d};
 		if (drawGraph2) {
-			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2, graphFrame.conversion2); // default graph type to 0 for now
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2, graphFrame.lastConversion2); // default graph type to 0 for now
 		}
 		
-		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines, graphFrame.fieldUnits, graphFrame.conversionType, graphFrame.conversion);
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines, graphFrame.fieldUnits, graphFrame.conversionType, graphFrame.lastConversion);
 		
 		
 		zeroPoint = (int) axisPoints[0];
@@ -547,10 +547,10 @@ public class GraphPanel extends GraphCanvas {
 		plotSun(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
 				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, true);
 		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, graphFrame.conversion, true);
+				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, graphFrame.lastConversion, true);
 		if (drawGraph2)
 			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, graphFrame.conversion2, false);
+					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, graphFrame.lastConversion2, false);
 		
 	}
 

@@ -98,8 +98,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	int payloadType;  // This should now be the payload number and is used to uniquely save the graph config.  Except for Measurements, where it is still used to identify them
 	int conversionType;
 	int conversionType2;
-	Conversion conversion;
-	Conversion conversion2;
+	Conversion lastConversion;  // last conversion in pipeline in case we need to format the axis labels
+	Conversion lastConversion2;
 	private JPanel contentPane;
 	private GraphCanvas panel;
 	private JPanel titlePanel;
@@ -234,7 +234,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.fieldName[0] = fieldName;
 		this.layout = lay;
 		String conversionName = lay.getConversionNameByName(fieldName);
-		this.conversion = fox.getConversionByName(conversionName);
+		this.lastConversion = fox.getConversionByName(Conversion.getLastConversionInPipeline(conversionName));
 		this.conversionType = Conversion.getLegacyConversionFromString(conversionName);
 		this.fieldUnits = lay.getUnitsByName(fieldName);
 		payloadType = lay.number; // set this just so that things get saved correctly
@@ -252,7 +252,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		this.fieldName[0] = fieldName;
 		this.fieldUnits = fieldUnits;
 		this.title = title;
-		this.conversion = fox.getConversionByName(conversionName); ///////////////// Need to make sure we get the legacy conversion if needed. Set up BOTH
+		this.lastConversion = fox.getConversionByName(conversionName); ///////////////// Need to make sure we get the legacy conversion if needed. Set up BOTH
 		this.conversionType = Conversion.getLegacyConversionFromString(conversionName);
 		
 		if (lay == null)
@@ -1187,8 +1187,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		if (e.getSource() == btnAdd) {
 			add = !add;
 			cbAddVariable.setVisible(add);
-		} else
-			if (e.getSource() == cbAddVariable) {
+		} else if (e.getSource() == cbAddVariable) {
 			// Add or remove a variable to be plotted on the graph
 			int position = cbAddVariable.getSelectedIndex();
 			if (position == -1) return;
@@ -1246,7 +1245,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
 					conversionType2 = layout.getIntConversionByName(variables.get(position));
-					conversion2 = fox.getConversionByName(variables.get(position));
+					String conversion2name = layout.getConversionNameByName(variables.get(position));
+					lastConversion2 = fox.getConversionByName(Conversion.getLastConversionInPipeline(conversion2name));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
 					i=0;

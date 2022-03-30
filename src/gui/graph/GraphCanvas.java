@@ -109,7 +109,13 @@ public abstract class GraphCanvas extends MapPanel {
 					graphData2[i] = Config.payloadStore.getGraphData(graphFrame.fieldName2[i], graphFrame.SAMPLES, 
 						graphFrame.fox, graphFrame.START_RESET, graphFrame.START_UPTIME, lay.name, false, reverse);
 		
+				
+				
 			}
+			// Set the conversion.  This must be the same for all
+			graphFrame.conversionType2 = graphFrame.layout.getIntConversionByName(graphFrame.fieldName2[0]);
+			String conversion2name = graphFrame.layout.getConversionNameByName(graphFrame.fieldName2[0]);
+			graphFrame.lastConversion2 = fox.getConversionByName(Conversion.getLastConversionInPipeline(conversion2name));
 		}
 		
 		if (graphFrame.SAMPLES > showDialogThreshold)
