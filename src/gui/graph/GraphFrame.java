@@ -122,8 +122,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JCheckBox cbRoundLabels;
 	private JCheckBox cbShowSun;
 	@SuppressWarnings("rawtypes")
-	private JComboBox cbAddVariable;
-	private ArrayList<String> variables;
+	private JComboBox cbAddVariable; // list of additional variables stored in a combo box
+	private ArrayList<String> variables; // list of additional variables that can be plotted as traces
 	
 	public Spacecraft fox;
 	public static final String LIVE_TEXT = "Last";
@@ -245,7 +245,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	}	
 	/**
 	 * Create the frame.
+	 * This is no longer used for data.  It is only called for measurements, which should be re-written
 	 */
+	@Deprecated
 	public GraphFrame(String title, String fieldName, String fieldUnits, String conversionName, int plType, BitArrayLayout lay, Spacecraft fox2, int plot) {
 		fox = fox2;
 		this.fieldName = new String[1];
@@ -271,7 +273,6 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		
 		addWindowListener(this);
 		addComponentListener(this);
-		
 		
 		loadProperties();
 //		Image img = Toolkit.getDefaultToolkit().getImage(getClass().getResource("images/fox.jpg"));
@@ -679,6 +680,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE)) {
 				labels.add(layout.module[v] + "-" + layout.shortName[v]);
 				variables.add(layout.fieldName[v]);
+				
 			}
 		}
 		Object[] fields = labels.toArray();
@@ -687,8 +689,9 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
 	
-	// FIXME - if we pass in the layout, then we would not need this lookup.  This logic SHOULD NOT BE HERE!
+	// If we pass in the layout, then we would not need this lookup.  This logic SHOULD NOT BE HERE!
 	// We now pass layout into DisplayModule. This is only called in legacy situations
+	@Deprecated
 	private BitArrayLayout getLayout(int plType) {
 		BitArrayLayout layout = null;
 		if (plType == FramePart.TYPE_REAL_TIME)

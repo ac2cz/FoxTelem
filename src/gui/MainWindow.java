@@ -671,7 +671,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	
 	private void shutdown() {
 		if (Config.satPC != null) Config.satPC.disconnect();
+		for (int s=0; s<spacecraftTab.length; s++) {
+			spacecraftTab[s].closeGraphs();
+		}
 		inputTab.shutdown();
+		
 		Log.println("Window Closed");
 		Log.close();
 		saveProperties();
