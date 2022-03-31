@@ -43,7 +43,7 @@ import uk.me.g4dpz.satellite.SatPos;
  * 
  */
 @SuppressWarnings("serial")
-public class GraphPanel extends GraphCanvas {
+public class LinePlotPanel extends GraphCanvas {
 	
 	public static final int NO_TIME_VALUE = -999;
 	double[] firstDifference = null;
@@ -64,7 +64,7 @@ public class GraphPanel extends GraphCanvas {
 	int sideLabel = 0;
 	int bottomLabelOffset = 5;
 	
-	GraphPanel(String t, GraphFrame gf, Spacecraft fox2) {
+	LinePlotPanel(String t, GraphFrame gf, Spacecraft fox2) {
 		super(t, gf, fox2);
 		freqOffset = (int) (fox2.user_telemetryDownlinkFreqkHz * 1000);
 		updateGraphData(gf.layout, "GrapPanel.new");
@@ -89,7 +89,6 @@ public class GraphPanel extends GraphCanvas {
 		
 		int leftLineOffset = 50;
 		int fonth = (int)(12*font/9);
-		int fontw = (int)(9*font/10);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
 

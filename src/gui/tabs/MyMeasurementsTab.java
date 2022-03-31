@@ -18,7 +18,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.WrapLayout;
-import gui.graph.GraphPanel;
+import gui.graph.LinePlotPanel;
 
 /**
  * 
@@ -174,16 +174,16 @@ ItemListener {
 					rtMeasurement = Config.payloadStore
 							.getLatestMeasurement(sat.foxId);
 					if (rtMeasurement != null) {
-						double snr = GraphPanel.roundToSignificantFigures(
+						double snr = LinePlotPanel.roundToSignificantFigures(
 								rtMeasurement
 								.getRawValue(RtMeasurement.BIT_SNR), 3);
 						satellite.updateSingleValue(1, Double.toString(snr));
-						double rfsnr = GraphPanel
+						double rfsnr = LinePlotPanel
 								.roundToSignificantFigures(rtMeasurement
 										.getRawValue(RtMeasurement.RF_SNR), 3);
 						satellite.updateSingleValue(2,
 								Double.toString(rfsnr));
-						double power = GraphPanel
+						double power = LinePlotPanel
 								.roundToSignificantFigures(rtMeasurement
 										.getRawValue(RtMeasurement.RF_POWER), 3);
 						satellite.updateSingleValue(3,

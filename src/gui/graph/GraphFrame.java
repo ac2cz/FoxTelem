@@ -32,8 +32,8 @@ import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.Locale;
 import java.util.TimeZone;
@@ -69,7 +69,7 @@ import measure.SatMeasurementStore;
  * FOX 1 Telemetry Decoder
  * @author chris.e.thompson g0kla/ac2cz
  *
- * Copyright (C) 2015 amsat.org
+ * Copyright (C) 2015-2022 amsat.org
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,6 +83,35 @@ import measure.SatMeasurementStore;
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ * 
+ * All graphs that open in a separate window are contained in a GraphFrame. This
+ * is usually called from DisplayModule when a line of telemetry is clicked on by
+ * the user.  
+ * 
+ * The Graph saves and loads it settings into the FoxTelem.properties config file.
+ * These settings are unique to each graph so they are remembered when a graph
+ * is re-opened.
+ * 
+ * A graph can have multiple variables (or traces) plotted.  You can add many
+ * variables but they need to be split into two sets as only two base units are 
+ * allowed.  For example if a plot is made for the CPU Temperature and then a variable
+ * is plotted for the Solar Panel Voltage, then additional traces can only be added if
+ * they have the units of Temperature or Voltage.  This is a limitation of plotting
+ * only two vertical axis, one at either end of the graph.  
+ * 
+ * The available variables to plot at any time are stored in 'variables' with an 
+ * equivalent String list loaded into cbAddVariable JComboBox.
+ * 
+ * The two sets of variables require the units and conversion type to be stored.
+ * 
+ * The actual graph is drawn on a GraphCanvas which stores two arrays of data,
+ * one for each set of variables, called graphData and graphData2.
+ * GraphCanvas is abstract and is implemented by three classes that plot the three
+ * types of graph
+ *     - LinePlotPanel
+ *     - EarthPlotPanel
+ *     - DensityPlotPanel
+ * 
  *
  */
 @SuppressWarnings("serial")
@@ -123,7 +152,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	private JCheckBox cbShowSun;
 	@SuppressWarnings("rawtypes")
 	private JComboBox cbAddVariable; // list of additional variables stored in a combo box
-	private ArrayList<String> variables; // list of additional variables that can be plotted as traces
+	private ArrayList<PlotVariable> variables; // list of additional variables that can be plotted as traces
 	
 	public Spacecraft fox;
 	public static final String LIVE_TEXT = "Last";
@@ -227,6 +256,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	boolean textDisplay = false;
 	
+	/**
+	 * The GraphFrame is passed the Spacecraft, the Layout and the field name, as well as the plot type.
+	 * The title is also passed, though this is actually the title of the DisplayModule.  The actual graph 
+	 * title is built from that and the fieldname.
+	 * 
+	 * @param title
+	 * @param fieldName
+	 * @param lay
+	 * @param fox2
+	 * @param plot
+	 */
 	public GraphFrame(String title, String fieldName, BitArrayLayout lay, Spacecraft fox2, int plot) {
 		this.title = title;
 		fox = fox2;
@@ -309,7 +349,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			panel = new EarthPlotPanel(title, this, fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		} else {
-			panel = new GraphPanel(title, this, fox);
+			panel = new LinePlotPanel(title, this, fox);
 			contentPane.add(panel, BorderLayout.CENTER);
 		}
 
@@ -674,18 +714,24 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initVarlist() {
-		variables = new ArrayList<String>();
+		variables = new ArrayList<PlotVariable>();
 		ArrayList<String> labels = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
 			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE)) {
-				labels.add(layout.module[v] + "-" + layout.shortName[v]);
-				variables.add(layout.fieldName[v]);
+				PlotVariable pv = new PlotVariable(layout.fieldName[v], layout.module[v], layout.shortName[v]);
+				variables.add(pv);
 				
 			}
 		}
-		Object[] fields = labels.toArray();
-		//Arrays.sort(fields);  Can't sort this without sorting variables into the same order!
+		Collections.sort(variables);
+		
 		cbAddVariable.removeAllItems();
+//		for (int v=0; v<variables.size(); v++) {
+//			cbAddVariable.addItem(variables.get(v));
+//		}
+		
+		Object[] fields = variables.toArray();
+		
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));
 	}
 	
@@ -1194,7 +1240,8 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			// Add or remove a variable to be plotted on the graph
 			int position = cbAddVariable.getSelectedIndex();
 			if (position == -1) return;
-			if (fieldName[0].equalsIgnoreCase(variables.get(position))) return; // can't toggle the main value
+			
+			if (fieldName[0].equalsIgnoreCase(variables.get(position).getFieldName())) return; // can't toggle the main value
 			
 			int fields = fieldName.length;
 			int fields2 = 0;;
@@ -1208,7 +1255,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 			for (String s: fieldName) {
 				temp[i++] = s;
-				if (s.equalsIgnoreCase(variables.get(position))) toggle=true;
+				if (s.equalsIgnoreCase(variables.get(position).getFieldName())) toggle=true;
 			}
 			int j = 0;
 			if (fieldName2 != null && fieldName2.length > 0) {
@@ -1216,7 +1263,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				temp2 = new String[fields2];
 				for (String s: fieldName2) {
 					temp2[j++] = s;
-					if (s.equalsIgnoreCase(variables.get(position))) toggle2=true;
+					if (s.equalsIgnoreCase(variables.get(position).getFieldName())) toggle2=true;
 				}
 				totalVariables += fieldName2.length;
 			}
@@ -1225,7 +1272,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 				fieldName = new String[fields-1];
 				i=0;
 				for (String s: temp)
-					if (!s.equalsIgnoreCase(variables.get(position)))
+					if (!s.equalsIgnoreCase(variables.get(position).getFieldName()))
 						fieldName[i++] = s;
 				
 			} else if (toggle2 && fieldName2.length > 0) {
@@ -1238,17 +1285,17 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					fieldName2 = new String[fields2-1];
 					i=0;
 					for (String s: temp2)
-						if (!s.equalsIgnoreCase(variables.get(position)))
+						if (!s.equalsIgnoreCase(variables.get(position).getFieldName()))
 							fieldName2[i++] = s;
 				}
 			} else {
-				if (totalVariables == GraphPanel.MAX_VARIABLES) return; // can't add more variables than the graphPanel can plot
+				if (totalVariables == LinePlotPanel.MAX_VARIABLES) return; // can't add more variables than the graphPanel can plot
 				// Check if this is the same units, otherwise set this as unit2
-				String unit = layout.getUnitsByName(variables.get(position));
+				String unit = layout.getUnitsByName(variables.get(position).getFieldName());
 				if (!unit.equalsIgnoreCase(fieldUnits)) {
 					fieldUnits2 = unit;
-					conversionType2 = layout.getIntConversionByName(variables.get(position));
-					String conversion2name = layout.getConversionNameByName(variables.get(position));
+					conversionType2 = layout.getIntConversionByName(variables.get(position).getFieldName());
+					String conversion2name = layout.getConversionNameByName(variables.get(position).getFieldName());
 					lastConversion2 = fox.getConversionByName(Conversion.getLastConversionInPipeline(conversion2name));
 					// we add it to the second list as the units are different
 					fieldName2 = new String[fields2+1];
@@ -1256,14 +1303,14 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 					if (temp2 != null) // then add what we have so far
 						for (String s: temp2)
 							fieldName2[i++] = s;
-					fieldName2[i] = variables.get(position);
+					fieldName2[i] = variables.get(position).getFieldName();
 				} else {
 					// we add it to the normal list
 					fieldName = new String[fields+1];
 					i=0;
 					for (String s: temp)
 						fieldName[i++] = s;
-					fieldName[i] = variables.get(position);
+					fieldName[i] = variables.get(position).getFieldName();
 				}
 
 
@@ -1271,20 +1318,22 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			
 			// now rebuild the pick list
 			ArrayList<String> labels = new ArrayList<String>();
-			variables = new ArrayList<String>();
+			variables = new ArrayList<PlotVariable>();
 			
 			for (int v=0; v<layout.fieldName.length; v++) {
 				if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE))
 				if (layout.fieldUnits[v].equalsIgnoreCase(fieldUnits) || layout.fieldUnits[v].equalsIgnoreCase(fieldUnits2)
 						|| fieldUnits2.equalsIgnoreCase("")) {
-					variables.add(layout.fieldName[v]);
-					labels.add(layout.module[v] + "-" + layout.shortName[v]);
+					PlotVariable pv = new PlotVariable(layout.fieldName[v], layout.module[v], layout.shortName[v]);
+					variables.add(pv);
 				}
 			}
-		
+
+			Collections.sort(variables);
+			
 			cbAddVariable.removeAllItems();
-			for (String s:labels) {
-				cbAddVariable.addItem(s);
+			for (int v=0; v<variables.size(); v++) {
+				cbAddVariable.addItem(variables.get(v));
 			}
 			
 			if (fieldName.length > 1 || fieldName2 != null)
