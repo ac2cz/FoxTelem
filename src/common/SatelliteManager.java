@@ -176,7 +176,7 @@ public class SatelliteManager implements Runnable {
 								} catch (IOException e) {
 									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
 									e.printStackTrace();
-								}							
+								} 
 //							}
 						} else
 							Log.println("Leaving existing spacecraft file: " + targetFile.getName());

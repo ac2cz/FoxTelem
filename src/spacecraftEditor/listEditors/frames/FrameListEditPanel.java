@@ -3,19 +3,14 @@ package spacecraftEditor.listEditors.frames;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
-import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.InputStreamReader;
-
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.Box;
@@ -43,7 +38,6 @@ import common.Spacecraft;
 import spacecraftEditor.EditorFrame;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
-import spacecraftEditor.listEditors.payload.PayloadCsvFileEditPanel.PayloadTableCellRenderer;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
@@ -53,7 +47,7 @@ import telemetry.frames.FrameLayout;
 public class FrameListEditPanel extends JPanel implements MouseListener, ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	public static final String FRAME_TEMPLATE_FILENAME = "FRAME_template.frame";
+	public static final String FRAME_TEMPLATE_FILENAME = "templates"+File.separator+"FRAME_template.frame";
 
 	SpacecraftEditPanel parent;
 	Spacecraft sat;
@@ -155,6 +149,8 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		ActionMap actMap = framesTable.getActionMap();
 
 		actMap.put(PREV, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
@@ -167,6 +163,8 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
@@ -275,7 +273,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			}
 			FrameLayout[] newFrameLayouts = new FrameLayout[sat.numberOfFrameLayouts+1];
 			/////////////// NEED PTH TO LAYOUT!!
-			newFrameLayouts[sat.numberOfFrameLayouts] = new FrameLayout(sat.foxId, "spacecraft"+ File.separator + frameFilename.getText());
+			newFrameLayouts[sat.numberOfFrameLayouts] = new FrameLayout(sat.foxId, frameFilename.getText());
 			newFrameLayouts[sat.numberOfFrameLayouts].name = frameName.getText();
 //			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
 			for (int i=0; i < sat.numberOfFrameLayouts; i++) {
@@ -328,7 +326,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		// read it from disk, just in case..
 		FrameLayout frameLayout;
 		try {
-			frameLayout = new FrameLayout(sat.foxId, Spacecraft.SPACECRAFT_DIR + File.separator + sat.frameLayoutFilename[row]);
+			frameLayout = new FrameLayout(sat.foxId,  sat.frameLayoutFilename[row]);
 			if (frameLayout != null) {
 				frameTableModel = new FrameTableModel();
 
@@ -374,7 +372,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 				
 				//rightPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 				
-				if (sat.sourceFormat == null || sat.sourceFormat[parent.sourceFormatSelected] == null) {
+				if (sat.sourceFormat == null || sat.sourceFormat.length == 0 || sat.sourceFormat[parent.sourceFormatSelected] == null) {
 					Log.errorDialog("MISSING", "No Source Format defined.  Can't calculate lengths\n");
 				} else {
 					int headerLength = sat.sourceFormat[parent.sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
@@ -452,7 +450,8 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			}
 			
 			int n = Log.optionYNdialog("Remove Frame layout file too?",
-					"Remove this frame layout file as well as the frame table row?\n"+frameFilename.getText() + "\n\nThis will be gone forever\n");
+					"Remove this frame layout file as well as the frame table row?\n"+frameFilename.getText() + "\n\n"
+							+ "If this file is used by other rows or spacecraft then click No.  Otherwise this file will be gone forever.\n");
 			if (n == JOptionPane.NO_OPTION) {
 				
 			} else {

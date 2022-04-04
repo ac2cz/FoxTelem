@@ -208,8 +208,14 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 
 	@Override
 	public void tableChanged(TableModelEvent e) {
-		if (e.getColumn() == -1) return;
-		if (e.getFirstRow() == -1) return;
+		if (e.getColumn() == -1) {
+			//System.err.println("NO UPDATE Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+			return;
+		}
+		if (e.getFirstRow() == -1) {
+			//System.err.println("NO UPDATE Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+			return;
+		}
 		 System.err.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
 		 try {
 			parent.save();

@@ -12,8 +12,10 @@ import javax.swing.JPanel;
 import javax.swing.border.TitledBorder;
 
 import common.Config;
+import common.Log;
 import common.Spacecraft;
 import spacecraftEditor.listEditors.CsvTableModel;
+import spacecraftEditor.listEditors.ListTableModel;
 import spacecraftEditor.listEditors.TableListEditPanel;
 import telemetry.LayoutLoadException;
 import telemetry.TelemFormat;
@@ -22,9 +24,9 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 	private static final long serialVersionUID = 1L;
 	JPanel leftSourcesPanel, sourceStats;
 	
-	public SourceTableListEditPanel(Spacecraft sat, String title, CsvTableModel listTableModel,
+	public SourceTableListEditPanel(Spacecraft sat, String title, ListTableModel listTableModel,
 			CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
-		super(sat, title, listTableModel, csvTableModel, parent);
+		super(sat, title, listTableModel, csvTableModel, "format", parent);
 		txtFilename.setEditable(true);
 		lFilename.setText("Format");
 		
@@ -51,13 +53,22 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 	protected void updateRow(int row) {
 		txtName.setText(dataLines.get(row)[1]);
 		txtFilename.setText(dataLines.get(row)[2]);
-		
-		// update the source file viewed
 	}
 	
 	@Override
 	protected void browseListItem() {
-		// do nothing
+		Log.println("Browse for Source filename ...");
+		File dir = new File(Config.currentDir+"/spacecraft");
+		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", "format");
+		if (file == null) return;
+
+		String fileName = file.getName();
+		try {
+			TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + fileName);
+			txtFilename.setText(tmpFormat.name);
+		} catch (LayoutLoadException e) {
+			Log.errorDialog("ERROR", "Can not extract the format name from format file: \n" + fileName);
+		}
 	}
 	
 	@Override
@@ -95,7 +106,8 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 			}
 			
 		}
-		
+
+		parent.save();
 	}
 
 	public void mousePressed(MouseEvent e) {

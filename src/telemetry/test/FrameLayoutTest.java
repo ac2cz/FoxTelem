@@ -24,7 +24,7 @@ public class FrameLayoutTest {
 		Log.println("LogFileDir is:" + Config.logFileDirectory);
 
 		try {
-			FrameLayout frame = new FrameLayout(6, Config.currentDir + File.separator + "spacecraft\\HUSKY_SAT_Type0_ALL_WOD.frame");
+			FrameLayout frame = new FrameLayout(6, "HUSKY_SAT_Type0_ALL_WOD.frame");
 			
 			assertEquals(6,frame.getNumberOfPayloads());
 			assertEquals("wodcantelemetry",frame.getPayloadName(0));

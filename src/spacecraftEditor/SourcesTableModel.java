@@ -1,8 +1,6 @@
 package spacecraftEditor;
 
-import javax.swing.table.AbstractTableModel;
-
-import spacecraftEditor.listEditors.CsvTableModel;
+import spacecraftEditor.listEditors.ListTableModel;
 
 /**
  * 
@@ -26,7 +24,7 @@ import spacecraftEditor.listEditors.CsvTableModel;
  *
  */
 @SuppressWarnings("serial")
-public class SourcesTableModel extends CsvTableModel {
+public class SourcesTableModel extends ListTableModel {
 
 	SourcesTableModel() {
 		super();

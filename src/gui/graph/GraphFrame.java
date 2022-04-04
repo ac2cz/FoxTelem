@@ -720,16 +720,11 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE)) {
 				PlotVariable pv = new PlotVariable(layout.fieldName[v], layout.module[v], layout.shortName[v]);
 				variables.add(pv);
-				
 			}
 		}
 		Collections.sort(variables);
 		
-		cbAddVariable.removeAllItems();
-//		for (int v=0; v<variables.size(); v++) {
-//			cbAddVariable.addItem(variables.get(v));
-//		}
-		
+		cbAddVariable.removeAllItems();		
 		Object[] fields = variables.toArray();
 		
 		cbAddVariable.setModel(new DefaultComboBoxModel(fields));

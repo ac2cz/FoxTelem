@@ -52,6 +52,7 @@ import spacecraftEditor.listEditors.CsvFileEditorGrid;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
+import telemetry.conversion.ConversionLookUpTable;
 
 public class PayloadListEditPanel extends JPanel implements MouseListener, ActionListener {
 
@@ -88,6 +89,24 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		
 	}
 	
+	private void savePayloadsListTable() throws FileNotFoundException, LayoutLoadException {
+		sat.layout = new BitArrayLayout[layoutsTableModel.getRowCount()];
+		sat.numberOfLayouts = layoutsTableModel.getRowCount();
+		sat.layoutFilename = new String[layoutsTableModel.getRowCount()];
+		for (int j = 0; j < layoutsTableModel.getRowCount(); j++) {
+			if (layoutsTableModel.getValueAt(j,1) == null) {
+				sat.layout[j] = null;
+			} else {
+				sat.layoutFilename[j] = (String)layoutsTableModel.getValueAt(j,2);
+				sat.layout[j] = new BitArrayLayout(sat.layoutFilename[j]);
+				sat.layout[j].name = (String)layoutsTableModel.getValueAt(j,1);
+				sat.layout[j].typeStr = (String)layoutsTableModel.getValueAt(j,3);
+			}
+		}
+		
+		parent.save();
+	}
+	
 	private void loadPayloadsListTable() {
 		String[][] data = new String[sat.numberOfLayouts][4];
 		for (int i=0; i< sat.numberOfLayouts; i++) {
@@ -101,7 +120,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				data[i][2] = sat.layoutFilename[i];
 			else
 				data[i][2] ="-";
-			data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
+//			data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
+			data[i][3] = ""+sat.layout[i].typeStr;
 
 		}
 		if (sat.numberOfLayouts > 0) 
@@ -207,7 +227,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		
 		JPanel f2 = new JPanel();
 		f2.setLayout(new BoxLayout(f2, BoxLayout.Y_AXIS) );
-		JLabel lf2 = new JLabel("Type");
+		JLabel lf2 = new JLabel("Tab Type");
 		payloadType = new JComboBox<String>(BitArrayLayout.types); 
 		f2.add(lf2);
 		f2.add(payloadType);
@@ -236,7 +256,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		btnUpdatePayload = new JButton("Update");
 		btnUpdatePayload.addActionListener(this);
 		
-		btnGeneratePayload = new JButton("Generate C");
+		btnGeneratePayload = new JButton("Re-Generate ->");
 		btnGeneratePayload.addActionListener(this);
 		
 		footerPanelRow2.add(btnAddPayload);
@@ -287,26 +307,30 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	
 	JPanel tab = new JPanel();
 	private void updateTabs(int row) {
-		if (sat.layoutFilename.length == 0) return;
-		
-//		if (payloadCsvFileEditPanel.csvFileEditorGrid != null) {
-//			int n = Log.optionYNdialog("Unsaved file",
-//					"Do you want to save this payload file before switching to another?\n"+payloadFilename.getText() + "\nOtherwise your changes will be lost\n");
-//			if (n == JOptionPane.NO_OPTION) {
-//				
-//			} else {
-//				return;
-//			}	
-//		}
+		if (sat == null || sat.layoutFilename == null && sat.layoutFilename.length == 0) return;
 		
 		payloadName.setText(sat.layout[row].name);
 		payloadFilename.setText(sat.layoutFilename[row]);
 		payloadType.setSelectedItem((String)sat.layout[row].typeStr);
 		
+		payloadCsvFileEditPanel.setFile(sat.layoutFilename[row]);
+		
+		try {
+			savePayloadsListTable(); // make sure payloads saved back to MASTER and reloaded
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "Error saving details to file\n"+e1);
+		} catch (LayoutLoadException e2) {
+			Log.errorDialog("ERROR", "Error saving table\n"+e2);
+		}
+		loadPayloadsListTable();
+		generatePayload();
+		generateTab(row);
+	}
+	
+	private void generateTab(int row) {
 		if (modulesTab != null)
 			tab.remove(modulesTab);
 		
-		payloadCsvFileEditPanel.setFile(sat.layoutFilename[row]);
 		BitArrayLayout lay = sat.layout[row];
 		BitArrayLayout secondaryLayout = sat.getSecondaryLayoutFromPrimaryName(lay.name);
 		String title = "Experiment: " + lay.name;
@@ -353,21 +377,22 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	}
 	
 	private void addPayload() {
-		String[] newLayoutFilenames = new String[sat.numberOfLayouts+1];
-		newLayoutFilenames[sat.numberOfLayouts] = payloadFilename.getText();
-		
-		for (int i=0; i < sat.numberOfLayouts; i++) {
-			newLayoutFilenames[i] = sat.layoutFilename[i];
-		}
-		sat.layoutFilename = newLayoutFilenames;
 		
 		
 		try {
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
 			if (!dest.isFile()) {
-				File source = new File(Config.currentDir+ File.separator +"spacecraft"+File.separator+"templates"+ File.separator + PAYLOAD_TEMPLATE_FILENAME);
+				File source = new File(Config.currentDir+ File.separator +"spacecraft"+File.separator + PAYLOAD_TEMPLATE_FILENAME);
 				SatPayloadStore.copyFile(source, dest);
 			}
+			
+			String[] newLayoutFilenames = new String[sat.numberOfLayouts+1];
+			newLayoutFilenames[sat.numberOfLayouts] = payloadFilename.getText();
+			
+			for (int i=0; i < sat.numberOfLayouts; i++) {
+				newLayoutFilenames[i] = sat.layoutFilename[i];
+			}
+			sat.layoutFilename = newLayoutFilenames;
 			
 			BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts+1];
 			newLayouts[sat.numberOfLayouts] = new BitArrayLayout(payloadFilename.getText());
@@ -379,8 +404,9 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			sat.layout = newLayouts;
 			
 			sat.numberOfLayouts++;
-			parent.save();
+			savePayloadsListTable();
 			loadPayloadsListTable();
+			payloadCsvFileEditPanel.setFile(payloadFilename.getText());
 			payloadName.setText("");
 			payloadFilename.setText("");
 			payloadType.setSelectedIndex(0);
@@ -401,6 +427,14 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	
 	private void generatePayload() {
 		Log.println("Generate Payload ...");
+		if (Config.python.equalsIgnoreCase("")) {
+			codeTextArea.setText("C code is generated with a python script.  Setup the path to python on File > Setings screen");
+			return;
+		}
+		if (Config.payloadHeaderGenScript.equalsIgnoreCase("")) {
+			codeTextArea.setText("C code is generated with a python script.  Setup the script name on File > Setings screen");
+			return;
+		}
 		File layout = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
 		
 		if (!layout.isFile()) {
@@ -408,33 +442,49 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			return;
 		}
 		
-		String PYTHON = "python.exe";
-		String SCRIPT = Config.currentDir + File.separator + "gen_header.py";
-		String COMMAND = PYTHON + " " + SCRIPT + " " + payloadName.getText() + " " + layout;
+		String SCRIPT = System.getProperty("user.dir") + File.separator + "gen_header.py";
+		String COMMAND = Config.python + " " + SCRIPT + " " + payloadName.getText() + " " + layout;
 		Log.println(" running: " + COMMAND);
 		String s = null;
+		boolean failed = false;
+		Process p = null;
 		try {
-			Process p = Runtime.getRuntime().exec(COMMAND);
+			p = Runtime.getRuntime().exec(COMMAND);
+		} catch (IOException e1) {
+			failed = true;
+		}
+		if (p != null) {
 			BufferedReader stdInput = new BufferedReader(new 
 					InputStreamReader(p.getInputStream()));
 
 			BufferedReader stdError = new BufferedReader(new 
 					InputStreamReader(p.getErrorStream()));
-
+		
 			// read the output from the command
 			codeTextArea.setText(null); // clear the text area
-			while ((s = stdInput.readLine()) != null) {
-				codeTextArea.append(s + "\n");
+			try {
+				while ((s = stdInput.readLine()) != null) {
+					codeTextArea.append(s + "\n");
+				}
+			} catch (IOException e) {
+				codeTextArea.append("Could not read command output" + "\n"+ e + "\n");
 			}
 
 			// read any errors from the attempted command
 			Log.println("Here is the standard error of the code generation (if any):\n");
-			while ((s = stdError.readLine()) != null) {
-				codeTextArea.append(s + "\n");
-				Log.println(s);
+			try {
+				while ((s = stdError.readLine()) != null) {
+					codeTextArea.append(s + "\n");
+					Log.println(s);
+				}
+			} catch (IOException e) {
+				codeTextArea.append("Could not read command errors" + "\n" + e + "\n");
 			}
-		} catch (IOException e1) {
-			Log.errorDialog("ERROR", "Error running python generate script\n");
+		}
+		if (failed) {
+			Log.errorDialog("ERROR", "Error could not run the python generate script:\n" + COMMAND + "\n"
+					+ "Make sure python is in the path or put the full path to python on the File > Settings screen\n"
+					+ "");
 		}
 	}
 
@@ -452,6 +502,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		
 		if (e.getSource() == btnUpdatePayload) {
 			int row = payloadsTable.getSelectedRow();
+			if (row == -1) return;
 			Log.println("Updating row " + row);
 			if (sat.numberOfLayouts == 0) return;
 			
@@ -460,7 +511,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layoutFilename[row] = payloadFilename.getText();
 				sat.layout[row].name = payloadName.getText();
 				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
-				parent.save();
+				savePayloadsListTable();
 				loadPayloadsListTable();
 				payloadName.setText("");
 				payloadFilename.setText("");
@@ -479,7 +530,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			if (sat.numberOfLayouts == 0) return;
 			
 			int n = Log.optionYNdialog("Remove payload file too?",
-					"Remove this payload file as well as the payload table row?\n"+payloadFilename.getText() + "\n\nThis will be gone forever\n");
+					"Remove this payload file as well as the payload table row?\n"+payloadFilename.getText() + "\n\n"
+							+ "If this file is used by other rows or spacecraft then click No.  Otherwise this file will be gone forever.\n");
 			if (n == JOptionPane.NO_OPTION) {
 				
 			} else {
@@ -514,7 +566,13 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layoutFilename = newLayoutFilenames;
 				sat.numberOfLayouts--;
 			}
-			parent.save();
+			try {
+			savePayloadsListTable();
+			} catch (IOException e1) {
+				Log.errorDialog("ERROR", "Error saving details to file\n"+e1);
+			} catch (LayoutLoadException e2) {
+				Log.errorDialog("ERROR", "Error saving table\n"+e2);
+			}
 			loadPayloadsListTable();
 			payloadName.setText("");
 			payloadFilename.setText("");
@@ -523,7 +581,11 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			
 		}
 		if (e.getSource() == btnGeneratePayload) {
-			generatePayload();
+			int row = payloadsTable.getSelectedRow();
+			if (row == -1) return;
+			Log.println("Generating row " + row);
+			
+			updateTabs(row);
 		}
 
 	}
@@ -546,21 +608,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				Log.println("PRESSED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 				String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 				
-				
-				
-//				try {
-//					Log.println("Loading: " + masterFolder + File.separator + sat.layoutFilename[row]);
-//					BitArrayLayout layout = new BitArrayLayout(sat.layoutFilename[row]);
-//					String[][] data = layout.getJTableData();
-//					layoutEditorPanel.setData(sat.layout[row].name + " : " + sat.layoutFilename[row], data);
-//				} catch (FileNotFoundException e2) {
-//					Log.errorDialog("ERROR", "Could not open layout file: \n"+masterFolder + File.separator + sat.layoutFilename[row] + "\n" + e2);
-//				} catch (LayoutLoadException e2) {
-//					Log.errorDialog("ERROR", "Could not load layout file: \n"+masterFolder + File.separator + sat.layoutFilename[row] + "\n" + e2);
-//				}
-				
 				updateTabs(row);
-				
+				payloadsTable.setRowSelectionInterval(row, row);
 				if (e.getClickCount() == 2) {
 					
 					//EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.layoutFilename[row]);

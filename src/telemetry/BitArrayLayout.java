@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
+import common.Config;
 import common.Log;
 
 /**
@@ -409,7 +410,7 @@ public class BitArrayLayout {
 	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
-		fileName = "spacecraft" +File.separator + f;
+		fileName = Config.currentDir + File.separator + "spacecraft" +File.separator + f;
 	//	File aFile = new File(fileName);
 		
 		Log.println("Loading layout: "+ fileName);

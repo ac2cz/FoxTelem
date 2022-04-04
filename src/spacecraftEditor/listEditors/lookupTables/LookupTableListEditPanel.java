@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import common.Spacecraft;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.listEditors.CsvTableModel;
+import spacecraftEditor.listEditors.ListTableModel;
 import spacecraftEditor.listEditors.TableListEditPanel;
 import telemetry.LayoutLoadException;
 import telemetry.conversion.ConversionLookUpTable;
@@ -13,9 +14,9 @@ import telemetry.conversion.ConversionLookUpTable;
 public class LookupTableListEditPanel extends TableListEditPanel{
 	private static final long serialVersionUID = 1L;
 
-	public LookupTableListEditPanel(Spacecraft sat, String title, CsvTableModel listTableModel,
+	public LookupTableListEditPanel(Spacecraft sat, String title, ListTableModel listTableModel,
 			CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
-		super(sat, title, listTableModel, csvTableModel, parent);
+		super(sat, title, listTableModel, csvTableModel, "tab", parent);
 		// TODO Auto-generated constructor stub
 	}
 	

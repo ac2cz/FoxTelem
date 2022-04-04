@@ -67,16 +67,28 @@ public class SpacecraftEditTab extends JPanel {
 		// CURVES
 		CurvesTableModel model = new CurvesTableModel();
 		String f = sat.conversionCurvesFileName;
-		if (f == null) f = CURVES_TEMPLATE_FILENAME;
-		CsvFileEditPanel csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",f);
+		CsvFileEditPanel csvFileEdit;
+		if (f == null) {
+			csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",CURVES_TEMPLATE_FILENAME);
+			csvFileEdit.setFilenameText("");
+		} else {
+			csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",f);
+		}
+		
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 			+ "Conversion Curves" + "</b></body></html>", csvFileEdit );
 		
 		// EXPRESSIONS
 		ExpressionsTableModel expressionsModel = new ExpressionsTableModel();
 		String expFile = sat.conversionExpressionsFileName;
-		if (expFile == null) expFile = MATH_EXPRESSIONS_TEMPLATE_FILENAME;
-		ExpressionsCsvFileEditPanel expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",expFile);
+		ExpressionsCsvFileEditPanel expressionsCsvFileEdit;
+		if (expFile == null) {
+			expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",MATH_EXPRESSIONS_TEMPLATE_FILENAME);
+			expressionsCsvFileEdit.setFilenameText("");
+		} else {
+			expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",expFile);
+		}
+		
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "Math Expressions" + "</b></body></html>", expressionsCsvFileEdit );
 		

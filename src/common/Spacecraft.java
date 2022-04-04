@@ -300,8 +300,13 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		
 		userPropertiesFile = userFileName;	
 		tleList = new SortedTleList(10);
-		
+		try {
 		load(); // don't call load until this constructor has started and the variables have been initialized
+		} catch (ArrayIndexOutOfBoundsException e1) {
+			Log.errorDialog("ERROR", "Can't fully load spacecraft file: "+masterFileName+"\nPerhaps one of the files is corrupt? "+"\n"+ e1.getMessage());
+			e1.printStackTrace();
+			return;
+		}
 		try {
 			loadTimeZeroSeries(null);
 		} catch (FileNotFoundException e) {
@@ -499,7 +504,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	 * @throws IOException 
 	 */
 	protected void loadTleHistory() {
-		String file = Spacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
+		String file =  Spacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -842,12 +847,12 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			conversions = new HashMap<String, Conversion>();
 
 			if (conversionCurvesFileName != null) {
-				loadConversionCurves(Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
+				loadConversionCurves( Config.currentDir + File.separator +  Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
 			}
 
 			
 			if (conversionExpressionsFileName != null) {
-				loadConversionExpresions(Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
+				loadConversionExpresions( Config.currentDir + File.separator +  Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
 			}
 
 			// String Lookup Tables
@@ -932,7 +937,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				frameLayout = new FrameLayout[numberOfFrameLayouts];
 				for (int i=0; i < numberOfFrameLayouts; i++) {
 					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
-					frameLayout[i] = new FrameLayout(foxId, Spacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
+					frameLayout[i] = new FrameLayout(foxId,  frameLayoutFilename[i]);
 					frameLayout[i].name = getProperty("frameLayout"+i+".name");
 				}
 			}
@@ -950,8 +955,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			else 
 				hasFOXDB_V3 = Boolean.parseBoolean(V3DB);
 			
-			
-
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			numberOfDbLayouts = numberOfLayouts;
@@ -1289,7 +1292,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	 */
 	private void loadCanLayouts() {
 		try {
-			canFrames = new CanFrames(this.canFileDir+ File.separator +"frames.csv");
+			canFrames = new CanFrames( this.canFileDir+ File.separator +"frames.csv");
 			int canLayoutNum = canFrames.NUMBER_OF_FIELDS;
 			Log.println("Loading " + canLayoutNum + " CAN Layouts");
 			BitArrayLayout[] existingLayouts = layout;
@@ -1298,7 +1301,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			for (BitArrayLayout l : existingLayouts)
 				layout[i++] = l;
 			for (String frameName : canFrames.frame) {
-				layout[i] = new BitArrayLayout(this.canFileDir+ File.separator + frameName + ".csv");
+				layout[i] = new BitArrayLayout( this.canFileDir+ File.separator + frameName + ".csv");
 				layout[i].name = frameName;
 				layout[i].parentLayout = "cantelemetry"; // give it any name so that it has a parent and is not a top level "payload"
 				i++;
@@ -1588,7 +1591,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		    int linenum = 0;
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
-		       // if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
+		       if (values.length >= ConversionCurve.CSF_FILE_ROW_LENGTH)
 		        try {
 		        	ConversionCurve conversion = new ConversionCurve(values, this);
 		        	if (conversions.containsKey(conversion.getName())) {
@@ -1610,8 +1613,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        }
 		    }
 		}
-		
-		
 	}
 	
 	private void loadConversionExpresions(String conversionExpressionsFileName) throws FileNotFoundException, IOException, LayoutLoadException {

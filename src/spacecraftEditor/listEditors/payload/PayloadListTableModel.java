@@ -33,7 +33,7 @@ public class PayloadListTableModel extends AbstractTableModel {
 		columnNames[0] = "Num";
 		columnNames[1] = "Payload Name";
 		columnNames[2] = "File Name";
-		columnNames[3] = "Length";
+		columnNames[3] = "Tab";
 
 	}
 

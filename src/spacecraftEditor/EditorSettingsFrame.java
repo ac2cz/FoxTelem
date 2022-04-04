@@ -72,6 +72,8 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 	JButton btnSave;
 	JButton btnCancel;
 	JButton btnBrowse, btnBrowseMaster;
+	JCheckBox cbLogging;
+	JTextField txtPython,txtPayloadHeaderGenScript;
 	
 	/**
 	 * Create the Dialog
@@ -173,7 +175,15 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 		
 		// Center panel for settings
 		JPanel centerpanel = new JPanel();
+		contentPane.add(centerpanel, BorderLayout.CENTER);
+		TitledBorder centerTitle1 = title("Options");
+		centerpanel.setBorder(centerTitle1);
+		centerpanel.setLayout(new BoxLayout(centerpanel, BoxLayout.Y_AXIS));
+		cbLogging = addCheckBoxRow("Enable Logging", "Log debug information to a file", Config.logging, centerpanel);
+		txtPython = addSettingsRow(centerpanel, 20, "Path to Python","python executable name with folder if it is not in the path", Config.python);
+		txtPayloadHeaderGenScript = addSettingsRow(centerpanel, 20, "C header Script","Name of the python script to generate the C headers", Config.payloadHeaderGenScript);
 
+		centerpanel.add(new Box.Filler(new Dimension(0,1000), new Dimension(100,1000), new Dimension(1000,1000)));
 	}
 
 	public void saveProperties() {
@@ -189,7 +199,7 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 		int windowWidth = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowWidth");
 		int windowHeight = Config.loadGraphIntValue("Global", 0, 0, "settingsWindow", "windowHeight");
 		if (windowX == 0 ||windowY == 0 ||windowWidth == 0 ||windowHeight == 0) {
-			setBounds(100, 100, 725, 700);
+			setBounds(100, 100, 400, 700);
 		} else {
 			setBounds(windowX, windowY, windowWidth, windowHeight);
 		}
@@ -333,7 +343,17 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 				}		
 			} 
 
-
+			Config.logging = cbLogging.isSelected();
+			Config.python = txtPython.getText();
+			if (!txtPayloadHeaderGenScript.getText().equalsIgnoreCase("")) {
+				File script = new File(System.getProperty("user.dir") + File.separator + txtPayloadHeaderGenScript.getText());
+				if (script.exists()) {
+					Config.payloadHeaderGenScript = txtPayloadHeaderGenScript.getText();
+				} else {
+					Log.errorDialog("ERROR", "Make sure the header generation script is in this folder:\n" + System.getProperty("user.dir") );
+				}
+			} else
+				Config.payloadHeaderGenScript = txtPayloadHeaderGenScript.getText();
 
 			if (dispose) {
 				Config.save();

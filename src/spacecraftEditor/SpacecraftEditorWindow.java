@@ -217,9 +217,10 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		} else {
 			fc.setPreferredSize(new Dimension(Config.windowFcWidth, Config.windowFcHeight));
 
-			fc.setDialogTitle("Specify new MASTER spacecraft file to create");
+			fc.setDialogTitle(title);
+			fc.resetChoosableFileFilters();
 			FileNameExtensionFilter filter = new FileNameExtensionFilter(
-					"Spacecraft files", filterString);
+					filterString + " files", filterString);
 			fc.setFileFilter(filter);
 			fc.setApproveButtonText(buttonText);
 
@@ -355,7 +356,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			}
 		}
 		if (remove)
-			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Close Spacecraft", "dat");
+			file = pickFile(dir, this, "Specify spacecraft (.dat) file to close", "Close Spacecraft", "dat");
 		else
 			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Load", "MASTER");
 

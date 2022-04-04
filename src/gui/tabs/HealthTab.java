@@ -229,6 +229,8 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		lblCaptureDate.setForeground(textLblColor);
 		bottomPanel.add(lblCaptureDate );
 		
+		/////// WE SHOULD PASS THESE LAYOUTS IN EXPLICITY, NOT GRAB ONES WITH HARD CODED NAMES LIKE rttelemetry
+		/////// OR we could allow ONLY one RT, MIN, MAX, WOD per spacecraft and use the types to grab this
 		BitArrayLayout rt = null;
 		if (displayType == DisplayModule.DISPLAY_WOD)
 			rt = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);

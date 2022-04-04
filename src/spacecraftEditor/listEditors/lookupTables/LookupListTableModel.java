@@ -1,8 +1,8 @@
 package spacecraftEditor.listEditors.lookupTables;
 
-import spacecraftEditor.listEditors.CsvTableModel;
+import spacecraftEditor.listEditors.ListTableModel;
 
-public class LookupListTableModel extends CsvTableModel{
+public class LookupListTableModel extends ListTableModel{
 	private static final long serialVersionUID = 1L;
 
 	public LookupListTableModel() {

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Properties;
 
 import common.Config;
+import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
@@ -25,9 +26,9 @@ public class FrameLayout {
 	
 	public FrameLayout(int foxId, String fileName) throws LayoutLoadException {
 		properties = new Properties();
-		this.fileName = fileName;
+		this.fileName = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR + File.separator + fileName;
 		this.foxId = foxId;
-		propertiesFile = new File(fileName);
+		propertiesFile = new File(this.fileName);
 		payloadNames = new HashMap<Integer,String>();
 		load();
 //		try { getInt(NUMBER_OF_PAYLOADS); } catch (Exception e) {

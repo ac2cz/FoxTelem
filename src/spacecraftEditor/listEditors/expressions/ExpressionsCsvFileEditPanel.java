@@ -15,7 +15,7 @@ public class ExpressionsCsvFileEditPanel extends CsvFileEditPanel {
 
 	public ExpressionsCsvFileEditPanel(Spacecraft sat, CsvTableModel model,
 			String titleString, String file) {
-		super(sat, model, titleString, file);
+		super(sat, model, titleString, file, "csv");
 		// TODO Auto-generated constructor stub
 	}
 
