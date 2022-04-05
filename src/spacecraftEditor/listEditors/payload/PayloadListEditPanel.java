@@ -111,7 +111,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		String[][] data = new String[sat.numberOfLayouts][4];
 		for (int i=0; i< sat.numberOfLayouts; i++) {
 			data[i][0] =""+i;
-			if (sat.layout[i].name != null) 
+			if (sat.layout[i] != null && sat.layout[i].name != null) 
 				data[i][1] = sat.layout[i].name;
 			else
 				data[i][1] ="NONE";
@@ -229,6 +229,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		f2.setLayout(new BoxLayout(f2, BoxLayout.Y_AXIS) );
 		JLabel lf2 = new JLabel("Tab Type");
 		payloadType = new JComboBox<String>(BitArrayLayout.types); 
+		payloadType.addActionListener(this);
 		f2.add(lf2);
 		f2.add(payloadType);
 		footerPanelRow1.add(f2);
@@ -404,8 +405,11 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			sat.layout = newLayouts;
 			
 			sat.numberOfLayouts++;
-			savePayloadsListTable();
+			// first load the table
 			loadPayloadsListTable();
+			// then save to disk
+			savePayloadsListTable();
+			
 			payloadCsvFileEditPanel.setFile(payloadFilename.getText());
 			payloadName.setText("");
 			payloadFilename.setText("");
@@ -490,7 +494,32 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 
 	@Override
 	public void actionPerformed(ActionEvent e) {
-
+		if (e.getSource() == payloadType) {
+			String typeStr = (String)payloadType.getSelectedItem();
+			switch (typeStr) {
+				case BitArrayLayout.RT:
+					payloadName.setText(Spacecraft.REAL_TIME_LAYOUT);
+					payloadName.setEditable(false);
+					break;
+				case BitArrayLayout.MAX:
+					payloadName.setText(Spacecraft.MAX_LAYOUT);
+					payloadName.setEditable(false);
+					break;
+				case BitArrayLayout.MIN:
+					payloadName.setText(Spacecraft.MIN_LAYOUT);
+					payloadName.setEditable(false);
+					break;
+				case BitArrayLayout.WOD:
+					payloadName.setText(Spacecraft.WOD_LAYOUT);
+					payloadName.setEditable(false);
+					break;
+				default:
+					payloadName.setEditable(true);
+					break;
+			
+			}
+		}
+		
 		if (e.getSource() == btnAddPayload) {
 			Log.println("Adding Payload ...");
 			addPayload();
@@ -511,8 +540,10 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layoutFilename[row] = payloadFilename.getText();
 				sat.layout[row].name = payloadName.getText();
 				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
-				savePayloadsListTable();
+				// First load the updated sat values into the table
 				loadPayloadsListTable();
+				// Then save the table in case anything else is changed
+				savePayloadsListTable();
 				payloadName.setText("");
 				payloadFilename.setText("");
 				payloadType.setSelectedIndex(0);
@@ -566,6 +597,9 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layoutFilename = newLayoutFilenames;
 				sat.numberOfLayouts--;
 			}
+			// load changes into the table
+			loadPayloadsListTable();
+			// save to disk
 			try {
 			savePayloadsListTable();
 			} catch (IOException e1) {
@@ -573,7 +607,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			} catch (LayoutLoadException e2) {
 				Log.errorDialog("ERROR", "Error saving table\n"+e2);
 			}
-			loadPayloadsListTable();
+			
 			payloadName.setText("");
 			payloadFilename.setText("");
 			payloadType.setSelectedIndex(0);
