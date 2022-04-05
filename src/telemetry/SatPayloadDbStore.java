@@ -164,7 +164,7 @@ public class SatPayloadDbStore {
 
 		// This would create all of the tables, but not backwards compatible
 //		for (int i=0; i<fox.numberOfDbLayouts; i++)
-//			initPayloadTable(fox.layout[i].name, fox.hasModeInHeader);
+//			initPayloadTable(fox.layout[i].getTableName(), fox.hasModeInHeader);
 		initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
 		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);

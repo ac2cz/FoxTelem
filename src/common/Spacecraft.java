@@ -70,44 +70,44 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	// THESE HARD CODED LOOKUPS SHOULD NOT BE USED FOR NEW SPACECRAFT
 	// Code a paramater into the spacecraft file that might work with future hardware, e.g. hasCanBus
 	// Or switch logic based on standard layouts defined below, or custom layouts if required e.g. camera formats
-	public static final int FOX1A = 1;
-	public static final int FOX1B = 2;
-	public static final int FOX1C = 3;
-	public static final int FOX1D = 4;
+	@Deprecated	public static final int FOX1A = 1;
+	@Deprecated	public static final int FOX1B = 2;
+	@Deprecated	public static final int FOX1C = 3;
+	@Deprecated	public static final int FOX1D = 4;
 
 	public static final int FIRST_FOXID_WITH_MODE_IN_HEADER = 6;
 
 	public static final int MAX_FOXID = 256; // experimentally increase this to allow other ids. Note the header is limited to 8 bits
 
 	// Layout Types
-	public static final String DEBUG_LAYOUT = "DEBUG";
-	public static final String REAL_TIME_LAYOUT = "rttelemetry";
-	public static final String MAX_LAYOUT = "maxtelemetry";
-	public static final String MIN_LAYOUT = "mintelemetry";
-	public static final String RAD_LAYOUT = "radtelemetry";
-	public static final String RAD2_LAYOUT = "radtelemetry2";
-	public static final String HERCI_HS_LAYOUT = "herciHSdata";
-	public static final String HERCI_HS_HEADER_LAYOUT = "herciHSheader";
-	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
-	public static final String WOD_LAYOUT = "wodtelemetry";
-	public static final String WOD_RAD_LAYOUT = "wodradtelemetry";
-	public static final String WOD_RAD2_LAYOUT = "wodradtelemetry2";
-	public static final String RAD_LEPF_LAYOUT = "radtelemLEPF";
-	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
-	public static final String RAD_REM_LAYOUT = "radtelemREM";
+	@Deprecated	public static final String DEBUG_LAYOUT = "DEBUG";
+	@Deprecated	public static final String REAL_TIME_LAYOUT = "rttelemetry";
+	@Deprecated	public static final String MAX_LAYOUT = "maxtelemetry";
+	@Deprecated	public static final String MIN_LAYOUT = "mintelemetry";
+	@Deprecated	public static final String RAD_LAYOUT = "radtelemetry";
+	@Deprecated	public static final String RAD2_LAYOUT = "radtelemetry2";
+	@Deprecated	public static final String HERCI_HS_LAYOUT = "herciHSdata";
+	@Deprecated	public static final String HERCI_HS_HEADER_LAYOUT = "herciHSheader";
+	@Deprecated	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
+	@Deprecated	public static final String WOD_LAYOUT = "wodtelemetry";
+	@Deprecated	public static final String WOD_RAD_LAYOUT = "wodradtelemetry";
+	@Deprecated	public static final String WOD_RAD2_LAYOUT = "wodradtelemetry2";
+	@Deprecated	public static final String RAD_LEPF_LAYOUT = "radtelemLEPF";
+	@Deprecated	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
+	@Deprecated	public static final String RAD_REM_LAYOUT = "radtelemREM";
 
 	// These are the layouts
-	public static final String CAN_LAYOUT = "cantelemetry";
-	public static final String WOD_CAN_LAYOUT = "wodcantelemetry";
+	@Deprecated	public static final String CAN_LAYOUT = "cantelemetry";
+	@Deprecated	public static final String WOD_CAN_LAYOUT = "wodcantelemetry";
 
 	// These are the individual CAN packets inside the layouts
-	public static final String CAN_PKT_LAYOUT = "canpacket";
-	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
+	@Deprecated	public static final String CAN_PKT_LAYOUT = "canpacket";
+	@Deprecated	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 
-	public static final String RSSI_LOOKUP = "RSSI";
-	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
-	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
-	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
+	@Deprecated	public static final String RSSI_LOOKUP = "RSSI";
+	@Deprecated	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
+	@Deprecated	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
+	@Deprecated	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
 	
 	// Model Versions
 	public static final int EM = 0;
@@ -212,9 +212,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
-	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
-	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
-	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
+	@Deprecated	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
+	@Deprecated	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
+	@Deprecated	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
 	
 	public static final int NO_MODE = 0;
 	public static final int SAFE_MODE = 1;
@@ -256,20 +256,20 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public boolean hasImprovedCommandReceiver = false;
 	public boolean hasImprovedCommandReceiverII = false;
 	public boolean hasModeInHeader = false;
-	public boolean hasMpptSettings = false;
-	public boolean hasMemsRestValues = false;
+	@Deprecated	public boolean hasMpptSettings = false;
+	@Deprecated	public boolean hasMemsRestValues = false;
 	public boolean hasFixedReset = false;
 	
 	// User settings - Calibration
-	public double user_BATTERY_CURRENT_ZERO = 0;
-	public double user_mpptResistanceError = 6.58d;
-	public int user_mpptSensorOffThreshold = 1600;
-	public int user_memsRestValueX = 0;
-	public int user_memsRestValueY = 0;
-	public int user_memsRestValueZ = 0;
+	@Deprecated	public double user_BATTERY_CURRENT_ZERO = 0;
+	@Deprecated	public double user_mpptResistanceError = 6.58d;
+	@Deprecated	public int user_mpptSensorOffThreshold = 1600;
+	@Deprecated	public int user_memsRestValueX = 0;
+	@Deprecated	public int user_memsRestValueY = 0;
+	@Deprecated	public int user_memsRestValueZ = 0;
 	
 	// layout flags
-	public boolean useIHUVBatt = false;
+	@Deprecated	public boolean useIHUVBatt = false;
 
 	ArrayList<Long> timeZero = null;
 	SpacecraftPositionCache positionCache;
@@ -1421,6 +1421,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	protected void store_master_params() {
 		Properties tmp = new Properties() {
+			private static final long serialVersionUID = 1L;
+
 			@Override public synchronized Set<Map.Entry<Object, Object>> entrySet() {
 	            return Collections.synchronizedSet(
 	                    super.entrySet()
@@ -1446,21 +1448,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
 			e1.printStackTrace(Log.getWriter());
 		}
-			
-//		FileOutputStream f = null;
-//		try {
-//			f=new FileOutputStream(propertiesFile);
-//			properties.store(f, "AMSAT Spacecraft Properties");
-//			f.close();
-//		} catch (FileNotFoundException e1) {
-//			if (f!=null) try { f.close(); } catch (Exception e2) {};
-//			Log.errorDialog("ERROR", "Could not write spacecraft MASTER file. Check permissions on run directory or on the file");
-//			e1.printStackTrace(Log.getWriter());
-//		} catch (IOException e1) {
-//			if (f!=null) try { f.close(); } catch (Exception e3) {};
-//			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
-//			e1.printStackTrace(Log.getWriter());
-//		}
+
 	}
 	
 	/**

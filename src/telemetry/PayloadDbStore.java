@@ -101,7 +101,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
             initStpHeaderTable();
             initT0LogTable();
         } catch (SQLException ex) {
+        	
            Log.println(ex.getMessage());
+           SQLExceptionPrint("Login failed",ex);
            System.err.print("FATAL: Could not connect to DB");
            Log.alert("FATAL: Could not connect to DB");
            //System.exit(1);
@@ -164,7 +166,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 	public Connection getConnection() throws SQLException {
 		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
-            derby = DriverManager.getConnection(url + db + "?autoReconnect=true", user, password);
+			// timezone needed from version 8 of the driver!
+			// use jvm switch -Djavax.net.debug=ssl,handshake to debug connection
+            derby = DriverManager.getConnection(url + db + "?autoReconnect=true&serverTimezone=UTC", user, password);
 		return derby;
 
 	}
