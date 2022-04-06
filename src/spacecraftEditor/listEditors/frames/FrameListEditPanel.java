@@ -35,7 +35,7 @@ import javax.swing.table.TableColumn;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import spacecraftEditor.EditorFrame;
+import spacecraftEditor.TextEditorFrame;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
 import telemetry.BitArrayLayout;
@@ -47,12 +47,12 @@ import telemetry.frames.FrameLayout;
 public class FrameListEditPanel extends JPanel implements MouseListener, ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	public static final String FRAME_TEMPLATE_FILENAME = "templates"+File.separator+"FRAME_template.frame";
+	public static final String FRAME_TEMPLATE_FILENAME = "FRAME_template.frame";
 
 	SpacecraftEditPanel parent;
 	Spacecraft sat;
 	
-	JTable framesTable;
+	JTable frameListTable;
 	JPanel rightPanel;
 	
 	FramesTableModel framesListTableModel;
@@ -76,6 +76,10 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		JPanel centerPanel = addCenterPanel();
 		add(centerPanel, BorderLayout.CENTER);
 		
+		updateRow(0);
+		if (frameListTable != null && frameListTable.getRowCount() > 0) {
+			frameListTable.setRowSelectionInterval(0,0);
+		}
 	}
 	
 	private void loadFramesTable() {
@@ -125,28 +129,28 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		
 		//if (sat.numberOfFrameLayouts > 0) {
 
-		framesTable = new JTable(framesListTableModel);
-		framesTable.setAutoCreateRowSorter(true);
-		JScrollPane scrollPane = new JScrollPane (framesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+		frameListTable = new JTable(framesListTableModel);
+		frameListTable.setAutoCreateRowSorter(true);
+		JScrollPane scrollPane = new JScrollPane (frameListTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setPreferredSize(new Dimension(100,400));
-		framesTable.setFillsViewportHeight(true);
+		frameListTable.setFillsViewportHeight(true);
 		//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
 
 		leftPanel1.add(scrollPane, BorderLayout.CENTER);//, BorderLayout.WEST);
-		TableColumn column = framesTable.getColumnModel().getColumn(0);
+		TableColumn column = frameListTable.getColumnModel().getColumn(0);
 		column.setPreferredWidth(20);
-		column = framesTable.getColumnModel().getColumn(1);
+		column = frameListTable.getColumnModel().getColumn(1);
 		column.setPreferredWidth(100);
-		column = framesTable.getColumnModel().getColumn(2);
+		column = frameListTable.getColumnModel().getColumn(2);
 		column.setPreferredWidth(200);
 
 		String PREV = "prev";
 		String NEXT = "next";
 		
-		InputMap inMap = framesTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+		InputMap inMap = frameListTable.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
 		inMap.put(KeyStroke.getKeyStroke("UP"), PREV);
 		inMap.put(KeyStroke.getKeyStroke("DOWN"), NEXT);
-		ActionMap actMap = framesTable.getActionMap();
+		ActionMap actMap = frameListTable.getActionMap();
 
 		actMap.put(PREV, new AbstractAction() {
 			private static final long serialVersionUID = 1L;
@@ -154,11 +158,11 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
-				int row = framesTable.getSelectedRow();
+				int row = frameListTable.getSelectedRow();
 				if (row > 0) {
 					updateRow(row-1);
-					framesTable.setRowSelectionInterval(row-1, row-1);
-					scrollToRow(framesTable, row-1);
+					frameListTable.setRowSelectionInterval(row-1, row-1);
+					scrollToRow(frameListTable, row-1);
 				}
 			}
 		});
@@ -168,16 +172,16 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
-				int row = framesTable.getSelectedRow();
-				if (row < framesTable.getRowCount()-1) {
+				int row = frameListTable.getSelectedRow();
+				if (row < frameListTable.getRowCount()-1) {
 					updateRow(row+1);     
-					framesTable.setRowSelectionInterval(row+1, row+1);
-					scrollToRow(framesTable, row+1);
+					frameListTable.setRowSelectionInterval(row+1, row+1);
+					scrollToRow(frameListTable, row+1);
 				}
 			}
 		});
 		
-		framesTable.addMouseListener(this);
+		frameListTable.addMouseListener(this);
 
 	//	leftPanel.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 		
@@ -267,7 +271,8 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		try {
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + frameFilename.getText());
 			if (!dest.isFile()) {
-				File source = new File(Config.currentDir+"/spacecraft"+ File.separator + FRAME_TEMPLATE_FILENAME);
+				File source = new File(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR 
+						+ File.separator + "templates" + File.separator + FRAME_TEMPLATE_FILENAME);
 				//  IF IT EXISTS WE SHOULD NOT COPY THE TEMPLATE!
 				SatPayloadStore.copyFile(source, dest);
 			}
@@ -420,7 +425,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		}
 		
 		if (e.getSource() == btnUpdateFrame) {
-			int row = framesTable.getSelectedRow();
+			int row = frameListTable.getSelectedRow();
 			System.out.println("Updating row " + row);
 			if (sat.numberOfFrameLayouts == 0) return;
 			
@@ -441,7 +446,7 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		}
 
 		if (e.getSource() == btnRemoveFrame) {
-			int row = framesTable.getSelectedRow();
+			int row = frameListTable.getSelectedRow();
 			System.out.println("Removing row " + row);
 			if (sat.numberOfFrameLayouts == 0) return;
 			if (row == -1) {
@@ -510,33 +515,21 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 		}
 		
 		// Display the payloads in a frame when the frame definition is clicked
-		if (e.getSource() == framesTable) {
-			int row = framesTable.rowAtPoint(e.getPoint());
-			int col = framesTable.columnAtPoint(e.getPoint());
+		if (e.getSource() == frameListTable) {
+			int row = frameListTable.rowAtPoint(e.getPoint());
+			int col = frameListTable.columnAtPoint(e.getPoint());
 			if (row >= 0 && col >= 0) {
 				Log.println("CLICKED ROW: "+row+ " and COL: " + col + " COUNT: " + e.getClickCount());
 
 				String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
 				
-				
-				
 				if (e.getClickCount() == 2) {
 
-					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.frameLayoutFilename[row]);
+					TextEditorFrame editor = new TextEditorFrame(sat, masterFolder + File.separator + sat.frameLayoutFilename[row]);
 					editor.setVisible(true);
 				}
-//				String name = (String) framesTable.getValueAt(row, 1);
-//				if (name != null && ! name.equalsIgnoreCase("NONE")) {
-//					System.out.println("Edit:" + sat.frameLayoutFilename[row]);
-//					String masterFolder = Config.currentDir + File.separator + FoxSpacecraft.SPACECRAFT_DIR;
-//					EditorFrame editor = new EditorFrame(sat, masterFolder + File.separator + sat.frameLayoutFilename[row]);
-//					editor.setVisible(true);
-//				}
 				
 				updateRow(row);
-				
-				
-				
 				
 			}
 		}

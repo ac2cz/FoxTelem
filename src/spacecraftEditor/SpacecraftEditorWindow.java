@@ -49,13 +49,14 @@ import telemetry.SatPayloadStore;
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
 	public static final String VERSION_NUM = "1.00b";
-	public static final String VERSION = VERSION_NUM + " - 28 Mar 2022";
+	public static final String VERSION = VERSION_NUM + " - 6 Apr 2022";
 	public static final String MANUAL = "amsat_telemetry_designers_handbook.pdf";
 	public static final String HANDBOOK = "amsat_telemetry_designers_handbook.pdf";
 
 	
 	// Swing File Chooser
 	static JFileChooser fc = null;
+	static JLabel lblHomeDir;
 	static //AWT file chooser for the Mac
 	FileDialog fd = null;
 	JMenuBar menuBar;
@@ -154,9 +155,14 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		JPanel footer = new JPanel();
 		JLabel lblVersion = new JLabel("Version: " + VERSION );
 		footer.add(lblVersion);
-		JLabel lblHomeDir = new JLabel( "  |  Current: " + Config.currentDir +"  |  Home: " + Config.homeDirectory + "  |  Log files: " + Config.logFileDirectory);
+		lblHomeDir = new JLabel();
+		displayDirs();
 		footer.add(lblHomeDir);
 		panel.add(footer, BorderLayout.SOUTH);
+	}
+	
+	public static void displayDirs() {
+		lblHomeDir.setText( "  |  MASTER: " + Config.currentDir +File.separator+Spacecraft.SPACECRAFT_DIR +"  |  Home: " + Config.homeDirectory + "  |  Log files: " + Config.logFileDirectory);
 	}
 	
 	public void addSpacecraftTabs() {
@@ -326,7 +332,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 				}
 				
 			} catch (IOException e) {
-				Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());
+				Log.errorDialog("ERROR Copy File", "Could not fully install the spacecraft file\n"+e.getMessage());
 				e.printStackTrace(Log.getWriter());
 			}
 		} else {

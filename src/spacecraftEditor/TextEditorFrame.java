@@ -33,7 +33,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 
-public class EditorFrame extends JFrame implements ActionListener, WindowListener {
+public class TextEditorFrame extends JFrame implements ActionListener, WindowListener {
 	private static final long serialVersionUID = 1L;
 	Spacecraft spacecraft;
 	boolean editable;
@@ -64,7 +64,7 @@ public class EditorFrame extends JFrame implements ActionListener, WindowListene
 	 * @param keywords
 	 * @param origText
 	 */
-	public EditorFrame(Spacecraft spacecraft, String filename) {
+	public TextEditorFrame(Spacecraft spacecraft, String filename) {
 		super("Message Editor");
 		this.spacecraft = spacecraft;
 		this.filename = filename;

@@ -27,6 +27,7 @@ import javax.swing.JTextField;
 import common.Config;
 import common.Location;
 import common.Log;
+import common.Spacecraft;
 import common.TlmServer;
 import gui.MainWindow;
 
@@ -137,7 +138,7 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 		lblServerUrl.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		northpanelB.add(lblServerUrl, BorderLayout.WEST);
 		
-		txtMasterFileDirectory = new JTextField(Config.currentDir);
+		txtMasterFileDirectory = new JTextField(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR);
 		northpanelB.add(txtMasterFileDirectory, BorderLayout.CENTER);
 		txtMasterFileDirectory.setColumns(30);
 		
@@ -276,10 +277,15 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 			boolean refreshTabs = false;
 			boolean refreshGraphs = false;
 
-			if (!Config.editorCurrentDir.equalsIgnoreCase(txtMasterFileDirectory.getText())) {
+			String testString = Config.currentDir + File.separator+"spacecraft";
+			if (!testString.equalsIgnoreCase(txtMasterFileDirectory.getText())) {
 				File file = new File(txtMasterFileDirectory.getText());
 				if ((!file.isDirectory() || file == null || !file.exists())){
 					Log.errorDialog("Invalid directory", "Can not find the specified directory: " + txtMasterFileDirectory.getText());
+					dispose = false;
+					refreshGraphs=false;
+				} else if (!txtMasterFileDirectory.getText().matches(".*"+File.separator+"spacecraft$")) {
+					Log.errorDialog("Invalid directory", "Master file directory must be called 'spacecraft' :\n" + txtMasterFileDirectory.getText());
 					dispose = false;
 					refreshGraphs=false;
 				} else {
@@ -296,10 +302,12 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 							options[1]);
 
 					if (n == JOptionPane.YES_OPTION) {
-						Config.editorCurrentDir = txtMasterFileDirectory.getText();
-						Config.currentDir = txtMasterFileDirectory.getText();
-						Log.println("Setting MASTER directory to: " + Config.currentDir);
-
+						String txt = txtMasterFileDirectory.getText();
+						String newDir = txt.replaceAll(File.separator+"spacecraft$", "");
+						Config.editorCurrentDir = newDir;
+						Config.currentDir = newDir;
+						Log.println("Setting MASTER directory to: " + Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR);
+						SpacecraftEditorWindow.displayDirs();
 						Config.initSatelliteManager();
 					
 					}
@@ -369,21 +377,26 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 		}
 
 		if (e.getSource() == btnBrowse) {
-			String dir = pickDir();
+			File initialdir = null;
+			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+				initialdir = new File(Config.logFileDirectory);
+			}
+			String dir = pickDir(initialdir);
 			txtLogFileDirectory.setText(dir);			
 		}
 		if (e.getSource() == btnBrowseMaster) {
-			String dir = pickDir();
+			File initialdir = null;
+			if (!Config.currentDir.equalsIgnoreCase("")) {
+				initialdir = new File(Config.currentDir);
+			}
+			String dir = pickDir(initialdir);
 			txtMasterFileDirectory.setText(dir);			
 		}
 
 	}
 
-	private String pickDir() {
-		File dir = null;
-		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			dir = new File(Config.logFileDirectory);
-		}
+	private String pickDir(File dir) {
+
 		if(Config.isMacOs()) { // not on windows/Linux because native dir chooser does not work
 			// use the native file DIR dialog on the mac
 			System.setProperty("apple.awt.fileDialogForDirectories", "true");

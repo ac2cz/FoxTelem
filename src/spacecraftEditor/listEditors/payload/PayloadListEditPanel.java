@@ -19,6 +19,7 @@ import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
@@ -57,7 +58,7 @@ import telemetry.conversion.ConversionLookUpTable;
 public class PayloadListEditPanel extends JPanel implements MouseListener, ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	public static final String PAYLOAD_TEMPLATE_FILENAME = "templates"+File.separator+"PAYLOAD_template.csv";
+	public static final String PAYLOAD_TEMPLATE_FILENAME = "PAYLOAD_template.csv";
 
 	SpacecraftEditPanel parent;
 	Spacecraft sat;
@@ -87,6 +88,11 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		tabbedPane = addCenterPanel();
 		add(tabbedPane, BorderLayout.CENTER);
 		
+		updateTabs(0);
+		
+		if (payloadsTable.getRowCount() > 0) {
+			payloadsTable.setRowSelectionInterval(0,0);
+		}
 	}
 	
 	private void savePayloadsListTable() throws FileNotFoundException, LayoutLoadException {
@@ -98,7 +104,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layout[j] = null;
 			} else {
 				sat.layoutFilename[j] = (String)layoutsTableModel.getValueAt(j,2);
-				sat.layout[j] = new BitArrayLayout(sat.layoutFilename[j]);
+				sat.layout[j] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + sat.layoutFilename[j]);
 				sat.layout[j].name = (String)layoutsTableModel.getValueAt(j,1);
 				sat.layout[j].typeStr = (String)layoutsTableModel.getValueAt(j,3);
 			}
@@ -230,6 +236,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		JLabel lf2 = new JLabel("Tab Type");
 		payloadType = new JComboBox<String>(BitArrayLayout.types); 
 		payloadType.addActionListener(this);
+		//payloadType.setModel(new DefaultComboBoxModel<String>());
+		payloadType.setSelectedIndex(0);
 		f2.add(lf2);
 		f2.add(payloadType);
 		footerPanelRow1.add(f2);
@@ -308,7 +316,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	
 	JPanel tab = new JPanel();
 	private void updateTabs(int row) {
-		if (sat == null || sat.layoutFilename == null && sat.layoutFilename.length == 0) return;
+		if (sat == null || sat.layoutFilename == null || sat.layoutFilename.length == 0) return;
 		
 		payloadName.setText(sat.layout[row].name);
 		payloadFilename.setText(sat.layoutFilename[row]);
@@ -383,7 +391,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		try {
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + payloadFilename.getText());
 			if (!dest.isFile()) {
-				File source = new File(Config.currentDir+ File.separator +"spacecraft"+File.separator + PAYLOAD_TEMPLATE_FILENAME);
+				File source = new File(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR 
+						+ File.separator + "templates" + File.separator + PAYLOAD_TEMPLATE_FILENAME);
 				SatPayloadStore.copyFile(source, dest);
 			}
 			
@@ -396,7 +405,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			sat.layoutFilename = newLayoutFilenames;
 			
 			BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts+1];
-			newLayouts[sat.numberOfLayouts] = new BitArrayLayout(payloadFilename.getText());
+			newLayouts[sat.numberOfLayouts] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + payloadFilename.getText());
 			newLayouts[sat.numberOfLayouts].name = payloadName.getText();
 			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
 			for (int i=0; i < sat.numberOfLayouts; i++) {
@@ -536,7 +545,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			if (sat.numberOfLayouts == 0) return;
 			
 			try {
-				sat.layout[row] = new BitArrayLayout(payloadFilename.getText());
+				sat.layout[row] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + payloadFilename.getText());
 				sat.layoutFilename[row] = payloadFilename.getText();
 				sat.layout[row].name = payloadName.getText();
 				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();

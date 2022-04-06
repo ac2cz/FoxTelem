@@ -42,7 +42,7 @@ import telemetry.conversion.ConversionLookUpTable;
 public abstract class TableListEditPanel extends JPanel implements MouseListener, ActionListener {
 
 	private static final long serialVersionUID = 1L;
-	public String TEMPLATE_FILENAME = "templates"+File.separator+"LOOKUP_template.csv";
+	public String TEMPLATE_FILENAME = "LOOKUP_template.csv";
 
 	protected String FILE_EXT = "csv";
 	
@@ -87,15 +87,21 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		JPanel centerPanel = addCenterPanel();
 		add(centerPanel, BorderLayout.CENTER);
 		
+		if (table.getRowCount() > 0) {
+			table.setRowSelectionInterval(0,0);
+			if (lookupCsvFileEditPanel != null && dataLines != null)
+				lookupCsvFileEditPanel.setFile(dataLines.get(0)[2]);
+		}
+		
 	}
 	
 	/**
 	 * Implemented these methods to copy the dataLines to/from the actual storage structure
+	 * - loadTable() copies data from the MASTER file to dataLines
+	 * - saveTable() copise data from dataLines to the MASTER file fields.
 	 */
 	abstract protected void loadTable();
-	
 	abstract protected void saveTable() throws IOException, LayoutLoadException;
-	
 	
 	/**
 	 * Populate the JTable data array from the internal format
@@ -274,7 +280,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		try {
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + txtFilename.getText());
 			if (!dest.isFile()) {
-				File source = new File(Config.currentDir+ File.separator +"spacecraft"+File.separator + TEMPLATE_FILENAME);
+				File source = new File(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR 
+						+ File.separator + "templates" + File.separator + TEMPLATE_FILENAME);
 				SatPayloadStore.copyFile(source, dest);
 			}
 			
@@ -285,11 +292,12 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 				dataToAdd[1] ="NONE";
 			if (!this.txtFilename.getText().equalsIgnoreCase("")) {
 				dataToAdd[2] = txtFilename.getText();
-				fileSet = lookupCsvFileEditPanel.setFile( txtFilename.getText());
+				if (lookupCsvFileEditPanel != null)
+					fileSet = lookupCsvFileEditPanel.setFile( txtFilename.getText());
 			} else
 				dataToAdd[2] ="NONE";
 
-			if (fileSet) {
+			if (lookupCsvFileEditPanel == null || fileSet) {
 				dataLines.add(dataToAdd);
 				try {
 					save(); // put this into the spacecraft layout
@@ -303,6 +311,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 //				txtName.setText("");
 //				txtFilename.setText("");
 				table.setRowSelectionInterval(dataLines.size()-1, dataLines.size()-1);
+				updateRow(dataLines.size()-1);
 			}
 		} catch (IOException e1) {
 			Log.errorDialog("ERROR", "Error with file\n"+e1);
@@ -348,10 +357,12 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 				table.setRowSelectionInterval(row-1,row-1);
 				txtName.setText(dataLines.get(row-1)[1]);
 				txtFilename.setText(dataLines.get(row-1)[2]);
+				updateRow(row-1);
 			} else {
 				table.setRowSelectionInterval(row,row);
 				txtName.setText(dataLines.get(row)[1]);
 				txtFilename.setText(dataLines.get(row)[2]);
+				updateRow(row);
 			}
 			} catch (java.lang.IllegalArgumentException e) {
 				// likely we removed a row and tried to select one that does not exist
@@ -394,6 +405,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		load();
 		table.setRowSelectionInterval(row,row);
 		lookupCsvFileEditPanel.setFile(dataLines.get(row)[2]);
+		updateRow(row);
 	}
 
 	protected void browseListItem() {

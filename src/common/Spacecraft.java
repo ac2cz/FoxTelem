@@ -314,11 +314,16 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		} catch (IndexOutOfBoundsException e) {
 			timeZero = null;
 		}
-		measurementLayout = new BitArrayLayout(measurementsFileName);
+		try {
+		measurementLayout = new BitArrayLayout(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + measurementsFileName);
 		measurementLayout.name=MEASUREMENTS;
 		if (passMeasurementsFileName != null) {
-			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
+			passMeasurementLayout = new BitArrayLayout(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + passMeasurementsFileName);
 			passMeasurementLayout.name = PASS_MEASUREMENTS;
+		}
+		} catch (IOException e) {
+			throw new LayoutLoadException("Could not load measurement layout.  Make sure it is installed\n"
+					+ "in folder:" + Config.currentDir+File.separator+"spacecraft\n" + e.getMessage());
 		}
 		loadTleHistory(); // Dont call this until the Name and FoxId are set
 		positionCache = new SpacecraftPositionCache(foxId);
@@ -963,7 +968,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			sendLayoutLocally = new boolean[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
-				layout[i] = new BitArrayLayout(layoutFilename[i]);
+				layout[i] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + layoutFilename[i]);
 				
 				// Check that the conversions look valid -- any this should be re-factored into the Conversion class when I have time //TODO
 				if (useConversionCoeffs)
@@ -1301,7 +1306,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			for (BitArrayLayout l : existingLayouts)
 				layout[i++] = l;
 			for (String frameName : canFrames.frame) {
-				layout[i] = new BitArrayLayout( this.canFileDir+ File.separator + frameName + ".csv");
+				layout[i] = new BitArrayLayout( Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + this.canFileDir+ File.separator + frameName + ".csv");
 				layout[i].name = frameName;
 				layout[i].parentLayout = "cantelemetry"; // give it any name so that it has a parent and is not a top level "payload"
 				i++;

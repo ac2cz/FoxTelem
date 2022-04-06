@@ -407,10 +407,9 @@ public class BitArrayLayout {
 //		dis.close();
 //	}
 
-	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
+	protected void load(String fileName) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
-		fileName = Config.currentDir + File.separator + "spacecraft" +File.separator + f;
 	//	File aFile = new File(fileName);
 		
 		Log.println("Loading layout: "+ fileName);
