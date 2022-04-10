@@ -1,2 +1,2 @@
 8_bit_temp,-20.0,0.5,0.0,0.0,0.0,0.0,Temperature as 7.1 fixed point with offset of 20
-cpu_temperature,0,0.1,0,0,0,0,PI CPU Temperature
+x_over_10,0,0.1,0,0,0,0,PI CPU Temperature
