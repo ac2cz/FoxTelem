@@ -308,6 +308,8 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 	}
 	
 	private void updateRow(int row) {
+		if (sat.frameLayout == null) return;
+		if (sat.frameLayout.length == 0) return;
 		frameName.setText(sat.frameLayout[row].name);
 		frameFilename.setText(sat.frameLayoutFilename[row]);
 		

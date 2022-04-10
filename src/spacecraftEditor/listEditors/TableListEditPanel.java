@@ -89,7 +89,7 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		
 		if (table.getRowCount() > 0) {
 			table.setRowSelectionInterval(0,0);
-			if (lookupCsvFileEditPanel != null && dataLines != null)
+			if (lookupCsvFileEditPanel != null && dataLines != null && dataLines.size() > 0)
 				lookupCsvFileEditPanel.setFile(dataLines.get(0)[2]);
 		}
 		

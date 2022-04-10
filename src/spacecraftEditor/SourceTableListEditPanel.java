@@ -170,10 +170,8 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 	JLabel labRSWords;
 	JLabel labTrailerLen;
 	private void updateSourceStats(int row) {
-		if (sourceStats == null) {
-			
-		}
-
+		if (sat.sourceFormat == null) return;
+		if (sat.sourceFormat.length == 0) return;
 		int numRsWords = sat.sourceFormat[row].getInt(TelemFormat.RS_WORDS);
 		int headerLength = sat.sourceFormat[row].getInt(TelemFormat.HEADER_LENGTH);
 		int frameLength = sat.sourceFormat[row].getFrameLength();
