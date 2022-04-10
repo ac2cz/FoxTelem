@@ -70,44 +70,44 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	// THESE HARD CODED LOOKUPS SHOULD NOT BE USED FOR NEW SPACECRAFT
 	// Code a paramater into the spacecraft file that might work with future hardware, e.g. hasCanBus
 	// Or switch logic based on standard layouts defined below, or custom layouts if required e.g. camera formats
-	public static final int FOX1A = 1;
-	public static final int FOX1B = 2;
-	public static final int FOX1C = 3;
-	public static final int FOX1D = 4;
+	@Deprecated	public static final int FOX1A = 1;
+	@Deprecated	public static final int FOX1B = 2;
+	@Deprecated	public static final int FOX1C = 3;
+	@Deprecated	public static final int FOX1D = 4;
 
 	public static final int FIRST_FOXID_WITH_MODE_IN_HEADER = 6;
 
 	public static final int MAX_FOXID = 256; // experimentally increase this to allow other ids. Note the header is limited to 8 bits
 
 	// Layout Types
-	public static final String DEBUG_LAYOUT = "DEBUG";
-	public static final String REAL_TIME_LAYOUT = "rttelemetry";
-	public static final String MAX_LAYOUT = "maxtelemetry";
-	public static final String MIN_LAYOUT = "mintelemetry";
-	public static final String RAD_LAYOUT = "radtelemetry";
-	public static final String RAD2_LAYOUT = "radtelemetry2";
-	public static final String HERCI_HS_LAYOUT = "herciHSdata";
-	public static final String HERCI_HS_HEADER_LAYOUT = "herciHSheader";
-	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
-	public static final String WOD_LAYOUT = "wodtelemetry";
-	public static final String WOD_RAD_LAYOUT = "wodradtelemetry";
-	public static final String WOD_RAD2_LAYOUT = "wodradtelemetry2";
-	public static final String RAD_LEPF_LAYOUT = "radtelemLEPF";
-	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
-	public static final String RAD_REM_LAYOUT = "radtelemREM";
+	@Deprecated	public static final String DEBUG_LAYOUT = "DEBUG";
+	@Deprecated	public static final String REAL_TIME_LAYOUT = "rttelemetry";
+	@Deprecated	public static final String MAX_LAYOUT = "maxtelemetry";
+	@Deprecated	public static final String MIN_LAYOUT = "mintelemetry";
+	@Deprecated	public static final String RAD_LAYOUT = "radtelemetry";
+	@Deprecated	public static final String RAD2_LAYOUT = "radtelemetry2";
+	@Deprecated	public static final String HERCI_HS_LAYOUT = "herciHSdata";
+	@Deprecated	public static final String HERCI_HS_HEADER_LAYOUT = "herciHSheader";
+	@Deprecated	public static final String HERCI_HS_PKT_LAYOUT = "herciHSpackets";
+	@Deprecated	public static final String WOD_LAYOUT = "wodtelemetry";
+	@Deprecated	public static final String WOD_RAD_LAYOUT = "wodradtelemetry";
+	@Deprecated	public static final String WOD_RAD2_LAYOUT = "wodradtelemetry2";
+	@Deprecated	public static final String RAD_LEPF_LAYOUT = "radtelemLEPF";
+	@Deprecated	public static final String RAD_LEP_LAYOUT = "radtelemLEP";
+	@Deprecated	public static final String RAD_REM_LAYOUT = "radtelemREM";
 
 	// These are the layouts
-	public static final String CAN_LAYOUT = "cantelemetry";
-	public static final String WOD_CAN_LAYOUT = "wodcantelemetry";
+	@Deprecated	public static final String CAN_LAYOUT = "cantelemetry";
+	@Deprecated	public static final String WOD_CAN_LAYOUT = "wodcantelemetry";
 
 	// These are the individual CAN packets inside the layouts
-	public static final String CAN_PKT_LAYOUT = "canpacket";
-	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
+	@Deprecated	public static final String CAN_PKT_LAYOUT = "canpacket";
+	@Deprecated	public static final String WOD_CAN_PKT_LAYOUT = "wodcanpacket";
 
-	public static final String RSSI_LOOKUP = "RSSI";
-	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
-	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
-	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
+	@Deprecated	public static final String RSSI_LOOKUP = "RSSI";
+	@Deprecated	public static final String IHU_VBATT_LOOKUP = "IHU_VBATT";
+	@Deprecated	public static final String IHU_TEMP_LOOKUP = "IHU_TEMP";
+	@Deprecated	public static final String HUSKY_SAT_ISIS_ANT_TEMP = "HUSKY_ISIS_ANT_TEMP";
 	
 	// Model Versions
 	public static final int EM = 0;
@@ -212,9 +212,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
-	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
-	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
-	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
+	@Deprecated	public static final String MEMS_REST_VALUE_X = "SatelliteXAxisAngularVelocity";
+	@Deprecated	public static final String MEMS_REST_VALUE_Y = "SatelliteYAxisAngularVelocity";
+	@Deprecated	public static final String MEMS_REST_VALUE_Z = "SatelliteZAxisAngularVelocity";
 	
 	public static final int NO_MODE = 0;
 	public static final int SAFE_MODE = 1;
@@ -256,20 +256,20 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public boolean hasImprovedCommandReceiver = false;
 	public boolean hasImprovedCommandReceiverII = false;
 	public boolean hasModeInHeader = false;
-	public boolean hasMpptSettings = false;
-	public boolean hasMemsRestValues = false;
+	@Deprecated	public boolean hasMpptSettings = false;
+	@Deprecated	public boolean hasMemsRestValues = false;
 	public boolean hasFixedReset = false;
 	
 	// User settings - Calibration
-	public double user_BATTERY_CURRENT_ZERO = 0;
-	public double user_mpptResistanceError = 6.58d;
-	public int user_mpptSensorOffThreshold = 1600;
-	public int user_memsRestValueX = 0;
-	public int user_memsRestValueY = 0;
-	public int user_memsRestValueZ = 0;
+	@Deprecated	public double user_BATTERY_CURRENT_ZERO = 0;
+	@Deprecated	public double user_mpptResistanceError = 6.58d;
+	@Deprecated	public int user_mpptSensorOffThreshold = 1600;
+	@Deprecated	public int user_memsRestValueX = 0;
+	@Deprecated	public int user_memsRestValueY = 0;
+	@Deprecated	public int user_memsRestValueZ = 0;
 	
 	// layout flags
-	public boolean useIHUVBatt = false;
+	@Deprecated	public boolean useIHUVBatt = false;
 
 	ArrayList<Long> timeZero = null;
 	SpacecraftPositionCache positionCache;
@@ -300,8 +300,13 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		
 		userPropertiesFile = userFileName;	
 		tleList = new SortedTleList(10);
-		
+		try {
 		load(); // don't call load until this constructor has started and the variables have been initialized
+		} catch (ArrayIndexOutOfBoundsException e1) {
+			Log.errorDialog("ERROR", "Can't fully load spacecraft file: "+masterFileName+"\nPerhaps one of the files is corrupt? "+"\n"+ e1.getMessage());
+			e1.printStackTrace();
+			return;
+		}
 		try {
 			loadTimeZeroSeries(null);
 		} catch (FileNotFoundException e) {
@@ -309,11 +314,16 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		} catch (IndexOutOfBoundsException e) {
 			timeZero = null;
 		}
-		measurementLayout = new BitArrayLayout(measurementsFileName);
+		try {
+		measurementLayout = new BitArrayLayout(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + measurementsFileName);
 		measurementLayout.name=MEASUREMENTS;
 		if (passMeasurementsFileName != null) {
-			passMeasurementLayout = new BitArrayLayout(passMeasurementsFileName);
+			passMeasurementLayout = new BitArrayLayout(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + passMeasurementsFileName);
 			passMeasurementLayout.name = PASS_MEASUREMENTS;
+		}
+		} catch (IOException e) {
+			throw new LayoutLoadException("Could not load measurement layout.  Make sure it is installed\n"
+					+ "in folder:" + Config.currentDir+File.separator+"spacecraft\n" + e.getMessage());
 		}
 		loadTleHistory(); // Dont call this until the Name and FoxId are set
 		positionCache = new SpacecraftPositionCache(foxId);
@@ -499,7 +509,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	 * @throws IOException 
 	 */
 	protected void loadTleHistory() {
-		String file = Spacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
+		String file =  Spacecraft.SPACECRAFT_DIR + File.separator + series + this.foxId + ".tle";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;		
 		}
@@ -842,12 +852,12 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			conversions = new HashMap<String, Conversion>();
 
 			if (conversionCurvesFileName != null) {
-				loadConversionCurves(Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
+				loadConversionCurves( Config.currentDir + File.separator +  Spacecraft.SPACECRAFT_DIR + File.separator + conversionCurvesFileName);
 			}
 
 			
 			if (conversionExpressionsFileName != null) {
-				loadConversionExpresions(Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
+				loadConversionExpresions( Config.currentDir + File.separator +  Spacecraft.SPACECRAFT_DIR + File.separator + conversionExpressionsFileName);
 			}
 
 			// String Lookup Tables
@@ -932,7 +942,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				frameLayout = new FrameLayout[numberOfFrameLayouts];
 				for (int i=0; i < numberOfFrameLayouts; i++) {
 					frameLayoutFilename[i] = getProperty("frameLayout"+i+".filename");
-					frameLayout[i] = new FrameLayout(foxId, Spacecraft.SPACECRAFT_DIR + File.separator + frameLayoutFilename[i]);
+					frameLayout[i] = new FrameLayout(foxId,  frameLayoutFilename[i]);
 					frameLayout[i].name = getProperty("frameLayout"+i+".name");
 				}
 			}
@@ -950,8 +960,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			else 
 				hasFOXDB_V3 = Boolean.parseBoolean(V3DB);
 			
-			
-
 			// Telemetry Layouts
 			numberOfLayouts = Integer.parseInt(getProperty("numberOfLayouts"));
 			numberOfDbLayouts = numberOfLayouts;
@@ -960,7 +968,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			sendLayoutLocally = new boolean[numberOfLayouts];
 			for (int i=0; i < numberOfLayouts; i++) {
 				layoutFilename[i] = getProperty("layout"+i+".filename");
-				layout[i] = new BitArrayLayout(layoutFilename[i]);
+				layout[i] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + layoutFilename[i]);
 				
 				// Check that the conversions look valid -- any this should be re-factored into the Conversion class when I have time //TODO
 				if (useConversionCoeffs)
@@ -1289,7 +1297,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	 */
 	private void loadCanLayouts() {
 		try {
-			canFrames = new CanFrames(this.canFileDir+ File.separator +"frames.csv");
+			canFrames = new CanFrames( this.canFileDir+ File.separator +"frames.csv");
 			int canLayoutNum = canFrames.NUMBER_OF_FIELDS;
 			Log.println("Loading " + canLayoutNum + " CAN Layouts");
 			BitArrayLayout[] existingLayouts = layout;
@@ -1298,7 +1306,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			for (BitArrayLayout l : existingLayouts)
 				layout[i++] = l;
 			for (String frameName : canFrames.frame) {
-				layout[i] = new BitArrayLayout(this.canFileDir+ File.separator + frameName + ".csv");
+				layout[i] = new BitArrayLayout( Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + this.canFileDir+ File.separator + frameName + ".csv");
 				layout[i].name = frameName;
 				layout[i].parentLayout = "cantelemetry"; // give it any name so that it has a parent and is not a top level "payload"
 				i++;
@@ -1418,6 +1426,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	protected void store_master_params() {
 		Properties tmp = new Properties() {
+			private static final long serialVersionUID = 1L;
+
 			@Override public synchronized Set<Map.Entry<Object, Object>> entrySet() {
 	            return Collections.synchronizedSet(
 	                    super.entrySet()
@@ -1443,21 +1453,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
 			e1.printStackTrace(Log.getWriter());
 		}
-			
-//		FileOutputStream f = null;
-//		try {
-//			f=new FileOutputStream(propertiesFile);
-//			properties.store(f, "AMSAT Spacecraft Properties");
-//			f.close();
-//		} catch (FileNotFoundException e1) {
-//			if (f!=null) try { f.close(); } catch (Exception e2) {};
-//			Log.errorDialog("ERROR", "Could not write spacecraft MASTER file. Check permissions on run directory or on the file");
-//			e1.printStackTrace(Log.getWriter());
-//		} catch (IOException e1) {
-//			if (f!=null) try { f.close(); } catch (Exception e3) {};
-//			Log.errorDialog("ERROR", "Error writing spacecraft MASTER file");
-//			e1.printStackTrace(Log.getWriter());
-//		}
+
 	}
 	
 	/**
@@ -1588,7 +1584,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		    int linenum = 0;
 		    while ((line = br.readLine()) != null) {
 		        String[] values = line.split(",");
-		       // if (values.length == ConversionCurve.CSF_FILE_ROW_LENGTH)
+		       if (values.length >= ConversionCurve.CSF_FILE_ROW_LENGTH)
 		        try {
 		        	ConversionCurve conversion = new ConversionCurve(values, this);
 		        	if (conversions.containsKey(conversion.getName())) {
@@ -1610,8 +1606,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		        }
 		    }
 		}
-		
-		
 	}
 	
 	private void loadConversionExpresions(String conversionExpressionsFileName) throws FileNotFoundException, IOException, LayoutLoadException {

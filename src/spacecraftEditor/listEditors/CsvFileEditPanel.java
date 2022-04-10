@@ -22,8 +22,6 @@ import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.border.TitledBorder;
 
-import com.sun.media.sound.ModelAbstractChannelMixer;
-
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -35,6 +33,7 @@ import telemetry.LayoutLoadException;
 public abstract class CsvFileEditPanel extends JPanel implements ActionListener, MouseListener {
 
 	private static final long serialVersionUID = 1L;
+	protected String FILE_EXT = "csv";
 	public CsvFileEditorGrid csvFileEditorGrid;
 	protected CsvTableModel tableModel;
 	JPanel centerPanel;
@@ -46,10 +45,11 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	JButton btnLoad,btnAddAbove, btnAddBelow, btnRemove, btnSave, btnUp, btnDown;
 	JTextField csvFilename;
 	
-	public CsvFileEditPanel(Spacecraft sat, CsvTableModel model, String titleString, String file) {
+	public CsvFileEditPanel(Spacecraft sat, CsvTableModel model, String titleString, String file, String file_ext) {
 		this.sat = sat;
-		tableModel = model;
-		filename = file;
+		this.tableModel = model;
+		this.filename = file;
+		this.FILE_EXT = file_ext;
 		
 		setLayout(new BorderLayout());
 		
@@ -99,6 +99,10 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		btnSave.addActionListener(this);
 		
 		setFile(file);
+		if (dataLines == null) {
+			initData();
+			return;
+		}
 	}
 	
 	protected abstract void updateSpacecraft(); // call back that allows the implementor to save settings back to the spacecraft file
@@ -109,7 +113,20 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 		setBorder(title);
 	}
 	
-	public void setFile(String file) {
+	/**
+	 * This is typically only called to clear the filename if we loaded the TEMPLATE
+	 * @param file
+	 */
+	public void setFilenameText(String file) {
+		this.csvFilename.setText(file);
+		this.filename = file;
+	}
+	
+	/**
+	 * This is called to set the filename and load the data.
+	 * @param file
+	 */
+	public boolean setFile(String file) {
 		if (file !=null) {
 			ProgressPanel initProgress = null;
 			initProgress = new ProgressPanel(MainWindow.frame, "Loading file " +filename+", please wait ...", false);
@@ -119,13 +136,30 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 			setTitle(" : " + file);
 			try {
 				load();
+				initProgress.updateProgress(100);
+				return true;
 			} catch (FileNotFoundException e) {
 				Log.errorDialog("ERROR", "Could not load CSV file:\n" + file + "\n" + e);
 			} catch (LayoutLoadException e) {
 				Log.errorDialog("ERROR", "Could not parse CSV file\n" + file + "\n" + e);
 			}
 			initProgress.updateProgress(100);
+
 		}
+		return false;
+	}
+	
+	/**
+	 * Create a new empty table
+	 */
+	private void initData() {
+		dataLines = new ArrayList<String[]>();
+		String line[] = new String[tableModel.getColumnCount()];
+		for (int j = 0; j < line.length; j++) {
+			line[j] = ""+j;
+		}
+		dataLines.add(line);
+		setData();
 	}
 
 	private void setData() {
@@ -139,7 +173,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	
 	protected void load() throws FileNotFoundException, LayoutLoadException {
 		String line;
-		String fileName = "spacecraft" +File.separator + filename;
+		String fileName = Config.currentDir + File.separator + "spacecraft" +File.separator + filename;
 	//	File aFile = new File(fileName);
 		
 		Log.println("Loading CSV File: "+ fileName);
@@ -180,7 +214,15 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	}
 	
 	public void save() throws IOException {
-		String fileName = "spacecraft" +File.separator + filename;
+		if (filename == null) {
+			Log.errorDialog("ERROR", "No filename is defined.  Nothing was saved.");
+			return;
+		}
+		if (filename.equalsIgnoreCase("")) {
+			Log.infoDialog("INFO", "Pick a filename to save this to first");
+			return;
+		}
+		String fileName = Config.currentDir + File.separator +  "spacecraft" + File.separator + filename;
 		BufferedWriter dis = new BufferedWriter(new FileWriter(fileName,false)); // overwrite the existing file
 		try {
 			for (int j = 0; j < dataLines.size(); j++) {
@@ -225,7 +267,7 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	private void browseFile() {
 		Log.println("Browse for File ...");
 		File dir = new File(Config.currentDir+"/spacecraft");
-		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", "csv");
+		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", FILE_EXT);
 		if (file == null) return;
 		csvFilename.setText(file.getName());
 		filename = file.getName();
@@ -257,12 +299,20 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == btnAddAbove) {
 			Log.println("Adding Rows Above ...");
+			if (dataLines == null) {
+				initData();
+				return;
+			}
 			if (dataLines.size() == 0) return;
 			int row = csvFileEditorGrid.table.getSelectedRow();
 			addRows(true, row, csvFileEditorGrid.table.getSelectedRowCount());
 		}
 		if (e.getSource() == btnAddBelow) {
 			Log.println("Adding Rows Below ...");
+			if (dataLines == null) {
+				initData();
+				return;
+			}
 			if (dataLines.size() == 0) return;
 			int row = csvFileEditorGrid.table.getSelectedRow();
 			addRows(false, row, csvFileEditorGrid.table.getSelectedRowCount());
@@ -288,6 +338,11 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 			int i=0;
 			for (int row : csvFileEditorGrid.table.getSelectedRows())
 				removeRow(row-i++);
+			try {
+				save();
+			} catch (IOException e1) {
+				Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
+			}
 		}
 		
 		if (e.getSource() == btnUp) {
@@ -300,6 +355,11 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 			dataLines.add(row-1, line);
 			setData();
 			csvFileEditorGrid.table.setRowSelectionInterval(row-1, row-1);
+			try {
+				save();
+			} catch (IOException e1) {
+				Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
+			}
 		}
 		if (e.getSource() == btnDown) {
 			int row = csvFileEditorGrid.table.getSelectedRow();
@@ -311,6 +371,11 @@ public abstract class CsvFileEditPanel extends JPanel implements ActionListener,
 			dataLines.add(row+1, line);
 			setData();
 			csvFileEditorGrid.table.setRowSelectionInterval(row+1, row+1);
+			try {
+				save();
+			} catch (IOException e1) {
+				Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
+			}
 		}
 	}
 

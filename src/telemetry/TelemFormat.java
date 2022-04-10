@@ -5,6 +5,8 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Properties;
 
+import common.Config;
+import common.Spacecraft;
 import fec.RsCodeWord;
 
 public class TelemFormat {
@@ -46,7 +48,7 @@ public class TelemFormat {
 		try { 
 			String headerLayoutFilename = get(HEADER_LAYOUT_FILE);
 			if (headerLayoutFilename != null) {
-				headerLayout = new BitArrayLayout(headerLayoutFilename);
+				headerLayout = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + headerLayoutFilename);
 			} else
 				headerLayout = new BitArrayLayout();
 		} catch (Exception e) {

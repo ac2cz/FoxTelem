@@ -28,7 +28,7 @@ try:
                 fields = line.split(',')
                 print('    unsigned int ' + fields[2] + ' : ' + fields[3] + ';')
 
-    print('} ' + name + '_t\n')
+    print('} ' + name + '_t;\n')
 except UnicodeDecodeError as e:
     print ("ERROR: Binary data found in the file.  Is it a CSV file?")
     print (e)

@@ -229,6 +229,8 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		lblCaptureDate.setForeground(textLblColor);
 		bottomPanel.add(lblCaptureDate );
 		
+		/////// WE SHOULD PASS THESE LAYOUTS IN EXPLICITY, NOT GRAB ONES WITH HARD CODED NAMES LIKE rttelemetry
+		/////// OR we could allow ONLY one RT, MIN, MAX, WOD per spacecraft and use the types to grab this
 		BitArrayLayout rt = null;
 		if (displayType == DisplayModule.DISPLAY_WOD)
 			rt = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
@@ -238,16 +240,16 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
 
 		if (rt == null ) {
-			throw new LayoutLoadException("MISSING LAYOUT: The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or fix the layout file");
+			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
+					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or add/fix the payload file");
 			//System.exit(1);
 		} else 	if (max == null ) {
-			throw new LayoutLoadException("MISSING LAYOUTS: The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
+					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or add/fix the payload file");
 			
 		} else if (min == null ) {
-			throw new LayoutLoadException("MISSING LAYOUTS: The spacecraft file for satellite " + fox.user_display_name + " is missing the layout definition for "
-					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or fix the layout file");
+			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
+					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or add/fix the payload file");
 			
 		} else
 		

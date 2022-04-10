@@ -24,7 +24,7 @@ public class ConversionStringLookUpTableTest {
 
 	@Before
 	public void setUp() throws Exception {
-		table = new ConversionStringLookUpTable("STATUS_ENABLED", "status_enabled.tab");
+		table = new ConversionStringLookUpTable("STATUS_ENABLED", "status_enabled.tab", null);
 	}
 
 	@After
@@ -46,7 +46,7 @@ public class ConversionStringLookUpTableTest {
 		assertEquals("Enabled", s);
 		s = table.calculateString(27);
 		System.err.println(s);
-		assertEquals(ConversionStringLookUpTable.ERROR, s);
+		assertEquals(27.0, Double.parseDouble(s), 0.1);
 	}
 	
 	

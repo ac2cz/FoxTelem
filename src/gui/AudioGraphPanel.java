@@ -15,7 +15,7 @@ import decoder.Decoder;
 import decoder.SourceIQ;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
-import gui.graph.GraphPanel;
+import gui.graph.LinePlotPanel;
 
 /**
  * 
@@ -229,7 +229,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 			int numberOfLabels = graphHeight/labelHeight;
 
 			// calculate the label step size
-			double[] labels = GraphPanel.calcAxisInterval(minValue, maxValue, numberOfLabels, false);
+			double[] labels = LinePlotPanel.calcAxisInterval(minValue, maxValue, numberOfLabels, false);
 			// check the actual number
 			numberOfLabels = labels.length;
 
@@ -434,7 +434,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 				g.drawString("Mem: "+usedMB, 10, 20 );
 				if (foxDecoder !=null)
 					if (foxDecoder.getFilter() != null) {
-						g.drawString("Gain: "+GraphPanel.roundToSignificantFigures(foxDecoder.getFilter().getGain(),4), 70, 20 );
+						g.drawString("Gain: "+LinePlotPanel.roundToSignificantFigures(foxDecoder.getFilter().getGain(),4), 70, 20 );
 						bufferCapacityAvg += foxDecoder.getAudioBufferCapacity();
 						bufferCapacitySample++;
 						if (bufferCapacitySample == BUFFER_CAP_SAMPLE_NO) {

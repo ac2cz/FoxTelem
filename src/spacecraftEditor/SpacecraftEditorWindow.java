@@ -49,13 +49,14 @@ import telemetry.SatPayloadStore;
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
 	public static final String VERSION_NUM = "1.00b";
-	public static final String VERSION = VERSION_NUM + " - 28 Mar 2022";
-	public static final String MANUAL = "amsat_telemetry_designers_handbook.pdf";
+	public static final String VERSION = VERSION_NUM + " - 6 Apr 2022";
+	public static final String MANUAL = "amsat_editor_manual.pdf";
 	public static final String HANDBOOK = "amsat_telemetry_designers_handbook.pdf";
 
 	
 	// Swing File Chooser
 	static JFileChooser fc = null;
+	static JLabel lblHomeDir;
 	static //AWT file chooser for the Mac
 	FileDialog fd = null;
 	JMenuBar menuBar;
@@ -154,9 +155,14 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		JPanel footer = new JPanel();
 		JLabel lblVersion = new JLabel("Version: " + VERSION );
 		footer.add(lblVersion);
-		JLabel lblHomeDir = new JLabel( "  |  Current: " + Config.currentDir +"  |  Home: " + Config.homeDirectory + "  |  Log files: " + Config.logFileDirectory);
+		lblHomeDir = new JLabel();
+		displayDirs();
 		footer.add(lblHomeDir);
 		panel.add(footer, BorderLayout.SOUTH);
+	}
+	
+	public static void displayDirs() {
+		lblHomeDir.setText( "  |  MASTER: " + Config.currentDir +File.separator+Spacecraft.SPACECRAFT_DIR +"  |  Home: " + Config.homeDirectory + "  |  Log files: " + Config.logFileDirectory);
 	}
 	
 	public void addSpacecraftTabs() {
@@ -217,9 +223,10 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 		} else {
 			fc.setPreferredSize(new Dimension(Config.windowFcWidth, Config.windowFcHeight));
 
-			fc.setDialogTitle("Specify new MASTER spacecraft file to create");
+			fc.setDialogTitle(title);
+			fc.resetChoosableFileFilters();
 			FileNameExtensionFilter filter = new FileNameExtensionFilter(
-					"Spacecraft files", filterString);
+					filterString + " files", filterString);
 			fc.setFileFilter(filter);
 			fc.setApproveButtonText(buttonText);
 
@@ -325,7 +332,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 				}
 				
 			} catch (IOException e) {
-				Log.errorDialog("ERROR Copy File", "Could not copy the spacecraft file\n"+e.getMessage());
+				Log.errorDialog("ERROR Copy File", "Could not fully install the spacecraft file\n"+e.getMessage());
 				e.printStackTrace(Log.getWriter());
 			}
 		} else {
@@ -355,7 +362,7 @@ public class SpacecraftEditorWindow extends JFrame implements WindowListener, Ac
 			}
 		}
 		if (remove)
-			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Close Spacecraft", "dat");
+			file = pickFile(dir, this, "Specify spacecraft (.dat) file to close", "Close Spacecraft", "dat");
 		else
 			file = pickFile(dir, this, "Specify MASTER spacecraft file to load", "Load", "MASTER");
 

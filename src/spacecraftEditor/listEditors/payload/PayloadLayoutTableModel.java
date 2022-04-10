@@ -64,4 +64,16 @@ public class PayloadLayoutTableModel extends CsvTableModel {
 			return true;
 		return false;
 	}
+	
+	public void setValueAt(Object value, int row, int col) {
+		if (columnClass[col] == Double.class)
+			data[row][col] = "0";
+		else
+			data[row][col] = String.valueOf(value);
+		//data[row][col] = (String)value;
+		if (row == 0 && col ==0) {
+			// we don't fire the update as this is automatically maintained
+		} else
+		fireTableCellUpdated(row, col);
+	}
 }

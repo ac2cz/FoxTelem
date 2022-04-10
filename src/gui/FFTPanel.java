@@ -19,7 +19,7 @@ import common.PassManager;
 import common.Spacecraft;
 import decoder.RfData;
 import decoder.SourceIQ;
-import gui.graph.GraphPanel;
+import gui.graph.LinePlotPanel;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseEvent;
@@ -406,7 +406,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		int numberOfLabels = graphHeight/labelHeight;
 		
 		// calculate the label step size
-		double[] labels = GraphPanel.calcAxisInterval(minValue, maxValue, numberOfLabels, false);
+		double[] labels = LinePlotPanel.calcAxisInterval(minValue, maxValue, numberOfLabels, false);
 		// check the actual number
 		numberOfLabels = labels.length;
 		
@@ -527,10 +527,10 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 					binOfPeakSignalInFilterWidth = binOfPeakSignalInFilterWidth + sideBorder;
 				}
 	
-				double snrStrongestSigInSatBand = GraphPanel.roundToSignificantFigures(rfData.rfStrongestSigSNRInSatBand,3);
+				double snrStrongestSigInSatBand = LinePlotPanel.roundToSignificantFigures(rfData.rfStrongestSigSNRInSatBand,3);
 //				double valueOfpeakSignalInFilterWidth = GraphPanel.roundToSignificantFigures(rfData.getAvg(RfData.PEAK_SIGNAL_IN_FILTER_WIDTH),3);
 
-				double snr = GraphPanel.roundToSignificantFigures(rfData.rfSNRInFilterWidth,3);
+				double snr = LinePlotPanel.roundToSignificantFigures(rfData.rfSNRInFilterWidth,3);
 				String s = Double.toString(snr) + "";
 				String ss = Double.toString(snrStrongestSigInSatBand) + "";
 				//long f = iqSource.getFrequencyFromBin(iqSource.getSelectedBin());  //rfData.getPeakFrequency();
@@ -626,7 +626,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 		}
 		
 		// Draw the horizontal axis
-		double[] freqlabels = GraphPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, false);
+		double[] freqlabels = LinePlotPanel.calcAxisInterval(minTimeValue, maxTimeValue, numberOfTimeLabels, false);
 
 		DecimalFormat d = new DecimalFormat("0");
 		for (int v=0; v < freqlabels.length; v++) {

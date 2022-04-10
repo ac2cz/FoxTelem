@@ -15,7 +15,7 @@ import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import gui.graph.GraphCanvas;
-import gui.graph.GraphPanel;
+import gui.graph.LinePlotPanel;
 import decoder.Decoder;
 import decoder.EyeData;
 import decoder.Fox9600bpsDecoder;
@@ -265,7 +265,7 @@ public class EyePanel extends JPanel implements Runnable {
 
 		g2.drawLine(graphWidth/2 + border*2 , (int)high, graphWidth/2 + border*2, (int)low);
 
-		double r = GraphPanel.roundToSignificantFigures(bitSNR,2);
+		double r = LinePlotPanel.roundToSignificantFigures(bitSNR,2);
 		String s = Double.toString(r) + "";
 		g.drawString(s, graphWidth/2 -25  + border*2, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
 		g.drawString("SNR", graphWidth/2 + 10  + border*2, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars

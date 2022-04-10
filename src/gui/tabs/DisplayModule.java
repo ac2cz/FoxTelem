@@ -791,4 +791,9 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 		btn.addActionListener(this);
 		return btn;
 	}
+	
+	public String toString() {
+		String s = "Mod: " +title;
+		return s;
+	}
 }

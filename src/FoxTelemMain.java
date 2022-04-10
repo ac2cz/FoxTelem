@@ -235,7 +235,7 @@ import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
  * Display VBATT/2 instead of Battery module telemetry when FM and FS selected
  * 
  * Version 0.40
- * Graph formatting updated.  Graph preferences stored
+ * Graph formatting updated.  Graph preferenceFiles stored
  * Mac and Linux formatting updated
  * 
  * Version 0.41

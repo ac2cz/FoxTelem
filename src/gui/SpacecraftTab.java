@@ -1,6 +1,8 @@
 package gui;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
+
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.border.EmptyBorder;
@@ -82,9 +84,18 @@ public class SpacecraftTab extends JPanel {
 	
 	public void showGraphs() {
 		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-		   ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
-		   if (tab != null)
-			   tab.showGraphs();
+			Component comp = tabbedPane.getComponentAt(i);
+			if (comp instanceof ModuleTab) {
+				ModuleTab tab = (ModuleTab) comp;
+				if (tab != null)
+					tab.showGraphs();
+			}
+			if (comp instanceof MyMeasurementsTab) {
+				MyMeasurementsTab tab = (MyMeasurementsTab) comp;
+				if (tab != null) {
+					tab.showGraphs();
+				}
+			}
 		}
 	}
 
@@ -96,10 +107,20 @@ public class SpacecraftTab extends JPanel {
 	public void closeTabs(Spacecraft fox, boolean closeGraphs) {
 		sat = fox;
 		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
-			if (tab != null) {
-				if (closeGraphs) tab.closeGraphs();
-				tab.remove(tab);
+			Component comp = tabbedPane.getComponentAt(i);
+			if (comp instanceof ModuleTab) {
+				ModuleTab tab = (ModuleTab) comp;
+				if (tab != null) {
+					if (closeGraphs) tab.closeGraphs();
+					tab.remove(tab);
+				}
+			}
+			if (comp instanceof MyMeasurementsTab) {
+				MyMeasurementsTab tab = (MyMeasurementsTab) comp;
+				if (tab != null) {
+					if (closeGraphs) tab.closeGraphs();
+					tab.remove(tab);
+				}
 			}
 		}
 	}
@@ -114,9 +135,12 @@ public class SpacecraftTab extends JPanel {
 
 	public void stop() {
 		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
-			if (tab != null) {
-				stopThreads(tab);
+			Component comp = tabbedPane.getComponentAt(i);
+			if (comp instanceof ModuleTab) {
+				ModuleTab tab = (ModuleTab) comp;
+				if (tab != null) {
+					stopThreads(tab);
+				}
 			}
 		}
 	}
@@ -515,9 +539,18 @@ public class SpacecraftTab extends JPanel {
 
 	public void closeGraphs() {
 		for(int i = 0; i < tabbedPane.getTabCount(); i++) {
-			ModuleTab tab = (ModuleTab) tabbedPane.getTabComponentAt(i);
-			if (tab != null) {
-				tab.closeGraphs();
+			Component comp = tabbedPane.getComponentAt(i);
+			if (comp instanceof ModuleTab) {
+				ModuleTab tab = (ModuleTab) comp;
+				if (tab != null) {
+					tab.closeGraphs();
+				}
+			}
+			if (comp instanceof MyMeasurementsTab) {
+				MyMeasurementsTab tab = (MyMeasurementsTab) comp;
+				if (tab != null) {
+					tab.closeGraphs();
+				}
 			}
 		}
 	}

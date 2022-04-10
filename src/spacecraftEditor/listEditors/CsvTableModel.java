@@ -29,7 +29,7 @@ public abstract class CsvTableModel extends AbstractTableModel {
 	@SuppressWarnings("rawtypes")
 	protected Class[] columnClass = null;
 	public int[] columnWidths;
-	private String[][] data = null;
+	protected String[][] data = null;
 	public int[] filterColumns;
 
 	public CsvTableModel() {
@@ -87,10 +87,7 @@ public abstract class CsvTableModel extends AbstractTableModel {
 			data[row][col] = "0";
 		else
 			data[row][col] = String.valueOf(value);
-		//data[row][col] = (String)value;
-		if (row == 0 && col ==0) {
-			// we don't fire the update as this is automatically maintained
-		} else
+
 		fireTableCellUpdated(row, col);
 	}
 

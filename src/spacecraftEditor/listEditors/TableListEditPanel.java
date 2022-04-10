@@ -44,7 +44,9 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	private static final long serialVersionUID = 1L;
 	public String TEMPLATE_FILENAME = "LOOKUP_template.csv";
 
-	SpacecraftEditPanel parent;
+	protected String FILE_EXT = "csv";
+	
+	protected SpacecraftEditPanel parent;
 	protected Spacecraft sat;
 	String title;
 	
@@ -52,11 +54,12 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	protected JPanel leftPanel;
 	protected JLabel lFilename;
 	
-	protected CsvTableModel listTableModel;
+	protected ListTableModel listTableModel;
 	CsvTableModel csvTableModel;
 	LookupCsvFileEditPanel lookupCsvFileEditPanel;
 	
-	/* Internally we store the data as an array of String arrays */
+	/* Internally we store the data as an array of String arrays.  This is not impacted by the way the data is stored in the
+	 * MASTER file */
 	protected ArrayList<String[]> dataLines;
 	
 	JButton btnAdd, btnRemove,btnBrowse,btnUpdate;
@@ -64,12 +67,14 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	protected JTextField txtName;
 	
 	
-	public TableListEditPanel(Spacecraft sat, String title, CsvTableModel listTableModel, CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
+	public TableListEditPanel(Spacecraft sat, String title, ListTableModel listTableModel, 
+			CsvTableModel csvTableModel, String file_ext, SpacecraftEditPanel parent) {
 		this.sat = sat;
 		this.title = title;
 		this.listTableModel = listTableModel;
 		this.csvTableModel = csvTableModel;
 		this.parent = parent;
+		this.FILE_EXT = file_ext;
 		
 		dataLines = new ArrayList<String[]>();
 		setBorder(new EmptyBorder(5, 5, 5, 5));
@@ -82,12 +87,21 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		JPanel centerPanel = addCenterPanel();
 		add(centerPanel, BorderLayout.CENTER);
 		
+		if (table.getRowCount() > 0) {
+			table.setRowSelectionInterval(0,0);
+			if (lookupCsvFileEditPanel != null && dataLines != null && dataLines.size() > 0)
+				lookupCsvFileEditPanel.setFile(dataLines.get(0)[2]);
+		}
+		
 	}
 	
+	/**
+	 * Implemented these methods to copy the dataLines to/from the actual storage structure
+	 * - loadTable() copies data from the MASTER file to dataLines
+	 * - saveTable() copise data from dataLines to the MASTER file fields.
+	 */
 	abstract protected void loadTable();
-	
 	abstract protected void saveTable() throws IOException, LayoutLoadException;
-	
 	
 	/**
 	 * Populate the JTable data array from the internal format
@@ -262,36 +276,47 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 	 */
 	private void addListItem() {
 		String[] dataToAdd = new String[listTableModel.getColumnCount()];
-
+		boolean fileSet = false;
 		try {
-			dataToAdd[0] =""+dataLines.size();
-			if (txtName.getText() != "") 
-				dataToAdd[1] = txtName.getText();
-			else
-				dataToAdd[1] ="NONE";
-			if (this.txtFilename.getText() != "") 
-				dataToAdd[2] = txtFilename.getText();
-			else
-				dataToAdd[2] ="NONE";
-
-			dataLines.add(dataToAdd);
-
 			File dest = new File(Config.currentDir+"/spacecraft"+ File.separator + txtFilename.getText());
 			if (!dest.isFile()) {
-				File source = new File(Config.currentDir+ File.separator +"spacecraft"+File.separator+"templates"+ File.separator + TEMPLATE_FILENAME);
+				File source = new File(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR 
+						+ File.separator + "templates" + File.separator + TEMPLATE_FILENAME);
 				SatPayloadStore.copyFile(source, dest);
 			}
 			
-			save(); // put this into the spacecraft layout
-			load(); // use that to repopulate the tabe
-			txtName.setText("");
-			txtFilename.setText("");
-			table.setRowSelectionInterval(dataLines.size()-1, dataLines.size()-1);
+			dataToAdd[0] =""+dataLines.size();
+			if (!txtName.getText().equalsIgnoreCase("")) 
+				dataToAdd[1] = txtName.getText();
+			else
+				dataToAdd[1] ="NONE";
+			if (!this.txtFilename.getText().equalsIgnoreCase("")) {
+				dataToAdd[2] = txtFilename.getText();
+				if (lookupCsvFileEditPanel != null)
+					fileSet = lookupCsvFileEditPanel.setFile( txtFilename.getText());
+			} else
+				dataToAdd[2] ="NONE";
+
+			if (lookupCsvFileEditPanel == null || fileSet) {
+				dataLines.add(dataToAdd);
+				try {
+					save(); // put this into the spacecraft layout
+				} catch (IOException e1) {
+					Log.errorDialog("ERROR", "Error saving details to file\n"+e1);
+				} catch (LayoutLoadException e) {
+					Log.errorDialog("ERROR", "Error saving table\n"+e);
+				}
+				load(); // use that to repopulate the table
+
+//				txtName.setText("");
+//				txtFilename.setText("");
+				table.setRowSelectionInterval(dataLines.size()-1, dataLines.size()-1);
+				updateRow(dataLines.size()-1);
+			}
 		} catch (IOException e1) {
 			Log.errorDialog("ERROR", "Error with file\n"+e1);
-		} catch (LayoutLoadException e) {
-			Log.errorDialog("ERROR", "Error loading table\n"+e);
 		}
+		
 	}
 	
 	/*
@@ -304,7 +329,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		}
 		if (dataLines.size() == 0) return;
 		int n = Log.optionYNdialog("Remove file on disk too?",
-				"Remove the file as well as the table row?\n"+txtFilename.getText() + "\n\nThis will be gone forever\n");
+				"Remove the file as well as the table row?\n"+txtFilename.getText() + "\n\n"
+						+ "If this file is used by other rows or spacecraft then click No.  Otherwise this file will be gone forever.\n");
 		if (n == JOptionPane.NO_OPTION) {
 			
 		} else {
@@ -318,20 +344,31 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		dataLines.remove(row);
 		
 		try {
-			save();
-			load();
-			if (dataLines.size() > 0) 
-				if (row > 0)
-					table.setRowSelectionInterval(row-1,row-1);
-				else
-					table.setRowSelectionInterval(0,0);
-			txtName.setText("");
-			txtFilename.setText("");
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "Error with file\n"+e);
+			save(); // put this into the spacecraft layout
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "Error saving details to file\n"+e1);
 		} catch (LayoutLoadException e) {
-			Log.errorDialog("ERROR", "Error loading table\n"+e);
+			Log.errorDialog("ERROR", "Error saving table\n"+e);
 		}
+		load();
+		if (dataLines.size() > 0) 
+			try {
+			if (row > 0) {
+				table.setRowSelectionInterval(row-1,row-1);
+				txtName.setText(dataLines.get(row-1)[1]);
+				txtFilename.setText(dataLines.get(row-1)[2]);
+				updateRow(row-1);
+			} else {
+				table.setRowSelectionInterval(row,row);
+				txtName.setText(dataLines.get(row)[1]);
+				txtFilename.setText(dataLines.get(row)[2]);
+				updateRow(row);
+			}
+			} catch (java.lang.IllegalArgumentException e) {
+				// likely we removed a row and tried to select one that does not exist
+				// Ignore
+			}
+		
 	}
 	
 	/*
@@ -346,30 +383,35 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		String[] dataToAdd = new String[listTableModel.getColumnCount()];
 
 		dataToAdd[0] =""+row;
-		if (txtName.getText() != "") 
+		if (!txtName.getText().equalsIgnoreCase("")) 
 			dataToAdd[1] = txtName.getText();
 		else
 			dataToAdd[1] ="NONE";
-		if (this.txtFilename.getText() != "") 
+		if (! this.txtFilename.getText().equalsIgnoreCase("")) 
 			dataToAdd[2] = txtFilename.getText();
-		else
+		else {
 			dataToAdd[2] ="NONE";
+			Log.infoDialog("ERROR", "Select a valid file");
+			return;
+		}
 		dataLines.set(row, dataToAdd);
 		try {
-			save();
-			load();
-			table.setRowSelectionInterval(row,row);
-		} catch (IOException e) {
-			Log.errorDialog("ERROR", "Error with file\n"+e);
+			save(); // put this into the spacecraft layout
+		} catch (IOException e1) {
+			Log.errorDialog("ERROR", "Error saving details to file\n"+e1);
 		} catch (LayoutLoadException e) {
-			Log.errorDialog("ERROR", "Error loading table\n"+e);
+			Log.errorDialog("ERROR", "Error saving table\n"+e);
 		}
+		load();
+		table.setRowSelectionInterval(row,row);
+		lookupCsvFileEditPanel.setFile(dataLines.get(row)[2]);
+		updateRow(row);
 	}
 
 	protected void browseListItem() {
 		Log.println("Browse for list item filename ...");
 		File dir = new File(Config.currentDir+"/spacecraft");
-		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", "csv");
+		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", FILE_EXT);
 		if (file == null) return;
 		txtFilename.setText(file.getName());
 	}

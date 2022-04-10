@@ -68,8 +68,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.12w";
-	public static String VERSION = VERSION_NUM + " - 28 Mar 2022";
+	public static String VERSION_NUM = "1.12w1";
+	public static String VERSION = VERSION_NUM + " - 30 Mar 2022";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
@@ -304,6 +304,9 @@ public class Config {
 	//V1.10
 	static public boolean calculateBPSKCrc = true;
 	
+	//V1.12
+	static public String python = ""; // this is the name and optionally the full path to python interpreter
+	static public String payloadHeaderGenScript = "gen_header.py";
 	
 	public static boolean setup(String propertiesFileName) { 
 		Config.propertiesFileName = propertiesFileName;
@@ -787,6 +790,8 @@ public class Config {
 		properties.setProperty("debugRS", Boolean.toString(debugRS));
 		properties.setProperty("debugAudioLevels", Boolean.toString(debugAudioLevels));
 		properties.setProperty("editorCurrentDir", editorCurrentDir);
+		properties.setProperty("python", python);
+		properties.setProperty("payloadHeaderGenScript", payloadHeaderGenScript);
 		
 		store();
 	}
@@ -992,6 +997,8 @@ public class Config {
 		debugRS = Boolean.parseBoolean(getProperty("debugRS"));
 		debugAudioLevels = Boolean.parseBoolean(getProperty("debugAudioLevels"));
 		editorCurrentDir = getProperty("editorCurrentDir");
+		python = getProperty("python");
+		payloadHeaderGenScript = getProperty("payloadHeaderGenScript");
 		
 		} catch (NumberFormatException nf) {
 			catchException();

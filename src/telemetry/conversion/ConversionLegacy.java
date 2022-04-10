@@ -2,7 +2,7 @@ package telemetry.conversion;
 
 import common.Spacecraft;
 import decoder.FoxBitStream;
-import gui.graph.GraphPanel;
+import gui.graph.LinePlotPanel;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 
@@ -574,9 +574,9 @@ longer send telemetry.
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
 			if (shortString)
 				//return "Gyro1Z: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
+				return "Gyro1Z (dps): " + LinePlotPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
 			else
-				return "Gyro1Z (dps): " + GraphPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
+				return "Gyro1Z (dps): " + LinePlotPanel.roundToSignificantFigures(calcMemsValue(value, Spacecraft.MEMS_REST_VALUE_Z, fox),3);
 			//return "Gyro1 Z Value: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 		case GYRO1V: // Gyro1V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
@@ -585,10 +585,10 @@ longer send telemetry.
 			int cameraChecksumErrors = (rawValue >> 24) & 0xff; // last 8 bits
 			cameraChecksumErrors = cameraChecksumErrors - 1; // This is initialized to 1, so we subtract that initial value
 			if (shortString)
-				return "Gyro1V (V): " + GraphPanel.roundToSignificantFigures(vRef,3);
+				return "Gyro1V (V): " + LinePlotPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro1V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro1V (V): " + GraphPanel.roundToSignificantFigures(vRef,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
+				return "Gyro1V (V): " + LinePlotPanel.roundToSignificantFigures(vRef,3) + " Camera Checksum Errors: " + cameraChecksumErrors;
 				//return "Gyro1 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " Camera Checksum Errors: " + cameraChecksumErrors;
 		case GYRO2V: // Gyro2V
 			value = (rawValue >> 8) & 0xfff; // 12 bit value after the type
@@ -596,10 +596,10 @@ longer send telemetry.
 			vRef = vRef/2;
 			int hsAudioBufferUnderflows = (rawValue >> 24) & 0xff; // last 8 bits
 			if (shortString)
-				return "Gyro2V (V): " + GraphPanel.roundToSignificantFigures(vRef,3);
+				return "Gyro2V (V): " + LinePlotPanel.roundToSignificantFigures(vRef,3);
 				//return "Gyro2V: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS;
 			else
-				return "Gyro2V (V): " + GraphPanel.roundToSignificantFigures(vRef,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
+				return "Gyro2V (V): " + LinePlotPanel.roundToSignificantFigures(vRef,3) + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 				//return "Gyro2 Vref: " + value * FramePart.VOLTAGE_STEP_FOR_3V_SENSORS + " HS Audio Buffer Underflows: " + hsAudioBufferUnderflows;
 		case IHU_SW_VERSION: // Version of the software on the IHU
 			int swType = (rawValue >> 8) & 0xff;
@@ -616,7 +616,7 @@ longer send telemetry.
 			return "ISIS Status: " + Integer.toHexString(antStatus) + " " + Integer.toHexString(bus0) + " "+Integer.toHexString(bus1);
 		case UNKNOWN: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xfff;
-			return "Bus Voltage: " + value + " - " + GraphPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value),3) + "V";
+			return "Bus Voltage: " + value + " - " + LinePlotPanel.roundToSignificantFigures(fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value),3) + "V";
 		case IHU_TEMP_CALIBRATION_VOLTAGE: // IHU measurement of bus voltage
 			value = (rawValue >> 8) & 0xffffff;  // 24 bits of temp calibration
 			return "IHU Temp Cal: " + value;
@@ -626,11 +626,11 @@ longer send telemetry.
 			int value2 = (rawValue >> 20) & 0xfff; // last 12 bits
 			double voltageOut = fox.getLookupTableByName(Spacecraft.IHU_VBATT_LOOKUP).calculate(value2)/2;
 			if (shortString)
-				return "AS Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/24,3) +
-						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/24,3);
+				return "AS Vin: " + LinePlotPanel.roundToSignificantFigures(voltageIn*99/24,3) +
+						" Vout: " + LinePlotPanel.roundToSignificantFigures(voltageOut*99/24,3);
 			else
-				return "Auto Safe Vin: " + GraphPanel.roundToSignificantFigures(voltageIn*99/24,3) +
-						" Vout: " + GraphPanel.roundToSignificantFigures(voltageOut*99/24,3);
+				return "Auto Safe Vin: " + LinePlotPanel.roundToSignificantFigures(voltageIn*99/24,3) +
+						" Vout: " + LinePlotPanel.roundToSignificantFigures(voltageOut*99/24,3);
 		}
 		return "-----" + type;
 	}

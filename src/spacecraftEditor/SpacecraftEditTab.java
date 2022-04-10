@@ -2,10 +2,13 @@ package spacecraftEditor;
 
 import java.awt.BorderLayout;
 import java.io.File;
+import java.io.IOException;
 
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 
+import common.Config;
+import common.Log;
 import common.Spacecraft;
 import spacecraftEditor.listEditors.curves.CurvesTableModel;
 import spacecraftEditor.listEditors.expressions.ExpressionsCsvFileEditPanel;
@@ -18,6 +21,7 @@ import spacecraftEditor.listEditors.lookupTables.LookupTableListEditPanel;
 import spacecraftEditor.listEditors.lookupTables.LookupTableModel;
 import spacecraftEditor.listEditors.payload.PayloadListEditPanel;
 import spacecraftEditor.listEditors.stringLookupTables.StringLookupTableListEditPanel;
+import telemetry.SatPayloadStore;
 
 /**
  * This holds an entire spacecraft that is being edited.  It is organized as follows:
@@ -30,14 +34,14 @@ import spacecraftEditor.listEditors.stringLookupTables.StringLookupTableListEdit
  */
 public class SpacecraftEditTab extends JPanel {
 	private static final long serialVersionUID = 1L;
-	public static final String CURVES_TEMPLATE_FILENAME = "templates"+File.separator+"CURVES_template.csv";
-	public static final String MATH_EXPRESSIONS_TEMPLATE_FILENAME = "templates"+File.separator+"MATH_EXPRESSIONS_template.csv";
+	public static final String CURVES_TEMPLATE_FILENAME = "CURVES_template.csv";
+	public static final String MATH_EXPRESSIONS_TEMPLATE_FILENAME = "MATH_EXPRESSIONS_template.csv";
 
 	Spacecraft sat;
 	JTabbedPane tabbedPane;
 	SpacecraftEditPanel spacecraftEditPanel;
 	
-	String[] satLists = {"Payloads","Frames","Lookup tables", "String Lookup tables", "Conversion Coeff", "Math Expressions" };
+//	String[] satLists = {"Payloads","Frames","Lookup tables", "String Lookup tables", "Conversion Coeff", "Math Expressions" };
 	
 	public SpacecraftEditTab(Spacecraft s) {
 		sat = s;
@@ -52,7 +56,7 @@ public class SpacecraftEditTab extends JPanel {
 		// Params
 		spacecraftEditPanel = new SpacecraftEditPanel(sat);
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ "Paramaters" + "</b></body></html>", spacecraftEditPanel );
+				+ "Parameters" + "</b></body></html>", spacecraftEditPanel );
 		
 		// PAYLOADS 
 		PayloadListEditPanel payloadListEditPanel = new PayloadListEditPanel(sat,spacecraftEditPanel);
@@ -62,21 +66,55 @@ public class SpacecraftEditTab extends JPanel {
 		// FRAMES
 		FrameListEditPanel frameListEditPanel = new FrameListEditPanel(sat,spacecraftEditPanel);
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-			+ satLists[1] + "</b></body></html>", frameListEditPanel );
+			+ "Frames" + "</b></body></html>", frameListEditPanel );
 		
 		// CURVES
 		CurvesTableModel model = new CurvesTableModel();
 		String f = sat.conversionCurvesFileName;
-		if (f == null) f = CURVES_TEMPLATE_FILENAME;
-		CsvFileEditPanel csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",f);
+		CsvFileEditPanel csvFileEdit;
+		if (f == null) {
+			String targetFilename = "";
+			File sourceFile = new File(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR 
+					+ File.separator + "templates" + File.separator + CURVES_TEMPLATE_FILENAME);
+			File targetFile = new File(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR + File.separator + CURVES_TEMPLATE_FILENAME);
+			try {
+				SatPayloadStore.copyFile(sourceFile, targetFile);
+				targetFilename = targetFile.getName();
+			} catch (IOException e) {
+				Log.errorDialog("ERROR", "Could not load CURVES template" + e);
+				e.printStackTrace(Log.getWriter());
+			}
+			csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",targetFilename);
+			csvFileEdit.setFilenameText("");
+		} else {
+			csvFileEdit = new CurveCsvFileEditPanel(sat, model, "Curves",f);
+		}
+		
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 			+ "Conversion Curves" + "</b></body></html>", csvFileEdit );
 		
 		// EXPRESSIONS
 		ExpressionsTableModel expressionsModel = new ExpressionsTableModel();
 		String expFile = sat.conversionExpressionsFileName;
-		if (expFile == null) expFile = MATH_EXPRESSIONS_TEMPLATE_FILENAME;
-		ExpressionsCsvFileEditPanel expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",expFile);
+		ExpressionsCsvFileEditPanel expressionsCsvFileEdit;
+		if (expFile == null) {
+			String targetFilename = "";
+			File sourceFile = new File(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR 
+					+ File.separator + "templates"+ File.separator + MATH_EXPRESSIONS_TEMPLATE_FILENAME);
+			File targetFile = new File(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR + File.separator + MATH_EXPRESSIONS_TEMPLATE_FILENAME);
+			try {
+				SatPayloadStore.copyFile(sourceFile, targetFile);
+				targetFilename = targetFile.getName();
+			} catch (IOException e) {
+				Log.errorDialog("ERROR", "Could not load CURVES template" + e);
+				e.printStackTrace(Log.getWriter());
+			}
+			expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",targetFilename);
+			expressionsCsvFileEdit.setFilenameText("");
+		} else {
+			expressionsCsvFileEdit = new ExpressionsCsvFileEditPanel(sat, expressionsModel, "Expressions",expFile);
+		}
+		
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "Math Expressions" + "</b></body></html>", expressionsCsvFileEdit );
 		

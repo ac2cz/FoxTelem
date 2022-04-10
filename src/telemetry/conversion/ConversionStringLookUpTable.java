@@ -12,6 +12,7 @@ import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 import java.util.Map.Entry;
 
+import common.Config;
 import common.Log;
 import common.Spacecraft;
 import telemetry.LayoutLoadException;
@@ -123,7 +124,7 @@ public class ConversionStringLookUpTable extends Conversion{
 	protected void load(String fileName) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
-		fileName = "spacecraft" +File.separator + fileName;
+		fileName = Config.currentDir +File.separator + "spacecraft" +File.separator + fileName;
 		//File aFile = new File(fileName);
 		
 		Log.println("Loading lookup table: "+ fileName);

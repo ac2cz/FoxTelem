@@ -8,7 +8,7 @@ import spacecraftEditor.listEditors.CsvTableModel;
 public class LookupCsvFileEditPanel extends CsvFileEditPanel {
 	public LookupCsvFileEditPanel(Spacecraft sat, CsvTableModel model,
 			String titleString, String file) {
-		super(sat, model, titleString, file);
+		super(sat, model, titleString, file, "tab");
 		// TODO Auto-generated constructor stub
 	}
 

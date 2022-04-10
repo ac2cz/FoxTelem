@@ -24,7 +24,7 @@ public class RSSILookUpTableTest {
 
 	@Before
 	public void setUp() throws Exception {
-		table = new ConversionLookUpTable("test");
+		table = new ConversionLookUpTable("RSSI", "FOX1A_rssiFM.tab",null);
 	}
 
 	@After
@@ -35,8 +35,8 @@ public class RSSILookUpTableTest {
 	public void testLookupValue() {
 		double val = 0.0;
 		
-		val = table.calculate(1900);
-		assertEquals(-100.0d, val, 0.0d);
+		val = table.calculate(1920);
+		assertEquals(-80.0d, val, 0.0d);
 	}
 	
 	@Test
@@ -45,7 +45,7 @@ public class RSSILookUpTableTest {
 		
 		// Interpolation
 		val = table.calculate(1600);
-		assertEquals(-112.3d, val, 0.1d);
+		assertEquals(-94.66d, val, 0.1d);
 	}
 
 	@Test
@@ -53,11 +53,8 @@ public class RSSILookUpTableTest {
 		double val = 0.0;
 		
 		// Extrapolation
-		val = table.calculate(1300);
-		assertEquals(-145.7d, val, 0.1d);
-
-		val = table.calculate(1000);
-		assertEquals(-186.7d, val, 0.1d);
+		val = table.calculate(900);
+		assertEquals(-127.28d, val, 0.1d);
 
 	}
 
@@ -66,11 +63,8 @@ public class RSSILookUpTableTest {
 		double val = 0.0;
 		
 		// Extrapolation
-		val = table.calculate(2420);
-		assertEquals(-73.3d, val, 0.1d);
-
 		val = table.calculate(2600);
-		assertEquals(-13.3d, val, 0.1d);
+		assertEquals(-65d, val, 0.1d);
 
 		
 	}

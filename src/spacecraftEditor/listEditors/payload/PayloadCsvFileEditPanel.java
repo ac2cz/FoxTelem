@@ -35,7 +35,7 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 	
 	public PayloadCsvFileEditPanel(Spacecraft sat, PayloadLayoutTableModel model,
 			String titleString, String file) {
-		super(sat, model, titleString, file);
+		super(sat, model, titleString, file, "csv");
 		this.model = model;
 		
 		for (int i=0; i< csvFileEditorGrid.table.getColumnModel().getColumnCount(); i++) {
@@ -46,7 +46,7 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 		model.addTableModelListener(new TableModelListener() {
 
 		      public void tableChanged(TableModelEvent e) {
-		         System.out.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+		         //System.out.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
 		         int rows = model.getRowCount();
 		         model.setValueAt(rows-1, 0, 0);
 		      }

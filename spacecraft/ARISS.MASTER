@@ -1,5 +1,5 @@
 #AMSAT Spacecraft Properties
-#Tue Mar 22 19:45:56 EDT 2022
+#Sat Apr 09 19:48:23 EDT 2022
 EXP1=0
 EXP2=0
 EXP3=0
@@ -44,10 +44,10 @@ measurementsFileName=measurements.csv
 minFreqBoundkHz=145970.0
 model=0
 name=sooss-1
-numberOfFrameLayouts=1
+numberOfFrameLayouts=0
 numberOfLayouts=4
 numberOfLookupTables=0
-numberOfSources=2
+numberOfSources=0
 numberOfStringLookupTables=0
 passMeasurementsFileName=passmeasurements.csv
 priority=3

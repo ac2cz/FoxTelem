@@ -139,19 +139,20 @@ public class SatelliteManager implements Runnable {
 							}
 						}
 					} else {
-						// It exists, but maybe it is not the latest.  Check the timestamp and warn the user if we have a later one
+						// It exists, but maybe it is not the latest.  Check the timestamp and update if we have a later one
 						if (targetFile.lastModified() < listOfFiles[i].lastModified()) {
-							Date targetDate = new Date(targetFile.lastModified());
-							Date masterDate = new Date(listOfFiles[i].lastModified());
-							int n = Log.optionYNdialog("Overwrite Existing spacecraft config file",
-									"There is a newer spacecraft file available in the installation directory. You should replace your local file.\n"
-									+ "Local changes you have made to the spacecraft, such as Freqency Bounds, will be preserved.\n"
-									+ "Existing File ("+targetDate+"): " + targetFile.getPath() +"\nwill be replaced with\n"
-									+ "Master Copy ("+masterDate+"): " + listOfFiles[i].getPath());
-										
-							if (n == JOptionPane.NO_OPTION) {
-								Log.println("Leaving existing spacecraft file: " + targetFile.getName());
-							} else {
+//							Date targetDate = new Date(targetFile.lastModified());
+//							Date masterDate = new Date(listOfFiles[i].lastModified());
+//							int n = Log.optionYNdialog("Overwrite Existing spacecraft config file",
+//									"There is a newer spacecraft file available in the installation directory. You should replace your local file.\n"
+//									+ "Local changes you have made to the spacecraft, such as Freqency Bounds, will be preserved.\n"
+//									+ "Existing File ("+targetDate+"): " + targetFile.getPath() +"\nwill be replaced with\n"
+//									+ "Master Copy ("+masterDate+"): " + listOfFiles[i].getPath());
+//										
+//							if (n == JOptionPane.NO_OPTION) {
+//								Log.println("Leaving existing spacecraft file: " + targetFile.getName());
+//							} else {
+								
 								Log.println("Copying spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName());
 								try {
 									// Temporarily try to load this to init the user paramaters if they have not already been copied over
@@ -175,8 +176,8 @@ public class SatelliteManager implements Runnable {
 								} catch (IOException e) {
 									Log.errorDialog("ERROR", "Can't copy spacecraft file: " + listOfFiles[i].getName() + " to " + targetFile.getName() +"\n"+ e.getMessage());
 									e.printStackTrace();
-								}							
-							}
+								} 
+//							}
 						} else
 							Log.println("Leaving existing spacecraft file: " + targetFile.getName());
 					}

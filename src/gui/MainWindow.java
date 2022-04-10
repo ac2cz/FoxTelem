@@ -3,7 +3,7 @@ package gui;
 import javax.swing.JFrame;
 
 import decoder.SourceSoundCardAudio;
-import gui.graph.GraphPanel;
+import gui.graph.LinePlotPanel;
 import gui.uw.UwExperimentTab;
 
 import javax.swing.JPanel;
@@ -376,7 +376,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (lblAudioMissed != null) { // just in case we are delayed starting up
 			double miss = missed / 10.0;
 			totalMissed += missed;
-			lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
+			lblAudioMissed.setText(AUDIO_MISSED + LinePlotPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
 			if (missed > 2)
 				lblAudioMissed.setForeground(Color.RED);
 			else
@@ -671,7 +671,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	
 	private void shutdown() {
 		if (Config.satPC != null) Config.satPC.disconnect();
+		for (int s=0; s<spacecraftTab.length; s++) {
+			spacecraftTab[s].closeGraphs();
+		}
 		inputTab.shutdown();
+		
 		Log.println("Window Closed");
 		Log.close();
 		saveProperties();

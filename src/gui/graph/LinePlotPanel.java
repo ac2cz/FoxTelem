@@ -43,7 +43,7 @@ import uk.me.g4dpz.satellite.SatPos;
  * 
  */
 @SuppressWarnings("serial")
-public class GraphPanel extends GraphCanvas {
+public class LinePlotPanel extends GraphCanvas {
 	
 	public static final int NO_TIME_VALUE = -999;
 	double[] firstDifference = null;
@@ -64,7 +64,7 @@ public class GraphPanel extends GraphCanvas {
 	int sideLabel = 0;
 	int bottomLabelOffset = 5;
 	
-	GraphPanel(String t, GraphFrame gf, Spacecraft fox2) {
+	LinePlotPanel(String t, GraphFrame gf, Spacecraft fox2) {
 		super(t, gf, fox2);
 		freqOffset = (int) (fox2.user_telemetryDownlinkFreqkHz * 1000);
 		updateGraphData(gf.layout, "GrapPanel.new");
@@ -89,26 +89,32 @@ public class GraphPanel extends GraphCanvas {
 		
 		int leftLineOffset = 50;
 		int fonth = (int)(12*font/9);
-		int fontw = (int)(9*font/10);
 		if (graphFrame.fieldName2 != null)
 			rows = rows + graphFrame.fieldName2.length;
 
 		if (graphFrame.plotDerivative) rows +=1;
 		if (graphFrame.dspAvg) rows +=1;
 		
-		
-		int longestWord = 20;
-		for (int i=0; i < graphFrame.fieldName.length; i++)
-			if (graphFrame.fieldName[i].length() > longestWord)
-				longestWord = graphFrame.fieldName[i].length();
-		
+		g2.setFont(new Font("SansSerif", Font.PLAIN, font));
+		int longestWord = 0;
+//		String longestWord = "";
+		for (int i=0; i < graphFrame.fieldName.length; i++) {
+			String w = graphFrame.layout.getModuleByName(graphFrame.fieldName[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName[i])+" ("+graphFrame.fieldUnits+")";
+			int l = g2.getFontMetrics().stringWidth(w);
+			if (l > longestWord)
+				longestWord = l;
+//				longestWord = graphFrame.fieldName[i].length();
+		}
 		if (graphFrame.fieldName2 != null)
-		for (int i=0; i < graphFrame.fieldName2.length; i++)
-			if (graphFrame.fieldName2[i].length() > longestWord)
-				longestWord = graphFrame.fieldName2[i].length();
-		int leftOffset = (int) (longestWord * 1.25* fontw + 20); // the point where we start drawing the box from the right edge of the graph
+		for (int i=0; i < graphFrame.fieldName2.length; i++) {
+			String w = graphFrame.layout.getModuleByName(graphFrame.fieldName2[i]) + "-" + graphFrame.layout.getShortNameByName(graphFrame.fieldName2[i])+" ("+graphFrame.fieldUnits2+")";
+			int l = g2.getFontMetrics().stringWidth(w);
+			if (l > longestWord)
+				longestWord = l;
+		}
+		int leftOffset = longestWord + sideBorder;
+		//int leftOffset = (int) (longestWord * 1.25* fontw + 20); // the point where we start drawing the box from the right edge of the graph
 		
-		g.setFont(new Font("SansSerif", Font.PLAIN, font));
 		g2.setColor(Color.BLACK);
 		g2.drawRect(sideBorder + graphWidth - leftOffset - 1, titleHeight + 4,leftOffset-10 , 9 + fonth * rows +1  );
 		g2.setColor(Color.WHITE);
@@ -191,10 +197,10 @@ public class GraphPanel extends GraphCanvas {
 		// Calculate the axis points and the labels, but dont draw the lines yet, even if user requested
 		double[] axisPoints2 = {0d, 0d, 0d};
 		if (drawGraph2) {
-			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2, graphFrame.conversion2); // default graph type to 0 for now
+			axisPoints2 = plotVerticalAxis(graphWidth, graphHeight, graphWidth, graphData2, false, graphFrame.fieldUnits2, graphFrame.conversionType2, graphFrame.lastConversion2); // default graph type to 0 for now
 		}
 		
-		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines, graphFrame.fieldUnits, graphFrame.conversionType, graphFrame.conversion);
+		double[] axisPoints = plotVerticalAxis(0, graphHeight, graphWidth, graphData, graphFrame.showHorizontalLines, graphFrame.fieldUnits, graphFrame.conversionType, graphFrame.lastConversion);
 		
 		
 		zeroPoint = (int) axisPoints[0];
@@ -540,10 +546,10 @@ public class GraphPanel extends GraphCanvas {
 		plotSun(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
 				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, true);
 		plotGraph(graphData, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, graphFrame.conversion, true);
+				maxTimeValue, minValue, maxValue, 0, graphFrame.conversionType, graphFrame.lastConversion, true);
 		if (drawGraph2)
 			plotGraph(graphData2, graphHeight, graphWidth, start, end, stepSize, sideBorder, minTimeValue, 
-					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, graphFrame.conversion2, false);
+					maxTimeValue, minValue2, maxValue2, graphFrame.fieldName.length, graphFrame.conversionType2, graphFrame.lastConversion2, false);
 		
 	}
 
