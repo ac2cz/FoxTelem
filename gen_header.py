@@ -16,6 +16,7 @@ fileName = sys.argv[2]
 line = ""
 fields = []
 firstLine = True
+num = 0
 
 print("typedef struct __attribute__((__packed__)) {");
 # open the infile and read all the content in as a set of lines
@@ -29,6 +30,27 @@ try:
                 print('    unsigned int ' + fields[2] + ' : ' + fields[3] + ';')
 
     print('} ' + name + '_t;\n')
+
+    #
+    # Now generate the function that prints the layout
+    #
+    firstLine = True
+    print('void print_'+name+'('+ name + '_t payload) {')
+    print('    printf("RAW PAYLOAD: '+name+r'\n");') # use a raw string where we want the \n
+    with open(fileName) as infile:
+        for line in infile:
+            if (firstLine) :
+                firstLine = False
+            else :
+                fields = line.split(',')
+                print('    printf("'+fields[10]+': %d  ",payload.'+fields[2]+');')
+                num += 1
+                if (num % 4 == 0) :
+                    print(r'    printf("\n");') # print as a raw string to allow \n
+    if (num %4 != 0) :
+        print(r'    printf("\n");')
+    print('}\n')
+
 except UnicodeDecodeError as e:
     print ("ERROR: Binary data found in the file.  Is it a CSV file?")
     print (e)
