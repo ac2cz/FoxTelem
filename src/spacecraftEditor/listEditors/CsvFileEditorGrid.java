@@ -95,7 +95,7 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 				int row = table.getSelectedRow();
 
 				if (row > 0) {
-					
+
 					table.setRowSelectionInterval(row, row);
 					//System.err.println("PASTE");
 					Toolkit toolkit = Toolkit.getDefaultToolkit();
@@ -103,15 +103,28 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 					String result;
 					try {
 						result = (String) clipboard.getData(DataFlavor.stringFlavor);
-						//System.out.println("String from Clipboard:" + result);
+						System.out.println("String from Clipboard:" + result);
 						// now put it in the cells
-						String[] cellValues = result.split("\t");
-						if (cellValues.length != tableModel.getColumnCount()) {
-							Log.infoDialog("Sorry!", "Can only paste one row at the moment");
+						String[] pasteRows = result.split("\n");
+						if (pasteRows.length == 0) {
+							pasteRows = new String[1];
+							pasteRows[0] = result;
+						}
+						if (pasteRows.length + row > tableModel.getRowCount()) {
+							Log.errorDialog("ERROR", "Can't fit "+pasteRows.length+" rows into the table. Perhaps add more empty rows first.");
 							return;
 						}
-						for (int i=0; i< tableModel.getColumnCount(); i++) {
-							tableModel.setValueAt(cellValues[i], row, i);
+						for(int r=0; r < pasteRows.length; r++) {
+							String[] cellValues = pasteRows[r].split("\t");
+							if (cellValues.length % tableModel.getColumnCount() != 0) {
+								Log.infoDialog("Sorry!", "Can only paste whole rows at the moment");
+								return;
+							}
+							
+							for (int i=0; i< tableModel.getColumnCount(); i++) {
+								tableModel.setValueAt(cellValues[i], row, i);
+							}
+							row++; // incase we have more rows
 						}
 					} catch (UnsupportedFlavorException e1) {
 						// TODO Auto-generated catch block
@@ -216,8 +229,8 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 			//System.err.println("NO UPDATE Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
 			return;
 		}
-		 System.err.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
-		 try {
+		//System.err.println("Updated Row: " + e.getFirstRow() +" Col: "+ e.getColumn());
+		try {
 			parent.save();
 		} catch (IOException e1) {
 			Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
