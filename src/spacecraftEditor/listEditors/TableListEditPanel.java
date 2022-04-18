@@ -404,7 +404,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		}
 		load();
 		table.setRowSelectionInterval(row,row);
-		lookupCsvFileEditPanel.setFile(dataLines.get(row)[2]);
+		if (lookupCsvFileEditPanel != null)
+			lookupCsvFileEditPanel.setFile(dataLines.get(row)[2]);
 		updateRow(row);
 	}
 
