@@ -105,6 +105,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 					slowSpeedFrame.rsErasures = numberOfErasures;
 				} catch (FrameProcessException e) {
 					// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+					Log.println(".. rejected frame: " + e);
 					return null;
 				}
 				return slowSpeedFrame;
