@@ -1,4 +1,4 @@
-package telemetry;
+package telemetry.Format;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -8,6 +8,8 @@ import java.util.Properties;
 import common.Config;
 import common.Spacecraft;
 import fec.RsCodeWord;
+import telemetry.BitArrayLayout;
+import telemetry.LayoutLoadException;
 
 public class TelemFormat {
 	public static final String NAME="name";

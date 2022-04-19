@@ -131,7 +131,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmAbout;
 	JMenuItem mntmSatAdd;
 	JMenuItem mntmSatRemove;
-	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
+//	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
 	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
 	JCheckBoxMenuItem chckbxmntmShowSatOptions;
@@ -533,10 +533,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
 		
-		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
-		mnDecoder.add(chckbxmntmShowFilterOptions);
-		chckbxmntmShowFilterOptions.setState(Config.showFilters);
-		chckbxmntmShowFilterOptions.addActionListener(this);
+//		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
+//		mnDecoder.add(chckbxmntmShowFilterOptions);
+//		chckbxmntmShowFilterOptions.setState(Config.showFilters);
+//		chckbxmntmShowFilterOptions.addActionListener(this);
 		
 		chckbxmntmShowAudioOptions = new JCheckBoxMenuItem("Show Audio Options");
 		chckbxmntmShowAudioOptions.addActionListener(this);
@@ -796,11 +796,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 
 		
-		if (e.getSource() == chckbxmntmShowFilterOptions) {	
-			Config.showFilters = chckbxmntmShowFilterOptions.getState();
-			inputTab.showFilters(Config.showFilters);
-			Config.save();	
-		}
+//		if (e.getSource() == chckbxmntmShowFilterOptions) {	
+//			Config.showFilters = chckbxmntmShowFilterOptions.getState();
+//			inputTab.showFilters(Config.showFilters);
+//			Config.save();	
+//		}
 		
 		if (e.getSource() == chckbxmntmShowAudioOptions) {	
 			Config.showAudioOptions = chckbxmntmShowAudioOptions.getState();

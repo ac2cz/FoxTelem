@@ -1,13 +1,12 @@
-package telemetry.FoxBPSK;
+package telemetry.Format;
 
 import common.Config;
 import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
-import telemetry.TelemFormat;
 import telemetry.frames.Header;
 
-public class FoxBPSKHeader extends Header {
+public class FormatHeader extends Header {
 	// Extended Mode Bits that are only in FoxId 6 and later
 	int safeMode;
 	int healthMode;
@@ -24,7 +23,7 @@ public class FoxBPSKHeader extends Header {
 	public static final String HEALTH_MODE = "inHealthMode";
 	public static final String SCIENCE_MODE = "inScienceMode";
 
-	public FoxBPSKHeader(BitArrayLayout layout, TelemFormat telemFormat) {
+	public FormatHeader(BitArrayLayout layout, TelemFormat telemFormat) {
 		super(TYPE_EXTENDED_HEADER, layout);
 		this.telemFormat = telemFormat;
 		MAX_BYTES = telemFormat.getInt(TelemFormat.HEADER_LENGTH);

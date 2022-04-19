@@ -39,7 +39,7 @@ import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SortedFramePartArrayList;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import telemetry.conversion.Conversion;
 import telemetry.conversion.ConversionCurve;
 import telemetry.conversion.ConversionFormat;

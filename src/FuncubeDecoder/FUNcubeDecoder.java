@@ -20,7 +20,7 @@ public class FUNcubeDecoder extends Decoder {
     protected FUNcubeBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
     
 	public FUNcubeDecoder(SourceAudio as, int chan) {
-		super("1200bps BPSK", as, chan);
+		super("1200bps BPSK", as, chan, null);
 		init();
 	}
 

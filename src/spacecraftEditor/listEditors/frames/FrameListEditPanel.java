@@ -41,7 +41,7 @@ import spacecraftEditor.SpacecraftEditorWindow;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import telemetry.frames.FrameLayout;
 
 public class FrameListEditPanel extends JPanel implements MouseListener, ActionListener {

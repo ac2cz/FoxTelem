@@ -3,7 +3,7 @@ import java.io.IOException;
 import common.Config;
 import common.Log;
 import telemServer.StpFileProcessException;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
 import telemetry.frames.Frame;
 
 public class FoxStp {
@@ -63,7 +63,7 @@ public class FoxStp {
 			Frame decodedFrame = Frame.loadStp(f, false);
 			if (decodedFrame != null && !decodedFrame.corrupt) {
 				if (wodTimestampsOnly) {
-					FoxBPSKFrame bpsk = (FoxBPSKFrame)decodedFrame;
+					FormatFrame bpsk = (FormatFrame)decodedFrame;
 					System.out.print(decodedFrame.toWodTimestampString(bpsk.getHeader().resets, bpsk.getHeader().getUptime()));
 				} else {
 					System.out.println(decodedFrame.toString());

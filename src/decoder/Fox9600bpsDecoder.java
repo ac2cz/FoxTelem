@@ -34,7 +34,7 @@ public class Fox9600bpsDecoder extends FoxDecoder {
 	public static final int SYNC_WORD_LENGTH = 10;
 	
 	public Fox9600bpsDecoder(SourceAudio as, int chan) {
-		super("High Speed", as, chan);
+		super("High Speed", as, chan, null);
 	}
 
 	public void init() {

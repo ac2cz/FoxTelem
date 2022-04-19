@@ -22,8 +22,8 @@ import telemServer.StpFileRsDecodeException;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
-import telemetry.TelemFormat;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
+import telemetry.Format.TelemFormat;
 import telemetry.herci.PayloadHERCIhighSpeed;
 import telemetry.legacyPayloads.PayloadCameraData;
 import telemetry.legacyPayloads.PayloadRadExpData;
@@ -562,7 +562,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (length == DUV_FRAME_LEN) {
 			frm = new SlowSpeedFrame();
 		} else if (length == PSK_FRAME_LEN){
-			frm = new FoxBPSKFrame(Config.satManager.getFormatByName("FOX_BPSK")); // TO DO - hard coded the format. We should lookup from the length
+			frm = new FormatFrame(Config.satManager.getFormatByName("FOX_BPSK")); // TO DO - hard coded the format. We should lookup from the length
 		} else {
 			frm = new HighSpeedFrame();
 		}
@@ -729,8 +729,8 @@ public abstract class Frame implements Comparable<Frame> {
 					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
 					//duvFrames++;
-				} else if (decodedFrame instanceof FoxBPSKFrame) {
-					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
+				} else if (decodedFrame instanceof FormatFrame) {
+					FormatFrame hsf = (FormatFrame)decodedFrame;
 					Spacecraft fox =  Config.satManager.getSpacecraft(hsf.header.id);
 					int newReset = hsf.header.resets; // this will be updated with the reset for HuskySat as the MRAM is broken
 					if (hsf.header.id == 6) { // better if this was not hardcoded and was in the spacecraft file

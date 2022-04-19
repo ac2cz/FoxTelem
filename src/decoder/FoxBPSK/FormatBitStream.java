@@ -5,11 +5,14 @@ import java.util.Date;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
+import decoder.FoxFskDecoder;
 import decoder.HighSpeedBitStream;
-import telemetry.TelemFormat;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
+import telemetry.Format.TelemFormat;
 import telemetry.frames.Frame;
 import telemetry.frames.FrameProcessException;
+import telemetry.frames.HighSpeedFrame;
+import telemetry.frames.SlowSpeedFrame;
 
 /**
  * 
@@ -34,13 +37,13 @@ import telemetry.frames.FrameProcessException;
  *
  */
 @SuppressWarnings("serial")
-public class FoxBPSKBitStream extends HighSpeedBitStream {
-	public static final int FOX_BPSK_SPEED_SYNC_WORD_DISTANCE = 5720 + 31; 
+public class FormatBitStream extends HighSpeedBitStream {
+	//public static final int FOX_BPSK_SPEED_SYNC_WORD_DISTANCE = 5720 + 31; 
 	TelemFormat telemFormat;
-	public static final boolean GOLF_FORMAT = true;
-	public static final boolean FOX_FORMAT = false;
+	//public static final boolean GOLF_FORMAT = true;
+	//public static final boolean FOX_FORMAT = false;
 	
-	public FoxBPSKBitStream(Decoder dec, TelemFormat telemFormat) {
+	public FormatBitStream(Decoder dec, TelemFormat telemFormat, boolean use31bitSyncWord) {
 		super(dec, telemFormat.getSyncWordDistance(), telemFormat.getInt(TelemFormat.WORD_LENGTH), 
 				telemFormat.getInt(TelemFormat.SYNC_WORD_LENGTH), telemFormat.getInt(TelemFormat.BPS));
 		this.telemFormat = telemFormat;
@@ -49,7 +52,7 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		dataLength = telemFormat.getInt(TelemFormat.DATA_LENGTH); // FoxBPSKFrame.MAX_FRAME_SIZE; // 476
 		numberOfRsCodeWords = telemFormat.getInt(TelemFormat.RS_WORDS);
 		this.rsPadding = telemFormat.getPaddingArray();
-		findFramesWithPRN = true;
+		findFramesWithPRN = use31bitSyncWord;
 	}
 	
 	/**
@@ -65,19 +68,25 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 		// This is a nice idea and even works sometimes, but we need to make sure it does not cause a crash if it is off the end of the data.
 		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
-		Frame bpskFrame;
+		Frame formatFrame;
 //		if (telemFormat.name.equalsIgnoreCase("GOLF_BPSK"))  // TODO - dont hard code here.  Factory method in satManager??  Or do we now have enough in Telem format for one frame class
 //			bpskFrame = new GolfBPSKFrame(telemFormat);
 //		else
 		if (Config.debugFrames)
 			Log.println("Decoding frame with Format: " + telemFormat);
-		bpskFrame = new FoxBPSKFrame(telemFormat);
+		// For legacy support
+		if (telemFormat.name.equalsIgnoreCase(FoxFskDecoder.DUV_FSK))
+			formatFrame = new SlowSpeedFrame();
+		else if (telemFormat.name.equalsIgnoreCase(FoxFskDecoder.HIGHSPEED_FSK))
+			formatFrame = new HighSpeedFrame();
+		else
+			formatFrame = new FormatFrame(telemFormat);
 		
 		try {
-			bpskFrame.addRawFrame(rawFrame);
-			bpskFrame.rsErrors = totalRsErrors;
-			bpskFrame.rsErasures = totalRsErasures;
-			bpskFrame.setStpDate(timeOfStartSync);
+			formatFrame.addRawFrame(rawFrame);
+			formatFrame.rsErrors = totalRsErrors;
+			formatFrame.rsErasures = totalRsErasures;
+			formatFrame.setStpDate(timeOfStartSync);
 		} catch (FrameProcessException e) {
 			// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
 			return null;
@@ -85,7 +94,7 @@ public class FoxBPSKBitStream extends HighSpeedBitStream {
 //		String os = System.getProperty("os.name").toLowerCase();
 //		boolean b = Frame.highSpeedRsDecode(frameSize, FoxBPSKBitStream.NUMBER_OF_RS_CODEWORDS, rsPadding, rawFrame, "FoxTelem " + Config.VERSION + " (" + os + ")");
 //		Log.println("SELF RS CHECK:" + b);
-		return bpskFrame;
+		return formatFrame;
 	}
 		
 }

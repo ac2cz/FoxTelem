@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.JOptionPane;
 
 import measure.PassMeasurement;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
 import telemetry.frames.Frame;
 import telemetry.frames.SlowSpeedFrame;
 import common.Config;
@@ -95,7 +95,7 @@ public class RawFrameQueue extends RawQueue {
 				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
 				return rawSlowSpeedFrames.add(f);
 			
-		} else if (f instanceof FoxBPSKFrame ) {
+		} else if (f instanceof FormatFrame ) {
 				updatedPSKQueue = true;
 				save(f, RAW_PSK_FRAMES_FILE);
 				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());

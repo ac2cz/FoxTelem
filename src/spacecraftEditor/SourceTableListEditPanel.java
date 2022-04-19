@@ -18,7 +18,7 @@ import spacecraftEditor.listEditors.CsvTableModel;
 import spacecraftEditor.listEditors.ListTableModel;
 import spacecraftEditor.listEditors.TableListEditPanel;
 import telemetry.LayoutLoadException;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 
 public class SourceTableListEditPanel extends TableListEditPanel {
 	private static final long serialVersionUID = 1L;

@@ -38,7 +38,7 @@ public class Fox200bpsDecoder extends FoxDecoder {
 	private int useFilterNumber;
 	
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
-		super("DUV", as, chan);
+		super("DUV", as, chan, null);
 		//Log.println("STARTED filter len: " + Config.filterLength);
 	}
 	

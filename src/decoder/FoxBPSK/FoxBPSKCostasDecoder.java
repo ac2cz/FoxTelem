@@ -6,12 +6,12 @@ import decoder.SourceAudio;
 import decoder.SourceIQ;
 import filter.AGCFilter;
 import filter.DcRemoval;
-import telemetry.TelemFormat;
 import filter.Complex;
 import filter.ComplexOscillator;
 import filter.IirFilter;
 import filter.RaisedCosineFilter;
 import filter.RootRaisedCosineFilter;
+import telemetry.Format.TelemFormat;
 
 public class FoxBPSKCostasDecoder extends FoxBPSKDecoder {
 	public static final int BITS_PER_SECOND_1200 = 1200;

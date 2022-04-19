@@ -1,0 +1,12 @@
+name=DUV_FSK
+mode=FSK
+bps=200
+frame_length=96
+data_length=64
+header_length=6
+header_layout_file=DUV_header.csv
+trailer_length=32
+word_length=10
+sync_word_length=10
+rs_words=1
+rs_padding=159

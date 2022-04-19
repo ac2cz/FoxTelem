@@ -65,8 +65,8 @@ import common.Log;
 import common.PassManager;
 import common.Spacecraft;
 import decoder.Decoder;
-import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
+import decoder.FoxFskDecoder;
 import decoder.SinkAudio;
 import decoder.SourceAudio;
 import decoder.SourceIQ;
@@ -82,7 +82,7 @@ import device.TunerManager;
 import device.fcd.FCDTunerController;
 import device.rtl.RTL2832TunerController.SampleRate;
 import telemetry.FramePart;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 
 import javax.swing.JProgressBar;
 import javax.swing.event.PopupMenuListener;
@@ -194,7 +194,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	Image img_audio;
 	Image img_mute;
 	
-	FilterPanel filterPanel;
+//	FilterPanel filterPanel;
 	
 	TunerController rfDevice;
 	TunerManager tunerManager;
@@ -314,15 +314,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			}
 		}
 
-		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
+//		showFilters(Config.showFilters); // hide the filters because we have calculated the optimal matched filters
 		showSourceOptions(Config.showSourceOptions);
 		showAudioOptions(Config.showAudioOptions);		
 	}
 	
-	public void showFilters(boolean b) { 
-		filterPanel.setVisible(b);
-//		audioOptionsFiller.setVisible(!b);
-	}
+//	public void showFilters(boolean b) { 
+//		filterPanel.setVisible(b);
+////		audioOptionsFiller.setVisible(!b);
+//	}
 	public void showAudioOptions(boolean b) { 
 		optionsPanel.setVisible(b);
 		audioOutputPanel.setVisible(b);
@@ -343,17 +343,17 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			phasorPanel.setVisible(b);
 	}
 
-	public boolean getShowFilterState() {
-		return filterPanel.isVisible();
-	}
+//	public boolean getShowFilterState() {
+//		return filterPanel.isVisible();
+//	}
 //	public void showDecoderOptions(boolean b) { optionsPanel.setVisible(b); }
 	
-	public void enableFilters(boolean b) {
-		Component[] components = filterPanel.getComponents();
-		for (Component c : components) {
-			c.setEnabled(b);
-		}
-	}
+//	public void enableFilters(boolean b) {
+//		Component[] components = filterPanel.getComponents();
+//		for (Component c : components) {
+//			c.setEnabled(b);
+//		}
+//	}
 
 	private void buildOptionsRow(JPanel parent, String layout, JPanel optionsPanelmain) {
 		parent.add(optionsPanelmain, layout);
@@ -617,8 +617,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		opts.add(optionsPanel, BorderLayout.CENTER);
 		optionsPanel.setLayout(new BoxLayout(optionsPanel, BoxLayout.Y_AXIS));
 		
-		filterPanel = new FilterPanel();
-		opts.add(filterPanel, BorderLayout.SOUTH);
+//		filterPanel = new FilterPanel();
+//		opts.add(filterPanel, BorderLayout.SOUTH);
 		
 		rdbtnViewFilteredAudio = new JCheckBox("View Filtered Audio");
 		optionsPanel.add(rdbtnViewFilteredAudio);
@@ -1048,22 +1048,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	public void setupFormat() {
 		if (Config.format == FORMAT_FSK_AUTO) {
 			auto.setSelected(true);
-			enableFilters(true);
+//			enableFilters(true);
 			Config.mode = SourceIQ.MODE_FSK_AUTO;
 			Config.save();
 		} else if (Config.format == FORMAT_FSK_HS) {
 			highSpeed.setSelected(true);
-			enableFilters(false);
+//			enableFilters(false);
 			Config.mode = SourceIQ.MODE_FSK_HS;
 			Config.save();
 		} else if (Config.format == FORMAT_FSK_DUV){
 			lowSpeed.setSelected(true);
-			enableFilters(true);
+//			enableFilters(true);
 			Config.mode = SourceIQ.MODE_FSK_DUV;
 			Config.save();
 		} else if (Config.format == FORMAT_PSK_FOX ){
 			pskFoxBpsk.setSelected(true);
-			enableFilters(false);
+//			enableFilters(false);
 			if (Config.useCostas)
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			else
@@ -1071,7 +1071,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.save();
 		} else if (Config.format == FORMAT_PSK_GOLF){
 			pskGolfBpsk.setSelected(true);
-			enableFilters(false);
+//			enableFilters(false);
 			if (Config.useCostas)
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			else
@@ -1278,7 +1278,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.format = FORMAT_FSK_HS;
 			Config.mode = SourceIQ.MODE_FSK_HS;
 			//Config.autoDecodeSpeed = false;
-			enableFilters(false);
+//			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_HS);
 			Config.save();
@@ -1287,7 +1287,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.format = FORMAT_FSK_DUV;
 			Config.mode = SourceIQ.MODE_FSK_DUV;
 			//Config.autoDecodeSpeed = false;
-			enableFilters(true);
+//			enableFilters(true);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			Config.save();
@@ -1298,7 +1298,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			else
 				Config.mode = SourceIQ.MODE_PSK_NC;
-			enableFilters(false);
+//			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
 				iqSource1.setMode(Config.mode);
@@ -1311,7 +1311,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				Config.mode = SourceIQ.MODE_PSK_COSTAS;
 			else
 				Config.mode = SourceIQ.MODE_PSK_NC;
-			enableFilters(false);
+//			enableFilters(false);
 			autoViewpanel.setVisible(false);
 			if (iqSource1 != null) {
 				iqSource1.setMode(Config.mode);
@@ -1321,7 +1321,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		if (e.getSource() == auto) { 
 			Config.format = FORMAT_FSK_AUTO;
 			Config.mode = SourceIQ.MODE_FSK_AUTO;
-			enableFilters(true);
+//			enableFilters(true);
 			if (iqSource1 != null) iqSource1.setMode(SourceIQ.MODE_FSK_DUV);
 			if (iqSource2 != null) iqSource2.setMode(SourceIQ.MODE_FSK_HS);
 			autoViewpanel.setVisible(true);
@@ -1835,24 +1835,22 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	private void setupDecoder(boolean highSpeed, SourceAudio audioSource, SourceAudio audioSource2) {
 
 		if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
+			TelemFormat duvTelemFormat = Config.satManager.getFormatByName(FoxFskDecoder.DUV_FSK);
+			TelemFormat hsTelemFormat = Config.satManager.getFormatByName(FoxFskDecoder.HIGHSPEED_FSK);
+			
 			if (Config.iq) {
-				decoder1 = new Fox200bpsDecoder(audioSource, 0);
+				decoder1 = new FoxFskDecoder(audioSource, 0, duvTelemFormat);
+//				decoder2 = new FoxFskDecoder(audioSource2, 0, hsTelemFormat);
+//				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 0);
 			} else {
-				decoder1 = new Fox200bpsDecoder(audioSource, 0);
+				decoder1 = new FoxFskDecoder(audioSource, 0,duvTelemFormat);
+//				decoder2 = new FoxFskDecoder(audioSource2, 1, hsTelemFormat);
+//				decoder1 = new Fox200bpsDecoder(audioSource, 0);
 				decoder2 = new Fox9600bpsDecoder(audioSource2, 1);
 			}
 			
 		} else if (this.pskFoxBpsk.isSelected()) {
-			// TEST DATA FOR FOX FORMAT
-//			int frameLength = 572;
-//			int dataLength = 476;
-//			int wordLength = 10;
-//			int bitsPerSecond = 1200;
-//			int syncWordLength = 31;
-//			int syncWordDistance = 5720 + syncWordLength;
-//			int rs_words = 3;
-//			int[] rs_padding = {64,64,65};
 			TelemFormat telemFormat = Config.satManager.getFormatByName("FOX_BPSK");
 			if (Config.useCostas) {
 				if (iqSource1 != null && iqSource1.runPSKthroughNCO)
@@ -1868,15 +1866,6 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			}
 		} else if (this.pskGolfBpsk.isSelected()) {
-			// TEST DATA FOR GOLF FORMAT
-//			int frameLength = 660;
-//			int dataLength = 564;
-//			int wordLength = 10;
-//			int bitsPerSecond = 1200;
-//			int syncWordLength = 31;
-//			int syncWordDistance = 6600 + syncWordLength;
-//			int rs_words = 3;
-//			int[] rs_padding = {35,35,35};
 			TelemFormat telemFormat = Config.satManager.getFormatByName("GOLF_BPSK");
 			if (Config.useCostas) {
 				if (iqSource1 != null && iqSource1.runPSKthroughNCO)
@@ -1891,9 +1880,13 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			}
 		} else if (highSpeed) {
-			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+			TelemFormat hsTelemFormat = Config.satManager.getFormatByName(FoxFskDecoder.HIGHSPEED_FSK);
+			decoder1 = new FoxFskDecoder(audioSource, 0, hsTelemFormat);
+			//decoder1 = new Fox9600bpsDecoder(audioSource, 0);
 		} else {
-			decoder1 = new Fox200bpsDecoder(audioSource, 0);
+			TelemFormat duvTelemFormat = Config.satManager.getFormatByName(FoxFskDecoder.DUV_FSK);
+			decoder1 = new FoxFskDecoder(audioSource, 0, duvTelemFormat);
+			//decoder1 = new Fox200bpsDecoder(audioSource, 0);
 		}
 		if (Config.monitorAudio)
 			setupAudioSink(decoder1);

@@ -6,12 +6,12 @@ import decoder.SourceAudio;
 import filter.AGCFilter;
 import filter.Complex;
 import filter.DcRemoval;
-import telemetry.TelemFormat;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.DotProduct;
 import filter.RootRaisedCosineFilter;
 import filter.SinOscillator;
+import telemetry.Format.TelemFormat;
 
 /**
  * This program is free software: you can redistribute it and/or modify

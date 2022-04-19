@@ -13,9 +13,9 @@ import common.Spacecraft;
 import decoder.Decoder;
 import decoder.SourceAudio;
 import gui.MainWindow;
-import telemetry.TelemFormat;
-import telemetry.FoxBPSK.FoxBPSKFrame;
-import telemetry.FoxBPSK.FoxBPSKHeader;
+import telemetry.Format.FormatFrame;
+import telemetry.Format.FormatHeader;
+import telemetry.Format.TelemFormat;
 import telemetry.frames.Frame;
 
 public abstract class FoxBPSKDecoder extends Decoder {
@@ -27,9 +27,8 @@ public abstract class FoxBPSKDecoder extends Decoder {
 //	protected FoxBPSKBitStream bitStream = null;  // Hold bits until we turn them into decoded frames
 	
 	public FoxBPSKDecoder(String n, SourceAudio as, int chan, TelemFormat telemFormat) {
-		super(n, as, chan);
-		bitStream = new FoxBPSKBitStream(this, telemFormat);
-
+		super(n, as, chan, telemFormat);
+		bitStream = new FormatBitStream(this, telemFormat, true);
 	}
 	
 	public abstract double[] getBasebandData();
@@ -78,8 +77,8 @@ public abstract class FoxBPSKDecoder extends Decoder {
 				//eyeData.setBER(((bitStream.lastErrorsNumber + bitStream.lastErasureNumber) * 10.0d) / (double)bitStream.SYNC_WORD_DISTANCE);
 				if (Config.storePayloads) {
 
-					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
-					FoxBPSKHeader header = hsf.getHeader();
+					FormatFrame hsf = (FormatFrame)decodedFrame;
+					FormatHeader header = hsf.getHeader();
 					sat = Config.satManager.getSpacecraft(header.id);
 					int newReset = sat.getCurrentReset(header.resets, header.uptime);
 					hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
@@ -111,11 +110,11 @@ public abstract class FoxBPSKDecoder extends Decoder {
 						public void run() { MainWindow.setTotalDecodes();}
 					});
 				} catch (InvocationTargetException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					// Hopefully we never see this, but log it if we do
+					e1.printStackTrace(Log.getWriter());
 				} catch (InterruptedException e1) {
-					// TODO Auto-generated catch block
-					e1.printStackTrace();
+					// Hopefully we never see this, but log it if we do
+					e1.printStackTrace(Log.getWriter());
 				}
 				Performance.endTimer("Store");
 			} else {

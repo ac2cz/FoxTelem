@@ -12,6 +12,7 @@ import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.FramePart;
+import telemetry.Format.TelemFormat;
 import telemetry.frames.Frame;
 import telemetry.frames.HighSpeedFrame;
 import telemetry.frames.HighSpeedHeader;
@@ -80,9 +81,8 @@ public abstract class FoxDecoder extends Decoder {
     /**
      * Given an audio source, decode the data in it,
      */
-	public FoxDecoder(String n, SourceAudio as, int chan) {
-		super(n,as,chan);
-		//init();
+	public FoxDecoder(String n, SourceAudio as, int chan, TelemFormat telemFormat) {
+		super(n,as,chan, telemFormat);
 	}
 	
 

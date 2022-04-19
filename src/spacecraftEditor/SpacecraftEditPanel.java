@@ -33,7 +33,7 @@ import common.Log;
 import common.Spacecraft;
 import gui.SourceTab;
 import spacecraftEditor.listEditors.CsvTableModel;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import common.Config;
 
 /**

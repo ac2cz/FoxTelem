@@ -2,7 +2,7 @@
 import gui.InitalSettings;
 import gui.MainWindow;
 import gui.ProgressPanel;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 
 import java.awt.EventQueue;
 import java.awt.Frame;
@@ -23,6 +23,7 @@ import common.Log;
 import decoder.Decoder;
 import decoder.Fox200bpsDecoder;
 import decoder.Fox9600bpsDecoder;
+import decoder.FoxFskDecoder;
 import decoder.SourceWav;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
@@ -687,8 +688,6 @@ public class FoxTelemMain {
 		System.setProperty("apple.laf.useScreenMenuBar", "true");
 		//System.setProperty("apple.awt.fileDialogForDirectories", "true");  // fix problems with the file chooser
 
-
-		
 		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());
 	    System.setProperty("sun.awt.exception.handler",
 	                       ExceptionHandler.class.getName());
@@ -709,11 +708,13 @@ public class FoxTelemMain {
 				} catch (Exception e) {
 					launchException = e;
 					Log.println("SERIOUS ERROR - Uncaught and thrown from GUI");
-					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the spacecraft files then\n"
-							+ "try reverting to an older version, or install the standard files.  \n"
+					seriousErrorMsg = "Something is preventing FoxTelem from running.  If you recently changed the\n"
+							+ "spacecraft files then try reverting to an older version, or install the standard files.  \n"
 							+ "If that does not work then you can try deleting the FoxTelem.properties\n"
 							+ "file in your home directory, in a sub directory called .FoxTelem, though this\n"
-							+ "will delete your settings\n"; 
+							+ "will delete your settings\n\n"
+							+ "There may be more details of the error in the log file.  You can enable logging by \n"
+							+ "setting logging=true in FoxTelem.properties.\n"; 
 			           
 					e.printStackTrace();
 					e.printStackTrace(Log.getWriter());
@@ -758,34 +759,27 @@ public class FoxTelemMain {
 		}
 		
 		Decoder decoder1 = null;
-		
-		if (telemFormatName.equalsIgnoreCase("duv")) {
-			decoder1 = new Fox200bpsDecoder(audioSource, 0);
-		} else if (telemFormatName.equalsIgnoreCase("high-speed")) {
-			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
-		} else if (telemFormatName.equalsIgnoreCase("FOX_BPSK")) {
-			TelemFormat telemFormat = null;
-			if (telemFormatName != null ) {
-				telemFormat = Config.satManager.getFormatByName(telemFormatName);
-				if (telemFormat == null) {
-					System.out.println("Can't read file for --telem-fomat command line switch: " + telemFormatName);
-					System.exit(0);
-				}
+		TelemFormat telemFormat = null;
+		if (telemFormatName != null ) {
+			telemFormat = Config.satManager.getFormatByName(telemFormatName);
+			if (telemFormat == null) {
+				System.out.println("Can't read file for --telem-fomat command line switch: " + telemFormatName);
+				System.exit(0);
 			}
+		}
+		if (telemFormatName.equalsIgnoreCase(FoxFskDecoder.DUV_FSK)) {
+			decoder1 = new FoxFskDecoder(audioSource, 0, telemFormat);
+			//decoder1 = new Fox200bpsDecoder(audioSource, 0);
+		} else if (telemFormatName.equalsIgnoreCase(FoxFskDecoder.HIGHSPEED_FSK)) {
+			decoder1 = new FoxFskDecoder(audioSource, 0, telemFormat);
+//			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+		} else if (telemFormatName.equalsIgnoreCase("FOX_BPSK")) {
 			if (Config.useCostas) {
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
 			} else {
 				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			}
 		} else if (telemFormatName.equalsIgnoreCase("GOLF_BPSK")) {
-			TelemFormat telemFormat = null;
-			if (telemFormatName != null ) {
-				telemFormat = Config.satManager.getFormatByName(telemFormatName);
-				if (telemFormat == null) {
-					System.out.println("Can't read file for --telem-fomat command line switch: " + telemFormatName);
-					System.exit(0);
-				}
-			}
 			if (Config.useCostas) {
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
 			} else {

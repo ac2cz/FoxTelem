@@ -29,7 +29,7 @@ import predict.SortedTleList;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import telemetry.frames.FrameLayout;
 
 /**
