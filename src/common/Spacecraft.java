@@ -133,7 +133,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public String description = "";
 	public int model;
 	public String canFileDir = "HuskySat";
-	public int user_format = SourceTab.FORMAT_FSK_DUV;
+	public String user_format = "DUV_FSK";
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
@@ -1092,7 +1092,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				this.canFileDir = getProperty("canFileDir");
 				loadCanLayouts();
 			}
-			user_format = Integer.parseInt(getProperty("user_format"));
+			user_format = getProperty("user_format");
 			user_display_name = getProperty("displayName");
 			
 			String crc = getOptionalProperty("hasFrameCrc");
@@ -1237,7 +1237,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
-			user_format = Integer.parseInt(getUserProperty("user_format"));
+			user_format = getUserProperty("user_format");
 			user_display_name = getUserProperty("displayName");
 
 		} catch (NumberFormatException nf) {
@@ -1400,7 +1400,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
 		user_properties.setProperty("track", Boolean.toString(user_track));
-		user_properties.setProperty("user_format", Integer.toString(user_format));
+		user_properties.setProperty("user_format", user_format);
 		
 		if (user_localServer != null) {
 			user_properties.setProperty("localServer",user_localServer);

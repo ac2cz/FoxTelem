@@ -275,7 +275,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		hasModeInHeader = addCheckBoxRow("Mode in header", "Every recevied frame will include the mode in the header", sat.hasModeInHeader, leftFixedPanel );
 		hasFrameCrc = addCheckBoxRow("Frame CRC", "The last two bytes of the (BPSK) frame contain a CRC checksum", sat.hasFrameCrc, leftFixedPanel );
 		hasImprovedCommandReceiver = addCheckBoxRow("Improved Command Receiver", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiver, leftFixedPanel );
-		hasImprovedCommandReceiverII = addCheckBoxRow("Improved Command Receiver II", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiverII, leftFixedPanel );
+		hasImprovedCommandReceiverII = addCheckBoxRow("Improved Command Receiver II", "Set to true if this has Version 2 of the Improved Command Receiver", sat.hasImprovedCommandReceiverII, leftFixedPanel );
 
 		//JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
 		//leftFixedPanel.add(icr);
@@ -285,7 +285,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		for (int i=0; i<4; i++) {
 			//lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			//leftFixedPanel.add(lExp[i]);
-			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "", Spacecraft.expNames);
+			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "This information was important to set FoxTelem decoder features for legacy spacecraft.  Now this is just for information.", Spacecraft.expNames);
 			setSelection(cbExperiments[i], Spacecraft.expNames, Spacecraft.expNames[sat.experiments[i]]);
 			
 		}
@@ -299,8 +299,8 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading4 = title("Frequency and Tracking");
 		leftPane1.setBorder(heading4);
 
-		cbMode = this.addComboBoxRow(leftPane1, "Mode", "", SourceTab.formats);
-		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
+		cbMode = this.addComboBoxRow(leftPane1, "Default Format", "The default format to use when FoxTelem is in auto start mode.  The user can override this.", Config.satManager.getFormats());
+		cbMode.setSelectedItem(sat.user_format);
 
 		telemetryDownlinkFreqkHz = addSettingsRow(leftPane1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
@@ -499,7 +499,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
 				dispose = false;
 			}
-			int m = cbMode.getSelectedIndex();
+			String m = (String)cbMode.getSelectedItem();
 			sat.user_format = m;
 
 			if (!sat.hasFOXDB_V3) {

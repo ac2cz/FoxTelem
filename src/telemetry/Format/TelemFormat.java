@@ -12,6 +12,12 @@ import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
 public class TelemFormat {
+	
+	// Modes
+	public static final String FSK="FSK";
+	public static final String BPSK="BPSK";
+	
+	// Keywords
 	public static final String NAME="name";
 	public static final String MODE="mode";
 	public static final String BPS="bps";
@@ -78,6 +84,21 @@ public class TelemFormat {
 			if (f!=null) try { f.close(); } catch (Exception e1) {};
 			throw new LayoutLoadException("Could not load TelemFormat file: " + propertiesFile.getAbsolutePath()+"\n" + e.getMessage());
 		}
+	}
+	
+	public boolean isFSK() {
+		if (getMode().equalsIgnoreCase(FSK)) return true;
+		return false;
+	}
+	
+	public boolean isBPSK() {
+		if (getMode().equalsIgnoreCase(BPSK)) return true;
+		return false;
+	}
+
+	public String getMode() {
+		String mode = get(MODE);
+		return mode;
 	}
 	
 	/**

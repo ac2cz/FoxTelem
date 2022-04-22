@@ -1,5 +1,5 @@
 #AMSAT Spacecraft Properties
-#Sat Apr 09 20:23:31 EDT 2022
+#Wed Apr 20 19:39:59 EDT 2022
 EXP1=0
 EXP2=0
 EXP3=0
@@ -47,13 +47,13 @@ name=sooss-1
 numberOfFrameLayouts=0
 numberOfLayouts=4
 numberOfLookupTables=0
-numberOfSources=0
+numberOfSources=1
 numberOfStringLookupTables=0
 passMeasurementsFileName=passmeasurements.csv
 priority=3
 series=FOX
-source0.formatName=GOLF_BPSK
-source0.name=amsat.fox-1a.ihu.highspeed
+source0.formatName=DUV_FSK
+source0.name=ariss.sooss.ihu.duv
 source1.formatName=NONE
 source1.name=amsat.fox-1a.ihu.duv
 stringLookupTable0=StringTable1
@@ -62,4 +62,4 @@ telemetryDownlinkFreqkHz=145980.0
 track=true
 useConversionCoeffs=true
 useIHUVBatt=false
-user_format=0
+user_format=FOX_BPSK

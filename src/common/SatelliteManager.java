@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Date;
@@ -342,7 +343,10 @@ public class SatelliteManager implements Runnable {
 	public FrameLayout getFrameLayout(int sat, int type) {
 		if (!validFoxId(sat)) return null;
 		Spacecraft sc = getSpacecraft(sat);
-		if (sc != null && sc.frameLayout != null) return sc.frameLayout[type];
+		if (sc != null && sc.frameLayout != null) {
+			if (type >= sc.frameLayout.length) return null;
+			return sc.frameLayout[type];
+		}
 		return null;
 	}
 
@@ -392,6 +396,7 @@ public class SatelliteManager implements Runnable {
 		for (int i=0; i < telemFormats.size(); i++) {
 			data[i] = telemFormats.get(i).name;
 		}
+		Arrays.sort(data);
 		return data;
 	}
 

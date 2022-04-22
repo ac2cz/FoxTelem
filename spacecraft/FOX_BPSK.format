@@ -1,4 +1,4 @@
-name=FOX_BPSK
+name=BPSK 1200bps (Fox)
 mode=BPSK
 bps=1200
 frame_length=572

@@ -123,7 +123,7 @@ public abstract class FoxBitStream extends BitStream {
 					}
 					alreadyTriedToFlipBits = false; // reset the flag, in case we need to flip the bit stream
 					frames = tryToProcessFrames(timeOfSync, i+1);
-					if (!(Config.mode == SourceIQ.MODE_PSK_NC || Config.mode == SourceIQ.MODE_PSK_COSTAS))
+					if (!(Config.mainWindow.inputTab.getSelectedFormat().isBPSK()))
 						if (frames == null || frames.isEmpty()) {
 							if (!alreadyTriedToFlipBits) {
 								alreadyTriedToFlipBits = true;

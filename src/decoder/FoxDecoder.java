@@ -137,8 +137,8 @@ public abstract class FoxDecoder extends Decoder {
 
 						// Capture measurements once per payload or every 5 seconds ish
 						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
-						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
-							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
+//						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
+//							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 					} else {
 						HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 						HighSpeedHeader header = hsf.getHeader();
@@ -162,8 +162,8 @@ public abstract class FoxDecoder extends Decoder {
 						}
 						// Capture measurements once per payload or every 5 seconds ish
 						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
-						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
-							MainWindow.inputTab.setViewDecoder2();
+//						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
+//							MainWindow.inputTab.setViewDecoder2();
 					}
 
 				}

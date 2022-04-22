@@ -69,17 +69,14 @@ public class FormatBitStream extends HighSpeedBitStream {
 		///////////////////////////////////////syncWords.add(SYNC_WORD_LENGTH+SYNC_WORD_DISTANCE);
 				
 		Frame formatFrame;
-//		if (telemFormat.name.equalsIgnoreCase("GOLF_BPSK"))  // TODO - dont hard code here.  Factory method in satManager??  Or do we now have enough in Telem format for one frame class
-//			bpskFrame = new GolfBPSKFrame(telemFormat);
-//		else
 		if (Config.debugFrames)
 			Log.println("Decoding frame with Format: " + telemFormat);
-		// For legacy support
+		// For legacy support this needs to be hard coded
 		if (telemFormat.name.equalsIgnoreCase(FoxFskDecoder.DUV_FSK))
 			formatFrame = new SlowSpeedFrame();
 		else if (telemFormat.name.equalsIgnoreCase(FoxFskDecoder.HIGHSPEED_FSK))
 			formatFrame = new HighSpeedFrame();
-		else
+		else // otherwise we just use the format and the layouts/payloads defined for it
 			formatFrame = new FormatFrame(telemFormat);
 		
 		try {

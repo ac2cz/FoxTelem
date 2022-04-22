@@ -235,8 +235,9 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		TitledBorder heading2 = title("Frequency and Tracking");
 		rightPanel1.setBorder(heading2);
 
-		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, SourceTab.formats);
-		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
+		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, Config.satManager.getFormats());
+		cbMode.setSelectedItem(sat.user_format);
+//		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
 				
 		telemetryDownlinkFreqkHz = addSettingsRow(rightPanel1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
@@ -311,8 +312,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		}
 		if (i >= values.length)
 			i = 0;
-		comboBox.setSelectedIndex(i);
-		
+		comboBox.setSelectedIndex(i);	
 	}
 	
 	private JComboBox<String> addComboBoxRow(JPanel parent, String name, String tip, String[] values) {
@@ -415,7 +415,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 				Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
 				dispose = false;
 			}
-			int m = cbMode.getSelectedIndex();
+			String m = (String)cbMode.getSelectedItem();
 			sat.user_format = m;
 			//String md = (String) cbMode.getSelectedItem();
 			

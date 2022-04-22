@@ -1,4 +1,4 @@
-name=GOLF_BPSK
+name=BPSK 1200bps (Golf)
 mode=BPSK
 bps=1200
 data_length=669

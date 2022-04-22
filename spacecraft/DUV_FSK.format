@@ -1,4 +1,4 @@
-name=DUV_FSK
+name=FSK 200bps (DUV)
 mode=FSK
 bps=200
 frame_length=96

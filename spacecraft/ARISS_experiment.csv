@@ -1,2 +1,21 @@
-1,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,RT,fieldName,8,-,0,NONE,0,0,0,Name,Add description in this column
+20,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,EXP,temperature,16,C,0,Sensors,1,1,0,Temperature,Temperature of the cabin
+1,EXP,pressure,16,kPa,0,Sensors,1,2,0,Pressure,Cabin pressure
+2,EXP,humidity,16,g/kg,0,Sensors,1,3,0,Humidity,Cabin humidity
+3,EXP,gas_sensor1,16,ppm,0,Sensors,1,4,0,O2,Oxygen concentration
+4,EXP,gas_sensor2,16,ppm,0,Sensors,1,5,0,CO2,Carbon Dioxide concentration
+5,EXP,gyro0,12,-,0,Gyroscope,2,1,0,Axis 0,Gyro Axis 0
+6,EXP,gyro1,12,-,0,Gyroscope,2,2,0,Axis 1,Gyro Axis 1
+7,EXP,gyro2,12,-,0,Gyroscope,2,3,0,Axis 2,Gyro Axis 2
+8,EXP,gyro3,12,-,0,Gyroscope,2,4,0,Axis 3,Gyro Axis 3
+9,EXP,gyro4,12,-,0,Gyroscope,2,5,0,Axis 4,Gyro Axis 4
+10,EXP,gyro5,12,-,0,Gyroscope,2,6,0,Axis 5,Gyro Axis 5
+11,EXP,gyro6,12,-,0,Gyroscope,2,7,0,Axis 6,Gyro Axis 6
+12,EXP,gyro7,12,-,0,Gyroscope,2,8,0,Axis 7,Gyro Axis 7
+13,EXP,gyro8,12,-,0,Gyroscope,2,9,0,Axis 8,Gyro Axis 8
+14,EXP,photoresistor,16,-,0,Sensors,1,6,0,Light level,Photoresistor light level
+15,EXP,realtimeclock,32,-,0,Sensors,1,7,0,Time,Real time clock module
+16,EXP,mvps_voltage,16,-,0,MVPS,3,1,0,Voltage,Voltage of the MVPS
+17,EXP,mvps_current,16,-,0,MVPS,3,2,0,Current,Current of the MVPS
+18,EXP,radiation,16,-,0,Sensors,1,8,0,Radiation Count,Count from the radiation detector
+19,EXP,cosmic_rays,16,-,0,Sensors,1,9,0,Cosmic Rays,Count from the cosmic ray detector
