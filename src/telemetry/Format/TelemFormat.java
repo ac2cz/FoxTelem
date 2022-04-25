@@ -113,6 +113,7 @@ public class TelemFormat {
 	
 	public int getFrameLength() { return frameLength; }
 	public int getTrailerLength() { return trailerLength; }
+	public String getFileName() { return fileName; }
 	
 	public BitArrayLayout getHeaderLayout() { 
 		return headerLayout; }

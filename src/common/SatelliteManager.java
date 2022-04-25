@@ -408,6 +408,15 @@ public class SatelliteManager implements Runnable {
 		return null;
 	}
 
+	public TelemFormat getFormatByFileName(String name) {
+		for (int i=0; i < telemFormats.size(); i++) {
+			if (telemFormats.get(i).getFileName().equalsIgnoreCase(name))
+				return telemFormats.get(i);
+		}
+		return null;
+	}
+
+	
 	public TelemFormat getFormatByFrameLength(int len) {
 		for (int i=0; i < telemFormats.size(); i++) {
 			if (telemFormats.get(i).getFrameLength() == len)

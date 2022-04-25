@@ -27,8 +27,9 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 	public SourceTableListEditPanel(Spacecraft sat, String title, ListTableModel listTableModel,
 			CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
 		super(sat, title, listTableModel, csvTableModel, "format", parent);
-		txtFilename.setEditable(true);
-		lFilename.setText("Format");
+//		lFilename.setText("Format");
+		
+		copyTemplateIfFileMissing = false;
 		
 		leftSourcesPanel = new JPanel();
 		leftPanel.add(leftSourcesPanel);
@@ -62,29 +63,29 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		return center;
 	}
 	
-	@Override
-	protected void updateRow(int row) {
-		txtName.setText(dataLines.get(row)[1]);
-		txtFilename.setText(dataLines.get(row)[2]);
-		updateSourceStats(row);
-	}
+//	@Override
+//	protected void updateRow(int row) {
+//		txtName.setText(dataLines.get(row)[1]);
+//		txtFilename.setText(dataLines.get(row)[2]);
+//		updateSourceStats(row);
+//	}
 	
-	@Override
-	protected void browseListItem() {
-		Log.println("Browse for Source filename ...");
-		File dir = new File(Config.currentDir+"/spacecraft");
-		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", "format");
-		if (file == null) return;
-
-		String fileName = file.getName();
-		try {
-			@SuppressWarnings("unused")
-			TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + fileName);
-			txtFilename.setText(fileName);
-		} catch (LayoutLoadException e) {
-			Log.errorDialog("ERROR", "Can not parse the format from format file: \n" + fileName + "\n" + e);
-		}
-	}
+//	@Override
+//	protected void browseListItem() {
+//		Log.println("Browse for Source filename ...");
+//		File dir = new File(Config.currentDir+"/spacecraft");
+//		File file = SpacecraftEditorWindow.pickFile(dir, this, "Specify file", "Select", "format");
+//		if (file == null) return;
+//
+//		String fileName = file.getName();
+//		try {
+//			@SuppressWarnings("unused")
+//			TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + fileName);
+//			txtFilename.setText(fileName);
+//		} catch (LayoutLoadException e) {
+//			Log.errorDialog("ERROR", "Can not parse the format from format file: \n" + fileName + "\n" + e);
+//		}
+//	}
 	
 	@Override
 	protected void loadTable() {
@@ -97,9 +98,13 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 				dataToAdd[1] = sat.sourceName[i];
 			else
 				dataToAdd[1] ="NONE";
-			if (sat.sourceFormatName != null && sat.sourceFormatName[i] != null) 
-				dataToAdd[2] = sat.sourceFormatName[i]+ ".format";
-			else
+			if (sat.sourceFormatName != null && sat.sourceFormatName[i] != null) {
+				TelemFormat tmpFormat = Config.satManager.getFormatByName(sat.sourceFormatName[i]);
+				if (tmpFormat != null)
+					dataToAdd[2] = tmpFormat.getFileName();
+				else
+					dataToAdd[2] ="NONE";
+			} else
 				dataToAdd[2] ="NONE";
 			dataLines.add(dataToAdd);
 		}
@@ -115,10 +120,15 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 			if (dataLines.get(j)[1] == null) {
 				sat.sourceName[j] = null;
 			} else {
-				TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + dataLines.get(j)[2]);
-				sat.sourceFormat[j] = tmpFormat;
-				sat.sourceFormatName[j] = tmpFormat.name;
-				sat.sourceName[j] = dataLines.get(j)[1];
+				String fileName = dataLines.get(j)[2];
+				TelemFormat tmpFormat = Config.satManager.getFormatByFileName(fileName);
+//				TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + fileName);
+				if (tmpFormat != null) {
+					sat.sourceFormat[j] = tmpFormat;
+					sat.sourceFormatName[j] = tmpFormat.name;
+					sat.sourceName[j] = dataLines.get(j)[1];
+				}
+				
 			}
 		}
 	}
