@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
 	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-11-openjdk-amd64">
+		<attributes>
+			<attribute name="module" value="true"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="lib/commons-lang/commons-lang/2.6/commons-lang-2.6.jar"/>
 	<classpathentry kind="lib" path="lib/commons-logging/commons-logging/1.1.1/commons-logging-1.1.1.jar"/>
 	<classpathentry kind="lib" path="lib/commons-net-3.3/commons-net-3.3.jar"/>
@@ -24,8 +29,7 @@
 	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-osx-x86_64.jar"/>
 	<classpathentry kind="lib" path="lib/libusb/usb-api-1.0.2.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
-	<classpathentry kind="lib" path="lib/mysql-connector-java-8.0.13/mysql-connector-java-8.0.13.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="lib" path="lib/predict4java.jar"/>
+	<classpathentry kind="lib" path="lib/mysql-connector-java-8.0.29/mysql-connector-java-8.0.29.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
