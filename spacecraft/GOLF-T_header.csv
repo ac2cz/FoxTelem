@@ -9,4 +9,4 @@
 7,header,inSafeMode,1,-,0,NONE,0,0,0,Safe Mode,Are we in safe mode?
 8,header,inHealthMode,1,-,0,NONE,0,0,0,Health Mode,Are we in health mode?
 9,header,inScienceMode,1,-,0,NONE,0,0,0,Science Mode,Are we in science mode?
-10,header,pad10,5,-,0,NONE,0,0,0,Pad10,Pad
+10,header,pad26,5,-,0,NONE,0,0,0,Pad10,Pad

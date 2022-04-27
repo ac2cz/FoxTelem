@@ -1,0 +1,424 @@
+//,This is the master copy of the downlink structures.  A program called FoxStruct.py will turn this into a structure for the flight software.,,,,,,,,,,,,,,,
+//,A different Python script can also be used to make tables for FoxTelem. My intent is that this spreadsheet can also be included,,,,,,,,,,,,,,,
+//,into a formal document defining the downlink more completely.,,,,,,,,,,,,,,,
+//,The format must be as follows: 1) A comment (// in column A) can appear anywhere.  2) A structure must start with a column A that has,,,,,,,,,,,,,,,
+//,"""Structure:name,file:filename"".  The structure must end with ""END"". For flight software, the yellow highlighted columns are used.",,,,,,,,,,,,,,,
+Version: 6.7,,12/08/20,,,,,,,,,,,,,,
+"Structure: header_t, file:headerDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,FoxID,satelliteID,8,Unsigned,,0,-,LS3Bits = 6 for this format.  ,0,0,0,0,NONE,0,0,0
+,type,type,8,Unsigned,,0,-,This identifies the payload type,8,1,0.5,0.25,NONE,0,0,0
+,resetCnt,resetCnt,16,Unsigned,,1,Resets,Total number of times IHU has reset since initial on-orbit startup,16,2,1,0.5,NONE,0,0,0
+,uptime,uptime,32,Unsigned,,1,Sec,This is the IHU uptime in seconds since the last reset,32,4,2,1,NONE,0,0,0
+,Downlink Spec Version,protocolVersion,8,Unsigned,,0,-,LS4Bits = minor & MS3bits=major,64,8,4,2,NONE,0,0,0
+,Software Major Version,versionMajor,8,Unsigned,,0,-,None,72,9,4.5,2.25,NONE,0,0,0
+,Sofwtare Minor Version,versionMinor,8,Unsigned,,0,-,None,80,10,5,2.5,NONE,0,0,0
+ifdef RTIHU,,,,,,,,,,,,,,,,
+,Pad1,pad17,5,Unsigned,,,,Pad,88,11,5.5,2.75,NONE,0,0,0
+,Science Mode,inScienceMode,1,,,,,,93,11.625,5.8125,2.90625,NONE,0,0,0
+,Health Mode,inHealthMode,1,Unsigned,,,,Are we in health mode?,94,11.75,5.875,2.9375,NONE,0,0,0
+,Safe Mode,inSafeMode,1,Unsigned,,0,-,Are we in safe mode?,95,11.875,5.9375,2.96875,NONE,0,0,0
+endif,,,,,,,,,,,,,,,,
+ifdef LEGACY_IHU,,,,,,,,,,,,,,,,
+,Safe Mode,inSafeMode,1,Unsigned,,0,-,Are we in safe mode?,88,11,5.5,2.75,NONE,0,0,0
+,Health Mode,inHealthMode,1,Unsigned,,0,-,Are we in health mode?,89,11.125,5.5625,2.78125,NONE,0,0,0
+,Science Mode,inScienceMode,1,Unsigned,,0,-,Are we in science mode?,90,11.25,5.625,2.8125,NONE,0,0,0
+,Pad10,pad26,5,Unsigned,,0,-,Pad,91,11.375,5.6875,2.84375,NONE,0,0,0
+endif,,,,,,,,,,,,,,,,
+END,,,,,,,,Total length,96,12,6,3,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+//,,,,,,,,,,,,,,,,
+"Structure: commonRtMinmaxWodPayload_t,file:commonDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,Ref Power,ReflectedPwr,8,Unsigned,,icr_8bit_volts|txv2_ref_pwr,mW,Reflected Power from the Transmit Antenna,0,0,0,0,Legacy Radio,1,4,3
+,3V Prot,ICR3VProt,8,Unsigned,,icr_8bit_volts,V,ICR 3V Protected,8,1,0.5,0.25,Command Receivers,4,3,3
+,ICR Temp,ICRTemp,8,Unsigned,,8_bit_temp,C,ICR Temperature,16,2,1,0.5,Command Receivers,4,4,3
+,Gyro Temp,gTemp,8,Unsigned,,8_bit_temp,C,Gyro temperature,24,3,1.5,0.75,Experiments,5,10,3
+,X Rotation,Xspin,8,Unsigned,,8_bit_spin,dps,Angular Velocity around X Axis,32,4,2,1,Experiments,5,1,3
+,Y Rotation,Yspin,8,Unsigned,,8_bit_spin,dps,Angular Veolcity around Y Axis,40,5,2.5,1.25,Experiments,5,2,3
+,Z Rotation,Zspin,8,Unsigned,,8_bit_spin,dps,Angular Veolcity around Z Axis,48,6,3,1.5,Experiments,5,3,3
+,X Acceleration,Xaccel,8,Unsigned,,8_bit_accel,g,Acceleration along X axis,56,7,3.5,1.75,Experiments,5,4,3
+,Y Acceleration,Yaccel,8,Unsigned,,8_bit_accel,g,Acceleration along Y  axis,64,8,4,2,Experiments,5,5,3
+,Z Acceleration,Zaccel,8,Unsigned,,8_bit_accel,g,Acceleration along Z axis,72,9,4.5,2.25,Experiments,5,6,3
+,X Magnetometer,Xmag,8,Unsigned,,8_bit_mag,uT,Angular Veolcity around X Axis,80,10,5,2.5,Experiments,5,7,3
+,Y Magnetometer,Ymag,8,Unsigned,,8_bit_mag,uT,Angular Veolcity around Y Axis,88,11,5.5,2.75,Experiments,5,8,3
+,Z Magnetometer,Zmag,8,Unsigned,,8_bit_mag,uT,Angular Veolcity around Z Axis,96,12,6,3,Experiments,5,9,3
+,RF1 Power,DCT1Power,8,uint8_t,,1,mW,Primary DCT RF Power,104,13,6.5,3.25,DCT,12,1,3
+,RF2 Power,DCT2Power,8,uint8_t,,1,mW,Secondary DCT RF Power,112,14,7,3.5,DCT,12,3,3
+,Primary RSSI,DCT1RSSI,8,Unsigned,,dct_rssi,dBm,DCT1 RSSI,120,15,7.5,3.75,DCT,12,5,3
+,Secndry RSSI,DCT2RSSI,8,Unsigned,,dct_rssi,dBm,DCT2 RSSI,128,16,8,4,DCT,12,6,3
+,Primary Reflected Power,DCT1RlftdPower,8,uint8_t,,1,mW,Primary DCT Reflected Power,136,17,8.5,4.25,DCT,12,2,3
+,Deorbit temp,deorbitTemp,8,Unsigned,,8_bit_temp,,Deorbit Device Temp,144,18,9,4.5,Experiments,5,11,3
+,Bus Voltage,busV,8,Unsigned,,golf-t_bus_voltage,V,Vbatt Bus voltage,152,19,9.5,4.75,Legacy IHU,2,6,3
+,PA Current,TxPAi,8,Unsigned,,golf-t_tx_current,mA,Transmit power amplifier current,160,20,10,5,Legacy Radio,1,1,3
+,TX Temperature,TxTemp,8,Unsigned,,8_bit_temp,C,Transmitter card temperature,168,21,10.5,5.25,Legacy Radio,1,2,3
+,Fwd Power,FwdPower,8,Unsigned,,icr_8bit_volts|txv2_fwd_pwr|dBm_to_mW,mW,Receiver card temperature,176,22,11,5.5,Legacy Radio,1,3,3
+,ICR RSSI,rssi,8,Unsigned,,icr_8bit_volts|icrv2_rssi,dBm,Received Signal Strength Indication,184,23,11.5,5.75,Command Receivers,4,1,3
+,Minus Y Volts,MinusYVolts,8,Unsigned,,52,V,Left (-Y) deployable panel Voltage,192,24,12,6,Solar Panels,6,1,3
+,Minus X Volts,MinusXVolts,8,Unsigned,,52,V,Anti-sun Fixed Panel Voltage,200,25,12.5,6.25,Solar Panels,6,2,3
+,Plus X Volts,XVolts,8,Unsigned,,52,V,Sun-side Fixed Panel Voltage,208,26,13,6.5,Solar Panels,6,3,3
+,Plus Y Volts,YVolts,8,Unsigned,,52,V,Right (+Y) Deployable Panel Voltage,216,27,13.5,6.75,Solar Panels,6,4,3
+,Minus Y Temp,MinusYTemp,8,Unsigned,,52,C,Left (-Y) deployable panel Voltage,224,28,14,7,Solar Panels,6,5,3
+,Minus X Temp,MinusXTemp,8,Unsigned,,52,C,Anti-sun Fixed Panel Voltage,232,29,14.5,7.25,Solar Panels,6,6,3
+,Plus X Temp,XTemp,8,Unsigned,,52,C,Sun-side Fixed Panel Voltage,240,30,15,7.5,Solar Panels,6,7,3
+,Plus Y Temp,YTemp,8,Unsigned,,52,C,Right (+Y) Deployable Panel Voltage,248,31,15.5,7.75,Solar Panels,6,8,3
+,VGA Control,LtVGACtl,8,Unsigned,,icr_8bit_volts,V,Control Voltage to the Variable Gain Amplifier (VGA),256,32,16,8,Legacy Radio,1,5,3
+,Primary Temp,RT1Temp,8,Unsigned,,8_bit_temp,C,Primary RT-IHU Board Temp,264,33,16.5,8.25,RT-IHU,7,1,3
+,Secndry Temp,RT2Temp,8,Unsigned,,8_bit_temp,C,Secondary RT-IHU Board Temp,272,34,17,8.5,RT-IHU,7,2,3
+,Temperature,IHUcpuTemp,8,Unsigned,,8_bit_temp,C,Internal Temperature of IHU,280,35,17.5,8.75,Legacy IHU,2,1,3
+,Modulator Temp,moduTemp,8,Unsigned,,8_bit_temp,C,Internal Temperature of  the telemetry modulator,288,36,18,9,Legacy Radio,1,7,3
+,CSS #1,CSS1,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,296,37,18.5,9.25,Sun Sensors,8,1,3
+,CSS #2,CSS2,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,304,38,19,9.5,Sun Sensors,8,2,3
+,CSS #3,CSS3,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,312,39,19.5,9.75,Sun Sensors,8,3,3
+,CSS #4,CSS4,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,320,40,20,10,Sun Sensors,8,4,3
+,CSS #5,CSS5,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,328,41,20.5,10.25,Sun Sensors,8,5,3
+,CSS #6,CSS6,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,336,42,21,10.5,Sun Sensors,8,6,3
+,CSS #7,CSS7,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,344,43,21.5,10.75,Sun Sensors,8,7,3
+,CSS #8,CSS8,8,Unsigned,,ciu_8bit_volts,-,Coarse Sun Sensor Values,352,44,22,11,Sun Sensors,8,8,3
+,CIU 3.3V #1,CIU3V3_1,8,Unsigned,,psoc_8bit_volts,V,3.3V Power for part 1 of CIU,360,45,22.5,11.25,CIU,9,1,3
+,CIU 3.3V #2,CIU3V3_2,8,Unsigned,,psoc_8bit_volts,V,3.3V power for part 2 of CIU,368,46,23,11.5,CIU,9,2,3
+,CIU 5.2V Vsys,CIUVsys,8,Unsigned,,psoc_8bit_volts,V,6V power on CIU aka Vsys,376,47,23.5,11.75,CIU,9,3,3
+,CIU 12V Supply,CIU12v,8,Unsigned,,psoc_8bit_volts,V,12V Power From EPS,384,48,24,12,CIU,9,4,3
+,SSPA Power,Power10GHz,8,Unsigned,,0,mW,Power output of the 10GHz SSPA,392,49,24.5,12.25,SDR Radio,11,1,3
+,SDR Zynq Temp,ZynqTemp,8,Unsigned,,8_bit_temp,c,SDR Zynq temp,400,50,25,12.5,SDR Radio,11,2,3
+,SDR Tranceiver Temp,SDRTcvrTemp,8,Unsigned,,8_bit_temp,c,SDR Tranceiver Temp,408,51,25.5,12.75,SDR Radio,11,3,3
+,10GHz PA Current,Current10GHz,8,Unsigned,,golf-t_tx_current,mA,Transmit power amplifier current,416,52,26,13,SDR Radio,11,4,3
+,Secondry Reflected Power,DCT2RlftdPower,8,uint8_t,,1,mW,Primary DCT Reflected Power,424,53,26.5,13.25,DCT,12,4,3
+,SDR X Rotation,SDRXspin,8,Unsigned,,8_bit_spin,dps,Angular Velocity around X Axis,432,54,27,13.5,SDR Radio,11,5,3
+,SDR Y Rotation,SDRYspin,8,Unsigned,,8_bit_spin,dps,Angular Veolcity around Y Axis,440,55,27.5,13.75,SDR Radio,11,6,3
+,SDR Z Rotation,SDRZspin,8,Unsigned,,8_bit_spin,dps,Angular Veolcity around Z Axis,448,56,28,14,SDR Radio,11,7,3
+,SDR X Acceleration,SDRXaccel,8,Unsigned,,8_bit_accel,g,Acceleration along X axis,456,57,28.5,14.25,SDR Radio,11,8,3
+,SDR Z Acceleration,SDRZaccel,8,Unsigned,,8_bit_accel,g,Acceleration along Y  axis,464,58,29,14.5,SDR Radio,11,9,3
+,SDR X Magnetometer,SDRXmag,8,Unsigned,,8_bit_mag,uT,Angular Veolcity around X Axis,472,59,29.5,14.75,SDR Radio,11,10,3
+,SDR Y Magnetometer,SDRYmag,8,Unsigned,,8_bit_mag,uT,Angular Veolcity around Y Axis,480,60,30,15,SDR Radio,11,11,3
+,SDR Z Magnetometer,SDRZmag,8,Unsigned,,8_bit_mag,uT,Angular Veolcity around Y Axis,488,61,30.5,15.25,SDR Radio,11,12,3
+,pad,pad30,16,Unsigned,,0,-,Pad,496,62,31,15.5,,0,0,0
+END,,,,,,,,Totals:,512,64,32,16,,,,
+,,,,,,,,,,,,,,,,
+//,"commonPayload2 is common to realtime,  hi/low, and WOD,  but it is not compared for hi/low.  It is fetched fresh.",,,,,,,,,,,,,,,
+"Structure: commonRtWodPayload_t,file:common2Downlink.h",,,,,,,,,,,,,,,,
+,Deploy Sense via CAN,DeploySenseCan,8,Unsigned,DeployableStatus_t,16,-,TBD,512,64,32,16,Spacecraft Status,3,4,0
+,Deploy Sense via I2c,DeploySenseI2c,8,Unsigned,DeployableStatus_t,16,-,TBD,520,65,32.5,16.25,Spacecraft Status,3,5,0
+ifdef LEGACY_IHU,,,,de,,,,,,,,,,,,
+,Primary Active,PrimaryRTActive,1,,,21,-,The Primary MCU on the RTIHU is in control of the RTIHU,528,66,33,16.5,RT-IHU,7,3,0
+,Auto Safe Allowed,AutoSafeAllowed,1,Unsigned,,21,-,Autosafe Allowed,529,66.125,33.0625,16.53125,Spacecraft Status,3,1,0
+,Auto Safe,AutoSafeModeActive,1,Unsigned,,21,-,Autosafe Mode Active,530,66.25,33.125,16.5625,Spacecraft Status,3,2,0
+,I2c CSS,I2CfailureSunSense,1,Unsigned,,17,-,Coarse Sun Sensor I2c failure,531,66.375,33.1875,16.59375,Sun Sensors,8,9,0
+,I2c Solar,I2CfailureSolarV,1,Unsigned,,17,-,Solar Voltage I2c failure,532,66.5,33.25,16.625,Solar Panels,6,9,0
+,Transponder Enabled,transponderEnabled,1,Unsigned,,44,-,,533,66.625,33.3125,16.65625,Legacy IHU,2,2,0
+,I2cICR,I2CfailureICR,1,Unsigned,,17,-,Antenna is not communicating over bus 2,534,66.75,33.375,16.6875,Command Receivers,4,5,0
+,I2c Deploy,I2CFailureDeploy,1,Unsigned,,17,-,Antenna is not communicating over bus 1,535,66.875,33.4375,16.71875,Spacecraft Status,3,6,0
+endif,,,,,,,,,536,,,,,,,
+ifdef RTIHU,,,,,,,,,,,,,,,,
+,I2c Deploy,I2CFailureDeploy,1,Unsigned,,17,-,Antenna is not communicating over bus 1,528,66,33,16.5,NONE,0,0,0
+,I2cICR,I2CfailureICR,1,Unsigned,,17,-,Antenna is not communicating over bus 2,529,66.125,33.0625,16.53125,NONE,0,0,0
+,Transponder,transponderEnabled,1,Unsigned,,44,-,RF I2C Bus failure indicator,530,66.25,33.125,16.5625,NONE,0,0,0
+,I2c Solar,I2CfailureSolarV,1,Unsigned,,17,-,Solar Voltage I2c failure,531,66.375,33.1875,16.59375,NONE,0,0,0
+,I2c CSS,I2CfailureSunSense,1,Unsigned,,17,-,Coarse Sun Sensor I2c failure,532,66.5,33.25,16.625,NONE,0,0,0
+,Auto Safe,AutoSafeModeActive,1,Unsigned,,21,-,Autosafe Mode Active,533,66.625,33.3125,16.65625,NONE,0,0,0
+,Auto Safe Allowed,AutoSafeAllowed,1,Unsigned,,21,-,Autosafe Allowed,534,66.75,33.375,16.6875,NONE,0,0,0
+,Primary RTIHU,PrimaryRTActive,1,,,21,-,The Primary MCU on the RTIHU is in control of the RTIHU,535,66.875,33.4375,16.71875,NONE,0,0,0
+endif,,,,,,0,-,,,,,,,,,
+,Min/Max Resets,TLMresets,8,Unsigned,,1,-,Number of times command stations reset stored telemetry,536,67,33.5,16.75,Min Max,10,1,0
+,WOD Stored,wodSize,8,Unsigned,,36,-,Number of WOD data payloads kept for each of Science and Housekeeping,544,68,34,17,Spacecraft Status,3,3,0
+,Diagnostic,swCmds,32,uint8_t,uint8_t,35,-,ICR Diagnostic information,552,69,34.5,17.25,Command Receivers,4,6,0
+,HW Cmd Cnt ICR,hwCmdCnt,8,uint8_t,,1,-,Number of hardware commands since last reset,584,73,36.5,18.25,Command Receivers,4,7,0
+,SW Cmd Cnt ICR,swCmdCntICR,8,uint8_t,,34,-,Number of software commands since last reset,592,74,37,18.5,Command Receivers,4,8,0
+,SW Cmd Cnt DCT,swCmdCntDCT,8,uint8_t,,34,-,Number of software commands since last reset,600,75,37.5,18.75,Command Receivers,4,9,0
+,Primary DCT Status,DCT1Status,8,uint8_t,,1,-,TBD,608,76,38,19,DCT,12,8,0
+,Secndry DCT Status,DCT2Status,8,uint8_t,,1,-,TBD,616,77,38.5,19.25,DCT,12,9,0
+,LIHU MRAM Status,LMRAMstatus,8,uint8_t,,1,-,TBD,624,78,39,19.5,Legacy IHU,2,4,0
+,Primary MRAM Status,PrimMRAMstatus,8,uint8_t,,1,-,Status of the primary MRAM,632,79,39.5,19.75,RT-IHU,7,4,0
+,Secndry MRAM Status,SecndMRAMstatus,8,uint8_t,,1,-,Status of the secondary MRAM,640,80,40,20,RT-IHU,7,5,0
+,Modulator Reg 0,ModuLO,8,uint8_t,,1,-,Modulator Register 0 - Local Oscillator,648,81,40.5,20.25,Legacy Radio,1,6,0
+,Modulator Reg 1,ModuGain,8,uint8_t,,1,-,Modulator Register 1 - Gain,656,82,41,20.5,Legacy Radio,1,8,0
+,Modulator Reg 5,ModuPhaseOff,8,uint8_t,,1,-,Modulator Register 5 - Phase Offset,664,83,41.5,20.75,Legacy Radio,1,9,0
+,Modulator Reg 8,ModuMode,8,uint8_t,,1,-,Modulator Register 8 - Mode,672,84,42,21,Legacy Radio,1,10,0
+,CIU 1 Reset Cnt,CIUResetCnt1,8,uint8_t,,1,-,Power Reset Count for CIU Bus 1,680,85,42.5,21.25,CIU,9,5,0
+,CIU 2 Reset Cnt,CIUResetCnt2,8,uint8_t,,1,-,Power Reset Count for CIU Bus 2,688,86,43,21.5,CIU,9,6,0
+,DCT1  Reset Cnt,DCT1PwrCnt,8,uint8_t,,1,-,Power Reset Count for DCT1,696,87,43.5,21.75,DCT,12,10,0
+,DCT2  Reset Cnt,DCT2PwrCnt,8,uint8_t,,1,-,Power Reset Count for DCT2,704,88,44,22,DCT,12,11,0
+,PA1  Reset Cnt,PA1PwrCnt,8,uint8_t,,1,-,Power Reset Count for PA1,712,89,44.5,22.25,DCT,12,12,0
+,PA2  Reset Cnt,PA2PwrCnt,8,uint8_t,,1,-,Power Reset Count for PA2,720,90,45,22.5,DCT,12,13,0
+ifdef RTIHU,,,,,,,,,,,,,,,,
+,ICR Carrier Valid,ICRCarrierValid,1,uint8_t,,1,-,ICR Receiving Carrier,728,91,45.5,22.75,Command Receivers,4,10,0
+,ICR Receiver On,ICRRxOn,1,uint8_t,,1,-,ICR RSSI Valid,729,91.125,45.5625,22.78125,Command Receivers,4,2,0
+,In Eclipse,inEclipse,1,uint8_t,,21,-,,730,91.25,45.625,22.8125,Spacecraft Status,3,8,0
+,Eclipse Action,eclipseAction,3,uint8_t,,GOLF_ECLIPSE_ACTION,-,,731,91.375,45.6875,22.84375,Spacecraft Status,3,7,0
+,Modulator Valid,moduValid,1,uint8_t,,21,,,734,91.75,45.875,22.9375,NONE,0,0,0
+,LIHU In Control,LIHUControl,1,uint8_t,,21,,,735,91.875,45.9375,22.96875,NONE,0,0,0
+endif,,,,,,,,,,,,,,,,
+ifdef LEGACY_IHU,,,,,,,,,,,,,,,,
+,LIHU In Control,LIHUControl,1,uint8_t,,21,-,The LIUH is in control of the spacecraft,728,91,,22.75,Legacy IHU,2,3,0
+,Modulator Valid,moduValid,1,uint8_t,,21,-,If not valid then the displayed values are from the last valid read,729,91.125,45.5625,22.78125,Legacy Radio,1,11,0
+,Eclipse Action,eclipseAction,3,uint8_t,,GOLF_ECLIPSE_ACTION,-,,730,91.25,45.625,22.8125,Spacecraft Status,3,7,0
+,In Eclipse,inEclipse,1,uint8_t,,21,-,,733,91.625,45.8125,22.90625,Spacecraft Status,3,8,0
+,ICR Receiver On,ICRRxOn,1,uint8_t,,1,-,ICR RSSI Valid,734,91.75,45.875,22.9375,Command Receivers,4,2,0
+,ICR Carrier Valid,ICRCarrierValid,1,uint8_t,,1,-,ICR Receiving Carrier,735,91.875,45.9375,22.96875,Command Receivers,4,10,0
+endif,,,,,,,,,,,,,,,,
+,LIHU Reset Cnt,LIHUResets,8,uint8_t,,1,,LIHU Rest Count,736,92,46,23,Legacy IHU,2,5,0
+,Primary Reset Cnt,RTIHU1Resets,8,uint8_t,,1,,Primary RT-IHU Reset Count,744,93,46.5,23.25,RT-IHU,7,6,0
+,Secndry Reset Cnt,RTIHU2Resets,8,uint8_t,,1,,Secondary RT-IHU Reset Count,752,94,47,23.5,RT-IHU,7,7,0
+ifdef RTIHU,,,,,,,,,,,,,,,,
+,RF Matrix Reset Cnt,CIUResetCnt3,6,uint8_t,,1, ,,760,95,47.5,23.75,CIU,9,7,0
+,Half Duplex Mode,halfDupMode,1,uint8_t,,status_on_off,,Rx and Tx On Same DCT,766,95.75,47.875,23.9375,DCT,12,7,0
+,VUC Disabled,vucDisabled,1,uint8_t,,21,,VUC Disabled,767,95.875,47.9375,23.96875,Spacecraft Status,3,9,0
+#endif,,,,,,,,,, , , ,,,,
+ifdef LEGACY_IHU,,,,,,,,,, , , ,,,,
+,VUC Disabled,vucDisabled,1,uint8_t,,21,,VUC Disabled,760,95,47.5,23.75,Spacecraft Status,3,9,0
+,Half Duplex Mode,halfDupMode,1,uint8_t,,status_on_off,,Rx and Tx On Same DCT,761,95.125,47.5625,23.78125,DCT,12,7,0
+,RF Matrix Reset Cnt,CIUResetCnt3,6,uint8_t,,1,-,RF Matrix Power Cycle Cnt,762,95.25,47.625,23.8125,CIU,9,7,0
+#endif,,,,,,,,,,,,,,,,
+END,,,,,,,,Total Length,768,96,48,24,,,,
+,,,,,,,,,,,,,,,,
+//,,,,,,,,,,,,,,,,
+"Structure: realtimeSpecific_t, file:realtimeDownlink.h",,,,,,,,,,,,,,,,
+,Pad,Pad5,32,uint8_t,,0,-,Pad,672,84,42,21,NONE,0,0,0
+END,,,,,,,,Total Length,704,88,44,22,,,,
+,,,,,,,,,,,,,,,,
+"Structure: maxSpecific_t, file: maxDownlink.h",,,,,,,,,,,,,,,,
+,Max Last Chg Secs,maxTimestampUptime,32,unsigned,,1,s,Timestamp Resets,512,64,32,16,NONE,0,0,0
+,Max Last Change,maxTimestampEpoch,16,Unsigned,,TIMESTAMP maxTimestampEpoch maxTimestampUptime,,Timestamp uptime,544,68,34,17,Min Max,10,3,0
+,Max CRC Errors,maxCRCerror,8,unsigned,,1,-,CRC Error for the Max Payload,560,70,35,17.5,Min Max,10,5,0
+,Filler,pad0,8,,,0,-,Make same length as WOD,568,71,35.5,17.75,NONE,0,0,0
+END,,,,,,,,Total Length,576,72,36,18,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+"Structure: minSpecific_t, file: minDownlink.h",,,,,,,,,,,,,,,,
+,Min Last Chg Secs,minTimestampUptime,32,,,1,s,Timestamp Resets,512,64,32,16,NONE,0,0,0
+,Min Last Change,minTimestampEpoch,16,Unsigned,,TIMESTAMP minTimestampEpoch minTimestampUptime,,Timestamp uptime,544,68,34,17,Min Max,10,4,0
+,Last Reset Time,minmaxResetEpoch,16,,,TIMESTAMP minmaxResetEpoch minmaxResetSecs,,MinMax Reset Epoch,560,70,35,17.5,Min Max,10,2,0
+,Min Max Reset Seconds,minmaxResetSecs,32,,,1,,MinMax Reset Secs,576,72,36,18,NONE,0,0,0
+,Min CRC Errors,minCRCerror,8,unsigned,,1,-,CRC Error for the min payload,608,76,38,19,Min Max,10,6,0
+,Filler,Pad192,24,uint8_t,,0,-,,616,77,38.5,19.25,NONE,0,0,0
+END,,,,,,,,Total Length,640,80,40,20,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+//,,,,,,,,,,,,,,,,
+"Structure:wodSpecific_t,file:wodSpecificDownlink.h",,,,,,,,,,,,,,,,
+,Uptime,WODTimestampUptime,32,Unsigned,,1,s,Time Whole Orbit Data was collected,768,96,48,24,WOD,13,1,0
+,Data Capture Time,WODTimestampReset,16,Unsigned,,TIMESTAMP WODTimestampReset WODTimestampUptime,-,Time Whole Orbit Data was collected,800,100,50,25,WOD,13,2,0
+,CRC Error,WodCRCError,8,Unsigned,,STATUS_BIT,-,CRC Error for the WOD Payload,816,102,51,25.5,WOD,13,3,0
+ifdef RTIHU,,,,,,,-,,,,,,,,,
+,Pad1,pad202,5,Unsigned,,0,-,Pad,824,103,51.5,25.75,NONE,0,0,0
+,Science Mode,inScienceMode,1,,,0,-,Are we in science mode?,829,103.625,51.8125,25.90625,NONE,0,0,0
+,Health Mode,inHealthMode,1,Unsigned,,0,-,Are we in health mode?,830,103.75,51.875,25.9375,NONE,0,0,0
+,Safe Mode,inSafeMode,1,Unsigned,,0,-,Are we in safe mode?,831,103.875,51.9375,25.96875,NONE,0,0,0
+endif,,,,,,,-,,,,,,,,,
+ifdef LEGACY_IHU,,,,,,,-,,,,,,,,,
+,Safe Mode,inSafeMode,1,Unsigned,,21,-,Are we in safe mode?,824,103,51.5,25.75,Spacecraft Status,3,10,0
+,Health Mode,inHealthMode,1,Unsigned,,21,-,Are we in health mode?,825,103.125,51.5625,25.78125,Spacecraft Status,3,11,0
+,Science Mode,inScienceMode,1,Unsigned,,21,-,Are we in science mode?,826,103.25,51.625,25.8125,Spacecraft Status,3,12,0
+,Pad10,pad211,5,Unsigned,,0,-,Pad,827,103.375,51.6875,25.84375,NONE,0,0,0
+endif,,,,,,,,,,,,,,,,
+END,,,,,,,,Totals:,832,104,52,26,,,,
+,,,,,,,,,,,,,,,,
+"Structure:radiation_t, file:radDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,Data,data,464,Unsigned,uint8_t,0,-,Opaque data from radiation experiment,0,0,0,0,NONE,0,0,0
+,Exp1 Board Number,exp1BoardNum,8,Unsigned,,1,-,Experiment Board Active,464,58,29,14.5,VUC,1,1,0
+,NONE,pad219,8,,,0,-,TBD,472,,,,NONE,0,0,0
+END,,,,,,,,Totals:,480,60,30,15,,,,
+,,,,,,,,,,,,,,,,
+"Structure:ragnarok_t, file:ragDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,ADAC Data,data,672,Unsigned,uint8_t,0,-,Opaque data from ADAC experiment,0,0,0,0,NONE,0,0,0
+END,,,,,,,,Totals:,672,84,42,21,,,,
+,,,,,,,,,,,,,,,,
+,,,,,,,,,,,,,,,,
+"Structure:radWodSpecific_t, file:radWodSpecificDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,Uptime,WODTimestampUptime,32,Unsigned,,1,sec,Time Whole Orbit Data was collected,480,60,30,15,WOD,13,2,0
+,Data Capture Time,WODTimestampReset,16,Unsigned,uint16_t,TIMESTAMP WODTimestampReset WODTimestampUptime,-,Time Whole Orbit Data was collected,512,64,32,16,WOD,13,1,0
+,Memory CRC Error,WodCRCError,8,,,STATUS_BIT,-,CRC Error for VU Radiataion Payload,528,66,33,16.5,WOD,13,3,0
+,NONE,pad233,8,,,0,-,TBD,536,67,33.5,16.75,NONE,0,0,0
+END,,,,,,,,Totals:,544,68,34,17,NONE,0,0,0
+,,,,,,,,,,,,,,,,
+"Structure:ragWodSpecific_t,file:ragWodSpecificDownlink.h ",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,WOD Uptime,WODTimestampUptime,32,Unsigned,,1,s,Time Whole Orbit Data was collected,672,84,42,21,WOD,13,2,0
+,WOD Reset Count,WODTimestampReset,16,Unsigned,uint16_t,1,-,Time Whole Orbit Data was collected,704,88,44,22,WOD,13,1,0
+,NONE,WodCRCError,8,,,0,-,CRC Error for ADAC WOD,720,90,45,22.5,WOD,13,3,0
+,NONE,pad241,8,,,0,-,TBD,728,91,45.5,22.75,NONE,0,0,0
+END,,,,,,,,Totals:,736,92,46,23,,,,
+"Structure:infrequentDownlink_t,file:infrequentDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,Secs Since Launch,missionUptime,32,Unsigned,,INT,-,Continuous seconds countup from start,0,0,0,0,General Info,1,12,0
+,Time In Epoch,secsInEpoch,32,Unsigned,,INT,secs,Seconds within current Epoch,32,4,2,1,General Info,1,4,0
+#ifdef RTIHU,,,,,,,,,,,,,,,,
+,UTCHours,UTCHours,5,Unsigned,,0,-,x,32,4,2,1,General Info,1,5,0
+,UTCMinutes,UTCMinutes,6,Unsigned,,0,-,x,37,4.625,2.3125,1.15625,General Info,1,6,0
+,UTCSeconds,UTCSeconds,6,Unsigned,,0,-,x,43,5.375,2.6875,1.34375,General Info,1,7,0
+,UTCDay,UTCDay,5,Unsigned,,0,-,x,49,6.125,3.0625,1.53125,General Info,1,8,0
+,UTCMonth,UTCMonth,4,Unsigned,,0,-,x,54,6.75,3.375,1.6875,General Info,1,9,0
+,UTCYear,UTCYear,5,Unsigned,,0,-,Based on 2020–5 bits=32 years,58,7.25,3.625,1.8125,General Info,1,10,0
+,UTCValid,UTCValid,1,Unsigned,,STATUS_BOOLEAN,-,x,63,7.875,3.9375,1.96875,General Info,1,11,0
+#endif,,,,,,,,,,,,,,,,
+#ifdef LEGACY_IHU,,,,,,,,,,,,,,,,
+,UTCValid,UTCValid,1,Unsigned,,STATUS_BOOLEAN,-,x,32,4,2,1,General Info,1,11,0
+,UTCYear,UTCYear,5,Unsigned,,0,-,Based on 2020–5 bits=32 years,33,4.125,2.0625,1.03125,General Info,1,10,0
+,UTCMonth,UTCMonth,4,Unsigned,,0,-,x,38,4.75,2.375,1.1875,General Info,1,9,0
+,UTCDay,UTCDay,5,Unsigned,,0,-,x,42,5.25,2.625,1.3125,General Info,1,8,0
+,UTCSeconds,UTCSeconds,6,Unsigned,,0,-,x,47,5.875,2.9375,1.46875,General Info,1,7,0
+,UTCMinutes,UTCMinutes,6,Unsigned,,0,-,x,53,6.625,3.3125,1.65625,General Info,1,6,0
+,UTCHours,UTCHours,5,Unsigned,,0,-,x,53,6.625,3.3125,1.65625,General Info,1,5,0
+#endif,,,,,,,,,,,,,,,,
+,EnterAutosafe,EnterAutosafe,8,Unsigned,,psoc_8bit_volts,-,x,64,8,4,2,General Info,1,13,0
+,ExitAutosafe,ExitAutosafe,8,Unsigned,,psoc_8bit_volts,-,x,72,9,4.5,2.25,General Info,1,14,0
+,Fill to 32-bits,pad266,16,Unsigned,,0,-,x,80,10,5,2.5,NONE,0,0,0
+END,,,,,,,,Totals:,96,12,6,3,,,,
+"Structure:legacyErrors_t,file:legacyErrorsDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+ifdef RTIHU,,,,,,,-,,,,,,Legacy  Errors,,,
+,LIHU: WDTasks Ok,LegWdReports,9,Unsigned,,0,-,x,96,12,6,3,IHU Reset Info,2,1,0
+,Cause of Reset,LegErrorCode,5,Unsigned,,0,-,x,105,13.125,6.5625,3.28125,IHU Reset Info,2,2,0
+,Task executing at reset,LegTaskNumber,4,Unsigned,,0,-,x,110,13.75,6.875,3.4375,IHU Reset Info,2,3,0
+,Previous task before reset,LegPreviousTask,4,Unsigned,,0,-,x,114,14.25,7.125,3.5625,IHU Reset Info,2,4,0
+,Resets in a row that have been too soon,LegEarlyResetCount,3,Unsigned,,0,-,x,118,14.75,7.375,3.6875,IHU Reset Info,2,5,0
+,Was this reset still early in boot,LegWasStillEarlyInBoot,1,Unsigned,,0,-,x,121,15.125,7.5625,3.78125,IHU Reset Info,2,6,0
+,LIHU Data Valid,LegValid,1,Unsigned,,STATUS_BOOLEAN,-,x,122,,,,General Info,1,1,0
+,pad to 32 bits,LegFiller1,5,Unsigned,,0,-,x,123,15.375,7.6875,3.84375,NONE,0,0,0
+endif,,,,,,,,,,,,,,,,
+ifdef LEGACY_IHU,,,,,,,,,,,,,,,,
+,pad to 32 bits,LegFiller1,5,Unsigned,,0,-,x,96,12,6,3,NONE,0,0,0
+,LIHU Data Valid,LegValid,1,Unsigned,,STATUS_BOOLEAN,-,x,101,12.625,6.3125,3.15625,General Info,1,1,0
+,Was this reset still early in boot,LegWasStillEarlyInBoot,1,Unsigned,,STATUS_BOOLEAN,-,x,102,12.75,6.375,3.1875,IHU Reset Info,2,7,0
+,Resets in a row that have been too soon,LegEarlyResetCount,3,Unsigned,,INT,-,x,103,12.875,6.4375,3.21875,IHU Reset Info,2,6,0
+,Previous task before reset,LegPreviousTask,4,Unsigned,,GOLF_TASK_NAME,-,x,106,13.25,6.625,3.3125,IHU Reset Info,2,5,0
+,Task executing at reset,LegTaskNumber,4,Unsigned,,GOLF_TASK_NAME,-,x,110,13.75,6.875,3.4375,IHU Reset Info,2,4,0
+,Cause of Reset,LegErrorCode,5,Unsigned,,GOLF_LIHU_ERR,-,x,114,14.25,7.125,3.5625,IHU Reset Info,2,2,0
+,LIHU: WD Tasks Ok,LegWdReports,9,Unsigned,,INT,-,x,119,14.875,7.4375,3.71875,IHU Reset Info,2,1,0
+endif,,,,,,,,,,,,,,,,
+,I2C1 Errors,LegI2C1Error,8,Unsigned,,INT,-,x,128,16,8,4,Legacy  Errors,3,1,0
+,I2C2 Errors,LegI2C2Error,8,Unsigned,,INT,-,x,136,17,8.5,4.25,Legacy  Errors,3,2,0
+,I2C1 Resets,LegI2C1Reset,8,Unsigned,,INT,-,x,144,18,9,4.5,Legacy  Errors,3,3,0
+,I2C2 Resets,LegI2C2Reset,8,Unsigned,,INT,-,x,152,19,9.5,4.75,Legacy  Errors,3,4,0
+,SPI Retries,LegSPIRetries,8,Unsigned,,INT,-,x,160,20,10,5,Legacy  Errors,3,5,0
+,MRAM CRC Errors,LegMramCRC,8,Unsigned,,INT,-,x,168,21,10.5,5.25,Legacy  Errors,3,6,0
+,MRAM Read Error,LegMramRead,8,Unsigned,,INT,-,x,176,22,11,5.5,Legacy  Errors,3,7,0
+,MRAM Write Error,LegMramWrite,8,Unsigned,,INT,-,x,184,23,11.5,5.75,Legacy  Errors,3,8,0
+,ICRCmdFailCRC,ICRCmdFailCRC,8,Unsigned,,INT,-,x,192,24,12,6,Legacy  Errors,3,9,0
+,ICRCmdFailTime,ICRCmdFailTime,8,Unsigned,,INT,-,x,200,25,12.5,6.25,Legacy  Errors,3,10,0
+,ICRCmdFailAuthenticate,ICRCmdFailAuthenticate,8,Unsigned,,INT,-,x,208,26,13,6.5,Legacy  Errors,3,11,0
+,ICRCmdFailCommand,ICRCmdFailCommand,8,Unsigned,,INT,-,x,216,27,13.5,6.75,Legacy  Errors,3,12,0
+,ICRCmdFailNamespace,ICRCmdFailNamespace,8,Unsigned,,INT,-,x,224,28,14,7,Legacy  Errors,3,13,0
+,LIHU Version Number,LegSWVersion,16,Unsigned,uint8_t,INT,-,x,232,29,14.5,7.25,General Info,1,15,0
+,Error Data,LegErrorData,8,Unsigned,,INT,-,x,248,31,15.5,7.75,IHU Reset Info,2,3,0
+END,,,,,,,,,256,32,16,8,,,,
+"Structure:rt1Errors_t,file:rt1ErrorsDownlink.h",,,,,,,,,,,,,Module,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,,Module_num,Module_Line,Line_Type
+ifdef RTIHU,,,,,,,-,,,,,,IHU Reset Info,,,
+,Watchdog Tasks Ok,wdReports,9,Unsigned,,0,-,x,256,32,16,8,IHU Reset Info,2,1,0
+,Cause of Reset,errorCode,5,Unsigned,,0,-,x,265,33.125,16.5625,8.28125,IHU Reset Info,2,2,0
+,Task executing at reset,taskNumber,4,Unsigned,,0,-,x,270,33.75,16.875,8.4375,IHU Reset Info,2,3,0
+,Previous task before reset,previousTask,4,Unsigned,,0,-,x,274,34.25,17.125,8.5625,IHU Reset Info,2,4,0
+,Resets in a row that have been too soon,earlyResetCount,3,Unsigned,,0,-,x,278,34.75,17.375,8.6875,IHU Reset Info,2,5,0
+,Was this reset still early in boot,wasStillEarlyInBoot,1,Unsigned,,STATUS_BOOLEAN,-,x,281,35.125,17.5625,8.78125,IHU Reset Info,2,6,0
+,RTIHU1 Data Valid,valid,1,Unsigned,,STATUS_BOOLEAN,-,x,282,35.25,17.625,8.8125,General Info,1,1,0
+,pad to 32 bits,pad316,5,Unsigned,,0,-,x,283,35.375,17.6875,8.84375,NONE,0,0,0
+endif,,,,,,,,,,,,,,,,
+ifdef LEGACY_IHU,,,,,,,,,,,,,,,,
+,pad to 32 bits,pad319,5,Unsigned,,0,-,x,256,32,16,8,NONE,0,0,0
+,RTIHU1 Data Valid,valid,1,Unsigned,,STATUS_BOOLEAN,-,x,261,32.625,16.3125,8.15625,General Info,1,2,0
+,Was this reset still early in boot,wasStillEarlyInBoot,1,Unsigned,,STATUS_BOOLEAN,-,x,262,32.75,16.375,8.1875,IHU Reset Info,2,14,0
+,Resets in a row that have been too soon,earlyResetCount,3,Unsigned,,INT,-,x,263,32.875,16.4375,8.21875,IHU Reset Info,2,13,0
+,Previous task before reset,previousTask,4,Unsigned,,GOLF_TASK_NAME,-,x,266,33.25,16.625,8.3125,IHU Reset Info,2,12,0
+,Task executing at reset,taskNumber,4,Unsigned,,GOLF_TASK_NAME,-,x,270,33.75,16.875,8.4375,IHU Reset Info,2,11,0
+,Cause of Reset,errorCode,5,Unsigned,,GOLF_RTIHU_ERR,-,x,274,34.25,17.125,8.5625,IHU Reset Info,2,9,0
+,RTIHU1: WD Tasks Ok,wdReports,9,Unsigned,,INT,-,x,279,34.875,17.4375,8.71875,IHU Reset Info,2,8,0
+endif,,,,,,,,,,,,,,,,
+,Error Data,errorData,32,Unsigned,,INT,-,x,288,36,18,9,IHU Reset Info,2,10,0
+,Primary SRAM Corrected Addr 1,RAMCorAddr1,32,unsigned,,INT,-,x,320,40,20,10,Primary RT Errors,4,1,0
+,Primary SRAM Corrected Addr 2,RAMCorAddr2,32,Unsigned,,INT,-,x,352,44,22,11,Primary RT Errors,4,2,0
+,Primary Flash Corrected Addr 1,ROMCorAddr1,32,unsigned,,INT,-,x,384,48,24,12,Primary RT Errors,4,3,0
+,Primary Flash Corrected Addr 2,ROMCorAddr2,32,Unsigned,,INT,-,x,416,52,26,13,Primary RT Errors,4,4,0
+,DCT1CmdFailCRC,DCTCmdFailCRCCnt,8,Unsigned,,INT,-,x,448,56,28,14,Primary RT Errors,4,5,0
+,DCT1CmdFailTime,DCTCmdFailTimeCnt,8,Unsigned,,INT,-,x,456,57,28.5,14.25,Primary RT Errors,4,6,0
+,DCT1CmdFailAuthenticate,DCTCmdFailAuthenticateCnt,8,Unsigned,,INT,-,x,464,58,29,14.5,Primary RT Errors,4,7,0
+,DCT1CmdFailCommand,DCTCmdFailCommandCnt,8,Unsigned,,INT,-,x,472,59,29.5,14.75,Primary RT Errors,4,8,0
+,DCT1CmdFailNamespace,DCTCmdFailNamespaceCnt,8,Unsigned,,INT,-,x,480,60,30,15,Primary RT Errors,4,9,0
+,RT1I2C1Error,I2C1ErrorCnt,8,Unsigned,,INT,-,x,488,61,30.5,15.25,Primary RT Errors,4,10,0
+,RT1I2C2Error,I2C2ErrorCnt,8,Unsigned,,INT,-,x,496,62,31,15.5,Primary RT Errors,4,11,0
+,RT1I2C1Reset,I2C1ResetCnt,8,Unsigned,,INT,-,x,504,63,31.5,15.75,Primary RT Errors,4,12,0
+,RT1I2C2Reset,I2C2ResetCnt,8,Unsigned,,INT,-,x,512,64,32,16,Primary RT Errors,4,13,0
+,RT1 I2c1 Retry Count,I2C1RetryCnt,8,Unsigned,,INT,-,x,520,65,32.5,16.25,Primary RT Errors,4,14,0
+,RT1 I2c2 Retry Count,I2C2RetryCnt,8,Unsigned,,INT,-,x,528,66,33,16.5,Primary RT Errors,4,15,0
+,RT1SPIRetries,SPIRetryCnt,8,Unsigned,,INT,-,x,536,67,33.5,16.75,Primary RT Errors,4,16,0
+,RT1 MRAM CRC Fail count,MramCRCCnt,8,Unsigned,,INT,-,x,544,68,34,17,Primary RT Errors,4,17,0
+,RT1 MRAM Read Error Count,MramRdErrorCnt,8,Unsigned,,INT,-,x,552,69,34.5,17.25,Primary RT Errors,4,18,0
+,RT1 MRAM Write Error Count,MramWtErrorCnt,8,Unsigned,,INT,-,x,560,70,35,17.5,Primary RT Errors,4,19,0
+,RT1FlashCorrectable Count,FlashCorCnt,8,Unsigned,,INT,-,x,568,71,35.5,17.75,Primary RT Errors,4,20,0
+,RT1 Ram Even Bank Correctable Count,RamEvenCorCnt,8,Unsigned,,INT,-,x,576,72,36,18,Primary RT Errors,4,21,0
+,RT1 Ram Odd Bank Correctable Count,RamOddCorCnt,8,Unsigned,,INT,-,x,584,73,36.5,18.25,Primary RT Errors,4,22,0
+,RT1PLLSlip,PLLSlipCnt,8,Unsigned,,INT,-,x,592,74,37,18.5,Primary RT Errors,4,23,0
+,RT1ClockMonitorFail,ClockMonitorFailCnt,8,Unsigned,,INT,-,x,600,75,37.5,18.75,Primary RT Errors,4,24,0
+,RT1VIMRamParity,VIMRamParityCnt,8,Unsigned,,INT,-,x,608,76,38,19,Primary RT Errors,4,25,0
+,RT1CAN1RamParity,CAN1RamParityCnt,8,Unsigned,,INT,-,x,616,77,38.5,19.25,Primary RT Errors,4,26,0
+,RT1CAN2RamParity,CAN2RamParityCnt,8,Unsigned,,INT,-,x,624,78,39,19.5,Primary RT Errors,4,27,0
+,RT1DCC1Error,DCC1ErrorCnt,8,Unsigned,,INT,-,x,632,79,39.5,19.75,Primary RT Errors,4,28,0
+,RT1DCC2Error,DCC2ErrorCnt,8,Unsigned,,INT,-,x,640,80,40,20,Primary RT Errors,4,29,0
+,RT1N2HET2RamParity,N2HET2RamParityCnt,8,Unsigned,,INT,-,x,648,81,40.5,20.25,Primary RT Errors,4,30,0
+,RT1IOMMAccvio,IOMMAccvioCnt,8,Unsigned,,INT,-,x,656,82,41,20.5,Primary RT Errors,4,31,0
+,Non-fatal error count,nonFatalCnt,8,Unsigned,,INT,-,x,664,83,41.5,20.75,Primary RT Errors,4,32,0
+,RTIHU1 Version Number,SWVersion,16,Unsigned,uint8_t,INT,-,x,672,84,42,21,General Info,1,16,0
+,Fill to 32-bits,pad362,16,Unisgned,,0,-,x,688,86,43,21.5,NONE,0,0,0
+END,,,,,,,,,704,88,44,22,,,,
+"Structure:rt2Errors_t,file:rt2ErrorsDownlink.h",,,,,,,,,,,,,Module,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,,Module_num,Module_Line,Line_Type
+ifdef RTIHU,,,,,,,,,,,,,,,,
+,RTIHU2: Watchdog Tasks Ok,RT2wdReports,9,Unsigned,,0,-,x,704,88,44,22,IHU Reset Info,2,1,0
+,Cause of Reset,RT2errorCode,5,Unsigned,,0,-,x,713,89.125,44.5625,22.28125,IHU Reset Info,2,2,0
+,Task executing at reset,RT2taskNumber,4,Unsigned,,0,-,x,718,89.75,44.875,22.4375,IHU Reset Info,2,3,0
+,Previous task before reset,RT2previousTask,4,Unsigned,,0,-,x,722,90.25,45.125,22.5625,IHU Reset Info,2,4,0
+,Resets in a row that have been too soon,RT2earlyResetCount,3,Unsigned,,0,-,x,726,90.75,45.375,22.6875,IHU Reset Info,2,5,0
+,Was this reset still early in boot,RT2wasStillEarlyInBoot,1,Unsigned,,STATUS_BOOLEAN,-,x,729,91.125,45.5625,22.78125,IHU Reset Info,2,6,0
+,RTIHU2 Data Valid,RT2Valid,1,Unsigned,,STATUS_BOOLEAN,-,x,730,91.25,45.625,22.8125,General Info,1,3,0
+,pad to 32 bits,pad374,5,Unsigned,,0,-,x,731,91.375,45.6875,22.84375,NONE,0,0,0
+endif,,,,,,,,,736,92,46,23,,,,
+ifdef LEGACY_IHU,,,,,,,,,,,,,,,,
+,pad to 32 bits,pad377,5,Unsigned,,0,-,x,704,88,44,22,NONE,0,0,0
+,RTIHU2 Data Valid,RT2Valid,1,Unsigned,,STATUS_BOOLEAN,-,x,709,88.625,44.3125,22.15625,General Info,1,3,0
+,Was this reset still early in boot,RT2wasStillEarlyInBoot,1,Unsigned,,STATUS_BOOLEAN,-,x,710,88.75,44.375,22.1875,IHU Reset Info,2,21,0
+,Resets in a row that have been too soon,RT2earlyResetCount,3,Unsigned,,INT,-,x,711,88.875,44.4375,22.21875,IHU Reset Info,2,20,0
+,Previous task before reset,RT2previousTask,4,Unsigned,,GOLF_TASK_NAME,-,x,714,89.25,44.625,22.3125,IHU Reset Info,2,19,0
+,Task executing at reset,RT2taskNumber,4,Unsigned,,GOLF_TASK_NAME,-,x,718,89.75,44.875,22.4375,IHU Reset Info,2,18,0
+,Cause of Reset,RT2errorCode,5,Unsigned,,GOLF_RTIHU_ERR,-,x,722,90.25,45.125,22.5625,IHU Reset Info,2,16,0
+,RTIHU2: Watchdog Tasks Ok,RT2wdReports,9,Unsigned,,INT,-,x,727,90.875,45.4375,22.71875,IHU Reset Info,2,15,0
+endif,,,,,,,,,,,,,,,,
+,Error Data,RT2errorData,32,Unsigned,,INT,-,x,736,92,46,23,IHU Reset Info,2,17,0
+,Secondary SRAM Corrected Addr 1,RT2RAMCorAddr1,32,Unsigned,,INT,-,x,768,96,48,24,Secndry RT Errors,5,1,0
+,Secondary SRAM Corrected Addr 2,RT2RAMCorAddr2,32,Unsigned,,INT,-,x,800,100,50,25,Secndry RT Errors,5,2,0
+,Secondary Flash Corrected Addr 1,RT2ROMCorAddr1,32,unsigned,,INT,-,x,832,104,52,26,Secndry RT Errors,5,3,0
+,Secondary Flash Corrected Addr 2,RT2ROMCorAddr2,32,Unsigned,,INT,-,x,864,108,54,27,Secndry RT Errors,5,4,0
+,DCT2CmdFailCRC,DCT2CmdFailCRCCnt,8,Unsigned,,INT,-,x,896,112,56,28,Secndry RT Errors,5,5,0
+,DCT2CmdFailTime,DCT2CmdFailTimeCnt,8,Unsigned,,INT,-,x,904,113,56.5,28.25,Secndry RT Errors,5,6,0
+,DCT2CmdFailAuthenticate,DCT2CmdFailAuthenticateCnt,8,Unsigned,,INT,-,x,912,114,57,28.5,Secndry RT Errors,5,7,0
+,DCT2CmdFailCommand,DCT2CmdFailCommandCnt,8,Unsigned,,INT,-,x,920,115,57.5,28.75,Secndry RT Errors,5,8,0
+,DCT2CmdFailNamespace,DCT2CmdFailNamespaceCnt,8,Unsigned,,INT,-,x,928,116,58,29,Secndry RT Errors,5,9,0
+,RT2I2C1Error,RT2I2C1ErrorCnt,8,Unsigned,,INT,-,x,936,117,58.5,29.25,Secndry RT Errors,5,10,0
+,RT2I2C2Error,RT2I2C2ErrorCnt,8,Unsigned,,INT,-,x,944,118,59,29.5,Secndry RT Errors,5,11,0
+,RT2I2C1Reset,RT2I2C1ResetCnt,8,Unsigned,,INT,-,x,952,119,59.5,29.75,Secndry RT Errors,5,12,0
+,RT2I2C2Reset,RT2I2C2ResetCnt,8,Unsigned,,INT,-,x,960,120,60,30,Secndry RT Errors,5,13,0
+,RT2 I2c1 Retry Count,RT2I2C1RetryCnt,8,Unsigned,,INT,-,x,968,121,60.5,30.25,Secndry RT Errors,5,14,0
+,RT2 I2c2 Retry Count,RT2I2C2RetryCnt,8,Unsigned,,INT,-,x,976,122,61,30.5,Secndry RT Errors,5,15,0
+,RT2SPIRetries,RT2SPIRetriesCnt,8,Unsigned,,INT,-,x,984,123,61.5,30.75,Secndry RT Errors,5,16,0
+,RT2MramCRC,RT2MramCRCCnt,8,Unsigned,,INT,-,x,992,124,62,31,Secndry RT Errors,5,17,0
+,RT2 MRAM Read Error Count,RT2MramRdErrorCnt,8,Unsigned,,INT,-,x,1000,125,62.5,31.25,Secndry RT Errors,5,18,0
+,RT2 MRAM Write Error Count,RT2MramWtErrorCnt,8,Unsigned,,INT,-,x,1008,126,63,31.5,Secndry RT Errors,5,19,0
+,RT2FlashCorrectable Count,RT2FlashCorCnt,8,Unsigned,,INT,-,x,1016,127,63.5,31.75,Secndry RT Errors,5,20,0
+,RT2 Ram Even Bank Correctable Count,RT2RamEvenCorCnt,8,Unsigned,,INT,-,x,1024,128,64,32,Secndry RT Errors,5,21,0
+,RT2 Ram Odd Bank Correctable Count,RT2RamOddCorCnt,8,Unsigned,,INT,-,x,1032,129,64.5,32.25,Secndry RT Errors,5,22,0
+,RT2PLLSlip,RT2PLLSlipCnt,8,Unsigned,,INT,-,x,1040,130,65,32.5,Secndry RT Errors,5,23,0
+,RT2ClockMonitorFail,RT2ClockMonitorFailCnt,8,Unsigned,,INT,-,x,1048,131,65.5,32.75,Secndry RT Errors,5,24,0
+,RT2VIMRamParity,RT2VIMRamParityCnt,8,Unsigned,,INT,-,x,1056,132,66,33,Secndry RT Errors,5,25,0
+,RT2CAN1RamParity,RT2CAN1RamParityCnt,8,Unsigned,,INT,-,x,1064,133,66.5,33.25,Secndry RT Errors,5,26,0
+,RT2CAN2RamParity,RT2CAN2RamParityCnt,8,Unsigned,,INT,-,x,1072,134,67,33.5,Secndry RT Errors,5,27,0
+,RT2DCC1Error,RT2DCC1ErrorCnt,8,Unsigned,,INT,-,x,1080,135,67.5,33.75,Secndry RT Errors,5,28,0
+,RT2DCC2Error,RT2DCC2ErrorCnt,8,Unsigned,,INT,-,x,1088,136,68,34,Secndry RT Errors,5,29,0
+,RT2N2HET2RamParity,RT2N2HET2RamParityCnt,8,Unsigned,,INT,-,x,1096,137,68.5,34.25,Secndry RT Errors,5,30,0
+,RT2IOMMAccvio,RT2IOMMAccvioCnt,8,Unsigned,,INT,-,x,1104,138,69,34.5,Secndry RT Errors,5,31,0
+,Non-fatal error count,RT2NonFatalCnt,8,Unsigned,,INT,-,x,1112,139,69.5,34.75,Secndry RT Errors,5,32,0
+,RTIHU2 Version Number,RT2SWVersion,16,Unsigned,uint8_t,INT,-,x,1120,140,70,35,General Info,1,17,0
+,Fill to 32-bits,pad420,16,Unisgned,,0,-,x,1136,142,71,35.5,NONE,0,0,0
+END,,,,,,,,,1152,144,72,36,,,,

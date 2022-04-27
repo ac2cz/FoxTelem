@@ -143,6 +143,19 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 							return cell;
 						}
 					}
+				// It is an error if it is called a reserved word
+				if (value != null)
+					
+					if (value.equalsIgnoreCase("uptime") 
+							|| value.equalsIgnoreCase("captureDate") 
+							|| value.equalsIgnoreCase("id") 
+							|| value.equalsIgnoreCase("resets")
+							|| value.equalsIgnoreCase("type") 
+						) {
+						cell.setForeground(Color.red);
+						return cell;
+					}
+					
 				cell.setForeground(Color.black);	
 			}
 			if (row >0 && column == MODULE_LINE_COL) {

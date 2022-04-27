@@ -1,5 +1,5 @@
 121,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
-0,diagnostic,Uptime,32,-,INT,General Info,1,12,0,Secs Since Launch,Continuous seconds countup from start
+0,diagnostic,missionUptime,32,-,INT,General Info,1,12,0,Secs Since Launch,Continuous seconds countup from start
 1,diagnostic,secsInEpoch,32,secs,INT,General Info,1,4,0,Time In Epoch,Seconds within current Epoch
 2,diagnostic,UTCValid,1,-,STATUS_BOOLEAN,General Info,1,11,0,UTCValid,x
 3,diagnostic,UTCYear,5,-,0,General Info,1,10,0,UTCYear,Based on 2020–5 bits=32 years

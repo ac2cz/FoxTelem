@@ -53,8 +53,10 @@ import common.Spacecraft;
  *
  * 
  * This stores the payloads for all of the satellites.  The class callings the methods does not need to know
- * how the data is stored.  The data could be moved into an SQL database in the future and it should make no 
- * difference to code outside of this class
+ * how the data is stored.  This class implements the storage in an SQL database.
+ * 
+ * This class handles the top level management of the connection and the tables that span spacecraft. The
+ * SatPayloadDbStore handles storage of the spacecraft data into the DB.
  * 
  *
  */
@@ -1066,14 +1068,17 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public boolean getUpdated(int id, String lay) {
-		// TODO Auto-generated method stub
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdated(lay);
 		return false;
 	}
 
 	@Override
 	public void setUpdated(int id, String lay, boolean u) {
-		// TODO Auto-generated method stub
-		
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdated(lay, u);
 	}
 
 	@Override

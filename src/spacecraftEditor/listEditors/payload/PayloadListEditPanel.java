@@ -36,6 +36,7 @@ import javax.swing.KeyStroke;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 import common.Config;
 import common.Log;
@@ -67,11 +68,11 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	JPanel rightPanel, rightPanel1;
 	PayloadCsvFileEditPanel payloadCsvFileEditPanel;
 	
-	PayloadListTableModel layoutsTableModel;
+	PayloadListTableModel layoutsListTableModel;
 	
 	JComboBox<String> payloadType;
 	JButton btnAddPayload, btnRemovePayload,btnBrowsePayload,btnUpdatePayload, btnGeneratePayload;
-	JTextField payloadFilename,payloadName;
+	JTextField payloadFilename,payloadName, tabName, title;
 	JTextArea codeTextArea;
 	FoxTelemTab modulesTab;
 	
@@ -96,17 +97,19 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	}
 	
 	private void savePayloadsListTable() throws FileNotFoundException, LayoutLoadException {
-		sat.layout = new BitArrayLayout[layoutsTableModel.getRowCount()];
-		sat.numberOfLayouts = layoutsTableModel.getRowCount();
-		sat.layoutFilename = new String[layoutsTableModel.getRowCount()];
-		for (int j = 0; j < layoutsTableModel.getRowCount(); j++) {
-			if (layoutsTableModel.getValueAt(j,1) == null) {
+		sat.layout = new BitArrayLayout[layoutsListTableModel.getRowCount()];
+		sat.numberOfLayouts = layoutsListTableModel.getRowCount();
+		sat.layoutFilename = new String[layoutsListTableModel.getRowCount()];
+		for (int j = 0; j < layoutsListTableModel.getRowCount(); j++) {
+			if (layoutsListTableModel.getValueAt(j,1) == null) {
 				sat.layout[j] = null;
 			} else {
-				sat.layoutFilename[j] = (String)layoutsTableModel.getValueAt(j,2);
+				sat.layoutFilename[j] = (String)layoutsListTableModel.getValueAt(j,2);
 				sat.layout[j] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + sat.layoutFilename[j]);
-				sat.layout[j].name = (String)layoutsTableModel.getValueAt(j,1);
-				sat.layout[j].typeStr = (String)layoutsTableModel.getValueAt(j,3);
+				sat.layout[j].name = (String)layoutsListTableModel.getValueAt(j,1);
+				sat.layout[j].typeStr = (String)layoutsListTableModel.getValueAt(j,3);
+				sat.layout[j].shortTitle = (String)layoutsListTableModel.getValueAt(j,4);
+				sat.layout[j].title = (String)layoutsListTableModel.getValueAt(j,5);
 			}
 		}
 		
@@ -114,7 +117,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	}
 	
 	private void loadPayloadsListTable() {
-		String[][] data = new String[sat.numberOfLayouts][4];
+		String[][] data = new String[sat.numberOfLayouts][layoutsListTableModel.getColumnCount()];
 		for (int i=0; i< sat.numberOfLayouts; i++) {
 			data[i][0] =""+i;
 			if (sat.layout[i] != null && sat.layout[i].name != null) 
@@ -128,13 +131,21 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				data[i][2] ="-";
 //			data[i][3] = ""+sat.layout[i].getMaxNumberOfBytes();
 			data[i][3] = ""+sat.layout[i].typeStr;
+			if (sat.layout[i].shortTitle != null)
+				data[i][4] = ""+sat.layout[i].shortTitle;
+			else
+				data[i][4] = "";
+			if (sat.layout[i].title != null)
+				data[i][5] = ""+sat.layout[i].title;
+			else
+				data[i][5] = "";
 
 		}
 		if (sat.numberOfLayouts > 0) 
-			layoutsTableModel.setData(data);
+			layoutsListTableModel.setData(data);
 		else {
 			String[][] fakeRow = {{"","","",""}};
-			layoutsTableModel.setData(fakeRow);
+			layoutsListTableModel.setData(fakeRow);
 		}
 	}
 	
@@ -158,9 +169,9 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		TitledBorder headingLayout = SpacecraftEditPanel.title("Payloads");
 		centerPanel2.setBorder(headingLayout);
 		
-		layoutsTableModel = new PayloadListTableModel();
+		layoutsListTableModel = new PayloadListTableModel();
 
-		payloadsTable = new JTable(layoutsTableModel);
+		payloadsTable = new JTable(layoutsListTableModel);
 		payloadsTable.setAutoCreateRowSorter(true);
 		JScrollPane scrollPane = new JScrollPane (payloadsTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		scrollPane.setPreferredSize(new Dimension(100,400));
@@ -176,6 +187,11 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		column.setPreferredWidth(200);
 		column = payloadsTable.getColumnModel().getColumn(3);
 		column.setPreferredWidth(40);
+		
+		// Don't display the last two columns, though we store the data
+		TableColumnModel tcm = payloadsTable.getColumnModel();
+		tcm.removeColumn( tcm.getColumn(4) );
+		tcm.removeColumn( tcm.getColumn(4) ); // 5 is now 4!
 
 		payloadsTable.addMouseListener(this);
 		
@@ -252,6 +268,27 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		payloadFilename.addMouseListener(this);
 		footerPanelRow1.add(f3);
 		
+		// Row 1.5
+		JPanel footerPanelRow15 = new JPanel();
+		footerPanel.add(footerPanelRow15);
+		
+		JPanel f15 = new JPanel();
+		f15.setLayout(new BoxLayout(f15, BoxLayout.Y_AXIS) );
+		JLabel lf15 = new JLabel("Tab Name");
+		tabName = new JTextField();
+		f15.add(lf15);
+		f15.add(tabName);
+		footerPanelRow15.add(f15);
+
+		JPanel f25 = new JPanel();
+		f25.setLayout(new BoxLayout(f25, BoxLayout.Y_AXIS) );
+		JLabel lf25 = new JLabel("Title");
+		title = new JTextField();
+		title.setColumns(30);
+		f25.add(lf25);
+		f25.add(title);
+		footerPanelRow15.add(f25);
+
 		// Row 2
 		JPanel footerPanelRow2 = new JPanel();
 		footerPanel.add(footerPanelRow2);
@@ -321,6 +358,14 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		payloadName.setText(sat.layout[row].name);
 		payloadFilename.setText(sat.layoutFilename[row]);
 		payloadType.setSelectedItem((String)sat.layout[row].typeStr);
+		if (sat.layout[row].shortTitle != null)
+			tabName.setText(sat.layout[row].shortTitle);
+		else
+			tabName.setText("");
+		if (sat.layout[row].title != null)
+			title.setText(sat.layout[row].title);
+		else
+			title.setText("");
 		
 		payloadCsvFileEditPanel.setFile(sat.layoutFilename[row]);
 		
@@ -407,6 +452,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			BitArrayLayout[] newLayouts = new BitArrayLayout[sat.numberOfLayouts+1];
 			newLayouts[sat.numberOfLayouts] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + payloadFilename.getText());
 			newLayouts[sat.numberOfLayouts].name = payloadName.getText();
+			newLayouts[sat.numberOfLayouts].shortTitle = tabName.getText();
+			newLayouts[sat.numberOfLayouts].title = title.getText();
 			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
 			for (int i=0; i < sat.numberOfLayouts; i++) {
 				newLayouts[i] = sat.layout[i];
@@ -548,6 +595,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layout[row] = new BitArrayLayout(Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR +File.separator + payloadFilename.getText());
 				sat.layoutFilename[row] = payloadFilename.getText();
 				sat.layout[row].name = payloadName.getText();
+				sat.layout[row].shortTitle = tabName.getText();
+				sat.layout[row].title = title.getText();
 				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
 				// First load the updated sat values into the table
 				loadPayloadsListTable();

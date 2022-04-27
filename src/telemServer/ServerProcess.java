@@ -241,7 +241,7 @@ public class ServerProcess implements Runnable {
 							}
 						} else {
 							// Eror, not a valid header, FAIL
-							throw new StpFileProcessException(fileName,"Invalid Header: Aborted");
+							throw new StpFileProcessException(fileName,"Invalid STP Header: Aborted");
 						}
 						key = "";
 						value = "";
