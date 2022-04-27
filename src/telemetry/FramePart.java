@@ -634,6 +634,21 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		//		}
 		return rt;
 	}
+	
+	/**
+	 * Calculate the secondary payload and return it
+	 * @return
+	 */
+	public FramePart getSecondaryPayload() {
+		if (this.layout.getSecondaryPayloadName() != null) {
+			FramePart telem = FramePart.makePayload(id, resets, uptime, this.layout.getSecondaryPayloadName());
+			for (int k=0; k<telem.getMaxBytes(); k++) { 
+				telem.addNext8Bits((byte) fieldValue[k]);
+			}
+			return telem;
+		}
+		return null;
+	}
 
 	//*************************************************************************
 	// Conversion Section

@@ -29,11 +29,13 @@ public class PayloadListTableModel extends AbstractTableModel {
 	private String[][] data = null;
 
 	PayloadListTableModel() {
-		columnNames = new String[4];
+		columnNames = new String[6];
 		columnNames[0] = "Num";
 		columnNames[1] = "Payload Name";
 		columnNames[2] = "File Name";
 		columnNames[3] = "Tab";
+		columnNames[4] = "Name";
+		columnNames[5] = "Title";
 
 	}
 

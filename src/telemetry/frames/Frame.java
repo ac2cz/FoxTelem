@@ -87,15 +87,15 @@ public abstract class Frame implements Comparable<Frame> {
 					// once the header is filled
 
 	// TODO - These should really be looked up from the formats loaded in Config.satManager
-	public static final int DUV_FRAME = 0; 
-	public static final int HIGH_SPEED_FRAME = 1;
-	public static final int PSK_FRAME = 2;
-	public static final int GOLF_BPSK_FRAME = 3;
+	@Deprecated public static final int DUV_FRAME = 0; 
+	@Deprecated public static final int HIGH_SPEED_FRAME = 1;
+	@Deprecated public static final int PSK_FRAME = 2;
+//	public static final int GOLF_BPSK_FRAME = 3;
 	
 	// TODO - These should be looked up from the formats loaded in Config.satManager.  They are frame_length * 8
-	public static final int DUV_FRAME_LEN = 768; 
-	public static final int HIGH_SPEED_FRAME_LEN = 42176;
-	public static final int PSK_FRAME_LEN = 4576;
+	@Deprecated public static final int DUV_FRAME_LEN = 768; 
+	@Deprecated public static final int HIGH_SPEED_FRAME_LEN = 42176;
+	@Deprecated public static final int PSK_FRAME_LEN = 4576;
 
 
 	public static final String SEQUENCE_FILE_NAME = "seqno.dat";
@@ -159,6 +159,17 @@ public abstract class Frame implements Comparable<Frame> {
 		demodulator = "FoxTelem " + Config.VERSION + " (" + os + ")";
 		stpDate = Calendar.getInstance().getTime();
 
+	}
+	
+	/**
+	 * Load a new frame from disk.  This is implemented in child classes
+	 * Note that the Format version passes in the format and the reader
+	 * 
+	 * @param input
+	 * @throws IOException
+	 */
+	public Frame(BufferedReader input) throws IOException {
+		
 	}
 
 	public abstract Header getHeader();
@@ -263,16 +274,6 @@ public abstract class Frame implements Comparable<Frame> {
 					+ " Hz";
 	}
 
-	/**
-	 * Load a new frame from disk
-	 * 
-	 * @param input
-	 * @throws IOException
-	 */
-	public Frame(BufferedReader input) throws IOException {
-		
-	}
-
 	abstract public void addNext8Bits(byte b);
 
 	/**
@@ -297,7 +298,7 @@ public abstract class Frame implements Comparable<Frame> {
 		if (fox == null) throw new FrameProcessException("Invalid Fox Id: " + foxId + ", can not process frame");
 		length = Integer.toString(byteLen * 8);
 
-		// TODO - this should be set by the DECODER which knows what type of format it is decoding
+// TODO - this should be set by the DECODER which knows what type of format it is decoding
 		source = "";
 		try {
 			if (this instanceof SlowSpeedFrame) {
@@ -789,6 +790,12 @@ public abstract class Frame implements Comparable<Frame> {
 			e.printStackTrace(Log.getWriter());
 			throw new StpFileProcessException(f.getName(), "IO Exception processing file");
 		} finally {
+			try {
+				Thread.sleep(1000);
+			} catch (InterruptedException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			} // give it time to flush
 			try { payloadStore.closeConnection(); } catch (Exception e) {	}
 		}
 	}

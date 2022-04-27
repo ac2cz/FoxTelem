@@ -8,13 +8,16 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.IOException;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
+import javax.swing.Box;
 import javax.swing.InputMap;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
@@ -34,12 +37,13 @@ import javax.swing.table.TableRowSorter;
 
 import common.Log;
 
-public class CsvFileEditorGrid extends JPanel implements MouseListener, TableModelListener  {
+public class CsvFileEditorGrid extends JPanel implements MouseListener, TableModelListener, ActionListener  {
 
 	private static final long serialVersionUID = 1L;
 	CsvTableModel tableModel;
 	public JTable table;
 	TableRowSorter<CsvTableModel> sorter;
+	JButton resetSort;
 	CsvFileEditPanel parent;
 	JTextField filterFields[];
 	JTextField filterConversion;
@@ -69,7 +73,15 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 		//filterPanel.setLayout(new BorderLayout());
 		add(filterPanel, BorderLayout.SOUTH);
 		
-		filterPanel.add(new JLabel("Filter: "));
+		resetSort = new JButton("un-sort");
+		filterPanel.add(resetSort);
+		resetSort.addActionListener(this);
+		
+		filterPanel.add(new Box.Filler(new Dimension(20,10), new Dimension(20,10), new Dimension(20,10)));
+		JLabel lblFilter = new JLabel("Filter: ");
+		Font f = lblFilter.getFont();
+		lblFilter.setFont(f.deriveFont(f.getStyle() | Font.BOLD));
+		filterPanel.add(lblFilter);
 		if (tableModel.filterColumns != null) {
 			filterFields = new JTextField[tableModel.filterColumns.length];
 			for (int i=0; i< tableModel.filterColumns.length; i++) {
@@ -236,5 +248,13 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 			Log.errorDialog("ERROR", "Could not save the CSV file\n" + e1);
 		}
 
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent arg0) {
+		if (arg0.getSource() == resetSort) {
+			table.getRowSorter().setSortKeys(null);
+		}
+		
 	}
 }
