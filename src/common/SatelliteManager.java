@@ -407,6 +407,35 @@ public class SatelliteManager implements Runnable {
 		}
 		return null;
 	}
+	
+	/**
+	 * Based on the name of the source, return the format used to decode it
+	 * e.g. If the source is amsat.golf-t.lihu.bpsk then it would return the format
+	 * for GOLF_BPSK
+	 * 
+	 * @param sat
+	 * @param name
+	 * @return
+	 */
+	public TelemFormat getFormatBySource(String name) {
+		for (int s=0; s < spacecraftList.size(); s++) {
+			Spacecraft fox = spacecraftList.get(s);
+			for (int i=0; i < fox.sourceName.length; i++) {
+				if (fox.sourceName[i].equalsIgnoreCase(name))
+					return getFormatByName(fox.sourceFormatName[i]);
+			}
+		}
+		return null;
+	}
+	
+	public TelemFormat getFormatBySource(int sat, String name) {
+		Spacecraft fox = getSpacecraft(sat);
+		for (int i=0; i < fox.sourceName.length; i++) {
+			if (fox.sourceName[i].equalsIgnoreCase(name))
+				return getFormatByName(fox.sourceFormatName[i]);
+		}
+		return null;
+	}
 
 	public TelemFormat getFormatByFrameLength(int len) {
 		for (int i=0; i < telemFormats.size(); i++) {

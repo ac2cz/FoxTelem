@@ -1643,7 +1643,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	public void saveTimeZeroSeries() throws IOException {
 
-		String log = "FOX"+ foxId + Config.t0UrlFile;
+		String log = series + foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 			Log.println("Loading: " + log);
@@ -1672,7 +1672,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		timeZero = new ArrayList<Long>(100);
 		String line = null;
 		if (log == null) { // then use the default
-			log = "FOX"+ foxId + Config.t0UrlFile;
+			log = series + foxId + Config.t0UrlFile;
         	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
         		log = Config.logFileDirectory + File.separator + log;
         		Log.println("Loading: " + log);

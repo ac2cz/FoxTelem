@@ -4,7 +4,10 @@ import common.Config;
 import common.Spacecraft;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.StringTokenizer;
+
 import common.Log;
 import decoder.Crc32;
 import decoder.Decoder;
@@ -67,15 +70,37 @@ import telemetry.uw.PayloadWODUwExperiment;
 			//header = new FoxBPSKHeader(headerLayout, telemFormat);
 			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
 		}
-
-		public FormatFrame(TelemFormat telemFormat, BufferedReader input) throws IOException {
+		
+		/**
+		 * Use this constructor to load the frame from a file when the format is unknown.  The format
+		 * is then looked up from the source name
+		 * 
+		 * @param input
+		 * @throws IOException
+		 */
+		public FormatFrame(BufferedReader input) throws IOException {
 			super(input);
-			this.telemFormat = telemFormat;
-			headerLayout = telemFormat.getHeaderLayout();
-			header = new FormatHeader(headerLayout, telemFormat);
-			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
-			load(input);
+			StringTokenizer st = loadStpHeader(input);
+			if (st != null) {
+				// now lookup the format from the source
+				this.telemFormat = Config.satManager.getFormatBySource(foxId, source);
+				headerLayout = telemFormat.getHeaderLayout();
+				header = new FormatHeader(headerLayout, telemFormat);
+				headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
+				loadRestOfFrame(st);
+			} else {
+				throw new IOException("Could not read Frame line from the file");
+			}
 		}
+
+//		public FormatFrame(TelemFormat telemFormat, BufferedReader input) throws IOException {
+//			super(input);
+//			this.telemFormat = telemFormat;
+//			headerLayout = telemFormat.getHeaderLayout();
+//			header = new FormatHeader(headerLayout, telemFormat);
+//			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
+//			load(input);
+//		}
 		
 		public FormatHeader getHeader() { return (FormatHeader)header; }
 		
@@ -345,6 +370,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 			return s;
 		}
 
+		@Override
 		public String toString() {
 			String s = new String();
 			s = s + "AMSAT FOX-1 BPSK Telemetry Captured at DATE: " + getStpDate() + "\n"; 

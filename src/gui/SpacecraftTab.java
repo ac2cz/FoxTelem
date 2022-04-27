@@ -189,7 +189,7 @@ public class SpacecraftTab extends JPanel {
 					addNamedExperimentTab(sat, lay);
 				} catch (Exception e) {
 					e.printStackTrace(Log.getWriter());
-					Log.errorDialog("Layout Failure", "Failed to setup Ragnaroc Experiment tab for sat: " + sat.user_display_name 
+					Log.errorDialog("Layout Failure", "Failed to setup Experiment tab for sat: " + sat.user_display_name 
 							+ "\nCheck the Spacecraft.dat file and remove the experiement if it is not valid\n"+e);
 				}
 			}
@@ -343,8 +343,8 @@ public class SpacecraftTab extends JPanel {
 		wodExperimentThread.start();
 //		tabThreads.add(wodExperimentThread);
 
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ "VU Rad WOD" + "</b></body></html>", wodExperimentTab );
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" 
+				+ "VU Rad WOD" + "</body></html>", wodExperimentTab );
 
 	}
 
@@ -364,7 +364,7 @@ public class SpacecraftTab extends JPanel {
 	private void addNamedExperimentTab(Spacecraft fox, BitArrayLayout layout) {
 		BitArrayLayout secondaryLayout = fox.getSecondaryLayoutFromPrimaryName(layout.name);
 		String title = "Experiment: " + layout.name;
-		if (layout.title != null)
+		if (layout.title != null && !layout.title.equalsIgnoreCase(""))
 			title = layout.title;
 		NamedExperimentTab ragExperimentTab = new NamedExperimentTab(fox, title, 
 				layout,
@@ -375,7 +375,7 @@ public class SpacecraftTab extends JPanel {
 //		tabThreads.add(ragExperimentThread);
 
 		String shortTitle = layout.name;
-		if (layout.shortTitle != null)
+		if (layout.shortTitle != null && !layout.shortTitle.equalsIgnoreCase(""))
 			shortTitle = layout.shortTitle;
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 				shortTitle + "</body></html>", ragExperimentTab);
@@ -385,7 +385,7 @@ public class SpacecraftTab extends JPanel {
 	private void addWodNamedExpTab(Spacecraft fox, BitArrayLayout layout) {
 		BitArrayLayout secondaryLayout = fox.getSecondaryLayoutFromPrimaryName(layout.name);
 		String title = "Experiment: " + layout.name;
-		if (layout.title != null)
+		if (layout.title != null && !layout.title.equalsIgnoreCase(""))
 			title = layout.title;
 		WodNamedExperimentTab wodExperimentTab = new WodNamedExperimentTab(fox, title, 
 				layout,
@@ -396,16 +396,16 @@ public class SpacecraftTab extends JPanel {
 //		tabThreads.add(wodExperimentThread);
 
 		String shortTitle = layout.name;
-		if (layout.shortTitle != null)
+		if (layout.shortTitle != null && !layout.shortTitle.equalsIgnoreCase(""))
 			shortTitle = layout.shortTitle;
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ shortTitle + "</b></body></html>", wodExperimentTab );
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" 
+				+ shortTitle + "</body></html>", wodExperimentTab );
 
 	}
 	
 	private void addCanExperimentTab(Spacecraft fox, BitArrayLayout layout) {
 		String title = "Experiment: " + layout.name;
-		if (layout.title != null)
+		if (layout.title != null && !layout.title.equalsIgnoreCase(""))
 			title = layout.title;
 		BitArrayLayout canPktLayout =  Config.satManager.getLayoutByName(fox.foxId, Spacecraft.CAN_PKT_LAYOUT);
 		CanExperimentTab canExperimentTab = new CanExperimentTab(fox, title, 
@@ -415,7 +415,7 @@ public class SpacecraftTab extends JPanel {
 		ragExperimentThread.start();
 
 		String shortTitle = layout.name;
-		if (layout.shortTitle != null)
+		if (layout.shortTitle != null && !layout.shortTitle.equalsIgnoreCase(""))
 			shortTitle = layout.shortTitle;
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 				shortTitle + "</body></html>", canExperimentTab);
@@ -424,7 +424,7 @@ public class SpacecraftTab extends JPanel {
 	
 	private void addCanWodExperimentTab(Spacecraft fox, BitArrayLayout layout) {
 		String title = "WOD Experiment: " + layout.name;
-		if (layout.title != null)
+		if (layout.title != null && !layout.title.equalsIgnoreCase(""))
 			title = layout.title;
 		BitArrayLayout canPktLayout =  Config.satManager.getLayoutByName(fox.foxId, Spacecraft.WOD_CAN_PKT_LAYOUT);
 		CanExperimentTab canExperimentTab = new CanExperimentTab(fox, title, 
@@ -434,7 +434,7 @@ public class SpacecraftTab extends JPanel {
 		ragExperimentThread.start();
 
 		String shortTitle = layout.name;
-		if (layout.shortTitle != null)
+		if (layout.shortTitle != null && !layout.shortTitle.equalsIgnoreCase(""))
 			shortTitle = layout.shortTitle;
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 				shortTitle + "</body></html>", canExperimentTab);
@@ -461,8 +461,8 @@ public class SpacecraftTab extends JPanel {
 		wodExperimentThread.start();
 //		tabThreads.add(wodExperimentThread);
 
-		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ "CAN Pkt WOD" + "</b></body></html>", wodExperimentTab );
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" 
+				+ "CAN Pkt WOD" + "</body></html>", wodExperimentTab );
 
 	}
 

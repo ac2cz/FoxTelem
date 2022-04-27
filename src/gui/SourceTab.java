@@ -724,7 +724,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		cbFormat.setVisible(true);
 		cbFormat.setEnabled(true);
 		cbFormat.addActionListener(this);
-		cbFormat.setMaximumSize(new Dimension(150,30));
+		cbFormat.setMaximumSize(new Dimension(200,30));
 		panel_2.add(cbFormat);
 		
 		panel_2.add(new Box.Filler(new Dimension(200,10), new Dimension(200,10), new Dimension(500,10)));

@@ -73,11 +73,16 @@ public class SatMeasurementStore {
 	public SatMeasurementStore(int id) {
 		foxId = id;
 		initArrays();
-				
+		Spacecraft fox = Config.satManager.getSpacecraft(foxId);
 		try {
-			rtFileName = "Fox"+id+RT_LOG;
-			passFileName = "Fox"+id+PASS_LOG;
-			
+			if (fox.hasFOXDB_V3) {
+				String series = fox.series;
+				rtFileName = series+id+RT_LOG;
+				passFileName = series+id+PASS_LOG;				
+			} else {
+				rtFileName = "Fox"+id+RT_LOG;
+				passFileName = "Fox"+id+PASS_LOG;
+			}
 			
 			String testFile = passFileName;
 			if (!Config.logFileDirectory.equalsIgnoreCase("")) {
