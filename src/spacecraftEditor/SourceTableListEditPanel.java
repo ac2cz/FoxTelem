@@ -80,7 +80,7 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		try {
 			@SuppressWarnings("unused")
 			TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + fileName);
-			txtFilename.setText(fileName);
+			txtFilename.setText(tmpFormat.name);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("ERROR", "Can not parse the format from format file: \n" + fileName + "\n" + e);
 		}
@@ -98,7 +98,7 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 			else
 				dataToAdd[1] ="NONE";
 			if (sat.sourceFormatName != null && sat.sourceFormatName[i] != null) 
-				dataToAdd[2] = sat.sourceFormatName[i]+ ".format";
+				dataToAdd[2] = sat.sourceFormatName[i];
 			else
 				dataToAdd[2] ="NONE";
 			dataLines.add(dataToAdd);
@@ -115,9 +115,8 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 			if (dataLines.get(j)[1] == null) {
 				sat.sourceName[j] = null;
 			} else {
-				TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + dataLines.get(j)[2]);
-				sat.sourceFormat[j] = tmpFormat;
-				sat.sourceFormatName[j] = tmpFormat.name;
+				sat.sourceFormat[j] = Config.satManager.getFormatByName(dataLines.get(j)[2]);
+				sat.sourceFormatName[j] = dataLines.get(j)[2];
 				sat.sourceName[j] = dataLines.get(j)[1];
 			}
 		}
@@ -151,11 +150,11 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 					if (sat.sourceFormat == null || sat.sourceFormat[row] == null) return; // no format here
 					System.out.println("Edit:" + sat.sourceFormat[row]);
 	//				sourceFormatSelected = row;
-					if (e.getClickCount() == 2) {
-						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-						TextEditorFrame editor = new TextEditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row]+".format");
-						editor.setVisible(true);
-					}
+//					if (e.getClickCount() == 2) {
+//						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
+//						TextEditorFrame editor = new TextEditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row]+".format");
+//						editor.setVisible(true);
+//					}
 
 					updateSourceStats(row);
 				}
