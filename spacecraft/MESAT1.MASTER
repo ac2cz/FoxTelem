@@ -133,4 +133,4 @@ source0.formatName=BPSK 1200bps (LTM)
 source1.name=amsat.golf-t.rtihu.bpsk
 source1.formatName=BPSK 1200bps (LTM)
 hasFrameCrc=true
-series=LTM
+series=LT
