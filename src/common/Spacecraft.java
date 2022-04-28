@@ -929,9 +929,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			useConversionCoeffs = getOptionalBooleanProperty("useConversionCoeffs");
-			
 
-			
 			// Frame Layouts
 			String frames = getOptionalProperty("numberOfFrameLayouts");
 			if (frames == null) 
@@ -1458,9 +1456,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	/**
 	 * This should never be called by the decoder.  This is only called by the spacecraft editor
+	 *
 	 */
 	public void save_master_params() {
 		// Store the MASTER params
+		properties = new Properties(); // clean empty file
 		// Store the values
 		properties.setProperty("foxId", String.valueOf(foxId));
 		properties.setProperty("series", String.valueOf(series));
@@ -1489,7 +1489,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 					properties.setProperty("layout"+i+".title",layout[i].title);
 				if (layout[i].shortTitle != null)
 					properties.setProperty("layout"+i+".shortTitle",layout[i].shortTitle);
-				if (layout[i].parentLayout != null)
+				if (layout[i].parentLayout != null && !layout[i].parentLayout.equalsIgnoreCase(""))
 					properties.setProperty("layout"+i+".parentLayout",layout[i].parentLayout);
 				
 			}
@@ -1533,7 +1533,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("maxFreqBoundkHz", String.valueOf(user_maxFreqBoundkHz));
 		properties.setProperty("track", String.valueOf(user_track));
 		properties.setProperty("priority", String.valueOf(user_priority));
-		properties.setProperty("user_format", String.valueOf(user_format));
+		properties.setProperty("user_format", user_format);
 		properties.setProperty("displayName", String.valueOf(user_display_name));
 
 		// Frame Layouts
