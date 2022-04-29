@@ -22,7 +22,12 @@ import telemetry.Format.TelemFormat;
 
 public class SourceTableListEditPanel extends TableListEditPanel {
 	private static final long serialVersionUID = 1L;
-	JPanel leftSourcesPanel, sourceStats;
+	JPanel sourceFormatDetails, sourceStats;
+	JLabel labFrameLen;
+	JLabel labHeaderLen;
+	JLabel labDataLen;
+	JLabel labRSWords;
+	JLabel labTrailerLen;
 	
 	public SourceTableListEditPanel(Spacecraft sat, String title, ListTableModel listTableModel,
 			CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
@@ -30,16 +35,18 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		txtFilename.setEditable(true);
 		lFilename.setText("Format");
 		
-		leftSourcesPanel = new JPanel();
-		leftPanel.add(leftSourcesPanel);
+		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+		
+		sourceFormatDetails = new JPanel();
+		leftPanel.add(sourceFormatDetails);
 		TitledBorder headingSources = SpacecraftEditPanel.title("Format Details");
-		leftSourcesPanel.setBorder(headingSources);
-		leftSourcesPanel.setLayout(new BorderLayout());
+		sourceFormatDetails.setBorder(headingSources);
+		sourceFormatDetails.setLayout(new BorderLayout());
 
-		sourceStats = new JPanel();
-		leftPanel.add(sourceStats, BorderLayout.SOUTH);
+		sourceStats = new JPanel(); // This holds the list of stats
+		leftPanel.add(sourceFormatDetails);
 		sourceStats.setLayout(new BoxLayout(sourceStats, BoxLayout.Y_AXIS));
-		leftSourcesPanel.add(sourceStats, BorderLayout.SOUTH);
+		sourceFormatDetails.add(sourceStats, BorderLayout.NORTH);
 
 		labFrameLen = new JLabel();
 		labHeaderLen = new JLabel();
@@ -163,11 +170,6 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		
 	}
 	
-	JLabel labFrameLen;
-	JLabel labHeaderLen;
-	JLabel labDataLen;
-	JLabel labRSWords;
-	JLabel labTrailerLen;
 	private void updateSourceStats(int row) {
 		if (sat.sourceFormat == null) return;
 		if (sat.sourceFormat.length == 0) return;

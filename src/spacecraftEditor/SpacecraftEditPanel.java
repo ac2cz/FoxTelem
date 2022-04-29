@@ -72,7 +72,7 @@ import common.Config;
 public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemListener, FocusListener, MouseListener {
 
 	JTextField id, displayName;
-	JTextField name;
+	JTextField name, series;
 	JComboBox<String> priority, layoutType;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
@@ -175,6 +175,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		displayName = addSettingsRow(titlePanel1, 15, "Display Name", 
 				"This name is use used as a label on Graphs and Tabs", ""+sat.user_display_name);
 
+		series = addSettingsRow(titlePanel1,8, "Series", 
+				"This name is used as the prefix for saved files in FOXDB and elsewhere", ""+sat.series);
+
 		hasFOXDB_V3 = addCheckBoxRow("Use V3 Telem Database (recommended)", "This is true for all new spacecraft", sat.hasFOXDB_V3, titlePanel1 );
 		hasFOXDB_V3.setEnabled(false);
 		useConversionCoeffs = addCheckBoxRow("Use conversion coefficients (recommended)", "This is true for all new spacecraft", sat.useConversionCoeffs, titlePanel1 );
@@ -184,7 +187,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading9 = title("Description");
 		descPanel.setBorder(heading9);
 
-		taDesc = new JTextArea(6, 45);
+		taDesc = new JTextArea(7, 45);
 		taDesc.setText(sat.description);
 		taDesc.setLineWrap(true);
 		taDesc.setWrapStyleWord(true);
@@ -208,14 +211,14 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 		leftSourcesPanel = new JPanel();
 		leftPanel.add(leftSourcesPanel);
-		TitledBorder headingSources = title("Sources");
+		TitledBorder headingSources = title("Sources and Formats");
 		leftSourcesPanel.setBorder(headingSources);
-		leftSourcesPanel.setLayout(new BorderLayout());
+		leftSourcesPanel.setLayout(new BoxLayout(leftSourcesPanel, BoxLayout.X_AXIS));
 
 		SourcesTableModel sourcesListTableModel = new SourcesTableModel();
 		CsvTableModel sourceTableModel = new SourcesTableModel();
 		SourceTableListEditPanel sourceTableListEditPanel = new SourceTableListEditPanel(sat, "Sources", sourcesListTableModel, sourceTableModel, this);
-		leftSourcesPanel.add(sourceTableListEditPanel, BorderLayout.CENTER);
+		leftSourcesPanel.add(sourceTableListEditPanel);
 		
 //		sourcesTable = new JTable(sourcesTableModel);
 //		sourcesTable.setAutoCreateRowSorter(true);
@@ -244,7 +247,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 		//leftSourcesPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
-		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,100), new Dimension(100,500)));
+	//	leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,100), new Dimension(100,500)));
 
 		return leftPanel;
 
@@ -537,6 +540,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
 				}
+			}
+			if (!sat.series.equalsIgnoreCase(series.getText())) {
+				sat.series = series.getText();
 			}
 			if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
 				sat.user_keps_name = name.getText();
