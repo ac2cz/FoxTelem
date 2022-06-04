@@ -70,7 +70,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.12x";
-	public static String VERSION = VERSION_NUM + " - 18 Apr 2022";
+	public static String VERSION = VERSION_NUM + " - 19 May 2022";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
