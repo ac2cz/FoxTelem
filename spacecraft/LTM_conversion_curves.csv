@@ -16,5 +16,4 @@ mesat_batt_current,-2000,15.68627451,0,0,0,0,MESAT1 Battery Current 0-255 = -200
 mesat_rssi,-148.09545328,2.123904012,-0.0246929688,0.0001256652,0,0,MESAT1 SN37 RSSI vs IHU ADC raw output
 mesat_power_out,94.205789268,-5.9941501322,0.07160461657,0.0001968708,0,0,MESAT1 SN37 Power out mW vs ADC raw output
 mesat_batt_temp,-50,1.294117647,0,0,0,0,MESAT1 Battery Temperature
-8dot4_volt_8_bit,0.001,0.032941,0,0,0,0,MESAT1 Battery Total Volts
-batsoc,543.347,-6.16946,0.017475,0,0,0,MESAT1 Battery Volts raw value to percent state of charge
+10_volt_8_bit,0,0.039215686,0,0,0,0,MESAT1 Battery Total Volts

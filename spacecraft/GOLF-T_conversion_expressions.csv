@@ -5,4 +5,4 @@ ExpMemsXRotationAngle, 360 * acos(abs(Xspin / MemsScalarRotation)) / (2 * 3.1415
 ExpMemsYRotationAngle, 360 * acos(abs(Yspin / MemsScalarRotation)) / (2 * 3.14159),
 ExpMemsZRotationAngle, 360 * acos(abs(Zspin / MemsScalarRotation)) / (2 * 3.14159),
 dBm_to_mW,10 ^ (X/10),Do the exp require for the power curve
-,,dBm to mW
+MESAT1BatSOC,(hostCANVolts0 *30.3573)-.001,Test for bat capacity

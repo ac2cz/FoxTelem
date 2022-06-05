@@ -1,4 +1,4 @@
-658,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+654,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
 0,scilong,0,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 1,scilong,1,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 2,scilong,2,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
@@ -651,9 +651,5 @@
 649,scilong,649,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 650,scilong,650,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
 651,scilong,651,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
-652,scilong,652,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
-653,scilong,653,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
-654,scilong,654,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
-655,scilong,655,8,-,0,NONE,0,0,0,Data,Opaque CAN data from host experiment
-656,scilong,Longscisparebits,7,-,0,NONE,0,0,0,LongSciSparebits,Pad
-657,scilong,overflow,1,-,21,CAN Queue,1,1,0,Overflow,One or more CAN messages lost
+652,scilong,Longscisparebits,7,-,0,NONE,0,0,0,LongSciSparebits,Pad
+653,scilong,overflow,1,-,21,CAN Queue,1,1,0,Overflow,One or more CAN messages lost
