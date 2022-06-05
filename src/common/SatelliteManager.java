@@ -12,6 +12,7 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Date;
@@ -29,7 +30,7 @@ import predict.SortedTleList;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import telemetry.frames.FrameLayout;
 
 /**
@@ -342,7 +343,10 @@ public class SatelliteManager implements Runnable {
 	public FrameLayout getFrameLayout(int sat, int type) {
 		if (!validFoxId(sat)) return null;
 		Spacecraft sc = getSpacecraft(sat);
-		if (sc != null && sc.frameLayout != null) return sc.frameLayout[type];
+		if (sc != null && sc.frameLayout != null) {
+			if (type >= sc.frameLayout.length) return null;
+			return sc.frameLayout[type];
+		}
 		return null;
 	}
 
@@ -392,6 +396,7 @@ public class SatelliteManager implements Runnable {
 		for (int i=0; i < telemFormats.size(); i++) {
 			data[i] = telemFormats.get(i).name;
 		}
+		Arrays.sort(data);
 		return data;
 	}
 
@@ -399,6 +404,35 @@ public class SatelliteManager implements Runnable {
 		for (int i=0; i < telemFormats.size(); i++) {
 			if (telemFormats.get(i).name.equalsIgnoreCase(name))
 				return telemFormats.get(i);
+		}
+		return null;
+	}
+	
+	/**
+	 * Based on the name of the source, return the format used to decode it
+	 * e.g. If the source is amsat.golf-t.lihu.bpsk then it would return the format
+	 * for GOLF_BPSK
+	 * 
+	 * @param sat
+	 * @param name
+	 * @return
+	 */
+	public TelemFormat getFormatBySource(String name) {
+		for (int s=0; s < spacecraftList.size(); s++) {
+			Spacecraft fox = spacecraftList.get(s);
+			for (int i=0; i < fox.sourceName.length; i++) {
+				if (fox.sourceName[i].equalsIgnoreCase(name))
+					return getFormatByName(fox.sourceFormatName[i]);
+			}
+		}
+		return null;
+	}
+	
+	public TelemFormat getFormatBySource(int sat, String name) {
+		Spacecraft fox = getSpacecraft(sat);
+		for (int i=0; i < fox.sourceName.length; i++) {
+			if (fox.sourceName[i].equalsIgnoreCase(name))
+				return getFormatByName(fox.sourceFormatName[i]);
 		}
 		return null;
 	}

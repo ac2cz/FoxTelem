@@ -39,7 +39,7 @@ import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SortedFramePartArrayList;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import telemetry.conversion.Conversion;
 import telemetry.conversion.ConversionCurve;
 import telemetry.conversion.ConversionFormat;
@@ -133,7 +133,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public String description = "";
 	public int model;
 	public String canFileDir = "HuskySat";
-	public int user_format = SourceTab.FORMAT_FSK_DUV;
+	public String user_format = "DUV_FSK";
 	
 	public boolean telemetryMSBfirst = true;
 	public boolean ihuLittleEndian = true;
@@ -929,9 +929,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			user_maxFreqBoundkHz = Double.parseDouble(getProperty("maxFreqBoundkHz"));
 
 			useConversionCoeffs = getOptionalBooleanProperty("useConversionCoeffs");
-			
 
-			
 			// Frame Layouts
 			String frames = getOptionalProperty("numberOfFrameLayouts");
 			if (frames == null) 
@@ -1092,7 +1090,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				this.canFileDir = getProperty("canFileDir");
 				loadCanLayouts();
 			}
-			user_format = Integer.parseInt(getProperty("user_format"));
+			user_format = getProperty("user_format");
 			user_display_name = getProperty("displayName");
 			
 			String crc = getOptionalProperty("hasFrameCrc");
@@ -1237,7 +1235,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
-			user_format = Integer.parseInt(getUserProperty("user_format"));
+			user_format = getUserProperty("user_format");
 			user_display_name = getUserProperty("displayName");
 
 		} catch (NumberFormatException nf) {
@@ -1400,7 +1398,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
 		user_properties.setProperty("track", Boolean.toString(user_track));
-		user_properties.setProperty("user_format", Integer.toString(user_format));
+		user_properties.setProperty("user_format", user_format);
 		
 		if (user_localServer != null) {
 			user_properties.setProperty("localServer",user_localServer);
@@ -1458,9 +1456,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	/**
 	 * This should never be called by the decoder.  This is only called by the spacecraft editor
+	 *
 	 */
 	public void save_master_params() {
 		// Store the MASTER params
+		properties = new Properties(); // clean empty file
 		// Store the values
 		properties.setProperty("foxId", String.valueOf(foxId));
 		properties.setProperty("series", String.valueOf(series));
@@ -1489,7 +1489,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 					properties.setProperty("layout"+i+".title",layout[i].title);
 				if (layout[i].shortTitle != null)
 					properties.setProperty("layout"+i+".shortTitle",layout[i].shortTitle);
-				if (layout[i].parentLayout != null)
+				if (layout[i].parentLayout != null && !layout[i].parentLayout.equalsIgnoreCase(""))
 					properties.setProperty("layout"+i+".parentLayout",layout[i].parentLayout);
 				
 			}
@@ -1533,7 +1533,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("maxFreqBoundkHz", String.valueOf(user_maxFreqBoundkHz));
 		properties.setProperty("track", String.valueOf(user_track));
 		properties.setProperty("priority", String.valueOf(user_priority));
-		properties.setProperty("user_format", String.valueOf(user_format));
+		properties.setProperty("user_format", user_format);
 		properties.setProperty("displayName", String.valueOf(user_display_name));
 
 		// Frame Layouts
@@ -1643,7 +1643,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	
 	public void saveTimeZeroSeries() throws IOException {
 
-		String log = "FOX"+ foxId + Config.t0UrlFile;
+		String log = series + foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			log = Config.logFileDirectory + File.separator + log;
 			Log.println("Loading: " + log);
@@ -1672,7 +1672,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		timeZero = new ArrayList<Long>(100);
 		String line = null;
 		if (log == null) { // then use the default
-			log = "FOX"+ foxId + Config.t0UrlFile;
+			log = series + foxId + Config.t0UrlFile;
         	if (!Config.logFileDirectory.equalsIgnoreCase("")) {
         		log = Config.logFileDirectory + File.separator + log;
         		Log.println("Loading: " + log);

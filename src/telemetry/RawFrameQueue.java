@@ -10,7 +10,7 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import javax.swing.JOptionPane;
 
 import measure.PassMeasurement;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
 import telemetry.frames.Frame;
 import telemetry.frames.SlowSpeedFrame;
 import common.Config;
@@ -66,7 +66,7 @@ public class RawFrameQueue extends RawQueue {
 		secondaryServer = new TlmServer(Config.secondaryServer, Config.serverPort, TlmServer.AUTO_CLOSE, TlmServer.WAIT_FOR_ACK);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
-		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
+		formatFrames = new ConcurrentLinkedQueue<Frame>();
 		try {
 			synchronized(this) { // lock will be load the files
 				load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
@@ -92,18 +92,18 @@ public class RawFrameQueue extends RawQueue {
 		if (f instanceof SlowSpeedFrame ) {
 				updatedSlowQueue = true;
 				save(f, RAW_SLOW_SPEED_FRAMES_FILE);
-				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
+				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.formatFrames.size());
 				return rawSlowSpeedFrames.add(f);
 			
-		} else if (f instanceof FoxBPSKFrame ) {
+		} else if (f instanceof FormatFrame ) {
 				updatedPSKQueue = true;
 				save(f, RAW_PSK_FRAMES_FILE);
-				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
-				return rawPSKFrames.add(f);
+				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
+				return formatFrames.add(f);
 		} else {
 				updatedHSQueue = true;
 				save(f, RAW_HIGH_SPEED_FRAMES_FILE);
-				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+				MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 				return rawHighSpeedFrames.add(f);
 		}		
 	}
@@ -140,7 +140,7 @@ public class RawFrameQueue extends RawQueue {
 				Log.println("ERROR: server frame queue thread interrupted");
 				e.printStackTrace(Log.getWriter());
 			} 			
-			MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+			MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 			if (Config.uploadToServer) {
 				if (!success) {
 					// We failed the last time we tried to connect, so wait until we retry
@@ -174,9 +174,9 @@ public class RawFrameQueue extends RawQueue {
 						e.printStackTrace(Log.getWriter());
 					}
 				}
-				if (rawPSKFrames.size() > 0 && success) {
-					if (!Config.passManager.inPass() || (Config.passManager.inPass() && rawPSKFrames.size() > 1))
-						success = sendFrame(rawPSKFrames, RAW_PSK_FRAMES_FILE);
+				if (formatFrames.size() > 0 && success) {
+					if (!Config.passManager.inPass() || (Config.passManager.inPass() && formatFrames.size() > 1))
+						success = sendFrame(formatFrames, RAW_PSK_FRAMES_FILE);
 					try {
 						Thread.sleep(100); // pause so that the server can keep up
 					} catch (InterruptedException e) {
@@ -243,7 +243,7 @@ public class RawFrameQueue extends RawQueue {
 						+ " The frame will be sent again.  If this error repeats you may need to remove the queue file manually");
 				e.printStackTrace(Log.getWriter());
 			}
-		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.rawPSKFrames.size());
+		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size()+ this.formatFrames.size());
 		return success; // return true if one succeeded
 	}
 }

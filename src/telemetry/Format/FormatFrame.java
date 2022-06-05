@@ -1,17 +1,19 @@
-package telemetry.FoxBPSK;
+package telemetry.Format;
 
 import common.Config;
 import common.Spacecraft;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.IOException;
+import java.util.StringTokenizer;
+
 import common.Log;
 import decoder.Crc32;
 import decoder.Decoder;
 import telemetry.BitArrayLayout;
 import telemetry.FoxPayloadStore;
 import telemetry.FramePart;
-import telemetry.TelemFormat;
 import telemetry.frames.Frame;
 import telemetry.frames.FrameLayout;
 import telemetry.frames.HighSpeedTrailer;
@@ -42,7 +44,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 	 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	 *
 	 */
-	public class FoxBPSKFrame extends Frame {
+	public class FormatFrame extends Frame {
 		
 		FrameLayout frameLayout;
 		TelemFormat telemFormat;
@@ -61,24 +63,46 @@ import telemetry.uw.PayloadWODUwExperiment;
 		 * Initialize the frame.  At this point we do not know which spacecraft it is for.  We reserve enough bytes for the header.
 		 * Once the header is decoded we can allocate the rest of the bytes for the frame
 		 */
-		public FoxBPSKFrame(TelemFormat telemFormat) {
+		public FormatFrame(TelemFormat telemFormat) {
 			super();
 			this.telemFormat = telemFormat;
 			headerLayout = telemFormat.getHeaderLayout();
 			//header = new FoxBPSKHeader(headerLayout, telemFormat);
 			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
 		}
-
-		public FoxBPSKFrame(TelemFormat telemFormat, BufferedReader input) throws IOException {
-			super(input);
-			this.telemFormat = telemFormat;
-			headerLayout = telemFormat.getHeaderLayout();
-			header = new FoxBPSKHeader(headerLayout, telemFormat);
-			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
-			load(input);
-		}
 		
-		public FoxBPSKHeader getHeader() { return (FoxBPSKHeader)header; }
+		/**
+		 * Use this constructor to load the frame from a file when the format is unknown.  The format
+		 * is then looked up from the source name
+		 * 
+		 * @param input
+		 * @throws IOException
+		 */
+		public FormatFrame(BufferedReader input) throws IOException {
+			super(input);
+			StringTokenizer st = loadStpHeader(input);
+			if (st != null) {
+				// now lookup the format from the source
+				this.telemFormat = Config.satManager.getFormatBySource(foxId, source);
+				headerLayout = telemFormat.getHeaderLayout();
+				header = new FormatHeader(headerLayout, telemFormat);
+				headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
+				loadRestOfFrame(st);
+			} else {
+				throw new IOException("Could not read Frame line from the file");
+			}
+		}
+
+//		public FormatFrame(TelemFormat telemFormat, BufferedReader input) throws IOException {
+//			super(input);
+//			this.telemFormat = telemFormat;
+//			headerLayout = telemFormat.getHeaderLayout();
+//			header = new FormatHeader(headerLayout, telemFormat);
+//			headerBytes = new byte[telemFormat.getInt(TelemFormat.HEADER_LENGTH)];
+//			load(input);
+//		}
+		
+		public FormatHeader getHeader() { return (FormatHeader)header; }
 		
 		int debugCount = 0;
 		public void addNext8Bits(byte b) {
@@ -93,7 +117,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 			if (corrupt) return;
 			if (numberBytesAdded < telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				if (header == null)
-					header = new FoxBPSKHeader(headerLayout, telemFormat);
+					header = new FormatHeader(headerLayout, telemFormat);
 				header.addNext8Bits(b);
 			} else if (numberBytesAdded == telemFormat.getInt(TelemFormat.HEADER_LENGTH)) {
 				// first non header byte
@@ -133,7 +157,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 						if (fox.hasFrameCrc && Config.calculateBPSKCrc)
 							dataBytes[k] = headerBytes[k];
 					}
-					initPayloads((FoxBPSKHeader)header, frameLayout);
+					initPayloads((FormatHeader)header, frameLayout);
 //					initPayloads(header.id, header.getType());
 					if (payload[0] == null) {
 						if (Config.debugFrames)
@@ -233,7 +257,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 		}
 		
 		@SuppressWarnings("deprecation")
-		private void initPayloads(FoxBPSKHeader header, FrameLayout frameLayout) {
+		private void initPayloads(FormatHeader header, FrameLayout frameLayout) {
 			payload = new FramePart[frameLayout.getNumberOfPayloads()];
 			for (int i=0; i<frameLayout.getNumberOfPayloads(); i+=1 ) {
 				BitArrayLayout layout = Config.satManager.getLayoutByName(header.id, frameLayout.getPayloadName(i));
@@ -346,6 +370,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 			return s;
 		}
 
+		@Override
 		public String toString() {
 			String s = new String();
 			s = s + "AMSAT FOX-1 BPSK Telemetry Captured at DATE: " + getStpDate() + "\n"; 

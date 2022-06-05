@@ -151,6 +151,10 @@ public class SatPayloadDbStore {
 			initPayloadTable(fox.layout[i].name, fox.hasModeInHeader);
 	}
 	
+	/**
+	 * Setup the legacy table names.  Do not use series from the spacecraft because
+	 * it was FOX in Capitals in the legacy spacecraft.
+	 */
 	@Deprecated private void setupLegacyTables() {
 		rtTableName = "Fox"+foxId+RT_LOG;
 		maxTableName = "Fox"+foxId+MAX_LOG;
@@ -182,7 +186,7 @@ public class SatPayloadDbStore {
 		if (fox.hasModeInHeader)
 			storeMode = true;
 
-		initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
+		//initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
 		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
 		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);

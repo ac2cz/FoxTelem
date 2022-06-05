@@ -499,4 +499,8 @@ public class BitArrayLayout {
 		return s;
 	}
 
+	public String toString() {
+		String s = name;
+		return s;
+	}
 }

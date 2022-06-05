@@ -239,7 +239,7 @@ public class FFTPanel extends JPanel implements Runnable, MouseListener {
 			avgBin = avgBin + targetBin;
 			avgNum++;
 			
-			if (iqSource.getMode() == SourceIQ.MODE_PSK_NC || iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS) {
+			if (iqSource.getFormat().isBPSK()) {
 				TUNE_THRESHOLD = 10; // 30 = 1 second 55 = 1.5 second to average over - less chance we jump away between or prev sample and the signal if sho
 //				if (Config.passManager.getState() == PassManager.FADED) 
 					//tuneDelay = 0; // dont tune

@@ -18,6 +18,7 @@ import java.util.Properties;
 
 import javax.swing.JOptionPane;
 
+import decoder.FoxFskDecoder;
 import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
 import telemetry.PayloadStore;
@@ -68,8 +69,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.12w1";
-	public static String VERSION = VERSION_NUM + " - 30 Mar 2022";
+	public static String VERSION_NUM = "1.12x";
+	public static String VERSION = VERSION_NUM + " - 19 May 2022";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
@@ -163,8 +164,8 @@ public class Config {
 	static public boolean realTimePlaybackOfFile = false;
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
-    public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
-    public static int format = SourceTab.FORMAT_FSK_DUV; 
+ //   public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
+    public static String format = FoxFskDecoder.DUV_FSK; //SourceTab.FORMAT_FSK_DUV; 
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -652,7 +653,7 @@ public class Config {
 		properties.setProperty("realTimePlaybackOfFile", Boolean.toString(realTimePlaybackOfFile));
 		properties.setProperty("useFilterNumber", Integer.toString(useFilterNumber));
 		properties.setProperty("useLeftStereoChannel", Boolean.toString(useLeftStereoChannel));
-		properties.setProperty("highSpeed", Integer.toString(mode));
+//		properties.setProperty("highSpeed", Integer.toString(mode));
 		properties.setProperty("iq", Boolean.toString(iq));
 		properties.setProperty("eliminateDC", Boolean.toString(eliminateDC));
 		properties.setProperty("viewFilteredAudio", Boolean.toString(viewFilteredAudio));
@@ -778,7 +779,7 @@ public class Config {
 		
 		// V1.09
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
-		properties.setProperty("format", Integer.toString(format));
+		properties.setProperty("format", format);
 		properties.setProperty("use12kHzIfForBPSK", Boolean.toString(use12kHzIfForBPSK));
 		
 		
@@ -956,7 +957,7 @@ public class Config {
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
-		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
+//		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
@@ -987,7 +988,7 @@ public class Config {
 		
 		// V1.09
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
-		format = Integer.parseInt(getProperty("format"));
+		format = getProperty("format");
 		use12kHzIfForBPSK = Boolean.parseBoolean(getProperty("use12kHzIfForBPSK"));
 		
 		// V1.10

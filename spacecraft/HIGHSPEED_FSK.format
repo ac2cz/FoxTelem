@@ -1,0 +1,12 @@
+name=FSK 9600bps (Fox)
+mode=FSK
+bps=9600
+frame_length=5272
+data_length=4600
+header_length=6
+header_layout_file=DUV_header.csv
+trailer_length=672
+word_length=10
+sync_word_length=10
+rs_words=21
+rs_padding=3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4

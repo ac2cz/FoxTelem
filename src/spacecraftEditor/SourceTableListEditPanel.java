@@ -18,11 +18,16 @@ import spacecraftEditor.listEditors.CsvTableModel;
 import spacecraftEditor.listEditors.ListTableModel;
 import spacecraftEditor.listEditors.TableListEditPanel;
 import telemetry.LayoutLoadException;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 
 public class SourceTableListEditPanel extends TableListEditPanel {
 	private static final long serialVersionUID = 1L;
-	JPanel leftSourcesPanel, sourceStats;
+	JPanel sourceFormatDetails, sourceStats;
+	JLabel labFrameLen;
+	JLabel labHeaderLen;
+	JLabel labDataLen;
+	JLabel labRSWords;
+	JLabel labTrailerLen;
 	
 	public SourceTableListEditPanel(Spacecraft sat, String title, ListTableModel listTableModel,
 			CsvTableModel csvTableModel, SpacecraftEditPanel parent) {
@@ -30,16 +35,18 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		txtFilename.setEditable(true);
 		lFilename.setText("Format");
 		
-		leftSourcesPanel = new JPanel();
-		leftPanel.add(leftSourcesPanel);
+		leftPanel.setLayout(new BoxLayout(leftPanel, BoxLayout.Y_AXIS));
+		
+		sourceFormatDetails = new JPanel();
+		leftPanel.add(sourceFormatDetails);
 		TitledBorder headingSources = SpacecraftEditPanel.title("Format Details");
-		leftSourcesPanel.setBorder(headingSources);
-		leftSourcesPanel.setLayout(new BorderLayout());
+		sourceFormatDetails.setBorder(headingSources);
+		sourceFormatDetails.setLayout(new BorderLayout());
 
-		sourceStats = new JPanel();
-		leftPanel.add(sourceStats, BorderLayout.SOUTH);
+		sourceStats = new JPanel(); // This holds the list of stats
+		leftPanel.add(sourceFormatDetails);
 		sourceStats.setLayout(new BoxLayout(sourceStats, BoxLayout.Y_AXIS));
-		leftSourcesPanel.add(sourceStats, BorderLayout.SOUTH);
+		sourceFormatDetails.add(sourceStats, BorderLayout.NORTH);
 
 		labFrameLen = new JLabel();
 		labHeaderLen = new JLabel();
@@ -80,7 +87,7 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		try {
 			@SuppressWarnings("unused")
 			TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + fileName);
-			txtFilename.setText(fileName);
+			txtFilename.setText(tmpFormat.name);
 		} catch (LayoutLoadException e) {
 			Log.errorDialog("ERROR", "Can not parse the format from format file: \n" + fileName + "\n" + e);
 		}
@@ -98,7 +105,7 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 			else
 				dataToAdd[1] ="NONE";
 			if (sat.sourceFormatName != null && sat.sourceFormatName[i] != null) 
-				dataToAdd[2] = sat.sourceFormatName[i]+ ".format";
+				dataToAdd[2] = sat.sourceFormatName[i];
 			else
 				dataToAdd[2] ="NONE";
 			dataLines.add(dataToAdd);
@@ -115,9 +122,8 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 			if (dataLines.get(j)[1] == null) {
 				sat.sourceName[j] = null;
 			} else {
-				TelemFormat tmpFormat = new TelemFormat(Config.currentDir + File.separator + "spacecraft" + File.separator + dataLines.get(j)[2]);
-				sat.sourceFormat[j] = tmpFormat;
-				sat.sourceFormatName[j] = tmpFormat.name;
+				sat.sourceFormat[j] = Config.satManager.getFormatByName(dataLines.get(j)[2]);
+				sat.sourceFormatName[j] = dataLines.get(j)[2];
 				sat.sourceName[j] = dataLines.get(j)[1];
 			}
 		}
@@ -151,11 +157,11 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 					if (sat.sourceFormat == null || sat.sourceFormat[row] == null) return; // no format here
 					System.out.println("Edit:" + sat.sourceFormat[row]);
 	//				sourceFormatSelected = row;
-					if (e.getClickCount() == 2) {
-						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
-						TextEditorFrame editor = new TextEditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row]+".format");
-						editor.setVisible(true);
-					}
+//					if (e.getClickCount() == 2) {
+//						String masterFolder = Config.currentDir + File.separator + Spacecraft.SPACECRAFT_DIR;
+//						TextEditorFrame editor = new TextEditorFrame(sat, masterFolder + File.separator + sat.sourceFormatName[row]+".format");
+//						editor.setVisible(true);
+//					}
 
 					updateSourceStats(row);
 				}
@@ -164,11 +170,6 @@ public class SourceTableListEditPanel extends TableListEditPanel {
 		
 	}
 	
-	JLabel labFrameLen;
-	JLabel labHeaderLen;
-	JLabel labDataLen;
-	JLabel labRSWords;
-	JLabel labTrailerLen;
 	private void updateSourceStats(int row) {
 		if (sat.sourceFormat == null) return;
 		if (sat.sourceFormat.length == 0) return;

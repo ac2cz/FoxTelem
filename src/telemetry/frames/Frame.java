@@ -22,8 +22,8 @@ import telemServer.StpFileRsDecodeException;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
-import telemetry.TelemFormat;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
+import telemetry.Format.TelemFormat;
 import telemetry.herci.PayloadHERCIhighSpeed;
 import telemetry.legacyPayloads.PayloadCameraData;
 import telemetry.legacyPayloads.PayloadRadExpData;
@@ -106,7 +106,7 @@ public abstract class Frame implements Comparable<Frame> {
 									// the user. May vary over life of program
 									// usage, so stored
 	private String frequency = NONE; // frequency when this frame received
-	private String source; // The frame source subsystem
+	protected String source; // The frame source subsystem
 	private String length; // The frame length in bytes
 	public String rx_location = NONE; // the lat, long and altitude
 	public String receiver_rf = NONE; // human description of the receiver
@@ -414,7 +414,8 @@ public abstract class Frame implements Comparable<Frame> {
 			output.write(Integer.toString(bytes[i]) + ",");
 		output.write(Integer.toString(bytes[bytes.length - 1]) + "\n");
 	}
-	
+
+	// TODO - this is a duplicate of the code in ServerProcess run, which checks the STP header.  They should be combined.
 	/**
 	 * Static factory method that creates a frame from a file
 	 * 
@@ -443,7 +444,7 @@ public abstract class Frame implements Comparable<Frame> {
 		String receiver = null;
 		Date stpDate = null;
 		String frequency = NONE; // frequency when this frame received
-		//String source; // The frame source subsystem
+		String source = null; // The frame source subsystem
 		String rx_location = NONE; // the lat, long and altitude
 		String receiver_rf = NONE; // human description of the receiver
 		String demodulator = null; // will contain Config.VERSION
@@ -469,7 +470,7 @@ public abstract class Frame implements Comparable<Frame> {
 				}
 				if ( (c == 13 || c == 10)) { // CR or LF
 					c = in.read(); // consume the lf
-					if ((length == DUV_FRAME_LEN || length == HIGH_SPEED_FRAME_LEN || length == PSK_FRAME_LEN) && lineLen == 1) {
+					if ((length != 0) && lineLen == 1) {
 						// then we are ready to process
 						rawFrame = new byte[length/8];
 						for (int i=0; i<length/8; i++) {
@@ -485,6 +486,10 @@ public abstract class Frame implements Comparable<Frame> {
 						}
 						if (key.equalsIgnoreCase("Receiver")) {
 							receiver = value;
+							//                		System.out.println(key + " " + value);
+						}
+						if (key.equalsIgnoreCase("Source")) {
+							source = value;
 							//                		System.out.println(key + " " + value);
 						}
 						if (key.equalsIgnoreCase("Frequency")) {
@@ -558,14 +563,21 @@ public abstract class Frame implements Comparable<Frame> {
 
 		// Let's really check it is OK by running the RS decode!
 
+		TelemFormat format = null;
 		byte[] frame = null;
 		Frame frm;
 		if (length == DUV_FRAME_LEN) {
 			frm = new SlowSpeedFrame();
-		} else if (length == PSK_FRAME_LEN){
-			frm = new FoxBPSKFrame(Config.satManager.getFormatByName("FOX_BPSK")); // TO DO - hard coded the format. We should lookup from the length
-		} else {
+		} else if (length == HIGH_SPEED_FRAME_LEN) {
 			frm = new HighSpeedFrame();
+		} else {
+			if (source == null) 
+				throw new StpFileProcessException(fileName, "ERROR: Could not decode the source from STP File Header: " + fileName);
+			format = Config.satManager.getFormatBySource(source);
+			if (format == null) 
+				throw new StpFileProcessException(fileName, "ERROR: Don't understand source: " + source + " STP file not processed: " + fileName);
+			frm = new FormatFrame(format); 
+
 		}
 
 		if (rerunRsDecode) {
@@ -578,20 +590,6 @@ public abstract class Frame implements Comparable<Frame> {
 						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED RS DECODE " + fileName);
 					}
 				}
-			} else if(length == PSK_FRAME_LEN) {
-				// High Speed Frame
-				// Log.println("RS Decode for: " + length/8 + " byte frame..");
-				TelemFormat format = Config.satManager.getFormatByName("FOX_BPSK");
-				int[] rsPadding = format.getPaddingArray();
-//				rsPadding[0] = 64;
-//				rsPadding[1] = 64;
-//				rsPadding[2] = 65;
-				if (ServerConfig.highSpeedRsDecode)
-					// TODO - This should be looked up from the FoxId and the frameLayout for the sat
-					if (!highSpeedRsDecode(476, rsPadding.length, rsPadding, rawFrame, demodulator)) {
-						Log.println("BPSK RS Decode Failed");
-						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED BPSK RS DECODE " + fileName);
-					}
 			} else if(length == HIGH_SPEED_FRAME_LEN) {
 				// High Speed Frame
 				// Log.println("RS Decode for: " + length/8 + " byte frame..");
@@ -599,6 +597,20 @@ public abstract class Frame implements Comparable<Frame> {
 					if (!highSpeedRsDecode(HighSpeedFrame.MAX_FRAME_SIZE, HighSpeedBitStream.NUMBER_OF_RS_CODEWORDS, HighSpeedBitStream.RS_PADDING, rawFrame, demodulator)) {
 						Log.println("HIGH SPEED RS Decode Failed");
 						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED HIGH SPEED RS DECODE " + fileName);
+			
+			} else {
+				// Format Frame
+				// Log.println("RS Decode for: " + length/8 + " byte frame..");
+				int[] rsPadding = format.getPaddingArray();
+//				rsPadding[0] = 64;
+//				rsPadding[1] = 64;
+//				rsPadding[2] = 65;
+				if (ServerConfig.highSpeedRsDecode)
+					// TODO - This should be looked up from the FoxId and the frameLayout for the sat
+					if (!highSpeedRsDecode(format.getInt(TelemFormat.DATA_LENGTH), rsPadding.length, rsPadding, rawFrame, demodulator)) {
+						Log.println("Format Frame RS Decode Failed");
+						throw new StpFileRsDecodeException(fileName, "ERROR: FAILED Format Frame RS DECODE " + fileName);
+					}
 					}
 			}
 		}
@@ -730,8 +742,8 @@ public abstract class Frame implements Comparable<Frame> {
 					if (!payloadStore.add(header.getFoxId(), header.getUptime(), header.getResets(), payload))
 						throw new StpFileProcessException(f.getName(), "Failed to process file: Could not add DUV record to database");
 					//duvFrames++;
-				} else if (decodedFrame instanceof FoxBPSKFrame) {
-					FoxBPSKFrame hsf = (FoxBPSKFrame)decodedFrame;
+				} else if (decodedFrame instanceof FormatFrame) {
+					FormatFrame hsf = (FormatFrame)decodedFrame;
 					Spacecraft fox =  Config.satManager.getSpacecraft(hsf.header.id);
 					int newReset = hsf.header.resets; // this will be updated with the reset for HuskySat as the MRAM is broken
 					if (hsf.header.id == 6) { // better if this was not hardcoded and was in the spacecraft file
@@ -879,6 +891,34 @@ public abstract class Frame implements Comparable<Frame> {
 		
 	}
 	
+	public StringTokenizer loadStpHeader(BufferedReader input) throws IOException {
+		String line = input.readLine();
+		if (line != null) {
+			StringTokenizer st = new StringTokenizer(line, ",");
+			sequenceNumber = Long.parseLong(st.nextToken());
+			foxId = Integer.parseInt(st.nextToken());
+			source = insertComma(st.nextToken());
+			receiver = insertComma(st.nextToken());
+			frequency = insertComma(st.nextToken());
+			rx_location = insertComma(st.nextToken());
+			receiver_rf = insertComma(st.nextToken());
+			demodulator = insertComma(st.nextToken());
+			stpDate = new Date(Long.parseLong(st.nextToken()));
+			length = st.nextToken();
+			return st;
+		}
+		return null;
+	}
+	
+	public void loadRestOfFrame(StringTokenizer st) throws IOException {
+		while (st.hasMoreTokens()) {
+			//bytes[i] = (byte) Integer.parseInt(st.nextToken());
+			this.addNext8Bits((byte) Integer.parseInt(st.nextToken()));
+			// System.out.println("loaded: " + i + " - " + bytes[i]);
+		}
+	}
+	
+	//TODO - this should be the combination of the two methods above
 	public void load(BufferedReader input) throws IOException {
 		
 		String line = input.readLine();
@@ -907,32 +947,6 @@ public abstract class Frame implements Comparable<Frame> {
 		// send it to the amsat server. This only needs the raw bytes
 	}
 
-	/**
-	 * Send this frame to the amsat server "hostname" on "port" for storage. It
-	 * is sent by the queue so there is no need for this routine to remove the
-	 * record from the queue
-	 * 
-	 * @param hostName
-	 * @param port
-	 */
-//	public void sendToServer_DEPRECIATED(TlmServer tlmServer, int protocol)
-//			throws UnknownHostException, IOException {
-//		String header = getSTPCoreHeader();
-//		header = header + getSTPExtendedHeader();
-//		header = header + "\r\n";
-//		byte[] headerBytes = header.getBytes();
-//
-//		int j = 0;
-//		byte[] buffer = new byte[headerBytes.length + bytes.length];
-//		for (byte b : headerBytes)
-//			buffer[j++] = b;
-//		for (byte b : bytes)
-//			buffer[j++] = b;
-//
-//		tlmServer.sendToServer(buffer, protocol);
-//		if (Config.debugFrames)
-//			Log.println(header);
-//	}
 
 	/**
 	 * Get the bytes from this frame so they can be sent to a server

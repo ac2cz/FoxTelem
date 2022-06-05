@@ -117,11 +117,12 @@ public class UpdateManager implements Runnable {
 	}
 		
 	public void updateT0(Spacecraft sat) {
-		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
-		String file = "FOX" + sat.foxId + Config.t0UrlFile;
+		String urlString = Config.t0UrlPath + sat.series + sat.foxId + Config.t0UrlFile;
+		String file = sat.series + sat.foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + "FOX" + sat.foxId + Config.t0UrlFile;			
+			file = Config.logFileDirectory + File.separator + file;			
 		}
+		Log.println("Trying to download: " + urlString);
 		URL website;
 		FileOutputStream fos = null;
 		ReadableByteChannel rbc = null;

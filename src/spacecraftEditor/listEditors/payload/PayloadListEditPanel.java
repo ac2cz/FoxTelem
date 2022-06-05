@@ -72,7 +72,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	
 	JComboBox<String> payloadType;
 	JButton btnAddPayload, btnRemovePayload,btnBrowsePayload,btnUpdatePayload, btnGeneratePayload;
-	JTextField payloadFilename,payloadName, tabName, title;
+	JTextField payloadFilename,payloadName, tabName, title, parentPayload;
 	JTextArea codeTextArea;
 	FoxTelemTab modulesTab;
 	
@@ -110,6 +110,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layout[j].typeStr = (String)layoutsListTableModel.getValueAt(j,3);
 				sat.layout[j].shortTitle = (String)layoutsListTableModel.getValueAt(j,4);
 				sat.layout[j].title = (String)layoutsListTableModel.getValueAt(j,5);
+				sat.layout[j].parentLayout = (String)layoutsListTableModel.getValueAt(j,6);
 			}
 		}
 		
@@ -139,6 +140,10 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				data[i][5] = ""+sat.layout[i].title;
 			else
 				data[i][5] = "";
+			if (sat.layout[i].parentLayout != null)
+				data[i][6] = ""+sat.layout[i].parentLayout;
+			else
+				data[i][6] = "";
 
 		}
 		if (sat.numberOfLayouts > 0) 
@@ -188,10 +193,11 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		column = payloadsTable.getColumnModel().getColumn(3);
 		column.setPreferredWidth(40);
 		
-		// Don't display the last two columns, though we store the data
+		// Don't display the last three columns, though we store the data
 		TableColumnModel tcm = payloadsTable.getColumnModel();
 		tcm.removeColumn( tcm.getColumn(4) );
 		tcm.removeColumn( tcm.getColumn(4) ); // 5 is now 4!
+		tcm.removeColumn( tcm.getColumn(4) ); // 6 is now 4!
 
 		payloadsTable.addMouseListener(this);
 		
@@ -280,6 +286,14 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		f15.add(tabName);
 		footerPanelRow15.add(f15);
 
+		JPanel f35 = new JPanel();
+		f35.setLayout(new BoxLayout(f35, BoxLayout.Y_AXIS) );
+		JLabel lf35 = new JLabel("Parent");
+		parentPayload = new JTextField();
+		f35.add(lf35);
+		f35.add(parentPayload);
+		footerPanelRow15.add(f35);
+		
 		JPanel f25 = new JPanel();
 		f25.setLayout(new BoxLayout(f25, BoxLayout.Y_AXIS) );
 		JLabel lf25 = new JLabel("Title");
@@ -366,6 +380,10 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			title.setText(sat.layout[row].title);
 		else
 			title.setText("");
+		if (sat.layout[row].parentLayout != null)
+			parentPayload.setText(sat.layout[row].parentLayout);
+		else
+			parentPayload.setText("");
 		
 		payloadCsvFileEditPanel.setFile(sat.layoutFilename[row]);
 		
@@ -454,6 +472,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			newLayouts[sat.numberOfLayouts].name = payloadName.getText();
 			newLayouts[sat.numberOfLayouts].shortTitle = tabName.getText();
 			newLayouts[sat.numberOfLayouts].title = title.getText();
+			newLayouts[sat.numberOfLayouts].parentLayout = parentPayload.getText();
 			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
 			for (int i=0; i < sat.numberOfLayouts; i++) {
 				newLayouts[i] = sat.layout[i];
@@ -597,6 +616,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layout[row].name = payloadName.getText();
 				sat.layout[row].shortTitle = tabName.getText();
 				sat.layout[row].title = title.getText();
+				sat.layout[row].parentLayout = parentPayload.getText();
 				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
 				// First load the updated sat values into the table
 				loadPayloadsListTable();

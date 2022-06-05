@@ -1,4 +1,4 @@
-name=LTM_BPSK
+name=BPSK 1200bps (LTM)
 mode=BPSK
 bps=1200
 frame_length=765

@@ -33,7 +33,7 @@ import common.Log;
 import common.Spacecraft;
 import gui.SourceTab;
 import spacecraftEditor.listEditors.CsvTableModel;
-import telemetry.TelemFormat;
+import telemetry.Format.TelemFormat;
 import common.Config;
 
 /**
@@ -72,7 +72,7 @@ import common.Config;
 public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemListener, FocusListener, MouseListener {
 
 	JTextField id, displayName;
-	JTextField name;
+	JTextField name, series;
 	JComboBox<String> priority, layoutType;
 	JTextField telemetryDownlinkFreqkHz;
 	JTextField minFreqBoundkHz;
@@ -175,6 +175,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		displayName = addSettingsRow(titlePanel1, 15, "Display Name", 
 				"This name is use used as a label on Graphs and Tabs", ""+sat.user_display_name);
 
+		series = addSettingsRow(titlePanel1,8, "Series", 
+				"This name is used as the prefix for saved files in FOXDB and elsewhere", ""+sat.series);
+
 		hasFOXDB_V3 = addCheckBoxRow("Use V3 Telem Database (recommended)", "This is true for all new spacecraft", sat.hasFOXDB_V3, titlePanel1 );
 		hasFOXDB_V3.setEnabled(false);
 		useConversionCoeffs = addCheckBoxRow("Use conversion coefficients (recommended)", "This is true for all new spacecraft", sat.useConversionCoeffs, titlePanel1 );
@@ -184,7 +187,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading9 = title("Description");
 		descPanel.setBorder(heading9);
 
-		taDesc = new JTextArea(6, 45);
+		taDesc = new JTextArea(7, 45);
 		taDesc.setText(sat.description);
 		taDesc.setLineWrap(true);
 		taDesc.setWrapStyleWord(true);
@@ -208,14 +211,14 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 		leftSourcesPanel = new JPanel();
 		leftPanel.add(leftSourcesPanel);
-		TitledBorder headingSources = title("Sources");
+		TitledBorder headingSources = title("Sources and Formats");
 		leftSourcesPanel.setBorder(headingSources);
-		leftSourcesPanel.setLayout(new BorderLayout());
+		leftSourcesPanel.setLayout(new BoxLayout(leftSourcesPanel, BoxLayout.X_AXIS));
 
 		SourcesTableModel sourcesListTableModel = new SourcesTableModel();
 		CsvTableModel sourceTableModel = new SourcesTableModel();
 		SourceTableListEditPanel sourceTableListEditPanel = new SourceTableListEditPanel(sat, "Sources", sourcesListTableModel, sourceTableModel, this);
-		leftSourcesPanel.add(sourceTableListEditPanel, BorderLayout.CENTER);
+		leftSourcesPanel.add(sourceTableListEditPanel);
 		
 //		sourcesTable = new JTable(sourcesTableModel);
 //		sourcesTable.setAutoCreateRowSorter(true);
@@ -244,7 +247,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 		//leftSourcesPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
-		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,100), new Dimension(100,500)));
+	//	leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,100), new Dimension(100,500)));
 
 		return leftPanel;
 
@@ -275,7 +278,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		hasModeInHeader = addCheckBoxRow("Mode in header", "Every recevied frame will include the mode in the header", sat.hasModeInHeader, leftFixedPanel );
 		hasFrameCrc = addCheckBoxRow("Frame CRC", "The last two bytes of the (BPSK) frame contain a CRC checksum", sat.hasFrameCrc, leftFixedPanel );
 		hasImprovedCommandReceiver = addCheckBoxRow("Improved Command Receiver", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiver, leftFixedPanel );
-		hasImprovedCommandReceiverII = addCheckBoxRow("Improved Command Receiver II", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiverII, leftFixedPanel );
+		hasImprovedCommandReceiverII = addCheckBoxRow("Improved Command Receiver II", "Set to true if this has Version 2 of the Improved Command Receiver", sat.hasImprovedCommandReceiverII, leftFixedPanel );
 
 		//JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
 		//leftFixedPanel.add(icr);
@@ -285,7 +288,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		for (int i=0; i<4; i++) {
 			//lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			//leftFixedPanel.add(lExp[i]);
-			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "", Spacecraft.expNames);
+			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "This information was important to set FoxTelem decoder features for legacy spacecraft.  Now this is just for information.", Spacecraft.expNames);
 			setSelection(cbExperiments[i], Spacecraft.expNames, Spacecraft.expNames[sat.experiments[i]]);
 			
 		}
@@ -299,8 +302,8 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		TitledBorder heading4 = title("Frequency and Tracking");
 		leftPane1.setBorder(heading4);
 
-		cbMode = this.addComboBoxRow(leftPane1, "Mode", "", SourceTab.formats);
-		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
+		cbMode = this.addComboBoxRow(leftPane1, "Default Format", "The default format to use when FoxTelem is in auto start mode.  The user can override this.", Config.satManager.getFormats());
+		cbMode.setSelectedItem(sat.user_format);
 
 		telemetryDownlinkFreqkHz = addSettingsRow(leftPane1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
@@ -499,7 +502,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 				Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
 				dispose = false;
 			}
-			int m = cbMode.getSelectedIndex();
+			String m = (String)cbMode.getSelectedItem();
 			sat.user_format = m;
 
 			if (!sat.hasFOXDB_V3) {
@@ -537,6 +540,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
 					refreshTabs = true;
 				}
+			}
+			if (!sat.series.equalsIgnoreCase(series.getText())) {
+				sat.series = series.getText();
 			}
 			if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
 				sat.user_keps_name = name.getText();

@@ -1,6 +1,5 @@
 #AMSAT Spacecraft Properties
-#Wed Apr 27 13:45:00 EDT 2022
-BATTERY_CURRENT_ZERO=-1.834
+#Thu Apr 28 15:54:16 EDT 2022
 EXP1=1
 EXP2=10
 EXP3=0
@@ -106,8 +105,6 @@ lookupTable2=IHU_TEMP
 lookupTable2.filename=HUSKY_SAT_ihutempSN22.tab
 lookupTable3=HUSKY_ISIS_ANT_TEMP
 lookupTable3.filename=HUSKY_isisAntTemp.tab
-lookupTable4=IHU_ADC
-lookupTable4.filename=GOLF-T_LihuAdcSN32.csv
 maxFreqBoundkHz=435810.0
 measurementsFileName=measurements.csv
 minFreqBoundkHz=435790.0
@@ -123,9 +120,9 @@ numberOfStringLookupTables=8
 passMeasurementsFileName=passmeasurements.csv
 priority=1
 series=Golf
-source0.formatName=GOLF_BPSK
+source0.formatName=BPSK 1200bps (Golf)
 source0.name=amsat.golf-t.lihu.bpsk
-source1.formatName=GOLF_BPSK
+source1.formatName=BPSK 1200bps (Golf)
 source1.name=amsat.golf-t.rtihu.bpsk
 stringLookupTable0=STATUS_ENABLED
 stringLookupTable0.filename=status_enabled.tab
@@ -147,4 +144,4 @@ telemetryDownlinkFreqkHz=435800.0
 track=false
 useConversionCoeffs=true
 useIHUVBatt=false
-user_format=4
+user_format=BPSK 1200bps (Golf)
