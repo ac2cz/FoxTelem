@@ -748,7 +748,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		group.add(pskFoxBpsk);
 //		group.add(pskGolfBpsk);
 		
-		setupFormat();
+//		setupFormat();
+		// Default the format selection, but first check that the saved value is valid as the legacy values no longer work
+		selectedFormat = Config.satManager.getFormatByName(Config.format);
+		if (selectedFormat == null) {
+			Config.format = FoxFskDecoder.DUV_FSK;
+			selectedFormat = Config.satManager.getFormatByName(Config.format);
+			Config.save();
+		} 
+		cbFormat.setSelectedItem(Config.format);
 		
 		JPanel centerPanel = new JPanel();		
 		leftPanel.add(centerPanel, BorderLayout.CENTER);	
@@ -1032,42 +1040,9 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		return btn;
 	}
 
-	public void setupFormat() {
-		cbFormat.setSelectedItem(Config.format);
-		
-//		if (Config.format == FORMAT_FSK_AUTO) {
-////			auto.setSelected(true);
-////			enableFilters(true);
-//			Config.mode = SourceIQ.MODE_FSK_AUTO;
-//			Config.save();
-//		} else if (Config.format == FORMAT_FSK_HS) {
-////			highSpeed.setSelected(true);
-////			enableFilters(false);
-//			Config.mode = SourceIQ.MODE_FSK_HS;
-//			Config.save();
-//		} else if (Config.format == FORMAT_FSK_DUV){
-////			lowSpeed.setSelected(true);
-////			enableFilters(true);
-//			Config.mode = SourceIQ.MODE_FSK_DUV;
-//			Config.save();
-//		} else if (Config.format == FORMAT_PSK_FOX ){
-////			pskFoxBpsk.setSelected(true);
-////			enableFilters(false);
-//			if (Config.useCostas)
-//				Config.mode = SourceIQ.MODE_PSK_COSTAS;
-//			else
-//				Config.mode = SourceIQ.MODE_PSK_NC;
-//			Config.save();
-//		} else if (Config.format == FORMAT_PSK_GOLF){
-////			pskGolfBpsk.setSelected(true);
-////			enableFilters(false);
-//			if (Config.useCostas)
-//				Config.mode = SourceIQ.MODE_PSK_COSTAS;
-//			else
-//				Config.mode = SourceIQ.MODE_PSK_NC;
-//			Config.save();
-//		}
-	}
+//	public void setupFormat() {
+//		
+//	}
 	
 	private JRadioButton addRadioButton(String name, JPanel panel) {
 		JRadioButton radioButton = new JRadioButton(name);
@@ -1260,7 +1235,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			// store the value so it is saved if we exit
 			Config.format = (String) cbFormat.getSelectedItem();
 			selectedFormat = Config.satManager.getFormatByName(Config.format);
-			setupFormat();
+			//cbFormat.setSelectedItem(Config.format);
 			Config.save();
 		}
 		
