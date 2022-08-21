@@ -748,15 +748,8 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 //		group.add(pskFoxBpsk);
 //		group.add(pskGolfBpsk);
 		
-//		setupFormat();
-		// Default the format selection, but first check that the saved value is valid as the legacy values no longer work
-		selectedFormat = Config.satManager.getFormatByName(Config.format);
-		if (selectedFormat == null) {
-			Config.format = FoxFskDecoder.DUV_FSK;
-			selectedFormat = Config.satManager.getFormatByName(Config.format);
-			Config.save();
-		} 
-		cbFormat.setSelectedItem(Config.format);
+		setupFormat();
+
 		
 		JPanel centerPanel = new JPanel();		
 		leftPanel.add(centerPanel, BorderLayout.CENTER);	
@@ -1040,9 +1033,16 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		return btn;
 	}
 
-//	public void setupFormat() {
-//		
-//	}
+	public void setupFormat() {
+		// Default the format selection, but first check that the saved value is valid as the legacy values no longer work
+		selectedFormat = Config.satManager.getFormatByName(Config.format);
+		if (selectedFormat == null) {
+			Config.format = FoxFskDecoder.DUV_FSK;
+			selectedFormat = Config.satManager.getFormatByName(Config.format);
+			Config.save();
+		} 
+		cbFormat.setSelectedItem(Config.format);		
+	}
 	
 	private JRadioButton addRadioButton(String name, JPanel panel) {
 		JRadioButton radioButton = new JRadioButton(name);
