@@ -409,7 +409,7 @@ public class SourceIQ extends SourceAudio {
 		
 			
 		if (format.isBPSK()) {		
-			setFilterWidth(800); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
+			setFilterWidth(5000); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
 			ht = new HilbertTransform(AF_SAMPLE_RATE, 255); // audio bandwidth and length
 			delay = new Delay((255-1)/2);
 		} else if (format.getInt(TelemFormat.BPS) == 9600) {
