@@ -1,4 +1,4 @@
-name=FSK 9600bps (Fox)
+name=FSK 9600bps (Fox1)
 mode=FSK
 bps=9600
 frame_length=5272

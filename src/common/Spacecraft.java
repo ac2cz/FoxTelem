@@ -1235,7 +1235,12 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
-			user_format = getUserProperty("user_format");
+			String tmp_user_format = getUserProperty("user_format");
+			// Make sure this is a valid format, otherwise we stay with the value from the MASTER file.  Needed to cope with invalid legacy formats
+			TelemFormat selectedFormat = this.satManager.getFormatByName(Config.format);
+			if (selectedFormat != null) {
+				user_format = tmp_user_format;
+			}
 			user_display_name = getUserProperty("displayName");
 
 		} catch (NumberFormatException nf) {

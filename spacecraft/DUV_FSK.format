@@ -1,4 +1,4 @@
-name=FSK 200bps (DUV)
+name=FSK 200bps (Fox1)
 mode=FSK
 bps=200
 frame_length=96
