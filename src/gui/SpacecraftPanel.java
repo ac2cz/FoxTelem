@@ -252,38 +252,41 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		rightPanel.add(rightPanel2);
 		rightPanel2.setLayout(new BoxLayout(rightPanel2, BoxLayout.Y_AXIS));
 		
-		TitledBorder heading3 = title("Calibration");
-		rightPanel2.setBorder(heading3);
 
-		BATTERY_CURRENT_ZERO = addSettingsRow(rightPanel2, 25, "Battery Current Zero", 
-				"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
+		if (!sat.hasFOXDB_V3) {  // These are legacy settings
+			TitledBorder heading3 = title("Calibration");
+			rightPanel2.setBorder(heading3);
 
-		rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
-				"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
-		ihuTempLookUpTableFileName = addSettingsRow(rightPanel2, 25, "IHU Temp Lookup Table", 
-				"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
-		ihuVBattLookUpTableFileName = addSettingsRow(rightPanel2, 25, "VBatt Lookup Table", 
-				"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
-	
-		rssiLookUpTableFileName.setEnabled(false);
-		ihuTempLookUpTableFileName.setEnabled(false);
-		ihuVBattLookUpTableFileName .setEnabled(false);
-		
-		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
-				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
-		if (sat.hasMpptSettings) {
-			mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
-					"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
-			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
-					"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
-		}
-		if (sat.hasMemsRestValues) {
-			memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
-					"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
-			memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
-					"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
-			memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
-					"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
+			BATTERY_CURRENT_ZERO = addSettingsRow(rightPanel2, 25, "Battery Current Zero", 
+					"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
+
+			rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
+					"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
+			ihuTempLookUpTableFileName = addSettingsRow(rightPanel2, 25, "IHU Temp Lookup Table", 
+					"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
+			ihuVBattLookUpTableFileName = addSettingsRow(rightPanel2, 25, "VBatt Lookup Table", 
+					"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
+
+			rssiLookUpTableFileName.setEnabled(false);
+			ihuTempLookUpTableFileName.setEnabled(false);
+			ihuVBattLookUpTableFileName .setEnabled(false);
+
+			useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
+					+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
+			if (sat.hasMpptSettings) {
+				mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
+						"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
+				mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
+						"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
+			}
+			if (sat.hasMemsRestValues) {
+				memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
+						"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
+				memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
+						"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
+				memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
+						"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
+			}
 		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 

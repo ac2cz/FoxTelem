@@ -15,13 +15,16 @@ import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.NoSuchElementException;
 import java.util.Properties;
 import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
+import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.Vector;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -209,6 +212,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public static final int EXP_VANDERBILT_LEPF = 8; // This is the controller and does not have its own telem file
 	public static final int EXP_UW = 9; // University of Washington
 	public static final int RAG_ADAC = 10; // Ragnaroc
+	public static final int LBAND_DOWNSHIFTER = 11; // Downshifter
+	public static final int UMAINE_CAMERA = 11; // University of Maine MESAT-1 Camera
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
@@ -246,7 +251,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		"Vanderbilt LEPF",
 		"CAN Packet Interface",
 		"Ragnaroc ADAC",
-		"L-Band Downshifter"
+		"L-Band Downshifter",
+		"University of Maine Camera"
 	};
 	
 	
@@ -1427,10 +1433,50 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		store_user_params();
 	}
 	
+	public class SortedProperties extends Properties {
+
+	    /**
+	     * constructor
+	     *
+	     * @param unsortedProperties
+	     */
+	    public SortedProperties(Properties unsortedProperties) {
+	        putAll(unsortedProperties);
+	    }
+
+	    @Override
+	    @SuppressWarnings({ "unchecked", "rawtypes" })
+	    public synchronized Enumeration keys() {
+	        Enumeration<Object> keysEnum = super.keys();
+	        Vector<String> keyList = new Vector<String>();
+	        while (keysEnum.hasMoreElements()) {
+	            keyList.add((String) keysEnum.nextElement());
+	        }
+	        Collections.sort(keyList);
+	        return keyList.elements();
+	    }
+
+	    @Override
+	    public Set<java.util.Map.Entry<Object, Object>> entrySet() {
+	        // use a TreeMap since in java 9 entrySet() instead of keys() is used in store()
+	        TreeMap<Object, Object> treeMap = new TreeMap<>();
+	        Set<Map.Entry<Object, Object>> entrySet = super.entrySet();
+	        for (Map.Entry<Object, Object> entry : entrySet) {
+	            treeMap.put(entry.getKey(), entry.getValue());
+	        }
+	        return Collections.synchronizedSet(treeMap.entrySet());
+	    }
+	}
+	
 	protected void store_master_params() {
+		
+		final Properties tmp = new SortedProperties(properties);
+		
+		/** Entry set is called post Java 8, so we would use this
 		Properties tmp = new Properties() {
 			private static final long serialVersionUID = 1L;
 
+			
 			@Override public synchronized Set<Map.Entry<Object, Object>> entrySet() {
 	            return Collections.synchronizedSet(
 	                    super.entrySet()
@@ -1440,8 +1486,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	        }
 		};
 
+		
 		tmp.putAll(properties);
-
+		 */
+		
 		FileOutputStream f = null;
 		try {
 			f=new FileOutputStream(propertiesFile);
