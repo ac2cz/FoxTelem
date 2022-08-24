@@ -5,6 +5,8 @@ import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -790,6 +792,40 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		}
 
 		return result;
+	}
+	
+	public static final String GPS_VALID = "UTCValid";
+	public static final String GPS_SECONDS = "UTCSeconds";
+	public static final String GPS_MINUTES = "UTCMinutes";
+	public static final String GPS_HOURS = "UTCHours";
+	public static final String GPS_DAY = "UTCDay";
+	public static final String GPS_MONTH = "UTCMonth";
+	public static final String GPS_YEAR = "UTCYear";
+	
+	public ZonedDateTime getGPSTime(Spacecraft fox) {
+		if (!fox.hasGPSTime) return null;
+		if (!layout.hasGPSTime) return null;
+		long longGpsTime = 0;
+		
+		int valid = (int) getDoubleValue(GPS_VALID, fox);
+		if (valid == 0) return null;
+		
+		int sec = (int) getDoubleValue(GPS_SECONDS, fox);
+		
+		int min = (int) getDoubleValue(GPS_MINUTES, fox);
+		
+		int hrs = (int) getDoubleValue(GPS_HOURS, fox);
+		
+		int days = (int) getDoubleValue(GPS_DAY, fox);
+		
+		int mths = (int) getDoubleValue(GPS_MONTH, fox);
+		
+		int yrs = (int) getDoubleValue(GPS_YEAR, fox);
+		yrs += 2000;
+		
+		ZonedDateTime dateTime = ZonedDateTime.of(yrs,  mths, days, hrs, min, sec, 0, ZoneId.of("UTC"));
+		
+		return dateTime;
 	}
 
 	/**

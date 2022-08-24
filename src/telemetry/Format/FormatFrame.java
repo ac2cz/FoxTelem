@@ -6,6 +6,8 @@ import common.Spacecraft;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.util.StringTokenizer;
 
 import common.Log;
@@ -272,7 +274,14 @@ import telemetry.uw.PayloadWODUwExperiment;
 			}
 		}
 		
-		
+		/**
+		 * This is called when the frame is valid and needs to be saved to disk or database.
+		 * It is also a good location for post processing code
+		 * @param payloadStore
+		 * @param storeMode
+		 * @param newReset
+		 * @return
+		 */
 		public boolean savePayloads(FoxPayloadStore payloadStore, boolean storeMode, int newReset) {
 			int serial = 0;
 			header.copyBitsToFields(); // make sure we have defaulted the extended FoxId correctly
@@ -299,12 +308,26 @@ import telemetry.uw.PayloadWODUwExperiment;
 					} else
 						if (!payloadStore.add(header.getFoxId(), header.getUptime(), newReset, payload[i]))
 							return false;
+					
+					if (payload[i].layout.hasGPSTime) {
+						storeGPSTime(payload[i]);
+					}
+					
 					payload[i].rawBits = null; // free memory associated with the bits
 					headerBytes = null; // free memory 
 					dataBytes = null; // free memory
 				}
 			}
 			return true;			
+		}
+		
+		private void storeGPSTime(FramePart payload) {
+			ZonedDateTime timestamp = payload.getGPSTime(fox);
+			Log.println(payload.resets + "/" + payload.uptime + " GPS TIME: " + timestamp);
+			if (fox.user_useGPSTimeForT0) {
+				// Then we user this to set T0 for the current reset
+				fox.setT0FromGPSTime(payload.resets, payload.uptime, timestamp);
+			}
 		}
 
 		/**

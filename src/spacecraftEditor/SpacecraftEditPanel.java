@@ -89,7 +89,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	JTextField localServerPort, IHU_SN, model;
 
 	JCheckBox[] sendLayoutToServer;
-	JCheckBox hasImprovedCommandReceiver, hasImprovedCommandReceiverII, hasModeInHeader, hasFrameCrc;
+	JCheckBox hasImprovedCommandReceiver, hasImprovedCommandReceiverII, hasModeInHeader, hasFrameCrc, hasGPSTime, useGPSTimeForT0;
 	JTextArea taDesc;
 
 	JCheckBox useIHUVBatt;
@@ -279,6 +279,9 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		hasFrameCrc = addCheckBoxRow("Frame CRC", "The last two bytes of the (BPSK) frame contain a CRC checksum", sat.hasFrameCrc, leftFixedPanel );
 		hasImprovedCommandReceiver = addCheckBoxRow("Improved Command Receiver", "Set to true if this has the Improved Command Receiver", sat.hasImprovedCommandReceiver, leftFixedPanel );
 		hasImprovedCommandReceiverII = addCheckBoxRow("Improved Command Receiver II", "Set to true if this has Version 2 of the Improved Command Receiver", sat.hasImprovedCommandReceiverII, leftFixedPanel );
+
+		hasGPSTime = addCheckBoxRow("Has GPS Time", "Set to true if one of the payloads contains a GPS timebase", sat.hasGPSTime, leftFixedPanel );
+		useGPSTimeForT0 = addCheckBoxRow("Use GPS Time for T0", "Set to true if the GPS time should be used for T0. Can be changed by the user", sat.user_useGPSTimeForT0, leftFixedPanel );
 
 		//JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
 		//leftFixedPanel.add(icr);
@@ -480,6 +483,10 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			}
 			sat.hasImprovedCommandReceiver = hasImprovedCommandReceiver.isSelected();
 			sat.hasImprovedCommandReceiverII = hasImprovedCommandReceiverII.isSelected();
+			
+			sat.hasGPSTime = hasGPSTime.isSelected();
+			sat.user_useGPSTimeForT0 = useGPSTimeForT0.isSelected();
+			
 			sat.hasFrameCrc = hasFrameCrc.isSelected();
 			
 			for (int i=0; i<4; i++) {

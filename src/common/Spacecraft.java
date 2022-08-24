@@ -13,6 +13,9 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Enumeration;
@@ -252,7 +255,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		"CAN Packet Interface",
 		"Ragnaroc ADAC",
 		"L-Band Downshifter",
-		"University of Maine Camera"
+		"University of Maine multi-spectral camera"
 	};
 	
 	
@@ -265,6 +268,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	@Deprecated	public boolean hasMpptSettings = false;
 	@Deprecated	public boolean hasMemsRestValues = false;
 	public boolean hasFixedReset = false;
+	public boolean hasGPSTime = false;
+	public boolean user_useGPSTimeForT0 = true;
 	
 	// User settings - Calibration
 	@Deprecated	public double user_BATTERY_CURRENT_ZERO = 0;
@@ -636,6 +641,30 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		if (satPos == null)
 			return false;
 		return (FramePart.radToDeg(satPos.getElevation()) >= 0);
+	}
+	
+	public boolean setT0FromGPSTime(int resetToAdd, long uptime, ZonedDateTime timestamp) {
+		int reset = 0;
+		if (hasTimeZero()) {
+			reset = timeZero.size(); // this will point to the next reset to add
+		} else {
+			timeZero = new ArrayList<Long>(100);
+		}
+		long T0Seconds = (timestamp.toEpochSecond() - uptime)*1000;
+
+		// Now add the reset (and give any missing resets the same timestamp)
+		for (int i=reset; i <= resetToAdd; i++)
+			timeZero.add(i, T0Seconds);
+		try {
+			saveTimeZeroSeries();
+		} catch (IOException e) {
+			e.printStackTrace(Log.getWriter());
+			return false;
+		}
+		if (Config.debugFrames)
+			Log.println("SAVING RESET: " + resetToAdd + " as " + timestamp);
+		
+		return true;
 	}
 	
 	public int getCurrentReset(int resetOnFrame, long uptime) {
@@ -1019,9 +1048,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 					
 				}
 					
-				
 				layout[i].name = getProperty("layout"+i+".name");
 				layout[i].parentLayout = getOptionalProperty("layout"+i+".parentLayout");
+				layout[i].hasGPSTime = Boolean.parseBoolean(getOptionalProperty("layout"+i+".hasGPSTime"));
 				if (hasFOXDB_V3) {
 					layout[i].number = i;
 					layout[i].typeStr = getProperty("layout"+i+".type");
@@ -1174,6 +1203,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 			if (fixedReset != null) {
 				hasFixedReset = Boolean.parseBoolean(getProperty("hasFixedReset"));
 			}
+			String gpsTime = getOptionalProperty("hasGPSTime");
+			if (gpsTime != null) {
+				hasGPSTime = Boolean.parseBoolean(getProperty("hasGPSTime"));
+			}
 			String mems_x = getOptionalProperty("memsRestValueX");
 			if (mems_x != null) {
 				user_memsRestValueX = Integer.parseInt(mems_x);
@@ -1248,6 +1281,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_format = tmp_user_format;
 			}
 			user_display_name = getUserProperty("displayName");
+			String gpsTime = getOptionalProperty("useGPSTimeForT0");
+			if (gpsTime != null) {
+				user_useGPSTimeForT0 = Boolean.parseBoolean(getProperty("user_useGPSTimeForT0"));
+			}
 
 		} catch (NumberFormatException nf) {
 			nf.printStackTrace(Log.getWriter());
@@ -1410,6 +1447,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
 		user_properties.setProperty("track", Boolean.toString(user_track));
 		user_properties.setProperty("user_format", user_format);
+		user_properties.setProperty("user_useGPSTimeForT0", Boolean.toString(user_useGPSTimeForT0));
 		
 		if (user_localServer != null) {
 			user_properties.setProperty("localServer",user_localServer);
@@ -1544,6 +1582,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 					properties.setProperty("layout"+i+".shortTitle",layout[i].shortTitle);
 				if (layout[i].parentLayout != null && !layout[i].parentLayout.equalsIgnoreCase(""))
 					properties.setProperty("layout"+i+".parentLayout",layout[i].parentLayout);
+				properties.setProperty("layout"+i+".hasGPSTime",String.valueOf(layout[i].hasGPSTime));
 				
 			}
 		}
@@ -1625,6 +1664,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		for (int i=0; i<4; i++) {
 			properties.setProperty("EXP"+(i+1), Integer.toString(experiments[i]));
 		}
+		properties.setProperty("hasGPSTime", Boolean.toString(hasGPSTime));
 		
 		// things you can't edit don't need to be passed through because they will have the same value in the properties file still
 		

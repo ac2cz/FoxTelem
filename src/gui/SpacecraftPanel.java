@@ -77,7 +77,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 	JCheckBox[] sendLayoutToServer;
 	
 	JCheckBox useIHUVBatt;
-	JCheckBox track;
+	JCheckBox track, user_useGPSTimeForT0;
 	JComboBox<String> cbMode;
 	
 	JButton btnCancel;
@@ -246,6 +246,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		maxFreqBoundkHz = addSettingsRow(rightPanel1, 15, "Upper Freq Bound (kHz)", 
 				"The upper frequency boundry when we are searching for the spacecraft signal", ""+sat.user_maxFreqBoundkHz);
 		track = addCheckBoxRow("Track this spacecraft", "When Doppler tracking or Find Signal is enabled include this satellite", sat.user_track, rightPanel1 );
+		user_useGPSTimeForT0 = addCheckBoxRow("Use GPS Time to set T0", "When set the GPS time from the spacecraft will be used to set T0", sat.user_useGPSTimeForT0, rightPanel1 );
 		rightPanel1.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		JPanel rightPanel2 = new JPanel();
@@ -421,53 +422,55 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 			String m = (String)cbMode.getSelectedItem();
 			sat.user_format = m;
 			//String md = (String) cbMode.getSelectedItem();
-			
-//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
-//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
-//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
-//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-			
-			if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
-				sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
-				refreshTabs=true;
-			}
 
-			if (sat.hasMpptSettings) {
-				if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
-					sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+			//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
+			//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+			//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
+			//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+			//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
+			//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+
+			if (!sat.hasFOXDB_V3) {  
+				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
+					sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
 					refreshTabs=true;
 				}
 
-				if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
-					sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
-					refreshTabs=true;
+				if (sat.hasMpptSettings) {
+					if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+						sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+						refreshTabs=true;
+					}
+
+					if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+						sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+						refreshTabs=true;
+					}
 				}
-			}
-			if (sat.hasMemsRestValues) {
-				if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
-					sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
-					refreshTabs=true;
+				if (sat.hasMemsRestValues) {
+					if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+						refreshTabs=true;
+					}
+					if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+						refreshTabs=true;
+					}
+					if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
+						refreshTabs=true;
+					}
 				}
-				if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
-					sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
-					refreshTabs=true;
+				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
+					sat.useIHUVBatt = useIHUVBatt.isSelected();
+					refreshTabs = true;
 				}
-				if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
-					sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
-					refreshTabs=true;
-				}
-			}
-			if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
-				sat.useIHUVBatt = useIHUVBatt.isSelected();
-				refreshTabs = true;
 			}
 			if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
 				sat.user_keps_name = name.getText();
@@ -496,6 +499,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 					sat.user_localServerPort = Integer.parseInt(localServerPort.getText());
 			}
 			sat.user_track = track.isSelected();
+			sat.user_useGPSTimeForT0 = user_useGPSTimeForT0.isSelected();
 
 		} catch (NumberFormatException Ex) {
 			Log.errorDialog("Invalid Paramaters", Ex.getMessage());

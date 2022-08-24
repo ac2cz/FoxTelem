@@ -29,7 +29,7 @@ public class PayloadListTableModel extends AbstractTableModel {
 	private String[][] data = null;
 
 	PayloadListTableModel() {
-		columnNames = new String[7];
+		columnNames = new String[8];
 		columnNames[0] = "Num";
 		columnNames[1] = "Payload Name";
 		columnNames[2] = "File Name";
@@ -37,6 +37,7 @@ public class PayloadListTableModel extends AbstractTableModel {
 		columnNames[4] = "Name";
 		columnNames[5] = "Title";
 		columnNames[6] = "Parent";
+		columnNames[7] = "GPS Time";
 	}
 
 	public void setData(String[][] d) { 

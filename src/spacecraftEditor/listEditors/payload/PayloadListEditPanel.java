@@ -6,6 +6,8 @@ import java.awt.Dimension;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.BufferedReader;
@@ -22,6 +24,7 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -56,7 +59,7 @@ import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 import telemetry.conversion.ConversionLookUpTable;
 
-public class PayloadListEditPanel extends JPanel implements MouseListener, ActionListener {
+public class PayloadListEditPanel extends JPanel implements MouseListener, ActionListener, ItemListener {
 
 	private static final long serialVersionUID = 1L;
 	public static final String PAYLOAD_TEMPLATE_FILENAME = "PAYLOAD_template.csv";
@@ -74,6 +77,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 	JButton btnAddPayload, btnRemovePayload,btnBrowsePayload,btnUpdatePayload, btnGeneratePayload;
 	JTextField payloadFilename,payloadName, tabName, title, parentPayload;
 	JTextArea codeTextArea;
+	JCheckBox hasGPSTime;
 	FoxTelemTab modulesTab;
 	
 	public PayloadListEditPanel(Spacecraft sat, SpacecraftEditPanel parent) {
@@ -111,6 +115,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layout[j].shortTitle = (String)layoutsListTableModel.getValueAt(j,4);
 				sat.layout[j].title = (String)layoutsListTableModel.getValueAt(j,5);
 				sat.layout[j].parentLayout = (String)layoutsListTableModel.getValueAt(j,6);
+				sat.layout[j].hasGPSTime = Boolean.parseBoolean((String)layoutsListTableModel.getValueAt(j,7));
 			}
 		}
 		
@@ -144,6 +149,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				data[i][6] = ""+sat.layout[i].parentLayout;
 			else
 				data[i][6] = "";
+			
+			data[i][7] = ""+sat.layout[i].hasGPSTime;
 
 		}
 		if (sat.numberOfLayouts > 0) 
@@ -303,6 +310,16 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		f25.add(title);
 		footerPanelRow15.add(f25);
 
+		// Row 1.6
+		JPanel footerPanelRow16 = new JPanel();
+		footerPanel.add(footerPanelRow16);
+		hasGPSTime = new JCheckBox("Has GPS TIme");
+		hasGPSTime.setEnabled(sat.hasGPSTime);
+			
+		hasGPSTime.addItemListener(this);
+		hasGPSTime.setToolTipText("Set to true if this payload contains the GPS time");
+		footerPanelRow16.add(hasGPSTime);
+		
 		// Row 2
 		JPanel footerPanelRow2 = new JPanel();
 		footerPanel.add(footerPanelRow2);
@@ -327,6 +344,9 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		btnAddPayload.setEnabled(true);
 		if (sat.numberOfLayouts == 0)
 			btnRemovePayload.setEnabled(false);
+		
+		
+		
 		footerPanel.add(new Box.Filler(new Dimension(400,10), new Dimension(400,400), new Dimension(400,500)));
 
 		//centerPanel2.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
@@ -384,7 +404,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			parentPayload.setText(sat.layout[row].parentLayout);
 		else
 			parentPayload.setText("");
-		
+		hasGPSTime.setSelected(sat.layout[row].hasGPSTime);
 		payloadCsvFileEditPanel.setFile(sat.layoutFilename[row]);
 		
 		try {
@@ -473,6 +493,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			newLayouts[sat.numberOfLayouts].shortTitle = tabName.getText();
 			newLayouts[sat.numberOfLayouts].title = title.getText();
 			newLayouts[sat.numberOfLayouts].parentLayout = parentPayload.getText();
+			newLayouts[sat.numberOfLayouts].hasGPSTime = hasGPSTime.isSelected();
 			newLayouts[sat.numberOfLayouts].typeStr = (String)payloadType.getSelectedItem();
 			for (int i=0; i < sat.numberOfLayouts; i++) {
 				newLayouts[i] = sat.layout[i];
@@ -618,6 +639,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 				sat.layout[row].title = title.getText();
 				sat.layout[row].parentLayout = parentPayload.getText();
 				sat.layout[row].typeStr = (String)payloadType.getSelectedItem();
+				sat.layout[row].hasGPSTime = hasGPSTime.isSelected();
 				// First load the updated sat values into the table
 				loadPayloadsListTable();
 				// Then save the table in case anything else is changed
@@ -735,6 +757,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 					//editor.setVisible(true);
 				}
 			}
+			hasGPSTime.setEnabled(sat.hasGPSTime); // in case this has changed
 		}
 	}
 
@@ -752,6 +775,12 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 
 	@Override
 	public void mouseExited(MouseEvent e) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void itemStateChanged(ItemEvent arg0) {
 		// TODO Auto-generated method stub
 		
 	}

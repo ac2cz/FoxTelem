@@ -87,6 +87,8 @@ public class BitArrayLayout {
 	public String[] shortName = null;
 	public String[] description = null;
 	
+	public boolean hasGPSTime = false;
+	
 	private int numberOfBits = 0;
 	private int numberOfBytes = 0;
 	
