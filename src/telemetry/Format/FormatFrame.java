@@ -326,7 +326,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 			Log.println(payload.resets + "/" + payload.uptime + " GPS TIME: " + timestamp);
 			if (fox.user_useGPSTimeForT0) {
 				// Then we user this to set T0 for the current reset
-				fox.setT0FromGPSTime(payload.resets, payload.uptime, timestamp);
+				fox.setT0FromGPSTime(payload.resets, payload.getSecsInEpochAtGPSTimestamp(), timestamp);
 			}
 		}
 

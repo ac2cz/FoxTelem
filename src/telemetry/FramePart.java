@@ -757,7 +757,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static String plainhex(long l) {
 		return String.format("%2s", Long.toHexString(l)).replace(' ', '0');
 	}
-
+	
 	/**
 	 * Return the value of this field, specified by its name.  Run any conversion routine
 	 * to BitArrayLayout.CONVERT_this into the appropriate units.
@@ -801,6 +801,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public static final String GPS_DAY = "UTCDay";
 	public static final String GPS_MONTH = "UTCMonth";
 	public static final String GPS_YEAR = "UTCYear";
+	public static final String GPS_SECS_IN_EPOCH = "secsInEpoch";
 	
 	public ZonedDateTime getGPSTime(Spacecraft fox) {
 		if (!fox.hasGPSTime) return null;
@@ -827,6 +828,21 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		
 		return dateTime;
 	}
+	
+	public long getSecsInEpochAtGPSTimestamp() {
+		long secs = 0;
+		int pos = -1;
+		for (int i=0; i < layout.fieldName.length; i++) {
+			if (GPS_SECS_IN_EPOCH.equalsIgnoreCase(layout.fieldName[i])) {
+				pos = i;
+				break;
+			}
+		}
+
+		if (pos == -1) return 0;
+		secs = (long)(fieldValue[pos]);
+		return secs;
+	}
 
 	/**
 	 * Given a raw value, convert it with a curve, lookup table it into the actual value that we can display based on the
@@ -852,7 +868,4 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		}
 		return x; 
 	}
-
-
-
 }
