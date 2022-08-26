@@ -117,7 +117,7 @@ public class UpdateManager implements Runnable {
 	}
 		
 	public void updateT0(Spacecraft sat) {
-		String urlString = Config.t0UrlPath + sat.series + sat.foxId + Config.t0UrlFile;
+		String urlString = Config.webSiteUrl+ Config.t0UrlPath + sat.series + sat.foxId + Config.t0UrlFile;
 		String file = sat.series + sat.foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + file;			
@@ -280,7 +280,7 @@ public class UpdateManager implements Runnable {
 			}
 		
 		// Update Keps is called at startup by the SatelliteManager.  This just calls it periodically if FoxTelem left running.
-		
+		if (!server)
 		if (Config.downloadT0FromServer) {
 			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 			for (int i=0; i<sats.size(); i++) {

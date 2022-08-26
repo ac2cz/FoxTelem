@@ -873,10 +873,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
 		}
 		// We have the dir, so pull down the file
+		
 		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading " + dir + " data, please wait ...", false);
 		fileProgress.setVisible(true);
 
 		String urlString = Config.webSiteUrl + "/" + dir + "/FOXDB.tar.gz";
+		Log.println("Downloading: "+urlString);
 		try {
 			URL website = new URL(urlString);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
@@ -946,13 +948,17 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private String getFoxServerDir(int id) {
+		// First cover the legacy names
 		if (id == 1) return "ao85";
 		if (id == 2) return "radfxsat";
 		if (id == 3) return "fox1c";
 		if (id == 4) return "fox1d";
 		if (id == 5) return "fox1e";
 		if (id == 6) return "husky";
-		return null;
+		
+		// Then a standard name format going forward that will be SERIES-ID
+		Spacecraft sat = Config.satManager.getSpacecraft(id);
+		return sat.series + "-" + sat.foxId;
 	}
 	
 	private void replaceServerData() {

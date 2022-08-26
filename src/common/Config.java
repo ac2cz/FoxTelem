@@ -246,7 +246,7 @@ public class Config {
 	
 	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
 	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
-	static public String t0UrlPath = "https://amsat.org/tlm/ops/";
+	static public String t0UrlPath = "/ops/";
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
 	
