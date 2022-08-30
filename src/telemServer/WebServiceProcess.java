@@ -15,6 +15,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.TimeZone;
 
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.PayloadDbStore;
@@ -147,21 +148,41 @@ public class WebServiceProcess implements Runnable {
 						// Send the HTML page
 						if (path.length == 4) {
 							PayloadRtValues rt = null;
+							PayloadMaxValues max = null;
+							PayloadMinValues min =null;
+							Spacecraft fox = null;
 							int sat = 1;
 							@SuppressWarnings("unused")
 							int type = 1;
 							try {
 								sat = Integer.parseInt(path[2]);
 								type = Integer.parseInt(path[3]);
-								rt = (PayloadRtValues) payloadDbStore.getLatestRt(sat);
+								fox = Config.satManager.getSpacecraft(sat);
+								if (fox == null) {
+									out.println("Invalid sat");
+									return;
+								}
+								if (fox.hasFOXDB_V3) {
+									rt = (PayloadRtValues) payloadDbStore.getLatest(sat, fox.getLayoutNameByType(BitArrayLayout.RT));
+									max = (PayloadMaxValues) payloadDbStore.getLatest(sat, fox.getLayoutNameByType(BitArrayLayout.MAX));
+									min = (PayloadMinValues) payloadDbStore.getLatest(sat, fox.getLayoutNameByType(BitArrayLayout.MIN));
+								} else {
+									rt = (PayloadRtValues) payloadDbStore.getLatestRt(sat);
+									max = (PayloadMaxValues) payloadDbStore.getLatestMax(sat);
+									min = (PayloadMinValues) payloadDbStore.getLatestMin(sat);
+								}
 							} catch (NumberFormatException e) {
 								out.println("Invalid sat or type");
+								return;
 							}
-							PayloadMaxValues max = (PayloadMaxValues) payloadDbStore.getLatestMax(sat);
-							PayloadMinValues min = (PayloadMinValues) payloadDbStore.getLatestMin(sat);
+							
 							if (rt != null) {								
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
+									if (fox.hasFOXDB_V3) {
+										fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, fox.getLayoutNameByType(BitArrayLayout.RT));
+									} else {
+										fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
+									}
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -186,8 +207,14 @@ public class WebServiceProcess implements Runnable {
 							int num = 0;
 							int fromReset = 0;
 							int fromUptime = 0;
+							Spacecraft fox = null;
 							try {
 								sat = Integer.parseInt(path[2]);
+								fox = Config.satManager.getSpacecraft(sat);
+								if (fox == null ) {
+									out.println("Invalid sat");
+									return;
+								}
 								num = Integer.parseInt(path[5]);
 								fromReset = Integer.parseInt(path[6]);
 								fromUptime = Integer.parseInt(path[7]);
@@ -196,7 +223,11 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
+									if (fox.hasFOXDB_V3) {
+										fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port, fox.getLayoutNameByType(BitArrayLayout.RT));
+									} else {
+										fox1Atab = new WebHealthTab(payloadDbStore,Config.satManager.getSpacecraft(sat),port, Spacecraft.REAL_TIME_LAYOUT);
+									}
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
@@ -222,8 +253,14 @@ public class WebServiceProcess implements Runnable {
 							int num = 0;
 							int fromReset = 0;
 							int fromUptime = 0;
+							Spacecraft fox = null;
 							try {
 								sat = Integer.parseInt(path[2]);
+								fox = Config.satManager.getSpacecraft(sat);
+								if (fox == null ) {
+									out.println("Invalid sat");
+									return;
+								}
 								num = Integer.parseInt(path[5]);
 								fromReset = Integer.parseInt(path[6]);
 								fromUptime = Integer.parseInt(path[7]);
@@ -232,15 +269,24 @@ public class WebServiceProcess implements Runnable {
 							}
 							if (sat > 0) {
 								try {
-									fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.WOD_LAYOUT);
+									if (fox.hasFOXDB_V3) {
+										fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, fox.getLayoutNameByType(BitArrayLayout.WOD));
+									} else {
+										fox1Atab = new WebHealthTab(payloadDbStore, Config.satManager.getSpacecraft(sat),port, Spacecraft.WOD_LAYOUT);
+									}
 								} catch (LayoutLoadException e1) {
 									e1.printStackTrace(Log.getWriter());
 								}
 								if (raw.startsWith("C"))
 									convert = false;
 
-								if (fox1Atab != null)
-									out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime, Spacecraft.WOD_LAYOUT));
+								if (fox1Atab != null) {
+									if (fox.hasFOXDB_V3) {
+										out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime, fox.getLayoutNameByType(BitArrayLayout.WOD)));
+									} else {
+										out.println(fox1Atab.toGraphString(name, convert, num, fromReset, fromUptime, Spacecraft.WOD_LAYOUT));
+									}
+								}
 
 							} else {
 								out.println("FOX SAT Requested invalid\n");
@@ -295,11 +341,18 @@ public class WebServiceProcess implements Runnable {
 		try {
 			Spacecraft fox = Config.satManager.getSpacecraft(Integer.parseInt(satId));
 			if (fox != null) {
-				
-				wod = (PayloadWOD) payloadDbStore.getLatest(fox.foxId, Spacecraft.WOD_LAYOUT);
+				if (fox.hasFOXDB_V3) {
+					wod = (PayloadWOD) payloadDbStore.getLatest(fox.foxId, fox.getLayoutNameByType(BitArrayLayout.WOD));
+				} else {
+					wod = (PayloadWOD) payloadDbStore.getLatest(fox.foxId, Spacecraft.WOD_LAYOUT);
+				}
 				if (wod != null) {
 					try {
-						telemTab = new WebHealthTab(payloadDbStore, fox, port, Spacecraft.WOD_LAYOUT);
+						if (fox.hasFOXDB_V3) {
+							telemTab = new WebHealthTab(payloadDbStore, fox, port, fox.getLayoutNameByType(BitArrayLayout.WOD));
+						} else {
+							telemTab = new WebHealthTab(payloadDbStore, fox, port, Spacecraft.WOD_LAYOUT);
+						}
 					} catch (LayoutLoadException e1) {
 						e1.printStackTrace(Log.getWriter());
 					}

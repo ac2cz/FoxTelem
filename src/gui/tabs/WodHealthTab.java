@@ -128,7 +128,7 @@ public class WodHealthTab extends HealthTab {
     	int reset = (int)reset_l;
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
-    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.WOD_LAYOUT, false);
+    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, rt.name, false);
     	if (realTime != null)
     		updateTabRT(realTime, false);
     	if (fromRow == NO_ROW_SELECTED)
@@ -143,7 +143,7 @@ public class WodHealthTab extends HealthTab {
 	@Override
 	public void parseFrames() {
 		//String[][] data = Config.payloadStore.getWODData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, reverse);
-		String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.WOD_LAYOUT);
+		String[][] data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, rt.name);
 
 		if (data != null && data.length > 0) {
 			parseTelemetry(data);
@@ -172,10 +172,10 @@ public class WodHealthTab extends HealthTab {
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.WOD_LAYOUT);
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, rt.name);
 				if (frames != currentFrames) {
 					currentFrames = frames;
-					realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
+					realTime = Config.payloadStore.getLatest(foxId, rt.name);
 					if (realTime != null) {
 						if (healthTableToDisplay == DISPLAY_CURRENT) {
 							updateTabRT(realTime, true);
@@ -189,7 +189,7 @@ public class WodHealthTab extends HealthTab {
 						//System.out.println("NO new RT Data: ");
 
 					}
-					Config.payloadStore.setUpdated(foxId, Spacecraft.WOD_LAYOUT, false);
+					Config.payloadStore.setUpdated(foxId, rt.name, false);
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs();

@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
+import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.tabs.DisplayModule;
@@ -44,8 +45,13 @@ public class WebHealthTab {
 		port = p;
 		payloadDbStore = pdb;
 		rtlayout = fox.getLayoutByName(layout);
-		maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
-		minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		if (fox.hasFOXDB_V3) {
+			maxlayout = fox.getLayoutByName(fox.getLayoutNameByType(BitArrayLayout.MAX));
+			minlayout = fox.getLayoutByName(fox.getLayoutNameByType(BitArrayLayout.MIN));			
+		} else {
+			maxlayout = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+			minlayout = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		}
 		analyzeModules(rtlayout, maxlayout,minlayout, 0);
 	}
 	
@@ -126,8 +132,7 @@ public class WebHealthTab {
 		String s = "";
 		String mode = "UNKNOWN";
 		if (fox.hasModeInHeader) { // Post Fox-1E BPSK has mode in header
-			PayloadUwExperiment expPayload = payloadDbStore.getLatestUwExp(fox.foxId);
-			mode = determineModeFromHeader(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, expPayload);
+			mode = determineModeFromHeader();
 		} else {
 		PayloadRadExpData radPayload = payloadDbStore.getLatestRad(fox.foxId);
 			mode = Spacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
@@ -143,8 +148,17 @@ public class WebHealthTab {
 				+ "table.table2 th { background-color: darkgray; border: 1px solid darkgray; } "
 				+ "table.table2 td { padding: 0px; vertical-align: top; background-color: darkgray } </style>";	
 
+		boolean realtime = false;
+		if (fox.hasFOXDB_V3) {
+			if (payloadRt.getLayout().isRealTime())
+				realtime = true;
+		} else {
+			String layoutName = payloadRt.getLayout().name;
+			if (layoutName.equalsIgnoreCase(Spacecraft.REAL_TIME_LAYOUT))
+				realtime = true;
+		}
 		String layoutName = payloadRt.getLayout().name;
-		if (layoutName.equalsIgnoreCase(Spacecraft.REAL_TIME_LAYOUT))
+		if (realtime)
 			s = s + "<h3>REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime();				
 		else if (layoutName.equalsIgnoreCase(Spacecraft.WOD_LAYOUT))
 			s = s + "<h3>Whole Orbit Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime();
@@ -213,18 +227,16 @@ public class WebHealthTab {
 	 * Local copy of this routine that does not use Config.payloadstore
 	 * @return
 	 */
-	public String determineModeFromHeader(Spacecraft fox, PayloadRtValues payloadRt, PayloadMaxValues payloadMax, 
-			PayloadMinValues payloadMin, PayloadUwExperiment expPayload) {
+	public String determineModeFromHeader() {
 		// Mode is stored in the header
 		// Find the most recent frame and return the mode that it has
 		SortedFramePartArrayList payloads = new SortedFramePartArrayList(fox.numberOfLayouts);
-		//int maxLayouts = 4; // First four layouts are rt, max, min, exp
-		
-		payloads.add(payloadRt);
-		payloads.add(payloadMax);
-		payloads.add(payloadMin);
-		payloads.add(expPayload);
-		
+		int maxLayouts = 10; // First four layouts are rt, max, min, exp, but we may have mode in any layout.  Cap at 10.
+		for (int i=0; i <= maxLayouts && i < fox.layout.length; i++) { 
+			//System.err.println("Checking mode in: "+layout[i].name );
+			payloads.add(payloadDbStore.getLatest(fox.foxId, fox.layout[i].name));
+		}
+
 		int mode = Spacecraft.NO_MODE;
 		if (payloads.size() > 0)
 			mode = payloads.get(payloads.size()-1).newMode;

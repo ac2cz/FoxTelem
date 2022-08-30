@@ -970,7 +970,7 @@ public class SatPayloadDbStore {
 		payload = null;
 	}
 	
-	@SuppressWarnings("deprecation")
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public FramePart getLatest(String layout) throws SQLException {
 		BitArrayLayout lay = fox.getLayoutByName(layout);
 		String tableName = lay.getTableName();
@@ -983,42 +983,71 @@ public class SatPayloadDbStore {
 		return payload;
 	}
 	
+	@Deprecated
 	public UwCanPacket getLatestUwCanPacket() throws SQLException {
 		UwCanPacket payload = new UwCanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
 		selectLatest(uwCanPacketTableName, payload);
 		return payload;
 	}
 	
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadWOD getLatestWod() throws SQLException {
-		PayloadWOD payload = new PayloadWOD(fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
+		PayloadWOD payload = null;
+		
+		payload = new PayloadWOD(fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
 		selectLatest(wodTableName, payload);
 		return payload;
 	}
 	
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadRtValues getLatestRt() throws SQLException {
-		PayloadRtValues payload = new PayloadRtValues(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-		selectLatest(rtTableName, payload);
+		PayloadRtValues payload =null;
+		if (fox.hasFOXDB_V3) {
+			payload = new PayloadRtValues(fox.getLayoutByType(BitArrayLayout.RT));
+			selectLatest(makeTableName(payload.layout.name), payload);
+		} else {
+			payload = new PayloadRtValues(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+			selectLatest(rtTableName, payload);
+		}
 		return payload;
 	}
 
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadMaxValues getLatestMax() throws SQLException {
-		PayloadMaxValues max = new PayloadMaxValues(fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
-		selectLatest(maxTableName, max);
+		PayloadMaxValues max = null;
+		if (fox.hasFOXDB_V3) {
+			max = new PayloadMaxValues(fox.getLayoutByType(BitArrayLayout.MAX));
+			selectLatest(makeTableName(max.layout.name), max);
+		} else {
+			max = new PayloadMaxValues(fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
+			selectLatest(maxTableName, max);
+		}
 		return max;
 	}
 
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadMinValues getLatestMin() throws SQLException {
-		PayloadMinValues min = new PayloadMinValues(fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
-		selectLatest(minTableName, min);
+		PayloadMinValues min = null;
+		if (fox.hasFOXDB_V3) {
+			min = new PayloadMinValues(fox.getLayoutByType(BitArrayLayout.MIN));
+			selectLatest(makeTableName(min.layout.name), min);
+		} else {
+			min = new PayloadMinValues(fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
+			selectLatest(minTableName, min);
+		}
 		return min;
 	}
 
+	@Deprecated
 	public PayloadRadExpData getLatestRad() throws SQLException {
-		PayloadRadExpData rad = new PayloadRadExpData(fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
+		PayloadRadExpData rad = null;
+		
+		rad = new PayloadRadExpData(fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
 		selectLatest(radTableName, rad);
 		return rad;
 	}
-
+	
+	@Deprecated
 	public PayloadUwExperiment getLatestUwExp() throws SQLException {
 		PayloadUwExperiment rad = new PayloadUwExperiment(fox.getLayoutByName(Spacecraft.CAN_LAYOUT), 0, 0, 0);
 		selectLatest(radTableName, rad);
@@ -1034,18 +1063,36 @@ public class SatPayloadDbStore {
 	 * @return
 	 * @throws SQLException 
 	 */
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public double[][] getRtGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(rtTableName, name, period, fox2, fromReset, fromUptime);
+		String tableName = rtTableName;
+		if (fox.hasFOXDB_V3) {
+			BitArrayLayout lay = fox.getLayoutByType(BitArrayLayout.RT);
+			tableName = makeTableName(lay.name);
+		}
+		return getGraphData(tableName, name, period, fox2, fromReset, fromUptime);
 		
 	}
 
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(maxTableName, name, period, id, fromReset, fromUptime);
+		String tableName = maxTableName;
+		if (fox.hasFOXDB_V3) {
+			BitArrayLayout lay = fox.getLayoutByType(BitArrayLayout.MAX);
+			tableName = makeTableName(lay.name);
+		}
+		return getGraphData(tableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(minTableName, name, period, id, fromReset, fromUptime);
+		String tableName = minTableName;
+		if (fox.hasFOXDB_V3) {
+			BitArrayLayout lay = fox.getLayoutByType(BitArrayLayout.MIN);
+			tableName = makeTableName(lay.name);
+		}
+		return getGraphData(tableName, name, period, id, fromReset, fromUptime);
 		
 	}
 

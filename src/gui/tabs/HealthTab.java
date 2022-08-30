@@ -108,7 +108,11 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	FramePart realTime; // the RT payload we are currently displaying
 	FramePart maxPayload; // the max payload we are currently displaying
 	FramePart minPayload; // the min payload we are currently displaying
-		
+	
+	BitArrayLayout rt;
+	BitArrayLayout max;
+	BitArrayLayout min;
+	
 	protected static final String ID = "Satellite ";
 	protected static final String MODE = "  Mode: ";
 	private static final String UPTIME = "  Uptime: ";
@@ -231,25 +235,36 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		
 		/////// WE SHOULD PASS THESE LAYOUTS IN EXPLICITY, NOT GRAB ONES WITH HARD CODED NAMES LIKE rttelemetry
 		/////// OR we could allow ONLY one RT, MIN, MAX, WOD per spacecraft and use the types to grab this
-		BitArrayLayout rt = null;
-		if (displayType == DisplayModule.DISPLAY_WOD)
-			rt = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
-		else
-			rt = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
-		BitArrayLayout max = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
-		BitArrayLayout min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		rt = null;
+		
+		if (fox.hasFOXDB_V3) {
+			if (displayType == DisplayModule.DISPLAY_WOD)
+				rt = fox.getLayoutByType(BitArrayLayout.WOD);
+			else
+				rt = fox.getLayoutByType(BitArrayLayout.RT);
+			max = fox.getLayoutByType(BitArrayLayout.MAX);
+			min = fox.getLayoutByType(BitArrayLayout.MIN);
+		} else {
+			if (displayType == DisplayModule.DISPLAY_WOD)
+				rt = fox.getLayoutByName(Spacecraft.WOD_LAYOUT);
+			else
+				rt = fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT);
+			max = fox.getLayoutByName(Spacecraft.MAX_LAYOUT);
+			min = fox.getLayoutByName(Spacecraft.MIN_LAYOUT);
+		}
 
+		
 		if (rt == null ) {
 			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
-					+ "" + Spacecraft.REAL_TIME_LAYOUT + "\n  Remove this satellite or add/fix the payload file");
+					+ "" + rt.name + "\n  Remove this satellite or add/fix the payload file");
 			//System.exit(1);
 		} else 	if (max == null ) {
 			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
-					+ "" + Spacecraft.MAX_LAYOUT+ "\n  Remove this satellite or add/fix the payload file");
+					+ "" + max.name+ "\n  Remove this satellite or add/fix the payload file");
 			
 		} else if (min == null ) {
 			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
-					+ "" + Spacecraft.MIN_LAYOUT+ "\n  Remove this satellite or add/fix the payload file");
+					+ "" + min.name+ "\n  Remove this satellite or add/fix the payload file");
 			
 		} else
 		

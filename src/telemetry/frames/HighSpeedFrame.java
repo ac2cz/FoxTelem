@@ -37,6 +37,7 @@ import telemetry.payloads.PayloadRtValues;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+@Deprecated
 public class HighSpeedFrame extends Frame {
 	
 	public static final int MAX_FRAME_SIZE = 4600;

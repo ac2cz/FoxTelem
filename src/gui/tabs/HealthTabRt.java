@@ -110,13 +110,13 @@ public class HealthTabRt extends HealthTab {
     	//Log.println("RESET: " + reset);
     	//Log.println("UPTIME: " + uptime);
     	int reset = (int)reset_l;
-    	maxPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MAX_LAYOUT, true);
+    	maxPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, max.name, true);
     	if (maxPayload != null)
     		updateTabMax(maxPayload);
-    	minPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.MIN_LAYOUT, true);
+    	minPayload = Config.payloadStore.getFramePart(foxId, reset, uptime, min.name, true);
     	if (minPayload != null)
     		updateTabMin(minPayload);
-    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, Spacecraft.REAL_TIME_LAYOUT, false);
+    	realTime = Config.payloadStore.getFramePart(foxId, reset, uptime, rt.name, false);
     	if (realTime != null)
     		updateTabRT(realTime, false);
     	if (fromRow == NO_ROW_SELECTED)
@@ -135,11 +135,11 @@ public class HealthTabRt extends HealthTab {
 		if (healthTableToDisplay == DISPLAY_CURRENT) {
 		}
 		if (healthTableToDisplay == DISPLAY_RT)
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.REAL_TIME_LAYOUT);
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, rt.name);
 		if (healthTableToDisplay == DISPLAY_MAX)
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.MAX_LAYOUT);
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, max.name);
 		if (healthTableToDisplay == DISPLAY_MIN)
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, Spacecraft.MIN_LAYOUT);
+			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, START_RESET, START_UPTIME, true, reverse, min.name);
 		
 		displayTable();
 		if (data != null && data.length > 0) {
@@ -171,7 +171,7 @@ public class HealthTabRt extends HealthTab {
 				showRawValues.setSelected(Config.displayRawValues);
 			}
 			if (foxId != 0 && Config.payloadStore.initialized()) {
-				int frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.MAX_LAYOUT);
+				int frames = Config.payloadStore.getNumberOfFrames(foxId, max.name);
 				if (frames != currentMaxFrames) {
 					currentMaxFrames = frames;
 					maxPayload = Config.payloadStore.getLatestMax(foxId);
@@ -179,11 +179,11 @@ public class HealthTabRt extends HealthTab {
 						if (healthTableToDisplay == DISPLAY_CURRENT || justStarted) 
 							updateTabMax(maxPayload);
 					}
-					Config.payloadStore.setUpdated(foxId, Spacecraft.MAX_LAYOUT, false);
+					Config.payloadStore.setUpdated(foxId, max.name, false);
 					displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
 					MainWindow.setTotalDecodes();
 				}
-				frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.MIN_LAYOUT);
+				frames = Config.payloadStore.getNumberOfFrames(foxId, min.name);
 				if (frames != currentMinFrames) {
 					currentMinFrames = frames;
 					minPayload = Config.payloadStore.getLatestMin(foxId);
@@ -193,12 +193,12 @@ public class HealthTabRt extends HealthTab {
 						
 					}
 					displayFramesDecoded(Config.payloadStore.getNumberOfTelemFrames(foxId));
-					Config.payloadStore.setUpdated(foxId, Spacecraft.MIN_LAYOUT, false);
+					Config.payloadStore.setUpdated(foxId, min.name, false);
 					MainWindow.setTotalDecodes();
 				}
 
 				// Read the RealTime last so that at startup the Captured Date in the bottom right will be the last real time record
-				frames = Config.payloadStore.getNumberOfFrames(foxId, Spacecraft.REAL_TIME_LAYOUT);
+				frames = Config.payloadStore.getNumberOfFrames(foxId, rt.name);
 				if (frames != currentRtFrames) {
 					currentRtFrames = frames;
 					realTime = Config.payloadStore.getLatestRt(foxId);
@@ -217,7 +217,7 @@ public class HealthTabRt extends HealthTab {
 						//System.out.println("NO new RT Data: ");
 
 					}
-					Config.payloadStore.setUpdated(foxId, Spacecraft.REAL_TIME_LAYOUT, false);
+					Config.payloadStore.setUpdated(foxId, rt.name, false);
 					MainWindow.setTotalDecodes();
 					if (justStarted) {
 						openGraphs();

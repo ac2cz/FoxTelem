@@ -6,8 +6,8 @@ import filter.RaisedCosineFilter;
 import telemetry.Format.TelemFormat;
 
 public class FoxFskDecoder extends FoxDecoder {
-	public static final String HIGHSPEED_FSK = "FSK 9600bps (Fox)";
-	public static final String DUV_FSK = "FSK 200bps (DUV)";
+	public static final String HIGHSPEED_FSK = "FSK 9600bps (Fox1)";
+	public static final String DUV_FSK = "FSK 200bps (Fox1)";
 	
 	public FoxFskDecoder(SourceAudio as, int chan, TelemFormat telemFormat) {
 		super("DUV", as, chan, telemFormat);

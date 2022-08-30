@@ -56,7 +56,7 @@ public class BitArrayLayout {
 	public static final String DBG = "DBG";
 	
 	public static final String[] types = {
-			"RT","MAX","MIN","WOD","EXP","WOD_EXP","CAN_EXP", "CAN_WOD_EXP", "CAN_PKT","WOD_CAN_PKT","DGB"
+			"RT","MAX","MIN","WOD","EXP","WOD_EXP","CAN_EXP", "CAN_WOD_EXP", "CAN_PKT","WOD_CAN_PKT","DBG"
 	};
 
 	public int NUMBER_OF_FIELDS = 0;
@@ -244,17 +244,9 @@ public class BitArrayLayout {
 	}
 
 	public static boolean isValidType(String typeStr) {
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.RT)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.MAX)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.MIN)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.EXP)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_EXP)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_WOD_EXP)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_PKT)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_CAN_PKT)) return true;
-		if (typeStr.equalsIgnoreCase(BitArrayLayout.DBG)) return true;
+		for (int i=0; i< types.length; i++) {
+			if (typeStr.equalsIgnoreCase(types[i])) return true;			
+		}
 		return false;
 	}
 	

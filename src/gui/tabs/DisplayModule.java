@@ -459,7 +459,7 @@ public class DisplayModule extends JPanel implements ActionListener, MouseListen
 			for (int i=1; i < size; i++) {
 				minValue[i] = new JButton();
 				((JButton) minValue[i]).setMargin(new Insets(0,0,0,0));
-
+				
 				((JButton)minValue[i]).addActionListener(this);
 				((JButton)minValue[i]).setBackground(wodFontColor);
 				row[i].add(minValue[i]);

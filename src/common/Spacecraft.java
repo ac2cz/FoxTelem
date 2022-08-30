@@ -395,6 +395,20 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				return layout[i];
 		return null;
 	}
+
+	public String getLayoutNameByType(String type) {
+		for (int i=0; i<numberOfLayouts; i++)
+			if (layout[i].typeStr.equalsIgnoreCase(type))
+				return layout[i].name;
+		return null;
+	}
+	
+	public BitArrayLayout getLayoutByType(String type) {
+		for (int i=0; i<numberOfLayouts; i++)
+			if (layout[i].typeStr.equalsIgnoreCase(type))
+				return layout[i];
+		return null;
+	}
 	
 	/**
 	 * Find the secondary layout for this layout
@@ -1921,8 +1935,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		// Mode is stored in the header
 		// Find the most recent frame and return the mode that it has
 		SortedFramePartArrayList payloads = new SortedFramePartArrayList(numberOfLayouts);
-		int maxLayouts = 4; // First four layouts are rt, max, min, exp
-		for (int i=0; i <= maxLayouts && i < layout.length; i++) {
+		int maxLayouts = 10; // First four layouts are rt, max, min, exp, but we may have mode in any layout.  Cap at 10.
+		for (int i=0; i <= maxLayouts && i < layout.length; i++) { 
 			//System.err.println("Checking mode in: "+layout[i].name );
 			payloads.add(Config.payloadStore.getLatest(foxId, layout[i].name));
 		}
