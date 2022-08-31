@@ -891,6 +891,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		panelFile.add(progressBar);
 		progressBar.setValue(0);
         progressBar.setStringPainted(true);
+        progressBar.setString("0:00 mins");
 		
         cbTurboWavFilePlayback = new JCheckBox("Fast playback (not recommended)");
         cbTurboWavFilePlayback.setSelected(Config.turboWavFilePlayback);
@@ -2742,6 +2743,15 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
                 SwingUtilities.invokeLater(new Runnable() {
                 	public void run() {
                 		progressBar.setValue(Math.min(progress,100));
+                		if (wavSource.getLengthInSeconds() < 120)
+                			progressBar.setString(""+wavSource.getLengthInSeconds()*progress/100+" secs");
+                		else {
+                			String mins = ""+wavSource.getLengthInSeconds()*progress/100/60;
+                			int sec = wavSource.getLengthInSeconds()*progress/100%60;
+                			String secs = ""+sec;
+                			if (sec < 10) secs = "0" + secs;
+                			progressBar.setString(""+mins+":"+secs+" mins");
+                		}
                 	}
                 });
             }

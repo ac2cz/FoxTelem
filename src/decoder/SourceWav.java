@@ -206,6 +206,12 @@ public class SourceWav extends SourceAudio implements Runnable {
 	    }
 	    Log.println("WAV Source EXIT");
 	}
+	
+	public int getLengthInSeconds() {
+		// number of frames divided by the frame rate
+		int seconds = (int) (totalFrames / Config.wavSampleRate);
+		return seconds;
+	}
 
 	public int getPercentProgress() {
 		//System.out.println(framesProcessed + " " +  totalFrames);
