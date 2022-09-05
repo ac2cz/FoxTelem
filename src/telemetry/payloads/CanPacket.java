@@ -205,7 +205,7 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 	}
 	
 	/**
-	 * The first 4 bytes are from FOX and are little endian with MSB first.
+	 * The first 2 bytes are from FOX and are little endian with MSB first.
 	 * The rest of the bytes are from the experiment and may be in network byte order ie Big endian.  Yes really...
 	 * This suggest these should be in different classes, one wrapping the other.  Perhaps with the experiment data as a secondary payload
 	 * with the ID, Length and data in big endian.

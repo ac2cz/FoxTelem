@@ -216,7 +216,7 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public static final int EXP_UW = 9; // University of Washington
 	public static final int RAG_ADAC = 10; // Ragnaroc
 	public static final int LBAND_DOWNSHIFTER = 11; // Downshifter
-	public static final int UMAINE_CAMERA = 11; // University of Maine MESAT-1 Camera
+	public static final int EXP_UMAINE_CAMERA = 12; // University of Maine MESAT-1 Camera
 	
 	public static final String SAFE_MODE_IND = "SafeModeIndication";
 	public static final String SCIENCE_MODE_IND = "ScienceModeActive";
@@ -869,30 +869,6 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		Conversion c = getConversionByName(conv);
 		if (c == null) return false;
 		return true;
-//		conv = conv.trim();
-//		try {
-//		if (conv.equalsIgnoreCase(Conversion.FMT_INT)) return true;
-//		if (conv.equalsIgnoreCase(Conversion.FMT_1F)) return true;
-//		if (conv.equalsIgnoreCase(Conversion.FMT_2F)) return true;
-//		if (conv.equalsIgnoreCase(Conversion.FMT_3F)) return true;	
-//		if (conv.equalsIgnoreCase(Conversion.FMT_4F)) return true;
-//		if (conv.equalsIgnoreCase(Conversion.FMT_5F)) return true;		
-//		if (conv.equalsIgnoreCase(Conversion.FMT_6F)) return true;
-//		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_HEX)) return true;
-//		if (conv.substring(0, 3).equalsIgnoreCase(Conversion.FMT_BIN)) return true;
-//		if (conv.substring(0, 5).equalsIgnoreCase(Conversion.FMT_F) ) return true;
-//		if (conv.substring(0, 9).equalsIgnoreCase(Conversion.TIMESTAMP)) return true;
-//		} catch (StringIndexOutOfBoundsException e) {}		
-//		try {
-//			int convInt = Integer.parseInt(conv);
-//			if (convInt >= 0 && convInt <= BitArrayLayout.MAX_CONVERSION_NUMBER)
-//				return true;
-//		} catch (NumberFormatException e) { ; } //ignore
-//
-//		if (conversions.containsKey(conv))
-//			return true;
-//		
-//		return false;
 	}
 
 	public void loadConversions() throws LayoutLoadException, FileNotFoundException, IOException {
@@ -1845,6 +1821,13 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	public boolean hasLowResCamera() {
 		for (int i=0; i< experiments.length; i++) {
 			if (experiments[i] == EXP_VT_CAMERA_LOW_RES) return true;
+		}
+		return false;
+	}
+	
+	public boolean hasMesatCamera() {
+		for (int i=0; i< experiments.length; i++) {
+			if (experiments[i] == EXP_UMAINE_CAMERA) return true;
 		}
 		return false;
 	}

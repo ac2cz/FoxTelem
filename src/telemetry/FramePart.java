@@ -516,9 +516,9 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		else if (lay.isExperiment())
 			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);
 		else if (lay.isCanExperiment())
-			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);		
+			rt = new PayloadCanExperiment(id, resets, uptime, date, st, lay);		
 		else if (lay.isCanWodExperiment())
-			rt = new PayloadExperiment(id, resets, uptime, date, st, lay);	
+			rt = new PayloadCanWODExperiment(id, resets, uptime, date, st, lay);	
 		else if (lay.isCanPkt())
 			rt = new CanPacket(id, resets, uptime, date, st, lay);
 		else if (lay.isCanWodPkt())

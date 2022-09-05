@@ -1026,6 +1026,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (Spacecraft sat : sats) {
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up
+			
+			if (sat.hasMesatCamera()) {
+				Config.payloadStore.mesatImageStore.rebuildFromCanPackets(sat.foxId);
+			}
+			
 			if (sat.hasCanBus) {
 				ProgressPanel splitProgress = new ProgressPanel(this, "Splitting can packets, please wait ...", false);
 				splitProgress.setVisible(true);

@@ -14,10 +14,12 @@ import telemetry.herci.PayloadHERCIhighSpeed;
 import telemetry.legacyPayloads.PayloadCameraData;
 import telemetry.legacyPayloads.PayloadRadExpData;
 import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.mesat.MesatImageStore;
 import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {
 	protected boolean loaded = false; // set this to true once we have completed initial start up to prevent graphs reading null data
+	public MesatImageStore mesatImageStore; // If another MESAT camera flies then this would need to be refactored as an array
 	
 	public boolean initialized() { return loaded; }
 	public abstract boolean hasQueuedFrames();

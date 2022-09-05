@@ -15,6 +15,7 @@ import gui.herci.HerciLSTab;
 import gui.legacyTabs.CameraTab;
 import gui.legacyTabs.VulcanTab;
 import gui.legacyTabs.WodVulcanTab;
+import gui.mesat1.MesatCameraTab;
 import gui.tabs.CanExperimentTab;
 import gui.tabs.DisplayModule;
 import gui.tabs.FoxTelemTab;
@@ -126,10 +127,12 @@ public class SpacecraftTab extends JPanel {
 	}
 	
 	public void createTabs(Spacecraft fox) {
-		if (fox.hasFOXDB_V3)
+		if (fox.hasFOXDB_V3) {
 			addTabs();
-		else
-			addLegacyTabs();		
+			addSpecialV3DBTabs();
+		} else {
+			addLegacyTabs();
+		}
 		addMeasurementsTab(sat);
 	}
 
@@ -222,6 +225,19 @@ public class SpacecraftTab extends JPanel {
 			}
 		}
 
+	}
+	
+	private void addSpecialV3DBTabs() {
+		for (int exp : (sat).experiments) {
+		if (exp == Spacecraft.EXP_UMAINE_CAMERA)
+			try {
+				addMesatCameraTab(sat);
+			} catch (Exception e) {
+				e.printStackTrace(Log.getWriter());
+				Log.errorDialog("Layout Failure", "Failed to setup MESAT1 Camera tab for sat: " + sat.user_display_name 
+						+ "\nCheck the Spacecraft.dat file and remove this experiement if it is not valid\n"+e);
+			}
+		}
 	}
 
 	private void addLegacyTabs() {
@@ -501,6 +517,18 @@ public class SpacecraftTab extends JPanel {
 
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
 		" Camera ("+ fox.getIdString() + ")</body></html>", cameraTab);
+	}
+	
+	private void addMesatCameraTab(Spacecraft fox) {
+
+		MesatCameraTab cameraTab = new MesatCameraTab(fox);
+		cameraThread = new Thread(cameraTab);
+		cameraThread.setUncaughtExceptionHandler(Log.uncaughtExHandler);
+		cameraThread.start();
+//		tabThreads.add(cameraThread);
+
+		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1>" + 
+		" Multispectral Camera</body></html>", cameraTab);
 	}
 	
 	private void addMeasurementsTab(Spacecraft fox) {

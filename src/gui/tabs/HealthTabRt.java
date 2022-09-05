@@ -155,7 +155,7 @@ public class HealthTabRt extends HealthTab {
 		int currentRtFrames = 0;
 		int currentMaxFrames = 0;
 		int currentMinFrames = 0;
-		Thread.currentThread().setName("HealthTabRt");
+		Thread.currentThread().setName("HealthTabRt:"+foxId);
 		running = true;
 		done = false;
 		boolean justStarted = true;

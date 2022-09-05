@@ -1,5 +1,6 @@
 package telemetry.payloads;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.StringTokenizer;
@@ -95,22 +96,7 @@ public class PayloadCanExperiment extends FramePart {
 		rawCanPacket.addNext8Bits(b);
 		if (rawCanPacket.isValid()) {
 			canPackets.add(rawCanPacket);
-			// If we are not on the server then split packets
-			//				if (Config.splitCanPackets) {
-			////					if (rawCanPacket.getID() == 308871790) // debug to stop on rc_eps_batt_h2
-			////						Log.println("STOP"); // stop!
-			//					byte[] data = rawCanPacket.getBytes();
-			//					BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, rawCanPacket.getID());
-			//					if (canLayout == null) Log.errorDialog("ERROR", "Missing CAN Layout for CAN ID: "+rawCanPacket.getID());
-			//					CanPacket newPacket = new CanPacket(id, resets, uptime, reportDate, data, canLayout);
-			//					if (canLayout.name.equalsIgnoreCase(Spacecraft.CAN_PKT_LAYOUT)) { // then we got the default layout, we dont have a layout for this CAN ID
-			//						//newPacket.setType(FoxFramePart.TYPE_UW_CAN_PACKET); -- not really this type.  That is what goes in canpacket layout and that is already written
-			//						// nowhere to add this, so we do nothing.  Might in future write in an error log, but the bytes will be identical to the raw layout
-			//					} else {
-			//						newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM);
-			//						splitPackets.add(newPacket);
-			//					}
-			//				}
+			
 			BitArrayLayout canLayout = Config.satManager.getLayoutByName(id, canPktLayout);
 			rawCanPacket = new CanPacket(canLayout); 
 			rawCanPacket.captureHeaderInfo(id, uptime, resets);
@@ -171,24 +157,26 @@ public class PayloadCanExperiment extends FramePart {
 			p.setType(p_type);
 			if (storeMode)
 				p.newMode = newMode;
-			if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
-				return false;
+			if (payloadStore.add(getFoxId(), getUptime(), getResets(), p)) {
+				// We added this to the database and it is new
+				Spacecraft sat = Config.satManager.getSpacecraft(id);
+				if (sat.hasMesatCamera()) {
+					// Try to add this to a camera image
+					if (Config.payloadStore.mesatImageStore != null) {
+						try {
+							Config.payloadStore.mesatImageStore.add(getFoxId(), getResets(), getUptime(), p, getCaptureDate());
+						} catch (IOException e) {
+							Log.println("ERROR: Could not add the MESAT packet to the image");
+							e.printStackTrace(Log.getWriter());
+						}
+					}
+				}
+			} else {
+				// this packet could not be added, but we still try to add the others
+				// though if this was a duplicate then likely all the others are too
+			}
 			p.rawBits = null; // free up the bit array
 		}
-//		if (splitPackets != null && splitPackets.size() > 0) {
-//			j = 0;
-//			for (CanPacket p : splitPackets) {
-//				// Set the type here as it needs to span across payloads.  The uptime is NOT unique for multiple payloads in same Frame.
-//				int p_type = p.getType();
-//				p_type = p_type * 100 + serial + j++;
-//				p.setType(p_type);
-//				if (storeMode)
-//					p.newMode = newMode;
-//				if (!payloadStore.add(getFoxId(), getUptime(), getResets(), p))
-//					return false;
-//				p.rawBits = null; // free up the bit array
-//			}
-//		}
 
 		return true;
 

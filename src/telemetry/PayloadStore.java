@@ -21,6 +21,7 @@ import telemetry.legacyPayloads.PayloadCameraData;
 import telemetry.legacyPayloads.PayloadRadExpData;
 import telemetry.legacyPayloads.PictureScanLine;
 import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.mesat.MesatImageStore;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
@@ -125,7 +126,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 					}
 				}
 				//if (sats.get(s).isFox1())
-					if ((sats.get(s)).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
+				if ((sats.get(s)).hasCamera()) 
+					pictureStore[s] = new SatPictureStore(sats.get(s).foxId);
+				if (sats.get(s).hasMesatCamera()) {
+					mesatImageStore = new MesatImageStore(sats.get(s).foxId);
+				}
 				measurementStore[s] = new SatMeasurementStore(sats.get(s).foxId);
 				if (Log.showGuiDialogs)
 					Config.fileProgress.updateProgress(100 * s / sats.size());
@@ -964,6 +969,10 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		for (SatMeasurementStore store : measurementStore)
 			if (store != null)
 				store.deleteAll();
+
+		if (mesatImageStore != null) {
+			mesatImageStore.deleteAll();
+		}
 		loaded=true;
 	}
 

@@ -393,6 +393,7 @@ public class CameraJpeg implements Comparable<CameraJpeg> {
 	public static BufferedImage scale(BufferedImage source,double ratio) {
 		  int w = (int) (source.getWidth() * ratio);
 		  int h = (int) (source.getHeight() * ratio);
+		  if (w == 0 || h==0) return source;
 		  BufferedImage bi = getCompatibleImage(w, h);
 		  Graphics2D g2d = bi.createGraphics();
 		  double xScale = (double) w / source.getWidth();

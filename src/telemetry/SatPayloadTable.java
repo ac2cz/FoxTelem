@@ -17,6 +17,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
+import telemetry.payloads.PayloadCanExperiment;
 import telemetry.uw.UwCanPacket;
 
 /**
