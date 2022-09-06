@@ -162,9 +162,9 @@ public class PayloadCanExperiment extends FramePart {
 				Spacecraft sat = Config.satManager.getSpacecraft(id);
 				if (sat.hasMesatCamera()) {
 					// Try to add this to a camera image
-					if (Config.payloadStore.mesatImageStore != null) {
+					if (payloadStore.mesatImageStore != null) {
 						try {
-							Config.payloadStore.mesatImageStore.add(getFoxId(), getResets(), getUptime(), p, getCaptureDate());
+							payloadStore.mesatImageStore.add(getFoxId(), getResets(), getUptime(), p, getCaptureDate());
 						} catch (IOException e) {
 							Log.println("ERROR: Could not add the MESAT packet to the image");
 							e.printStackTrace(Log.getWriter());

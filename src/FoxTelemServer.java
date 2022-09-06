@@ -42,11 +42,11 @@ import common.Log;
 
 public class FoxTelemServer {
 
-	public static String version = "Version 0.38a - 30 Aug 2022";
+	public static String version = "Version 0.38b - 6 Sep 2022";
 	public static int port = Config.tcpPort;
 	static int sequence = 0;
 	private static final int MAX_SEQUENCE = 1000;// This needs to be larger than the maximum number of connections in a second so we dont get duplicate file names
-	static int poolSize = 8; // max number of threads
+	static int poolSize = 1; // max number of threads
 	static final String usage = "FoxServer user database [-vr] [-s dir] [-f dir]\n-v - Version Information\n"
 			+ "-s <dir> - Process all of the stp files in the specified directory and load them into the db\n"
 			+ "-f <dir> - Read the stp files in the specified directory and fix the STP_HEADER table db\n"

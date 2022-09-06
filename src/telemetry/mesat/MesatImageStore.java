@@ -27,7 +27,7 @@ public class MesatImageStore {
 	private static final int INIT_SIZE = 100;
 	private Spacecraft fox;
 	public int foxId;
-	public static String INDEX_NAME = "image_index.dat";
+	public static String INDEX_NAME = "image_index.log";
 	private String fileName = INDEX_NAME;
 	SortedMesatImageList images;
 	boolean updatedImage = false;	
