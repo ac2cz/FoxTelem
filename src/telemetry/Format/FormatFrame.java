@@ -323,6 +323,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 		
 		private void storeGPSTime(FramePart payload) {
 			ZonedDateTime timestamp = payload.getGPSTime(fox);
+			if (timestamp == null) return;
 			Log.println(payload.resets + "/" + payload.uptime + " GPS TIME: " + timestamp);
 			if (fox.user_useGPSTimeForT0) {
 				// Then we user this to set T0 for the current reset

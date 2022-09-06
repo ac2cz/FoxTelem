@@ -812,14 +812,19 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		if (valid == 0) return null;
 		
 		int sec = (int) getDoubleValue(GPS_SECONDS, fox);
+		if (sec < 0 || sec > 59) return null;
 		
 		int min = (int) getDoubleValue(GPS_MINUTES, fox);
+		if (min < 0 || min > 59) return null;
 		
 		int hrs = (int) getDoubleValue(GPS_HOURS, fox);
+		if (hrs < 0 || hrs > 23) return null;
 		
 		int days = (int) getDoubleValue(GPS_DAY, fox);
+		if (days < 1 || days > 31) return null;
 		
 		int mths = (int) getDoubleValue(GPS_MONTH, fox);
+		if (mths < 1 || mths > 12) return null;
 		
 		int yrs = (int) getDoubleValue(GPS_YEAR, fox);
 		yrs += 2000;

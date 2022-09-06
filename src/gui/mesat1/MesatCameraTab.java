@@ -416,7 +416,9 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 				reportDate = FramePart.reportDateFormat.format(result);
 				
 			} catch (ParseException e) {
-				reportDate = "unknown";				
+				reportDate = u;				
+			} catch (Exception e) {
+				reportDate = u;	
 			}
 			
 			return reportDate;
