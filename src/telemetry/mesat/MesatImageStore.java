@@ -103,6 +103,8 @@ public class MesatImageStore {
 		}
 		// We did not find it, so try to create a new Image on disk.  This will also save the index entry if the packet is valid
 		MesatImage img = new MesatImage(id, p, epoch, uptime, captureDate);
+		if (Config.debugCameraFrames)
+			Log.println("Adding new image: " + epoch + ":"+ uptime);
 		if (img.addPacket(p)) {
 			images.add(img);
 			updatedImage = true;
@@ -121,7 +123,7 @@ public class MesatImageStore {
 		// Get a list of the Can Packets
 		SortedFramePartArrayList data = null;
 		try {
-			data = Config.payloadStore.getFrameParts(id, 0, 0L, 9999, false, fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).name);
+			data = Config.payloadStore.getFrameParts(id, 0, 0L, 99999999, true, fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).name);
 		} catch (IOException e) {
 			e.printStackTrace(Log.getWriter());
 		}
@@ -135,7 +137,7 @@ public class MesatImageStore {
 				}
 			}
 		}
-		
+		Config.payloadStore.mesatImageStore.setUpdatedImage(true); //////////////////// DOES NOT WORK!!  Need to check number of images too in the tab
 	}
 
 	public SortedMesatImageList getIndex(int id, int period, int fromReset, long fromUptime) {

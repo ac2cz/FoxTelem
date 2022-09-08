@@ -459,11 +459,12 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 				
 
 				if (Config.payloadStore.mesatImageStore != null ) {
-
-					if (Config.payloadStore.mesatImageStore.getUpdatedImage()) {
+					int numberOfFrames = Config.payloadStore.mesatImageStore.getNumberOfImages();
+					if (currentFrames != numberOfFrames || Config.payloadStore.mesatImageStore.getUpdatedImage()) {
 						if (Config.debugCameraFrames)
 							Log.println("New tab data from the mesat1 camera");
 
+						currentFrames = numberOfFrames;
 						loadThumbs();
 
 						displayPictureParams(selectedThumb);

@@ -1020,7 +1020,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		Config.save(); // make sure any changed settings saved
 		Config.initPayloadStore();
-		
+		Config.fileProgress.updateProgress(100);
 		//int pkts = 0;
 		
 		for (Spacecraft sat : sats) {
@@ -1028,7 +1028,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			// because the user can change it.  So we have a hard coded routine to look it up
 			
 			if (sat.hasMesatCamera()) {
+				Log.println("Attempting to recover images from MESAT1 Can Packets ..");
+				ProgressPanel mesatProgress = new ProgressPanel(this, "Processing camera can packets, please wait ...", false);
+				mesatProgress.setVisible(true);
 				Config.payloadStore.mesatImageStore.rebuildFromCanPackets(sat.foxId);
+				mesatProgress.updateProgress(100);
 			}
 			
 			if (sat.hasCanBus) {
@@ -1087,14 +1091,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 		queueStatus.updateProgress(100);
 
-		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
-		refreshProgress.setVisible(true);
-		
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
-		
-		refreshProgress.updateProgress(100);
 		
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);

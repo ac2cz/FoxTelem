@@ -91,9 +91,11 @@ public class CanPacket extends FramePart implements Comparable<FramePart> {
 	}
 
 	public int getLength() {
+		copyBitsToFields();
 		return length;
 	}
 	public int getID() {
+		copyBitsToFields();
 		return canId;
 	}
 	
