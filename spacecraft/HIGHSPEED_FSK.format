@@ -10,3 +10,5 @@ word_length=10
 sync_word_length=10
 rs_words=21
 rs_padding=3,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4
+symbols_per_chunk=100
+rf_filter_width_hz=7000

@@ -64,7 +64,7 @@ import uk.me.g4dpz.satellite.SatPos;
  */
 public abstract class Decoder implements Runnable {
 	public String name = "";
-	TelemFormat telemFormat;
+	public TelemFormat telemFormat;
 	// This is the audio source that holds incoming audio.  It contains a circularByte buffer and the decoder reads from it.  The decoder does
 	// not care where the audio comes from or how it gets into the buffer
 	protected SourceAudio audioSource;

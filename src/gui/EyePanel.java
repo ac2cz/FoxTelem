@@ -16,9 +16,9 @@ import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import gui.graph.GraphCanvas;
 import gui.graph.LinePlotPanel;
+import telemetry.Format.TelemFormat;
 import decoder.Decoder;
 import decoder.EyeData;
-import decoder.Fox9600bpsDecoder;
 
 /** 
  * FOX 1 Telemetry Decoder
@@ -88,8 +88,8 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 
 	private void init() {
-		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; 
-		else if (decoder instanceof FoxBPSKDecoder) SAMPLES = 8;
+		if (decoder.telemFormat.isFSK() && decoder.telemFormat.getInt(TelemFormat.BPS) == 9600) SAMPLES = 5; 
+		else if (decoder.telemFormat.isBPSK()) SAMPLES = 8;
 		else SAMPLES = decoder.getBucketSize()/2;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {

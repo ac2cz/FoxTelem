@@ -26,6 +26,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import common.Log;
 import common.Spacecraft;
@@ -82,7 +83,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 	
 	JButton btnCancel;
 	JButton btnSave;
-	JButton btnGetT0;
+	JButton btnGetT0, btnDeleteT0;
 	T0SeriesTableModel t0TableModel;
 	
 	Spacecraft sat;
@@ -159,8 +160,15 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
-		JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
-		leftFixedPanel.add(icr);
+		JLabel icr = null;
+		if (sat.hasImprovedCommandReceiver) {
+			icr = new JLabel("Improved Command Receiver");
+			leftFixedPanel.add(icr);
+		}
+		if (sat.hasImprovedCommandReceiverII) {
+			icr = new JLabel("Improved Command Receiver II");
+			leftFixedPanel.add(icr);
+		}
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
@@ -194,9 +202,16 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 
 		updateTimeSeries();
 		
+		JPanel t0buttonsPanel = new JPanel();
+		t0Panel.add(t0buttonsPanel);
+		
 		btnGetT0 = new JButton("Update T0 from Server");
 		btnGetT0.addActionListener(this);
-		t0Panel.add(btnGetT0);//, BorderLayout.WEST);
+		t0buttonsPanel.add(btnGetT0);//, BorderLayout.WEST);
+		
+		btnDeleteT0 = new JButton("Delete T0 File");
+		btnDeleteT0.addActionListener(this);
+		t0buttonsPanel.add(btnDeleteT0);//, BorderLayout.WEST);
 		
 		JPanel localServerPanel = new JPanel();
 		leftPanel.add(localServerPanel);
@@ -521,6 +536,30 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 				
 		}
 		
+		if (e.getSource() == btnDeleteT0) {
+			String message = "Do you want to delete the T0 file?\n"
+					+ "THIS WILL REMOVE THE T0 FILE. This is only useful when testing in the lab\n"
+					+ "After launch the T0 file will be downloaded again from the server by FoxTelem when it starts and periodically while running.";
+			Object[] options = {"Yes",
+			"No"};
+			int n = JOptionPane.showOptionDialog(
+					MainWindow.frame,
+					message,
+					"Do you want to continue?",
+					JOptionPane.YES_NO_OPTION, 
+					JOptionPane.ERROR_MESSAGE,
+					null,
+					options,
+					options[1]);
+
+			if (n == JOptionPane.NO_OPTION) {
+				return;
+			}
+			MainWindow.updateManager.deleteT0(sat);
+			updateTimeSeries();
+		}
+		
+	
 		if (e.getSource() == btnSave) {
 			
 		}

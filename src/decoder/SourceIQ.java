@@ -319,29 +319,11 @@ public class SourceIQ extends SourceAudio {
 			samplesToRead = 3840 /2;
 			return;
 		}
-		if (format.isBPSK() || Config.useNCO) {
-			FFT_SAMPLES=4096;
-			samplesToRead = 3840 /2;
-			return;			
-		}
-		for (int f=0; f<17; f++) {
-			int len = (int)Math.pow(2, f);
-			if (IQ_SAMPLE_RATE / len < 47) {
-				int factor = len / 4096;
-				if (factor == 0 ) {
-					// Set to default
-					FFT_SAMPLES=4096;
-					samplesToRead = 3840;
-					return;
-				}
-				FFT_SAMPLES = len; 
-				samplesToRead = 3840 * factor/2;
-				return;
-			}
-		}
-		// Default to max
-		FFT_SAMPLES = 4096 * 16;
-		samplesToRead = 3840 * 16/2;
+		
+		FFT_SAMPLES=4096;
+		samplesToRead = 3840 /2;
+		return;			
+		
 	}
 	
 	private void init() {	
@@ -357,7 +339,6 @@ public class SourceIQ extends SourceAudio {
 		psdAvg = new double[FFT_SAMPLES*2+1];;
 		newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
 
-		
 		
 		switch (IQ_SAMPLE_RATE) {
 		
@@ -407,24 +388,25 @@ public class SourceIQ extends SourceAudio {
 		}
 		binBandwidth = IQ_SAMPLE_RATE/(double)FFT_SAMPLES;
 		
-			
+		setFilterWidth(format.getInt(TelemFormat.RF_FILTER_WIDTH_HZ));
 		if (format.isBPSK()) {		
 			setFilterWidth(5000); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
 			ht = new HilbertTransform(AF_SAMPLE_RATE, 255); // audio bandwidth and length
 			delay = new Delay((255-1)/2);
-		} else if (format.getInt(TelemFormat.BPS) == 9600) {
-			if (Config.useNCO) 
-				setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
-			else
-				setFilterWidth(2*9600); //9600); // 7000 seems best for PolyPhase filter
-		//	setFilterWidth(2*75000);
-		} else {
-			if (Config.useNCO) 
-				setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
-			else
-				setFilterWidth(5000); // 5kHz deviation, 3kHz audio on Fox
-			//mode = MODE_NFM;
-		}
+		} 
+//		else if (format.getInt(TelemFormat.BPS) == 9600) {
+//			if (Config.useNCO) 
+//				setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
+//			else
+//				setFilterWidth(2*9600); //9600); // 7000 seems best for PolyPhase filter
+//		//	setFilterWidth(2*75000);
+//		} else {
+//			if (Config.useNCO) 
+//				setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
+//			else
+//				setFilterWidth(5000); // 5kHz deviation, 3kHz audio on Fox
+//			//mode = MODE_NFM;
+//		}
 		if (offsetFFT) // only needed for FFT Filter
 			dist = 128*FFT_SAMPLES/4096; // offset puts the data outside the taper of the window function and gives better audio, but at the expense of dynamic range
 
@@ -586,6 +568,8 @@ public class SourceIQ extends SourceAudio {
 			
 			if (format.isBPSK()) // effectively USB
 				nco.setFrequency(freq+ssbOffset); //-1400); // ssboffset -ve for USB demod
+			else
+				nco.setFrequency(freq);
 
 			c = nco.nextSample();
 			c.normalize();
@@ -1026,14 +1010,14 @@ double id, qd;
 		}
 //		double sigList[] = new double[(end-start+2)/2];
 		for (int i = start; i <= end; i+=2) {
-			if (!Config.useNCO)
-				if (Config.applyBlackmanWindow) {
-					newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
-					newData[k+1] = fftData[i + 1] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]);	
-				} else {
-					newData[k] = fftData[i] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]) ;
-					newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
-				}
+//			if (!Config.useNCO)
+//				if (Config.applyBlackmanWindow) {
+//					newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
+//					newData[k+1] = fftData[i + 1] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]);	
+//				} else {
+//					newData[k] = fftData[i] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]) ;
+//					newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
+//				}
 			sig = psd(fftData[i], fftData[i+1]);
 			if ((fromBin*2 < i && i < toBin*2)
 					|| (spansDcSpike && fromBin*2 < i && i < fftData.length-2) || (spansDcSpike && 0 <= i && i < toBin*2)) {
@@ -1099,11 +1083,11 @@ double id, qd;
 		//		fftData[0] = 0;
 		//		fftData[1] = 0;
 		// Write the DC bins - seem to need this for the blackman filter
-		if (!Config.useNCO)
-			if (Config.applyBlackmanWindow) {
-				newData[0] = iAvg / (filterBins * 2);
-				newData[1] = qAvg / (filterBins * 2);
-			}
+//		if (!Config.useNCO)
+//			if (Config.applyBlackmanWindow) {
+//				newData[0] = iAvg / (filterBins * 2);
+//				newData[1] = qAvg / (filterBins * 2);
+//			}
 		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
 		//		if (Config.debugSignalFinder) {
@@ -1121,10 +1105,10 @@ double id, qd;
 		// store the strongest sigs - STRONGEST_SIGNAL_IN_SAT_BAND
 		rfData.setStrongestSignal(strongestSigInSatBand, binOfStrongestSigInSatBand);
 
-		if (!Config.useNCO)
-			for (int i = 0; i < fftData.length; i+=1) {
-				fftData[i] = newData[i];			
-			}
+//		if (!Config.useNCO)
+//			for (int i = 0; i < fftData.length; i+=1) {
+//				fftData[i] = newData[i];			
+//			}
 
 		//return newData;
 	}

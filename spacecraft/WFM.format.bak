@@ -1,4 +1,4 @@
-name=FSK 200bps (Fox1)
+name=Wide FM
 mode=FSK
 bps=200
 frame_length=96
@@ -11,4 +11,4 @@ sync_word_length=10
 rs_words=1
 rs_padding=159
 symbols_per_chunk=70
-rf_filter_width_hz=4000
+rf_filter_width_hz=75000

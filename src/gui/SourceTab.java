@@ -146,7 +146,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	JButton btnFftZoomIn;
 	JButton btnFftZoomOut;
 	
-	JCheckBox rdbtnUseNco;
+//	JCheckBox rdbtnUseNco;
 //	JCheckBox rdbtnUseCostas;
 	JCheckBox cbRetuneCenterFrequency;
 	JComboBox<String> speakerComboBox;
@@ -443,11 +443,11 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		
 		findSignalPanel.setVisible(Config.findSignal);
 	
-		rdbtnUseNco = new JCheckBox("Use NCO");
-		rdbtnUseNco.addItemListener(this);
-		rdbtnUseNco.setSelected(Config.useNCO);
-		rdbtnUseNco.setVisible(false);
-		optionsPanel.add(rdbtnUseNco);
+//		rdbtnUseNco = new JCheckBox("Use NCO");
+//		rdbtnUseNco.addItemListener(this);
+//		//rdbtnUseNco.setSelected(Config.useNCO);
+//		rdbtnUseNco.setVisible(false);
+//		optionsPanel.add(rdbtnUseNco);
 //		rdbtnUseCostas = new JCheckBox("Costas");
 //		rdbtnUseCostas.addItemListener(this);
 //		rdbtnUseCostas.setSelected(Config.useCostas);
@@ -2578,18 +2578,18 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 			Config.save();
 		}
 		
-		if (e.getSource() == rdbtnUseNco) {
-			if (fftPanel != null)
-			if (e.getStateChange() == ItemEvent.DESELECTED) {
-				Config.useNCO = false;
-				Log.println("NCO = false");
-	        } else {
-	        	Config.useNCO = true;
-				Log.println("NCO = true");
-	        	
-	        }
-			Config.save();
-		}
+//		if (e.getSource() == rdbtnUseNco) {
+//			if (fftPanel != null)
+//			if (e.getStateChange() == ItemEvent.DESELECTED) {
+//				Config.useNCO = false;
+//				Log.println("NCO = false");
+//	        } else {
+//	        	Config.useNCO = true;
+//				Log.println("NCO = true");
+//	        	
+//	        }
+//			Config.save();
+//		}
 //		if (e.getSource() == rdbtnUseCostas) {
 //			if (fftPanel != null)
 //			if (e.getStateChange() == ItemEvent.DESELECTED) {

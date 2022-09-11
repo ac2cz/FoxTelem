@@ -70,7 +70,7 @@ public class Config {
 	public static ProgressPanel fileProgress;
 	
 	public static String VERSION_NUM = "1.12z";
-	public static String VERSION = VERSION_NUM + " - 8 Sep 2022";
+	public static String VERSION = VERSION_NUM + " - 10 Sep 2022";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
@@ -277,7 +277,7 @@ public class Config {
 	static public boolean saveFcdParams = false;
 	
 	// V1.07
-	static public boolean useNCO = true;
+//	static public boolean useNCO = true;
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 

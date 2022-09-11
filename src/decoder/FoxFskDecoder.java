@@ -41,9 +41,16 @@ public class FoxFskDecoder extends FoxDecoder {
 		//CLOCK_REOVERY_ZERO_THRESHOLD = 20;
 		
 		// HIGH SPEED TEST Gives the below as a good compromise between DUV and 9600
-		SAMPLE_WIDTH = 1;
-		SAMPLE_WINDOW_LENGTH = 90; 
+		//SAMPLE_WIDTH = 1;
+		
+		SAMPLE_WIDTH = bucketSize*SAMPLE_WIDTH_PERCENT/100;
+		if (SAMPLE_WIDTH < 1) SAMPLE_WIDTH = 1;
+		//SAMPLE_WINDOW_LENGTH = 90; 
+		//SAMPLE_WINDOW_LENGTH = 70; 
+		SAMPLE_WINDOW_LENGTH = telemFormat.getInt(TelemFormat.SYMBOLS_PER_CHUNK);
 		CLOCK_TOLERANCE = 10;
 		CLOCK_REOVERY_ZERO_THRESHOLD = 20;
+		if (BITS_PER_SECOND == 9600)
+			CLOCK_REOVERY_ZERO_THRESHOLD = 10;
 	}
 }

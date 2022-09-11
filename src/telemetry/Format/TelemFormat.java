@@ -28,6 +28,9 @@ public class TelemFormat {
 	public static final String RS_PADDING="rs_padding";
 	public static final String SYNC_WORD_LENGTH="sync_word_length";
 	public static final String WORD_LENGTH="word_length";
+	public static final String SYMBOLS_PER_CHUNK="symbols_per_chunk"; // symbols per window in the decoder
+	public static final String RF_FILTER_WIDTH_HZ="rf_filter_width_hz";
+	
 	
 	public Properties properties; // Java properties file for user defined values
 	public File propertiesFile;
@@ -64,6 +67,12 @@ public class TelemFormat {
 		}
 		try { getInt(RS_WORDS); } catch (Exception e) {
 			throw new LayoutLoadException("Invalid or missing "+RS_WORDS+" in Telem Format file: " + propertiesFile.getAbsolutePath());
+		}
+		try { getInt(SYMBOLS_PER_CHUNK); } catch (Exception e) {
+			throw new LayoutLoadException("Invalid or missing "+SYMBOLS_PER_CHUNK+" in Telem Format file: " + propertiesFile.getAbsolutePath());
+		}
+		try { getInt(RF_FILTER_WIDTH_HZ); } catch (Exception e) {
+			throw new LayoutLoadException("Invalid or missing "+RF_FILTER_WIDTH_HZ+" in Telem Format file: " + propertiesFile.getAbsolutePath());
 		}
 		
 		// calculated fields

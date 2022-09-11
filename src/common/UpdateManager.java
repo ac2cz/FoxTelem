@@ -115,6 +115,21 @@ public class UpdateManager implements Runnable {
 			}
 		}
 	}
+	
+	public void deleteT0(Spacecraft sat) {
+		String file = sat.series + sat.foxId + Config.t0UrlFile;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;			
+		}
+		Log.println("Deleting: " + file);
+		try {
+			SatPayloadStore.remove(file);
+			sat.loadTimeZeroSeries(null);
+		} catch (IOException e) {
+			Log.println("Could not delete T0 file: " + file);
+			e.printStackTrace(Log.getWriter());
+		}
+	}
 		
 	public void updateT0(Spacecraft sat) {
 		String urlString = Config.webSiteUrl+ Config.t0UrlPath + sat.series + sat.foxId + Config.t0UrlFile;

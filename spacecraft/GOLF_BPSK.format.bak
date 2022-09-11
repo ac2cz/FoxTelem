@@ -1,11 +1,9 @@
-name=BPSK 1200bps (LTM)
+name=BPSK 1200bps (Golf)
 mode=BPSK
 bps=1200
-frame_length=765
 data_length=669
 header_length=12
-header_layout_file=LTM_header.csv
-trailer_length=96
+header_layout_file=GOLF-T_header.csv
 word_length=10
 sync_word_length=31
 rs_words=3
