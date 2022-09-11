@@ -292,8 +292,8 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			//lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			//leftFixedPanel.add(lExp[i]);
 			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "This information was important to set FoxTelem decoder features for legacy spacecraft.  Now this is just for information.", Spacecraft.expNames);
-			setSelection(cbExperiments[i], Spacecraft.expNames, Spacecraft.expNames[sat.experiments[i]]);
-			
+			if (sat.experiments[i] < Spacecraft.expNames.length)
+				setSelection(cbExperiments[i], Spacecraft.expNames, Spacecraft.expNames[sat.experiments[i]]);
 		}
 
 		leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
