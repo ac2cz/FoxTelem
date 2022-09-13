@@ -338,6 +338,7 @@ public class SatPayloadTable {
 	}
 		
 	/**
+	 * getSeg searches for a segment which contains this reset and uptime and creates a segment if it does not exist.
 	 * If Prev is true then we are searching for the previous record.  We do not create a new seg if it is missing
 	 * and we do not need reset to be the same in the seg we found.  We just want the previous record.
 	 * @param reset
@@ -347,7 +348,7 @@ public class SatPayloadTable {
 	 * @throws IOException
 	 */
 	private TableSeg getSeg(int reset, long uptime, boolean prev) throws IOException {
-		if (Config.debugSegs) Log.println("SEG-GET: " + this.fileName + ":" + reset + ":" + uptime);
+		//if (Config.debugSegs) Log.println("SEG-GET: " + this.fileName + ":" + reset + ":" + uptime);
 		for (int i=tableIdx.size()-1; i>=0; i--) {
 			if (tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) {
 				return tableIdx.get(i);
@@ -369,7 +370,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	private TableSeg loadSeg(int reset, long uptime, boolean prev) throws IOException {
-		if (Config.debugSegs) Log.println("SEG-LOAD: " + this.fileName + ":" + reset + ":" + uptime);
+		//if (Config.debugSegs) Log.println("SEG-LOAD: " + this.fileName + ":" + reset + ":" + uptime);
 		TableSeg seg = getSeg(reset, uptime, prev);
 		if (seg == null) return null;
 		seg.accessed();
@@ -597,7 +598,7 @@ public class SatPayloadTable {
 		if (rtRecords == null || rtRecords.size() == 0) return;
 		if (Config.debugSegs) Log.println("Offloaded SEG: " + seg.toString());
 		boolean foundStart = false;
-		int removed = 0;
+		int removePoint = 0;
 		seg.setLoaded(false);
 		for (int i=0; i<rtRecords.size();i++) {
 			if (!foundStart) {
@@ -606,48 +607,72 @@ public class SatPayloadTable {
 					if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
 						// we have the first record, so we offload them
 						foundStart = true;
+						removePoint = i;
 					}
 			}
 			// Now if we found start we can remove the record and subsequent ones
+			/* The records in memory are sorted.  If records were received out of order such as from a recording or from WOD
+			 then they can be in a different order in the segments on disk.
+			 We need to make sure that we don't remove records from the next segment by accident, just because they are contiguous in memory.
+			 We could of course load the actual records from disk to check what is actually in the segment, but that would null the
+			 advantage of the in memory cache.  We could also store an index on the actual segment that points to the records it holds,
+			 that might be better but would require implementation and testing.
+			 Instead we check the segment that the records is in.  We only remove it if it is in this segment.
+			 This means that some records may be left in memory, but that is OK. The opposite can mean that duplicate records
+			 are added to the files, because it looks like they are not in the DB when we try to store them.
+			 */
 			if (foundStart) {
-				rtRecords.remove(i);
-				removed++;
-				if (removed == seg.records) {
-					break; // we are done
+				for (int j=0; j < seg.records; j++) {
+				
+					for (int s=tableIdx.size()-1; s>=0 && removePoint < rtRecords.size(); s--) {
+						if (tableIdx.get(s).fromReset <= rtRecords.get(removePoint).resets && tableIdx.get(s).fromUptime <= rtRecords.get(removePoint).uptime) {
+							if (tableIdx.get(s).equals(seg)) {
+								//Log.println("  - Offloaded: " + rtRecords.get(removePoint).resets + ":" + rtRecords.get(removePoint).uptime );
+								rtRecords.remove(removePoint); // Make sure that we remove the right record because the array is shrinking as we remove records	
+								break;
+							} else {
+								//Log.println("  xx Didn't Offloaded: " + rtRecords.get(removePoint).resets + ":" + rtRecords.get(removePoint).uptime );
+								removePoint++; // we did not remove the record so move forward one place so the next one will be tested and removed.
+								break;
+								
+							}
+						}
+					}
 				}
+				break; // we are done
 			}
-		}		
-	}
-	
-	/**
+		}
+	}		
+
+
+/**
 	 * Save a new record to disk		
 	 * @param f
 	 */
 	public synchronized boolean save(FramePart f) throws IOException {
 		deleteLock = true;
 		try {
-		// Make sure this segment is loaded, or create an empty segment if it does not exist
-		TableSeg seg = loadSeg(f.resets, f.uptime, false);
-		if (rtRecords.add(f)) {
-		//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
-			updated = true;
-			//System.out.println(this.fileName + " TABLE UPDATED");
-			if (seg.records == MAX_SEGMENT_SIZE) {
-				// We need to add a new segment with this as the first record
-				TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);
-				boolean added = tableIdx.add(newseg);
-				if (added) // fails to add if reset/uptime has not changed, e.g. if all records from the same highspeed record.  Only issue in testing if segments very short
-					seg = newseg; 
+			// Make sure this segment is loaded, or create an empty segment if it does not exist
+			TableSeg seg = loadSeg(f.resets, f.uptime, false);
+			if (rtRecords.add(f)) {
+				//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
+				updated = true;
+				//System.out.println(this.fileName + " TABLE UPDATED");
+				if (seg.records == MAX_SEGMENT_SIZE) {
+					// We need to add a new segment with this as the first record
+					TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);
+					boolean added = tableIdx.add(newseg);
+					if (added) // fails to add if reset/uptime has not changed, e.g. if all records from the same highspeed record.  Only issue in testing if segments very short
+						seg = newseg; 
+				}
+				save(f, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
+				seg.records++;
+				saveIdx();
+				//return rtRecords.add(f);
+				return true;
+			} else {
+				if (Config.debugFieldValues) Log.println("DUPLICATE (or corrupt) RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 			}
-			save(f, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
-			seg.records++;
-			saveIdx();
-			//return rtRecords.add(f);
-			
-			return true;
-		} else {
-			if (Config.debugFieldValues) Log.println("DUPLICATE (or corrupt) RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
-		}
 			return false;
 		} finally {
 			deleteLock = false;

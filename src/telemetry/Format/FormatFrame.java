@@ -306,8 +306,12 @@ import telemetry.uw.PayloadWODUwExperiment;
 						((PayloadWODUwExperiment)payload[i]).savePayloads(payloadStore, serial, storeMode);
 						serial = serial + ((PayloadWODUwExperiment)payload[i]).canPackets.size();
 					} else
-						if (!payloadStore.add(header.getFoxId(), header.getUptime(), newReset, payload[i]))
+						if (!payloadStore.add(header.getFoxId(), header.getUptime(), newReset, payload[i])) {
+							payload[i].rawBits = null; // free memory associated with the bits
+							headerBytes = null; // free memory 
+							dataBytes = null; // free memory
 							return false;
+						}
 					
 					if (payload[i].layout.hasGPSTime) {
 						storeGPSTime(payload[i]);
