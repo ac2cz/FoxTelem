@@ -4,9 +4,7 @@ import common.Config;
 import common.Spacecraft;
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
 import java.io.IOException;
-import java.time.LocalDateTime;
 import java.time.ZonedDateTime;
 import java.util.StringTokenizer;
 
@@ -46,6 +44,7 @@ import telemetry.uw.PayloadWODUwExperiment;
 	 * along with this program.  If not, see <http://www.gnu.org/licenses/>.
 	 *
 	 */
+	@SuppressWarnings("deprecation")
 	public class FormatFrame extends Frame {
 		
 		FrameLayout frameLayout;
@@ -258,7 +257,6 @@ import telemetry.uw.PayloadWODUwExperiment;
 			numberBytesAdded++;
 		}
 		
-		@SuppressWarnings("deprecation")
 		private void initPayloads(FormatHeader header, FrameLayout frameLayout) {
 			payload = new FramePart[frameLayout.getNumberOfPayloads()];
 			for (int i=0; i<frameLayout.getNumberOfPayloads(); i+=1 ) {

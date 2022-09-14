@@ -36,7 +36,7 @@ import telemetry.frames.SlowSpeedFrame;
  *
  *
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "deprecation" })
 public class FormatBitStream extends HighSpeedBitStream {
 	//public static final int FOX_BPSK_SPEED_SYNC_WORD_DISTANCE = 5720 + 31; 
 	TelemFormat telemFormat;

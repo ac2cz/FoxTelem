@@ -18,7 +18,6 @@ import java.util.TimeZone;
 import common.Log;
 import common.Sequence;
 import telemetry.frames.Frame;
-import telemetry.frames.HighSpeedFrame;
 
 public class ServerProcess implements Runnable {
 	public static final String NONE = "NONE";
@@ -45,7 +44,7 @@ public class ServerProcess implements Runnable {
 
 	// safety limit to stop massive files being sent to us
 	// Max frame size is a high speed frame plus the maximum STP Header Size, which is circa 350 bytes.  1000 used to be conservative
-	public static final int MAX_FRAME_SIZE = HighSpeedFrame.MAX_FRAME_SIZE + 1000;
+	public static final int MAX_FRAME_SIZE = 5600;
 	public static final DateFormat fileDateName = new SimpleDateFormat("yyyyMMddHHmmss");
 	public static final DateFormat yearDirName = new SimpleDateFormat("yyyy");
 	public static final DateFormat monthDirName = new SimpleDateFormat("MM");

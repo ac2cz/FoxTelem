@@ -444,6 +444,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	 * @param f
 	 * @return
 	 */
+	@Deprecated
 	public boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci) {
 		for (int i=0; i< herci.length; i++) {
 			herci[i].captureHeaderInfo(id, uptime, resets);
@@ -452,7 +453,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		}
 		return true;
 	}
-
+	@Deprecated
 	public boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -647,6 +648,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 
+	@Deprecated
 	public FramePart getLatestRad(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -663,6 +665,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 
 	}
 
+	@Deprecated
 	public RadiationTelemetry getLatestRadTelem(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -678,7 +681,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 
 	}
-	
+	@Deprecated
 	public RadiationTelemetry getRadTelem(int id, int resets, long uptime) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -696,7 +699,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 
 	
-	
+	@Deprecated
 	public PayloadHERCIhighSpeed getLatestHerci(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -712,7 +715,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 
 	}
-
+	@Deprecated
 	public HerciHighspeedHeader getLatestHerciHeader(int id) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -854,7 +857,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
-	
+	@Deprecated
 	public String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -867,6 +870,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 	
+	@Deprecated
 	public String[][] getWODRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -880,6 +884,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 	}
 	
 	@Override
+	@Deprecated
 	public String[][] getWodRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -892,6 +897,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 		return null;
 	} 
 	
+	@Deprecated
 	public String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -903,6 +909,8 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
+	
+	@Deprecated
 	public String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -914,6 +922,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
+	@Deprecated
 	public String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -925,6 +934,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
+	@Deprecated
 	public double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
@@ -936,6 +946,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
+	@Deprecated
 	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse) {
 		SatPayloadStore store = getPayloadStoreById(fox.foxId);
 		if (store != null)
@@ -947,6 +958,7 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 		return null;
 	}
+	@Deprecated
 	public double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 		SatMeasurementStore store = getMeasurementStoreById(fox.foxId);
 		if (store != null)

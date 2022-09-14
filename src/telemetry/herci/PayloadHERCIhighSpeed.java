@@ -176,6 +176,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 	 * Calculate the telemetry and return it
 	 * @return
 	 */
+	@Deprecated
 	public HerciHighspeedHeader calculateTelemetryPalyoad() {
 		HerciHighspeedHeader radTelem = new HerciHighspeedHeader(resets, uptime, Config.satManager.getLayoutByName(id, Spacecraft.HERCI_HS_HEADER_LAYOUT));
 		for (int k=0; k<HerciHighspeedHeader.MAX_RAD_TELEM_BYTES; k++) { 
@@ -186,7 +187,7 @@ public class PayloadHERCIhighSpeed extends FramePart {
 		time = radTelem.fieldValue[HerciHighspeedHeader.HERCI_TIME_FIELD];
 		return radTelem;
 	}
-
+	@Deprecated
 	public ArrayList<HerciHighSpeedPacket> calculateTelemetryPackets() {
 		ArrayList<HerciHighSpeedPacket> packets = new ArrayList<HerciHighSpeedPacket>();
 		

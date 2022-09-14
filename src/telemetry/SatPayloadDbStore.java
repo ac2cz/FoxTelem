@@ -12,7 +12,6 @@ import telemetry.legacyPayloads.PayloadWODRad;
 import telemetry.legacyPayloads.PictureScanLine;
 import telemetry.legacyPayloads.RadiationTelemetry;
 import telemetry.legacyPayloads.WodRadiationTelemetry;
-import telemetry.payloads.PayloadExperiment;
 import telemetry.payloads.PayloadMaxValues;
 import telemetry.payloads.PayloadMinValues;
 import telemetry.payloads.PayloadRtValues;
@@ -837,6 +836,7 @@ public class SatPayloadDbStore {
 		return null;
 	}
 	
+	@Deprecated
 	ArrayList<FramePart> selectCanPackets(String where) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
@@ -1063,7 +1063,6 @@ public class SatPayloadDbStore {
 	 * @return
 	 * @throws SQLException 
 	 */
-	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public double[][] getRtGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime) throws SQLException {
 		String tableName = rtTableName;
 		if (fox.hasFOXDB_V3) {
@@ -1074,7 +1073,6 @@ public class SatPayloadDbStore {
 		
 	}
 
-	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		String tableName = maxTableName;
 		if (fox.hasFOXDB_V3) {
@@ -1085,7 +1083,6 @@ public class SatPayloadDbStore {
 		
 	}
 
-	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		String tableName = minTableName;
 		if (fox.hasFOXDB_V3) {
@@ -1096,6 +1093,7 @@ public class SatPayloadDbStore {
 		
 	}
 
+	@SuppressWarnings("deprecation")
 	public void initRad2() {
 		ResultSet rs = null;
 		String where = "select * from " + this.radTableName;
@@ -1125,6 +1123,7 @@ public class SatPayloadDbStore {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void initHerciPackets() {
 		int k = 0;
 		int p = 0;
@@ -1481,6 +1480,7 @@ public class SatPayloadDbStore {
 		return getGraphData(tableName, name, period, fox2, fromReset, fromUptime);
 	}
 	
+	@SuppressWarnings("deprecation")
 	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs = null;
 		String where = "";
@@ -1525,7 +1525,13 @@ public class SatPayloadDbStore {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
 				//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
-				PayloadRtValues rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+				//TODO - Add logic for V3 DB names
+				PayloadRtValues rt;
+				if (fox.hasFOXDB_V3) {
+					rt = new PayloadRtValues(id.getLayoutByType(BitArrayLayout.RT));
+				} else {
+					rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+				}
 				results[i++] = rt.getDoubleValue(name, id);
 				while (rs.previous()) {
 					resets[i] = rs.getInt("resets");

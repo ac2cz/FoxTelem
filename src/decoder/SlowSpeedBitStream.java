@@ -30,7 +30,7 @@ import fec.RsCodeWord;
  *
  *
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "deprecation" })
 public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	

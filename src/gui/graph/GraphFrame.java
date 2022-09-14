@@ -715,7 +715,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	private void initVarlist() {
 		variables = new ArrayList<PlotVariable>();
-		ArrayList<String> labels = new ArrayList<String>();
+		//ArrayList<String> labels = new ArrayList<String>();
 		for (int v=0; v<layout.fieldName.length; v++) {
 			if (!layout.module[v].equalsIgnoreCase(BitArrayLayout.NONE)) {
 				PlotVariable pv = new PlotVariable(layout.fieldName[v], layout.module[v], layout.shortName[v]);
@@ -1312,7 +1312,7 @@ public class GraphFrame extends JFrame implements WindowListener, ActionListener
 			}
 			
 			// now rebuild the pick list
-			ArrayList<String> labels = new ArrayList<String>();
+			//ArrayList<String> labels = new ArrayList<String>();
 			variables = new ArrayList<PlotVariable>();
 			
 			for (int v=0; v<layout.fieldName.length; v++) {

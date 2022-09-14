@@ -3,7 +3,6 @@ package telemetry.conversion;
 import java.text.DecimalFormat;
 
 import common.Spacecraft;
-import telemetry.FramePart;
 
 /**
  * FOX 1 Telemetry Decoder

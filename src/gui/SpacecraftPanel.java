@@ -104,6 +104,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void addFields() {
 		JPanel titlePanel = new JPanel();
 		add(titlePanel, BorderLayout.NORTH);
@@ -322,6 +323,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		add(footerPanel, BorderLayout.SOUTH);
 	}
 	
+	@SuppressWarnings("unused")
 	private void setSelection(JComboBox<String> comboBox, String[] values, String value ) {
 		int i=0;
 		for (String rate : values) {
@@ -411,9 +413,10 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 	 * Returns true if successful and can be disposed
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public boolean save() {
-		boolean refreshTabs = false;
-		boolean rebuildMenu = false;
+		//boolean refreshTabs = false;
+		//boolean rebuildMenu = false;
 		boolean dispose = true;
 		double downlinkFreq = 0;
 		double minFreq = 0;
@@ -454,37 +457,37 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 			if (!sat.hasFOXDB_V3) {  
 				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
 					sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
-					refreshTabs=true;
+					//refreshTabs=true;
 				}
 
 				if (sat.hasMpptSettings) {
 					if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
 						sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 
 					if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
 						sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 				}
 				if (sat.hasMemsRestValues) {
 					if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
 						sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 					if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
 						sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 					if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
 						sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
-					refreshTabs = true;
+					//refreshTabs = true;
 				}
 			}
 			if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
@@ -492,8 +495,8 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 			}
 			if (!sat.user_display_name.equalsIgnoreCase(displayName.getText())) {
 				sat.user_display_name = displayName.getText();
-				rebuildMenu = true;
-				refreshTabs = true;
+				//rebuildMenu = true;
+				//refreshTabs = true;
 			}
 			int pri = 99;
 			try {
@@ -502,7 +505,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 				
 			}
 			if (sat.user_priority != pri) {
-				rebuildMenu = true;
+				//rebuildMenu = true;
 				sat.user_priority = pri;
 				//refreshTabs = true; // refresh the menu list and sat list but not the tabs
 			}

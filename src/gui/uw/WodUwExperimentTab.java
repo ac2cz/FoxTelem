@@ -13,9 +13,9 @@ import gui.tabs.HealthTableModel;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 
-@SuppressWarnings("serial")
+@SuppressWarnings("deprecation")
 public class WodUwExperimentTab extends UwExperimentTab {
-
+	private static final long serialVersionUID = 1L;
 	public static int[] wod_ids = {309920562, 309920256, 309330499};
 
 	public WodUwExperimentTab(Spacecraft sat) {

@@ -140,6 +140,7 @@ public class SatPayloadStore {
 		return 0;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public int getNumberOfTelemFrames() { 
 		if (fox.hasFOXDB_V3) {
 			return getNumberOfFrames(fox.getLayoutNameByType(BitArrayLayout.RT)) 
@@ -169,6 +170,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
+	@Deprecated
 	public boolean add(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException {
 		int l = fox.getLayoutIdxByName(Spacecraft.RAD_LAYOUT);
 		if (l != Spacecraft.ERROR_IDX)
@@ -192,7 +194,7 @@ public class SatPayloadStore {
 		}
 		return true;
 	}
-
+	@Deprecated
 	private boolean addRadSecondaryRecord(PayloadRadExpData f) throws IOException {
 		
 		// Capture and store any secondary payloads
@@ -213,7 +215,7 @@ public class SatPayloadStore {
 		}
 		return true;
 	}
-
+	@Deprecated
 	private boolean addWODRadSecondaryRecord(PayloadWODRad f) throws IOException {
 		// Capture and store any secondary payloads
 		if (f.layout.name.equalsIgnoreCase(Spacecraft.HERCI_HS_LAYOUT) || f.isTelemetry()) {
@@ -341,7 +343,7 @@ public class SatPayloadStore {
 			return (RadiationTelemetry) getLatest(Spacecraft.RAD2_LAYOUT);
 	}
 	
-	
+	@Deprecated
 	public RadiationTelemetry getRadTelem(int id, int resets, long uptime) throws IOException {
 		if (uptime == 0 && resets == 0)
 			return getLatestRadTelem();
@@ -351,10 +353,12 @@ public class SatPayloadStore {
 		return null;
 	}
 
+	@Deprecated
 	public PayloadHERCIhighSpeed getLatestHerci() throws IOException {
 		return (PayloadHERCIhighSpeed) getLatest(Spacecraft.HERCI_HS_LAYOUT);
 	}
 
+	@Deprecated
 	public HerciHighspeedHeader getLatestHerciHeader() throws IOException {
 		return (HerciHighspeedHeader) getLatest(Spacecraft.HERCI_HS_HEADER_LAYOUT);
 	}
@@ -377,6 +381,7 @@ public class SatPayloadStore {
 		return null;
 	}
 
+	@SuppressWarnings("deprecation")
 	public double[][] getRtGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		if (fox.hasFOXDB_V3) {
 			return getGraphData(name, period, id, fromReset, fromUptime,fox.getLayoutNameByType(BitArrayLayout.RT), positionData, reverse);
@@ -385,6 +390,7 @@ public class SatPayloadStore {
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	public double[][] getMaxGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		if (fox.hasFOXDB_V3) {
 			return getGraphData(name, period, fox2, fromReset, fromUptime, fox.getLayoutNameByType(BitArrayLayout.MAX), positionData, reverse);
@@ -394,6 +400,7 @@ public class SatPayloadStore {
 		
 	}
 
+	@SuppressWarnings("deprecation")
 	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime, boolean positionData, boolean reverse) throws IOException {
 		if (fox.hasFOXDB_V3) {
 			return getGraphData(name, period, id, fromReset, fromUptime, fox.getLayoutNameByType(BitArrayLayout.MIN), positionData, reverse);
@@ -428,6 +435,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("deprecation")
 	public String[][] getRtData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		if (fox.hasFOXDB_V3) {
 			return getTableData(period, id, fromReset, fromUptime, reverse, fox.getLayoutNameByType(BitArrayLayout.RT));
@@ -445,6 +453,7 @@ public class SatPayloadStore {
 	 * @return
 	 * @throws IOException 
 	 */
+	@SuppressWarnings("deprecation")
 	public String[][] getWODData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		if (fox.hasFOXDB_V3) {
 			return getTableData(period, id, fromReset, fromUptime, reverse, fox.getLayoutNameByType(BitArrayLayout.WOD));			
@@ -458,6 +467,7 @@ public class SatPayloadStore {
 			return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.RAD_LAYOUT);
 	}
 	
+	@Deprecated
 	public String[][] getWODRadData(int period, int id, int fromReset, long fromUptime, boolean reverse) throws IOException {
 		return getTableData(period, id, fromReset, fromUptime, reverse, Spacecraft.WOD_RAD_LAYOUT);
 	}

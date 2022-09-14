@@ -21,8 +21,6 @@ import javax.swing.UIManager;
 import common.Config;
 import common.Log;
 import decoder.Decoder;
-import decoder.Fox200bpsDecoder;
-import decoder.Fox9600bpsDecoder;
 import decoder.FoxFskDecoder;
 import decoder.SourceWav;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;

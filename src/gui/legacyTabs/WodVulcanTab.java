@@ -12,8 +12,9 @@ import gui.tabs.DisplayModule;
 import gui.tabs.HealthTableModel;
 import telemetry.legacyPayloads.RadiationTelemetry;
 
-@SuppressWarnings("serial")
+@SuppressWarnings("deprecation")
 public class WodVulcanTab extends VulcanTab {
+	private static final long serialVersionUID = 1L;
 
 	public WodVulcanTab(Spacecraft sat) {
 		super(sat, DisplayModule.DISPLAY_WOD_EXPERIMENT);

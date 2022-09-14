@@ -3,7 +3,6 @@
 package telemetry.mesat;
 
 import telemetry.SortedArrayList;
-import telemetry.legacyPayloads.CameraJpeg;
 
 /**
  * 

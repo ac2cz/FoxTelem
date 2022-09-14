@@ -49,6 +49,7 @@ public class WebServiceProcess implements Runnable {
 	}
 
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void run() {
 		BufferedReader in = null;
@@ -329,6 +330,7 @@ public class WebServiceProcess implements Runnable {
 		return args;
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void getWod(String args, PrintWriter out) {
 		HashMap<String, String> params = consumeArgs(args);
 		String satId = params.get(SAT);

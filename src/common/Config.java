@@ -3,7 +3,6 @@ package common;
 import gui.MainWindow;
 import gui.ProgressPanel;
 import gui.SettingsFrame;
-import gui.SourceTab;
 import measure.SatPc32DDE;
 
 import java.awt.Color;

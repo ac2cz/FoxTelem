@@ -5,7 +5,7 @@ import decoder.FoxBitStream;
 import gui.graph.LinePlotPanel;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-
+@Deprecated
 public class ConversionLegacy extends Conversion {
 	// Flattened C ENUM for IHUDiagnostic Error Type
 	public static final int SPININFO_1 = 0;

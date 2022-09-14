@@ -17,6 +17,7 @@ import common.Spacecraft;
 import gui.MainWindow;
 import gui.graph.GraphFrame;
 import predict.PositionCalcException;
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.payloads.PayloadWOD;
@@ -203,6 +204,7 @@ public class WodHealthTab extends HealthTab {
 		done = true;
 	}
 	
+	@SuppressWarnings("deprecation")
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		super.actionPerformed(e);
@@ -220,8 +222,11 @@ public class WodHealthTab extends HealthTab {
       		Config.saveGraphIntParam(fox.getIdString(), GraphFrame.SAVED_PLOT, FramePart.TYPE_REAL_TIME, HEALTHTAB, "wod"+"healthTableToDisplay", healthTableToDisplay);
      		//Log.println("MIN Picked");
       		
-      		realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
-      		
+      		if (fox.hasFOXDB_V3) {
+      			realTime = Config.payloadStore.getLatest(foxId, fox.getLayoutNameByType(BitArrayLayout.WOD));
+      		} else {
+				realTime = Config.payloadStore.getLatest(foxId, Spacecraft.WOD_LAYOUT);
+      		}
       		if (realTime != null)
       			updateTabRT(realTime, true);
      		parseFrames();

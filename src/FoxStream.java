@@ -35,6 +35,7 @@ import telemStream.StreamProcess;
  * that accepts TCP connections and streams telemetry to the listener.
  * 
  */
+@Deprecated
 public class FoxStream {
 
 	public static String version = "Version 0.08 - 16 Feb 2020";

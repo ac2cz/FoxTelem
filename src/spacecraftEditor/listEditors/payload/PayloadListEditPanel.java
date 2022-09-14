@@ -21,7 +21,6 @@ import javax.swing.ActionMap;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
-import javax.swing.DefaultComboBoxModel;
 import javax.swing.InputMap;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -53,11 +52,9 @@ import gui.tabs.WodHealthTab;
 import gui.tabs.WodNamedExperimentTab;
 import spacecraftEditor.SpacecraftEditPanel;
 import spacecraftEditor.SpacecraftEditorWindow;
-import spacecraftEditor.listEditors.CsvFileEditorGrid;
 import telemetry.BitArrayLayout;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
-import telemetry.conversion.ConversionLookUpTable;
 
 public class PayloadListEditPanel extends JPanel implements MouseListener, ActionListener, ItemListener {
 
@@ -217,6 +214,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		ActionMap actMap = payloadsTable.getActionMap();
 
 		actMap.put(PREV, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
@@ -229,6 +228,8 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");
@@ -419,6 +420,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		generateTab(row);
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void generateTab(int row) {
 		if (modulesTab != null)
 			tab.remove(modulesTab);
@@ -452,12 +454,22 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 					secondaryLayout, DisplayModule.DISPLAY_WOD_EXPERIMENT);
 		}
 		if (lay.isCanExperiment()) {
-			BitArrayLayout canPktLayout =  Config.satManager.getLayoutByName(sat.foxId, Spacecraft.CAN_PKT_LAYOUT);
+			BitArrayLayout canPktLayout;
+			if (sat.hasFOXDB_V3) {
+      			canPktLayout =  sat.getLayoutByType(BitArrayLayout.CAN_PKT);
+			} else {
+				canPktLayout =  Config.satManager.getLayoutByName(sat.foxId, Spacecraft.CAN_PKT_LAYOUT);
+			}
 			modulesTab = new CanExperimentTab(sat, title, 
 					lay, canPktLayout, DisplayModule.DISPLAY_EXPERIMENT);
 		}
 		if (lay.isCanWodExperiment()) {
-			BitArrayLayout canPktLayout =  Config.satManager.getLayoutByName(sat.foxId, Spacecraft.WOD_CAN_PKT_LAYOUT);
+			BitArrayLayout canPktLayout;
+			if (sat.hasFOXDB_V3) {
+      			canPktLayout =  sat.getLayoutByType(BitArrayLayout.WOD_CAN_PKT);
+			} else {
+				canPktLayout =  Config.satManager.getLayoutByName(sat.foxId, Spacecraft.WOD_CAN_PKT_LAYOUT);
+			}
 			modulesTab = new CanExperimentTab(sat, title, 
 					lay, canPktLayout, DisplayModule.DISPLAY_EXPERIMENT);
 		}
@@ -588,9 +600,15 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == payloadType) {
+			
+			/**
+			 * This is a defence mechanism against the proliferation of the legacy layout names in the code
+			 * This keeps the names the same for the moment.  In the future it should be possible to use any name.
+			 */
 			String typeStr = (String)payloadType.getSelectedItem();
 			switch (typeStr) {
 				case BitArrayLayout.RT:

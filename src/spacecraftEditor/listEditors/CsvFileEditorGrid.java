@@ -32,7 +32,6 @@ import javax.swing.event.DocumentListener;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.TableColumn;
-import javax.swing.table.TableModel;
 import javax.swing.table.TableRowSorter;
 
 import common.Log;
@@ -101,6 +100,8 @@ public class CsvFileEditorGrid extends JPanel implements MouseListener, TableMod
 		ActionMap actMap = table.getActionMap();
 
 		actMap.put(PASTE, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");

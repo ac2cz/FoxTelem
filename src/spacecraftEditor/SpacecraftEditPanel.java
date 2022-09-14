@@ -13,27 +13,20 @@ import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
-import java.io.File;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.table.TableColumn;
-
 import javax.swing.JLabel;
 import common.Log;
 import common.Spacecraft;
-import gui.SourceTab;
 import spacecraftEditor.listEditors.CsvTableModel;
-import telemetry.Format.TelemFormat;
 import common.Config;
 
 /**
@@ -253,6 +246,7 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 
 	}
 
+	@SuppressWarnings({ "deprecation", "unchecked" })
 	private JPanel addRightPanel() {
 		JPanel rightPanel = new JPanel();
 		rightPanel.setLayout(new BoxLayout(rightPanel, BoxLayout.Y_AXIS));
@@ -286,12 +280,12 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		//JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
 		//leftFixedPanel.add(icr);
 
-		JLabel lExp[] = new JLabel[4];
+		//JLabel lExp[] = new JLabel[4];
 		cbExperiments = new JComboBox[4];
 		for (int i=0; i<4; i++) {
 			//lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			//leftFixedPanel.add(lExp[i]);
-			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "This information was important to set FoxTelem decoder features for legacy spacecraft.  Now this is just for information.", Spacecraft.expNames);
+			cbExperiments[i] = this.addComboBoxRow(leftFixedPanel, "Experiment "+(i+1), "This tells FoxTelem that a custom tab is required, such as a Camera Image decoder. Contact the developer to add a new feature.", Spacecraft.expNames);
 			if (sat.experiments[i] < Spacecraft.expNames.length)
 				setSelection(cbExperiments[i], Spacecraft.expNames, Spacecraft.expNames[sat.experiments[i]]);
 		}
@@ -456,9 +450,10 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 	 * Returns true if successful and can be disposed
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public boolean save() {
-		boolean refreshTabs = false;
-		boolean rebuildMenu = false;
+		//boolean refreshTabs = false;
+		//boolean rebuildMenu = false;
 		boolean dispose = true;
 		double downlinkFreq = 0;
 		double minFreq = 0;
@@ -515,37 +510,37 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			if (!sat.hasFOXDB_V3) {
 				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
 					sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
-					refreshTabs=true;
+					//refreshTabs=true;
 				}
 
 				if (sat.hasMpptSettings) {
 					if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
 						sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 
 					if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
 						sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 				}
 				if (sat.hasMemsRestValues) {
 					if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
 						sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 					if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
 						sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 					if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
 						sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
-						refreshTabs=true;
+						//refreshTabs=true;
 					}
 				}
 				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
 					sat.useIHUVBatt = useIHUVBatt.isSelected();
-					refreshTabs = true;
+					//refreshTabs = true;
 				}
 			}
 			if (!sat.series.equalsIgnoreCase(series.getText())) {
@@ -556,8 +551,8 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 			}
 			if (!sat.user_display_name.equalsIgnoreCase(displayName.getText())) {
 				sat.user_display_name = displayName.getText();
-				rebuildMenu = true;
-				refreshTabs = true;
+				//rebuildMenu = true;
+				//refreshTabs = true;
 			}
 			int pri = 9;
 			try {

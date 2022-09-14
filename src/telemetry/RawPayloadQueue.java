@@ -41,6 +41,7 @@ import telemetry.frames.SlowSpeedFrame;
  * to echo CAN packets to a local copy of COSMOS for UW sat.
  *
  */
+@SuppressWarnings("deprecation")
 public class RawPayloadQueue extends RawQueue {
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVpayloads.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSpayloads.log";

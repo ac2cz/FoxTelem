@@ -32,6 +32,7 @@ import telemetry.FramePart;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+@Deprecated
 public class PayloadRadExpData extends FramePart {
 	
 	public static final int MAX_PAYLOAD_RAD_SIZE = 58;

@@ -1,7 +1,6 @@
 package telemetry.conversion;
 
 import common.Spacecraft;
-import telemetry.FramePart;
 
 public abstract class Conversion {
 	public static final String FMT_INT = "INT";

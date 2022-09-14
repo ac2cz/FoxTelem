@@ -13,8 +13,6 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Date;
@@ -26,18 +24,12 @@ import java.util.Set;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 import java.util.TreeMap;
-import java.util.TreeSet;
 import java.util.Vector;
 import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.Comparator;
-
 import org.joda.time.DateTime;
 import org.joda.time.DateTimeZone;
 
-import gui.SourceTab;
 import predict.FoxTLE;
 import predict.PositionCalcException;
 import predict.SortedTleList;
@@ -1462,8 +1454,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 	}
 	
 	public class SortedProperties extends Properties {
+		private static final long serialVersionUID = 1L;
 
-	    /**
+		/**
 	     * constructor
 	     *
 	     * @param unsortedProperties

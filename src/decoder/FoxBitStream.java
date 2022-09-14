@@ -6,6 +6,7 @@ import java.util.Date;
 
 import common.Config;
 import common.Log;
+import gui.MainWindow;
 import telemetry.FramePart;
 import telemetry.frames.Frame;
 import telemetry.frames.SlowSpeedHeader;
@@ -123,7 +124,7 @@ public abstract class FoxBitStream extends BitStream {
 					}
 					alreadyTriedToFlipBits = false; // reset the flag, in case we need to flip the bit stream
 					frames = tryToProcessFrames(timeOfSync, i+1);
-					if (!(Config.mainWindow.inputTab.getSelectedFormat().isBPSK()))
+					if (!(MainWindow.inputTab.getSelectedFormat().isBPSK()))
 						if (frames == null || frames.isEmpty()) {
 							if (!alreadyTriedToFlipBits) {
 								alreadyTriedToFlipBits = true;

@@ -11,8 +11,6 @@ import telemServer.StpFileProcessException;
 import telemetry.frames.Frame;
 import telemetry.herci.HerciHighspeedHeader;
 import telemetry.herci.PayloadHERCIhighSpeed;
-import telemetry.legacyPayloads.PayloadCameraData;
-import telemetry.legacyPayloads.PayloadRadExpData;
 import telemetry.legacyPayloads.RadiationTelemetry;
 import telemetry.mesat.MesatImageStore;
 import common.Spacecraft;
@@ -59,10 +57,11 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param f
 	 * @return
 	 */
-	public abstract boolean add(int id, long uptime, int resets, PayloadRadExpData[] f);
+	@Deprecated
+	public abstract boolean add(int id, long uptime, int resets, telemetry.legacyPayloads.PayloadRadExpData[] f);
 	public abstract boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci); 
-	
-	public abstract boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException;
+	@Deprecated
+	public abstract boolean addToFile(int id, long uptime, int resets, telemetry.legacyPayloads.PayloadRadExpData[] f) throws IOException;
 
 	/**
 	 * Add a camera payload.  This is added to the picture line store one line at a time.  We do not store the actual
@@ -73,7 +72,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param f
 	 * @return
 	 */
-	public abstract boolean addToPictureFile(int id, long uptime, int resets, PayloadCameraData f);
+	@Deprecated
+	public abstract boolean addToPictureFile(int id, long uptime, int resets, telemetry.legacyPayloads.PayloadCameraData f);
 	public abstract boolean add(int id, RtMeasurement m);
 
 	public abstract boolean addToFile(int id, Measurement m);

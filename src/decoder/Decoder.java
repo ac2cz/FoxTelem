@@ -756,6 +756,7 @@ public abstract class Decoder implements Runnable {
 	 * Print the data for debug purposes so that we can graph it in excel
 	 * Include markers for the start and end of buckets and for the value of the mid point sample
 	 */
+	@SuppressWarnings("deprecation")
 	protected void printBucketsValues() {
 //		debugWindowCount++;
 //		if (debugWindowCount > 16) System.exit(1);
@@ -767,6 +768,7 @@ public abstract class Decoder implements Runnable {
 	//			System.out.println(40000); // start of bucket marker
 			int step = 10; // means 20 samples per bit
 			int middle = 120;
+			
 			if (this instanceof Fox9600bpsDecoder) {
 				step = 1;
 				middle = 3;

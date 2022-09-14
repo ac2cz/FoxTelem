@@ -19,6 +19,7 @@ public class MathExpressionTest {
 	FramePart rt;
 	Spacecraft fox1;
 	
+	@SuppressWarnings("deprecation")
 	@Before
 	public void setUp() throws Exception {
 		String logFileDir = "C:\\Users\\chris\\Desktop\\Test\\JUNIT_TEST";

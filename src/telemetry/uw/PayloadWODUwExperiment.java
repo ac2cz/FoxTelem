@@ -10,7 +10,7 @@ import common.Spacecraft;
 import telemetry.BitArrayLayout;
 import telemetry.FoxPayloadStore;
 import telemetry.FramePart;
-
+@Deprecated
 public class PayloadWODUwExperiment extends FramePart {
 	public ArrayList<UwCanPacket> canPackets; 
 	protected UwCanPacket canPacket; // the current CAN Packet we are adding bytes to

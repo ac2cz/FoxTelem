@@ -19,7 +19,6 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import telemetry.conversion.Conversion;
-import telemetry.conversion.ConversionLegacy;
 import telemetry.conversion.ConversionMathExpression;
 import telemetry.conversion.ConversionTimestamp;
 import telemetry.frames.Header;
@@ -75,7 +74,6 @@ import uk.me.g4dpz.satellite.SatPos;
  * 
  * 
  */
-@SuppressWarnings("deprecation")
 public abstract class FramePart extends BitArray implements Comparable<FramePart> {
 	protected int MAX_BYTES = 78;  // This provides enough storage to cover the zero filled bytes at the end of the Slow, High Speed frames or 1E frames
 
@@ -806,7 +804,7 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	public ZonedDateTime getGPSTime(Spacecraft fox) {
 		if (!fox.hasGPSTime) return null;
 		if (!layout.hasGPSTime) return null;
-		long longGpsTime = 0;
+		//long longGpsTime = 0;
 		
 		int valid = (int) getDoubleValue(GPS_VALID, fox);
 		if (valid == 0) return null;
@@ -858,13 +856,14 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 	 * @param fox
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	protected double convertCoeffRawValue(String name, double rawValue, Conversion conversion, Spacecraft fox) {
 		double x = 0;
 		try {
 			if (conversion instanceof ConversionMathExpression)
 				x = ((ConversionMathExpression)conversion).calculateExpression(rawValue, this);
-			else if (conversion instanceof ConversionLegacy)
-				x = ((ConversionLegacy)conversion).calculateLegacy(rawValue, this, name);
+			else if (conversion instanceof telemetry.conversion.ConversionLegacy)
+				x = ((telemetry.conversion.ConversionLegacy)conversion).calculateLegacy(rawValue, this, name);
 			else
 				x = conversion.calculate(rawValue);
 		} catch (RuntimeException e) {

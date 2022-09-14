@@ -80,12 +80,23 @@ public class PayloadCanExperiment extends FramePart {
 	 * returns false if this was the end of the can packets
 	 */
 	int debugCount = 0;
+	@SuppressWarnings("deprecation")
 	protected boolean addToCanPackets(byte b) {
 		String canPktLayout = Spacecraft.CAN_PKT_LAYOUT;
-		if (this instanceof PayloadCanWODExperiment)
+		String canPktType = BitArrayLayout.CAN_PKT;
+		if (this instanceof PayloadCanWODExperiment) {
 			canPktLayout = Spacecraft.WOD_CAN_PKT_LAYOUT;
+			canPktType = BitArrayLayout.WOD_CAN_PKT;
+		}
+		Spacecraft fox = Config.satManager.getSpacecraft(id);
 		if (rawCanPacket == null) {
-			BitArrayLayout canLayout = Config.satManager.getLayoutByName(id, canPktLayout);
+			BitArrayLayout canLayout;
+			
+			if (fox.hasFOXDB_V3) {
+				canLayout = fox.getLayoutByType(canPktType);
+			} else {
+				canLayout = Config.satManager.getLayoutByName(id, canPktLayout);
+			}
 			if (canLayout == null) {
 				Log.println("ERROR: Payload Layout is missing for: " + canPktLayout + "\nCheck the MASTER file to confirm this is defined correctly.");
 			}
@@ -96,8 +107,12 @@ public class PayloadCanExperiment extends FramePart {
 		rawCanPacket.addNext8Bits(b);
 		if (rawCanPacket.isValid()) {
 			canPackets.add(rawCanPacket);
-			
-			BitArrayLayout canLayout = Config.satManager.getLayoutByName(id, canPktLayout);
+			BitArrayLayout canLayout;
+			if (fox.hasFOXDB_V3) {
+				canLayout = fox.getLayoutByType(canPktType);
+			} else {
+				canLayout = Config.satManager.getLayoutByName(id, canPktLayout);
+			}
 			rawCanPacket = new CanPacket(canLayout); 
 			rawCanPacket.captureHeaderInfo(id, uptime, resets);
 		}

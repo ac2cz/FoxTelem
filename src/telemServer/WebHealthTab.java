@@ -4,7 +4,6 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
-import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.tabs.DisplayModule;
@@ -18,8 +17,8 @@ import telemetry.legacyPayloads.PayloadRadExpData;
 import telemetry.payloads.PayloadMaxValues;
 import telemetry.payloads.PayloadMinValues;
 import telemetry.payloads.PayloadRtValues;
-import telemetry.uw.PayloadUwExperiment;
 
+@SuppressWarnings("deprecation")
 public class WebHealthTab {
 	Spacecraft fox;
 	PayloadDbStore payloadDbStore;
@@ -134,6 +133,7 @@ public class WebHealthTab {
 		if (fox.hasModeInHeader) { // Post Fox-1E BPSK has mode in header
 			mode = determineModeFromHeader();
 		} else {
+		
 		PayloadRadExpData radPayload = payloadDbStore.getLatestRad(fox.foxId);
 			mode = Spacecraft.determineModeString(fox, (PayloadRtValues)payloadRt, (PayloadMaxValues)payloadMax, (PayloadMinValues)payloadMin, radPayload);
 		}
@@ -149,18 +149,22 @@ public class WebHealthTab {
 				+ "table.table2 td { padding: 0px; vertical-align: top; background-color: darkgray } </style>";	
 
 		boolean realtime = false;
+		boolean wod = false;
 		if (fox.hasFOXDB_V3) {
 			if (payloadRt.getLayout().isRealTime())
 				realtime = true;
+			if (payloadRt.getLayout().isWOD())
+				wod = true;
 		} else {
 			String layoutName = payloadRt.getLayout().name;
 			if (layoutName.equalsIgnoreCase(Spacecraft.REAL_TIME_LAYOUT))
 				realtime = true;
+			if (layoutName.equalsIgnoreCase(Spacecraft.WOD_LAYOUT))
+				wod=true;
 		}
-		String layoutName = payloadRt.getLayout().name;
 		if (realtime)
 			s = s + "<h3>REAL TIME Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime();				
-		else if (layoutName.equalsIgnoreCase(Spacecraft.WOD_LAYOUT))
+		else if (wod)
 			s = s + "<h3>Whole Orbit Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime();
 		else
 			s = s + "<h3>Telemetry   Reset: " + payloadRt.getResets() + " Uptime: " + payloadRt.getUptime();
@@ -277,7 +281,15 @@ public class WebHealthTab {
 				
 				s= s + "<td>";
 				
-				if (layoutName.equalsIgnoreCase(Spacecraft.WOD_LAYOUT)) {
+				boolean wod=false;
+				if (fox.hasFOXDB_V3) {
+					if (payloadRt.getLayout().isWOD())
+						wod=true;
+				} else {
+					if (layoutName.equalsIgnoreCase(Spacecraft.WOD_LAYOUT))
+						wod=true;
+				}
+				if (wod) {
 					s = s + "<a href=/tlm/wodGraph.php?"
 							+ "sat=" 
 							+ fox.foxId;

@@ -420,6 +420,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void addModuleLines(DisplayModule displayModule, String topModuleName, int topModuleLine, BitArrayLayout rt) throws LayoutLoadException {
 		for (int j=0; j<rt.NUMBER_OF_FIELDS; j++) {
 			if (rt.module[j].equals(topModuleName)) {
@@ -428,7 +429,11 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 						".\nModule: " + topModuleName +
 						" has " + topModuleLine + " lines, so we can not add " + rt.shortName[j] + " on line " + rt.moduleLinePosition[j]);
 				try {
-					if (rt.name.equals(Spacecraft.WOD_LAYOUT)) rt.moduleDisplayType[j] = DisplayModule.DISPLAY_WOD;
+					if (fox.hasFOXDB_V3) {
+						if (rt.name.equals(fox.getLayoutNameByType(BitArrayLayout.WOD))) rt.moduleDisplayType[j] = DisplayModule.DISPLAY_WOD;
+					} else {
+						if (rt.name.equals(Spacecraft.WOD_LAYOUT)) rt.moduleDisplayType[j] = DisplayModule.DISPLAY_WOD;
+					}
 					displayModule.addName(rt.moduleLinePosition[j], rt.shortName[j] + formatUnits(rt.fieldUnits[j]), rt.fieldName[j], rt.description[j], rt.moduleDisplayType[j]);					
 				} catch (NullPointerException e) {
 					throw new LayoutLoadException("Found NULL item error in Layout File: "+ rt.fileName +
@@ -705,6 +710,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void convertToUtc() {
 		parseTextFields();
 		Date date = fox.getUtcForReset(START_RESET, START_UPTIME);
@@ -732,6 +738,7 @@ public abstract class ModuleTab extends FoxTelemTab implements FocusListener, Ac
 		}
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void convertToUptime() {
 		parseUTCFields();
 		textFromReset.setText(Integer.toString(START_RESET));

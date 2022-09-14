@@ -40,7 +40,6 @@ import javax.swing.border.SoftBevelBorder;
 import javax.swing.border.BevelBorder;
 
 import common.Config;
-import common.Log;
 import common.Spacecraft;
 import gui.graph.GraphFrame;
 
@@ -148,6 +147,7 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 	JRadioButton minBut;
 	protected int healthTableToDisplay;
 	
+	@SuppressWarnings("deprecation")
 	public HealthTab(Spacecraft spacecraft, int displayType) throws LayoutLoadException {
 		fox = spacecraft;
 		foxId = fox.foxId;

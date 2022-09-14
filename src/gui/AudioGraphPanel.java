@@ -224,7 +224,7 @@ public class AudioGraphPanel extends JPanel implements Runnable {
 		if (Config.debugAudioLevels) {
 			//int sideBorder = 3 * Config.graphAxisFontSize;
 			//int topBorder = Config.graphAxisFontSize;
-			int labelWidth = 4 * Config.graphAxisFontSize;
+			//int labelWidth = 4 * Config.graphAxisFontSize;
 			// calculate number of labels we need on vertical axis
 			int numberOfLabels = graphHeight/labelHeight;
 

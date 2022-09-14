@@ -63,6 +63,7 @@ import telemetry.payloads.PayloadRtValues;
  * @author chris.e.thompson
  *
  */
+@SuppressWarnings("deprecation")
 public abstract class FoxDecoder extends Decoder {
 	/**
      * This holds the stream of bits that we have not decoded. Once we have several

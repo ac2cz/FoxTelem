@@ -240,6 +240,7 @@ public class SpacecraftTab extends JPanel {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	private void addLegacyTabs() {
 		stop();
 		
@@ -419,6 +420,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void addCanExperimentTab(Spacecraft fox, BitArrayLayout layout) {
 		String title = "Experiment: " + layout.name;
 		if (layout.title != null && !layout.title.equalsIgnoreCase(""))
@@ -438,6 +440,7 @@ public class SpacecraftTab extends JPanel {
 
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void addCanWodExperimentTab(Spacecraft fox, BitArrayLayout layout) {
 		String title = "WOD Experiment: " + layout.name;
 		if (layout.title != null && !layout.title.equalsIgnoreCase(""))

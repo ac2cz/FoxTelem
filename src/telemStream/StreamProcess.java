@@ -30,6 +30,7 @@ import telemetry.PayloadDbStore;
 import telemetry.uw.UwCanPacket;
 import telemetry.uw.PcanPacket;
 
+@Deprecated
 public class StreamProcess implements Runnable {
 	public static final int REFRESH_PERIOD = 1000; // Check every second
 	public static final int HEARTBEAT_PERIOD = 60; // Number of REFRESH PERIODS before we sent a heatbeat

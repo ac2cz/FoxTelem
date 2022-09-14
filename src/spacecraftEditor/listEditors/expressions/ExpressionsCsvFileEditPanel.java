@@ -6,7 +6,6 @@ import java.io.IOException;
 import common.Log;
 import common.Spacecraft;
 import spacecraftEditor.listEditors.CsvFileEditPanel;
-import spacecraftEditor.listEditors.CsvFileEditorGrid;
 import spacecraftEditor.listEditors.CsvTableModel;
 import telemetry.LayoutLoadException;
 

@@ -7,6 +7,7 @@ import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArrayLayout;
 
+@Deprecated
 public class PayloadWODRad extends PayloadRadExpData {
 
 	

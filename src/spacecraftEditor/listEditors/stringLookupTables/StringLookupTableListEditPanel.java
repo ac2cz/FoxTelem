@@ -10,7 +10,6 @@ import spacecraftEditor.listEditors.CsvTableModel;
 import spacecraftEditor.listEditors.ListTableModel;
 import spacecraftEditor.listEditors.TableListEditPanel;
 import telemetry.LayoutLoadException;
-import telemetry.conversion.ConversionLookUpTable;
 import telemetry.conversion.ConversionStringLookUpTable;
 
 public class StringLookupTableListEditPanel extends TableListEditPanel {

@@ -90,6 +90,7 @@ public class SlowSpeedHeader extends Header {
 	int healthMode;
 	int scienceMode;
 	
+	@Deprecated
 	public SlowSpeedHeader() {
 		super(TYPE_SLOW_SPEED_HEADER, new BitArrayLayout());
 		MAX_BYTES = SlowSpeedFrame.MAX_HEADER_SIZE+1;  // allocate an extra byte in case we have the extended header

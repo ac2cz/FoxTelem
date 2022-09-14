@@ -12,7 +12,6 @@ import javax.imageio.ImageIO;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import telemetry.legacyPayloads.CameraJpeg;
 import telemetry.payloads.CanPacket;
 
 /**

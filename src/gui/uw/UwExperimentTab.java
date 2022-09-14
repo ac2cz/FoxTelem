@@ -58,9 +58,9 @@ import gui.tabs.HealthTableModel;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-@SuppressWarnings("serial")
+@SuppressWarnings("deprecation")
 public class UwExperimentTab extends ExperimentTab implements ItemListener, Runnable, MouseListener {
-
+	private static final long serialVersionUID = 1L;
 	public static final String UWTAB = "UWEXPTAB";
 	private static final String DECODED = "Payloads Decoded: ";
 	private static final String CAN_DECODED = " CAN Pkts: ";

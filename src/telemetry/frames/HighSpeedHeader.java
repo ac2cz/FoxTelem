@@ -25,9 +25,10 @@ import telemetry.BitArrayLayout;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+
 public class HighSpeedHeader extends Header {
 	
-	
+	@Deprecated
 	public HighSpeedHeader() {
 		super(TYPE_HIGH_SPEED_HEADER, new BitArrayLayout());
 		MAX_BYTES = HighSpeedFrame.MAX_HEADER_SIZE;

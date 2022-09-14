@@ -38,6 +38,7 @@ import telemetry.FramePart;
  * 
  *
  */
+@Deprecated
 public class PayloadUwExperiment extends FramePart {	
 	public ArrayList<UwCanPacket> canPackets; 
 	public ArrayList<UwCanPacket> splitPackets; 

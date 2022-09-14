@@ -37,7 +37,6 @@ import spacecraftEditor.SpacecraftEditorWindow;
 import spacecraftEditor.listEditors.lookupTables.LookupCsvFileEditPanel;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
-import telemetry.conversion.ConversionLookUpTable;
 
 public abstract class TableListEditPanel extends JPanel implements MouseListener, ActionListener {
 
@@ -173,6 +172,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 		ActionMap actMap = table.getActionMap();
 
 		actMap.put(PREV, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				// System.out.println("PREV");
@@ -185,6 +186,8 @@ public abstract class TableListEditPanel extends JPanel implements MouseListener
 			}
 		});
 		actMap.put(NEXT, new AbstractAction() {
+			private static final long serialVersionUID = 1L;
+
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				//    System.out.println("NEXT");

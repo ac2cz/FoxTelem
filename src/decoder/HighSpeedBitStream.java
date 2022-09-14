@@ -41,7 +41,7 @@ import telemetry.frames.HighSpeedFrame;
  * This bit stream is used for any bitstream with multiple RS Codewords, including the 9600bps FSK and 1200bps PSK streams
  *
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "deprecation" })
 public class HighSpeedBitStream extends FoxBitStream {
 	public static int FOX_HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int NUMBER_OF_RS_CODEWORDS = 21;

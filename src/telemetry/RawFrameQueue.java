@@ -46,6 +46,7 @@ import common.TlmServer;
  * TCA is measured.
  *
  */
+@SuppressWarnings("deprecation")
 public class RawFrameQueue extends RawQueue {
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVframes.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSframes.log";

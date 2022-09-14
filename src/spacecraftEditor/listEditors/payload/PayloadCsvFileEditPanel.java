@@ -18,7 +18,6 @@ import javax.swing.table.TableColumn;
 
 import common.Spacecraft;
 import spacecraftEditor.listEditors.CsvFileEditPanel;
-import spacecraftEditor.listEditors.CsvFileEditorGrid;
 import telemetry.LayoutLoadException;
 
 public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
@@ -134,7 +133,7 @@ public class PayloadCsvFileEditPanel extends CsvFileEditPanel {
 			
 			if (row >0 && column == FIELD_COL) {
 				// It is an error if there is a duplicate 
-				boolean noDupes = true;
+				//boolean noDupes = true;
 				String value = (String) model.getValueAt(row, column);
 				if (value != null)
 					for(int i=0; i < model.getRowCount(); i++) {

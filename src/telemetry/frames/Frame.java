@@ -713,6 +713,7 @@ public abstract class Frame implements Comparable<Frame> {
 		return true;
 	}
 
+	@SuppressWarnings("deprecation")
 	public static Frame importStpFile(String u, String p, String db, File f, boolean delete) throws StpFileProcessException {
 		PayloadDbStore payloadStore = null;
 		try {

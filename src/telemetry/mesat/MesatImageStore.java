@@ -17,9 +17,9 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
+import telemetry.BitArrayLayout;
 import telemetry.FramePart;
 import telemetry.SatPayloadStore;
-import telemetry.SortedArrayList;
 import telemetry.SortedFramePartArrayList;
 import telemetry.payloads.CanPacket;
 
@@ -123,7 +123,7 @@ public class MesatImageStore {
 		// Get a list of the Can Packets
 		SortedFramePartArrayList data = null;
 		try {
-			data = Config.payloadStore.getFrameParts(id, 0, 0L, 99999999, true, fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT).name);
+			data = Config.payloadStore.getFrameParts(id, 0, 0L, 99999999, true, fox.getLayoutByType(BitArrayLayout.CAN_PKT).name);
 		} catch (IOException e) {
 			e.printStackTrace(Log.getWriter());
 		}

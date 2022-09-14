@@ -212,6 +212,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			store.setUpdatedAll();
 	}
 	
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedRt(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -219,52 +220,61 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void setUpdatedRt(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedRt(u);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedMax(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedMax();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedMax(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedMax(u);
 	}
 
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedMin(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedMin();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedMin(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedMin(u);
 	}
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedRad(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedRad();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedRad(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedRad(u);
 	}
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedCamera(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedCamera();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedCamera(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -635,6 +645,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 	}
 
+	@Deprecated
 	public ArrayList<FramePart> selectCanPackets(int id, String where) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -649,6 +660,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return 0;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public UwCanPacket getLatestUwCanPacket(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -705,6 +717,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	public PayloadRadExpData getLatestRad(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -719,6 +732,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	}
 	
+	@SuppressWarnings("deprecation")
 	public PayloadUwExperiment getLatestUwExp(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)

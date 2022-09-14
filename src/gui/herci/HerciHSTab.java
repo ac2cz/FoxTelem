@@ -58,9 +58,9 @@ import gui.tabs.HealthTableModel;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
-@SuppressWarnings("serial")
+@SuppressWarnings("deprecation")
 public class HerciHSTab extends ExperimentTab implements Runnable, ItemListener, MouseListener {
-
+	private static final long serialVersionUID = 1L;
 	public static final String HERCITAB = "HERCITAB";
 	public final int DEFAULT_DIVIDER_LOCATION = 226;
 	PayloadHERCIhighSpeed hsPayload;

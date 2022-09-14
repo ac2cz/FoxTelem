@@ -1,14 +1,12 @@
 package spacecraftEditor;
 
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FileDialog;
 import java.awt.Font;
 
 import javax.swing.JFrame;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.JButton;
@@ -25,10 +23,8 @@ import javax.swing.JOptionPane;
 import javax.swing.JTextField;
 
 import common.Config;
-import common.Location;
 import common.Log;
 import common.Spacecraft;
-import common.TlmServer;
 import gui.MainWindow;
 
 import java.awt.GridLayout;
@@ -212,26 +208,6 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 		return title;
 	}
 	
-	private void setServerPanelEnabled(boolean en) {
-		//serverPanel.setEnabled(en);
-		//txtCallsign.setEnabled(en);
-	//	txtPrimaryServer.setEnabled(en);
-	//	txtSecondaryServer.setEnabled(en);
-	//	cbUseUDP.setEnabled(en);
-		//txtLatitude.setEnabled(en);
-		//txtLongitude.setEnabled(en);
-	}
-
-	private JPanel addColumn(JPanel parent, int rows) {
-		JPanel columnpanel = new JPanel();
-		parent.add(columnpanel);
-		//columnpanel.setLayout(new GridLayout(rows,1,10,10));
-		columnpanel.setLayout(new BoxLayout(columnpanel, BoxLayout.Y_AXIS));
-
-		return columnpanel;
-	}
-
-
 	private JCheckBox addCheckBoxRow(String name, String tip, boolean value, JPanel parent) {
 		JCheckBox checkBox = new JCheckBox(name);
 		checkBox.setEnabled(true);
@@ -275,7 +251,7 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 		if (e.getSource() == btnSave) {
 			boolean dispose = true;
 			boolean refreshTabs = false;
-			boolean refreshGraphs = false;
+			//boolean refreshGraphs = false;
 
 			String testString = Config.currentDir + File.separator+"spacecraft";
 			if (!testString.equalsIgnoreCase(txtMasterFileDirectory.getText())) {
@@ -283,11 +259,11 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 				if ((!file.isDirectory() || file == null || !file.exists())){
 					Log.errorDialog("Invalid directory", "Can not find the specified directory: " + txtMasterFileDirectory.getText());
 					dispose = false;
-					refreshGraphs=false;
+					//refreshGraphs=false;
 				} else if (!txtMasterFileDirectory.getText().matches(".*"+File.separator+"spacecraft$")) {
 					Log.errorDialog("Invalid directory", "Master file directory must be called 'spacecraft' :\n" + txtMasterFileDirectory.getText());
 					dispose = false;
-					refreshGraphs=false;
+					//refreshGraphs=false;
 				} else {
 					Object[] options = {"Yes",
 					"No"};
@@ -323,7 +299,7 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 				if (!currentDir && (!file.isDirectory() || file == null || !file.exists())){
 					Log.errorDialog("Invalid directory", "Can not find the specified directory: " + txtLogFileDirectory.getText());
 					dispose = false;
-					refreshGraphs=false;
+					//refreshGraphs=false;
 				} else {
 
 					Object[] options = {"Yes",
@@ -345,7 +321,7 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 						Config.initSatelliteManager();
 
 						refreshTabs = true;
-						refreshGraphs = true;
+						//refreshGraphs = true;
 
 					}
 				}		
@@ -441,24 +417,10 @@ public class EditorSettingsFrame extends JDialog implements ActionListener, Item
 
 	}
 
-	private int parseIntTextField(JTextField text) {
-		int value = 0;
-
-		try {
-			value = Integer.parseInt(text.getText());
-			if (value > 30) {
-				value = 30;
-				text.setText(Integer.toString(30));
-			}
-		} catch (NumberFormatException ex) {
-			
-		}
-		return value;
-	}
 
 	@Override
 	public void itemStateChanged(ItemEvent e) {
-		Object source = e.getItemSelectable();
+		//Object source = e.getItemSelectable();
 	}
 
 	@Override

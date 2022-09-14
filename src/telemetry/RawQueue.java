@@ -18,6 +18,7 @@ import telemetry.frames.Frame;
 import telemetry.frames.HighSpeedFrame;
 import telemetry.frames.SlowSpeedFrame;
 
+@SuppressWarnings("deprecation")
 public abstract class RawQueue implements Runnable {
 	ConcurrentLinkedQueue<Frame> rawSlowSpeedFrames;
 	ConcurrentLinkedQueue<Frame> rawHighSpeedFrames;

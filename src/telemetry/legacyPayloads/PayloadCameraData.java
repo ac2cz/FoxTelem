@@ -43,6 +43,7 @@ import telemetry.frames.HighSpeedFrame;
  * 
  *
  */
+@Deprecated
 public class PayloadCameraData extends FramePart {
 	//public static final int TYPE = TYPE_CAMERA_DATA;
 	public static final byte END_OF_JPEG_DATA = -86; //0xaa;

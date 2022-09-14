@@ -3,6 +3,7 @@ package spacecraftEditor.listEditors.payload;
 import spacecraftEditor.listEditors.CsvTableModel;
 
 public class PayloadLayoutTableModel extends CsvTableModel {
+	private static final long serialVersionUID = 1L;
 
 	public PayloadLayoutTableModel() {
 		super();

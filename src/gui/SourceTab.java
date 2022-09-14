@@ -65,7 +65,6 @@ import common.Log;
 import common.PassManager;
 import common.Spacecraft;
 import decoder.Decoder;
-import decoder.Fox9600bpsDecoder;
 import decoder.FoxFskDecoder;
 import decoder.SinkAudio;
 import decoder.SourceAudio;
@@ -2090,7 +2089,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 							audioSource = new SourceUSB("USB Source", rate, rate*2, channels); 
 							rfDevice.setUsbSource((SourceUSB)audioSource);
 						}
-						boolean decoder1HS = highSpeed.isSelected();
+						//boolean decoder1HS = highSpeed.isSelected();
 //						if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 //							iqSource2 = new SourceIQ(rate*2, 0,selectedFormat);
 //							iqSource2.setAudioSource(audioSource,1); 
@@ -2124,7 +2123,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 						if (audioSource != null)
 							if (fcdSelected > 0 || Config.iq) {
 								Log.println("IQ Source Selected");
-								boolean decoder1HS = highSpeed.isSelected();
+								//boolean decoder1HS = highSpeed.isSelected();
 //								if (Config.mode == SourceIQ.MODE_FSK_AUTO) {
 //									iqSource2 = new SourceIQ(Config.scSampleRate * 4, 0);
 //									iqSource2.setAudioSource(audioSource,1); 
@@ -2461,7 +2460,7 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 		cbSoundCardRate.setEnabled(t);
 		cbRtlSampleRate.setEnabled(t);
 		enableSourceModeSelectionComponents(t);
-		int position = soundCardComboBox.getSelectedIndex(); 
+//		int position = soundCardComboBox.getSelectedIndex(); 
 //		if (position == SourceAudio.FILE_SOURCE || position >= this.soundcardSources.length)
 //			auto.setEnabled(false);
 		iqAudio.setEnabled(t);
