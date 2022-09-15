@@ -792,6 +792,22 @@ public abstract class FramePart extends BitArray implements Comparable<FramePart
 		return result;
 	}
 	
+	public double convertRawValue(String name, double value, Spacecraft fox) {
+		double result = value; // initialize the result to the value we start with, in case its a pipeline
+		String convName = layout.getConversionNameByName(name);
+		String[] conversions = convName.split("\\|"); // split the conversion based on | in case its a pipeline
+		for (String singleConv : conversions) {
+			singleConv = singleConv.trim();
+			Conversion conv = fox.getConversionByName(singleConv);					
+			if (conv == null) { // use legacy conversion, remain backwards compatible if name is numeric. String conversions ignored here
+				return ERROR_VALUE;
+			} else
+				result = convertCoeffRawValue(name, result, conv, fox);	
+		}
+
+		return result;
+	}
+	
 	public static final String GPS_VALID = "UTCValid";
 	public static final String GPS_SECONDS = "UTCSeconds";
 	public static final String GPS_MINUTES = "UTCMinutes";

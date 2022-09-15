@@ -1518,30 +1518,33 @@ public class SatPayloadDbStore {
 			resets = new double[size];
 
 			int i=0;
-
-			if (Config.displayRawValues)
-				;//FIXME conversion = 0;
+			
+			
 			if (size > 0) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
-				//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
-				//TODO - Add logic for V3 DB names
+				int rawValue = rs.getInt(name);
 				PayloadRtValues rt;
 				if (fox.hasFOXDB_V3) {
 					rt = new PayloadRtValues(id.getLayoutByType(BitArrayLayout.RT));
 				} else {
 					rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
 				}
-				results[i++] = rt.getDoubleValue(name, id);
+				
+//				results[i++] = rt.getDoubleValue(name, id);
+				results[i++] = rt.convertRawValue(name,rawValue,id);
+				
 				while (rs.previous()) {
 					resets[i] = rs.getInt("resets");
 					upTime[i] = rs.getLong("uptime");
+					rawValue = rs.getInt(name);
 					//rt = new PayloadRtValues(rs, fox.rtLayout);
 					//raw value
 					//results[i++] = rs.getDouble(name);
 					// converted
 
-					results[i++] = rt.getDoubleValue(name, id);
+//					results[i++] = rt.getDoubleValue(name, id);
+					results[i++] = rt.convertRawValue(name,rawValue,id);
 				}
 			} else {
 				results = new double[1];

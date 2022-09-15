@@ -353,14 +353,6 @@ public class UpdateManager implements Runnable {
 				elapsed = 0;
 			}
 				
-			if (server)
-				if (Config.downloadT0FromServer) {
-					ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
-					for (int i=0; i<sats.size(); i++) {
-						//if (sats.get(i).isFox1())
-							updateT0(sats.get(i));
-					}
-				}		
 		}
 	}
 
