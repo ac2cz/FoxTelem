@@ -130,7 +130,40 @@ public class UpdateManager implements Runnable {
 			e.printStackTrace(Log.getWriter());
 		}
 	}
+	
+	/**
+	 * Load the T0 file without downloading it
+	 * @param sat
+	 */
+	public void loadT0(Spacecraft sat) {
+	
+		String file = sat.series + sat.foxId + Config.t0UrlFile;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;			
+		}
+		try {
+			File f2 = new File(file);
+			if (f2.exists()) {
+				Log.println("Loading T0: " + file);
+				sat.loadTimeZeroSeries(file); // load the existing
+			} else
+				sat.loadTimeZeroSeries(null); // load the default
+	
+		} catch (IOException e) {
+			Log.println("Could not open T0 file: " + file);
+			//e.printStackTrace(Log.getWriter());
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("T0 file is corrupt - likely missing reset in sequence or duplicate reset: " + file);
+			//e.printStackTrace(Log.getWriter());
+		} finally {
+
+		}
+	}
 		
+	/**
+	 * Download the T0 file from the server and load it
+	 * @param sat
+	 */
 	public void updateT0(Spacecraft sat) {
 		String urlString = Config.webSiteUrl+ Config.t0UrlPath + sat.series + sat.foxId + Config.t0UrlFile;
 		String file = sat.series + sat.foxId + Config.t0UrlFile;
@@ -275,10 +308,6 @@ public class UpdateManager implements Runnable {
 			e.printStackTrace();
 		}
 	}
-
-	private void updateKeps() {
-		Config.satManager.fetchTLEFile();
-	}
 	
 	boolean worldHasNotEnded = true;
 	
@@ -332,15 +361,18 @@ public class UpdateManager implements Runnable {
 					}
 				}
 			
-			if (!server)
+			
 				if (elapsed % T0_UPDATE_PERIOD == 0) {
 					if (Config.downloadT0FromServer) {
 						ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 						for (int i=0; i<sats.size(); i++) {
 							//if (sats.get(i).isFox1()) {
 							Spacecraft fox = sats.get(i);
-								if (fox.hasFixedReset) {
-									updateT0(sats.get(i));
+								if (!fox.hasFixedReset) { // only HuskySat had a fixed reset that did not change.  This logic runs for all other sats
+									if (!server)
+										updateT0(sats.get(i));
+									else
+										loadT0(sats.get(i)); // on the server we only load it
 								}
 							//}
 						}
@@ -348,10 +380,24 @@ public class UpdateManager implements Runnable {
 				}
 			
 			if (elapsed % KEP_UPDATE_PERIOD == 0) {
-				if (Config.foxTelemCalcsPosition)
-					updateKeps();
+				if (!server) {
+					if (Config.foxTelemCalcsPosition)
+						Config.satManager.fetchTLEFile();
+				} else {
+					// on the server we dont parse the nasa tle file.  Instead we just load the TLE list from disk.
+					ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
+					for (int i=0; i<sats.size(); i++) {
+
+						Spacecraft fox = sats.get(i);
+						fox.loadTleHistory();
+						
+					}
+				}
 				elapsed = 0;
 			}
+			
+			// On the server we don't need to download T0 and the keps but we do need to periodically reload them
+			// This is only mainly by the WebService
 				
 		}
 	}

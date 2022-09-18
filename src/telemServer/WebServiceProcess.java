@@ -32,7 +32,7 @@ import common.Spacecraft;
 
 public class WebServiceProcess implements Runnable {
 	PayloadDbStore payloadDbStore;
-	public static String version = "Version 1.10 - 15 Sep 2022";
+	public static String version = "Version 1.10a - 18 Sep 2022";
 	private Socket socket = null;
 	int port = 8080;
 	
@@ -440,8 +440,6 @@ public class WebServiceProcess implements Runnable {
 		String update = "  SELECT stpDate, uptime FROM STP_HEADER "
 				+ "where id = "+sat+" and resets = "+reset+" and receiver = '"+receiver+"' "
 				+ "ORDER BY resets DESC, uptime DESC LIMIT " + num; // Derby Syntax FETCH FIRST ROW ONLY";
-		String stpDate[];
-		long uptime[];
 		long t0Sum = 0L;
 		String s = "";
 		s = s + "<style> td { border: 5px } th { background-color: lightgray; border: 3px solid lightgray; } td { padding: 5px; vertical-align: top; background-color: darkgray } </style>";	
@@ -453,34 +451,36 @@ public class WebServiceProcess implements Runnable {
 			derby = payloadDbStore.getConnection();
 			stmt = derby.createStatement();
 			//Log.println(update);
-			r = stmt.executeQuery(update);
 			int size = 0;
 			int i=0;
-			if (r.last()) {
-				size = r.getRow();
-				r.beforeFirst(); // not rs.first() because the rs.next() below will move on, missing the first element
-			}
-			stpDate = new String[size];
-			uptime = new long[size];
-			if (size == 0) return "No Frames for sat "+sat+" from reset " + reset +" for receiver " + receiver;
+			//if (r.last()) {
+			//	size = r.getRow();
+			//	r.beforeFirst(); // not rs.first() because the rs.next() below will move on, missing the first element
+			//}
+			String stpDate; // = new String[size];
+			long uptime; // = new long[size];
+			r = stmt.executeQuery(update);
+			if (r != null)
 			while (r.next()) {
-				uptime[i] = r.getLong("uptime");
-				stpDate[i] = r.getString("stpDate");
+				size++;
+				uptime = r.getLong("uptime");
+				stpDate = r.getString("stpDate");
 				
 				Date stpDT;
 				try {
-					stpDT = Frame.stpDateFormat.parse(stpDate[i]);
+					stpDT = Frame.stpDateFormat.parse(stpDate);
 					
 				long stp = stpDT.getTime()/1000; // calculate the number of seconds in out stp data since epoch
-				long T0 = stp - uptime[i];
+				long T0 = stp - uptime;
 				t0Sum += T0;
 				Date T0DT = new Date(T0*1000);
-				s = s + "<tr><td>" + stpDate[i] + "</td><td>" + uptime[i] + "</td><td>" + T0DT +"</td></tr>";
+				s = s + "<tr><td>" + stpDate + "</td><td>" + uptime + "</td><td>" + T0DT +"</td></tr>";
 				i++;
 				} catch (ParseException e) {
 					// ignore this row.  Don't increment i so that we overwrite it
 				}
 			}
+			if (size == 0) return "No Frames for sat "+sat+" from reset " + reset +" for receiver " + receiver;
 			s = s + "</table>";
 			long avgT0 = t0Sum/i;
 			Date T0DT = new Date(avgT0*1000);

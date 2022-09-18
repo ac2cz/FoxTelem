@@ -534,10 +534,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		File f = new File(file);
 		InputStream is = null;
 		try {
+			Log.println("Loading TLE file: " + file);
 			is = new FileInputStream(f);
 			tleList = FoxTLE.importFoxSat(is);
 		} catch (IOException e) {
-			Log.println("TLE file not loaded: " + file);
+			Log.println("... TLE file not loaded: " + file);
 			//e.printStackTrace(Log.getWriter()); // No TLE, but this is not viewed as fatal.  It should be fixed by Kep check
 		} finally {
 			try {

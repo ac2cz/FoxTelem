@@ -765,24 +765,34 @@ public class FoxTelemMain {
 				System.exit(0);
 			}
 		}
-		if (telemFormatName.equalsIgnoreCase(FoxFskDecoder.DUV_FSK)) {
+		if (telemFormat.isFSK()) {
 			decoder1 = new FoxFskDecoder(audioSource, 0, telemFormat);
-			//decoder1 = new Fox200bpsDecoder(audioSource, 0);
-		} else if (telemFormatName.equalsIgnoreCase(FoxFskDecoder.HIGHSPEED_FSK)) {
-			decoder1 = new FoxFskDecoder(audioSource, 0, telemFormat);
-//			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
-		} else if (telemFormatName.equalsIgnoreCase("FOX_BPSK")) {
+		} else if (telemFormat.isBPSK()) {
 			if (Config.useCostas) {
 				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
 			} else {
 				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
 			}
-		} else if (telemFormatName.equalsIgnoreCase("GOLF_BPSK")) {
-			if (Config.useCostas) {
-				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
-			} else {
-				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
-			}
+//		}
+//		
+//		if (telemFormatName.equalsIgnoreCase(FoxFskDecoder.DUV_FSK)) {
+//			decoder1 = new FoxFskDecoder(audioSource, 0, telemFormat);
+//			//decoder1 = new Fox200bpsDecoder(audioSource, 0);
+//		} else if (telemFormatName.equalsIgnoreCase(FoxFskDecoder.HIGHSPEED_FSK)) {
+//			decoder1 = new FoxFskDecoder(audioSource, 0, telemFormat);
+////			decoder1 = new Fox9600bpsDecoder(audioSource, 0);
+//		} else if (telemFormatName.equalsIgnoreCase("FOX_BPSK")) {
+//			if (Config.useCostas) {
+//				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+//			} else {
+//				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+//			}
+//		} else if (telemFormatName.equalsIgnoreCase("GOLF_BPSK")) {
+//			if (Config.useCostas) {
+//				decoder1 = new FoxBPSKCostasDecoder(audioSource, 0, FoxBPSKCostasDecoder.PSK_MODE, telemFormat);
+//			} else {
+//				decoder1 = new FoxBPSKDotProdDecoder(audioSource, 0, FoxBPSKCostasDecoder.AUDIO_MODE, telemFormat);
+//			}
 		} else {
 			Log.println("Unknown format: " + telemFormatName);
 			System.exit(1);

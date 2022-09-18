@@ -479,6 +479,23 @@ public class SatelliteManager implements Runnable {
 		return false;
 	}
 	
+	/**
+	 * Load the TLE file without downloading it
+	 */
+	public void loadTLEFile() {
+		String file = Spacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + Spacecraft.SPACECRAFT_DIR + File.separator + "nasabare.txt";
+		}
+		Log.println("Loading TLE file: " + file);
+		try {
+			parseTleFile(file);
+		} catch (IOException e) {
+			Log.println("... Could not read Keps file: " + file);
+		}
+	}
+	
+	
 	/*
 	 * We Fetch a TLE file from amsat.org.  We then see if it contains TLEs for the Spacecraft we are interested in. If it does we
 	 * check if there is a later TLE than the one we have.  If it is, then we append it to the TLE store for the given sat.
