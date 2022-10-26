@@ -59,12 +59,12 @@ public class UpdateManager implements Runnable {
 	}
 	
 	private void updateServerParams() throws IOException {
-		if (Config.serverParamsUrl != null) {
+		if (Config.newServerParamsUrl != null) {
 			BufferedReader in = null;
 			Properties serverProperties = new Properties();
 			try {
-				Log.println("Reading server params from: "+ Config.serverParamsUrl);
-				URL server = new URL(Config.serverParamsUrl);
+				Log.println("Reading server params from: "+ Config.newServerParamsUrl);
+				URL server = new URL(Config.newServerParamsUrl);
 				in = new BufferedReader(
 						new InputStreamReader(server.openStream()));
 
@@ -254,7 +254,7 @@ public class UpdateManager implements Runnable {
 	}
 
 	private void recommendUpgrade(String ver, String notes) {
-		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
+		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to https://www.g0kla.com/foxtelem to download it?\n"
 				+ "Release information:\n" + notes;
 		Object[] options = {"Yes",
 		"No"};
@@ -274,7 +274,7 @@ public class UpdateManager implements Runnable {
 	}
 	
 	private void requireUpgrade(String ver, String notes) {
-		String message = "You must upgrade to FoxTelem Version " +ver + "  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
+		String message = "You must upgrade to FoxTelem Version " +ver + "  Do you want to go to https://www.g0kla.com/foxtelem to download it?\n"
 				+ "Release information:\n" + notes;
 		Object[] options = {"Yes",
 		"No"};
@@ -296,11 +296,8 @@ public class UpdateManager implements Runnable {
 	}
 	
 	private void gotoSite() {
-		String url = "http://amsat.us/FoxTelem/windows";
-		if (Config.isMacOs())
-			url = "http://amsat.us/FoxTelem/mac";
-		if (Config.isLinuxOs())
-			url = "http://amsat.us/FoxTelem/linux";
+		String url = "https://www.g0kla.com/foxtelem";
+		
 		try {
 			DesktopApi.browse(new URI(url));
 		} catch (URISyntaxException e) {

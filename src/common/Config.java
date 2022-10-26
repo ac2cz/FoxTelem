@@ -243,8 +243,8 @@ public class Config {
 	static public double ANALYZE_SNR_THRESHOLD = 2.5d; // This is average signal in the filter band to average noise outside the filter
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
-	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
-	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
+	static public String newVersionUrl = "https://www.amsat.org/tlm/ops/version.txt";
+	static public String newServerParamsUrl = "https://www.amsat.org/tlm/ops/server.txt";
 	static public String t0UrlPath = "/ops/";
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
@@ -728,7 +728,7 @@ public class Config {
 		properties.setProperty("SCAN_SIGNAL_THRESHOLD", Double.toString(SCAN_SIGNAL_THRESHOLD));
 		properties.setProperty("ANALYZE_SNR_THRESHOLD", Double.toString(ANALYZE_SNR_THRESHOLD));
 		properties.setProperty("BIT_SNR_THRESHOLD", Double.toString(BIT_SNR_THRESHOLD));
-		properties.setProperty("serverParamsUrl", serverParamsUrl);
+		properties.setProperty("newServerParamsUrl", newServerParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
 		
@@ -935,7 +935,7 @@ public class Config {
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		
 		
-		serverParamsUrl = getProperty("serverParamsUrl");
+		newServerParamsUrl = getProperty("newServerParamsUrl");
 		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
 		downloadT0FromServer = Boolean.parseBoolean(getProperty("downloadT0FromServer"));
 	
