@@ -2376,31 +2376,31 @@ public class SourceTab extends JPanel implements Runnable, ItemListener, ActionL
 	}
 	
 	private void stopButton() {
-		if (Config.passManager.getState() == PassManager.FADED || Config.passManager.getState() == PassManager.DECODE) {
-			Object[] options = {"Yes",
-	        "No"};
-			int n = JOptionPane.showOptionDialog(
-					MainWindow.frame,
-					"The pass manager is still processing a satellite pass. If the satellite has\n"
-					+ "faded it waits 2 minutes in case contact is re-established, even when it is at the\n"
-					+ "horizon.  If you stop the decoder now the LOS will not be logged and TCA will not be calculated.\n"
-					+ "Do you want to stop?",
-					"Stop decoding while pass in progress?",
-				    JOptionPane.YES_NO_OPTION, 
-				    JOptionPane.ERROR_MESSAGE,
-				    null,
-				    options,
-				    options[1]);
-						
-			if (n == JOptionPane.NO_OPTION) {
-				// don't exit
-			} else {
-				stop();
-
-			}
-		} else {
+//		if (Config.passManager.getState() == PassManager.FADED || Config.passManager.getState() == PassManager.DECODE) {
+//			Object[] options = {"Yes",
+//	        "No"};
+//			int n = JOptionPane.showOptionDialog(
+//					MainWindow.frame,
+//					"The pass manager is still processing a satellite pass. If the satellite has\n"
+//					+ "faded it waits 2 minutes in case contact is re-established, even when it is at the\n"
+//					+ "horizon.  If you stop the decoder now the LOS will not be logged and TCA will not be calculated.\n"
+//					+ "Do you want to stop?",
+//					"Stop decoding while pass in progress?",
+//				    JOptionPane.YES_NO_OPTION, 
+//				    JOptionPane.ERROR_MESSAGE,
+//				    null,
+//				    options,
+//				    options[1]);
+//						
+//			if (n == JOptionPane.NO_OPTION) {
+//				// don't exit
+//			} else {
+//				stop();
+//
+//			}
+//		} else {
 			stop();
-		}
+//		}
 	}
 	
 	private void stop() {
