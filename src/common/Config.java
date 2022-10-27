@@ -1016,31 +1016,32 @@ public class Config {
 	}
 	
 	private static void catchException() {
-		if (!Log.showGuiDialogs) {
-			Log.println("Could not read properties file. If this is a new release then the format has probablly been extended.\n"
-				+ "Run the GUI to create a new properties file.  Error Loading " + Config.homeDirectory + File.separator + propertiesFileName);
-			System.exit(1);
-		}
+		//if (!Log.showGuiDialogs) {
+			Log.println("Error Loading " + Config.homeDirectory + File.separator + propertiesFileName + "\n"
+					+ "If this is a new release then the format has probablly been extended.\n"
+				+ "A new properties file has been created");
+			//System.exit(1);
+		//}
 		// Cant write to the log here as it is not initilized
 		//Log.println("Could not read properties file. Likely Corrupt.");
-		Object[] options = {"Yes",
-        "Exit"};
-		int n = JOptionPane.showOptionDialog(
-				MainWindow.frame,
-				"Could not read properties file. If this is a new release then the format has probablly been extended.\n"
-				+ "Should I create a new properties file after reading as much as possible from the existing one?",
-				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
-			    JOptionPane.YES_NO_OPTION,
-			    JOptionPane.ERROR_MESSAGE,
-			    null,
-			    options,
-			    options[0]);
-					
-		if (n == JOptionPane.YES_OPTION) {
+//		Object[] options = {"Yes",
+//        "Exit"};
+//		int n = JOptionPane.showOptionDialog(
+//				MainWindow.frame,
+//				"Could not read properties file. If this is a new release then the format has probablly been extended.\n"
+//				+ "Should I create a new properties file after reading as much as possible from the existing one?",
+//				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
+//			    JOptionPane.YES_NO_OPTION,
+//			    JOptionPane.ERROR_MESSAGE,
+//			    null,
+//			    options,
+//			    options[0]);
+//					
+//		if (n == JOptionPane.YES_OPTION) {
 			save();
 			Log.println("Created new properties file.");
-		} else
-			System.exit(1);
+//		} else
+//			System.exit(1);
 
 	}
 
