@@ -4,6 +4,7 @@ import java.text.ParseException;
 import java.util.Date;
 import java.util.TimeZone;
 
+import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.tabs.DisplayModule;
@@ -235,10 +236,12 @@ public class WebHealthTab {
 		// Mode is stored in the header
 		// Find the most recent frame and return the mode that it has
 		SortedFramePartArrayList payloads = new SortedFramePartArrayList(fox.numberOfLayouts);
-		int maxLayouts = 10; // First four layouts are rt, max, min, exp, but we may have mode in any layout.  Cap at 10.
+		int maxLayouts = 4; // First four layouts are rt, max, min, exp, but we may have mode in any layout.  Cap at 10.
 		for (int i=0; i <= maxLayouts && i < fox.layout.length; i++) { 
-			//System.err.println("Checking mode in: "+layout[i].name );
-			payloads.add(payloadDbStore.getLatest(fox.foxId, fox.layout[i].name));
+			FramePart part = payloadDbStore.getLatest(fox.foxId, fox.layout[i].name);
+			if (part != null)
+				payloads.add(part);
+			payloads.add(part);
 		}
 
 		int mode = Spacecraft.NO_MODE;

@@ -1915,7 +1915,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		int maxLayouts = 10; // First four layouts are rt, max, min, exp, but we may have mode in any layout.  Cap at 10.
 		for (int i=0; i <= maxLayouts && i < layout.length; i++) { 
 			//System.err.println("Checking mode in: "+layout[i].name );
-			payloads.add(Config.payloadStore.getLatest(foxId, layout[i].name));
+			FramePart part = Config.payloadStore.getLatest(foxId, layout[i].name);
+			if (part != null)
+				payloads.add(part);
 		}
 
 		int mode = NO_MODE;

@@ -928,6 +928,8 @@ public class SatPayloadDbStore {
 	}
 	
 	private void selectLatest(String table, FramePart payload) {
+		if (table == null) return;
+		if (payload == null) return;
 		Statement stmt = null;
 		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
 		if (payload instanceof UwCanPacket)
