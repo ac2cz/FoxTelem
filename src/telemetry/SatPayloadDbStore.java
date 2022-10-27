@@ -3,7 +3,22 @@ package telemetry;
 
 import gui.MainWindow;
 import telemServer.ServerConfig;
-import telemetry.uw.CanPacket;
+import telemetry.herci.HerciHighSpeedPacket;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.CameraJpeg;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PayloadWODRad;
+import telemetry.legacyPayloads.PictureScanLine;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.legacyPayloads.WodRadiationTelemetry;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.payloads.PayloadWOD;
+import telemetry.uw.UwCanPacket;
+import telemetry.uw.PayloadUwExperiment;
+import telemetry.uw.PayloadWODUwExperiment;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +36,6 @@ import javax.swing.JOptionPane;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * 
@@ -58,55 +72,60 @@ public class SatPayloadDbStore {
 	public static final String ERR_OPEN_RESULT_SET = "X0X95";
 	
 	public int foxId;
-	public FoxSpacecraft fox;
+	public Spacecraft fox;
 	
-	public static String RT_LOG = "RTTELEMETRY";
-	public static String MAX_LOG = "MAXTELEMETRY";
-	public static String MIN_LOG = "MINTELEMETRY";
-	public static String RAD_LOG = "RADTELEMETRY";
-	public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
-	public static String HERCI_HS_LOG = "HERCI_HS";
-	public static String HERCI_HS_HEADER_LOG = "HERCI_HS_HEADER";
-	public static String HERCI_HS_PACKET_LOG = "HERCI_HS_PACKET";
-	public static String JPG_IDX = "JPG_IDX";
-	public static String PICTURE_LINES = "PICTURE_LINES_IDX";
-	public static String WOD_LOG = "WODTELEMETRY";
-	public static String WOD_RAD_LOG = "WODRADTELEMETRY";
-	public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
-	public static String UW_CAN_PACKET_LOG = "UW_CAN_PACKET";
-	public static String UW_CAN_PACKET_TIMESTAMP = "UW_CAN_PACKET_TIMESTAMP";
-	public static String CAN_LOG = "CANTELEMETRY";
-	public static String WOD_CAN_LOG = "WODCANTELEMETRY";
+	// Legacy DB Strings
+	@Deprecated public static String RT_LOG = "RTTELEMETRY";
+	@Deprecated public static String MAX_LOG = "MAXTELEMETRY";
+	@Deprecated public static String MIN_LOG = "MINTELEMETRY";
+	@Deprecated public static String RAD_LOG = "RADTELEMETRY";
+	@Deprecated public static String RAD_TELEM_LOG = "RAD2TELEMETRY";
+	@Deprecated public static String HERCI_HS_LOG = "HERCI_HS";
+	@Deprecated public static String HERCI_HS_HEADER_LOG = "HERCI_HS_HEADER";
+	@Deprecated public static String HERCI_HS_PACKET_LOG = "HERCI_HS_PACKET";
+	@Deprecated public static String JPG_IDX = "JPG_IDX";
+	@Deprecated public static String PICTURE_LINES = "PICTURE_LINES_IDX";
+	@Deprecated public static String WOD_LOG = "WODTELEMETRY";
+	@Deprecated public static String WOD_RAD_LOG = "WODRADTELEMETRY";
+	@Deprecated public static String WOD_RAD_TELEM_LOG = "WODRAD2TELEMETRY";
+	@Deprecated public static String UW_CAN_PACKET_LOG = "UW_CAN_PACKET";
+	@Deprecated public static String UW_CAN_PACKET_TIMESTAMP = "UW_CAN_PACKET_TIMESTAMP";
+	@Deprecated public static String CAN_LOG = "CANTELEMETRY";
+	@Deprecated public static String WOD_CAN_LOG = "WODCANTELEMETRY";
 	
-	public String rtTableName;
-	public String maxTableName;
-	public String minTableName;
-	public String radTableName;
-	public String radTelemTableName;
-	public String herciHSTableName;
-	public String herciHSHeaderTableName;
-	public String herciHSPacketTableName;
-	public String jpgIdxTableName;
-	public String pictureLinesTableName;
-	public String wodTableName;
-	public String wodRadTableName;
-	public String wodRadTelemTableName;
-	public String uwCanPacketTableName;
-	public String uwCanPacketTimestampTableName;
+	// Legacy DB table names
+	@Deprecated public String rtTableName;
+	@Deprecated public String maxTableName;
+	@Deprecated public String minTableName;
+	@Deprecated public String radTableName;
+	@Deprecated public String radTelemTableName;
+	@Deprecated public String herciHSTableName;
+	@Deprecated public String herciHSHeaderTableName;
+	@Deprecated public String herciHSPacketTableName;
+	@Deprecated public String jpgIdxTableName;
+	@Deprecated public String pictureLinesTableName;
+	@Deprecated public String wodTableName;
+	@Deprecated public String wodRadTableName;
+	@Deprecated public String wodRadTelemTableName;
+	@Deprecated public String uwCanPacketTableName;
+	@Deprecated public String uwCanPacketTimestampTableName;
 	
-	boolean updatedRt = true;
-	boolean updatedMax = true;
-	boolean updatedMin = true;
-	boolean updatedRad = true;
-	boolean updatedRadTelem = true;
-	boolean updatedHerciHS = true;
-	boolean updatedHerciHeader = true;
-	boolean updatedHerciPacket = true;
-	boolean updatedCamera = true;
-	boolean updatedWod = true;
-	boolean updatedWodRad = true;
-	boolean updatedWodRadTelem = true;
-	boolean updatedUwCanPacket = true;
+	boolean updated[]; // used for V3 DB
+	
+	// Legacy DB update tracking
+	@Deprecated boolean updatedRt = true;
+	@Deprecated boolean updatedMax = true;
+	@Deprecated boolean updatedMin = true;
+	@Deprecated boolean updatedRad = true;
+	@Deprecated boolean updatedRadTelem = true;
+	@Deprecated boolean updatedHerciHS = true;
+	@Deprecated boolean updatedHerciHeader = true;
+	@Deprecated boolean updatedHerciPacket = true;
+	@Deprecated boolean updatedCamera = true;
+	@Deprecated boolean updatedWod = true;
+	@Deprecated boolean updatedWodRad = true;
+	@Deprecated boolean updatedWodRadTelem = true;
+	@Deprecated boolean updatedUwCanPacket = true;
 	
 	PayloadDbStore payloadDbStore;
 	
@@ -114,10 +133,28 @@ public class SatPayloadDbStore {
 	 * Create the payload store this this fox id
 	 * @param id
 	 */
-	public SatPayloadDbStore(PayloadDbStore store, FoxSpacecraft fox) {
+	public SatPayloadDbStore(PayloadDbStore store, Spacecraft fox) {
 		this.fox = fox;
 		payloadDbStore = store;
 		foxId = fox.foxId;
+		if (fox.hasFOXDB_V3) {
+			setupTables();
+			updated = new boolean[fox.numberOfDbLayouts];
+		} else
+			setupLegacyTables();
+	}
+	
+	private void setupTables() {
+		// This creates all of the tables
+		for (int i=0; i<fox.numberOfDbLayouts; i++)
+			initPayloadTable(fox.layout[i].name, fox.hasModeInHeader);
+	}
+	
+	/**
+	 * Setup the legacy table names.  Do not use series from the spacecraft because
+	 * it was FOX in Capitals in the legacy spacecraft.
+	 */
+	@Deprecated private void setupLegacyTables() {
 		rtTableName = "Fox"+foxId+RT_LOG;
 		maxTableName = "Fox"+foxId+MAX_LOG;
 		minTableName = "Fox"+foxId+MIN_LOG;
@@ -137,21 +174,18 @@ public class SatPayloadDbStore {
 	}
 	
 	private String makeTableName(String layoutName) {
-		String s = "Fox"+foxId;
+		String s = fox.series+foxId;
 		String LAY = layoutName.toUpperCase();
 		s = s + LAY;
 		return s;
 	}
 	
-	private void initPayloadFiles() {
+	@Deprecated private void initPayloadFiles() {
 		boolean storeMode = false;
 		if (fox.hasModeInHeader)
 			storeMode = true;
 
-		// This would create all of the tables, but not backwards compatible
-//		for (int i=0; i<fox.numberOfDbLayouts; i++)
-//			initPayloadTable(fox.layout[i].name, fox.hasModeInHeader);
-		initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
+		//initPayloadTable(Spacecraft.REAL_TIME_LAYOUT, storeMode);
 		initPayloadTable(rtTableName, fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT), storeMode);
 		initPayloadTable(maxTableName, fox.getLayoutByName(Spacecraft.MAX_LAYOUT), storeMode);
 		initPayloadTable(minTableName, fox.getLayoutByName(Spacecraft.MIN_LAYOUT), storeMode);
@@ -192,10 +226,11 @@ public class SatPayloadDbStore {
 	private void initPayloadTable(String table, BitArrayLayout layout, boolean storeMode) {
 		if (layout == null) return; // we don't need this table if there is no layout
 		String createStmt = layout.getTableCreateStmt(storeMode);
+		layout.tableName = table;
 		createTable(table, createStmt);
 	}
 
-	private void initHerciTables(boolean storeMode) {
+	@Deprecated private void initHerciTables(boolean storeMode) {
 		initPayloadTable(herciHSTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_LAYOUT), storeMode);
 		initPayloadTable(herciHSHeaderTableName, fox.getLayoutByName(Spacecraft.HERCI_HS_HEADER_LAYOUT), storeMode);
 		String table = herciHSPacketTableName;
@@ -203,7 +238,7 @@ public class SatPayloadDbStore {
 		createTable(table, createStmt);
 	}
 	
-	private void initCameraTables() {
+	@Deprecated private void initCameraTables() {
 		String table = jpgIdxTableName;
 		String createStmt = CameraJpeg.getTableCreateStmt();
 		createTable(table, createStmt);
@@ -212,7 +247,7 @@ public class SatPayloadDbStore {
 		createTable(table, createStmt);
 	}
 	
-	private void initCanPacketTable(boolean storeMode) {
+	@Deprecated private void initCanPacketTable(boolean storeMode) {
 		String table = uwCanPacketTableName;
 		BitArrayLayout lay = fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT);
 		String s = new String();
@@ -230,7 +265,7 @@ public class SatPayloadDbStore {
 		createTable(table, s);
 	}
 	
-	private void initCanTimestampTable() {
+	@Deprecated private void initCanTimestampTable() {
 		String table = uwCanPacketTimestampTableName;
 		String s = new String();
 		s = s + "(username varchar(255) not null,"
@@ -270,36 +305,55 @@ public class SatPayloadDbStore {
 	}
 	
 	public void setUpdatedAll() {
-		updatedRt = true;
-		updatedMax = true;
-		updatedMin = true;
-		updatedRad = true;
-		updatedRadTelem = true;
+		if (fox.hasFOXDB_V3) {
+			for (int i=0; i<fox.numberOfDbLayouts; i++)
+				updated[i] = true;
+		} else {
+			updatedRt = true;
+			updatedMax = true;
+			updatedMin = true;
+			updatedRad = true;
+			updatedRadTelem = true;
+		}
 	}
 	
-	public boolean getUpdatedRt() { return updatedRt; }
-	public void setUpdatedRt(boolean u) {
+	public boolean getUpdated(String layout) { 
+		int i = fox.getLayoutIdxByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			return updated[i]; 
+		return false;
+	}
+	
+	public void setUpdated(String layout, boolean u) {
+		int i = fox.getLayoutIdxByName(layout);
+		if (i != Spacecraft.ERROR_IDX)
+			updated[i] = u; 
+	}
+	
+	
+	@Deprecated public boolean getUpdatedRt() { return updatedRt; }
+	@Deprecated public void setUpdatedRt(boolean u) {
 		updatedRt = u;
 	}
-	public boolean getUpdatedMax() { return updatedMax; }
-	public void setUpdatedMax(boolean u) {
+	@Deprecated public boolean getUpdatedMax() { return updatedMax; }
+	@Deprecated public void setUpdatedMax(boolean u) {
 		updatedMax = u;
 	}
 
-	public boolean getUpdatedMin() { return updatedMin; }
-	public void setUpdatedMin(boolean u) {
+	@Deprecated public boolean getUpdatedMin() { return updatedMin; }
+	@Deprecated public void setUpdatedMin(boolean u) {
 		updatedMin = u;
 	}
-	public boolean getUpdatedRad() { return updatedRad; }
-	public void setUpdatedRad(boolean u) {
+	@Deprecated public boolean getUpdatedRad() { return updatedRad; }
+	@Deprecated public void setUpdatedRad(boolean u) {
 		updatedRad = u;
 	}
-	public boolean getUpdatedRadTelem() { return updatedRadTelem; }
-	public void setUpdatedRadTelem(boolean u) {
+	@Deprecated public boolean getUpdatedRadTelem() { return updatedRadTelem; }
+	@Deprecated public void setUpdatedRadTelem(boolean u) {
 		updatedRadTelem = u;
 	}
-	public boolean getUpdatedCamera() { return updatedCamera; }
-	public void setUpdatedCamera(boolean u) {
+	@Deprecated public boolean getUpdatedCamera() { return updatedCamera; }
+	@Deprecated public void setUpdatedCamera(boolean u) {
 		updatedCamera = u;
 	}
 
@@ -330,8 +384,26 @@ public class SatPayloadDbStore {
 		return count;
 
 	}
+	
+	public int getNumberOfFrames(String layout) { 
+		BitArrayLayout lay = fox.getLayoutByName(layout);
+		if (lay != null) {
+			return count(lay.tableName);
+		}
+		return 0;
+	}
 
-	public int getNumberOfFrames() { return count(rtTableName) + count(maxTableName) + count(minTableName) + count(radTableName); }
+	public int getNumberOfFrames() { 
+		if (fox.hasFOXDB_V3) {
+			int total = 0;
+			for (int i=0; i<fox.numberOfLayouts; i++) {
+				if (!fox.layout[i].isSecondaryPayload())
+					total += count(fox.layout[i].tableName);
+			}
+			return total;
+		} else
+			return count(rtTableName) + count(maxTableName) + count(minTableName) + count(radTableName); 
+	}
 	public int getNumberOfTelemFrames() { return count(rtTableName) + count(maxTableName) + count(minTableName); }
 	public int getNumberOfRadFrames() { return count(radTableName);}
 	public int getNumberOfPictureCounters() { return count(jpgIdxTableName);}
@@ -513,42 +585,31 @@ public class SatPayloadDbStore {
 		return true;
 	}
 	
-	/*
-	private boolean insertHerciPacket(String table, HerciHighSpeedPacket f) {
-		String insertStmt = f.getInsertStmt();
-		boolean inserted = insertData(table, insertStmt);
-		// FIXME - this returns true unless there is an error.  So even with a duplicate we copy all the bytes in, which is wastefull!
-		if (!inserted)
-			return false;
-		else
-		try {
-			Connection derby = PayloadDbStore.getConnection();
-			java.sql.PreparedStatement ps = derby.prepareStatement("UPDATE "+ table + " set minipacket = ?"
-					+ " where id = " + f.id
-					+ " and resets = " + f.resets
-					+ " and uptime = " + f.uptime
-					+ " and type = " + f.type);
-			ps.setBytes(1, f.getMiniPacketBytes());
-			int count = ps.executeUpdate();
-			ps.close();
-		} catch (SQLException e) {
-			if ( e.getSQLState().equals(ERR_DUPLICATE) ) {  // duplicate
-				Log.println("ERROR, image bytes not stored");
-				return false; // We have the data
-			} else {
-				PayloadDbStore.errorPrint(e);
-			}
-		}
-		return true;
-	}
-	*/
 	/**
-	 * Add the frame to the correct array and file
+	 * Add the frame to the correct database table
 	 * @param f
 	 * @return
 	 * @throws IOException 
 	 */
 	private boolean add(FramePart f) {
+		if (fox.hasFOXDB_V3) {
+			setUpdated(f.getLayout().name, true);
+			boolean ret = insert(f.getLayout().tableName, f);
+			if (ret) {
+				if (f.getLayout().getSecondaryPayloadName() != null) {
+					String sec = f.getLayout().getSecondaryPayloadName();
+					BitArrayLayout secLayout = fox.getLayoutByName(sec);
+					FramePart secPayload = f.getSecondaryPayload();
+					return insert(secLayout.tableName, secPayload);
+				}
+				return true;
+			} else return false;
+		} else {
+			return addLegacyPayload(f);
+		}
+	}
+	
+	private boolean addLegacyPayload(FramePart f) {
 		if (f instanceof PayloadWOD ) {
 			return insert(wodTableName, (PayloadWOD)f);
 		} else if (f instanceof PayloadRtValues ) {
@@ -582,8 +643,8 @@ public class SatPayloadDbStore {
 		} else if (f instanceof PayloadUwExperiment ) {
 			updatedRad=true;
 			return insert(radTableName, (PayloadUwExperiment)f);
-		} else if (f instanceof CanPacket ) {
-			return insert(uwCanPacketTableName, (CanPacket)f);
+		} else if (f instanceof UwCanPacket ) {
+			return insert(uwCanPacketTableName, (UwCanPacket)f);
 		}
 		return false;
 	}
@@ -775,6 +836,7 @@ public class SatPayloadDbStore {
 		return null;
 	}
 	
+	@Deprecated
 	ArrayList<FramePart> selectCanPackets(String where) {
 		Statement stmt = null;
 		String update = "  SELECT * FROM "; // Derby Syntax FETCH FIRST ROW ONLY";
@@ -789,7 +851,7 @@ public class SatPayloadDbStore {
 			r = stmt.executeQuery(update);
 			if (r != null) {
 				while (r.next()) {
-					CanPacket payload = new CanPacket(Config.satManager.getLayoutByName(foxId, Spacecraft.CAN_PKT_LAYOUT));
+					UwCanPacket payload = new UwCanPacket(Config.satManager.getLayoutByName(foxId, Spacecraft.CAN_PKT_LAYOUT));
 					payload.id = r.getInt("id");
 					payload.resets = r.getInt("resets");
 					payload.uptime = r.getLong("uptime");
@@ -866,9 +928,11 @@ public class SatPayloadDbStore {
 	}
 	
 	private void selectLatest(String table, FramePart payload) {
+		if (table == null) return;
+		if (payload == null) return;
 		Statement stmt = null;
 		String update = "  SELECT * FROM " + table + " ORDER BY"; // Derby Syntax FETCH FIRST ROW ONLY";
-		if (payload instanceof CanPacket)
+		if (payload instanceof UwCanPacket)
 			update = update + " pkt_id DESC LIMIT 1"; 
 		else
 			update = update + " resets DESC, uptime DESC, type DESC LIMIT 1"; 
@@ -887,8 +951,8 @@ public class SatPayloadDbStore {
 				if (fox.hasModeInHeader)
 					payload.newMode = r.getInt("newMode");
 				payload.reportDate = r.getString("captureDate");
-				if (payload instanceof CanPacket)
-					((CanPacket)payload).pkt_id = r.getInt("pkt_id");
+				if (payload instanceof UwCanPacket)
+					((UwCanPacket)payload).pkt_id = r.getInt("pkt_id");
 				payload.init();
 				payload.rawBits = null; // no binary array when loaded from database
 				for (int i=0; i < payload.fieldValue.length; i++) {
@@ -908,44 +972,84 @@ public class SatPayloadDbStore {
 		payload = null;
 	}
 	
-//	public FramePart getLatest(String layout) throws SQLException {
-//		BitArrayLayout lay = fox.getLayoutByName(layout);
-//		String tableName = lay.getTableName();
-//		FoxFramePart payload = FramePart.makePayload(lay);
-//		selectLatest(tableName, payload);
-//		return payload;
-//	}
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
+	public FramePart getLatest(String layout) throws SQLException {
+		BitArrayLayout lay = fox.getLayoutByName(layout);
+		String tableName = lay.getTableName();
+		FramePart payload = null;
+		if (fox.hasFOXDB_V3)
+			payload = (FramePart) FramePart.makePayload(fox.foxId,0,0l, layout);
+		else
+			payload = (FramePart) FramePart.makeLegacyPayload(fox.foxId,0,0l, layout);
+		selectLatest(tableName, payload);
+		return payload;
+	}
 	
-	public CanPacket getLatestUwCanPacket() throws SQLException {
-		CanPacket payload = new CanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
+	@Deprecated
+	public UwCanPacket getLatestUwCanPacket() throws SQLException {
+		UwCanPacket payload = new UwCanPacket(fox.getLayoutByName(Spacecraft.CAN_PKT_LAYOUT));
 		selectLatest(uwCanPacketTableName, payload);
 		return payload;
 	}
 	
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
+	public PayloadWOD getLatestWod() throws SQLException {
+		PayloadWOD payload = null;
+		
+		payload = new PayloadWOD(fox.getLayoutByName(Spacecraft.WOD_LAYOUT));
+		selectLatest(wodTableName, payload);
+		return payload;
+	}
+	
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadRtValues getLatestRt() throws SQLException {
-		PayloadRtValues payload = new PayloadRtValues(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-		selectLatest(rtTableName, payload);
+		PayloadRtValues payload =null;
+		if (fox.hasFOXDB_V3) {
+			payload = new PayloadRtValues(fox.getLayoutByType(BitArrayLayout.RT));
+			selectLatest(makeTableName(payload.layout.name), payload);
+		} else {
+			payload = new PayloadRtValues(fox.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+			selectLatest(rtTableName, payload);
+		}
 		return payload;
 	}
 
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadMaxValues getLatestMax() throws SQLException {
-		PayloadMaxValues max = new PayloadMaxValues(fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
-		selectLatest(maxTableName, max);
+		PayloadMaxValues max = null;
+		if (fox.hasFOXDB_V3) {
+			max = new PayloadMaxValues(fox.getLayoutByType(BitArrayLayout.MAX));
+			selectLatest(makeTableName(max.layout.name), max);
+		} else {
+			max = new PayloadMaxValues(fox.getLayoutByName(Spacecraft.MAX_LAYOUT));
+			selectLatest(maxTableName, max);
+		}
 		return max;
 	}
 
+	@SuppressWarnings("deprecation") // Because this is the desired solution to cope with legacy and later
 	public PayloadMinValues getLatestMin() throws SQLException {
-		PayloadMinValues min = new PayloadMinValues(fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
-		selectLatest(minTableName, min);
+		PayloadMinValues min = null;
+		if (fox.hasFOXDB_V3) {
+			min = new PayloadMinValues(fox.getLayoutByType(BitArrayLayout.MIN));
+			selectLatest(makeTableName(min.layout.name), min);
+		} else {
+			min = new PayloadMinValues(fox.getLayoutByName(Spacecraft.MIN_LAYOUT));
+			selectLatest(minTableName, min);
+		}
 		return min;
 	}
 
+	@Deprecated
 	public PayloadRadExpData getLatestRad() throws SQLException {
-		PayloadRadExpData rad = new PayloadRadExpData(fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
+		PayloadRadExpData rad = null;
+		
+		rad = new PayloadRadExpData(fox.getLayoutByName(Spacecraft.RAD_LAYOUT));
 		selectLatest(radTableName, rad);
 		return rad;
 	}
-
+	
+	@Deprecated
 	public PayloadUwExperiment getLatestUwExp() throws SQLException {
 		PayloadUwExperiment rad = new PayloadUwExperiment(fox.getLayoutByName(Spacecraft.CAN_LAYOUT), 0, 0, 0);
 		selectLatest(radTableName, rad);
@@ -962,20 +1066,36 @@ public class SatPayloadDbStore {
 	 * @throws SQLException 
 	 */
 	public double[][] getRtGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(rtTableName, name, period, fox2, fromReset, fromUptime);
+		String tableName = rtTableName;
+		if (fox.hasFOXDB_V3) {
+			BitArrayLayout lay = fox.getLayoutByType(BitArrayLayout.RT);
+			tableName = makeTableName(lay.name);
+		}
+		return getGraphData(tableName, name, period, fox2, fromReset, fromUptime);
 		
 	}
 
 	public double[][] getMaxGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(maxTableName, name, period, id, fromReset, fromUptime);
+		String tableName = maxTableName;
+		if (fox.hasFOXDB_V3) {
+			BitArrayLayout lay = fox.getLayoutByType(BitArrayLayout.MAX);
+			tableName = makeTableName(lay.name);
+		}
+		return getGraphData(tableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
 	public double[][] getMinGraphData(String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
-		return getGraphData(minTableName, name, period, id, fromReset, fromUptime);
+		String tableName = minTableName;
+		if (fox.hasFOXDB_V3) {
+			BitArrayLayout lay = fox.getLayoutByType(BitArrayLayout.MIN);
+			tableName = makeTableName(lay.name);
+		}
+		return getGraphData(tableName, name, period, id, fromReset, fromUptime);
 		
 	}
 
+	@SuppressWarnings("deprecation")
 	public void initRad2() {
 		ResultSet rs = null;
 		String where = "select * from " + this.radTableName;
@@ -1005,6 +1125,7 @@ public class SatPayloadDbStore {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	public void initHerciPackets() {
 		int k = 0;
 		int p = 0;
@@ -1354,7 +1475,14 @@ public class SatPayloadDbStore {
 		
 	}
 */
-    
+  
+	public double[][] getGraphData(String name, int period, Spacecraft fox2, int fromReset, long fromUptime, String layout) throws SQLException {
+		BitArrayLayout lay = fox.getLayoutByName(layout);
+		String tableName = lay.getTableName();
+		return getGraphData(tableName, name, period, fox2, fromReset, fromUptime);
+	}
+	
+	@SuppressWarnings("deprecation")
 	private double[][] getGraphData(String table, String name, int period, Spacecraft id, int fromReset, long fromUptime) throws SQLException {
 		ResultSet rs = null;
 		String where = "";
@@ -1392,24 +1520,33 @@ public class SatPayloadDbStore {
 			resets = new double[size];
 
 			int i=0;
-
-			if (Config.displayRawValues)
-				;//FIXME conversion = 0;
+			
+			
 			if (size > 0) {
 				resets[i] = rs.getInt("resets");
 				upTime[i] = rs.getLong("uptime");
-				//FIXME - we need a payload record so that we can access the right conversion.  But this means we need all the columns....bad
-				PayloadRtValues rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
-				results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getIntConversionByName(name), id);
+				int rawValue = rs.getInt(name);
+				PayloadRtValues rt;
+				if (fox.hasFOXDB_V3) {
+					rt = new PayloadRtValues(id.getLayoutByType(BitArrayLayout.RT));
+				} else {
+					rt = new PayloadRtValues(id.getLayoutByName(Spacecraft.REAL_TIME_LAYOUT));
+				}
+				
+//				results[i++] = rt.getDoubleValue(name, id);
+				results[i++] = rt.convertRawValue(name,rawValue,id);
+				
 				while (rs.previous()) {
 					resets[i] = rs.getInt("resets");
 					upTime[i] = rs.getLong("uptime");
+					rawValue = rs.getInt(name);
 					//rt = new PayloadRtValues(rs, fox.rtLayout);
 					//raw value
 					//results[i++] = rs.getDouble(name);
 					// converted
 
-					results[i++] = rt.convertRawValue(name, (int)rs.getDouble(name), rt.getIntConversionByName(name), id);
+//					results[i++] = rt.getDoubleValue(name, id);
+					results[i++] = rt.convertRawValue(name,rawValue,id);
 				}
 			} else {
 				results = new double[1];

@@ -11,18 +11,19 @@ import common.Performance;
 import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FramePart;
-import telemetry.HighSpeedHeader;
-import telemetry.PayloadCameraData;
-import telemetry.PayloadHERCIhighSpeed;
-import telemetry.PayloadMaxValues;
-import telemetry.PayloadMinValues;
-import telemetry.PayloadRadExpData;
-import telemetry.PayloadRtValues;
-import telemetry.HighSpeedFrame;
-import telemetry.SlowSpeedFrame;
-import telemetry.SlowSpeedHeader;
+import telemetry.Format.TelemFormat;
+import telemetry.frames.Frame;
+import telemetry.frames.HighSpeedFrame;
+import telemetry.frames.HighSpeedHeader;
+import telemetry.frames.SlowSpeedFrame;
+import telemetry.frames.SlowSpeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
 
 /**
  * 
@@ -62,6 +63,7 @@ import telemetry.SlowSpeedHeader;
  * @author chris.e.thompson
  *
  */
+@SuppressWarnings("deprecation")
 public abstract class FoxDecoder extends Decoder {
 	/**
      * This holds the stream of bits that we have not decoded. Once we have several
@@ -80,9 +82,8 @@ public abstract class FoxDecoder extends Decoder {
     /**
      * Given an audio source, decode the data in it,
      */
-	public FoxDecoder(String n, SourceAudio as, int chan) {
-		super(n,as,chan);
-		//init();
+	public FoxDecoder(String n, SourceAudio as, int chan, TelemFormat telemFormat) {
+		super(n,as,chan, telemFormat);
 	}
 	
 
@@ -137,8 +138,8 @@ public abstract class FoxDecoder extends Decoder {
 
 						// Capture measurements once per payload or every 5 seconds ish
 						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
-						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
-							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
+//						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
+//							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
 					} else {
 						HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 						HighSpeedHeader header = hsf.getHeader();
@@ -162,8 +163,8 @@ public abstract class FoxDecoder extends Decoder {
 						}
 						// Capture measurements once per payload or every 5 seconds ish
 						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
-						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
-							MainWindow.inputTab.setViewDecoder2();
+//						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
+//							MainWindow.inputTab.setViewDecoder2();
 					}
 
 				}
@@ -177,6 +178,7 @@ public abstract class FoxDecoder extends Decoder {
 						e.printStackTrace(Log.getWriter());
 					}
 				framesDecoded++;
+				if (MainWindow.frame != null) // then we are in GUI mode
 				try {
 					SwingUtilities.invokeAndWait(new Runnable() {
 						public void run() { MainWindow.setTotalDecodes();}

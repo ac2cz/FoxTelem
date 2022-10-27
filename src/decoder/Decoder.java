@@ -19,8 +19,9 @@ import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 import filter.Filter;
 import gui.MainWindow;
-import telemetry.Frame;
 import telemetry.FramePart;
+import telemetry.Format.TelemFormat;
+import telemetry.frames.Frame;
 import uk.me.g4dpz.satellite.SatPos;
 
 /**
@@ -63,6 +64,7 @@ import uk.me.g4dpz.satellite.SatPos;
  */
 public abstract class Decoder implements Runnable {
 	public String name = "";
+	public TelemFormat telemFormat;
 	// This is the audio source that holds incoming audio.  It contains a circularByte buffer and the decoder reads from it.  The decoder does
 	// not care where the audio comes from or how it gets into the buffer
 	protected SourceAudio audioSource;
@@ -145,7 +147,7 @@ public abstract class Decoder implements Runnable {
     /**
      * Given an audio source, decode the data in it,
      */
-	public Decoder(String n, SourceAudio as, int chan) {
+	public Decoder(String n, SourceAudio as, int chan, TelemFormat telemFormat) {
 		name = n;
 		audioSource = as;
 		audioChannel = chan;
@@ -155,6 +157,7 @@ public abstract class Decoder implements Runnable {
         bigEndian = audioFormat.isBigEndian();
         channels = audioFormat.getChannels();
         bytesPerSample = audioFormat.getFrameSize();
+        this.telemFormat = telemFormat;
         init();
 	}
 	
@@ -229,7 +232,7 @@ public abstract class Decoder implements Runnable {
 	protected void startAudioThread() {
 		if (audioChannel == 0 || audioSource instanceof SourceIQ) {
 			if (audioReadThread != null) { 
-				audioSource.stop(); 
+				audioSource.stop("Decoder:startAudioThread"); 
 			}	
 
 			audioReadThread = new Thread(audioSource);
@@ -398,8 +401,16 @@ public abstract class Decoder implements Runnable {
         //Log.println("DECODING FRAMES LENGTH " + bitStream.SYNC_WORD_DISTANCE + " bits ... ");
         
 		startAudioThread();
-
-        while (nBytesRead != -1 && processing) {
+		
+		// Give the audio thread time to be up and running.  Otherwise we sometimes exit the
+		// decoder immediately because it thinks the audio thread is done
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e1) {
+			// TODO Auto-generated catch block
+			e1.printStackTrace();
+		}
+        while (nBytesRead != -1 && processing && !audioSource.isDone()) {
         	Performance.startTimer("Setup");
     		resetWindowData();
     		Performance.endTimer("Setup");
@@ -591,7 +602,7 @@ public abstract class Decoder implements Runnable {
 	
 	public void cleanup() { // release any system assets we have held
 		if (audioSource != null) { 
-			audioSource.stop();
+			audioSource.stop("Decoder:cleanup");
 
 			while (!audioSource.isDone()) {
 				try {
@@ -745,6 +756,7 @@ public abstract class Decoder implements Runnable {
 	 * Print the data for debug purposes so that we can graph it in excel
 	 * Include markers for the start and end of buckets and for the value of the mid point sample
 	 */
+	@SuppressWarnings("deprecation")
 	protected void printBucketsValues() {
 //		debugWindowCount++;
 //		if (debugWindowCount > 16) System.exit(1);
@@ -756,6 +768,7 @@ public abstract class Decoder implements Runnable {
 	//			System.out.println(40000); // start of bucket marker
 			int step = 10; // means 20 samples per bit
 			int middle = 120;
+			
 			if (this instanceof Fox9600bpsDecoder) {
 				step = 1;
 				middle = 3;

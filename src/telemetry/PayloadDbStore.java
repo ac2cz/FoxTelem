@@ -15,11 +15,22 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
-import telemetry.uw.CanPacket;
+import telemetry.frames.Frame;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.CameraJpeg;
+import telemetry.legacyPayloads.PayloadCameraData;
+import telemetry.legacyPayloads.PayloadRadExpData;
+import telemetry.legacyPayloads.PictureScanLine;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.payloads.PayloadMaxValues;
+import telemetry.payloads.PayloadMinValues;
+import telemetry.payloads.PayloadRtValues;
+import telemetry.uw.UwCanPacket;
+import telemetry.uw.PayloadUwExperiment;
 import common.Config;
 import common.Log;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -42,8 +53,10 @@ import common.FoxSpacecraft;
  *
  * 
  * This stores the payloads for all of the satellites.  The class callings the methods does not need to know
- * how the data is stored.  The data could be moved into an SQL database in the future and it should make no 
- * difference to code outside of this class
+ * how the data is stored.  This class implements the storage in an SQL database.
+ * 
+ * This class handles the top level management of the connection and the tables that span spacecraft. The
+ * SatPayloadDbStore handles storage of the spacecraft data into the DB.
  * 
  *
  */
@@ -90,7 +103,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
             initStpHeaderTable();
             initT0LogTable();
         } catch (SQLException ex) {
+        	
            Log.println(ex.getMessage());
+           SQLExceptionPrint("Login failed",ex);
            System.err.print("FATAL: Could not connect to DB");
            Log.alert("FATAL: Could not connect to DB");
            //System.exit(1);
@@ -125,7 +140,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
         payloadStore = new SatPayloadDbStore[sats.size()];
         //pictureStore = new SatPictureStore[sats.size()];
         for (int s=0; s<sats.size(); s++) {
-        	payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
+        	payloadStore[s] = new SatPayloadDbStore(this, sats.get(s));
 			//if (sats.get(s).hasCamera()) pictureStore[s] = new SatPictureStore(sats.get(s).foxId);;
 			
 		}
@@ -134,7 +149,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	public void initRad2() {
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		for (int s=0; s<sats.size(); s++) {
-			payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
+			payloadStore[s] = new SatPayloadDbStore(this, sats.get(s));
 			payloadStore[s].initRad2();
 		}
 	}
@@ -143,9 +158,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 		for (int s=0; s<sats.size(); s++) {
 			//if (sats.get(s).isFox1()) {
-				FoxSpacecraft fox = (FoxSpacecraft)sats.get(s);
+			Spacecraft fox = sats.get(s);
 				if (fox.hasHerci()) {
-					payloadStore[s] = new SatPayloadDbStore(this, (FoxSpacecraft) sats.get(s));
+					payloadStore[s] = new SatPayloadDbStore(this, sats.get(s));
 					payloadStore[s].initHerciPackets();
 				}
 			//}
@@ -153,7 +168,9 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 	public Connection getConnection() throws SQLException {
 		if (derby == null || !derby.isValid(2))  // check that the connection is still valid, otherwise reconnect
-            derby = DriverManager.getConnection(url + db + "?autoReconnect=true", user, password);
+			// timezone needed from version 8 of the driver!
+			// use jvm switch -Djavax.net.debug=ssl,handshake to debug connection
+            derby = DriverManager.getConnection(url + db + "?autoReconnect=true&serverTimezone=UTC", user, password);
 		return derby;
 
 	}
@@ -195,6 +212,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 			store.setUpdatedAll();
 	}
 	
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedRt(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -202,52 +220,61 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return false;
 	}
 	
+	@SuppressWarnings("deprecation")
 	public void setUpdatedRt(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedRt(u);
 	}
 	
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedMax(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedMax();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedMax(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedMax(u);
 	}
 
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedMin(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedMin();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedMin(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedMin(u);
 	}
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedRad(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedRad();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedRad(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			store.setUpdatedRad(u);
 	}
+	@SuppressWarnings("deprecation")
 	public boolean getUpdatedCamera(int id) { 
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			return store.getUpdatedCamera();
 		return false;
 	}
+	@SuppressWarnings("deprecation")
 	public void setUpdatedCamera(int id, boolean u) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -607,17 +634,18 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 	@Override
 	public FramePart getLatest(int id, String layout) {
-//		SatPayloadDbStore store = getPayloadStoreById(id);
-//		if (store != null)
-//			try {
-//				return store.getLatest(layout);
-//			} catch (SQLException e) {
-//				e.printStackTrace(Log.getWriter());
-//				return null;
-//			}
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			try {
+				return store.getLatest(layout);
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
 		return null;
 	}
 
+	@Deprecated
 	public ArrayList<FramePart> selectCanPackets(int id, String where) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -632,7 +660,8 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return 0;
 	}
 	
-	public CanPacket getLatestUwCanPacket(int id) {
+	@SuppressWarnings("deprecation")
+	public UwCanPacket getLatestUwCanPacket(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
 			try {
@@ -688,6 +717,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	public PayloadRadExpData getLatestRad(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -702,6 +732,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	}
 	
+	@SuppressWarnings("deprecation")
 	public PayloadUwExperiment getLatestUwExp(int id) {
 		SatPayloadDbStore store = getPayloadStoreById(id);
 		if (store != null)
@@ -715,6 +746,19 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 		return null;
 
 	}
+	
+	public double[][] getGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse, String layout ) {
+		SatPayloadDbStore store = getPayloadStoreById(fox.foxId);
+		if (store != null)
+			try {
+				return store.getGraphData(name, period, fox, fromReset, fromUptime, layout);
+			} catch (SQLException e) {
+				e.printStackTrace(Log.getWriter());
+				return null;
+			}
+		return null;
+	}
+	
 
 	/**
 	 * Try to return an array with "period" entries for this attribute, starting with the most 
@@ -968,14 +1012,14 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public double[][] getRadTelemGraphData(String name, int period,
-			FoxSpacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse) {
+			Spacecraft fox, int fromReset, long fromUptime, boolean plot, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
 	@Override
 	public double[][] getMeasurementGraphData(String name, int period,
-			FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse) {
+			Spacecraft fox, int fromReset, long fromUptime, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
 	}
@@ -989,7 +1033,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	
 
 	@Override
-	public double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
+	public double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset,
 			long fromUptime, boolean plot, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
@@ -1030,7 +1074,7 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 	}
 
 	@Override
-	public double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset,
+	public double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset,
 			long fromUptime, boolean reverse) {
 		// TODO Auto-generated method stub
 		return null;
@@ -1038,14 +1082,17 @@ public class PayloadDbStore extends FoxPayloadStore implements Runnable {
 
 	@Override
 	public boolean getUpdated(int id, String lay) {
-		// TODO Auto-generated method stub
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			return store.getUpdated(lay);
 		return false;
 	}
 
 	@Override
 	public void setUpdated(int id, String lay, boolean u) {
-		// TODO Auto-generated method stub
-		
+		SatPayloadDbStore store = getPayloadStoreById(id);
+		if (store != null)
+			store.setUpdated(lay, u);
 	}
 
 	@Override

@@ -1,0 +1,36 @@
+35,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,diagnostic,missionUptime,32,secs,INT,General Info,1,2,0,Total Uptime,Continuous seconds countup from start
+1,diagnostic,secsInEpoch,32,secs,INT,General Info,1,3,0,SecondsInEpoch,Seconds within current Epoch
+2,diagnostic,UTCValid,1,-,STATUS_BOOLEAN,General Info,1,10,0,UTCValid,x
+3,diagnostic,UTCYear,5,-,INT,General Info,1,9,0,UTCYear,Based on 2020–5 bits=32 years
+4,diagnostic,UTCMonth,4,-,INT,General Info,1,8,0,UTCMonth,x
+5,diagnostic,UTCDay,5,-,INT,General Info,1,7,0,UTCDay,x
+6,diagnostic,UTCSeconds,6,-,INT,General Info,1,6,0,UTCSeconds,x
+7,diagnostic,UTCMinutes,6,-,INT,General Info,1,5,0,UTCMinutes,x
+8,diagnostic,UTCHours,5,-,INT,General Info,1,4,0,UTCHours,x
+9,diagnostic,EnterAutosafe,8,V,golf-t_bus_voltage,General Info,1,11,0,EnterAutosafe,x
+10,diagnostic,ExitAutosafe,8,V,golf-t_bus_voltage,General Info,1,12,0,ExitAutosafe,x
+11,diagnostic,infreqSpare1,16,-,0,NONE,0,0,0,Fill to 32-bits,x
+12,diagnostic,LegFiller1,5,-,0,NONE,0,0,0,pad to 32 bits,x
+13,diagnostic,LegValid,1,-,STATUS_BOOLEAN,General Info,1,1,0,LIHU Data Valid,x
+14,diagnostic,LegWasStillEarlyInBoot,1,-,STATUS_BOOLEAN,IHU Reset Info,2,7,0,Was this reset still early in boot,x
+15,diagnostic,LegEarlyResetCount,3,-,INT,IHU Reset Info,2,6,0,Resets in a row that have been too soon,x
+16,diagnostic,LegPreviousTask,4,-,GOLF_TASK_NAME,IHU Reset Info,2,5,0,Previous task before reset,x
+17,diagnostic,LegTaskNumber,4,-,GOLF_TASK_NAME,IHU Reset Info,2,4,0,Task executing at reset,x
+18,diagnostic,LegErrorCode,5,-,GOLF_LIHU_ERR,IHU Reset Info,2,2,0,Cause of Reset,x
+19,diagnostic,LegWdReports,9,-,INT,IHU Reset Info,2,1,0,LIHU: WD Tasks Ok,x
+20,diagnostic,LegI2C1Error,8,-,INT,Legacy  Errors,3,1,0,I2C1 Errors,x
+21,diagnostic,LegI2C2Error,8,-,INT,Legacy  Errors,3,2,0,I2C2 Errors,x
+22,diagnostic,LegI2C1Reset,8,-,INT,Legacy  Errors,3,3,0,I2C1 Resets,x
+23,diagnostic,LegI2C2Reset,8,-,INT,Legacy  Errors,3,4,0,I2C2 Resets,x
+24,diagnostic,LegSPIRetries,8,-,INT,Legacy  Errors,3,5,0,SPI Retries,x
+25,diagnostic,LegMramCRC,8,-,INT,Legacy  Errors,3,6,0,MRAM CRC Errors,x
+26,diagnostic,LegMramRead,8,-,INT,Legacy  Errors,3,7,0,MRAM Read Error,x
+27,diagnostic,LegMramWrite,8,-,INT,Legacy  Errors,3,8,0,MRAM Write Error,x
+28,diagnostic,ICRCmdFailCRC,8,-,INT,Legacy  Errors,3,9,0,ICRCmdFailCRC,x
+29,diagnostic,ICRCmdFailTime,8,-,INT,Legacy  Errors,3,10,0,ICRCmdFailTime,x
+30,diagnostic,ICRCmdFailAuthenticate,8,-,INT,Legacy  Errors,3,11,0,ICRCmdFailAuthenticate,x
+31,diagnostic,ICRCmdFailCommand,8,-,INT,Legacy  Errors,3,12,0,ICRCmdFailCommand,x
+32,diagnostic,ICRCmdFailNamespace,8,-,INT,Legacy  Errors,3,13,0,ICRCmdFailNamespace,x
+33,diagnostic,LegSWVersion,16,-,INT,General Info,1,12,0,LIHU Version Number,x
+34,diagnostic,LegErrorData,8,-,INT,IHU Reset Info,2,3,0,Error Data,x

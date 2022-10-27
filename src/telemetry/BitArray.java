@@ -43,7 +43,7 @@ public abstract class BitArray {
 	//protected String[] fieldUnits = null;
 	//protected int[] fieldBitLength = null;
 	//public String[] description = null;
-	protected BitArrayLayout layout;
+	public BitArrayLayout layout;
 	
 	public int numberBytesAdded = 0;
 

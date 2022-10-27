@@ -12,7 +12,9 @@ import common.Log;
 import common.Spacecraft;
 import common.TlmServer;
 import gui.MainWindow;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.SlowSpeedFrame;
 
 /**
  * 
@@ -39,6 +41,7 @@ import telemetry.FoxBPSK.FoxBPSKFrame;
  * to echo CAN packets to a local copy of COSMOS for UW sat.
  *
  */
+@SuppressWarnings("deprecation")
 public class RawPayloadQueue extends RawQueue {
 	public static String RAW_SLOW_SPEED_FRAMES_FILE = "rawDUVpayloads.log";
 	public static String RAW_HIGH_SPEED_FRAMES_FILE = "rawHSpayloads.log";
@@ -54,7 +57,7 @@ public class RawPayloadQueue extends RawQueue {
 		localServer = new TlmServer(Config.primaryServer, Config.serverPort, TlmServer.KEEP_OPEN, TlmServer.NO_ACK);
 		rawSlowSpeedFrames = new ConcurrentLinkedQueue<Frame>();
 		rawHighSpeedFrames = new ConcurrentLinkedQueue<Frame>();
-		rawPSKFrames = new ConcurrentLinkedQueue<Frame>();
+		formatFrames = new ConcurrentLinkedQueue<Frame>();
 		try {
 			synchronized(this) { // lock will be load the files
 				load(RAW_SLOW_SPEED_FRAMES_FILE, Frame.DUV_FRAME);
@@ -74,25 +77,25 @@ public class RawPayloadQueue extends RawQueue {
 					JOptionPane.ERROR_MESSAGE) ;
 			e.printStackTrace(Log.getWriter());
 		}
-		MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+		MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 	}
 	
 	public boolean add(Frame f) throws IOException {
 		if (f instanceof SlowSpeedFrame ) {
 				updatedSlowQueue = true;
 				save(f, RAW_SLOW_SPEED_FRAMES_FILE);
-				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 				return rawSlowSpeedFrames.add(f);
 			
-		} else if (f instanceof FoxBPSKFrame ) {
+		} else if (f instanceof FormatFrame ) {
 				updatedPSKQueue = true;
 				save(f, RAW_PSK_FRAMES_FILE);
-				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
-				return rawPSKFrames.add(f);
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
+				return formatFrames.add(f);
 		} else {
 				updatedHSQueue = true;
 				save(f, RAW_HIGH_SPEED_FRAMES_FILE);
-				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+				MainWindow.setLocalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 				return rawHighSpeedFrames.add(f);
 		}		
 		
@@ -151,8 +154,8 @@ public class RawPayloadQueue extends RawQueue {
 					e.printStackTrace(Log.getWriter());
 				}
 			}
-			while (rawPSKFrames.size() > 0) {
-				success = sendFrame(rawPSKFrames, RAW_PSK_FRAMES_FILE);
+			while (formatFrames.size() > 0) {
+				success = sendFrame(formatFrames, RAW_PSK_FRAMES_FILE);
 				try {
 					Thread.sleep(100); // pause so that the server can keep up
 				} catch (InterruptedException e) {

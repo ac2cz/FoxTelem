@@ -493,7 +493,7 @@ public class PassManager implements Runnable {
 		long fadeTime = 0;
 		int fade_period = FADE_PERIOD;
 		if (pp1 != null && pp1.iqSource != null) // make sure we did not end the pass
-			if (pp1.iqSource.getMode() == SourceIQ.MODE_PSK_COSTAS || pp1.iqSource.getMode() == SourceIQ.MODE_FSK_HS)
+			if (pp1.iqSource.getFormat().isBPSK())
 				fade_period = PSK_FADE_PERIOD;
 
 		while (fadeTime < fade_period && state == FADED) {
@@ -565,7 +565,7 @@ public class PassManager implements Runnable {
 			passMeasurement.setRawValue(PassMeasurement.MAX_ELEVATION, 0);
 		} else {
 			long maxEl = -180; // just in case we have a pass that is theoretically below the horizon but we still manage to track it, allow negatives
-			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime(), false);
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.EL, MAX_QUANTITY, spacecraft, passMeasurement.getReset(), passMeasurement.getUptime(), false);
 			for (int i=1; i < graphData[0].length; i++) {
 				long value = (long)graphData[PayloadStore.DATA_COL][i];
 				if (value > maxEl) maxEl = value;
@@ -583,7 +583,7 @@ public class PassManager implements Runnable {
 			passMeasurement.setRawValue(PassMeasurement.TOTAL_PAYLOADS, 0);
 			passMeasurement.setEndResetUptime(0, 0);
 		} else {
-			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, (FoxSpacecraft) spacecraft, passMeasurement.getReset(), passMeasurement.getUptime(), false);
+			graphData = Config.payloadStore.getMeasurementGraphData(RtMeasurement.CARRIER_FREQ, MAX_QUANTITY, spacecraft, passMeasurement.getReset(), passMeasurement.getUptime(), false);
 
 			// if we have enough readings, calculate the first derivative
 			if (graphData[0].length > MIN_FREQ_READINGS_FOR_TCA) {
@@ -833,12 +833,12 @@ public class PassManager implements Runnable {
 		// If the mode is wrong we should switch modes
 		if (Config.format != sat.user_format) {
 			// Except if in Auto and Sat mode is DUV or HS
-			if (MainWindow.inputTab.sdrSelected() && sat.user_format == SourceTab.FORMAT_FSK_AUTO) {
-				sat.user_format = SourceTab.FORMAT_FSK_DUV; // we can't switch to auto mode for SDR, pick DUV
-				if (Config.format == sat.user_format)
-					return false; // we are already in DUV
-				// otherwise process change as through the user requested DUV
-			}
+//			if (MainWindow.inputTab.sdrSelected() && sat.user_format == SourceTab.FORMAT_FSK_AUTO) {
+//				sat.user_format = SourceTab.FORMAT_FSK_DUV; // we can't switch to auto mode for SDR, pick DUV
+//				if (Config.format == sat.user_format)
+//					return false; // we are already in DUV
+//				// otherwise process change as through the user requested DUV
+//			}
 			
 			if (SourceTab.STARTED)
 				MainWindow.inputTab.processStartButtonClick(); // stop the decoder

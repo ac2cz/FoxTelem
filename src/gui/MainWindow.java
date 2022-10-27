@@ -3,6 +3,8 @@ package gui;
 import javax.swing.JFrame;
 
 import decoder.SourceSoundCardAudio;
+import gui.graph.LinePlotPanel;
+import gui.uw.UwExperimentTab;
 
 import javax.swing.JPanel;
 
@@ -44,7 +46,6 @@ import common.DesktopApi;
 import common.Log;
 import common.PassManager;
 import common.Spacecraft;
-import common.FoxSpacecraft;
 import common.UpdateManager;
 
 import javax.swing.border.EmptyBorder;
@@ -60,11 +61,10 @@ import macos.MacPreferencesHandler;
 import macos.MacQuitHandler;
 import telemetry.BitArrayLayout;
 import telemetry.FramePart;
-import telemetry.FramePart;
 import telemetry.LayoutLoadException;
 import telemetry.SatPayloadStore;
 import telemetry.SortedFramePartArrayList;
-import telemetry.uw.CanPacket;
+import telemetry.uw.UwCanPacket;
 
 import com.apple.eawt.Application;
 
@@ -131,7 +131,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	JMenuItem mntmAbout;
 	JMenuItem mntmSatAdd;
 	JMenuItem mntmSatRemove;
-	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
+//	JCheckBoxMenuItem chckbxmntmShowFilterOptions;
 	JCheckBoxMenuItem chckbxmntmShowDecoderOptions;
 	JCheckBoxMenuItem chckbxmntmShowAudioOptions;
 	JCheckBoxMenuItem chckbxmntmShowSatOptions;
@@ -161,7 +161,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	private static String TOTAL_QUEUED = "Queue: ";
 	private static String LOCAL_QUEUED = "/ ";
 	private static String AUDIO_MISSED = "Audio missed: ";
-	private static String USB_ERRORS = "USB Errors: ";
+	private static String USB_ERRORS = "SDR Errors: ";
 		
 	private static int totalMissed;
 	ProgressPanel importProgress;
@@ -376,7 +376,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		if (lblAudioMissed != null) { // just in case we are delayed starting up
 			double miss = missed / 10.0;
 			totalMissed += missed;
-			lblAudioMissed.setText(AUDIO_MISSED + GraphPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
+			lblAudioMissed.setText(AUDIO_MISSED + LinePlotPanel.roundToSignificantFigures(miss,2) + "% / " + totalMissed);
 			if (missed > 2)
 				lblAudioMissed.setForeground(Color.RED);
 			else
@@ -533,10 +533,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		//JMenu mnOptions = new JMenu("Options");
 		//menuBar.add(mnOptions);
 		
-		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
-		mnDecoder.add(chckbxmntmShowFilterOptions);
-		chckbxmntmShowFilterOptions.setState(Config.showFilters);
-		chckbxmntmShowFilterOptions.addActionListener(this);
+//		chckbxmntmShowFilterOptions = new JCheckBoxMenuItem("Show Filter Options");
+//		mnDecoder.add(chckbxmntmShowFilterOptions);
+//		chckbxmntmShowFilterOptions.setState(Config.showFilters);
+//		chckbxmntmShowFilterOptions.addActionListener(this);
 		
 		chckbxmntmShowAudioOptions = new JCheckBoxMenuItem("Show Audio Options");
 		chckbxmntmShowAudioOptions.addActionListener(this);
@@ -671,7 +671,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	
 	private void shutdown() {
 		if (Config.satPC != null) Config.satPC.disconnect();
+		for (int s=0; s<spacecraftTab.length; s++) {
+			spacecraftTab[s].closeGraphs();
+		}
 		inputTab.shutdown();
+		
 		Log.println("Window Closed");
 		Log.close();
 		saveProperties();
@@ -777,7 +781,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		for (int i=0; i<sats.size(); i++) {
 			if (e.getSource() == mntmSat[i]) {
 				//if (sats.get(i).isFox1()) {
-					SpacecraftFrame f = new SpacecraftFrame((FoxSpacecraft) sats.get(i), this, true);
+					SpacecraftFrame f = new SpacecraftFrame(sats.get(i), this, true);
 					f.setVisible(true);
 				//}
 			}
@@ -792,11 +796,11 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 
 		
-		if (e.getSource() == chckbxmntmShowFilterOptions) {	
-			Config.showFilters = chckbxmntmShowFilterOptions.getState();
-			inputTab.showFilters(Config.showFilters);
-			Config.save();	
-		}
+//		if (e.getSource() == chckbxmntmShowFilterOptions) {	
+//			Config.showFilters = chckbxmntmShowFilterOptions.getState();
+//			inputTab.showFilters(Config.showFilters);
+//			Config.save();	
+//		}
 		
 		if (e.getSource() == chckbxmntmShowAudioOptions) {	
 			Config.showAudioOptions = chckbxmntmShowAudioOptions.getState();
@@ -869,10 +873,12 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
 		}
 		// We have the dir, so pull down the file
+		
 		ProgressPanel fileProgress = new ProgressPanel(this, "Downloading " + dir + " data, please wait ...", false);
 		fileProgress.setVisible(true);
 
 		String urlString = Config.webSiteUrl + "/" + dir + "/FOXDB.tar.gz";
+		Log.println("Downloading: "+urlString);
 		try {
 			URL website = new URL(urlString);
 			ReadableByteChannel rbc = Channels.newChannel(website.openStream());
@@ -942,13 +948,17 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 	
 	private String getFoxServerDir(int id) {
+		// First cover the legacy names
 		if (id == 1) return "ao85";
 		if (id == 2) return "radfxsat";
 		if (id == 3) return "fox1c";
 		if (id == 4) return "fox1d";
 		if (id == 5) return "fox1e";
 		if (id == 6) return "husky";
-		return null;
+		
+		// Then a standard name format going forward that will be SERIES-ID
+		Spacecraft sat = Config.satManager.getSpacecraft(id);
+		return sat.series + "-" + sat.foxId;
 	}
 	
 	private void replaceServerData() {
@@ -1010,12 +1020,21 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		
 		Config.save(); // make sure any changed settings saved
 		Config.initPayloadStore();
-		
+		Config.fileProgress.updateProgress(100);
 		//int pkts = 0;
 		
 		for (Spacecraft sat : sats) {
 			// We can not rely on the name of the spacecraft being the same as the directory name on the server
 			// because the user can change it.  So we have a hard coded routine to look it up
+			
+			if (sat.hasMesatCamera()) {
+				Log.println("Attempting to recover images from MESAT1 Can Packets ..");
+				ProgressPanel mesatProgress = new ProgressPanel(this, "Processing camera can packets, please wait ...", false);
+				mesatProgress.setVisible(true);
+				Config.payloadStore.mesatImageStore.rebuildFromCanPackets(sat.foxId);
+				mesatProgress.updateProgress(100);
+			}
+			
 			if (sat.hasCanBus) {
 				ProgressPanel splitProgress = new ProgressPanel(this, "Splitting can packets, please wait ...", false);
 				splitProgress.setVisible(true);
@@ -1031,16 +1050,16 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 						//total++;
 						if (p.getType() == FramePart.TYPE_UW_CAN_PACKET || p.getType() >= 1400 && p.getType() < 1500) {
 							//pkts++;
-							int ihuPacketId = p.fieldValue[CanPacket.ID_FIELD0] + 256*p.fieldValue[CanPacket.ID_FIELD1] + 65536*p.fieldValue[CanPacket.ID_FIELD2] + 16777216*p.fieldValue[CanPacket.ID_FIELD3];  // little endian
-							int length = CanPacket.getLengthfromRawID(ihuPacketId);
-							int canId = CanPacket.getIdfromRawID(ihuPacketId);
+							int ihuPacketId = p.fieldValue[UwCanPacket.ID_FIELD0] + 256*p.fieldValue[UwCanPacket.ID_FIELD1] + 65536*p.fieldValue[UwCanPacket.ID_FIELD2] + 16777216*p.fieldValue[UwCanPacket.ID_FIELD3];  // little endian
+							int length = UwCanPacket.getLengthfromRawID(ihuPacketId);
+							int canId = UwCanPacket.getIdfromRawID(ihuPacketId);
 							if (UwExperimentTab.inCanIds(canId)) {
-								byte[] data = new byte[CanPacket.ID_BYTES+length];
+								byte[] data = new byte[UwCanPacket.ID_BYTES+length];
 								for (int i=0;i<data.length; i++)
 									data[i] = (byte) p.fieldValue[i];
 								BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(sat.foxId, canId);
 								if (canLayout != null) { 
-									CanPacket newPacket = new CanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
+									UwCanPacket newPacket = new UwCanPacket(sat.foxId, p.resets, p.uptime, p.getCaptureDate(), data, canLayout);
 									if (p.getType() > 1400)
 										newPacket.setType(FramePart.TYPE_UW_CAN_PACKET_TELEM*100 + (p.getType()-1400));
 									//									if (newPacket.getType() > 1700)
@@ -1072,14 +1091,9 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 		queueStatus.updateProgress(100);
 
-		ProgressPanel refreshProgress = new ProgressPanel(this, "refreshing tabs ...", false);
-		refreshProgress.setVisible(true);
-		
 		Config.initSequence();
 		Config.initServerQueue();
 		refreshTabs(true);
-		
-		refreshProgress.updateProgress(100);
 		
 		// We are fully updated, remove the database loading message
 		Config.fileProgress.updateProgress(100);
@@ -1164,6 +1178,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 		}
 		Config.save();
 		if (file !=null) {
+			int satsLoaded = Config.satManager.getSpacecraftList().size();
 			boolean refresh = false;
 			if (remove) {
 				int n = Log.optionYNdialog("Delete the spacecraft config file?",
@@ -1211,7 +1226,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 					try {
 						//SatPayloadStore.copyFile(file, targetFile);
 						try {
-							FoxSpacecraft satellite = new FoxSpacecraft(Config.satManager, file, targetFile);
+							Spacecraft satellite = new Spacecraft(Config.satManager, file, targetFile);
 							satellite.save();
 						} catch (LayoutLoadException e) {
 							Log.errorDialog("Layout Issue", "Could not fully parse the spacecraft file.  It may not be installed\n"+e.getMessage());
@@ -1231,8 +1246,10 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 				Config.initPassManager();
 				Config.initSequence();
 				Config.initServerQueue();
-				Config.mainWindow.initSatMenu();
-				MainWindow.refreshTabs(false);
+				if (satsLoaded != Config.satManager.getSpacecraftList().size()) {
+					Config.mainWindow.initSatMenu();
+					MainWindow.refreshTabs(false);
+				}
 				Config.fileProgress.updateProgress(100);
 			}
 		}

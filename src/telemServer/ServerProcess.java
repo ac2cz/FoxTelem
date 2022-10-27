@@ -17,8 +17,7 @@ import java.util.TimeZone;
 
 import common.Log;
 import common.Sequence;
-import telemetry.Frame;
-import telemetry.HighSpeedFrame;
+import telemetry.frames.Frame;
 
 public class ServerProcess implements Runnable {
 	public static final String NONE = "NONE";
@@ -45,7 +44,7 @@ public class ServerProcess implements Runnable {
 
 	// safety limit to stop massive files being sent to us
 	// Max frame size is a high speed frame plus the maximum STP Header Size, which is circa 350 bytes.  1000 used to be conservative
-	public static final int MAX_FRAME_SIZE = HighSpeedFrame.MAX_FRAME_SIZE + 1000;
+	public static final int MAX_FRAME_SIZE = 5600;
 	public static final DateFormat fileDateName = new SimpleDateFormat("yyyyMMddHHmmss");
 	public static final DateFormat yearDirName = new SimpleDateFormat("yyyy");
 	public static final DateFormat monthDirName = new SimpleDateFormat("MM");
@@ -119,11 +118,12 @@ public class ServerProcess implements Runnable {
 	public void run() {
 		Log.println("Started Thread to handle connection from: " + socket.getInetAddress());
 
-		FileOutputStream f = null;
-		InputStream in = null;
-		OutputStream out = null;
-		String fileName;
-		File stp = null;
+		FileOutputStream stpFileOutputStream = null; // the file on disk to write the STP data to
+		InputStream in = null;  // input stream from the socket
+		OutputStream out = null; // output stream from the socket, so we can ACK
+		String fileName; // the filename of the STP file, which we generate each time
+		File stp = null; // the STP file once it is on disk
+		
 		try {
 			boolean done = false;
 			boolean readingKey = true;
@@ -156,14 +156,14 @@ public class ServerProcess implements Runnable {
 			char ch;
 			int b=0;
 			fileName = nextSTPFile();
-			f = new FileOutputStream(fileName);
+			stpFileOutputStream = new FileOutputStream(fileName);
 			socket.setSoTimeout(ServerConfig.socketReadTimeout);
 			in = socket.getInputStream();
 			out = socket.getOutputStream();
 			int c;
 			
 			while (!done && (c = in.read()) != -1) {
-				f.write(c);
+				stpFileOutputStream.write(c);
 				b++;
 				if (b > MAX_FRAME_SIZE) 
 					throw new StpFileProcessException(fileName,"Frame too long, probablly spam: Aborted");
@@ -171,22 +171,22 @@ public class ServerProcess implements Runnable {
 				if (c == 58 && firstColon) { // ':'
 					firstColon = false;
 					c = in.read(); // consume the space
-					f.write(c);
+					stpFileOutputStream.write(c);
 					c = in.read();
-					f.write(c);
+					stpFileOutputStream.write(c);
 					ch = (char) c; // set ch to the first character
 					readingKey = false;
 				}
 				if ( (c == 13 || c == 10)) { // CR or LF
 					c = in.read(); // consume the lf
-					f.write(c);
-					if ((length == DUV_FRAME_LEN || length == HIGH_SPEED_FRAME_LEN || length == PSK_FRAME_LEN) && lineLen == 1) {
+					stpFileOutputStream.write(c);
+					if ((length != 0) && lineLen == 1) {
 						// then we are ready to process
 						rawFrame = new byte[length/8];
 						for (int i=0; i<length/8; i++) {
 							c = in.read();
 							rawFrame[i] = (byte) c;
-							f.write(c);
+							stpFileOutputStream.write(c);
 						}
 						done = true;
 					} else {
@@ -241,7 +241,7 @@ public class ServerProcess implements Runnable {
 							}
 						} else {
 							// Eror, not a valid header, FAIL
-							throw new StpFileProcessException(fileName,"Invalid Header: Aborted");
+							throw new StpFileProcessException(fileName,"Invalid STP Header: Aborted");
 						}
 						key = "";
 						value = "";
@@ -262,7 +262,7 @@ public class ServerProcess implements Runnable {
 			in.close();
 			out.close();
 			socket.close();
-			f.close();
+			stpFileOutputStream.close();
 			
 			// At this point the file is on disk, so we can process it
 			stp = new File(fileName);
@@ -335,7 +335,7 @@ public class ServerProcess implements Runnable {
 			try { in.close();  } catch (Exception ex) { /*ignore*/}
 			try { out.close();  } catch (Exception ex) { /*ignore*/}
 			try { socket.close();  } catch (Exception ex) { /*ignore*/} 
-			try { f.close();  } catch (Exception ex) { /*ignore*/}
+			try { stpFileOutputStream.close();  } catch (Exception ex) { /*ignore*/}
 		}
 	}
 

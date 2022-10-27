@@ -58,4 +58,4 @@ source0.name=amsat.fox-1d.ihu.duv
 source1.name=amsat.fox-1d.ihu.highspeed
 track=false
 useIHUVBatt=true
-user_format=2
+user_format=FSK 200bps (Fox1)

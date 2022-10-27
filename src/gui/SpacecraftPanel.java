@@ -11,16 +11,12 @@ import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.WindowEvent;
-import java.awt.event.WindowListener;
 
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
@@ -30,11 +26,11 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
 import javax.swing.table.TableColumn;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 
 import common.Log;
 import common.Spacecraft;
 import common.Config;
-import common.FoxSpacecraft;
 
 /**
 * 
@@ -82,22 +78,22 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 	JCheckBox[] sendLayoutToServer;
 	
 	JCheckBox useIHUVBatt;
-	JCheckBox track;
+	JCheckBox track, user_useGPSTimeForT0;
 	JComboBox<String> cbMode;
 	
 	JButton btnCancel;
 	JButton btnSave;
-	JButton btnGetT0;
+	JButton btnGetT0, btnDeleteT0;
 	T0SeriesTableModel t0TableModel;
 	
-	FoxSpacecraft sat;
+	Spacecraft sat;
 
 	int headerSize = 12;
 	
 	/**
 	 * Create the dialog.
 	 */
-	public SpacecraftPanel(FoxSpacecraft sat) {
+	public SpacecraftPanel(Spacecraft sat) {
 		
 		this.sat = sat;
 		
@@ -108,6 +104,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		
 	}
 	
+	@SuppressWarnings("deprecation")
 	private void addFields() {
 		JPanel titlePanel = new JPanel();
 		add(titlePanel, BorderLayout.NORTH);
@@ -164,12 +161,19 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		leftFixedPanel.add(lModel);
 		JLabel lIhusn = new JLabel("IHU S/N: " + sat.IHU_SN);
 		leftFixedPanel.add(lIhusn);
-		JLabel icr = new JLabel("ICR: " + sat.hasImprovedCommandReceiver);
-		leftFixedPanel.add(icr);
+		JLabel icr = null;
+		if (sat.hasImprovedCommandReceiver) {
+			icr = new JLabel("Improved Command Receiver");
+			leftFixedPanel.add(icr);
+		}
+		if (sat.hasImprovedCommandReceiverII) {
+			icr = new JLabel("Improved Command Receiver II");
+			leftFixedPanel.add(icr);
+		}
 		
 		JLabel lExp[] = new JLabel[4];
 		for (int i=0; i<4; i++) {
-			lExp[i] = new JLabel("Experiment "+(i+1)+": " + FoxSpacecraft.expNames[sat.experiments[i]]);
+			lExp[i] = new JLabel("Experiment "+(i+1)+": " + Spacecraft.expNames[sat.experiments[i]]);
 			leftFixedPanel.add(lExp[i]);
 		}
 
@@ -199,9 +203,16 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 
 		updateTimeSeries();
 		
+		JPanel t0buttonsPanel = new JPanel();
+		t0Panel.add(t0buttonsPanel);
+		
 		btnGetT0 = new JButton("Update T0 from Server");
 		btnGetT0.addActionListener(this);
-		t0Panel.add(btnGetT0);//, BorderLayout.WEST);
+		t0buttonsPanel.add(btnGetT0);//, BorderLayout.WEST);
+		
+		btnDeleteT0 = new JButton("Delete T0 File");
+		btnDeleteT0.addActionListener(this);
+		t0buttonsPanel.add(btnDeleteT0);//, BorderLayout.WEST);
 		
 		JPanel localServerPanel = new JPanel();
 		leftPanel.add(localServerPanel);
@@ -240,8 +251,9 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		TitledBorder heading2 = title("Frequency and Tracking");
 		rightPanel1.setBorder(heading2);
 
-		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, SourceTab.formats);
-		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
+		cbMode = this.addComboBoxRow(rightPanel1, "Mode", tip, Config.satManager.getFormats());
+		cbMode.setSelectedItem(sat.user_format);
+//		setSelection(cbMode, SourceTab.formats, SourceTab.formats[sat.user_format]);
 				
 		telemetryDownlinkFreqkHz = addSettingsRow(rightPanel1, 15, "Downlink Freq (kHz)", 
 				"The nominal downlink frequency of the spacecraft", ""+sat.user_telemetryDownlinkFreqkHz);
@@ -250,44 +262,48 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		maxFreqBoundkHz = addSettingsRow(rightPanel1, 15, "Upper Freq Bound (kHz)", 
 				"The upper frequency boundry when we are searching for the spacecraft signal", ""+sat.user_maxFreqBoundkHz);
 		track = addCheckBoxRow("Track this spacecraft", "When Doppler tracking or Find Signal is enabled include this satellite", sat.user_track, rightPanel1 );
+		user_useGPSTimeForT0 = addCheckBoxRow("Use GPS Time to set T0", "When set the GPS time from the spacecraft will be used to set T0", sat.user_useGPSTimeForT0, rightPanel1 );
 		rightPanel1.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
 		JPanel rightPanel2 = new JPanel();
 		rightPanel.add(rightPanel2);
 		rightPanel2.setLayout(new BoxLayout(rightPanel2, BoxLayout.Y_AXIS));
 		
-		TitledBorder heading3 = title("Calibration");
-		rightPanel2.setBorder(heading3);
 
-		BATTERY_CURRENT_ZERO = addSettingsRow(rightPanel2, 25, "Battery Current Zero", 
-				"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
+		if (!sat.hasFOXDB_V3) {  // These are legacy settings
+			TitledBorder heading3 = title("Calibration");
+			rightPanel2.setBorder(heading3);
 
-		rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
-				"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
-		ihuTempLookUpTableFileName = addSettingsRow(rightPanel2, 25, "IHU Temp Lookup Table", 
-				"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
-		ihuVBattLookUpTableFileName = addSettingsRow(rightPanel2, 25, "VBatt Lookup Table", 
-				"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
-	
-		rssiLookUpTableFileName.setEnabled(false);
-		ihuTempLookUpTableFileName.setEnabled(false);
-		ihuVBattLookUpTableFileName .setEnabled(false);
-		
-		useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
-				+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
-		if (sat.hasMpptSettings) {
-			mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
-					"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
-			mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
-					"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
-		}
-		if (sat.hasMemsRestValues) {
-			memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
-					"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
-			memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
-					"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
-			memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
-					"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
+			BATTERY_CURRENT_ZERO = addSettingsRow(rightPanel2, 25, "Battery Current Zero", 
+					"The calibration paramater for zero battery current", ""+sat.user_BATTERY_CURRENT_ZERO);
+
+			rssiLookUpTableFileName = addSettingsRow(rightPanel2, 25, "RSSI Lookup Table", 
+					"The file containing the lookup table for Received Signal Strength", ""+sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP));
+			ihuTempLookUpTableFileName = addSettingsRow(rightPanel2, 25, "IHU Temp Lookup Table", 
+					"The file containing the lookup table for the IHU Temperature", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_TEMP_LOOKUP));
+			ihuVBattLookUpTableFileName = addSettingsRow(rightPanel2, 25, "VBatt Lookup Table", 
+					"The file containing the lookup table for the Battery Voltage", ""+sat.getLookupTableFileNameByName(Spacecraft.IHU_VBATT_LOOKUP));
+
+			rssiLookUpTableFileName.setEnabled(false);
+			ihuTempLookUpTableFileName.setEnabled(false);
+			ihuVBattLookUpTableFileName .setEnabled(false);
+
+			useIHUVBatt = addCheckBoxRow("Use Bus Voltage as VBatt", "Read the Bus Voltage from the IHU rather than the Battery "
+					+ "Voltage from the battery card using I2C", sat.useIHUVBatt, rightPanel2 );
+			if (sat.hasMpptSettings) {
+				mpptResistanceError = addSettingsRow(rightPanel2, 25, "MPPT Resistance Error", 
+						"The extra resistance in the RTD temperature measurement circuit", ""+sat.user_mpptResistanceError);
+				mpptSensorOffThreshold = addSettingsRow(rightPanel2, 25, "MPPT Sensor Off Threshold", 
+						"The ADC value when the temperature sensor is considered off", ""+sat.user_mpptSensorOffThreshold);
+			}
+			if (sat.hasMemsRestValues) {
+				memsRestValueX = addSettingsRow(rightPanel2, 25, "MEMS Rest Value X", 
+						"The rest value for the MEMS X rotation sensor", ""+sat.user_memsRestValueX);
+				memsRestValueY = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Y", 
+						"The rest value for the MEMS Y rotation sensor", ""+sat.user_memsRestValueY);
+				memsRestValueZ = addSettingsRow(rightPanel2, 25, "MEMS Rest Value Z", 
+						"The rest value for the MEMS Z rotation sensor", ""+sat.user_memsRestValueZ);
+			}
 		}
 		rightPanel2.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 
@@ -307,6 +323,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		add(footerPanel, BorderLayout.SOUTH);
 	}
 	
+	@SuppressWarnings("unused")
 	private void setSelection(JComboBox<String> comboBox, String[] values, String value ) {
 		int i=0;
 		for (String rate : values) {
@@ -316,8 +333,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 		}
 		if (i >= values.length)
 			i = 0;
-		comboBox.setSelectedIndex(i);
-		
+		comboBox.setSelectedIndex(i);	
 	}
 	
 	private JComboBox<String> addComboBoxRow(JPanel parent, String name, String tip, String[] values) {
@@ -397,9 +413,10 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 	 * Returns true if successful and can be disposed
 	 * @return
 	 */
+	@SuppressWarnings("deprecation")
 	public boolean save() {
-		boolean refreshTabs = false;
-		boolean rebuildMenu = false;
+		//boolean refreshTabs = false;
+		//boolean rebuildMenu = false;
 		boolean dispose = true;
 		double downlinkFreq = 0;
 		double minFreq = 0;
@@ -420,64 +437,66 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 				Log.errorDialog("ERROR", "Lower Frequency Bound must be less than Upper Frequency Bound");
 				dispose = false;
 			}
-			int m = cbMode.getSelectedIndex();
+			String m = (String)cbMode.getSelectedItem();
 			sat.user_format = m;
 			//String md = (String) cbMode.getSelectedItem();
-			
-//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
-//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
-//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
-//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
-//				refreshTabs = true;
-//			}
-			
-			if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
-				sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
-				refreshTabs=true;
-			}
 
-			if (sat.hasMpptSettings) {
-				if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
-					sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
-					refreshTabs=true;
+			//			if (!sat.getLookupTableFileNameByName(Spacecraft.RSSI_LOOKUP).equalsIgnoreCase(rssiLookUpTableFileName.getText())) {
+			//				sat.rssiLookUpTableFileName = rssiLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+			//			if (!sat.ihuTempLookUpTableFileName.equalsIgnoreCase(ihuTempLookUpTableFileName.getText())) {
+			//				sat.ihuTempLookUpTableFileName = ihuTempLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+			//			if (!sat.ihuVBattLookUpTableFileName.equalsIgnoreCase(ihuVBattLookUpTableFileName.getText())) {
+			//				sat.ihuVBattLookUpTableFileName = ihuVBattLookUpTableFileName.getText();
+			//				refreshTabs = true;
+			//			}
+
+			if (!sat.hasFOXDB_V3) {  
+				if (sat.user_BATTERY_CURRENT_ZERO != Double.parseDouble(BATTERY_CURRENT_ZERO.getText())) {
+					sat.user_BATTERY_CURRENT_ZERO = Double.parseDouble(BATTERY_CURRENT_ZERO.getText());
+					//refreshTabs=true;
 				}
 
-				if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
-					sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
-					refreshTabs=true;
+				if (sat.hasMpptSettings) {
+					if (sat.user_mpptResistanceError != Double.parseDouble(mpptResistanceError.getText())) {
+						sat.user_mpptResistanceError = Double.parseDouble(mpptResistanceError.getText());
+						//refreshTabs=true;
+					}
+
+					if (sat.user_mpptSensorOffThreshold != Integer.parseInt(mpptSensorOffThreshold.getText())) {
+						sat.user_mpptSensorOffThreshold = Integer.parseInt(mpptSensorOffThreshold.getText());
+						//refreshTabs=true;
+					}
 				}
-			}
-			if (sat.hasMemsRestValues) {
-				if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
-					sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
-					refreshTabs=true;
+				if (sat.hasMemsRestValues) {
+					if (sat.user_memsRestValueX != Integer.parseInt(memsRestValueX.getText())) {
+						sat.user_memsRestValueX = Integer.parseInt(memsRestValueX.getText());
+						//refreshTabs=true;
+					}
+					if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
+						sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
+						//refreshTabs=true;
+					}
+					if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
+						sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
+						//refreshTabs=true;
+					}
 				}
-				if (sat.user_memsRestValueY != Integer.parseInt(memsRestValueY.getText())) {
-					sat.user_memsRestValueY = Integer.parseInt(memsRestValueY.getText());
-					refreshTabs=true;
+				if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
+					sat.useIHUVBatt = useIHUVBatt.isSelected();
+					//refreshTabs = true;
 				}
-				if (sat.user_memsRestValueZ != Integer.parseInt(memsRestValueZ.getText())) {
-					sat.user_memsRestValueZ = Integer.parseInt(memsRestValueZ.getText());
-					refreshTabs=true;
-				}
-			}
-			if (sat.useIHUVBatt != useIHUVBatt.isSelected()) {
-				sat.useIHUVBatt = useIHUVBatt.isSelected();
-				refreshTabs = true;
 			}
 			if (!sat.user_keps_name.equalsIgnoreCase(name.getText())) {
 				sat.user_keps_name = name.getText();
 			}
 			if (!sat.user_display_name.equalsIgnoreCase(displayName.getText())) {
 				sat.user_display_name = displayName.getText();
-				rebuildMenu = true;
-				refreshTabs = true;
+				//rebuildMenu = true;
+				//refreshTabs = true;
 			}
 			int pri = 99;
 			try {
@@ -486,7 +505,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 				
 			}
 			if (sat.user_priority != pri) {
-				rebuildMenu = true;
+				//rebuildMenu = true;
 				sat.user_priority = pri;
 				//refreshTabs = true; // refresh the menu list and sat list but not the tabs
 			}
@@ -498,6 +517,7 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 					sat.user_localServerPort = Integer.parseInt(localServerPort.getText());
 			}
 			sat.user_track = track.isSelected();
+			sat.user_useGPSTimeForT0 = user_useGPSTimeForT0.isSelected();
 
 		} catch (NumberFormatException Ex) {
 			Log.errorDialog("Invalid Paramaters", Ex.getMessage());
@@ -519,6 +539,30 @@ public class SpacecraftPanel extends JPanel implements ActionListener, ItemListe
 				
 		}
 		
+		if (e.getSource() == btnDeleteT0) {
+			String message = "Do you want to delete the T0 file?\n"
+					+ "THIS WILL REMOVE THE T0 FILE. This is only useful when testing in the lab\n"
+					+ "After launch the T0 file will be downloaded again from the server by FoxTelem when it starts and periodically while running.";
+			Object[] options = {"Yes",
+			"No"};
+			int n = JOptionPane.showOptionDialog(
+					MainWindow.frame,
+					message,
+					"Do you want to continue?",
+					JOptionPane.YES_NO_OPTION, 
+					JOptionPane.ERROR_MESSAGE,
+					null,
+					options,
+					options[1]);
+
+			if (n == JOptionPane.NO_OPTION) {
+				return;
+			}
+			MainWindow.updateManager.deleteT0(sat);
+			updateTimeSeries();
+		}
+		
+	
 		if (e.getSource() == btnSave) {
 			
 		}

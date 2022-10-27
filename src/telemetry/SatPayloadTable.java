@@ -17,7 +17,7 @@ import common.Config;
 import common.Log;
 import common.Spacecraft;
 import gui.MainWindow;
-import telemetry.uw.CanPacket;
+import telemetry.uw.UwCanPacket;
 
 /**
  * FOX 1 Telemetry Decoder
@@ -168,6 +168,10 @@ public class SatPayloadTable {
 	/**
 	 * Return an array of payloads data with "period" entries for this sat id and from the given reset and
 	 * uptime.
+	 * 
+	 * If period is 0 then we want records that exactly match the reset and uptime, up to a maximum of 100.  As payloads must belong to the same
+	 * frame, this is just a practical limit and should not be exceeded
+	 * 
 	 * @param period
 	 * @param id
 	 * @param fromReset
@@ -176,27 +180,44 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	public synchronized String[][] getPayloadData(int period, int id, int fromReset, long fromUptime, int length, boolean returnType, boolean reverse) throws IOException {
+		boolean exactMatch = false;
+		if (period == 0) {
+			exactMatch = true;
+			period = 100;
+		}
 		if (rtRecords == null) return null;
 		deleteLock = true;
 		try {
 			loadSegments(fromReset, fromUptime, period, reverse);
-
+			if (rtRecords.size() == 0) {
+				// nothing to query
+				return null;
+			}
 			int start = 0;
 			int end = 0;
 
 			if (reverse) { // then we take records nearest the end
-				start = rtRecords.size()-period;
-				end = rtRecords.size();
+				if (exactMatch) {
+					end = rtRecords.getNearestFrameIndex(id, fromUptime, fromReset);
+					start = rtRecords.getNearestPrevFrameIndex(id, fromUptime, fromReset);
+				} else {
+					start = rtRecords.size()-period;
+					end = rtRecords.size();
+				}
 			} else {
 				// we need to find the start point
 				start = rtRecords.getNearestFrameIndex(id, fromUptime, fromReset);
 				if (start == -1 ) start = rtRecords.size()-period;
-				end = start + period;
+				if (exactMatch) {
+					end = rtRecords.getNearestPrevFrameIndex(id, fromUptime, fromReset);
+				} else
+					end = start + period;
 			}
 			if (end > rtRecords.size()) end = rtRecords.size();
 			if (end < start) end = start;
 			if (start < 0) start = 0;
 			if (start > rtRecords.size()) start = rtRecords.size();
+			if (start == end) end = start +1;
 
 			int[][] results = new int[end-start][];
 			String[] upTime = new String[end-start];
@@ -285,8 +306,12 @@ public class SatPayloadTable {
 			//System.out.println(rtRecords.size());
 			if (Config.displayRawValues)
 				results[j] = rtRecords.get(i).getRawValue(name);
-			else
+			else {
+//				if (rtRecords.get(i).getStringValue(name, id).equalsIgnoreCase("invalid")) {
+//					;
+//				} else
 				results[j] = rtRecords.get(i).getDoubleValue(name, id);
+			}
 			if (positionData) {
 				lat[j] = rtRecords.get(i).satLatitude;
 				lon[j] = rtRecords.get(i).satLongitude;
@@ -312,6 +337,7 @@ public class SatPayloadTable {
 	}
 		
 	/**
+	 * getSeg searches for a segment which contains this reset and uptime and creates a segment if it does not exist.
 	 * If Prev is true then we are searching for the previous record.  We do not create a new seg if it is missing
 	 * and we do not need reset to be the same in the seg we found.  We just want the previous record.
 	 * @param reset
@@ -321,7 +347,7 @@ public class SatPayloadTable {
 	 * @throws IOException
 	 */
 	private TableSeg getSeg(int reset, long uptime, boolean prev) throws IOException {
-		if (Config.debugSegs) Log.println("SEG-GET: " + this.fileName + ":" + reset + ":" + uptime);
+		//if (Config.debugSegs) Log.println("SEG-GET: " + this.fileName + ":" + reset + ":" + uptime);
 		for (int i=tableIdx.size()-1; i>=0; i--) {
 			if (tableIdx.get(i).fromReset <= reset && tableIdx.get(i).fromUptime <= uptime) {
 				return tableIdx.get(i);
@@ -343,7 +369,7 @@ public class SatPayloadTable {
 	 * @throws IOException 
 	 */
 	private TableSeg loadSeg(int reset, long uptime, boolean prev) throws IOException {
-		if (Config.debugSegs) Log.println("SEG-LOAD: " + this.fileName + ":" + reset + ":" + uptime);
+		//if (Config.debugSegs) Log.println("SEG-LOAD: " + this.fileName + ":" + reset + ":" + uptime);
 		TableSeg seg = getSeg(reset, uptime, prev);
 		if (seg == null) return null;
 		seg.accessed();
@@ -571,7 +597,7 @@ public class SatPayloadTable {
 		if (rtRecords == null || rtRecords.size() == 0) return;
 		if (Config.debugSegs) Log.println("Offloaded SEG: " + seg.toString());
 		boolean foundStart = false;
-		int removed = 0;
+		int removePoint = 0;
 		seg.setLoaded(false);
 		for (int i=0; i<rtRecords.size();i++) {
 			if (!foundStart) {
@@ -580,48 +606,72 @@ public class SatPayloadTable {
 					if (f.resets == seg.fromReset && f.uptime == seg.fromUptime) {
 						// we have the first record, so we offload them
 						foundStart = true;
+						removePoint = i;
 					}
 			}
 			// Now if we found start we can remove the record and subsequent ones
+			/* The records in memory are sorted.  If records were received out of order such as from a recording or from WOD
+			 then they can be in a different order in the segments on disk.
+			 We need to make sure that we don't remove records from the next segment by accident, just because they are contiguous in memory.
+			 We could of course load the actual records from disk to check what is actually in the segment, but that would null the
+			 advantage of the in memory cache.  We could also store an index on the actual segment that points to the records it holds,
+			 that might be better but would require implementation and testing.
+			 Instead we check the segment that the records is in.  We only remove it if it is in this segment.
+			 This means that some records may be left in memory, but that is OK. The opposite can mean that duplicate records
+			 are added to the files, because it looks like they are not in the DB when we try to store them.
+			 */
 			if (foundStart) {
-				rtRecords.remove(i);
-				removed++;
-				if (removed == seg.records) {
-					break; // we are done
+				for (int j=0; j < seg.records; j++) {
+				
+					for (int s=tableIdx.size()-1; s>=0 && removePoint < rtRecords.size(); s--) {
+						if (tableIdx.get(s).fromReset <= rtRecords.get(removePoint).resets && tableIdx.get(s).fromUptime <= rtRecords.get(removePoint).uptime) {
+							if (tableIdx.get(s).equals(seg)) {
+								//Log.println("  - Offloaded: " + rtRecords.get(removePoint).resets + ":" + rtRecords.get(removePoint).uptime );
+								rtRecords.remove(removePoint); // Make sure that we remove the right record because the array is shrinking as we remove records	
+								break;
+							} else {
+								//Log.println("  xx Didn't Offloaded: " + rtRecords.get(removePoint).resets + ":" + rtRecords.get(removePoint).uptime );
+								removePoint++; // we did not remove the record so move forward one place so the next one will be tested and removed.
+								break;
+								
+							}
+						}
+					}
 				}
+				break; // we are done
 			}
-		}		
-	}
-	
-	/**
+		}
+	}		
+
+
+/**
 	 * Save a new record to disk		
 	 * @param f
 	 */
 	public synchronized boolean save(FramePart f) throws IOException {
 		deleteLock = true;
 		try {
-		// Make sure this segment is loaded, or create an empty segment if it does not exist
-		TableSeg seg = loadSeg(f.resets, f.uptime, false);
-		if (rtRecords.add(f)) {
-		//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
-			updated = true;
-			//System.out.println(this.fileName + " TABLE UPDATED");
-			if (seg.records == MAX_SEGMENT_SIZE) {
-				// We need to add a new segment with this as the first record
-				TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);
-				boolean added = tableIdx.add(newseg);
-				if (added) // fails to add if reset/uptime has not changed, e.g. if all records from the same highspeed record.  Only issue in testing if segments very short
-					seg = newseg; 
+			// Make sure this segment is loaded, or create an empty segment if it does not exist
+			TableSeg seg = loadSeg(f.resets, f.uptime, false);
+			if (rtRecords.add(f)) {
+				//if (!rtRecords.hasFrame(f.id, f.uptime, f.resets)) {
+				updated = true;
+				//System.out.println(this.fileName + " TABLE UPDATED");
+				if (seg.records == MAX_SEGMENT_SIZE) {
+					// We need to add a new segment with this as the first record
+					TableSeg newseg = new TableSeg(f.resets, f.uptime, baseFileName);
+					boolean added = tableIdx.add(newseg);
+					if (added) // fails to add if reset/uptime has not changed, e.g. if all records from the same highspeed record.  Only issue in testing if segments very short
+						seg = newseg; 
+				}
+				save(f, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
+				seg.records++;
+				saveIdx();
+				//return rtRecords.add(f);
+				return true;
+			} else {
+				if (Config.debugFieldValues) Log.println("DUPLICATE (or corrupt) RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
 			}
-			save(f, getDir() + PayloadStore.DB_NAME+File.separator + seg.fileName);
-			seg.records++;
-			saveIdx();
-			//return rtRecords.add(f);
-			
-			return true;
-		} else {
-			if (Config.debugFieldValues) Log.println("DUPLICATE (or corrupt) RECORD, not saved: " + f.resets +":"+ f.uptime + " Ty:" + f.type);
-		}
 			return false;
 		} finally {
 			deleteLock = false;
@@ -664,6 +714,7 @@ public class SatPayloadTable {
 
 	}
 
+	@SuppressWarnings("deprecation")
 	private FramePart addLine(String line) {
 		if (line.length() == 0) return null;
 		String date = null;
@@ -702,16 +753,17 @@ public class SatPayloadTable {
 				int pktid1 = Integer.valueOf(st2[canIdField+1]).intValue();
 				int pktid2 = Integer.valueOf(st2[canIdField+2]).intValue();
 				int pktid3 = Integer.valueOf(st2[canIdField+3]).intValue();
-				int canId = CanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
+				int canId = UwCanPacket.getIdFromRawBytes(pktid,pktid1,pktid2,pktid3);
 				BitArrayLayout canLayout = Config.satManager.getLayoutByCanId(id, canId);
-				rt = new CanPacket(id, resets, uptime, date, st, canLayout);
+				rt = new UwCanPacket(id, resets, uptime, date, st, canLayout);
 
 				if (rt != null)
 					rt.type = type; // make sure we get the right type
 			} else {
-				if (isFOXDB_V3)
+				if (isFOXDB_V3) {
 					rt = FramePart.makePayload(id, resets, uptime, date, st, layout);
-				else
+					rt.type = type; // this is used as a sequence number in V3
+				} else
 					rt = FramePart.makeLegacyPayload(id, resets, uptime, date, st, type);
 			}
 			

@@ -1,0 +1,5 @@
+4,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,header,satelliteID,3,-,0,NONE,0,0,0,FoxID,3 bit satellite id
+1,header,resetCnt,16,Resets,0,NONE,0,0,0,resetCnt,Total number of times IHU has reset since initial on-orbit startup
+2,header,uptime,25,Sec,0,NONE,0,0,0,uptime,This is the IHU uptime in seconds since the last reset
+3,header,type,4,-,0,NONE,0,0,0,type,This identifies the payload type

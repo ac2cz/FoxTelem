@@ -8,11 +8,16 @@ import measure.Measurement;
 import measure.PassMeasurement;
 import measure.RtMeasurement;
 import telemServer.StpFileProcessException;
-import common.FoxSpacecraft;
+import telemetry.frames.Frame;
+import telemetry.herci.HerciHighspeedHeader;
+import telemetry.herci.PayloadHERCIhighSpeed;
+import telemetry.legacyPayloads.RadiationTelemetry;
+import telemetry.mesat.MesatImageStore;
 import common.Spacecraft;
 
 public abstract class FoxPayloadStore implements Runnable {
 	protected boolean loaded = false; // set this to true once we have completed initial start up to prevent graphs reading null data
+	public MesatImageStore mesatImageStore; // If another MESAT camera flies then this would need to be refactored as an array
 	
 	public boolean initialized() { return loaded; }
 	public abstract boolean hasQueuedFrames();
@@ -52,10 +57,11 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param f
 	 * @return
 	 */
-	public abstract boolean add(int id, long uptime, int resets, PayloadRadExpData[] f);
+	@Deprecated
+	public abstract boolean add(int id, long uptime, int resets, telemetry.legacyPayloads.PayloadRadExpData[] f);
 	public abstract boolean add(int id, long uptime, int resets, PayloadHERCIhighSpeed[] herci); 
-	
-	public abstract boolean addToFile(int id, long uptime, int resets, PayloadRadExpData[] f) throws IOException;
+	@Deprecated
+	public abstract boolean addToFile(int id, long uptime, int resets, telemetry.legacyPayloads.PayloadRadExpData[] f) throws IOException;
 
 	/**
 	 * Add a camera payload.  This is added to the picture line store one line at a time.  We do not store the actual
@@ -66,7 +72,8 @@ public abstract class FoxPayloadStore implements Runnable {
 	 * @param f
 	 * @return
 	 */
-	public abstract boolean addToPictureFile(int id, long uptime, int resets, PayloadCameraData f);
+	@Deprecated
+	public abstract boolean addToPictureFile(int id, long uptime, int resets, telemetry.legacyPayloads.PayloadCameraData f);
 	public abstract boolean add(int id, RtMeasurement m);
 
 	public abstract boolean addToFile(int id, Measurement m);
@@ -123,12 +130,12 @@ public abstract class FoxPayloadStore implements Runnable {
 	public abstract String[][] getRadData(int period, int id, int fromReset, long fromUptime, boolean reverse);
 
 	public abstract String[][] getRadTelemData(int period, int id, int fromReset, long fromUptime, boolean reverse);
-	public abstract double[][] getRadTelemGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
-	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract double[][] getRadTelemGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
+	public abstract double[][] getHerciScienceHeaderGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean positionData, boolean reverse);
 	public abstract String[][] getHerciPacketData(int period, int id, int fromReset, long fromUptime, boolean type, boolean reverse);
 	public abstract String[][] getHerciHsData(int period, int id, int fromReset, long fromUptime, boolean reverse);
-	public abstract double[][] getMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
-	public abstract double[][] getPassMeasurementGraphData(String name, int period, FoxSpacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean reverse);
+	public abstract double[][] getPassMeasurementGraphData(String name, int period, Spacecraft fox, int fromReset, long fromUptime, boolean reverse);
 	public abstract String[][] getWodRadTelemData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	public abstract String[][] getRtData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);
 	public abstract String[][] getWODData(int sAMPLES, int foxId, int sTART_RESET, long sTART_UPTIME, boolean reverse);

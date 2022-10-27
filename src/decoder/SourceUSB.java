@@ -98,7 +98,7 @@ public class SourceUSB extends SourceAudio implements Listener<float[]>, Runnabl
 	}
 
 	@Override
-	public void stop() {
+	public void stop(String caller) {
 		running = false;
 		done = true;
 	}

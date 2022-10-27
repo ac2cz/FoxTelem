@@ -11,6 +11,7 @@ import filter.ComplexOscillator;
 import filter.DcRemoval;
 import filter.IirFilter;
 import filter.PolyPhaseFilter;
+import telemetry.Format.TelemFormat;
 import filter.Delay;
 import filter.HilbertTransform;
 
@@ -26,21 +27,22 @@ public class SourceIQ extends SourceAudio {
 	// not care where the audio comes from or how it gets into the buffer
 	SourceAudio upstreamAudioSource;
 	Thread upstreamAudioReadThread;
+	private TelemFormat format;
 	
-	public boolean runPSKthroughNCO = true;
+//	public boolean runPSKthroughNCO = true;
 	
 //	public static final int MODE_WFM = 0;
-	public static final int MODE_FSK_HS = 1;
-	public static final int MODE_FSK_DUV = 0;
-	public static final int MODE_FSK_AUTO = 2;
-	public static final int MODE_PSK_NC = 3;
-	public static final int MODE_PSK_COSTAS = 4;
+//	public static final int MODE_FSK_HS = 1;
+//	public static final int MODE_FSK_DUV = 0;
+//	public static final int MODE_FSK_AUTO = 2;
+//	public static final int MODE_PSK_NC = 3;
+//	public static final int MODE_PSK_COSTAS = 4;
 	
-	private int mode = MODE_FSK_DUV;
+//	private int mode = MODE_FSK_DUV;
 	
 	private int upstreamChannel = 0; // This is the audio channel that we read from the upstream audioSource
 	private int channel = 0; // This is the audio channel where we store results - ALWAYS 0 for IQSource
-	private boolean highSpeed = false;
+//	private boolean highSpeed = false;
 	public static int AF_SAMPLE_RATE = 0;
 	public AudioFormat upstreamAudioFormat;
 	public int IQ_SAMPLE_RATE = 0;
@@ -124,14 +126,23 @@ public class SourceIQ extends SourceAudio {
 	Thread rfDataThread;
 	double[] phasorData;
 	
+	double freq; // this is the frequency of the carrier we tune to the side for ssb
+	ComplexOscillator nco;
+	Complex c = new Complex(0,0);
+	IirFilter iFilter;
+	IirFilter qFilter;
+	IirFilter loopFilter;
+	public static final double LOCK_LEVEL_THRESHOLD = 10; // Depending on the signal the actual lock seems to vary from 18 to 50 or so.
+
+	
 	private int ssbOffset = -1400; // tune this far below or above the signal for optimal decode
 
-	public SourceIQ(int circularDoubleBufferSize, int chan, boolean hs) {
-		super("IQ Source" + hs, circularDoubleBufferSize, chan, false);
-		highSpeed = hs;
-		channel = chan;
+	public SourceIQ(int circularDoubleBufferSize, int chan, TelemFormat format) {
+		super("IQ Source", circularDoubleBufferSize, chan, false);
+		this.format = format;
+		this.channel = chan;
 		AF_SAMPLE_RATE = Config.afSampleRate;
-		if (highSpeed && AF_SAMPLE_RATE < 48000) AF_SAMPLE_RATE = 48000;
+		if (AF_SAMPLE_RATE < 48000) AF_SAMPLE_RATE = 48000;
 		audioFormat = makeAudioFormat();
 
 		// Legacy Oscillator
@@ -156,12 +167,9 @@ public class SourceIQ extends SourceAudio {
 		tukeyFilterShape = initTukeyWindow(filterWidth*2); 
 	}
 
-	public int getMode() { return mode; }
-	
-	public void setMode(int mode) {
-		this.mode = mode;
-	}
-	
+	public TelemFormat getFormat() { return format; }
+	public String getFormatMode() { return format.getMode(); }
+		
 	public RfData getRfData() {
 		if (rfData != null) {
 			return rfData; 
@@ -222,7 +230,7 @@ public class SourceIQ extends SourceAudio {
 //		if (f < -1* sampleRate/ 2) f = -1* sampleRate/2;
 		freq = f;
 		Config.selectedFrequency = freq;
-		if (runPSKthroughNCO && mode == MODE_PSK_COSTAS)  // not sure if this makes a difference, more testing needed
+		if (Config.useCostas)  // not sure if this makes a difference, more testing needed
 			return;
 		if (nco != null) // && mode != MODE_PSK_COSTAS)
 			nco.setFrequency(freq);
@@ -298,7 +306,7 @@ public class SourceIQ extends SourceAudio {
 	protected void startAudioThread() {
 		if (upstreamChannel == 0) {
 			if (upstreamAudioReadThread != null) { 
-				upstreamAudioSource.stop(); 
+				upstreamAudioSource.stop("SourceIQ:startAudioThread"); 
 			}	
 			
 			if (!(upstreamAudioSource instanceof SourceUSB)) {
@@ -320,29 +328,11 @@ public class SourceIQ extends SourceAudio {
 			samplesToRead = 3840 /2;
 			return;
 		}
-		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS || Config.useNCO) {
-			FFT_SAMPLES=4096;
-			samplesToRead = 3840 /2;
-			return;			
-		}
-		for (int f=0; f<17; f++) {
-			int len = (int)Math.pow(2, f);
-			if (IQ_SAMPLE_RATE / len < 47) {
-				int factor = len / 4096;
-				if (factor == 0 ) {
-					// Set to default
-					FFT_SAMPLES=4096;
-					samplesToRead = 3840;
-					return;
-				}
-				FFT_SAMPLES = len; 
-				samplesToRead = 3840 * factor/2;
-				return;
-			}
-		}
-		// Default to max
-		FFT_SAMPLES = 4096 * 16;
-		samplesToRead = 3840 * 16/2;
+		
+		FFT_SAMPLES=4096;
+		samplesToRead = 3840 /2;
+		return;			
+		
 	}
 	
 	private void init() {	
@@ -358,7 +348,6 @@ public class SourceIQ extends SourceAudio {
 		psdAvg = new double[FFT_SAMPLES*2+1];;
 		newData = new double[fftData.length]; // make a new array to copy so we can store the section we want
 
-		
 		
 		switch (IQ_SAMPLE_RATE) {
 		
@@ -408,24 +397,25 @@ public class SourceIQ extends SourceAudio {
 		}
 		binBandwidth = IQ_SAMPLE_RATE/(double)FFT_SAMPLES;
 		
-			
-		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {		
+		setFilterWidth(format.getInt(TelemFormat.RF_FILTER_WIDTH_HZ));
+		if (format.isBPSK()) {		
 			setFilterWidth(5000); // the width of the USB is only half this. We scan all in FFTFilter for Doppler follow 
 			ht = new HilbertTransform(AF_SAMPLE_RATE, 255); // audio bandwidth and length
 			delay = new Delay((255-1)/2);
-		} else if (mode == MODE_FSK_HS) {
-			if (Config.useNCO) 
-				setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
-			else
-				setFilterWidth(2*9600); //9600); // 7000 seems best for PolyPhase filter
-		//	setFilterWidth(2*75000);
-		} else {
-			if (Config.useNCO) 
-				setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
-			else
-				setFilterWidth(5000); // 5kHz deviation, 3kHz audio on Fox
-			//mode = MODE_NFM;
-		}
+		} 
+//		else if (format.getInt(TelemFormat.BPS) == 9600) {
+//			if (Config.useNCO) 
+//				setFilterWidth(7000); //9600); // 7000 seems best for PolyPhase filter
+//			else
+//				setFilterWidth(2*9600); //9600); // 7000 seems best for PolyPhase filter
+//		//	setFilterWidth(2*75000);
+//		} else {
+//			if (Config.useNCO) 
+//				setFilterWidth(4000); // 5kHz deviation, 3kHz audio on Fox
+//			else
+//				setFilterWidth(5000); // 5kHz deviation, 3kHz audio on Fox
+//			//mode = MODE_NFM;
+//		}
 		if (offsetFFT) // only needed for FFT Filter
 			dist = 128*FFT_SAMPLES/4096; // offset puts the data outside the taper of the window function and gives better audio, but at the expense of dynamic range
 
@@ -511,20 +501,7 @@ public class SourceIQ extends SourceAudio {
 				nBytesRead = upstreamAudioSource.read(fcdData, upstreamChannel);
 				if (nBytesRead != fcdData.length)
 					if (Config.debugAudioGlitches) Log.println("ERROR: IQ Source could not read sufficient data from audio source");
-				if (mode == MODE_PSK_COSTAS)
-					if (runPSKthroughNCO)
-						outputData = processNCOBytes(fcdData);
-					else
-						outputData = processPSKBytes(fcdData);
-				else if (mode == MODE_PSK_NC)
-					if (runPSKthroughNCO)
-						outputData = processNCOBytes(fcdData);
-					else
-						outputData = processBytes(fcdData);
-				else if (Config.useNCO)
 					outputData = processNCOBytes(fcdData);
-				else
-					outputData = processBytes(fcdData);
 		////		Log.println("IQ Source writing data to audio thread");
 				/** 
 				 * Simulate a slower computer for testing
@@ -557,9 +534,9 @@ public class SourceIQ extends SourceAudio {
 	}
 
 	@Override
-	public void stop() {
+	public void stop(String caller) {
 		running = false;
-		upstreamAudioSource.stop();
+		upstreamAudioSource.stop("SourceIQ:stop");
 		while (!upstreamAudioSource.isDone())
 			try {
 				Thread.sleep(1);
@@ -598,8 +575,10 @@ public class SourceIQ extends SourceAudio {
 			id = iDcFilter.filter(id);
 			qd = qDcFilter.filter(qd);
 			
-			if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) // effectively USB
+			if (format.isBPSK()) // effectively USB
 				nco.setFrequency(freq+ssbOffset); //-1400); // ssboffset -ve for USB demod
+			else
+				nco.setFrequency(freq);
 
 			c = nco.nextSample();
 			c.normalize();
@@ -661,7 +640,7 @@ public class SourceIQ extends SourceAudio {
 	
 	private void demodulate(int j) {
 		// Demodulation
-		if (mode == MODE_PSK_NC || mode == MODE_PSK_COSTAS) {
+		if (format.isBPSK()) {
 			//Demodulate ssb
 			audioQ = ht.filter(pfValue);
 			audioI = delay.filter(pfValue2);
@@ -671,79 +650,80 @@ public class SourceIQ extends SourceAudio {
 			audioData[j/(2*decimationFactor*decimationFactor2)] = fm.demodulate(pfValue, pfValue2);
 	}
 	
-protected double[] processPSKBytes(double[] fcdData) {
-		
-		double maxValue = 0;
-		double minValue = 0;
-		zeroFFT();
-		int i = 0;
-		int d=0;
-		int k = 0;
-		sumLockLevel = 0;
-		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
-		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
-			//double id, qd;
-
-			id = fcdData[j];
-			qd = fcdData[j+1];
-			// filter out any DC from I/Q signals
-			id = iDcFilter.filter(id);
-			qd = qDcFilter.filter(qd);
-			
-			if (id > maxValue) maxValue = id;
-			if (id < minValue) minValue = id;
-			demodAudio[d++] = pskDemod(gain*id, gain*qd, j/2);
-			sumLockLevel += lockLevel;
-			// i and q go into consecutive spaces in the complex FFT data input
-			if (Config.swapIQ) {
-				fftData[i+dist] = qd;
-				fftData[i+1+dist] = id;
-			} else {
-				fftData[i+dist] = id;
-				fftData[i+1+dist] = qd;
-			}
-			i+=2;
-		}
-		avgLockLevel = sumLockLevel / (double)(fcdData.length/2.0);
-		runFFT(fftData); // results back in fftData
-
-		if (!Config.showIF) calcPsd();
-
-		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
-			
-		fftDataFresh = false;	
-		if (Config.showIF) calcPsd();
-		fftDataFresh = true;	
-		
-		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
-		
-		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
-		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
-		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
-		// No needed with NCO as we have already filtered to 3kHz
-		for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
-			if (highSpeed)
-				antiAlias20kHzIIRFilter(demodAudio);
-			else {
-				antiAlias16kHzIIRFilter(demodAudio);				
-			}
-		
-		// Every 4th entry goes to the audio output to get us from 192k -> 48k
-		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
-			// scaling and conversion to integer
-			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
-	// FUDGE - safety factor because the decimation is not exact
-			if (k >= audioData.length ) {
-				//Log.println("k:" + k);
-				break;
-			}
-			audioData[k] = value;
-			k+=1;			
-		 }
-		return audioData; 
-	}
+//protected double[] processPSKBytes(double[] fcdData) {
+//		
+//		double maxValue = 0;
+//		double minValue = 0;
+//		zeroFFT();
+//		int i = 0;
+//		int d=0;
+//		int k = 0;
+//		sumLockLevel = 0;
+//		// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
+//		for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+//			//double id, qd;
+//
+//			id = fcdData[j];
+//			qd = fcdData[j+1];
+//			// filter out any DC from I/Q signals
+//			id = iDcFilter.filter(id);
+//			qd = qDcFilter.filter(qd);
+//			
+//			if (id > maxValue) maxValue = id;
+//			if (id < minValue) minValue = id;
+//			demodAudio[d++] = pskDemod(gain*id, gain*qd, j/2);
+//			sumLockLevel += lockLevel;
+//			// i and q go into consecutive spaces in the complex FFT data input
+//			if (Config.swapIQ) {
+//				fftData[i+dist] = qd;
+//				fftData[i+1+dist] = id;
+//			} else {
+//				fftData[i+dist] = id;
+//				fftData[i+1+dist] = qd;
+//			}
+//			i+=2;
+//		}
+//		avgLockLevel = sumLockLevel / (double)(fcdData.length/2.0);
+//		runFFT(fftData); // results back in fftData
+//
+//		if (!Config.showIF) calcPsd();
+//
+//		filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
+//			
+//		fftDataFresh = false;	
+//		if (Config.showIF) calcPsd();
+//		fftDataFresh = true;	
+//		
+//		gain = DESIRED_RANGE / (1.0f * (maxValue-minValue));
+//		
+//		// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
+//		// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
+//		// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
+//		// No needed with NCO as we have already filtered to 3kHz
+//		for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
+//			if (highSpeed)
+//				antiAlias20kHzIIRFilter(demodAudio);
+//			else {
+//				antiAlias16kHzIIRFilter(demodAudio);				
+//			}
+//		
+//		// Every 4th entry goes to the audio output to get us from 192k -> 48k
+//		for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
+//			// scaling and conversion to integer
+//			double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
+//	// FUDGE - safety factor because the decimation is not exact
+//			if (k >= audioData.length ) {
+//				//Log.println("k:" + k);
+//				break;
+//			}
+//			audioData[k] = value;
+//			k+=1;			
+//		 }
+//		return audioData; 
+//	}
 
 double id, qd;
+
 /**
  * Process IQ bytes and return a set of 48K audio bytes that can be processed by the decoder as normal
  * We cache the read bytes in case we need to adjust for the clock
@@ -753,102 +733,102 @@ double id, qd;
  * @param fcdData
  * @return
  */
-protected double[] processBytes(double[] fcdData) {
-	if (!(mode == MODE_PSK_NC) && Config.useNCO) {
-		Log.errorDialog("FATAL", "Trying to run non NCO decoder with Config.useNCO set");
-		return new double[0];
-	}
-
-	zeroFFT();
-	int i = 0;
-	
-	// DC Filter the incoming data
-	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
-		
-		id = fcdData[j];
-		qd = fcdData[j+1];
-		// filter out any DC from I/Q signals
-		fcdData[j] = iDcFilter.filter(id);
-		fcdData[j+1] = qDcFilter.filter(qd);
-		
-		
-	}
-	
-//	if (Config.useNCO) {
-//			 ncoDecimate(fcdData, fcdData2);
+//protected double[] processBytes(double[] fcdData) {
+//	if (!(mode == MODE_PSK_NC) && Config.useNCO) {
+//		Log.errorDialog("FATAL", "Trying to run non NCO decoder with Config.useNCO set");
+//		return new double[0];
 //	}
-
-	// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
-	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
-		double id, qd;
-		id = fcdData[j];
-		qd = fcdData[j+1];
-		
-		// filter out any DC from I/Q signals
-//		id = iDcFilter.filter(id);
-//		qd = qDcFilter.filter(qd);
-
-		// i and q go into consecutive spaces in the complex FFT data input
-		if (Config.swapIQ) {
-			fftData[i+dist] = qd;
-			fftData[i+1+dist] = id;
-		} else {
-			fftData[i+dist] = id;
-			fftData[i+1+dist] = qd;
-		}
-		i+=2;
-	}
-
-	runFFT(fftData); // results back in fftData
-	fftDataFresh = false;	
-	if (!Config.showIF) calcPsd();
-	fftDataFresh = true;
-
-	filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
-
-	if (Config.showIF) calcPsd();
-
-	if (mode == MODE_PSK_NC) 
-		;
-	else
-		inverseFFT(fftData);
-	int d=0;
-	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
-	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
-		if (mode == MODE_PSK_NC)
-			demodAudio[d++] = ncoDownconvert(fcdData[j], fcdData[j+1]);
-		else
-			demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
-	}
-	
-	int k = 0;
-	// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
-	// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
-	// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
-
-	for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
-		if (highSpeed)
-			demodAudio = mono20kHzIIRFilter(demodAudio);
-			//antiAlias20kHzIIRFilter(demodAudio);
-		else {
-			demodAudio = mono16kHzIIRFilter(demodAudio);
-//			antiAlias16kHzIIRFilter(demodAudio);				
-		}
-	
-	// Every 4th entry goes to the audio output to get us from 192k -> 48k
-	for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
-		// scaling and conversion to integer
-		double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
-// FUDGE - safety factor because the decimation is not exact
-		if (k >= audioData.length ) {
-			//Log.println("k:" + k);
-			break;
-		}
-		audioData[k] = value;
-		k+=1;			
-	 }
-	return audioData; 
-}
+//
+//	zeroFFT();
+//	int i = 0;
+//	
+//	// DC Filter the incoming data
+//	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+//		
+//		id = fcdData[j];
+//		qd = fcdData[j+1];
+//		// filter out any DC from I/Q signals
+//		fcdData[j] = iDcFilter.filter(id);
+//		fcdData[j+1] = qDcFilter.filter(qd);
+//		
+//		
+//	}
+//	
+////	if (Config.useNCO) {
+////			 ncoDecimate(fcdData, fcdData2);
+////	}
+//
+//	// Loop through the 192k data, sample size 2 because we read doubles from the audio source buffer
+//	for (int j=0; j < fcdData.length; j+=2 ) { // sample size is 2, 1 double per channel
+//		double id, qd;
+//		id = fcdData[j];
+//		qd = fcdData[j+1];
+//		
+//		// filter out any DC from I/Q signals
+////		id = iDcFilter.filter(id);
+////		qd = qDcFilter.filter(qd);
+//
+//		// i and q go into consecutive spaces in the complex FFT data input
+//		if (Config.swapIQ) {
+//			fftData[i+dist] = qd;
+//			fftData[i+1+dist] = id;
+//		} else {
+//			fftData[i+dist] = id;
+//			fftData[i+1+dist] = qd;
+//		}
+//		i+=2;
+//	}
+//
+//	runFFT(fftData); // results back in fftData
+//	fftDataFresh = false;	
+//	if (!Config.showIF) calcPsd();
+//	fftDataFresh = true;
+//
+//	filterFFTWindow(fftData); // do this regardless because it also calculates the SNR
+//
+//	if (Config.showIF) calcPsd();
+//
+//	if (mode == MODE_PSK_NC) 
+//		;
+//	else
+//		inverseFFT(fftData);
+//	int d=0;
+//	// loop through the raw Audio array, which has 2 doubles for each entry - i and q
+//	for (int j=0; j < fcdData.length; j +=2 ) { // data size is 2 
+//		if (mode == MODE_PSK_NC)
+//			demodAudio[d++] = ncoDownconvert(fcdData[j], fcdData[j+1]);
+//		else
+//			demodAudio[d++] = fm.demodulate(fftData[j+dist], fftData[j+1+dist]);	
+//	}
+//	
+//	int k = 0;
+//	// Filter any frequencies above 24kHz before we decimate to 48k. These are gentle
+//	// This is a balance.  Too much filtering impacts the 9600 bps decode, so we use a wider filter
+//	// These are gentle phase neutral IIR filters, so that we don't mess up the FM demodulation
+//
+//	for (int t=0; t < 1; t++) // FUDGE  - 5 better for Airspy 1 for not
+//		if (highSpeed)
+//			demodAudio = mono20kHzIIRFilter(demodAudio);
+//			//antiAlias20kHzIIRFilter(demodAudio);
+//		else {
+//			demodAudio = mono16kHzIIRFilter(demodAudio);
+////			antiAlias16kHzIIRFilter(demodAudio);				
+//		}
+//	
+//	// Every 4th entry goes to the audio output to get us from 192k -> 48k
+//	for (int j=0; j < demodAudio.length; j+=decimationFactor ) { // data size is 1 decimate by factor of 4 to get to audio format size
+//		// scaling and conversion to integer
+//		double value = audioDcFilter.filter(demodAudio[j]); // remove DC.  Only need to do this to the values we want to keep
+//// FUDGE - safety factor because the decimation is not exact
+//		if (k >= audioData.length ) {
+//			//Log.println("k:" + k);
+//			break;
+//		}
+//		audioData[k] = value;
+//		k+=1;			
+//	 }
+//	return audioData; 
+//}
 
 	private void zeroFFT() {
 		for (int i=0; i< FFT_SAMPLES*2; i++) {
@@ -900,29 +880,29 @@ protected double[] processBytes(double[] fcdData) {
 		return avg;
 	}
 	
-	int overlapLength;
-	private void inverseFFT(double[] fftData) {
-		fft.complexInverse(fftData, true); // true means apply scaling - but it does not work?
-	
-		// Add the last overlap.  
-		// We have iq data, so the FFTData buffer is actually FFT_SAMPLES * 2 in length
-		// We request samplesToRead bytes from the source
-		// That data becomes 2 iq samples
-
-		overlapLength = filterWidth*2; // te amount of overlap we need is equal to the length of the filter
-		overlapLength = 0;
-			
-		for (int o=0; o < overlapLength; o++) {
-			fftData[o+dist] += overlap[o]; ///// ADDING THE OVERLAP causes distortion unless we get it just right.  The data is offset, so add from the offset distance
-		}
-
-		// capture this overlap
-		// We start right after the data, which runs from dist to samplesToRead+dist
-		for (int o=samplesToRead+dist; o < samplesToRead+dist+overlapLength; o++) {
-			overlap[o-samplesToRead-dist] = fftData[o];
-		}
-
-	}
+	//int overlapLength;
+//	private void inverseFFT(double[] fftData) {
+//		fft.complexInverse(fftData, true); // true means apply scaling - but it does not work?
+//	
+//		// Add the last overlap.  
+//		// We have iq data, so the FFTData buffer is actually FFT_SAMPLES * 2 in length
+//		// We request samplesToRead bytes from the source
+//		// That data becomes 2 iq samples
+//
+//		overlapLength = filterWidth*2; // te amount of overlap we need is equal to the length of the filter
+//		overlapLength = 0;
+//			
+//		for (int o=0; o < overlapLength; o++) {
+//			fftData[o+dist] += overlap[o]; ///// ADDING THE OVERLAP causes distortion unless we get it just right.  The data is offset, so add from the offset distance
+//		}
+//
+//		// capture this overlap
+//		// We start right after the data, which runs from dist to samplesToRead+dist
+//		for (int o=samplesToRead+dist; o < samplesToRead+dist+overlapLength; o++) {
+//			overlap[o-samplesToRead-dist] = fftData[o];
+//		}
+//
+//	}
 
 	/**
 	 * Apply a Tukey or blackman window to the segment of the spectrum that we want, then move the selected frequency to zero
@@ -995,10 +975,10 @@ protected double[] processBytes(double[] fcdData) {
 		}
 		
 		// Selected frequencies part
-		int dcOffset=0; // must be even
-		int k=dcOffset;
-		double iAvg = 0;
-		double qAvg = 0;
+		//int dcOffset=0; // must be even
+		//int k=dcOffset;
+		//double iAvg = 0;
+		//double qAvg = 0;
 
 		int noiseStart = start - filterBins;
 		if (noiseStart < 0 ) noiseStart = 0;
@@ -1039,14 +1019,14 @@ protected double[] processBytes(double[] fcdData) {
 		}
 //		double sigList[] = new double[(end-start+2)/2];
 		for (int i = start; i <= end; i+=2) {
-			if (!Config.useNCO)
-				if (Config.applyBlackmanWindow) {
-					newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
-					newData[k+1] = fftData[i + 1] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]);	
-				} else {
-					newData[k] = fftData[i] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]) ;
-					newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
-				}
+//			if (!Config.useNCO)
+//				if (Config.applyBlackmanWindow) {
+//					newData[k] = fftData[i] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]) ;
+//					newData[k+1] = fftData[i + 1] * Math.abs(blackmanFilterShape[k/2-dcOffset/2]);	
+//				} else {
+//					newData[k] = fftData[i] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]) ;
+//					newData[k+1] = fftData[i + 1] * Math.abs(tukeyFilterShape[k/2-dcOffset/2]);
+//				}
 			sig = psd(fftData[i], fftData[i+1]);
 			if ((fromBin*2 < i && i < toBin*2)
 					|| (spansDcSpike && fromBin*2 < i && i < fftData.length-2) || (spansDcSpike && 0 <= i && i < toBin*2)) {
@@ -1065,9 +1045,9 @@ protected double[] processBytes(double[] fcdData) {
 			//			sigList[sigReading] = sig;
 			sigReading++;
 
-			iAvg += newData[k];
-			qAvg += newData[k+1];
-			k+=2;
+			//iAvg += newData[k];
+			//qAvg += newData[k+1];
+			//k+=2;
 		}
 		for (int n=end; n < noiseEnd; n+=2) {
 			sig = psd(fftData[n], fftData[n+1]);
@@ -1112,11 +1092,11 @@ protected double[] processBytes(double[] fcdData) {
 		//		fftData[0] = 0;
 		//		fftData[1] = 0;
 		// Write the DC bins - seem to need this for the blackman filter
-		if (!Config.useNCO)
-			if (Config.applyBlackmanWindow) {
-				newData[0] = iAvg / (filterBins * 2);
-				newData[1] = qAvg / (filterBins * 2);
-			}
+//		if (!Config.useNCO)
+//			if (Config.applyBlackmanWindow) {
+//				newData[0] = iAvg / (filterBins * 2);
+//				newData[1] = qAvg / (filterBins * 2);
+//			}
 		avgSigInFilterWidth = avgSigInFilterWidth / (double)sigReading;
 		noiseOutsideFilterWidth = noiseOutsideFilterWidth / (double)noiseReading;
 		//		if (Config.debugSignalFinder) {
@@ -1134,10 +1114,10 @@ protected double[] processBytes(double[] fcdData) {
 		// store the strongest sigs - STRONGEST_SIGNAL_IN_SAT_BAND
 		rfData.setStrongestSignal(strongestSigInSatBand, binOfStrongestSigInSatBand);
 
-		if (!Config.useNCO)
-			for (int i = 0; i < fftData.length; i+=1) {
-				fftData[i] = newData[i];			
-			}
+//		if (!Config.useNCO)
+//			for (int i = 0; i < fftData.length; i+=1) {
+//				fftData[i] = newData[i];			
+//			}
 
 		//return newData;
 	}
@@ -1177,64 +1157,64 @@ protected double[] processBytes(double[] fcdData) {
 		}
 	}
 	
-	private void antiAlias16kHzIIRFilter(double[] rawAudioData) {
-		// Designed at www-users.cs.york.ac.uk/~fisher
-		// Need to filter the data before we decimate
-		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
-		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
-		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
-		//double[] out = new double[rawAudioData.length];
-		double GAIN = 3.006238283e+02;
-		for (int j=0; j < rawAudioData.length; j+=2 ) {
-			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
-	        xvi[5] = rawAudioData[j] / GAIN;
-	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-	                     + (  0.0394215023 * yvi[0]) + ( -0.3293736653 * yvi[1])
-	                     + (  1.1566456875 * yvi[2]) + ( -2.1603685744 * yvi[3])
-	                     + (  2.1872297286 * yvi[4]);
-	        
-			rawAudioData[j] = yvi[5];
+//	private void antiAlias16kHzIIRFilter(double[] rawAudioData) {
+//		// Designed at www-users.cs.york.ac.uk/~fisher
+//		// Need to filter the data before we decimate
+//		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
+//		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
+//		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
+//		//double[] out = new double[rawAudioData.length];
+//		double GAIN = 3.006238283e+02;
+//		for (int j=0; j < rawAudioData.length; j+=2 ) {
+//			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
+//	        xvi[5] = rawAudioData[j] / GAIN;
+//	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
+//	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
+//	                     + (  0.0394215023 * yvi[0]) + ( -0.3293736653 * yvi[1])
+//	                     + (  1.1566456875 * yvi[2]) + ( -2.1603685744 * yvi[3])
+//	                     + (  2.1872297286 * yvi[4]);
+//	        
+//			rawAudioData[j] = yvi[5];
+//
+//			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
+//	        xvq[5] = rawAudioData[j+1] / GAIN;
+//	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
+//	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
+//	                     + (  0.0394215023 * yvq[0]) + ( -0.3293736653 * yvq[1])
+//	                     + (  1.1566456875 * yvq[2]) + ( -2.1603685744 * yvq[3])
+//	                     + (  2.1872297286 * yvq[4]);
+//			rawAudioData[j+1] = yvq[5];
+//
+//		}
+//		
+//	}
 
-			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
-	        xvq[5] = rawAudioData[j+1] / GAIN;
-	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-	                     + (  0.0394215023 * yvq[0]) + ( -0.3293736653 * yvq[1])
-	                     + (  1.1566456875 * yvq[2]) + ( -2.1603685744 * yvq[3])
-	                     + (  2.1872297286 * yvq[4]);
-			rawAudioData[j+1] = yvq[5];
-
-		}
-		
-	}
-
-	private double[] mono16kHzIIRFilter(double[] rawAudioData) {
-		// Designed at www-users.cs.york.ac.uk/~fisher
-		// Need to filter the data before we decimate
-		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
-		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
-		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
-		double[] out = new double[rawAudioData.length];
-		
-		for (int j=0; j < rawAudioData.length; j+=4 ) {
-			out[j] = mono16kHzValue(rawAudioData[j]);
-		}
-		return out;
-	}
+//	private double[] mono16kHzIIRFilter(double[] rawAudioData) {
+//		// Designed at www-users.cs.york.ac.uk/~fisher
+//		// Need to filter the data before we decimate
+//		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
+//		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
+//		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
+//		double[] out = new double[rawAudioData.length];
+//		
+//		for (int j=0; j < rawAudioData.length; j+=4 ) {
+//			out[j] = mono16kHzValue(rawAudioData[j]);
+//		}
+//		return out;
+//	}
 	
-	private double mono16kHzValue(double in) {
-		double GAIN = 3.006238283e+02;
-		xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
-        xvi[5] = in / GAIN;
-        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-                     + (  0.0394215023 * yvi[0]) + ( -0.3293736653 * yvi[1])
-                     + (  1.1566456875 * yvi[2]) + ( -2.1603685744 * yvi[3])
-                     + (  2.1872297286 * yvi[4]);
-        
-		return yvi[5];
-	}
+//	private double mono16kHzValue(double in) {
+//		double GAIN = 3.006238283e+02;
+//		xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
+//        xvi[5] = in / GAIN;
+//        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
+//        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
+//                     + (  0.0394215023 * yvi[0]) + ( -0.3293736653 * yvi[1])
+//                     + (  1.1566456875 * yvi[2]) + ( -2.1603685744 * yvi[3])
+//                     + (  2.1872297286 * yvi[4]);
+//        
+//		return yvi[5];
+//	}
 
 	/*
 	private double mono16kHzQValue(double in) {
@@ -1251,96 +1231,96 @@ protected double[] processBytes(double[] fcdData) {
 	}
 	*/
 	
-	private double[] mono20kHzIIRFilter(double[] rawAudioData) {
-		// Designed at www-users.cs.york.ac.uk/~fisher
-		// Need to filter the data before we decimate
-		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
-		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
-		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
-		double[] out = new double[rawAudioData.length];
-		
-		for (int j=0; j < rawAudioData.length; j+=4 ) {
-			out[j] = mono20kHzValue(rawAudioData[j]);
-		}
-		return out;
-	}
+//	private double[] mono20kHzIIRFilter(double[] rawAudioData) {
+//		// Designed at www-users.cs.york.ac.uk/~fisher
+//		// Need to filter the data before we decimate
+//		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
+//		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
+//		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
+//		double[] out = new double[rawAudioData.length];
+//		
+//		for (int j=0; j < rawAudioData.length; j+=4 ) {
+//			out[j] = mono20kHzValue(rawAudioData[j]);
+//		}
+//		return out;
+//	}
 	
-	private double mono20kHzValue(double in) {
-		double GAIN = 3.006238283e+02;
-		xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
-        xvi[5] = in / GAIN;
-        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-                + (  0.0175819825 * yvi[0]) + ( -0.1605530625 * yvi[1])
-                + (  0.6276667742 * yvi[2]) + ( -1.3438919231 * yvi[3])
-                + (  1.6182326801 * yvi[4]);
-        
-		return yvi[5];
-	}
+//	private double mono20kHzValue(double in) {
+//		double GAIN = 3.006238283e+02;
+//		xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
+//        xvi[5] = in / GAIN;
+//        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
+//        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
+//                + (  0.0175819825 * yvi[0]) + ( -0.1605530625 * yvi[1])
+//                + (  0.6276667742 * yvi[2]) + ( -1.3438919231 * yvi[3])
+//                + (  1.6182326801 * yvi[4]);
+//        
+//		return yvi[5];
+//	}
 
-	private void antiAlias20kHzIIRFilter(double[] rawAudioData) {
-		// Designed at www-users.cs.york.ac.uk/~fisher
-		// Need to filter the data before we decimate
-		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
-		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
-		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
-		//double[] out = new double[rawAudioData.length];
-		double GAIN = 1.328001690e+02;
-		for (int j=0; j < rawAudioData.length; j+=2 ) {
-			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
-	        xvi[5] = rawAudioData[j] / GAIN;
-	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-	                     + (  0.0175819825 * yvi[0]) + ( -0.1605530625 * yvi[1])
-	                     + (  0.6276667742 * yvi[2]) + ( -1.3438919231 * yvi[3])
-	                     + (  1.6182326801 * yvi[4]);
-	        
-			rawAudioData[j] = yvi[5];
+//	private void antiAlias20kHzIIRFilter(double[] rawAudioData) {
+//		// Designed at www-users.cs.york.ac.uk/~fisher
+//		// Need to filter the data before we decimate
+//		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
+//		// To avoid aliases, we filter at less than 24kHz, but we need to filter higher than 9600 * 2.  So we pick 20kHz
+//		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
+//		//double[] out = new double[rawAudioData.length];
+//		double GAIN = 1.328001690e+02;
+//		for (int j=0; j < rawAudioData.length; j+=2 ) {
+//			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
+//	        xvi[5] = rawAudioData[j] / GAIN;
+//	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
+//	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
+//	                     + (  0.0175819825 * yvi[0]) + ( -0.1605530625 * yvi[1])
+//	                     + (  0.6276667742 * yvi[2]) + ( -1.3438919231 * yvi[3])
+//	                     + (  1.6182326801 * yvi[4]);
+//	        
+//			rawAudioData[j] = yvi[5];
+//
+//			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
+//	        xvq[5] = rawAudioData[j+1] / GAIN;
+//	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
+//	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
+//	                     + (  0.0175819825 * yvq[0]) + ( -0.1605530625 * yvq[1])
+//	                     + (  0.6276667742 * yvq[2]) + ( -1.3438919231 * yvq[3])
+//	                     + (  1.6182326801 * yvq[4]);
+//			rawAudioData[j+1] = yvq[5];
+//
+//		}
+//		
+//	}
 
-			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
-	        xvq[5] = rawAudioData[j+1] / GAIN;
-	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-	                     + (  0.0175819825 * yvq[0]) + ( -0.1605530625 * yvq[1])
-	                     + (  0.6276667742 * yvq[2]) + ( -1.3438919231 * yvq[3])
-	                     + (  1.6182326801 * yvq[4]);
-			rawAudioData[j+1] = yvq[5];
-
-		}
-		
-	}
-
-	@SuppressWarnings("unused")
-	private void antiAlias24kHzIIRFilter(double[] rawAudioData) {
-		// Designed at www-users.cs.york.ac.uk/~fisher
-		// Need to filter the data before we decimate
-		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
-		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
-		//double[] out = new double[rawAudioData.length];
-		double GAIN = 7.052142314e+01;
-		for (int j=0; j < rawAudioData.length; j+=2 ) {
-			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
-	        xvi[5] = rawAudioData[j] / GAIN;
-	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
-	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
-	                     + (  0.0078245894 * yvi[0]) + ( -0.0773061573 * yvi[1])
-	                     + (  0.3292913096 * yvi[2]) + ( -0.8090163636 * yvi[3])
-	                     + (  1.0954437995 * yvi[4]);
-	        
-			rawAudioData[j] = yvi[5];
-
-			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
-	        xvq[5] = rawAudioData[j+1] / GAIN;
-	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
-	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
-	                     + (  0.0078245894 * yvq[0]) + ( -0.0773061573 * yvq[1])
-	                     + (  0.3292913096 * yvq[2]) + ( -0.8090163636 * yvq[3])
-	                     + (  1.0954437995 * yvq[4]);
-			rawAudioData[j+1] = yvq[5];
-
-		}
-		
-	}
+//	@SuppressWarnings("unused")
+//	private void antiAlias24kHzIIRFilter(double[] rawAudioData) {
+//		// Designed at www-users.cs.york.ac.uk/~fisher
+//		// Need to filter the data before we decimate
+//		// We decimate by factor of 4, so need to filter at 192/8 = 24kHz
+//		// We use a Bessel IIR because it has linear phase response and we don't need to do overlap/add
+//		//double[] out = new double[rawAudioData.length];
+//		double GAIN = 7.052142314e+01;
+//		for (int j=0; j < rawAudioData.length; j+=2 ) {
+//			xvi[0] = xvi[1]; xvi[1] = xvi[2]; xvi[2] = xvi[3]; xvi[3] = xvi[4]; xvi[4] = xvi[5]; 
+//	        xvi[5] = rawAudioData[j] / GAIN;
+//	        yvi[0] = yvi[1]; yvi[1] = yvi[2]; yvi[2] = yvi[3]; yvi[3] = yvi[4]; yvi[4] = yvi[5]; 
+//	        yvi[5] =   (xvi[0] + xvi[5]) + 5 * (xvi[1] + xvi[4]) + 10 * (xvi[2] + xvi[3])
+//	                     + (  0.0078245894 * yvi[0]) + ( -0.0773061573 * yvi[1])
+//	                     + (  0.3292913096 * yvi[2]) + ( -0.8090163636 * yvi[3])
+//	                     + (  1.0954437995 * yvi[4]);
+//	        
+//			rawAudioData[j] = yvi[5];
+//
+//			xvq[0] = xvq[1]; xvq[1] = xvq[2]; xvq[2] = xvq[3]; xvq[3] = xvq[4]; xvq[4] = xvq[5]; 
+//	        xvq[5] = rawAudioData[j+1] / GAIN;
+//	        yvq[0] = yvq[1]; yvq[1] = yvq[2]; yvq[2] = yvq[3]; yvq[3] = yvq[4]; yvq[4] = yvq[5]; 
+//	        yvq[5] =   (xvq[0] + xvq[5]) + 5 * (xvq[1] + xvq[4]) + 10 * (xvq[2] + xvq[3])
+//	                     + (  0.0078245894 * yvq[0]) + ( -0.0773061573 * yvq[1])
+//	                     + (  0.3292913096 * yvq[2]) + ( -0.8090163636 * yvq[3])
+//	                     + (  1.0954437995 * yvq[4]);
+//			rawAudioData[j+1] = yvq[5];
+//
+//		}
+//		
+//	}
 
 	private double[] initBlackmanWindow(int len) {
 		double[] blackmanWindow = new double[len+1];
@@ -1393,106 +1373,106 @@ protected double[] processBytes(double[] fcdData) {
 	}//end getAudioFormat
 
 
-	private double ncoDownconvert(double i, double q) {
-		nco.setFrequency(freq+ssbOffset); // ssboffset
-		c = nco.nextSample();
-		c.normalize();
-		// Mix 
-		iMix = i * c.geti() + q*c.getq();
-		qMix = q * c.geti() - i*c.getq();
-		return iMix + qMix;
-	}
+//	private double ncoDownconvert(double i, double q) {
+//		nco.setFrequency(freq+ssbOffset); // ssboffset
+//		c = nco.nextSample();
+//		c.normalize();
+//		// Mix 
+//		iMix = i * c.geti() + q*c.getq();
+//		qMix = q * c.geti() - i*c.getq();
+//		return iMix + qMix;
+//	}
 	
-	double psk = 0.0;
-	private double pskDemod(double i, double q, int sample) {
-		ssbOffset = 0;
-		psk = costasLoop(i, q, sample);
-		if (this.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
-			
-			// only scan if we have a signal, but any signal in the sat band triggers this
-			nco.changePhase(alpha*error);
-			costasLoopFreq = costasLoopFreq + beta*error;		
-			if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
-				// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
-				long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
-				if (strongestFreq - costasLoopFreq > SCAN_RANGE || strongestFreq - costasLoopFreq < -SCAN_RANGE) {
-					// we are more than a kc off
-					costasLoopFreq = strongestFreq;
-				} else {
-					costasLoopFreq = costasLoopFreq + gamma; 
-//					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE) // defeat false lock at 600Hz or other freq.
-//						freq = this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE;
-//					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE)
-//						freq = this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE;
-				} 
-			}
-			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
-			// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we  update the tune point without moving it
-			// We just change the bin but not the freq
-			if (costasLoopFreq > freq + SCAN_RANGE) costasLoopFreq = freq + SCAN_RANGE;
-			if (costasLoopFreq < (freq-SCAN_RANGE)) costasLoopFreq = freq-SCAN_RANGE;
-			nco.setFrequency(costasLoopFreq);
-			//selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
-		} else { 
-			lockLevel = 0;
-			error = 10;
-		}
-		return psk;
-	}
+//	double psk = 0.0;
+//	/**
+//	 * This is a legacy routine and is no longer used
+//	 * @param i
+//	 * @param q
+//	 * @param sample
+//	 * @return
+//	 */
+//	@Deprecated
+//	private double pskDemod(double i, double q, int sample) {
+//		ssbOffset = 0;
+//		psk = costasLoop(i, q, sample);
+//		if (this.rfData.rfStrongestSigSNRInSatBand > Config.SCAN_SIGNAL_THRESHOLD) {
+//			
+//			// only scan if we have a signal, but any signal in the sat band triggers this
+//			nco.changePhase(alpha*error);
+//			costasLoopFreq = costasLoopFreq + beta*error;		
+//			if (avgLockLevel < LOCK_LEVEL_THRESHOLD && lockLevel > 0) {
+//				// susceptible to false lock at half the bitrate. Scan range only needs to be enough to defeeat false lock.  Not to find or follow signal.
+//				long strongestFreq = getOffsetFrequencyFromBin(rfData.getBinOfStrongestSignalInSatBand());
+//				if (strongestFreq - costasLoopFreq > SCAN_RANGE || strongestFreq - costasLoopFreq < -SCAN_RANGE) {
+//					// we are more than a kc off
+//					costasLoopFreq = strongestFreq;
+//				} else {
+//					costasLoopFreq = costasLoopFreq + gamma; 
+////					if (freq > this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE) // defeat false lock at 600Hz or other freq.
+////						freq = this.getOffsetFrequencyFromBin(selectedBin)+SCAN_RANGE;
+////					if (freq < this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE)
+////						freq = this.getOffsetFrequencyFromBin(selectedBin)-SCAN_RANGE;
+//				} 
+//			}
+//			// These are hard limits for safety, but if we are locked, then the loop can follow the signal as far as it likes
+//			// Note if we momentarily lose lock, then the frequency could snap back to the tune point.  So we  update the tune point without moving it
+//			// We just change the bin but not the freq
+//			if (costasLoopFreq > freq + SCAN_RANGE) costasLoopFreq = freq + SCAN_RANGE;
+//			if (costasLoopFreq < (freq-SCAN_RANGE)) costasLoopFreq = freq-SCAN_RANGE;
+//			nco.setFrequency(costasLoopFreq);
+//			//selectedBin = getBinFromOffsetFreqHz((long) getCostasFrequency());
+//		} else { 
+//			lockLevel = 0;
+//			error = 10;
+//		}
+//		return psk;
+//	}
 	
-	ComplexOscillator nco;
-	//RaisedCosineFilter idataFilter;
-	//RaisedCosineFilter qdataFilter;
-	IirFilter iFilter;
-	IirFilter qFilter;
-	//IirFilter iFilter2;
-	//IirFilter qFilter2;
-	IirFilter loopFilter;
-	double iMix, qMix;
-	double fi, fq;
-	double freq; // this is the frequency of the carrier we tune to the side for ssb
-	double costasLoopFreq; // this is the actual frequency NCO is tuned to for costas
-	double error;
-	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
-	double beta = 2048*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. // 4096* seems to aggressive and can have long lock time
-	double gamma = 0.04; //scan frequency rate when not locked 0.02 may not be strong enough to defeat false lock
-	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
-	public static final double LOCK_LEVEL_THRESHOLD = 10; // Depending on the signal the actual lock seems to vary from 18 to 50 or so.
-	public static final int SCAN_RANGE = 2000	;
-	
-	public double getLockLevel() { return avgLockLevel; }
-	public double getError() { return error; }
-	public double getCostasFrequency() { return costasLoopFreq; }
-	
-	Complex c = new Complex(0,0);
-	double lockGain = 1;
-	private double costasLoop(double i, double q, int sample) {
-		nco.nextSample(c);
-		c.normalize();
-		// Mix 
-		iMix = i * c.geti() + q*c.getq();
-		qMix = q * c.geti() - i*c.getq();
-		// Filter
-		fi = iFilter.filterDouble(iMix);
-		fq = qFilter.filterDouble(qMix);;
-		
-		phasorData[2*sample] = fi*5;
-		phasorData[2*sample+1] = fq*5;
 
 
-		lockGain = gain;
-		if (lockGain < 1) lockGain = 1;
-		ri = SourceIQ.fullwaveRectify(fi*lockGain);
-		rq = SourceIQ.fullwaveRectify(fq*lockGain);
-		
-		lockLevel = 1E0*(ri - rq);  // in lock state rq is close to zero.  In a false lock it is not.
-		
-		// Phase error
-		error = fi*fq; 
-		error = loopFilter.filterDouble(error);
-		
-		return fi;
-	}
+//	double iMix, qMix;
+//	double fi, fq;
+//	double costasLoopFreq; // this is the actual frequency NCO is tuned to for costas
+//	double error;
+//	double alpha = 0.1; //the feedback coeff  0 - 4.  But typical range is 0.01 and smaller.  
+//	double beta = 2048*alpha*alpha / 4.0d;  // alpha * alpha / 4 is critically damped. // 4096* seems to aggressive and can have long lock time
+//	double gamma = 0.04; //scan frequency rate when not locked 0.02 may not be strong enough to defeat false lock
+//	double ri, rq, lockLevel, avgLockLevel, sumLockLevel;
+//	public static final int SCAN_RANGE = 2000	;
+	
+//	public double getLockLevel() { return avgLockLevel; }
+//	public double getError() { return error; }
+//	public double getCostasFrequency() { return costasLoopFreq; }
+	
+	
+//	double lockGain = 1;
+//	private double costasLoop(double i, double q, int sample) {
+//		nco.nextSample(c);
+//		c.normalize();
+//		// Mix 
+//		iMix = i * c.geti() + q*c.getq();
+//		qMix = q * c.geti() - i*c.getq();
+//		// Filter
+//		fi = iFilter.filterDouble(iMix);
+//		fq = qFilter.filterDouble(qMix);;
+//		
+//		phasorData[2*sample] = fi*5;
+//		phasorData[2*sample+1] = fq*5;
+//
+//
+//		lockGain = gain;
+//		if (lockGain < 1) lockGain = 1;
+//		ri = SourceIQ.fullwaveRectify(fi*lockGain);
+//		rq = SourceIQ.fullwaveRectify(fq*lockGain);
+//		
+//		lockLevel = 1E0*(ri - rq);  // in lock state rq is close to zero.  In a false lock it is not.
+//		
+//		// Phase error
+//		error = fi*fq; 
+//		error = loopFilter.filterDouble(error);
+//		
+//		return fi;
+//	}
 	
 	public static double fullwaveRectify(double in) {
 		if (in < 0) return -1*in;

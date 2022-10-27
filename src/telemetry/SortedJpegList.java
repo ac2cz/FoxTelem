@@ -2,6 +2,8 @@
 
 package telemetry;
 
+import telemetry.legacyPayloads.CameraJpeg;
+
 /**
  * 
  * FOX 1 Telemetry Decoder

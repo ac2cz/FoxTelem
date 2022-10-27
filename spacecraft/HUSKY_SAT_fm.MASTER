@@ -1,6 +1,6 @@
 #Fox 1 Telemetry Decoder Properties
 #Sun Jun 17 18:10:34 EDT 2018
-user_format=3
+user_format=BPSK 1200bps (Fox1E)
 name=HO-107
 displayName=Husky
 useIHUVBatt=false
@@ -84,6 +84,6 @@ passMeasurementsFileName=passmeasurements.csv
 canFileDir=HuskySat
 numberOfSources=1
 source0.name=amsat.husky_sat.ihu.bpsk
-source0.formatName=FOX_BPSK
+source0.formatName=BPSK 1200bps (Fox1E)
 useConversionCoeffs=true
 conversionCurvesFileName=HUSKY_SAT_conversion_curves.csv

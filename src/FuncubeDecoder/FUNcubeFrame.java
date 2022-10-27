@@ -63,6 +63,7 @@ public class FUNcubeFrame {
 			addNext8Bits(b[i]);
 
 	}
+	@SuppressWarnings("deprecation")
 	public void addNext8Bits(byte b) {
 		if (corrupt) return;
 		if (numberBytesAdded < MAX_HEADER_SIZE)

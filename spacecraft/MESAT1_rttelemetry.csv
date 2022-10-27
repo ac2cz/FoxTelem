@@ -1,0 +1,126 @@
+125,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,realtimeDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,AMSAT Transmitter,2,4,3,Ref Power,Reflected Power from the Transmit Antenna
+1,realtimeDownlink,ICR3VProt,8,V,icr_8bit_volts,AMSAT Cmd Receiver,3,3,3,3.3V Prot,ICR 3V Protected
+2,realtimeDownlink,ICRTemp,8,C,8_bit_temp,AMSAT Cmd Receiver,3,4,3,ICR Temp,ICR Temperature
+3,realtimeDownlink,gTemp,8,C,8_bit_temp,AMSAT Gyro,4,10,3,Gyro Temp,Gyro temperature
+4,realtimeDownlink,Xspin,8,dps,8_bit_spin,AMSAT Gyro,4,1,3,X Rotation,Angular Velocity around X Axis
+5,realtimeDownlink,Yspin,8,dps,8_bit_spin,AMSAT Gyro,4,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,realtimeDownlink,Zspin,8,dps,8_bit_spin,AMSAT Gyro,4,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,realtimeDownlink,Xaccel,8,g,8_bit_accel,AMSAT Gyro,4,4,3,X Acceleration,Acceleration along X axis
+8,realtimeDownlink,Yaccel,8,g,8_bit_accel,AMSAT Gyro,4,5,3,Y Acceleration,Acceleration along Y  axis
+9,realtimeDownlink,Zaccel,8,g,8_bit_accel,AMSAT Gyro,4,6,3,Z Acceleration,Acceleration along Z axis
+10,realtimeDownlink,Xmag,8,uT,8_bit_mag,AMSAT Gyro,4,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,realtimeDownlink,Ymag,8,uT,8_bit_mag,AMSAT Gyro,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,realtimeDownlink,Zmag,8,uT,8_bit_mag,AMSAT Gyro,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,realtimeDownlink,hostCANTemp0,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),MESAT1 Batteries,6,4,3,Battery 1 Temp,Host Temp 1
+14,realtimeDownlink,hostCANTemp1,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),MESAT1 Batteries,6,5,3,Battery 2 Temp,Host Temp 2
+15,realtimeDownlink,hostCANTemp2,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),MESAT1 Batteries,6,6,3,Battery 3 Temp,Host Temp 3
+16,realtimeDownlink,hostCANTemp3,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),MESAT1 Batteries,6,7,3,Battery 4 Temp,Host Temp 4
+17,realtimeDownlink,hostCANTemp4,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),MESAT1 Batteries,6,8,3,Battery 5 Temp,Host Temp 5
+18,realtimeDownlink,hostTlm1,8,V,twenty-six_volt_8_bit,MESAT1 Solar Panels,7,5,3,Plus Y Volts,Host Analog 1
+19,realtimeDownlink,busV,8,V,golf-t_bus_voltage,AMSAT LTM Status,1,2,3,Bus Voltage,Vbatt Bus voltage
+20,realtimeDownlink,TxPAi,8,mA,golf-t_tx_current,AMSAT Transmitter,2,1,3,PA Current,Transmit power amplifier current
+21,realtimeDownlink,TxTemp,8,C,8_bit_temp,AMSAT Transmitter,2,2,3,TX Temperature,Transmitter card temperature
+22,realtimeDownlink,FwdPower,8,mW,mesat_power_out,AMSAT Transmitter,2,3,3,Fwd Power,Receiver card temperature
+23,realtimeDownlink,rssi,8,dBm,mesat_rssi,AMSAT Cmd Receiver,3,1,3,ICR RSSI,Received Signal Strength Indication
+24,realtimeDownlink,MinusYVolts,8,V,INT,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,realtimeDownlink,MinusXVolts,8,V,INT,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,realtimeDownlink,XVolts,8,V,INT,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
+27,realtimeDownlink,YVolts,8,V,INT,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,realtimeDownlink,MinusYTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,7,0,0,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,realtimeDownlink,MinusXTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),MESAT1 Solar Panels,7,2,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,realtimeDownlink,XTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),MESAT1 Solar Panels,7,1,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,realtimeDownlink,YTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,7,0,0,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+32,realtimeDownlink,LtVGACtl,8,V,icr_8bit_volts,AMSAT Transmitter,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+33,realtimeDownlink,hostTlm2,8,V,twenty-six_volt_8_bit,MESAT1 Solar Panels,7,6,3,Minus Y Volts,Host Analog 2
+34,realtimeDownlink,hostTlm3,8,V,twenty-six_volt_8_bit,MESAT1 Solar Panels,7,3,4,Plus X Volts,Host Analog 3
+35,realtimeDownlink,IHUcpuTemp,8,C,8_bit_temp,AMSAT LTM Status,1,1,3,IHU Temp,Internal Temperature of IHU
+36,realtimeDownlink,moduTemp,8,C,8_bit_temp,AMSAT Transmitter,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+37,realtimeDownlink,hostTlm4,8,V,twenty-six_volt_8_bit,MESAT1 Solar Panels,7,4,3,Minus X Volts,Host Analog 4
+38,realtimeDownlink,hostCANVolts0,8,V,8dot4_volt_8_bit,MESAT1 Batteries,6,1,3,Battery Voltage,Host Bat Volts 1
+39,realtimeDownlink,hostCANVolts1,8,-,MESAT1BatSOC|batsoc,MESAT1 Batteries,6,2,3,Battery Capacity,Host Bat Volts 2
+40,realtimeDownlink,hostCANVolts2,8,-,INT,NONE,0,0,0,Unused 2,Host Bat Volts 3
+41,realtimeDownlink,hostCANVolts3,8,mA,mesat_batt_current|invalid_check(2000 Invalid 0),MESAT1 Batteries,6,3,3,Battery Current,Host Bat Volts 4
+42,realtimeDownlink,hostCANVolts4,8,-,INT,NONE,0,0,0,Unused 4,Host Bat Volts 5
+43,realtimeDownlink,hostCANVolts5,8,-,INT,NONE,0,0,0,Unused 5,Host Bat Volts 6
+44,realtimeDownlink,hostCANVolts6,8,-,INT,NONE,0,0,0,UnusedV6,Host Voltage 7
+45,realtimeDownlink,hostI2cTemp0,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),Other MESAT1 Telemetry,9,1,3,BckBtmLft Temp,Interior Temp
+46,realtimeDownlink,hostI2cTemp1,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),Other MESAT1 Telemetry,9,2,3,Front Ctr Temp,Interior Temp
+47,realtimeDownlink,hostI2cTemp2,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),Other MESAT1 Telemetry,9,3,3,BckTopLft Temp,Interior Temp
+48,realtimeDownlink,hostI2cTemp3,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),Other MESAT1 Telemetry,9,4,3,FrontBtmLft Temp,Interior Temp
+49,realtimeDownlink,hostI2cTemp4,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),Other MESAT1 Telemetry,9,5,3,BckTopRgt Temp,Interior Temp
+50,realtimeDownlink,hostI2cTemp5,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),None,0,0,0,Unused 6,Interior Temp
+51,realtimeDownlink,hostCANTemp5,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),MESAT1 Batteries,6,9,3,Battery 6 Temp,Host Bat Temp 6
+52,realtimeDownlink,hostCANTemp11,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),Other MESAT1 Telemetry,9,6,3,Pi Temp,Host OBC Temp
+53,realtimeDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
+54,realtimeDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
+55,realtimeDownlink,DeploySense,8,-,BIN8,AMSAT LTM Status,1,3,0,Deployable Sense,TBD
+56,realtimeDownlink,wodSpare1,8,-,0,NONE,0,0,0,wodSpare1,spare
+57,realtimeDownlink,wodSpare2,1,-,0,NONE,0,0,0,wodSpare2,spare
+58,realtimeDownlink,AutoSafeAllowed,1,-,21,AMSAT LTM Status,1,4,0,Auto Safe Allowed,Autosafe Allowed
+59,realtimeDownlink,AutoSafeModeActive,1,-,21,AMSAT LTM Status,1,5,0,Auto Safe,Autosafe Mode Active
+60,realtimeDownlink,com2spareBit2,1,-,17,NONE,0,0,0,com2 Spare Bit 2,spare
+61,realtimeDownlink,com2spareBit3,1,-,17,NONE,0,0,0,com2 Spare Bit 3,spare
+62,realtimeDownlink,transponderEnabled,1,-,44,AMSAT Transmitter,2,6,0,Transponder Enabled,-
+63,realtimeDownlink,I2CfailureICR,1,-,17,AMSAT Cmd Receiver,3,5,0,I2cICR,ICR I2c ADC Not Working
+64,realtimeDownlink,DeploySenseOK,1,-,STATUS_1_EQ_OK,AMSAT LTM Status,1,6,0,Deploy Sense Ok,Antenna sensor is ok
+65,realtimeDownlink,TLMresets,8,-,1,AMSAT LTM Status,1,11,0,Min/Max Reset Count,Number of times command stations reset stored telemetry
+66,realtimeDownlink,wodSize,8,-,36,AMSAT LTM Status,1,7,0,WOD Stored,Number of WOD data payloads kept for each type (Housekeeping in MESat1)
+67,realtimeDownlink,swCmds,32,-,35,AMSAT Cmd Receiver,3,6,0,Diagnostic,ICR Diagnostic information
+68,realtimeDownlink,hwCmdCnt,8,-,1,AMSAT Cmd Receiver,3,7,0,HW Cmd Cnt ICR,Number of hardware commands since last reset
+69,realtimeDownlink,swCmdCntICR,8,-,34,AMSAT Cmd Receiver,3,8,0,SW Cmd Cnt ICR,Number of software commands since last reset
+70,realtimeDownlink,I2CfailureHostTemp,8,Bits,BIN5,Other MESAT1 Telemetry,9,7,0,Host Tmp Fail,Bits Indicate Host Temp Sensor Failure
+71,realtimeDownlink,hostBits0,1,-,STATUS_ENABLED,MESAT1 Distro States,8,13,0,On Board Computer,Host States Distro
+72,realtimeDownlink,hostBits1,1,-,STATUS_BIT,MESAT1 Distro States,8,14,0,      Overcurrent,-
+73,realtimeDownlink,hostBits2,1,-,STATUS_ENABLED,MESAT1 Distro States,8,15,0,CAN Controllers,-
+74,realtimeDownlink,hostBits3,1,-,STATUS_BIT,MESAT1 Distro States,8,16,0,     Overcurrent,-
+75,realtimeDownlink,hostBits4,1,-,STATUS_ENABLED,MESAT1 Distro States,8,1,0,Op Amps,-
+76,realtimeDownlink,hostBits5,1,-,STATUS_BIT,MESAT1 Distro States,8,2,0,    Over Current,-
+77,realtimeDownlink,hostBits6,1,-,STATUS_ENABLED,MESAT1 Distro States,8,3,0,Temp Sense,-
+78,realtimeDownlink,hostBits7,1,-,STATUS_BIT,MESAT1 Distro States,8,4,0,        Over Current,-
+79,realtimeDownlink,hostBits8,1,-,STATUS_ENABLED,MESAT1 Distro States,8,5,0,CPLD,Host States Distro
+80,realtimeDownlink,hostBits9,1,-,STATUS_BIT,MESAT1 Distro States,8,6,0,        Over Current,-
+81,realtimeDownlink,hostBits10,1,-,STATUS_ENABLED,MESAT1 Distro States,8,7,0,CAN Tranceiver,-
+82,realtimeDownlink,hostBits11,1,-,STATUS_BIT,MESAT1 Distro States,8,8,0,        Over Current,-
+83,realtimeDownlink,hostBits12,1,-,STATUS_ENABLED,MESAT1 Distro States,8,9,0,EyeStar STX3,-
+84,realtimeDownlink,hostBits13,1,-,STATUS_BIT,MESAT1 Distro States,8,10,0,        I V or T Bad,-
+85,realtimeDownlink,hostBits14,1,-,STATUS_ENABLED,MESAT1 Distro States,8,11,0,Detumble,-
+86,realtimeDownlink,hostBits15,1,-,STATUS_BIT,MESAT1 Distro States,8,12,0,        I V or T Bad,-
+87,realtimeDownlink,hostBits16,1,-,STATUS_BIT,MESAT1 Distro States,8,17,0,EyeStar Vout,Host States Distro
+88,realtimeDownlink,hostBits17,1,-,STATUS_1_EQ_OK,MESAT1 Distro States,8,18,0,Detumble Vout,-
+89,realtimeDownlink,hostBits18,1,-,STATUS_ENABLED,MESAT1 Distro States,8,19,0,8.4 to 5V DC/DC,-
+90,realtimeDownlink,hostBits19,1,-,STATUS_ENABLED,MESAT1 Distro States,8,20,0,8.4 to 5V Linear,-
+91,realtimeDownlink,hostBits20,1,-,STATUS_ENABLED,MESAT1 Distro States,8,21,0,8.4 to 3.3V DC/DC,-
+92,realtimeDownlink,hostBits21,1,-,STATUS_1_EQ_OK,MESAT1 Batteries,6,16,0,Batt Heartbeat,-
+93,realtimeDownlink,hostBits22,1,-,STATUS_1_EQ_OK,Other MESAT1 Telemetry,9,9,0,OBC Heartbeat,spare
+94,realtimeDownlink,hostBits23,1,-,PRIM_SECOND_ACTIVE,Other MESAT1 Telemetry,9,8,0,Which OBC Active,-
+95,realtimeDownlink,hostBits24,1,-,STATUS_ENABLED,MESAT1 Batteries,6,10,0,Battery 1 Heater,-
+96,realtimeDownlink,hostBits25,1,-,STATUS_ENABLED,MESAT1 Batteries,6,11,0,Battery 2 Heater,-
+97,realtimeDownlink,hostBits26,1,-,STATUS_ENABLED,MESAT1 Batteries,6,12,0,Battery 3 Heater,-
+98,realtimeDownlink,hostBits27,1,-,STATUS_ENABLED,MESAT1 Batteries,6,13,0,Battery 4 Heater,-
+99,realtimeDownlink,hostBits28,1,-,STATUS_ENABLED,MESAT1 Batteries,6,14,0,Battery 5 Heater,-
+100,realtimeDownlink,hostBits29,1,-,STATUS_ENABLED,MESAT1 Batteries,6,15,0,Battery 6 Heater,-
+101,realtimeDownlink,hostBits30,1,-,STATUS_1_EQ_OK,MESAT1 Solar Panels,7,7,0,MPPT Heartbeat,-
+102,realtimeDownlink,hostBits31,1,-,STATUS_1_EQ_OK,MESAT1 Distro States,8,22,0,Distro Heartbeat,-
+103,realtimeDownlink,LMRAMstatus,8,-,1,AMSAT LTM Status,1,8,0,MRAM Status,TBD
+104,realtimeDownlink,ModuLO,8,-,1,AMSAT Transmitter,2,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
+105,realtimeDownlink,ModuGain,8,-,1,AMSAT Transmitter,2,10,0,Modulator Reg 1,Modulator Register 1 - Gain
+106,realtimeDownlink,ModuPhaseOff,8,-,1,AMSAT Transmitter,2,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
+107,realtimeDownlink,ModuMode,8,-,1,AMSAT Transmitter,2,12,0,Modulator Reg 8,Modulator Register 8 - Mode
+108,realtimeDownlink,com2spare4,8,-,0,NONE,0,0,0,com2spare4,spare
+109,realtimeDownlink,com2spare5,8,-,0,NONE,0,0,0,com2spare5,spare
+110,realtimeDownlink,com2spare6,8,-,0,NONE,0,0,0,com2spare6,spare
+111,realtimeDownlink,com2spare7,8,-,0,NONE,0,0,0,com2spare7,spare
+112,realtimeDownlink,com2spare8,8,-,0,NONE,0,0,0,com2spare8,spare
+113,realtimeDownlink,com2spare9,8,-,0,NONE,0,0,0,com2spare9,spare
+114,realtimeDownlink,com2Spare10,1,-,0,NONE,0,0,0,com2Spare10,spare
+115,realtimeDownlink,moduValid,1,-,21,AMSAT Transmitter,2,8,0,Modulator Valid,If not valid then the displayed values are from the last valid read
+116,realtimeDownlink,eclipseAction,3,-,GOLF_ECLIPSE_ACTION,AMSAT LTM Status,1,9,0,Eclipse Action,-
+117,realtimeDownlink,inEclipse,1,-,21,AMSAT LTM Status,1,10,0,In Eclipse,-
+118,realtimeDownlink,ICRRxOn,1,-,1,AMSAT Cmd Receiver,3,2,0,ICR Receiver On,ICR RSSI Valid
+119,realtimeDownlink,ICRCarrierValid,1,-,1,AMSAT Cmd Receiver,3,9,0,ICR Carrier Valid,ICR Receiving Carrier
+120,realtimeDownlink,com2spare11,8,-,0,NONE,0,0,0,com2spare11,spare
+121,realtimeDownlink,com2spare12,8,-,0,NONE,0,0,0,com2spare12,spare
+122,realtimeDownlink,com2spare13,8,-,0,NONE,0,0,0,com2spare13,spare
+123,realtimeDownlink,com2spare14,8,-,0,NONE,0,0,0,com2spare14,spare
+124,realtimeDownlink,Pad161,32,-,0,NONE,0,0,0,Pad,Pad

@@ -67,4 +67,4 @@ track=false
 useIHUVBatt=false
 numberOfSources=1
 source0.name=amsat.fox-1e.ihu.bpsk
-source0.formatName=FOX_BPSK
+source0.formatName=BPSK 1200bps (Fox1E)

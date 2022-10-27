@@ -3,7 +3,6 @@ package common;
 import gui.MainWindow;
 import gui.ProgressPanel;
 import gui.SettingsFrame;
-import gui.SourceTab;
 import measure.SatPc32DDE;
 
 import java.awt.Color;
@@ -18,6 +17,7 @@ import java.util.Properties;
 
 import javax.swing.JOptionPane;
 
+import decoder.FoxFskDecoder;
 import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
 import telemetry.PayloadStore;
@@ -57,6 +57,7 @@ import uk.me.g4dpz.satellite.GroundStationPosition;
 public class Config {
 	public static Properties properties; // Java properties file for user defined values
 	public static String currentDir = "";  // this is the directory that the Jar file is in.  We read the spacecraft files from here
+	public static String editorCurrentDir = "";  // This is where the editor edits the spacecraft files
 	public static MainWindow mainWindow;
 	static UpdateManager updateManager; // for server only
 	static Thread updateManagerThread; // for server only
@@ -67,9 +68,9 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.11g";
-	public static String VERSION = VERSION_NUM + " - 6 Jul 2021";
-	public static final String propertiesFileName = "FoxTelem.properties";
+	public static String VERSION_NUM = "1.12z3";
+	public static String VERSION = VERSION_NUM + " - 27 Oct 2022";
+	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
 	public static final String MACOS = "mac";
@@ -149,6 +150,7 @@ public class Config {
 	static public boolean debugCameraFrames = false;
 	static public boolean debugBytes = false; // This prints the RAW bytes
 	static public boolean debugAudioGlitches = false; 
+	static public boolean debugAudioLevels = false; 
 	static public boolean debugSignalFinder = false;
 	static public int DEBUG_COUNT = -1;
 	static public boolean filterData = true; // Low Pass filter the data
@@ -161,8 +163,8 @@ public class Config {
 	static public boolean realTimePlaybackOfFile = false;
 	public static int useFilterNumber = 0;
 	public static boolean useLeftStereoChannel = true; // ***** true
-    public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
-    public static int format = SourceTab.FORMAT_FSK_DUV; 
+ //   public static int mode = SourceIQ.MODE_FSK_DUV; // true if we are running the decoder at 9600 bps
+    public static String format = FoxFskDecoder.DUV_FSK; //SourceTab.FORMAT_FSK_DUV; 
     public static boolean iq = false; // true if we are running the decoder in IQ mode
     public static boolean eliminateDC = true;
     public static boolean viewFilteredAudio = true;
@@ -193,7 +195,7 @@ public class Config {
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
-    public static String webSiteUrl = "http://www.amsat.org/tlm";
+    public static String webSiteUrl = "https://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
     // These are not saved to the file
@@ -241,9 +243,9 @@ public class Config {
 	static public double ANALYZE_SNR_THRESHOLD = 2.5d; // This is average signal in the filter band to average noise outside the filter
 	static public double BIT_SNR_THRESHOLD = 1.8d; 
 	
-	static public String newVersionUrl = "http://amsat.us/FoxTelem/version.txt";
-	static public String serverParamsUrl = "http://amsat.us/FoxTelem/server.txt";
-	static public String t0UrlPath = "http://amsat.org/tlm/ops/";
+	static public String newVersionUrl = "https://www.amsat.org/tlm/ops/version.txt";
+	static public String newServerParamsUrl = "https://www.amsat.org/tlm/ops/server.txt";
+	static public String t0UrlPath = "/ops/";
 	static public String t0UrlFile = "T0.txt";
 	static public boolean downloadT0FromServer = true;
 	
@@ -274,7 +276,7 @@ public class Config {
 	static public boolean saveFcdParams = false;
 	
 	// V1.07
-	static public boolean useNCO = true;
+//	static public boolean useNCO = true;
 	public static boolean showAudioOptions = true; 
 	public static boolean showSatOptions = true; 
 	public static boolean showSourceOptions = true; 
@@ -302,8 +304,12 @@ public class Config {
 	//V1.10
 	static public boolean calculateBPSKCrc = true;
 	
+	//V1.12
+	static public String python = ""; // this is the name and optionally the full path to python interpreter
+	static public String payloadHeaderGenScript = "gen_header.py";
 	
-	public static boolean missing() { 
+	public static boolean setup(String propertiesFileName) { 
+		Config.propertiesFileName = propertiesFileName;
 		File aFile = new File(Config.homeDirectory + File.separator + propertiesFileName );
 		if(!aFile.exists()){
 			return true;
@@ -336,6 +342,8 @@ public class Config {
 		
 		satManager = new SatelliteManager();
 		GROUND_STATION = new GroundStationPosition(0,0,0);; // needed for any Predict Calculations.
+		
+		
 	}		
 	public static void serverInit() {
 		basicInit();
@@ -646,7 +654,7 @@ public class Config {
 		properties.setProperty("realTimePlaybackOfFile", Boolean.toString(realTimePlaybackOfFile));
 		properties.setProperty("useFilterNumber", Integer.toString(useFilterNumber));
 		properties.setProperty("useLeftStereoChannel", Boolean.toString(useLeftStereoChannel));
-		properties.setProperty("highSpeed", Integer.toString(mode));
+//		properties.setProperty("highSpeed", Integer.toString(mode));
 		properties.setProperty("iq", Boolean.toString(iq));
 		properties.setProperty("eliminateDC", Boolean.toString(eliminateDC));
 		properties.setProperty("viewFilteredAudio", Boolean.toString(viewFilteredAudio));
@@ -720,7 +728,7 @@ public class Config {
 		properties.setProperty("SCAN_SIGNAL_THRESHOLD", Double.toString(SCAN_SIGNAL_THRESHOLD));
 		properties.setProperty("ANALYZE_SNR_THRESHOLD", Double.toString(ANALYZE_SNR_THRESHOLD));
 		properties.setProperty("BIT_SNR_THRESHOLD", Double.toString(BIT_SNR_THRESHOLD));
-		properties.setProperty("serverParamsUrl", serverParamsUrl);
+		properties.setProperty("newServerParamsUrl", newServerParamsUrl);
 		properties.setProperty("sendToBothServers", Boolean.toString(sendToBothServers));
 		properties.setProperty("downloadT0FromServer", Boolean.toString(downloadT0FromServer));
 		
@@ -772,7 +780,7 @@ public class Config {
 		
 		// V1.09
 		properties.setProperty("useCostas", Boolean.toString(useCostas));
-		properties.setProperty("format", Integer.toString(format));
+		properties.setProperty("format", format);
 		properties.setProperty("use12kHzIfForBPSK", Boolean.toString(use12kHzIfForBPSK));
 		
 		
@@ -780,6 +788,13 @@ public class Config {
 		// V1.10
 		properties.setProperty("calculateBPSKCrc", Boolean.toString(calculateBPSKCrc));
 
+		// V1.12
+		properties.setProperty("debugRS", Boolean.toString(debugRS));
+		properties.setProperty("debugAudioLevels", Boolean.toString(debugAudioLevels));
+		properties.setProperty("editorCurrentDir", editorCurrentDir);
+		properties.setProperty("python", python);
+		properties.setProperty("payloadHeaderGenScript", payloadHeaderGenScript);
+		
 		store();
 	}
 	
@@ -920,7 +935,7 @@ public class Config {
 		BIT_SNR_THRESHOLD = Double.parseDouble(getProperty("BIT_SNR_THRESHOLD"));
 		
 		
-		serverParamsUrl = getProperty("serverParamsUrl");
+		newServerParamsUrl = getProperty("newServerParamsUrl");
 		sendToBothServers = Boolean.parseBoolean(getProperty("sendToBothServers"));
 		downloadT0FromServer = Boolean.parseBoolean(getProperty("downloadT0FromServer"));
 	
@@ -943,7 +958,7 @@ public class Config {
 		
 		// Version 1.05
 		afSampleRate = Integer.parseInt(getProperty("afSampleRate"));
-		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
+//		mode = Integer.parseInt(getProperty("highSpeed")); // this was a boolean in earlier version.  Put at end so that other data loaded
 		foxTelemCalcsPosition = Boolean.parseBoolean(getProperty("foxTelemCalcsPosition"));
 		whenAboveHorizon = Boolean.parseBoolean(getProperty("whenAboveHorizon"));
 		insertMissingBits = Boolean.parseBoolean(getProperty("insertMissingBits"));
@@ -974,11 +989,18 @@ public class Config {
 		
 		// V1.09
 		useCostas = Boolean.parseBoolean(getProperty("useCostas"));
-		format = Integer.parseInt(getProperty("format"));
+		format = getProperty("format");
 		use12kHzIfForBPSK = Boolean.parseBoolean(getProperty("use12kHzIfForBPSK"));
 		
 		// V1.10
 		calculateBPSKCrc = Boolean.parseBoolean(getProperty("calculateBPSKCrc"));
+		
+		// V1.12
+		debugRS = Boolean.parseBoolean(getProperty("debugRS"));
+		debugAudioLevels = Boolean.parseBoolean(getProperty("debugAudioLevels"));
+		editorCurrentDir = getProperty("editorCurrentDir");
+		python = getProperty("python");
+		payloadHeaderGenScript = getProperty("payloadHeaderGenScript");
 		
 		} catch (NumberFormatException nf) {
 			catchException();
@@ -994,26 +1016,32 @@ public class Config {
 	}
 	
 	private static void catchException() {
+		//if (!Log.showGuiDialogs) {
+			Log.println("Error Loading " + Config.homeDirectory + File.separator + propertiesFileName + "\n"
+					+ "If this is a new release then the format has probablly been extended.\n"
+				+ "A new properties file has been created");
+			//System.exit(1);
+		//}
 		// Cant write to the log here as it is not initilized
 		//Log.println("Could not read properties file. Likely Corrupt.");
-		Object[] options = {"Yes",
-        "Exit"};
-		int n = JOptionPane.showOptionDialog(
-				MainWindow.frame,
-				"Could not read properties file. If this is a new release then the format has probablly been extended.\n"
-				+ "Should I create a new properties file after reading as much as possible from the existing one?",
-				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
-			    JOptionPane.YES_NO_OPTION,
-			    JOptionPane.ERROR_MESSAGE,
-			    null,
-			    options,
-			    options[0]);
-					
-		if (n == JOptionPane.YES_OPTION) {
+//		Object[] options = {"Yes",
+//        "Exit"};
+//		int n = JOptionPane.showOptionDialog(
+//				MainWindow.frame,
+//				"Could not read properties file. If this is a new release then the format has probablly been extended.\n"
+//				+ "Should I create a new properties file after reading as much as possible from the existing one?",
+//				"Error Loading " + Config.homeDirectory + File.separator + propertiesFileName,
+//			    JOptionPane.YES_NO_OPTION,
+//			    JOptionPane.ERROR_MESSAGE,
+//			    null,
+//			    options,
+//			    options[0]);
+//					
+//		if (n == JOptionPane.YES_OPTION) {
 			save();
 			Log.println("Created new properties file.");
-		} else
-			System.exit(1);
+//		} else
+//			System.exit(1);
 
 	}
 

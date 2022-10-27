@@ -30,6 +30,7 @@ import common.Log;
  *
  * This is the DUV Decoder
  */
+@Deprecated
 public class Fox200bpsDecoder extends FoxDecoder {
 
 	public static final int SLOW_SPEED_BITS_PER_SECOND = 200;
@@ -37,11 +38,13 @@ public class Fox200bpsDecoder extends FoxDecoder {
 	public static final int SYNC_WORD_LENGTH = 10;
 	private int useFilterNumber;
 	
+	@Deprecated
 	public Fox200bpsDecoder(SourceAudio as, int chan) {
-		super("DUV", as, chan);
+		super("DUV", as, chan, null);
 		//Log.println("STARTED filter len: " + Config.filterLength);
 	}
 	
+	@Deprecated
 	public void init() {
 		Log.println("Initializing SLOW SPEED: ");
 		setSlowSpeedParameters();
@@ -54,6 +57,7 @@ public class Fox200bpsDecoder extends FoxDecoder {
 	/**
 	 * Called if any of the filter params have changed
 	 */
+	@Deprecated
 	private void updateFilter() {
 		// Get the params that were set by the GUI
 		FilterPanel.checkFilterParams();

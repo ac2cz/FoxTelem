@@ -27,16 +27,19 @@ import filter.RaisedCosineFilter;
  * This is the High Speed Decoder
  * 
  */
+@Deprecated
 public class Fox9600bpsDecoder extends FoxDecoder {
 	public static int FOX_HIGH_SPEED_SYNC_WORD_DISTANCE = 52730; // 52790 - 6 bytes of header, 4600 data bytes, 672 parity bytes for 21 code words + 10 bit SYNC word
 	public static final int HIGH_SPEED_BITS_PER_SECOND = 9600;
 	public static final int WORD_LENGTH = 10;
 	public static final int SYNC_WORD_LENGTH = 10;
 	
+	@Deprecated
 	public Fox9600bpsDecoder(SourceAudio as, int chan) {
-		super("High Speed", as, chan);
+		super("High Speed", as, chan, null);
 	}
 
+	@Deprecated
 	public void init() {
 		Log.println("Initializing HIGH SPEED: ");
 		setHighSpeedParameters();

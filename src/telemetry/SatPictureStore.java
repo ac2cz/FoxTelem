@@ -2,6 +2,8 @@
 package telemetry;
 
 import gui.MainWindow;
+import telemetry.legacyPayloads.CameraJpeg;
+import telemetry.legacyPayloads.PictureScanLine;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -18,7 +20,7 @@ import javax.swing.JOptionPane;
 
 import common.Config;
 import common.Log;
-import common.FoxSpacecraft;
+import common.Spacecraft;
 
 /**
  * 
@@ -48,7 +50,7 @@ import common.FoxSpacecraft;
 public class SatPictureStore {
 
 	private static final int INIT_SIZE = 100;
-	private FoxSpacecraft fox;
+	private Spacecraft fox;
 	public int foxId;
 	public static String JPG_INDEX_NAME = "jpg_index.dat";
 	private String fileName = JPG_INDEX_NAME;
@@ -61,7 +63,7 @@ public class SatPictureStore {
 	 */
 	public SatPictureStore(int id) {
 		foxId = id;
-		fox = (FoxSpacecraft) Config.satManager.getSpacecraft(id);
+		fox = Config.satManager.getSpacecraft(id);
 		initPayloadFiles();
 	}
 

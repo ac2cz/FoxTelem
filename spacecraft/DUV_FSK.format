@@ -1,0 +1,14 @@
+name=FSK 200bps (Fox1)
+mode=FSK
+bps=200
+frame_length=96
+data_length=64
+header_length=6
+header_layout_file=DUV_header.csv
+trailer_length=32
+word_length=10
+sync_word_length=10
+rs_words=1
+rs_padding=159
+symbols_per_chunk=70
+rf_filter_width_hz=4000

@@ -14,9 +14,11 @@ import decoder.FoxDecoder;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
+import gui.graph.GraphCanvas;
+import gui.graph.LinePlotPanel;
+import telemetry.Format.TelemFormat;
 import decoder.Decoder;
 import decoder.EyeData;
-import decoder.Fox9600bpsDecoder;
 
 /** 
  * FOX 1 Telemetry Decoder
@@ -86,8 +88,8 @@ public class EyePanel extends JPanel implements Runnable {
 	}
 
 	private void init() {
-		if (decoder instanceof Fox9600bpsDecoder) SAMPLES = 5; 
-		else if (decoder instanceof FoxBPSKDecoder) SAMPLES = 8;
+		if (decoder.telemFormat.isFSK() && decoder.telemFormat.getInt(TelemFormat.BPS) == 9600) SAMPLES = 5; 
+		else if (decoder.telemFormat.isBPSK()) SAMPLES = 8;
 		else SAMPLES = decoder.getBucketSize()/2;
 		buffer = new int[NUMBER_OF_BITS][];
 		for (int i=0; i < NUMBER_OF_BITS; i++) {
@@ -263,7 +265,7 @@ public class EyePanel extends JPanel implements Runnable {
 
 		g2.drawLine(graphWidth/2 + border*2 , (int)high, graphWidth/2 + border*2, (int)low);
 
-		double r = GraphPanel.roundToSignificantFigures(bitSNR,2);
+		double r = LinePlotPanel.roundToSignificantFigures(bitSNR,2);
 		String s = Double.toString(r) + "";
 		g.drawString(s, graphWidth/2 -25  + border*2, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars
 		g.drawString("SNR", graphWidth/2 + 10  + border*2, (int)(low + high)/2 + 5  );  // Height is the middle of the SNR bars

@@ -75,7 +75,7 @@ public class SourceWav extends SourceAudio implements Runnable {
         framesProcessed = 0;
 	}
 	
-	public void stop() {
+	public void stop(String caller) {
 		running = false;
 		cleanup();
 	}
@@ -205,6 +205,12 @@ public class SourceWav extends SourceAudio implements Runnable {
 	    	e.printStackTrace();
 	    }
 	    Log.println("WAV Source EXIT");
+	}
+	
+	public int getLengthInSeconds() {
+		// number of frames divided by the frame rate
+		int seconds = (int) (totalFrames / Config.wavSampleRate);
+		return seconds;
 	}
 
 	public int getPercentProgress() {

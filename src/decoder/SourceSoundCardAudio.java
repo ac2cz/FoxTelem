@@ -78,7 +78,8 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 		targetDataLine.start();
 	}
 	
-	public void stop() {
+	public void stop(String caller) {
+		Log.println("** STOP CALLED by " + caller + " for "+ this.getClass().getName() +"\n");
 		running = false;
 		if (targetDataLine != null) {
 			targetDataLine.stop();
@@ -193,7 +194,7 @@ public class SourceSoundCardAudio extends SourceAudio implements Runnable {
 
 		Info sdlLineInfo = new DataLine.Info(TargetDataLine.class, makeAudioFormat(sampleRate));
 		
-		stop();
+		stop("setDevice");
 
 		targetDataLine = (TargetDataLine) appMixer.getLine(sdlLineInfo);
 

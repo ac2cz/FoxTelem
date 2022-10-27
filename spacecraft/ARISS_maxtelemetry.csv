@@ -1,0 +1,20 @@
+19,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,MAX,fieldName,8,-,0,NONE,0,0,0,Name,Add description in this column
+1,MAX,xruns,16,-,0,NONE,0,0,0,Xruns,Number of times the audio underran or overran this period
+2,MAX,loop_time,8,ms,0,NONE,0,0,0,Audio Loop,None
+3,MAX,cpu_speed,8,MHz,0,NONE,0,0,0,Proc Speed,None
+4,MAX,data2,8,-,0,NONE,0,0,0,None,None
+5,MAX,data3,8,-,0,NONE,0,0,0,None,None
+6,MAX,pad1,32,-,0,NONE,0,0,0,None,None
+7,MAX,pad2,32,-,0,NONE,0,0,0,None,None
+8,MAX,pad3,32,-,0,NONE,0,0,0,None,None
+9,MAX,pad4,32,-,0,NONE,0,0,0,None,None
+10,MAX,pad5,32,-,0,NONE,0,0,0,None,None
+11,MAX,pad6,32,-,0,NONE,0,0,0,None,None
+12,MAX,pad7,32,-,0,NONE,0,0,0,None,None
+13,MAX,pad8,32,-,0,NONE,0,0,0,None,None
+14,MAX,pad9,32,-,0,NONE,0,0,0,None,None
+15,MAX,pad10,32,-,0,NONE,0,0,0,None,None
+16,MAX,pad11,32,-,0,NONE,0,0,0,None,None
+17,MAX,pad12,32,-,0,NONE,0,0,0,None,None
+18,MAX,pad13,8,-,INT,NONE,0,0,0,None,None

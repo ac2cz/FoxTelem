@@ -13,12 +13,16 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import common.Config;
 import common.Log;
 import gui.MainWindow;
-import telemetry.FoxBPSK.FoxBPSKFrame;
+import telemetry.Format.FormatFrame;
+import telemetry.frames.Frame;
+import telemetry.frames.HighSpeedFrame;
+import telemetry.frames.SlowSpeedFrame;
 
+@SuppressWarnings("deprecation")
 public abstract class RawQueue implements Runnable {
 	ConcurrentLinkedQueue<Frame> rawSlowSpeedFrames;
 	ConcurrentLinkedQueue<Frame> rawHighSpeedFrames;
-	ConcurrentLinkedQueue<Frame> rawPSKFrames;
+	ConcurrentLinkedQueue<Frame> formatFrames;
 	@SuppressWarnings("unused")
 	protected boolean updatedSlowQueue = false;
 	@SuppressWarnings("unused")
@@ -58,12 +62,7 @@ public abstract class RawQueue implements Runnable {
 				rawSlowSpeedFrames.add(frame);
 			}
 			updatedSlowQueue = true;
-		} else if (type == Frame.PSK_FRAME) {
-			while (reader.ready()) {
-				frame = new FoxBPSKFrame(Config.satManager.getFormatByName("FOX_BPSK"), reader); // TO DO format should come from satManager
-				rawPSKFrames.add(frame);
-			}
-			updatedPSKQueue = true;
+		
 		} else if (type == Frame.HIGH_SPEED_FRAME) {
 			//size = HighSpeedFrame.MAX_HEADER_SIZE + HighSpeedFrame.MAX_PAYLOAD_SIZE 
 			//		+ HighSpeedFrame.MAX_TRAILER_SIZE;
@@ -72,10 +71,15 @@ public abstract class RawQueue implements Runnable {
 				rawHighSpeedFrames.add(frame);
 			}
 			updatedHSQueue = true;
+		} else { // format frame
+			while (reader.ready()) {
+				frame = new FormatFrame(reader); // The format is looked up based on the source
+				formatFrames.add(frame);
+			}
+			updatedPSKQueue = true;
 		}
-
 		dis.close();
-		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.rawPSKFrames.size());
+		MainWindow.setTotalQueued(this.rawSlowSpeedFrames.size() + this.rawHighSpeedFrames.size() + this.formatFrames.size());
 
 	}
 

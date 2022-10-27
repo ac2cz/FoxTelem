@@ -1,0 +1,19 @@
+CurveName,a,bx,cx^2,dx^3,ex^4,fx^5,Description
+txv2_fwd_pwr,-49.6229734398,158.232743264,-141.228945235,58.7670857716,-9.14994547964,0,Forward power in dBm. Apply to the voltage value from the icr_8bit_volts output
+txv2_ref_pwr,-1.854392696,11.560288841,14.662557736,0.19214527838,0,0,Reflected power in dBm. Apply to the voltage value from the icr_8bit_volts output
+8_bit_temp,-20,0.5,0,0,0,0,gtemp RT1Temp and RT2Temp IHU supplies as 7.1 fixed point with offset of 20
+golf-t_bus_voltage,0,0.0399,0,0,0,0,0-255 means 0-13.61V
+golf-t_tx_current,0,5.725,0,0,0,0,Milliamps of Power Amp Current
+8_bit_accel,-2,0.015625,0,0,0,0,Gs (range=+/- 2)
+8_bit_mag,-76.8,0.6,0,0,0,0,Microteslas (range = ~ +/- 76.8)
+8_bit_spin,-3.9,0.0305,0,0,0,0,Degrees per second (range=about +/- 46  a should be 3.9)
+icrv2_rssi,-336.52444603906,495.2580641155,-354.14480865579,91.786916380662,0,0,RSSI dBm. Apply to the voltage value from the icr_8bit_volts output
+icr_8bit_volts,0,0.01419,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
+icr_8bit_millivolts,0,14.19,0,0,0,0,"ICR Voltage Divider, ADC 2.5V Reference, 8-bit output"
+twenty-six_volt_8_bit,0,0.101960784,0,0,0,0,Special volts for MESAT1 solar panels (0-255 = 0-26V)
+mesat_batt_capacity,0.001,0.392156862,0,0,0,0,MESAT1 Battery Capacity 0-255 =  0 – 10675mAh
+mesat_batt_current,-2000,15.68627451,0,0,0,0,MESAT1 Battery Current 0-255 = -2000 to +2000mA
+mesat_rssi,-148.09545328,2.123904012,-0.0246929688,0.0001256652,0,0,MESAT1 SN37 RSSI vs IHU ADC raw output
+mesat_power_out,94.205789268,-5.9941501322,0.07160461657,0.0001968708,0,0,MESAT1 SN37 Power out mW vs ADC raw output
+mesat_batt_temp,-50,1.294117647,0,0,0,0,MESAT1 Battery Temperature
+10_volt_8_bit,0,0.039215686,0,0,0,0,MESAT1 Battery Total Volts

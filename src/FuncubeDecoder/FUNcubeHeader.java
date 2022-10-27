@@ -4,7 +4,6 @@ import common.Spacecraft;
 import decoder.FoxDecoder;
 import telemetry.BitArray;
 import telemetry.BitArrayLayout;
-import telemetry.Conversion;
 import telemetry.FramePart;
 
 public class FUNcubeHeader extends BitArray {

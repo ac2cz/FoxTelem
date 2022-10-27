@@ -14,6 +14,7 @@ import common.Log;
 import decoder.FoxDecoder;
 import decoder.FoxBPSK.FoxBPSKCostasDecoder;
 import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
+import gui.graph.GraphCanvas;
 import decoder.Decoder;
 import decoder.EyeData;
 

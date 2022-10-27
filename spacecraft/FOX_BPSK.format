@@ -1,4 +1,4 @@
-name=FOX_BPSK
+name=BPSK 1200bps (Fox1E)
 mode=BPSK
 bps=1200
 frame_length=572
@@ -9,3 +9,5 @@ word_length=10
 sync_word_length=31
 rs_words=3
 rs_padding=64,64,65
+symbols_per_chunk=100
+rf_filter_width_hz=5000

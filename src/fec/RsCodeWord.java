@@ -24,7 +24,7 @@ public class RsCodeWord  {
 	// Reed-Solomon decoder constants
 	public static final int NN = 255;
 	public static final int DATA_BYTES = 223;
-	private static final int NROOTS = 32;
+	public static final int NROOTS = 32;
 	private static final int FCR = 112;
 	private static final int PRIM = 11;
 	private static final int IPRIM = 116;
@@ -209,7 +209,7 @@ public class RsCodeWord  {
 		try {
 			/* form the syndromes; i.e., evaluate data(x) at roots of g(x) */
 			for(i=0;i<NROOTS;i++)
-				s[i] = data[0];
+				s[i] = data[0] & 0xff;
 
 			for(j=1;j<NN;j++){
 				for(i=0;i<NROOTS;i++){

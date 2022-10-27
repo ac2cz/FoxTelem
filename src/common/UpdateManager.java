@@ -59,12 +59,12 @@ public class UpdateManager implements Runnable {
 	}
 	
 	private void updateServerParams() throws IOException {
-		if (Config.serverParamsUrl != null) {
+		if (Config.newServerParamsUrl != null) {
 			BufferedReader in = null;
 			Properties serverProperties = new Properties();
 			try {
-				Log.println("Reading server params from: "+ Config.serverParamsUrl);
-				URL server = new URL(Config.serverParamsUrl);
+				Log.println("Reading server params from: "+ Config.newServerParamsUrl);
+				URL server = new URL(Config.newServerParamsUrl);
 				in = new BufferedReader(
 						new InputStreamReader(server.openStream()));
 
@@ -115,13 +115,62 @@ public class UpdateManager implements Runnable {
 			}
 		}
 	}
-		
-	public void updateT0(FoxSpacecraft sat) {
-		String urlString = Config.t0UrlPath + "FOX" + sat.foxId + Config.t0UrlFile;
-		String file = "FOX" + sat.foxId + Config.t0UrlFile;
+	
+	public void deleteT0(Spacecraft sat) {
+		String file = sat.series + sat.foxId + Config.t0UrlFile;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
-			file = Config.logFileDirectory + File.separator + "FOX" + sat.foxId + Config.t0UrlFile;			
+			file = Config.logFileDirectory + File.separator + file;			
 		}
+		Log.println("Deleting: " + file);
+		try {
+			SatPayloadStore.remove(file);
+			sat.loadTimeZeroSeries(null);
+		} catch (IOException e) {
+			Log.println("Could not delete T0 file: " + file);
+			e.printStackTrace(Log.getWriter());
+		}
+	}
+	
+	/**
+	 * Load the T0 file without downloading it
+	 * @param sat
+	 */
+	public void loadT0(Spacecraft sat) {
+	
+		String file = sat.series + sat.foxId + Config.t0UrlFile;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;			
+		}
+		try {
+			File f2 = new File(file);
+			if (f2.exists()) {
+				Log.println("Loading T0: " + file);
+				sat.loadTimeZeroSeries(file); // load the existing
+			} else
+				sat.loadTimeZeroSeries(null); // load the default
+	
+		} catch (IOException e) {
+			Log.println("Could not open T0 file: " + file);
+			//e.printStackTrace(Log.getWriter());
+		} catch (IndexOutOfBoundsException e) {
+			Log.println("T0 file is corrupt - likely missing reset in sequence or duplicate reset: " + file);
+			//e.printStackTrace(Log.getWriter());
+		} finally {
+
+		}
+	}
+		
+	/**
+	 * Download the T0 file from the server and load it
+	 * @param sat
+	 */
+	public void updateT0(Spacecraft sat) {
+		String urlString = Config.webSiteUrl+ Config.t0UrlPath + sat.series + sat.foxId + Config.t0UrlFile;
+		String file = sat.series + sat.foxId + Config.t0UrlFile;
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			file = Config.logFileDirectory + File.separator + file;			
+		}
+		Log.println("Trying to download: " + urlString);
 		URL website;
 		FileOutputStream fos = null;
 		ReadableByteChannel rbc = null;
@@ -205,7 +254,7 @@ public class UpdateManager implements Runnable {
 	}
 
 	private void recommendUpgrade(String ver, String notes) {
-		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
+		String message = "Version " +ver+ " of FoxTelem is available!  Do you want to go to https://www.g0kla.com/foxtelem to download it?\n"
 				+ "Release information:\n" + notes;
 		Object[] options = {"Yes",
 		"No"};
@@ -225,7 +274,7 @@ public class UpdateManager implements Runnable {
 	}
 	
 	private void requireUpgrade(String ver, String notes) {
-		String message = "You must upgrade to FoxTelem Version " +ver + "  Do you want to go to amsat.us/FoxTelem/ to download it?\n"
+		String message = "You must upgrade to FoxTelem Version " +ver + "  Do you want to go to https://www.g0kla.com/foxtelem to download it?\n"
 				+ "Release information:\n" + notes;
 		Object[] options = {"Yes",
 		"No"};
@@ -247,21 +296,14 @@ public class UpdateManager implements Runnable {
 	}
 	
 	private void gotoSite() {
-		String url = "http://amsat.us/FoxTelem/windows";
-		if (Config.isMacOs())
-			url = "http://amsat.us/FoxTelem/mac";
-		if (Config.isLinuxOs())
-			url = "http://amsat.us/FoxTelem/linux";
+		String url = "https://www.g0kla.com/foxtelem";
+		
 		try {
 			DesktopApi.browse(new URI(url));
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-	}
-
-	private void updateKeps() {
-		Config.satManager.fetchTLEFile();
 	}
 	
 	boolean worldHasNotEnded = true;
@@ -279,12 +321,12 @@ public class UpdateManager implements Runnable {
 			}
 		
 		// Update Keps is called at startup by the SatelliteManager.  This just calls it periodically if FoxTelem left running.
-		
+		if (!server)
 		if (Config.downloadT0FromServer) {
 			ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 			for (int i=0; i<sats.size(); i++) {
 				//if (sats.get(i).isFox1())
-					updateT0((FoxSpacecraft)sats.get(i));
+					updateT0(sats.get(i));
 			}
 		}
 
@@ -316,15 +358,18 @@ public class UpdateManager implements Runnable {
 					}
 				}
 			
-			if (!server)
+			
 				if (elapsed % T0_UPDATE_PERIOD == 0) {
 					if (Config.downloadT0FromServer) {
 						ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 						for (int i=0; i<sats.size(); i++) {
 							//if (sats.get(i).isFox1()) {
-								FoxSpacecraft fox = (FoxSpacecraft) sats.get(i);
-								if (fox.hasFixedReset) {
-									updateT0((FoxSpacecraft)sats.get(i));
+							Spacecraft fox = sats.get(i);
+								if (!fox.hasFixedReset) { // only HuskySat had a fixed reset that did not change.  This logic runs for all other sats
+									if (!server)
+										updateT0(sats.get(i));
+									else
+										loadT0(sats.get(i)); // on the server we only load it
 								}
 							//}
 						}
@@ -332,19 +377,25 @@ public class UpdateManager implements Runnable {
 				}
 			
 			if (elapsed % KEP_UPDATE_PERIOD == 0) {
-				if (Config.foxTelemCalcsPosition)
-					updateKeps();
-				elapsed = 0;
-			}
-				
-			if (server)
-				if (Config.downloadT0FromServer) {
+				if (!server) {
+					if (Config.foxTelemCalcsPosition)
+						Config.satManager.fetchTLEFile();
+				} else {
+					// on the server we dont parse the nasa tle file.  Instead we just load the TLE list from disk.
 					ArrayList<Spacecraft> sats = Config.satManager.getSpacecraftList();
 					for (int i=0; i<sats.size(); i++) {
-						//if (sats.get(i).isFox1())
-							updateT0((FoxSpacecraft)sats.get(i));
+
+						Spacecraft fox = sats.get(i);
+						fox.loadTleHistory();
+						
 					}
-				}		
+				}
+				elapsed = 0;
+			}
+			
+			// On the server we don't need to download T0 and the keps but we do need to periodically reload them
+			// This is only mainly by the WebService
+				
 		}
 	}
 

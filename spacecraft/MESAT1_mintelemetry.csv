@@ -1,0 +1,62 @@
+61,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,minDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,NONE,2,4,3,Ref Power,Reflected Power from the Transmit Antenna
+1,minDownlink,ICR3VProt,8,V,icr_8bit_volts,NONE,3,3,3,3.3V Prot,ICR 3V Protected
+2,minDownlink,ICRTemp,8,C,8_bit_temp,NONE,3,4,3,ICR Temp,ICR Temperature
+3,minDownlink,gTemp,8,C,8_bit_temp,NONE,4,10,3,Gyro Temp,Gyro temperature
+4,minDownlink,Xspin,8,dps,8_bit_spin,NONE,4,1,3,X Rotation,Angular Velocity around X Axis
+5,minDownlink,Yspin,8,dps,8_bit_spin,NONE,4,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,minDownlink,Zspin,8,dps,8_bit_spin,NONE,4,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,minDownlink,Xaccel,8,g,8_bit_accel,NONE,4,4,3,X Acceleration,Acceleration along X axis
+8,minDownlink,Yaccel,8,g,8_bit_accel,NONE,4,5,3,Y Acceleration,Acceleration along Y  axis
+9,minDownlink,Zaccel,8,g,8_bit_accel,NONE,4,6,3,Z Acceleration,Acceleration along Z axis
+10,minDownlink,Xmag,8,uT,8_bit_mag,NONE,4,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,minDownlink,Ymag,8,uT,8_bit_mag,NONE,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,minDownlink,Zmag,8,uT,8_bit_mag,NONE,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,minDownlink,hostCANTemp0,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),NONE,6,4,3,Battery 1 Temp,Host Temp 1
+14,minDownlink,hostCANTemp1,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),NONE,6,5,3,Battery 2 Temp,Host Temp 2
+15,minDownlink,hostCANTemp2,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),NONE,6,6,3,Battery 3 Temp,Host Temp 3
+16,minDownlink,hostCANTemp3,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),NONE,6,7,3,Battery 4 Temp,Host Temp 4
+17,minDownlink,hostCANTemp4,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),NONE,6,8,3,Battery 5 Temp,Host Temp 5
+18,minDownlink,hostTlm1,8,V,twenty-six_volt_8_bit,NONE,7,5,3,Plus Y Volts,Host Analog 1
+19,minDownlink,busV,8,V,golf-t_bus_voltage,NONE,1,2,3,Bus Voltage,Vbatt Bus voltage
+20,minDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,2,1,3,PA Current,Transmit power amplifier current
+21,minDownlink,TxTemp,8,C,8_bit_temp,NONE,2,2,3,TX Temperature,Transmitter card temperature
+22,minDownlink,FwdPower,8,mW,mesat_power_out,NONE,2,3,3,Fwd Power,Receiver card temperature
+23,minDownlink,rssi,8,dBm,mesat_rssi,NONE,3,1,3,ICR RSSI,Received Signal Strength Indication
+24,minDownlink,MinusYVolts,8,V,INT,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,minDownlink,MinusXVolts,8,V,INT,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,minDownlink,XVolts,8,V,INT,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
+27,minDownlink,YVolts,8,V,INT,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,minDownlink,MinusYTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,7,0,0,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,minDownlink,MinusXTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,7,2,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,minDownlink,XTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,7,1,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,minDownlink,YTemp,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,7,0,0,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+32,minDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+33,minDownlink,hostTlm2,8,V,twenty-six_volt_8_bit,NONE,7,6,3,Minus Y Volts,Host Analog 2
+34,minDownlink,hostTlm3,8,V,twenty-six_volt_8_bit,NONE,7,3,4,Plus X Volts,Host Analog 3
+35,minDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,1,1,3,IHU Temp,Internal Temperature of IHU
+36,minDownlink,moduTemp,8,C,8_bit_temp,NONE,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+37,minDownlink,hostTlm4,8,V,twenty-six_volt_8_bit,NONE,7,4,3,Minus X Volts,Host Analog 4
+38,minDownlink,hostCANVolts0,8,V,8dot4_volt_8_bit,NONE,6,1,3,Battery Voltage,Host Bat Volts 1
+39,minDownlink,hostCANVolts1,8,-,MESAT1BatSOC|batsoc,NONE,6,2,3,Battery Capacity,Host Bat Volts 2
+40,minDownlink,hostCANVolts2,8,-,INT,NONE,0,0,0,Unused 2,Host Bat Volts 3
+41,minDownlink,hostCANVolts3,8,mA,mesat_batt_current|invalid_check(2000 Invalid 0),NONE,6,3,3,Battery Current,Host Bat Volts 4
+42,minDownlink,hostCANVolts4,8,-,INT,NONE,0,0,0,Unused 4,Host Bat Volts 5
+43,minDownlink,hostCANVolts5,8,-,INT,NONE,0,0,0,Unused 5,Host Bat Volts 6
+44,minDownlink,hostCANVolts6,8,-,INT,NONE,0,0,0,UnusedV6,Host Voltage 7
+45,minDownlink,hostI2cTemp0,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,9,1,3,BckBtmLft Temp,Interior Temp
+46,minDownlink,hostI2cTemp1,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,9,2,3,Front Ctr Temp,Interior Temp
+47,minDownlink,hostI2cTemp2,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,9,3,3,BckTopLft Temp,Interior Temp
+48,minDownlink,hostI2cTemp3,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,9,4,3,FrontBtmLft Temp,Interior Temp
+49,minDownlink,hostI2cTemp4,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,9,5,3,BckTopRgt Temp,Interior Temp
+50,minDownlink,hostI2cTemp5,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),None,0,0,0,Unused 6,Interior Temp
+51,minDownlink,hostCANTemp5,8,C,mesat_batt_temp|invalid_check(280 Invalid 0),NONE,6,9,3,Battery 6 Temp,Host Bat Temp 6
+52,minDownlink,hostCANTemp11,8,C,8_bit_temp|invalid_check(107.5 Invalid 1),NONE,9,6,3,Pi Temp,Host OBC Temp
+53,minDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
+54,minDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
+55,minDownlink,minTimestampUptime,32,-,0,NONE,0,0,0,Min Last Chg Secs,Min Last Change Secs
+56,minDownlink,minTimestampEpoch,16,-,TIMESTAMP minTimestampEpoch minTimestampUptime,Min Max Info,5,2,0,Min Last Change,Min Last Change Epoch
+57,minDownlink,minmaxResetEpoch,16,-,TIMESTAMP minmaxResetEpoch minmaxResetSecs,Min Max Info,5,3,0,MinMax Reset Time,MinMax Reset Epoch
+58,minDownlink,minmaxResetSecs,32,-,0,NONE,0,0,0,Reset Secs,MinMax Reset Secs
+59,minDownlink,minCRCerror,8,-,INT,Min Max Info,5,5,0,Min CRC Error Count,CRC Error for the min payload
+60,minDownlink,Pad178,24,-,0,NONE,0,0,0,Filler,-

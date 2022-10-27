@@ -27,9 +27,10 @@ import java.util.TimeZone;
 import common.Log;
 import telemetry.FramePart;
 import telemetry.PayloadDbStore;
-import telemetry.uw.CanPacket;
+import telemetry.uw.UwCanPacket;
 import telemetry.uw.PcanPacket;
 
+@Deprecated
 public class StreamProcess implements Runnable {
 	public static final int REFRESH_PERIOD = 1000; // Check every second
 	public static final int HEARTBEAT_PERIOD = 60; // Number of REFRESH PERIODS before we sent a heatbeat
@@ -161,7 +162,7 @@ public class StreamProcess implements Runnable {
 			} else {
 				Log.println(user + ":Logged in for streaming..");
 			}
-			CanPacket lastCan = (CanPacket) payloadDbStore.getLatestUwCanPacket(sat);
+			UwCanPacket lastCan = (UwCanPacket) payloadDbStore.getLatestUwCanPacket(sat);
 			int lastPktId;
 
 			if (lastCan.getFoxId() == 0) // there are no CAN Packets yet
@@ -194,7 +195,7 @@ public class StreamProcess implements Runnable {
 						Log.println(user + ":ERROR: Could not parse captureDate.  Setting to current time: " + can.id + " "+ can.resets + ":" + can.uptime +" " + can.getType());
 						captureDate = Calendar.getInstance().getTime(); // this is really worst case.  NULL might have been better
 					}
-					PcanPacket pc = ((CanPacket)can).getPCanPacket(captureDate);
+					PcanPacket pc = ((UwCanPacket)can).getPCanPacket(captureDate);
 					byte[] bytes = pc.getBytes();
 					if (user.equalsIgnoreCase(GUEST) || (connectedUsers.get(user) != null && connectedUsers.get(user) == true)) {
 						try {
@@ -218,7 +219,7 @@ public class StreamProcess implements Runnable {
 						if (resp != null && resp.equalsIgnoreCase("ACK")) {
 							count++;
 							heartBeatCount = 0; // no need to check the connection
-							lastCan = (CanPacket)can; // make a note each time we send one
+							lastCan = (UwCanPacket)can; // make a note each time we send one
 							prevPktId = lastPktId;
 							lastPktId = lastCan.pkt_id;
 							if (!user.equalsIgnoreCase(GUEST))

@@ -52,11 +52,11 @@ import common.Log;
 public class HelpAbout extends JDialog implements ActionListener {
 
 	private JPanel contentPane;
-	private final String AMSAT = "http://www.amsat.org";
-	private final String FOX = "http://ww2.amsat.org/?page_id=1113";
+	private final String AMSAT = "https://www.amsat.org";
+	private final String FOX = "https://www.g0kla.com/foxtelem/";
 	public final static String MANUAL = "foxtelem_manual.pdf";
-	public final static String LEADERBOARD = "http://www.amsat.org/tlm/";
-	public final static String SOFTWARE = "http://www.g0kla.com/foxtelem/";
+	public final static String LEADERBOARD = "https://www.amsat.org/tlm/";
+	public final static String SOFTWARE = "https://www.g0kla.com/foxtelem/";
 	JButton btnClose;
 	
 	/**
@@ -107,10 +107,10 @@ public class HelpAbout extends JDialog implements ActionListener {
 		
 		
 //		addLine("<html>Written by <b>Chris Thompson AC2CZ</b><br><br></html>", northApanel);
-		addUrl("Written by ", "www.g0kla.com", "<b>Chris Thompson</b>", " AC2CZ", northApanel);
+		addUrl("Written by ", "https://www.g0kla.com", "<b>Chris Thompson</b>", " AC2CZ", northApanel);
 		addUrl("You can browse ", MANUAL, "the manual", " for help", northApanel);
 		
-		addUrl("Visit the ", FOX, "Amsat Fox", " pages to learn more about Fox-1 and the Radio Amateur Satellite Corporation.", northApanel);
+		addUrl("Visit the ", FOX, "FoxTelem", " pages to learn more about Fox-1 and the Radio Amateur Satellite Corporation.", northApanel);
 		addUrl("Please consider ", AMSAT, "donating", " to this and future AMSAT missions", northApanel);
 		addLine(" ", northApanel);
 		addUrl("\nThis program is distributed in the hope that it will be useful, "
@@ -119,12 +119,12 @@ public class HelpAbout extends JDialog implements ActionListener {
 				"http://www.gnu.org/licenses/gpl-3.0.en.html", "<b>GNU General Public License</b>", " for more details. ", northApanel);
 		addLine(" ", northApanel);
 		addLine("This software also includes:", northApanel);
-		addUrl("- Phil Karn (KA9Q) RS Decoder, ported to Java by ", "https://github.com/phlash/java-sdr", "<b>Phil Ashby M6IPX</b>", ", (part of the FUNcube team) released under the CC Non-Commercial Share Alike license", northApanel);
+		addUrl("- Phil Karn (KA9Q) RS Decoder, ported to Java by ", "https://github.com/phlash", "<b>Phil Ashby M6IPX</b>", ", (part of the FUNcube team) released under the CC Non-Commercial Share Alike license", northApanel);
 		addUrl("- Portions of SdrTrunk DSP code for AirSpy and RTL USB by ", "https://github.com/DSheirer/sdrtrunk", "<b>DSheirer</b>", ", released underGPL", northApanel);
 		addUrl("- Purejavahid library developed by ", "https://github.com/nyholku/purejavahidapi", "<b>Kustaa Nyholm / SpareTimeLabs</b>", ", released under the BSD license", northApanel);
 		addUrl("- JTransforms FFT library developed by ", "https://sites.google.com/site/piotrwendykier/software/jtransforms", "<b>Piotr Wendykier</b>", ", released under the BSD license", northApanel);
 		addUrl("- Java DDE developed by ", "http://jdde.pretty-tools.com/", "<b>Pretty Tools</b>", ", released as free and opensource", northApanel);
-		addUrl("- Java Predict Port by ", "https://github.com/badgersoftdotcom/predict4java", "<b>G4DPZ</b>", ", released under GPL", northApanel);
+		addUrl("- Java Predict Port by ", "https://github.com/g4dpz/predict4java", "<b>G4DPZ</b>", ", released under GPL", northApanel);
 		addUrl("- Predict is by", "http://www.qsl.net/kd2bd/predict.html", "<b>KD2BD</b>", ", released under GPL", northApanel);
 		addUrl("- Equidistant Map by ", "https://commons.wikimedia.org/wiki/File:World_V2.0.svg", "<b>Myvolcano</b>", ", released under CC0 1.0", northApanel);
 		addUrl("- Color Equidistant Map by ", "https://commons.wikimedia.org/wiki/File:Equirectangular_projection_SW.jpg", "<b>Strebe</b>", ", released under CC BY-SA 3.0", northApanel);

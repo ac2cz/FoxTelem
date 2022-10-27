@@ -4,8 +4,8 @@ import java.util.Date;
 
 import common.Config;
 import common.Log;
-import telemetry.FrameProcessException;
-import telemetry.SlowSpeedFrame;
+import telemetry.frames.FrameProcessException;
+import telemetry.frames.SlowSpeedFrame;
 import fec.RsCodeWord;
 
 /**
@@ -30,7 +30,7 @@ import fec.RsCodeWord;
  *
  *
  */
-@SuppressWarnings("serial")
+@SuppressWarnings({ "serial", "deprecation" })
 public class SlowSpeedBitStream extends FoxBitStream {
 	public static int SLOW_SPEED_SYNC_WORD_DISTANCE = 970; // 10*(SlowSpeedFrame.getMaxBytes())+SYNC_WORD_LENGTH; // Also note this is the default value, but the actual is loaded from the config file
 	
@@ -105,6 +105,7 @@ public class SlowSpeedBitStream extends FoxBitStream {
 					slowSpeedFrame.rsErasures = numberOfErasures;
 				} catch (FrameProcessException e) {
 					// The FoxId is corrupt, frame should not be decoded.  RS has actually failed
+					Log.println(".. rejected frame: " + e);
 					return null;
 				}
 				return slowSpeedFrame;

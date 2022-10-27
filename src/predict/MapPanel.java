@@ -7,7 +7,7 @@ import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 
 import common.Log;
-import gui.ImagePanel;
+import gui.legacyTabs.ImagePanel;
 import uk.me.g4dpz.satellite.SatPos;
 
 @SuppressWarnings("serial")

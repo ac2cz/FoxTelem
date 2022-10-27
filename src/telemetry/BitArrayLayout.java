@@ -2,7 +2,6 @@ package telemetry;
 
 import java.awt.Color;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -32,7 +31,7 @@ import common.Log;
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  *
- * This class holds the layout for the telemetry for a given satelite.  It is loaded from a CSV file at program start
+ * This class holds the layout for the telemetry for a given satellite.  It is loaded from a CSV file at program start
  * 
  * The layout will not change during the life of the program for a given satellite, so no provision is added for version control
  * or loading old formats.
@@ -43,14 +42,24 @@ public class BitArrayLayout {
 	public static final String RT = "RT";
 	public static final String MAX = "MAX";
 	public static final String MIN = "MIN";
-	public static final String EXP = "EXP";
 	public static final String WOD = "WOD";
+	public static final String EXP = "EXP";
 	public static final String WOD_EXP = "WOD_EXP";
+	public static final String CAN_EXP = "CAN_EXP"; // a Payload filled with CAN packets
+	public static final String CAN_WOD_EXP = "CAN_WOD_EXP"; // a WOD payload filled with CAN packets
+	public static final String CAN_PKT = "CAN_PKT"; // individual can packet
+	public static final String WOD_CAN_PKT = "WOD_CAN_PKT"; // individual can packet from WOD
+	public static final String DBG = "DBG";
+	
+	public static final String[] types = {
+			"RT","MAX","MIN","WOD","EXP","WOD_EXP","CAN_EXP", "CAN_WOD_EXP", "CAN_PKT","WOD_CAN_PKT","DBG"
+	};
 
 	public int NUMBER_OF_FIELDS = 0;
 	public static int ERROR_POSITION = -1;
 	
 	public String fileName;
+	public String tableName; // the name of the database table this is stored in if SQL backend
 	public String name; // the name, which is stored in the spacecraft file and used to index the layouts
 	public String parentLayout = null; // this is set to the value of the primary payload that spawns this
 	public String secondaryLayout = null; // this is set to the value of the secondary payload we generate when this is stored
@@ -73,6 +82,8 @@ public class BitArrayLayout {
 
 	public String[] shortName = null;
 	public String[] description = null;
+	
+	public boolean hasGPSTime = false;
 	
 	private int numberOfBits = 0;
 	private int numberOfBytes = 0;
@@ -142,6 +153,8 @@ public class BitArrayLayout {
 	public static final int CONVERT_MEMS_Y_ROTATION = 62; // FOX-1A Scalar Rotation Calculation
 	public static final int CONVERT_MEMS_Z_ROTATION = 63; // FOX-1A Scalar Rotation Calculation
 	
+	public static final int MAX_CONVERSION_NUMBER = 63; // For integrity check
+	
 	/**
 	 * Create an empty layout for manual init
 	 * Note that if this is called, the BitArray is not initialized.  So it must also be setup manually
@@ -170,6 +183,10 @@ public class BitArrayLayout {
 	
 	public int getMaxNumberOfBytes() {
 		return numberOfBytes;
+	}
+	
+	public String getTableName() {
+		return tableName;
 	}
 	
 	public boolean isRealTime() {
@@ -201,7 +218,35 @@ public class BitArrayLayout {
 		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_EXP)) return true;
 		return false;
 	}
+	
+	public boolean isCanExperiment() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_EXP)) return true;
+		return false;
+	}
+	
+	public boolean isCanWodExperiment() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_WOD_EXP)) return true;
+		return false;
+	}
+	
+	public boolean isCanPkt() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.CAN_PKT)) return true;
+		return false;
+	}
+	
+	public boolean isCanWodPkt() {
+		if (typeStr.equalsIgnoreCase(BitArrayLayout.WOD_CAN_PKT)) return true;
+		return false;
+	}
 
+	public static boolean isValidType(String typeStr) {
+		for (int i=0; i< types.length; i++) {
+			if (typeStr.equalsIgnoreCase(types[i])) return true;			
+		}
+		return false;
+	}
+	
+	
 	public String getSecondaryPayloadName() {
 		return secondaryLayout;
 	}
@@ -312,16 +357,56 @@ public class BitArrayLayout {
 			return (module[pos]);
 		}
 	}
+	
+	public String[][] getJTableData() {
+		
+		String[][] data = new String[fieldName.length][12];
+		for (int i=0; i < fieldName.length; i++) {
+			data[i][0] = "" + i;
+			data[i][1] =  typeStr;
+			data[i][2] = fieldName[i];
+			data[i][3] = ""+fieldBitLength[i];
+			data[i][4] = fieldUnits[i];
+			data[i][5] = conversion[i];
+			data[i][6] = module[i];
+			data[i][7] = ""+moduleNum[i];
+			data[i][8] = ""+moduleLinePosition[i];
+			data[i][9] = ""+moduleDisplayType[i];
+			data[i][10] = shortName[i];
+			data[i][11] = description[i];
+			
+		}
+		return data;
+	}
+	
+//	/**
+//	 * This should never be called by the decoder. The files are read only.  This 
+//	 * is available for the spacecraft editor
+//	 * 
+//	 * @param f
+//	 * @throws IOException 
+//	 */
+//	public void save(String f) throws IOException {
+//		String line;
+//		fileName = "spacecraft" +File.separator + f;
+//		BufferedWriter dis = new BufferedWriter(new FileWriter(fileName));
+//		line = fieldName.length + ",TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION";
+//		
+//		dis.write(line);
+//		
+//		dis.close();
+//	}
 
-	protected void load(String f) throws FileNotFoundException, LayoutLoadException {
+	protected void load(String fileName) throws FileNotFoundException, LayoutLoadException {
 
 		String line;
-		fileName = "spacecraft" +File.separator + f;
 	//	File aFile = new File(fileName);
 		
 		Log.println("Loading layout: "+ fileName);
+		@SuppressWarnings("resource")
 		BufferedReader dis = new BufferedReader(new FileReader(fileName));
 		int field=0;
+		int column=0; // this is just for debugging error messages
 		try {
 			line = dis.readLine(); // read the header, and only look at first item, the number of fields.
 			StringTokenizer header = new StringTokenizer(line, ",");
@@ -342,20 +427,27 @@ public class BitArrayLayout {
 					StringTokenizer st = new StringTokenizer(line, ",");
 
 					@SuppressWarnings("unused")
-					int fieldId = Integer.valueOf(st.nextToken()).intValue();
+					int fieldId = Integer.valueOf(st.nextToken()).intValue(); column++;
 					@SuppressWarnings("unused")
-					String type = st.nextToken();
-					fieldName[field] = st.nextToken();
-					fieldBitLength[field] = Integer.valueOf(st.nextToken()).intValue();
-					fieldUnits[field] = st.nextToken();
-					conversion[field] = st.nextToken(); //Integer.valueOf(st.nextToken()).intValue();
-					module[field] = st.nextToken();					
-					moduleNum[field] = Integer.valueOf(st.nextToken()).intValue();
-					moduleLinePosition[field] = Integer.valueOf(st.nextToken()).intValue();
-					moduleDisplayType[field] = Integer.valueOf(st.nextToken()).intValue();
-					shortName[field] = st.nextToken();
-					description[field] = st.nextToken();
+					String type = st.nextToken(); column++;
+					String tmpName = st.nextToken(); column++;
+					if (hasFieldName(tmpName)) {
+						throw new LayoutLoadException("Error loading layout " + fileName +
+								"\n Duplicate field: " + tmpName);
+					} else {
+						fieldName[field] = tmpName;
+					}
+					fieldBitLength[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					fieldUnits[field] = st.nextToken(); column++;
+					conversion[field] = st.nextToken(); column++; //Integer.valueOf(st.nextToken()).intValue();
+					module[field] = st.nextToken(); column++;					
+					moduleNum[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					moduleLinePosition[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					moduleDisplayType[field] = Integer.valueOf(st.nextToken()).intValue(); column++;
+					shortName[field] = st.nextToken(); column++;
+					description[field] = st.nextToken(); column++;
 					field++;
+					column = 0;
 				}
 			}
 			dis.close();
@@ -363,13 +455,13 @@ public class BitArrayLayout {
 			e.printStackTrace(Log.getWriter());
 
 		} catch (NumberFormatException n) {
-			Log.errorDialog("NUMBER FORMAT EXCEPTION", "In layout: " + fileName+"\n" + n.getMessage());
+			Log.errorDialog("NUMBER FORMAT EXCEPTION", "In layout: " + fileName+"\n" + " in row for field: " + fieldName[field] + " on row: " + field +" at col: " + column +"\n" + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (IndexOutOfBoundsException n) {
-			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout "+fileName+"\n at Index: " + n.getMessage());
+			Log.errorDialog("INDEX EXCEPTION", "Error loading Layout "+fileName+"\n" + " on row: " + field +" at col: " + column +"\n" + " Index is out of bounds: " + n.getMessage());
 			n.printStackTrace(Log.getWriter());
 		} catch (NoSuchElementException n) {
-			Log.errorDialog("Missing Field in Layout File", "Halted loading " + fileName);
+			Log.errorDialog("Missing Field in Layout File", "Halted loading of: " + fileName + "\n on row: " + field +" at col: " + column +"\n");
 			n.printStackTrace(Log.getWriter());
 		}
 		if (NUMBER_OF_FIELDS != field) throw new LayoutLoadException("Error loading fields from " + fileName +
@@ -397,4 +489,8 @@ public class BitArrayLayout {
 		return s;
 	}
 
+	public String toString() {
+		String s = name;
+		return s;
+	}
 }

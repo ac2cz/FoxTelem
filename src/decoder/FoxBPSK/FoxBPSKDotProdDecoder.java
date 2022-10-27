@@ -6,12 +6,12 @@ import decoder.SourceAudio;
 import filter.AGCFilter;
 import filter.Complex;
 import filter.DcRemoval;
-import telemetry.TelemFormat;
 import filter.ComplexOscillator;
 import filter.CosOscillator;
 import filter.DotProduct;
 import filter.RootRaisedCosineFilter;
 import filter.SinOscillator;
+import telemetry.Format.TelemFormat;
 
 /**
  * This program is free software: you can redistribute it and/or modify
@@ -56,7 +56,7 @@ public class FoxBPSKDotProdDecoder extends FoxBPSKDecoder {
 	public static final double DEFAULT_CENTER_CARRIER = 1500;         
 	public static final double HIGH_CENTER_CARRIER = 12000;  
 	double CENTER_CARRIER = 0;     // Center of carrier frequency search range
-	static final double CARRIER_SEARCH_RANGE = 800;    // Limits of search range above and below Carrier frequency, stay below 2400 which is twice the carrier to avoid false lock
+	static final double CARRIER_SEARCH_RANGE = 300;    // Limits of search range above and below Carrier frequency, stay below 2400 which is twice the carrier to avoid false lock
 	int Ftotal = (int) (2 * CARRIER_SEARCH_RANGE/100.0d + 1);
 	int Fperslot = (Ftotal+NSEARCHERS-1)/NSEARCHERS;
 	PskSearcher[] searchers = new PskSearcher[NSEARCHERS];
