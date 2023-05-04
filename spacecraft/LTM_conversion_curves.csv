@@ -1,6 +1,5 @@
 CurveName,a,bx,cx^2,dx^3,ex^4,fx^5,Description
-txv2_old_fwd_pwr,-49.6229734398,158.232743264,-141.228945235,58.7670857716,-9.14994547964,0,Forward power in dBm. Apply to the voltage value from the icr_8bit_volts output
-txv2_fwd_pwr,-14.39,37.71,-12.95,1.67,0,0,Forward power in dBm for .  Apply output from icr_8bit_volts output.
+txv2_fwd_pwr,-31.389375,107.04267,-68.857088,15.959829,0,0,Forward power in dBm. Apply to the voltage value from the icr_8bit_volts output
 txv2_ref_pwr,-1.854392696,11.560288841,14.662557736,0.19214527838,0,0,Reflected power in dBm. Apply to the voltage value from the icr_8bit_volts output
 8_bit_temp,-20,0.5,0,0,0,0,gtemp RT1Temp and RT2Temp IHU supplies as 7.1 fixed point with offset of 20
 golf-t_bus_voltage,0,0.0399,0,0,0,0,0-255 means 0-13.61V
