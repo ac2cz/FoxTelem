@@ -15,8 +15,6 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Properties;
 
-import javax.swing.JOptionPane;
-
 import decoder.FoxFskDecoder;
 import decoder.SourceIQ;
 import telemetry.FoxPayloadStore;
@@ -68,8 +66,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.13";
-	public static String VERSION = VERSION_NUM + " - 28 Oct 2022";
+	public static String VERSION_NUM = "1.13a";
+	public static String VERSION = VERSION_NUM + " - 7 May 2023";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
