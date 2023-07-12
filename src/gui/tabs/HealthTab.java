@@ -256,15 +256,15 @@ public abstract class HealthTab extends ModuleTab implements PropertyChangeListe
 		
 		if (rt == null ) {
 			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
-					+ "" + rt.name + "\n  Remove this satellite or add/fix the payload file");
+					 + "realtime\n  Remove this satellite or add/fix the payload file");
 			//System.exit(1);
 		} else 	if (max == null ) {
 			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
-					+ "" + max.name+ "\n  Remove this satellite or add/fix the payload file");
+					+ "max\n  Remove this satellite or add/fix the payload file");
 			
 		} else if (min == null ) {
 			throw new LayoutLoadException("MISSING PAYLOAD DEFINITION: The spacecraft file for satellite " + fox.user_display_name + " is missing the payload definition for "
-					+ "" + min.name+ "\n  Remove this satellite or add/fix the payload file");
+					+ "min\n  Remove this satellite or add/fix the payload file");
 			
 		} else
 		

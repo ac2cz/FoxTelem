@@ -158,8 +158,10 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			Log.println("Error setting LNA Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		if (Config.saveFcdParams)
+		if (Config.saveFcdParams) {
 			saveParam(cbLnaGain, "cbLnaGain");
+			Config.save();
+		}
 	}
 
 	private void setMixerGain(int position) {
@@ -172,8 +174,10 @@ public class FcdProPanel extends DevicePanel implements ItemListener, ActionList
 			Log.println("Error setting LNA Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		if (Config.saveFcdParams)
+		if (Config.saveFcdParams) {
 			saveParam(cbMixerGain, "cbMixerGain");
+			Config.save();
+		}
 	}
 	
 	@Override

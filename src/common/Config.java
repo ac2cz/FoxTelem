@@ -66,8 +66,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.13a";
-	public static String VERSION = VERSION_NUM + " - 7 May 2023";
+	public static String VERSION_NUM = "1.13b";
+	public static String VERSION = VERSION_NUM + " - 12 Jul 2023";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
@@ -271,7 +271,7 @@ public class Config {
 	static public boolean insertMissingBits = true;
 	//static public boolean useLongPRN = true;
 	static public boolean firstRun106 = false; // first time user is running version 1.06 - now set to false for 1.07
-	static public boolean saveFcdParams = false;
+	static public boolean saveFcdParams = true; // As of version 1.13 we default this to true.
 	
 	// V1.07
 //	static public boolean useNCO = true;

@@ -185,8 +185,11 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 
 			if (device != null) {
 				try {
-					checkSettings();
+					getSettings();
 				} catch (DeviceException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
@@ -213,8 +216,10 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			Log.println("Error setting Mixer Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		if (Config.saveFcdParams)
+		if (Config.saveFcdParams) {
 			saveParam(cbMixerGain.isSelected(), "cbMixerGain");
+			Config.save();
+		}
 	}
 	
 	private void setLnaGain(boolean b) {
@@ -228,8 +233,10 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			Log.println("Error setting LNA Gain on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		if (Config.saveFcdParams)
+		if (Config.saveFcdParams) {
 			saveParam(cbLnaGain.isSelected(), "cbLnaGain");
+			Config.save();
+		}
 	}
 	
 	private void setBiasTee(boolean b) {
@@ -243,8 +250,10 @@ public class FcdProPlusPanel extends DevicePanel implements ItemListener, Action
 			Log.println("Error setting Bias Tee on FCD");
 			e1.printStackTrace(Log.getWriter());
 		}
-		if (Config.saveFcdParams)
+		if (Config.saveFcdParams) {
 			saveParam(cbBiasTee.isSelected(), "cbBiasTee");
+			Config.save();
+		}
 	}
 	
 	@Override
