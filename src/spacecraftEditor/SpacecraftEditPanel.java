@@ -213,34 +213,6 @@ public class SpacecraftEditPanel extends JPanel implements ActionListener, ItemL
 		SourceTableListEditPanel sourceTableListEditPanel = new SourceTableListEditPanel(sat, "Sources", sourcesListTableModel, sourceTableModel, this);
 		leftSourcesPanel.add(sourceTableListEditPanel);
 		
-//		sourcesTable = new JTable(sourcesTableModel);
-//		sourcesTable.setAutoCreateRowSorter(true);
-//		JScrollPane sourcesScrollPane = new JScrollPane (sourcesTable, JScrollPane.VERTICAL_SCROLLBAR_ALWAYS, JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
-//		sourcesScrollPane.setPreferredSize(new Dimension(100,400));
-//		sourcesTable.setFillsViewportHeight(true);
-//		//	table.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
-//
-//		leftSourcesPanel.add(sourcesScrollPane, BorderLayout.CENTER);
-//		TableColumn column = null;
-//		column = sourcesTable.getColumnModel().getColumn(0);
-//		column.setPreferredWidth(100);
-//		column = sourcesTable.getColumnModel().getColumn(1);
-//		column.setPreferredWidth(100);
-//		sourcesTable.addMouseListener(this);
-
-//		String[][] data = new String[sat.numberOfSources][2];
-//		for (int i=0; i< sat.numberOfSources; i++) {
-//			data[i][0] =sat.sourceName[i];
-//			if (sat.sourceFormatName != null) 
-//				data[i][1] = sat.sourceFormatName[i];
-//			else
-//				data[i][1] ="NONE";
-//		}
-//		sourcesTableModel.setData(data);
-
-		//leftSourcesPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
-
-	//	leftPanel.add(new Box.Filler(new Dimension(10,10), new Dimension(100,100), new Dimension(100,500)));
 
 		return leftPanel;
 

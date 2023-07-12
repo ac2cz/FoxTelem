@@ -1109,8 +1109,11 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				loadCanLayouts();
 			}
 			user_format = getProperty("user_format");
+			if (user_format == null)
+				user_format = "DUV_FSK";
 			user_display_name = getProperty("displayName");
-			
+			if (user_display_name == null)
+				user_display_name = user_keps_name;
 			String crc = getOptionalProperty("hasFrameCrc");
 			if (crc == null) 
 				hasFrameCrc = false;
@@ -1257,7 +1260,10 @@ public class Spacecraft implements Comparable<Spacecraft> {
 				user_priority = 1;
 			else 
 				user_priority = Integer.parseInt(pri);
-			String tmp_user_format = getUserProperty("user_format");
+			String tmp_user_format;
+			if (user_format == null)
+				user_format = "DUV_FSK";
+			tmp_user_format = getUserProperty("user_format");
 			// Make sure this is a valid format, otherwise we stay with the value from the MASTER file.  Needed to cope with invalid legacy formats
 			TelemFormat selectedFormat = this.satManager.getFormatByName(Config.format);
 			if (selectedFormat != null) {
@@ -1429,7 +1435,8 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		user_properties.setProperty("minFreqBoundkHz", Double.toString(user_minFreqBoundkHz));
 		user_properties.setProperty("maxFreqBoundkHz", Double.toString(user_maxFreqBoundkHz));
 		user_properties.setProperty("track", Boolean.toString(user_track));
-		user_properties.setProperty("user_format", user_format);
+		if (user_format != null)
+			user_properties.setProperty("user_format", user_format);
 		user_properties.setProperty("user_useGPSTimeForT0", Boolean.toString(user_useGPSTimeForT0));
 		
 		if (user_localServer != null) {
@@ -1609,8 +1616,9 @@ public class Spacecraft implements Comparable<Spacecraft> {
 		properties.setProperty("maxFreqBoundkHz", String.valueOf(user_maxFreqBoundkHz));
 		properties.setProperty("track", String.valueOf(user_track));
 		properties.setProperty("priority", String.valueOf(user_priority));
-		properties.setProperty("user_format", user_format);
-		properties.setProperty("displayName", String.valueOf(user_display_name));
+		if (user_format != null) 
+			properties.setProperty("user_format", user_format);
+		properties.setProperty("displayName", user_display_name);
 
 		// Frame Layouts
 		properties.setProperty("numberOfFrameLayouts", String.valueOf(numberOfFrameLayouts));				

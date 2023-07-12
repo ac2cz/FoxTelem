@@ -153,7 +153,7 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		if (sat.numberOfLayouts > 0) 
 			layoutsListTableModel.setData(data);
 		else {
-			String[][] fakeRow = {{"","","",""}};
+			String[][] fakeRow = {{"","","","","","","",""}};
 			layoutsListTableModel.setData(fakeRow);
 		}
 	}
@@ -375,8 +375,9 @@ public class PayloadListEditPanel extends JPanel implements MouseListener, Actio
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
 				+ "Payload" + "</b></body></html>", payloadCsvFileEditPanel );
 		
+		// Does not work on Linux??
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
-				+ "Code" + "</b></body></html>", scpane );
+				+ "Code" + "</b></body></html>", codeTextArea );
 		
 		tab.setLayout(new BorderLayout());
 		tabbedPane.addTab( "<html><body leftmargin=1 topmargin=1 marginwidth=1 marginheight=1><b>" 
