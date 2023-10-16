@@ -1,0 +1,14 @@
+name=FSK 1200bps
+mode=FSK
+bps=1200
+frame_length=96
+data_length=64
+header_length=7
+header_layout_file=ARISS_header.csv
+trailer_length=32
+word_length=10
+sync_word_length=10
+rs_words=1
+rs_padding=159
+symbols_per_chunk=100
+rf_filter_width_hz=5000

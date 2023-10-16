@@ -15,6 +15,7 @@ public class FormatHeader extends Header {
 	int minorVersion;
 	TelemFormat telemFormat;
 	public static final String ID_FIELD = "satelliteId";
+	public static final String EXTENDED_ID_FIELD = "extendedId";
 	public static final String TYPE_FIELD = "type";
 	public static final String RESET_FIELD = "resetCnt";
 	public static final String UPTIME_FIELD = "uptime";
@@ -41,6 +42,11 @@ public class FormatHeader extends Header {
 				// We have a layout, so use that.  GOLF-T and later
 				super.copyBitsToFields();
 				id = getRawValue(ID_FIELD);
+				if (id == 0) {
+					// then add 8 to the extended id
+					id = 8 + getRawValue(EXTENDED_ID_FIELD);
+				}
+					
 				resets = getRawValue(RESET_FIELD);
 				uptime = getRawValue(UPTIME_FIELD);
 				type = getRawValue(TYPE_FIELD);

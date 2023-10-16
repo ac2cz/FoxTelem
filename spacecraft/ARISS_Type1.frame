@@ -1,0 +1,3 @@
+number_of_payloads=1
+payload0.name=rttelemetry
+payload0.length=64
