@@ -8,10 +8,13 @@ import javax.swing.SwingUtilities;
 import common.Config;
 import common.Log;
 import common.Performance;
+import common.Spacecraft;
 import filter.Filter;
 import filter.RaisedCosineFilter;
 import gui.MainWindow;
 import telemetry.FramePart;
+import telemetry.Format.FormatFrame;
+import telemetry.Format.FormatHeader;
 import telemetry.Format.TelemFormat;
 import telemetry.frames.Frame;
 import telemetry.frames.HighSpeedFrame;
@@ -140,6 +143,18 @@ public abstract class FoxDecoder extends Decoder {
 						addMeasurements(header.id, header.resets, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 //						if (Config.mode == SourceIQ.MODE_FSK_AUTO)
 //							MainWindow.inputTab.setViewDecoder1();  // FIXME - not sure I should call the GUI from the DECODER, but works for now.
+					} else if (decodedFrame instanceof FormatFrame) {
+						Spacecraft sat = null;
+						FormatFrame hsf = (FormatFrame)decodedFrame;
+						FormatHeader header = hsf.getHeader();
+						sat = Config.satManager.getSpacecraft(header.id);
+						int newReset = sat.getCurrentReset(header.resets, header.uptime);
+						hsf.savePayloads(Config.payloadStore, sat.hasModeInHeader, newReset);
+
+						// Capture measurements once per payload or every 5 seconds ish
+						addMeasurements(header.id, newReset, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
+
+//	
 					} else {
 						HighSpeedFrame hsf = (HighSpeedFrame)decodedFrame;
 						HighSpeedHeader header = hsf.getHeader();
