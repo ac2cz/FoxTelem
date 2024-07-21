@@ -511,10 +511,11 @@ import decoder.FoxBPSK.FoxBPSKDotProdDecoder;
 public class FoxTelemMain {
 
 	public static String HELP = "AMSAT Fox Telemetry Decoder. Version " + Config.VERSION +"\n\n"
-			+ "Usage: FoxTelem [-h][-v][-s][--process-audio filename --telem-format format] [--12khz-if] [logFileDir]\n"
+			+ "Usage: FoxTelem [-h][-v][-s][-o offset-freq] [--process-audio filename --telem-format format] [--12khz-if] [logFileDir]\n"
 			+ "-h Show this help.\n"
 			+ "-v Display version information.\n"
 			+ "-s Automatically start the decoder if in gui mode.\n"
+			+ "-o Set the offset frequency for the IQ demodulation"
 			+ "--process-audio <fileName> - Decode a wav file with no gui.  Must also supply a telem-format.\n"
 			+ "--telem-format <duv|high-speed|FOX_BPSK|GOLF_BPSK> - telemetry decoder to use.\n"
 			+ "--12khz-if - Use a 12kHz IF for audio file decoding.\n"
@@ -540,7 +541,7 @@ public class FoxTelemMain {
 		File audioFile = null;
 		String telemFormatName = null;
 		boolean use12khzIfSwitch = false;
-		
+        double offset = 0.0;		
 		int arg = 0;
 		while (arg < args.length) {
 			if (args[arg].startsWith("-")) { // this is a switch
@@ -560,6 +561,10 @@ public class FoxTelemMain {
 				if (args[arg].equalsIgnoreCase("--12khz-if")) {
 					Log.println("Command Line Switch: 12kHz IF");
 					use12khzIfSwitch = true;
+				}
+				if ((args[arg].equalsIgnoreCase("-o")) || (args[arg].equalsIgnoreCase("--offset"))) {
+					arg++;
+					offset = Double.parseDouble(args[arg]);
 				}
 
 				if (args[arg].equalsIgnoreCase("--telem-format")) {
@@ -626,13 +631,16 @@ public class FoxTelemMain {
 		Log.init("FoxTelemDecoder");
 		
 		Config.currentDir = System.getProperty("user.dir"); //m.getCurrentDir(); 
-		
+				
 		Config.init(logFileDir); // initialize, create properties if needed, load properties and create the payload store.  This runs in a seperate thread to the GUI and the decoder
 		Log.println("************************************************************");
 		Log.println("AMSAT Fox 1A Telemetry Decoder. " + Config.VERSION + "\nCurrentDir is: " + Config.currentDir);
 		Log.println("************************************************************");
 		
 		Log.println("LogFileDir is:" + Config.logFileDirectory);
+
+		if (offset > 0.0)
+			Config.selectedFrequency = offset;
 
 		if (audioFile != null) {
 			
