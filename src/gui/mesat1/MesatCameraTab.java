@@ -122,6 +122,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 	JLabel picUptime;
 	JLabel picNumber, picChannel;
 	JLabel picDate;
+	JLabel[] picBlock;
 
 	int splitPaneHeight = 0;
 	
@@ -178,6 +179,10 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		picNumber = addPicParam(PIC_NUMBER);
 		picChannel = addPicParam(PIC_CHANNEL);
 		picDate = addPicParam(PIC_DATE);
+		picBlock = new JLabel[12];
+		for(int i=0; i<12; i++) {
+			picBlock[i] = addPicBlockParam("Block " + i);
+		}
 		leftHalf.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 		
 		//leftHalf.setBackground(Color.DARK_GRAY);
@@ -250,6 +255,22 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		leftHalf.add(panel);
 		title.setBorder(new EmptyBorder(3, 5, 3, 0) ); // top left bottom right
 		lab.setBorder(new EmptyBorder(3, 0, 3, 25) ); // top left bottom right
+		return lab;
+	}
+	
+	private JLabel addPicBlockParam(String text) {
+		JLabel title = new JLabel(text);
+		title.setFont(new Font("SansSerif", Font.PLAIN, (int)(Config.displayModuleFontSize * 9/11)));
+		JLabel lab = new JLabel();
+		JPanel panel = new JPanel();
+		panel.setLayout(new FlowLayout(FlowLayout.LEADING));
+		//panel.setLayout(new GridLayout(1,2,5,5));
+		panel.add(title);
+		panel.add(lab);
+		
+		leftHalf.add(panel);
+//		title.setBorder(new EmptyBorder(3, 5, 3, 0) ); // top left bottom right
+//		lab.setBorder(new EmptyBorder(3, 0, 3, 25) ); // top left bottom right
 		return lab;
 	}
 	
@@ -392,6 +413,10 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			picNumber.setText("" + imageIndex.get(selected).image_index);
 			picChannel.setText("" + imageIndex.get(selected).image_channels_desc[imageIndex.get(selected).image_channel]);
 			picDate.setText("" + displayCaptureDate(imageIndex.get(selected).captureDate));
+			
+			int[] blockCounts = imageIndex.get(selected).getBlockByteNumbers();
+			for (int i=0; i< MesatImage.BLOCKS; i++)
+				picBlock[i].setText( "" + blockCounts[i]);
 		}
 	}
 

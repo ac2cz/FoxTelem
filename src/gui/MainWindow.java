@@ -868,6 +868,7 @@ public class MainWindow extends JFrame implements ActionListener, ItemListener, 
 	}
 
 	private void downloadServerData(String dir) {
+
 		String file = "FOXDB.tar.gz";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			file = Config.logFileDirectory + File.separator + "FOXDB.tar.gz";
