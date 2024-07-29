@@ -1008,6 +1008,11 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 				store.deleteAll();
 			}
 		}
+		if (sat.hasMesatCamera()) {
+			if (mesatImageStore != null) {
+				mesatImageStore.deleteAll();
+			}
+		}
 		loaded=true;
 	}
 

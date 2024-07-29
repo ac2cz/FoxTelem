@@ -38,7 +38,7 @@ import telemetry.payloads.CanPacket;
  * The bytes can be saved and loaded from disk.
  * 
  * Each image has an image number from 0-31
- * Images are sent in 11 blocks
+ * Images are sent in 12 blocks
  * There are 5 channels with different frequency responses.  An image is for 1 channel.
  * Images are 256 x 256.
  * 
@@ -57,6 +57,11 @@ public class MesatImage implements Comparable<MesatImage>{
 	static final int XBYTE     = 2;
 	static final int YBYTE     = 3;
 	
+	public static final int BLOCKS     = 12;
+	public static final int CHANNELS     = 5;
+	static final int LEN     = 8;
+	static final int MAX_PKTS_IN_BLOCK = 24;
+	
 	public int id;
 	public int epoch;
 	public long fromUptime;
@@ -65,6 +70,8 @@ public class MesatImage implements Comparable<MesatImage>{
 	int width = 256; // default size
 	int height = 256; 
 	byte[] bytes;
+	byte[] blockMap; // which bytes are populated
+	//public int[] blockPkts; // How many bytes do we have in each block
 	String filename;
 	Spacecraft sat;
 	public int image_index = NO_INDEX; // the index number of the image. 0 - 31
@@ -85,6 +92,7 @@ public class MesatImage implements Comparable<MesatImage>{
 		this.fromUptime = uptime;
 		this.captureDate = date;
 		bytes = new byte[width * height];
+		blockMap = new byte[width * height];
 	}
 	
 	public MesatImage(int id, CanPacket p,  int epoch, long uptime, String date) {
@@ -94,6 +102,7 @@ public class MesatImage implements Comparable<MesatImage>{
 		this.fromUptime = uptime;
 		this.captureDate = date;
 		bytes = new byte[width * height];
+		blockMap = new byte[width * height];
 	}
 	
 	/**
@@ -117,6 +126,7 @@ public class MesatImage implements Comparable<MesatImage>{
 		this.filename = name;
 		this.sat = Config.satManager.getSpacecraft(id);
 		bytes = new byte[width * height];
+		blockMap = new byte[width * height];
 		if (fileExists()) {
 			loadImage();
 		}
@@ -146,6 +156,20 @@ public class MesatImage implements Comparable<MesatImage>{
 	}
 	
 	/**
+	 * Total the number of bytes received for each block
+	 * @return
+	 */
+	public int[] getBlockByteNumbers() {
+		int[] blockCounts = new int[12];
+		for (int i=0; i<blockMap.length; i++) {
+			if (blockMap[i] > 0 && blockMap[i] <= BLOCKS) // check for Block Number + 1
+				blockCounts[blockMap[i]-1]++;
+		}
+	
+		return blockCounts;
+	}
+	
+	/**
 	 * Return true if this is a valid image Can Packet has data for the this image.
 	 * It is the same image if it has the same image number.
 	 * 
@@ -171,8 +195,8 @@ public class MesatImage implements Comparable<MesatImage>{
 
 			// check if packet is actually correct image data     
 			// with 8 data values, correct block and channel vals 
-			if (len==8 && block<=10 && channel<=4) {
-
+			if (len==LEN && block < BLOCKS && channel < CHANNELS) {
+				
 				int x = canPacket.fieldValue[XBYTE];
 				int y = canPacket.fieldValue[YBYTE];
 				filename = getFileName();
@@ -181,6 +205,7 @@ public class MesatImage implements Comparable<MesatImage>{
 				for (int i=4; i<10; i++) {
 					int pos = x * width + y;
 					bytes[pos] = (byte) canPacket.fieldValue[i];
+					blockMap[pos] = (byte) (block + 1); // we use zero as no block, so increment by one and store in the map
 					y++;
 					if (y >= width) {
 						x = (x + 1)%height;
@@ -195,6 +220,15 @@ public class MesatImage implements Comparable<MesatImage>{
 		}
 		return false;
 	}
+	
+//	/**
+//	 * This is called when a packet is successfully added to the Image Payload Store.  We call it from there to avoid 
+//	 * counting duplicates
+//	 */
+//	public void incrementBlock(int block) {
+//		blockPkts[block]++;
+//		//if (blockPkts[block] > 999) blockPkts[block] = 999;
+//	}
 	
 	public void makeGrayScaleImage() {
 		image = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY); // vs BufferedImage.TYPE_3BYTE_BGR
@@ -212,6 +246,26 @@ public class MesatImage implements Comparable<MesatImage>{
 	}
 	
 	public void saveImage() throws IOException {
+		
+		// First write the block totals
+		String toBlockFileName = filename + ".blk";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toBlockFileName = Config.logFileDirectory + File.separator + toBlockFileName;
+		}	
+		FileOutputStream blockSaveFile = null;
+		try {
+			blockSaveFile = new FileOutputStream(toBlockFileName);
+			blockSaveFile.write(blockMap);
+//			for (int b : blockMap) {
+//				blockSaveFile.write((b >> 24 )& 0xff);
+//				blockSaveFile.write((b >> 16 )& 0xff);
+//				blockSaveFile.write((b >> 8 )& 0xff);
+//				blockSaveFile.write(b & 0xff);
+//			}
+		} finally {
+			try { if (blockSaveFile != null) blockSaveFile.close(); } catch (IOException e) { }
+		}
+		
 		String toFileName = filename;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			toFileName = Config.logFileDirectory + File.separator + toFileName;
@@ -236,6 +290,24 @@ public class MesatImage implements Comparable<MesatImage>{
 	}
 	
 	private void loadImage() throws IOException {
+		// First load block file
+		String toBlockFileName = filename + ".blk";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toBlockFileName = Config.logFileDirectory + File.separator + toBlockFileName;
+		}	
+		RandomAccessFile blockFileOnDisk = null;
+		
+		try {
+			blockFileOnDisk = new RandomAccessFile(toBlockFileName, "r"); // opens file 
+			if (blockFileOnDisk.length() != 256*256) throw new IOException("Invalid Block file length\n");
+			blockFileOnDisk.read(blockMap);			
+//			for (int i=0; i <  12; i++)
+//					blockPkts[i] = blockFileOnDisk.readInt();			
+		} finally {
+			try { if (blockFileOnDisk != null) blockFileOnDisk.close(); } catch (IOException e) { }
+		}
+		
+		// Then the image file
 		String toFileName = filename;
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			toFileName = Config.logFileDirectory + File.separator + toFileName;
@@ -244,8 +316,9 @@ public class MesatImage implements Comparable<MesatImage>{
 		
 		try {
 			fileOnDisk = new RandomAccessFile(toFileName, "r"); // opens file 
-			bytes = new byte[(int) fileOnDisk.length()];
-			fileOnDisk.read(bytes);
+			if (fileOnDisk.length() != 256*256) throw new IOException("Invalid Image file length\n");
+			//bytes = new byte[(int) fileOnDisk.length()];
+			fileOnDisk.read(bytes);			
 		} finally {
 			try { if (fileOnDisk != null) fileOnDisk.close(); } catch (IOException e) { }
 		}

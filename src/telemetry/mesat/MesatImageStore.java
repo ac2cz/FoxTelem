@@ -8,6 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.Writer;
+import java.util.Iterator;
 import java.util.NoSuchElementException;
 import java.util.StringTokenizer;
 
@@ -31,6 +32,7 @@ public class MesatImageStore {
 	private String fileName = INDEX_NAME;
 	SortedMesatImageList images;
 	boolean updatedImage = false;	
+	boolean massUpdate = false;
 
 	public MesatImageStore(int id) {
 		foxId = id;
@@ -93,25 +95,37 @@ public class MesatImageStore {
 	 */
 	public boolean add(int id, int epoch, long uptime,  CanPacket p, String captureDate) throws IOException {
 		if (p.getLength() != 8) return false; // not a valid camera packet
-		for (MesatImage img : images) {
+		int canid = p.getID();
+		// bits 0-3 are the block
+		int block = canid & MesatImage.BLOCK_MASK;
+		// bits 4-6 are the channel
+		int channel = (canid >> MesatImage.CHANNEL_OFFSET) & MesatImage.CHANNEL_MASK;
+		// check if packet is actually correct image data     
+		if (block < MesatImage.BLOCKS && channel < MesatImage.CHANNELS) {
+			for (MesatImage img : images) {
+				if (img.addPacket(p)) {
+					updatedImage = true;
+					if (!massUpdate) {
+						img.saveImage(); // save the bytes
+						//img.saveAsPng(); // debug
+					}
+					return true;
+				}
+			}
+			// We did not find it, so try to create a new Image on disk.  This will also save the index entry if the packet is valid
+			MesatImage img = new MesatImage(id, p, epoch, uptime, captureDate);
+			if (Config.debugCameraFrames)
+				Log.println("Adding new image: " + epoch + ":"+ uptime);
 			if (img.addPacket(p)) {
+				images.add(img);
 				updatedImage = true;
-				img.saveImage(); // save the bytes
-				img.saveAsPng(); // debug
+				if (!massUpdate) {
+					save(img, fileName, true);
+					img.saveImage(); // save the bytes
+					//img.saveAsPng(); // debug
+				}
 				return true;
 			}
-		}
-		// We did not find it, so try to create a new Image on disk.  This will also save the index entry if the packet is valid
-		MesatImage img = new MesatImage(id, p, epoch, uptime, captureDate);
-		if (Config.debugCameraFrames)
-			Log.println("Adding new image: " + epoch + ":"+ uptime);
-		if (img.addPacket(p)) {
-			images.add(img);
-			updatedImage = true;
-			save(img, fileName, true);
-			img.saveImage(); // save the bytes
-			img.saveAsPng(); // debug
-			return true;
 		}
 		return false;
 	}
@@ -120,6 +134,7 @@ public class MesatImageStore {
 	 * Rebuild the images from the Can Packets.  Used when the data is downloaded from the server.
 	 */
 	public void rebuildFromCanPackets(int id) {
+		massUpdate = true;
 		// Get a list of the Can Packets
 		SortedFramePartArrayList data = null;
 		try {
@@ -128,8 +143,12 @@ public class MesatImageStore {
 			e.printStackTrace(Log.getWriter());
 		}
 		if (data != null) {
-			for (FramePart f : data) {
-				CanPacket p = (CanPacket)f;
+			/* We can get a concurrent modification exception if we use for (FramePart f: data) construct*/
+			//for (FramePart f : data) {
+			//	CanPacket p = (CanPacket)f;
+			for (Iterator<FramePart> it = data.iterator(); it.hasNext(); ) {
+				CanPacket p = (CanPacket)it.next();
+				
 				try {
 					Config.payloadStore.mesatImageStore.add(id, p.resets, p.uptime, p, p.getCaptureDate());
 				} catch (IOException e) {
@@ -137,6 +156,15 @@ public class MesatImageStore {
 				}
 			}
 		}
+		for (MesatImage img : images) {
+			try {
+				save(img, fileName, true);
+				img.saveImage();
+			} catch (IOException e) {
+				e.printStackTrace(Log.getWriter());
+			} // save the bytes
+		}
+		massUpdate = false;
 		Config.payloadStore.mesatImageStore.setUpdatedImage(true); //////////////////// DOES NOT WORK!!  Need to check number of images too in the tab
 	}
 
@@ -297,6 +325,7 @@ public class MesatImageStore {
 				if (images.get(i).fileExists()) {
 					SatPayloadStore.remove(imageFile);
 					SatPayloadStore.remove(imageFile+".bmp");
+					SatPayloadStore.remove(imageFile+".blk");
 				}
 			}
 			SatPayloadStore.remove(log);
