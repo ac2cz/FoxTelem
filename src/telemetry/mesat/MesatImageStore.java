@@ -158,6 +158,7 @@ public class MesatImageStore {
 		}
 		for (MesatImage img : images) {
 			try {
+				save(img, fileName, true);
 				img.saveImage();
 			} catch (IOException e) {
 				e.printStackTrace(Log.getWriter());

@@ -300,7 +300,7 @@ public class MesatImage implements Comparable<MesatImage>{
 		try {
 			blockFileOnDisk = new RandomAccessFile(toBlockFileName, "r"); // opens file 
 			if (blockFileOnDisk.length() != 256*256) throw new IOException("Invalid Block file length\n");
-			blockFileOnDisk.read(bytes);			
+			blockFileOnDisk.read(blockMap);			
 //			for (int i=0; i <  12; i++)
 //					blockPkts[i] = blockFileOnDisk.readInt();			
 		} finally {

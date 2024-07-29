@@ -180,8 +180,8 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		picChannel = addPicParam(PIC_CHANNEL);
 		picDate = addPicParam(PIC_DATE);
 		picBlock = new JLabel[12];
-		for(int i=0; i<12; i++) {
-			picBlock[i] = addPicBlockParam("Block " + i);
+		for(int i=0; i<MesatImage.BLOCKS; i++) {
+			picBlock[i] = addPicBlockParam("Block " + i + ":  ");
 		}
 		leftHalf.add(new Box.Filler(new Dimension(10,10), new Dimension(100,400), new Dimension(100,500)));
 		
@@ -262,6 +262,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		JLabel title = new JLabel(text);
 		title.setFont(new Font("SansSerif", Font.PLAIN, (int)(Config.displayModuleFontSize * 9/11)));
 		JLabel lab = new JLabel();
+		lab.setFont(new Font("SansSerif", Font.PLAIN, (int)(Config.displayModuleFontSize * 9/11)));
 		JPanel panel = new JPanel();
 		panel.setLayout(new FlowLayout(FlowLayout.LEADING));
 		//panel.setLayout(new GridLayout(1,2,5,5));
