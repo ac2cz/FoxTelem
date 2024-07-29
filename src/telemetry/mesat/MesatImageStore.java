@@ -72,9 +72,21 @@ public class MesatImageStore {
 
 			e.printStackTrace(Log.getWriter());
 		}
+		
 	}
 
 
+	public void buildBlockMapsIfNeeded() {
+		/* Check if the blockMaps exist */
+		for (MesatImage img : images) {
+			if (!img.hasBlockMap()) {
+				// Make the blockMap with a one off update.  Will only happen at first run after 1.12z4 update
+				rebuildFromCanPackets(foxId);
+			}
+		}
+	}
+	
+	
 	public void setUpdatedAll() {
 		updatedImage = true;
 	}

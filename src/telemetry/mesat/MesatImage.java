@@ -289,6 +289,18 @@ public class MesatImage implements Comparable<MesatImage>{
 	    ImageIO.write(image, "bmp", outputfile);
 	}
 	
+	public boolean hasBlockMap() {
+		String toBlockFileName = filename + ".blk";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			toBlockFileName = Config.logFileDirectory + File.separator + toBlockFileName;
+		}	
+		File blockFile = new File(toBlockFileName);
+		if (blockFile.exists()) 
+			return true;
+		return false;
+		
+	}
+	
 	private void loadImage() throws IOException {
 		// First load block file
 		String toBlockFileName = filename + ".blk";
@@ -296,15 +308,18 @@ public class MesatImage implements Comparable<MesatImage>{
 			toBlockFileName = Config.logFileDirectory + File.separator + toBlockFileName;
 		}	
 		RandomAccessFile blockFileOnDisk = null;
-		
-		try {
-			blockFileOnDisk = new RandomAccessFile(toBlockFileName, "r"); // opens file 
-			if (blockFileOnDisk.length() != 256*256) throw new IOException("Invalid Block file length\n");
-			blockFileOnDisk.read(blockMap);			
-//			for (int i=0; i <  12; i++)
-//					blockPkts[i] = blockFileOnDisk.readInt();			
-		} finally {
-			try { if (blockFileOnDisk != null) blockFileOnDisk.close(); } catch (IOException e) { }
+		File blockFile = new File(toBlockFileName);
+		if (blockFile.exists()) {
+			try {
+				blockFileOnDisk = new RandomAccessFile(toBlockFileName, "r"); // opens file 
+
+				if (blockFileOnDisk.length() != 256*256) throw new IOException("Invalid Block file length\n");
+				blockFileOnDisk.read(blockMap);			
+				//			for (int i=0; i <  12; i++)
+				//					blockPkts[i] = blockFileOnDisk.readInt();			
+			} finally {
+				try { if (blockFileOnDisk != null) blockFileOnDisk.close(); } catch (IOException e) { }
+			}
 		}
 		
 		// Then the image file
