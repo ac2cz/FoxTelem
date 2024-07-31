@@ -32,5 +32,5 @@
 30,diagnostic,ICRCmdFailAuthenticate,8,-,INT,Legacy  Errors,3,11,0,ICRCmdFailAuthenticate,x
 31,diagnostic,ICRCmdFailCommand,8,-,INT,Legacy  Errors,3,12,0,ICRCmdFailCommand,x
 32,diagnostic,ICRCmdFailNamespace,8,-,INT,Legacy  Errors,3,13,0,ICRCmdFailNamespace,x
-33,diagnostic,LegSWVersion,16,-,INT,General Info,1,12,0,LIHU Version Number,x
+33,diagnostic,LegSWVersion,16,-,INT,General Info,1,13,0,LIHU Version Number,x
 34,diagnostic,LegErrorData,8,-,INT,IHU Reset Info,2,3,0,Error Data,x

@@ -38,7 +38,7 @@
 36,wod,moduTemp,8,C,8_bit_temp,AMSAT Transmitter,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
 37,wod,hostTlm4,8,V,twenty-six_volt_8_bit,MESAT1 Solar Panels,7,4,3,Minus X Volts,Host Analog 4
 38,wod,hostCANVolts0,8,V,8dot4_volt_8_bit,MESAT1 Batteries,6,1,3,Battery Voltage,Host Bat Volts 1
-39,wod,hostCANVolts1,8,-,MESAT1BatSOC|batsoc,MESAT1 Batteries,6,2,3,Battery Capacity,Host Bat Volts 2
+39,wod,hostCANVolts1,8,%,MESAT1BatSOC|batsoc,MESAT1 Batteries,6,2,3,Battery Capacity,Host Bat Volts 2
 40,wod,hostCANVolts2,8,-,INT,NONE,0,0,0,Unused 2,Host Bat Volts 3
 41,wod,hostCANVolts3,8,mA,mesat_batt_current|invalid_check(2000 Invalid 0),MESAT1 Batteries,6,3,3,Battery Current,Host Bat Volts 4
 42,wod,hostCANVolts4,8,-,INT,NONE,0,0,0,Unused 4,Host Bat Volts 5
