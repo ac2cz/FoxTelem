@@ -57,7 +57,8 @@ public class MesatImage implements Comparable<MesatImage>{
 	static final int XBYTE     = 2;
 	static final int YBYTE     = 3;
 	
-	public static final int BLOCKS     = 12;
+	public static final int BLOCKS     = 11;
+	public static final int BLOCKS_FULL_LIMIT     = 5956;
 	public static final int CHANNELS     = 5;
 	static final int LEN     = 8;
 	static final int MAX_PKTS_IN_BLOCK = 24;
@@ -70,7 +71,7 @@ public class MesatImage implements Comparable<MesatImage>{
 	int width = 256; // default size
 	int height = 256; 
 	byte[] bytes;
-	byte[] blockMap; // which bytes are populated
+	byte[] blockMap; // which bytes are populated.  We write the block that they came from into this array
 	//public int[] blockPkts; // How many bytes do we have in each block
 	String filename;
 	Spacecraft sat;
@@ -160,7 +161,7 @@ public class MesatImage implements Comparable<MesatImage>{
 	 * @return
 	 */
 	public int[] getBlockByteNumbers() {
-		int[] blockCounts = new int[12];
+		int[] blockCounts = new int[BLOCKS];
 		for (int i=0; i<blockMap.length; i++) {
 			if (blockMap[i] > 0 && blockMap[i] <= BLOCKS) // check for Block Number + 1
 				blockCounts[blockMap[i]-1]++;
@@ -277,9 +278,11 @@ public class MesatImage implements Comparable<MesatImage>{
 		} finally {
 			try { if (saveFile != null) saveFile.close(); } catch (IOException e) { }
 		}
+		
+		saveAsBmp();
 	}
 	
-	public void saveAsPng() throws IOException {
+	public void saveAsBmp() throws IOException {
 		String toFileName = filename + ".bmp";
 		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
 			toFileName = Config.logFileDirectory + File.separator + toFileName;

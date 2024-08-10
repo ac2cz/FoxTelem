@@ -416,8 +416,13 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			picDate.setText("" + displayCaptureDate(imageIndex.get(selected).captureDate));
 			
 			int[] blockCounts = imageIndex.get(selected).getBlockByteNumbers();
-			for (int i=0; i< MesatImage.BLOCKS; i++)
-				picBlock[i].setText( "" + blockCounts[i]);
+			for (int i=0; i< MesatImage.BLOCKS; i++) {
+				if (blockCounts[i] > MesatImage.BLOCKS_FULL_LIMIT) {
+					picBlock[i].setText( "FULL");
+				} else {
+					picBlock[i].setText( "" + blockCounts[i]);
+				}
+			}
 		}
 	}
 
