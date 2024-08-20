@@ -18,3 +18,4 @@ mesat_power_out,94.205789268,-5.9941501322,0.07160461657,0.0001968708,0,0,MESAT1
 mesat_batt_temp,-50,1.294117647,0,0,0,0,MESAT1 Battery Temperature
 8dot4_volt_8_bit,0.001,0.032941,0,0,0,0,MESAT1 Battery Total Volts
 batsoc,543.347,-6.16946,0.017475,0,0,0,MESAT1 Battery Volts raw value to percent state of charge
+tlm_mod_reg1,-128,1,0,0,0,0,Put the modulator reg into dBm

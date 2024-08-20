@@ -104,7 +104,7 @@
 102,wod,hostBits31,1,st,STATUS_1_EQ_OK,MESAT1 Distro States,8,22,0,Distro Heartbeat,-
 103,wod,LMRAMstatus,8,-,1,AMSAT LTM Status,1,8,0,MRAM Status,TBD
 104,wod,ModuLO,8,-,1,AMSAT Transmitter,2,9,0,Modulator Reg 0,Modulator Register 0 - Local Oscillator
-105,wod,ModuGain,8,-,1,AMSAT Transmitter,2,10,0,Modulator Reg 1,Modulator Register 1 - Gain
+105,wod,ModuGain,8,dBm,tlm_mod_reg1|INT,AMSAT Transmitter,2,10,0,Modulator Reg 1,Modulator Register 1 - Gain
 106,wod,ModuPhaseOff,8,-,1,AMSAT Transmitter,2,11,0,Modulator Reg 5,Modulator Register 5 - Phase Offset
 107,wod,ModuMode,8,-,1,AMSAT Transmitter,2,12,0,Modulator Reg 8,Modulator Register 8 - Mode
 108,wod,com2spare4,8,-,0,NONE,0,0,0,com2spare4,spare
