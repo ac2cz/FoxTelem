@@ -683,7 +683,9 @@ public class FoxTelemMain {
 	public static void invokeGUI() {
 		
 		// Need to set the apple menu property in the main thread.  This is ignored on other platforms
-		System.setProperty("apple.laf.useScreenMenuBar", "true");
+/*	Comment out for now as java seems to be broken on the mac.  Try to pretend it is linux
+ * 	System.setProperty("apple.laf.useScreenMenuBar", "true");
+ * */
 		//System.setProperty("apple.awt.fileDialogForDirectories", "true");  // fix problems with the file chooser
 
 		Thread.setDefaultUncaughtExceptionHandler(new ExceptionHandler());

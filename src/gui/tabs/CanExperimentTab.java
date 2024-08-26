@@ -301,8 +301,10 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 		// Purge rows with the wrong reset uptime
 		ArrayList<String[]> rows = new ArrayList<String[]>();
 		for (int i=0; i<data.length; i++) {
+		
 			int r = Integer.parseInt(data[i][0]); // reset
 			long u = Long.parseLong(data[i][1]); // uptime
+			System.out.println("" + r + "/" + u + " " + Integer.parseInt(data[i][2]));
 			if (r == resets && u == uptime)
 				rows.add(data[i]);
 		}
@@ -377,7 +379,7 @@ public class CanExperimentTab extends ExperimentTab implements ItemListener, Run
 			// This returns SAMPLES packets and then we filter out the ones with the correct reset/uptime
 			// This is a bit of a hack.  We should likely have a seperate number to return.  This is arbitrarily the same as the number of
 			// payloads to display.
-			data = Config.payloadStore.getTableData(SAMPLES, fox.foxId, rad.resets, rad.uptime, RETURN_TYPE, REVERSE, canPktLayout.name);	
+			data = Config.payloadStore.getTableData(1000, fox.foxId, rad.resets, rad.uptime, RETURN_TYPE, REVERSE, canPktLayout.name);	
 			if (data != null && data.length > 0) {
 				parseCanPackets(data,canPacketRawTableModel, rad.resets, rad.uptime);
 			}

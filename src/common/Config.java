@@ -517,7 +517,7 @@ public class Config {
 		if (osName.indexOf("win") >= 0) {
 			OS = WINDOWS;
 		} else if (osName.indexOf("mac") >= 0) {
-			OS = MACOS;
+			OS = LINUX;
 		} else {
 			OS = LINUX;
 		}
