@@ -49,7 +49,7 @@ public class MesatImage implements Comparable<MesatImage>{
 	public static final int NO_INDEX = -1;
 	
 	static final int BLOCK_MASK     = 0xF;
-	static final int CHANNEL_OFFSET   = 3;
+	static final int CHANNEL_OFFSET   = 4;
 	static final int CHANNEL_MASK   = 0x7;
 	static final int INDEX_OFFSET   = 7;
 	static final int INDEX_MASK     = 0x1F;
