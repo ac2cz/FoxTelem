@@ -1,5 +1,6 @@
 package telemetry.mesat;
 
+import java.awt.Color;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.io.File;
@@ -62,15 +63,16 @@ public class MesatImage implements Comparable<MesatImage>{
 	public static final int CHANNELS     = 5;
 	static final int LEN     = 8;
 	static final int MAX_PKTS_IN_BLOCK = 24;
+	static final int SIZE = 256;
 	
 	public int id;
 	public int epoch;
 	public long fromUptime;
 	public String captureDate;
 	BufferedImage image;
-	int width = 256; // default size
-	int height = 256; 
-	byte[] bytes;
+	int width = SIZE; // default size
+	int height = SIZE; 
+	public byte[] bytes;
 	byte[] blockMap; // which bytes are populated.  We write the block that they came from into this array
 	//public int[] blockPkts; // How many bytes do we have in each block
 	String filename;
@@ -79,7 +81,7 @@ public class MesatImage implements Comparable<MesatImage>{
 	public int image_channel = NO_INDEX; // the channel from the multispectral camera
 	
 	String[] image_channels = {"c0", "c1", "c2", "c3", "c4"};
-	public String[] image_channels_desc = {
+	public static String[] image_channels_desc = {
 			"C0 - Red Cam1 (IR Filter) - 550-680nm", 
 			"C1 - Blue Cam2 (Yellow lens) - 480-600nm", 
 			"C2 - Blue Cam3 (Violet Lens) - 400-500nm", 
@@ -131,6 +133,31 @@ public class MesatImage implements Comparable<MesatImage>{
 		if (fileExists()) {
 			loadImage();
 		}
+	}
+	
+	public static BufferedImage getCompositeImage(MesatImage red_img, MesatImage green_img, MesatImage blue_img) {
+		BufferedImage image = new BufferedImage(SIZE, SIZE, BufferedImage.TYPE_INT_RGB); 
+
+		for (int x = 0; x < SIZE; x++) {
+			for (int y = 0; y < SIZE; y++) {
+				int pos = y * SIZE + x;
+				int r = 0,g = 0,b = 0;
+				
+				if (red_img != null)
+					r = (int)red_img.bytes[pos] & 0xff;
+				if (green_img != null)
+					g = (int)green_img.bytes[pos] & 0xff; 
+				if (blue_img != null)
+					b = (int)blue_img.bytes[pos] & 0xff;
+				Color pix = new Color(r,g,b);
+				image.setRGB(x, y, pix.getRGB());
+			}
+		}
+
+	//	  File outputFile = new File("/output.bmp");
+	//	  ImageIO.write(image, "bmp", outputFile);
+		  
+		  return image;
 	}
 	
 	public BufferedImage getImage() {

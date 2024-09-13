@@ -85,7 +85,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 	
 	Spacecraft fox;
 	int foxId = 0;
-
+	
 	int selectedThumb = 0;
 	MesatImage selectedImage;
 	
@@ -106,6 +106,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 	JTextField displayNumber2;
 	private JLabel lblImageNo;
 	private JLabel lblFromUptime;
+	private JCheckBox cbComposite;
 	private JTextField textImageNo;
 	private JTextField textFromUptime;
 	private JLabel lblFromReset;
@@ -298,7 +299,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		lblImageNo = new JLabel("   Image  ");
 		lblImageNo.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		bottomPanel.add(lblImageNo);
-		
+				
 		textImageNo = new JTextField();
 		bottomPanel.add(textImageNo);
 		textImageNo.setText(Integer.toString(0));
@@ -307,6 +308,10 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		textImageNo.addActionListener(this);
 		textImageNo.addFocusListener(this);
 		
+		cbComposite = new JCheckBox("Composite");
+		bottomPanel.add(cbComposite);
+		cbComposite.addItemListener(this);
+
 				
 		lblFromReset = new JLabel("   from Epoch  ");
 		lblFromReset.setFont(new Font("SansSerif", Font.PLAIN, 10));
@@ -418,28 +423,62 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		if (imageIndex == null) {
 			return;
 		}
+		MesatImage red = null;
+		MesatImage green = null;
+		MesatImage blue = null;
+
+		boolean showCompositeImage = cbComposite.isSelected();
+		
 		int selected = imageIndex.size() - clicked-1;
 		BufferedImage pic = null;
 		if (selected >= 0)
-			if (imageIndex != null)
-				if (selected != -1 && imageIndex.size() > selected && imageIndex.get(selected) != null)
-					pic = imageIndex.get(selected).getImage();
+			if (imageIndex != null) {
+				if (showCompositeImage && IMAGE_NO != 0) {
+					for (int i = 0; i < imageIndex.size(); i++) {
+						if (imageIndex.get(i).image_channel == 0)
+							red = imageIndex.get(i);
+						if (imageIndex.get(i).image_channel == 1)
+							green = imageIndex.get(i);
+						if (imageIndex.get(i).image_channel == 2)
+							blue = imageIndex.get(i);
+					}
+				}
+				if (showCompositeImage && IMAGE_NO != 0) {
+					pic = MesatImage.getCompositeImage(red, green, blue);
+				} else {
+					if (selected != -1 && imageIndex.size() > selected && imageIndex.get(selected) != null)
+						pic = imageIndex.get(selected).getImage();
+				}
+			}
 		if (pic != null) {
 			double ratio = (double)splitPaneHeight/(double)pic.getHeight();
 			BufferedImage dimg = CameraJpeg.scale(pic, ratio);
 			picture.setBufferedImage(dimg);
-			picReset.setText(""+imageIndex.get(selected).epoch);
-			picUptime.setText("" + imageIndex.get(selected).fromUptime);
-			picNumber.setText("" + imageIndex.get(selected).image_index);
-			picChannel.setText("" + imageIndex.get(selected).image_channels_desc[imageIndex.get(selected).image_channel]);
-			picDate.setText("" + displayCaptureDate(imageIndex.get(selected).captureDate));
-			
-			int[] blockCounts = imageIndex.get(selected).getBlockByteNumbers();
-			for (int i=0; i< MesatImage.BLOCKS; i++) {
-				if (blockCounts[i] > MesatImage.BLOCKS_FULL_LIMIT) {
-					picBlock[i].setText( "FULL");
-				} else {
-					picBlock[i].setText( "" + blockCounts[i]);
+			if (showCompositeImage && IMAGE_NO != 0) {
+				picReset.setText("various");
+				picUptime.setText("various");
+				picNumber.setText("" + imageIndex.get(selected).image_index);
+				picChannel.setText("0, 1, 2");
+				picDate.setText("various");
+
+				for (int i=0; i< MesatImage.BLOCKS; i++) {
+					picBlock[i].setText( "" +  (red.getBlockByteNumbers()[i] + red.getBlockByteNumbers()[i] + red.getBlockByteNumbers()[i]));
+				}
+
+			} else {
+				picReset.setText(""+imageIndex.get(selected).epoch);
+				picUptime.setText("" + imageIndex.get(selected).fromUptime);
+				picNumber.setText("" + imageIndex.get(selected).image_index);
+				picChannel.setText("" + imageIndex.get(selected).image_channels_desc[imageIndex.get(selected).image_channel]);
+				picDate.setText("" + displayCaptureDate(imageIndex.get(selected).captureDate));
+
+				int[] blockCounts = imageIndex.get(selected).getBlockByteNumbers();
+				for (int i=0; i< MesatImage.BLOCKS; i++) {
+					if (blockCounts[i] > MesatImage.BLOCKS_FULL_LIMIT) {
+						picBlock[i].setText( "FULL");
+					} else {
+						picBlock[i].setText( "" + blockCounts[i]);
+					}
 				}
 			}
 		}
@@ -553,6 +592,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 				this.selectedThumb = i;
 				displayPictureParams(selectedThumb);
 				selectThumb(i);
+				cbComposite.setSelected(false);
 				saveProperties();
 			}
 		}
@@ -608,6 +648,12 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			}
 			Config.save();
 			
+		} else if (source == cbComposite) {
+			if (IMAGE_NO != 0) {
+				loadThumbs();
+				displayPictureParams(selectedThumb);
+				repaint();
+			}
 		}
 
 		
