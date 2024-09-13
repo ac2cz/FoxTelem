@@ -180,7 +180,7 @@ public class MesatImageStore {
 		Config.payloadStore.mesatImageStore.setUpdatedImage(true); //////////////////// DOES NOT WORK!!  Need to check number of images too in the tab
 	}
 
-	public SortedMesatImageList getIndex(int id, int period, int fromReset, long fromUptime) {
+	public SortedMesatImageList getIndex(int id, int period, int fromReset, long fromUptime, int imageNo) {
 
 		int start = 0;
 		int end = 0;
@@ -197,13 +197,13 @@ public class MesatImageStore {
 		if (end < start) end = start;
 		if (start < 0) start = 0;
 		if (start > images.size()) start = images.size();
-		SortedMesatImageList results = new SortedMesatImageList(end-start);
-
+		SortedMesatImageList results = new SortedMesatImageList(end-start);  // the size is just a hint and not fixed like a true array
 
 		//int j = end-start-1;
 		for (int i=end-1; i>= start; i--) {
 			//System.out.println(rtRecords.size());
-			results.add(images.get(i));
+			if (imageNo == 0 || imageNo == images.get(i).image_index)
+				results.add(images.get(i));
 		}
 
 		return results;

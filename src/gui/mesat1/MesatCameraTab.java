@@ -104,7 +104,9 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 	JPanel rightHalf;
 
 	JTextField displayNumber2;
+	private JLabel lblImageNo;
 	private JLabel lblFromUptime;
+	private JTextField textImageNo;
 	private JTextField textFromUptime;
 	private JLabel lblFromReset;
 	private JTextField textFromReset;
@@ -112,6 +114,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 	public static int DEFAULT_START_RESET = 0;
 	public long START_UPTIME = DEFAULT_START_UPTIME;
 	public int START_RESET = DEFAULT_START_RESET;
+	public int IMAGE_NO = 0;
 //	JLabel picture;
 	ImagePanel picture;
 	
@@ -292,6 +295,19 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		bottomPanel.add(displayNumber2);
 		bottomPanel.add(displayNumber3);
 		
+		lblImageNo = new JLabel("   Image  ");
+		lblImageNo.setFont(new Font("SansSerif", Font.PLAIN, 10));
+		bottomPanel.add(lblImageNo);
+		
+		textImageNo = new JTextField();
+		bottomPanel.add(textImageNo);
+		textImageNo.setText(Integer.toString(0));
+
+		textImageNo.setColumns(8);
+		textImageNo.addActionListener(this);
+		textImageNo.addFocusListener(this);
+		
+				
 		lblFromReset = new JLabel("   from Epoch  ");
 		lblFromReset.setFont(new Font("SansSerif", Font.PLAIN, 10));
 		bottomPanel.add(lblFromReset);
@@ -327,36 +343,39 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			if (thumbnails[j] != null)
 				thumbnailsPanel.remove(thumbnails[j]);
 		
-		imageIndex = Config.payloadStore.mesatImageStore.getIndex(foxId, maxThumbnails, START_RESET, START_UPTIME);
+		imageIndex = Config.payloadStore.mesatImageStore.getIndex(foxId, maxThumbnails, START_RESET, START_UPTIME, IMAGE_NO);
 		if (imageIndex == null) return;
 		actualThumbnails = imageIndex.size();
 		
 		thumbnails = new MesatImageThumb[actualThumbnails];
 		
 		for (int i=0; i < actualThumbnails; i++) {
-			
-			if (imageIndex.get(actualThumbnails-i-1).fileExists()) {
-				//Log.println("Picture from: " + jpegIndex.get(i).fileName);
-				if (selectedImage != null)
-					if (imageIndex.get(actualThumbnails-i-1).compareTo(selectedImage) == 0) {
-						selectedThumb = i; // cache this
-					}
-				BufferedImage thumb = null;
-				thumb = imageIndex.get(actualThumbnails-i-1).getThumbnail(THUMB_X);
-				if (thumb != null) {
-					
-					if (thumbnails[i] == null)
-						thumbnails[i] = new MesatImageThumb();
-					thumbnails[i].setThumb(thumb, imageIndex.get(actualThumbnails-i-1).epoch, imageIndex.get(actualThumbnails-i-1).fromUptime
-							, imageIndex.get(actualThumbnails-i-1).image_index, imageIndex.get(actualThumbnails-i-1).image_channel);
-//					thumbnails[i].setIcon(new ImageIcon(thumb));
-					thumbnailsPanel.add(thumbnails[i]);
-					thumbnails[i].addMouseListener(this);
-					thumbnails[i].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
-					//DataBuffer buff = thumb.getRaster().getDataBuffer();
-					//int bytes = buff.getSize() * DataBuffer.getDataTypeSize(buff.getDataType()) / 8;
-					//Log.println("Loaded Thumb " + i + " size: " + bytes);
-				}	
+
+			if (IMAGE_NO == 0 || imageIndex.get(i).image_index == IMAGE_NO) {
+
+				if (imageIndex.get(actualThumbnails-i-1).fileExists()) {
+					//Log.println("Picture from: " + jpegIndex.get(i).fileName);
+					if (selectedImage != null)
+						if (imageIndex.get(actualThumbnails-i-1).compareTo(selectedImage) == 0) {
+							selectedThumb = i; // cache this
+						}
+					BufferedImage thumb = null;
+					thumb = imageIndex.get(actualThumbnails-i-1).getThumbnail(THUMB_X);
+					if (thumb != null) {
+
+						if (thumbnails[i] == null)
+							thumbnails[i] = new MesatImageThumb();
+						thumbnails[i].setThumb(thumb, imageIndex.get(actualThumbnails-i-1).epoch, imageIndex.get(actualThumbnails-i-1).fromUptime
+								, imageIndex.get(actualThumbnails-i-1).image_index, imageIndex.get(actualThumbnails-i-1).image_channel);
+						//					thumbnails[i].setIcon(new ImageIcon(thumb));
+						thumbnailsPanel.add(thumbnails[i]);
+						thumbnails[i].addMouseListener(this);
+						thumbnails[i].setBorder(new MatteBorder(3, 3, 3, 3, Color.GRAY));
+						//DataBuffer buff = thumb.getRaster().getDataBuffer();
+						//int bytes = buff.getSize() * DataBuffer.getDataTypeSize(buff.getDataType()) / 8;
+						//Log.println("Loaded Thumb " + i + " size: " + bytes);
+					}	
+				}
 			}
 		}
 		if (actualThumbnails > 0)
@@ -595,6 +614,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 	}
 
 	private void parseTextFields() {
+		/* Display last number of images */
 		String text = displayNumber2.getText();
 		try {
 			maxThumbnails = Integer.parseInt(text);
@@ -615,6 +635,8 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			
 		}
 		displayNumber2.setText(text);
+		
+		/* From Resets */
 		text = textFromReset.getText();
 		try {
 			START_RESET = Integer.parseInt(text);
@@ -628,6 +650,7 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 		}
 		textFromReset.setText(text);
 		
+		/* From Uptime */
 		text = textFromUptime.getText();
 		try {
 			START_UPTIME = Integer.parseInt(text);
@@ -640,6 +663,19 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			}
 		}
 		textFromUptime.setText(text);
+		
+		/* Filte by image */
+		text = textImageNo.getText();
+		try {
+			IMAGE_NO = Integer.parseInt(text);
+			if (IMAGE_NO < 0) IMAGE_NO = 0;
+			
+		} catch (NumberFormatException ex) {
+			if (text.equals("")) {
+				IMAGE_NO = 0;
+			}
+		}
+		textImageNo.setText(text);
 		
 		loadThumbs();
 		displayPictureParams(selectedThumb);
@@ -655,7 +691,8 @@ public class MesatCameraTab extends FoxTelemTab implements Runnable, MouseListen
 			
 		} else if (e.getSource() == this.textFromUptime) {
 			parseTextFields();
-			
+		} else if (e.getSource() == this.textImageNo) {
+			parseTextFields();
 		}
 		saveProperties();
 		
