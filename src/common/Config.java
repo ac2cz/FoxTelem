@@ -68,8 +68,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.12z6";
-	public static String VERSION = VERSION_NUM + " - 9 Sep 2024";
+	public static String VERSION_NUM = "1.12z7";
+	public static String VERSION = VERSION_NUM + " - 13 Sep 2024";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
@@ -191,10 +191,10 @@ public class Config {
     
     // Server
     public static int serverTxPeriod = 5; // time in 100 msec chunks
-    public static int serverRetryWaitPeriod = 100; // time in multiples of TxPeriod
+    public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod - remove from the saved file as this is not configurable by end user
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
-    public static String secondaryServer = "tlm.amsat.us";
+    public static String secondaryServer = "tlm.amsat.org"; // currently no secondary server so just retry the primary
     public static String webSiteUrl = "https://www.amsat.org/tlm";
     public static boolean sendToBothServers = false;
     
@@ -686,8 +686,8 @@ public class Config {
 		properties.setProperty("ftpFiles", Boolean.toString(ftpFiles));
 
 		// Server
-		properties.setProperty("serverTxPeriod", Integer.toString(serverTxPeriod));
-		properties.setProperty("serverRetryWaitPeriod", Integer.toString(serverRetryWaitPeriod));
+//		properties.setProperty("serverTxPeriod", Integer.toString(serverTxPeriod));
+//		properties.setProperty("serverRetryWaitPeriod", Integer.toString(serverRetryWaitPeriod));
 		properties.setProperty("uploadToServer", Boolean.toString(uploadToServer));
 		properties.setProperty("primaryServer", primaryServer);
 		properties.setProperty("secondaryServer", secondaryServer);
@@ -887,8 +887,8 @@ public class Config {
 		ftpFiles = Boolean.parseBoolean(getProperty("ftpFiles"));
 
 		// Server
-		serverTxPeriod = Integer.parseInt(getProperty("serverTxPeriod"));
-		serverRetryWaitPeriod = Integer.parseInt(getProperty("serverRetryWaitPeriod"));
+//		serverTxPeriod = Integer.parseInt(getProperty("serverTxPeriod"));
+//		serverRetryWaitPeriod = Integer.parseInt(getProperty("serverRetryWaitPeriod"));
 		uploadToServer = Boolean.parseBoolean(getProperty("uploadToServer"));
 		primaryServer = getProperty("primaryServer");
 		secondaryServer = getProperty("secondaryServer");
