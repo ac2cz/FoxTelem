@@ -189,7 +189,7 @@ public class Config {
     
     // Server
     public static int serverTxPeriod = 5; // time in 100 msec chunks
-    public static int serverRetryWaitPeriod = 100; // time in multiples of TxPeriod
+    public static int serverRetryWaitPeriod = 10; // time in multiples of TxPeriod
     static public boolean uploadToServer = false;
     public static String primaryServer = "tlm.amsat.org";
     public static String secondaryServer = "tlm.amsat.us";
@@ -684,8 +684,8 @@ public class Config {
 		properties.setProperty("ftpFiles", Boolean.toString(ftpFiles));
 
 		// Server
-		properties.setProperty("serverTxPeriod", Integer.toString(serverTxPeriod));
-		properties.setProperty("serverRetryWaitPeriod", Integer.toString(serverRetryWaitPeriod));
+//		properties.setProperty("serverTxPeriod", Integer.toString(serverTxPeriod));
+//		properties.setProperty("serverRetryWaitPeriod", Integer.toString(serverRetryWaitPeriod));
 		properties.setProperty("uploadToServer", Boolean.toString(uploadToServer));
 		properties.setProperty("primaryServer", primaryServer);
 		properties.setProperty("secondaryServer", secondaryServer);
@@ -885,8 +885,8 @@ public class Config {
 		ftpFiles = Boolean.parseBoolean(getProperty("ftpFiles"));
 
 		// Server
-		serverTxPeriod = Integer.parseInt(getProperty("serverTxPeriod"));
-		serverRetryWaitPeriod = Integer.parseInt(getProperty("serverRetryWaitPeriod"));
+//		serverTxPeriod = Integer.parseInt(getProperty("serverTxPeriod"));
+//		serverRetryWaitPeriod = Integer.parseInt(getProperty("serverRetryWaitPeriod"));
 		uploadToServer = Boolean.parseBoolean(getProperty("uploadToServer"));
 		primaryServer = getProperty("primaryServer");
 		secondaryServer = getProperty("secondaryServer");
