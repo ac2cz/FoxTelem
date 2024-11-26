@@ -10,6 +10,7 @@
 	<classpathentry kind="lib" path="lib/jna/jna-4.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/jna/jna-platform-4.1.0.jar"/>
 	<classpathentry kind="lib" path="lib/joda-time/1.6/joda-time-1.6.jar"/>
+	<classpathentry kind="lib" path="lib/jlargearrays/JLargeArrays-1.5.jar"/>
 	<classpathentry kind="lib" path="lib/jtransforms/JTransforms-3.0.jar"/>
 	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-windows-x86_64.jar"/>
 	<classpathentry kind="lib" path="lib/libusb/libusb4java-1.2.0-windows-x86.jar"/>
