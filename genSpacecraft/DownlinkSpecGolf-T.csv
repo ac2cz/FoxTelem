@@ -422,3 +422,12 @@ endif,,,,,,,,,,,,,,,,
 ,RTIHU2 Version Number,RT2SWVersion,16,Unsigned,uint8_t,INT,-,x,1120,140,70,35,General Info,1,17,0
 ,Fill to 32-bits,pad420,16,Unisgned,,0,-,x,1136,142,71,35.5,NONE,0,0,0
 END,,,,,,,,,1152,144,72,36,,,,
+"Structure:ADCSLogData_t, file:ADCSLogDataDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,Data,data,5168,Unsigned,uint8_t,0,-,Opaque data from radiation experiment,0,0,0,0,NONE,0,0,0
+END,,,,,,,,Totals:,5168,646,323,161.5,,,,
+"Structure:ADCSLog_t, file:ADCSLogDownlink.h",,,,,,,,,,,,,,,,
+//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
+,LogType,WODTimestampReset,16,Unsigned,uint16_t,1,-,ADCS Log Type,5168,646,323,161.5,ADCSLog,1,1,0
+,LogFrameNumber,WODTimestampUptime,32,Unsigned,,1,-,Log Frame Number,5184,648,324,162,ADCSLog,1,2,0
+END,,,,,,,,Totals:,5216,652,326,163,,,,
