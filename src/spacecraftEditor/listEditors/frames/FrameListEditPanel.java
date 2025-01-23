@@ -380,7 +380,9 @@ public class FrameListEditPanel extends JPanel implements MouseListener, ActionL
 				//rightPanel1.add(new Box.Filler(new Dimension(200,10), new Dimension(100,400), new Dimension(100,500)));
 				
 				if (sat.sourceFormat == null || sat.sourceFormat.length == 0 || sat.sourceFormat[parent.sourceFormatSelected] == null) {
-					Log.errorDialog("MISSING", "No Source Format defined.  Can't calculate lengths\n");
+					Log.errorDialog("MISSING", "For "+sat + " Source Format is missing or incorrect.  Can't calculate frame lengths\n"
+							+ "While not fatal, you are missing that diagnostic information in the editor.\n"
+							+ "Pick a valid source format on the paramaters tab.");
 				} else {
 					int headerLength = sat.sourceFormat[parent.sourceFormatSelected].getInt(TelemFormat.HEADER_LENGTH);
 					calculatedDataLength += headerLength;
