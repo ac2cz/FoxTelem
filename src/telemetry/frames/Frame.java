@@ -5,6 +5,9 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
@@ -415,6 +418,15 @@ public abstract class Frame implements Comparable<Frame> {
 		output.write(Integer.toString(bytes[bytes.length - 1]) + "\n");
 	}
 
+	public void saveBytes() throws IOException {
+		String rawFile = "raw" + File.separator + header.id + "_" + header.resets + "_" + header.uptime + "_" + header.type + "_raw_rame.dat";
+		if (!Config.logFileDirectory.equalsIgnoreCase("")) {
+			rawFile = Config.logFileDirectory + File.separator + rawFile;
+		} 
+		Path path = Paths.get(rawFile);
+		Files.write(path, bytes);
+	}
+	
 	// TODO - this is a duplicate of the code in ServerProcess run, which checks the STP header.  They should be combined.
 	/**
 	 * Static factory method that creates a frame from a file

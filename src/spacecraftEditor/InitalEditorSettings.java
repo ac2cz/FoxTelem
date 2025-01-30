@@ -23,6 +23,7 @@ import javax.swing.border.EmptyBorder;
 
 import common.Config;
 import common.Log;
+import common.Spacecraft;
 
 /**
  * 
@@ -104,9 +105,9 @@ public class InitalEditorSettings extends JDialog implements ActionListener, Win
 		addLabel("It looks like this is the first time you have run the editor. You must choose the directories where the files and data are stored", textPanel);
 		addLabel(" ", textPanel);
 		
-		addLabel("The MASTER folder holds the spacecraft directory.  This is where the spacecraft MASTER files are stored. Don't choose the ",textPanel);
-		addLabel("actual 'spacecraft' folder, choose the folder above it.  This is usually where FoxTelem is installed, but you can edit spacecraft ", textPanel);
-		addLabel("files in another directory if you wish.  ", textPanel);
+		addLabel("The MASTER folder holds the spacecraft directory.  This is where the spacecraft MASTER files are stored.  ",textPanel);
+		addLabel("This is usually the spacecraft directory where FoxTelem is installed, but you can edit spacecraft ", textPanel);
+		addLabel("files in another directory if you wish.  But note that requires copying all the needed files to that folder.", textPanel);
 		addLabel(" ", textPanel);
 		addLabel("You must also choose a working directory to store runtime files and keep track of the loaded spacecraft. FoxTelem ", textPanel);
 		addLabel("calls this the 'log files directory'.  Usually it is different to the directory where the MASTER spacecraft files are stored.", textPanel);
@@ -153,7 +154,7 @@ public class InitalEditorSettings extends JDialog implements ActionListener, Win
 		JLabel lblDisplayModuleFont = new JLabel("MASTER files directory");
 		lblDisplayModuleFont.setBorder(new EmptyBorder(5, 2, 5, 5) );
 		northpanel.add(lblDisplayModuleFont, BorderLayout.WEST);
-		txtMasterFileDirectory = new JTextField(System.getProperty("user.dir"));
+		txtMasterFileDirectory = new JTextField(System.getProperty("user.dir") + File.separator + Spacecraft.SPACECRAFT_DIR);
 		northpanel.add(txtMasterFileDirectory, BorderLayout.CENTER);
 		txtMasterFileDirectory.setColumns(30);
 		

@@ -49,8 +49,8 @@ import telemetry.SatPayloadStore;
  */
 public class SpacecraftEditorWindow extends JFrame implements WindowListener, ActionListener {
 	
-	public static final String VERSION_NUM = "1.02b";
-	public static final String VERSION = VERSION_NUM + " - 23 Jan 2025";
+	public static final String VERSION_NUM = "1.02c";
+	public static final String VERSION = VERSION_NUM + " - 24 Jan 2025";
 	public static final String MANUAL = "amsat_editor_manual.pdf";
 	public static final String HANDBOOK = "amsat_telemetry_designers_handbook.pdf";
 

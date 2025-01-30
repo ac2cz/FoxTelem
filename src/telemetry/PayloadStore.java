@@ -55,6 +55,7 @@ import common.Spacecraft;
  */
 public class PayloadStore extends FoxPayloadStore implements Runnable {
 	public static final String DB_NAME = "FOXDB";
+	public static final String RAW_DIR_NAME = "raw";
 	public static final String DB_VERSION = "1.00";
 	public static final int DATA_COL = 0;
 	public static final int UPTIME_COL = 1;
@@ -107,6 +108,8 @@ public class PayloadStore extends FoxPayloadStore implements Runnable {
 			}
 			
 		}
+		makeDir(dir + RAW_DIR_NAME);
+		
 		if (Log.showGuiDialogs) {
 			Config.fileProgress = new ProgressPanel(MainWindow.frame, loadMessage, false);
 			Config.fileProgress.setVisible(true);

@@ -67,8 +67,8 @@ public class Config {
 	
 	public static ProgressPanel fileProgress;
 	
-	public static String VERSION_NUM = "1.13g2";
-	public static String VERSION = VERSION_NUM + " - 23 Jan 2025";
+	public static String VERSION_NUM = "1.13h";
+	public static String VERSION = VERSION_NUM + " - 30 Jan 2025";
 	public static String propertiesFileName = "FoxTelem.properties"; // this will be the name if setup() is not called with a different name
 	
 	public static final String WINDOWS = "win";
@@ -309,6 +309,7 @@ public class Config {
 	
 	//V1.13
 	static public boolean ignoreSpacecraftLoadErrors = false; // useful in the editor.  Is not saved.
+	static public boolean storeRawByteFrames = false; // Save copies of the raw bytes in files on disk
 	
 	
 	public static boolean setup(String propertiesFileName) { 
@@ -797,7 +798,10 @@ public class Config {
 		properties.setProperty("editorSpacecraftDir", editorSpacecraftDir);
 		properties.setProperty("python", python);
 		properties.setProperty("payloadHeaderGenScript", payloadHeaderGenScript);
-		
+
+		// V1.13
+		properties.setProperty("storeRawByteFrames", Boolean.toString(storeRawByteFrames));
+
 		store();
 	}
 	
@@ -1004,7 +1008,10 @@ public class Config {
 		editorSpacecraftDir = getProperty("editorSpacecraftDir");
 		python = getProperty("python");
 		payloadHeaderGenScript = getProperty("payloadHeaderGenScript");
-		
+
+		// V1.13
+		storeRawByteFrames = Boolean.parseBoolean(getProperty("storeRawByteFrames"));
+
 		} catch (NumberFormatException nf) {
 			catchException();
 		} catch (NullPointerException nf) {

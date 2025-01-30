@@ -50,6 +50,7 @@ public class OptionsPanel extends JPanel implements ItemListener {
 	
 	JCheckBox cbFtpFiles;
 	JCheckBox cbFlipBits;
+	JCheckBox storeRawFrames;
 	JCheckBox debugFrames;
 	JCheckBox debugFieldValues;
 	JCheckBox debugCameraFrames;
@@ -99,26 +100,27 @@ public class OptionsPanel extends JPanel implements ItemListener {
 		logging = addCheckBox("Enable Logging", "Write debug information to a log file in the same folder as the decoded payloads", Log.getLogging() );
 	//	recoverClock = addCheckBox("Recover Clock", Config.recoverClock );
 		//recoverClock.setEnabled(false);
+		storeRawFrames = addCheckBox("Store Raw Frames", "Save a complete copy of the raw byte frame on disk for debugging", Config.storeRawByteFrames );
 		debugFrames = addCheckBox("Debug Frames", "Print information about the decoded frames into the debug log", Config.debugFrames );
 		debugFieldValues = addCheckBox("Debug Fields", "Write all of the decoded fields in the payloads to the debug log", Config.debugFieldValues );
 		debugCameraFrames = addCheckBox("Debug Camera Frames", "Write debug info for camera frames", Config.debugCameraFrames );
 		debugBits = addCheckBox("Debug Bits", "Write very verbose debug information at the bit level", Config.debugBits );
 		debugBytes = addCheckBox("Debug Bytes", "Write the hex bytes in a frame when it is decoded", Config.debugBytes );
 		debugValues = addCheckBox("Debug Values", "Display Debug information for bit values on the audio screen", Config.debugValues );
-		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
-		useRSfec.setEnabled(false);
-		useRSerasures = addCheckBox("Use RS Erasures", "Use erasurs in the calculation of the RS decode", Config.useRSerasures );
-		useRSerasures.setEnabled(false);
+//		useRSfec = addCheckBox("Use RS FEC", "Use the RS Decoder", Config.useRSfec );
+//		useRSfec.setEnabled(false);
+//		useRSerasures = addCheckBox("Use RS Erasures", "Use erasurs in the calculation of the RS decode", Config.useRSerasures );
+//		useRSerasures.setEnabled(false);
 		calculateBPSKCrc = addCheckBox("Calculate BPSK Crc", "Calculate a CRC Checksum on BPSK GOLF frames and reject if they fail", Config.calculateBPSKCrc );
 //		debugClock = addCheckBox("Debug Clock", "Write clock changes to the debug log from the clock recovery algorithm", Config.debugClock );
-		debugRS = addCheckBox("Debug RS", "Print verbose debugging info for the RS Decoder", Config.debugRS );
+//		debugRS = addCheckBox("Debug RS", "Print verbose debugging info for the RS Decoder", Config.debugRS );
 //		storePayloads = addCheckBox("Store Payloads", Config.storePayloads );
 //		highSpeed = addCheckBox("Decode 9k6", Config.highSpeed );
 	//	useAGC = addCheckBox("Use AGC", Config.useAGC );
-		debugGlitches = addCheckBox("Debug missed audio", "Write to debug log when significant audio is being missed from the soundcard", Config.debugAudioGlitches );
-		debugAudioLevels = addCheckBox("Debug audio levels", "Allow more accurate measurement of the received audio levels", Config.debugAudioLevels );
-		debugSignalFinder = addCheckBox("Debug Find Signal", "Write debug to show the workings of the signal finder and the pass measurements", Config.debugSignalFinder );
-		debugCalcDopplerContinually = addCheckBox("Debug (Calc) Doppler Continually", "Calculate doppler continually for debugging.  Calculates first sat in the priority order.", Config.debugCalcDopplerContinually );
+//		debugGlitches = addCheckBox("Debug missed audio", "Write to debug log when significant audio is being missed from the soundcard", Config.debugAudioGlitches );
+//		debugAudioLevels = addCheckBox("Debug audio levels", "Allow more accurate measurement of the received audio levels", Config.debugAudioLevels );
+//		debugSignalFinder = addCheckBox("Debug Find Signal", "Write debug to show the workings of the signal finder and the pass measurements", Config.debugSignalFinder );
+//		debugCalcDopplerContinually = addCheckBox("Debug (Calc) Doppler Continually", "Calculate doppler continually for debugging.  Calculates first sat in the priority order.", Config.debugCalcDopplerContinually );
 		useNativeFileChooser = addCheckBox("Use Native File Chooser", "Use the OS native file chooser", Config.useNativeFileChooser );
 		//squelchAudio = addCheckBox("Squelch Decoder", Config.squelchAudio );
 		//realTimePlayback = addCheckBox("Slow Down Playback", Config.realTimePlaybackOfFile );
@@ -311,6 +313,14 @@ public class OptionsPanel extends JPanel implements ItemListener {
 			Config.save();
 		}
 		*/
+		if (source == storeRawFrames) { 
+			if (e.getStateChange() == ItemEvent.DESELECTED) {
+				Config.storeRawByteFrames = false;
+			} else {
+				Config.storeRawByteFrames = true;
+			}
+			Config.save();
+		}
 		if (source == debugFrames) { 
 			if (e.getStateChange() == ItemEvent.DESELECTED) {
 				Config.debugFrames = false;

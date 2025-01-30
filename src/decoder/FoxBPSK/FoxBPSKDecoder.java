@@ -87,6 +87,14 @@ public abstract class FoxBPSKDecoder extends Decoder {
 					addMeasurements(header.id, newReset, header.uptime, decodedFrame, decodedFrame.rsErrors, decodedFrame.rsErasures);
 				}
 				Config.totalFrames++;
+				if (Config.storeRawByteFrames) {
+					try {
+						decodedFrame.saveBytes();
+					} catch (IOException e) {
+						// We ignore this as it is not fatal to the actual decoder and is considered logging..
+						e.printStackTrace(Log.getWriter());
+					}
+				}
 				if (Config.uploadToServer)
 					try {
 						Config.rawFrameQueue.add(decodedFrame);
