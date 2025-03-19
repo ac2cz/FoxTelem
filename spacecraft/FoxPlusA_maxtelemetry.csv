@@ -1,0 +1,60 @@
+59,TYPE,FIELD,BITS,UNIT,CONVERSION,MODULE,MODULE_NUM,MODULE_LINE,LINE_TYPE,SHORT_NAME,DESCRIPTION
+0,maxDownlink,ReflectedPwr,8,mW,icr_8bit_volts|txv2_ref_pwr,NONE,2,4,3,Ref Power,Reflected Power from the Transmit Antenna
+1,maxDownlink,ICR3VProt,8,V,icr_8bit_volts,NONE,3,3,3,3.3V Prot,ICR 3V Protected
+2,maxDownlink,ICRTemp,8,C,8_bit_temp,NONE,3,4,3,ICR Temp,ICR Temperature
+3,maxDownlink,gTemp,8,C,8_bit_temp,NONE,4,10,3,Gyro Temp,Gyro temperature
+4,maxDownlink,Xspin,8,dps,8_bit_spin,NONE,4,1,3,X Rotation,Angular Velocity around X Axis
+5,maxDownlink,Yspin,8,dps,8_bit_spin,NONE,4,2,3,Y Rotation,Angular Veolcity around Y Axis
+6,maxDownlink,Zspin,8,dps,8_bit_spin,NONE,4,3,3,Z Rotation,Angular Veolcity around Z Axis
+7,maxDownlink,Xaccel,8,g,8_bit_accel,NONE,4,4,3,X Acceleration,Acceleration along X axis
+8,maxDownlink,Yaccel,8,g,8_bit_accel,NONE,4,5,3,Y Acceleration,Acceleration along Y  axis
+9,maxDownlink,Zaccel,8,g,8_bit_accel,NONE,4,6,3,Z Acceleration,Acceleration along Z axis
+10,maxDownlink,Xmag,8,uT,8_bit_mag,NONE,4,7,3,X Magnetometer,Angular Veolcity around X Axis
+11,maxDownlink,Ymag,8,uT,8_bit_mag,NONE,4,8,3,Y Magnetometer,Angular Veolcity around Y Axis
+12,maxDownlink,Zmag,8,uT,8_bit_mag,NONE,4,9,3,Z Magnetometer,Angular Veolcity around Z Axis
+13,maxDownlink,hostCANTemp0,8,C,8_bit_temp|INVALID_BYTE,NONE,6,4,3,Battery 1 Temp,Host Temp 1
+14,maxDownlink,hostCANTemp1,8,C,8_bit_temp|INVALID_BYTE,NONE,6,5,3,Battery 2 Temp,Host Temp 2
+15,maxDownlink,hostCANTemp2,8,C,8_bit_temp|INVALID_BYTE,NONE,6,6,3,Battery 3 Temp,Host Temp 3
+16,maxDownlink,hostCANTemp3,8,C,8_bit_temp|INVALID_BYTE,NONE,6,7,3,Battery 4 Temp,Host Temp 4
+17,maxDownlink,hostCANTemp4,8,C,8_bit_temp|INVALID_BYTE,NONE,6,8,3,Battery 5 Temp,Host Temp 5
+18,maxDownlink,hostTlm1,8,V,twenty-six_volt_8_bit,NONE,7,7,3,Plus Y Volts,Host Analog 1
+19,maxDownlink,busV,8,V,golf-t_bus_voltage,NONE,1,2,3,Bus Voltage,Vbatt Bus voltage
+20,maxDownlink,TxPAi,8,mA,golf-t_tx_current,NONE,2,1,3,PA Current,Transmit power amplifier current
+21,maxDownlink,TxTemp,8,C,8_bit_temp,NONE,2,2,3,TX Temperature,Transmitter card temperature
+22,maxDownlink,FwdPower,8,mW,icr_8bit_volts|txv2_fwd_pwr|dBm_to_mW,NONE,2,3,3,Fwd Power,Receiver card temperature
+23,maxDownlink,rssi,8,dBm,icr_8bit_volts|icrv2_rssi ,NONE,3,1,3,ICR RSSI,Received Signal Strength Indication
+24,maxDownlink,MinusYVolts,8,V,INT,NONE,0,0,0,Minus Y Volts,Left (-Y) deployable panel Voltage
+25,maxDownlink,MinusXVolts,8,V,INT,NONE,0,0,0,Minus X Volts,Anti-sun Fixed Panel Voltage
+26,maxDownlink,XVolts,8,V,INT,NONE,0,0,0,Plus X Volts,Sun-side Fixed Panel Voltage
+27,maxDownlink,YVolts,8,V,INT,NONE,0,0,0,Plus Y Volts,Right (+Y) Deployable Panel Voltage
+28,maxDownlink,MinusYTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,4,3,Minus Y Temp,Left (-Y) deployable panel Voltage
+29,maxDownlink,MinusXTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,2,3,Minus X Temp,Anti-sun Fixed Panel Voltage
+30,maxDownlink,XTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,1,3,Plus X Temp,Sun-side Fixed Panel Voltage
+31,maxDownlink,YTemp,8,C,8_bit_temp|INVALID_BYTE,NONE,7,3,3,Plus Y Temp,Right (+Y) Deployable Panel Voltage
+32,maxDownlink,LtVGACtl,8,V,icr_8bit_volts,NONE,2,5,3,VGA Control,Control Voltage to the Variable Gain Amplifier (VGA)
+33,maxDownlink,hostTlm2,8,V,twenty-six_volt_8_bit,NONE,7,8,3,Minus Y Volts,Host Analog 2
+34,maxDownlink,hostTlm3,8,V,twenty-six_volt_8_bit,NONE,7,5,4,Plus X Volts,Host Analog 3
+35,maxDownlink,IHUcpuTemp,8,C,8_bit_temp,NONE,1,1,3,IHU Temp,Internal Temperature of IHU
+36,maxDownlink,moduTemp,8,C,8_bit_temp,NONE,2,7,3,Modulator Temp,Internal Temperature of  the telemetry modulator
+37,maxDownlink,hostTlm4,8,V,twenty-six_volt_8_bit,NONE,7,6,3,Minus X Volts,Host Analog 4
+38,maxDownlink,hostCANVolts0,8,V,10_volt_8_bit,NONE,6,1,3,Battery Voltage,Host Bat Volts 1
+39,maxDownlink,hostCANVolts1,8,-,mesat_batt_capacity,NONE,6,2,3,Battery Capacity,Host Bat Volts 2
+40,maxDownlink,hostCANVolts2,8,-,INT,NONE,0,0,0,Unused 2,Host Bat Volts 3
+41,maxDownlink,hostCANVolts3,8,-,INT,NONE,6,3,3,Battery Current,Host Bat Volts 4
+42,maxDownlink,hostCANVolts4,8,-,INT,NONE,0,0,0,Unused 4,Host Bat Volts 5
+43,maxDownlink,hostCANVolts5,8,-,INT,NONE,0,0,0,Unused 5,Host Bat Volts 6
+44,maxDownlink,hostCANVolts6,8,-,INT,NONE,0,0,0,UnusedV6,Host Voltage 7
+45,maxDownlink,hostI2cTemp0,8,C,8_bit_temp|INVALID_BYTE,NONE,0,0,0,Unused  6,Interior Temp
+46,maxDownlink,hostI2cTemp1,8,C,8_bit_temp|INVALID_BYTE,NONE,9,1,3,BckBtmLft Temp,Interior Temp
+47,maxDownlink,hostI2cTemp2,8,C,8_bit_temp|INVALID_BYTE,NONE,9,2,3,Front Ctr Temp,Interior Temp
+48,maxDownlink,hostI2cTemp3,8,C,8_bit_temp|INVALID_BYTE,NONE,9,3,3,BckTopLft Temp,Interior Temp
+49,maxDownlink,hostI2cTemp4,8,C,8_bit_temp|INVALID_BYTE,NONE,9,4,3,FrontBtmLft Temp,Interior Temp
+50,maxDownlink,hostI2cTemp5,8,C,8_bit_temp|INVALID_BYTE,NONE,9,5,3,BckTopRgt Temp,Interior Temp
+51,maxDownlink,hostCANTemp5,8,C,8_bit_temp|INVALID_BYTE,NONE,6,9,3,Battery 6 Temp,Host Bat Temp 6
+52,maxDownlink,hostCANTemp11,8,C,8_bit_temp|INVALID_BYTE,NONE,9,6,3,Pi Temp,Host OBC Temp
+53,maxDownlink,commonSpare2,8,-,0,NONE,0,0,0,commonSpare2,spare
+54,maxDownlink,commonSpare3,16,-,0,NONE,0,0,0,commonSpare3,spare
+55,maxDownlink,maxTimestampUptime,32,s,0,NONE,0,0,0,Max Last Change Sec,Timestamp Resets
+56,maxDownlink,maxTimestampEpoch,16,-,TIMESTAMP maxTimestampEpoch maxTimestampUptime,Min Max Info,5,1,0,Max Last Change,Timestamp uptime
+57,maxDownlink,maxCRCerror,8,-,36,Min Max Info,5,4,0,Max CRC Error Count,CRC Error for the Max Payload
+58,maxDownlink,pad168,8,-,0,NONE,0,0,0,Filler,Make same length as WOD
