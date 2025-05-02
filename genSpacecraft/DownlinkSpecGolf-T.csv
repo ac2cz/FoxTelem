@@ -3,7 +3,7 @@
 //,into a formal document defining the downlink more completely.,,,,,,,,,,,,,,,
 //,The format must be as follows: 1) A comment (// in column A) can appear anywhere.  2) A structure must start with a column A that has,,,,,,,,,,,,,,,
 //,"""Structure:name,file:filename"".  The structure must end with ""END"". For flight software, the yellow highlighted columns are used.",,,,,,,,,,,,,,,
-Version: 6.7,,12/08/20,,,,,,,,,,,,,,
+Version: 6.8,,05/02/25,,,,,,,,,,,,,,
 "Structure: header_t, file:headerDownlink.h",,,,,,,,,,,,,,,,
 //,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
 ,FoxID,satelliteID,8,Unsigned,,0,-,LS3Bits = 6 for this format.  ,0,0,0,0,NONE,0,0,0
@@ -221,12 +221,6 @@ END,,,,,,,,Totals:,832,104,52,26,,,,
 ,NONE,pad219,8,,,0,-,TBD,472,,,,NONE,0,0,0
 END,,,,,,,,Totals:,480,60,30,15,,,,
 ,,,,,,,,,,,,,,,,
-"Structure:ragnarok_t, file:ragDownlink.h",,,,,,,,,,,,,,,,
-//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
-,ADAC Data,data,672,Unsigned,uint8_t,0,-,Opaque data from ADAC experiment,0,0,0,0,NONE,0,0,0
-END,,,,,,,,Totals:,672,84,42,21,,,,
-,,,,,,,,,,,,,,,,
-,,,,,,,,,,,,,,,,
 "Structure:radWodSpecific_t, file:radWodSpecificDownlink.h",,,,,,,,,,,,,,,,
 //,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
 ,Uptime,WODTimestampUptime,32,Unsigned,,1,sec,Time Whole Orbit Data was collected,480,60,30,15,WOD,13,2,0
@@ -235,13 +229,6 @@ END,,,,,,,,Totals:,672,84,42,21,,,,
 ,NONE,pad233,8,,,0,-,TBD,536,67,33.5,16.75,NONE,0,0,0
 END,,,,,,,,Totals:,544,68,34,17,NONE,0,0,0
 ,,,,,,,,,,,,,,,,
-"Structure:ragWodSpecific_t,file:ragWodSpecificDownlink.h ",,,,,,,,,,,,,,,,
-//,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
-,WOD Uptime,WODTimestampUptime,32,Unsigned,,1,s,Time Whole Orbit Data was collected,672,84,42,21,WOD,13,2,0
-,WOD Reset Count,WODTimestampReset,16,Unsigned,uint16_t,1,-,Time Whole Orbit Data was collected,704,88,44,22,WOD,13,1,0
-,NONE,WodCRCError,8,,,0,-,CRC Error for ADAC WOD,720,90,45,22.5,WOD,13,3,0
-,NONE,pad241,8,,,0,-,TBD,728,91,45.5,22.75,NONE,0,0,0
-END,,,,,,,,Totals:,736,92,46,23,,,,
 "Structure:infrequentDownlink_t,file:infrequentDownlink.h",,,,,,,,,,,,,,,,
 //,Field Name,Code Name,Size (Bits),Type,C Type,Conversion,Label,Description,Bit Offset,Byte Offset,Short Offset,Long offset,Module,Module_num,Module_Line,Line_Type
 ,Secs Since Launch,missionUptime,32,Unsigned,,INT,-,Continuous seconds countup from start,0,0,0,0,General Info,1,12,0
