@@ -63,6 +63,8 @@ public class DensityPlotPanel extends GraphCanvas {
 		
 	}
 	public void paintComponent(Graphics gr) {
+		lock.lock();
+		try {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		
 		if (!checkDataExists()) return;
@@ -218,7 +220,8 @@ public class DensityPlotPanel extends GraphCanvas {
 
 				//
 			}
-
-
+		} finally {
+			lock.unlock();
+		}
 	}
 }

@@ -138,6 +138,8 @@ public class EarthPlotPanel extends GraphCanvas {
      * 
      */
 	public void paintComponent(Graphics gr) {
+		lock.lock();
+		try {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		
 		topBorder = 0;
@@ -347,8 +349,9 @@ public class EarthPlotPanel extends GraphCanvas {
 				}
 				//
 			}
-
-
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	private Color getColorGradient(double minValue, double maxValue, double val, int range) {

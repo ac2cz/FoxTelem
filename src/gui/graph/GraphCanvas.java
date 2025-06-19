@@ -5,6 +5,8 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.text.DecimalFormat;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import common.Config;
 import common.Spacecraft;
@@ -47,6 +49,7 @@ import uk.me.g4dpz.satellite.SatPos;
  */
 @SuppressWarnings("serial")
 public abstract class GraphCanvas extends MapPanel {
+	protected final Lock lock = new ReentrantLock(true);
 	Spacecraft fox;
 	double[][][] graphData = null;
 	double[][][] graphData2 = null;
@@ -89,6 +92,8 @@ public abstract class GraphCanvas extends MapPanel {
 		if (graphFrame.fieldName2 != null)
 			totalFields += graphFrame.fieldName2.length;
 		boolean reverse=false;
+		lock.lock();
+		try {
 		graphData = new double[graphFrame.fieldName.length][][];
 		for (int i=0; i<graphFrame.fieldName.length; i++) {
 			if (graphFrame.SAMPLES > showDialogThreshold)
@@ -136,7 +141,9 @@ public abstract class GraphCanvas extends MapPanel {
 			String conversion2name = graphFrame.layout.getConversionNameByName(graphFrame.fieldName2[0]);
 			graphFrame.lastConversion2 = fox.getConversionByName(Conversion.getLastConversionInPipeline(conversion2name));
 		}
-		
+		} finally {
+			lock.unlock();
+		}
 		if (graphFrame.SAMPLES > showDialogThreshold)
 			fileProgress.updateProgress(100);
 		

@@ -166,6 +166,8 @@ public class LinePlotPanel extends GraphCanvas {
 	 * drawline x1,y1,x2,y2
 	 */
 	public void paintComponent(Graphics gr) {
+		lock.lock();
+		try {
 		super.paintComponent( gr ); // call superclass's paintComponent  
 		
 		if (!checkDataExists()) return;
@@ -327,8 +329,9 @@ public class LinePlotPanel extends GraphCanvas {
 		
 		// draw the key
 		drawLegend(graphHeight, graphWidth); // FIXME - need to work out where to plot the key when the axis is on top
-				
-
+		} finally {
+			lock.unlock();
+		}
 	}
 
 	private void plotAlternateLabels(int zeroPoint, int graphHeight) {
